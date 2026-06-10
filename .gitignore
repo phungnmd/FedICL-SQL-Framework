@@ -1,0 +1,11 @@
+# Code lives in its own git repo (releasable standalone) — see README "Two-repo layout"
+fedicl-sql/
+
+.DS_Store
+.pytest_cache/
+.vscode/
+
+# secrets — never commit
+PRIVATE.txt
+*.key
+.env
