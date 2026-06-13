@@ -17,6 +17,13 @@ Entry template:
 
 ---
 
+## 2026-06-13 (c) — B3 trained: 49.5%, fix fully validated
+
+- did: full B3 centralized-FT on Colab T4 (after fixing a CPU→GPU runtime trap — `device:cpu` had it crawling): train 5744 pooled-private, 1 epoch, eval held_out[:200].
+- got: **B3 EX=49.5% (99/200)**, EM=33.0%, eval 1.26s/q. Trained went **25.5%→49.5%** — the recipe fix (chat-template + cosine + batch-16) validated end-to-end; **beats old_train adapter (47.5%)** and clears the 40% base floor by +9.5. (B3 fixed §6 push cell typo: escaped quote `retry\"`.)
+- next: no-teacher federation baselines (`slm_only`×3 + `gold_ce` FedAvg) vs this 49.5% ceiling; teacher groq shards (2 keys) → merge → ⭐ make-or-break.
+- Q: how far does FedAvg(gold) trail centralized B3? (= the federation cost, RQ1).
+
 ## 2026-06-13 (b) — base floor verifies the fix
 
 - did: ran `p0_base_holdout` (base Qwen2.5-1.5B, no adapter, held_out[:200], k=0) on Mac MPS to verify the chat-template fix on real data.
