@@ -127,8 +127,17 @@ Every run that could appear in the paper:
 - Each run folder contains `summary.json` and `rows.csv` with stable column names so results concatenate across experiments.
 - `summary.json` must include `experiment`, `model`, `stage`, `seed`, `time_average`, and `gpu_vram`; `save_results` enforces these fields.
 - `run_date`, `git_sha`, and `run_id` are auto-stamped. Include the executed config plus experiment metrics such as EX, EM, communication cost, alpha, k, and dataset where applicable.
-- `experiments/RUNS.csv` is the append-only run ledger.
-- `experiments/REGISTRY.md` maps paper artifact -> experiment -> research question -> status. Add a registry row before starting a new experiment.
+- `experiments/RUNS.csv` is the append-only run ledger. It carries `device` (`cuda` | `mps` | `cpu`) per run — **never compare numbers across devices in one table** (Apple-Silicon fp16 ≠ CUDA 4-bit QLoRA); keep one compute stack per comparison set.
+- `experiments/REGISTRY.md` maps paper artifact -> experiment -> research question -> status, and holds the **cost tally** (external $ not auto-captured). Add a registry row before starting a new experiment.
+
+**Working notes (`paper/notes/`) — three layers by change-frequency:**
+
+- **Spec (rarely changes):** `detailed_plan.md` (what to build) + `fig1_architecture.md` (the mechanism). Reference — read occasionally; do **not** track day-to-day progress inside them.
+- **Daily driver:** `todo.md` ▶️ Runbook (the linear step checklist, tick boxes) + `LAB_LOG.md` (dated, **append newest on top**: did / got / next / Q). Write the log every session; read its top entry to resume — never re-parse the spec.
+- **Numbers:** `RUNS.csv` (auto) + per-run `summary.json`; headline + the *story* mirrored into `LAB_LOG.md`. Do **not** hand-maintain a parallel results table — that drifts.
+- **Risk register:** `problems_and_solutions.md` (problem → solution → fallback).
+
+**Compute tiers:** Mac M4 Pro (MPS, fp16) = dev + all `$0` no-teacher baselines + PoC; Colab Pro GPU = faster/heavier PoC + 4-bit QLoRA; paid A100-class = Stage-B headline only; teacher 72B = paid API regardless. bitsandbytes 4-bit is CUDA-only.
 
 **Stage discipline:**
 - `smoke`: mechanical check that the pipeline runs.
