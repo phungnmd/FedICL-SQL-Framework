@@ -17,6 +17,46 @@ Entry template:
 
 ---
 
+## 📊 Scoreboard (glance) — split `3c-a1.0-s0`, n=200, seed 0, poc
+
+Headline EX. Raw rows: `fedicl-sql/experiments/RUNS.csv`. Keep this table updated as arms land.
+
+**Matched pair — held_out[:200], k=0, cuda (apples-to-apples):**
+
+| arm | what | EX | EM | status |
+|---|---|---|---|---|
+| `p0_base_holdout` | base Qwen, **no training** (floor) | **40.5%** | 8.5% | ✅ cuda |
+| `b3_centralized_ft` | trained, **all data pooled** (ceiling) | **49.5%** | 33.0% | ✅ cuda |
+
+**Training gain: +9.0 EX** (40.5 → 49.5, same cuda stack). Beats old_train adapter (47.5%).
+
+**Reference floors (different eval/setting):**
+
+| arm | what | EX | note |
+|---|---|---|---|
+| `p0_eval50` | base + 3-shot ICL, Spider dev | 44.5% | mps, k=3 |
+| old_train (external) | full-Spider LoRA, chat-template | 47.5% | T4, dev[:200] |
+
+**Federation arms (RQ1 ⭐ make-or-break) — PENDING:**
+
+| arm | what | EX | status |
+|---|---|---|---|
+| `slm_only` ×3 | each client alone, own data | — | ⏳ next ($0) |
+| `gold_ce` | FedAvg gold deltas → M_G | — | ⏳ next ($0) |
+| `m_g` | FedAvg teacher-KD deltas → M_G (**method**) | — | ⏳ needs teacher targets |
+| `x_only` | public X only (FedAvg no-op check) | — | ⏳ needs teacher targets |
+
+Decision rule: need `m_g` > `slm_only` AND `m_g` > `x_only`; watch `m_g` vs `gold_ce` (Ab3).
+
+---
+
+## 2026-06-13 (d) — base floor re-run on cuda (matched pair)
+
+- did: re-ran `p0_base_holdout` via bootstrap §2.5 on Colab T4 (was mps) so base + B3 share one stack.
+- got: base **EX 40.5%** (cuda) vs B3 **49.5%** (cuda) → clean +9.0 training gain, same hardware. Scoreboard above now pinned.
+- next: $0 no-teacher federation arms (`slm_only`×3 + `gold_ce`) on Colab.
+- Q: federation cost — how far does FedAvg(gold) trail the 49.5% pooled ceiling?
+
 ## 2026-06-13 (c) — B3 trained: 49.5%, fix fully validated
 
 - did: full B3 centralized-FT on Colab T4 (after fixing a CPU→GPU runtime trap — `device:cpu` had it crawling): train 5744 pooled-private, 1 epoch, eval held_out[:200].
