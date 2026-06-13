@@ -80,7 +80,7 @@ git commit -m "security: remove hardcoded Groq key from teacher2.sh; point at De
 
 - [ ] **Step 6: MANUAL (out-of-band, user action)**
 
-Revoke the exposed Groq key `gsk_FdvFdbv4...` in the Groq console. It was committed in plaintext and must be considered compromised. This step is not automatable; flag it to the user as required.
+Revoke the exposed Groq key (the `gsk_...` token that was in `teacher2.sh`) in the Groq console. It sat in a plaintext on-disk file and must be considered compromised. This step is not automatable; flag it to the user as required.
 
 ---
 
