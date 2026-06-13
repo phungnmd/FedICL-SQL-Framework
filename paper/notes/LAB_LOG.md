@@ -46,9 +46,23 @@ Headline EX. Raw rows: `fedicl-sql/experiments/RUNS.csv`. Keep this table update
 | `m_g` | FedAvg teacher-KD deltas → M_G (**method**) | — | ⏳ needs teacher targets |
 | `x_only` | public X only (FedAvg no-op check) | — | ⏳ needs teacher targets |
 
-Decision rule: need `m_g` > `slm_only` AND `m_g` > `x_only`; watch `m_g` vs `gold_ce` (Ab3).
+Reporting (revised 06-14): report `m_g − slm_only` (federation gain), `m_g − gold_ce` (teacher value, expected positive via soft-KL), `m_g − x_only` (FedAvg-no-op check) as measured RQ evidence — **not pass/fail gates**. Teacher-value channel = soft-KL (top-20 logprobs, dark knowledge gold lacks) + CoT, plus the label-free unlabeled-X regime (Ab3b). Frame RQ1 as `m_g` → centralized ceiling B3, not the trivial `> slm_only`.
 
 ---
+
+## 2026-06-14 — advisor-faithful doc re-baseline (no code yet)
+
+- did: brainstormed + spec'd a doc re-baseline (kept code/split/results; the method was already faithful to Fig.1). Verified DeepInfra returns top_logprobs (≤20) for Qwen2.5-72B → real hard+soft Hinton KD feasible via API with no MinED (Qwen↔Qwen aligned). Re-aligned detailed_plan/todo/outline-v2: teacher = Qwen-72B/DeepInfra+logprobs, KD = CE(CoT⊕SQL)+λ·KL_τ(top-20), demoted the gold-CE "kill-gate" to the advisor's "Without Teacher LLM" ablation, retired MinED/P2, stripped defensive cruft. Found + scrubbed two leaked Groq keys in teacher1/2.sh (untracked → never committed; manual revoke flagged).
+- got: spec + plan under `docs/superpowers/`; three working docs re-baselined on branch `docs/rebaseline-advisor-faithful`; Groq keys removed from working copies.
+- next: Phase-2 code plan — wire top_logprobs into `gen_teacher_targets.py` + add the λ·KL_τ soft term to the KD loss; then run the teacher-value comparison on full held-out (1034).
+- Q: how much does soft-KL (dark knowledge) lift `m_g` over `gold_ce` on labeled Spider vs the label-free regime?
+
+## 2026-06-13 (e) — PhD review of plan/todo: 2 structural risks fixed
+
+- did: critical review of `todo.md` + `detailed_plan.md` + outline (no code). Found the make-or-break gate tests the *wrong* claim — `m_g > slm_only` is near-guaranteed (FedAvg pools ~3× data), so a green gate ≠ publishable. Patched both docs: (1) added **`m_g > gold_ce` as a co-equal gate** (= the teacher-value / title's-"Large" test) across todo step 9 + plan SB-gate row + scoreboard decision rule + §6 risks; (2) added **teacher-rescue arm Ab3b (unlabeled-X)** — pre-committed regime where the 72B is *necessary* (no gold to beat), since on labeled Spider exec-filtered teacher SQL ⊆ noisier-subset-of-gold → teacher can only win via CoT distil (may be ~0 into a 1.5B). Also: convergence theory → cite McMahan/FedProx not Fed-ICL fusion proof (mechanism mismatch); skeleton-loss demoted to "claim only if λ₃ ablation moves EX w/ CI"; privacy item-4 → headline only if DP measured; Spider-Realistic promoted Tier3→2; F6 must report per-client N (K=10 = data-starvation, not method); stats → pool per-query EX across clients; flagged outline drift (Qwen-1.5B absent from approved outline §4.1).
+- got: `todo.md` + `detailed_plan.md` updated (11 edits, 2 structural fixes wired end-to-end). New revised outline → `paper/drafts/fedicl_sql_outline_v2.md` (originals untouched, supervisor sign-off pending).
+- next: run `slm_only`×3 + `gold_ce` ($0, Colab) → establish the gold_ce bar BEFORE the $2 teacher spend; then teacher targets → `m_g` → gate check incl. `m_g > gold_ce`.
+- Q: does teacher-KD beat gold-CE on labeled Spider at all, or is the "Large" pillar only alive in the unlabeled-X regime (Ab3b)?
 
 ## 2026-06-13 (d) — base floor re-run on cuda (matched pair)
 
