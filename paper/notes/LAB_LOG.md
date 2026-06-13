@@ -17,6 +17,13 @@ Entry template:
 
 ---
 
+## 2026-06-13 (b) — base floor verifies the fix
+
+- did: ran `p0_base_holdout` (base Qwen2.5-1.5B, no adapter, held_out[:200], k=0) on Mac MPS to verify the chat-template fix on real data.
+- got: **EX 40.0% (80/200)**, EM 8.5%, 1.41s/q — up from the broken **0%**, and above old_train's base (35.5%). Fix confirmed end-to-end (eval path). RUNS row `p0_base_holdout__poc__s0` (device=mps, stage=poc).
+- next: **B3 centralized-FT train+eval** — the trained ceiling over this 40% floor; the real test of the *training* recipe (template+cosine+batch16: was 25.5%, target ~45–47%). Run on Colab GPU. Teacher groq shards filling in parallel (2 keys).
+- Q: does B3 trained clear old_train parity (~47%) over the 40% base, or does the data gap (5744 vs 8659) cap it?
+
 ## 2026-06-13
 
 - did: chased the trained-arm collapse. Base Qwen2.5-1.5B EX=**0%** on 200 held-out vs old_train base **35.5%** → engine fed the raw `### …` prompt straight to an **Instruct** model with **no chat template** (train + eval both). Patched the engine: route every prompt through the model's own chat template (`apply_chat_template`, system folded into the user turn → portable Qwen/Phi/Llama/Gemma) in `student.generate` + `dataset._assemble`; also added cosine LR + 3% warmup and bumped effective batch 8→16 in `lora_trainer` to match the old_train recipe. `builder.py` unchanged (its text is now the user-turn *content*, not a raw prompt).
