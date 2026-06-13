@@ -17,6 +17,13 @@ Entry template:
 
 ---
 
+## 2026-06-13
+
+- did: chased the trained-arm collapse. Base Qwen2.5-1.5B EX=**0%** on 200 held-out vs old_train base **35.5%** → engine fed the raw `### …` prompt straight to an **Instruct** model with **no chat template** (train + eval both). Patched the engine: route every prompt through the model's own chat template (`apply_chat_template`, system folded into the user turn → portable Qwen/Phi/Llama/Gemma) in `student.generate` + `dataset._assemble`; also added cosine LR + 3% warmup and bumped effective batch 8→16 in `lora_trainer` to match the old_train recipe. `builder.py` unchanged (its text is now the user-turn *content*, not a raw prompt).
+- got: 81 tests green; chat-template assemble verified on the real Qwen tokenizer (prompt masked 93 tok, target=`SELECT count(*) FROM singer<|im_end|>` incl. stop token, skeleton up-weight intact). No metric run yet — code fix only.
+- next: re-pull on Colab (§1 `reset --hard`), rerun p0_eval50 / B3 eval → expect base **0%→~35%**; then B3 train → target **~45–47%** (template + cosine + batch-16).
+- Q: does cosine+batch-16 close the trained gap to old's 47.5%, or is the remainder just data (B3 pools 5744 vs old_train's full 8659)?
+
 ## 2026-06-12
 
 - did: reran `p0_eval50` at `--n 200 --k 3 --stage poc --seed 0` on Mac MPS after the fd-leak fix.
