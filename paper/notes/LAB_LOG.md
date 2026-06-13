@@ -37,7 +37,7 @@ Headline EX. Raw rows: `fedicl-sql/experiments/RUNS.csv`. Keep this table update
 | `p0_eval50` | base + 3-shot ICL, Spider dev | 44.5% | mps, k=3 |
 | old_train (external) | full-Spider LoRA, chat-template | 47.5% | T4, dev[:200] |
 
-**Federation arms (RQ1 ⭐ make-or-break) — PENDING:**
+**Federation arms (RQ1 teacher-value comparison) — PENDING:**
 
 | arm | what | EX | status |
 |---|---|---|---|
