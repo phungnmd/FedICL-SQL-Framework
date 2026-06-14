@@ -157,7 +157,7 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 
 - Initialized from `M_G` (server broadcast) each round
 - Generates: predicted SQL `ŝ` (+ optional reasoning)
-- 4-bit QLoRA on CUDA; fp16 on Mac MPS
+- **LoRA fp16 on both CUDA and MPS** (training always fp16 — no 4-bit quantization during training). 4-bit (`LOAD_IN_4BIT=1`) is available for inference-only eval via `StudentModel` but is not used in the training path.
 
 ### 5.5 Local Training (Distillation)
 
