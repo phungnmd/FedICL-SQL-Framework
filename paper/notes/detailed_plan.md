@@ -22,7 +22,7 @@ This document converts the approved outline (`../drafts/fedicl_sql_outline.pdf`)
 | **ICL** | Schema-aware retrieval, **masking retrieval-only**, demos shown **unmasked**, run **locally** per client. | Light-SQL [4] |
 | **Privacy** | No raw rows / no schema leave client; only **encrypted, DP-perturbed LoRA-delta weights** transmit. Masking + DP gradient perturbation are the mechanisms. (Never claim "no weights leave" — weights DO cross.) | Fig.1 "Weights Only" |
 | **Staging** | **Stage-A PoC** (~$2, 1 seed, ~200 q/client subset, **Mac MPS or Colab Pro GPU**, `T=2–3`, `E=1`, no DP, `stage=poc`) → **SB gate** → **Stage-B headline** (paid A100-class GPU, ≥3 seeds + significance, DP measured, `stage=headline`). Only `headline` enters the paper. | budget triage |
-| **Compute / repo** | **3 tiers (re-locked 2026-06-12, supersedes "Mac out"):** (1) **Mac M4 Pro 24GB MPS** = dev + all `$0` no-teacher baselines + p0 floor + p1 PoC (1.5B student **fp16**; bitsandbytes 4-bit is CUDA-only); (2) **Colab Pro GPU** = faster/heavier PoC + 4-bit QLoRA; (3) **paid A100-class** = Stage-B headline only. Teacher 72B = paid API regardless. ⚠️ one stack per comparison set. Code repo `github.com/phungnmd/fedicl-sql` (private); edit on Mac → run local OR push → Colab pulls via `notebooks/00_colab_bootstrap.ipynb`. Run tracking → `experiments/RUNS.csv` + `REGISTRY.md` (§7). | locked 2026-06-12 |
+| **Compute / repo** | **3 tiers (re-locked 2026-06-12, supersedes "Mac out"):** (1) **Mac M4 Pro 24GB MPS** = dev + all `$0` no-teacher baselines + p0 floor + p1 PoC (1.5B student **fp16 LoRA**); (2) **Colab Pro GPU** = heavier PoC (**LoRA fp16**, ~11 GB T4 — confirmed B3 run; no 4-bit needed); (3) **paid A100-class** = Stage-B headline only. Teacher 72B = paid API regardless. ⚠️ one stack per comparison set. Code repo `github.com/phungnmd/fedicl-sql` (private); edit on Mac → run local OR push → Colab pulls via `notebooks/00_colab_bootstrap.ipynb`. Run tracking → `experiments/RUNS.csv` + `REGISTRY.md` (§7). | locked 2026-06-12 |
 | **SB gate** | PoC directionally healthy (`M_G` approaches the centralized ceiling **B3** — small federation gap — and the **Without-Teacher ablation** quantifies teacher value) **AND** supervisor sign-off on §8 + budget. Report `M_G` vs SLM-only (federation gain), vs gold-CE (teacher value, expected positive via soft-KL), vs X-only (FedAvg-no-op diagnostic) as **measured analysis, not pass/fail gates**. | risk control |
 
 **Reference shorthand:** [4] Light-SQL (NL2SQL+ICL base, same corresponding author) · [5] Fed-ICL (parameter-free answer-fusion + convergence proof + prompt-extraction attack) · [6] IFed-ICL (implicit vectors, classification — side ref) · [7] FedMKT (logit-space KD + token-alignment; does NOT FedAvg weights) · [8] FedCoLLM (LoRA-adapter FedAvg + global SLM + CE+λKL KD — the engine anchor) · [1] federated BART · [2] prior thesis · [3] ICL survey.
@@ -152,7 +152,7 @@ Prompt construction ([4] Eq. 3): `σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q`
 ### 2.4 Teacher & Student (§3.3–3.4)
 
 - **Teacher `M_T`** (Qwen2.5-72B-Instruct, paid API, server-side): on **public `X` only**, produces **SQL + reasoning steps (CoT)**, exec-validated, cached → feeds the ICL Hub demos + KD targets. Never sees raw client schema/rows.
-- **Student `Mᵢ`** (Qwen2.5-1.5B-Instruct primary; Phi-3-mini / Gemma-2B / TinyLlama = A5 ablation; 4-bit QLoRA): runs locally < 6 GB VRAM. Two modes: **LoRA-adapted via KD** (parametric, primary) or **frozen + ICL** (parameter-free variant/baseline).
+- **Student `Mᵢ`** (Qwen2.5-1.5B-Instruct primary; Phi-3-mini / Gemma-2B / TinyLlama = A5 ablation): training = **LoRA fp16** (~11 GB T4). Inference only: optional `LOAD_IN_4BIT=1` for eval when VRAM tight. Two modes: **LoRA-adapted via KD** (parametric, primary) or **frozen + ICL** (parameter-free variant/baseline).
 
 ### 2.5 Federated SQL knowledge distillation (§3.7) — the RQ1+RQ3 engine
 
@@ -234,7 +234,7 @@ A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/
 ### 3.2 Models (§4.1)
 
 - **Teacher:** Qwen2.5-72B-Instruct, DeepInfra OpenAI-compat API (`logprobs=true, top_logprobs=20`; OpenRouter/Together alt), both stages; targets + per-token top-20 logprobs generated once on `X`, cached.
-- **Students:** **Qwen2.5-1.5B-Instruct primary** (tokenizer-aligned with the teacher → soft-KL KD without MinED); Phi-3-mini (3.8B), Gemma-2B, TinyLlama-1.1B for the SLM-arch ablation (A5). 4-bit QLoRA, temp=0, max-new-tokens=256 ([4]).
+- **Students:** **Qwen2.5-1.5B-Instruct primary** (tokenizer-aligned with the teacher → soft-KL KD without MinED); Phi-3-mini (3.8B), Gemma-2B, TinyLlama-1.1B for the SLM-arch ablation (A5). **LoRA fp16**, temp=0, max-new-tokens=256 ([4]).
 - **Retriever:** BAAI/bge-small-en + FAISS ([4]).
 
 ### 3.3 Baselines (§4.1) — run order = TODO P0.5
@@ -282,7 +282,7 @@ Plus discussion subsections: Impact of ICL, Impact of LLM Teacher, Impact of FL,
 
 ### 3.7 Implementation (§4.1)
 
-PyTorch + HuggingFace; QLoRA (4-bit) students; FAISS + bge-small retriever; lightweight custom round-loop (single-GPU, clients sequential). Fixed seeds, temp=0. **Federated hyperparams** (cost multipliers, total LoRA passes = L×T×E×runs): Stage-A PoC `T=2–3, E=1`; Stage-B pick `T` from the PoC convergence plateau (cap ≤10), `E=1–2` (high E + non-IID → drift; if drift visible, FedProx μ instead). State `T, E`, LoRA rank/α/lr in §4.1. Release code + partition scripts.
+PyTorch + HuggingFace; LoRA fp16 students (no 4-bit quantization during training — confirmed 11 GB/T4); FAISS + bge-small retriever; lightweight custom round-loop (single-GPU, clients sequential). Fixed seeds, temp=0. **Federated hyperparams** (cost multipliers, total LoRA passes = L×T×E×runs): Stage-A PoC `T=2–3, E=1`; Stage-B pick `T` from the PoC convergence plateau (cap ≤10), `E=1–2` (high E + non-IID → drift; if drift visible, FedProx μ instead). State `T, E`, LoRA rank/α/lr in §4.1. Release code + partition scripts.
 
 ### 3.8 Run staging & minimum publishable set
 
@@ -371,7 +371,7 @@ Provenance contract: every result carries `experiment/model/stage/seed/time_aver
 2. **Client count** — *(locked)* 3 default + sweep `{3,5,10}` (F6). Cross-silo; matches Fed-ICL [5] (FedCoLLM [8] uses 4 — note the offset in §4.1).
 3. **Student model** — *(locked 2026-06-12)* Qwen2.5-1.5B-Instruct (tokenizer-aligned with the Qwen2.5-72B teacher → soft-KL KD without MinED). Others → A5. ⚠️ **Outline drift:** the approved outline §4.1 lists students Phi-3-mini / Gemma-2B / TinyLlama and does **NOT** include Qwen2.5-1.5B (the locked primary). Update outline §4.1 to name Qwen-1.5B as primary (others → A5 ablation) **and get supervisor sign-off** — the primary student is currently absent from the approved outline.
 4. **Second dataset** — Spider-Realistic now; BIRD only if P2 lands early. **(confirm)**
-5. **Teacher access & compute** — *(locked)* Qwen2.5-72B paid API both stages (`X` ≈ $1–2, paper < $10), targets cached once. **Stage-A on Mac M4 Pro (local, fp16) or Colab Pro** — no extra gate (PoC is `$0`/already-subscribed; the gate guards only Stage-B paid-per-hour spend). Mac trains the 1.5B student fine (24GB ≫ fp16 1.5B); 4-bit QLoRA path is Colab-only (bitsandbytes = CUDA). **Stage-B paid A100-class** (Colab Pro high-RAM / RunPod / Lambda). **Supervisor confirms Stage-B budget at the gate.**
+5. **Teacher access & compute** — *(locked)* Qwen2.5-72B paid API both stages (`X` ≈ $1–2, paper < $10), targets cached once. **Stage-A on Mac M4 Pro (local, fp16) or Colab Pro** — no extra gate (PoC is `$0`/already-subscribed; the gate guards only Stage-B paid-per-hour spend). Mac trains 1.5B student fine (24GB ≫ fp16 LoRA); Colab T4 confirmed 11 GB (no 4-bit needed). **Stage-B paid A100-class** (Colab Pro high-RAM / RunPod / Lambda). **Supervisor confirms Stage-B budget at the gate.**
 
 ---
 

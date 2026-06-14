@@ -62,7 +62,7 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 - **Clients:** `K=3` default, sweep `{3,5,10}` (F6). Cross-silo. *(`K`=clients, `T`=rounds, `k`=shots — canonical, matches Fig.1; old `L`=clients retired.)*
 - **ICL:** schema-aware retrieval, **masking retrieval-only**, demos shown **unmasked**, local per client.
 - **Privacy:** no raw rows/schema leave; only encrypted, DP-perturbed LoRA-deltas transmit. (Never "no weights leave".)
-- **Compute (3 tiers):** Mac M4 Pro MPS fp16 = dev + `$0` no-teacher baselines + PoC · Colab Pro = heavier PoC / 4-bit QLoRA · paid A100 = Stage-B only · teacher = paid API. **One stack per comparison set** (Mac-fp16 ≠ CUDA-4bit). Detail → CONVENTION §5.
+- **Compute (3 tiers):** Mac M4 Pro MPS fp16 = dev + `$0` no-teacher baselines + PoC · Colab Pro = heavier PoC (LoRA fp16, ~11 GB VRAM on T4) · paid A100 = Stage-B only · teacher = paid API. **One stack per comparison set** (Mac-fp16 ≠ CUDA). Training = **plain LoRA fp16** throughout (no 4-bit quantization). Detail → CONVENTION §5.
 - **Staging:** PoC (~$2, 1 seed, subset, Mac/Colab, no DP) → SB gate → Stage-B (paid GPU, ≥3 seeds + significance, DP). Only `headline` enters the paper.
 
 ---
