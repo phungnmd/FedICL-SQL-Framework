@@ -3,7 +3,7 @@
 Where I actually work. **Append newest entry on top.** Plain words, not paper labels — write *what I did → what I got → what's next → open questions*. 4 lines/session is enough. Read the top entry to know where you are; never re-parse the plan.
 
 - Numbers (EX/EM/loss/VRAM) live in `fedicl-sql/experiments/RUNS.csv` (auto) — here just note the headline + the *story* (why it moved, what broke).
-- Stuck/risk → also check `problems_and_solutions.md`. Daily checklist → `todo.md` ▶️ Runbook.
+- Daily checklist → `todo.md` ▶️ Runbook.
 
 Entry template:
 
@@ -23,32 +23,39 @@ Headline EX. Raw rows: `fedicl-sql/experiments/RUNS.csv`. Keep this table update
 
 **Matched pair — held_out[:200], k=0, cuda (apples-to-apples):**
 
-| arm | what | EX | EM | status |
-|---|---|---|---|---|
-| `p0_base_holdout` | base Qwen, **no training** (floor) | **40.5%** | 8.5% | ✅ cuda |
+| arm                 | what                                   | EX        | EM    | status |
+| ------------------- | -------------------------------------- | --------- | ----- | ------ |
+| `p0_base_holdout`   | base Qwen, **no training** (floor)     | **40.5%** | 8.5%  | ✅ cuda |
 | `b3_centralized_ft` | trained, **all data pooled** (ceiling) | **49.5%** | 33.0% | ✅ cuda |
 
 **Training gain: +9.0 EX** (40.5 → 49.5, same cuda stack). Beats old_train adapter (47.5%).
 
 **Reference floors (different eval/setting):**
 
-| arm | what | EX | note |
-|---|---|---|---|
-| `p0_eval50` | base + 3-shot ICL, Spider dev | 44.5% | mps, k=3 |
+| arm                  | what                            | EX    | note          |
+| -------------------- | ------------------------------- | ----- | ------------- |
+| `p0_eval50`          | base + 3-shot ICL, Spider dev   | 44.5% | mps, k=3      |
 | old_train (external) | full-Spider LoRA, chat-template | 47.5% | T4, dev[:200] |
 
 **Federation arms (RQ1 teacher-value comparison) — PENDING:**
 
-| arm | what | EX | status |
-|---|---|---|---|
-| `slm_only` ×3 | each client alone, own data | — | ⏳ next ($0) |
-| `gold_ce` | FedAvg gold deltas → M_G | — | ⏳ next ($0) |
-| `m_g` | FedAvg teacher-KD deltas → M_G (**method**) | — | ⏳ needs teacher targets |
-| `x_only` | public X only (FedAvg no-op check) | — | ⏳ needs teacher targets |
+| arm           | what                                        | EX  | status                  |
+| ------------- | ------------------------------------------- | --- | ----------------------- |
+| `slm_only` ×3 | each client alone, own data                 | —   | ⏳ next ($0)             |
+| `gold_ce`     | FedAvg gold deltas → M_G                    | —   | ⏳ next ($0)             |
+| `m_g`         | FedAvg teacher-KD deltas → M_G (**method**) | —   | ⏳ needs teacher targets |
+| `x_only`      | public X only (FedAvg no-op check)          | —   | ⏳ needs teacher targets |
 
 Reporting (revised 06-14): report `m_g − slm_only` (federation gain), `m_g − gold_ce` (teacher value, expected positive via soft-KL), `m_g − x_only` (FedAvg-no-op check) as measured RQ evidence — **not pass/fail gates**. Teacher-value channel = soft-KL (top-20 logprobs, dark knowledge gold lacks) + CoT, plus the label-free unlabeled-X regime (Ab3b). Frame RQ1 as `m_g` → centralized ceiling B3, not the trivial `> slm_only`.
 
 ---
+
+## 2026-06-14 (b) — code cleanup: dead/outdated removed, de-gate reached code
+
+- did: audited the lib for dead/outdated. Removed dead `prompts/masking.py` + test (no prod caller — retriever uses raw questions; masking was planned-but-never-wired; re-implement from docs §3.6 when actually wiring the privacy/RQ2 lever). Removed outdated artifacts: `old_train.ipynb` (B3 superseded it), `2026-06-10-teacher-target-generation` spec+plan (Groq sharding era, now deleted). Propagated the de-gate from docs → code: renamed experiment `p1_make_or_break` → `p1_teacher_value`, rewrote its docstring + p1_client_train + notebook §5 + REGISTRY to "report 3 deltas, not pass/fail gates". Fixed detailed_plan §3.1 stale ref to nonexistent notebooks 01/02.
+- got: 75 tests green (was 81; −6 masking). fedicl-sql commit `cfedb65`. REGISTRY.md edit left unstaged (user's dirty file). Lib confirmed otherwise clean — no escalation code, no L=clients, all other modules have callers.
+- next: teacher (soft-KL) build later from `docs/superpowers/plans/2026-06-14-phase2-soft-kl-kd.md`; if wiring masking, re-add from docs.
+- Q: keep masking as a paper claim (§3.6) given it's now unimplemented — wire it before Stage-B or scope it to future work?
 
 ## 2026-06-14 — advisor-faithful doc re-baseline (no code yet)
 

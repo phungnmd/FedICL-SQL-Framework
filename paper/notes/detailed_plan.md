@@ -229,7 +229,7 @@ data/raw/spider/   download_spider.py   (JSON + per-DB .sqlite; 1.9 GB; GITIGNOR
          public_X.csv(1475) · client_i_{train,eval}.csv · held_out.csv(1034) · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
 ```
 
-A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/raw/...sqlite`) → portable. **All processed CSVs + split.json + meta.json + teacher targets are committed** (~5 MB) — the exact frozen split travels with the repo (no rebuild, no drift); only the heavy raw DBs are regenerated. `build_*` are deterministic per `--seed`, so a rebuild reproduces the committed `db_pool_map` byte-for-byte. The `fedicl_sql` lib + `experiments/*/run.py` read these processed CSVs; the Colab bootstrap (`notebooks/00_colab_bootstrap.ipynb`) reuses the same scripts + CSVs. (The standalone learning notebooks `01`/`02` do NOT — they reimplement schema/EX inline and are not paper-grade.)
+A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/raw/...sqlite`) → portable. **All processed CSVs + split.json + meta.json + teacher targets are committed** (~5 MB) — the exact frozen split travels with the repo (no rebuild, no drift); only the heavy raw DBs are regenerated. `build_*` are deterministic per `--seed`, so a rebuild reproduces the committed `db_pool_map` byte-for-byte. The `fedicl_sql` lib + `experiments/*/run.py` read these processed CSVs; the Colab bootstrap (`notebooks/00_colab_bootstrap.ipynb`) reuses the same scripts + CSVs.
 
 ### 3.2 Models (§4.1)
 
