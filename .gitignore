@@ -5,6 +5,10 @@ fedicl-sql/
 .pytest_cache/
 .vscode/
 
+# IDE / local
+*.code-workspace
+note.txt
+
 # secrets — never commit
 PRIVATE.txt
 *.key
