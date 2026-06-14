@@ -65,7 +65,7 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 `m_g` (= FedICL-SQL full method) · `slm_only` (B2) · `gold_ce` (B6=Ab3a) · `x_only` (FedAvg on public-X-only, the FedAvg-no-op/null diagnostic).
 **Report** three deltas as RQ evidence (not pass/fail gates): `m_g − slm_only` (federation gain), `m_g − gold_ce` (teacher value, expected positive via soft-KL), `m_g − x_only` (FedAvg-no-op check).
 
-**Ablations (Ab#):** Ab1 Without-ICL (=B5) · Ab2 Without-FL (local-only) · Ab3a Without-Teacher=gold-CE (=B6) · **Ab3b Label-free-KD=unlabeled-X** (secondary) · Ab4 Retrieval-size `k∈{0,1,3,5}` · Ab5 Different-SLMs.
+**Ablations (Ab#):** Ab1 Without-ICL (=B5) · Ab2 Without-FL (local-only) · Ab3 Without-Teacher=gold-CE (=B6) · Ab4 Retrieval-size `k∈{0,1,3,5}` · Ab5 Different-SLMs.
 
 **Tables/Figures:** T1 Overall · T2 Efficiency · T3 Communication. F1 Architecture · F2 Convergence · F3 Pareto · F4 Heterogeneity · F5 Privacy (F5a demo-channel / F5b weights-channel) · F6 Client-scaling.
 
@@ -95,8 +95,8 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 
 1. **Federated LLM–SLM framework for Text-to-SQL** (FedICL-SQL): server LLM teacher + global ICL repository + federated aggregation engine; client SLM students with local private schemas (Fig. 1).
 2. **Schema-aware ICL**: schema-aware retrieval + prompt construction from local examples plus teacher/public demos (ICL Hub); masking supports retrieval/de-identification without placing masked SQL placeholders into the final prompt. ⚠️ **ICL must be load-bearing — it's in the title.** The *federated* ICL story = the **ICL Hub** (teacher demos on `X`, the only ICL piece crossing the wire) + **held-out adaptation** (RQ2). If ICL shows ~0 delta on seen *and* held-out schemas, the title overclaims — surface at the stage gate, not at review.
-3. **Federated SQL knowledge distillation**: each client LoRA-trains on its **own private** NL→SQL pairs (supervised) **plus** a privacy-safe public set with **teacher KD targets**; server FedAvg/FedProx-aggregates the deltas into a Global SLM. Novelty vs prior SQL-KD = **(i) reasoning/CoT distillation** (reasoning⊕SQL targets) and **(ii) exec-based KD-target filtering inside the federated loop** (exec-guidance itself is prior art). ⚠️ The **skeleton-token structure loss** is a *secondary* claim only — its tokens already sit inside `L_SQL`, so it is largely a reweighting; claim it **only if the `λ₃` ablation moves EX with a CI**, else demote to "skeleton up-weighting" implementation detail, not a 4th novelty.
-4. **Privacy-preserving collaborative optimization**: round-based protocol transmitting only encrypted, compressed LoRA-delta weights; bounded per-round communication; secure aggregation. ⚠️ Encrypted-deltas + secure-agg alone = **standard secure FL, not novel** — this is a headline contribution **only if DP is measured**: report (ε, EX) + run F5b with DP on. Else demote to a method detail and scope DP → future work.
+3. **Federated SQL knowledge distillation**: each client LoRA-trains on its **own private** NL→SQL pairs (supervised) **plus** a privacy-safe public set with **teacher KD targets**; server FedAvg/FedProx-aggregates the deltas into a Global SLM. Novelties vs prior SQL-KD = **(i) reasoning/CoT distillation** (reasoning⊕SQL targets), **(ii) exec-based KD-target filtering inside the federated loop**, and **(iii) skeleton-token structure loss** (`L_struct`: weighted CE on SQL clause-keyword tokens).
+4. **Privacy-preserving collaborative optimization**: round-based protocol transmitting only encrypted, DP-perturbed LoRA-delta weights; bounded per-round communication; secure aggregation. Report (ε, EX) at Stage-B to validate the DP contribution.
 5. **Extensive evaluation** on Spider + Spider-Realistic under a federated non-IID partition, with FL / efficiency / privacy metrics and five ablations.
 
 ### 1.4 Research questions
@@ -275,7 +275,6 @@ A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/
 1. **Without ICL** — drop demos → isolate ICL.
 2. **Without federated learning** — local-only → isolate federation.
 3. **Without Teacher LLM = gold-CE arm (Ab3a)** — `L_sup(Qᵢ) + CE(gold-SQL on X)` vs full `L_sup(Qᵢ) + KD(teacher reasoning⊕SQL on X)`; **identical data, only the label/target differs** → isolates teacher value from data quantity. Measure **in the PoC** (cheap). On labeled Spider, exec-filtered teacher SQL ⊆ gold, so teacher value comes from the **soft-KL term** (dark knowledge gold lacks) + **reasoning/CoT distillation** — a fair comparison the teacher can win. Report the delta.
-   - **3b. Label-free KD = unlabeled-X arm (secondary ablation).** Strip gold from a copy of `X`; KD targets = exec-validated teacher `reasoning⊕SQL` + soft logprobs only (no gold to fall back on). Compare gold-CE-on-labeled-X vs teacher-KD-on-unlabeled-X. This is the regime where the 72B is *necessary* (no gold exists) and matches the deployment story (§3.7).
 4. **Retrieval size** `k ∈ {0,1,3,5}` (inverted-U per [4]).
 5. **Different SLMs** — Qwen-1.5B / Phi-3 / Gemma-2B / TinyLlama.
 

@@ -32,9 +32,9 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 - [ ] **9. `p1_teacher_value`** — eval `M_G` vs B2 vs gold_ce vs X-only on each client's own set
   - Report three deltas as RQ evidence (**not pass/fail gates**): `M_G − B2` (federation gain), `M_G − gold_ce` (teacher value, expected positive via soft-KL — dark knowledge gold lacks), `M_G − X-only` (FedAvg-no-op check).
-  - Frame RQ1 as `M_G` → centralized ceiling **B3** (small federation gap), not the trivial `> B2`. The label-free unlabeled-X ablation (Ab3b) shows the necessary-teacher regime.
+  - Frame RQ1 as `M_G` → centralized ceiling **B3** (small federation gap), not the trivial `> B2`.
 
-> Label decoder: **B#** = baseline · **Ab#** = ablation (remove-a-piece) · **arm** = the 4 models step 9 compares (`m_g`/`slm_only`/`gold_ce`/`x_only`) · **p0/p1/b3** = scripts. One model wears several labels (**B6 = Ab3a = arm `gold_ce`**; **B2 = arm `slm_only`**). 🔴 **Canonical labels + notation (K/T/k, B1–B7, Ab1–Ab5, T1–T3, F1–F6, stages, tiers) = detailed_plan §0** — single source, keep this file in sync with it.
+> Label decoder: **B#** = baseline · **Ab#** = ablation (remove-a-piece) · **arm** = the 4 models step 9 compares (`m_g`/`slm_only`/`gold_ce`/`x_only`) · **p0/p1/b3** = scripts. One model wears several labels (**B6 = Ab3 = arm `gold_ce`**; **B2 = arm `slm_only`**). 🔴 **Canonical labels + notation (K/T/k, B1–B7, Ab1–Ab5, T1–T3, F1–F6, stages, tiers) = detailed_plan §0** — single source, keep this file in sync with it.
 
 ---
 
@@ -69,8 +69,8 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 ## Pitfalls (guardrails)
 
-🔴 **FedAvg-no-op** — clients MUST train on own private `Qᵢ`, not only `X` (delta-difference check). · **Teacher value** — on labeled Spider exec-filtered teacher SQL ⊆ gold, so teacher value comes from the **soft-KL term** (dark knowledge gold lacks) + **CoT** + the **label-free regime** (unlabeled-X, Ab3b); report the Without-Teacher delta. · 🔴 **ICL-null** — masking *costs* EX ([4]); if −ICL ≈ full on seen AND held-out, the title overclaims → surface at gate. · Masking = **retrieval-only**. · Engine is **parametric** (weights); Fed-ICL fusion is a **baseline**. · Privacy claim = "no raw data/schema leaves" (weights DO transmit — never "no weights"). · **F5a = demo-channel only**, never weights evidence (F5b = MIA/DP). · **DP claimed only if measured** (else item-4 = standard secure FL, not a headline contribution). · Headline = **≥3 seeds + significance** (PoC 1-seed numbers NEVER enter the paper). · 🔴 **No Stage-B paid spend before the SB gate**. · Guarantee **schema-disjoint** X/private/held-out. · Don't wait for results to write §3/§2.
+🔴 **FedAvg-no-op** — clients MUST train on own private `Qᵢ`, not only `X` (delta-difference check). · **Teacher value** — on labeled Spider exec-filtered teacher SQL ⊆ gold, so teacher value comes from the **soft-KL term** (dark knowledge gold lacks) + **CoT**; report the Without-Teacher (Ab3) delta. · 🔴 **ICL-null** — masking *costs* EX ([4]); if −ICL ≈ full on seen AND held-out, the title overclaims → surface at gate. · Masking = **retrieval-only**. · Engine is **parametric** (weights); Fed-ICL fusion is a **baseline**. · Privacy claim = "no raw data/schema leaves" (weights DO transmit — never "no weights"). · **F5a = demo-channel only**, never weights evidence (F5b = MIA/DP). · DP = headline contribution; report (ε, EX) at Stage-B. · Headline = **≥3 seeds + significance** (PoC 1-seed numbers NEVER enter the paper). · 🔴 **No Stage-B paid spend before the SB gate**. · Guarantee **schema-disjoint** X/private/held-out. · Don't wait for results to write §3/§2.
 
 ---
 
-*Spec: `detailed_plan.md`. Log: `LAB_LOG.md`. Numbers: `RUNS.csv` + `REGISTRY.md`. Risks: `problems_and_solutions.md`. Mechanism: `fig1_architecture.md`.*
+*Spec: `detailed_plan.md`. Log: `LAB_LOG.md`. Numbers: `RUNS.csv` + `REGISTRY.md`. Mechanism: `fig1_architecture.md`.*

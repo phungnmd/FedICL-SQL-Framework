@@ -20,7 +20,7 @@ The title sells three pillars. Honest risk assessment drives this outline:
 | Pillar | Mechanism | Risk on labeled Spider | How v2 protects it |
 |---|---|---|---|
 | **Federated** (RQ1) | LoRA + FedAvg → Global SLM `M_G` | *low* — FedAvg works; but `M_G > B2-solo` is **near-trivial** (pools ~K× data) | reframe RQ1 around **`M_G` → centralized ceiling B3** (small federation gap), not `> B2` `[Δ]` |
-| **LLM teacher** (RQ3) | 72B teacher → 1.5B student KD (hard+soft) | **medium** — labeled teacher SQL ⊆ gold, but **soft-KL** carries dark knowledge gold lacks | soft-KL via DeepInfra top-20 logprobs (Qwen↔Qwen aligned) makes the teacher a fair, winnable comparison; **Without-Teacher ablation** reports the delta; label-free regime shows necessity `[Δ]` |
+| **LLM teacher** (RQ3) | 72B teacher → 1.5B student KD (hard+soft) | **medium** — labeled teacher SQL ⊆ gold, but **soft-KL** carries dark knowledge gold lacks | soft-KL via DeepInfra top-20 logprobs (Qwen↔Qwen aligned) makes the teacher a fair, winnable comparison; **Without-Teacher ablation (Ab3)** reports the delta `[Δ]` |
 | **Schema-aware ICL** (RQ2) | retrieval + ICL-Hub demos | **high** — masking *costs* EX [4]; delta may be ~0 | ICL must be load-bearing on **held-out**; if flat seen+held-out, reframe at gate `[Δ]` |
 
 **One-sentence thesis:** *a cloud LLM teacher and many on-premise SLM students collaboratively raise Text-to-SQL accuracy across heterogeneous private databases — approaching centralized fine-tuning while transmitting only encrypted, DP-perturbed LoRA-delta weights and teacher-authored public demonstrations, never raw schemas or data.*
@@ -44,8 +44,8 @@ Background (Text-to-SQL importance; distributed enterprise DBs) → Problem (pri
 - **Contributions:**
   1. Federated LLM–SLM framework for Text-to-SQL (server teacher + global ICL Hub + aggregation engine; client SLM students with private schemas) — Fig. 1.
   2. Schema-aware ICL (schema-aware retrieval + prompt construction; masking is **retrieval-only**, demos shown unmasked). `[Δ: state masking-is-retrieval-only here so reviewers don't read masked SQL into the prompt]`
-  3. Federated SQL knowledge distillation — primary novelty = **(i) reasoning/CoT distillation** + **(ii) exec-based KD-target filtering inside the federated loop**; skeleton-token structure loss is a **secondary** claim, reported only if its ablation moves EX with a CI. `[Δ: demoted skeleton loss from co-equal novelty]`
-  4. Privacy-preserving collaborative optimization — encrypted/compressed LoRA-delta transmission + secure aggregation; **DP (ε, EX) reported as a contribution only if measured**, else scoped to future work. `[Δ: was unconditional; standard secure-FL alone is not novel]`
+  3. Federated SQL knowledge distillation — novelties = **(i) reasoning/CoT distillation** + **(ii) exec-based KD-target filtering inside the federated loop** + **(iii) skeleton-token structure loss** (`L_struct`).
+  4. Privacy-preserving collaborative optimization — encrypted/compressed LoRA-delta transmission + DP (gradient perturbation) + secure aggregation; report (ε, EX) at Stage-B.
   5. Extensive evaluation on Spider + Spider-Realistic under a federated non-IID partition; FL / efficiency / privacy metrics; five ablations.
 
 ---
@@ -73,7 +73,7 @@ Background (Text-to-SQL importance; distributed enterprise DBs) → Problem (pri
   - `L_struct` skeleton-token CE — **secondary**; differentiable; overlaps `L_SQL` → claim only if λ₃ ablation moves EX;
   - `L_exec` = **non-differentiable → realized as exec-match target filtering**, not a gradient term — own this divergence.
   - ⚠️ **Federation-validity guard:** clients train on own private `Qᵢ` + public X; training on X alone makes all deltas identical → FedAvg degenerates → RQ1 dies. `[kept]`
-  - ⚠️ **Teacher value:** on labeled Spider, exec-filtered teacher SQL ⊆ gold → teacher's value = **soft-KL** (dark knowledge gold lacks) + **CoT distil**, plus the **label-free unlabeled-X regime** (no gold exists) — measured in §4. `[Δ: soft-KL now feasible via top-20 logprobs]`
+  - ⚠️ **Teacher value:** on labeled Spider, exec-filtered teacher SQL ⊆ gold → teacher's value = **soft-KL** (dark knowledge gold lacks) + **CoT distil** — measured via Ab3 (Without-Teacher ablation). `[Δ: soft-KL now feasible via top-20 logprobs]`
 - **3.8 Federated Optimization (Algorithm 1)** — round loop: broadcast `M_G` → local ICL → local LoRA-train `L_sup(Qᵢ)+L_KD(X)` → encrypt/compress/DP-perturb delta → upload **weights only** → FedAvg/FedProx → `M_G`. Convergence: **McMahan/Li theory** as motivation; report **empirical** EX-vs-rounds. Privacy mechanisms: no raw rows/schema leave; encrypted+compressed LoRA deltas; DP (Stage-B); secure agg (SSL/TLS); identifier masking. `[Δ: theory citation corrected]`
 
 ---
@@ -96,7 +96,6 @@ Background (Text-to-SQL importance; distributed enterprise DBs) → Problem (pri
   1. Without ICL.
   2. Without federated learning (local-only).
   3. **Without Teacher = gold-CE (Ab3a)** — identical data, target-only difference → isolates teacher value. Report the delta; teacher value = soft-KL (dark knowledge) + CoT, which gold-CE lacks.
-  3b. **Label-free KD = unlabeled-X (Ab3b)** `[Δ NEW, secondary]` — strip gold from X; KD on exec-validated teacher `reasoning⊕SQL` + soft logprobs only. The regime where the 72B is *necessary* (no gold exists); matches the deployment story.
   4. Retrieval size `k∈{0,1,3,5}`.
   5. Different SLMs (Qwen-1.5B / Phi-3 / Gemma-2B / TinyLlama).
 - **Figures:** F1 architecture (=Fig.1) · F2 convergence (EX vs round, per α) · F3 Pareto (EX vs cost) · F4 heterogeneity (EX vs α) · F5 privacy (F5a/F5b) · F6 client scaling (EX + comm vs K∈{3,5,10}, **caption reports per-client N** — K=10 thinning is data-starvation, not a method failure `[Δ]`).
@@ -111,15 +110,15 @@ Background (Text-to-SQL importance; distributed enterprise DBs) → Problem (pri
 ---
 
 ## Divergences from the approved outline — for supervisor sign-off
-1. **RQ1 reframed** — "approach centralized ceiling B3", not the trivial "beat isolated SLM".
-2. **RQ3 keeps the advisor's "Without Teacher LLM" ablation** (no kill-gate) — soft-KL KD makes the teacher a fair, winnable comparison; report the delta.
-3. **New Ablation 3b (label-free unlabeled-X)** — secondary; the teacher's necessary-value regime.
-4. **Primary student = Qwen2.5-1.5B** — the approved outline §4.1 listed Phi-3/Gemma/TinyLlama as "e.g."; Qwen-1.5B added as primary. Justification: tokenizer-aligned with the 72B teacher → soft-KL KD without MinED.
-5. **Skeleton-token loss demoted** to a secondary, must-be-measured claim (overlaps `L_SQL`).
-6. **Privacy contribution conditional** on measured DP (ε, EX); else method-detail, not headline.
-7. **Spider-Realistic promoted to Tier-2** (near-free; Q3 expects ≥2 benchmarks).
-8. **Convergence theory** = McMahan/FedProx (parametric), not Fed-ICL's parameter-free fusion proof.
-9. **Teacher–student collaboration scoped to training-time KD** (runtime escalation → §5), matching Fig.1.
-10. **Teacher logits available via DeepInfra** (`top_logprobs=20`) → real hard+soft Hinton KD at P1; MinED/separate-P2 phase retired (Qwen↔Qwen aligned).
+
+1. **RQ1 reframed** — "approach centralized ceiling B3", not the trivial "beat isolated SLM". ✅ advisor duyệt
+2. **RQ3 keeps the advisor's "Without Teacher LLM" ablation** (Ab3, no kill-gate) — soft-KL KD makes the teacher a fair, winnable comparison; report the delta. ✅ advisor duyệt
+3. **Primary student = Qwen2.5-1.5B** — the approved outline §4.1 listed Phi-3/Gemma/TinyLlama as "e.g."; Qwen-1.5B added as primary. Justification: tokenizer-aligned with the 72B teacher → soft-KL KD without MinED. ✅ advisor duyệt
+4. **Skeleton-token loss = co-equal novelty** (v1 kept). ↩️ advisor giữ v1
+5. **Privacy/DP = unconditional contribution** (v1 kept); report (ε, EX) at Stage-B. ↩️ advisor giữ v1
+6. **Spider-Realistic promoted to Tier-2** (near-free; Q3 expects ≥2 benchmarks). ✅ advisor duyệt
+7. **Convergence theory** = McMahan/FedProx (parametric), not Fed-ICL's parameter-free fusion proof. ✅ advisor duyệt
+8. **Teacher–student collaboration scoped to training-time KD** (runtime escalation → §5), matching Fig.1. ✅ advisor duyệt
+9. **Teacher logits available via DeepInfra** (`top_logprobs=20`) → real hard+soft Hinton KD at P1; MinED/separate-P2 phase retired (Qwen↔Qwen aligned). ✅ advisor duyệt
 
 *Grounded in [4] Light-SQL, [5] Fed-ICL, [6] IFed-ICL, [7] FedMKT, [8] FedCoLLM + `detailed_plan.md` + `fig1_architecture.md` (mechanism) + the approved outline (structure).*
