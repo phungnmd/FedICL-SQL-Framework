@@ -225,7 +225,7 @@ Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence resu
 ```
 data/raw/spider/   download_spider.py   (JSON + per-DB .sqlite; 1.9 GB; GITIGNORED, fetched per machine)
    ├─ build_processed.py  → data/processed/centralized/  train.csv(7793) · val.csv(866, seeded) · test.csv(1034=Spider dev, FROZEN) · meta.json
-   └─ build_federated.py  → data/processed/federated/<L>c-a<α>-s<seed>/
+   └─ build_federated.py  → data/processed/federated/<K>c-a<α>-s<seed>/
          public_X.csv(1475) · client_i_{train,eval}.csv · held_out.csv(1034) · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
 ```
 
@@ -233,7 +233,7 @@ A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/
 
 ### 3.2 Models (§4.1)
 
-- **Teacher:** Qwen2.5-72B-Instruct, paid OpenAI-compat API (DeepInfra primary; OpenRouter/Together alt), both stages; targets generated once on `X`, cached. Sensitivity: Groq Llama-3.3-70B targets (free) = alt-teacher data point.
+- **Teacher:** Qwen2.5-72B-Instruct, DeepInfra OpenAI-compat API (`logprobs=true, top_logprobs=20`; OpenRouter/Together alt), both stages; targets + per-token top-20 logprobs generated once on `X`, cached.
 - **Students:** **Qwen2.5-1.5B-Instruct primary** (tokenizer-aligned with the teacher → soft-KL KD without MinED); Phi-3-mini (3.8B), Gemma-2B, TinyLlama-1.1B for the SLM-arch ablation (A5). 4-bit QLoRA, temp=0, max-new-tokens=256 ([4]).
 - **Retriever:** BAAI/bge-small-en + FAISS ([4]).
 

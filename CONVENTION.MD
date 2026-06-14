@@ -50,7 +50,7 @@ FedICL-SQL uses a two-repo layout on purpose:
 │   ├── eval/                # metrics, statistical tests
 │   ├── federated/           # delta aggregation → M_G
 │   ├── retrieval/           # ICL demo retrieval
-│   ├── prompts/             # prompt builder + masking
+│   ├── prompts/             # prompt builder
 │   ├── runtime/             # result logging + provenance
 │   └── utils/               # seeding, logging, io
 │
@@ -135,7 +135,7 @@ Every run that could appear in the paper:
 - **Spec (rarely changes):** `detailed_plan.md` (what to build) + `fig1_architecture.md` (the mechanism). Reference — read occasionally; do **not** track day-to-day progress inside them.
 - **Daily driver:** `todo.md` ▶️ Runbook (the linear step checklist, tick boxes) + `LAB_LOG.md` (dated, **append newest on top**: did / got / next / Q). Write the log every session; read its top entry to resume — never re-parse the spec.
 - **Numbers:** `RUNS.csv` (auto) + per-run `summary.json`; headline + the *story* mirrored into `LAB_LOG.md`. Do **not** hand-maintain a parallel results table — that drifts.
-- **Risk register:** `problems_and_solutions.md` (problem → solution → fallback).
+
 
 **Compute tiers:** Mac M4 Pro (MPS, fp16) = dev + all `$0` no-teacher baselines + PoC; Colab Pro GPU = faster/heavier PoC + 4-bit QLoRA; paid A100-class = Stage-B headline only; teacher 72B = paid API regardless. bitsandbytes 4-bit is CUDA-only.
 
