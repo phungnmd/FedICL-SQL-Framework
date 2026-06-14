@@ -7,8 +7,6 @@ IAJIT, WoS-Q3).
 - Method mechanism: `paper/notes/fig1_architecture.md`
 - Build & experiment plan: `paper/notes/detailed_plan.md`
 - Execution checklist + results: `paper/notes/todo.md`
-- Risks: `paper/notes/problems_and_solutions.md`
-- Concept primer (VI): `paper/notes/learning_primer_vi.md`
 - Code: `fedicl-sql/` (see `fedicl-sql/README.md` for architecture + quickstart)
 
 **Two-repo layout (intentional):** this outer repo = paper docs/plan/references
