@@ -26,6 +26,7 @@ Use the journal's LaTeX template per instructions at: https://www.iajit.org/app/
 **Working documents (created & maintained by Claude):**
 - `paper/notes/detailed_plan.md` — detailed plan: method definition (equation-level), experiment matrix, section → template mapping, milestones, repo layout. **Source of truth for "what to build".**
 - `paper/notes/fig1_architecture.md` — verbatim transcription of the Fig.1 architecture PNG + mechanism implications + reference grounding. **Source of truth for "the method's mechanism"** (engine = parametric, weights-only wire). Figure wins on mechanism; outline wins on section structure.
+- `paper/notes/system_architecture.md` — **full system architecture document** (10 sections): 3-plane diagram, all components, round loop pseudocode, data flows, key invariants, notation table. **Read this before writing §3 or answering any architecture question.**
 - `paper/notes/todo.md` — **execution checklist + progress & RESULTS tracking** (see convention below).
 
 ## Convention: use `paper/notes/todo.md` to track progress & results
