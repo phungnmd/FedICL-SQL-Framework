@@ -138,8 +138,10 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 ### 5.2 Schema Encoder + Retrieval
 
 - Schema serialized as DDL (types + FK join paths) for prompt `S`
-- **BGE-small-en + FAISS** retrieval over `Qᵢ ∪ G` (union of local private demos + ICL Hub demos)
-- Top-`k` selection (`k ∈ {1,3}` per [4]; inverted-U at k=5)
+- **BGE-small-en + FAISS** retrieval — pool depends on stage:
+  - **PoC (Stage-A):** `Qᵢ` only (G not yet built — requires teacher targets)
+  - **Stage-B:** `Qᵢ ∪ G` (private demos + ICL Hub teacher demos broadcast from server)
+- Top-`k` at **inference/eval**: `k=3` (k ∈ {1,3} per [4]; inverted-U at k=5). At **training**: k=0 (see §5.5 note)
 - **Masking = retrieval-only** ([4] §3.6): table/column names masked to canonical tokens for similarity scoring; demos shown in the prompt are **always unmasked**
 
 ### 5.3 ICL Prompt Constructor
@@ -185,6 +187,8 @@ L_i = L_sup(private Qᵢ)  +  L_KD(public X + teacher targets)
 
 **Why both parts matter:** if clients train on `X` alone (no `Qᵢ`), all deltas are near-identical → FedAvg degenerates to single-client training → RQ1 dies (FedAvg-no-op).
 
+**ICL in training (implementation note):** Training prompts use **k=0** (no retrieved demos) — consistent with FedCoLLM [8] engine anchor and standard NL2SQL fine-tuning practice (DAIL-SQL, SQL-Coder). ICL is applied at **inference time only** (`k=3`). Rationale: (1) adding k=3 demos to every training sequence multiplies prompt length ~3×, causing OOM on T4 14.5GB; (2) Qwen2.5-1.5B-Instruct handles ICL prompts without in-training exposure due to instruction pre-training. This is a deliberate simplification noted in §3.6 of the paper. The Fig.1 pipeline (Retrieval → ICL Prompt → SLM → Training) describes the **inference pipeline**; training follows the supervised fine-tuning protocol of [8].
+
 ---
 
 ## 6. Federated Round Loop
@@ -197,12 +201,16 @@ Offline (once, cached):
 Round t = 1 .. T:
   1. SERVER  broadcast M_G (+ ICL Hub slice G) → all K clients
   2. CLIENT i (parallel):
-       a. Retrieve top-k demos from Qᵢ ∪ G
-       b. Build ICL prompts σ(q, Sᵢ, I, Q)
-       c. LoRA-train Mᵢ on L_sup(Qᵢ) + L_KD(X, teacher_targets)
-       d. Δθᵢ ← encrypt + compress + DP-perturb (θᵢ − θ_{t-1})
-       e. Upload Δθᵢ  [Weights Only]
+       a. LoRA-train Mᵢ on L_sup(Qᵢ, k=0) + L_KD(X, teacher_targets, k=0)
+          [training prompts: σ(q, Sᵢ, I, Q=[]) — no demos, standard SFT protocol [8]]
+       b. Δθᵢ ← encrypt + compress + DP-perturb (θᵢ − θ_{t-1})
+       c. Upload Δθᵢ  [Weights Only]
   3. SERVER  θ_t ← FedAvg({Δθᵢ})  →  M_G ← base_SLM + θ_t
+
+Inference (per client, after training):
+       a. Retrieve top-k demos from Qᵢ (PoC) or Qᵢ ∪ G (Stage-B)
+       b. Build ICL prompts σ(q, Sᵢ, I, Q)  with k=3
+       c. M_G.generate(prompt) → SQL
 
 Return: M_G (global student), per-client adapters for local inference
 ```
