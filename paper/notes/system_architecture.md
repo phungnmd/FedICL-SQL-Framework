@@ -81,15 +81,18 @@ A set of `K` organizations (clients) each hold:
 
 **Exec filter:** only items where `Exec(ŝ_T, D_X) = Exec(gold, D_X)` (exec-correct) enter the KD target cache. Items that fail exec validation are dropped.
 
-**Two downstream feeds (both from M_T's public-X run):**
-1. **→ ICL Hub:** `(q, schema, reasoning, ŝ_T)` tuples as high-quality demonstrations
-2. **→ KD targets cache:** `teacher_targets.qwen72b.csv` + `teacher_targets.qwen72b.logprobs.jsonl`
+**Two downstream uses of the same teacher run (stored together in `teacher_targets.qwen72b.*`):**
+
+1. **→ ICL Hub G (ICL path):** `(q, schema, ŝ_T)` — served as `(NL, SQL)` demo in ICL prompt. Reasoning NOT in prompt (see §5.3). G is built from the same CSV but strips reasoning at prompt-build time.
+2. **→ KD targets (KD training path):** `reasoning⊕ŝ_T` (CE hard target) + `top_logprobs[20]` (soft-KL target) — used by `L_KD` on the client side. Student is trained to **predict** teacher's reasoning+SQL sequence and match teacher's token distribution. This is the mechanism that transfers "dark knowledge" gold labels lack.
 
 ### 3.2 ICL Hub `G` — Demonstration Repository
 
 **Role:** server-side pool of teacher-authored public demonstrations, broadcast DOWN to all clients each round.
 
-**Content:** teacher-generated `(question, schema, reasoning, SQL)` on public schemas `X`.
+**Content (stored):** `(question, schema, reasoning, SQL)` from teacher run on `X`. Reasoning archived but **NOT served in ICL prompt** — prompt construction uses `(q, SQL)` only (§5.3). Reasoning flows to L_KD (KD training path), not to G's demo output.
+
+**Content (served in ICL prompt):** `(question, SQL)` — consistent format with Qᵢ demos.
 
 **Not:** cross-client private demos. Private client demos `Qᵢ` stay local and are never shared.
 

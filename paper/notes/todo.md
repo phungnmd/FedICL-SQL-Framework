@@ -18,7 +18,7 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 - [x] **1. `p0_sanity`** — pipeline works on Qwen-1.5B? → EX=PASS EM=PASS (Mac MPS, 2026-06-12)
 - [x] **2. `p0_eval50`** — base+ICL floor → **EX=44.5% EM=26.5%** (n=200 k=3, Mac MPS, 7.4s/q, 5.1GB, 2026-06-12). *PoC floor only; final paper eval should use the federated/public-X ICL setting.*
-- [ ] **3. `b3_centralized_ft`** — pooled-private LoRA = parametric **ceiling** (B3)
+- [x] **3. `b3_centralized_ft`** — pooled-private LoRA = parametric **ceiling** (B3) → EX=49.5% EM=33.0% (CUDA, seed 0, n=200, 2026-06-13)
 - [ ] **4. `p1_client_train --kd-label none` ×3** — per-client solo LoRA = **floor** (B2)
 
 **Gate — unlocks 5–8 (~$2 teacher, can run pre-supervisor-gate):**
