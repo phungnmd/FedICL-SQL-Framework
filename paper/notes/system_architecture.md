@@ -236,11 +236,16 @@ public X  ──►  M_T teacher  ──►  teacher_targets (CoT+SQL+logprobs, 
                               ┌──────────┴──────────┐
                               ▼                     ▼
                          ICL Hub G            KD loss L_KD
-                         (demos, ↓ broadcast) (client-side training)
+                         (demos, ↓ broadcast) (client-side training, k=0 prompt)
 
-private Qᵢ  ──►  L_sup (supervised CE, stays local)
-                  +
-             Qᵢ ∪ G  ──►  retrieval  ──►  ICL prompt  ──►  L_SQL / inference
+TRAINING (k=0, no demos in prompt):
+  private Qᵢ  ──►  build_prompt(q, S, [])  ──►  L_sup (CE vs gold SQL)
+  public X    ──►  build_prompt(q, S, [])  ──►  L_KD  (CE+KL vs teacher targets)
+
+INFERENCE (k=3, demos in prompt):
+  Qᵢ (PoC) or Qᵢ ∪ G (Stage-B)  ──►  retrieval  ──►  ICL prompt σ(q,S,I,Q)  ──►  M_G.generate() → SQL
+
+Local Knowledge Cache (optional, Fig.1): recent examples / rules / execution feedback — not yet implemented.
 ```
 
 ---
