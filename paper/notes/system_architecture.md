@@ -118,20 +118,31 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 
 ### 5.2 Local Teacher M_T — Qwen2.5-7B-Instruct (offline, per-client)
 
-**Role:** SQL expert running **offline once per client** on the client's **own private Qᵢ**. Never sees other clients' data. Never uploads outputs to the server.
+**Two-step offline process before federated rounds begin:**
 
-**Outputs per item `(q, db) ∈ Qᵢ`:**
-- `reasoning` — chain-of-thought derivation
-- `teacher_sql` — teacher SQL (exec-validated against gold)
-- `top_logprobs[K]` — per-token top-K log probabilities → soft-KL KD
+**Step 1 — Domain adaptation (fine_tune_teacher.py):**
+Fine-tune the base 7B teacher on the client's own `Qᵢ` using LoRA (supervised CE on gold SQL). This adapts the teacher to the client's schema naming, SQL patterns, and domain vocabulary before it generates KD targets. Output: `artifacts/teacher_adapters/client_i/` (LoRA adapter).
 
-**Exec filter:** only items where `Exec(teacher_sql, Dᵢ) = Exec(gold, Dᵢ)` enter the KD target cache.
+- VRAM: fp16 LoRA training of 7B ≈ 28-32 GB → A100 required for Stage-B. T4 PoC: use `--max-steps 0` to skip fine-tuning and use the base 7B teacher as-is.
 
-**Stored locally (per client):**
-- `client_i_teacher_targets.csv` — CE hard targets
-- `client_i_teacher_targets.logprobs.jsonl` — soft-KL targets
+**Step 2 — Annotate Qᵢ to produce augmented training dataset (gen_teacher_targets.py):**
+Load domain-adapted teacher (base + adapter merged) and run on each `(q, schema) ∈ Qᵢ`. Produces the **annotated Qᵢ dataset** (`client_i_train_kd.csv`) — a copy of the private training data with teacher annotation columns added:
 
-**VRAM management:** load 7B → generate all targets → `teacher.unload()` → load 1.5B student. Sequential; never both in VRAM simultaneously. Optional `--load-in-4bit` (~4 GB) for T4 (vs ~14 GB fp16).
+| Column | Source | Meaning |
+|--------|--------|---------|
+| `question`, `query` (gold), `db_id`, `db_path` | original Qᵢ | private training example |
+| `teacher_sql` | teacher 7B | teacher's SQL prediction |
+| `reasoning` | teacher 7B | chain-of-thought derivation steps |
+| `exec_ok` | exec validation | teacher SQL runs without error |
+| `exec_correct` | exec validation | teacher SQL result set = gold result set |
+| `top_logprobs[K]` | teacher 7B | per-token top-K log probs (stored in `.logprobs.jsonl`) |
+
+**Exec filter:** only rows where `exec_correct=True` contribute teacher supervision. Exec-incorrect rows fall back to gold SQL during training.
+
+**VRAM management (sequential):**
+1. Fine-tune teacher (7B LoRA) → save adapter → unload
+2. Load teacher + adapter → generate annotated dataset → unload
+3. Load student (1.5B) → train on annotated dataset
 
 ### 5.3 Schema Encoder + Retrieval
 

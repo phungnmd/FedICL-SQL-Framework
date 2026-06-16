@@ -127,7 +127,13 @@ CLIENTS (Org 1..L) : Local Schema Sᵢ + private Qᵢ → Schema Encoder → Ret
                      → Local SLM (decode) → SQL+reasoning → Local Training (SQL+KD+Struct+Exec) → LoRA delta
 ```
 
-**Offline, once per client (before rounds):** each client's local teacher (7B) runs on that client's own `Qᵢ`, emits `reasoning ⊕ SQL` + top-K logprobs per item, exec-validated, cached locally → feeds the client's KD targets. (Teacher never sees other clients' data; stays fully on-premise.)
+**Offline, two steps per client (before rounds):**
+
+1. **Teacher domain-adaptation (`fine_tune_teacher.py`):** fine-tune the base 7B teacher on the client's own `Qᵢ` with LoRA (gold CE on SQL). Adapts teacher to client's schema vocabulary and SQL patterns. Output = per-client LoRA adapter. VRAM: ~28-32 GB fp16 (A100); skip with `--max-steps 0` for PoC on T4.
+
+2. **Annotate Qᵢ (`gen_teacher_targets.py`):** load domain-adapted teacher (base + adapter merged), run on each `(q, schema) ∈ Qᵢ`, produce **annotated training dataset** `client_i_train_kd.csv` — the original Qᵢ with teacher columns added: `teacher_sql, reasoning, exec_ok, exec_correct` + per-token top-K logprobs in `.logprobs.jsonl`. Exec-filter: only `exec_correct=True` rows use teacher supervision during SLM training.
+
+Teacher never sees other clients' data; outputs stay fully on-premise.
 
 **One federated round `t`:**
 1. **Broadcast** global params `M_G` to clients (no ICL Hub demos; retrieval is local).
