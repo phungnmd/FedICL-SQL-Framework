@@ -23,7 +23,7 @@ This document converts the approved outline (`../drafts/fedicl_sql_outline.pdf`)
 | **Privacy** | No raw rows / no schema leave client; only **encrypted, DP-perturbed LoRA-delta weights** transmit. Masking + DP gradient perturbation are the mechanisms. (Never claim "no weights leave" — weights DO cross.) | Fig.1 "Weights Only" |
 | **Staging** | **Stage-A PoC** (~$2, 1 seed, ~200 q/client subset, **Mac MPS or Colab Pro GPU**, `T=2–3`, `E=1`, no DP, `stage=poc`) → **SB gate** → **Stage-B headline** (paid A100-class GPU, ≥3 seeds + significance, DP measured, `stage=headline`). Only `headline` enters the paper. | budget triage |
 | **Compute / repo** | **3 tiers (re-locked 2026-06-16):** (1) **Mac M4 Pro 24GB MPS** = dev + all `$0` baselines (B2, B3) + p0 floor; (2) **Colab Pro T4** = teacher targets gen (7B `--load-in-4bit` ~4 GB) + student LoRA training (~11 GB fp16; sequential: unload teacher before training); (3) **paid A100-class** = Stage-B headline only. **No API cost** — teacher is local 7B. ⚠️ one stack per comparison set. Code repo `github.com/phungnmd/fedicl-sql` (private). | locked 2026-06-16 |
-| **SB gate** | PoC directionally healthy (`M_G` approaches the centralized ceiling **B3** — small federation gap — and the **Without-Teacher ablation** quantifies teacher value) **AND** supervisor sign-off on §8 + budget. Report `M_G` vs SLM-only (federation gain), vs gold-CE (teacher value, expected positive via soft-KL), vs X-only (FedAvg-no-op diagnostic) as **measured analysis, not pass/fail gates**. | risk control |
+| **SB gate** | PoC directionally healthy (`M_G` approaches centralized ceiling **B3** — small federation gap — and `M_G − Ab3` quantifies teacher value) **AND** supervisor sign-off on §8 + budget. Report `M_G − B2` (federation gain), `M_G − Ab3` (teacher value via soft-KL + CoT) as **measured analysis, not pass/fail gates**. | risk control |
 
 **Reference shorthand:** [4] Light-SQL (NL2SQL+ICL base, same corresponding author) · [5] Fed-ICL (parameter-free answer-fusion + convergence proof + prompt-extraction attack) · [6] IFed-ICL (implicit vectors, classification — side ref) · [7] FedMKT (logit-space KD + token-alignment; does NOT FedAvg weights) · [8] FedCoLLM (LoRA-adapter FedAvg + global SLM + CE+λKL KD — the engine anchor) · [1] federated BART · [2] prior thesis · [3] ICL survey.
 
@@ -42,9 +42,9 @@ This document converts the approved outline (`../drafts/fedicl_sql_outline.pdf`)
 | `k` | **# ICL shots** (∈{0,1,3,5}) | lower-case |
 | `E` | local epochs / round (1–2) | |
 | `λ₁…λ₄` | loss weights: SQL / KD / struct / exec | Fig.1 verbatim |
-| `M_T`, `Mᵢ`, `M_G` | teacher 72B / client-`i` student / global SLM | |
+| `M_T`, `Mᵢ`, `M_G` | teacher 7B (local, per client) / client-`i` student / global SLM | |
 | `Sᵢ`, `Qᵢ` | client-`i` private schema / private (NL,SQL) pairs | never leave client |
-| `X`, `G`, `θ` | public KD/ICL set / global ICL Hub / LoRA params | |
+| `θ` | LoRA params | X and G retired (no public set, no ICL Hub) |
 
 **Research questions (verbatim from approved outline — do not rename):**
 RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectiveness · RQ3 = Large-to-Small LM knowledge transfer & efficiency.
@@ -61,11 +61,11 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 | B6 | FedAvg-LoRA (no teacher, no ICL) | FL-without-our-pieces | = **Ab3a**, arm `gold_ce` |
 | B7 | Fed-ICL [5] adapted to SQL | closest federated competitor | — |
 
-**Teacher-value comparison (P1′, todo step 9) — the 4 models compared on each client's own set:**
-`m_g` (= FedICL-SQL full method) · `slm_only` (B2) · `gold_ce` (B6=Ab3a) · `x_only` (FedAvg on public-X-only, the FedAvg-no-op/null diagnostic).
-**Report** three deltas as RQ evidence (not pass/fail gates): `m_g − slm_only` (federation gain), `m_g − gold_ce` (teacher value, expected positive via soft-KL), `m_g − x_only` (FedAvg-no-op check).
+**Teacher-value comparison (P1′, todo step 8) — 3 models compared on each client's own eval set:**
+`m_g` (= FedICL-SQL full method) · `slm_only` (B2, per-client solo, no fed, no teacher) · `ab3_fedavg` (Ab3 = FedAvg without teacher KD, gold fallback only).
+**Report** two deltas as RQ evidence (not pass/fail gates): `m_g − slm_only` (federation gain), `m_g − ab3_fedavg` (teacher value via soft-KL + CoT — signal gold CE lacks).
 
-**Ablations (Ab#):** Ab1 Without-ICL (=B5) · Ab2 Without-FL (local-only) · Ab3 Without-Teacher=gold-CE (=B6) · Ab4 Retrieval-size `k∈{0,1,3,5}` · Ab5 Different-SLMs.
+**Ablations (Ab#):** Ab1 Without-ICL (=B5) · Ab2 Without-FL (local-only) · Ab3 Without-Teacher = FedAvg-no-KD (gold fallback for all Qᵢ) · Ab4 Retrieval-size `k∈{0,1,3,5}` · Ab5 Different-SLMs.
 
 **Tables/Figures:** T1 Overall · T2 Efficiency · T3 Communication. F1 Architecture · F2 Convergence · F3 Pareto · F4 Heterogeneity · F5 Privacy (F5a demo-channel / F5b weights-channel) · F6 Client-scaling.
 
@@ -89,13 +89,13 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 
 ### 1.2 Thesis
 
-> A cloud LLM teacher and many on-premise SLM students collaboratively raise Text-to-SQL accuracy across heterogeneous private databases — matching or beating centralized LLM ICL — while transmitting only encrypted, DP-perturbed LoRA-delta weights and teacher-authored public demonstrations, never raw schemas or data.
+> Each organization runs a local 7B LLM teacher on its own private data, then fine-tunes a 1.5B SLM student via knowledge distillation. Federated aggregation pools the student LoRA deltas into a Global SLM that matches or approaches the centralized ceiling — while transmitting only encrypted, DP-perturbed LoRA-delta weights, never raw schemas, data, or teacher outputs.
 
 ### 1.3 Contributions
 
-1. **Federated LLM–SLM framework for Text-to-SQL** (FedICL-SQL): server LLM teacher + global ICL repository + federated aggregation engine; client SLM students with local private schemas (Fig. 1).
-2. **Schema-aware ICL**: schema-aware retrieval + prompt construction from local examples plus teacher/public demos (ICL Hub); masking supports retrieval/de-identification without placing masked SQL placeholders into the final prompt. ⚠️ **ICL must be load-bearing — it's in the title.** The *federated* ICL story = the **ICL Hub** (teacher demos on `X`, the only ICL piece crossing the wire) + **held-out adaptation** (RQ2). If ICL shows ~0 delta on seen *and* held-out schemas, the title overclaims — surface at the stage gate, not at review.
-3. **Federated SQL knowledge distillation**: each client LoRA-trains on its **own private** NL→SQL pairs (supervised) **plus** a privacy-safe public set with **teacher KD targets**; server FedAvg/FedProx-aggregates the deltas into a Global SLM. Novelties vs prior SQL-KD = **(i) reasoning/CoT distillation** (reasoning⊕SQL targets), **(ii) exec-based KD-target filtering inside the federated loop**, and **(iii) skeleton-token structure loss** (`L_struct`: weighted CE on SQL clause-keyword tokens).
+1. **Federated LLM–SLM framework for Text-to-SQL** (FedICL-SQL): client-side local 7B teacher + per-client KD + federated aggregation engine; SLM students with local private schemas (Fig. 1). No cloud API, no shared data.
+2. **Schema-aware ICL**: schema-aware retrieval + prompt construction from local Qᵢ examples (Qᵢ-only pool, no shared ICL Hub); masking supports retrieval/de-identification without placing masked SQL placeholders into the final prompt. ⚠️ **ICL must be load-bearing — it's in the title.** ICL value = held-out cross-schema generalization (RQ2). If ICL shows ~0 delta on seen *and* held-out schemas, title overclaims — surface at gate.
+3. **Federated SQL knowledge distillation with local teacher domain-adaptation**: client-side 7B teacher first fine-tunes on Qᵢ (domain adaptation), then annotates Qᵢ with CoT+SQL+logprobs → SLM trains on annotated dataset (single pass: teacher target if exec_correct, else gold fallback); server FedAvg/FedProx-aggregates deltas. Novelties = **(i) per-client teacher domain-adaptation before KD**, **(ii) exec-based KD-target filtering**, **(iii) CoT distillation**, **(iv) skeleton-token structure loss**.
 4. **Privacy-preserving collaborative optimization**: round-based protocol transmitting only encrypted, DP-perturbed LoRA-delta weights; bounded per-round communication; secure aggregation. Report (ε, EX) at Stage-B to validate the DP contribution.
 5. **Extensive evaluation** on Spider + Spider-Realistic under a federated non-IID partition, with FL / efficiency / privacy metrics and five ablations.
 
@@ -113,18 +113,19 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 
 **Notation = §0 registry** (canonical, matches Fig.1): clients `K`, rounds `T`, shots `k`, epochs `E`, loss weights `λ₁…λ₄`. The old `L`=clients / `K`=rounds convention is **retired** — use `K`/`T` everywhere.
 
-Federated system: server `S` + `K` clients. Client `i` holds private schema `Sᵢ = {Tᵢ, Cᵢ, Rᵢ}`, a private example store `Qᵢ = {(qₙ, sₙ)}` of NL/gold-SQL pairs, and a local **SLM student** `Mᵢ` (Qwen2.5-1.5B-Instruct, LoRA-adapted). Server holds **LLM teacher** `M_T` (Qwen2.5-72B), **global ICL repository** `G` (teacher/public-sourced), **aggregation engine** `A`, and the broadcast **Global SLM** `M_G`.
+Federated system: server `S` + `K` clients. Client `i` holds private schema `Sᵢ = {Tᵢ, Cᵢ, Rᵢ}`, a private example store `Qᵢ = {(qₙ, sₙ)}` of NL/gold-SQL pairs, a **local teacher** `M_T` (Qwen2.5-7B, runs offline per-client on Qᵢ), and a **local SLM student** `Mᵢ` (Qwen2.5-1.5B-Instruct, LoRA-adapted). Server holds **aggregation engine** `A` and the broadcast **Global SLM** `M_G` only.
 
 Per-client goal ([4] Eq. 1): learn `f:(q, Sᵢ) → s*` maximizing execution accuracy `EX = 1[Exec(ŝ,Dᵢ)=Exec(s*,Dᵢ)]`. Federated goal: maximize mean EX across clients while `Sᵢ` and raw `Qᵢ` stay private; only protected LoRA-delta weights cross the wire.
 
 ### 2.2 Framework overview (§3.2) — Fig. 1
 
 ```
-SERVER (Cloud) : LLM Teacher | Global ICL Hub | Aggregation Engine (FedAvg/FedProx) | Global SLM
+SERVER : Aggregation Engine (FedAvg/FedProx) | Global SLM M_G
         ↕  secure channel (SSL/TLS · Secure Agg · DP gradient perturbation · masking)
-        ↕  UP: encrypted LoRA deltas (Weights Only)   DOWN: global params + ICL-Hub demos
-CLIENTS (Org 1..L) : Local Schema Sᵢ + private Qᵢ → Schema Encoder → Retrieval → ICL Prompt
-                     → Local SLM (decode) → SQL+reasoning → Local Training (SQL+KD+Struct+Exec) → LoRA delta
+        ↕  UP: encrypted LoRA deltas (Weights Only)   DOWN: global params M_G only
+CLIENTS (Org 1..K) : Local Teacher M_T (7B, offline on Qᵢ) → annotated Qᵢ dataset (client_i_train_kd.csv)
+                     Local Schema Sᵢ + private Qᵢ → Schema Encoder → Retrieval (Qᵢ only) → ICL Prompt
+                     → Local SLM (decode) → SQL+reasoning → Local Training (single-pass KD) → LoRA delta
 ```
 
 **Offline, two steps per client (before rounds):**
@@ -162,44 +163,48 @@ Prompt construction ([4] Eq. 3): `σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q`
 
 ### 2.5 Federated SQL knowledge distillation (§3.7) — the RQ1+RQ3 engine
 
-**Fig.1's verbatim client total loss:** `L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec`. §3.7 must present **this λ-form**, then define each term; this plan's working decomposition `L_i = L_sup(Qᵢ) + L_KD(X)` maps onto it.
+**Fig.1's verbatim client total loss:** `L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec`. §3.7 must present **this λ-form**, then define each term.
 
-⚠️ **Federation-validity (the FedAvg-no-op guard).** Clients must train on their **own private data**, not only `X`. If every client trains on the same `X` with the same teacher targets, all deltas are near-identical → `FedAvg ≈ single-client on X` → federation adds nothing → RQ1 is false by construction. Hence two parts:
+⚠️ **Federation-validity.** Per-client teacher domain-adaptation ensures each client's KD targets reflect its own schema/domain → heterogeneous deltas → non-trivial federation. Verify with delta_stats pairwise cosine < 0.999.
 
-`L_i = L_sup(private Qᵢ) + L_KD(public X)`
+**Single-pass training objective — one sequence per Qᵢ example:**
 
-- **`L_sup`** = supervised CE on the client's **own private** `(q, gold-SQL)` pairs `Qᵢ` (own schema, never leaves client) — makes each delta carry org-specific skill so FedAvg pools heterogeneous knowledge into `M_G`. This is FedCoLLM [8]'s actual regime.
-- **Single-pass objective — one training sequence per Qᵢ question:** for each `(q, gold_sql) ∈ Qᵢ`, if a teacher target exists AND `exec_correct=True`, target = `CoT⊕teacher_sql` with soft-KL logprobs active (source="kd"); otherwise target = `gold_sql` with no KL (source="gold"). Every question appears exactly once — no double-pass, no implicit upweighting of exec-correct examples. `exec_correct` ensures teacher_sql is semantically equivalent to gold_sql. `L = CE(target) + λ·KL_τ(logprobs)` where KL=0 when logprobs absent.
+For each `(q, gold_sql) ∈ Qᵢ` (from `client_i_train_kd.csv`):
+- `exec_correct=True` → `target = CoT⊕teacher_sql`, soft-KL active (source="kd")
+- `exec_correct=False` → `target = gold_sql`, no KL (source="gold")
+
+Every question appears exactly once. `exec_correct` ensures teacher_sql ≡ gold_sql semantically.
 
 **The four Fig.1 losses, literal:**
-- **SQL loss** = token CE on the SQL: vs **own gold** on `Qᵢ` (= `L_sup`), vs **teacher SQL** `ŝ_T` on `X`.
-- **KD loss** = distil teacher *behavior* on `X`, **including reasoning (CoT distillation)** — target = `r̂_T⊕ŝ_T` (reasoning then SQL), so the student learns the *derivation*. `L_KD = CE(r̂_T⊕ŝ_T) + λ·KL_τ(M_i ‖ teacher top-20 logprobs)`, teacher-forced on the aligned token sequence. DeepInfra returns `top_logprobs` (≤20) per token; Qwen-72B↔Qwen-1.5B share a tokenizer → **no MinED, no separate P2 phase** (single-phase hard+soft KD). Caveat: top-20 = truncated KL (not full vocab); cached targets store per-token top-20 logprobs (~20 floats/token, larger cache); requesting logprobs adds negligible generation cost.
-- **Structure loss** `β·L_struct` = **weighted token-level CE on the SQL skeleton-token subsequence** (clause keywords + structural tokens, identifiers stripped). Differentiable, backprops cleanly. NOT AST-edit-distance.
-- **Execution** = teacher-target **filtering**, NOT a gradient term (SQL exec is non-differentiable → a data-selection gate). Stored per target as `exec_ok` / `exec_correct`. **Simulation (`X` has gold):** keep a target only if its result set equals the gold's (**exec-match**, `kd_require_correct=True`) — "runs" ≠ "right". **Deployment (unlabeled `X`):** degrades to exec-only (+ optional self-consistency). State this divergence openly in §3.7.
+- **SQL loss** = CE on target SQL token sequence (teacher SQL when exec_correct, gold SQL otherwise).
+- **KD loss** = soft-KL distillation: `KL_τ(student logits ‖ teacher top-K logprobs)` where logprobs come from the local 7B teacher via HF generate. Qwen-7B↔Qwen-1.5B share a tokenizer → **no MinED, no separate P2 phase** (single-phase hard+soft KD).
+- **Structure loss** `β·L_struct` = **weighted token-level CE on SQL skeleton-token subsequence** (clause keywords, identifiers stripped). Differentiable, backprops cleanly. NOT AST-edit-distance.
+- **Execution** = teacher-target **filtering**, NOT a gradient term (exec is non-differentiable → data gate). Stored as `exec_ok` / `exec_correct` in annotated dataset. Keep target only if result set equals gold (exec-match).
 
-**Reasoning/CoT (teacher duty #2).** Teacher emits `(reasoning, SQL)` per `X` item; reasoning is used two ways: (i) part of the KD target sequence (CoT distillation), (ii) attached to ICL-Hub demos for retrieval-augmented prompts (RQ2). At inference, reasoning is optional (SQL-only for latency, reason-then-SQL for accuracy — an ablation).
+**Reasoning/CoT.** Teacher emits `(reasoning, SQL)` per Qᵢ item; reasoning is part of the KD target sequence (CoT distillation). At inference, reasoning is optional (SQL-only for latency).
 
-**Novelty framing (avoid over-claim):** exec-guidance for SQL is prior art. Our novelty = **exec-based KD-target filtering inside the federated KD loop** + **skeleton-token structure loss** + **CoT distillation** — not exec-guidance per se.
+**Novelty framing:** exec-guidance for SQL is prior art. Our novelties = **(i) per-client teacher domain-adaptation before KD** + **(ii) exec-based KD-target filtering inside the federated loop** + **(iii) skeleton-token structure loss** + **(iv) CoT distillation**.
 
-Client uploads **LoRA deltas only** (encrypted/compressed/DP-perturbed); server aggregates by **FedAvg/SecureAvg** → `M_G`, broadcast back. This adapter-FedAvg + global-SLM loop = **FedCoLLM [8]** (uses only the LLM→SLM half of [8]'s mutual KD). **Not FedMKT [7]** ([7] shares logits and aligns in logit-space, never FedAvgs weights — related-work reference, not our engine).
-
-**Demo-level KD (variant, parameter-free):** teacher's correct `(q, ŝ_T)` on `X` become high-quality ICL-Hub demos — behavioral distillation through ICL, no weights. Cheap comparator to the parametric engine.
+Client uploads **LoRA deltas only** (encrypted/compressed/DP-perturbed); server aggregates by **FedAvg/SecureAvg** → `M_G`. = **FedCoLLM [8]** (LLM→SLM half only). **Not FedMKT [7]** (logit-space KD, never FedAvgs weights).
 
 ### 2.6 Federated optimization & protocol (§3.8) — Algorithm 1
 
 ```
 Algorithm 1: FedICL-SQL (parametric engine — primary)
-Input: clients {Sᵢ, Qᵢ, Mᵢ}, teacher M_T, public X, rounds T, LoRA init θ₀
-Offline: teacher_targets ← {(x, r̂_T(x)⊕ŝ_T(x)) : x ∈ X, exec_correct(x)}   # once, cached
+Input: clients {Sᵢ, Qᵢ, Mᵢ}, rounds T, LoRA init θ₀
+Offline (per client i, before rounds):
+  M_T^i ← fine_tune_teacher(base_7B, Qᵢ)          # domain-adapt teacher on Qᵢ
+  kd_data_i ← gen_teacher_targets(M_T^i, Qᵢ)       # annotated Qᵢ: CoT+SQL+logprobs, exec-filtered
+  unload M_T^i                                       # free VRAM for student training
  1: M_G ← base SLM + θ₀
  2: for round t = 1..T:
- 3:    broadcast M_G (+ ICL-Hub slice) to all clients
+ 3:    broadcast M_G to all clients                  # params only, no ICL Hub
  4:    for each client i in parallel:
- 5:        θᵢ ← LoRA-train Mᵢ on  L_sup(Qᵢ) + L_KD(teacher_targets)   # SQL+KD+Struct; Exec = target filter
+ 5:        θᵢ ← LoRA-train Mᵢ on kd_data_i          # single-pass: teacher target if exec_correct, else gold
  6:        Δθᵢ ← encrypt/compress/DP-perturb(θᵢ − θ_{t−1})
- 7:        upload Δθᵢ                                                  # Weights Only
- 8:    θ_t ← θ_{t−1} + (1/K) Σᵢ Δθᵢ     ;     M_G ← base + θ_t          # FedAvg/FedProx
- 9: return M_G ; per-client predictions
+ 7:        upload Δθᵢ                                # Weights Only
+ 8:    θ_t ← θ_{t−1} + (1/K) Σᵢ Δθᵢ  ;  M_G ← base + θ_t   # FedAvg/FedProx
+ 9: return M_G ; per-client adapters for local inference
 ```
 
 Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence results — they cover *parametric weight aggregation*, which is our mechanism. ⚠️ Do **NOT** borrow Fed-ICL Thm 4.1/Cor. 4.2: it proves convergence for *parameter-free answer-fusion*, a different mechanism — a reviewer will flag the mismatch. Report **empirical** convergence (EX vs rounds) as the primary evidence; theory is motivation only. Per-round communication = bounded LoRA-delta size (the efficiency claim). **Baseline variant (Fed-ICL [5]):** clients propose SQL on a shared query set using own private demos; server fuses by exec-vote/Fusion-LM; iterate — parameter-free comm-cost/convergence comparator, never the method.
@@ -230,16 +235,19 @@ Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence resu
 
 ```
 data/raw/spider/   download_spider.py   (JSON + per-DB .sqlite; 1.9 GB; GITIGNORED, fetched per machine)
-   ├─ build_processed.py  → data/processed/centralized/  train.csv(7793) · val.csv(866, seeded) · test.csv(1034=Spider dev, FROZEN) · meta.json
+   ├─ build_processed.py  → data/processed/centralized/  train.csv · val.csv · test.csv(1034=Spider dev, FROZEN) · meta.json
    └─ build_federated.py  → data/processed/federated/<K>c-a<α>-s<seed>/
-         public_X.csv(1475) · client_i_{train,eval}.csv · held_out.csv(1034) · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
+         client_i_{train,eval}.csv · held_out.csv(1034) · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
+         [no public_X.csv — all train DBs go to clients]
+   └─ fine_tune_teacher.py + gen_teacher_targets.py  → client_i_train_kd.csv + client_i_train_kd.logprobs.jsonl
+         (per client; annotated Qᵢ with teacher columns; committed to repo ~5 MB)
 ```
 
 A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/raw/...sqlite`) → portable. **All processed CSVs + split.json + meta.json + teacher targets are committed** (~5 MB) — the exact frozen split travels with the repo (no rebuild, no drift); only the heavy raw DBs are regenerated. `build_*` are deterministic per `--seed`, so a rebuild reproduces the committed `db_pool_map` byte-for-byte. The `fedicl_sql` lib + `experiments/*/run.py` read these processed CSVs; the Colab bootstrap (`notebooks/00_colab_bootstrap.ipynb`) reuses the same scripts + CSVs.
 
 ### 3.2 Models (§4.1)
 
-- **Teacher:** Qwen2.5-72B-Instruct, DeepInfra OpenAI-compat API (`logprobs=true, top_logprobs=20`; OpenRouter/Together alt), both stages; targets + per-token top-20 logprobs generated once on `X`, cached.
+- **Teacher:** Qwen2.5-7B-Instruct, **local HuggingFace per client**. Step 1: LoRA-SFT on Qᵢ (domain adaptation). Step 2: generate `client_i_train_kd.csv` (annotated Qᵢ with CoT+SQL+top-K logprobs, exec-filtered). No API cost. VRAM: A100 for SFT; T4 with `--load-in-4bit` for inference.
 - **Students:** **Qwen2.5-1.5B-Instruct primary** (tokenizer-aligned with the teacher → soft-KL KD without MinED); Phi-3-mini (3.8B), Gemma-2B, TinyLlama-1.1B for the SLM-arch ablation (A5). **LoRA fp16**, temp=0, max-new-tokens=256 ([4]).
 - **Retriever:** BAAI/bge-small-en + FAISS ([4]).
 
@@ -280,7 +288,7 @@ A CSV row = `question, query, db_id, db_path`; `db_path` is **relative** (`data/
 
 1. **Without ICL** — drop demos → isolate ICL.
 2. **Without federated learning** — local-only → isolate federation.
-3. **Without Teacher LLM = gold-CE arm (Ab3a)** — `L_sup(Qᵢ) + CE(gold-SQL on X)` vs full `L_sup(Qᵢ) + KD(teacher reasoning⊕SQL on X)`; **identical data, only the label/target differs** → isolates teacher value from data quantity. Measure **in the PoC** (cheap). On labeled Spider, exec-filtered teacher SQL ⊆ gold, so teacher value comes from the **soft-KL term** (dark knowledge gold lacks) + **reasoning/CoT distillation** — a fair comparison the teacher can win. Report the delta.
+3. **Without Teacher = FedAvg-no-KD (Ab3)** — train SLM on gold SQL only (`teacher_targets=[]`, all examples fall back to gold); run FedAvg → `ab3_fedavg`. Compare to `M_G` (full method with teacher KD). Isolates teacher value: delta = CoT distillation + soft-KL dark knowledge gold CE lacks. Report `M_G − ab3_fedavg`.
 4. **Retrieval size** `k ∈ {0,1,3,5}` (inverted-U per [4]).
 5. **Different SLMs** — Qwen-1.5B / Phi-3 / Gemma-2B / TinyLlama.
 
@@ -288,13 +296,13 @@ Plus discussion subsections: Impact of ICL, Impact of LLM Teacher, Impact of FL,
 
 ### 3.7 Implementation (§4.1)
 
-PyTorch + HuggingFace; LoRA fp16 students (no 4-bit quantization during training — confirmed 11 GB/T4); FAISS + bge-small retriever; lightweight custom round-loop (single-GPU, clients sequential). Fixed seeds, temp=0. **Federated hyperparams** (cost multipliers, total LoRA passes = L×T×E×runs): Stage-A PoC `T=2–3, E=1`; Stage-B pick `T` from the PoC convergence plateau (cap ≤10), `E=1–2` (high E + non-IID → drift; if drift visible, FedProx μ instead). State `T, E`, LoRA rank/α/lr in §4.1. Release code + partition scripts.
+PyTorch + HuggingFace; LoRA fp16 students (no 4-bit during training — confirmed 11 GB/T4); FAISS + bge-small retriever; lightweight custom round-loop (single-GPU, clients sequential). Fixed seeds, temp=0. **Federated hyperparams** (cost multipliers, total LoRA passes = K×T×E×runs): Stage-A PoC `T=2–3, E=1`; Stage-B pick `T` from the PoC convergence plateau (cap ≤10), `E=1–2` (high E + non-IID → drift; if drift visible, FedProx μ instead). State `T, E`, LoRA rank/α/lr in §4.1. Release code + partition scripts.
 
 ### 3.8 Run staging & minimum publishable set
 
 The full matrix (7 baselines + 5 ablations + α-sweep + K-sweep + DP + 2 datasets × ≥3 seeds × T rounds) is hundreds of LoRA runs — triage by tier (a run belongs to the highest tier whose claim it supports):
 
-- **Tier 1 — must, Stage B, ≥3 seeds + significance.** Teacher-value comparison (`M_G` vs SLM-only vs X-only vs gold-CE), T1 Spider (FedICL-SQL, SLM-only, LLM-only, Centralized-FT, FedAvg-LoRA), Ablation 3a + 3b, T3. The paper stands or falls here.
+- **Tier 1 — must, Stage B, ≥3 seeds + significance.** Teacher-value comparison (`M_G` vs B2-slm_only vs Ab3-fedavg-no-kd), T1 Spider (FedICL-SQL, SLM-only, Centralized-FT, FedAvg-no-KD), Ablation 3, T3. The paper stands or falls here.
 - **Tier 2 — should, Stage B, ≥3 seeds where cheap (inference reuses checkpoints).** T2, F2, F3, Ablations 1/2/4, Fed-ICL + Centralized-ICL, RQ2 held-out, **Spider-Realistic** (promoted from Tier 3 — same DBs, only paraphrased questions → near-free, and a single-benchmark headline is thin for a Q3 journal which expects ≥2).
 - **Tier 3 — nice, 1 seed, flagged in caption.** F4 α-sweep, F6 K-sweep, DP (ε, EX), Ablation 5, F5b MIA. Budget out → cut Tier 3 and say so.
 - **Stage-A PoC:** Tier-1 set only, 1 seed, eval subset — directional evidence for the gate, never cited as paper results.
@@ -324,8 +332,8 @@ IAJIT = IEEE two-column. No math/symbols in title or abstract. Keywords required
 | --- | --- | --- |
 | P0 Setup | repo; Spider loaded; FAISS retriever; SLM 4-bit single-query ICL; floor EX | — |
 | P0.5 Baselines | no-teacher (zero-shot, Centralized-FT, Centralized-ICL) + fed-no-teacher (SLM-only, FedAvg-LoRA) | P0 |
-| P1 Federated engine | schema-disjoint split; client LoRA trainer; FedAvg + no-op detector; 4-arm teacher-value comparison; PoC runs (teacher targets w/ top-20 logprobs → Colab Pro train → eval) | P0 |
-| ~~P2 Logit-KD~~ (folded into P1) | soft-KL term uses DeepInfra top-20 logprobs (aligned tokenizer → no MinED, no separate phase) | — |
+| P1 Federated engine | schema-disjoint 2-pool split; fine_tune_teacher.py (domain-adapt 7B); gen_teacher_targets.py (annotate Qᵢ); client LoRA trainer (single-pass KD); FedAvg + no-op detector; 3-arm teacher-value comparison | P0 |
+| ~~P2 Logit-KD~~ (folded into P1) | soft-KL via local 7B HF top-K logprobs (aligned Qwen tokenizer → no MinED, no separate phase) | — |
 | SB Stage B | paid headline matrix (Tier 1→3, ≥3 seeds, DP) | gate |
 | P4 Eval | T1–T3, F2–F6, 5 ablations, privacy attack | SB |
 | P5 Writing | §3,§2,§1 in parallel from P1; §4; abstract; §5; IAJIT format; citation check | P4 |
@@ -341,12 +349,12 @@ IAJIT = IEEE two-column. No math/symbols in title or abstract. Keywords required
 | --- | --- | --- |
 | SLM EX on Spider too low | weak headline | strong SLM; teacher-KD lifts floor; report EX+EM; held-out framing emphasizes generalization |
 | Federation no gain over local | kills RQ1 | non-IID split → real heterogeneity; verify deltas differ (no-op check); FedProx if drift. ⚠️ note `M_G > B2` is near-trivial — the real bar is `M_G` → B3 ceiling |
-| Teacher value modest on labeled data | weak RQ3 | soft-KL (top-20 logprobs) carries dark knowledge gold lacks; Without-Teacher ablation (Ab3a) reports the delta; label-free unlabeled-X ablation (Ab3b) shows the necessary-teacher regime |
+| Teacher value modest on labeled data | weak RQ3 | soft-KL top-K logprobs carry dark knowledge gold lacks; per-client domain-adaptation amplifies teacher quality; report `M_G − Ab3` delta |
 | PoC stalls mid-run (disconnect) | lost progress | T=2–3, E=1, subset, 1 seed; checkpoint per round to Drive → resume |
 | Stage B funding never materializes | no headline | PoC alone not publishable; escalate at the gate |
 | "Spider isn't federated" pushback | validity | explicit *simulated* federation via domain partition (standard in [5]); privacy scenario; α sweep |
-| Teacher 72B compute | feasibility | paid API (~$0.4/M tok → `X` ≈ $1–2); runs once on `X`, cached |
-| Logit-KD tokenizer mismatch | KD soft term fails | **aligned Qwen↔Qwen tokenizer → no token alignment needed**; DeepInfra returns top-20 logprobs for the soft-KL term |
+| Teacher 7B fine-tuning VRAM | feasibility on T4 | fp16 LoRA of 7B needs A100; use `--max-steps 0` on T4 (skip domain-adapt, use base 7B for targets); Stage-B = A100 |
+| Logit-KD tokenizer mismatch | KD soft term fails | **aligned Qwen-7B↔Qwen-1.5B tokenizer → no token alignment needed**; top-K logprobs from HF generate |
 | Privacy claim challenged | reviewer | F5a+F5b channel-matched; masking + DP/secure-agg; never transmit raw schema/rows |
 | ICL shows ~0 delta | title overclaims | surface at the stage gate; reframe title/§3.6 if seen *and* held-out show no ICL gain |
 
@@ -375,9 +383,9 @@ Provenance contract: every result carries `experiment/model/stage/seed/time_aver
 
 1. **Primary engine** — *(locked)* parametric teacher→student KD (client LoRA + SQL/KD/Structure loss + Exec filtering → FedAvg/FedProx → `M_G`). Demo-level KD = variant; Fed-ICL fusion = baseline.
 2. **Client count** — *(locked)* 3 default + sweep `{3,5,10}` (F6). Cross-silo; matches Fed-ICL [5] (FedCoLLM [8] uses 4 — note the offset in §4.1).
-3. **Student model** — *(locked 2026-06-12)* Qwen2.5-1.5B-Instruct (tokenizer-aligned with the Qwen2.5-72B teacher → soft-KL KD without MinED). Others → A5. ⚠️ **Outline drift:** the approved outline §4.1 lists students Phi-3-mini / Gemma-2B / TinyLlama and does **NOT** include Qwen2.5-1.5B (the locked primary). Update outline §4.1 to name Qwen-1.5B as primary (others → A5 ablation) **and get supervisor sign-off** — the primary student is currently absent from the approved outline.
+3. **Student model** — *(locked 2026-06-12)* Qwen2.5-1.5B-Instruct (tokenizer-aligned with Qwen2.5-7B teacher → soft-KL KD without MinED). Others → A5. ⚠️ **Outline drift:** the approved outline §4.1 lists students Phi-3-mini / Gemma-2B / TinyLlama and does **NOT** include Qwen2.5-1.5B (the locked primary). Update outline §4.1 to name Qwen-1.5B as primary (others → A5 ablation) **and get supervisor sign-off**.
 4. **Second dataset** — Spider-Realistic now; BIRD only if P2 lands early. **(confirm)**
-5. **Teacher access & compute** — *(locked)* Qwen2.5-72B paid API both stages (`X` ≈ $1–2, paper < $10), targets cached once. **Stage-A on Mac M4 Pro (local, fp16) or Colab Pro** — no extra gate (PoC is `$0`/already-subscribed; the gate guards only Stage-B paid-per-hour spend). Mac trains 1.5B student fine (24GB ≫ fp16 LoRA); Colab T4 confirmed 11 GB (no 4-bit needed). **Stage-B paid A100-class** (Colab Pro high-RAM / RunPod / Lambda). **Supervisor confirms Stage-B budget at the gate.**
+5. **Teacher access & compute** — *(locked 2026-06-16)* Qwen2.5-7B-Instruct local HuggingFace, no API cost. Per-client offline pipeline: (1) `fine_tune_teacher.py` — LoRA-SFT on Qᵢ (A100 for fp16; `--max-steps 0` to skip on T4); (2) `gen_teacher_targets.py` — annotate Qᵢ (T4 OK with `--load-in-4bit`). Student 1.5B LoRA training: T4 ~11 GB (confirmed). **Stage-A PoC**: Mac/Colab T4, skip teacher SFT, base 7B teacher only ($0). **Stage-B paid A100-class** (Colab Pro high-RAM / RunPod / Lambda). **Supervisor confirms Stage-B budget at the gate.**
 
 ---
 
