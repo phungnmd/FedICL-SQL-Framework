@@ -2,16 +2,16 @@
 
 Source image: `../figures/fig_architecture_source.png` (locked user input — DO NOT modify the PNG). This MD is the text transcription used as the **source of truth for the method's mechanism**. When plan/figure conflict on mechanism → figure wins (it is the approved architecture); when outline/figure conflict on section structure → outline wins.
 
+> **Architecture re-aligned 2026-06-16:** teacher moved from server-side cloud API to **client-side local 7B model**. Public set X and ICL Hub G removed. See `system_architecture.md` for full detail.
+
 ---
 
 ## Three planes
 
 ```
-SERVER (Federated Coordination Server / Cloud)
-  ├─ Global LLM Teacher (SQL Expert)
-  ├─ In-Context Learning Hub (Demonstration Repository)
-  ├─ Federated Aggregation Engine
-  └─ Global SLM (Student Model)
+SERVER (Federated Coordination Server)
+  ├─ Federated Aggregation Engine (FedAvg / FedProx)
+  └─ Global SLM M_G (Qwen2.5-1.5B + aggregated LoRA)
         │  ▲
         │ Global Model Broadcast (Parameters)   ▲ Encrypted Model Updates (Weights Only)
         ▼  │
@@ -20,82 +20,91 @@ SECURE & PRIVACY-PRESERVING COMMUNICATION
         │  ▲
         ▼  │
 CLIENTS (Client / Organization 1 .. K)
-  Local Data & Schema → Schema Encoder → Retrieval → ICL Prompt Constructor
-    → Local SLM (decode) → predicted SQL + reasoning
-    → Local Training (Distillation): SQL loss + KD loss + Structure loss + Execution loss → Total Loss
+  Local Data & Schema (Sᵢ, Qᵢ — never leaves client)
+  Local Teacher M_T (Qwen2.5-7B, offline per-client on Qᵢ) → per-client teacher_targets
+  Schema Encoder → Retrieval (Qᵢ only) → ICL Prompt Constructor
+    → Local SLM Student Mᵢ (decode) → predicted SQL + reasoning
+    → Local Training (Distillation): SQL loss + KD loss + Structure loss + Exec filter → Total Loss
     → Local Model Update (Weights Only), Encrypted & Compressed Upload
   Local Knowledge Cache (optional): recent examples / rules / execution feedback
 ```
 
-## Server components (verbatim from figure)
-
-**Global LLM Teacher (SQL Expert)**
-- Understand natural language and database schema
-- Generate high-quality SQL
-- Produce reasoning steps and explanations
-- **Provide demonstrations for ICL and distillation**
-- Emits: *Reasoning Guidance* →
-
-**In-Context Learning Hub (Demonstration Repository)**
-- Schema-aware example pool
-- Retrieval & ranking
-- Diversity & relevance
-- Prompt construction
-- Inset example box: *"Example (Schema + NL + SQL) — Schema: Table, Column, …; Q: How many …?; SQL: SELECT …"*
-- Emits: *Selected Examples & Prompts* (orange = Example/Prompt Flow per legend)
-- **Repository is TEACHER/public-sourced** (fed by the teacher's "provide demonstrations" output), broadcast down to clients. NOT a cross-client private-demo store.
+## Server components
 
 **Federated Aggregation Engine**
-- **Secure aggregation (FedAvg/FedProx)**
-- **Update global SLM (student)**
-- **Broadcast global parameters**
+- Secure aggregation (FedAvg / FedProx)
+- Update global SLM (student)
+- Broadcast global parameters
 - Client selection & scheduling
 - Convergence monitoring
 
-**Global SLM (Student Model)**
-- Lightweight · Efficient · Deployable
+**Global SLM M_G (Student Model)**
+- Lightweight · Efficient · Deployable (Qwen2.5-1.5B + LoRA)
 - Emits: *Global Model Broadcast (Parameters)* ↓ to clients
 
-## Communication band (verbatim, 4 boxes)
+> **Removed from server:** Global LLM Teacher and ICL Hub are no longer server components. The teacher runs locally on each client.
 
-1. Secure Transmission (SSL/TLS) · 2. Secure Aggregation **(No raw data exposure)** · 3. **Differential Privacy (Gradient Perturbation)** · 4. **Prompt & Schema Privacy (De-identification & Masking)**.
+## Communication band (4 privacy mechanisms)
 
-## Client components (Client / Organization 1 … K — 6 numbered boxes + 2 bottom boxes)
+1. Secure Transmission (SSL/TLS)
+2. Secure Aggregation **(no raw data exposure)**
+3. **Differential Privacy (Gradient Perturbation)** — on LoRA deltas before upload
+4. **Prompt & Schema Privacy (De-identification & Masking)**
 
-1. **Local Data & Schema** — *Local Database (Schema Sᵢ)* + **NL-Query / SQL Pairs (Private Data)** ← the figure explicitly draws the client's private supervised set `Qᵢ` (grounds the `L_sup`/SQL-loss-on-gold term; never leaves client)
-2. **Schema Encoder** — Schema Graph Encoder → Schema Embedding
-3. **Retrieval Module** — Similarity Search (Query + Schema), Top-k Example Selection → Retrieved Examples **(Schema + NL + SQL)**
-4. **ICL Prompt Constructor** — Assemble Prompt: Schema …, Example 1 (NL, SQL), Example 2 (NL, SQL), …, Question: `<NL>`
-5. **Local SLM (Student)** — Generate SQL (Decoder) → Predicted SQL + Reasoning
-6. **Local Training (Distillation)** — SQL Loss (`L_SQL`) + KD Loss (`L_KD`) + Structure Loss (`L_struct`) + Execution Loss (`L_exec`); **Total Loss box, verbatim formula:**
+| Direction | Content | Protected by |
+|---|---|---|
+| **DOWN** (server → client) | Global SLM params M_G | SSL/TLS + Secure Aggregation |
+| **UP** (client → server) | LoRA delta Δθᵢ (**Weights Only**) | Encrypt + compress + DP gradient perturbation |
+| **NEVER transmitted** | Raw rows, schema Sᵢ, private Qᵢ, teacher outputs | Stays local by design |
+
+## Client components
+
+1. **Local Data & Schema** — *Local Database (Schema Sᵢ)* + **NL-Query / SQL Pairs (Private Data Qᵢ)** ← private supervised set; never leaves client
+
+2. **Local Teacher M_T (Qwen2.5-7B-Instruct, offline per-client)**
+   - Runs **offline once per client** on the client's own private Qᵢ before federated rounds begin
+   - Never sees other clients' data; never uploads outputs to server
+   - Outputs per item: `reasoning` (CoT), `teacher_sql` (exec-validated), `top_logprobs[K]`
+   - Exec filter: only items where `Exec(teacher_sql) = Exec(gold)` enter KD target cache
+   - Stored locally: `client_i_teacher_targets.csv` + `client_i_teacher_targets.logprobs.jsonl`
+   - VRAM: loaded for inference, then `unload()` before student LoRA training (sequential)
+
+3. **Schema Encoder** — Schema DDL → Schema Embedding (BGE-small)
+
+4. **Retrieval Module** — Similarity Search (Query + Schema), Top-k from **Qᵢ only**
+
+5. **ICL Prompt Constructor** — σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q
+
+6. **Local SLM Student Mᵢ** — Qwen2.5-1.5B + LoRA → Predicted SQL + Reasoning
+
+7. **Local Training (Distillation)** — verbatim loss:
 
    `L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec`
 
-   (gradient training, not frozen — §3.7 must present this exact λ-weighted form, then define each term; our implementation realizes `λ₄·L_exec` as **exec-match target filtering** since SQL execution is non-differentiable — own that divergence explicitly in §3.7)
-7. **Local Model Update (Weights Only)** — Encrypted & Compressed Upload ↑ to server
-8. **Local Knowledge Cache (Optional)** — Recent Examples / Rules / Execution Feedback
+   | Term | Data source | Signal |
+   |---|---|---|
+   | `L_SQL` | Private Qᵢ (gold SQL) | Own schema, org-specific skill |
+   | `L_KD` | Private Qᵢ (teacher CoT⊕SQL + top-K logprobs) | Dark knowledge, CoT reasoning |
+   | `L_struct` | Skeleton tokens from above | SQL clause structure |
+   | `L_exec` | Exec-match filter on teacher targets (non-differentiable) | Data quality gate |
 
-## Legend (Flows) panel (bottom-right — was missing from this transcription)
+   Same Qᵢ examples appear in both L_SQL (gold labels) and L_KD (teacher labels, exec-filtered).
 
-- **Reasoning / Guidance Flow** (purple solid)
-- **Example / Prompt Flow** (orange)
-- **Model Broadcast Flow** (blue)
-- **Encrypted Upload Flow** (purple dashed)
-- **Local Processing Flow** (green dashed)
+8. **Local Model Update (Weights Only)** — Encrypted & Compressed Upload ↑
 
-Five distinct flow types → §3.2 framework-overview prose should name them when walking the figure.
+9. **Local Knowledge Cache (Optional)** — Recent Examples / Rules / Execution Feedback
 
-## Figure caption (verbatim — reuse as the paper's Fig.1 caption base)
+## Figure caption (updated)
 
-> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Our framework leverages a powerful LLM teacher, schema-aware in-context learning, and federated knowledge distillation to achieve high accuracy while preserving privacy and reducing communication and deployment costs.*
+> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Each client runs a local 7B LLM teacher on its own private data to generate KD targets, then LoRA-trains a 1.5B student on gold + teacher supervision. Only encrypted, DP-perturbed LoRA deltas cross the wire to the server for FedAvg aggregation. The resulting Global SLM is deployed locally with schema-aware ICL — no cloud API needed at inference.*
 
-## Key Innovations panel (right)
+## Key Innovations panel
 
 1. Privacy-Preserving Federated Learning for Text-to-SQL
-2. Large-Teacher to Small-Student Knowledge Transfer
-3. Schema-Aware In-Context Learning
-4. Cross-Schema Generalization & Adaptation
-5. Communication-Efficient Training & Deployment
+2. **Client-Side** Local LLM Teacher → Small Student Knowledge Transfer (no cloud API)
+3. Schema-Aware In-Context Learning (retrieval from own Qᵢ)
+4. Cross-Schema Generalization via Global SLM
+5. Communication-Efficient Training & Deployment (LoRA deltas only)
 6. High Execution Accuracy with Lower Cost
 
 ---
@@ -104,31 +113,30 @@ Five distinct flow types → §3.2 framework-overview prose should name them whe
 
 | Mechanism in figure | Implication for method/plan |
 |---|---|
-| Aggregation = **FedAvg/FedProx over SLM weights**; **Global SLM** broadcast | Federation engine is **PARAMETRIC** (trained global SLM via weight aggregation), not parameter-free demo-sharing. This is the headline loop. |
-| Client **Local Training (Distillation)** with SQL+KD+Structure+Exec loss | Students are **LoRA-trained**, not frozen+ICL-only. KD loss is on-client. |
-| **"Weights Only"** upload + **"Parameters"** broadcast (both encrypted/compressed) | What crosses the wire = **model weights/LoRA deltas** (encrypted, DP-noised). **NOT** raw data, NOT schemas, NOT client-private demos. |
-| **Differential Privacy (Gradient Perturbation)** | DP is a *first-class* privacy mechanism on the weight updates, not "optional." |
-| ICL Hub = **teacher/public-sourced demos** → clients | The shared demonstration set is the **public set X**, authored by the teacher. Valid. (Attempt-1's error was sharing *client-private* demos cross-client — different thing.) |
-| Teacher "provide demonstrations for ICL **and distillation**" | Teacher feeds BOTH the ICL Hub (demos) and the distillation loss (KD targets). |
-| **No** answer-vote / Fusion-LM box anywhere | Fed-ICL answer-fusion is **NOT** the figure's engine. Keep it only as a parameter-free **baseline/variant** for comm-cost comparison, never as the primary method. |
-| "Cross-Schema Generalization & Adaptation" in innovations | Treat as generalization through the **Global SLM + schema-aware local ICL**, not as permission to share client-private cross-schema demos. |
+| **Teacher placement: CLIENT (local 7B)** | Teacher is **NOT on the server**; runs **offline per-client** on private Qᵢ; no cloud API. |
+| Aggregation = **FedAvg/FedProx over SLM weights**; **Global SLM** broadcast | Federation engine is **PARAMETRIC** (trained global SLM via weight aggregation). |
+| Client **Local Training (Distillation)** with SQL+KD+Structure+Exec loss | Students are **LoRA-trained**. Both L_SQL (gold) and L_KD (teacher) use same private Qᵢ. |
+| **"Weights Only"** upload + **"Parameters"** broadcast (both encrypted) | What crosses the wire = **LoRA deltas** only. Teacher outputs stay on-premise. |
+| **Differential Privacy (Gradient Perturbation)** | DP on LoRA deltas before upload — first-class privacy mechanism. |
+| **No ICL Hub (G) on server** | Retrieval pool = Qᵢ only. No cross-client demo sharing. No server-side teacher demos. |
+| **No public X pool** | All Spider train DBs go to clients. More private data per client. |
 
-## Privacy claim (corrected to match figure)
+## Privacy claim (corrected to match new architecture)
 
-- **Stays local:** raw rows, database, schema (Local Data & Schema box never has an outgoing data arrow).
-- **Crosses the wire:** model updates — *Weights Only*, encrypted + compressed + DP-perturbed; global SLM parameters on broadcast.
-- **Correct claim:** *"No raw data or schema leaves the client; only encrypted, DP-noised model-update weights (LoRA deltas) are transmitted."*
-- **Wrong claim (do not use):** "no full weights leave the client" — figure transmits weights. Strong claim is about *data/schema*, not weights.
+- **Stays local:** raw rows, database, schema (Sᵢ, Qᵢ), teacher model, teacher outputs (targets, logprobs) — never leaves client
+- **Crosses the wire:** LoRA deltas only — *Weights Only*, encrypted + compressed + DP-perturbed; global SLM params on broadcast
+- **Correct claim (new):** *"No raw data, schema, or teacher outputs leave the client. The teacher model runs fully on-premise. Only encrypted, DP-noised LoRA weight updates are transmitted to the server."*
+- **Stronger than before:** eliminates even the public-X teacher API call; zero external network traffic during KD target generation.
 
-## Outline §3 ↔ figure mapping
+## Outline §3 ↔ figure mapping (updated)
 
 | Outline §3 subsection | Figure component |
 |---|---|
 | 3.1 Problem Formulation | (notation) |
 | 3.2 Framework Overview | three planes |
-| 3.3 Global LLM Teacher | Global LLM Teacher (SQL Expert) |
-| 3.4 Local SLM Student | Local SLM (decode) + Global SLM |
-| 3.5 Teacher–Student Collaboration | Reasoning Guidance → ; teacher demos → ICL Hub + KD loss |
-| 3.6 Schema-Aware ICL | Schema Encoder + Retrieval + ICL Prompt Constructor + ICL Hub |
-| 3.7 Federated SQL Knowledge Distillation | Local Training (Distillation) losses + teacher KD targets |
+| 3.3 Local LLM Teacher (Client-Side) | Local Teacher M_T (client) |
+| 3.4 Local SLM Student | Local SLM Student + Global SLM |
+| 3.5 Teacher–Student Collaboration | L_KD path: teacher targets → student training |
+| 3.6 Schema-Aware ICL | Schema Encoder + Retrieval (Qᵢ only) + ICL Prompt Constructor |
+| 3.7 Federated SQL Knowledge Distillation | Local Training losses + per-client teacher targets |
 | 3.8 Federated Optimization | Federated Aggregation Engine (FedAvg/FedProx, global SLM, broadcast) |

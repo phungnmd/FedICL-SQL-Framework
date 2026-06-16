@@ -2,6 +2,8 @@
 
 > Grounded in: `fig_architecture_source.png` (mechanism ground truth) · `fedicl_sql_outline.pdf` (section structure) · `detailed_plan.md` (spec).
 > Maps directly to §3 of the paper. **Fig.1 wins on any mechanism dispute.**
+>
+> **Re-aligned 2026-06-16:** teacher moved client-side (local 7B). Public X and ICL Hub G removed.
 
 ---
 
@@ -11,7 +13,7 @@ A set of `K` organizations (clients) each hold:
 - A **private relational database** with schema `Sᵢ = {tables, columns, FK-paths}` — never leaves the client.
 - A **private NL→SQL example store** `Qᵢ = {(qₙ, sₙ)}` (natural-language questions + gold SQL) — never leaves the client.
 
-**Goal:** collaboratively train a lightweight local SQL model that generalizes to unseen schemas, while transmitting only encrypted, DP-perturbed model weights — no raw data, no schema, no private SQL.
+**Goal:** collaboratively train a lightweight local SQL model that generalizes to unseen schemas, while transmitting only encrypted, DP-perturbed model weights — no raw data, no schema, no private SQL, no teacher outputs.
 
 ---
 
@@ -21,15 +23,6 @@ A set of `K` organizations (clients) each hold:
 ┌─────────────────────────────────────────────────────────────────────┐
 │  FEDERATED COORDINATION SERVER  (Cloud)                             │
 │                                                                     │
-│  ┌──────────────────┐  reasoning+SQL  ┌─────────────────────────┐  │
-│  │ Global LLM       │ ──────────────► │  ICL Hub                │  │
-│  │ Teacher (M_T)    │   (on public X) │  (Demonstration         │  │
-│  │ Qwen2.5-72B      │                 │   Repository)           │  │
-│  │ • gen SQL+CoT    │                 │  • schema-aware pool    │  │
-│  │ • produce logprobs│                │  • retrieved top-k demos│  │
-│  └──────────────────┘                 └─────────────────────────┘  │
-│         │ KD targets (teacher_targets.qwen72b.*)                    │
-│         ▼                                                           │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │  Federated Aggregation Engine                                  │ │
 │  │  FedAvg / FedProx: θ_t ← θ_{t-1} + (1/K) Σᵢ Δθᵢ             │ │
@@ -38,7 +31,7 @@ A set of `K` organizations (clients) each hold:
 └────────────────────┬──────────────────────────────┬─────────────────┘
                      │ ▼ DOWN (blue)                 │ ▲ UP (purple dashed)
                      │  Global params M_G            │  Encrypted LoRA deltas Δθᵢ
-                     │  + ICL Hub demos              │  (Weights Only)
+                     │  (no ICL Hub demos)           │  (Weights Only)
 ┌────────────────────▼──────────────────────────────┴─────────────────┐
 │  SECURE & PRIVACY-PRESERVING COMMUNICATION                           │
 │  SSL/TLS · Secure Aggregation · DP (gradient perturbation) · Masking│
@@ -47,22 +40,31 @@ A set of `K` organizations (clients) each hold:
 ┌────────────────────▼──────────────────────────────┴─────────────────┐
 │  CLIENT / ORGANIZATION i  (on-premise)                               │
 │                                                                      │
-│  [Local Data & Schema]──►[Schema Encoder]──►[Retrieval]──►[ICL Prompt Constructor]
-│   Sᵢ (private schema)     Schema embedding   FAISS top-k  σ(q,S,I,Q)=q⊕S⊕I⊕Q
-│   Qᵢ (private NL/SQL)     (BGE-small)        from Qᵢ∪G                │
-│                                                                      │
-│                                              ┌──────────────────────▼──┐
-│                                              │  Local SLM Student Mᵢ   │
-│                                              │  Qwen2.5-1.5B + LoRA    │
-│                                              │  → predicted SQL + CoT   │
-│                                              └──────────────┬──────────┘
-│                                                             │
-│  ┌──────────────────────────────────────────────────────────▼────────┐ │
-│  │  Local Training (Distillation)                                    │ │
-│  │  L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec              │ │
-│  │      ↑ gold Qᵢ   ↑ teacher targets X    ↑ skeleton  ↑ exec-filter│ │
-│  └───────────────────────────────────────────────────────────────────┘ │
-│  → LoRA delta Δθᵢ → encrypt+compress+DP-perturb → upload              │
+│  [Local Data & Schema]──────────────────────────────────────────┐   │
+│   Sᵢ (private schema)                                            │   │
+│   Qᵢ (private NL/SQL)                                            │   │
+│       │                                                          │   │
+│       ▼ (offline, once, before rounds)                           │   │
+│  [Local Teacher M_T — Qwen2.5-7B-Instruct]                      │   │
+│   Runs on Qᵢ: generates SQL + CoT + top-K logprobs, exec-filter │   │
+│   → client_i_teacher_targets.csv + .logprobs.jsonl              │   │
+│   Unloaded after generation (VRAM released for student)         │   │
+│                                                                  │   │
+│  [Schema Encoder]──►[Retrieval (Qᵢ only)]──►[ICL Prompt]       │   │
+│   BGE-small          FAISS top-k             σ(q,S,I,Q)         │   │
+│                                                    │             │   │
+│                             ┌──────────────────────▼──┐         │   │
+│                             │  Local SLM Student Mᵢ   │         │   │
+│                             │  Qwen2.5-1.5B + LoRA    │◄────────┘   │
+│                             │  init from M_G each round│   gold SQL  │
+│                             └──────────────┬──────────┘             │
+│                                            │                        │
+│  ┌─────────────────────────────────────────▼────────────────────┐   │
+│  │  Local Training (Distillation)                               │   │
+│  │  L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec         │   │
+│  │      ↑ gold Qᵢ   ↑ teacher targets Qᵢ  ↑ skeleton ↑ filter │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│  → LoRA delta Δθᵢ → encrypt+compress+DP-perturb → upload            │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -70,33 +72,7 @@ A set of `K` organizations (clients) each hold:
 
 ## 3. Server Components
 
-### 3.1 Global LLM Teacher `M_T` — Qwen2.5-72B-Instruct (DeepInfra)
-
-**Role:** SQL expert running **offline, once** on the **public set `X`** only. Never sees client private data.
-
-**Outputs per item `x ∈ X`:**
-- `reasoning` — chain-of-thought derivation steps (CoT)
-- `ŝ_T` — teacher SQL (exec-validated against gold)
-- `top_logprobs[20]` — per-token top-20 token probabilities → enables soft-KL KD
-
-**Exec filter:** only items where `Exec(ŝ_T, D_X) = Exec(gold, D_X)` (exec-correct) enter the KD target cache. Items that fail exec validation are dropped.
-
-**Two downstream uses of the same teacher run (stored together in `teacher_targets.qwen72b.*`):**
-
-1. **→ ICL Hub G (ICL path):** `(q, schema, ŝ_T)` — served as `(NL, SQL)` demo in ICL prompt. Reasoning NOT in prompt (see §5.3). G is built from the same CSV but strips reasoning at prompt-build time.
-2. **→ KD targets (KD training path):** `reasoning⊕ŝ_T` (CE hard target) + `top_logprobs[20]` (soft-KL target) — used by `L_KD` on the client side. Student is trained to **predict** teacher's reasoning+SQL sequence and match teacher's token distribution. This is the mechanism that transfers "dark knowledge" gold labels lack.
-
-### 3.2 ICL Hub `G` — Demonstration Repository
-
-**Role:** server-side pool of teacher-authored public demonstrations, broadcast DOWN to all clients each round.
-
-**Content (stored):** `(question, schema, reasoning, SQL)` from teacher run on `X`. Reasoning archived but **NOT served in ICL prompt** — prompt construction uses `(q, SQL)` only (§5.3). Reasoning flows to L_KD (KD training path), not to G's demo output.
-
-**Content (served in ICL prompt):** `(question, SQL)` — consistent format with Qᵢ demos.
-
-**Not:** cross-client private demos. Private client demos `Qᵢ` stay local and are never shared.
-
-### 3.3 Federated Aggregation Engine
+### 3.1 Federated Aggregation Engine
 
 **Algorithm:** FedAvg / FedProx.
 
@@ -109,9 +85,11 @@ FedProx adds a proximal term `(μ/2)||θ - θ_{t-1}||²` per client to control d
 
 **Uploads only LoRA deltas `Δθᵢ`** (not full weights) — bounded communication cost per round.
 
-### 3.4 Global SLM `M_G`
+### 3.2 Global SLM `M_G`
 
 Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to all clients at the start of each round. Lightweight enough to run locally at inference (<6 GB VRAM).
+
+> **Removed:** Global LLM Teacher (`M_T`) and ICL Hub (`G`) are no longer server components. The teacher runs locally on each client on its own private Qᵢ.
 
 ---
 
@@ -119,15 +97,15 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 
 | Direction | What crosses | Protected by |
 |---|---|---|
-| **DOWN** (server → client) | Global SLM params `M_G` + ICL Hub demo slice | SSL/TLS + Secure Aggregation |
+| **DOWN** (server → client) | Global SLM params `M_G` | SSL/TLS + Secure Aggregation |
 | **UP** (client → server) | LoRA delta `Δθᵢ` only (**Weights Only**) | Encrypt + compress + **DP gradient perturbation** + Secure Aggregation |
-| **Never transmitted** | Raw rows, schema `Sᵢ`, private examples `Qᵢ`, full model weights | — (stays local by design) |
+| **Never transmitted** | Raw rows, schema `Sᵢ`, private examples `Qᵢ`, teacher model, teacher outputs | Stays local by design |
 
-**Privacy mechanisms (Fig.1, 4 boxes):**
+**Privacy mechanisms (4 boxes):**
 1. **SSL/TLS** — secure transmission channel
 2. **Secure Aggregation** — server aggregates without seeing individual Δθᵢ
 3. **Differential Privacy (Gradient Perturbation)** — Gaussian noise + clipping on Δθᵢ before upload; report (ε, EX) at Stage-B
-4. **De-identification & Masking** — schema identifier masking for retrieval-similarity scoring
+4. **De-identification & Masking** — schema identifier masking for retrieval-similarity scoring (planned, RQ2)
 
 ---
 
@@ -138,16 +116,33 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 - `Sᵢ` — relational schema (tables, columns, types, FK paths)
 - `Qᵢ` — NL/gold-SQL pairs on `Sᵢ`'s databases
 
-### 5.2 Schema Encoder + Retrieval
+### 5.2 Local Teacher M_T — Qwen2.5-7B-Instruct (offline, per-client)
+
+**Role:** SQL expert running **offline once per client** on the client's **own private Qᵢ**. Never sees other clients' data. Never uploads outputs to the server.
+
+**Outputs per item `(q, db) ∈ Qᵢ`:**
+- `reasoning` — chain-of-thought derivation
+- `teacher_sql` — teacher SQL (exec-validated against gold)
+- `top_logprobs[K]` — per-token top-K log probabilities → soft-KL KD
+
+**Exec filter:** only items where `Exec(teacher_sql, Dᵢ) = Exec(gold, Dᵢ)` enter the KD target cache.
+
+**Stored locally (per client):**
+- `client_i_teacher_targets.csv` — CE hard targets
+- `client_i_teacher_targets.logprobs.jsonl` — soft-KL targets
+
+**VRAM management:** load 7B → generate all targets → `teacher.unload()` → load 1.5B student. Sequential; never both in VRAM simultaneously. Optional `--load-in-4bit` (~4 GB) for T4 (vs ~14 GB fp16).
+
+### 5.3 Schema Encoder + Retrieval
 
 - Schema serialized as DDL (types + FK join paths) for prompt `S`
-- **BGE-small-en + FAISS** retrieval — pool depends on stage:
-  - **PoC (Stage-A):** `Qᵢ` only (G not yet built — requires teacher targets)
-  - **Stage-B:** `Qᵢ ∪ G` (private demos + ICL Hub teacher demos broadcast from server)
-- Top-`k` at **inference/eval**: `k=3` (k ∈ {1,3} per [4]; inverted-U at k=5). At **training**: k=0 (see §5.5 note)
-- **Masking = retrieval-only** ([4] §3.6): table/column names masked to canonical tokens for similarity scoring; demos shown in the prompt are **always unmasked**
+- **BGE-small-en + FAISS** retrieval — pool = **Qᵢ only** (all stages: PoC and Stage-B)
+- **Embedding text (schema-aware):** `"question [SEP] ddl[:512]"` at both index time and query time
+- Top-`k` at **inference/eval**: `k=3` (∈{1,3} per [4]; inverted-U at k=5)
+- At **training**: k=0 (standard SFT protocol, avoids OOM from 3× longer prompts)
+- **Masking — PLANNED, NOT YET WIRED:** table/column names masked to canonical tokens for retrieval-similarity scoring only; demos shown in prompt must always be unmasked
 
-### 5.3 ICL Prompt Constructor
+### 5.4 ICL Prompt Constructor
 
 ```
 σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q
@@ -156,15 +151,15 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 - `q` — NL question
 - `S` — serialized schema (DDL)
 - `I` — system instruction ("expert SQL generator")
-- `Q` — top-k retrieved demonstrations (NL + SQL, unmasked)
+- `Q` — top-k retrieved demonstrations (NL + SQL, unmasked) from Qᵢ
 
-### 5.4 Local SLM Student `Mᵢ` — Qwen2.5-1.5B-Instruct + LoRA
+### 5.5 Local SLM Student `Mᵢ` — Qwen2.5-1.5B-Instruct + LoRA
 
 - Initialized from `M_G` (server broadcast) each round
 - Generates: predicted SQL `ŝ` (+ optional reasoning)
-- **LoRA fp16 on both CUDA and MPS** (training always fp16 — no 4-bit quantization during training). 4-bit (`LOAD_IN_4BIT=1`) is available for inference-only eval via `StudentModel` but is not used in the training path.
+- **LoRA fp16 on both CUDA and MPS** (training always fp16 — no 4-bit during training). 4-bit available for inference-only eval via `StudentModel`.
 
-### 5.5 Local Training (Distillation)
+### 5.6 Local Training (Distillation)
 
 **Total loss (Fig.1 verbatim):**
 
@@ -174,45 +169,44 @@ L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec
 
 | Term | Definition | Data source |
 |---|---|---|
-| `L_SQL` | CE(student, gold SQL) | private `Qᵢ` (supervised) |
-| `L_KD` | CE(student, teacher CoT⊕SQL) + λ·KL_τ(student ‖ teacher top-20) | public `X`, teacher targets |
-| `L_struct` | CE on skeleton-token subsequence (SQL clause keywords) | from `L_SQL`/`L_KD` target |
-| `L_exec` | **exec-match target filter** (non-differentiable → realized as data gate) | exec against gold during target generation |
+| `L_SQL` | CE(student, gold SQL) | private `Qᵢ` — supervised gold labels |
+| `L_KD` | CE(student, teacher CoT⊕SQL) + λ·KL_τ(student ‖ teacher top-K) | private `Qᵢ` — local teacher targets |
+| `L_struct` | CE on skeleton-token subsequence (SQL clause keywords) | from L_SQL / L_KD target |
+| `L_exec` | exec-match target filter (non-differentiable → data gate) | exec against gold during target generation |
 
 **Two-part training objective per client:**
 
 ```
-L_i = L_sup(private Qᵢ)  +  L_KD(public X + teacher targets)
+L_i = L_sup(private Qᵢ; gold)  +  L_KD(private Qᵢ; local teacher targets)
 ```
 
-- `L_sup` uses gold labels from `Qᵢ` (own schema, org-specific — makes deltas heterogeneous)
-- `L_KD` uses teacher's CoT⊕SQL text (CE hard) + top-20 logprobs (KL soft, temperature τ)
+- Same Qᵢ examples may appear **twice**: once as private gold (source="private"), once as KD target if exec_correct (source="kd")
+- Pass `teacher_targets=[]` for B2/Ab3 arm (gold-only, no KD)
 
-**Why both parts matter:** if clients train on `X` alone (no `Qᵢ`), all deltas are near-identical → FedAvg degenerates to single-client training → RQ1 dies (FedAvg-no-op).
+**Why both parts matter:** L_SQL grounds the student on correct SQL; L_KD adds CoT reasoning and soft-probability dark knowledge the gold label lacks.
 
-**ICL in training (implementation note):** Training prompts use **k=0** (no retrieved demos) — consistent with FedCoLLM [8] engine anchor and standard NL2SQL fine-tuning practice (DAIL-SQL, SQL-Coder). ICL is applied at **inference time only** (`k=3`). Rationale: (1) adding k=3 demos to every training sequence multiplies prompt length ~3×, causing OOM on T4 14.5GB; (2) Qwen2.5-1.5B-Instruct handles ICL prompts without in-training exposure due to instruction pre-training. This is a deliberate simplification noted in §3.6 of the paper. The Fig.1 pipeline (Retrieval → ICL Prompt → SLM → Training) describes the **inference pipeline**; training follows the supervised fine-tuning protocol of [8].
+**ICL in training (k=0):** training prompts use k=0 demos (no retrieved examples in prompt). ICL is applied at **inference time only** (k=3). Rationale: k=3 during training multiplies prompt length ~3×, causing OOM on T4 14.5GB. The inference pipeline (retrieval → ICL prompt → M_G) is distinct from the training pipeline.
 
 ---
 
 ## 6. Federated Round Loop
 
 ```
-Offline (once, cached):
-  teacher_targets ← {(x, r̂_T⊕ŝ_T, top_logprobs) : x ∈ X, exec_correct(x)}
-  ICL_Hub G ← teacher demos on X
+Offline (once per client, before rounds):
+  teacher_targets_i ← {(q, teacher_sql, reasoning, top_logprobs) : (q,sql) ∈ Qᵢ, exec_correct}
+  [teacher model unloaded after this step]
 
 Round t = 1 .. T:
-  1. SERVER  broadcast M_G (+ ICL Hub slice G) → all K clients
+  1. SERVER  broadcast M_G → all K clients
   2. CLIENT i (parallel):
-       a. LoRA-train Mᵢ on L_sup(Qᵢ, k=0) + L_KD(X, teacher_targets, k=0)
-          [training prompts: σ(q, Sᵢ, I, Q=[]) — no demos, standard SFT protocol [8]]
+       a. LoRA-train Mᵢ on L_sup(Qᵢ, k=0) + L_KD(teacher_targets_i, k=0)
        b. Δθᵢ ← encrypt + compress + DP-perturb (θᵢ − θ_{t-1})
        c. Upload Δθᵢ  [Weights Only]
   3. SERVER  θ_t ← FedAvg({Δθᵢ})  →  M_G ← base_SLM + θ_t
 
 Inference (per client, after training):
-       a. Retrieve top-k demos from Qᵢ (PoC) or Qᵢ ∪ G (Stage-B)
-       b. Build ICL prompts σ(q, Sᵢ, I, Q)  with k=3
+       a. Retrieve top-k demos from Qᵢ (k=3, schema-aware)
+       b. Build ICL prompts σ(q, Sᵢ, I, Q)
        c. M_G.generate(prompt) → SQL
 
 Return: M_G (global student), per-client adapters for local inference
@@ -224,43 +218,41 @@ Return: M_G (global student), per-client adapters for local inference
 
 Each client runs `M_G` locally (no server, no teacher at inference time):
 1. Schema encode `Sᵢ`
-2. Retrieve top-k demos from local `Qᵢ` (+ cached ICL Hub)
+2. Retrieve top-k demos from local `Qᵢ`
 3. Build prompt → `M_G.generate(prompt)` → SQL
 
-No teacher API call at inference. Teacher cost is **one-time, offline**, amortized over all clients and all rounds.
+No teacher API call at inference. Teacher cost is **one-time, offline, per-client**, amortized over all federated rounds.
 
 ---
 
 ## 8. Data flows summary
 
 ```
-public X  ──►  M_T teacher  ──►  teacher_targets (CoT+SQL+logprobs, exec-filtered)
-                                         │
-                              ┌──────────┴──────────┐
-                              ▼                     ▼
-                         ICL Hub G            KD loss L_KD
-                         (demos, ↓ broadcast) (client-side training, k=0 prompt)
+OFFLINE (per client i):
+  private Qᵢ  ──►  Local Teacher M_T (7B)  ──►  teacher_targets_i (exec-filtered)
+                    [unload teacher]
 
 TRAINING (k=0, no demos in prompt):
-  private Qᵢ  ──►  build_prompt(q, S, [])  ──►  L_sup (CE vs gold SQL)
-  public X    ──►  build_prompt(q, S, [])  ──►  L_KD  (CE+KL vs teacher targets)
+  private Qᵢ  ──►  build_prompt(q, Sᵢ, [])  ──►  L_SQL (CE vs gold SQL)
+  teacher_targets_i ──►  build_prompt(q, Sᵢ, [])  ──►  L_KD (CE+KL vs teacher)
 
 INFERENCE (k=3, demos in prompt):
-  Qᵢ (PoC) or Qᵢ ∪ G (Stage-B)  ──►  retrieval  ──►  ICL prompt σ(q,S,I,Q)  ──►  M_G.generate() → SQL
+  Qᵢ  ──►  retrieval  ──►  ICL prompt σ(q, Sᵢ, I, Q)  ──►  M_G.generate() → SQL
 
-Local Knowledge Cache (optional, Fig.1): recent examples / rules / execution feedback — not yet implemented.
+Local Knowledge Cache (optional, Fig.1): not yet implemented.
 ```
 
 ---
 
 ## 9. Key design invariants (never violate)
 
-1. **Private data never leaves client.** `Sᵢ`, raw rows, `Qᵢ` — no outgoing arrow.
-2. **Teacher only touches public `X`.** Never receives client queries or schema.
-3. **Upload = Weights Only.** LoRA deltas, not full model, not data.
-4. **Training on `Qᵢ` is mandatory.** Public-X-only training → FedAvg no-op.
+1. **Private data never leaves client.** `Sᵢ`, raw rows, `Qᵢ`, teacher outputs — no outgoing data arrow.
+2. **Teacher only touches client's own Qᵢ.** Never receives other clients' data or schemas. Never uploads outputs.
+3. **Upload = Weights Only.** LoRA deltas, not full model, not data, not teacher targets.
+4. **Training on Qᵢ is mandatory (gold + teacher).** Public-X-only training (old) → FedAvg no-op; now eliminated by design.
 5. **Masking = retrieval scoring only.** Never put masked SQL in the generation prompt.
-6. **One stack per comparison.** Mac-fp16 ≠ CUDA-4bit — never compare cross-stack.
+6. **One stack per comparison.** Mac-fp16 ≠ CUDA-fp16 — never compare cross-stack.
+7. **Sequential VRAM.** Teacher inference (7B) → unload → student training (1.5B). Never simultaneous.
 
 ---
 
@@ -270,14 +262,12 @@ Local Knowledge Cache (optional, Fig.1): recent examples / rules / execution fee
 |---|---|
 | `K` | # clients (default 3, sweep {3,5,10}) |
 | `T` | # federated rounds (PoC: 2–3) |
-| `k` | # ICL shots (∈{1,3}; inverted-U at 5) |
+| `k` | # ICL shots at inference (∈{1,3}; inverted-U at 5) |
 | `E` | local epochs per round (1–2) |
 | `λ₁…λ₄` | loss weights per Fig.1 |
-| `M_T` | teacher LLM (Qwen2.5-72B) |
+| `M_T` | teacher LLM (Qwen2.5-7B-Instruct, **local on each client**) |
 | `Mᵢ` | client-i student (Qwen2.5-1.5B) |
 | `M_G` | global SLM (base + aggregated LoRA) |
 | `Sᵢ, Qᵢ` | client-i private schema / NL-SQL pairs |
-| `X` | public KD+ICL set (shared, no private schema) |
-| `G` | global ICL Hub (teacher demos on X) |
 | `θ, Δθᵢ` | LoRA params / client-i delta |
 | `τ` | KD temperature (soft-KL scaling) |

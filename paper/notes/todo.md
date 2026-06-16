@@ -6,7 +6,7 @@
 - Metrics → headline + story in `LAB_LOG.md`; full row auto in `RUNS.csv`.
 - Changing a locked decision → update **both** this file and detailed_plan §8.
 
-**State (2026-06-13):** pipeline + 81 tests green · split `3c-a1.0-s0` built (X=29 DB · 3 clients · held-out=20) · chat-template engine fix validated · **matched cuda pair: base floor EX=40.5% EM=8.5% → B3 centralized-FT EX=49.5% EM=33.0% (+9.0 EX, one stack)** · (`p0_eval50` EX=44.5% mps base+ICL = mixed-stack ref only, NOT comparable to the cuda pair — CONVENTION §5) · training resumable (crash→resume validated).
+**State (2026-06-16):** pipeline + 84 tests green · split `3c-a1.0-s0` built (X=29 DB · 3 clients · held-out=20) · chat-template engine fix validated · **matched cuda pair: base floor EX=40.5% EM=8.5% → B3 centralized-FT EX=49.5% EM=33.0% (+9.0 EX, one stack)** · (`p0_eval50` EX=44.5% mps base+ICL = mixed-stack ref only, NOT comparable to the cuda pair — CONVENTION §5) · training resumable (crash→resume validated) · **schema-aware retrieval wired** (`question [SEP] ddl[:512]` embedding; `db_to_ddl` lru_cached; `retrieve(..., schema=ddl)` API).
 
 ---
 
@@ -23,15 +23,14 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 **Gate — unlocks 5–8 (~$2 teacher, can run pre-supervisor-gate):**
 
-- [ ] **5. `gen_teacher_targets.py`** — Qwen2.5-72B (DeepInfra) → `teacher_targets.qwen72b.csv` **with top-20 logprobs** (once, cached)
-- [ ] **6. `p1_client_train --kd-label gold` ×3 → `p1_fedavg`** — FedAvg-no-teacher = **B6** (= Ablation-3)
+- [ ] **5. `gen_teacher_targets.py --private client_i_train.csv` ×3** — Qwen2.5-7B (local, per client) → `client_i_teacher_targets.csv` **with top-K logprobs** (once per client, cached; `--load-in-4bit` on T4)
+- [ ] **6. `p1_client_train --kd-label none` ×3 → `p1_fedavg`** — FedAvg **without** KD = **Ab3** (federation gain without teacher signal)
 - [ ] **7. `p1_client_train --kd-label teacher` ×3 → `p1_fedavg`** — **`M_G` = the method** (FedICL-SQL)
-- [ ] **8. `p1_client_train` (omit `--client`) `--kd-label teacher`** — **X-only null** arm
 
 **Analysis (RQ evidence):**
 
-- [ ] **9. `p1_teacher_value`** — eval `M_G` vs B2 vs gold_ce vs X-only on each client's own set
-  - Report three deltas as RQ evidence (**not pass/fail gates**): `M_G − B2` (federation gain), `M_G − gold_ce` (teacher value, expected positive via soft-KL — dark knowledge gold lacks), `M_G − X-only` (FedAvg-no-op check).
+- [ ] **8. `p1_teacher_value`** — eval `M_G` vs B2 vs Ab3 (fedavg-no-kd) on each client's own set
+  - Report two deltas as RQ evidence (**not pass/fail gates**): `M_G − B2` (federation gain), `M_G − Ab3` (teacher value via soft-KL — dark knowledge gold labels lack).
   - Frame RQ1 as `M_G` → centralized ceiling **B3** (small federation gap), not the trivial `> B2`.
 
 > Label decoder: **B#** = baseline · **Ab#** = ablation (remove-a-piece) · **arm** = the 4 models step 9 compares (`m_g`/`slm_only`/`gold_ce`/`x_only`) · **p0/p1/b3** = scripts. One model wears several labels (**B6 = Ab3 = arm `gold_ce`**; **B2 = arm `slm_only`**). 🔴 **Canonical labels + notation (K/T/k, B1–B7, Ab1–Ab5, T1–T3, F1–F6, stages, tiers) = detailed_plan §0** — single source, keep this file in sync with it.
@@ -40,7 +39,7 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 ## Beyond the runbook (coarse — full detail in detailed_plan)
 
-**Writing — start NOW, parallel (results-independent; forces method clarity):**
+**Writing — (results-independent; forces method clarity):**
 
 - [ ] §3 Method + Fig.1 + Algorithm 1 + equations (**write first**) · §2 Related Work + gap table · §1 Intro
 
@@ -56,14 +55,15 @@ Whole project = **train a few models → eval → compare**. Core question: how 
 
 ## Locked design (reference)
 
-- **Engine:** parametric teacher→student KD — clients LoRA-train on own private `Qᵢ` + public `X` (teacher targets), upload **LoRA deltas only**, server **FedAvg → `M_G`**. = Fig.1 + **FedCoLLM [8]**.
+- **Engine:** parametric teacher→student KD — clients LoRA-train on own private `Qᵢ` (gold CE + local teacher KD), upload **LoRA deltas only**, server **FedAvg → `M_G`**. = Fig.1 + **FedCoLLM [8]**.
 - **Student:** Qwen2.5-1.5B-Instruct (tokenizer-aligned w/ teacher → soft-KL KD without MinED). Others → A5 ablation.
-- **Teacher:** Qwen2.5-72B-Instruct (DeepInfra, `top_logprobs=20` → soft-KL KD), ~$1–2 all of `X`, targets cached once.
-- **Clients:** `K=3` default, sweep `{3,5,10}` (F6). Cross-silo. *(`K`=clients, `T`=rounds, `k`=shots — canonical, matches Fig.1; old `L`=clients retired.)*
-- **ICL:** schema-aware retrieval, **masking retrieval-only**, demos shown **unmasked**, local per client.
-- **Privacy:** no raw rows/schema leave; only encrypted, DP-perturbed LoRA-deltas transmit. (Never "no weights leave".)
-- **Compute (3 tiers):** Mac M4 Pro MPS fp16 = dev + `$0` no-teacher baselines + PoC · Colab Pro = heavier PoC (LoRA fp16, ~11 GB VRAM on T4) · paid A100 = Stage-B only · teacher = paid API. **One stack per comparison set** (Mac-fp16 ≠ CUDA). Training = **plain LoRA fp16** throughout (no 4-bit quantization). Detail → CONVENTION §5.
-- **Staging:** PoC (~$2, 1 seed, subset, Mac/Colab, no DP) → SB gate → Stage-B (paid GPU, ≥3 seeds + significance, DP). Only `headline` enters the paper.
+- **Teacher:** Qwen2.5-7B-Instruct (**local HF, per client, runs on own Qᵢ**), top-K logprobs via HF generate, targets cached once per client. No API cost.
+- **Data split:** 2-pool only — `client_i_private` + `held_out`. No public X. All train DBs go to clients (more data per client than before).
+- **Clients:** `K=3` default, sweep `{3,5,10}` (F6). Cross-silo. *(`K`=clients, `T`=rounds, `k`=shots — canonical, matches Fig.1.)*
+- **ICL:** schema-aware retrieval, **masking retrieval-only** (planned), demos shown **unmasked**, pool = `Qᵢ` only (all stages). No ICL Hub G.
+- **Privacy:** no raw rows/schema/teacher outputs leave client; teacher runs fully on-premise; only encrypted, DP-perturbed LoRA-deltas transmit. (Never "no weights leave".) **Stronger than before** — no external API call during KD.
+- **Compute (3 tiers):** Mac M4 Pro MPS fp16 = dev + `$0` no-teacher baselines + B2/B3 PoC · Colab Pro T4 = teacher targets gen (7B, `--load-in-4bit` → ~4 GB) + student LoRA training (~11 GB) · paid A100 = Stage-B only. Sequential VRAM: teacher → unload → student. **One stack per comparison set.** Training = **plain LoRA fp16** (no 4-bit during training). Detail → CONVENTION §5.
+- **Staging:** PoC (~$0, 1 seed, subset, Mac/Colab, no DP) → SB gate → Stage-B (paid GPU, ≥3 seeds + significance, DP). Only `headline` enters the paper.
 
 ---
 
