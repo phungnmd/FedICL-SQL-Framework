@@ -6,7 +6,7 @@
 - Metrics → headline + story in `LAB_LOG.md`; full row auto in `RUNS.csv`.
 - Changing a locked decision → update **both** this file and detailed_plan §8.
 
-**State (2026-06-16):** pipeline + 84 tests green · split `3c-a1.0-s0` built (X=29 DB · 3 clients · held-out=20) · chat-template engine fix validated · **matched cuda pair: base floor EX=40.5% EM=8.5% → B3 centralized-FT EX=49.5% EM=33.0% (+9.0 EX, one stack)** · (`p0_eval50` EX=44.5% mps base+ICL = mixed-stack ref only, NOT comparable to the cuda pair — CONVENTION §5) · training resumable (crash→resume validated) · **schema-aware retrieval wired** (`question [SEP] ddl[:512]` embedding; `db_to_ddl` lru_cached; `retrieve(..., schema=ddl)` API).
+**State (2026-06-16):** pipeline + 81 tests green · **arch re-aligned: teacher = local 7B per client, public X removed, ICL Hub G removed, 2-pool split** · split `3c-a1.0-s0` rebuilt (no public X · 3 clients · c1=45DB/2122tr · c2=45DB/1972tr · c3=56DB/2832tr · held-out=1034/20DB) · chat-template engine fix validated · **matched cuda pair: base floor EX=40.5% EM=8.5% → B3 centralized-FT EX=49.5% EM=33.0% (+9.0 EX, one stack)** · (`p0_eval50` EX=44.5% mps base+ICL = mixed-stack ref only, NOT comparable — CONVENTION §5) · training resumable (crash→resume validated) · **schema-aware retrieval wired**.
 
 ---
 
