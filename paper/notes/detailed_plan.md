@@ -163,7 +163,7 @@ Prompt construction ([4] Eq. 3): `σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q`
 `L_i = L_sup(private Qᵢ) + L_KD(public X)`
 
 - **`L_sup`** = supervised CE on the client's **own private** `(q, gold-SQL)` pairs `Qᵢ` (own schema, never leaves client) — makes each delta carry org-specific skill so FedAvg pools heterogeneous knowledge into `M_G`. This is FedCoLLM [8]'s actual regime.
-- **`L_KD`** = teacher distillation on **private `Qᵢ`** (same data as L_sup), over targets **pre-filtered to exec-match**: `L_KD = Σ_q [ CE(Mᵢ(q), r̂_T⊕ŝ_T) + λ·KL_τ(Mᵢ(q) ‖ teacher top-K logprobs) + β·L_struct(q) ]`. Each Qᵢ example appears twice: once with gold label (L_sup), once with teacher label (L_KD, exec-filtered).
+- **Single-pass objective — one training sequence per Qᵢ question:** for each `(q, gold_sql) ∈ Qᵢ`, if a teacher target exists AND `exec_correct=True`, target = `CoT⊕teacher_sql` with soft-KL logprobs active (source="kd"); otherwise target = `gold_sql` with no KL (source="gold"). Every question appears exactly once — no double-pass, no implicit upweighting of exec-correct examples. `exec_correct` ensures teacher_sql is semantically equivalent to gold_sql. `L = CE(target) + λ·KL_τ(logprobs)` where KL=0 when logprobs absent.
 
 **The four Fig.1 losses, literal:**
 - **SQL loss** = token CE on the SQL: vs **own gold** on `Qᵢ` (= `L_sup`), vs **teacher SQL** `ŝ_T` on `X`.

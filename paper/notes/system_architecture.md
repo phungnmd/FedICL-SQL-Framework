@@ -174,14 +174,21 @@ L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec
 | `L_struct` | CE on skeleton-token subsequence (SQL clause keywords) | from L_SQL / L_KD target |
 | `L_exec` | exec-match target filter (non-differentiable → data gate) | exec against gold during target generation |
 
-**Two-part training objective per client:**
+**Single-pass training objective — one sequence per Qᵢ example:**
 
 ```
-L_i = L_sup(private Qᵢ; gold)  +  L_KD(private Qᵢ; local teacher targets)
+for each (q, gold_sql) in Qᵢ:
+    if teacher_target exists AND exec_correct:
+        target  = CoT⊕teacher_sql      (source = "kd")
+        logprobs = teacher top-K        (soft-KL active)
+    else:
+        target  = gold_sql              (source = "gold")
+        logprobs = None                 (KL term = 0)
 ```
 
-- Same Qᵢ examples may appear **twice**: once as private gold (source="private"), once as KD target if exec_correct (source="kd")
-- Pass `teacher_targets=[]` for B2/Ab3 arm (gold-only, no KD)
+Every question appears **exactly once**. No double-pass, no implicit upweighting of exec-correct examples. `exec_correct` ensures teacher_sql is semantically equivalent to gold_sql, so dropping gold CE on those examples loses nothing.
+
+Pass `teacher_targets=[]` for B2/Ab3 arm (all examples → gold fallback).
 
 **Why both parts matter:** L_SQL grounds the student on correct SQL; L_KD adds CoT reasoning and soft-probability dark knowledge the gold label lacks.
 
