@@ -58,7 +58,7 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 | B3 | Centralized-FT (pool all private, 1 LoRA) | true parametric ceiling (the RQ1 bar) | — |
 | B4 | Centralized-ICL | privacy-violating ICL ceiling | — |
 | B5 | Without-ICL (SLM zero-shot) | ICL value | = **Ab1** |
-| B6 | FedAvg-LoRA (no teacher, no ICL) | FL-without-our-pieces | = **Ab3a**, arm `gold_ce` |
+| B6 | FedAvg-LoRA (no teacher, no ICL) | FL-without-our-pieces | = **Ab3**, arm `ab3_fedavg` |
 | B7 | Fed-ICL [5] adapted to SQL | closest federated competitor | — |
 
 **Teacher-value comparison (P1′, todo step 8) — 3 models compared on each client's own eval set:**
@@ -227,7 +227,7 @@ Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence resu
 
 🔴 **Schema-disjoint 2-pool split (anti-leakage, mandatory).** Partition Spider DBs into **client-private `{Sᵢ}`** (one DB-group per client, all train DBs) and **held-out** (cross-schema eval = Spider dev), with `private ∩ held-out = ∅` — no DB in two pools, eval questions never in train. Persist DB-id→pool, release it. **Dirichlet(α)** over all train DBs controls heterogeneity, `α ∈ {0.1, 1.0, 100}` (low→high IID). Default `K = 3` (cross-silo); sweep `{3,5,10}` (F6). ⚠️ **Report per-client N at each K** in the F6 caption — at `K=10` data thins per client; frame as data-starvation, not a method failure. Small `K` = deliberate **cross-silo** choice.
 
-**Eval-set provenance (state in §4.1):** per-client own-schema eval = 20% per-DB slice of **Spider train** (`train_frac=0.8`); held-out-schema eval = **Spider dev** (frozen test). Don't let a reviewer discover this footnote unaided.
+**Eval-set provenance (state in §4.1):** all eval on `processed_data/SPIDER/centralized/test.csv` (Spider dev, 1034 ex, frozen). No per-client eval split — clients use all their data for training. Don't let a reviewer discover this footnote unaided.
 
 **Data hygiene:** tune on `val` (a seeded slice of Spider train); the `test` split (= Spider dev) is **frozen** — touch once for final numbers. Headline = ≥3 seeds + significance.
 
@@ -237,7 +237,8 @@ Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence resu
 data/raw/spider/   download_spider.py   (JSON + per-DB .sqlite; 1.9 GB; GITIGNORED, fetched per machine)
    ├─ build_processed.py  → data/processed/centralized/  train.csv · val.csv · test.csv(1034=Spider dev, FROZEN) · meta.json
    └─ build_federated.py  → data/processed/federated/<K>c-a<α>-s<seed>/
-         client_i_{train,eval}.csv · held_out.csv(1034) · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
+         client_i_train.csv · split.json(DB→pool map) · meta.json(seed/α/db_pool_map)
+         [no client_i_eval.csv — no train/eval split; no held_out.csv — use centralized/test.csv]
          [no public_X.csv — all train DBs go to clients]
    └─ fine_tune_teacher.py + gen_teacher_targets.py  → client_i_train_kd.csv + client_i_train_kd.logprobs.jsonl
          (per client; annotated Qᵢ with teacher columns; committed to repo ~5 MB)

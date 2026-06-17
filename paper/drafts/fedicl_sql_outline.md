@@ -116,7 +116,7 @@ o  Extensive evaluation on benchmark datasets.
 
   Spider Realistic
 
-- Teacher model: e.g., Qwen2.5-72B-Instruct
+- Teacher model: Qwen2.5-7B-Instruct (local HuggingFace per client)
 
 2
 
