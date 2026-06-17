@@ -1,51 +1,61 @@
 # FedICL-SQL — Lab Log
 
 > One entry per working session. Auto-header from `analysis/log_session.py`, manual body.
+> Compare all runs: `uv run python analysis/compare.py`
+
+---
 
 ## Session 2026-06-17
 
 ### New runs
-| experiment | stage | seed | EX | EM | loss | n | device | run_id |
-|---|---|---|---|---|---|---|---|---|
-| eval_base_floor | poc | 0 | 0.5116 | 0.1412 | — | 1034 | cuda | `eval_base_floor__s0__20260617T055325` |
-| centralized_ft | poc | 0 | 0.6170 | 0.4246 | 0.0554 | 8659 | cuda | `centralized_ft__s0__20260617T073618` |
-| eval_arms (b3_k3) | poc | 0 | 0.7060 | 0.5793 | — | 1034 | cuda | `eval_arms__s0__20260617T081559` |
-| ~~centralized_ft smoke~~ | | | ~~1.0~~ | | | ~~5~~ | | smoke test, ignore |
+| experiment | k | EX | EM | loss | n_eval | device | run_id |
+|---|---|---|---|---|---|---|---|
+| eval_base_floor | 0 | **51.2%** | 14.1% | — | 1034 | cuda | `eval_base_floor__s0__20260617T055325` |
+| centralized_ft | 0 | **61.7%** | 42.5% | 0.0554 | 1034 | cuda | `centralized_ft__s0__20260617T073618` |
+| eval_arms `b3_k3` | 3 | **70.6%** | 57.9% | — | 1034 | cuda | `eval_arms__s0__20260617T081559` |
 
-### Recent commits — code (`fedicl-sql/`)
-  2192865 refactor(centralized_ft): use centralized/train.csv directly, drop --split-dir
-  050bb47 fix(notebook): cell-9 header + cell-18 formatting and completeness check
-  09c40b8 fix(notebook): B0 comment — base floor independent of split
-  956f65e poc(alpha_0.1/k3): results + teacher-annotated datasets
-  c608771 fix(notebook): full review pass — stale text, variable guards, config variable
+*(smoke run centralized_ft n=5 EX=1.0 — ignored)*
 
-### Recent commits — paper (`paper/`)
-  83713db docs: fix stale refs in detailed_plan + outline
-  4a3d0a0 chore: stage cleanup — update CLAUDE.MD, remove stale drafts and old LAB_LOG
-  80b8e1d docs: full consistency pass — align todo + detailed_plan to new architecture
-  10a9eff docs(method): teacher domain-adaptation + annotated Qi dataset
-  a89af8b docs(method): single-pass KD — one sequence per Qᵢ example
+### Scoreboard
+
+```
+B0  base Qwen-1.5B    k=0   EX=51.2%   EM=14.1%   (no training)
+B3  centralized FT    k=0   EX=61.7%   EM=42.5%   (+10.5% from LoRA SFT)
+B3  centralized FT    k=3   EX=70.6%   EM=57.9%   (+8.9% from ICL)
+```
+
+**Ceiling for M_G = 70.6%** (B3+ICL). Gap from B0: +19.4% EX total.
 
 ### Observations
-- B0 (base Qwen2.5-1.5B-Instruct, k=0, no training) = **EX 51.2% EM 14.1%** (1034 ex, CUDA, alpha_0.1/k3)
-- B3 (centralized FT, 1 epoch, 8659 ex) = **EX 61.7% EM 42.5%** (1034 ex, CUDA, k=0)
-- B3+ICL (k=3, LOO retrieval from test.csv) = **EX 70.6% EM 57.9%**
-- Gap B3−B0 = **+10.5% EX** → LoRA fine-tuning
-- Gap B3+ICL − B3 = **+8.9% EX** → ICL contribution
-- True ceiling for M_G to approach = **70.6%** (B3+ICL)
-- `centralized_ft__s0__20260617T055949` is smoke run (EX=1.0 on 5 ex) — ignore
-- `_extract_sql()` fix may account for ~5-8% of B0 vs old 40.5% result
-- ToChar / DATEDIFF warnings = sqlglot EM scoring issue, does not affect EX
+- `_extract_sql()` fix likely accounts for ~5-8% of B0 improvement vs old 40.5% (old code failed when model output reasoning prefix)
+- ICL contribution (+8.9%) stronger than expected for k=3 LOO from test.csv itself
+- ToChar / DATEDIFF warnings = sqlglot EM scoring, does not affect EX
+- Training speed: 0.49s/step on T4 → 8659 steps ≈ 70 min + 22 min eval
+- Smoke run detection: `compare.py` now auto-filters n_eval < 50
 
 ### Decisions
-- Confirmed CUDA stack + alpha_0.1/k3 + full 1034 test.csv as the comparison baseline
-- All future runs: same stack, no --n-eval limit
+- CUDA stack, alpha_0.1/k3, full 1034 test.csv = fixed baseline for all future runs
+- §3b B3+ICL: only run k=3 (b3_k0 = B3 already known, saved 22 min)
+- log_session.py filters n_eval < 50 (smoke runs)
 
 ### Next
-- §3b B3+ICL: eval B3 adapter with k=3 on test.csv (LOO retrieval within test DBs)
-- §5a-1 slm_only ×3: per-client solo LoRA, B2 floor (~3-4 hr on T4)
-- §5a-2 ab3_fedavg ×3: FedAvg without KD, Ab3 baseline
-- §4b gen_teacher_targets ×3: annotate client Qᵢ with 7B teacher (--load-in-4bit)
-- §5b-1 m_g ×3: full method (teacher KD FedAvg)
+- [x] §2.5 B0 base floor
+- [x] §3 B3 centralized ceiling
+- [x] §3b B3+ICL k=3
+- [ ] §5a-1 `slm_only` ×3 — B2 floor, per-client solo LoRA (~72 min total)
+- [ ] §5a-2 `ab3_fedavg` ×3 — Ab3, FedAvg no KD (~72 min)
+- [ ] §5a-3 eval federation gain + ICL (ab3_fedavg − slm_only)
+- [ ] §4b `gen_teacher_targets` ×3 — annotate Qᵢ, 7B 4-bit (~13 hr client_1)
+- [ ] §5b-1 `m_g` ×3 — full method teacher-KD FedAvg (~72 min)
+- [ ] §5b-2 eval all arms (m_g − slm_only, m_g − ab3_fedavg)
+
+### Recent commits — code
+```
+4abe9e7  feat(compare): show arm EX, filter smoke, add n_eval+k to ledger
+e65455e  fix(log_session): filter smoke runs (n<50) from session table
+ab8b706  fix: add k=0 field + fix eval_set label in centralized_ft and eval_base_floor
+092ca0b  fix(notebook): remove redundant b3_k0 from §3b
+df3c6d5  poc(alpha_0.1/k3): B3+ICL b3_k3 EX=70.6%
+```
 
 ---
