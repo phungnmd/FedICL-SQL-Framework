@@ -8,8 +8,8 @@
 | experiment | stage | seed | EX | EM | loss | n | device | run_id |
 |---|---|---|---|---|---|---|---|---|
 | eval_base_floor | poc | 0 | 0.5116 | 0.1412 | — | 1034 | cuda | `eval_base_floor__s0__20260617T055325` |
-| centralized_ft | poc | 0 | 1.0000 | 0.2000 | 0.5295 | 8659 | cuda | `centralized_ft__s0__20260617T055949` |
 | centralized_ft | poc | 0 | 0.6170 | 0.4246 | 0.0554 | 8659 | cuda | `centralized_ft__s0__20260617T073618` |
+| ~~centralized_ft smoke~~ | | | ~~1.0~~ | | | ~~5~~ | | smoke test, ignore |
 
 ### Recent commits — code (`fedicl-sql/`)
   2192865 refactor(centralized_ft): use centralized/train.csv directly, drop --split-dir
