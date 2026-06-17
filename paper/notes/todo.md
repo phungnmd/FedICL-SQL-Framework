@@ -6,7 +6,7 @@
 - Metrics → headline + story in `LAB_LOG.md`; full row auto in `RUNS.csv`.
 - Changing a locked decision → update **both** this file and detailed_plan §8.
 
-**State (2026-06-16):** pipeline + 81 tests green · **arch re-aligned: teacher = local 7B per client, public X removed, ICL Hub G removed, 2-pool split** · split `3c-a0.1-s0` rebuilt (no public X · K=3 · c1=125DB/6165tr · c2=20DB/749tr · c3=1DB/12tr · held-out=1034/20DB — high non-IID α=0.1) · chat-template engine fix validated · **matched cuda pair: base floor EX=40.5% EM=8.5% → B3 centralized-FT EX=49.5% EM=33.0% (+9.0 EX, one stack)** · (`p0_eval50` EX=44.5% mps base+ICL = mixed-stack ref only, NOT comparable — CONVENTION §5) · training resumable (crash→resume validated) · **schema-aware retrieval wired**.
+**State (2026-06-17):** pipeline + 82 tests green · arch = local 7B teacher per client, 2-pool split (α=0.1/k3) · **CUDA results on new split (1034 ex full test.csv):** B0 base floor EX=51.2% EM=14.1% · B3 centralized-FT EX=61.7% EM=42.5% (gap +10.5% EX = value of LoRA FT) · major refactors done (single-pass KD, no public X, held_out→centralized/test.csv, result format metrics.json+JSONL, stage removed) · notebook reviewed + 3 critical bugs fixed (extract_sql, token ID logprobs, base= duplicate).
 
 ---
 
