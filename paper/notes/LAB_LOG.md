@@ -27,8 +27,11 @@
 
 ### Observations
 - B0 (base Qwen2.5-1.5B-Instruct, k=0, no training) = **EX 51.2% EM 14.1%** (1034 ex, CUDA, alpha_0.1/k3)
-- B3 (centralized FT, 1 epoch, 8659 ex) = **EX 61.7% EM 42.5%** (1034 ex, CUDA)
-- Gap B3−B0 = **+10.5% EX** → LoRA fine-tuning adds significant value on this split
+- B3 (centralized FT, 1 epoch, 8659 ex) = **EX 61.7% EM 42.5%** (1034 ex, CUDA, k=0)
+- B3+ICL (k=3, LOO retrieval from test.csv) = **EX 70.6% EM 57.9%**
+- Gap B3−B0 = **+10.5% EX** → LoRA fine-tuning
+- Gap B3+ICL − B3 = **+8.9% EX** → ICL contribution
+- True ceiling for M_G to approach = **70.6%** (B3+ICL)
 - `centralized_ft__s0__20260617T055949` is smoke run (EX=1.0 on 5 ex) — ignore
 - `_extract_sql()` fix may account for ~5-8% of B0 vs old 40.5% result
 - ToChar / DATEDIFF warnings = sqlglot EM scoring issue, does not affect EX
