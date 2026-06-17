@@ -9,6 +9,7 @@
 |---|---|---|---|---|---|---|---|---|
 | eval_base_floor | poc | 0 | 0.5116 | 0.1412 | — | 1034 | cuda | `eval_base_floor__s0__20260617T055325` |
 | centralized_ft | poc | 0 | 0.6170 | 0.4246 | 0.0554 | 8659 | cuda | `centralized_ft__s0__20260617T073618` |
+| eval_arms (b3_k3) | poc | 0 | 0.7060 | 0.5793 | — | 1034 | cuda | `eval_arms__s0__20260617T081559` |
 | ~~centralized_ft smoke~~ | | | ~~1.0~~ | | | ~~5~~ | | smoke test, ignore |
 
 ### Recent commits — code (`fedicl-sql/`)
