@@ -147,11 +147,40 @@ Load domain-adapted teacher (base + adapter merged) and run on each `(q, schema)
 ### 5.3 Schema Encoder + Retrieval
 
 - Schema serialized as DDL (types + FK join paths) for prompt `S`
-- **BGE-small-en + FAISS** retrieval — pool = **Qᵢ only** (all stages: PoC and Stage-B)
+- **BGE-small-en + FAISS** retrieval — pool = **the deploying model's own TRAIN data**
 - **Embedding text (schema-aware):** `"question [SEP] ddl[:512]"` at both index time and query time
 - Top-`k` at **inference/eval**: `k=3` (∈{1,3} per [4]; inverted-U at k=5)
 - At **training**: k=0 (standard SFT protocol, avoids OOM from 3× longer prompts)
 - **Masking — PLANNED, NOT YET WIRED:** table/column names masked to canonical tokens for retrieval-similarity scoring only; demos shown in prompt must always be unmasked
+
+🔴 **Demo pool = TRAIN data, never the test set.** The ICL pool is the model's own
+training examples — a client's private `Qᵢ` (`client_i_train.csv`) for per-client
+and federated models, or the pooled centralized train set (`centralized/train.csv`)
+for the centralized baselines B3/B4. The frozen test set (`centralized/test.csv` =
+Spider dev) is **never** a demo source. Because test DBs are schema-disjoint from
+train (verified: 0 overlap), retrieval is always **cross-schema** (train demos →
+unseen test query) and the query is never in the pool → **no leave-one-out**. The
+RQ2 mechanism is exactly this: the Global SLM's general skill + cross-schema demos
+carry SQL-pattern (skeleton) structure to an unseen schema, not schema-specific answers.
+
+**Per-arm pool + reporting (eval):**
+
+| Arm | model | demo pool | reported |
+|---|---|---|---|
+| base B0 floor | base | k=0 (no ICL) | single |
+| `slm_only` B2 | per-client adapter `Mᵢ` | client_i pool | mean±std over K |
+| `ab3_fedavg` Ab3 | one global model | each client pool (K evals) | mean±std over K |
+| `m_g` method | one global `M_G` | each client pool (K evals) | mean±std over K |
+| B3 Centralized-FT | centralized | k=0 (no ICL) | single |
+| B4 Centralized-ICL | centralized | centralized pool | single |
+
+Global federated arms (`M_G`, `ab3_fedavg`) are deployed once **per client** (each org
+runs the shared global model with its own private demos) and reported as mean±std —
+keeps the privacy story end-to-end and yields per-client variance for free. `M_G − B3`
+gap therefore folds in both the federation cost and the private-pool restriction
+(B3 sees the full centralized pool) — the honest federated-vs-centralized gap.
+
+Builder = `fedicl_sql/retrieval/pool.py`; eval = `experiments/eval_arms/run.py`.
 
 ### 5.4 ICL Prompt Constructor
 
@@ -223,9 +252,10 @@ Round t = 1 .. T:
   3. SERVER  θ_t ← FedAvg({Δθᵢ})  →  M_G ← base_SLM + θ_t
 
 Inference (per client, after training):
-       a. Retrieve top-k demos from Qᵢ (k=3, schema-aware)
+       a. Retrieve top-k demos from own TRAIN pool Qᵢ (k=3, schema-aware; cross-schema to test, no LOO)
        b. Build ICL prompts σ(q, Sᵢ, I, Q)
        c. M_G.generate(prompt) → SQL
+       [eval: repeat per client pool → mean±std for the global arms]
 
 Return: M_G (global student), per-client adapters for local inference
 ```
@@ -271,6 +301,7 @@ Local Knowledge Cache (optional, Fig.1): not yet implemented.
 5. **Masking = retrieval scoring only.** Never put masked SQL in the generation prompt.
 6. **One stack per comparison.** Mac-fp16 ≠ CUDA-fp16 — never compare cross-stack.
 7. **Sequential VRAM.** Teacher inference (7B) → unload → student training (1.5B). Never simultaneous.
+8. **Demo pool = TRAIN, never test.** ICL demos come from the model's own train data (per-client `Qᵢ` or centralized train). Test set is never a demo source → no leave-one-out. Retrieval is cross-schema (train→unseen-test). Violating this leaks near-answers and inflates EX.
 
 ---
 

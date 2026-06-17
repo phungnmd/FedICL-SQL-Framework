@@ -6,7 +6,9 @@
 - Metrics → headline + story in `LAB_LOG.md`; full row auto in `RUNS.csv`.
 - Changing a locked decision → update **both** this file and detailed_plan §8.
 
-**State (2026-06-17):** pipeline + 82 tests green · arch = local 7B teacher per client, 2-pool split (α=0.1/k3) · **CUDA results on new split (1034 ex full test.csv):** B0 base floor EX=51.2% EM=14.1% · B3 centralized-FT EX=61.7% EM=42.5% (gap +10.5% EX = value of LoRA FT) · major refactors done (single-pass KD, no public X, held_out→centralized/test.csv, result format metrics.json+JSONL, stage removed) · notebook reviewed + 3 critical bugs fixed (extract_sql, token ID logprobs, base= duplicate).
+**State (2026-06-18):** pipeline + 85 tests green · arch = local 7B teacher per client, 2-pool split (α=0.1/k3) · **CUDA results on new split (1034 ex full test.csv):** B0 base floor EX=51.2% EM=14.1% · B3 centralized-FT EX=61.7% EM=42.5% (k=0, clean; gap +10.5% EX = value of LoRA FT) · major refactors done (single-pass KD, no public X, held_out→centralized/test.csv, result format metrics.json+JSONL, stage removed).
+
+🔴 **ICL demo pool = model's own TRAIN data, never test** (`fedicl_sql/retrieval/pool.py`): `client_i_train.csv` per-client/federated; `centralized/train.csv` for B3/B4. Cross-schema to test, **no LOO**. Global arms (`M_G`/`ab3_fedavg`) eval **per client pool → mean±std**. All ICL numbers pending re-run with this retriever.
 
 ---
 

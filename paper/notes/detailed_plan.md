@@ -154,7 +154,7 @@ Prompt construction ([4] Eq. 3): `σ(q, S, I, Q) = q ⊕ S ⊕ I ⊕ Q`
 
 **Masking = retrieval-only ([4]).** Mask table/column identifiers to canonical tokens for the *retrieval-similarity* score (privacy + de-identification + structure-based transfer); the demos **shown to the model are always unmasked**. Never put masked SQL placeholders into the generation prompt. Select `k ∈ {1,3}` ([4] sweet spot, inverted-U at k=5). ⚠️ Masking can **cost** EX ([4]: MQS_S 37% < QTS_S 41%) — frame as a privacy/transfer lever, not an accuracy win.
 
-**ICL runs locally per client** on same-schema demos from `Qᵢ` only. No server-side ICL Hub (G removed). Cross-schema generalization (RQ2) comes from the **Global SLM's skill + local ICL** on the held-out schema's own few demos.
+**ICL runs locally per client** with demos retrieved from the client's own **train** pool `Qᵢ` only (`client_i_train.csv`). No server-side ICL Hub (G removed). 🔴 **The demo pool is TRAIN data, never the test set** — test DBs are schema-disjoint from every `Qᵢ`, so retrieval is **cross-schema** (train demos → unseen test query) and there is **no leave-one-out**. Cross-schema generalization (RQ2) comes from the **Global SLM's skill + cross-schema ICL**: a retrieved train demo carries SQL-pattern (skeleton) structure to the unseen schema, not schema-specific answers. Centralized baselines B3/B4 use the pooled `centralized/train.csv`. Builder = `fedicl_sql/retrieval/pool.py`.
 
 ### 2.4 Teacher & Student (§3.3–3.4)
 
@@ -228,6 +228,8 @@ Convergence: cite **FedAvg (McMahan 2017) / FedProx (Li 2020)** convergence resu
 🔴 **Schema-disjoint 2-pool split (anti-leakage, mandatory).** Partition Spider DBs into **client-private `{Sᵢ}`** (one DB-group per client, all train DBs) and **held-out** (cross-schema eval = Spider dev), with `private ∩ held-out = ∅` — no DB in two pools, eval questions never in train. Persist DB-id→pool, release it. **Dirichlet(α)** over all train DBs controls heterogeneity, `α ∈ {0.1, 1.0, 100}` (low→high IID). Default `K = 3` (cross-silo); sweep `{3,5,10}` (F6). ⚠️ **Report per-client N at each K** in the F6 caption — at `K=10` data thins per client; frame as data-starvation, not a method failure. Small `K` = deliberate **cross-silo** choice.
 
 **Eval-set provenance (state in §4.1):** all eval on `processed_data/SPIDER/centralized/test.csv` (Spider dev, 1034 ex, frozen). No per-client eval split — clients use all their data for training. Don't let a reviewer discover this footnote unaided.
+
+🔴 **ICL demo provenance (state in §4.1 — leakage-critical).** ICL demos at eval are retrieved from the model's own **train** pool, never from the test set: per-client/federated arms use `client_i_train.csv`; centralized B3/B4 use `centralized/train.csv`. Test DBs are schema-disjoint from train (0 overlap, verified) → retrieval is cross-schema and there is **no leave-one-out**. Global federated arms (`M_G`, `ab3_fedavg`) are evaluated once **per client pool** and reported **mean±std** over K (each org deploys the shared global model with its own private demos; `M_G−B3` folds in the federation cost + private-pool restriction). Builder = `fedicl_sql/retrieval/pool.py`; eval = `experiments/eval_arms/run.py`.
 
 **Data hygiene:** tune on `val` (a seeded slice of Spider train); the `test` split (= Spider dev) is **frozen** — touch once for final numbers. Headline = ≥3 seeds + significance.
 
