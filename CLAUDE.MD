@@ -33,7 +33,7 @@ Use the journal's LaTeX template per instructions at: https://www.iajit.org/app/
 
 Progress/results tracking (`paper/notes/todo.md` retired 2026-06-23):
 - **`paper/notes/LAB_LOG.md`** — session log: what was done, current phase, decisions, next steps. Read first each session; append after finishing.
-- **`fedicl-sql/experiments/RUNS.csv`** — canonical numbers (auto via `save_results`): run_id, EX/EM, model, retrieval, k, seed, git_sha. Headline metrics come from here, never re-typed.
+- **`fedicl-sql/experiments/RUNS.csv`** — canonical numbers (auto via `save_results`): run_id, EX/EM, model, retrieval, demo_style, gate_pass_rate, k, seed, git_sha. Headline metrics come from here, never re-typed. Full per-run DAIL params (tau, embedder, all CLI args) live in each run's `config.json`.
 - **`DECISIONS.md` §3** — decision record. Changing a decision (variant, clients, dataset, default) → update §3 + note in LAB_LOG.
 - **Arm names = feature names, no A/B/Ab letters** (retired 2026-06-23): `base` / `local` / `central` / `fedavg` / `fedkd` / `teacher`; ICL = eval overlay → suffix `@k3`. Map in `DECISIONS.md` §1.
 - Teacher-value = report **deltas** (`fedkd` vs `local` = federation gain; vs `fedavg` = teacher value), measured analysis **not pass/fail gates**. RQ1 bar = `fedkd` approaches the `central` ceiling.
