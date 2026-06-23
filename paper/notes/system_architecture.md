@@ -1,6 +1,6 @@
 # FedICL-SQL — System Architecture
 
-> Grounded in: `fig_architecture_source.png` (mechanism ground truth) · `fedicl_sql_outline.pdf` (section structure) · `detailed_plan.md` (spec).
+> Grounded in: `fig_architecture_source.png` (mechanism ground truth) · `fedicl_sql_outline.pdf` (section structure) · `DECISIONS.md` (spec + naming).
 > Maps directly to §3 of the paper. **Fig.1 wins on any mechanism dispute.**
 >
 > **Re-aligned 2026-06-16:** teacher moved client-side (local 7B). Public X and ICL Hub G removed.
@@ -105,7 +105,7 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 1. **SSL/TLS** — secure transmission channel
 2. **Secure Aggregation** — server aggregates without seeing individual Δθᵢ
 3. **Differential Privacy (Gradient Perturbation)** — Gaussian noise + clipping on Δθᵢ before upload; report (ε, EX) at Stage-B
-4. **De-identification & Masking** — schema identifier masking for retrieval-similarity scoring (planned, RQ2)
+4. **De-identification & no-schema demos** — retrieval embeddings use question text only (no schema/DDL); retrieved demos are shown as **question + verbatim SQL with NO source DDL** (`demo_style=never_schema`, default) so no foreign schema is ever placed in the prompt. Demo SQL comes from the client's own train pool (own identifiers, never transmitted). `skeleton` (identifier-masked SQL) = stronger-privacy ablation (RQ2). `full` removed 2026-06-20.
 
 ---
 
@@ -148,15 +148,18 @@ Load domain-adapted teacher (base + adapter merged) and run on each `(q, schema)
 
 - Schema serialized as DDL (types + FK join paths) for prompt `S`
 - **BGE-small-en + FAISS** retrieval — pool = **the deploying model's own TRAIN data**
-- **Embedding text (schema-aware):** `"question [SEP] ddl[:512]"` at both index time and query time
+- **Embedding text = QUESTION ONLY** (no schema in the embedding). Schema in the embedding biases cross-schema retrieval toward similar *schemas* not similar *query patterns*; train/test schemas are disjoint → DDL vectors diverge → similarity corrupted. Question-only matches Light-SQL [4] QTS_S + DAIL-SQL. *(Fixed 2026-06-19; was `question [SEP] ddl[:512]` → caused central+ICL −9.1%.)*
+- **Default ICL config (2026-06-20):** `retrieval = question-similarity · demo_style = never_schema · k=3` — one embedding lookup + one generation.
+  - **never_schema demos** (`build_prompt demo_style=never_schema`, default): question + **verbatim SQL, no source DDL** → no foreign schema in prompt, concrete own-pool SQL grounding kept. **skeleton** (`demo_style=skeleton`): identifiers masked → structure-only, stronger-privacy **ablation**. **`full` removed 2026-06-20** (was DDL+SQL; reintroduced schema-bleed vector, never default).
+  - **Not used:** no structural rerank, no complexity gate, and no k=0 draft inspection in the current inference path. The implementation is one retrieval pass + one generation.
 - Top-`k` at **inference/eval**: `k=3` (∈{1,3} per [4]; inverted-U at k=5)
 - At **training**: k=0 (standard SFT protocol, avoids OOM from 3× longer prompts)
-- **Masking — PLANNED, NOT YET WIRED:** table/column names masked to canonical tokens for retrieval-similarity scoring only; demos shown in prompt must always be unmasked
+- **RQ2 framing:** ICL is **redundant on the fine-tuned student** (knows patterns already → current full-test spotchecks show about −1 to −2 pp vs k=0 depending on retrieval variant; best completed diagnostic: 60.15% vs 61.32%). Fine-tuned arms (`central`, `fedkd`) reported at **k=0**. ICL's value = **parameter-free option for clients that cannot fine-tune** + privacy-preserving transfer (no source schema/DDL in prompt; `never_schema` default, `skeleton` ablation for identifier masking). RQ2 accuracy story → test ICL on **base/weak model (`base`, `local`)**, not `central`. Never claim "ICL improves a fine-tuned model".
 
 🔴 **Demo pool = TRAIN data, never the test set.** The ICL pool is the model's own
 training examples — a client's private `Qᵢ` (`client_i_train.csv`) for per-client
 and federated models, or the pooled centralized train set (`centralized/train.csv`)
-for the centralized baselines B3/B4. The frozen test set (`centralized/test.csv` =
+for the `central` baseline (± ICL). The frozen test set (`centralized/test.csv` =
 Spider dev) is **never** a demo source. Because test DBs are schema-disjoint from
 train (verified: 0 overlap), retrieval is always **cross-schema** (train demos →
 unseen test query) and the query is never in the pool → **no leave-one-out**. The
@@ -167,18 +170,18 @@ carry SQL-pattern (skeleton) structure to an unseen schema, not schema-specific 
 
 | Arm | model | demo pool | reported |
 |---|---|---|---|
-| base B0 floor | base | k=0 (no ICL) | single |
-| `slm_only` B2 | per-client adapter `Mᵢ` | client_i pool | mean±std over K |
-| `ab3_fedavg` Ab3 | one global model | each client pool (K evals) | mean±std over K |
-| `m_g` method | one global `M_G` | each client pool (K evals) | mean±std over K |
-| B3 Centralized-FT | centralized | k=0 (no ICL) | single |
-| B4 Centralized-ICL | centralized | centralized pool | single |
+| `base` floor | base | k=0 (no ICL) | single |
+| `local` | per-client adapter `Mᵢ` | client_i pool | mean±std over K |
+| `fedavg` | one global model | each client pool (K evals) | mean±std over K |
+| `fedkd` method | one global `M_G` | each client pool (K evals) | mean±std over K |
+| `central` | centralized | k=0 (no ICL) | single |
+| `central@k3` | centralized | centralized pool | single |
 
-Global federated arms (`M_G`, `ab3_fedavg`) are deployed once **per client** (each org
+Global federated arms (`fedkd`, `fedavg`) are deployed once **per client** (each org
 runs the shared global model with its own private demos) and reported as mean±std —
-keeps the privacy story end-to-end and yields per-client variance for free. `M_G − B3`
+keeps the privacy story end-to-end and yields per-client variance for free. `fedkd − central`
 gap therefore folds in both the federation cost and the private-pool restriction
-(B3 sees the full centralized pool) — the honest federated-vs-centralized gap.
+(`central` sees the full centralized pool) — the honest federated-vs-centralized gap.
 
 Builder = `fedicl_sql/retrieval/pool.py`; eval = `experiments/eval_arms/run.py`.
 
@@ -191,7 +194,7 @@ Builder = `fedicl_sql/retrieval/pool.py`; eval = `experiments/eval_arms/run.py`.
 - `q` — NL question
 - `S` — serialized schema (DDL)
 - `I` — system instruction ("expert SQL generator")
-- `Q` — top-k retrieved demonstrations (NL + SQL, unmasked) from Qᵢ
+- `Q` — top-k retrieved demonstrations (NL + **verbatim SQL, no source DDL** — `demo_style=never_schema`, default) from Qᵢ, via question-similarity retrieval. (`skeleton` = identifier-masked ablation.)
 
 ### 5.5 Local SLM Student `Mᵢ` — Qwen2.5-1.5B-Instruct + LoRA
 
@@ -228,7 +231,7 @@ for each (q, gold_sql) in Qᵢ:
 
 Every question appears **exactly once**. No double-pass, no implicit upweighting of exec-correct examples. `exec_correct` ensures teacher_sql is semantically equivalent to gold_sql, so dropping gold CE on those examples loses nothing.
 
-Pass `teacher_targets=[]` for B2/Ab3 arm (all examples → gold fallback).
+Pass `teacher_targets=[]` for the `local`/`fedavg` arm (all examples → gold fallback).
 
 **Why both parts matter:** L_SQL grounds the student on correct SQL; L_KD adds CoT reasoning and soft-probability dark knowledge the gold label lacks.
 
@@ -298,14 +301,14 @@ Local Knowledge Cache (optional, Fig.1): not yet implemented.
 2. **Teacher only touches client's own Qᵢ.** Never receives other clients' data or schemas. Never uploads outputs.
 3. **Upload = Weights Only.** LoRA deltas, not full model, not data, not teacher targets.
 4. **Training on Qᵢ is mandatory (gold + teacher).** Public-X-only training (old) → FedAvg no-op; now eliminated by design.
-5. **Masking = retrieval scoring only.** Never put masked SQL in the generation prompt.
+5. **Retrieval embeds the QUESTION only — never the schema.** Schema in the embedding corrupts cross-schema similarity. Demo rendering never includes source DDL (`demo_style=never_schema` default = verbatim SQL no DDL; `skeleton` = same but identifier-masked). `demo_style` affects *demo SQL rendering* only, not the embedding text.
 6. **One stack per comparison.** Mac-fp16 ≠ CUDA-fp16 — never compare cross-stack.
 7. **Sequential VRAM.** Teacher inference (7B) → unload → student training (1.5B). Never simultaneous.
 8. **Demo pool = TRAIN, never test.** ICL demos come from the model's own train data (per-client `Qᵢ` or centralized train). Test set is never a demo source → no leave-one-out. Retrieval is cross-schema (train→unseen-test). Violating this leaks near-answers and inflates EX.
 
 ---
 
-## 10. Notation reference (canonical — §0 of detailed_plan)
+## 10. Notation reference (canonical — §2 of DECISIONS.md)
 
 | Symbol | Meaning |
 |---|---|
