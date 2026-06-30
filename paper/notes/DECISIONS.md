@@ -55,8 +55,12 @@ Ablation letters (`Ab1`–`Ab5`) retired too → name by feature: `no_icl`, `no_
 | `T` | # federated rounds (PoC 2–3) | |
 | `k` | # ICL shots (∈{0,1,3,5}) | lower-case |
 | `E` | local epochs / round (1–2) | |
-| `λ₁…λ₄` | loss weights: SQL / KD / struct / exec | Fig.1 verbatim |
-| `M_T`, `Mᵢ`, `M_G` | teacher 7B (local, per client) / client-`i` student / global SLM | |
+| `λ(t)` | alpha-decay loss weight (1.0 → 0 over training) | balances MLE vs RKL |
+| `ρ` | masking ratio (sweep 0.1–0.5) | fraction of gold SQL tokens masked for imperfect data |
+| `ŷ` | imperfect SQL (student rewrite of masked `y`) | KD target sequence |
+| `p` | teacher logprob distribution over `ŷ` (with ICL) | soft label |
+| `q` | student logprob distribution over `ŷ` | distill target |
+| `M_T`, `Mᵢ`, `M_G` | teacher 7B (local, frozen, per client) / client-`i` student / global SLM | |
 | `Sᵢ`, `Qᵢ` | client-`i` private schema / private (NL,SQL) pairs | never leave client |
 | `θ` | LoRA params | no public set, no ICL Hub |
 
@@ -67,12 +71,22 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 
 ## 3. Locked decisions
 
-1. **Primary engine** — *(locked)* parametric teacher→student KD: client LoRA (SQL-CE + soft-KL + structure loss + exec filtering) → FedAvg/FedProx → `fedkd` global SLM. Demo-level KD = variant; Fed-ICL fusion = baseline.
+1. **Primary engine** — *(updated 2026-06-29)* Dual-stream training + KID on public BIRD + FedAvg:
+   - **Stream 1 FT:** `L_FT = CE(student, gold_sql)` on private `Qᵢ`
+   - **Stream 2 KID:** student masks BIRD gold SQL (ratio `ρ`) → rewrites `ŷ_bird` → teacher forward (frozen, k=3 ICL from BIRD) scores `ŷ_bird` → `L_KD = RKL(q‖p)`
+   - **Combined:** `L = λ₁·L_FT + λ₂(t)·L_KD` (alpha-decay on `λ₂`)
+   - Teacher never sees `Qᵢ` → privacy absolute. FedAvg LoRA deltas → `fedkd` global SLM.
+   - Fed-ICL [5] answer-fusion = parameter-free baseline.
 2. **Client count** — *(locked)* 3 default + sweep `{3,5,10}`. Cross-silo; matches Fed-ICL [5] (FedCoLLM [8] uses 4 — note the offset in §4.1).
 3. **Teacher & student models** — ⚠️ **NOT finalized (2026-06-23).** Current **default candidates**: teacher = Qwen2.5-7B-Instruct, student = Qwen2.5-1.5B-Instruct (tokenizer-aligned → soft-KL KD without MinED). Both are CLI args (`--teacher-model`, `--model`), not hardcoded gates; alt students → `slm_swap` ablation. **The pair to lock is still open** — pick after a model sweep. Every run **records the actual ids used**: student in RUNS.csv `model`, teacher in RUNS.csv `teacher_model` (`""` when no KD). So results are never ambiguous about which models produced them. ⚠️ **Outline drift:** approved outline §4.1 lists Phi-3-mini / Gemma-2B / TinyLlama students; reconcile §4.1 with whatever pair is locked **+ supervisor sign-off**.
-4. **Second dataset** — Spider-Realistic now; BIRD only if time allows. **(confirm)**
-5. **Teacher access & compute** — *(access locked 2026-06-16; model id NOT final, see §3.3)* teacher runs **local HuggingFace, on-premise, no API cost** (this constraint is locked); the 7B id is the current default, swappable via `--teacher-model`. Per-client offline pipeline: `fine_tune_teacher.py` (LoRA-SFT on `Qᵢ`; A100 for fp16, `--max-steps 0` to skip on T4) → `gen_teacher_targets.py` (annotate `Qᵢ`; T4 OK with `--load-in-4bit`). Student 1.5B LoRA: T4 ~11 GB. **PoC**: Mac/Colab T4, skip teacher SFT, base 7B only ($0). **Headline**: paid A100-class (Colab Pro high-RAM / RunPod / Lambda); supervisor confirms budget.
-6. **ICL demo rendering** — *(locked 2026-06-20)* default `demo_style=never_schema` (question + verbatim SQL, no source DDL). `skeleton` (identifier-masked) = stronger-privacy ablation. `full` (DDL+SQL) **removed** — reintroduced schema-bleed. Builder = `fedicl_sql/prompts/builder.py`; eval default = `experiments/eval_arms/run.py`.
+4. **Datasets** — *(locked 2026-06-29)* Primary training + eval = **Spider**. **BIRD** serves dual role: (a) **public KD dataset** — teacher runs KID distillation on BIRD train (teacher never sees Spider `Qᵢ`); (b) **second evaluation benchmark** — report EX on BIRD test to show cross-dataset generalization.
+5. **Teacher access & compute** — *(updated 2026-06-29)* teacher frozen, local HuggingFace, on-premise. Runs **exclusively on public BIRD train** — never touches private `Qᵢ`. Co-loaded with student (online KID, 1 forward per step on BIRD batches). VRAM: ~17 GB simultaneous. **Headline**: A100 40 GB+. **PoC**: T4 — `--load-in-4bit` teacher (≈ 8 GB) + student (≈ 3 GB) = ~11 GB. Teacher ICL: k=3 from BIRD train demos (question-only, `never_schema`). `fine_tune_teacher.py` and `gen_teacher_targets.py` removed.
+6. **ICL demo rendering** — *(locked 2026-06-20)* default `demo_style=never_schema` (question + verbatim SQL, no source DDL). `skeleton` (identifier-masked) = stronger-privacy ablation. `full` (DDL+SQL) **removed** — reintroduced schema-bleed. Builder = `fedicl_sql/prompts/builder.py`; eval default = `experiments/eval_arms/run.py`. **ICL follows DAIL-SQL [9]:** question-similarity retrieval, SQL-only demos, k=3 (inverted-U at k=5).
+
+   **Ablation (locked 2026-06-29):**
+   - `fedkd_teacher_k3` (default): teacher scores `ŷ` WITH ICL k=3 from `Qᵢ` → ICL-enhanced soft labels
+   - `fedkd_teacher_k0`: teacher scores `ŷ` WITHOUT ICL → shows value of ICL-enhanced teacher labels
+   - `fedkd@k3` vs `fedkd` (k=0 at inference) → shows value of ICL at inference time
 7. **Tracking** — *(locked 2026-06-23)* progress in `LAB_LOG.md`, canonical numbers in `experiments/RUNS.csv` via `save_results`. No A/B letters. This file = decision/notation record.
 
 ---

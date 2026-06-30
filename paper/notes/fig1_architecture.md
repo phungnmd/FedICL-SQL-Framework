@@ -21,10 +21,10 @@ SECURE & PRIVACY-PRESERVING COMMUNICATION
         ▼  │
 CLIENTS (Client / Organization 1 .. K)
   Local Data & Schema (Sᵢ, Qᵢ — never leaves client)
-  Local Teacher M_T (Qwen2.5-7B, offline per-client on Qᵢ) → per-client teacher_targets
+  Local Teacher M_T (Qwen2.5-7B, frozen, online per step) → soft labels p over ŷ
   Schema Encoder → Retrieval (Qᵢ only) → ICL Prompt Constructor
-    → Local SLM Student Mᵢ (decode) → predicted SQL + reasoning
-    → Local Training (Distillation): SQL loss + KD loss + Structure loss + Exec filter → Total Loss
+    → Local SLM Student Mᵢ → mask(y,ρ) + rewrite → ŷ → predicted SQL
+    → Local Training (Distillation): λ(t)·MLE + (1-λ(t))·RKL → Total Loss
     → Local Model Update (Weights Only), Encrypted & Compressed Upload
   Local Knowledge Cache (optional): recent examples / rules / execution feedback
 ```
@@ -61,13 +61,13 @@ CLIENTS (Client / Organization 1 .. K)
 
 1. **Local Data & Schema** — *Local Database (Schema Sᵢ)* + **NL-Query / SQL Pairs (Private Data Qᵢ)** ← private supervised set; never leaves client
 
-2. **Local Teacher M_T (Qwen2.5-7B-Instruct, offline per-client)**
-   - Runs **offline once per client** on the client's own private Qᵢ before federated rounds begin
-   - Never sees other clients' data; never uploads outputs to server
-   - Outputs per item: `reasoning` (CoT), `teacher_sql` (exec-validated), `top_logprobs[K]`
-   - Exec filter: only items where `Exec(teacher_sql) = Exec(gold)` enter KD target cache
-   - Stored locally: `client_i_teacher_targets.csv` + `client_i_teacher_targets.logprobs.jsonl`
-   - VRAM: loaded for inference, then `unload()` before student LoRA training (sequential)
+2. **Local Teacher M_T (Qwen2.5-7B-Instruct, online, frozen, runs on BIRD public)**
+   - Runs **per training step** — one forward pass over `ŷ_bird` (student imperfect rewrite of BIRD gold SQL)
+   - Frozen throughout. **Never sees `Qᵢ` or client's private schema `Sᵢ`**
+   - Output per step: per-token logprob distribution `p` over `ŷ_bird` — soft labels for RKL loss
+   - ICL for teacher: k=3 demos from **BIRD train** (question-only, `never_schema`) — no private data in teacher context
+   - Never uploads outputs to server
+   - VRAM: co-loaded with student (~17 GB total — A100 required; T4 PoC: 4-bit teacher ≈ 8 GB)
 
 3. **Schema Encoder** — Schema DDL → Schema Embedding (BGE-small)
 
@@ -77,18 +77,19 @@ CLIENTS (Client / Organization 1 .. K)
 
 6. **Local SLM Student Mᵢ** — Qwen2.5-1.5B + LoRA → Predicted SQL + Reasoning
 
-7. **Local Training (Distillation)** — verbatim loss:
+7. **Local Training** — Dual-stream per step:
 
-   `L = λ₁·L_SQL + λ₂·L_KD + λ₃·L_struct + λ₄·L_exec`
+   **Stream 1 (FT):** `L_FT = CE(student, gold_sql)` on private `Qᵢ`, k=0
 
-   | Term | Data source | Signal |
+   **Stream 2 (KID on BIRD):** `mask(y_bird, ρ) → ŷ_bird` (student, k=0) → teacher forward with BIRD ICL k=3 → `p` → `L_KD = RKL(q‖p)`
+
+   `L = λ₁ · L_FT  +  λ₂(t) · L_KD`
+
+   | Term | Data | Signal |
    |---|---|---|
-   | `L_SQL` | Private Qᵢ (gold SQL) | Own schema, org-specific skill |
-   | `L_KD` | Private Qᵢ (teacher CoT⊕SQL + top-K logprobs) | Dark knowledge, CoT reasoning |
-   | `L_struct` | Skeleton tokens from above | SQL clause structure |
-   | `L_exec` | Exec-match filter on teacher targets (non-differentiable) | Data quality gate |
-
-   Same Qᵢ examples appear in both L_SQL (gold labels) and L_KD (teacher labels, exec-filtered).
+   | `L_FT` | Private `Qᵢ` (gold SQL) | Domain-specific supervised SQL |
+   | `L_KD` | Public BIRD (teacher soft labels on `ŷ_bird`) | General SQL structural knowledge |
+   | `λ₂(t)` | Alpha-decay | Soft label weight decreases as student matures |
 
 8. **Local Model Update (Weights Only)** — Encrypted & Compressed Upload ↑
 
@@ -96,16 +97,16 @@ CLIENTS (Client / Organization 1 .. K)
 
 ## Figure caption (updated)
 
-> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Each client runs a local 7B LLM teacher on its own private data to generate KD targets, then LoRA-trains a 1.5B student on gold + teacher supervision. Only encrypted, DP-perturbed LoRA deltas cross the wire to the server for FedAvg aggregation. The resulting Global SLM is deployed locally with schema-aware ICL — no cloud API needed at inference.*
+> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Each client trains via dual-stream learning: supervised FT on its own private data (Spider Qᵢ) and KID distillation on public BIRD data — the student generates imperfect SQL ŷ via masking and rewriting, the frozen local 7B teacher scores ŷ with BIRD ICL context, and a Reverse KL + alpha-decay loss transfers SQL structural knowledge. The teacher never accesses private client data. Only encrypted, DP-perturbed LoRA deltas cross the wire for FedAvg aggregation. The resulting Global SLM deploys locally with schema-aware ICL — no cloud API at inference.*
 
 ## Key Innovations panel
 
 1. Privacy-Preserving Federated Learning for Text-to-SQL
-2. **Client-Side** Local LLM Teacher → Small Student Knowledge Transfer (no cloud API)
-3. Schema-Aware In-Context Learning (retrieval from own Qᵢ)
-4. Cross-Schema Generalization via Global SLM
-5. Communication-Efficient Training & Deployment (LoRA deltas only)
-6. High Execution Accuracy with Lower Cost
+2. **Dual-stream Training** — FT on private `Qᵢ` + KID on public BIRD; teacher never touches private data → absolute privacy
+3. **KID-based Distillation in Federated Setting** — student mask+rewrite on BIRD → imperfect data ŷ + Reverse KL + alpha-decay; first applied to federated NL2SQL
+4. **Schema-Aware ICL at Inference** — DAIL-SQL style, k=3 from own `Qᵢ`; cross-schema, privacy-preserving
+5. Cross-Schema Generalization via Global SLM (FedAvg LoRA)
+6. Communication-Efficient Training (LoRA deltas only, DP-perturbed)
 
 ---
 
@@ -113,9 +114,9 @@ CLIENTS (Client / Organization 1 .. K)
 
 | Mechanism in figure | Implication for method/plan |
 |---|---|
-| **Teacher placement: CLIENT (local 7B)** | Teacher is **NOT on the server**; runs **offline per-client** on private Qᵢ; no cloud API. |
+| **Teacher placement: CLIENT (local 7B, frozen, on BIRD public)** | Teacher **never sees `Qᵢ`**; runs on public BIRD train per step; forward-only; no cloud API; never uploads. |
 | Aggregation = **FedAvg/FedProx over SLM weights**; **Global SLM** broadcast | Federation engine is **PARAMETRIC** (trained global SLM via weight aggregation). |
-| Client **Local Training (Distillation)** with SQL+KD+Structure+Exec loss | Students are **LoRA-trained**. Both L_SQL (gold) and L_KD (teacher) use same private Qᵢ. |
+| Client **Local Training — dual-stream** `L = λ₁·L_FT + λ₂(t)·L_KD` | **Stream 1:** FT on private `Qᵢ` (gold CE). **Stream 2:** KID on BIRD (`ŷ_bird` + teacher RKL). Students LoRA-trained. |
 | **"Weights Only"** upload + **"Parameters"** broadcast (both encrypted) | What crosses the wire = **LoRA deltas** only. Teacher outputs stay on-premise. |
 | **Differential Privacy (Gradient Perturbation)** | DP on LoRA deltas before upload — first-class privacy mechanism. |
 | **No ICL Hub (G) on server** | Retrieval pool = Qᵢ only. No cross-client demo sharing. No server-side teacher demos. |
@@ -123,10 +124,10 @@ CLIENTS (Client / Organization 1 .. K)
 
 ## Privacy claim (corrected to match new architecture)
 
-- **Stays local:** raw rows, database, schema (Sᵢ, Qᵢ), teacher model, teacher outputs (targets, logprobs) — never leaves client
+- **Stays local:** raw rows, database, schema (Sᵢ, Qᵢ), teacher model, teacher soft labels (p over ŷ) — never leaves client
 - **Crosses the wire:** LoRA deltas only — *Weights Only*, encrypted + compressed + DP-perturbed; global SLM params on broadcast
-- **Correct claim (new):** *"No raw data, schema, or teacher outputs leave the client. The teacher model runs fully on-premise. Only encrypted, DP-noised LoRA weight updates are transmitted to the server."*
-- **Stronger than before:** eliminates even the public-X teacher API call; zero external network traffic during KD target generation.
+- **Correct claim:** *"No raw data, schema, or teacher outputs leave the client. The teacher model runs fully on-premise. Only encrypted, DP-noised LoRA weight updates are transmitted to the server."*
+- **Privacy preserved:** imperfect data ŷ and soft labels p are generated and consumed locally per step; zero outbound traffic during distillation.
 
 ## Outline §3 ↔ figure mapping (updated)
 
@@ -136,7 +137,7 @@ CLIENTS (Client / Organization 1 .. K)
 | 3.2 Framework Overview | three planes |
 | 3.3 Local LLM Teacher (Client-Side) | Local Teacher M_T (client) |
 | 3.4 Local SLM Student | Local SLM Student + Global SLM |
-| 3.5 Teacher–Student Collaboration | L_KD path: teacher targets → student training |
+| 3.5 Teacher–Student Collaboration | KID path: student mask+rewrite → ŷ → teacher forward (with ICL) → p → RKL |
 | 3.6 Schema-Aware ICL | Schema Encoder + Retrieval (Qᵢ only) + ICL Prompt Constructor |
-| 3.7 Federated SQL Knowledge Distillation | Local Training losses + per-client teacher targets |
+| 3.7 Federated SQL Knowledge Distillation | KID distillation: λ(t)·MLE + (1-λ(t))·RKL, alpha-decay, imperfect data ŷ |
 | 3.8 Federated Optimization | Federated Aggregation Engine (FedAvg/FedProx, global SLM, broadcast) |

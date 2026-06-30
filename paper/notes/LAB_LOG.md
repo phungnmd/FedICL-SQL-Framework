@@ -5,6 +5,44 @@
 
 ---
 
+## Session 2026-06-29 — architecture pivot to KID + lock decisions
+
+### What changed
+
+**Architecture pivot:** KD mechanism replaced with KID (Learning from Imperfect Data, EMNLP Findings 2024). Primary driver: KID teacher runs forward-only per step (not autoregressive offline) → ~100× cheaper than old offline annotation.
+
+**KD mechanism (new):**
+- Teacher: Qwen2.5-7B frozen, co-loaded with student, online per training step
+- Per step: student masks gold SQL (ratio `ρ`, Hard strategy) → rewrite → `ŷ` → teacher forward with ICL k=3 from `Qᵢ` → soft labels `p` → `L = λ(t)·MLE + (1-λ(t))·RKL(q‖p)`
+- Alpha-decay `λ(t)`: 1.0 → 0 over training
+- Reverse KL (mode-seeking, SQL-compatible)
+- No offline annotation, no exec-filter, no L_struct, no CoT
+
+**ICL:** follows DAIL-SQL [9] — question-similarity retrieval, never_schema demos, k=3 inference, k=0 training.
+
+**Datasets locked:**
+- Primary: Spider
+- Secondary: BIRD *(locked)*
+
+**Ablations locked:**
+- `fedkd_teacher_k3` (default) vs `fedkd_teacher_k0` — value of ICL-enhanced teacher labels
+- `fedkd@k3` vs `fedkd` — value of ICL at inference
+
+**VRAM:** teacher (14 GB) + student (3 GB) co-loaded → A100 required. T4 PoC: 4-bit teacher.
+
+### Files updated
+- `system_architecture.md` — §5.2, §5.6, §6, §8, §9, §10, arm table, eval datasets
+- `DECISIONS.md` — §2 notation, §3 decisions #1, #4, #5, #6
+- `fig1_architecture.md` — three-plane, teacher, training loss, caption, innovations, outline mapping
+
+### Next
+- Implement KID training loop (`lora_trainer.py`): mask+rewrite pipeline + online teacher forward + RKL + alpha-decay
+- Run `local` ×3 + `fedavg` ×3 (gold CE only, no teacher) → establish federation baseline
+- Run `fedkd_teacher_k3` ×3 → full method
+- Eval all arms on Spider + BIRD
+
+---
+
 ## Session 2026-06-23 — naming refactor + retire detailed_plan
 
 ### What changed
