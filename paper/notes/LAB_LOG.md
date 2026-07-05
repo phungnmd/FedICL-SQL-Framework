@@ -166,3 +166,58 @@ B3  centralized FT    k=0   EX=61.7%   EM=42.5%   (+10.5% from LoRA SFT)
 - [ ] §5b-2 eval all arms (m_g − slm_only, m_g − ab3_fedavg)
 
 ---
+
+---
+
+## 2026-06-30 — RQ2 reframed to Fed+ICL+KD synergy; +ref [10] KID
+
+**Error analysis (k0 vs k3 flips, dail_select):**
+- BASE (chưa FT): 49.0%→52.5% (+36 net; gain 137 / hurt 101). GAIN = structure fixes (over-join, alias, ORDER BY LIMIT); HURT = JOIN-heavy.
+- CENTRAL (FT): 63.1%→60.2% (−30 net; gain 79 / hurt 109). **54/109 hurts = `no such column` exec errors = schema bleed** (student copies demo's table/col names from a different DB).
+- Mechanism: ICL has 2 channels — *structure-transfer* (gain, schema-agnostic) + *schema-bleed* (hurt). FT saturates the gain channel (already knows structure) but not the bleed channel → net negative. = train/test MISMATCH (train k=0, eval k=3), NOT an ICL ceiling.
+
+**Decision — RETIRE "never claim ICL improves FT" framing.** Goal restated: build Fed+ICL+KD → max EX on small model; target `(FT/KD)+ICL > either`. Path = **in-context tuning** (`train-k=3` + `skeleton` demos) so student learns to read demos + anti-bleed prior. Grounded in KID [10] (train/inference mismatch). Updated `system_architecture.md` (top note + §5.3 RQ2 + §5.6 FT stream + ICL-positions table + per-arm table) and `DECISIONS.md` ref list.
+
+**Added reference [10]** = KID (Zhong et al. 2024, arXiv:2410.11371) — source of the adopted KD mechanism. PDF+MD in `paper/references/`.
+
+### Next
+- [ ] Verify `--train-k 3` + train-time `demo_style=skeleton` are wired in trainer + eval run.py
+- [ ] Run synergy arm: `central` train-k=3 skeleton, eval k=3 skeleton (A100) vs `central` k0 vs `base@k3`. Count bleed-error drop (expect 54→low).
+- [ ] If synergy confirmed → promote to RQ2 headline; else report honest k=0.
+
+### 2026-06-30 addendum — 2 KD directions locked + ref [11]
+- KD now has **two directions** benchmarked head-to-head (`system_architecture.md` §5.6.1):
+  - **Dir A — KID [10]** (logit-level, RKL on imperfect ŷ, A100 co-load) = primary.
+  - **Dir B — Struct-SQL [11]** (data/seq-level, SFT on QP-CoT⊕SQL, teacher offline → T4-friendly) = contender/fallback; subsumes skeleton-structure loss; composable with KID.
+- Reason for B: not certain KID wins → need a proven NL2SQL-specific method on a different axis. Arms: `fedkd` (KID) / `fedkd_struct` (Struct-SQL) / `fedkd_seqkd` (optional classic).
+- Also locked: KD-stream teacher+student now share `P_ICL` context (fixed latent k3-vs-k0 inconsistency); invariant #9 "train condition == inference condition" added.
+- Added **reference [11]** = Struct-SQL (arXiv:2512.17053). PDF+MD in `paper/references/`.
+- Next: verify QP-CoT fits 1.5B + T4 VRAM; run Dir A vs Dir B vs base@k3 on A100.
+
+- KD impl plan → `paper/notes/KD_PLAN.md` (2 directions × ICL on/off matrix; Phase 0.5 = wire ICL into KD path first).
+
+---
+
+## 2026-07-06 — KD architecture review → 6 fixes locked; KD_PLAN rewritten with staged experiment list
+
+**Review found 4 serious flaws in the KD design docs; all fixed today:**
+
+1. **`kid − struct` was confounded** — KID distilled on BIRD, Struct-SQL traces were to be generated on `Qᵢ` (old offline pipeline) → the comparison differed on loss level AND data AND teacher mode at once. **Fix: both directions now distill on BIRD train** (Struct-SQL traces generated offline on BIRD, cached, exec-filtered).
+2. **`fedkd − fedavg` confounded teacher with extra public data** (KD arms see Qᵢ+BIRD, fedavg sees Qᵢ only). **Fix: new `fedavg_bird` control** (CE on BIRD gold, no teacher) → control ladder `fedavg → fedavg_bird → seqkd → struct → kid`, each rung isolates one ingredient. Teacher value = `fedkd − fedavg_bird`. Same control used for exposure-fair BIRD-dev secondary eval.
+3. **Demo-style mismatch baked in** — plan had train `skeleton` + eval `never_schema` (same class of train/test mismatch as the −30-flip bug). **Fix: style parity locked** — train style == eval style per arm; default `never_schema` end-to-end; paired `skeleton` = privacy cell (E3.4); style-shift = its own experiment (E3.5). Invariant #9 gains level (c).
+4. **Doc self-contradictions** — §2 diagram still showed old offline-teacher-on-Qᵢ + 4-term loss; ablation table said teacher ICL "from Qᵢ" (violated invariant #2); `skeleton` vs `never_schema` inconsistent in pseudocode. All patched to match §5.2/§5.6.
+
+**Also pinned:** FedAvg weighted `nᵢ/n` (McMahan, was 1/K) + LoRA A/B-averaging caveat; λ₂ alpha-decay = GLOBAL over cumulative steps across rounds; privacy reframed (BIRD = update-alignment rationale, not "privacy absolute" — teacher is on-premise); DP claim scoped to "(ε, EX) curve" at K=3, no strong-ε promise; new invariant #10 (KD data = BIRD for all directions + data-matched comparisons).
+
+**KD_PLAN.md rewritten** — full staged experiment list:
+- Stage 0 probes: E0.1 BIRD→Spider transfer probe (1k gold SFT, kill-switch before A100 spend) · E0.2 train-k=3 T4 VRAM probe · E0.3 pin KID mask-fill mechanics vs [10] (causal LM has no `[MASK]` — blocks Phase 2).
+- Stage 1 direction bake-off on client_1 only (no FedAvg, ⅓ cost): local_1 / local_bird_1 / seqkd / struct±ICL / kid±ICL → gate G1: winner must beat `local_bird_1` else teacher adds nothing → ship `fedavg_bird` as method.
+- Stage 2 federate winner: fedavg / fedavg_bird / fedkd(winner) / central.
+- Stage 3 headline: 3 seeds + significance · ρ sweep (KID, 1 seed) · teacher-k0 · skeleton privacy cell · style-shift · k-sweep · bleed analysis · BIRD-dev · DP curve.
+
+Updated: `KD_PLAN.md` (rewrite) · `system_architecture.md` (header note, §2 diagram, §3.1, §5.2, §5.3, §5.6, §5.6.1, §6, invariants #2/#9/#10, §10) · `DECISIONS.md` (§1 dec.1/4/6 amended, dec.8 added, λ notation).
+
+### Next
+- [ ] Phase 0 scaffold: `--kd-direction` flag, BIRD loader + FAISS pool, weighted-FedAvg fix
+- [ ] E0.1 + E0.2 probes (T4) before any A100 booking
+- [ ] E0.3: read KID [10] §method, pin mask-fill mechanics (left-to-right teacher-forced? sampling temp? stop-grad through ŷ)

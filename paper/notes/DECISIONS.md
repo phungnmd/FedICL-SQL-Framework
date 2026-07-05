@@ -55,7 +55,7 @@ Ablation letters (`Ab1`–`Ab5`) retired too → name by feature: `no_icl`, `no_
 | `T` | # federated rounds (PoC 2–3) | |
 | `k` | # ICL shots (∈{0,1,3,5}) | lower-case |
 | `E` | local epochs / round (1–2) | |
-| `λ(t)` | alpha-decay loss weight (1.0 → 0 over training) | balances MLE vs RKL |
+| `λ(t)` | alpha-decay loss weight (1.0 → 0 over **global** steps across all rounds) | balances MLE vs RKL |
 | `ρ` | masking ratio (sweep 0.1–0.5) | fraction of gold SQL tokens masked for imperfect data |
 | `ŷ` | imperfect SQL (student rewrite of masked `y`) | KD target sequence |
 | `p` | teacher logprob distribution over `ŷ` (with ICL) | soft label |
@@ -74,21 +74,29 @@ RQ1 = Federated Learning effectiveness · RQ2 = In-Context Learning effectivenes
 1. **Primary engine** — *(updated 2026-06-29)* Dual-stream training + KID on public BIRD + FedAvg:
    - **Stream 1 FT:** `L_FT = CE(student, gold_sql)` on private `Qᵢ`
    - **Stream 2 KID:** student masks BIRD gold SQL (ratio `ρ`) → rewrites `ŷ_bird` → teacher forward (frozen, k=3 ICL from BIRD) scores `ŷ_bird` → `L_KD = RKL(q‖p)`
-   - **Combined:** `L = λ₁·L_FT + λ₂(t)·L_KD` (alpha-decay on `λ₂`)
-   - Teacher never sees `Qᵢ` → privacy absolute. FedAvg LoRA deltas → `fedkd` global SLM.
+   - **Combined:** `L = λ₁·L_FT + λ₂(t)·L_KD` (alpha-decay on `λ₂` — **global** over cumulative steps across rounds, not per-round restart; pinned 2026-07-06)
+   - Teacher never sees `Qᵢ` (systems property — motivation = shared public KD corpus aligns client updates / less FedAvg drift, **not** privacy: teacher is on-premise, reading `Qᵢ` would leak nothing; reframed 2026-07-06). FedAvg LoRA deltas → `fedkd` global SLM.
+   - **FedAvg weighted `nᵢ/n`** (McMahan), not 1/K — non-IID split → unequal client sizes (fixed 2026-07-06). LoRA A/B-averaging caveat acknowledged in paper.
    - Fed-ICL [5] answer-fusion = parameter-free baseline.
 2. **Client count** — *(locked)* 3 default + sweep `{3,5,10}`. Cross-silo; matches Fed-ICL [5] (FedCoLLM [8] uses 4 — note the offset in §4.1).
 3. **Teacher & student models** — ⚠️ **NOT finalized (2026-06-23).** Current **default candidates**: teacher = Qwen2.5-7B-Instruct, student = Qwen2.5-1.5B-Instruct (tokenizer-aligned → soft-KL KD without MinED). Both are CLI args (`--teacher-model`, `--model`), not hardcoded gates; alt students → `slm_swap` ablation. **The pair to lock is still open** — pick after a model sweep. Every run **records the actual ids used**: student in RUNS.csv `model`, teacher in RUNS.csv `teacher_model` (`""` when no KD). So results are never ambiguous about which models produced them. ⚠️ **Outline drift:** approved outline §4.1 lists Phi-3-mini / Gemma-2B / TinyLlama students; reconcile §4.1 with whatever pair is locked **+ supervisor sign-off**.
-4. **Datasets** — *(locked 2026-06-29)* Primary training + eval = **Spider**. **BIRD** serves dual role: (a) **public KD dataset** — teacher runs KID distillation on BIRD train (teacher never sees Spider `Qᵢ`); (b) **second evaluation benchmark** — report EX on BIRD test to show cross-dataset generalization.
+4. **Datasets** — *(locked 2026-06-29, tightened 2026-07-06)* Primary training + eval = **Spider**. **BIRD** serves dual role: (a) **public KD dataset for BOTH directions** — KID online scoring AND Struct-SQL offline QP-CoT traces run on BIRD train (never on `Qᵢ`) → `kid − struct` has no data confound; (b) **second evaluation benchmark** — report EX on BIRD dev, but compare KD arms against `fedavg_bird` (data-matched control) and state the train-exposure.
 5. **Teacher access & compute** — *(updated 2026-06-29)* teacher frozen, local HuggingFace, on-premise. Runs **exclusively on public BIRD train** — never touches private `Qᵢ`. Co-loaded with student (online KID, 1 forward per step on BIRD batches). VRAM: ~17 GB simultaneous. **Headline**: A100 40 GB+. **PoC**: T4 — `--load-in-4bit` teacher (≈ 8 GB) + student (≈ 3 GB) = ~11 GB. Teacher ICL: k=3 from BIRD train demos (question-only, `never_schema`). `fine_tune_teacher.py` and `gen_teacher_targets.py` removed.
 6. **ICL demo rendering** — *(locked 2026-06-20)* default `demo_style=never_schema` (question + verbatim SQL, no source DDL). `skeleton` (identifier-masked) = stronger-privacy ablation. `full` (DDL+SQL) **removed** — reintroduced schema-bleed. Builder = `fedicl_sql/prompts/builder.py`; eval default = `experiments/eval_arms/run.py`. **ICL follows DAIL-SQL [9]:** question-similarity retrieval, SQL-only demos, k=3 (inverted-U at k=5).
 
-   **Ablation (locked 2026-06-29):**
-   - `fedkd_teacher_k3` (default): teacher scores `ŷ` WITH ICL k=3 from `Qᵢ` → ICL-enhanced soft labels
+   **Demo-style parity (locked 2026-07-06):** train `demo_style` == eval `demo_style` within any arm. Default `never_schema` end-to-end; paired `skeleton` (train+eval) = privacy cell (KD_PLAN E3.4); style-shift (train `skeleton` → eval `never_schema`) = separate analysis experiment (E3.5), never a default.
+
+   **Ablation (locked 2026-06-29, corrected 2026-07-06):**
+   - `fedkd_teacher_k3` (default): teacher scores `ŷ` WITH ICL k=3 from **BIRD train** (never `Qᵢ` — invariant #2) → ICL-enhanced soft labels
    - `fedkd_teacher_k0`: teacher scores `ŷ` WITHOUT ICL → shows value of ICL-enhanced teacher labels
    - `fedkd@k3` vs `fedkd` (k=0 at inference) → shows value of ICL at inference time
 7. **Tracking** — *(locked 2026-06-23)* progress in `LAB_LOG.md`, canonical numbers in `experiments/RUNS.csv` via `save_results`. No A/B letters. This file = decision/notation record.
+8. **KD comparison hygiene** — *(locked 2026-07-06)* Control ladder, each rung adds ONE ingredient on the same BIRD data: `fedavg → fedavg_bird (BIRD gold CE, no teacher) → fedkd_seqkd (teacher SQL) → fedkd_struct (QP-CoT⊕SQL) → fedkd (KID logits)`. **Teacher value = `fedkd − fedavg_bird`** — never `fedkd − fedavg` alone (confounds teacher with extra public data). KD direction picked via **single-client bake-off** (client_1, no FedAvg) before federating; DP claim scoped to "DP-ready + (ε, EX) curve" (K=3 → no strong-ε promise). Staged run order + full experiment list = `KD_PLAN.md` §4.
 
 ---
 
-*Grounded in [4] Light-SQL, [5] Fed-ICL, [6] IFed-ICL, [7] FedMKT, [8] FedCoLLM + the approved outline + Fig. 1. Mechanism source of truth: `fig1_architecture.md`. Full system: `system_architecture.md`.*
+*Grounded in [4] Light-SQL, [5] Fed-ICL, [6] IFed-ICL, [7] FedMKT, [8] FedCoLLM, [9] DAIL-SQL, [10] KID, [11] Struct-SQL + the approved outline + Fig. 1. Mechanism source of truth: `fig1_architecture.md`. Full system: `system_architecture.md`.*
+
+> **[10] KID** (Zhong et al. 2024, arXiv:2410.11371) — "Learning from Imperfect Data: Efficient KD for Text-to-SQL". **Source of our KD mechanism** (adopted 2026-06-29): mitigate train/inference mismatch by distilling on imperfect (student-rewritten) data that simulates inference's cascading errors. +5.83% avg across 5 NL2SQL benchmarks, all model sizes. Anchors the **in-context-tuning argument**: ICL's −1..−2 pp on a `train-k=0` FT student is the SAME train/test mismatch KID targets → fix by training in the inference condition (`train-k=3`).
+
+> **[11] Struct-SQL** (arXiv:2512.17053) — "KD with Structured Chain-of-Thought for Text-to-SQL". **Second KD direction** (decided 2026-06-30): teacher prompted with a **Query-Plan CoT (QP-CoT)** template emits an execution-plan-structured reasoning trace (trace schema → pick tables/cols → scan → join → filter → group); student is SFT'd on `(question ⊕ QP-CoT ⊕ gold SQL)`. **Data/sequence-level** (vs KID logit-level) → different axis = honest contender, not ablation. +8.1% over unstructured-CoT distillation. SLMs can't internalize structured reasoning by prompting → KD installs it. **Subsumes our skeleton-structure loss**; teacher runs **offline on BIRD train** (traces cached, exec-filtered; no per-step co-load) → T4-friendly + clean in federation. Composable with KID (QP-CoT as the target KID then makes imperfect). See `system_architecture.md` §5.6.1.
