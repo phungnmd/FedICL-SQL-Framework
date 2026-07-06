@@ -3,6 +3,8 @@
 Source image: `../figures/fig_architecture_source.png` (locked user input — DO NOT modify the PNG). This MD is the text transcription used as the **source of truth for the method's mechanism**. When plan/figure conflict on mechanism → figure wins (it is the approved architecture); when outline/figure conflict on section structure → outline wins.
 
 > **Architecture re-aligned 2026-06-16:** teacher moved from server-side cloud API to **client-side local 7B model**. Public set X and ICL Hub G removed. See `system_architecture.md` for full detail.
+>
+> **Re-aligned 2026-07-07:** BIRD (the corpus previously named below) is dropped — too heavy, dialect gap. No replacement public KD corpus is picked yet (`DECISIONS.md` §3 dec.4). Read every "public KD corpus" mention below as **TBD** — the dual-stream mechanism itself is unchanged, only the corpus name is open. Only a PoC currently runs, directly on a Spider slice, comparing KD-vs-FT with no dual-stream mixing (`KD_PLAN.md` §PoC); the dual-stream mechanism below is the deferred target, not what's running now.
 
 ---
 
@@ -61,11 +63,11 @@ CLIENTS (Client / Organization 1 .. K)
 
 1. **Local Data & Schema** — *Local Database (Schema Sᵢ)* + **NL-Query / SQL Pairs (Private Data Qᵢ)** ← private supervised set; never leaves client
 
-2. **Local Teacher M_T (Qwen2.5-7B-Instruct, online, frozen, runs on BIRD public)**
-   - Runs **per training step** — one forward pass over `ŷ_bird` (student imperfect rewrite of BIRD gold SQL)
+2. **Local Teacher M_T (Qwen2.5-7B-Instruct, online, frozen, runs on the public KD corpus)**
+   - Runs **per training step** — one forward pass over `ŷ_pub` (student imperfect rewrite of the corpus's gold SQL)
    - Frozen throughout. **Never sees `Qᵢ` or client's private schema `Sᵢ`**
-   - Output per step: per-token logprob distribution `p` over `ŷ_bird` — soft labels for RKL loss
-   - ICL for teacher: k=3 demos from **BIRD train** (question-only, `never_schema`) — no private data in teacher context
+   - Output per step: per-token logprob distribution `p` over `ŷ_pub` — soft labels for RKL loss
+   - ICL for teacher: k=3 demos from **the public KD corpus's train split** (question-only, `never_schema`) — no private data in teacher context
    - Never uploads outputs to server
    - VRAM: co-loaded with student (~17 GB total — A100 required; T4 PoC: 4-bit teacher ≈ 8 GB)
 
@@ -81,14 +83,14 @@ CLIENTS (Client / Organization 1 .. K)
 
    **Stream 1 (FT):** `L_FT = CE(student, gold_sql)` on private `Qᵢ`, k=0
 
-   **Stream 2 (KID on BIRD):** `mask(y_bird, ρ) → ŷ_bird` (student, k=0) → teacher forward with BIRD ICL k=3 → `p` → `L_KD = RKL(q‖p)`
+   **Stream 2 (KID on the public KD corpus):** `mask(y_pub, ρ) → ŷ_pub` (student, k=0) → teacher forward with the public KD corpus (TBD) ICL k=3 → `p` → `L_KD = RKL(q‖p)`
 
    `L = λ₁ · L_FT  +  λ₂(t) · L_KD`
 
    | Term | Data | Signal |
    |---|---|---|
    | `L_FT` | Private `Qᵢ` (gold SQL) | Domain-specific supervised SQL |
-   | `L_KD` | Public BIRD (teacher soft labels on `ŷ_bird`) | General SQL structural knowledge |
+   | `L_KD` | The public KD corpus (teacher soft labels on `ŷ_pub`) | General SQL structural knowledge |
    | `λ₂(t)` | Alpha-decay | Soft label weight decreases as student matures |
 
 8. **Local Model Update (Weights Only)** — Encrypted & Compressed Upload ↑
@@ -97,13 +99,13 @@ CLIENTS (Client / Organization 1 .. K)
 
 ## Figure caption (updated)
 
-> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Each client trains via dual-stream learning: supervised FT on its own private data (Spider Qᵢ) and KID distillation on public BIRD data — the student generates imperfect SQL ŷ via masking and rewriting, the frozen local 7B teacher scores ŷ with BIRD ICL context, and a Reverse KL + alpha-decay loss transfers SQL structural knowledge. The teacher never accesses private client data. Only encrypted, DP-perturbed LoRA deltas cross the wire for FedAvg aggregation. The resulting Global SLM deploys locally with schema-aware ICL — no cloud API at inference.*
+> *FedICL-SQL: A Novel Federated Large-Small Language Model Framework with In-Context Learning for Natural Language to SQL. Multiple organizations collaboratively train a lightweight Text-to-SQL model without sharing data. Each client trains via dual-stream learning: supervised FT on its own private data (Spider Qᵢ) and KID distillation on a public KD corpus — the student generates imperfect SQL ŷ via masking and rewriting, the frozen local 7B teacher scores ŷ with the public KD corpus (TBD) ICL context, and a Reverse KL + alpha-decay loss transfers SQL structural knowledge. The teacher never accesses private client data. Only encrypted, DP-perturbed LoRA deltas cross the wire for FedAvg aggregation. The resulting Global SLM deploys locally with schema-aware ICL — no cloud API at inference.*
 
 ## Key Innovations panel
 
 1. Privacy-Preserving Federated Learning for Text-to-SQL
-2. **Dual-stream Training** — FT on private `Qᵢ` + KID on public BIRD; teacher never touches private data → absolute privacy
-3. **KID-based Distillation in Federated Setting** — student mask+rewrite on BIRD → imperfect data ŷ + Reverse KL + alpha-decay; first applied to federated NL2SQL
+2. **Dual-stream Training** — FT on private `Qᵢ` + KID on a public KD corpus; teacher never touches private data → absolute privacy
+3. **KID-based Distillation in Federated Setting** — student mask+rewrite on the public KD corpus (TBD) → imperfect data ŷ + Reverse KL + alpha-decay; first applied to federated NL2SQL
 4. **Schema-Aware ICL at Inference** — DAIL-SQL style, k=3 from own `Qᵢ`; cross-schema, privacy-preserving
 5. Cross-Schema Generalization via Global SLM (FedAvg LoRA)
 6. Communication-Efficient Training (LoRA deltas only, DP-perturbed)
@@ -114,9 +116,9 @@ CLIENTS (Client / Organization 1 .. K)
 
 | Mechanism in figure | Implication for method/plan |
 |---|---|
-| **Teacher placement: CLIENT (local 7B, frozen, on BIRD public)** | Teacher **never sees `Qᵢ`**; runs on public BIRD train per step; forward-only; no cloud API; never uploads. |
+| **Teacher placement: CLIENT (local 7B, frozen, on the public KD corpus)** | Teacher **never sees `Qᵢ`**; runs on the public KD corpus's train split per step; forward-only; no cloud API; never uploads. |
 | Aggregation = **FedAvg/FedProx over SLM weights**; **Global SLM** broadcast | Federation engine is **PARAMETRIC** (trained global SLM via weight aggregation). |
-| Client **Local Training — dual-stream** `L = λ₁·L_FT + λ₂(t)·L_KD` | **Stream 1:** FT on private `Qᵢ` (gold CE). **Stream 2:** KID on BIRD (`ŷ_bird` + teacher RKL). Students LoRA-trained. |
+| Client **Local Training — dual-stream** `L = λ₁·L_FT + λ₂(t)·L_KD` | **Stream 1:** FT on private `Qᵢ` (gold CE). **Stream 2:** KID on the public KD corpus (`ŷ_pub` + teacher RKL). Students LoRA-trained. |
 | **"Weights Only"** upload + **"Parameters"** broadcast (both encrypted) | What crosses the wire = **LoRA deltas** only. Teacher outputs stay on-premise. |
 | **Differential Privacy (Gradient Perturbation)** | DP on LoRA deltas before upload — first-class privacy mechanism. |
 | **No ICL Hub (G) on server** | Retrieval pool = Qᵢ only. No cross-client demo sharing. No server-side teacher demos. |

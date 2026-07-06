@@ -221,3 +221,49 @@ Updated: `KD_PLAN.md` (rewrite) · `system_architecture.md` (header note, §2 di
 - [ ] Phase 0 scaffold: `--kd-direction` flag, BIRD loader + FAISS pool, weighted-FedAvg fix
 - [ ] E0.1 + E0.2 probes (T4) before any A100 booking
 - [ ] E0.3: read KID [10] §method, pin mask-fill mechanics (left-to-right teacher-forced? sampling temp? stop-grad through ŷ)
+
+---
+
+## Session 2026-07-07 — BIRD dropped, KD scope cut to a PoC
+
+### What changed
+
+**BIRD dropped entirely** — too heavy (8.9 GB DB download) and too complex
+(`evidence`-field dependence, dialect gap vs Spider) to justify as the KD stream, and
+dropped as secondary eval benchmark too (no cross-dataset claim for now). **No
+replacement public KD corpus is picked** — that decision is deferred, not re-locked
+to anything else (not `train_others`, not a new corpus). Spider itself is unchanged
+(same train/test split as always).
+
+**Scope cut to a PoC before any further build:** compare, on an identical slice of
+Spider data, training it as plain gold-CE FT (`poc_ft`) vs as a KD signal via Struct-SQL
+(`poc_struct`) vs via KID (`poc_kid`, still blocked on E0.3's mask-fill mechanics) — all
+from the base model, no dual-stream mixing, no federation. Isolates whether the KD
+*signal* itself beats plain FT on the same data, independent of which corpus eventually
+supplies a public KD stream.
+
+**Code cleanup:**
+- Deleted `fedicl_sql/data/bird.py`, `tests/test_bird.py`, `scripts/download_bird.py`,
+  `scripts/build_bird_processed.py`.
+- Renamed `--bird-train`/`--bird-teacher-targets` → `--kd-train`/`--kd-teacher-targets`
+  in `experiments/client_train/run.py`; `train_dual_stream(bird, bird_teacher_targets, ...)`
+  → `train_dual_stream(kd_data, kd_teacher_targets, ...)` in `lora_trainer.py`.
+- Deleted the 6 KD notebooks (`notebooks/kd/00_bird_data_prep.ipynb` ..
+  `04_stage3_headline.ipynb`); replaced with `notebooks/kd/README.md` (CLI-only PoC
+  runbook — no notebooks going forward for this workstream).
+- Removed the 1.4 GB local `data/raw/bird/` download (gitignored, was never committed).
+
+### Files updated
+- `DECISIONS.md` — §3 dec.1, 4, 5, 8 (dataset question reopened; PoC framing)
+- `KD_PLAN.md` — full rewrite: `§PoC` (runnable now) + `§Deferred` (old BIRD-era
+  4-stage plan, kept for reference, not built against)
+- `system_architecture.md` — top note + BIRD→generic "public KD corpus (TBD)"
+  throughout §5.2/§5.6/§5.6.1/§6/§8/§9
+- `CLAUDE.md`, `README.md` — KD section rewritten for the PoC CLI flow
+
+### Next
+- [ ] Run the PoC: carve slice `X`, train `poc_ft` + `poc_struct`, eval on frozen
+      Spider test, read off `poc_struct − poc_ft`
+- [ ] E0.3: pin KID [10] mask-fill mechanics before attempting `poc_kid`
+- [ ] Once the PoC has a verdict, decide the public KD corpus question (or decide to
+      skip a public corpus and reuse the private pool for Stream 2)
