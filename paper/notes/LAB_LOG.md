@@ -341,5 +341,42 @@ precision → RKL computed in float32.
 - [ ] Run P0 → P1 → P2 on the compute host (P1/P2 need GPU + real 7B teacher —
       only unit-tested with fakes so far)
 - [ ] Read off `central_rkd − central_ft` (teacher-logit value) and `central_kid − central_rkd`
-      (imperfect-data value) from RUNS.csv
+      (imperfect-data value) via `analysis/compare.py` (scans result folders, no ledger)
 - [ ] Once the PoC has a verdict, decide the public KD corpus question
+
+---
+
+## Session 2026-07-07 (3) — RUNS.csv ledger removed entirely
+
+### What changed
+
+**Dropped `experiments/RUNS.csv` and every code path that wrote or read it.**
+It was a derived index (one denormalized row per run, duplicating fields already
+in each run's own `metrics.json`) and had already drifted from reality twice this
+session: `analysis/compare.py`'s hardcoded arm→identity table silently swapped
+columns for any arm not in its enumeration, and separately a `git checkout`/pull
+reverted the ledger and lost two real eval rows while their `metrics.json` files
+(untracked) survived untouched. A ledger that can silently lie or vanish isn't
+worth maintaining — the result folders under `experiments/*/results/*/` are the
+only source of truth now.
+
+- `fedicl_sql/runtime/results.py`: removed `LEDGER_FIELDS`, `_append_ledger`,
+  `_repo_relative` (only used by the ledger row), and the call to it in
+  `save_results`. `save_results` now only ever writes `metrics.json` +
+  `config.json` + `predictions/<arm>.csv`.
+- `analysis/log_session.py`: `_new_runs()` rewritten to glob
+  `experiments/*/results/*/metrics.json` directly instead of reading the ledger
+  — one row per eval_arms arm (`ex_mean`/`em_mean`), one row per run otherwise
+  (`final_loss`).
+- `tests/test_results.py`: dropped ledger assertions from
+  `test_writes_metrics_and_ledger` (renamed `test_writes_metrics`) and
+  `test_reruns_never_overwrite`; both now check `metrics.json` content only.
+- Deleted `experiments/RUNS.csv` (git rm).
+- Docs updated to stop describing a ledger: `README.md`, `CLAUDE.md`,
+  `analysis/README.md`, `artifacts/README.md`, `paper/README.md`,
+  `notebooks/kd/README.md` (code repo); `DECISIONS.md` §1/§7 (this repo).
+
+### Next
+- [ ] Nothing pending from this change — `analysis/compare.py` (already
+      rewritten this session to scan folders) and `analysis/log_session.py`
+      are the two ledger consumers, both now folder-native.

@@ -127,7 +127,7 @@ teacher forward → `p`, student forward → `q`,
 
 **5. CLI** — `experiments/client_train/run.py`: `--kd-direction {none,rkd,kid}`
 (replaces `{struct,gold,none}`), `--mask-ratio 0.2`, `--teacher-model`,
-`--teacher-4bit`. RUNS.csv rows record `teacher_model` as always.
+`--teacher-4bit`. Each run's `metrics.json` records `teacher_model` as always (no ledger).
 
 **6. Run the PoC** (order: P0 → P1 → P2; P2 only differs from P1 by `--kd-direction`):
 
@@ -164,7 +164,8 @@ uv run python experiments/eval_arms/run.py --pool-mode centralized \
            central_kid=artifacts/kd_poc/central_kid/adapter
 ```
 
-Pull EX from `experiments/RUNS.csv` / `predictions/{central_ft,central_rkd,central_kid}.csv`.
+Pull EX with `uv run python analysis/compare.py` (scans result folders directly,
+no ledger) or read `predictions/{central_ft,central_rkd,central_kid}.csv` directly.
 
 **VRAM:** teacher 4-bit (~5–6 GB) + student fp16 (~3 GB) + activations fits the
 16 GB A5000/T4 profile (`--batch-size 1 --grad-accum 16`); fp16 teacher co-load
