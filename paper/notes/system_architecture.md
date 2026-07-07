@@ -4,11 +4,10 @@
 > Maps directly to §3 of the paper. **Fig.1 wins on any mechanism dispute.**
 >
 > **Re-aligned 2026-06-16:** teacher moved client-side (local 7B). Public X and ICL Hub G removed.
-> **Re-aligned 2026-06-29:** KD mechanism replaced with KID (imperfect data distillation): teacher runs online per step (frozen, forward-only), student masks+rewrites gold SQL → ŷ, Reverse KL + alpha-decay loss. Offline annotation pipeline removed. (KID source = **[10]** Zhong et al. 2024.)
-> **Re-aligned 2026-06-30:** goal restated — build a **Fed + ICL + KD** framework that maximizes EX on a *small* model; the target is `(FT/KD)+ICL > either alone`. The old "ICL is redundant on a fine-tuned student / never claim ICL improves FT" framing is **retired** — it described a `train-k=0` student tested at `k=3` (a train/test mismatch, not an ICL ceiling). Path to synergy = **in-context tuning** (`train-k=3` + `skeleton` demos) so the student learns to read demos; mismatch principle grounded in KID [10].
-> **Re-aligned 2026-07-06 (review fixes):** (1) **both** KD directions distill on the public KD corpus (Struct-SQL traces generated on the public KD corpus, not `Qᵢ`) → no data confound in `kid − struct`; (2) `fedavg_pub` data-matched control added (CE on the public KD corpus gold, no teacher) → teacher value = `fedkd − fedavg_pub`; (3) **demo-style parity** locked: train `demo_style` == eval `demo_style` per arm (style-shift = separate experiment); (4) teacher ICL demos = the public KD corpus (TBD) always; (5) FedAvg weighted `nᵢ/n`; (6) λ₂ alpha-decay is global across rounds. Staged run plan: `KD_PLAN.md`.
-> **Re-aligned 2026-07-06 (this session, training order):** local training is now **sequential, two-step**, not a combined per-step loss. **Step 1 — KD-pretrain on the public KD corpus** (Stream 2 content only: KID / Struct-SQL / SeqKD / gold-CE per arm) runs to completion first. **Step 2 — FT on `Qᵢ`** (gold CE, Stream 1) runs second, LoRA initialized from Step 1's adapter. The old `L = λ₁·L_FT + λ₂(t)·L_KD` combined-loss design (§5.6, §6, §8 below) is retired — see §5.6. Side benefit: Direction A (KID) only needs teacher+student co-loaded during Step 1; Step 2 is student-only (lighter HW).
-> **Re-aligned 2026-07-07 — the public KD corpus (TBD) dropped, scope cut to a PoC:** the public KD corpus (TBD) is out entirely (too heavy, dialect gap). **No replacement public corpus is picked yet** — that's deferred. Every "the public KD corpus (TBD)" mention below (§5.2, §5.6, §6, §8, §9) describes the **full dual-stream method design**, which still applies mechanically once a corpus is chosen — read "the public KD corpus (TBD)" there as "the public KD corpus (TBD)". Right now, only a cheap **PoC runs**: on a Spider data slice, compare training it as plain FT vs as a KD signal (both directions), from the base model, no dual-stream mixing, no federation. See `KD_PLAN.md` §PoC for the runnable plan; the rest of this document is the deferred target architecture.
+> **Re-aligned 2026-06-30:** goal restated — build a **Fed + ICL + KD** framework that maximizes EX on a *small* model; target `(FT/KD)+ICL > either alone`. In-context tuning (`train-k=3`) = exploratory path; mismatch principle grounded in KID [10].
+> **Re-aligned 2026-07-06:** demo-style parity locked (train `demo_style` == eval `demo_style` per arm); FedAvg weighted `nᵢ/n`; `fedavg_pub` data-matched control; local training = **sequential two-step** (Step 1 KD-pretrain on the public corpus → Step 2 FT on `Qᵢ`, LoRA init from Step-1 adapter) — the old combined per-step `λ₁·L_FT + λ₂(t)·L_KD` loss is retired.
+> **Re-aligned 2026-07-07:** BIRD dropped; **no public KD corpus picked yet** (deferred). Scope cut to a **Spider PoC** (`KD_PLAN.md` §PoC): FT vs KD arms from base on identical data, no two-step split, no federation. Everything below mentioning "the public KD corpus (TBD)" is the **deferred target architecture**.
+> **Re-aligned 2026-07-07 (2):** **CoT KD direction removed entirely** — Struct-SQL [11] QP-CoT, SeqKD, and the whole offline teacher-target pipeline are out. Two KD directions remain, **both from [10]**, both online logit-level with teacher + student co-loaded (1 teacher forward per step): **RKD** (`RKL(q‖p)` on gold `y`) and **KID** (`RKL(q‖p)` on imperfect `ŷ`), each plus the auxiliary gold-CE loss. See §5.6.1.
 
 ---
 
@@ -53,8 +52,8 @@ A set of `K` organizations (clients) each hold:
 │       │        ▼                                                 │   │
 │  [Local Teacher M_T — Qwen2.5-7B-Instruct, frozen]              │   │
 │   Runs ONLY on the public KD corpus — never on Qᵢ                        │   │
-│   Dir A KID: online forward per step, scores ŷ_pub             │   │
-│   Dir B Struct: offline QP-CoT traces, cached, exec-filtered    │   │
+│   Co-loaded w/ student, 1 forward/step (no decoding):           │   │
+│   RKD: scores gold y_pub · KID: scores imperfect ŷ_pub          │   │
 │                                                                  │   │
 │  [Schema Encoder]──►[Retrieval (Qᵢ only)]──►[ICL Prompt]       │   │
 │   BGE-small          FAISS top-k             σ(q,S,I,Q)         │   │
@@ -67,7 +66,7 @@ A set of `K` organizations (clients) each hold:
 │                                            │                        │
 │  ┌─────────────────────────────────────────▼────────────────────┐   │
 │  │  Local Training (two-step, sequential)                       │   │
-│  │  Step 1: KD-pretrain on the public KD corpus (KID / Struct-SQL /...)  │   │
+│  │  Step 1: KD-pretrain on the public KD corpus (RKD / KID)     │   │
 │  │  Step 2: FT (gold CE) on Qᵢ, LoRA init from Step-1 adapter   │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │  → LoRA delta Δθᵢ → encrypt+compress+DP-perturb → upload            │
@@ -126,18 +125,18 @@ Base `Qwen2.5-1.5B-Instruct` + aggregated LoRA adapter `θ_t`. Broadcast back to
 
 ### 5.2 Local Teacher M_T — Qwen2.5-7B-Instruct (online, frozen, runs on the public KD corpus)
 
-Teacher runs **per KD-pretrain step (Step 1 only, see §5.6)** — one forward pass over imperfect student output `ŷ_pub` (generated from masked the corpus's gold SQL). Frozen throughout. **Never sees client's private `Qᵢ`.** Not loaded during Step 2 (FT on `Qᵢ`).
+Teacher runs **per KD-pretrain step (Step 1 only, see §5.6)** — one forward pass over the KD target sequence: gold `y_pub` (**RKD**) or imperfect student rewrite `ŷ_pub` (**KID**). Frozen throughout. **Never sees client's private `Qᵢ`.** Not loaded during Step 2 (FT on `Qᵢ`).
 
-**Per-step role:** student masks the corpus's gold SQL `y_pub` → rewrites → `ŷ_pub`. Teacher computes `p = softmax(logits)` over `ŷ_pub` **with ICL context from the KD corpus's train demos** (k=3, question-only, `never_schema`). Teacher prompt = `P_ICL(x_pub, demos_pub)` + `ŷ_pub`.
+**Per-step role:** for KID, student masks the corpus's gold SQL `y_pub` (ratio `ρ`, Random) → one-pass fill → `ŷ_pub`; for RKD the target is `y_pub` itself. Teacher computes `p = softmax(logits)` over the target **with ICL context from the KD corpus's train demos** (k=3, question-only, `never_schema`). Teacher prompt = `P_ICL(x_pub, demos_pub)` + target.
 
-**Why a public corpus for KD (reframed 2026-07-06):** primary reason = **shared public distillation corpus aligns client updates** — every client distills toward the same teacher behaviour on the same data → less FedAvg drift under non-IID (FedDF/FedMD line of argument). Secondary: the corpus is (ideally) cross-domain → SQL structural knowledge transfers cross-schema. This is **NOT a privacy argument** — the teacher is on-premise, so reading `Qᵢ` would leak nothing; "teacher never touches `Qᵢ`" is a clean systems property, not the motivation. Applies to **both KD directions** (KID online scoring AND Struct-SQL offline trace generation) so `kid − struct` has no data confound.
+**Why a public corpus for KD (reframed 2026-07-06):** primary reason = **shared public distillation corpus aligns client updates** — every client distills toward the same teacher behaviour on the same data → less FedAvg drift under non-IID (FedDF/FedMD line of argument). Secondary: the corpus is (ideally) cross-domain → SQL structural knowledge transfers cross-schema. This is **NOT a privacy argument** — the teacher is on-premise, so reading `Qᵢ` would leak nothing; "teacher never touches `Qᵢ`" is a clean systems property, not the motivation. Applies to **both KD directions** (RKD and KID score on the same corpus) so `kid − rkd` has no data confound.
 
 **What teacher does NOT do:**
 - No autoregressive text generation
 - No access to `Qᵢ` or client's private schema `Sᵢ`
 - Never uploads outputs to server
 
-**VRAM:** teacher (7B fp16 ≈ 14 GB) + student (1.5B fp16 ≈ 3 GB) **co-loaded simultaneously, Step 1 (KD-pretrain) only** — Direction A (KID) needs teacher+student together to score `ŷ_pub`. Requires A100 40 GB+ for Step 1. PoC T4: `--load-in-4bit` teacher (≈ 8 GB) + student (≈ 3 GB) = ~11 GB. Step 2 (FT on `Qᵢ`) is student-only — teacher unloaded, runs on any HW (T4 fine). Direction B (Struct-SQL) never co-loads at all — offline trace generation, Step 1 is student SFT only on cached traces.
+**VRAM:** teacher (7B fp16 ≈ 14 GB) + student (1.5B fp16 ≈ 3 GB) **co-loaded simultaneously, Step 1 (KD-pretrain) only** — both directions need teacher+student together (one teacher forward per step). fp16 co-load requires A100 40 GB+; 16 GB cards (T4/A5000): 4-bit teacher (≈ 5–6 GB) + student (≈ 3 GB). Step 2 (FT on `Qᵢ`) is student-only — teacher unloaded, runs on any HW.
 
 ### 5.3 Schema Encoder + Retrieval
 
@@ -161,8 +160,8 @@ Teacher runs **per KD-pretrain step (Step 1 only, see §5.6)** — one forward p
     mismatch directly (cf. **KID [10]**: simulate the inference-time condition during
     training). **Demo-style parity (locked 2026-07-06): train `demo_style` == eval
     `demo_style` within any arm.** Default = `never_schema` end-to-end. Paired
-    `skeleton` (train+eval) = stronger-privacy cell (KD_PLAN E3.4). Train-`skeleton` →
-    eval-`never_schema` = the **style-shift experiment** (KD_PLAN E3.5) — an explicit
+    `skeleton` (train+eval) = stronger-privacy cell (deferred). Train-`skeleton` →
+    eval-`never_schema` = the **style-shift experiment** (deferred) — an explicit
     robustness analysis, never a default, since mixing styles reintroduces exactly the
     train/test mismatch this framework exists to remove.
 - **RQ2 goal — Fed + ICL + KD synergy (retargeted 2026-07-06, see retired-invariant note
@@ -171,7 +170,7 @@ Teacher runs **per KD-pretrain step (Step 1 only, see §5.6)** — one forward p
   eval-only). Headline arms = `central@k3` / `fedkd@k3` reported under **`train-k=0`, eval
   k=3** — this is now the official reporting condition, not a "mismatch baseline" to be
   superseded. In-context tuning (`train-k=3`) is an **optional exploratory arm**
-  (`central_ict`, KD_PLAN E1.6/E1.7), kept to test whether it beats the train-k=0 numbers —
+  (`central_ict`, deferred), kept to test whether it beats the train-k=0 numbers —
   not assumed to be the answer in advance.
 - ICL **also** serves as a **parameter-free option for clients that cannot fine-tune** +
   privacy-preserving transfer (no source schema/DDL in prompt; `never_schema` default,
@@ -237,18 +236,17 @@ carry SQL-pattern (skeleton) structure to an unseen schema, not schema-specific 
 
 **KD-direction arms (§5.6.1):**
 
-| Arm | KD direction | level | HW | role |
-|---|---|---|---|---|
-| `fedkd` | KID [10] (RKL on imperfect `ŷ`) | logit | A100 | primary |
-| `fedkd_struct` | Struct-SQL [11] (SFT on QP-CoT⊕SQL) | data/seq | T4 | contender / fallback |
-| `fedkd_seqkd` | SeqKD (SFT on teacher SQL, no CoT) | data/seq | T4 | classic baseline |
-| `fedavg_pub` | none — CE on the public KD corpus **gold**, no teacher | data | T4 | **data-matched control** — isolates extra-public-data value |
+| Arm | KD direction | loss | role |
+|---|---|---|---|
+| `fedkd` | KID [10] (`CE + RKL` on imperfect `ŷ`) | logit-level | primary |
+| `fedkd_rkd` | RKD [10] (`CE + RKL` on gold `y`) | logit-level | contender / imperfect-data control |
+| `fedavg_pub` | none — CE on the public KD corpus **gold**, no teacher | data only | **data-matched control** — isolates extra-public-data value |
 
-All Stream-2 variants run on the **same public-corpus train split** → control ladder
-`fedavg → fedavg_pub → fedkd_seqkd → fedkd_struct → fedkd`; each rung adds ONE
-ingredient. Teacher value = `fedkd − fedavg_pub` (never `fedkd − fedavg` alone —
-that confounds teacher with extra data). This ladder is deferred (§0 top note); staged
-run order once resumed: `KD_PLAN.md` §Deferred.
+All KD variants run on the **same public-corpus train split** → control ladder
+`fedavg → fedavg_pub → fedkd_rkd → fedkd`; each rung adds ONE ingredient (extra
+data → teacher logits → imperfect data). Teacher value = `fedkd_rkd − fedavg_pub`
+(never `fedkd − fedavg` alone — that confounds teacher with extra data). This ladder
+is deferred (§0 top note); staged run order once resumed: `KD_PLAN.md` §Deferred.
 
 **Evaluation datasets:** Spider (primary) · a second public corpus (TBD; secondary eval, dropped 2026-07-07 along with BIRD — see top note)
 
@@ -289,28 +287,28 @@ avoids conflating "did KD help" with "did the two losses interact well when mixe
 
 **Step 1 — KD-pretrain on the public KD corpus (runs first, from base model or `M_G`):**
 
-Three sub-steps for Direction A / KID (1 student forward, 1 teacher forward per
-public-corpus example); Direction B / Struct-SQL instead does plain SFT on offline-cached traces (no
-teacher forward needed at this step — see §5.6.1):
+Per step: 1 teacher forward + 1 student forward (KID adds one extra `no_grad`
+student forward for the fill). KID's three sub-steps ([10], mechanics pinned in
+`KD_PLAN.md` §mechanics); RKD skips 1–2 and scores gold `y_pub` directly:
 
-1. **Masking** — sample `ρ` fraction of token positions from the corpus's gold SQL `y_pub`, replace with `[MASK]`. Default strategy: Hard. Sweep `ρ ∈ {0.1, 0.2, 0.3, 0.4, 0.5}`.
-2. **Predicting** — student forward over masked `y_pub` → fill mask positions → `ŷ_pub` (imperfect SQL, student-style errors).
-3. **Teacher scoring** — teacher forward on `ŷ_pub` with public-corpus ICL demos (k=3, question-only, `never_schema`):
+1. **Masking** — sample `ρ` fraction of the corpus's gold SQL tokens `y_pub`, replace with a mask token. Strategy: **Random** ([10] default; Easy/Hard unstable). Default `ρ = 0.2`, sweep `{0.1 … 0.5}`.
+2. **Predicting + rewriting** — ONE teacher-forced student forward over the masked sequence (`no_grad`, greedy) → splice predictions into gold at masked positions → `ŷ_pub`.
+3. **Teacher scoring** — teacher forward on the target with public-corpus ICL demos (k=3, question-only, `never_schema`):
 
 ```python
 x_b, y_b = next_batch(PUB_train)
 demos = faiss_retrieve(x_b, PUB_train, k=3)         # never_schema demos (public-corpus pool)
-y_hat = student.mask_rewrite(P_ICL(x_b, demos), y_b, ratio=ρ)  # ŷ_pub WITH demos in ctx
-p = teacher(P_ICL(x_b, demos), y_hat)               # logprob dist, no decoding
-q = student(P_ICL(x_b, demos), y_hat)               # SAME ctx as teacher → consistent KD pair
-L_KD = RKL(q, p)
-update_lora(student, L_KD)                          # Step 1 loss — KD only, no L_FT term
+tgt = student.mask_rewrite(P_ICL(x_b, demos), y_b, ratio=ρ) if KID else y_b
+p = teacher(P_ICL(x_b, demos), tgt)                 # logprob dist, no decoding
+q = student(P_ICL(x_b, demos), tgt)                 # SAME ctx as teacher → consistent KD pair
+L = CE(student, y_b) + RKL(q, p)                    # auxiliary MLE + reverse KL ([10])
+update_lora(student, L)
 ```
 
 > **Context-alignment fix (2026-06-30, still applies):** teacher and student both
 > condition on `P_ICL(x_b, demos)` — consistent KD pair, avoids scoring student/teacher
 > under different contexts. Cost: every forward carries k=3 context (3–4× length) → A100
-> for Direction A's Step 1; still 1-pass.
+> for Step 1; still 1-pass. (PoC sidesteps this: scores at k=0.)
 
 Step 1 ends when its own stopping criterion is met (fixed epochs/steps over the public corpus's train split, or
 early-stop on a KD-corpus-train held-out slice) — **not** tied to FT convergence, since FT hasn't
@@ -330,55 +328,43 @@ update_lora(student, L_FT)              # Step 2 loss — FT only, teacher not l
 
 | Step | Data | Signal | HW |
 |---|---|---|---|
-| Step 1 (KD-pretrain) | Public KD corpus (teacher-scored or teacher-generated) | General SQL structural knowledge | A100 (Dir A) / T4 (Dir B) |
+| Step 1 (KD-pretrain) | Public KD corpus (teacher-scored, both directions) | General SQL structural knowledge | A100 fp16; 16 GB w/ 4-bit teacher |
 | Step 2 (FT) | Private `Qᵢ` (gold SQL) | Domain-specific supervised SQL | any (student-only, teacher unloaded) |
 
 **Why split datasets:** teacher never accesses `Qᵢ` → privacy absolute. The KD corpus is public → teacher can run without privacy constraint. SQL structural patterns (JOIN, GROUP BY, nested queries) transfer cross-schema.
 
-**Why sequential, not combined-loss:** simpler to build and debug (no loss-weight tuning,
-no decay schedule), and lets Step 1 be validated in isolation (E0.4 teacher-quality probe,
-Stage-1 bake-off) before any FT cost is spent. Known risk (open, not yet measured): FT in
+**Why sequential, not combined-loss:** simpler to build and debug (no cross-dataset
+loss-weight tuning, no decay schedule), and lets Step 1 be validated in isolation
+before any FT cost is spent. (Within Step 1 itself, `CE + RKL` on the same data is
+[10]'s own recipe and stays.) Known risk (open, not yet measured): FT in
 Step 2 may partially overwrite what Step 1 taught (catastrophic forgetting) since there is
 no rehearsal of the public corpus during Step 2 — this is an empirical question for Stage 1, not
 assumed either way.
 
 **`local`/`fedavg` arms:** skip Step 1 entirely, train Step 2 (`L_FT`) only from the base/`M_G` adapter.
 
-### 5.6.1 Two KD directions (both built; compared head-to-head)
+### 5.6.1 Two KD directions — RKD and KID, both from [10]
 
-`L_KD` above is **Direction A**. Two distillation directions are implemented and
-benchmarked — they sit on **different method axes**, so this is a real comparison, not an
-ablation. KID is not assumed to win; Direction B is the proven fallback.
+Both directions are online logit-level reverse-KL distillation with the auxiliary
+gold-CE loss (`L = CE + RKL(q‖p)`, [10]'s recipe). They differ in **one ingredient
+only** — what sequence the teacher scores — so `kid − rkd` cleanly isolates the
+value of imperfect data. KID is the primary candidate ([10]'s best trade-off); RKD
+is the simpler fallback and the natural control rung.
 
-| | **Direction A — KID [10]** (primary) | **Direction B — Struct-SQL [11]** (contender) |
+| | **RKD** (contender / control) | **KID [10]** (primary) |
 |---|---|---|
-| Axis | **logit / distribution-level** | **data / sequence-level** |
-| KD data | **public KD corpus's train split** | **public KD corpus's train split** (same — fixed 2026-07-06, traces on the public corpus not `Qᵢ` → no data confound) |
-| Teacher emits | top-K logprobs over imperfect `ŷ` | **QP-CoT** structured reasoning trace + gold SQL |
-| Student loss | `RKL(q‖p)` on `ŷ` (soft) | **SFT (CE)** on `QP-CoT ⊕ SQL` (hard) |
-| What transfers | calibration under inference-style errors | execution-plan reasoning (Trace Schema → pick tables/cols → scan → join → filter → group) |
-| Teacher active during | Step 1 (KD-pretrain) only, co-loaded with student | **not during training at all — offline, before Step 1** |
-| Cost / HW | A100 (7B+1.5B co-load, 1-pass) | **T4-friendly** (offline teacher, student SFT only) |
-| Needs logit access / tokenizer-align | yes | no |
-| Reported gain (own paper) | +5.83% avg, 5 benchmarks | +8.1% over unstructured-CoT distillation |
+| KD target sequence | gold `y_pub` | imperfect `ŷ_pub` (student one-pass rewrite of `ρ`-masked gold) |
+| Loss | `CE(y) + RKL(q‖p)` on `y` | `CE(y) + RKL(q‖p)` on `ŷ` |
+| Extra machinery | none | mask (Random, ρ=0.2) → one-pass fill → rewrite |
+| What transfers | teacher's token distribution on gold SQL | + calibration under inference-style errors (train/inference-mismatch fix) |
+| Cost | ~2.0× SFT latency | ~2.0–2.4× (one extra `no_grad` student forward) |
+| Reported gain vs SFT ([10]) | +1.9 … +3.1 avg | +3.2 … +5.8 avg |
 
-**Direction B mechanism (Struct-SQL):** teacher is prompted with a **Query-Plan CoT
-(QP-CoT)** template → emits a structured logical blueprint mirroring how a DB engine
-executes the query. Traces are generated **offline on the public corpus's train split** (once, cached,
-exec-filter kept — the corpus's DBs are local). Student is SFT'd on
-`(question ⊕ QP-CoT trace ⊕ SQL)`. Key
-finding [11]: SLMs **cannot internalize** structured reasoning by prompting alone — KD is
-what installs it. This **subsumes our skeleton-structure loss** (skeleton = a degenerate
-1-step blueprint) → adopt QP-CoT as the structured signal, keep exec-filter.
-
-**Why both:** (a) if KID ≈ or < Struct-SQL, we ship a proven NL2SQL-specific method that
-also runs on T4 and fits federation cleanly (offline teacher = no per-step co-load);
-(b) the two are **composable** — Struct-SQL's QP-CoT can be the *target sequence* that KID
-then makes imperfect (mask+rewrite the CoT⊕SQL), uniting structured-reasoning transfer
-(B) with inference-mismatch correction (A). Decide by experiment.
-
-> **Open:** does QP-CoT help a 1.5B student (vs the 4B in [11])? does the longer CoT
-> target fit T4 VRAM at `train-k=3`? measure before locking a primary direction.
+Both need teacher + student co-loaded (Step 1 only), both need tokenizer alignment
+(teacher/student share the Qwen2.5 tokenizer). Removed 2026-07-07: the Struct-SQL
+[11] QP-CoT direction, SeqKD, and the offline teacher-target pipeline — [11] stays
+a related-work reference only. Decide RKD-vs-KID by experiment (`KD_PLAN.md` §PoC),
+not assumption.
 
 ---
 
@@ -391,7 +377,7 @@ then makes imperfect (mask+rewrite the CoT⊕SQL), uniting structured-reasoning 
 > — not yet decided. Do not implement Fed against this loop as-is. This whole federated
 > loop is deferred anyway (§0 top note, `KD_PLAN.md` §Deferred) — no public corpus is
 > picked, and the currently-running PoC (`KD_PLAN.md` §PoC) has no federation at all,
-> just two single-stream arms trained from base on a Spider slice.
+> just three arms (`poc_ft`/`poc_rkd`/`poc_kid`) trained from base on Spider.
 
 ```python
 Round t = 1 .. T:
@@ -447,12 +433,12 @@ No teacher at inference. Teacher runs during training only (on the public corpus
 ## 8. Data flows summary
 
 ```
-TRAINING Step 1 — KD-pretrain (teacher + student co-loaded, Direction A only; Direction B
-                   uses offline-cached traces, student-only SFT, no teacher):
-  PUB_train  ──►  mask(y_b, ρ)  ──►  student.mask_rewrite()  ──►  ŷ_pub
+TRAINING Step 1 — KD-pretrain (teacher + student co-loaded, both directions):
+  KID only:  PUB_train  ──►  mask(y_b, ρ)  ──►  student.mask_rewrite()  ──►  ŷ_pub
+  target = ŷ_pub (KID) or y_b (RKD)
   PUB_train  ──►  faiss_retrieve(x_b, k=3)  ──►  P_ICL  ──►  teacher forward  ──►  p
-  ŷ_pub  ──►  student(x_b)  ──►  q
-  ──►  L_KD = RKL(q, p)  ──►  LoRA update  ──►  save adapter checkpoint
+  target  ──►  student(x_b)  ──►  q
+  ──►  L = CE(y_b) + RKL(q, p)  ──►  LoRA update  ──►  save adapter checkpoint
 
 TRAINING Step 2 — FT (student-only, teacher unloaded, init from Step-1 checkpoint):
   private Qᵢ  ──►  student(x_q)  ──►  L_FT = CE(gold y_q)  ──►  LoRA update
@@ -468,14 +454,14 @@ Local Knowledge Cache (optional, Fig.1): not yet implemented.
 ## 9. Key design invariants (never violate)
 
 1. **Private data never leaves client.** `Sᵢ`, raw rows, `Qᵢ`, teacher outputs — no outgoing data arrow.
-2. **Teacher never touches `Qᵢ`.** Teacher runs exclusively on the public KD corpus — for BOTH directions, incl. offline QP-CoT generation. No private schema or SQL ever enters the teacher's context. Never uploads outputs. (Systems property; the motivation is update alignment via a shared public KD corpus, §5.2 — NOT privacy, since the on-premise teacher could read `Qᵢ` without leaking anything.)
+2. **Teacher never touches `Qᵢ`.** Teacher runs exclusively on the public KD corpus — for BOTH directions (RKD and KID). No private schema or SQL ever enters the teacher's context. Never uploads outputs. (Systems property; the motivation is update alignment via a shared public KD corpus, §5.2 — NOT privacy, since the on-premise teacher could read `Qᵢ` without leaking anything.)
 3. **Upload = Weights Only.** LoRA deltas, not full model, not data, not teacher targets.
 4. **Training on Qᵢ (Step 2 FT) is mandatory for every arm except the floor.** Public-corpus-only training (Step 1 alone, no Step 2) → FedAvg no-op if federated; eliminated by design — every non-floor arm must run Step 2.
 5. **Retrieval embeds the QUESTION only — never the schema.** Schema in the embedding corrupts cross-schema similarity. Demo rendering never includes source DDL (`demo_style=never_schema` default = verbatim SQL no DDL; `skeleton` = same but identifier-masked). `demo_style` affects *demo SQL rendering* only, not the embedding text.
 6. **One stack per comparison.** Mac-fp16 ≠ CUDA-fp16 — never compare cross-stack.
-7. **Co-loaded VRAM, Step 1 only.** Teacher (7B) and student (1.5B) are loaded simultaneously **only during Step 1 (KD-pretrain, Direction A)** (~17 GB total). Requires A100 40 GB+ for Step 1; PoC: 4-bit teacher to fit T4. Step 2 (FT) is student-only, teacher unloaded, runs on any HW. Direction B never co-loads (offline trace generation before Step 1).
+7. **Co-loaded VRAM, Step 1 only.** Teacher (7B) and student (1.5B) are loaded simultaneously **only during Step 1 (KD-pretrain — both directions)** (~17 GB fp16 → A100 40 GB+; 4-bit teacher to fit 16 GB cards). Step 2 (FT) is student-only, teacher unloaded, runs on any HW.
 8. **Demo pool = TRAIN, never test.** ICL demos come from the model's own train data (per-client `Qᵢ` or centralized train). Test set is never a demo source → no leave-one-out. Retrieval is cross-schema (train→unseen-test). Violating this leaks near-answers and inflates EX.
-9. **KD data = the same public corpus for every KD direction + the `fedavg_pub` gold-CE control.** `kid − struct` (direction value) and `fedkd − fedavg_pub` (teacher value) must be data-matched; `fedkd − fedavg` alone confounds teacher with extra public data. On the corpus's held-out split (secondary eval), compare KD arms against `fedavg_pub` and state the train-exposure.
+9. **KD data = the same public corpus for every KD direction + the `fedavg_pub` gold-CE control.** `kid − rkd` (imperfect-data value) and `fedkd_rkd − fedavg_pub` (teacher value) must be data-matched; `fedkd − fedavg` alone confounds teacher with extra public data. On the corpus's held-out split (secondary eval), compare KD arms against `fedavg_pub` and state the train-exposure.
 
 > **Retired 2026-07-06 (this session): "train-k must match eval-k" invariant.** Previously
 > listed here as a "never violate" rule (train-k=3 mandatory if eval uses k=3, for FT + KD
@@ -485,7 +471,7 @@ Local Knowledge Cache (optional, Fig.1): not yet implemented.
 > comparing `central` vs `central@k3` (both already run), not assumed either way in advance.
 > `train-k=0` (SFT, no demos during training) stands as the **default/official** training
 > config; `train-k=3` in-context tuning is an **optional exploratory arm** (`central_ict`,
-> E1.6, E1.7 in `KD_PLAN.md`), not a mandated fix.
+> deferred with the full plan), not a mandated fix.
 >
 > **Still on record, not retracted:** the measured `central` k0→k3 result — **−30 net
 > flips** (79 gain / 109 hurt), **54/109 hurts are `no such column` errors** — stands as
@@ -503,11 +489,10 @@ Local Knowledge Cache (optional, Fig.1): not yet implemented.
 | `T` | # federated rounds (PoC: 2–3) |
 | `k` | # ICL shots at inference (∈{1,3}; inverted-U at 5) |
 | `E` | local epochs per round (1–2) |
-| ~~`λ(t)`~~ | **retired** (combined-loss design dropped in favor of sequential Step 1 → Step 2, §5.6) |
-| `ρ` | masking ratio (sweep 0.1–0.5) — fraction of gold SQL tokens masked |
-| `ŷ` | imperfect SQL (student rewrite of masked `y`) — KD target sequence |
-| `p` | teacher logprob distribution over `ŷ` (with ICL, k=3) — soft label |
-| `q` | student logprob distribution over `ŷ` — distill target |
+| `ρ` | masking ratio (default 0.2, Random; sweep 0.1–0.5) — fraction of gold SQL tokens masked (KID only) |
+| `ŷ` | imperfect SQL (student one-pass rewrite of masked `y`) — KID's KD target (RKD targets gold `y`) |
+| `p` | teacher logprob distribution over the KD target — soft label |
+| `q` | student logprob distribution over the KD target — distill target |
 | `M_T` | teacher LLM (Qwen2.5-7B-Instruct, **local on each client, frozen**) |
 | `Mᵢ` | client-i student (Qwen2.5-1.5B) |
 | `M_G` | global SLM (base + aggregated LoRA) |

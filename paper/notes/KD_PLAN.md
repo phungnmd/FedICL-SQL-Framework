@@ -1,156 +1,198 @@
-# KD Plan — PoC First, Full Plan Deferred
+# KD Plan — Two Directions from [10]: RKD and KID
 
 > Goal: build Fed + ICL + KD framework that maximizes EX on a *small* student
-> (Qwen2.5-1.5B). Two distillation directions: KID **[10]** (arXiv:2410.11371) ·
-> Struct-SQL **[11]** (arXiv:2512.17053).
-> Full system: `system_architecture.md` §5.6/§5.6.1. Decision record: `DECISIONS.md`.
+> (Qwen2.5-1.5B). Both distillation directions come from **[10] KID** (Zhong et al.
+> 2024, arXiv:2410.11371): **RKD** (Reverse KL on gold data) and **KID** (Reverse KL
+> on imperfect data). Full system: `system_architecture.md` §5.6/§5.6.1. Decision
+> record: `DECISIONS.md`.
 >
-> **Rev 2026-07-07 — BIRD dropped, scope cut to a PoC.** BIRD (8.9 GB download,
-> `evidence`-field dependence, dialect gap vs Spider) is out entirely — not worth it as
-> KD stream or as secondary eval. **No replacement public corpus is picked yet** —
-> that decision is deferred. Before spending any more build time on the full
-> dual-stream federated design, run a cheap **PoC on Spider itself**: does training
-> on a slice of Spider data as a KD signal (either direction) beat training on the
-> exact same slice as plain gold-CE FT? Everything below Stage-0/1/2/3 from the old
-> BIRD-era plan is kept only as a **deferred reference** (§Deferred) — do not build
-> against it until the PoC has a verdict and a public corpus is chosen.
+> **Rev 2026-07-07 (2) — CoT direction dropped.** The Struct-SQL [11] QP-CoT
+> direction (`poc_struct`, offline teacher traces, `gen_teacher_targets.py` pipeline)
+> is **removed entirely**. Both remaining directions are online logit-level KD from
+> [10]: teacher + student co-loaded, one teacher forward per step, no offline target
+> generation, no CoT targets. Earlier the same day: BIRD dropped, scope cut to a
+> Spider PoC (unchanged — still the active scope).
+
+---
+
+## The two directions (from [10], Table 1 + §3)
+
+Both use **Reverse KL** — `RKL(q‖p) = Σ q·log(q/p)`, mode-seeking, better than
+forward KL for SQL's precise low-diversity tokens ([10] Table 2: RKD 60.1–62.7 vs
+FKD ~57.3 EX). Both add the **auxiliary MLE (gold-CE) loss** — [10] found it
+important for stable training. Both need teacher + student **co-loaded** (one
+teacher forward per step, no decoding).
+
+| | **RKD** | **KID** |
+|---|---|---|
+| KD target sequence | gold SQL `y` | imperfect `ŷ` (student rewrite of masked `y`) |
+| Loss | `CE(y) + RKL(q‖p)` on `y` | `CE(y) + RKL(q‖p)` on `ŷ` |
+| Extra machinery | none | mask → one-pass fill → rewrite (§mechanics) |
+| [10] gains vs SFT | +1.89 … +3.14 avg | +3.17 … +5.83 avg (best trade-off) |
+| Training latency vs SFT | ~2.0× | ~2.0–2.4× |
+
+RKD is a strict subset of KID (drop the imperfect-data step) → one trainer serves
+both, and `kid − rkd` cleanly isolates the value of imperfect data.
+
+## KID mechanics — pinned from [10] (closes old E0.3)
+
+The old E0.3 blocker ("mask-fill mechanics unclear") is resolved by the paper:
+
+1. **Masking** — sample `ρ` fraction of the **gold SQL tokens** and replace with a
+   mask token (paper uses `<s>`; any reserved token works — it's just a corrupted
+   input for one forward pass, not a trained `[MASK]` embedding). Strategy =
+   **Random** (paper default; entropy-based Easy/Hard are unstable). Ratio
+   **ρ = 0.2** default (0.1–0.3 all safe; 0.5 degrades).
+2. **Predicting** — feed the masked sequence through the **student in ONE
+   teacher-forced forward pass** (not autoregressive, not iterative), take the
+   student's prediction at each masked position. `no_grad` — ŷ is data, no backprop
+   through the fill. Fill = greedy argmax (paper doesn't specify a temperature;
+   greedy is our default, note as our choice).
+3. **Rewriting** — splice the predicted tokens into the gold sequence at the masked
+   positions → `ŷ`. (Rewriting beats leaving raw mask tokens by +3.3 EX in [10]
+   Table 5 — do not skip this step.)
+
+Then teacher forward on `ŷ` → `p`, student forward on `ŷ` → `q`,
+`L = CE(gold y) + RKL(q‖p)`.
 
 ---
 
 ## PoC — KD vs FT on the same Spider data, base model
 
-**Question:** for each direction (KID, Struct-SQL), does distilling from the teacher
-on data slice `X` produce a better student than plain gold-CE fine-tuning on the
-same `X`? This isolates the value of the KD *signal* itself, decoupled from the
-public-corpus and federation questions.
+**Question:** does distilling from the teacher on data `X` (either direction) beat
+plain gold-CE fine-tuning on the exact same `X`? Isolates the KD *signal* itself,
+decoupled from the public-corpus and federation questions.
 
 **Setup:**
-- Base model: `Qwen2.5-1.5B-Instruct` (untrained, no existing adapter — start fresh
-  each arm, not from `central`/`fedavg`).
-- Data slice `X`: a subsample of `processed_data/SPIDER/centralized/train.csv`
-  (reuse existing Spider processed data — no new corpus, no new download).
-- Eval: frozen `processed_data/SPIDER/centralized/test.csv` (Spider dev), `k=0` (no
-  ICL — isolates the training signal, not retrieval).
+
+- Base model: `Qwen2.5-1.5B-Instruct` (fresh each arm, no existing adapter).
+- Teacher: `Qwen2.5-7B-Instruct`, frozen, co-loaded (4-bit on 16 GB cards).
+- Data `X` = full `processed_data/SPIDER/centralized/train.csv` (8659 rows, as-is).
+- Eval: frozen `processed_data/SPIDER/centralized/test.csv` (Spider dev), `k=0`.
 
 **Arms (all trained from base, on the identical `X`):**
 
-| ID | arm | what it is | teacher active | HW |
-|---|---|---|---|---|
-| P0 | `poc_ft` | gold-CE SFT on `X` (no teacher) — the floor | no | T4 |
-| P1 | `poc_struct` | SFT on teacher `QP-CoT ⊕ SQL` for `X` (Struct-SQL [11]) | offline, before training | T4 |
-| P2 | `poc_kid` | `RKL(q‖p)` on teacher-scored imperfect `ŷ` for `X` (KID [10]) | online, co-loaded | A100 — **blocked**, see E0.3 below |
+| ID | arm | loss | teacher |
+|---|---|---|---|
+| P0 | `poc_ft` | gold CE only — the floor | no |
+| P1 | `poc_rkd` | `CE + RKL(q‖p)` on gold `y` | co-loaded, 1 forward/step |
+| P2 | `poc_kid` | `CE + RKL(q‖p)` on imperfect `ŷ` (ρ=0.2, Random) | co-loaded, 1 forward/step |
 
-**Read-off:** `poc_struct − poc_ft` = Struct-SQL's KD-vs-FT value. `poc_kid − poc_ft`
-= KID's KD-vs-FT value. `poc_kid − poc_struct` = which direction wins (secondary —
-not the PoC's primary question).
+**Read-off (each rung adds one ingredient):**
+
+- `poc_rkd − poc_ft` = value of teacher logits (RKL) on gold data
+- `poc_kid − poc_rkd` = value of imperfect data on top
+- `poc_kid − poc_ft` = full KID value
 
 **Decision gate:** if neither KD arm beats `poc_ft` by a real margin, the KD signal
-itself doesn't earn its build cost — rethink before investing in the full dual-stream
-federated design. If one or both do, that direction becomes the candidate for the
-full method once a public corpus is picked (§Deferred).
+doesn't earn its build cost — rethink before investing in the full federated design.
+If one or both do, that direction goes into the full method once a public corpus is
+picked (§Deferred).
 
-### E0.3 — pin KID [10] mask-fill mechanics (reading task, no code) — blocks `poc_kid`
+---
 
-A causal LM has no `[MASK]` token, so "mask ρ% of gold tokens → 1 forward fill → ŷ"
-needs a concrete recipe before `mask_rewrite`/`rkl_div_loss` can be built. Read
-`paper/references/md/[10]-...KID....md` and confirm before starting `poc_kid`:
+## Implementation plan
 
-- [ ] Left-to-right teacher-forced fill, or iterative resample-and-refeed?
-- [ ] Sampling temperature / top-p for the fill step?
-- [ ] Stop-gradient through `ŷ` generation (no backprop through the sampling step)?
-- [ ] Masking ratio `ρ` default before the Stage-later sweep (start at one fixed value)?
+Existing code that carries over: `LoraTrainConfig` / `train_from_examples` loop +
+checkpointing (`lora_trainer.py`), `LocalHFTeacher` (`models/teacher_local.py`),
+`weighted_lm_loss` (`losses.py`), eval stack. The offline Struct-SQL pipeline is
+retired (step 0).
 
-`poc_struct` does not need this — it's a straightforward SFT on offline-cached
-teacher traces, no masking involved.
+**0. Retire the CoT/offline-target path** — delete `scripts/gen_teacher_targets.py`,
+`fedicl_sql/data/teacher_targets.py`, the `--kd-train`/`--kd-teacher-targets`/
+`--kd-direction struct` plumbing and `train_dual_stream` in `lora_trainer.py`
+(+ their tests). No legacy shims.
 
-### Build needed for the PoC
+**1. `rkl_div_loss` in `losses.py`** — full-vocab reverse KL
+`Σ softmax(q)·(log_softmax(q) − log_softmax(p))` over answer-token positions only
+(prompt masked out), mean over tokens. Teacher is co-loaded → full logits available,
+no top-K caching needed. Optional temperature `τ` (default 1.0). Unit test against a
+hand-computed small tensor + `RKL(p‖p) = 0`.
 
-| Component | File | State |
-|---|---|---|
-| Top-K soft-KL (forward) | `losses.py` `kl_div_loss` | done |
-| Weighted CE + skeleton weight | `losses.py` `weighted_lm_loss` | done |
-| LoRA trainer + KD config | `training/lora_trainer.py` | done |
-| Teacher generate (local HF) | `models/teacher_local.py` | done |
-| Offline teacher-target pipeline | `data/teacher_targets.py` | done — point `--private` at the Spider slice |
-| `--kd-direction {struct,gold,none}` on `experiments/client_train/run.py` | trainer + CLI | done (generic `--kd-train`/`--kd-teacher-targets`, no BIRD-specific naming) |
-| `mask_rewrite` + `rkl_div_loss` (KID) | student / losses / trainer | not built — blocked by E0.3 |
+**2. `mask_rewrite` (new `fedicl_sql/training/imperfect.py`)** — input: tokenized
+prompt+gold, gold-span indices, `ρ`; random-mask ρ of gold positions → one student
+forward under `no_grad` → argmax at masked positions → return rewritten ids `ŷ`.
+Unit test: ρ=0 returns gold unchanged; masked positions differ only where sampled.
 
-### Running the PoC (CLI)
+**3. Teacher scoring forward** — add `score_logits(input_ids) -> logits` to
+`LocalHFTeacher` (plain forward, `no_grad`, no generate). Supports 4-bit load for
+16 GB cards.
+
+**4. Online KD trainer** — extend the `train_from_examples` step: per batch build
+prompt (k=0 for PoC), if `kid` run `mask_rewrite` to get target sequence (else gold),
+teacher forward → `p`, student forward → `q`,
+`loss = lambda_ft·CE(gold) + lambda_kd·rkl_div_loss(q, p)` (defaults 1.0/1.0, CLI
+`--lambda-ft/--lambda-kd` already exist). Teacher stays loaded the whole run
+(sequential-VRAM unload rule doesn't apply — co-load is the design).
+
+**5. CLI** — `experiments/client_train/run.py`: `--kd-direction {none,rkd,kid}`
+(replaces `{struct,gold,none}`), `--mask-ratio 0.2`, `--teacher-model`,
+`--teacher-4bit`. RUNS.csv rows record `teacher_model` as always.
+
+**6. Run the PoC** (order: P0 → P1 → P2; P2 only differs from P1 by `--kd-direction`):
 
 ```bash
-# 1. Carve a slice X out of Spider centralized train (any reasonable subsample; keep
-#    it fixed across P0/P1/P2 so the comparison is apples-to-apples)
-uv run python -c "
-from fedicl_sql.data.spider import load_csv, examples_to_csv
-import random
-rows = load_csv('processed_data/SPIDER/centralized/train.csv')
-random.Random(0).shuffle(rows)
-examples_to_csv(rows[:1000], 'artifacts/kd_poc/slice_x.csv')
-"
-
-# 2. P0 — poc_ft: plain gold-CE SFT on X, from base
+# P0 — poc_ft
 uv run python experiments/client_train/run.py \
-    --client artifacts/kd_poc/slice_x.csv \
-    --kd-label none \
+    --client processed_data/SPIDER/centralized/train.csv \
+    --kd-direction none \
     --out artifacts/kd_poc/poc_ft/adapter \
     --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
-# 3. Generate teacher QP-CoT targets for X (once, offline)
-uv run python scripts/gen_teacher_targets.py \
-    --private artifacts/kd_poc/slice_x.csv \
-    --out artifacts/kd_poc/slice_x_qpcot_targets.csv \
-    --teacher-model Qwen/Qwen2.5-7B-Instruct --mode qp_cot --teacher-k 3
-
-# 4. P1 — poc_struct: SFT on teacher QP-CoT ⊕ SQL for X, from base
+# P1 — poc_rkd  (add teacher, RKL on gold)
 uv run python experiments/client_train/run.py \
-    --client artifacts/kd_poc/slice_x.csv \
-    --kd-direction struct --kd-train artifacts/kd_poc/slice_x.csv \
-    --kd-teacher-targets artifacts/kd_poc/slice_x_qpcot_targets.csv \
-    --out artifacts/kd_poc/poc_struct/adapter \
+    --client processed_data/SPIDER/centralized/train.csv \
+    --kd-direction rkd --teacher-model Qwen/Qwen2.5-7B-Instruct --teacher-4bit \
+    --out artifacts/kd_poc/poc_rkd/adapter \
     --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
-# 5. P2 — poc_kid: blocked until E0.3 is pinned and mask_rewrite/rkl_div_loss exist
+# P2 — poc_kid  (same + imperfect data)
+uv run python experiments/client_train/run.py \
+    --client processed_data/SPIDER/centralized/train.csv \
+    --kd-direction kid --mask-ratio 0.2 \
+    --teacher-model Qwen/Qwen2.5-7B-Instruct --teacher-4bit \
+    --out artifacts/kd_poc/poc_kid/adapter \
+    --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
-# 6. Eval P0/P1 on frozen Spider test, k=0
+# Eval all three on frozen Spider test, k=0
 uv run python experiments/eval_arms/run.py --pool-mode centralized \
     --test-csv processed_data/SPIDER/centralized/test.csv \
     --k 0 --batch-size 16 --retrieval question --seed 0 \
     --resume-dir artifacts/kd_poc/eval_ckpt \
-    --arms poc_ft=artifacts/kd_poc/poc_ft/adapter poc_struct=artifacts/kd_poc/poc_struct/adapter
+    --arms poc_ft=artifacts/kd_poc/poc_ft/adapter \
+           poc_rkd=artifacts/kd_poc/poc_rkd/adapter \
+           poc_kid=artifacts/kd_poc/poc_kid/adapter
 ```
 
-Pull EX from `experiments/RUNS.csv` / `predictions/{poc_ft,poc_struct}.csv` and fill
-in the read-off above.
+Pull EX from `experiments/RUNS.csv` / `predictions/{poc_ft,poc_rkd,poc_kid}.csv`.
+
+**VRAM:** teacher 4-bit (~5–6 GB) + student fp16 (~3 GB) + activations fits the
+16 GB A5000/T4 profile (`--batch-size 1 --grad-accum 16`); fp16 teacher co-load
+(~17 GB) needs A100. Both directions cost the same — RKD and KID differ only by one
+extra student `no_grad` forward (the fill).
 
 ---
 
-## Deferred — full staged plan (BIRD-era, kept for reference only)
+## Deferred — full staged plan (kept for reference only)
 
-Everything below described the pre-2026-07-07 plan built around BIRD as the public
-KD corpus: a locked control ladder (`fedavg → fedavg_bird → fedkd_seqkd →
-fedkd_struct → fedkd`), demo-style parity, sequential Step-1(KD-pretrain on
-BIRD)/Step-2(FT on `Qᵢ`) training, and a 4-stage experiment ladder (probes →
-single-client bake-off → federate winner → seeds/ablations). **None of that is
-built or run against right now.** Once the PoC above has a verdict and a public
-corpus is chosen (or the decision is made to skip a public corpus and reuse the
-private pool itself for Stream 2), re-derive the staged plan against that corpus
-rather than resurrecting the BIRD-specific numbers — the mechanism (dual-stream,
-sequential training, control ladder) still applies, only the corpus name changes.
+The full federated design (dual data streams, sequential Step-1 KD-pretrain on a
+public corpus → Step-2 FT on `Qᵢ`, control ladder, 4-stage experiment ladder) is
+deferred until the PoC has a verdict and a public KD corpus is picked. Re-derive the
+staged plan then. Design invariants that carry forward:
 
-Design invariants that carry forward regardless of corpus:
-1. **KD data = public and equal for every direction being compared** (whatever
-   corpus is chosen) — keeps `kid − struct` free of a data confound.
+1. **KD data = public and equal for every direction compared** — keeps `kid − rkd`
+   free of a data confound.
 2. **Control ladder, one ingredient per rung**: floor → data-matched gold-CE control
-   → teacher-SQL-only → teacher-structured-reasoning → teacher-logit-level. Teacher
-   value = last rung minus the data-matched control, never minus the bare floor.
+   (`fedavg_pub`) → teacher-logit on gold (`fedkd_rkd`) → teacher-logit on imperfect
+   data (`fedkd` = KID). Teacher value = KD rung minus the data-matched control,
+   never minus the bare floor.
 3. **Demo-style parity**: train `demo_style` == eval `demo_style` within any arm.
 4. **Weighted FedAvg** (`nᵢ/n`, McMahan), not `1/K`.
 5. **Sequential two-step local training** (KD-pretrain to completion, then FT,
-   LoRA-init from the KD-pretrain checkpoint) — not a combined per-step loss.
+   LoRA-init from the KD-pretrain checkpoint) — not a combined cross-dataset loss.
+   (Within the KD step itself, `CE + RKL` on the same data is [10]'s recipe and stays.)
 
-Risks noted at the time, still relevant once this resumes: QP-CoT may not help a
-1.5B student ([11] used 4B); `+ICL` training-time context may not fit a 16 GB card
-(needs a VRAM probe before committing to `train-k=3` arms); KID mask-fill mechanics
-must be pinned (E0.3) before `mask_rewrite`/`rkl_div_loss` exist; a sequential
-KD-pretrain→FT design risks the FT step partially overwriting what KD-pretrain
-taught (no rehearsal) — measure before assuming either way.
+Open risks once this resumes: FT (Step 2) may partially overwrite what KD-pretrain
+taught (no rehearsal) — measure, don't assume; `train-k=3` context may not fit a
+16 GB card (VRAM probe before committing); MLE/RKL weighting under-explored per [10]
+— default 1:1, sweep only if the PoC signal is positive.

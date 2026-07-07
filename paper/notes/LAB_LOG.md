@@ -267,3 +267,79 @@ supplies a public KD stream.
 - [ ] E0.3: pin KID [10] mask-fill mechanics before attempting `poc_kid`
 - [ ] Once the PoC has a verdict, decide the public KD corpus question (or decide to
       skip a public corpus and reuse the private pool for Stream 2)
+
+*(superseded same day by the session below — CoT direction dropped, PoC arms renamed)*
+
+---
+
+## Session 2026-07-07 (2) — CoT KD direction dropped; two directions = RKD + KID, both from [10]
+
+### What changed
+
+**The Struct-SQL [11] QP-CoT direction is removed entirely** (advisor direction:
+try the two methods from the KID paper instead). No offline teacher traces, no CoT
+targets, no SeqKD baseline. The two KD directions are now both from **[10]**, both
+online logit-level with teacher + student co-loaded (1 teacher forward/step):
+
+- **RKD** — `CE(gold) + RKL(q‖p)` scored on gold SQL `y` (+1.9…+3.1 avg in [10])
+- **KID** — same loss scored on imperfect `ŷ` = student one-pass rewrite of ρ-masked
+  gold (+3.2…+5.8 avg, ~2× SFT latency; best trade-off in [10])
+
+RKD is KID minus the imperfect-data step → one trainer serves both, and
+`kid − rkd` isolates the imperfect-data value. PoC arms renamed:
+`poc_ft / poc_rkd / poc_kid` (each rung adds one ingredient). Deferred federated
+ladder renamed too: `fedavg → fedavg_pub → fedkd_rkd → fedkd`.
+
+**Old E0.3 blocker closed by reading [10] in full:** masking = Random strategy,
+ρ = 0.2 default (0.1–0.3 safe, 0.5 degrades); fill = ONE teacher-forced student
+forward (`no_grad`, greedy — temp unspecified in paper, greedy is our call);
+rewrite = splice predictions into gold at masked positions (rewriting beats
+masking-only +3.3 EX, Table 5); loss = RKL + auxiliary MLE (paper: MLE important
+for stability; weighting under-explored → 1:1 default).
+
+**Implementation plan written** (`KD_PLAN.md` §Implementation plan, 6 steps):
+(0) delete offline pipeline (`gen_teacher_targets.py`, `data/teacher_targets.py`,
+`--kd-train`/`--kd-teacher-targets`/`train_dual_stream`) → (1) `rkl_div_loss`
+(full-vocab, co-loaded teacher = no top-K caching) → (2) `mask_rewrite` →
+(3) teacher `score_logits` forward + 4-bit option → (4) online KD trainer step →
+(5) CLI `--kd-direction {none,rkd,kid}`, `--mask-ratio`, `--teacher-4bit` →
+(6) run PoC. VRAM: 4-bit teacher + student fits the 16 GB profile; fp16 co-load
+= A100.
+
+### Files updated
+- `KD_PLAN.md` — rewritten: two-direction table, KID mechanics pinned, PoC arms,
+  implementation plan, deferred ladder simplified
+- `DECISIONS.md` — dec.1 (KD step = RKD/KID, CoT removed), dec.4/5/8, notation
+  (λ(t) row dropped — combined cross-dataset loss already retired), [11] footnote
+  → dropped-reference stub, [10] footnote → source of both directions
+- `system_architecture.md` — header notes condensed + new re-align entry; §2
+  diagram, §5.2, §5.3 arm/ladder tables, §5.6 (Random ρ=0.2, `CE + RKL`
+  pseudocode), §5.6.1 rewritten (RKD vs KID), §8, invariants #2/#7/#9, §10;
+  stale E-number refs (E0.3/E1.6/E1.7/E3.4/E3.5) cleaned
+- `FedICL-SQL/CLAUDE.md` — GPU note (co-load + `--teacher-4bit`), PoC arm table
+- `FedICL-SQL/README.md` — Quickstart trimmed (teacher-FT + target-gen steps out),
+  PoC section rewritten
+- `notebooks/kd/README.md` — runbook rewritten for `poc_ft/poc_rkd/poc_kid`
+
+### Implementation (same day, later session) — plan steps 0–5 executed
+
+All six steps built and unit-tested (125 pass; 16 pre-existing spacy failures
+unrelated). Deleted: `gen_teacher_targets.py`, `fine_tune_teacher.py`,
+`data/teacher_targets.py`, `train_dual_stream`, sparse top-K `kl_div_loss`, the
+`qp_cot` teacher mode. Added: `rkl_div_loss` (full-vocab reverse KL),
+`training/imperfect.py::mask_rewrite` (Random mask → one-pass greedy fill →
+splice), `LocalHFTeacher.score_logits`, `train_online_kd` (co-loaded teacher,
+`L = λ_ft·CE + λ_kd·RKL`, checkpoint/resume), CLI `--kd-direction {none,rkd,kid}`
+`--mask-ratio --teacher-model --teacher-4bit`.
+
+Review caught two bugs before commit: (1) Qwen2.5 7B vs 1.5B logit dims differ
+(V=152064 vs 151936 — same tokenizer, different embedding padding) → RKL now
+slices both to the common vocab prefix; (2) fp16 KL sum over a 150k vocab loses
+precision → RKL computed in float32.
+
+### Next
+- [ ] Run P0 → P1 → P2 on the compute host (P1/P2 need GPU + real 7B teacher —
+      only unit-tested with fakes so far)
+- [ ] Read off `poc_rkd − poc_ft` (teacher-logit value) and `poc_kid − poc_rkd`
+      (imperfect-data value) from RUNS.csv
+- [ ] Once the PoC has a verdict, decide the public KD corpus question
