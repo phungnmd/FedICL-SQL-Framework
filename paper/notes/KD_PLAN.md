@@ -74,17 +74,17 @@ decoupled from the public-corpus and federation questions.
 
 | ID | arm | loss | teacher |
 |---|---|---|---|
-| P0 | `poc_ft` | gold CE only — the floor | no |
-| P1 | `poc_rkd` | `CE + RKL(q‖p)` on gold `y` | co-loaded, 1 forward/step |
-| P2 | `poc_kid` | `CE + RKL(q‖p)` on imperfect `ŷ` (ρ=0.2, Random) | co-loaded, 1 forward/step |
+| P0 | `central_ft` | gold CE only — the floor | no |
+| P1 | `central_rkd` | `CE + RKL(q‖p)` on gold `y` | co-loaded, 1 forward/step |
+| P2 | `central_kid` | `CE + RKL(q‖p)` on imperfect `ŷ` (ρ=0.2, Random) | co-loaded, 1 forward/step |
 
 **Read-off (each rung adds one ingredient):**
 
-- `poc_rkd − poc_ft` = value of teacher logits (RKL) on gold data
-- `poc_kid − poc_rkd` = value of imperfect data on top
-- `poc_kid − poc_ft` = full KID value
+- `central_rkd − central_ft` = value of teacher logits (RKL) on gold data
+- `central_kid − central_rkd` = value of imperfect data on top
+- `central_kid − central_ft` = full KID value
 
-**Decision gate:** if neither KD arm beats `poc_ft` by a real margin, the KD signal
+**Decision gate:** if neither KD arm beats `central_ft` by a real margin, the KD signal
 doesn't earn its build cost — rethink before investing in the full federated design.
 If one or both do, that direction goes into the full method once a public corpus is
 picked (§Deferred).
@@ -132,26 +132,26 @@ teacher forward → `p`, student forward → `q`,
 **6. Run the PoC** (order: P0 → P1 → P2; P2 only differs from P1 by `--kd-direction`):
 
 ```bash
-# P0 — poc_ft
+# P0 — central_ft
 uv run python experiments/client_train/run.py \
     --client processed_data/SPIDER/centralized/train.csv \
     --kd-direction none \
-    --out artifacts/kd_poc/poc_ft/adapter \
+    --out artifacts/kd_poc/central_ft/adapter \
     --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
-# P1 — poc_rkd  (add teacher, RKL on gold)
+# P1 — central_rkd  (add teacher, RKL on gold)
 uv run python experiments/client_train/run.py \
     --client processed_data/SPIDER/centralized/train.csv \
     --kd-direction rkd --teacher-model Qwen/Qwen2.5-7B-Instruct --teacher-4bit \
-    --out artifacts/kd_poc/poc_rkd/adapter \
+    --out artifacts/kd_poc/central_rkd/adapter \
     --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
-# P2 — poc_kid  (same + imperfect data)
+# P2 — central_kid  (same + imperfect data)
 uv run python experiments/client_train/run.py \
     --client processed_data/SPIDER/centralized/train.csv \
     --kd-direction kid --mask-ratio 0.2 \
     --teacher-model Qwen/Qwen2.5-7B-Instruct --teacher-4bit \
-    --out artifacts/kd_poc/poc_kid/adapter \
+    --out artifacts/kd_poc/central_kid/adapter \
     --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 
 # Eval all three on frozen Spider test, k=0
@@ -159,12 +159,12 @@ uv run python experiments/eval_arms/run.py --pool-mode centralized \
     --test-csv processed_data/SPIDER/centralized/test.csv \
     --k 0 --batch-size 16 --retrieval question --seed 0 \
     --resume-dir artifacts/kd_poc/eval_ckpt \
-    --arms poc_ft=artifacts/kd_poc/poc_ft/adapter \
-           poc_rkd=artifacts/kd_poc/poc_rkd/adapter \
-           poc_kid=artifacts/kd_poc/poc_kid/adapter
+    --arms central_ft=artifacts/kd_poc/central_ft/adapter \
+           central_rkd=artifacts/kd_poc/central_rkd/adapter \
+           central_kid=artifacts/kd_poc/central_kid/adapter
 ```
 
-Pull EX from `experiments/RUNS.csv` / `predictions/{poc_ft,poc_rkd,poc_kid}.csv`.
+Pull EX from `experiments/RUNS.csv` / `predictions/{central_ft,central_rkd,central_kid}.csv`.
 
 **VRAM:** teacher 4-bit (~5–6 GB) + student fp16 (~3 GB) + activations fits the
 16 GB A5000/T4 profile (`--batch-size 1 --grad-accum 16`); fp16 teacher co-load

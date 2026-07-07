@@ -236,8 +236,8 @@ to anything else (not `train_others`, not a new corpus). Spider itself is unchan
 (same train/test split as always).
 
 **Scope cut to a PoC before any further build:** compare, on an identical slice of
-Spider data, training it as plain gold-CE FT (`poc_ft`) vs as a KD signal via Struct-SQL
-(`poc_struct`) vs via KID (`poc_kid`, still blocked on E0.3's mask-fill mechanics) — all
+Spider data, training it as plain gold-CE FT (`central_ft`) vs as a KD signal via Struct-SQL
+(`poc_struct`) vs via KID (`central_kid`, still blocked on E0.3's mask-fill mechanics) — all
 from the base model, no dual-stream mixing, no federation. Isolates whether the KD
 *signal* itself beats plain FT on the same data, independent of which corpus eventually
 supplies a public KD stream.
@@ -262,9 +262,9 @@ supplies a public KD stream.
 - `CLAUDE.md`, `README.md` — KD section rewritten for the PoC CLI flow
 
 ### Next
-- [ ] Run the PoC: carve slice `X`, train `poc_ft` + `poc_struct`, eval on frozen
-      Spider test, read off `poc_struct − poc_ft`
-- [ ] E0.3: pin KID [10] mask-fill mechanics before attempting `poc_kid`
+- [ ] Run the PoC: carve slice `X`, train `central_ft` + `poc_struct`, eval on frozen
+      Spider test, read off `poc_struct − central_ft`
+- [ ] E0.3: pin KID [10] mask-fill mechanics before attempting `central_kid`
 - [ ] Once the PoC has a verdict, decide the public KD corpus question (or decide to
       skip a public corpus and reuse the private pool for Stream 2)
 
@@ -287,7 +287,7 @@ online logit-level with teacher + student co-loaded (1 teacher forward/step):
 
 RKD is KID minus the imperfect-data step → one trainer serves both, and
 `kid − rkd` isolates the imperfect-data value. PoC arms renamed:
-`poc_ft / poc_rkd / poc_kid` (each rung adds one ingredient). Deferred federated
+`central_ft / central_rkd / central_kid` (each rung adds one ingredient). Deferred federated
 ladder renamed too: `fedavg → fedavg_pub → fedkd_rkd → fedkd`.
 
 **Old E0.3 blocker closed by reading [10] in full:** masking = Random strategy,
@@ -319,7 +319,7 @@ for stability; weighting under-explored → 1:1 default).
 - `FedICL-SQL/CLAUDE.md` — GPU note (co-load + `--teacher-4bit`), PoC arm table
 - `FedICL-SQL/README.md` — Quickstart trimmed (teacher-FT + target-gen steps out),
   PoC section rewritten
-- `notebooks/kd/README.md` — runbook rewritten for `poc_ft/poc_rkd/poc_kid`
+- `notebooks/kd/README.md` — runbook rewritten for `central_ft/central_rkd/central_kid`
 
 ### Implementation (same day, later session) — plan steps 0–5 executed
 
@@ -340,6 +340,6 @@ precision → RKL computed in float32.
 ### Next
 - [ ] Run P0 → P1 → P2 on the compute host (P1/P2 need GPU + real 7B teacher —
       only unit-tested with fakes so far)
-- [ ] Read off `poc_rkd − poc_ft` (teacher-logit value) and `poc_kid − poc_rkd`
+- [ ] Read off `central_rkd − central_ft` (teacher-logit value) and `central_kid − central_rkd`
       (imperfect-data value) from RUNS.csv
 - [ ] Once the PoC has a verdict, decide the public KD corpus question

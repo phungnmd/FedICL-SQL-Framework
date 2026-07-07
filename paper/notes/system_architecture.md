@@ -377,7 +377,7 @@ not assumption.
 > — not yet decided. Do not implement Fed against this loop as-is. This whole federated
 > loop is deferred anyway (§0 top note, `KD_PLAN.md` §Deferred) — no public corpus is
 > picked, and the currently-running PoC (`KD_PLAN.md` §PoC) has no federation at all,
-> just three arms (`poc_ft`/`poc_rkd`/`poc_kid`) trained from base on Spider.
+> just three arms (`central_ft`/`central_rkd`/`central_kid`) trained from base on Spider.
 
 ```python
 Round t = 1 .. T:
