@@ -380,3 +380,431 @@ only source of truth now.
 - [ ] Nothing pending from this change — `analysis/compare.py` (already
       rewritten this session to scan folders) and `analysis/log_session.py`
       are the two ledger consumers, both now folder-native.
+
+---
+
+## Session 2026-07-08 — Architecture pivot: server-side distillation (Suggest.MD accepted)
+
+### What changed
+
+**`system_architecture.md` rewritten from scratch.** `Suggest.MD` (Fed-ICKD,
+user-authored 07/2026) accepted as the architecture, with ONE amendment: the
+server-distillation loss is reverse-KL from [10] (`L = λ_ft·CE + λ_kd·RKL(q‖p)`,
+directions RKD/KID unchanged) — NOT Suggest.MD's forward KL(τ=2, top-50) +
+relational RKD. Relational KD (distance/angle-wise, hidden states) dropped
+entirely, which also resolves the RKD acronym clash (repo RKD = Reverse KD on
+gold, per [10]).
+
+Key pivots vs the old architecture:
+- **Teacher moves client → SERVER.** Frozen 7B at the server, distills the
+  FedAvg'd global student on a public pool `P` every round (consensus
+  regularizer, FedDF/FedMD argument). Reverses the 2026-06-16 client-side
+  re-alignment.
+- **Client training = CE only** (QLoRA, DAIL ICL demos in prompt) — no teacher,
+  no KD at the client. The sequential two-step design (Step 1 KD-pretrain →
+  Step 2 FT) is retired.
+- **ICL: k consistent train/inference at the client** (default k_student=2,
+  ablate 0/1/2) — replaces the `train-k=0` official default + eval-k=3 overlay.
+  DAIL dual similarity (masked-question + query) locked as the selection method.
+- **Config defaults now:** K=8, Dirichlet α=0.5 by database, T=15, E=2, server
+  distill 300 steps/round batch 16, eval = Spider dev + Spider-Realistic,
+  3 seeds main / 1 ablation, 1× A5000.
+- **Pool `P` dataset = TBD** (BIRD stays dropped; candidate = Spider held-out
+  ~15%). Decide after the PoC.
+- **DP demoted to Tier-3 optional** — no formal DP claim; threat-model paragraph
+  + limitations instead.
+
+**`DECISIONS.md` deleted** — still-load-bearing content (arm naming, legacy
+alias map, notation, [10] reference note, per-run model-id recording) folded
+into `system_architecture.md` §10/§12–§14. Refs fixed in `README.md` +
+`KD_PLAN.md`.
+
+**Unchanged / still running:** the centralized KD PoC (`central_ft` /
+`central_rkd` / `central_kid` on Spider, `KD_PLAN.md` §PoC) — it now decides
+the KD direction for the SERVER distill step instead of the client step; the
+ladder logic (`rkd−ft` = teacher-logit value, `kid−rkd` = imperfect-data value)
+is unaffected by where the teacher sits.
+
+### Known stale docs (not touched this session)
+
+- `CLAUDE.md` (both repos): direction bullets still describe the client-side
+  teacher + two-step design + DECISIONS.md refs — needs a rewrite pass.
+- `fig1_architecture.md` + `fig_architecture_source.png`: predate the pivot;
+  Fig. 1 must be redrawn (teacher box → server, add pool `P`).
+- Advisor sign-off: the 2026-06-16 client-side teacher direction came from the
+  advisor — the server-side pivot should be confirmed with them.
+
+### Next
+
+- [ ] Finish the centralized PoC runs → pick RKD vs KID
+- [ ] Decide the public pool `P` dataset
+- [x] Update CLAUDE.md direction text — both rewritten from scratch 2026-07-08
+      (root `CLAUDE.MD` = paper workspace: mental model, status, doc map,
+      conventions; `fedicl-sql/CLAUDE.MD` = operational: compute host,
+      checkpoint/VRAM rules, runnable arms, eval CSV contract)
+- [ ] Redraw Fig. 1 (teacher box → server, add pool `P`)
+- [ ] Then: Flower simulation (8 clients) + server distillation step
+
+---
+
+## Session 2026-07-08 (2) — teacher default: Coder-7B; 3 KD-impl bug fixes; teacher eval plan
+
+### Teacher model default switched
+
+`system_architecture.md` §3.1/§9: default candidate teacher **Qwen2.5-7B-Instruct
+→ Qwen2.5-Coder-7B-Instruct**. Rationale: code-tuned, closer to SQL generation
+than the general-instruct variant; no code change needed (`--teacher-model` was
+already a CLI arg), shares the Qwen2.5 tokenizer so `rkl_div_loss`'s
+common-vocab-prefix slicing is unaffected. Still **not finalized** — decide
+after the centralized PoC + a model sweep. `CLAUDE.md`'s teacher-model mention
+(line 46) is part of the larger stale client-side-design paragraph flagged last
+session — not patched piecemeal, needs the full rewrite pass.
+
+### 3 KD implementation bugs fixed (code review before the PoC's first real run)
+
+Reviewed `losses.py` / `imperfect.py` / `lora_trainer.py` against [10]'s recipe.
+Fixed (inner repo, 3 commits `788f8a2`/`24288e8`/`b86f0b5`):
+1. `mask_rewrite` (KID) could mask the sequence's trailing stop token — now
+   excluded from the maskable span.
+2. `rkl_div_loss` missing the temperature² scaling factor (Hinton KD
+   convention) — added; no-op at the current default τ=1.
+3. `train_from_examples`/`train_online_kd` called a trailing `opt.step()`
+   unconditionally after the loop, applying a zero-grad AdamW update (still
+   drifts params via momentum/weight-decay) when the loop ended exactly on a
+   grad_accum boundary — now guarded.
+
+All pre-existing + 2 new tests pass (`test_training.py` 23/23; repo-wide
+130 passed / 16 pre-existing spacy failures unrelated).
+
+### Teacher eval — no new script needed
+
+`experiments/eval_arms/run.py` is model-agnostic (`StudentModel` wraps any HF
+causal-LM id; no adapter = base model) → the `teacher` arm (M4, zero fine-tune +
+DAIL ICL) reuses it directly: `--model Qwen/Qwen2.5-Coder-7B-Instruct --arms
+teacher=`. `--retrieval question` for now (dail_select needs spacy
+schema-linking, currently broken — 16 pre-existing test failures). Commands
+for both `--k 0` (bare) and `--k 3` (ICL) staged for the CUDA compute host;
+not yet run (7B not cached locally, this Mac is smoke-test-only per CLAUDE.md).
+
+### Next
+
+- [ ] Run teacher eval (bare + k3) on the compute host, `Qwen2.5-Coder-7B-Instruct`
+- [ ] Run the KD PoC (P0→P1→P2) with the 3 fixes in place
+- [ ] Fix spacy schema-linking so dail_select retrieval works again
+
+---
+
+## Session 2026-07-08 (3) — ICL×KD lit scan; asymmetric-context KD added as Tier-3 direction
+
+### Lit scan: methods that combine ICL with KD
+
+Web scan for §2 Related Work + method-direction check. Three families found
+(details + links in the session transcript; key arXiv ids below):
+
+1. **ICL-ability distillation** — teacher and student both see demos; student
+   learns to *use* demos (Huang et al. 2212.10670, foundational; 2412.13243).
+   Student still needs retrieval at inference → weak system value for us.
+2. **Context distillation** — teacher sees demos, student doesn't; demos'
+   effect gets pushed into weights (Snell 2209.15189; 2409.01930; 2411.15927;
+   **2602.12275 On-Policy Context Distillation — must-read novelty check**).
+3. **Federated × KD × ICL** — FICAL 2412.08054 (transmits knowledge
+   compendiums, not params); 2509.01750 (federated logit KD); 2602.18749
+   (Federated Reasoning Distillation — newest, check for overlap);
+   survey 2406.10861. Theory: 2506.11516 ("ICL is implicit KD" — motivation
+   anchor for the Fed-ICKD name). Also: PromptKD 2402.12842 (soft-prompt-tuned
+   teacher, student-friendly distributions); Inter-Cascade 2509.22984
+   (gradient-free in-context KD via strategy repository).
+
+No paper found doing our combo (ICL-consistent client FT + FedAvg LoRA +
+server-side RKL KD on a public pool, Text-to-SQL). Closest: FedCoLLM [8],
+FICAL, 2602.18749.
+
+### Decision: asymmetric-context KD → Tier 3 (`system_architecture.md` §8.1)
+
+Observation driving it: in the current symmetric setup (teacher and student
+score the KD pair under the *same* DAIL context) the demos' effect appears in
+both `p` and `q` and largely cancels in RKL — ICL is background, not distilled
+content. The asymmetric variant (teacher k=3, student k=0, same target) makes
+the demos' effect the thing RKL transfers → student internalizes ICL, deploys
+at k=0 (no client retrieval stack). Added as **Tier 3 deferred**, probe arm
+`central_rkd_asym`, kill criterion < ~1 EX over the symmetric k=0 floor,
+gated on: PoC verdict first, novelty check vs 2602.12275, advisor sign-off
+(scope change vs approved outline).
+
+### Next
+
+- [ ] (unchanged) finish KD PoC P0→P2; teacher eval on compute host; pick `P`
+- [ ] Read 2602.12275 + 2602.18749 — novelty/overlap check before any asym build
+- [ ] Raise asymmetric-context direction with advisor together with the
+      server-side pivot sign-off
+
+## Session 2026-07-09 — RKD×ICL check: already implemented via `--train-k`
+
+Question: does the RKD implementation support ICL in the KD context, per the
+architecture? **Yes — no new code needed.** Mechanics verified in
+`fedicl_sql/training/lora_trainer.py`:
+
+- `--train-k K` → `_make_train_demo_fn` (DAIL retrieval over the training CSV,
+  self excluded, cross-db preferred, committed `.dailcache.json` reused) →
+  `build_examples` renders demos into each training prompt.
+- **Symmetric context by construction:** in `train_online_kd` the RKD path sets
+  `kd_input_ids = input_ids` (the demo-laden CE sequence) and
+  `teacher.score_logits(kd_input_ids)` scores that same sequence — `p` and `q`
+  share one ICL context (§3.4 invariant), automatically, for KID too (the mask
+  only touches the target span after `n_prompt`; demos stay intact).
+- Demo format = `question + SQL`, `never_schema` (§5.2 compliant).
+
+Two flags raised, no changes made:
+
+1. **Random-k deviation:** `build_examples` injects n ~ U{0..train_k} demos per
+   example (deliberate — DAIL-SQL §4.4.4 train/eval-parity robustness), while
+   `system_architecture.md` §5.4/§6 specifies *fixed* k (k_student=2, distill
+   k=3) and lists "k-robust training (random k)" as Tier 3. Code default ≠ doc
+   default — align one of them before the federated build (advisor/doc call).
+2. **Current PoC runs are k=0:** the runbook P1/P2 commands pass no `--train-k`,
+   so existing `central_rkd`/`central_kid` adapters trained without ICL. Added
+   an optional P1-variant command (`central_rkd_k2`, train-k=2 + eval `--k 2`)
+   to `notebooks/kd/README.md` — not part of the 3-arm verdict.
+
+### Next
+
+- [ ] (unchanged) finish KD PoC P0→P2; teacher eval on compute host; pick `P`
+- [ ] Decide fixed-k vs random-k demo injection (code vs §5.4/§6 mismatch)
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-09 (2) — asymmetric-context KD implemented (`--kd-teacher-k`)
+
+Built the §8.1 probe machinery (TDD, tests first). What changed in `fedicl-sql/`:
+
+- `fedicl_sql/training/losses.py::rkl_asym_loss` — RKL when teacher and student
+  condition on DIFFERENT prompts but the SAME target: slices each side to the
+  window predicting the target (position `n_prompt−1` emits the logit for
+  target token 0), delegates to the existing `rkl_div_loss`. Two alignment
+  tests, incl. an off-by-one guard on the first target token.
+- `fedicl_sql/training/dataset.py` — `TrainExample.teacher_prompt_ids`;
+  `build_examples(kd_teacher_k, teacher_demo_fn)` attaches a demo-laden teacher
+  prompt per example. Teacher k is FIXED (never the student's random 0..k) so
+  the teacher's RKD context stays constant → offline logit cache stays possible.
+  Left-trimmed so prompt+target fits max_len. Three builder tests.
+- `train_online_kd` — if `teacher_prompt_ids` present: teacher forward on
+  `teacher_prompt ⊕ kd_target` (gold y for RKD, rewritten ŷ for KID — both
+  supported), `rkl_asym_loss` for the KD term. Else: symmetric path unchanged.
+- CLI: `--kd-teacher-k N` on `experiments/client_train/run.py` (errors without
+  `--kd-direction rkd/kid`).
+
+Verified: 28/28 training tests pass (16 pre-existing failures elsewhere = spacy
+`en_core_web_sm` missing on this Mac, untouched files); real-model smoke on
+Qwen2.5-Coder-0.5B (asym rkd + asym kid + symmetric regression, 2 steps each,
+losses finite). Runbook §P1-probe added (`central_rkd_asym`, teacher k=3,
+student k=0, eval k=0); §8.1 marked "code ready, run gated".
+
+**Not run.** Probe stays gated per §8.1: P0–P2 verdict first, novelty check
+2602.12275, advisor sign-off. Floor already on file: symmetric `central_rkd`
+k=0 = 68.28 EX; kill if `asym − 68.28 < ~1` EX.
+
+### Next
+
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] After verdict: `central_rkd_asym` probe (runbook §P1-probe) if gates clear
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-09 (3) — GOAL section added to system_architecture.md
+
+Architecture review against the intended paper goal ("small open-source model
+reaches a larger model's performance in a federated setting, at lower serving
+cost, via SFT + KD + ICL"). Verdict: the idea was implicit in §1/RQ3 but never
+stated as an explicit, measurable goal — and no cost dimension was
+operationalized anywhere.
+
+- Added a **GOAL** section at the top of `system_architecture.md` (before §0):
+  small student ≈ larger teacher's performance at a fraction of serving cost;
+  the three ingredients named generically (SFT, KD, ICL — realizations stay in
+  the body sections, GOAL doesn't pin techniques); cost asymmetry framing (teacher cost paid once at training, per-query cost =
+  student's); success metric = share of base→teacher gap recovered,
+  `(fedkd − base)/(teacher − base)` — target share fixed after the PoC, never
+  absolute parity.
+- Flagged but NOT done (needs user/advisor call): efficiency metrics
+  (VRAM/latency/throughput) are still not measured by any eval script; a 32B
+  ceiling-probe teacher stays unproposed.
+
+### Next
+
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] After verdict: `central_rkd_asym` probe (runbook §P1-probe) if gates clear
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+- [ ] Decide: add efficiency columns (VRAM/latency) to eval convention?
+
+## Session 2026-07-09 (4) — why ICL stops helping after FT/KD + the fix direction
+
+Question: every fine-tuned/distilled arm LOSES EX when we add k=3 DAIL demos at
+eval (central_rkd 68.28 → 65.86; ft_no_icl 62.19 → 61.90; ft trained WITH
+demos 64.02 → 59.09; even the 7B teacher 78.72 → 78.53). Ran per-record diffs
+(`analysis/icl_diff.py`) on all four k0-vs-k3 pairs plus three new offline
+probes on the existing prediction CSVs — no GPU needed.
+
+### Bug found and fixed on the way
+
+`analysis/icl_diff.py` looked for demos with the marker
+`### Foreign Example SQL:` but the prompt builder writes `### Example SQL:` —
+so the "schema bleed" cause was silently impossible (always 0) and everything
+it should have caught was counted as structure_change. Fixed in the code repo.
+Corrected cause split for central_rkd's 74 broken rows: 33 structure change,
+22 identifier swap, 11 literals, 8 schema bleed. Structure change still the
+top cause, but not as dominant as the buggy 65% first read.
+
+### What the analysis actually says (plain language)
+
+1. **ICL is a high-variance edit, near-zero on average.** Demos fix 4–7% of
+   rows and break 7–12% of rows; the two nearly cancel. The rows it breaks are
+   rows the model already had right zero-shot.
+2. **Retrieval quality is NOT the problem.** Top-1 similarity of the demos is
+   the same for helped rows and broken rows (~0.92 both). Worse: broken rows
+   MORE often already had a demo whose SQL shape exactly matched the gold
+   shape (73%) than helped rows did (47%). So "retrieve better demos" attacks
+   the wrong bottleneck — the right demo was usually already in the prompt.
+3. **Mechanism = demo-induced distraction, not clean copying.** Of the broken
+   rows, about half changed query shape vs their k=0 answer, mostly AWAY from
+   the gold shape, but only ~⅓ of those land exactly on a demo's shape. The
+   demos perturb a small model off an answer it already knew; they don't
+   simply overwrite it.
+4. **Copying is asymmetric — that's the exploitable structure.** When the
+   zero-shot answer is wrong, imitating demos helps (that's where all the
+   gains live). When it's right, demos can only hurt. So ICL should be
+   **gated on whether the zero-shot answer is trustworthy**, not applied
+   uniformly.
+5. **A trivially cheap gate already works, measured offline on existing runs.**
+   Gate = "keep the k=0 answer; only if its SQL fails to execute, take the
+   k=3 answer instead":
+   - central_rkd: 68.28 → **70.41** EX (+2.13; oracle gate ceiling 73.02)
+   - central_rkd_asym: 67.50 → 69.34 (+1.84)
+   - qwen1b_ft_no_icl: 62.19 → 66.3–66.4 (+4.2)
+   - teacher: 78.72 → 80.66 (+1.94)
+   Every arm ends ABOVE both its k=0 and k=3 numbers — ICL becomes strictly
+   helpful. The k=0 answer fails to execute on 14% of rows (central_rkd) and
+   demos repair 15% of those; the teacher repairs 41% of its 4%.
+6. **Train-time demo exposure does not immunize.** The arm trained WITH k=3
+   demos is the WORST under eval-time ICL (−4.9 pp net) — it leans harder on
+   demo shapes, not less.
+7. **§8.1 kill criterion is met.** `central_rkd_asym − central_rkd` =
+   67.50 − 68.28 = −0.78 EX < +1 EX floor (1 seed) → per the pre-registered
+   criterion the asymmetric-context variant is dead. Needs the
+   system_architecture.md §8.1 status flip + advisor note (not done this
+   session — decision-record change, flagging first).
+
+### Proposed solution track — "gated ICL" (ranked, cheapest first)
+
+- **S1 — exec-error gate (build next).** New eval mode in
+  `experiments/eval_arms/run.py`: pass 1 at k=0; only rows whose SQL errors
+  get a pass 2 with k=3 demos. Offline numbers above ARE this gate's result,
+  so the live run is a confirmation, not a gamble. Extra compute: second pass
+  on ~14–20% of rows. Deployment story fits GOAL: per-query cost stays k=0
+  for ~86% of queries; retrieval/FAISS only on the fallback path.
+- **S2 — confidence gate (the analysis upgrade).** Exec-error only catches
+  broken SQL, not wrong-but-runnable SQL; gap to the 73.02 oracle is rows
+  where k=0 runs fine but is wrong. Capture the k=0 answer's sequence
+  log-prob in the eval CSV (one new column), sweep the threshold offline on
+  the same runs, keep exec-error as the always-on floor. This is the paper's
+  ablation axis: gate ∈ {none, exec, exec+conf, oracle}.
+- **S3 — execution voting.** Generate k=0 and k=3, execute both, prefer the
+  one that runs / non-empty / agreement. Costs 2× generation on every row —
+  only if S2 stalls.
+- **S5 — demo-robustness training.** Train with demos where p% are randomly
+  wrong/irrelevant while the target stays gold — teach "demos are reference,
+  not template". New training arm; only worth it if S1/S2 numbers make the
+  gated-ICL story central to the paper.
+
+**Correction (same day, caught by user question):** the four k=3 eval runs
+analysed above were NOT plain question-similarity kNN — `config.json` on all
+four confirms `retrieval: dail_select, tau: 0.85`, i.e. the FULL DAIL
+Selection gate was already active: model drafts SQL at k=0 first
+(`predict_target_skeleton`), then the retriever keeps only demos whose gold
+skeleton is Jaccard ≥ 0.85 vs the draft's skeleton before ranking by masked-
+question similarity (`fedicl_sql/retrieval/dail_select.py:120-136`). So the
+old "S4: wire up dail_select" item never applied — it was already running.
+Deleted from the list above.
+
+This makes finding 2 (broken rows had a shape-matched demo 73% of the time
+vs 47% for helped rows) a **direct, expected consequence of the gate**, not
+a coincidence — dail_select explicitly selects shape-matching demos. Net
+effect: even with a real structural-similarity gate live, ICL still nets
+negative on every trained arm. Strengthens the diagnosis — the failure isn't
+retrieval quality at any sophistication level, it's that showing ANY demo to
+an answer the student already had right can knock it off, regardless of how
+well-chosen the demo is. Selective-ICL (gate on the *student's own answer's
+trustworthiness*, not on demo quality) is the correct fix layer; nothing else
+changes in the plan.
+
+Paper angle: this is not damage control, it's a §5 analysis contribution —
+"when does ICL help a fine-tuned small student" (it helps exactly when the
+student's zero-shot answer is untrustworthy) + a cheap selective-ICL overlay
+that turns a −2.4 pp liability into a +2.1 pp gain with sub-linear extra cost.
+Fits Fed-ICKD unchanged: gate lives entirely client-side at inference.
+
+### Next
+
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-10 — S1/S2 selective-ICL gate implemented, code repo
+
+Built S1 (exec gate) and S2 (confidence gate + free offline sweep) from the prior
+session's plan. Nothing run yet — no adapters on this machine (compute host only);
+next session on the host runs the commands below.
+
+**`fedicl-sql/` changes:**
+- `fedicl_sql/models/student.py` — `generate_scored` / `generate_batch_scored`:
+  greedy batched generation + mean token log-prob per sequence, masking out
+  batch-padding tokens after each sequence's own EOS (handles pad_id==eos_id and
+  pad_id!=eos_id alike). Verified against a real model (Qwen2.5-Coder-0.5B,
+  `.model_cache`): text output byte-identical to plain `generate_batch`, logprobs
+  negative and sane, across a 2-prompt batch with different lengths.
+- `fedicl_sql/eval/loop.py::eval_loop_gated` — new eval loop alongside `eval_loop`:
+  scores a k=0 draft first (always logs `draft_predicted/draft_exec_error/
+  draft_logprob`), only runs the caller's ICL prompt_fn as a second pass on rows
+  that fail the gate. `gate="exec"`: fallback iff draft SQL errors. `gate="conf"`:
+  also fallback iff `draft_logprob < conf_tau`. 5 new unit tests (fake model keyed
+  by prompt text) — bad-gate-name / conf-without-tau raise, exec keeps a working
+  draft with zero ICL calls, exec falls back on a broken draft, conf falls back on
+  a *working* draft when confidence is low (the case exec alone would miss).
+- `fedicl_sql/runtime/results.py::PREDICTION_FIELDS` — added `hardness` (was
+  documented as a required eval CSV column in this repo's `CLAUDE.md` but silently
+  dropped by `_write_predictions` since inception — pre-existing drift, fixed in
+  passing) plus the 4 new gate diagnostic columns. Old committed CSVs are
+  unaffected (they simply don't have these columns; `.get(k, "")` in the writer
+  already handled the reverse case for old callers).
+- `experiments/eval_arms/run.py` — `--icl-gate {none,exec,conf}` (default `none` =
+  unchanged behavior) + `--conf-tau`; validates `conf` requires a tau and that a
+  gate requires `--k > 0`. Builds a k=0 `prompt_fn` as the draft and the existing
+  k=args.k `prompt_fn` as the ICL fallback, routes through `eval_loop_gated`.
+  Per-arm metrics gain `icl_gate` + `gate_fire_rate`; ckpt filenames get a
+  `__gate{name}` suffix so a gated and ungated resume never collide.
+- `analysis/gate_sweep.py` (new) — sweeps `conf_tau` **without any new GPU run**:
+  joins an S1 (`--icl-gate exec`) run's `draft_logprob` (logged for every row) against
+  an existing full-k3 predictions CSV (e.g. `central_rkd_k3dail.csv` — same
+  model/adapter/demos/seed ⇒ identical greedy ICL output regardless of which run
+  produced it, so it's reusable as-is). Dry-run validated: at the most negative
+  tau the sweep converges exactly to the exec-gate EX; the curve peaks at
+  73.02% (session's earlier-computed oracle ceiling) under a synthetic
+  logprob deliberately correlated with correctness — confirms the join/simulate
+  logic before any real model logprobs exist.
+- `notebooks/kd/README.md` §4b — S1 command, S2 sweep + confirm-live workflow for
+  `central_rkd`, note to repeat for `central_rkd_asym`/`qwen1b_ft_no_icl`/`teacher`.
+- `analysis/icl_diff.py` bug fix carried over from last session (wrong demo
+  marker) already committed to code repo.
+
+Verified: 161/161 repo tests pass (`.venv/bin/python -m pytest tests/`); CLI
+validation (`--icl-gate conf` without `--conf-tau`, `--icl-gate exec` with `--k 0`)
+both error as designed.
+
+**Not run:** no GPU / adapters on this machine. Next: run S1 on the compute host
+for `central_rkd` (+ `ft_no_icl`, `teacher` as cross-checks against the offline
+numbers), then `analysis/gate_sweep.py` to pick `conf_tau`, then confirm S2 live.
+
+### Next
+
+- [ ] Run S1 (`--icl-gate exec`) on compute host: central_rkd, ft_no_icl, teacher — confirm ≈70.4 / 66.4 / 80.7
+- [ ] `analysis/gate_sweep.py` on the S1 output → pick conf_tau per arm
+- [ ] Confirm S2 (`--icl-gate conf --conf-tau <chosen>`) live per arm
+- [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
