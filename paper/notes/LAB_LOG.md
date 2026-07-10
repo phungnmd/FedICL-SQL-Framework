@@ -923,8 +923,39 @@ running). Conclusion: correct as-is, no change warranted; noted as a possible
 future concern only if the public pool `P` scales to BIRD-sized DBs where
 per-row execution cost might matter.
 
+## Session 2026-07-10 (4) — KID/RKD trainer speed optimizations (loss-identical)
+
+`central_kid` on the A5000 was slow; landed three optimizations in `fedicl-sql`
+(`lora_trainer.py`, `imperfect.py`, `teacher_local.py`). All are numerically
+identical to the old code — the loss math is unchanged, so a mid-run `_ckpt/`
+resume stays valid and the PoC comparison is not confounded:
+
+1. **RKL sliced to the target span.** The symmetric KD path ran float32
+   log-softmax over the FULL sequence (up to 2560 positions) × full vocab (~152k)
+   for both student and teacher — ~4.6 GB of transient float32 per step, inside
+   the grad graph — when only the ~50–80 SQL-token positions at the end contribute
+   (prompt positions are zeroed by the mask). Both logits and mask now slice to
+   `[n_prompt-1:]` before `rkl_div_loss`. Equivalence pinned by a unit test.
+2. **`logits_to_keep` on teacher + student-ŷ + fill forwards.** lm_head projection
+   (`T×hidden @ hidden×152k`) now computed only for the target span (teacher +
+   student KID forward) or only at the masked predictor positions (mask_rewrite
+   fill, tensor-index form). Verified on real Qwen2 modeling code + peft LoRA
+   wrapper: sliced logits match full-forward logits, grads flow. Asym path
+   (§8.1, about to be killed anyway) left unoptimized.
+3. **Per-step `loss.item()` sync removed** — losses buffered on-device, drained
+   to floats at optimizer boundaries (every grad-accum), always before checkpoint.
+
+NOT done (deliberate): teacher fp16 instead of 4-bit — ~2× faster forward but
+changes the teacher's logit distribution = different stack than the finished
+`central_rkd` run; would force an rkd rerun. Kept `--teacher-4bit`.
+
+Expected wall-clock ~1.3–1.7× on long-prompt examples; actual number to be read
+off the next KID run's `time_average`. Tests: 176/176 pass. Not yet committed
+in `fedicl-sql`.
+
 ### Next
 
+- [ ] Commit trainer optimization in `fedicl-sql`; restart/resume `central_kid` on A5000, note new s/step vs old
 - [ ] Land `central_rkd_asym_gate_exec_codes` + `teacher_gate_exec_codes` (commands already issued)
 - [ ] Controlled dail_select-vs-codes re-timing (same arm, repeated, explicit cache state) before citing any speed number
 - [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note
