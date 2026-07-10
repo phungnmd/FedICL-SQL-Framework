@@ -808,3 +808,126 @@ numbers), then `analysis/gate_sweep.py` to pick `conf_tau`, then confirm S2 live
 - [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note
 - [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
 - [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-10 (2) — S1 bug found + fixed; S1 confirmed live on `central_rkd`
+
+**Bug in `eval_loop_gated` (code repo), caught before it corrupted a real result.**
+First live S1 run (`central_rkd_gate_exec`, since deleted) reported EX=88.10% with
+0 wrong answers among the 888 non-fallback rows — impossible for a 1.5B model, so
+treated as a bug signal, not a result. Two bugs, both in the non-fallback branch:
+(1) `correct` was set from `draft_exec_error == ""` (SQL merely ran) instead of the
+real `score_ex_detail` match against gold — any executable-but-wrong draft scored
+ex=1. (2) fixing (1) added `ok` to the `drafts` tuple, which shifted the fallback
+flag from index 3 to 4; the fallback-index filter still read index 3 (now the
+log-prob float, always truthy) → every row fired the ICL pass regardless of intent.
+Neither bug surfaced in unit tests because both fake-draft test cases happened to
+be both executable AND correct — added a regression test (draft executes cleanly
+but returns wrong rows: must NOT fire the gate, must still score ex=0) that catches
+both. Fixed + committed (`fedicl-sql` `c493138`); 162/162 tests pass.
+
+**S1 re-run on the compute host after the fix, real numbers:**
+
+| | n | correct |
+|---|---|---|
+| draft (k=0), gate did not fire | 888 | 706 |
+| ICL fallback (146 rows draft's SQL failed to execute) | 146 | 23 |
+| **total** | 1034 | **729 → EX = 70.50%** |
+
+706/888 exactly reproduces the standalone k=0 run's own EX numerator (706/1034 =
+68.28%) — confirms the draft pass is a faithful, deterministic re-run of that
+arm's k=0 eval, no adapter/environment drift. 23/146 = 15.8% repair rate on the
+gated subset, matching the 15% estimated offline last session. **vs the three
+comparators: k=0 alone 68.28%, full k=3 ICL 65.86%, exec gate 70.50% — beats
+both** (+2.22pp vs k0, +4.64pp vs uniform ICL). S1 verdict: real, confirmed, works
+as designed.
+
+**S2 sweep (`analysis/gate_sweep.py`, zero extra GPU) on the corrected S1 output:**
+peaks at `tau=-0.20` → EX=70.70% (+0.20pp over exec-only, +12 extra fallbacks),
+flat at 70.41–70.50% for any more negative tau, and actively WORSE above -0.10
+(69.54% at -0.10, 66.54% at -0.05 — too many false-positive fallbacks). **Verdict
+for `central_rkd`: the confidence gate adds essentially nothing beyond the exec
+gate here** (+0.2pp, likely within noise) — draft log-prob doesn't separate
+right/wrong among executable queries much better than exec status alone. Not
+worth a separate `--icl-gate conf` live run for this arm; report S1 (exec) as
+the headline gate for `central_rkd`. Re-check this verdict per-arm (ft_no_icl,
+teacher, central_rkd_asym) before generalizing — the sweep is cheap enough to
+just run each time.
+
+### Next
+
+- [ ] Run S1 (`--icl-gate exec`) on `qwen1b_ft_no_icl`, `teacher`, `central_rkd_asym` — confirm/compare vs offline estimates (≈66.4 / 80.7)
+- [ ] `gate_sweep.py` per arm — check whether conf gate earns its keep anywhere (central_rkd says no)
+- [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-10 (3) — gate confirmed 6/6 arms; codes-retrieval mixed; exec mechanism verified
+
+**S1 (exec gate) now run on all 6 available arms, spanning 3 model scales — wins on every single one:**
+
+| arm | model | k=0 | uniform ICL | gate exec | Δ vs k0 | Δ vs uniform | fire rate |
+|---|---|---|---|---|---|---|---|
+| central_rkd | 1.5B | 68.28 | 65.86 | 70.50 | +2.22 | +4.64 | 14.1% |
+| central_rkd_asym | 1.5B | 67.50 | 65.38 | 69.15 | +1.65 | +3.77 | 14.6% |
+| qwen1b_ft_no_icl | 1.5B | 62.19 | 61.90 | 66.54 | +4.35 | +4.64 | 20.4% |
+| qwen1b_ft_icl_k3 | 1.5B | 64.02 | 59.09 | 67.02 | +3.00 | **+7.93** | 17.8% |
+| qwen0.5b_ft_no_icl | 0.5B | 48.55 | 44.29 | 51.84 | +3.29 | +7.55 | 30.3% |
+| qwen0.5b_ft_icl_k3 | 0.5B | 49.03 | 48.07 | 53.09 | +4.06 | +5.02 | 29.8% |
+| teacher | 7B | 78.72 | 78.53 | 80.37 | +1.65 | +1.84 | 4.0% |
+
+6/6 = 100%. Notably `qwen1b_ft_icl_k3` — the single worst uniform-ICL regression
+(−4.93pp last session) — flips to the LARGEST recovery under the gate (+7.93pp):
+training with demos doesn't make the student robust to eval-time ICL, but it
+doesn't defeat the gate either. Fire rate scales inversely with model capacity
+(0.5B ~30% vs 1.5B ~15–20% vs 7B ~4%) — weaker models draft more broken SQL — yet
+the gate stays net-positive at every capacity level tested so far.
+
+**S2 (confidence gate) offline-swept on all 4 arms with a matching full-k3 CSV
+(central_rkd, central_rkd_asym, qwen1b_ft_no_icl, teacher): negligible everywhere.**
+Best case +0.1–0.2pp over exec-only, within noise, and actively worse once tau
+is loosened past roughly −0.1 (too many false-positive fallbacks). Verdict:
+skip live `--icl-gate conf` runs; exec alone is the reportable gate for every
+arm tested.
+
+**codes-retrieval-inside-the-gate: 2/4 data points landed, EX consistent, speed
+NOT.** `central_rkd`: dail_select-gate 70.50% @ 0.735s/q vs codes-gate 69.92%
+@ 0.158s/q (−0.58pp, 4.65× faster). `qwen1b_ft_no_icl`: dail_select-gate 66.54%
+@ 0.549s/q vs codes-gate 66.73% @ 0.620s/q (**+0.19pp, but SLOWER**). EX
+conclusion holds (codes ≈ ties dail_select, both directions within ~0.6pp — safe
+to say codes doesn't cost meaningful accuracy). **The earlier "codes is ~4.6×
+faster" claim does NOT generalize from this second data point** — don't repeat
+it as a general result yet; needs a controlled re-time (same arm, repeated
+trials, explicit cache-warm state) before trusting either number. `--retrieval
+codes` timing is currently unexplained/noisy, not a settled finding.
+`central_rkd_asym_gate_exec_codes` and `teacher_gate_exec_codes` still pending
+on the host (commands already issued, not yet returned).
+
+**`--schema-style codes` (CodeS §6.3 metadata schema, separate axis from
+`--retrieval codes`) discussed, NOT run.** Confirmed via config.json audit:
+0/21 eval runs and 0 training runs have ever used it — every adapter was
+trained with `schema_style=full` (CREATE-TABLE DDL). Can't eval-swap an
+existing adapter onto `--schema-style codes` (model never saw that prompt
+format) — would need a fresh `client_train` run first. Bigger-cost, separate
+research question from the gate work; parked, not scheduled.
+
+**Verified the eval/gate correctness signal is real SQL execution, not a cheaper
+proxy.** `fedicl_sql/eval/metrics.py::_execute` (line 98) opens a real sqlite3
+connection and does `cursor.execute(sql); cursor.fetchall()` — actual rows, not
+`EXPLAIN QUERY PLAN` or a parse-only check. A real 60s timeout via SQLite's
+`progress_handler` (polled during execution — `signal.alarm`/`asyncio` don't
+preempt a blocking C-level call). Both `score_ex_detail` (final EX) and the
+exec-gate's own decision (`eval_loop_gated`, same function) run through this —
+no separate/cheaper check exists for SQLite (no server-side prepare-only step
+that would catch semantic errors like an unknown column without actually
+running). Conclusion: correct as-is, no change warranted; noted as a possible
+future concern only if the public pool `P` scales to BIRD-sized DBs where
+per-row execution cost might matter.
+
+### Next
+
+- [ ] Land `central_rkd_asym_gate_exec_codes` + `teacher_gate_exec_codes` (commands already issued)
+- [ ] Controlled dail_select-vs-codes re-timing (same arm, repeated, explicit cache state) before citing any speed number
+- [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+- [ ] Decide whether a fresh `--schema-style codes` training run is worth scoping (separate track from the gate result)
