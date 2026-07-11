@@ -962,3 +962,43 @@ in `fedicl-sql`.
 - [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
 - [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
 - [ ] Decide whether a fresh `--schema-style codes` training run is worth scoping (separate track from the gate result)
+
+## Session 2026-07-11 — skew RKL implemented (§8.2, Tier-2 A6)
+
+Built the loss-side half of the "better KD/ICL fit" research pass (advisor/PhD-review
+question this session). Implemented **skew RKL** (DistiLLM, Ko et al. 2024,
+arXiv:2402.03898 §3.1): plain `RKL(q‖p)` can blow up wherever the student assigns
+mass the teacher assigns ~0 (`log p → -∞`) — skew mixes the teacher denominator with
+the student's own distribution, `(1-λ)·p + λ·q`, damping the gradient without
+changing the mode-seeking direction.
+
+**`fedicl-sql/` changes:**
+- `fedicl_sql/training/losses.py::rkl_div_loss` — new `skew_lambda: float = 0.0` param.
+  `0.0` (default) takes the exact old code path (`log_denom = t_log`, no extra exp/clamp)
+  — byte-identical output, confirmed by `torch.equal` in the new test, so existing
+  `_ckpt/` resumes and the finished `central_rkd` run are unaffected. `>0` mixes in
+  probability space (`t_log.exp()` + `q`), clamps before `.log()` for numerical safety.
+  `rkl_asym_loss` gained the same param, forwarded straight through (asym path already
+  computed in §8.1, unaffected unless the flag is passed).
+- `fedicl_sql/training/lora_trainer.py` — `LoraTrainConfig.rkl_skew_lambda: float = 0.0`;
+  both call sites (symmetric + asym) pass it through.
+- `experiments/client_train/run.py` — CLI `--rkl-skew-lambda` (default 0.0), validated
+  to require `--kd-direction rkd/kid` (same pattern as `--kd-teacher-k`).
+- 4 new tests: skew=0 matches plain exactly (`torch.equal`), skew=0.1 strictly damps
+  divergence on a full-disagreement case (both `rkl_div_loss` and `rkl_asym_loss`),
+  `LoraTrainConfig` default assertion. 179/179 repo tests pass (was 176).
+
+**Docs:** `system_architecture.md` §8.2 (new, mirrors §8.1's structure) + Tier-2
+ablation table A6 (`rkl vs skew-rkl on the PoC winner, λ~0.1`).
+
+**Not run** — no GPU on this machine. Scoped as a same-cost extension of whichever
+PoC arm wins (`central_rkd_srkd` or `central_kid_srkd`), 1 seed, after the
+RKD-vs-KID verdict — not a third co-equal arm.
+
+### Next
+
+- [ ] (unchanged) P2 `central_kid` on compute host → RKD-vs-KID verdict
+- [ ] After verdict: run A6 (`--rkl-skew-lambda 0.1`) on the winning arm, 1 seed
+- [ ] (unchanged) S1/S2 gate loose ends (see 2026-07-10 sessions) — static/exec-free
+      gate signal still needed for production (no-exec-at-inference constraint)
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
