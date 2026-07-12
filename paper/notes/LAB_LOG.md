@@ -2090,3 +2090,38 @@ runbook (bootstrap → train → eval, same 50.00 floor read-off).
 - [ ] (unchanged) Coder-1.5B student rerun (§7) — independent of the `P`
       question
 - [ ] (unchanged) FedEx-LoRA parked until A4
+
+## Session 2026-07-12 (14) — exec-bootstrap probe: timeout fix + checkpoint/resume
+
+### What changed
+
+Host run of §6e (`scripts/build_exec_bootstrap_probe.py`) measured ~312-400s
+per 16-row batch — 63 batches × that rate ≈ 5.5-7h for a "cheap" 1k-row
+diagnostic. Root cause: `executes()` (reused from `fedicl_sql.eval.metrics`)
+hardcodes `TIMEOUT_SECONDS=60` (correct for real EX scoring, wrong for a bulk
+exec-filter pass on zero-shot SQL against real BIRD DBs) — a handful of
+cartesian-join queries per batch each eating the full 60s ceiling accounts
+for the observed rate. Added a script-local `_quick_execute()` with
+`--exec-timeout` (default 8s — a query that slow is garbage anyway, same
+filtering spirit) and dropped `--max-new-tokens` 256→128. Caps worst-case at
+~128s/batch instead of ~960s.
+
+**Second gap found (user question):** the script had **no checkpoint/resume**
+— a kill lost all progress, since results only wrote to the final CSV after
+the whole loop finished. Direct violation of this repo's own CLAUDE.md rule
+("MANDATORY for any loop that may take >30s: checkpoint/resume"). Fixed:
+every row's result now appends to `<out>.ckpt.jsonl` immediately after
+exec-scoring (flushed per row); a restart skips already-checkpointed
+indices; the final CSV and reported stats rebuild from the full checkpoint
+(all runs combined). Verified the checkpoint load/resume/overwrite logic
+with a standalone unit test (fake JSONL, no GPU needed) — later lines win
+per index, stats correct.
+
+189/189 tests still pass after both fixes.
+
+### Next
+
+- [ ] Kill the stale host process (started before the timeout fix), pull,
+      restart §6e with the checkpointed version — should now run in minutes,
+      not hours, and survives interruption
+- [ ] (unchanged) rest of the queue — §6e result decides BIRD's fate as `P`
