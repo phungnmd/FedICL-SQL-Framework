@@ -1002,3 +1002,1091 @@ RKD-vs-KID verdict — not a third co-equal arm.
 - [ ] (unchanged) S1/S2 gate loose ends (see 2026-07-10 sessions) — static/exec-free
       gate signal still needed for production (no-exec-at-inference constraint)
 - [ ] (unchanged) 2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-11 — ICL methods survey note + scope caveat on ICL-after-FT observations
+
+### What changed
+
+**New note: `paper/notes/icl_methods_survey.md`** — taxonomy 4 trục của ICL
+text-to-SQL (selection / demo source / organization / usage policy), tóm tắt
+12 phương pháp (DAIL, CodeS, ACT, DIN, DCG-SQL, SAFE-SQL, ODIS, MARLO, ASTRES,
+Fed-ICL/IFed-ICL/FICAL, 2 survey), bản đồ "ai compare ai" với số fetch từ paper
+gốc (DCG-SQL có compare DAIL: 82.1 vs 71.2 trên Llama 3.1-8B, 87.5 vs 82.8 trên
+GPT-4; SAFE-SQL: 87.9 vs DAIL 83.6 GPT-4o Spider; MARLO +0.8 vs metadata-masking),
+và đối chiếu với số nội bộ.
+
+**DAIL-vs-codes-vs-question verdict từ results hiện có (33 runs scanned):**
+DAIL ≥ codes ở mọi điểm đo nhưng chỉ rõ trên base model (0.5B base k3: 28.05 vs
+25.82); trong exec-gate thì hòa (±0.6pp trên subset fire nhỏ). Question-sim
+thường: **chưa có run sạch nào ở k3** — cột trống của ablation A5; cần 1–2 run
+`--retrieval question` trên central_rkd (uniform + gate) để thang
+random/question/dail/codes đủ chân.
+
+**Scope caveat declared (user direction): "ICL giúp base / hại FT" KHÔNG được
+phát biểu như finding.** Phạm vi test hiện tại quá hẹp (Spider dev, 1 seed/arm,
+chủ yếu Qwen; gemma_ft +1.35 là counter-datapoint 1 seed). Mọi statement trong
+docs giữ ở mức "current observation, pending confirmation": cần nhiều seed,
+Spider-Realistic, thêm model family trước khi khái quát. LAB_LOG entries cũ giữ
+nguyên (log lịch sử, số per-arm vẫn đúng cho arm đã đo) — riêng
+`system_architecture.md` §5.4 được sửa: rationale "same k train/inference"
+flip từ khẳng định → hypothesis-under-test, kèm ghi chú quan sát ngược chiều
+(k3-trained arm regress mạnh nhất dưới uniform ICL; exec-gate dương trên mọi
+arm đã test) + pointer A2 là ablation quyết định.
+
+### Next
+
+- [ ] A5 mở rộng: chạy `--retrieval question` k3 (uniform + gate exec) trên
+      central_rkd — lấp cột trống trước khi viết §5
+- [ ] Recheck gemma_ft k3 (+1.35) + mở rộng seeds/Spider-Realistic trước mọi
+      câu khái quát ICL-sau-FT
+- [ ] (unchanged) P2 `central_kid` verdict; flip §8.1 killed + advisor note;
+      2602.12275 + 2602.18749 novelty check; advisor sign-off items
+
+## Session 2026-07-11 (2) — P2 `central_kid` verdict: RKD wins EX, KID wins ICL-robustness
+
+### What changed
+
+**PoC ladder complete** (P0 proxy / P1 `central_rkd` / P2 `central_kid`, all 3
+ICL conditions each, `Qwen2.5-1.5B-Instruct` ← `Qwen2.5-Coder-7B-Instruct`
+4-bit teacher, seed 0, matched hyperparams confirmed by diffing
+`experiments/client_train/results/*/config.json` for both adapters — identical
+`epochs/lr/lora_r/max_len/beta_struct=2.0/lambda_ft=lambda_kd=1.0/teacher_4bit/
+train_k=0/seed`, differ only in `kd_direction` + `mask_ratio` (kid-only)):
+
+| condition | RKD | KID | Δ(KID−RKD) |
+|---|---|---|---|
+| k=0 (floor) | 68.28 | 66.83 | −1.45 |
+| k=3 dail uniform | 65.86 | 65.96 | **+0.10** |
+| k=3 dail gate_exec | 70.50 | 69.15 | −1.35 |
+
+`rkd − ft_proxy(qwen1b_ft_no_icl_k0=62.19)` = **+6.09 EX** (teacher-logit KD
+signal is real, validates building further). `kid − rkd` = **−1.45 EX** at the
+floor — **opposite [10]'s own headline result** (KID ≥ RKD on every pair they
+report, e.g. QWen1.5-0.5B←1.8B: RKD 62.7 vs KID 63.7, +1.0). Margin size is
+comparable (~1–1.5pp both directions), just flipped sign.
+
+**Second finding, not just noise — KID is more ICL-robust, not just weaker:**
+Δ(uniform ICL vs own k=0) = RKD −2.42 vs KID **−0.87** (2.8× smaller hit).
+Consistent losing/tying across all 3 conditions (never a clean KID win except
+the trivial +0.10 tie) argues against pure 1-seed noise — noise would more
+likely flip sign inconsistently across conditions, not lose 2/3 + tie 1/3.
+The robustness delta echoes [10]'s own claimed benefit (paper reports KID
++2.7 Spider-DK / +2.1 Spider-Realistic robustness gains) — same underlying
+mechanism (mask-rewrite exposure → less brittle under prompt perturbation),
+different measurement axis (ICL-injection sensitivity here vs domain-shift
+benchmarks there).
+
+**Research pass: checked our implementation against [10] itself (no public
+code exists — verified via arXiv page, GitHub search, PapersWithCode,
+OpenReview, full paper text: zero code-availability statement anywhere).**
+Masking (Random, ρ=0.2) and rewrite (student one-pass greedy fill) match the
+paper's prose exactly. Two things the paper explicitly leaves undefined —
+confirmed by direct quote: *"the better combination of the distillation loss
+and MLE loss is still under-explored, which is in our future work"* (no λ
+schedule, no formula) — are candidate levers for the EX gap, both isolated to
+KID only (RKD untouched by either):
+
+1. **Mask-token choice** (`fedicl_sql/training/imperfect.py:43`,
+   `mask_token_id = tokenizer.pad_token_id`) — verified Qwen2.5-1.5B's
+   pad_token_id (151643, `<|endoftext|>`) is distinct from eos (151645,
+   `<|im_end|>`), so not an eos-collision bug, but still a semantically-loaded
+   special token substituted mid-sequence, unlike anything in the base
+   model's pretrain distribution. Causal LMs have no true `[MASK]` — the
+   paper doesn't pin a substitute either.
+2. **λ_ft:λ_kd = 1:1 static weighting** (`lora_trainer.py` `LoraTrainConfig`)
+   — applied identically to both arms so it can't bias one over the other by
+   itself, but RKD's clean-target signal and KID's noisy-target signal may
+   simply want different ratios; paper gives zero guidance to pick one over
+   the other.
+
+### Read for the paper
+
+Two-axis story, not a single pass/fail: **RKD wins accuracy** (ships as the
+headline arm per raw EX at every condition tested) — **KID wins robustness**
+(smaller ICL-sensitivity delta, worth reporting as a §5 analysis finding
+regardless of which direction ships, ties directly into the gated-ICL
+narrative: an arm's inherent robustness to prompt content changes how much a
+gate is even needed).
+
+### Next
+
+- [ ] Decide RKD ships as the server-distill direction (§8/§9) — pending
+      advisor sign-off; KID's robustness finding still worth a §5 sentence
+      either way
+- [ ] Second seed (both `central_rkd` + `central_kid`) before stating the EX
+      gap as a firm number — pattern is consistent across 3 conditions but
+      still 1 seed each
+- [ ] Optional diagnostic (cheap): swap `mask_token_id` to a less
+      semantically-loaded token, rerun `central_kid` 1 seed — check if the EX
+      gap closes (candidate #1 above)
+- [ ] Optional diagnostic: sweep `--rkl-skew-lambda` or a KID-only
+      `--lambda-kd` on top of the existing skew-RKL code (§8.2) instead of
+      assuming 1:1 (candidate #2 above)
+- [ ] Flip §8.1 to killed (criterion met, −0.78 EX) + advisor note (carried
+      over, still not done)
+- [ ] (unchanged) A5 question-sim gap-fill; 2602.12275 + 2602.18749 novelty
+      check; advisor sign-off items
+
+## Session 2026-07-11 (3) — row-level gate audit + A5 question-sim lands; claims re-based on data; architecture updated
+
+Full row-level pass over the prediction CSVs (all 8 gate arms + KD ladder +
+the 2 new runs), not the aggregate metrics. Every number below recomputed
+from `predictions/*.csv`, paired per `row_id`.
+
+### New runs (A5 question-sim gap-fill, `central_rkd` adapter)
+
+| run | arm | EX |
+|---|---|---|
+| `eval_arms__s0__20260711T121940` | `central_rkd_qsim_k3` (uniform) | 65.28 |
+| `eval_arms__s0__20260711T122827` | `central_rkd_qsim_k3gate` (exec gate) | **70.79** |
+
+### Finding 1 — the gate's "beats k=0" is mechanical, its real content is the repair rate
+
+Verified on data: all 146 fired rows (`central_rkd`) have k0 EX = 0 (exec
+error ⇒ wrong by definition), and every non-fired row's answer is identical
+to the k0 run's. So **gate ≥ k0 by construction**; the empirical content is
+`fire_rate × repair_rate` only (repair = 23/146 = 15.8%). Paper must frame it
+this way — "wins 6/6 arms vs k0" is true but empty.
+
+### Finding 2 — gate value vs uniform ICL is mostly *protection*, not repair
+
+Decomposition (rows), all arms:
+
+| arm | repair | protect | fallback also exec-fails | McNemar vs uniform |
+|---|---|---|---|---|
+| central_rkd | +23 | +47 | 106/146 (73%) | p=2.7e-06 |
+| rkd_asym | +17 | +41 | 115/151 | p=9.3e-05 |
+| ft_no_icl | +45 | +46 | 125/211 | p=1.4e-05 |
+| ft_icl_k3 | +31 | +84 | 118/184 | p=1.8e-10 |
+| 0.5b_ft | +34 | +79 | 240/313 (77%) | p=1.7e-10 |
+| teacher | +17 | +19 | 16/41 | p=0.048 (borderline) |
+| central_kid | +24 | +34 | 120/167 | p=9.2e-04 |
+| gemma_ft | +31 | +16 | 113/166 | **p=0.12 n.s.** |
+
+2/3 of the gate-vs-uniform delta = *not* showing demos to good drafts. The
+ICL fallback itself fails to execute 68–77% of the times it is called.
+**gemma breaks the universality**: uniform ICL is positive there (+1.35) and
+gate-vs-uniform is not significant — "uniform ICL hurts FT models" is a
+Qwen-family observation (consistent with the 2026-07-11 scope caveat).
+Repairs also don't reach hard queries: central_rkd fired extra=45 → repaired
+2, hard=32 → repaired 1; 88% of draft errors are `no such column`, demos fix
+17/129 of those.
+
+### Finding 3 — repair looks like perturbation, not demo-knowledge transfer 🔴
+
+Same adapter, same 146 fired rows, three demo sets: dail repairs 23, qsim 26,
+codes 17 — **only 6 rows repaired by all three** (union 44). Which rows get
+repaired is nearly idiosyncratic to the demo set. Combined with Finding 2 and
+qsim ≈ dail everywhere (uniform p=0.69, gated p=0.72), the working hypothesis
+is now: **post-KD, ICL's repair effect is stochastic prompt perturbation**.
+Attribution control = the A5 `random`-demos rung (one cheap run, decides
+whether §5 says "ICL repairs" or "selective retry repairs").
+
+### Finding 4 — KD ladder significance (paired McNemar, k=0)
+
+- `rkd − ft` = +6.09 EX: 107 vs 44 discordant, **p=3.1e-07 — solid**. The KD
+  signal is the paper's backbone; federation build is justified.
+- `rkd − kid` = −1.45 EX: 38 vs 23, **p=0.072 — NOT significant at 1 seed**.
+  The earlier "consistent across 3 conditions ⇒ not noise" argument is weak
+  (same adapters, same test set — conditions aren't independent). RKD stays
+  the provisional direction; seed 2 required before it's a paper number.
+- Stack noise floor measured: 17/146 fired rows produce different greedy
+  output across runs with identical prompts (batching nondeterminism) —
+  deltas under ~0.5pp are unreadable.
+
+### Decisions / doc changes (`system_architecture.md`, this session)
+
+1. §0 status: PoC marked complete; RKD provisional winner; federation = top
+   priority (paper has zero federated numbers).
+2. §1 novelty claim 3 reframed: DAIL-consistency → **ICL usage-policy
+   contribution** (selective gate + retrieval-insensitivity + pool-quality
+   analysis). Flagged for advisor sign-off (touches approved outline's RQ2).
+3. §2/§6/§7: Phase 4 inference = **gated ICL** (k=0 draft → exec on local DB
+   → k=3 fallback on error only); retrieval on fallback = question-sim
+   default (simpler stack, equal EX, drops the broken-spacy dependency).
+4. §5.4 + §9 + invariant #4: best measured config = train k=0 + gated
+   inference; A2 reframed to `train-k0+gate` vs `train-k2 consistent`;
+   invariant amended (gate = documented exception, not train/test mismatch);
+   both honesty caveats (mechanical floor, unresolved attribution) written in.
+5. §8.1 asym flipped to **KILLED** (−0.78 EX vs pre-registered +1 floor;
+   advisor note still owed, informational).
+6. SS retrieval **closed without running** (A5 convergence condition fired).
+7. A5 table: 3/4 columns done; only `random` left (= attribution control).
+
+### Next (priority order)
+
+- [ ] Build federation: pick pool `P` (Spider held-out ~15% candidate,
+      nothing in the data argues against it), generate K=8 α=0.5 split,
+      FedAvg + server-distill loop → `fedavg` vs `fedkd` is the paper's
+      make-or-break pair
+- [ ] Seed 2 for `central_rkd` + `central_kid` (settles the −1.45 direction
+      question) — cheap, run alongside
+- [ ] A5 `random`-demos rung (uniform + gate, `central_rkd`) — attribution
+      control for the whole gate story
+- [ ] Advisor sign-off bundle: server-side pivot + novelty-claim-3 reframe +
+      §8.1 kill note + RKD provisional pick
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check
+
+## Session 2026-07-11 (4) — A5 random rung lands: attribution settled, gate renamed verifier-gated retry
+
+### New runs (`central_rkd` adapter, seed 0)
+
+| run | arm | EX |
+|---|---|---|
+| `eval_arms__s0__20260711T133139` | `central_rkd_random_k3` (uniform) | 66.83 |
+| `eval_arms__s0__20260711T134219` | `central_rkd_random_k3gate` (exec gate) | 70.41 |
+
+### A5 thang COMPLETE 4/4 — full table (same adapter, same 146 fired rows)
+
+| retrieval | uniform k3 | gate exec | repairs |
+|---|---|---|---|
+| random | 66.83 | 70.41 | 22/146 |
+| question-sim | 65.28 | 70.79 | 26/146 |
+| dail_select | 65.86 | 70.50 | 23/146 |
+| codes | — | 69.92 | 17/146 |
+
+### Findings
+
+1. **Attribution settled: repair = prompt perturbation + execution verify,
+   NOT demo content.** Random demos from unrelated DBs repair broken drafts
+   exactly as well as DAIL-selected demos (22 vs 23 repairs, McNemar p=1.00).
+   Gate spread across all 4 demo sets = 0.87pp (noise floor ~0.5pp). This was
+   the open control since session (3) — it ran, it decided.
+2. **Repair sets nearly disjoint:** pairwise overlap 9–11 rows, all-4 common
+   only 5, union 50/146 (34%). Which rows get repaired is idiosyncratic to
+   the demo set — consistent with stochastic perturbation, and it motivates
+   a multi-retry gate (ceiling ≈ union ≈ oracle 73.0 EX, +4.8pp vs k0).
+3. **Inverse-relevance trend at uniform (not significant, mechanism-consistent):**
+   damage grows with demo relevance — breaks: random 58 < DAIL 74 < qsim 83
+   (uniform random 66.83 > DAIL 65.86 > qsim 65.28, random-vs-DAIL p=0.40).
+   Better selection provides zero protection and possibly more temptation to
+   copy.
+4. **Answers to the session's three questions:** (a) yes — all selection
+   methods measurably equal on a FT/KD student, both usage modes; (b) ICL
+   contributes nothing *as knowledge* post-FT/KD (Qwen/Spider/1-seed scope;
+   base + teacher models still benefit from selection); (c) the exec gate is
+   NOT random — +2.1–2.2pp reproduced across 4 demo sets, deterministic fired
+   set, p<1e-5 vs uniform — but its mechanism is execution verification +
+   perturbed retry, so it is renamed **verifier-gated retry**; ICL is just
+   the perturbation medium.
+
+### Doc changes (`system_architecture.md`)
+
+- §1 claim 3 re-reframed (2nd time today): "selective-ICL usage policy" →
+  **verifier-gated retry** + demo-content-doesn't-matter finding; advisor
+  sign-off flag kept.
+- §5.2 status block: full 4/4 A5 table + attribution verdict + consequences
+  (fallback retrieval = anything cheap; static cached demos make the client
+  retrieval stack optional; DAIL's remaining home = teacher-side ICL in
+  server distill; multi-retry motivation).
+- §5.4 caveat (b) flipped to RESOLVED.
+- §10 A5 row: DONE 4/4, no further runs; ships as the §5 table.
+- §9 k_teacher: ablate 0 first (teacher-ICL value = the one live ICL question).
+- Tier 3 += multi-retry gate (1 eval run) + static-demos gate (1 run).
+
+### ICL direction going forward (decided this session)
+
+- Paper §5: lead with "demo content stops mattering post-FT/KD" (thang +
+  disjoint repairs + inverse trend), then verifier-gated retry as the cheap
+  test-time-verification overlay (CSC-SQL cited as the expensive relative).
+- Framework: the only place ICL can still earn its name = **teacher-side ICL
+  during server distillation** (k_teacher 3-vs-0 ablation, priority when
+  federation is built). Context distillation (2602.12275) stays a gated
+  novelty-check item, opened only if teacher-ICL shows signal.
+- Cheap Tier-3 runs queued: multi-retry gate, static-demos gate.
+
+### Next
+
+- [ ] (top, unchanged) federation build: pool `P` probe + FedAvg +
+      server-distill RKD → `fedavg` vs `fedkd`
+- [ ] Seed 2 rkd/kid; coder-base student PoC rerun (v2 proposal §build-order)
+- [ ] Tier-3 quickies when GPU idle: multi-retry gate, static-demos gate
+- [ ] Advisor bundle: pivot + claim-3 (now verifier-gated retry) + §8.1 kill +
+      RKD pick + v2 proposal
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check
+
+## Session 2026-07-12 — ICL selection thang extended to 4 base-model families: no regime found where selection sophistication pays
+
+### New runs (uniform k3, base models, no gate) — 16 runs, seed 0
+
+| family | k0 | dail | question | random | codes |
+|---|---|---|---|---|---|
+| qwen0.5B | 23.31 | 28.05 | 27.76 | 30.08 | 25.82 |
+| qwen1.5B | 50.00 | 54.26 | 50.77 | 53.58 | 52.13 |
+| gemma-2-2b | 52.22 | 50.77 | 47.78 | 49.52 | 50.97 |
+| llama-3.2-1b | 37.33 | 35.01 | 30.46 | 35.69 | 37.23 |
+
+### Findings
+
+1. **ICL's sign is a base-model-family property, not a method property.**
+   Qwen (both sizes): every selection method net-positive vs k0, DAIL and
+   random both significant. gemma + Llama: flat-to-negative across every
+   method, question-sim significantly harmful on both (p=.002, p=1e-5).
+   Mirrors (inverted) the FT-side family split already on record
+   (gemma_ft +1.35 vs Qwen FT arms negative) — 4 families now confirm
+   family idiosyncrasy dominates any general "ICL helps/hurts" claim.
+2. **Selection sophistication doesn't pay even where ICL itself pays.**
+   `dail vs random` McNemar never significant in any of the 4 families
+   (p=0.20–0.70). On qwen0.5B — the family with the largest ICL gain
+   (+49…+70 EX net) — **random (30.08) beats full DAIL (28.05)**. This
+   closes the last place selection sophistication could have mattered (the
+   2026-07-11 doc note "DAIL stays relevant... base models (0.5B: DAIL
+   28.05 vs codes 25.82)" is now stale — codes was the wrong comparison;
+   random beats both).
+3. **Question-sim is the worst-performing method, 3/4 families**, and the
+   only one to land significantly *harmful* on two of them. Mechanism read:
+   pure question-similarity retrieves near-duplicate questions from other
+   schemas — maximal schema-bleed exposure — whereas random's dissimilarity
+   is easier for the model to discount.
+4. **Combined with the 2026-07-11 post-FT/KD result: no regime found across
+   the whole project where demo-selection sophistication measurably pays** —
+   not uniform, not gated, not FT/KD, not base, across 4 model families and
+   2 usage policies. The only remaining open question is teacher-side ICL
+   during server distillation (soft-label regime, not yet tested) — and even
+   there the prior is now low: the teacher's own uniform-ICL eval already
+   shows k3 ≈ k0 (78.53 vs 78.72, session 2026-07-08).
+
+### Doc changes (`system_architecture.md`)
+
+- §5.2: added the 2026-07-12 extension block (4-family table + both
+  findings) superseding the stale 2026-07-11 "DAIL stays relevant... base
+  models" line; consequences rewritten — no surviving regime for selection
+  sophistication; `teacher-k3 vs k0` ablation reframed as low-prior-but-still-
+  worth-running (soft-label regime differs from greedy generation).
+
+### Next
+
+- [ ] (top, unchanged) federation build: pool `P` probe + FedAvg +
+      server-distill RKD → `fedavg` vs `fedkd`
+- [ ] Seed 2 rkd/kid; coder-base student PoC rerun (v2 proposal §build-order)
+- [ ] Tier-3 quickies when GPU idle: multi-retry gate, static-demos gate
+- [ ] `teacher-k3 vs k0` distill ablation once federation is built — expect
+      null, run for completeness
+- [ ] Advisor bundle: pivot + claim-3 (verifier-gated retry, now backed by
+      4-family base evidence too) + §8.1 kill + RKD pick + v2 proposal
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check
+
+## Session 2026-07-12 (2) — ICL theory research; policy locked 3 tầng; KD+ICL roadmap; probe P staged
+
+### Research pass: vì sao mình thấy khác lit (chi tiết: `icl_methods_survey.md` §6 mới)
+
+- **TR vs TL** (Pan 2305.09731): student 0.5–2B = task-recognition regime —
+  demos chỉ scaffold format, selection không thể giúp; thang selection của
+  lit toàn đo trên GPT-4/Claude/Codex (TL-capable). random ≈ DAIL của mình =
+  dự đoán của theory, không phải anomaly.
+- **Min 2202.12837**: demo đúng/sai gần như không đổi kết quả ICL — khớp
+  random > DAIL trên 0.5B base + question-sim tệ nhất (near-duplicate +
+  schema sai = kênh copy độc nhất).
+- **2602.23197** (02/2026): chứng minh FT zero-shot-loss làm suy giảm ICL
+  (linear attention); lối ra: value-only FT hoặc auxiliary few-shot loss.
+  Random-k injection mặc định của `build_examples` = dạng aux-loss →
+  `ft_icl_k3` đọc lại là tín hiệu yếu ủng hộ (k0 floor +1.8, gate +7.93).
+- **Chính [9] đã thấy hiện tượng**: *"after fine-tuning we also observe a
+  decrease in in-context learning capability, which requires further study"*
+  — §5 của mình là further study đó. Mở §5 bằng quote này.
+
+### Quyết định — ICL policy 3 tầng (chốt, chờ advisor bundle)
+
+client training k=0 · client inference = verifier-gated retry (fallback
+question-sim) · teacher distill context = DAIL k_teacher=3, ablate 0.
+Selection method KHÔNG phải contribution; §5 analysis + usage policy là.
+Nếu k_teacher 0 ≈ 3 → tên "Fed-ICKD" chỉ còn chống bằng inference policy —
+đưa câu hỏi đổi tên vào advisor bundle.
+
+### Roadmap KD+ICL (queue, thứ tự cứng)
+
+1. Probe P (SynSQL 1k vs Spider-1k control) — staged xong session này
+2. PoC rerun trên Qwen2.5-Coder-1.5B (chốt student trước federation)
+3. Split K=8 α=0.5 + FedAvg + server-distill → `fedavg` vs `fedkd_rkd` (sống còn)
+4. `k_teacher 3-vs-0` (gắn vào bước 3)
+5. Seed 2 rkd/kid (nền)
+6. `fedkd_onpolicy` → `+exec-filter` (v2 §V2-1/2)
+7. Tier-3 rẻ: multi-retry gate · static-demos gate · Spider-Realistic §5 ·
+   (opt) LoRA value-only ablation (2602.23197)
+Cắt nếu thiếu thời gian: 6–7. Không bao giờ cắt 3.
+
+### Probe P staged (code repo) — v1 broken, fixed same day
+
+- **new** `scripts/build_synsql_probe.py` — v1 dùng
+  `datasets.load_dataset("seeklhy/SynSQL-2.5M", streaming=True)` không
+  `data_files=` → **chạy trên compute host báo lỗi**
+  (`ArrowInvalid: JSON parse error... databases.zip::.../*.sqlite`): HF loader
+  glob cả 3 file của repo (`data.json` 9.36GB, `tables.json` 307MB,
+  `databases.zip` 54.5MB) vào chung 1 JSON builder, cố parse từng `.sqlite`
+  trong zip như JSON.
+  **Root cause + fix** (đối chiếu `train_and_evaluate/process_dataset.py`
+  của chính OmniSQL/SynSQL trên GitHub): SynSQL-2.5M không phải
+  `datasets`-loadable split — `data.json` là 1 JSON array lớn (field thật:
+  `question`, `sql`/`query`, `db_id`, `cot`, không có field DDL sẵn),
+  `databases.zip` chứa SQLite thật tại `databases/<db_id>/<db_id>.sqlite`.
+  Viết lại: `huggingface_hub.hf_hub_download` tải riêng `data.json` +
+  `databases.zip`; stream `data.json` bằng `ijson` (thêm dep `ijson>=3.3`
+  vào `pyproject.toml`) + **reservoir sampling** (Algorithm R, constant
+  memory, không cần giữ 2.5M record) lấy 1k; `db_path` trỏ thẳng SQLite
+  **thật** đã extract (không phải DB rỗng như v1 — sẵn sàng cho bước
+  exec-filter distill sau này luôn, khỏi làm lại). + control slice 1k từ
+  Spider centralized train (cùng seed, không đổi). Smoke-tested local
+  (reservoir algorithm + zip-extract layout `databases/<id>/<id>.sqlite`).
+  Chưa test full path với network thật (data.json 9.36GB) — chạy trên
+  compute host sẽ lộ nếu field name suy đoán (`sql`/`query`/`SQL`) sai; script
+  in ra `columns: question=... sql=... complexity=...` dòng đầu để soi ngay.
+- `notebooks/kd/README.md` §6 — lệnh chạy KHÔNG đổi (vẫn 3 bước: build →
+  2× train → 1 eval chung); read-off pre-registered: pass nếu
+  `synsql1k ≥ 50.00` (base floor) và `spider1k − synsql1k ≤ ~5 EX`; fail →
+  P = Spider held-out 15%.
+
+### Docs touched
+
+`icl_methods_survey.md` (§3 bảng nội bộ đủ 4 cột + §6 theory + 5 refs mới) ·
+`notebooks/kd/README.md` (§6 probe) · `scripts/build_synsql_probe.py` (new) ·
+`system_architecture.md` §5.2 đã có block 4-family từ session trước (user).
+
+### Next
+
+- [ ] Chạy probe P trên compute host (runbook §6) → verdict pool
+- [ ] (queue #2) PoC rerun Coder-1.5B
+- [ ] Advisor bundle (giờ gồm cả policy 3 tầng + câu hỏi tên Fed-ICKD)
+- [ ] (unchanged) 2602.12275 + 2602.18749 novelty check
+
+## Session 2026-07-12 — pool `P` DECIDED: BIRD train (user); ICL research pass anchored in theory
+
+### Decision — `P` = BIRD train (user, 2026-07-12)
+
+Reverses the 2026-07-07 BIRD drop **for the pool-`P` role only** (BIRD stays
+dropped as an eval benchmark). Rationale: ~9.4k train questions ≈ Spider's
+8.7k — right-sized for a distillation pool, human-curated, real executable
+SQLite DBs (satisfies the v2 exec-filter precondition), distribution-disjoint
+from client data, reviewer-familiar. Chosen over the v2 proposal's SynSQL-2.5M
+subset (judged overkill); SynSQL demoted to fallback + A3 ablation candidate.
+
+Caveats carried from the 07-07 drop, mitigated by the narrower role:
+multi-GB train_databases download (once, host, train split only); `evidence`
+field handling = single declared config choice, never mixed in a comparison;
+dialect gap acceptable for a distill corpus. **Mandatory kill-switch before
+any distill build: E0.1 probe** (1k BIRD-gold SFT from base → eval Spider
+dev; if the Spider floor drops → escalate, fallback Spider held-out / SynSQL).
+
+Docs updated: `system_architecture.md` §0 / §2 diagram / §3.2 (rewritten with
+decision + caveats + probe gate) / §9 config table / §10 A3 row;
+`fed_ickd_v2_proposal.md` V2-3 rewritten + pipeline/build-order/risk rows +
+stale lines fixed (random-rung status, P status).
+
+### ICL research pass (same session, earlier) — why our phenomenon matches the lit
+
+- **[9] DAIL-SQL itself observed it**: "after fine-tuning we also observe a
+  decrease in in-context learning capability, which requires further study"
+  (verbatim, their conclusions). Our §5 = that further study.
+- **Theory**: TR-vs-TL (Pan et al. 2305.09731; Min et al. 2202.12837) — 0.5–1.5B
+  students are in the task-recognition regime where demo *content* cannot
+  matter (random ≈ selected is the predicted outcome); every lit selection
+  ladder (DAIL/MARLO/SAFE/ODIS) was measured on TL-capable API-class models.
+  **2602.23197** proves FT-on-zero-shot-loss structurally degrades ICL
+  (linear-attention analysis) and suggests value-only FT + auxiliary few-shot
+  loss as mitigations — our random-k `build_examples` default is close to the
+  aux-loss recipe, and `ft_icl_k3`'s better k0 floor (64.02 vs 62.19) + best
+  gate recovery (+7.93) reads as weak supporting evidence.
+- **ICL policy for the paper (3 tiers, decided)**: client train k=0 · client
+  inference = verifier-gated retry with question-sim fallback · teacher-side
+  DAIL k_teacher=3 (ablate 0 — decides the "IC" in Fed-ICKD's name; advisor
+  question flagged).
+- Candidate extra runs (Tier-2/3): LoRA value-only ablation (theory check),
+  multi-retry gate, static-demos gate, Spider-Realistic for §5 claims.
+
+### Consolidated run queue (KD + ICL, priority order)
+
+1. E0.1 BIRD→Spider probe (kill-switch for `P`) — ~1–2h
+2. Coder-1.5B student PoC rerun (`ft`/`rkd` + k0/gate evals) — ~half day
+3. **K=8 α=0.5 split + FedAvg + server-distill → `fedavg` vs `fedkd_rkd`** —
+   the paper's first federated numbers (make-or-break)
+4. `k_teacher` 3-vs-0 (rides along step 3)
+5. Seed 2 `central_rkd`/`central_kid` (background)
+6. v2 arms: `fedkd_onpolicy` → `+exec_filter`
+7. Tier-3 cheap: multi-retry gate, static-demos gate, Spider-Realistic, (opt)
+   LoRA value-only
+
+Parallel, no GPU: write §2/§5, redraw Fig. 1, send advisor bundle (pivot +
+RKD pick + claim-3 reframe + §8.1 kill + v2 proposal + BIRD-P decision +
+Fed-ICKD naming question).
+
+### Next
+
+- [ ] E0.1 BIRD probe on compute host (blocks distill build)
+- [ ] Download BIRD train split (once, host)
+- [ ] (queue above, in order)
+- [ ] Advisor bundle — now includes the BIRD-P reversal (advisor saw the
+      07-07 drop rationale; the reversal needs their eyes too)
+
+## Session 2026-07-12 (2) — BIRD evidence/description handling decided + implemented
+
+### Decision
+
+Both dropped from every prompt on `P` (BIRD train): `evidence` (per-question
+hint string BIRD ships) and `database_description/*.csv` (per-column meaning
+files BIRD ships, separate from the sqlite DBs). Not laziness — clients
+train/deploy on Spider (neither field exists there), and `build_prompt`
+already renders schema DDL straight from sqlite for both datasets. Dropping
+both on `P` keeps the distilled global student's prompt format identical to
+what it deploys on at the client — the alternative (include on `P` only)
+reintroduces the exact train/inference mismatch invariant #9 forbids, just
+moved to the server side.
+
+### Implemented (`fedicl-sql/`)
+
+- `fedicl_sql/data/spider.py` — `SpiderExample.evidence: str = ""` (trailing
+  default, backward-compatible with every existing positional 4-arg call
+  site — verified: full suite still 189/189 green).
+- `fedicl_sql/data/bird.py` — `load_bird` now captures `row.get("evidence", "")`
+  onto the example; docstring points at spider.py for why it's unused.
+- `tests/test_bird_data.py` — both tests assert the field (captured with a
+  real string in one, defaulted `""` when absent in the other) — makes the
+  "captured but never read by the prompt builder" contract a tested fact,
+  not an accident that could silently reverse.
+- `processed_data/BIRD/{raw,centralized}/*.csv` rebuilt via
+  `build_processed_bird.py` — new `evidence` column present (9,428 train /
+  1,534 dev rows). `database_description/*.csv` left untouched, not wired
+  anywhere — `schema_style=full` DDL-only stays the schema source for BIRD,
+  same as Spider.
+
+### Known risk, flagged not fixed
+
+RKD/KID teacher-force-score gold BIRD SQL (`score_logits`) — BIRD columns are
+often cryptic and some gold queries are only decidable given `evidence`
+(enum/threshold definitions the schema alone doesn't state). Without it the
+teacher may assign low probability to gold tokens it can't justify, injecting
+noisy RKL signal specifically at those positions. Client CE is unaffected
+(never sees BIRD). **Escalation path if `fedkd_bird` underperforms
+suspiciously:** reuse the asymmetric-context KD machinery already built for
+§8.1 (`teacher_prompt_ids`, `rkl_asym_loss` — killed for its original
+k-mismatch purpose, plumbing is generic) to score the teacher on an
+evidence-augmented prompt while the student-facing target prompt on `P` stays
+evidence-free. Not built now — only pull this lever if the E0.1 probe or
+early distill numbers actually implicate evidence.
+
+### Docs updated
+
+`system_architecture.md` §3.2 — evidence/description caveat rewritten from
+"pick one, TBD" to the decided-and-implemented policy + the risk/escalation
+paragraph above.
+
+### Next
+
+- [ ] (top, unchanged) E0.1 BIRD→Spider probe — the real test of whether
+      dropping evidence (among other gaps) hurts transfer
+- [ ] (unchanged) rest of the federation build queue from session (1)
+
+## Session 2026-07-12 (3) — dropped the client-ICL-policy invariant (over-rigid)
+
+User call: §11's former #4 ("client ICL usage policy declared, not mixed" —
+hard-forbade uniform eval-time ICL on a k=0-trained model) was too rigid — it
+literally forbade the exact configuration A2/A5/`*_k3dail` runs already use
+on purpose, which is where §5's findings come from. A "never violate" rule
+is the wrong container for something a future run can overturn.
+
+**Removed** from §11 (was #4), list renumbered 1–7 (old 5→4 ... 8→7). The
+underlying observation is unaffected — it stays exactly where it already
+lived, §5.4, tagged "hypothesis, not established," which is the correct
+epistemic status. Fixed 3 now-dangling cross-references: §3.2's evidence-drop
+rationale (reworded from "invariant forbids" to "design default, itself
+open to a future ablation"), §8.1's asym-KD note (reworded, no invariant
+citation needed — it was just a factual observation about that variant).
+
+Reviewed the other 7 invariants for the same rigidity problem — none qualify:
+1/2 (privacy: raw data/teacher never touch each other) are structural, not
+research choices. 4/5 (demo pool ≠ test set; `P` DB-disjoint from
+clients+eval) are anti-contamination rules tied to eval integrity (5's LOO
+leak already burned the project once, 2026-06-18) — same category as "don't
+peek at the test set," not a methodology preference. 6/7 (seeded splits +
+provenance; one stack per comparison) are bookkeeping hygiene, block nothing.
+#3 (KD loss = reverse KL, never forward/relational) is a build decision with
+a documented rationale (the 07-08 pivot) and doesn't currently forbid any
+planned run — left as-is, flagged as the next candidate to revisit if it
+ever blocks a real ablation the same way #4 did.
+
+### Next
+
+- [ ] (unchanged) rest of the federation build queue
+
+## Session 2026-07-12 (4) — BIRD evidence escalation revised: CE-poisoning risk recorded, filter-first ladder
+
+### What changed
+
+Architecture-review pass on the BIRD evidence/description decision (session (2)
+above) found the recorded risk **understated**: on evidence-dependent rows of
+`P`, dropping `evidence` exposes **both** server-distill loss terms, not just
+the teacher's RKL scoring:
+
+1. **RKL** (already recorded): teacher-forced `score_logits` on gold it can't
+   justify → noisy gradient at exactly the evidence-dependent positions.
+2. **CE (`λ_ft·CE(y_pub)`) — new, previously unrecorded:** the distill CE
+   trains the global student to emit gold SQL underivable from its own prompt
+   (enum/threshold literals, cryptic columns) = hallucination training, taken
+   every round. Client CE unaffected (never sees BIRD).
+
+This breaks the old escalation path: asym teacher-evidence (`rkl_asym_loss`
+reuse) fixes RKL only and leaves CE poisoned.
+
+### Decision — escalation ladder reordered (default unchanged: drop both)
+
+`system_architecture.md` §3.2 rewritten:
+
+- **D (first lever) — filter `P` by evidence-Δ scoring.** One offline teacher
+  pass, `Δ = logprob_T(gold | prompt+evidence) − logprob_T(gold | prompt)`,
+  2 teacher-forced forwards/row — same infra as the Phase-1 RKD logit cache
+  (near-free if run in that pass). Keep low-Δ rows for the distill subset
+  (§3.2 only needs a few hundred–few thousand of 9.4k). Fixes CE **and** RKL,
+  keeps KD symmetric (offline cache valid). The Δ histogram doubles as a
+  quantitative "fraction of BIRD that is evidence-dependent" number feeding
+  the A3 pool-quality analysis — part of the contribution, not a patch.
+  `evidence` column already in `processed_data/BIRD/*.csv` (session (2)).
+- **B (second) — asym teacher-evidence** (§8.1 plumbing): only if filtering
+  isn't enough; caveats recorded (RKL-only fix; evidence-confident teacher
+  pulls the student toward ungroundable tokens).
+- **C (last resort) — evidence in both prompts on `P`:** controlled
+  A3-adjacent ablation only, never a silent default (server-side rerun of the
+  −30-flip train/inference-mismatch failure class).
+
+**`database_description/*.csv`: dropped permanently, no escalation** — wiring
+it = a new `schema_style` no adapter ever trained on (config audit 07-10:
+0/21 runs); separate costly axis, and `evidence` carries most of the
+gold-decidability information.
+
+Nothing built — E0.1 probe stays the gate. D's Δ-scoring may run
+opportunistically inside the Phase-1 cache pass even if the probe passes
+(near-zero marginal cost, feeds A3).
+
+### Next
+
+- [ ] (top, unchanged) E0.1 BIRD→Spider probe on compute host
+- [ ] When building Phase-1 logit cache: run evidence-Δ scoring in the same
+      pass → Δ histogram for A3
+- [ ] (unchanged) rest of the federation build queue from session (1)
+
+## Session 2026-07-12 (5) — SynSQL removed entirely (user decision); real `load_csv` bug found + fixed
+
+### What changed
+
+**SynSQL-2.5M dropped completely** (user decision) — it was only ever a
+fallback-pool candidate for `P`, superseded 2026-07-12 by BIRD, and had never
+been run (§V2-3, LAB_LOG session (1)). Removed: `fedicl-sql/scripts/
+build_synsql_probe.py` (dead code, unused since BIRD decided); every SynSQL
+mention in `system_architecture.md` §3.2, `fed_ickd_v2_proposal.md` (V2-3
+title/body, risk table, references list), and `notebooks/kd/README.md` §6's
+escalation line. Fallback for a failed E0.1 probe is now **Spider held-out
+15% only** — no second fallback candidate. Historical LAB_LOG entries
+(session (1) above) are left untouched per convention (session log, not a
+live doc); this entry is the record of the removal, not a rewrite of that one.
+
+### Also found + fixed (while building §6/§7/§8 of the runbook)
+
+**Real bug in `fedicl_sql/data/spider.py::load_csv`**, introduced when
+`evidence: str = ""` was added to `SpiderExample` (session (2) above):
+`load_csv` built each row via `row[k] for k in _CSV_FIELDS` (hard KeyError on
+any missing column) instead of tolerating the dataclass default — every
+Spider CSV predates the `evidence` column, so **any run reading a Spider CSV
+through `load_csv` would crash** (`experiments/client_train/run.py`,
+`experiments/eval_arms/run.py`, `experiments/sanity/run.py`,
+`scripts/build_retrieval_cache.py`, `fedicl_sql/retrieval/pool.py` — every
+one of them). Not caught by the 189/189 "green" claim in session (2) because
+no test exercised `load_csv` against an old-format Spider CSV. Fixed:
+`{k: row[k] for k in _CSV_FIELDS if k in row}` — missing columns fall back to
+the dataclass default. Verified 189/189 still pass after the fix.
+
+**New:** `scripts/build_e01_probe.py` — builds the E0.1 probe's two 1k slices
+(BIRD + Spider control, paired seed) via the existing `load_csv`/
+`examples_to_csv`, replacing the dead SynSQL probe script for that role.
+`notebooks/kd/README.md` gained real §6 (E0.1 probe)/§7 (Coder-1.5B student
+rerun)/§8 (seed 2 rkd/kid) — the old §6 pointer in LAB_LOG session (1) never
+actually existed in the file; it does now.
+
+### Next
+
+- [ ] `git push` the `load_csv` fix + new script + K=8 α=0.5 split before
+      anyone runs client_train/eval_arms on the A5000 host — the bug blocks
+      every Spider-CSV run until pulled
+- [ ] (top, unchanged) E0.1 BIRD→Spider probe on compute host (§6 runbook)
+- [ ] (unchanged) Coder-1.5B student rerun (§7) before the federation build
+- [ ] (unchanged) rest of the federation build queue from session (1)
+
+## Session 2026-07-12 (6) — v2 proposal merged into system_architecture.md (V2-1/V2-2, pending sign-off); `fedavg_pub` control restored to §10
+
+### What changed
+
+Reviewed `fed_ickd_v2_proposal.md`'s two still-draft items (V2-3/pool=BIRD was
+already merged 2026-07-12) and merged both:
+
+- **V2-1 on-policy distillation → §8.3.** Verdict: sound — reuses
+  `train_online_kd`'s existing teacher co-load/RKL/skew-RKL, one trainer
+  change (student samples the full target instead of KID's mask-rewrite),
+  and directly tests the leading hypothesis for `kid − rkd` = −1.45 EX (the
+  `pad_token_id` mask substitution as an out-of-distribution artifact).
+- **V2-2 execution-anchored server distillation → §8.4.** Verdict: sound and
+  higher-priority novelty-wise — reuses the SQLite exec + 60s timeout already
+  in `eval/metrics.py`, no RL/reward model, and is the strongest available
+  differentiator vs FedCoLLM [8] (blind public-data distill vs a cheap
+  per-sample verifier). Noted it does **not** strictly require V2-1 — KID's
+  existing masked-splice `ŷ` can be exec-filtered too; on-policy + exec-filter
+  combined (`fedkd_onpolicy_exec`) is the strongest arm, not a hard
+  dependency chain.
+
+Both merged as **PROPOSED, Tier 2, pending advisor sign-off** (scope change
+vs the approved outline — same gate as §8.1/§8.2's Tier-2/3 items) — not
+built, not Tier 1, ordered strictly after the `fedavg`/`fedkd` headline pair
+in §10's new "Federated v2 extension arms" table.
+
+**Also fixed while touching §10's Tier-1 table:** `fedavg_pub` control was
+locked back in session 2026-07-06 ("`fedkd − fedavg` confounded teacher with
+extra public data") but never made it into the 2026-07-08 architecture
+rewrite — restored as a Tier-1 row (FedAvg + CE-only on `P`, no teacher);
+`fedkd − fedavg_pub` is the real teacher-value number, not `fedkd − fedavg`.
+
+`fed_ickd_v2_proposal.md` header updated: MERGED (all 3 items now live in
+`system_architecture.md`), file kept for historical rationale/lit citations
+only — read the architecture doc for current status.
+
+### Next
+
+- [ ] (top, unchanged) E0.1 BIRD→Spider probe on compute host (§6 runbook)
+- [ ] (unchanged) Coder-1.5B student rerun (§7) before the federation build
+- [ ] Federation build now targets 3 Tier-1 arms (`fedavg`/`fedavg_pub`/
+      `fedkd`), not 2 — one extra arm, same round-loop
+- [ ] `fedkd_onpolicy`/`fedkd_onpolicy_exec` (§8.3/§8.4) — after the Tier-1
+      ladder stands
+- [x] Advisor bundle items resolved by user, see session (7) below
+
+## Session 2026-07-12 (7) — all 8 advisor-bundle items locked by user, no advisor gate
+
+### What changed
+
+User reviewed the 8-item advisor bundle list and self-decided all of it —
+no advisor sign-off remains outstanding on any currently-pending item:
+
+1. **Server-side pivot** — confirmed.
+2. **RKD** — locked as the server-distill direction. `system_architecture.md`
+   §0 language changed "RKD provisional winner" → "RKD — locked". Caveat kept
+   as an empirical to-do, not a gate: `rkd − kid` = −1.45 EX at p=0.072 (1
+   seed, not significant) — seed 2 still needed before the *gap size* is a
+   citable number, but the *pick* doesn't wait on it.
+3. **Claim-3 reframe** (verifier-gated retry) — confirmed, §1.
+4. **§8.1 asym-KD kill** — confirmed, closed. "Advisor note owed" language
+   removed (it died before shipping, nothing to bring to advisor).
+5. **BIRD-`P` reversal** — confirmed (already required no advisor gate,
+   §3.2 — user's own decision).
+6. **ICL policy 3 tiers** (client train k=0 · inference verifier-gated retry
+   · teacher-distill DAIL k=3 ablate 0) — confirmed; already the doc's live
+   default, no explicit gate existed to remove.
+7. **Naming: "Fed-ICKD" stays"** regardless of the `k_teacher` 3-vs-0
+   ablation result. New line in §0: ICL is reframed as an open experimental
+   surface (try it wherever it plausibly helps — teacher-distill context,
+   client fallback retrieval, other points as they surface) rather than a
+   single ablation the paper's title depends on.
+8. **V2-1 (on-policy distill, §8.3) / V2-2 (execution-anchored distill,
+   §8.4)** — locked, not built. "Pending advisor sign-off" replaced with
+   "locked (user, no advisor gate)" in both status banners and in §10's
+   "Federated v2 extension arms" heading.
+
+### Doc changes
+
+`system_architecture.md`: §0 (RKD language, new naming note, new "no advisor
+gate" summary line), §1 (claim-3 sentence), §8.1 (status banner + moot the
+stale "needs advisor sign-off" order note), §8.3/§8.4 (status banners),
+§10 (extension-arms heading). `fed_ickd_v2_proposal.md` banner updated to
+"MERGED + LOCKED — user quyết, không cần advisor."
+
+Grep-verified: no remaining `advisor` mention in `system_architecture.md`
+implies an open gate — the only hits left are the confirmation lines
+themselves.
+
+### Next
+
+- [ ] (top, unchanged) E0.1 BIRD→Spider probe on compute host (§6 runbook)
+- [ ] (unchanged) Coder-1.5B student rerun (§7) before the federation build
+- [ ] Federation build targets 3 Tier-1 arms (`fedavg`/`fedavg_pub`/`fedkd`)
+- [ ] `fedkd_onpolicy`/`fedkd_onpolicy_exec` (§8.3/§8.4) after the Tier-1
+      ladder stands — no longer sign-off-gated, just ordering
+- [ ] Seed 2 `central_rkd`/`central_kid` — still needed for the `rkd − kid`
+      gap-size number, unrelated to the (now resolved) direction pick
+
+## Session 2026-07-12 (8) — E0.1 gap found: doesn't test KD on an already fine-tuned model; E0.1b added
+
+### What changed
+
+User question caught a real methodology gap: E0.1 (§3.2, `notebooks/kd/
+README.md` §6) trains gold-CE **from base** — but the real server-distill
+step runs **RKL-KD on top of an already fine-tuned/FedAvg'd student**
+(`M_G`), not plain CE from base. Two untested confounds:
+
+1. **Starting point** — base vs an already-Spider-specialized model. Whether
+   BIRD-distribution noise interacts differently with an already-fine-tuned
+   model (more forgetting-prone, or more anchored) is untested either way.
+2. **Loss mechanism** — E0.1 only exercises the CE term. The RKL/teacher-scored
+   term is completely untested by it — this is exactly half of the
+   CE-poisoning risk already on record (session (4) above: both CE and RKL
+   are exposed on evidence-dependent BIRD rows, E0.1 only probes CE).
+
+E0.1 is still worth running as-is — cheap (~1-2h), catches severe
+dialect/distribution mismatch fast — but passing it does **not** clear the
+RKL/already-fine-tuned-model risk. Added **E0.1b**: RKL-KD on the same BIRD
+1k slice, warm-started from `central_ft` (`--init-adapter`) instead of base.
+Pre-registered read-off: pass iff `central_ft_bird1k_rkd − 62.19 ≥ −3 EX`
+(tighter band than E0.1's ~5 EX — this tests the real mechanism, not just
+raw data). Fail → pull the evidence-Δ filter (§3.2 lever D) before building
+the federated loop, not just re-run E0.1's data-only check.
+
+### Docs updated
+
+`notebooks/kd/README.md` — new §6b (E0.1b, 2 commands, reuses `central_ft`
++ the §6 BIRD slice, no new data build). `system_architecture.md` §3.2 —
+gate paragraph rewritten as two mandatory stages (E0.1 + E0.1b), explains
+why E0.1 alone doesn't validate the production mechanism.
+
+### Next
+
+- [ ] (top, unchanged) E0.1 on compute host (§6) — gate for §6b
+- [ ] E0.1b on compute host (§6b) — gate for the federation build, not just E0.1
+- [ ] (unchanged) Coder-1.5B student rerun (§7) before the federation build
+- [ ] (unchanged) rest of the federation build queue
+
+## Session 2026-07-12 (9) — E0.1 result: FAIL, BIRD-CE regresses below the untrained floor
+
+### Result (compute host, `git_sha` eaceddf, both n=1000, k=0, seed 0)
+
+| arm | EX | EM | exec_errors |
+|---|---|---|---|
+| `bird1k_ft` | 47.10 | 19.83 | 274/1034 (26.5%) |
+| `spider1k_ft` | 51.74 | 43.52 | 276/1034 (26.7%) |
+
+**Read-off: FAIL.** `bird1k_ft ≥ 50.00` (base floor, 4-family table session 07-12)
+fails outright — 47.10 is **below the untrained base model's own k=0 score**,
+i.e. 1k rows of BIRD gold-CE actively regresses the model versus no training
+at all. The paired gap sub-condition (`spider1k_ft − bird1k_ft ≤ ~5 EX` →
+4.64) would pass alone, but the floor condition is the one that matters and
+it fails clearly, not marginally.
+
+**Not a sample-size artifact:** both arms trained on n=1000 / 1000 steps,
+identical config except data source — the paired design already controls for
+that. EX exec-error rates are nearly identical between arms (26.5% vs
+26.7%) — **EX itself is trustworthy** (`score_ex_detail` is pure sqlite
+execution, no dependency on the Spider-grammar parser). The verdict rests on
+EX/the floor, not on EM.
+
+**EM caveat (found 2026-07-12, user):** EM diverges by 23.7pp (19.83 vs
+43.52), much larger than the 4.64pp EX gap — but `score_em` parses
+*predicted* SQL through the vendored Spider-only grammar (`_vendor/spider/
+process_sql.py::get_sql`), which chokes on BIRD SQL syntax (measured
+separately: 84.7% parse-fail on a random 1k BIRD-train sample). `_parse_pred`
+catches the exception and defaults to an empty parse → automatic EM=False.
+`bird1k_ft`'s predictions (fine-tuned on BIRD-flavored SQL, even though
+answering Spider-dev questions) plausibly trip this more often than
+`spider1k_ft`'s, inflating part of the EM gap as a **parser-compatibility
+artifact, not proven semantic wrongness**. Gold-side parsing is unaffected
+here (both arms eval on the same Spider-dev `test.csv`, Spider-format gold —
+the 84.7% failure rate was measured against BIRD *train* gold, a different,
+non-eval set). Net: treat the 23.7pp EM number as upper-bound/noisy, not a
+clean second signal — **lean on EX alone** for the FAIL verdict, which the
+parser issue does not touch.
+
+Reading (EX-only, revised): `bird1k_ft`'s SQL executes about as often as
+`spider1k_ft`'s, but when it does execute it is wrong more often. This is
+still consistent with the CE-poisoning mechanism already flagged
+theoretically (session (4) above, §3.2): the model absorbing BIRD-specific
+literal/pattern habits it can't justify from the Spider-style prompt. But
+now stated on EX evidence alone. By-hardness breakdown is uneven, not a
+uniform shift (medium −8.07pp, easy −4.03pp, hard actually +2.3pp) — another
+signal against generic noise, consistent with a specific poisoned subset
+rather than a blanket distribution shift.
+
+### Decision — do not run E0.1b yet; escalate per §3.2's own order
+
+§6b's contract ("run only after §6 passes") is honored — E0.1 failed, stop
+there rather than layering RKL on top of an already-failing CE signal.
+Per §3.2's pre-registered escalation order: **lever D (evidence-Δ filter)
+before the Spider-held-out fallback.** Lever D is not built yet (flagged
+session (4), still open) — that is now the actual next required step, not
+an optional nice-to-have:
+
+1. Build the evidence-Δ scorer (`Δ = logprob_T(gold|+evidence) −
+   logprob_T(gold)`, one teacher pass per row — same infra as the Phase-1
+   RKD logit cache).
+2. Filter the BIRD 1k probe slice to low-Δ rows, re-run E0.1 (CE-only) on
+   the filtered slice.
+3. Filtered slice still fails floor → BIRD is out as `P`, fall back to
+   Spider held-out ~15% (no advisor gate, straightforward switch per §3.2).
+   Filtered slice passes → evidence-dependence confirmed as the mechanism,
+   lever D is a real fix, proceed with BIRD (filtered) as `P`.
+
+### Next
+
+- [ ] Build evidence-Δ scorer (lever D, §3.2) — now blocking, not opportunistic
+- [ ] Re-run E0.1 (CE-only) on the Δ-filtered BIRD slice
+- [ ] E0.1b stays gated on a passing E0.1 (filtered or otherwise)
+- [ ] If lever D fails too: switch `P` to Spider held-out ~15%, drop BIRD
+- [ ] (unchanged) Coder-1.5B student rerun (§7) — independent of the `P` question
+
+## Session 2026-07-12 (10) — lever D built: `scripts/score_evidence_delta.py`
+
+### What changed
+
+Built the evidence-Δ scorer flagged as blocking in session (9): teacher-forced
+`Δ = logprob_T(gold | prompt+evidence) − logprob_T(gold | prompt)` per BIRD row
+(`LocalHFTeacher.score_logits`, 2 forwards/row, same cost class as one RKD pass).
+Writes a per-row Δ CSV and, optionally, a filtered `train.csv` keeping the
+lowest-Δ `--keep-frac` (default 0.7) of rows — the escalation lever from §3.2.
+
+- Evidence is injected into the scored prompt via a string insert
+  (`### Hint: {evidence}` before `### SQL:`) since `build_prompt` has no
+  evidence param by design (§3.2) — this script is diagnostic-only, doesn't
+  change what the real pipeline ever prompts with.
+- Tokenization mirrors `training/dataset.py::_assemble`'s chat-template
+  convention (inlined, not imported — that function is private and this
+  script's needs are simpler: no weights/skeleton, no KD-example dataclass).
+- 189/189 tests still pass (script adds no new import cycles); `--help`
+  sanity-checked on Mac (no GPU needed to verify wiring).
+
+`notebooks/kd/README.md` gained §6c (the lever-D runbook: score → filter →
+re-run E0.1 on the filtered slice) between §6 (now has its real FAIL result
+logged) and §6b (still gated on a passing E0.1).
+
+### Next
+
+- [ ] Push this + run §6c on compute host: score Δ, filter, re-run E0.1 on
+      the filtered slice
+- [ ] Filtered E0.1 pass → §6b on the filtered slice → BIRD (filtered) as `P`
+- [ ] Filtered E0.1 fail → drop BIRD, `P` = Spider held-out ~15% (§3.2)
+- [ ] (unchanged) Coder-1.5B student rerun (§7) — independent of the `P` question
+
+## Session 2026-07-12 (11) — EM caveat on the E0.1 FAIL: parser-compatibility artifact, EX verdict unaffected
+
+### What changed
+
+User question (independently measured: `get_sql`/`process_sql.py` from
+`_vendor/spider` parse-fails on 84.7% of a random 1k BIRD-train sample) —
+does the Spider-only vendored parser explain session (9)'s E0.1 FAIL?
+
+Read `fedicl_sql/eval/metrics.py` + `eval/loop.py` to answer precisely:
+
+- **`score_ex_detail` (EX) has zero dependency on `get_sql`** — pure
+  `sqlite3` execution + row comparison (`_execute`). The 47.10/51.74 EX
+  numbers and the floor-breach FAIL verdict are **unaffected** by the parser
+  issue.
+- **`score_em` does depend on `get_sql`**, on both pred and gold sides.
+  Gold-side is safe in E0.1's own run — both arms eval on the same
+  `processed_data/SPIDER/centralized/test.csv` (Spider-format gold); the
+  84.7% failure rate was measured against BIRD **train** gold, a different,
+  non-eval set. **Pred-side is the real exposure**: `_parse_pred` catches
+  parse exceptions and defaults to an empty parse → automatic EM=False.
+  `bird1k_ft`'s predictions (fine-tuned on BIRD-flavored SQL syntax, even
+  though answering Spider-dev questions) plausibly trip the Spider-only
+  grammar more often than `spider1k_ft`'s — inflating part of the 23.7pp EM
+  gap as a measurement artifact rather than proven semantic wrongness.
+- Both `score_em` and `sql_hardness` are wrapped in per-row try/except at
+  every call site in `eval/loop.py` — no crash risk in the standard eval
+  path even when `get_sql` raises on BIRD-flavored SQL.
+
+**Verdict:** E0.1's FAIL stands — it rests on EX/the 50.00 floor, which the
+parser issue doesn't touch. The EM number (19.83 vs 43.52) should be read as
+upper-bound/noisy for BIRD-trained arms, not cited as independent
+corroboration the way session (9)'s original write-up did.
+
+### Docs updated
+
+`paper/notes/LAB_LOG.md` session (9) — EM paragraph rewritten in place (same
+working day, direct factual correction) with the caveat + EX-only reading.
+`notebooks/kd/README.md` §6 result note — same caveat, shorter.
+
+### Next
+
+- [ ] (unchanged) §6c on compute host: score Δ, filter, re-run E0.1 (EX
+      read-off) on the filtered slice
+- [ ] Latent bug noted, not urgent: `score_em`'s gold-side `_parse()` call
+      (`metrics.py` line ~161) is unguarded *internally* — safe today because
+      every real call site wraps it externally, but a future standalone
+      script calling `score_em`/`sql_hardness` directly on BIRD gold (e.g. if
+      `P` is ever scored for hardness diagnostics) should wrap it too
+
+## Session 2026-07-12 (12) — FedEx-LoRA added as a candidate fix for the LoRA-averaging caveat
+
+### What changed
+
+Web research pass (triggered by the BIRD-P failure, scoped to "public pool P
+for KD" but surfaced this as a bonus) found FedEx-LoRA (Singhal et al., ACL
+2025, arXiv:2410.09432) — directly targets the LoRA-averaging caveat already
+on record in §3.3 (`mean(BᵢAᵢ) ≠ mean(Bᵢ)·mean(Aᵢ)`), which was previously
+only "mitigated" by re-init-from-aggregate + a one-sentence acknowledgment,
+no actual fix. FedEx-LoRA's mechanism: adds a residual error term to the
+frozen base weight matrix each round so the aggregated update is exact
+(recovers `Σᵢ BᵢAᵢ`, not the mean-of-factors approximation), claimed minimal
+compute/communication overhead, no architecture change.
+
+Added to `system_architecture.md` §3.3 as a **Tier-2 candidate to try**
+(distinct from FedProx, which fixes client-objective drift, not the
+aggregation math) — gated on A4 (Dirichlet α sweep) actually showing the
+averaging-inexactness gap costs real EX before spending the implementation
+effort. Reference added to §14.
+
+### Next
+
+- [ ] (unchanged) decide BIRD-DB-with-synthetic-annotation (option B) vs
+      Spider-held-out fallback (option A) for pool `P` — main open item
+- [ ] FedEx-LoRA stays parked until A4 runs and shows a real gap
+- [ ] (unchanged) rest of the federation build queue
+
+## Session 2026-07-12 (13) — reframed the BIRD-P question; built + staged the execution-bootstrap probe (§6e)
+
+### What changed
+
+Research pass (user push-back: Spider is itself cross-domain, so "domain
+mismatch" was the wrong frame; teacher must never see client data/schema —
+constrains candidate fixes) corrected the diagnosis:
+
+- **Spider's whole design point is cross-database generalization** — domain
+  novelty is not what BIRD failed on. The real gap is **annotation
+  convention** (SQL-writing style, question phrasing), not domain.
+- **New, stronger data point:** a published benchmark-quality analysis found
+  BIRD Mini-Dev is **52.8% annotation-error** (VLDB CIDR 2026, "Text-to-SQL
+  Benchmarks are Broken"). This outranks the evidence-dependence hypothesis
+  (§3.2 lever D, already tested and failed, session (9)-(11)) as the likely
+  dominant cause of E0.1's floor breach — training CE on BIRD's own gold may
+  simply be training on noisy/wrong labels at a high rate, unrelated to
+  style or evidence.
+- **Matching fix found in lit:** ExeSQL (arXiv:2505.17231) adapts a
+  text-to-SQL model to a new SQL dialect **without any human-annotated
+  target-dialect gold** — schema → self-generated questions → source-dialect
+  model generates SQL candidates → execution-filter → self-train loop.
+  Reports parity or better vs training on human-annotated cross-dialect
+  data. Crucially: the teacher only ever touches the target schema, never
+  client data — compatible with invariant #2 as-is.
+- This reframes §8.3 (on-policy)/§8.4 (exec-anchored), already merged
+  2026-07-12, from "nice-to-have upgrades" to **the literature-validated fix
+  for exactly the failure just measured** — model-generated + execution-
+  filtered targets are reported to beat fixed external gold specifically
+  because they sidestep annotation-convention/quality mismatch.
+
+### Built (before running anything on GPU)
+
+`scripts/build_exec_bootstrap_probe.py` — drops BIRD's own gold SQL entirely.
+Keeps the same probe_1k schemas+questions (directly comparable to §6/§6c).
+Teacher (`StudentModel(model_id=teacher_model)`, no adapter, zero-shot,
+k=0/no ICL) generates one SQL candidate per question via the existing
+`generate_batch` (batched, OOM-safe, already does SQL cleaning); kept only if
+`fedicl_sql.eval.metrics.executes()` passes. Output is a bootstrapped
+`train.csv` in the same `SpiderExample` schema, re-runs through the identical
+E0.1 CE-only train+eval commands for a same-floor comparison. 189/189 tests
+pass; `--help` sanity-checked.
+
+`notebooks/kd/README.md` — §6c gained its real result (FAIL, 46.7 EX, barely
+moved from unfiltered — evidence-Δ filter confirmed NOT the fix); new §6e
+runbook (bootstrap → train → eval, same 50.00 floor read-off).
+
+### Next
+
+- [ ] Push + run §6e on compute host: bootstrap, train, eval — read off vs
+      50.00 floor
+- [ ] Pass → BIRD annotation confirmed as root cause; build the real
+      server-distill pipeline on §8.3/§8.4 (BIRD schemas/DBs only, never
+      BIRD's own gold SQL)
+- [ ] Fail → BIRD's schemas/DBs themselves are the problem, not just
+      annotation — drop BIRD, `P` = Spider held-out ~15% (§3.2)
+- [ ] §6b (RKL probe) stays gated behind a passing §6/§6c/§6e result
+- [ ] (unchanged) Coder-1.5B student rerun (§7) — independent of the `P`
+      question
+- [ ] (unchanged) FedEx-LoRA parked until A4
