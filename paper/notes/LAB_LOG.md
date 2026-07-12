@@ -2125,3 +2125,63 @@ per index, stats correct.
       restart §6e with the checkpointed version — should now run in minutes,
       not hours, and survives interruption
 - [ ] (unchanged) rest of the queue — §6e result decides BIRD's fate as `P`
+
+## Session 2026-07-12 (15) — §6e result: PASS at the floor; BIRD-P question RESOLVED
+
+### Result
+
+| arm | EX | EM | exec_errors | n_train |
+|---|---|---|---|---|
+| `bird1k_ft` (BIRD gold, §6) | 47.10 | 19.83 | 274/1034 (26.5%) | 1000 |
+| `bird1k_filtered_ft` (evidence-Δ, §6c) | 46.71 | 20.89 | 284/1034 (27.5%) | 700 |
+| **`bird1k_bootstrap_ft` (exec-bootstrap, §6e)** | **50.00** | 22.44 | **212/1034 (20.5%)** | 831 |
+| `spider1k_ft` (control) | 51.74 | 43.52 | 276/1034 (26.7%) | 1000 |
+| base floor | 50.00 | — | — | — |
+
+Exec-filter yield: 831/1000 teacher zero-shot generations executed on BIRD
+schemas (8s timeout). `bird1k_bootstrap_ft` = 50.00 EX — **exactly at the
+floor**, the read-off's pass condition (`≥ 50.00`) met, but by the thinnest
+possible margin. Read carefully: this is "no longer actively harmful," not
+"proven to add value" — it ties the untrained baseline rather than beating
+it. The real value test is the federated `fedavg` vs `fedkd` numbers, not
+this CE-only floor probe.
+
+**Notable side effect:** exec_error rate (20.5%) is the **lowest of all 4
+arms tested**, below even the Spider-CE control (26.7%) — training on
+execution-verified targets appears to teach more executable-SQL habits
+generally, not just fix the BIRD-specific problem. By-hardness:
+`bird1k_bootstrap_ft` beats `spider1k_ft` on "hard" (36.21 vs 30.46), close
+elsewhere.
+
+### Decision — BIRD-P question RESOLVED
+
+Root cause confirmed: BIRD's own gold-SQL annotation was the poison (not
+evidence-dependence, session (9)-(11); not domain/dialect, session (13)'s
+lit reframe + BIRD Mini-Dev's documented 52.8% annotation-error rate).
+
+- **BIRD stays as `P`'s schema/DB source.**
+- **BIRD's own (question, gold-SQL) pairs are permanently off-limits** for
+  any CE or RKL target.
+- **The server-distill step must build on §8.3 (on-policy) + §8.4
+  (execution-anchored)** — already merged 2026-07-12, now empirically
+  supported, not just literature-backed.
+- **§6b (E0.1b, RKL probe on BIRD's native gold via `central_ft`) is
+  retired** — its premise no longer applies.
+- Spider-held-out-15% fallback is **not needed** — BIRD survives, under the
+  new annotation rule.
+
+### Docs updated
+
+`system_architecture.md` §3.2 (rewritten: BIRD = schemas/DBs only, full
+E0.1→lever-D→exec-bootstrap trace, rule stated), §9 (`Public pool P` row
+updated). `notebooks/kd/README.md` §6e (result logged), §6b (marked
+RETIRED, do-not-run banner added).
+
+### Next
+
+- [ ] Build the real server-distill step on §8.3/§8.4 (on-policy +
+      execution-anchored), BIRD schemas/DBs only, as the next concrete
+      federation-build task
+- [ ] (unchanged) Coder-1.5B student rerun (§7) — independent, still open
+- [ ] (unchanged) FedEx-LoRA parked until A4
+- [ ] (unchanged) rest of the federation build queue from session (1)

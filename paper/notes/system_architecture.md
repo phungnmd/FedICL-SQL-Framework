@@ -168,7 +168,12 @@ not a default claim.
   and student condition on the **same** ICL context when computing the KD pair
   (`p`, `q`) — scoring them under different contexts corrupts the divergence.
 
-### 3.2 Public pool `P` — **BIRD train (decided 2026-07-12, user)**
+### 3.2 Public pool `P` — **BIRD schemas/DBs (decided 2026-07-12, user; annotation policy resolved 2026-07-12/13)**
+
+> **BIRD's own (question, gold-SQL) pairs are never used.** Only its schemas
+> and executable SQLite DBs are — confirmed necessary by gate testing below
+> (BIRD's own gold is the poison, not the schemas). Targets for CE/RKL come
+> from §8.3/§8.4 (on-policy generation + execution filter) only.
 
 - **`P` = BIRD train set** (~9.4k questions, ~70 DBs) — size comparable to
   Spider train (8.7k), human-curated, real DBs, well known to reviewers, and
@@ -262,21 +267,32 @@ not a default claim.
   - **dialect gap** (BIRD SQLite is messier than Spider's): acceptable —
     `P` is a distillation corpus, not an eval set; the E0.1-style transfer
     probe (below) is the kill-switch if the gap poisons the student.
-- **Gate before committing GPU time — two stages, both mandatory (2026-07-12):**
-  1. **E0.1** — 1k BIRD-gold SFT **from base**, plain CE → eval Spider dev.
-     Cheap data-quality kill-switch (BIRD dialect/distribution vs Spider).
-  2. **E0.1b** — RKL-KD on the same 1k slice, warm-started from `central_ft`
-     (already fine-tuned), not base. E0.1 alone does **not** validate the
-     mechanism the server-distill step actually runs (RKL-KD on top of an
-     already-trained student, not gold-CE from base) — it only clears the
-     CE/data-quality half of the risk (the CE-poisoning note above); E0.1b
-     is the check on the RKL/already-fine-tuned-model half. Run only after
-     E0.1 passes.
+- **Gate result, RESOLVED 2026-07-12/13 (full trace: LAB_LOG sessions
+  (9)-(14)) — BIRD's own gold SQL is permanently off-limits for CE/RKL
+  targets; BIRD's schemas/DBs stay in use.**
+  1. **E0.1** (1k BIRD-gold SFT from base, plain CE) — **FAIL**: 47.10 EX,
+     below the untrained 50.00 floor.
+  2. **Lever D** (evidence-Δ filter, drop the most evidence-dependent rows) —
+     **FAIL**: 46.71 EX, barely moved. Evidence-dependence is not the driver.
+  3. **Execution-bootstrap** (ExeSQL-style, arXiv:2505.17231 — drop BIRD's
+     own gold entirely; teacher generates SQL zero-shot on BIRD schemas,
+     keep only what executes, train CE on that) — **PASS, exactly at the
+     floor**: 50.00 EX (831/1000 rows survived the exec filter), also the
+     lowest exec-error rate of any arm tested (20.5%, below even the Spider
+     control's 26.7%). A bare pass, not a strong one — bootstrap-CE is no
+     longer harmful, but doesn't yet show BIRD adds value; the real test is
+     the federated `fedavg` vs `fedkd` numbers.
+  4. **Root cause, resolved:** not evidence-dependence, not domain/dialect —
+     BIRD's own annotation quality. Independent confirmation: BIRD Mini-Dev
+     is documented 52.8% annotation-error (VLDB CIDR 2026, "Text-to-SQL
+     Benchmarks are Broken").
 
-  Either failing → escalate before building the distill loop on `P` (E0.1
-  fail → reconsider `P` itself, §3.2 fallback; E0.1b fail → pull the
-  evidence-Δ filter, lever D above, before building the full loop). Runbook:
-  `notebooks/kd/README.md` §6/§6b.
+  **Rule going forward:** the server-distill step must build on **§8.3
+  (on-policy) + §8.4 (execution-anchored)** only — BIRD supplies schemas/DBs,
+  never its own (question, gold-SQL) pairs. E0.1b (RKL on BIRD's native gold)
+  is retired, do not run — its premise is moot now that the gold itself is
+  known-poisoned. Runbook: `notebooks/kd/README.md` §6/§6c/§6e (§6b marked
+  retired in place).
 - Requirements kept: public, DB-disjoint from clients **and** eval sets,
   distillation subset a few hundred–few thousand pairs (subset BIRD train,
   stratified; full 9.4k not required per round).
@@ -737,7 +753,7 @@ GRPO:
 | Rounds / local epochs | T = 15, E = 2 |
 | Server distill | 300 steps/round on `P`, batch 16, `λ_ft:λ_kd = 1:1` |
 | KD loss | `CE + RKL(q‖p)` per [10] — reverse KL, full-vocab (common prefix), float32 |
-| Public pool `P` | **BIRD train** (decided 2026-07-12; distill subset a few k, stratified; E0.1 probe first — §3.2) |
+| Public pool `P` | **BIRD schemas/DBs** — never BIRD's own gold SQL (resolved 2026-07-12/13, §3.2); targets via §8.3/§8.4 only; distill subset a few k, stratified |
 | Eval | Spider dev (EX + EM, official algorithms) + Spider-Realistic (robustness) |
 | Seeds | 3 for main results, 1 for ablations |
 | Hardware | 1× RTX A5000 24 GB; vLLM for all inference/eval, HF+PEFT for training |
