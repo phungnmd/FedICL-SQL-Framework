@@ -2398,3 +2398,149 @@ what's already used for teacher eval.
       (measured via `fedkd` on Spider dev, §9/§10) is worth prioritizing early
       or can wait
 - [ ] (unchanged) rest of the federation build queue from session (1)
+
+---
+
+## Session 2026-07-13 (3) — proposal logged: ICL+FT client-training probe (arXiv:2512.19879)
+
+### Paper
+
+**"Fine-Tuned In-Context Learners for Efficient Adaptation"** (Bornschein,
+Lyle, Li, Rannen-Triki, He, Pascanu — arXiv:2512.19879, Dec 2025). Mechanism
+(**ICL+FT**): fine-tune on sequences structured as k-shot prompts —
+`[demo_1 (x,y)] ⊕ … ⊕ [demo_k] ⊕ [target (x,y)]` — with **loss computed on
+ALL responses in the sequence** (every demo's y AND the target), demos drawn
+from previously-seen training data (no similarity retrieval), same k-shot
+prompt at inference. Headline: dominates in the **low-data regime** (BBH @30
+examples: Gemma-2B ICL+FT 55.3 vs FT-only 27.3 vs ICL-only 37.2); advantage
+shrinks toward FT-only as data grows. Tested on Gemma-2 2B–27B + Qwen-3
+0.6B–30B; LoRA "minimal impact" → our LoRA stack (fp16 base, no student
+quantization — see §5.3 correction below) applies unchanged. k=1–5
+useful, >5 marginal; no consistent train-k vs test-k pattern. Side
+contribution (prequential evaluation for HP selection without held-out data)
+noted as Tier-3, not pursued.
+
+### Why it fits Fed-ICKD — and why it is NOT the failed A2 arm
+
+- **Regime match:** federated clients are exactly the paper's low-data regime
+  (~1k pairs per client under the K=8 split). The centralized 8.7k pool is
+  the regime where the paper's advantage vanishes — so the probe runs on a
+  client slice, not the pooled data.
+- **Not previously tested:** the existing `train-k2 consistent` arm (A2,
+  regressed under eval-time ICL) differs from the paper's recipe on both
+  ingredients: (a) loss masked to the target span only, (b) random
+  k ~ U{0..k} demo injection. ICL+FT = loss on demo SQLs too + fixed k.
+- **Favorable prior:** Qwen1.5B is an ICL-positive family at base (§5.2
+  4-family sweep: dail +44 net, random +37, both significant) — and the
+  paper's demos-need-not-be-selected finding matches A5 (random ≈ DAIL).
+- **Known risk (format):** DAIL demo format = `question + SQL`, no schema.
+  Loss on a demo's SQL = predicting SQL without its schema — ill-posed;
+  could train exactly the schema-bleed failure mode (`no such column`)
+  documented 2026-06-30. Faithful replication first; count bleed errors as
+  the tripwire.
+
+### Proposed probe (Tier 2, 1 seed, 2 models)
+
+Primary Qwen2.5-1.5B-Instruct + secondary Qwen2.5-0.5B-Instruct.
+
+**Confirmed (user, 2026-07-13):** run the ladder on both sizes, not just
+1.5B. 0.5B was already flagged in §5.3 as the Tier-3 "extra model pair"
+(same tokenizer family, no vocab-mapping issues) — reused here as the
+crossover-confirmation model instead of a new pick. Rationale: the source
+paper's own headline result is a multi-size sweep (Gemma-2 2B–27B, Qwen-3
+0.6B–30B); replicating on one size only would leave "is this a 1.5B fluke"
+unanswered. Doubles the run count, not the design — same ladder, same code
+touch points, both models cheap enough to co-run.
+
+Ladder on one client slice (`client_1_train.csv`, federated split) + size
+sweep n ∈ {100, 500, 1000}, **× 2 models**, to reproduce the paper's crossover:
+
+| arm | train | eval |
+|---|---|---|
+| `local` | CE k=0 (existing recipe) | k=0 + exec-gate overlay |
+| `local_k3` | CE k=3, loss target-only, random k (old A2 recipe) | k=3 |
+| `local_iclft` | CE k=3 **fixed**, **loss on demo SQLs + target** | k=3 (+ k=0 and gate rows) |
+
+`local_iclft − local_k3` isolates loss-on-all-shots (one ingredient per
+rung); `local_iclft − local(gate)` decides whether the client default
+changes. Orthogonal to KD — this modifies the client CE step (Phase 2) only;
+server-side RKD distillation untouched.
+
+**Code (small, 2 touch points in `fedicl-sql/`):**
+1. `fedicl_sql/training/dataset.py::build_examples` — `demo_loss=True`:
+   unmask each demo's SQL span in labels (builder must return demo-SQL
+   offsets; currently everything before `n_prompt` is masked).
+2. `experiments/client_train/run.py` — `--demo-loss` + `--train-k-fixed`
+   (disable the random U{0..k} injection).
+
+**Pre-registered criteria (§8.1 style):**
+- Success: `local_iclft@k3` > `local` k0+gate at n ≤ 1000 by ≥ ~1 EX, with
+  no schema-bleed increase → promote to a third A2 rung, add seed, test
+  gate-compose (iclft + verifier-gated retry stack).
+- Kill: ≤ gate, or bleed errors rise materially → report as analysis
+  (ICL+FT does not transfer to schema-grounded text-to-SQL with schema-free
+  demos) — still usable as a §5 paragraph.
+
+**Cost:** ~1k-row LoRA runs on the 16 GB box (`--batch-size 1
+--grad-accum 16`), <15 min each; full 3-size × 3-arm sweep ≈ a few GPU
+hours. Cheapest experiment class in the queue.
+
+**Decided (user, 2026-07-13): run both.** `local_iclft` (schema-free, faithful
+to the paper) AND `local_iclft_schema` (demo includes its own DB's schema) —
+not sequential/conditional, both go in the ladder.
+
+### Token-budget plan for `local_iclft_schema`
+
+Real risk, not hypothetical: `max_len=2560` (`dataset.py:106`) was tuned to
+cover schema-FREE `train-k=3` at p99.9 on large-schema Spider DBs. Adding a
+schema per demo multiplies cost — the demo pool is cross-db-preferred, so
+k=3 can mean 3 different DBs' schemas + the target's own = 4 schemas in one
+prompt, on top of the same demo-count that already sits near the ceiling.
+
+**Correction (code check before build):** `build_prompt`'s `schema_style` param
+renders BOTH the target schema and every demo's schema — there is no split
+knob, and the function's own docstring calls a target/demo style mismatch a
+"distribution-shift bug the model has to learn around for free"
+(`fedicl_sql/prompts/builder.py:55`). So "full target + compact demos" (the
+original idea below) is not cleanly supported — don't hand-roll it.
+
+Mitigations, in order:
+
+1. **Run `local_iclft_schema` with `--schema-style compact` uniformly**
+   (target AND demos both `table(cols)`, no CREATE TABLE/types/PK/FK) instead
+   of `full`. Cheaper on both sides, zero new code (`--schema-style` CLI flag
+   already exists), and matches the codebase's own no-mismatch invariant.
+   `full` stays the default for `local`/`local_iclft` (schema-free demos,
+   unaffected either way).
+2. **Measure before running anything** — CPU-only, tokenizer-only probe:
+   build k=3 schema-included prompts over `client_1_train.csv`, histogram
+   token counts, get p99.9. No GPU needed for this step.
+3. **If p99.9 still exceeds budget:** raise `--max-len` for this arm only
+   (e.g. 4096) before considering cutting k. Cutting k breaks the ladder's
+   k-parity with `local_iclft`/`local_k3` — last resort, not first.
+4. Truncation on overflow already exists (`dataset.py:81` `budget = max_len -
+   len(target_ids)`, left-trims) — target SQL is never the thing that gets
+   cut, but a demo silently dropped by truncation would corrupt the loss-on-
+   all-shots premise (unmasking a demo SQL span that got clipped out). Add an
+   assertion in the probe: every demo's full span (schema + Q + SQL) fits
+   inside the truncated sequence, or drop that example from the arm instead
+   of truncating mid-demo.
+
+Adds one pre-training step (the token probe, cheap) to the plan; no other
+change to the ladder design above.
+
+**Doc correction (same session):** `system_architecture.md` §5.3/§9 said
+"1.5B + QLoRA" — checked against `lora_trainer.py::_build_lora_model`, the
+student base is loaded via plain `AutoModelForCausalLM.from_pretrained`, no
+`BitsAndBytesConfig`/`load_in_4bit`. Student = LoRA on an fp16 base, not
+QLoRA; only the teacher gets 4-bit quantization (`--teacher-4bit`, needed to
+co-load 7B+1.5B in the 16GB budget). Fixed both spots in
+`system_architecture.md`; historical LAB_LOG entries left as-is.
+
+### Next
+
+- [ ] User call on the demo-loss format question above
+- [ ] Build the two trainer/CLI flags; unit tests for demo-span unmasking
+- [ ] Run the 3×3 sweep on the compute host; read off crossover + bleed counts
+- [ ] (unchanged) federation build queue from session (1); teacher_bird
+      k0/k3 diagnostic from session (2)

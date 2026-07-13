@@ -143,7 +143,7 @@ pool after each aggregation round.
 │                                                          │
 │  [Phase 2 — every round]                                 │
 │  prompt [schema + question] (train k=0 default, §5.4)    │
-│  → student 1.5B + QLoRA                                  │
+│  → student 1.5B + LoRA (fp16 base)                        │
 │  → L_CE(gold SQL) only, E local epochs — NO teacher      │
 │                                                          │
 │  [Phase 4 — inference, verifier-gated retry]             │
@@ -486,10 +486,12 @@ execution-consistency candidate selection) is a different axis entirely
 Related Work as a training-free/execution-aware relative of the
 selective-ICL gate (§8.1 analysis), not a retrieval alternative.
 
-### 5.3 Student `Mᵢ` — 1.5B + QLoRA
+### 5.3 Student `Mᵢ` — 1.5B + LoRA
 
 - Default candidate: Qwen2.5-1.5B-Instruct (tokenizer-aligned with the Qwen
-  teacher → RKL without vocabulary mapping). QLoRA r=16, α=32, targets attn+MLP.
+  teacher → RKL without vocabulary mapping). LoRA r=16, α=32, targets attn+MLP,
+  fp16 base (not quantized — 1.5B fp16 ≈3GB already fits the VRAM budget;
+  4-bit is reserved for the 7B teacher on co-load, `--teacher-4bit`).
 - Initialized from the broadcast global adapter each round.
 - 0.5B student = Tier-3 extra model pair (claim-strengthening, optional).
 
@@ -750,7 +752,7 @@ GRPO:
 | Component | Value |
 |---|---|
 | Teacher | 7B frozen at server — default candidate Qwen2.5-Coder-7B-Instruct; FP16, vLLM for inference |
-| Student | Qwen2.5-1.5B-Instruct + QLoRA (r=16, α=32, attn+MLP) |
+| Student | Qwen2.5-1.5B-Instruct + LoRA, fp16 base (r=16, α=32, attn+MLP) |
 | k_teacher | 3 (ablate **0** first — teacher-ICL value is the one place selection/ICL can still earn its keep post-A5, §5.2; then 5) |
 | k_student | train k=0 + **exec-gated k=3 fallback at inference** (measured leader 2026-07-11, 1 seed; A2 decides vs `train-k2 consistent`) |
 | Clients K | 8 |
