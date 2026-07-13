@@ -1,3 +1,77 @@
+# Báo cáo tiến độ FedICL-SQL — 13/07/2026
+
+Chào thầy Hùng,
+
+Tuần này em có 4 việc: chốt kiến trúc distillation ở server, PoC KD (RKD thắng KID), ICL vẫn chưa đóng góp dương (báo trung thực, chưa phải tin tốt), và chốt nguồn dữ liệu public BIRD cho distill (chỉ schema/DB, cấm gold SQL).
+
+## 1. Kiến trúc mới: teacher chuyển sang server
+
+Đổi so với hướng "teacher ở client" hồi 16/06 — giờ **teacher 7B (frozen) đặt ở server**. Mỗi round:
+
+1. Client fine-tune student 1.5B bằng LoRA, CE loss thường, không cần load teacher.
+2. Server FedAvg các adapter.
+3. Server dùng teacher distill model gộp trên public pool P, loss reverse-KL [10].
+4. Server gửi adapter mới về client, lặp lại.
+
+Hướng hiện tại: client nhẹ, teacher không đụng data client. Paper FedDF/FedMD cho thấy bước distill ở server kỳ vọng "kéo model về 1 điểm chung" sau khi FedAvg gộp nhiều client phân kỳ (full pipeline federation em đang chuẩn bị thử tuần tới).
+
+Config: K=8 client, Dirichlet α=0.5, teacher Qwen2.5-Coder-7B.
+
+Hướng cũ (teacher ở client) là gợi ý của thầy — em báo lại rõ để thầy góp ý nếu cần điều chỉnh.
+
+## 2. So sánh 2 cách distillation: RKD thắng KID
+
+3 model cùng train từ base, cùng data Spider, chỉ khác loss distill. Eval Spider dev, n=1034, seed 0:
+
+| Cách sinh SQL | FT thường | RKD | KID |
+|---|---|---|---|
+| k=0 | 62.19 | **68.28** | 66.83 |
+| k=3 uniform ICL | 61.90 | 65.86 | 65.96 |
+
+- **RKD** — teacher chấm trực tiếp trên gold SQL.
+- **KID** — che một phần gold SQL, student tự đoán lại thành bản "không hoàn hảo", teacher chấm trên bản đó (mô phỏng lỗi lúc inference).
+
+Kết quả:
+- **RKD − FT thường = +6.09 EX** (p=3.1e-07) — tín hiệu distillation thật, đáng build tiếp federation.
+- **KID − RKD = −1.45 EX** (p=0.072, chưa significant, 1 seed) — ngược headline paper KID gốc. KID chịu ICL tốt hơn (giảm 0.87 vs RKD giảm 2.42 khi thêm demo).
+- **Chốt: RKD làm hướng chính cho server-distill.** Chạy seed 2 để chốt số liệu.
+
+## 3. ICL: vẫn chưa đóng góp dương — báo trung thực
+
+Tuần trước báo ICL làm giảm accuracy sau fine-tune. Tuần này điều tra sâu hơn — kết quả xấu hơn tưởng, chưa giải quyết xong.
+
+**Nội dung demo không giúp gì:** demo sửa đúng ~4-7% câu, làm sai thêm ~7-12% câu khác — triệt tiêu nhau. Demo ngẫu nhiên vs DAIL-SQL chọn lọc kỹ: sửa đúng ngang nhau (22 vs 23/146, không khác biệt thống kê). Test 4 họ model (Qwen 0.5B/1.5B, Gemma-2B, Llama-3.2B) — không tìm được cách chọn demo nào có lợi hơn random. Hướng cải tiến retrieval coi như đóng.
+
+**Có 1 cơ chế tăng accuracy, nhưng chưa chắc là "ICL":** sinh SQL k=0 → chạy thử → lỗi mới thêm demo, sinh lại. Đo được tăng accuracy thật. Nhưng vì nội dung demo không quan trọng (mục trên), nghi cơ chế này chỉ cần verify bằng execution + đổi prompt bất kỳ — demo có thể thay bằng cách khác (vd resample temperature, không cần demo), chưa test. Nếu đúng, đây không phải bằng chứng ICL có ích.
+
+**Vấn đề:** paper cần ICL đóng góp dương (tên Fed-ICKD, RQ2). Hiện chưa có bằng chứng. Cần chạy retry-không-demo vs retry-có-demo để xác định — nếu ngang nhau, ICL không đóng góp gì, cần tìm hướng khác hoặc cân nhắc lại khung RQ2.
+
+## 4. Chốt nguồn public P = BIRD: chỉ schema/DB, cấm gold SQL
+
+Chuỗi thử nghiệm: train CE trên 1000 mẫu từ base, eval Spider dev, mốc so sánh = chưa train (50.00 EX):
+
+| Cách train | Data | EX |
+|---|---|---|
+| Gold SQL của BIRD | BIRD gold | 47.10 — **fail, tệ hơn cả không train** |
+| Lọc bớt câu phụ thuộc `evidence` | BIRD gold, 700 câu | 46.71 — **vẫn fail** |
+| Teacher tự sinh SQL trên schema BIRD, giữ câu chạy được | 831/1000 câu | **50.00 — pass** (vừa chạm mốc) |
+| Đối chứng: Spider | 1000 câu | 51.74 |
+
+**Nguyên nhân:** chất lượng annotation BIRD kém, không phải do `evidence` hay domain — CIDR 2026 đo BIRD Mini-Dev 52.8% gold bị lỗi annotation. Sửa theo ExeSQL: bỏ gold gốc, teacher tự sinh + lọc bằng execution — arm này còn có tỉ lệ SQL lỗi thấp nhất (20.5%).
+
+**Chốt:** BIRD chỉ làm nguồn schema/DB, không dùng gold gốc. Server-distill xây trên on-policy + execution-anchored — khác biệt chính vs FedCoLLM (họ distill mù trên public data, mình có thêm verifier lọc từng mẫu).
+
+**Thử thêm — centralized proxy cho 1 phần dynamic round loop** (chưa phải FedAvg thật): warm-start adapter đã FT (62.19), train tiếp trên data BIRD đã lọc. CE-only tụt còn **59.38** (−2.81, model quên kiến thức cũ). CE+RKL giữ **62.28** (−0.09, gần như không đổi). Bằng chứng thực nghiệm đầu tiên: train liên tục không distill làm model trôi, có distill thì giữ được. Phần "kéo nhiều client phân kỳ về 1 điểm chung" vẫn chưa test — cần federation thật.
+
+## 5. Việc tuần tới
+
+1. **Ưu tiên 1 — build federation thật:** chia K=8 client, code FedAvg + server-distill, chạy `fedavg`/`fedavg_pub`/`fedkd` — số federated đầu tiên.
+2. **Test retry-không-demo vs retry-có-demo** (mục 3) — xác định ICL có cần thiết không, trước khi đưa vào paper.
+3. Rerun PoC với student Qwen2.5-Coder-1.5B; seed 2 cho RKD/KID; ablation teacher 3 demo vs 0.
+4. Viết §2 (chưa viết §5 — chờ kết luận ICL); vẽ lại Hình 1 theo kiến trúc mới.
+
+---
+
 # Báo cáo tiến độ FedICL-SQL — 07/07/2026
 
 Chào thầy Hùng,

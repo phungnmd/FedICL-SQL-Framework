@@ -2185,3 +2185,216 @@ RETIRED, do-not-run banner added).
 - [ ] (unchanged) Coder-1.5B student rerun (§7) — independent, still open
 - [ ] (unchanged) FedEx-LoRA parked until A4
 - [ ] (unchanged) rest of the federation build queue from session (1)
+
+## Session 2026-07-12 (16) — KD-on-top-of-finetuned probe: empirical validation of the §3.4 consensus-regularizer claim
+
+### Question that motivated this
+
+User pushback (2 turns): the PoC arms (`central_ft`/`central_rkd`/`central_kid`)
+all train jointly from **base** — none test the round-loop's actual dynamic,
+where the server continues training an **already** client-CE-fine-tuned
+aggregate every round (`initialized from the broadcast global adapter each
+round`, §3, `L = λ_ft·CE(y_pub) + λ_kd·RKL` on top of that). A centralized
+proxy for this was missing from the PoC.
+
+### Experiment (user-run, matched-control design)
+
+Warm-started `artifacts/icl_ladder/qwen1b/ft_no_icl/adapter` (baseline
+EX=62.19, EM=57.16, verified via `eval_arms__s0__20260708T084149`) and
+continued training on the §6e BIRD exec-bootstrap slice (n=831), **same data,
+same step count (831), same init** — only `--kd-direction` differs:
+
+| arm | EX | EM | exec_error | Δ vs pre-continuation (62.19) |
+|---|---|---|---|---|
+| baseline (`ft_no_icl`, no further training) | 62.19 | 57.16 | 211/1034 | — |
+| `central_ft_extra_bird` (continue, CE-only) | 59.38 | 30.95 | 174/1034 | **−2.81** |
+| `central_ft_then_kd_bird` (continue, CE+RKL) | 62.28 | 33.85 | 157/1034 | **+0.09** |
+
+Configs verified (`config.json` both runs): `client=processed_data/BIRD/
+probe_1k_bootstrap/train.csv`, `init_adapter=.../ft_no_icl/adapter`,
+`max_steps=831`, differing only `kd_direction={none,rkd}` — clean, matched.
+
+### Reading
+
+1. **Plain further CE training on public (even exec-bootstrapped, §6e-passing)
+   data actively regresses an already-converged model** — −2.81 EX, a
+   forgetting-style drift from continuing SGD on a new distribution past
+   the model's Spider-tuned optimum.
+2. **Adding the teacher's RKL term neutralizes the drift** — +0.09 EX,
+   flat within noise (stack noise floor ~0.5pp per earlier sessions).
+3. **Matched-control KD value: 62.28 − 59.38 = +2.90 EX** — isolates the
+   teacher-signal's protective effect specifically in the
+   already-fine-tuned regime, cleanly separated from "does KD help learn
+   from scratch" (that's `central_rkd − central_ft` = +6.09 EX, a different
+   question, different regime).
+4. **This is the first direct empirical support for §3.4's "consensus
+   regularizer" framing** — previously argued only by FedDF/FedMD analogy.
+   The round loop's real mechanism (repeated client-CE rounds, each
+   followed by server continuation-training) is exactly what this probe
+   reproduces at centralized scale: without server KD, repeated CE rounds
+   would drift the model down (as the CE-only control shows); server KD
+   holds the line.
+5. Side signal, consistent with §6e: both continuation arms have fewer
+   exec-errors than the pre-continuation baseline (157, 174 vs 211/1034) —
+   exec-bootstrapped targets still teaching more executable-SQL habits.
+
+### Docs updated
+
+`system_architecture.md` §3.4 — added this result as empirical validation of
+the regularizer claim, right after the FedDF/FedMD analogy sentence.
+
+### Next
+
+- [ ] Build the real server-distill step (§8.3/§8.4) + round-loop driver —
+      this result strengthens the case, doesn't replace the need to build it
+- [ ] (unchanged) Coder-1.5B student rerun (§7)
+- [ ] (unchanged) FedEx-LoRA parked until A4
+- [ ] (unchanged) rest of the federation build queue
+
+## Session 2026-07-13 — system_architecture.md consistency pass (stale info removed, no decision changed)
+
+Doc hygiene only. §0/§3.2 already carried the 07-11→07-13 verdicts, but older
+sections still contradicted them — every contradiction below is now aligned:
+
+- **§0** restamped 2026-07-13; the "deferred until PoC verdict" list replaced
+  with Settled / Next / Deferred (PoC complete, `P` resolved, federated build
+  = top priority).
+- **§2 diagram**: Phase 1 now shows exec-bootstrapped target generation
+  (never BIRD gold); Phase 2 shows train k=0 default; Phase 4 renamed
+  verifier-gated retry with cheap fallback retrieval.
+- **§3.1**: "pick after the PoC" → PoC done, model sweep still open. **Correction
+  same session:** first pass wrongly stated the PoC ran on the pre-switch
+  Qwen2.5-7B-Instruct teacher; session (2)'s own header confirms P1/P2 already
+  used Qwen2.5-Coder-7B-Instruct — fixed in both docs.
+- **§3.2 restructured**: rule blockquote first, gate-trace table
+  (E0.1 47.10 FAIL / lever-D 46.71 FAIL / exec-bootstrap 50.00 PASS), root
+  cause, engineering caveats; the D/B/C escalation ladder compressed to a
+  closed historical note (D ran and failed; Δ-histogram remnant feeds A3).
+- **§3.4**: `y_pub` defined as exec-bootstrapped targets; RKD stated as
+  locked; caching paragraph updated (KID → §8.3 on-policy as the
+  online-teacher case).
+- **§5.2** heading demoted ("locked" → "demoted to baseline") + status
+  blockquote; retrieval-sites paragraph notes client fallback = any cheap
+  method.
+- **§5.4**: train-k0 + verifier-gated retry promoted from buried status
+  paragraph to the stated default; `train-k2 consistent` reframed as A2's
+  comparison arm; caveats (a)/(b)/(c) kept.
+- **§6 pseudocode**: Phase 1 = bootstrap + logit cache; client CE at k=0;
+  KID mask branch removed (RKD locked, §8.3 noted); fallback = any cheap
+  retrieval. **§7**: question-sim default removed (worst performer per §5.2).
+- **§8**: "decided by the running PoC" → verdict recorded (rkd−ft +6.09
+  p=3.1e-07; kid−rkd −1.45); KID column relabeled. **§8.2** order → A6 on RKD.
+- **§9**: KD-direction row added (RKD locked). **§10** PoC subsection
+  retitled COMPLETE with deltas. **§11** invariant 3: direction = RKD.
+- **§12 notation**: `P` row (was "dataset TBD") and `k_student` row (was
+  "default 2") fixed; `y_pub` row added. **§14**: ExeSQL anchor added.
+
+Nothing outside `system_architecture.md` + this log touched. Fig. 1 redraw
+still pending (§14 note unchanged).
+
+### Next
+
+- [ ] (unchanged) Build the server-distill step (§8.3/§8.4) + round-loop driver
+- [ ] (unchanged) Coder-1.5B student rerun; FedEx-LoRA parked until A4
+- [ ] (unchanged) Redraw Fig. 1 before paper §3 is written
+
+## Session 2026-07-13 (2) — staged full-BIRD scale-up of the KD-on-finetuned probe (§6f); fixed a second stale teacher-model line
+
+User asked: does the KD-on-finetuned result (session 2026-07-12 (16): CE-only
+−2.81 / CE+RKL +0.09 / KD value +2.90) hold at full-BIRD scale, not just the
+1k probe slice (831 rows)? Not run yet — this machine has no CUDA (M4 Mac),
+needs the compute host.
+
+**Staged, not run:** `notebooks/kd/README.md` §6f (new) — documents the done
+1k-scale result, explicitly separates it from the retired §6b (RKL against
+BIRD's own gold — dead premise), and stages 3 commands for the full-BIRD
+version: bootstrap `processed_data/BIRD/centralized/train.csv` (9630 rows,
+not the 1k slice) via the already checkpoint/resume-safe
+`build_exec_bootstrap_probe.py`, then two `--init-adapter central_ft`
+continuations (CE-only vs CE+RKL) at `--epochs 1` over the full bootstrapped
+corpus — matched control holds automatically (same data, same epoch count),
+no `--max-steps` pin needed this time. Flagged cost: bootstrap-gen alone is
+~9.6× the 1k probe's wall-clock; two full training runs on top of that is a
+real compute ask, not an opportunistic probe.
+
+**Also flagged (not asked, but caught while reading `notebooks/kd/README.md`
+§6f context):** this is still a **centralized proxy**, same caveat as
+session (1)'s report-wording fix — scaling the data doesn't test the
+FedAvg-divergence half of the consensus-regularizer claim, only whether the
+repeated-CE-drift / KD-protects pattern holds at more data. Noted explicitly
+in the new §6f section so it isn't misread as a federation result later.
+
+**Second stale teacher-model line found and fixed:** `fedicl-sql/CLAUDE.md`
+(the code repo's own CLAUDE.md, separate from the outer repo's) still said
+"PoC runs so far used Qwen2.5-7B-Instruct" — same error as the one fixed in
+`system_architecture.md` §3.1 this morning (session (1)). LAB_LOG 2026-07-11
+(2) confirms P1/P2 already used Qwen2.5-Coder-7B-Instruct. Fixed.
+
+### Next
+
+- [ ] Run §6f full-BIRD scale-up on the compute host — bootstrap-gen first,
+      read its exec-pass yield before committing to the two training runs
+- [ ] (unchanged) Build the real server-distill step (§8.3/§8.4) + FedAvg —
+      still the only thing that tests the multi-client half of the
+      consensus-regularizer claim
+- [ ] (unchanged) Coder-1.5B student rerun; seed 2; `k_teacher` ablation
+
+## Session 2026-07-13 (2) — §3.2 rule scope narrowed: BIRD gold usable for teacher-side diagnostics
+
+### What changed
+
+User clarified the §3.2 ban's intended scope: BIRD's own gold SQL is banned
+as a **CE/RKL training target** (the mechanism E0.1 caught — bad labels
+entering the student's parameters), not an absolute never-touch-BIRD-gold
+rule. Using it purely as an **eval signal for teacher-side design decisions**
+(e.g. the `k_teacher` 0-vs-3 ablation, §9) doesn't reintroduce the poisoning
+mechanism — the teacher is frozen, never trained on `P`, so no bad label ever
+reaches the student. `system_architecture.md` §3.2 updated with an explicit
+"Not banned" clause + a parallel clarification on the eval-benchmark line
+(invariant #5 is about the *trained/distilled model's* reported accuracy,
+not about diagnosing the frozen teacher).
+
+Caveat carried over unchanged: BIRD Mini-Dev's documented 52.8%
+annotation-error rate still applies as measurement noise on any such number
+— report directional only, not citable, especially for small deltas.
+
+### Ready to run — no new code needed
+
+`processed_data/BIRD/centralized/{train,test}.csv` already exist (train
+9630 rows, test.csv = BIRD dev 1560 rows, built 2026-07-12 per
+`processed_data/BIRD/config.json`). `experiments/eval_arms/run.py` already
+takes `--centralized-train`/`--test-csv` as overridable paths and already
+supports a no-adapter `teacher=` arm (used for the Spider teacher baseline,
+LAB_LOG 2026-07-08 (2)) — reused as-is, no script changes:
+
+```
+uv run python experiments/eval_arms/run.py \
+    --pool-mode centralized \
+    --centralized-train processed_data/BIRD/centralized/train.csv \
+    --test-csv processed_data/BIRD/centralized/test.csv \
+    --model Qwen/Qwen2.5-Coder-7B-Instruct \
+    --arms teacher_bird_k0= \
+    --k 0
+
+uv run python experiments/eval_arms/run.py \
+    --pool-mode centralized \
+    --centralized-train processed_data/BIRD/centralized/train.csv \
+    --test-csv processed_data/BIRD/centralized/test.csv \
+    --model Qwen/Qwen2.5-Coder-7B-Instruct \
+    --arms teacher_bird_k3= \
+    --k 3 --retrieval dail_select
+```
+
+Read off `ex_mean` for both, plus `exec_errors` (gold-independent signal,
+more robust than EX given the annotation-error caveat — worth reporting
+alongside EX, not instead of it). 1560-row BIRD dev eval on a 7B teacher —
+similar cost class to the exec-bootstrap probe, no A100 booking needed beyond
+what's already used for teacher eval.
+
+### Next
+
+- [ ] Run both commands above on compute host, read off k=0 vs k=3 EX +
+      exec_errors delta — informs whether the real `k_teacher` ablation
+      (measured via `fedkd` on Spider dev, §9/§10) is worth prioritizing early
+      or can wait
+- [ ] (unchanged) rest of the federation build queue from session (1)
