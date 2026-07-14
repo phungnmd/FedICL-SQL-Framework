@@ -50,7 +50,8 @@ absolute parity with the teacher.
 - **Pool `P` — RESOLVED (2026-07-12/13): BIRD schemas/DBs only.** BIRD's own
   (question, gold-SQL) pairs are permanently banned as CE/RKL targets
   (annotation quality — gate trace in §3.2); server-distill targets come from
-  §8.3 (on-policy) + §8.4 (execution-anchored).
+  §8.0's implemented Phase-1 construction (§8.3/§8.4 = future online upgrade,
+  still unbuilt).
 - **ICL role settled empirically (§5.2/§5.4):** selection sophistication never
   pays (4 model families, uniform + gated); the shipping overlay is the
   **verifier-gated retry**; current client default = train k=0 + gated
@@ -127,9 +128,9 @@ pool after each aggregation round.
 │                                                          │
 │  [Phase 1 — offline, once]                               │
 │  teacher generates SQL on P's schemas → execution        │
-│  filter on P's DBs → targets y_pub (§8.4)                │
+│  filter on P's DBs → targets y_pub (§8.0)                │
 │  → cache teacher logits on y_pub (target fixed → RKD     │
-│    cacheable; §8.3 on-policy needs the teacher online)   │
+│    cacheable; future §8.3 on-policy needs teacher online)│
 │                                                          │
 │  [Phase 3 — every round]                                 │
 │  FedAvg(LoRA adapters, nᵢ/n) → global student M_G        │
@@ -189,10 +190,13 @@ not a default claim.
 > **Rule (scope clarified 2026-07-13):** BIRD's own (question, gold-SQL) pairs
 > are **permanently off-limits as CE/RKL training targets** — confirmed by
 > gate testing below (BIRD's own gold is the poison, not the schemas).
-> Server-distill targets come from **§8.3 (on-policy) + §8.4
-> (execution-anchored)** only. E0.1b (RKL on BIRD's native gold) is retired —
-> do not run; its premise is moot now that the gold itself is known-poisoned.
-> Runbook: `notebooks/kd/README.md` §6/§6c/§6e (§6b marked retired in place).
+> Server-distill targets come from **§8.0's implemented Phase-1 construction**
+> (teacher zero-shot + exec-filter, now + EX-match-vs-gold filter) — §8.3/§8.4
+> are the *future* online upgrade (student on-policy sampling), still unbuilt,
+> not what §6e/§6f/§6g actually run on. E0.1b (RKL on BIRD's native gold) is
+> retired — do not run; its premise is moot now that the gold itself is
+> known-poisoned. Runbook: `notebooks/kd/README.md` §6/§6c/§6e/§6f/§6g (§6b
+> marked retired in place).
 >
 > **Not banned:** using BIRD's own gold as a **diagnostic/eval signal for
 > teacher-side design decisions** (e.g. the `k_teacher` 0-vs-3 ICL ablation,
@@ -315,12 +319,13 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
 - **Reverse KL, never forward KL**: mode-seeking fits SQL's precise,
   low-diversity token distribution ([10]); forward KL is mean-seeking and
   smears mass over invalid continuations.
-- **`y_pub` = execution-bootstrapped targets** (§3.2 rule: teacher-generated
-  SQL on `P`'s schemas, execution-filtered on `P`'s DBs — never BIRD's own
-  gold).
+- **`y_pub` = execution-bootstrapped targets** (§8.0: teacher-generated SQL on
+  `P`'s schemas, execution-filtered — optionally EX-matched vs gold — on `P`'s
+  DBs; never BIRD's own gold text).
 - **Direction: RKD — locked 2026-07-12** (gold-target reverse KL; PoC verdict
   §8). KID lost the PoC (−1.45 EX vs RKD); §8.3 (on-policy) + §8.4
-  (execution-anchored) are the Tier-2 target upgrades on top of RKD.
+  (execution-anchored) are Tier-2 **future online** target upgrades on top of
+  RKD, once the round loop exists — §8.0 is what `y_pub` runs on today.
 - Implementation notes carried over from the PoC code (`train_online_kd`):
   Qwen2.5 7B vs 1.5B logit dims differ (V=152064 vs 151936, embedding padding)
   → slice both to the common vocab prefix; compute RKL in float32 (fp16 sum
@@ -608,6 +613,45 @@ on-policy variant tests exactly that. Dropped and deleted 2026-07-07:
 Struct-SQL [11] QP-CoT, SeqKD, the whole offline teacher-target pipeline —
 [11] stays a related-work reference only.
 
+### 8.0 IMPLEMENTED — Phase-1 target construction (`y_pub`, offline, teacher zero-shot)
+
+> **Status: built and running (2026-07-12/14) — distinct from §8.3/§8.4 below.**
+> §8.3/§8.4 describe the **student** sampling `ŷ` **online, every round**
+> (unbuilt — no federation loop exists yet). This section is the **teacher**
+> generating `y_pub` **offline, once** (Phase 1, §2/§3.4) — the mechanism
+> every §6e/§6f/§6g result (`notebooks/kd/README.md`) already runs on. §3.2's
+> line "server-distill targets come from §8.3+§8.4 only" was inaccurate on
+> this point — fixed to point here instead; §8.3/§8.4 remain the *future*
+> online upgrade once the round loop exists.
+
+Two filter stages, both implemented, both gated (never assumed better than
+the last without measuring):
+
+1. **Exec-only filter** (`scripts/build_exec_bootstrap_probe.py`) — teacher
+   zero-shot generates one SQL candidate per question on `P`'s schema (no
+   ICL, no gold), kept only if it executes without error (ExeSQL recipe,
+   §3.2). **Gate-verified PASS** at the floor (50.00 EX, 1k-scale probe,
+   §3.2's gate trace). Data: `processed_data/BIRD/bootstrap_full/train.csv`
+   (9630→committed, exec-pass yield ~85%).
+2. **EX-match filter** (`scripts/score_bootstrap_ex_match.py`, 2026-07-14) —
+   re-scores stage 1's checkpoint against BIRD's own gold via
+   `score_ex_detail` (no new generation): keeps a row only if the execution
+   **result** matches gold's, not just "ran without error." **Caveat, not an
+   assumed upgrade:** BIRD Mini-Dev is 52.8% annotation-error, so gold-as-
+   oracle here inherits that noise as a selection bias in the *other*
+   direction (wrongly rejects correct-but-gold-disagreeing teacher SQL,
+   wrongly accepts SQL that mimics gold's own errors) — must be gated
+   against stage 1's own numbers before it replaces anything (`kd/README.md`
+   §6f vs §6g). The training target stays teacher's own SQL text either way
+   (never gold's text) — this only changes which rows get selected, so it
+   does not reintroduce E0.1's failure mode. Data:
+   `processed_data/BIRD/bootstrap_full_exmatch/train.csv` (8128/9630 kept,
+   committed).
+
+Both stages checkpoint/resume + parallelize the SQLite exec pass
+(`ThreadPoolExecutor` — a sequential loop hit the same pathological-query
+timeout problem twice, fixed both times the same way).
+
 ### 8.1 KILLED — asymmetric-context KD (Tier 3, added 2026-07-08, killed 2026-07-11)
 
 > **Status: dead by its own pre-registered criterion.** `central_rkd_asym`
@@ -760,8 +804,8 @@ GRPO:
 | Rounds / local epochs | T = 15, E = 2 |
 | Server distill | 300 steps/round on `P`, batch 16, `λ_ft:λ_kd = 1:1` |
 | KD loss | `CE + RKL(q‖p)` per [10] — reverse KL, full-vocab (common prefix), float32 |
-| KD direction | **RKD — locked 2026-07-12** (PoC verdict, §8); §8.3/§8.4 = Tier-2 target upgrades |
-| Public pool `P` | **BIRD schemas/DBs** — never BIRD's own gold SQL (resolved 2026-07-12/13, §3.2); targets via §8.3/§8.4 only; distill subset a few k, stratified |
+| KD direction | **RKD — locked 2026-07-12** (PoC verdict, §8); §8.3/§8.4 = future Tier-2 target upgrades |
+| Public pool `P` | **BIRD schemas/DBs** — never BIRD's own gold SQL (resolved 2026-07-12/13, §3.2); targets via §8.0 (implemented) today, §8.3/§8.4 once online; distill subset a few k, stratified |
 | Eval | Spider dev (EX + EM, official algorithms) + Spider-Realistic (robustness) |
 | Seeds | 3 for main results, 1 for ablations |
 | Hardware | 1× RTX A5000 24 GB; vLLM for all inference/eval, HF+PEFT for training |
@@ -895,7 +939,7 @@ research question, not a constraint like privacy/leakage/hygiene are.)*
 | `k_student` | ICL shots at client training (default **0**; inference = gated k=3 fallback, §5.4; A2 decides) |
 | `k_teacher` | ICL shots for teacher scoring on `P` (default 3, ablate 0 then 5) |
 | `P` | public pool at the server — **BIRD schemas/DBs, never BIRD's own gold** (§3.2) |
-| `y_pub` | server-distill target on `P` — teacher-generated, execution-filtered SQL (§3.2/§8.4) |
+| `y_pub` | server-distill target on `P` — teacher-generated, execution-filtered (+ optional EX-match) SQL (§8.0) |
 | `ρ` | masking ratio for KID's imperfect data (default 0.2, Random) |
 | `ŷ` | imperfect SQL — KID: student one-pass rewrite of ρ-masked gold; §8.3: student-sampled |
 | `p`, `q` | teacher / student logprob distribution over the KD target |
@@ -957,8 +1001,10 @@ targets · train-k=0 official default with eval-k=3 overlay.
   for the §3.3 LoRA-averaging caveat (Tier 2, try if A4 shows the gap costs
   EX).
 - **ExeSQL** — arXiv:2505.17231 — execution-driven bootstrap (generate →
-  exec-filter → train); the recipe behind `P`'s target rule (§3.2) and the
-  §8.4 execution-anchored distillation.
+  exec-filter → train); the recipe behind §8.0's implemented Phase-1 target
+  construction (`scripts/build_exec_bootstrap_probe.py` +
+  `scripts/score_bootstrap_ex_match.py`) and the future §8.4 online
+  execution-anchored distillation.
 
 Mechanism figure: `fig_architecture_source.png` + `fig1_architecture.md` predate
 the 2026-07-08 server-side pivot — **Fig. 1 must be redrawn** (teacher box moves
