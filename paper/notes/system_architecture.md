@@ -36,17 +36,34 @@ absolute parity with the teacher.
 
 ---
 
-## 0. Status & scope (2026-07-13)
+## 0. Status & scope (2026-07-13; decision-status legend added 2026-07-15)
+
+**Decision-status legend (softening pass 2026-07-15, user):** older text says
+"locked" — read that as *build-order pick*, not immutable truth. Three grades:
+
+- **invariant** — hygiene/privacy/comparability rules (§11). Hard. Not
+  empirical claims, so no retest can overturn them.
+- **closed finding** — replicated or externally corroborated (BIRD-gold ban:
+  probe + independent 52.8% annotation-error report; centralized
+  selection-null: replicated across 4 model families). Reopen only on new
+  contrary evidence, not on re-argument.
+- **provisional default** — best current pick on incomplete evidence
+  (typically 1 seed); build proceeds on it, a scheduled retest can overturn
+  it. Currently: **RKD direction** (p=0.072 vs KID → seed-2 + A1 + §8.3),
+  **k=0+gate policy** (→ A2), **asym-KD kill** (−0.78, 1 seed, within noise —
+  stays shelved, grade noted), **rehearsal-not-needed** (→ §3.4
+  instrumentation + A3 trigger).
 
 **Settled:**
 
 - **Centralized KD PoC — COMPLETE (2026-07-11).** `central_ft` / `central_rkd`
   / `central_kid` trained and evaluated. KD signal is real: `rkd − ft` =
-  +6.09 EX, McNemar p=3.1e-07 (107 vs 44 discordant rows). **Direction locked:
-  RKD** (2026-07-12, user) — beats KID at every condition incl. under the exec
-  gate. Caveat carried, not a gate: the paired gap vs KID (38 vs 23 rows,
-  p=0.072) is NOT significant at 1 seed; seed 2 still needed before the gap
-  size is a citable paper number, but the pick itself does not wait on it.
+  +6.09 EX, McNemar p=3.1e-07 (107 vs 44 discordant rows). **Direction: RKD —
+  provisional default** (2026-07-12, user; regraded 2026-07-15 per the legend
+  above) — beat KID at every condition incl. under the exec gate. Caveat
+  carried, not a gate: the paired gap vs KID (38 vs 23 rows, p=0.072) is NOT
+  significant at 1 seed; seed 2 still needed before the gap size is a citable
+  paper number, but the build pick does not wait on it.
 - **Pool `P` — RESOLVED (2026-07-12/13): BIRD schemas/DBs only.** BIRD's own
   (question, gold-SQL) pairs are permanently banned as CE/RKL targets
   (annotation quality — gate trace in §3.2); server-distill targets come from
@@ -67,7 +84,9 @@ absolute parity with the teacher.
 
 **Next (top priority):** the federated pipeline — Flower simulation (K=8),
 weighted FedAvg, server-distill step on §8.3/§8.4 targets. The paper has no
-federated number yet.
+federated number yet. GPU-idle item (elevated 2026-07-15): seed 2 for
+`central_rkd`/`central_kid` — the RKD-vs-KID gap is p=0.072 at 1 seed
+(caveat above), cheapest retest in the queue; the pick itself doesn't wait.
 
 **Deferred:** Tier-2 ablations (§10) until the Tier-1 ladder has numbers; the
 v2 extension arms (`fedkd_onpolicy`/`fedkd_onpolicy_exec`, §10) after
@@ -322,10 +341,14 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
 - **`y_pub` = execution-bootstrapped targets** (§8.0: teacher-generated SQL on
   `P`'s schemas, execution-filtered — optionally EX-matched vs gold — on `P`'s
   DBs; never BIRD's own gold text).
-- **Direction: RKD — locked 2026-07-12** (gold-target reverse KL; PoC verdict
-  §8). KID lost the PoC (−1.45 EX vs RKD); §8.3 (on-policy) + §8.4
-  (execution-anchored) are Tier-2 **future online** target upgrades on top of
-  RKD, once the round loop exists — §8.0 is what `y_pub` runs on today.
+- **Direction: RKD — provisional default (2026-07-12; regraded 2026-07-15)**
+  (gold-target reverse KL; PoC §8). KID trailed the PoC (−1.45 EX) but the
+  paired gap is **not significant at 1 seed (p=0.072)** — the pick stands on
+  cost (RKD's target is fixed → logits cacheable offline; KID needs the
+  teacher online), not on statistics. Scheduled retests: seed-2 (§0),
+  A1 at federated scale, §8.3 on-policy (the mask-token hypothesis). §8.3 +
+  §8.4 (execution-anchored) are Tier-2 **future online** target upgrades on
+  top of RKD, once the round loop exists — §8.0 is what `y_pub` runs on today.
 - Implementation notes carried over from the PoC code (`train_online_kd`):
   Qwen2.5 7B vs 1.5B logit dims differ (V=152064 vs 151936, embedding padding)
   → slice both to the common vocab prefix; compute RKL in float32 (fp16 sum
@@ -353,6 +376,24 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
   the finding says server KD isn't optional polish, it's what stops the
   repeated-CE-rounds drift the regularizer framing predicts. LAB_LOG
   2026-07-12 (16) has the full trace.
+
+- **Round-loop drift instrumentation (pre-registered 2026-07-15):** the proxy
+  above is ONE continuation step; the round loop repeats the dynamic T=15
+  times, so a per-round +0.09 "flat within noise" could still compound into
+  real drift. Counterweight (user, 2026-07-15): the loop itself alternates —
+  each round's Phase 2 re-trains every client on the same private Spider data
+  (**implicit rehearsal by construction**, the very step the centralized proxy
+  did NOT include). Whether the alternation converges or oscillates is an
+  empirical question → instrument, don't assume: log a fixed Spider-dev-slice
+  EX for `M_G` **twice per round** — post-FedAvg (pre-distill) and
+  post-distill — so the FT-vs-KD tug-of-war is visible per phase, not just
+  per round. **Pre-registered trigger:** if post-distill EX decays
+  monotonically across rounds despite RKL, activate A3's *mix* arm early
+  (Spider held-out mixed into `P` as explicit rehearsal) instead of waiting
+  for the ablation grid. Symmetric risk the same instrumentation catches:
+  E×T = 30 epochs over the same small `Qᵢ` may overfit clients — there the
+  server KD step is the counter-regularizer, visible as post-distill >
+  post-FedAvg.
 
 **Caching:** for **RKD** the target (`y_pub`) and the ICL context are fixed
 once Phase 1 generates them → teacher logits can be computed **once offline**
@@ -392,6 +433,12 @@ not a claim.
 > survives as (i) the related-work baseline and (ii) the `teacher-k3 vs k0`
 > distill ablation (§9/§10). Client fallback retrieval = anything cheap
 > (random or a static cached demo set).
+>
+> **Scope grade (2026-07-15, §0 legend):** *closed finding* for the
+> centralized regime (null replicated across 4 families — strongest
+> replication in the repo); **untested** for federated small, domain-skewed
+> `Qᵢ` fallback pools — that gap is logged for free by §7's per-client gate
+> instrumentation, no selection machinery gets rebuilt on speculation.
 
 Per DAIL-SQL [9], demos are chosen by **dual similarity**:
 
@@ -538,6 +585,34 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
 
 ## 6. Federated round loop
 
+> **Status: implemented 2026-07-15.** `fedicl-sql/experiments/federated/run.py`
+> runs the full loop below for all three Tier-1 arms (`fedavg`/`fedavg_pub`/
+> `fedkd`) — client local FT (`train_client`) → FedAvg
+> (`fedicl_sql/federated/aggregate.py`, already built earlier) → arm-dependent
+> server step (`train_client` gold-CE for `fedavg_pub`, `train_online_kd` RKL
+> for `fedkd`). Per-stage checkpoint/resume via `adapter_done()`
+> (`fedicl_sql/runtime/checkpoint.py`) — a crash/kill resumes at the first
+> incomplete client/fedavg/server stage, not the whole run. Smoke-tested
+> end-to-end on real Spider+BIRD data (2 clients, 1–2 rounds, tiny step caps);
+> real T=15/K=8 runs not yet executed (compute-host queue item).
+>
+> The teacher logit cache below (Phase 1) is also implemented
+> (`fedicl_sql/training/logit_cache.py`, `scripts/build_teacher_logit_cache.py`)
+> — **one caveat vs the original design note**: it stores **full-vocab fp16
+> logits** per cached example (~0.3–0.6 MB/example, not top-K), because
+> `rkl_div_loss` was already decided full-vocab-online (`losses.py`'s "no
+> top-K logprob caching needed" comment predates this cache and describes a
+> *different, retired* sparse-KL design — not a conflict with this one, just a
+> naming collision worth flagging). Practical corollary: cache only a
+> **stratified distill subset** (`--pool-size`, default 1200 examples ≈
+> 0.5–1 GB), not the full pool — `experiments/federated/run.py` fixes the same
+> subset for the whole run so every round's revisit is a cache hit. RKD-only
+> (KID's `ŷ` is re-sampled every step) and symmetric-context-only
+> (`kd_teacher_k=0` — §8.1's asymmetric variant is shelved anyway). A
+> cache-key mismatch (train_k/demo_k_fixed/seed/schema_style/retrieval drift
+> between the offline build and the round loop) fails loudly (`KeyError`), it
+> does not silently fall back to a live teacher forward.
+
 ```python
 # Phase 1 (offline, once): target bootstrap + logit cache on P (§3.2 rule)
 #   teacher zero-shot SQL on P's schemas → execution filter on P's DBs
@@ -584,6 +659,11 @@ round-trip, no teacher at inference; retrieval/FAISS cost is paid only on the
 fallback path (~14–20% of queries for a 1.5B student, ~4% for 7B). Global
 arms are evaluated **once per client pool** and reported mean±std over K.
 
+Instrumentation (added 2026-07-15): log gate fire-rate and repair-rate
+**per client**. §5.2's selection findings are all centralized (demo pool =
+full Spider train); a small, domain-skewed `Qᵢ` fallback pool is an untested
+regime — this closes the gap for free, no new selection machinery.
+
 ---
 
 ## 8. KD directions — RKD and KID, both from [10]
@@ -605,9 +685,11 @@ the value of imperfect data.
 Tokenizer alignment (teacher/student share the Qwen2.5 tokenizer) is required
 for RKL without MinED-style mapping — a constraint on the model pair.
 
-**Verdict (PoC 2026-07-11; locked 2026-07-12): RKD ships.** `rkd − ft` =
-+6.09 EX (McNemar p=3.1e-07); `kid − rkd` = **−1.45 EX** — opposite [10]'s
-own headline. Leading suspect: the mask token (`pad_token_id`) substituted
+**Verdict (PoC 2026-07-11; provisional default 2026-07-12, regraded
+2026-07-15): RKD ships as the build default.** Evidence grade is split:
+`rkd − ft` = +6.09 EX is **strong** (McNemar p=3.1e-07); `kid − rkd` =
+**−1.45 EX is weak** (p=0.072, 1 seed) — opposite [10]'s own headline, and
+scheduled for retest (seed-2, A1, §8.3). Leading suspect: the mask token (`pad_token_id`) substituted
 mid-sequence is an artifact outside the pretrain distribution — §8.3's full
 on-policy variant tests exactly that. Dropped and deleted 2026-07-07:
 Struct-SQL [11] QP-CoT, SeqKD, the whole offline teacher-target pipeline —
@@ -654,11 +736,15 @@ timeout problem twice, fixed both times the same way).
 
 ### 8.1 KILLED — asymmetric-context KD (Tier 3, added 2026-07-08, killed 2026-07-11)
 
-> **Status: dead by its own pre-registered criterion.** `central_rkd_asym`
+> **Status: shelved by its own pre-registered criterion.** `central_rkd_asym`
 > k=0 = 67.50 vs symmetric `central_rkd` k=0 = 68.28 → `asym − sym` =
 > **−0.78 EX** < the +1 EX kill floor (measured 2026-07-09, 1 seed; doc
-> flipped 2026-07-11). No further asym runs. Closed 2026-07-12 (user) — no
-> advisor note needed, it died before shipping. Section kept for the record.
+> flipped 2026-07-11). Closed 2026-07-12 (user); **evidence grade regraded
+> 2026-07-15 (§0 legend): 1 seed, gap within noise** — the kill is honored
+> because the criterion was pre-registered, but this is a provisional
+> negative, not a closed finding. Revive = GPU-idle Tier-3 only (expected
+> value low: context-distillation literature reports weak gains at small
+> student scale). Section kept for the record.
 
 Orthogonal to the RKD/KID target choice: the **context** each side sees when
 scoring the KD pair. Default (symmetric): teacher and student condition on the
@@ -800,11 +886,11 @@ GRPO:
 | k_teacher | 3 (ablate **0** first — teacher-ICL value is the one place selection/ICL can still earn its keep post-A5, §5.2; then 5) |
 | k_student | train k=0 + **exec-gated k=3 fallback at inference** (measured leader 2026-07-11, 1 seed; A2 decides vs `train-k2 consistent`) |
 | Clients K | 8 |
-| Partition | non-IID by database (Dirichlet over domain groups, α=0.5; ablate 0.1/IID) |
+| Partition | non-IID by database (Dirichlet over domain groups, α=0.5; ablate 0.1/IID) — **implemented 2026-07-15**: 146 train DBs → 20 schema-embedding k-means clusters (`scripts/build_db_groups.py`, `processed_data/SPIDER/db_groups.json`), one shared Dirichlet(α) vector drawn per cluster (`make_federated_split(db_groups=...)`); committed splits at `processed_data/SPIDER/federated_noniid/alpha_{0.1,0.5}/k8/` + `federated_iid/k8/`, seed=0. Fixed a bug where the old flat per-DB Dirichlet draw made α a near no-op and produced 14–40-example starved clients at K=8; a `min_client_examples=150` resample guard now backstops the floor regardless of α |
 | Rounds / local epochs | T = 15, E = 2 |
 | Server distill | 300 steps/round on `P`, batch 16, `λ_ft:λ_kd = 1:1` |
 | KD loss | `CE + RKL(q‖p)` per [10] — reverse KL, full-vocab (common prefix), float32 |
-| KD direction | **RKD — locked 2026-07-12** (PoC verdict, §8); §8.3/§8.4 = future Tier-2 target upgrades |
+| KD direction | **RKD — provisional default 2026-07-12** (§0 legend; retests: seed-2/A1/§8.3); §8.3/§8.4 = future Tier-2 target upgrades |
 | Public pool `P` | **BIRD schemas/DBs** — never BIRD's own gold SQL (resolved 2026-07-12/13, §3.2); targets via §8.0 (implemented) today, §8.3/§8.4 once online; distill subset a few k, stratified |
 | Eval | Spider dev (EX + EM, official algorithms) + Spider-Realistic (robustness) |
 | Seeds | 3 for main results, 1 for ablations |
@@ -871,7 +957,7 @@ Runbook: `notebooks/kd/README.md`; entry: `experiments/client_train/run.py`.
 |---|---|---|
 | A1 | loss: CE-only / +RKL(gold) / +RKL(ŷ) | KD-direction contribution (⚠ do not cut) |
 | A2 | `train-k0 + exec-gate` vs `train-k2 consistent` (uniform k=0/1/2 as secondary rows) | which ICL usage policy ships — reframed 2026-07-11, gate is the measured leader |
-| A3 | pool `P`: BIRD train (default) / Spider held-out / mix | pool-quality finding (⚠ do not cut) — Spider held-out = the in-distribution contrast to BIRD's cross-distribution default |
+| A3 | pool `P`: BIRD train (default) / Spider held-out / mix | pool-quality finding (⚠ do not cut) — Spider held-out = the in-distribution contrast to BIRD's cross-distribution default. *mix* doubles as explicit rehearsal — early-trigger target of §3.4's round-drift instrumentation; note the round loop already rehearses implicitly (client re-FT on same `Qᵢ` every round), so *mix* is the escalation, not the first line |
 | A4 | Dirichlet α = 0.1 / 0.5 / IID | heterogeneity robustness |
 | A5 | selection thang: random / question-sim / DAIL / codes, uniform + exec-gate, same adapter (`central_rkd`) | **DONE 4/4, 2026-07-11 — converged** (gate: 70.41 / 70.79 / 70.50 / 69.92, random-vs-DAIL p=1.00). Attribution settled: repair = perturbation + exec-verify, not demo content (§5.2). Table ships as-is in §5; no further A5 runs |
 | A6 | RKL vs skew-RKL (§8.2, λ~0.1) on the PoC winner | divergence-formula robustness |
@@ -886,12 +972,43 @@ signal (deployment variant of the exec gate for settings where inference-time
 DB execution is unavailable) · **multi-retry gate** (up to N retries with
 fresh random demos on exec-failure, keep first executable — A5 union says
 ceiling ≈ oracle 73.0 on `central_rkd`, i.e. ~+4.8pp vs k0; 1 eval run,
-existing adapter) · **static-demos gate** (fallback uses one fixed cached
+existing adapter; superseded in scope by SC-vote below, which subsumes it —
+vote size 1 ≈ this) · **static-demos gate** (fallback uses one fixed cached
 demo set — zero retrieval infra at the client; 1 confirmation run, predicted
-≈ random per §5.2) · ~~asymmetric-context KD~~ (**killed 2026-07-11**, §8.1 —
+≈ random per §5.2) · **`fedkd_ens` ensemble-consensus distill** (added
+2026-07-15, FedDF-style: server-distill target = ensemble of the K client
+adapters on `P` instead of the 7B teacher — separates "teacher quality" from
+"mere consensus signal", the reviewer question `fedavg_pub` doesn't cover;
+proxy data = `P`, never Spider dev; K=8 × 1.5B forwards, feasible on the
+A5000) · ~~asymmetric-context KD~~ (**killed 2026-07-11**, §8.1 —
 criterion met at −0.78 EX) · ~~Skills Similarity (SS) retrieval~~ (**closed
 2026-07-11**, §5.2 — A5 thang converged 4/4 incl. random; selection
 sophistication is dead post-FT/KD, SS included; code in-tree, no run).
+
+**Self-consistency + execution voting / schema-constrained decoding — code
+built 2026-07-16, not yet run/adopted.** Two inference-time overlay probes
+targeting §7's deployment path, gated on a real number before either gets a
+place here (LAB_LOG 2026-07-16). Deliberately allowed to raise per-query
+compute (user decision, same session): the framework's cost claim is about
+deployment footprint (model size/VRAM, no server round-trip), not per-query
+latency — the client only ever runs the SLM either way.
+- **SC-vote**: sample N candidates at k=0, execute each, majority-vote on
+  execution-result equivalence (ties → highest mean log-prob) —
+  `fedicl_sql/eval/self_consistency.py`. Generalizes the multi-retry-gate
+  item above (vote size 1 ≈ that).
+- **Schema-constrained decoding, v1**: `prefix_allowed_tokens_fn`-based,
+  restricts only the first identifier after FROM/JOIN/SELECT/WHERE/etc to a
+  schema-valid prefix, fails open on anything it doesn't recognize (e.g.
+  table aliases) — `fedicl_sql/models/schema_constrained.py`. Narrower than a
+  real CFG (no grammar library in this stack) by design; scoped to this
+  project's own measured top exec-failure mode.
+- Self-debug/error-feedback retry considered, dropped by the user
+  (2026-07-16) — not built.
+- Probe harness: `experiments/inference_overlay/run.py --adapter
+  artifacts/kd_poc/central_rkd/adapter --modes greedy sc
+  schema_constrained`. Next: run on the compute host, sweep `--sc-n`, decide
+  adopt/reject from the EX delta + `constrained_fail_open` rate before this
+  touches §5.4/§7's shipped default.
 
 Negative results are framed as analysis, never hidden (e.g. if A2 says k=0 wins →
 report it, move default to k=0, keep DAIL for the teacher).
@@ -900,13 +1017,23 @@ report it, move default to k=0, keep DAIL for the teacher).
 
 ## 11. Key invariants (never violate)
 
+> **Why these stay hard under the 2026-07-15 softening pass:** the pass
+> regrades *empirical findings* (1-seed picks → provisional defaults). The
+> items below are not findings — they are methodology commitments (privacy,
+> contamination, comparability) whose violation invalidates the paper
+> regardless of what any experiment says; no retest can make test-set leakage
+> acceptable. The one empirical claim that had crept in here (RKD direction,
+> #3) is demoted accordingly.
+
 1. **Private data never leaves the client** — raw rows, `Sᵢ`, `Qᵢ`, demos,
    embeddings: no outgoing arrow. Only LoRA adapters cross, both directions.
 2. **Teacher never touches client data** — structural: the teacher lives at the
    server and the server only ever receives adapters. Teacher's world = `P`.
 3. **KD loss = reverse KL per [10]** (`CE + RKL`), never forward KL, never
-   relational/hidden-state KD. Direction: **RKD** (PoC verdict, locked
-   2026-07-12).
+   relational/hidden-state KD. *(Design commitment; A6 probes the formula
+   variant.)* The **RKD direction is NOT part of this invariant** — demoted
+   to provisional default 2026-07-15 (§0 legend, §8): a 1-seed p=0.072 pick
+   doesn't belong in a never-violate list.
 4. **Demo pool = own train data, never the test set.** Client → `Qᵢ`;
    teacher/server-distill → `P`. Test DBs are schema-disjoint from train →
    retrieval is always cross-schema, no leave-one-out.

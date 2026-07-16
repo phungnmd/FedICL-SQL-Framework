@@ -2544,3 +2544,412 @@ co-load 7B+1.5B in the 16GB budget). Fixed both spots in
 - [ ] Run the 3×3 sweep on the compute host; read off crossover + bleed counts
 - [ ] (unchanged) federation build queue from session (1); teacher_bird
       k0/k3 diagnostic from session (2)
+
+## Session 2026-07-15 — evidence-strength audit of locked decisions (friend-proposal review, round 2)
+
+Context: an external proposal (friend, logged 2026-07-14 session) was first
+rejected point-by-point; user pushed back — "the numbers and rules were only
+tested small-scale; a retest might differ." Ran a PhD-DS evidence audit of
+every locked decision instead of defending them.
+
+### Audit outcome — three evidence classes
+
+- **Mechanism + external corroboration (scale can't flip):** BIRD-gold ban
+  (E0.1 + independent 52.8% annotation-error report; label noise is a dataset
+  property); ICL-selection death *in the centralized regime* (null replicated
+  across 4 model families).
+- **Single-seed / noise-level deltas (retest could flip):** RKD-vs-KID
+  (p=0.072 — pick stands on cost, not statistics); asym-KD kill (−0.78, 1
+  seed — left dead, low expected value); the rehearsal question (proxy was
+  ONE continuation step; the round loop repeats it T=15×).
+- **Scope/cost rejections (retest irrelevant):** JOLT-SQL client recipe;
+  FedDF as aggregation replacement.
+
+Key reframe: the ablation grid already schedules retests of most locks at the
+target (federated) scale — A1 = KD-direction retest, §8.3 = clean KID retest
+(mask-token hypothesis), A3 = the legitimate rehearsal arm, A4 = the
+FedProx/FedEx-LoRA trigger. Locks are build-order defaults, not verdicts.
+Correct discipline = keep Tier-1 first, don't re-litigate PoC pre-federation.
+
+### User addition — A3 / implicit rehearsal (the substantive new point)
+
+The round loop `client FT → FedAvg → server KD → client FT on the SAME Qᵢ →
+…` is **implicit rehearsal by construction** — the −2.81/+0.09 continuation
+proxy (2026-07-12 (16)) had no client re-FT step after KD, so it understates
+the loop's own self-correction. Converge-or-oscillate is now an instrumented
+question, not an assumption.
+
+### Doc changes (`system_architecture.md`)
+
+1. **§3.4** — new pre-registered block: log Spider-dev-slice EX of `M_G`
+   twice per round (post-FedAvg + post-distill); trigger = monotonic
+   post-distill decay despite RKL → activate A3 *mix* early. Also names the
+   symmetric risk (E×T=30 epochs on same `Qᵢ` → client overfit; KD as
+   counter-regularizer, visible as post-distill > post-FedAvg).
+2. **§7** — per-client gate fire/repair-rate logging (closes the untested
+   small-skewed-`Qᵢ` fallback-pool regime for free).
+3. **§0 Next** — seed 2 for `central_rkd`/`central_kid` elevated to the
+   GPU-idle queue (cheapest retest; pick doesn't wait).
+4. **§10 A3 row** — *mix* = explicit-rehearsal escalation; implicit rehearsal
+   noted as first line.
+5. **§10 Tier 3** — added `fedkd_ens` (FedDF-style ensemble-consensus distill
+   target; separates teacher-quality from mere-consensus — reviewer
+   anticipation, optional).
+
+### Rejections upheld (with corrected grounds)
+
+- JOLT-SQL: scope — changes the client objective across every arm, serves no
+  novelty claim; cite-only.
+- FedDF as aggregation: its proposed proxy (Spider dev subset) violates the
+  frozen-test-set rule; the salvageable idea became `fedkd_ens` above.
+- KID resurrection: superseded by §8.3's cleaner test.
+- Explicit Spider rehearsal at server with client-domain data: invariant #5
+  violation; legal form = A3 mix (held-out).
+
+### Next
+
+- [ ] Federation build: include the two instrumentation hooks (§3.4
+      twice-per-round eval slice, §7 per-client gate logging) in the round
+      loop from day one — retrofitting after runs = lost telemetry
+- [ ] Seed-2 `central_rkd`/`central_kid` when GPU idle
+- [ ] (unchanged) federation build queue; teacher_bird k0/k3 diagnostic
+
+## Session 2026-07-15 (2) — softening pass: decision-status legend, "locked" regraded
+
+User call: old rules tested only small-scale must read as provisional
+findings, not absolute locks, until evidence is complete. Applied to
+`system_architecture.md`:
+
+### What changed
+
+- **§0 — decision-status legend added.** Three grades: *invariant*
+  (methodology, hard) / *closed finding* (replicated or externally
+  corroborated) / *provisional default* (incomplete evidence, scheduled
+  retest can overturn). All older "locked" wording = build-order pick, per
+  the legend.
+- **RKD direction regraded** provisional default in every spot it appeared as
+  "locked" (§0 Settled, §3.4, §8 verdict, §9 table): `rkd−ft` +6.09 stays
+  strong (p=3.1e-07); `rkd−kid` is the weak leg (p=0.072, 1 seed) — pick
+  stands on cost (offline logit cache), retests = seed-2 + A1 + §8.3.
+- **§11 invariant #3 cleaned:** RKL-not-forward-KL stays (design commitment,
+  A6 probes the formula); RKD direction removed from the invariant — a
+  1-seed pick doesn't belong in a never-violate list.
+- **§8.1 asym-KD** "dead" → "shelved": kill honored (pre-registered
+  criterion) but graded provisional negative (1 seed, −0.78 within noise);
+  revive = GPU-idle Tier-3 only.
+- **§5.2 selection-null** given explicit scope grade: closed finding for
+  centralized (4-family replication); untested for federated small-skewed
+  `Qᵢ` pools — covered by §7 instrumentation, no rebuild on speculation.
+
+### What did NOT soften (user asked mid-session: "invariants softened yet?")
+
+§11 invariants #1–#7 stay hard, deliberately — they are methodology
+commitments (privacy, contamination, seeds/splits, one-stack), not empirical
+findings; violating them invalidates the paper regardless of experimental
+outcome. Rationale block added at the top of §11. The only change there is
+the #3 demotion above.
+
+### Next
+
+- [ ] (carried) federation build with §3.4/§7 instrumentation hooks
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-15 (3) — K/α research + Dirichlet-partition bug fix
+
+User asked for the best K + Dirichlet α for the paper. Researched [1]/[5]/[7]/[8]'s
+client counts (2–10, mostly 3–4) and α conventions (Hsu-style, 0.1/0.5/IID or
+similar triples) — confirmed the standing default (K=8, α=0.5; ablate 0.1/IID,
+§9) is well inside the field norm and doesn't need to change.
+
+**Found while checking:** `make_federated_split` (`fedicl-sql/fedicl_sql/data/federated.py`)
+drew ONE global Dirichlet vector over all 146 train DBs — α only ever controlled
+per-client *size* skew, never domain heterogeneity, because the doc's "Dirichlet
+over domain groups" was never actually implemented (no grouping existed; DB-name
+prefixes are 140 singletons out of 146 DBs). Measured on real Spider data: K=8,
+α=0.5 produced a 15-example, 1-DB client in 5/5 seeds; α=0.1 produced 14-example
+clients — both unusable for local LoRA FT, and A4 (the α sweep ablation) would
+have measured "how starved is the smallest client," not heterogeneity.
+
+**Fixed (implemented, not just diagnosed):**
+- `fedicl_sql/data/db_groups.py` — embeds each train DB's compact schema with
+  the existing `bge-small-en-v1.5` encoder (already a dependency via
+  `DemoRetriever`) and k-means (own numpy implementation, no new sklearn dep)
+  clusters the 146 DBs into 20 semantic domain groups.
+- `scripts/build_db_groups.py` — one-time build, commits
+  `processed_data/SPIDER/db_groups.json` (seed=0, 20 groups, sizes 1–23 DBs).
+- `fedicl_sql/data/federated.py` — `make_federated_split` gained `db_groups=`
+  (Hsu et al. 2019 style: one shared Dirichlet(α) vector drawn per group,
+  reused across every DB in that group, instead of one global vector) and
+  `min_client_examples=`/`max_resample=` (resample guard, advances the same
+  seeded RNG so still deterministic). Ungrouped/no-guard path is byte-identical
+  to the old code — all 9 pre-existing tests pass unchanged; 5 new tests added
+  for the grouped + resample paths (14/14 pass).
+- `scripts/build_federated.py` — now loads `db_groups.json` by default (flag
+  `--no-db-groups` to opt back into the old flat behavior), defaults changed to
+  `--n-clients 8 --alpha 0.5 --min-client-examples 150`.
+- Regenerated + committed the three target splits, seed=0:
+  `processed_data/SPIDER/federated_noniid/alpha_0.1/k8/` (min client 245 ex),
+  `alpha_0.5/k8/` (min 568 ex), `federated_iid/k8/` (min 727 ex) — no starved
+  clients in any of the three.
+
+`system_architecture.md` §9 partition row updated with the implementation note;
+`fedicl-sql/CLAUDE.md` default-split pointer updated from the stale
+`alpha_0.1/k3/` to `alpha_0.5/k8/`.
+
+### Next
+
+- [ ] (carried) federation build with §3.4/§7 instrumentation hooks
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+- [ ] A4 (Dirichlet α sweep) can now run for real — re-check group sizes
+      (1–23 DBs/group) don't themselves bias the sweep before trusting results
+
+## Session 2026-07-15 (4) — federated round loop + teacher logit cache: built
+
+User asked to implement the offline teacher-logit cache (from the prior
+turn's Q&A on what it's for) and the full federated round loop. Both built,
+tested, and smoke-run end-to-end on real Spider + BIRD data.
+
+**Teacher logit cache** (`fedicl_sql/training/logit_cache.py`,
+`scripts/build_teacher_logit_cache.py`):
+- Content-hash-keyed (`sha1` of the exact rendered `input_ids`) sharded
+  safetensors store, fp16. RKD-only (KID's `ŷ` target is re-sampled every
+  step via `mask_rewrite` — not cacheable) and symmetric-context-only
+  (`kd_teacher_k=0` — §8.1's asymmetric variant is shelved anyway).
+- **One design note vs the original doc line:** `losses.py`'s `rkl_div_loss`
+  is already full-vocab (a comment there says a "top-K logprob" sparse cache
+  was tried and retired in favor of full-vocab-online, since the teacher is
+  co-loaded regardless). This new cache stores full-vocab fp16 logits too
+  (~0.3–0.6 MB/cached example) — not a conflict with that retired design,
+  different mechanism, but the two are easy to conflate by name. Practical
+  consequence: cache a **stratified subset** of P (`--pool-size`, default
+  1200 ≈ 0.5–1 GB), not the whole bootstrap pool — the round loop fixes the
+  same subset for the entire run so every round's revisit is a cache hit.
+- `fedicl_sql.training.lora_trainer.prepare_kd_examples` factored out of
+  `train_online_kd`'s preamble so the offline cache-build script renders the
+  IDENTICAL sequences the round loop will later ask the teacher to score —
+  the two callers sharing one function makes "config drift = cache miss" a
+  structural property, not a maintained-by-hand convention. Fixed a latent
+  gap while factoring: `train_online_kd` previously never passed
+  `demo_k_fixed` to `build_examples` (silently ignored the config field) —
+  harmless historically (grepped every committed `client_train` run: no past
+  run combined `kd_direction rkd/kid` with `train_k>0`), but load-bearing now
+  since the cache requires `demo_k_fixed=True` to keep keys reproducible.
+- `LoraTrainConfig.teacher_logit_cache`: when set, `train_online_kd` never
+  loads the 7B teacher at all — a cache miss raises `KeyError` immediately
+  (fail loudly, no silent live-recompute fallback, same philosophy as the
+  FedAvg no-op detector).
+- Verified on real data (tiny scale, Qwen2.5-Coder-0.5B as a stand-in
+  teacher): build → resume (8/8 already cached, teacher never reloaded) →
+  consumed by `fedkd` with "teacher not loaded" confirmed in the log →
+  mismatched `--k-teacher` correctly raised the `KeyError` instead of
+  silently recomputing.
+
+**Federated round loop** (`experiments/federated/run.py`, new):
+- Runs `fedavg` / `fedavg_pub` / `fedkd` (system_architecture.md §10) for T
+  rounds: client local FT (`train_client`, k=0, `--init-adapter` warm-start
+  from the prior round's `M_G`) → FedAvg (`fedicl_sql/federated/aggregate.py`
+  — already existed, built earlier than this session, no-op-suspect check
+  fails loudly unless `--allow-noop`) → arm-dependent server step
+  (`fedavg_pub` = `train_client` CE-only on a fixed P subset; `fedkd` =
+  `train_online_kd` RKL-distill, optionally cached).
+- `fedicl_sql/runtime/checkpoint.py` (`adapter_done`) guards every adapter
+  directory — re-launching after a crash resumes at the first incomplete
+  client/fedavg/server stage instead of the whole run.
+- `fedicl_sql/data/sampling.py` (`stratified_subsample`) — round-robins
+  across `db_id` so a small distill subset still spans P's schemas instead of
+  skewing toward whichever DB has the most rows.
+- Smoke-tested end-to-end on real Spider (K=8 α=0.5 split, 2 of the 8
+  clients) + BIRD y_pub data, Qwen2.5-1.5B student on MPS: `fedavg` (crash
+  mid-round via the no-op guard → resumed correctly, round-1 clients not
+  retrained), `fedavg_pub` (pool wiring), `fedkd` (cache-backed distill, cache
+  mismatch fail-loud path) all verified working. Real T=15/K=8 runs not
+  executed — compute-host queue item, not a Mac task.
+- 18 new unit tests (`test_logit_cache.py`, `test_checkpoint.py`,
+  `test_sampling.py`); full suite 217/217 pass.
+
+`system_architecture.md` §6 marked implemented with the cache design note;
+`fedicl-sql/CLAUDE.md` "what the code does today" + a new "Federated round
+loop" section replace the stale "designed but NOT built" / "Deferred" language.
+
+### Next
+
+- [ ] Real federated runs on the compute host: `fedavg` → `fedavg_pub` →
+      `fedkd` ladder, K=8/α=0.5/T=15/E=2, 3 seeds each once the mechanics are
+      trusted at small scale (this session's smoke tests, not a real-data
+      verdict)
+- [ ] Build the real teacher logit cache (Qwen2.5-Coder-7B-Instruct, BIRD
+      y_pub, k_teacher ablate 0 first per §9) before the first real `fedkd`
+      round — offline, once, on the compute host
+- [ ] §3.4/§7 instrumentation hooks (gate fire-rate, per-round eval slice)
+      still not wired into the round loop — add before real runs, not after
+      (retrofitting loses telemetry)
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-15 (5) — T=15 questioned, pilot at T=3 first (user decision)
+
+User asked why T=15 and what epoch counts Text-to-SQL fine-tuning normally
+uses. T=15 has no literature derivation (checked FedCoLLM [8]/FedMKT
+[7]/Fed-ICL [5] — none state an explicit round count in the extracted text);
+it was a project-chosen default, already flagged risky by §3.4's own
+proxy finding (CE-only continuation regressed −2.81 EX after just ONE
+continuation step matched to the round dynamic).
+
+Literature epoch counts checked: CodeS [10] SFT stage = **4 epochs**, batch
+128 (`references/md/.../15-2024-CodeS...md` line 1168). This project's own
+centralized PoC (`central_ft`/`central_rkd`/`central_kid`, every committed
+run) used **epochs=1**. Both are single-digit; T=15 × E=2 = 30 epoch-
+equivalents over a client's own `Qᵢ` is well outside that norm.
+
+**Decision:** pilot the federated round loop at **T=3** first (`--rounds 3
+--local-epochs 2` = 6 epoch-equivalents, close to CodeS's 4) before
+committing to T=15. Order: `fedavg` (cheapest, no pool/teacher needed) → eval
+`M_G` on Spider dev to confirm the loop actually learns something → then
+`fedavg_pub`/`fedkd` at the same T=3. T=15 stays the eventual headline target
+in `system_architecture.md` §9 (not changed) — T=3 is a pilot/smoke value,
+not a spec change; if the §3.4 drift instrumentation looks stable at T=3, T
+can grow from there rather than jumping straight to 15 unmeasured. No code
+change needed — `experiments/federated/run.py --rounds` already takes any T.
+
+**Follow-up (same session):** user wants T grown incrementally, not jump
+straight to T=3 — run `--rounds 1`, eval `M_G`, decide, then re-invoke with
+`--rounds 2` on the **same `--out`**, then `--rounds 3`, reusing everything
+already trained rather than restarting. Checked this needs zero code change:
+`run_round()`'s `adapter_done()` guards mean a re-invocation with a larger
+`--rounds` skips every already-completed round (fast existence checks only)
+and trains fresh starting at the first new round — confirmed by re-reading
+the loop (round 1's `prev_adapter=None` argument is never actually used when
+round 1 is already done; the function just returns the existing `m_g` path).
+Documented as the recommended piloting pattern in
+`experiments/federated/run.py`'s module docstring (3-command example: `--rounds
+1` → `--rounds 2` → `--rounds 3`, same `--out`/`--seed`/`--pool`/`--split-dir`
+each time).
+
+### Next
+
+- [ ] Run the incremental pilot on the compute host: `fedavg --rounds 1` →
+      eval `M_G` on Spider dev → `--rounds 2` (same `--out`) → eval → `--rounds
+      3` → eval. Grow T only as far as the eval trend justifies.
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`, gated
+      on the incremental pilot's result instead of jumping to T=15
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub) before
+      the first real `fedkd` round
+- [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-16 — inference-time overlay probes built: self-consistency + execution voting, schema-constrained decoding
+
+### Context
+
+User asked for inference-time accuracy methods in the style of Self-Consistency
+with execution voting / grammar-schema-constrained decoding, on top of the
+shipped verifier-gated retry (§5.4). Discussed and cut down to two candidates
+against the actual deployment constraint (Mac session, no GPU here — code only,
+not yet run): self-debug/error-feedback retry dropped (user call); multi-round
+cascade dropped once the user clarified the real cost budget — **client only
+ever deploys the SLM; per-query inference cost can go up, that's fine** (this
+reframes the framework's cost claim: cheap = model size/VRAM/no server
+round-trip, not per-query latency — worth a one-line edit to system_architecture
+.md §GOAL's "per-query serving cost" phrasing next time that section is
+touched, not done this session).
+
+Kept, both implemented as a **probe** to run on `central_rkd` before deciding
+whether either earns a place in the pipeline (not shipped, not defaults
+anywhere):
+
+1. **Self-consistency + execution voting.** Sample N candidates at k=0
+   (temperature/top_p), execute each on the query's own local DB, majority-vote
+   on execution-RESULT equivalence (not SQL text) — MBR-over-execution, ties
+   broken by mean token log-prob. No cap on N beyond cost; this is the
+   generalization of the existing multi-retry-gate Tier-3 idea (§10) with
+   voting instead of first-executable-wins.
+2. **Schema-constrained decoding, v1 (scoped, not a full CFG).** No grammar
+   library in this stack (checked pyproject.toml — no outlines/xgrammar/
+   lm-format-enforcer); adding one is a bigger dependency commitment than a
+   probe warrants before there's a number. Built instead on `transformers`'
+   native `prefix_allowed_tokens_fn`: right after FROM/JOIN/INTO/UPDATE
+   (table position) or SELECT/WHERE/ON/HAVING/AND/OR/SET/BY (column
+   position), restrict the in-progress identifier's next token to a
+   non-overshooting prefix of a real schema table/column name (trie over the
+   tokenizer's decoded vocab, built once, cached per tokenizer). **Fails open
+   by construction**: if the partial identifier matches no schema name
+   (typically a table alias like `t1`), the constraint stands down for that
+   step — it can only ever narrow choices when confident, never force an
+   impossible token, so it can't corrupt an otherwise-valid generation.
+   Deliberately narrow scope: only the FIRST identifier after a trigger is
+   constrained (no comma-continuation tracking, no alias-qualified-column
+   tracking) — targets this project's own measured top failure mode
+   (`no such column`/`no such table` in `exec_error`) without a real parser.
+
+### What was built
+
+- `fedicl_sql/eval/metrics.py`: `execute_rows()` — public wrapper on the
+  existing private `_execute`, needed so voting can inspect actual rows, not
+  just pass/fail (`executes()` already existed but only returns bool).
+- `fedicl_sql/eval/self_consistency.py`: `vote(candidates, db_path) ->
+  ConsistencyResult`. Groups candidates by pairwise `result_eq` (vendored
+  Spider/test-suite-sql-eval util, same equivalence used for EX scoring, so
+  voting groups match what scoring would call "the same answer");
+  `order_matters` is read off each candidate's OWN "order by" presence, never
+  gold's — voting has to work at deployment time with no gold available.
+  Falls back to highest-log-prob candidate when nothing executes.
+- `fedicl_sql/models/schema_constrained.py`: `build_schema_constraint(...)` —
+  the trie + regex-trigger state machine described above; returns a
+  `prefix_allowed_tokens_fn` plus a `.diagnostics` dict (`n_constrained_steps`,
+  `n_fail_open`) for offline auditing of how often each probe actually engages
+  vs stands down.
+- `fedicl_sql/models/student.py`: two new `StudentModel` methods —
+  `generate_samples_scored` (sampled `num_return_sequences` + per-candidate
+  mean log-prob, same OOM-halving pattern as `generate_batch`) and
+  `generate_schema_constrained` (greedy + the constraint fn above).
+- `experiments/inference_overlay/run.py` (new experiment dir): probes
+  `--modes greedy sc schema_constrained` against one adapter (`--adapter`,
+  point it at `central_rkd`), same k=0/no-ICL/no-teacher path as the client's
+  shipped inference config, writes one predictions CSV per mode (`arm` field
+  = mode name) plus a metrics.json with EX/EM/hardness breakdown and
+  time/query per mode — the number needed to actually decide adopt-or-not.
+- `fedicl_sql/runtime/results.py`: `PREDICTION_FIELDS` extended with 7
+  diagnostic columns (`sc_n_candidates`/`sc_n_executable`/`sc_n_groups`/
+  `sc_winner_group_size`/`sc_tie_broken`/`constrained_steps`/
+  `constrained_fail_open`), blank for every other experiment's rows.
+- `tests/test_inference_overlay.py`: 11 new unit tests — `vote()` against a
+  real in-memory SQLite DB (unanimous, majority-over-minority, groups-by-
+  result-not-text, tie-break-by-logprob, no-executable-fallback); the
+  constrained-decoding state machine against a tiny fake tokenizer (no
+  network/model load, matches this suite's existing convention of zero
+  real-model tests) — table trigger, column trigger, completed-identifier
+  exit, unknown-identifier fail-open, and a dedicated false-trigger check
+  (`AND` substring inside `GRAND` must not fire the `AND` trigger — word-
+  boundary regex, not substring match). Full suite 228/228 pass, ruff clean.
+
+### Not done this session (compute-host items)
+
+- No GPU here (Mac session) — neither probe has been run against
+  `central_rkd` yet. That run (and the actual adopt/reject decision) is next,
+  on the compute host: `uv run python experiments/inference_overlay/run.py
+  --adapter artifacts/kd_poc/central_rkd/adapter --modes greedy sc
+  schema_constrained --sc-n 8 --n-eval 200` (start small; grow `--n-eval`
+  once the mechanics are confirmed working end-to-end, same incremental-pilot
+  pattern as the federated round loop).
+- Self-debug/error-feedback retry — explicitly dropped by the user this
+  session, not built.
+
+### Next
+
+- [ ] Run `experiments/inference_overlay/run.py` on `central_rkd` (compute
+      host) — greedy baseline should reproduce the known 68.28 EX floor
+      (sanity check the harness before trusting sc/schema_constrained numbers)
+- [ ] Sweep `--sc-n` (e.g. 1/4/8/16) once the harness is confirmed — cost/
+      accuracy curve is the actual adopt-or-not evidence, not a single N
+- [ ] If schema_constrained's `constrained_fail_open` rate is high on real
+      data, that's a signal the v1 scope (first-identifier-only, no alias
+      tracking) is too narrow to matter — read the diagnostics before
+      concluding the mechanism itself doesn't help
+- [ ] Only if one or both probes show a real EX gain: promote out of
+      `experiments/inference_overlay/` into a documented §5.4/§7 overlay in
+      `system_architecture.md`, with the same honest-caveat treatment the
+      verifier-gated retry got (mechanism attribution, not just the headline
+      number)
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
