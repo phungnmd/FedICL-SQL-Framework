@@ -50,9 +50,12 @@ absolute parity with the teacher.
 - **provisional default** — best current pick on incomplete evidence
   (typically 1 seed); build proceeds on it, a scheduled retest can overturn
   it. Currently: **RKD direction** (p=0.072 vs KID → seed-2 + A1 + §8.3),
-  **k=0+gate policy** (→ A2), **asym-KD kill** (−0.78, 1 seed, within noise —
-  stays shelved, grade noted), **rehearsal-not-needed** (→ §3.4
-  instrumentation + A3 trigger).
+  **asym-KD kill** (−0.78, 1 seed, within noise — stays shelved, grade
+  noted), **rehearsal-not-needed** (→ §3.4 instrumentation + A3 trigger),
+  **SC-vote inference overlay** (full 1034-row test set, McNemar p=0.00042 —
+  strong for 1 run, but the run's only source of randomness is the sampling
+  seed; seed-2 would confirm stability before this is a citable paper number,
+  §5.4).
 
 **Settled:**
 
@@ -70,9 +73,20 @@ absolute parity with the teacher.
   §8.0's implemented Phase-1 construction (§8.3/§8.4 = future online upgrade,
   still unbuilt).
 - **ICL role settled empirically (§5.2/§5.4):** selection sophistication never
-  pays (4 model families, uniform + gated); the shipping overlay is the
-  **verifier-gated retry**; current client default = train k=0 + gated
-  fallback (measured leader, 1 seed — A2 decides vs `train-k2 consistent`).
+  pays (4 model families, uniform + gated); the verifier-gated retry (single
+  k=3-demo retry on exec failure) was the shipping overlay through
+  2026-07-15. **Superseded 2026-07-16: self-consistency execution-voting
+  (`sc`, N=8 samples at k=0, vote on execution-RESULT equivalence, no ICL
+  demos at all) is now the default inference overlay** — beat the gate
+  head-to-head on the full 1034-row Spider dev test set, same adapter
+  (`central_rkd`), same seed: EX 72.73 vs 69.92 (+2.81), EM 65.67 vs 63.83
+  (+1.84), McNemar exact p=0.00042 (47 rows sc-only-right vs 18 gate-only-
+  right). Cost: 1.37× latency (3.37 vs 2.46 s/q), 1.34× VRAM (4.49 vs
+  3.36 GB) — accepted (2026-07-16, user): the framework's cost claim is
+  deployment footprint (model size, no server round-trip), not per-query
+  latency. Client retrieval infra is now fully optional, not just
+  accuracy-neutral: `sc` needs zero demos, so the ~14% fallback-retrieval
+  path the gate used is gone too. Full trace: LAB_LOG 2026-07-16.
 - **Naming: "Fed-ICKD" stays**, regardless of the `k_teacher` 3-vs-0 ablation
   outcome (2026-07-12, user). ICL is an open experimental surface, not a
   single load-bearing ablation — apply it wherever it plausibly helps and
@@ -119,21 +133,30 @@ pool after each aggregation round.
 1. Federated Text-to-SQL with realistic non-IID partition by schema/domain (new formulation).
 2. Server-side reverse-KL distillation on public data as a **consensus regularizer**
    for FedAvg — teacher fully isolated from private data.
-3. An ICL analysis finding + a cheap **verifier-gated retry** overlay: on a
-   fine-tuned/distilled student, demo *content* stops mattering — the full
-   selection thang converges (random ≈ question-sim ≈ DAIL ≈ CodeS, uniform
-   AND gated; repair sets nearly disjoint across demo sets) — so eval-time
-   demos act as prompt perturbation, not in-context knowledge. The overlay
-   (k=0 draft → SQL execution check → one retry under a perturbed prompt)
-   is net-positive on every arm tested (+1.65…+4.35 EX); its load-bearing
-   component is the execution verifier, with ICL as the perturbation medium
-   (2026-07-11, 1 seed — see §5.2/§5.4). Plus an analysis of how public-pool
-   quality affects distillation effectiveness.
+3. An ICL analysis finding + a cheap **execution-verified inference overlay**:
+   on a fine-tuned/distilled student, demo *content* stops mattering — the
+   full selection thang converges (random ≈ question-sim ≈ DAIL ≈ CodeS,
+   uniform AND gated; repair sets nearly disjoint across demo sets) — so
+   eval-time demos act as prompt perturbation, not in-context knowledge
+   (2026-07-11, 1 seed — see §5.2/§5.4). The shipped overlay pushes that
+   finding one step further: **self-consistency execution-voting (`sc`,
+   N=8 samples at k=0, temperature as the perturbation medium, vote on
+   execution-RESULT equivalence) needs no ICL demos at all** and beats the
+   single-retry verifier-gated overlay it replaced — +2.81 EX / +1.84 EM on
+   the full Spider dev test set, McNemar p=0.00042 (2026-07-16, 1 sampling
+   seed — see §5.4). Confirms the load-bearing component is the execution
+   verifier, not the demos: removing ICL from the overlay entirely and
+   replacing the perturbation source with temperature sampling still wins.
+   Plus an analysis of how public-pool quality affects distillation
+   effectiveness.
    *(Reframed 2026-07-11 twice: from "DAIL-style ICL consistent between client
-   training and inference" → "selective-ICL usage policy" → this, after the
-   A5 random-demos attribution control landed (random repairs 22/146 vs DAIL
-   23/146, McNemar p=1.00). Locked 2026-07-12 (user) — changes the approved
-   outline's RQ2 emphasis, no advisor gate.)*
+   training and inference" → "selective-ICL usage policy" → the verifier-
+   gated-retry framing, after the A5 random-demos attribution control landed
+   (random repairs 22/146 vs DAIL 23/146, McNemar p=1.00). Locked 2026-07-12
+   (user) — changes the approved outline's RQ2 emphasis, no advisor gate.
+   Overlay itself superseded 2026-07-16 by SC-vote; the underlying finding
+   — demos are perturbation, not knowledge — is unchanged, just pushed
+   further than the original framing anticipated.)*
 
 ---
 
@@ -535,8 +558,12 @@ DAIL/CodeS, uniform and gated) → SS is presumed to converge too; code stays
 in-tree, no experiment scheduled. **DPC** (arXiv:2604.15163, training-free
 execution-consistency candidate selection) is a different axis entirely
 (selects among generated SQL candidates, not among demos) — cite in §2
-Related Work as a training-free/execution-aware relative of the
-selective-ICL gate (§8.1 analysis), not a retrieval alternative.
+Related Work as the closest prior-art anchor for the shipped `sc` overlay
+(§5.4): DPC selects among generated candidates by execution consistency,
+same mechanism `self_consistency.vote()` implements (majority on
+execution-RESULT equivalence, not SQL text) — differentiate on ours being
+paired with temperature sampling at k=0 (no demos in the loop at all) inside
+a federated Text-to-SQL client, not a retrieval alternative.
 
 ### 5.3 Student `Mᵢ` — 1.5B + LoRA
 
@@ -553,31 +580,51 @@ selective-ICL gate (§8.1 analysis), not a retrieval alternative.
 L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
 ```
 
-- **Default (measured leader 2026-07-11, 1 seed): train k=0; inference =
-  verifier-gated retry** (k=0 draft → exec check → k=3 fallback on error only;
-  70.79 EX vs 68.28 ungated k=0 on `central_rkd`). This dissolves the
-  train/inference-consistency tension: the student trains AND deploys at k=0
-  for the ~86% of queries that pass the gate; the ICL fallback is a documented
-  exception, not a mismatch. **A2 decides** (§10) between this and the
-  alternative below — one seed is not a finding.
-- **A2 comparison arm — `train-k2 consistent`** (same k at training and
-  inference, the outline-era default). Its rationale: training with demos
-  makes eval-time ICL in-distribution, removing the train/test-mismatch
-  failure measured earlier (k0-trained student + k3 eval → schema bleed,
-  −30 net flips, 54/109 hurts = `no such column`). ⚠️ Hypothesis, not
-  established — centralized evals (LAB_LOG 2026-07-09/10, 1 seed) observed
-  the opposite: the k3-trained arm regressed *most* under uniform eval-time
-  ICL; train-time demo exposure did not immunize.
-- Honest caveats carried with the gate: (a) it is ≥ its own k=0 floor **by
-  construction** (fired rows are exec-failures, EX=0 already) — the empirical
-  content is the repair rate (~15–18%) and the protection count, not the
-  "beats k0" fact; (b) repair comes from prompt perturbation + execution
-  verification, not demo content (A5 random-demos control, random ≈ DAIL,
-  McNemar p=1.00; §5.2) — hence the honest name **verifier-gated retry**,
-  with ICL demos as the perturbation medium; (c) the gate needs SQL execution
-  against the client's own DB at inference — fine in our federated setting
-  (the DB is local), but a no-exec-at-inference deployment would need a
-  static gate signal (Tier 3).
+- **Default (2026-07-16, full test set, 1 sampling seed): train k=0;
+  inference = self-consistency execution-voting (`sc`, N=8)** — sample N=8
+  candidates at k=0 (temperature 0.8, top_p 0.95), execute each on the
+  client's local DB, majority-vote on execution-RESULT equivalence (ties →
+  highest mean log-prob), `fedicl_sql/eval/self_consistency.py`. Beat the
+  prior verifier-gated-retry default head-to-head on the full 1034-row
+  Spider dev test set, same adapter (`central_rkd`), same seed: **EX 72.73
+  vs 69.92 (+2.81), EM 65.67 vs 63.83 (+1.84), McNemar exact p=0.00042** (47
+  sc-only-right rows vs 18 gate-only-right rows). Training is unaffected —
+  still plain gold-CE at k=0 (§5.4's `L` above); only the inference-time
+  overlay changed. Cost: 1.37× latency (3.37 vs 2.46 s/q), 1.34× VRAM (4.49
+  vs 3.36 GB) — accepted (2026-07-16, user): the cost claim is deployment
+  footprint, not per-query latency. **Zero ICL demos, zero retrieval infra**
+  at the client now — a strictly simpler deployment story than the gate it
+  replaced (which still needed a demo pool + retrieval for its ~14% fallback
+  path). Full trace: LAB_LOG 2026-07-16.
+- **Superseded (shipped through 2026-07-15) — verifier-gated retry**: k=0
+  draft → exec check → k=3 fallback on error only; 70.79 EX vs 68.28 ungated
+  k=0 on `central_rkd`. Kept runnable (`experiments/inference_overlay/run.py
+  --modes gate`) as the comparison baseline for any future overlay probe —
+  `sc` had to beat this number, not raw greedy, to earn the default slot.
+- **A2 (§10), retargeted 2026-07-16:** was `train-k0+gate` vs `train-k2
+  consistent`; now compares **`train-k0 + sc`** (current default) vs
+  `train-k2 consistent` (same k at training and inference, the outline-era
+  default) — the training-regime question is orthogonal to which inference
+  overlay sits on top, so A2 still stands, just pointed at the current
+  overlay. `train-k2 consistent`'s rationale: training with demos makes
+  eval-time ICL in-distribution, removing the train/test-mismatch failure
+  measured earlier (k0-trained student + k3 eval → schema bleed, −30 net
+  flips, 54/109 hurts = `no such column`). ⚠️ Hypothesis, not established —
+  centralized evals (LAB_LOG 2026-07-09/10, 1 seed) observed the opposite:
+  the k3-trained arm regressed *most* under uniform eval-time ICL; train-time
+  demo exposure did not immunize.
+- Honest caveats carried with `sc`: (a) repair still traces to execution
+  verification, not demo/ICL content — `sc` removes ICL from the loop
+  entirely and still wins, which is a *stronger* version of the A5 finding
+  (§5.2: random ≈ DAIL demos), not a break from it — temperature sampling is
+  now the perturbation medium; (b) `sc` needs SQL execution against the
+  client's own DB at inference (same requirement the gate had) — fine in our
+  federated setting (the DB is local), but a no-exec-at-inference deployment
+  would need a different mechanism entirely (Tier 3, static signal — voting
+  on execution results has no fallback if execution itself is unavailable);
+  (c) 1 sampling seed — the N=8 draw is itself random, so a second `--seed`
+  run is the cheap remaining check before this is a citable paper number
+  (the *pick* doesn't wait on it, same posture as the RKD direction, §0).
 - No teacher, no KD loss, no public data at the client. Light and
   VRAM-friendly — everything heavy lives at the server.
 
@@ -639,11 +686,10 @@ Round t = 1 .. T:                                # T = 15 default
            update_lora(student, L)
        θ_t ← student adapter;  M_G ← base + θ_t
 
-Inference (Phase 4, per client, no server / no teacher — verifier-gated retry):
-       sql = M_G.generate(prompt(q, Sᵢ))          # k=0 draft, same as training
-       if execute(sql, local_db) errors:          # gate fires on ~14–20% (1.5B)
-           demos = retrieve(q, pool=Qᵢ, k=3)      # any cheap method (§5.2)
-           sql = M_G.generate(P_ICL(q, Sᵢ, demos))
+Inference (Phase 4, per client, no server / no teacher — sc-vote, §5.4):
+       candidates = M_G.sample(prompt(q, Sᵢ), n=8, temp=0.8, top_p=0.95)  # k=0, no demos
+       executed = [(sql, lp, execute(sql, local_db)) for sql, lp in candidates]
+       sql = majority_vote(executed, tiebreak=logprob)  # vote on execution RESULT, §5.4
        return sql
 ```
 
@@ -651,18 +697,27 @@ Inference (Phase 4, per client, no server / no teacher — verifier-gated retry)
 
 ## 7. Inference (deployment)
 
-Each client runs `M_G` locally with the **verifier-gated retry** (§5.4):
-k=0 draft → execute on the local DB → only on execution error, retrieve k
-demos from its own `Qᵢ` (any cheap method — random/static, §5.2) and
-regenerate. No server
-round-trip, no teacher at inference; retrieval/FAISS cost is paid only on the
-fallback path (~14–20% of queries for a 1.5B student, ~4% for 7B). Global
-arms are evaluated **once per client pool** and reported mean±std over K.
+Each client runs `M_G` locally with **self-consistency execution-voting**
+(`sc`, §5.4, default 2026-07-16): sample N=8 candidates at k=0 (temperature
+0.8, top_p 0.95), execute every candidate on the local DB, majority-vote on
+execution-RESULT equivalence (ties → highest mean log-prob). No server
+round-trip, no teacher at inference, **no ICL demos and no retrieval
+infrastructure at all** — a simplification over the verifier-gated retry it
+replaced (that overlay still needed a demo pool + retrieval for its ~14–20%
+fallback path; `sc` needs neither, ever). Global arms are evaluated **once
+per client pool** and reported mean±std over K.
 
-Instrumentation (added 2026-07-15): log gate fire-rate and repair-rate
-**per client**. §5.2's selection findings are all centralized (demo pool =
-full Spider train); a small, domain-skewed `Qᵢ` fallback pool is an untested
-regime — this closes the gap for free, no new selection machinery.
+Cost trade vs the superseded gate: 1.37× latency, 1.34× VRAM (N=8 candidates
+generated + executed per query instead of 1–2) — accepted per the framework's
+cost framing (deployment footprint, not per-query latency, §5.4).
+
+Instrumentation carried from the gate era (2026-07-15): log fire/repair-style
+diagnostics **per client** — for `sc` this is `sc_n_executable`/`sc_n_groups`/
+`sc_winner_group_size`/`sc_tie_broken` per row (`PREDICTION_FIELDS`,
+`fedicl_sql/runtime/results.py`), the equivalent of the old gate-fire-rate.
+§5.2's selection findings are all centralized (demo pool = full Spider
+train); moot for `sc` itself (no demos), but still relevant to the
+`train-k2 consistent` A2 alternative if that arm ever ships instead.
 
 ---
 
@@ -884,7 +939,8 @@ GRPO:
 | Teacher | 7B frozen at server — default candidate Qwen2.5-Coder-7B-Instruct; FP16, vLLM for inference |
 | Student | Qwen2.5-1.5B-Instruct + LoRA, fp16 base (r=16, α=32, attn+MLP) |
 | k_teacher | 3 (ablate **0** first — teacher-ICL value is the one place selection/ICL can still earn its keep post-A5, §5.2; then 5) |
-| k_student | train k=0 + **exec-gated k=3 fallback at inference** (measured leader 2026-07-11, 1 seed; A2 decides vs `train-k2 consistent`) |
+| k_student (train) | k=0, plain gold-CE (§5.4) — unaffected by the inference-overlay change below |
+| Inference overlay | **self-consistency execution-voting (`sc`, N=8, temp 0.8, top_p 0.95)** — provisional default 2026-07-16 (§0 legend; full test set, p=0.00042; seed-2 retest pending); superseded the exec-gated k=3 fallback (§5.4/§7) |
 | Clients K | 8 |
 | Partition | non-IID by database (Dirichlet over domain groups, α=0.5; ablate 0.1/IID) — **implemented 2026-07-15**: 146 train DBs → 20 schema-embedding k-means clusters (`scripts/build_db_groups.py`, `processed_data/SPIDER/db_groups.json`), one shared Dirichlet(α) vector drawn per cluster (`make_federated_split(db_groups=...)`); committed splits at `processed_data/SPIDER/federated_noniid/alpha_{0.1,0.5}/k8/` + `federated_iid/k8/`, seed=0. Fixed a bug where the old flat per-DB Dirichlet draw made α a near no-op and produced 14–40-example starved clients at K=8; a `min_client_examples=150` resample guard now backstops the floor regardless of α |
 | Rounds / local epochs | T = 15, E = 2 |
@@ -956,7 +1012,7 @@ Runbook: `notebooks/kd/README.md`; entry: `experiments/client_train/run.py`.
 | # | Ablation | Serves |
 |---|---|---|
 | A1 | loss: CE-only / +RKL(gold) / +RKL(ŷ) | KD-direction contribution (⚠ do not cut) |
-| A2 | `train-k0 + exec-gate` vs `train-k2 consistent` (uniform k=0/1/2 as secondary rows) | which ICL usage policy ships — reframed 2026-07-11, gate is the measured leader |
+| A2 | `train-k0 + sc` (current default, retargeted 2026-07-16 from `+exec-gate`) vs `train-k2 consistent` (uniform k=0/1/2 as secondary rows) | which training regime pairs best with the shipped inference overlay |
 | A3 | pool `P`: BIRD train (default) / Spider held-out / mix | pool-quality finding (⚠ do not cut) — Spider held-out = the in-distribution contrast to BIRD's cross-distribution default. *mix* doubles as explicit rehearsal — early-trigger target of §3.4's round-drift instrumentation; note the round loop already rehearses implicitly (client re-FT on same `Qᵢ` every round), so *mix* is the escalation, not the first line |
 | A4 | Dirichlet α = 0.1 / 0.5 / IID | heterogeneity robustness |
 | A5 | selection thang: random / question-sim / DAIL / codes, uniform + exec-gate, same adapter (`central_rkd`) | **DONE 4/4, 2026-07-11 — converged** (gate: 70.41 / 70.79 / 70.50 / 69.92, random-vs-DAIL p=1.00). Attribution settled: repair = perturbation + exec-verify, not demo content (§5.2). Table ships as-is in §5; no further A5 runs |
@@ -985,30 +1041,41 @@ criterion met at −0.78 EX) · ~~Skills Similarity (SS) retrieval~~ (**closed
 2026-07-11**, §5.2 — A5 thang converged 4/4 incl. random; selection
 sophistication is dead post-FT/KD, SS included; code in-tree, no run).
 
-**Self-consistency + execution voting / schema-constrained decoding — code
-built 2026-07-16, not yet run/adopted.** Two inference-time overlay probes
-targeting §7's deployment path, gated on a real number before either gets a
-place here (LAB_LOG 2026-07-16). Deliberately allowed to raise per-query
-compute (user decision, same session): the framework's cost claim is about
-deployment footprint (model size/VRAM, no server round-trip), not per-query
-latency — the client only ever runs the SLM either way.
-- **SC-vote**: sample N candidates at k=0, execute each, majority-vote on
-  execution-result equivalence (ties → highest mean log-prob) —
-  `fedicl_sql/eval/self_consistency.py`. Generalizes the multi-retry-gate
-  item above (vote size 1 ≈ that).
-- **Schema-constrained decoding, v1**: `prefix_allowed_tokens_fn`-based,
-  restricts only the first identifier after FROM/JOIN/SELECT/WHERE/etc to a
-  schema-valid prefix, fails open on anything it doesn't recognize (e.g.
-  table aliases) — `fedicl_sql/models/schema_constrained.py`. Narrower than a
-  real CFG (no grammar library in this stack) by design; scoped to this
-  project's own measured top exec-failure mode.
+**Inference-overlay probe verdict (2026-07-16, LAB_LOG same date) — SC-vote
+adopted, schema-constrained decoding rejected.** Two candidates were probed
+against the then-shipped verifier-gated retry on the full 1034-row Spider
+dev test set, same adapter (`central_rkd`):
+
+- **SC-vote — ADOPTED, now the §5.4/§7 default** (moved out of Tier 3):
+  sample N=8 candidates at k=0, execute each, majority-vote on execution-
+  result equivalence (ties → highest mean log-prob) —
+  `fedicl_sql/eval/self_consistency.py`. EX 72.73 vs gate's 69.92 (+2.81),
+  McNemar p=0.00042. Generalized the multi-retry-gate idea above (vote size
+  1 ≈ that) — this item is now superseded/subsumed, not a separate build
+  target.
+- **Schema-constrained decoding v1 — REJECTED, code kept for the record**:
+  `prefix_allowed_tokens_fn`-based, restricted the first identifier after
+  FROM/JOIN/SELECT/WHERE/etc to a schema-valid prefix, failed open on
+  anything unrecognized (e.g. table aliases) —
+  `fedicl_sql/models/schema_constrained.py`. Measured EX **48.0%** vs
+  greedy's 70.0% on a 200-row probe (catastrophic, not run on the full set —
+  no point). Root cause: the trigger positions aren't bare-identifier-only
+  in real SQL — `SELECT *`, `COUNT(...)`, `DISTINCT`, and table aliases
+  (`T1`/`T2`, Spider's own gold-annotation convention) all occur right after
+  the same trigger keywords, and whenever an alias's first letter happens to
+  prefix a real schema name (very common — e.g. alias `T1` + a column named
+  `title`), the fail-open check doesn't catch it (the partial DOES match a
+  real name, just the wrong one) and the model gets forced down a corrupted
+  completion. Fixing this properly means allowlisting keywords/functions/
+  `*`/alias-patterns at every trigger position, which is most of the way to
+  a real CFG parser — exactly the engineering cost this v1 scope was chosen
+  to avoid. Not revived unless a future need specifically targets schema/
+  syntax errors with SC-vote's own EX ceiling not being enough.
 - Self-debug/error-feedback retry considered, dropped by the user
   (2026-07-16) — not built.
-- Probe harness: `experiments/inference_overlay/run.py --adapter
-  artifacts/kd_poc/central_rkd/adapter --modes greedy sc
-  schema_constrained`. Next: run on the compute host, sweep `--sc-n`, decide
-  adopt/reject from the EX delta + `constrained_fail_open` rate before this
-  touches §5.4/§7's shipped default.
+- Probe harness: `experiments/inference_overlay/run.py` (kept for future
+  overlay probes; `--modes gate` still runs the superseded baseline for
+  comparison, `--modes schema_constrained` still runs for the record).
 
 Negative results are framed as analysis, never hidden (e.g. if A2 says k=0 wins →
 report it, move default to k=0, keep DAIL for the teacher).

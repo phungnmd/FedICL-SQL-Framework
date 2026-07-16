@@ -2953,3 +2953,105 @@ anywhere):
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-16 (2) — inference-overlay decision run: SC-vote adopted, schema-constrained decoding rejected
+
+### What ran
+
+Full Spider dev test set (n=1034), seed=0, adapter `central_rkd`
+(`artifacts/kd_poc/central_rkd/adapter`), `experiments/inference_overlay/
+run.py`, on the compute host (GPU, not this Mac session):
+
+- `--modes gate` (the then-shipped verifier-gated retry, §5.4) — commit
+  `8b83a8c`. Result: EX=69.92%, EM=63.83%, exec_errors=111/1034 (10.7%),
+  gate_fire_rate=13.93%, time/q=2.46s, VRAM=3.36GB.
+- `--modes sc` (self-consistency, N=8, temp=0.8, top_p=0.95) — commit
+  `1af0e9f`. Result: EX=72.73%, EM=65.67%, exec_errors=69/1034 (6.7%),
+  time/q=3.37s, VRAM=4.49GB.
+- `schema_constrained` NOT re-run at full scale — already failed catastrophically
+  on the earlier 200-row probe (48.0% vs greedy's 70.0%), no point spending
+  the GPU time. Root cause analyzed below.
+
+Both prediction CSVs pulled via `git pull` (`7ec70a2 exp: eval result`) and
+paired on `row_id` (same eval order, same seed → exact same 1034 rows) for a
+McNemar test:
+
+```
+both_right=705  both_wrong=264  gate_only_right=18  sc_only_right=47
+discordant pairs: 18 vs 47 → McNemar exact p=0.00042
+```
+
+sc_only_right − gate_only_right = 47−18 = 29 → 29/1034 = +2.81pp, exactly
+matching the aggregate EX delta (72.73−69.92) — good consistency check that
+the paired comparison and the aggregate numbers agree.
+
+By hardness: sc loses slightly on `easy` (89.92 vs 90.73, −0.8pp — already
+near ceiling, noise) but wins clearly on `medium` (+3.14), `hard` (+5.75),
+`extra` (+4.22) — consistent with self-consistency mattering most where the
+model is genuinely uncertain, not where it's already confident.
+
+### Decision (user, 2026-07-16): SC-vote adopted as the new default
+
+p=0.00042 on the full test set clears a much higher bar than most 1-seed
+picks already carried as provisional defaults in this doc (e.g. RKD-vs-KID
+at p=0.072) — graded **provisional default** per §0's legend anyway, because
+the only source of randomness in this run is the sampling seed itself (not a
+data-split reseed), and a second `--seed` run is the cheap remaining check
+before this is a citable paper number. The *pick* doesn't wait on it, same
+posture the RKD direction already set.
+
+**Consequence bigger than the EX number:** `sc` needs zero ICL demos and
+zero retrieval infrastructure at the client, ever — not just "retrieval
+doesn't help accuracy" (§5.2's existing finding) but "the deployed system no
+longer has a retrieval code path at all." The gate it replaced still needed
+a demo pool + retrieval for its ~14% fallback. This simplifies §7's
+deployment story and strengthens claim 3 (§1): removing ICL from the overlay
+entirely and replacing the perturbation source with temperature sampling
+still beats the gate — the execution verifier was always the load-bearing
+part, never the demos.
+
+### Why schema-constrained decoding failed (post-mortem, no new run needed)
+
+Diagnosed from the mechanism, not new data (the 200-row probe result already
+established the failure; this session's job was explaining root cause before
+writing it off definitively). The v1 trigger fires right after FROM/JOIN/
+SELECT/WHERE/etc and restricts the next identifier to a schema-name prefix —
+but real SQL right after those keywords is often NOT a bare identifier:
+`SELECT *`, `SELECT COUNT(...)`, `SELECT DISTINCT`, and table aliases
+(`T1`/`T2` — Spider's own gold-annotation convention, extremely common in
+any multi-table/medium+ query) all occur there too. The designed fail-open
+safety net (stand down when the partial matches no schema name) does NOT
+catch the alias case: an alias like `T1` starts with `t`, and if the schema
+has ANY column starting with `t` (e.g. `title` — true for most schemas),
+`t` is a VALID prefix match, just for the wrong identifier — so the
+constraint doesn't fail open, it force-completes toward the wrong name
+(`T1` → `title`), corrupting otherwise-correct SQL. Confirmed mechanism, not
+guessed: this is exactly the shape of failure the fail-open design couldn't
+have prevented, since the check only asks "does this match something", not
+"does this match what the model actually intended." Fixing it needs an
+allowlist for keywords/functions/`*`/alias-patterns at every trigger
+position — most of the way to a real CFG parser, the exact cost this v1
+scope was chosen to avoid. Verdict: rejected, code kept in-tree for the
+record, not revived without a specific new reason.
+
+### Doc changes
+
+`system_architecture.md`: §0 (settled-list entry rewritten), §1 (novelty
+claim 3 rewritten — SC-vote strengthens rather than breaks the existing A5
+finding), §5.4 (new default + superseded-gate note + A2 retargeted from
+`+exec-gate` to `+sc`), §6/§7 (pseudocode + deployment section updated to
+sc-vote, no-retrieval-at-all framing), §9 (config table: `k_student` row
+split into training-k and inference-overlay rows), §10 (Tier-3 probe note
+replaced with the adopt/reject verdict + full post-mortem, A2 row
+retargeted).
+
+### Next
+
+- [ ] Seed-2 for `sc` (different `--seed`) before citing the EX/McNemar
+      numbers in the paper — cheap, same cost class, pick doesn't wait on it
+- [ ] `train-k2 consistent` vs `train-k0 + sc` — A2 (§10), now that the
+      inference overlay side of the comparison is settled
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
