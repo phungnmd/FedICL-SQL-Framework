@@ -615,7 +615,9 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
   footprint, not per-query latency. **Zero ICL demos, zero retrieval infra**
   at the client now — a strictly simpler deployment story than the gate it
   replaced (which still needed a demo pool + retrieval for its ~14% fallback
-  path). Full trace: LAB_LOG 2026-07-16.
+  path). Full trace: LAB_LOG 2026-07-16. **N=8/temp=0.8 matches CSC-SQL's
+  own default** (§14 anchors) — grounded starting point, not yet tuned;
+  N sweep (8/16/32) deferred (2026-07-16, user — cite now, sweep later).
 - **Superseded (shipped through 2026-07-15) — verifier-gated retry**: k=0
   draft → exec check → k=3 fallback on error only; 70.79 EX vs 68.28 ungated
   k=0 on `central_rkd`. Kept runnable (`experiments/inference_overlay/run.py
@@ -1096,6 +1098,14 @@ dev test set, same adapter (`central_rkd`):
 - Probe harness: `experiments/inference_overlay/run.py` (kept for future
   overlay probes; `--modes gate` still runs the superseded baseline for
   comparison, `--modes schema_constrained` still runs for the record).
+- **`sc` N sweep (8/16/32) — deferred, not run** (2026-07-16, user: cite the
+  method's grounding now, try higher N later). Motivation: CSC-SQL's own
+  N-sweep on a 3B model (close to our 1.5B) shows EX still climbing well
+  past N=8 (58.15→62.17→63.49→64.91→65.28 for N=4/8/16/32/64, plateau only
+  after ~32, §14 anchors) — our current N=8 is a grounded starting default,
+  not yet a tuned one. `--sc-n 16`/`32` already work end-to-end
+  (`eval_arms.py --overlay sc`, `inference_overlay/run.py --modes sc`), pure
+  cost tradeoff to run, no code change needed.
 
 Negative results are framed as analysis, never hidden (e.g. if A2 says k=0 wins →
 report it, move default to k=0, keep DAIL for the teacher).
@@ -1219,6 +1229,26 @@ targets · train-k=0 official default with eval-k=3 overlay.
   construction (`scripts/build_exec_bootstrap_probe.py` +
   `scripts/score_bootstrap_ex_match.py`) and the future §8.4 online
   execution-anchored distillation.
+- **Self-consistency execution-voting (`sc`, §5.4/§7) — hyperparameter
+  grounding (2026-07-16, literature search, no local PDF for these 3):**
+  N=8/temperature=0.8 (this repo's default) exactly matches **CSC-SQL**
+  (arXiv:2505.13271, 2025) — the closest prior-art match (open small-model
+  SQL generator, not a GPT-4 API method, N sweep 4/8/16/32/64). Their own
+  sweep on a 3B model (close to our 1.5B) shows EX still climbing well past
+  N=8 (58.15→62.17→63.49→64.91→65.28 for N=4/8/16/32/64 — plateau only
+  after ~32), so N=8 is a well-grounded *starting* default, not a tuned
+  optimum — **N sweep (8/16/32) deferred, not run yet** (2026-07-16, user:
+  cite the method now, try higher N later). **DAIL-SQL** [9] itself uses SC
+  too (temp=1.0, N=5, GPT-4-only, Spider-leaderboard submission — 86.2%→
+  86.6%, small δ because GPT-4 starts near ceiling) — confirms the "raise
+  temperature only for SC, keep it 0 everywhere else" pattern our own
+  default follows. **C3** (arXiv:2307.07306) uses N=20 for its SQL-level
+  self-consistency step (temperature unreported). **Query and Conquer**
+  (arXiv:2503.24364, 2025) reports gains visible from N=3, "N=15 = strong
+  accuracy/cost balance," plateau ~N=50, at temp=0.7. **top_p: none of the
+  4 papers above report tuning it for SC** — the literature's whole lever is
+  temperature; our top_p=0.95 is transformers' own default, unexamined by
+  any cited source, not a deliberate choice.
 
 Mechanism figure: `fig_architecture_source.png` + `fig1_architecture.md` predate
 the 2026-07-08 server-side pivot — **Fig. 1 must be redrawn** (teacher box moves

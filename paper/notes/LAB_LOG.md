@@ -3229,3 +3229,208 @@ removes a silent, unverified confound from every future run.
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-17 (3) — verified KD implementation against [10]/DistiLLM source text; decided [10] stays the primary KD citation, KID narrative-demoted not citation-demoted
+
+### What happened
+
+User asked whether the training-time FT/KD methods are implemented correctly
+per their source papers. Verified against local full-text (not memory):
+
+- **RKD** (`central_rkd`): `rkl_div_loss` (`losses.py`) matches [10]'s Eq.2/3
+  exactly — `RKL(q‖p)`, averaged `1/|y|` over target positions, τ=1 implicit
+  (paper never mentions temperature; code's `kl_temperature` defaults to a
+  no-op). [10] Table 1 defines `RKD | RKL | Ground-truth data` — the exact
+  recipe this arm implements, confirmed word-for-word.
+- **KID** (`central_kid`): `imperfect.py::mask_rewrite` (mask → one-pass
+  **student** fill via argmax → splice) matches [10] §3's 3-stage pipeline
+  exactly, including which model fills the mask (student, not teacher — "we
+  feed the masked sequence into the student"). Defaults match [10]'s own
+  ablation-chosen optimum: masking strategy **Random** ("achieves
+  consistently better performance... we use Random as our default") and
+  **α=0.2** ("α=0.2 performs best, default") — both already the code
+  defaults, unmodified by us.
+- **Skew-RKL** (`--rkl-skew-lambda`, implemented, not yet used in any
+  headline run): fetched DistiLLM full text directly (arXiv:2402.03898, no
+  local copy existed — PDF pulled via WebFetch this session). Formula
+  `D_SRKL^(α)(qθ,p) := D_KL(qθ, (1-α)p + αqθ)`, mixed in probability space —
+  matches `losses.py`'s `mix = (1-skew_lambda)*p + skew_lambda*q` exactly.
+  Paper's own best α=0.1 matches the project's planned probe value (§8.2).
+- **Caveat surfaced, not a bug:** [10] itself states the CE:RKL loss-weight
+  combination is "still under-explored... future work" — the project's fixed
+  1:1 `lambda_ft`/`lambda_kd` has no paper-prescribed value to match against
+  either way, by the paper's own admission.
+
+### GPU-cost check (user's premise for demoting KID)
+
+Pulled real `metrics.json` numbers, same data/step-count (8659 steps,
+Spider centralized/train.csv):
+
+| arm | time/step | VRAM |
+|---|---|---|
+| `central_rkd` | 1.95s | 38.2GB |
+| `central_kid` | 8.65s | 51.5GB |
+
+KID is 4.4× slower, +35% VRAM (the extra student mask-fill forward pass) —
+confirms user's premise with real numbers, on top of the already-known
+`kid − rkd = −1.45 EX` (not significant, p=0.072).
+
+**Correction (user, same session): this is a resource-budget deprioritization,
+not a verdict that KID doesn't work.** p=0.072 at 1 seed is inconclusive by
+this doc's own standard (§0 legend), and the two probes that would actually
+resolve it — seed-2 and §8.3's on-policy variant (tests whether the gap is a
+mask-token distribution-shift artifact, not a real KID weakness) — are
+unbuilt/unrun for GPU-budget reasons, not because KID was tried and failed.
+The cost numbers above explain why RKD is the practical default to build the
+round loop on now; they are not evidence KID is the worse method.
+
+### Citation snag found, then resolved
+
+User's original ask was to drop [10] from primary citation, cite "RKD's own
+paper" instead, keep [10] as background reading only. Checked whether "RKD"
+has an independent origin paper: the nearest candidate is Gu et al. 2023 —
+fetched directly (arXiv:2306.08543), title is literally **"MiniLLM:
+On-Policy Distillation of LLMs"** — its actual method requires student-
+generated sequences + policy-gradient optimization every step, materially
+different (and more expensive) than what `central_rkd` does (single
+teacher-forced pass on fixed gold `y`, no generation). `central_rkd` as
+implemented has no standalone source paper — it only exists as [10] Table 1's
+own `RKD` baseline definition (already correctly noted this way in
+`system_architecture.md` line 12-13). Citing Gu et al. as the primary method
+would misattribute — a reviewer who knows MiniLLM would flag the mismatch.
+
+**Decision (user): keep [10] as the primary KD citation.** Not a citation
+change — a narrative one, for whenever §3/§1 prose gets written: present RKD
+as the adopted mechanism (already the "provisional default" per §0, on cost
+grounds — practical to build the round loop on now), KID as an extension
+still open pending GPU budget for seed-2 + §8.3, not as a rejected/inferior
+method. No `system_architecture.md` edit needed — §0/§3.4 already frame RKD
+as the default and KID's status as unresolved; this session just closes out
+whether the citation itself needed to change (it doesn't).
+
+### Next
+
+- [ ] (carried) decide BIRD-eval posture before writing BIRD eval code
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-16 (2) — SC-vote hyperparameter grounding + eval_arms.py wiring
+
+### Context
+
+Two follow-ups after the SC-vote lock (previous entry same date): (1) user
+asked what literature sets N/temperature/top_p for self-consistency in
+text-to-SQL, before treating our N=8/temp=0.8/top_p=0.95 as final; (2) user
+asked for SC wired into `eval_arms.py` (the arm-comparison script used for
+`fedavg`/`fedavg_pub`/`fedkd`/`central`/`teacher`), not just the standalone
+probe script, and specifically that it compose with existing ICL strategies
+rather than being a bolted-on separate path.
+
+### Literature search — 4 papers with concrete SC hyperparameters
+
+No local PDF for any of these (checked `paper/references/` first — only
+DAIL-SQL [9] had numbers); web search + WebFetch on arXiv HTML mirrors.
+
+| paper | N | temp | top_p | model/domain |
+|---|---|---|---|---|
+| DAIL-SQL [9] (Appendix F.1) | 5 | 1.0 | — | GPT-4, Spider leaderboard submission only |
+| C3 (arXiv:2307.07306) | 20 | unreported | — | ChatGPT zero-shot |
+| Query and Conquer (arXiv:2503.24364) | 10–30 tested; "15 = strong balance," plateau ~50 | 0.7 | — | execution-guided SQL gen |
+| **CSC-SQL** (arXiv:2505.13271) | **8 (default)**, sweep 4/8/16/32/64 | **0.8** | — | open LLM 3B–7B, RL-trained — closest match to our setup |
+
+**Our N=8/temp=0.8 exactly matches CSC-SQL's default** — the most relevant
+comparator (open small-model generator, not a GPT-4 API method, most recent
+of the four). DAIL-SQL's own SC use (temp=1.0, N=5, GPT-4-only) confirms the
+general pattern our config already follows: raise temperature only for SC,
+keep every other generation greedy (temp=0) — DAIL-SQL states this
+explicitly ("by default... temperature as 0... [for SC] temperature as
+1.0 for variety in voting").
+
+**top_p is untouched by all 4 papers** — none report tuning it for SC; the
+literature's whole lever is temperature. Our top_p=0.95 is `transformers`'
+own default, not a deliberate choice grounded in any cited source — noted
+honestly rather than implied as tuned.
+
+**N-scaling data (why N=8 isn't assumed final):** CSC-SQL's sweep on
+XiYanSQL-QwenCoder-3B (closest scale to our 1.5B) —
+
+```
+N=4:  58.15%
+N=8:  62.17%   ← our current default
+N=16: 63.49%   (+1.32pp over N=8)
+N=32: 64.91%   (+1.42pp over N=16)
+N=64: 65.28%   (+0.37pp, plateau starts)
+```
+
+EX is still climbing meaningfully past N=8 at this model scale; plateau
+only shows up after ~N=32. **Decision (user): cite the grounding now, defer
+the N sweep** — `--sc-n 16`/`32` already work end-to-end (no code change
+needed, pure compute cost), scheduled as a Tier-3 item, not run this
+session.
+
+**Doc changes:** `system_architecture.md` §14 (new anchor entry, all 4
+papers + the N-scaling table), §5.4 (one-line pointer from the `sc` default
+bullet to §14), §10 Tier-3 (new "`sc` N sweep — deferred" item with the
+same motivation, so it doesn't get lost).
+
+### `--overlay sc` wired into `eval_arms.py`
+
+Design constraint from the user: this is an inference-time method, so the
+CLI param needs to default-on, be turn-offable, and stay clean for a future
+alternative overlay implementation — and it specifically needs to compose
+with whatever ICL strategy (`--k`/`--retrieval`) is already configured,
+not be a separate code path bolted on top.
+
+- **`fedicl_sql/eval/loop.py`**: new `eval_loop_sc()`, same shape/ckpt-resume
+  contract as `eval_loop`/`eval_loop_gated` (drop-in third option — a future
+  4th overlay just needs another function + dispatch branch, not a rewrite).
+  Only ever sees `prompt_fn`'s rendered text, so it's blind to whether the
+  prompt carries ICL demos — composability with `--k`/`--retrieval` falls
+  out for free, no special-casing. Validated in a unit test that feeds it a
+  prompt_fn simulating baked-in demos.
+- **`experiments/eval_arms/run.py`**: `--overlay {none, sc}` (default `sc`,
+  matching the shipped decision), `--sc-n`/`--sc-temperature`/`--sc-top-p`.
+  Kept `--icl-gate` untouched (existing runbooks depend on its exact CLI
+  shape) — `--overlay sc` + `--icl-gate != none` together errors out
+  (the two mechanisms don't compose yet, sc already supersedes the gate).
+  `--overlay sc` requires `--batch-size 1` (native `generate_samples_scored`
+  sampling, no cross-prompt batching) — validated early, same style as the
+  existing `--icl-gate conf` + `--conf-tau` check.
+- **Result provenance**: `overlay`/`sc_n`/`sc_temperature`/`sc_top_p` now
+  top-level fields in `metrics.json` (not just buried in `config.json`),
+  matching how `k`/`retrieval`/`demo_style` already surface — so
+  `analysis/compare.py` can read them the same way.
+- **`analysis/compare.py`**: reads `overlay`, prints an `ovl` column, folds
+  it into the row `label` (`arm+ICL+sc`), and — the part that actually
+  matters for not misleading future-self — folds `overlay` into the ICL-delta
+  pairing key (`arm, model, dataset, overlay`), so a k=0(sc) row can never
+  get silently diffed against a k=3(none) row as if that isolated ICL's own
+  contribution; the overlay change would leak into the number.
+- **Tests**: 4 new in `tests/test_eval.py` (`_FakeSCModel` stub, same
+  pattern as the existing `_FakeGatedModel`) — majority vote, batch_size
+  validation, composability with an ICL-demo-baked prompt_fn, no-executable
+  fallback. `test_eval.py` 31/31 pass; ruff clean relative to pre-existing
+  warnings (same `open()`-without-context-manager pattern already accepted
+  in `eval_loop`/`eval_loop_gated`, not a new issue).
+
+Commits: `0eeb98d` (fedicl-sql).
+
+### Next
+
+- [ ] `sc` N sweep (8/16/32) on `central_rkd` — cheap, no code change,
+      CSC-SQL's own data says N=8 likely isn't the ceiling at this model
+      scale (see table above)
+- [ ] Run `eval_arms.py --overlay sc --k 0` on the federated arms once
+      `fedavg`/`fedavg_pub`/`fedkd` have real adapters — sc's decision run
+      only covered `central_rkd`; per-client federated numbers with the new
+      default don't exist yet
+- [ ] Open ablation, not scheduled: `sc` + ICL demos (`--k 3 --retrieval
+      random --overlay sc`) — architecturally supported (this session's
+      work), zero empirical signal either way
+- [ ] (carried) decide BIRD-eval posture before writing BIRD eval code
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
