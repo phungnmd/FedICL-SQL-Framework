@@ -400,6 +400,26 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
   repeated-CE-rounds drift the regularizer framing predicts. LAB_LOG
   2026-07-12 (16) has the full trace.
 
+- **Scaled up to the full exec-bootstrap pool (2026-07-17,
+  `central_ft_then_kd_bird_exmatch`, same warm-start, 3873 steps vs the
+  probe's 831):** EX=65.47/EM=32.50/exec_err=111 (k=0) — CE+RKL edge over
+  pre-continuation baseline grows to **+3.28 EX**, exec_err keeps dropping
+  (211→157→111 across baseline→probe→full-scale). Paired-row churn check
+  (baseline vs full-scale, n=1034): 123 rows flip to correct, 89 flip away —
+  net +34 = the +3.3pp, but this is a boundary shift, not a strict-superset
+  gain, and EM stays collapsed (57.16→32.50) at the same scale as the probe —
+  not a small-n artifact. **Caveat that matters for the paper: under +ICL
+  (k=3, gate_exec — the actual deployed inference condition per §5.4), the
+  EX edge nearly vanishes (+3.28pp → +0.29pp, 66.83 vs baseline's 66.54,
+  inside the ~0.5pp noise floor)** — ICL alone recovers most of what this
+  continuation step buys (baseline +ICL: +4.35 EX; exmatch +ICL: only
+  +1.36 EX), i.e. KD-continuation and inference-time ICL are substantially
+  redundant on the failure mode both target. The one gain that survives ICL
+  is exec-reliability, not EX: exec_err 75 vs baseline's 125 even with demos
+  in context. **Report this as an exec-reliability effect, not an EX
+  headline** — the deployed-condition EX delta is noise-level. LAB_LOG
+  2026-07-17 has the full churn table and prediction spot-checks.
+
 - **Round-loop drift instrumentation (pre-registered 2026-07-15):** the proxy
   above is ONE continuation step; the round loop repeats the dynamic T=15
   times, so a per-round +0.09 "flat within noise" could still compound into

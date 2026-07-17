@@ -3055,3 +3055,177 @@ retargeted).
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-17 — `central_ft_then_kd_bird_exmatch` (full-scale continuation probe): churn analysis + ICL narrows the EX edge to noise
+
+### What ran
+
+Follow-up to the 2026-07-12 (16) small-scale continuation probe (§3.4,
+n=831). User pulled a full-scale rerun from the compute host (commits
+`12f76fb`, `f64fd40`) — same recipe, same warm-start (`ft_no_icl/adapter`,
+EX=62.19/EM=57.16), same `kd_direction=rkd`, but on the **full**
+exec-bootstrapped BIRD pool (`processed_data/BIRD/bootstrap_full_exmatch/
+train.csv`, 3873 steps vs the probe's 831) — arm name
+`central_ft_then_kd_bird_exmatch`, adapter `artifacts/probe_p/
+central_ft_then_kd_bird_exmatch/adapter`.
+
+Two eval passes on the same frozen `test.csv` (cross-schema, n=1034):
+
+| config | EX | EM | exec_err | run_id |
+|---|---|---|---|---|
+| k=0, no ICL | 65.47 | 32.50 | 111/1034 | `eval_arms__s0__20260716T033759` |
+| +ICL (k=3, `dail_select`, `never_schema`, `icl_gate=exec`, τ=0.85) | 66.83 | 32.79 | 75/1034 | `eval_arms__s0__20260716T041447` |
+
+Baseline (`ft_no_icl`) at the same two configs for reference: k=0 →
+62.19/57.16/211 (`eval_arms__s0__20260708T084149`); +ICL same config →
+66.54/60.15/125, gate_fire_rate=0.2041, gate_pass_rate=0.7441
+(`eval_arms__s0__20260709T184252`).
+
+### Reading
+
+1. **k=0 EX gain over baseline: +3.28pp (65.47 vs 62.19)** — bigger than the
+   small-scale probe's +0.09 (§3.4), consistent with more continuation steps
+   (3873 vs 831) on more exec-verified data. exec_err also drops further:
+   111/1034 vs the probe's 157/1034 vs pre-continuation baseline's 211/1034.
+2. **Transition-matrix / churn check** (paired on `row_id`, baseline vs
+   exmatch, classified per-row as `ok`/`wrong`/`err`): gains
+   `err→ok`=74 + `wrong→ok`=49 = **123**; losses `ok→wrong`=70 + `ok→err`=19 =
+   **89**; net 34/1034 = **+3.3pp**, exactly matching the aggregate delta —
+   confirms the number isn't an artifact of the aggregate stat. But the
+   underlying churn (123 vs 89) is large relative to the net gain: this is
+   NOT a strict-superset improvement, it's a boundary shift that trades some
+   previously-correct rows for some previously-broken ones. Churn
+   concentrates in `medium`/`extra` hardness.
+3. **EM collapses regardless (57.16→32.50, −24.66pp)** — confirms the
+   2026-07-12 (16) finding scales up, not an artifact of the small probe.
+   Spot-checked predictions: model rewrites gold `EXCEPT`/`INTERSECT`
+   patterns into semantically-equivalent `NOT IN (subquery)` / join
+   reformulations — real alternate-but-different SQL, not gibberish. One
+   sampled hard-bucket row had `ex=1` on a query that is actually
+   logic-different from gold (`OR` swapped in for two separate `INTERSECT`
+   branches) — coincidental row-match on this specific DB instance, a known
+   EX limitation, not unique to this run but worth flagging when citing
+   hard/extra EX gains.
+4. **+ICL nearly erases the EX edge: gap shrinks from +3.28pp (k=0) to
+   +0.29pp (66.83 vs 66.54)** — within the ~0.5pp stack noise floor already
+   established. ICL lifts the baseline far more (+4.35pp: 62.19→66.54) than
+   it lifts exmatch (+1.36pp: 65.47→66.83) — the two mechanisms (KD-continue
+   training-time correction, ICL demo inference-time correction) are
+   substantially **redundant**, not additive, on whatever failure mode
+   exec-gate/KD-continue both fix.
+5. **exec_err is the one signal that survives ICL cleanly**: 75 vs 125
+   (−40%) — exmatch still writes syntactically/executably cleaner SQL even
+   with demos in context. `gate_fire_rate` (0.1074 vs 0.2041) and especially
+   `gate_pass_rate` (0.3213 vs 0.7441) are both much lower for exmatch: fewer
+   queries need gate intervention at all (matches lower baseline exec_err),
+   but when the gate DOES fire, swapping the ICL demo rescues the query far
+   less often (32% vs 74%) — exmatch's residual failures are model-internal
+   (style/logic), not demo-selection artifacts fixable by retrieval.
+6. **Practical framing for the paper:** if the deployed system always runs
+   with ICL/gate anyway (current default per §5.4), this continuation
+   training buys **+0.29pp EX for a permanent −24.66pp EM cost** — the
+   honest sell is exec-reliability (fewer runtime failures), not an EX
+   headline. Don't report the k=0 EX delta as the deployed-condition number.
+
+### Blocked (not run): BIRD-side eval
+
+User asked for eval code against BIRD as a second benchmark. Flagged
+conflict with §11 invariant #5 (`P` is DB-disjoint from all eval sets; a
+dataset used as `P` is disqualified as an eval benchmark — contamination,
+never-violate). `central_ft_then_kd_bird_exmatch` trained directly on BIRD's
+pool (`bootstrap_full_exmatch`), so evaluating it on BIRD test/dev is
+train-test leakage on the same source dataset. Three options presented (skip
+BIRD entirely / run as an explicitly-labeled non-benchmark sanity probe, same
+posture as the retired E0.1 / find a BIRD split provably DB-disjoint from the
+training pool, advisor sign-off before treating as a real benchmark) —
+**no decision made yet**, no eval code written, no run happened.
+
+### Doc changes
+
+`system_architecture.md` §3.4 — extended the continuation-probe table with
+this full-scale result and the ICL-narrows-the-gap caveat (below the existing
+n=831 probe entry).
+
+### Next
+
+- [ ] Decide BIRD-eval posture (3 options above) before any BIRD eval code
+      is written
+- [ ] Same churn/transition-matrix check on the +ICL condition (only did it
+      for k=0 this session)
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-17 (2) — removed the skeleton-weighted-CE mechanism (`beta_struct`): undocumented, uncited, never ablated, and already marked dropped
+
+### What happened
+
+User asked what `--beta-struct` (default 2.0, silently applied to every
+training arm to date) actually was. Traced it: `fedicl_sql/training/
+skeleton.py` (`SKELETON_KEYWORDS` + `skeleton_weights()`) upweighted CE loss
+2× on SQL-structural tokens (`SELECT`/`FROM`/`WHERE`/`JOIN`/... ) vs 1× on
+content tokens, wired through `dataset.py` → `lora_trainer.py` → every
+`client_train`/`federated` CLI. Present in the repo's very first tracked
+commit (`4299b6e`, 2026-06-12) — i.e. from the pre-KID architecture.
+
+Checked provenance before touching anything:
+
+- **No ablation, ever.** Grepped `LAB_LOG.md`/`system_architecture.md` for
+  `beta_struct`/skeleton-weight — zero hits. Applied uniformly to
+  `central_ft`/`central_rkd`/`central_kid` and both 2026-07-17 continuation
+  probes with no isolated A/B run testing whether it helps or hurts.
+- **No citation.** Not in [10] (KID)'s recipe. User's guess it might be from
+  arXiv:2512.17053 checked directly — that IS reference [11] (Struct-SQL,
+  already in `paper/references/`), but its full text (`[11]-2025-Struct-SQL...
+  .md`, line 190) states plain "standard sequence completion loss" — no
+  keyword-weighting term anywhere in it. Not the source either.
+- **Already marked dropped.** `progress_report_vi.md` §2 (2026-06-29 pivot
+  report) lists "L_struct (skeleton-structure loss)" in the "Cũ" (old)
+  column against "Không còn" (no longer / dropped) in the "Mới (KID)" column
+  — the architecture decision to remove it was made 2026-06-29, code never
+  caught up.
+
+### Decision (user): remove it, not just default it to 1.0
+
+Per doc-vs-code mismatch above and standing instruction against carrying
+dead/legacy code paths.
+
+### What changed
+
+Deleted `fedicl_sql/training/skeleton.py`. Removed `beta`/`beta_struct`
+threading end to end: `dataset.py` (`_assemble`, `_assemble_seq2seq`,
+`build_examples` — target/demo-span weights now a flat `1.0` list, prompt
+stays `0.0`-masked as before), `lora_trainer.py` (`LoraTrainConfig` field +
+both `build_examples(...)` call sites), CLI flags + pass-through in
+`experiments/client_train/run.py`, `experiments/federated/run.py`,
+`scripts/build_teacher_logit_cache.py` (incl. its cache `meta.json` no longer
+records `beta_struct`). `tests/test_training.py`: deleted the 3
+`skeleton_weights`-specific unit tests (module gone), replaced the
+skeleton-upweight assertion test with `test_build_examples_target_weights_
+uniform` (asserts every unmasked target token now weights `1.0`). Full suite
+green: `229 passed`. Also updated `fedicl-sql/CLAUDE.md`'s KD description
+(no longer says "skeleton-weighted CE").
+
+**Consequence for prior results in this doc:** every `central_ft`/
+`central_rkd`/`central_kid`/`central_ft_then_kd_bird*` number logged before
+this point (including today's session (1) churn/ICL analysis) was trained
+with `beta_struct=2.0` (the then-default) — those runs and their `metrics.json`
+are historical record, not invalidated, just no longer reproducible bit-for-
+bit from current `main` without passing a beta flag that no longer exists.
+Any **new** training run from this point on uses plain CE. Not expected to
+move EX/EM by much (no ablation ever showed this term did anything), but it
+removes a silent, unverified confound from every future run.
+
+### Next
+
+- [ ] (new, cheap) if curious whether `beta_struct` was doing anything at
+      all, could diff-rerun one small arm (e.g. `central_ft`, PoC scale)
+      pre/post-removal — not scheduled, low priority given zero prior
+      evidence it mattered
+- [ ] (carried, from session (1)) decide BIRD-eval posture before writing
+      BIRD eval code
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
