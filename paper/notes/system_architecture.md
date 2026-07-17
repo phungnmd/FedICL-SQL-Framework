@@ -620,8 +620,8 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
   N sweep (8/16/32) deferred (2026-07-16, user — cite now, sweep later).
 - **Superseded (shipped through 2026-07-15) — verifier-gated retry**: k=0
   draft → exec check → k=3 fallback on error only; 70.79 EX vs 68.28 ungated
-  k=0 on `central_rkd`. Kept runnable (`experiments/inference_overlay/run.py
-  --modes gate`) as the comparison baseline for any future overlay probe —
+  k=0 on `central_rkd`. Kept runnable (`eval_arms.py --overlay none
+  --icl-gate exec`) as the comparison baseline for any future overlay probe —
   `sc` had to beat this number, not raw greedy, to earn the default slot.
 - **A2 (§10), retargeted 2026-07-16:** was `train-k0+gate` vs `train-k2
   consistent`; now compares **`train-k0 + sc`** (current default) vs
@@ -1064,9 +1064,8 @@ criterion met at −0.78 EX) · ~~Skills Similarity (SS) retrieval~~ (**closed
 sophistication is dead post-FT/KD, SS included; code in-tree, no run).
 
 **Inference-overlay probe verdict (2026-07-16, LAB_LOG same date) — SC-vote
-adopted, schema-constrained decoding rejected.** Two candidates were probed
-against the then-shipped verifier-gated retry on the full 1034-row Spider
-dev test set, same adapter (`central_rkd`):
+adopted.** Probed against the then-shipped verifier-gated retry on the full
+1034-row Spider dev test set, same adapter (`central_rkd`):
 
 - **SC-vote — ADOPTED, now the §5.4/§7 default** (moved out of Tier 3):
   sample N=8 candidates at k=0, execute each, majority-vote on execution-
@@ -1075,37 +1074,18 @@ dev test set, same adapter (`central_rkd`):
   McNemar p=0.00042. Generalized the multi-retry-gate idea above (vote size
   1 ≈ that) — this item is now superseded/subsumed, not a separate build
   target.
-- **Schema-constrained decoding v1 — REJECTED, code kept for the record**:
-  `prefix_allowed_tokens_fn`-based, restricted the first identifier after
-  FROM/JOIN/SELECT/WHERE/etc to a schema-valid prefix, failed open on
-  anything unrecognized (e.g. table aliases) —
-  `fedicl_sql/models/schema_constrained.py`. Measured EX **48.0%** vs
-  greedy's 70.0% on a 200-row probe (catastrophic, not run on the full set —
-  no point). Root cause: the trigger positions aren't bare-identifier-only
-  in real SQL — `SELECT *`, `COUNT(...)`, `DISTINCT`, and table aliases
-  (`T1`/`T2`, Spider's own gold-annotation convention) all occur right after
-  the same trigger keywords, and whenever an alias's first letter happens to
-  prefix a real schema name (very common — e.g. alias `T1` + a column named
-  `title`), the fail-open check doesn't catch it (the partial DOES match a
-  real name, just the wrong one) and the model gets forced down a corrupted
-  completion. Fixing this properly means allowlisting keywords/functions/
-  `*`/alias-patterns at every trigger position, which is most of the way to
-  a real CFG parser — exactly the engineering cost this v1 scope was chosen
-  to avoid. Not revived unless a future need specifically targets schema/
-  syntax errors with SC-vote's own EX ceiling not being enough.
 - Self-debug/error-feedback retry considered, dropped by the user
   (2026-07-16) — not built.
-- Probe harness: `experiments/inference_overlay/run.py` (kept for future
-  overlay probes; `--modes gate` still runs the superseded baseline for
-  comparison, `--modes schema_constrained` still runs for the record).
+- Probe harness: `eval_arms.py --overlay sc` (`--overlay none --icl-gate
+  exec` still runs the superseded baseline for comparison).
 - **`sc` N sweep (8/16/32) — deferred, not run** (2026-07-16, user: cite the
   method's grounding now, try higher N later). Motivation: CSC-SQL's own
   N-sweep on a 3B model (close to our 1.5B) shows EX still climbing well
   past N=8 (58.15→62.17→63.49→64.91→65.28 for N=4/8/16/32/64, plateau only
   after ~32, §14 anchors) — our current N=8 is a grounded starting default,
   not yet a tuned one. `--sc-n 16`/`32` already work end-to-end
-  (`eval_arms.py --overlay sc`, `inference_overlay/run.py --modes sc`), pure
-  cost tradeoff to run, no code change needed.
+  (`eval_arms.py --overlay sc`), pure cost tradeoff to run, no code change
+  needed.
 
 Negative results are framed as analysis, never hidden (e.g. if A2 says k=0 wins →
 report it, move default to k=0, keep DAIL for the teacher).

@@ -2836,49 +2836,30 @@ each time).
 - [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
 
-## Session 2026-07-16 — inference-time overlay probes built: self-consistency + execution voting, schema-constrained decoding
+## Session 2026-07-16 — inference-time overlay probe built: self-consistency execution voting
 
 ### Context
 
 User asked for inference-time accuracy methods in the style of Self-Consistency
-with execution voting / grammar-schema-constrained decoding, on top of the
-shipped verifier-gated retry (§5.4). Discussed and cut down to two candidates
-against the actual deployment constraint (Mac session, no GPU here — code only,
-not yet run): self-debug/error-feedback retry dropped (user call); multi-round
-cascade dropped once the user clarified the real cost budget — **client only
-ever deploys the SLM; per-query inference cost can go up, that's fine** (this
-reframes the framework's cost claim: cheap = model size/VRAM/no server
-round-trip, not per-query latency — worth a one-line edit to system_architecture
-.md §GOAL's "per-query serving cost" phrasing next time that section is
+with execution voting, on top of the shipped verifier-gated retry (§5.4).
+Narrowed to one candidate against the actual deployment constraint (Mac
+session, no GPU here — code only, not yet run): self-debug/error-feedback
+retry dropped (user call); multi-round cascade dropped once the user
+clarified the real cost budget — **client only ever deploys the SLM;
+per-query inference cost can go up, that's fine** (this reframes the
+framework's cost claim: cheap = model size/VRAM/no server round-trip, not
+per-query latency — worth a one-line edit to system_architecture.md
+§GOAL's "per-query serving cost" phrasing next time that section is
 touched, not done this session).
 
-Kept, both implemented as a **probe** to run on `central_rkd` before deciding
-whether either earns a place in the pipeline (not shipped, not defaults
-anywhere):
-
-1. **Self-consistency + execution voting.** Sample N candidates at k=0
-   (temperature/top_p), execute each on the query's own local DB, majority-vote
-   on execution-RESULT equivalence (not SQL text) — MBR-over-execution, ties
-   broken by mean token log-prob. No cap on N beyond cost; this is the
-   generalization of the existing multi-retry-gate Tier-3 idea (§10) with
-   voting instead of first-executable-wins.
-2. **Schema-constrained decoding, v1 (scoped, not a full CFG).** No grammar
-   library in this stack (checked pyproject.toml — no outlines/xgrammar/
-   lm-format-enforcer); adding one is a bigger dependency commitment than a
-   probe warrants before there's a number. Built instead on `transformers`'
-   native `prefix_allowed_tokens_fn`: right after FROM/JOIN/INTO/UPDATE
-   (table position) or SELECT/WHERE/ON/HAVING/AND/OR/SET/BY (column
-   position), restrict the in-progress identifier's next token to a
-   non-overshooting prefix of a real schema table/column name (trie over the
-   tokenizer's decoded vocab, built once, cached per tokenizer). **Fails open
-   by construction**: if the partial identifier matches no schema name
-   (typically a table alias like `t1`), the constraint stands down for that
-   step — it can only ever narrow choices when confident, never force an
-   impossible token, so it can't corrupt an otherwise-valid generation.
-   Deliberately narrow scope: only the FIRST identifier after a trigger is
-   constrained (no comma-continuation tracking, no alias-qualified-column
-   tracking) — targets this project's own measured top failure mode
-   (`no such column`/`no such table` in `exec_error`) without a real parser.
+Kept, implemented as a **probe** to run on `central_rkd` before deciding
+whether it earns a place in the pipeline (not shipped, not a default
+anywhere yet): **self-consistency + execution voting.** Sample N candidates
+at k=0 (temperature/top_p), execute each on the query's own local DB,
+majority-vote on execution-RESULT equivalence (not SQL text) —
+MBR-over-execution, ties broken by mean token log-prob. No cap on N beyond
+cost; generalizes the existing multi-retry-gate Tier-3 idea (§10) with
+voting instead of first-executable-wins.
 
 ### What was built
 
@@ -2892,85 +2873,64 @@ anywhere):
   `order_matters` is read off each candidate's OWN "order by" presence, never
   gold's — voting has to work at deployment time with no gold available.
   Falls back to highest-log-prob candidate when nothing executes.
-- `fedicl_sql/models/schema_constrained.py`: `build_schema_constraint(...)` —
-  the trie + regex-trigger state machine described above; returns a
-  `prefix_allowed_tokens_fn` plus a `.diagnostics` dict (`n_constrained_steps`,
-  `n_fail_open`) for offline auditing of how often each probe actually engages
-  vs stands down.
-- `fedicl_sql/models/student.py`: two new `StudentModel` methods —
-  `generate_samples_scored` (sampled `num_return_sequences` + per-candidate
-  mean log-prob, same OOM-halving pattern as `generate_batch`) and
-  `generate_schema_constrained` (greedy + the constraint fn above).
+- `fedicl_sql/models/student.py`: `generate_samples_scored` — sampled
+  `num_return_sequences` + per-candidate mean log-prob, same OOM-halving
+  pattern as `generate_batch`.
 - `experiments/inference_overlay/run.py` (new experiment dir): probes
-  `--modes greedy sc schema_constrained` against one adapter (`--adapter`,
-  point it at `central_rkd`), same k=0/no-ICL/no-teacher path as the client's
-  shipped inference config, writes one predictions CSV per mode (`arm` field
-  = mode name) plus a metrics.json with EX/EM/hardness breakdown and
-  time/query per mode — the number needed to actually decide adopt-or-not.
-- `fedicl_sql/runtime/results.py`: `PREDICTION_FIELDS` extended with 7
+  `--modes greedy sc` against one adapter (`--adapter`, point it at
+  `central_rkd`), same k=0/no-ICL/no-teacher path as the client's shipped
+  inference config, writes one predictions CSV per mode (`arm` field = mode
+  name) plus a metrics.json with EX/EM/hardness breakdown and time/query per
+  mode — the number needed to actually decide adopt-or-not.
+- `fedicl_sql/runtime/results.py`: `PREDICTION_FIELDS` extended with 5
   diagnostic columns (`sc_n_candidates`/`sc_n_executable`/`sc_n_groups`/
-  `sc_winner_group_size`/`sc_tie_broken`/`constrained_steps`/
-  `constrained_fail_open`), blank for every other experiment's rows.
-- `tests/test_inference_overlay.py`: 11 new unit tests — `vote()` against a
-  real in-memory SQLite DB (unanimous, majority-over-minority, groups-by-
-  result-not-text, tie-break-by-logprob, no-executable-fallback); the
-  constrained-decoding state machine against a tiny fake tokenizer (no
-  network/model load, matches this suite's existing convention of zero
-  real-model tests) — table trigger, column trigger, completed-identifier
-  exit, unknown-identifier fail-open, and a dedicated false-trigger check
-  (`AND` substring inside `GRAND` must not fire the `AND` trigger — word-
-  boundary regex, not substring match). Full suite 228/228 pass, ruff clean.
+  `sc_winner_group_size`/`sc_tie_broken`), blank for every other experiment's
+  rows.
+- Unit tests for `vote()` against a real in-memory SQLite DB (unanimous,
+  majority-over-minority, groups-by-result-not-text, tie-break-by-logprob,
+  no-executable-fallback). Full suite pass, ruff clean.
 
 ### Not done this session (compute-host items)
 
-- No GPU here (Mac session) — neither probe has been run against
+- No GPU here (Mac session) — the probe has not been run against
   `central_rkd` yet. That run (and the actual adopt/reject decision) is next,
-  on the compute host: `uv run python experiments/inference_overlay/run.py
-  --adapter artifacts/kd_poc/central_rkd/adapter --modes greedy sc
-  schema_constrained --sc-n 8 --n-eval 200` (start small; grow `--n-eval`
-  once the mechanics are confirmed working end-to-end, same incremental-pilot
-  pattern as the federated round loop).
+  on the compute host.
 - Self-debug/error-feedback retry — explicitly dropped by the user this
   session, not built.
 
 ### Next
 
-- [ ] Run `experiments/inference_overlay/run.py` on `central_rkd` (compute
-      host) — greedy baseline should reproduce the known 68.28 EX floor
-      (sanity check the harness before trusting sc/schema_constrained numbers)
+- [ ] Run the probe on `central_rkd` (compute host) — greedy baseline should
+      reproduce the known 68.28 EX floor (sanity check the harness before
+      trusting the sc number)
 - [ ] Sweep `--sc-n` (e.g. 1/4/8/16) once the harness is confirmed — cost/
       accuracy curve is the actual adopt-or-not evidence, not a single N
-- [ ] If schema_constrained's `constrained_fail_open` rate is high on real
-      data, that's a signal the v1 scope (first-identifier-only, no alias
-      tracking) is too narrow to matter — read the diagnostics before
-      concluding the mechanism itself doesn't help
-- [ ] Only if one or both probes show a real EX gain: promote out of
-      `experiments/inference_overlay/` into a documented §5.4/§7 overlay in
-      `system_architecture.md`, with the same honest-caveat treatment the
-      verifier-gated retry got (mechanism attribution, not just the headline
-      number)
+- [ ] Only if the probe shows a real EX gain: promote out of the probe
+      script into a documented §5.4/§7 overlay in `system_architecture.md`,
+      with the same honest-caveat treatment the verifier-gated retry got
+      (mechanism attribution, not just the headline number)
 - [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) §3.4/§7 instrumentation hooks into the round loop
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
 
-## Session 2026-07-16 (2) — inference-overlay decision run: SC-vote adopted, schema-constrained decoding rejected
+## Session 2026-07-16 (2) — inference-overlay decision run: SC-vote adopted
 
 ### What ran
 
 Full Spider dev test set (n=1034), seed=0, adapter `central_rkd`
-(`artifacts/kd_poc/central_rkd/adapter`), `experiments/inference_overlay/
-run.py`, on the compute host (GPU, not this Mac session):
+(`artifacts/kd_poc/central_rkd/adapter`), on the compute host (GPU, not this
+Mac session). Equivalent reproduction command (§5.4):
+`eval_arms.py --overlay {none,sc} --k 0 --batch-size 1`
+(`--overlay none --icl-gate exec` for the gate baseline, `--overlay sc` for
+the challenger):
 
-- `--modes gate` (the then-shipped verifier-gated retry, §5.4) — commit
+- gate (the then-shipped verifier-gated retry, §5.4) — commit
   `8b83a8c`. Result: EX=69.92%, EM=63.83%, exec_errors=111/1034 (10.7%),
   gate_fire_rate=13.93%, time/q=2.46s, VRAM=3.36GB.
-- `--modes sc` (self-consistency, N=8, temp=0.8, top_p=0.95) — commit
+- sc (self-consistency, N=8, temp=0.8, top_p=0.95) — commit
   `1af0e9f`. Result: EX=72.73%, EM=65.67%, exec_errors=69/1034 (6.7%),
   time/q=3.37s, VRAM=4.49GB.
-- `schema_constrained` NOT re-run at full scale — already failed catastrophically
-  on the earlier 200-row probe (48.0% vs greedy's 70.0%), no point spending
-  the GPU time. Root cause analyzed below.
 
 Both prediction CSVs pulled via `git pull` (`7ec70a2 exp: eval result`) and
 paired on `row_id` (same eval order, same seed → exact same 1034 rows) for a
@@ -3010,30 +2970,6 @@ entirely and replacing the perturbation source with temperature sampling
 still beats the gate — the execution verifier was always the load-bearing
 part, never the demos.
 
-### Why schema-constrained decoding failed (post-mortem, no new run needed)
-
-Diagnosed from the mechanism, not new data (the 200-row probe result already
-established the failure; this session's job was explaining root cause before
-writing it off definitively). The v1 trigger fires right after FROM/JOIN/
-SELECT/WHERE/etc and restricts the next identifier to a schema-name prefix —
-but real SQL right after those keywords is often NOT a bare identifier:
-`SELECT *`, `SELECT COUNT(...)`, `SELECT DISTINCT`, and table aliases
-(`T1`/`T2` — Spider's own gold-annotation convention, extremely common in
-any multi-table/medium+ query) all occur there too. The designed fail-open
-safety net (stand down when the partial matches no schema name) does NOT
-catch the alias case: an alias like `T1` starts with `t`, and if the schema
-has ANY column starting with `t` (e.g. `title` — true for most schemas),
-`t` is a VALID prefix match, just for the wrong identifier — so the
-constraint doesn't fail open, it force-completes toward the wrong name
-(`T1` → `title`), corrupting otherwise-correct SQL. Confirmed mechanism, not
-guessed: this is exactly the shape of failure the fail-open design couldn't
-have prevented, since the check only asks "does this match something", not
-"does this match what the model actually intended." Fixing it needs an
-allowlist for keywords/functions/`*`/alias-patterns at every trigger
-position — most of the way to a real CFG parser, the exact cost this v1
-scope was chosen to avoid. Verdict: rejected, code kept in-tree for the
-record, not revived without a specific new reason.
-
 ### Doc changes
 
 `system_architecture.md`: §0 (settled-list entry rewritten), §1 (novelty
@@ -3042,8 +2978,7 @@ finding), §5.4 (new default + superseded-gate note + A2 retargeted from
 `+exec-gate` to `+sc`), §6/§7 (pseudocode + deployment section updated to
 sc-vote, no-retrieval-at-all framing), §9 (config table: `k_student` row
 split into training-k and inference-overlay rows), §10 (Tier-3 probe note
-replaced with the adopt/reject verdict + full post-mortem, A2 row
-retargeted).
+replaced with the adopt verdict, A2 row retargeted).
 
 ### Next
 
@@ -3316,7 +3251,11 @@ whether the citation itself needed to change (it doesn't).
 - [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
 
-## Session 2026-07-16 (2) — SC-vote hyperparameter grounding + eval_arms.py wiring
+## Session 2026-07-17 (5) — SC-vote hyperparameter grounding + eval_arms.py wiring
+
+*(Mislabeled `2026-07-16 (2)` at first write — duplicate of the decision-run
+entry above; this session's content is dated 2026-07-17, after session (4)
+below chronologically, fixed here.)*
 
 ### Context
 
@@ -3434,3 +3373,131 @@ Commits: `0eeb98d` (fedicl-sql).
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-17 (4) — KD methods survey: on-policy family mapped, `gkd` rung + exec-gated KD proposed
+
+Research-only session (no code). Question: beyond RKD/KID from [10], what KD
+methods fit our 7B→1.5B, server-side, 16 GB, same-Qwen-vocab setup? Output:
+`paper/notes/kd_methods_survey.md` (new note — 4 method families, ranked
+proposals, reject list with reasons).
+
+Key takeaways:
+
+- **KID reframed**: [10]'s mask-fill ŷ is a one-pass approximation of
+  on-policy (student-generated) data. Our existing ladder therefore already
+  sits on a "how close is KD data to the student policy" axis:
+  gold (`rkd`) → pseudo-on-policy (`kid`) → true on-policy (GKD,
+  arXiv:2306.13649). A `gkd` rung is a natural extension, not a bolt-on.
+- **Proposal A (`gkd` rung)**: student autoregressively generates ŷ
+  (amortized once per round server-side, not per step), teacher RKL on it,
+  keep `CE(gold) + RKL`. `gkd − kid` isolates the value of true on-policy
+  over [10]'s one-pass approximation — no published number for this on
+  Text-to-SQL.
+- **Proposal B (exec-gated KD, main novelty candidate)**: execute the
+  round-start student generations on BIRD DBs; execution-correct samples
+  get skipped/CE-only, execution-wrong samples become the KD targets.
+  Gap in literature: ExeSQL (arXiv:2505.17231) has execution but no logits;
+  [10] has imperfect data but no execution; GKD has on-policy but no
+  execution. Needs a cheap probe first: execution-match rate of the current
+  best adapter on a P sample (decides whether the gate has signal).
+- **Rejected with reasons** (full table in the survey note): MiniLLM
+  policy-gradient (variance/engineering), SKD speculative interleave
+  (per-token teacher decode cost), CoT distillation incl. the new
+  structured-CoT Struct-SQL arXiv:2512.17053 (direction dropped
+  2026-07-07 — Related Work cite only), cross-tokenizer KD (same Qwen
+  vocab), forward KL ([10] Table 2), DPO/RL-from-execution (paradigm
+  change, out of KD scope). DistiLLM skew-KL kept as a cheap stabilizer
+  ablation only, not a contribution.
+
+Nothing decided — proposals need advisor sign-off alongside the standing
+server-side-pivot item. `system_architecture.md` untouched.
+
+### Next
+
+- [ ] Probe: execution-match rate of best PoC adapter on a P sample
+      (gates proposal B; generate + sqlite execute only, cheap)
+- [ ] If probed positive and advisor approves: `gkd` arm on the
+      centralized PoC setup first (`gkd` vs `rkd` vs `kid`, same data/seeds)
+- [ ] (carried) decide BIRD-eval posture before writing BIRD eval code
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 for `central_ft_then_kd_bird_exmatch` before citing
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
+## Session 2026-07-17 (6) — schema-constrained decoding purged (code + docs); `eval_arms.py --overlay sc` is now the sole cited inference-overlay path
+
+### Context
+
+User call: schema-constrained decoding (§5.4/§10's rejected v1 probe) gets
+treated as never implemented — remove code AND every doc mention, not just
+mark it rejected. Separately: `experiments/inference_overlay/run.py`
+citations that were pointing at it as "how to reproduce" should switch to
+the now-wired `eval_arms.py --overlay sc` (previous entry, (5)); after that
+switch, stop naming `inference_overlay` in doc prose generally. Confirmed
+with the user before touching anything: (1) schema_constrained — code +
+docs both removed (not docs-only, since leaving dead code with no doc trail
+would be worse than either extreme); (2) inference_overlay — docs-only
+cleanup, the script and its committed `results/` (the actual evidence
+backing the SC-vote McNemar p=0.00042 claim) stay on disk untouched.
+
+### What was removed (fedicl-sql)
+
+- `fedicl_sql/models/schema_constrained.py` — deleted.
+- `fedicl_sql/models/student.py` — `generate_schema_constrained` method
+  deleted.
+- `experiments/inference_overlay/run.py` — `schema_constrained` dropped from
+  `MODES`, its branch removed, `constrained_steps`/`constrained_fail_open`
+  dropped from `_EXTRA_DEFAULTS`, `schema_identifiers` import dropped
+  (unused once the branch was gone — still used elsewhere in
+  `fedicl_sql/data/spider.py` itself, not orphaned). Docstring rewritten:
+  script's role is now "single-adapter quick probe, no per-client pools" —
+  `eval_arms.py --overlay sc` is the primary path for real arm-comparison
+  work (stated explicitly, so a future reader doesn't reach for the wrong
+  tool).
+- `fedicl_sql/runtime/results.py` — `constrained_steps`/`constrained_fail_open`
+  dropped from `PREDICTION_FIELDS`; the `sc_*` diagnostic comment updated
+  (no longer scoped to one script's diagnostics).
+- `tests/test_inference_overlay.py` → renamed `tests/test_self_consistency.py`
+  (`git mv`) — schema-constrained's fake-tokenizer/trie tests deleted along
+  with it; the file now purely tests `eval/self_consistency.py`'s `vote()`,
+  matching the test-file-per-module convention elsewhere in this suite.
+  6/6 pass.
+
+### Doc changes
+
+- `LAB_LOG.md`: rewrote the 2026-07-16 session and 2026-07-16 (2) entries to
+  drop every schema-constrained paragraph (context bullet, "What was built"
+  bullets, the dedicated post-mortem section, "Next" items referencing it).
+  The decision-run entry's "What ran" section now cites the
+  `eval_arms.py --overlay {none,sc}` reproduction command instead of the
+  literal `experiments/inference_overlay/run.py --modes ...` invocation —
+  the empirical numbers (EX/EM/McNemar) are unchanged, only the "how to
+  reproduce" pointer moved. Also fixed a duplicate session-number bug found
+  along the way: two entries were both labeled `2026-07-16 (2)` — the
+  hyperparameter-grounding + eval_arms-wiring one is actually dated
+  2026-07-17 and is renumbered `(5)` here (a leftover from writing it under
+  stale context earlier in the same conversation).
+- `system_architecture.md` §10: schema-constrained's whole verdict paragraph
+  (root-cause explanation, EX numbers, code pointer) deleted from the
+  Tier-3 probe-verdict block — only the SC-vote adoption verdict remains.
+  Its "Probe harness" line now cites `eval_arms.py --overlay sc` only (was:
+  offering `inference_overlay/run.py` as an alternative too). §5.4's
+  superseded-gate note now cites `eval_arms.py --overlay none --icl-gate
+  exec` instead of `inference_overlay/run.py --modes gate`.
+- Not touched: the *empirical claim itself* (McNemar p=0.00042, EX 72.73 vs
+  69.92) — that's sourced from real committed data
+  (`experiments/inference_overlay/results/inference_overlay__s0__202607
+  16T*/predictions/{gate,sc}.csv`, still on disk, still in git — only the
+  doc *prose* stopped naming the tool that produced it).
+
+### Next
+
+- [ ] (carried) `sc` N sweep (8/16/32) on `central_rkd`
+- [ ] (carried) run `eval_arms.py --overlay sc --k 0` on the federated arms
+      once `fedavg`/`fedavg_pub`/`fedkd` have real adapters
+- [ ] (carried) open ablation: `sc` + ICL demos (`--k 3 --retrieval random
+      --overlay sc`)
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
