@@ -3501,3 +3501,72 @@ backing the SC-vote McNemar p=0.00042 claim) stay on disk untouched.
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
 
+## Session 2026-07-17 (3) — `ft_no_icl` arm: `--overlay sc` through `eval_arms.py`, sc@k0 vs sc@k3-demos
+
+### What ran (compute host, via the new `--overlay sc` wiring, commit 0eeb98d)
+
+Two new `eval_arms.py` runs on the `ft_no_icl` adapter
+(`artifacts/icl_ladder/qwen1b/ft_no_icl/adapter` — Qwen2.5-1.5B, plain
+gold-CE, no KD; a different arm than the `central_rkd` used in the
+2026-07-16 sc-vote decision run), full 1034-row Spider dev test set, seed 0:
+
+- `eval_arms__s0__20260717T101049` — `--k 3 --retrieval dail_select
+  --overlay sc --sc-n 8` → EX 68.28%, EM 61.61%
+- `eval_arms__s0__20260717T144033` — `--k 0 --overlay sc --sc-n 8`
+  (the missing sc@k0 control) → EX 70.12%, EM 64.02%
+
+Joined against 3 pre-existing runs on the same adapter (`eval_arms__
+s0__20260708T084149` k=0 no-ICL; `…T090336` k=3 uniform; `…s0__
+20260709T184252` k=3 gate=exec):
+
+| config | EX | EM |
+|---|---|---|
+| k=0, no overlay | 62.19% | — |
+| k=3 uniform, no gate | 61.90% | — |
+| k=3 + gate exec (superseded baseline) | 66.54% | — |
+| k=3 + sc (N=8) | 68.28% | 61.61% |
+| k=0 + sc (N=8) | 70.12% | 64.02% |
+
+### Paired McNemar (row-level, same 1034 examples, predictions CSVs joined by `row_id`)
+
+```
+sc@k0 (70.12%) vs gate@k3exec (66.54%)   n=1034  sc_only=70  gate_only=33   p=0.000341
+sc@k0 (70.12%) vs sc@k3demos (68.28%)    n=1034  sc@k0_only=86  sc@k3_only=67  p=0.1454
+sc@k3demos (68.28%) vs gate@k3exec       n=1034  sc@k3_only=81  gate_only=63   p=0.1563
+```
+
+### Read (raw result, not a doc update — no grade change this session)
+
+- `sc@k0` beats `gate@k3exec` on `ft_no_icl` at p=0.000341 — same direction
+  and similar significance as the `central_rkd` decision run (p=0.00042),
+  now on a second, differently-trained arm (plain gold-CE vs RKD-distilled).
+  Recorded here as a second data point; **not** promoting sc-vote's grade in
+  `system_architecture.md` §0 off one more 1-seed run each — that's a
+  separate decision, not made this session (user: log the numbers, don't
+  assert yet).
+- `sc@k0` (70.12) > `sc@k3demos` (68.28) — demos on top of sc trend
+  *negative* here, but the pairwise test isn't significant (p=0.145, 1
+  seed). Directionally consistent with the A5 finding (§5.2: demo content
+  doesn't help a trained/distilled student) extended to the sc mechanism,
+  but this one run doesn't establish that — could be noise, could be
+  specific to this arm/adapter, could be the temperature-sampling +
+  fixed-demo-set interaction doing something not yet understood. Leaving
+  the "sc + ICL demos" ablation open, not closed, per the instruction above.
+- `sc` diagnostics this run: `sc_exec_rate` 74.4% (k=3) / 75.1% (k=0),
+  `sc_tie_rate` 6.1% (k=3) / 6.9% (k=0) — similar order to the `central_rkd`
+  decision run, nothing anomalous.
+
+### Next
+
+- [ ] If more seeds are run, decide then whether sc-vote's evidence grade
+      moves from "provisional default" to "closed finding" (§0 legend) —
+      2 arms at 1 seed each is suggestive, not the bar that legend sets
+- [ ] `sc` + ICL demos direction (this session: negative, not significant)
+      — a real seed-2 or a 3rd arm would tell whether it's noise or real
+- [ ] (carried) `sc` N sweep (8/16/32) on `central_rkd`
+- [ ] (carried) run `eval_arms.py --overlay sc --k 0` on the federated arms
+      once `fedavg`/`fedavg_pub`/`fedkd` have real adapters
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
+- [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
+
