@@ -229,16 +229,31 @@ not a default claim.
 
 ### 3.2 Public pool `P` — BIRD schemas/DBs only (RESOLVED 2026-07-12/13)
 
-> **Rule (scope clarified 2026-07-13):** BIRD's own (question, gold-SQL) pairs
-> are **permanently off-limits as CE/RKL training targets** — confirmed by
-> gate testing below (BIRD's own gold is the poison, not the schemas).
+> **Rule (scope clarified 2026-07-13; REGRADED to provisional 2026-07-18):**
+> BIRD's own (question, gold-SQL) pairs are off-limits as training targets —
+> but the evidence grade is **split by loss term** (§0 legend audit,
+> 2026-07-18):
+>
+> - **As plain-CE targets: confirmed harmful** (gate table below — E0.1 at 1k
+>   from base lands under the untrained floor; 1 seed, 1k scale).
+> - **As CE+RKL targets: never tested.** The 2026-07-13 "permanently
+>   off-limits" wording extrapolated the CE result to RKL. Counter-signal
+>   discovered since: CE-only continuation on BIRD-domain *teacher* text also
+>   regresses (−2.81, §3.4) and **RKL neutralizes that drift** — RKL may
+>   likewise neutralize gold-text drift. Unknown which force wins; teacher
+>   logprobs on BIRD gold may also be noisier (annotation errors + style).
+>   E0.1b's retirement is **reversed in controlled form** — decisive arm:
+>   `central_ft_then_kd_bird_gold` (same warm-start + rows as
+>   `central_ft_then_kd_bird_exmatch`; on exmatch rows teacher-text and gold
+>   are execution-equivalent, so the ONLY variable is whose *text* the
+>   student distills on). Until it runs, teacher-generated targets (§8.0)
+>   stay the default and the ban stays operative-but-provisional.
+>
 > Server-distill targets come from **§8.0's implemented Phase-1 construction**
 > (teacher zero-shot + exec-filter, now + EX-match-vs-gold filter) — §8.3/§8.4
 > are the *future* online upgrade (student on-policy sampling), still unbuilt,
-> not what §6e/§6f/§6g actually run on. E0.1b (RKL on BIRD's native gold) is
-> retired — do not run; its premise is moot now that the gold itself is
-> known-poisoned. Runbook: `notebooks/kd/README.md` §6/§6c/§6e/§6f/§6g (§6b
-> marked retired in place).
+> not what §6e/§6f/§6g actually run on. Runbook: `notebooks/kd/README.md`
+> §6/§6c/§6e/§6f/§6g (§6b marked retired in place).
 >
 > **Not banned:** using BIRD's own gold as a **diagnostic/eval signal for
 > teacher-side design decisions** (e.g. the `k_teacher` 0-vs-3 ICL ablation,

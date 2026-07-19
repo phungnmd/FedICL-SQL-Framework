@@ -3570,3 +3570,279 @@ sc@k3demos (68.28%) vs gate@k3exec       n=1034  sc@k3_only=81  gate_only=63   p
 - [ ] (carried) build the real teacher logit cache (7B, BIRD y_pub)
 - [ ] (carried) seed-2 `central_rkd`/`central_kid` when GPU idle
 
+
+## Session 2026-07-18 — full-results read-through: SC-redundancy is the fork; `central_rkd`+sc is the missing decision number
+
+Analysis-only session (`analysis/compare.py`, 79 measured arms). Question:
+which §8.x direction fits the architecture, given the SC-vote overlay is now
+the deployed default (§9, 2026-07-16).
+
+Key numbers (all n=1034, seed 0, Spider dev):
+
+| row | EX | exec_err | note |
+|---|---|---|---|
+| `teacher` k0 / +gate_exec | 78.72 / 80.37 | — | ceiling; student gap ~8–10pp |
+| `central_rkd_qsim_k3gate` | 70.79 | — | best student row (pre-SC-era overlay) |
+| `central_rkd` +gate_exec k3 | 70.50 | 106 | old deployed condition |
+| `qwen1b_ft_no_icl` +sc | 70.12 | 61 | **plain FT + SC ≈ KD + gate** — no teacher anywhere |
+| `central_ft_then_kd_bird_exmatch` +sc | 69.25 | **34** | sc_exec_rate 85.3% vs FT's 75.1% |
+| `central_rkd` k0 | 68.28 | 146 | PoC winner, never evaluated under sc |
+| ICL+sc (`ft_no_icl_icl_sc`) | 68.28 | — | demos **hurt** SC (−1.84 vs sc alone) |
+| `qwen1b_ft_no_icl` k0 | 62.19 | — | floor; SC adds **+7.93** |
+
+Findings:
+
+1. **`central_rkd` has never been evaluated under the adopted `sc` overlay.**
+   The sc decision run used `ft_no_icl`. This is now the single most
+   decision-relevant missing number: KD's +6.09 (k0) vs SC's +7.93 (on FT)
+   overlap on unknown amount. If `rkd+sc` ≈ 70 → redundant (§3.4's
+   KD-vs-ICL redundancy precedent repeats with SC); if ≥ ~72 → they compose
+   and the headline story survives the deployed condition.
+2. **Hardness breakdown hints they compose:** RKD's k0 edge concentrates on
+   hard (59.77 vs FT+sc's 55.75); SC's gains concentrate easy/medium.
+   Different failure modes → real chance `rkd+sc` stacks. Eval-only, cheap —
+   run before any new training.
+3. **BIRD KD-continuation under sc = exec-reliability effect, confirmed
+   stronger than the 07-17 ICL version:** `exmatch+sc` EX 69.25 < `ft+sc`
+   70.12 (−0.87, EX-negative now, not just noise-level) but exec_err 34 vs
+   61 and sc_exec_rate 85.3% vs 75.1%. Also EM stays collapsed (32.98).
+   Paper framing locked: reliability, never EX headline.
+4. **ICL demos are dead in the deployed condition** (ICL+sc < sc alone;
+   compare.py's ICL-contribution table shows only "ICL hurts" rows at
+   parity). Consistent with the §5.2 DAIL demotion — demos are baseline
+   material only.
+5. **Direction call for §8.3/§8.4:** SC's +7.93 on a plain FT student is a
+   large, distillable signal (sc_exec_rate 75% → the vote usually finds an
+   executable majority). Reshape §8.4's selector toward **SC-vote-as-target**
+   (student samples N on P, execute, majority winner = KD target, teacher
+   RKL on winner) — turns the SC-redundancy risk into the contribution
+   (1-sample deploy ≈ SC-N8, 8× inference saving). Independent of that,
+   server KD keeps its drift-regularizer role in the round loop (CE-only
+   continuation −2.81 evidence, §3.4) regardless of how the redundancy
+   probe lands.
+
+### Next
+
+- [ ] **`central_rkd` (+ `central_kid`) with `--overlay sc --k 0`** — eval
+      only, decides KD-vs-SC redundancy; blocks everything else
+- [ ] If compose: proceed Tier-1 federated ladder unchanged, but eval
+      `fedavg`/`fedavg_pub`/`fedkd` under sc (deployed condition) as well
+      as k=0
+- [ ] If redundant: promote SC-vote-as-target variant of §8.4 (doc edit
+      first, then `fedkd_onpolicy_exec` implementation)
+- [ ] (carried) sc N sweep 8/16/32 on `central_rkd` — folds into the probe
+      above
+- [ ] (carried) real federated ladder `fedavg` → `fedavg_pub` → `fedkd`
+- [ ] (carried) seed-2 items
+
+## Session 2026-07-18 (2) — §3.2 gold-ban regraded to provisional; research roadmap for the 3-layer architecture
+
+**Doc change (`system_architecture.md` §3.2):** the "BIRD gold permanently
+off-limits as CE/RKL targets" rule is regraded — evidence split by loss term.
+CE half stays confirmed (E0.1 gate, 47.10 < floor 50.00; 1k, 1 seed). RKL
+half was never tested — the old wording extrapolated CE→RKL, while §3.4's own
+finding (CE-only drift −2.81 neutralized by RKL, on teacher text) points the
+other way. E0.1b un-retired in controlled form: new decisive arm
+**`central_ft_then_kd_bird_gold`** — identical warm-start + rows as
+`central_ft_then_kd_bird_exmatch` (exmatch rows = teacher text and gold are
+execution-equivalent), only the target *text* differs. Ban stays operative
+until that arm runs.
+
+**Research roadmap (consolidates 07-17/07-18 sessions; supersedes the
+scattered next-lists):**
+
+R1 — decision probes, cheap, this order:
+1. `central_rkd` + `--overlay sc` k=0, fold in N sweep 8/16/32 —
+   KD×SC redundancy fork; blocks the narrative. Eval-only.
+2. `central_ft_then_kd_bird_gold` — gold-vs-teacher-text as KD target.
+   One training run + eval; §3.2 rule resolves either way.
+3. Teacher-ICL y_pub probe (~500 P samples, offline generation only):
+   zero-shot vs self-ICL (teacher's own exec-passed SQL as demos) vs
+   spider-seed ICL (public Spider held-out demos, A3 precedent). Measure
+   exec-pass rate + EM-direction + complexity. BIRD-gold demos excluded by
+   design (style laundering — unless R1.2 flips the gold verdict entirely).
+
+R2 — Tier-1 federated headline (the spine, unchanged by R1 outcomes):
+`fedavg` / `fedavg_pub` / `fedkd`, T=15, K=8, α=0.5, **eval both k=0 and
+sc overlay** (deployed condition — new requirement from the 07-18 analysis).
+Drift instrumentation per §3.4 (post-FedAvg vs post-distill EX per round).
+
+R3 — extension arms, branch on R1.1:
+- compose → `fedkd_onpolicy` then `fedkd_onpolicy_exec` as locked (§8.3/§8.4)
+- redundant → SC-vote-as-target variant of §8.4 (distill the vote; 1-sample
+  deploy ≈ SC-N8) — doc edit first, then build
+
+Parallel when GPU idle: Qwen2.5-Coder-1.5B student swap (rerun PoC arms —
+teacher is Coder, student isn't, unmotivated asymmetry); carried seed-2 items.
+
+Paper narrative target (advisor package, one conversation): 3-layer
+architecture — train-time server KD (ICL relocated to teacher-side target
+generation), inference-time SC verifier, FED as privacy setting. ICL at
+student inference is dead across the board (07-18 session 1) and demoted to
+baseline; SC is the deployed overlay. Bundle with the standing server-side
+pivot sign-off.
+
+### Next
+
+- [ ] R1.1 `central_rkd`+sc (+N sweep) — first GPU slot
+- [ ] R1.2 `central_ft_then_kd_bird_gold`
+- [ ] R1.3 y_pub teacher-ICL 3-way probe
+- [ ] R2 federated headline after R1.1 lands
+- [ ] Advisor package: 3-layer narrative + §3.2 regrade + server-side pivot
+
+## Session 2026-07-18 (3) — KD-on-noisy-gold mechanism + selective-KD literature; R1.2 gains a pre-probe
+
+Research-only. Question: why exactly would RKD on BIRD gold fail, and does
+the literature have a rescue? Output: new section in `kd_methods_survey.md`
+("KD trên pool nhiễu — target-teacher consistency").
+
+- **Mechanism pinned (answers "is the teacher wrong on gold?"):**
+  `CE(target) + RKL(q‖p)` is only coherent when the teacher agrees with the
+  target text. Teacher-text targets are consistent by construction; BIRD
+  gold has a large disagreement zone (52.8% annotation error + style) where
+  CE pulls toward gold and RKL pulls toward the teacher's mode — a gradient
+  conflict inside one loss. Unifies E0.1 (pure-CE poison) and predicts the
+  `bird_gold` arm's risk. Not "teacher wrong" — on error rows the teacher's
+  dissent is correct; the *conflict* is the problem either way.
+- **Literature match:** selective/token-gated KD family (SelecTKD
+  arXiv:2510.24021, ATKD, Self-Evolution KD, SpecKD arXiv:2410.11325,
+  reliability-gated multi-teacher arXiv:2604.03192) — all gate on teacher
+  confidence. None gate on CE↔RKL conflict specifically; small claimable
+  gap if we ever need it.
+- **R1.2 upgraded with a free pre-probe:** teacher-forced ppl + per-token
+  top-1 agreement on BIRD gold vs `y_pub` vs Spider gold (no training,
+  batch forwards only). Quantifies the conflict zone, predicts the
+  `bird_gold` arm outcome before spending the training run, doubles as the
+  A3 pool-quality figure. If the probe shows a small conflict zone, run the
+  arm; if huge, the gold question closes cheaply.
+- **Rescue option if gold matters:** agreement-gated RKD (per-token mask in
+  `rkl_div_loss`: agree → CE+RKL; disagree → drop/CE-only/RKL-only) — third
+  variant for R1.2 only if the first two are ambiguous.
+
+### Next (delta on session (2)'s roadmap)
+
+- [ ] R1.2 now = pre-probe (teacher agreement/ppl, 3 corpora) →
+      `central_ft_then_kd_bird_gold` only if the probe justifies it
+- [ ] (unchanged) R1.1 `central_rkd`+sc first GPU slot; R1.3 y_pub
+      teacher-ICL probe; R2 federated headline
+
+## Session 2026-07-18 (4) — R1.1 lands: KD and SC COMPOSE (72.34, new student best); roadmap branch resolved
+
+Pulled `f73a17b`: `central_rkd` + `--overlay sc` k=0
+(`eval_arms__s0__20260718T062443`, n=1034, seed 0).
+
+| row | EX | hard | extra | exec_err | sc_exec_rate |
+|---|---|---|---|---|---|
+| `central_rkd`+sc | **72.34** | **64.37** | 46.99 | 63 | 82.3% |
+| `ft_no_icl`+sc | 70.12 | 55.75 | 48.80 | 61 | 75.1% |
+| `central_rkd` k0 | 68.28 | 59.77 | 42.77 | 146 | — |
+| `teacher` k0 | 78.72 | — | — | — | — |
+
+- **Compose confirmed:** `rkd+sc − ft+sc` = **+2.22pp, McNemar exact
+  p=0.047** (73 vs 50 discordant, computed this session from paired
+  predictions). KD's k0 delta (+6.09) compresses under SC but survives the
+  deployed condition. New student best 72.34 = **91.9% of teacher** (old
+  best 70.79).
+- **Hardness mechanism confirmed as predicted (session 07-18 (1) point 2):**
+  the entire composed gain is the hard bucket (+8.62 vs ft+sc); easy
+  saturated (90.3 both), extra slightly *negative* (−1.81). KD moves hard,
+  SC moves easy/medium — complementary failure modes, now with numbers.
+- **Vote quality:** KD lifts sc_exec_rate 75.1%→82.3% (better candidates
+  into the vote), tie rate 6.9%→3.8%.
+- **Extra-hard (~47%) is the remaining frontier** — neither KD nor SC
+  touches it; the one bucket where `rkd+sc` trails `ft+sc`. Candidate
+  argument for §8.3 on-policy (student's extra-bucket failures become
+  targets) — measure, don't assume.
+- **Roadmap branch resolved → compose:** R3 = `fedkd_onpolicy` →
+  `fedkd_onpolicy_exec` as locked (§8.3/§8.4). SC-vote-as-target demoted to
+  Tier-3 efficiency play (sc costs 12× k0 latency: 3.57s vs 0.29s/q — the
+  distill-the-vote idea is now about serving cost, not accuracy).
+
+### Next
+
+- [ ] R2 federated headline UNBLOCKED: `fedavg`/`fedavg_pub`/`fedkd`
+      T=15/K=8, eval k0 **and** sc — the paper's spine
+- [ ] sc N sweep 16/32 on `central_rkd` (cheap; 72.34 may not be sc's
+      ceiling)
+- [ ] R1.2 pre-probe (teacher agreement/ppl on BIRD gold vs y_pub vs Spider
+      gold) → `bird_gold` arm only if justified
+- [ ] R1.3 y_pub teacher-ICL 3-way probe (EM collapse fix)
+- [ ] seed-2 `central_rkd`+sc before the number goes in the paper
+- [ ] Advisor package: 3-layer narrative now has its headline mechanism
+      (KD=hard, SC=easy/medium, compose to 92% teacher)
+
+**Amendment (session (4), same day):** user flagged the deployment catch —
+72.34 is KD-on-Spider (oracle; the federated server may only distill on P).
+Cross-checking hardness: BIRD-KD (`exmatch+sc`) does NOT reproduce the
+hard-bucket gain — hard 53.45 vs `ft+sc` 55.75 (negative), while
+Spider-KD (`central_rkd`+sc) hits 64.37. The composed hard-gain is
+domain-bound evidence, not KD-per-se evidence. Consequences: (1) `central_rkd`
+numbers are upper-bound framing only; (2) `fedkd`'s EX case rests on the
+round-loop alternation (client Spider-CE rehearsal ↔ server BIRD-RKL), which
+R2 tests directly via `fedkd − fedavg_pub`; (3) pre-register drift-stability
+and exec-reliability as first-class R2 metrics (EX may land ≈ flat); (4)
+§8.3 on-policy gains a domain-bridging argument — student-sampled targets on
+P carry the student's Spider-shaped style, unlike zero-shot `y_pub`.
+
+## Session 2026-07-18 (5) — `central_kid`+sc lands: RKD vs KID converge under SC (p=1.0); robustness eval infra (Spider-Realistic/Syn/DK); R1.2/R1.3 probe scripts already built
+
+Pulled `d7689b3`+ upstream commits (`f73a17b`, `56856f7`, `59faa2b`, `11dba25`).
+
+**`central_kid` + `--overlay sc` k=0** (`eval_arms__s0__20260718T081639`):
+EX 72.24, EM 65.96, hard 64.37 (identical to `central_rkd`'s 64.37), exec_err
+67, sc_exec_rate 81.2%. Paired McNemar vs `central_rkd`+sc (72.34): 35
+rkd-only-correct vs 34 kid-only-correct, **p=1.0 — statistically identical.**
+
+- **RKD vs KID direction question is resolved differently than it looked at
+  k0.** At k0, `kid − rkd` = −1.45 (weak, p=0.072) — the PoC verdict picked
+  RKD partly on that partly on cache-cost grounds (§3.4). Under the deployed
+  overlay, the two are indistinguishable (Δ=−0.10pp, p=1.0) — **SC washes out
+  the KD-direction choice entirely**, same pattern as it washing out most of
+  ICL's contribution. Practical read: RKD stays the pick on cost grounds
+  alone (cacheable target, no `mask_rewrite` step) — the accuracy argument
+  for either direction no longer exists once SC is the deployed inference
+  condition.
+- Hardness-bucket match (hard 64.37 = 64.37 exactly) reinforces this isn't
+  noise-adjacent — the two arms behave identically at the distribution level,
+  not just in aggregate EX.
+
+**Robustness eval infra (`d7689b3`, fedicl-sql repo):** download+build
+pipelines for three second/third frozen test sets, all reusing
+`eval_arms.py --test-csv` unmodified — no eval-script changes needed, only
+data prep:
+- Spider-Realistic (Zenodo 5205322, 508 rows) — column-mention removed,
+  reuses Spider's 20 DBs.
+- Spider-Syn (github.com/ygan/Spider-Syn, 1034 rows) — synonym substitution,
+  same DBs, `SpiderSynQuestion` field is the one to use.
+- Spider-DK (github.com/ygan/Spider-DK, 535 rows) — domain knowledge; 3 of
+  its 10 db_ids (`new_concert_singer`/`new_orchestra`/`new_pets_1`) are
+  DK-specific modified schemas fetched separately from the 7 reused Spider DBs.
+- Bug caught + fixed in the same commit: `compare.py`'s `_dataset()` only
+  recognized SPIDER/BIRD substrings — every new variant's path contains
+  "SPIDER", so it would have silently collapsed into the same identity as
+  Spider dev, corrupting `_icl_delta_rows`' pairing key. Fixed with a
+  most-specific-first check; `--dataset` choices + HTML pill styling updated
+  to match.
+- Discipline note (per convention): these are frozen test sets — touch only
+  after Spider-dev headline numbers are in, never to select a config/arm.
+
+**R1.2/R1.3 already built independently (`59faa2b`, compute host):**
+`scripts/score_teacher_agreement.py` (teacher-forced ppl + top-1 agreement
+across BIRD gold / y_pub / Spider gold — exactly the pre-probe designed in
+session (3)) and `build_exec_bootstrap_probe.py --demo-mode {none,self,spider}`
+(exactly the E-ICL-1 3-way probe designed in session earlier today), plus
+`analysis/ypub_probe_stats.py` for read-off. Not yet run against real data
+per the git log — next actual GPU slot should execute these before spending
+a training run on `bird_gold` or `y_pub` v2.
+
+### Next
+
+- [ ] Run `score_teacher_agreement.py` (R1.2 pre-probe) and
+      `build_exec_bootstrap_probe.py --demo-mode {self,spider}` (R1.3) —
+      scripts exist, not yet executed
+- [ ] sc N sweep 16/32 on `central_rkd`/`central_kid` (lower priority now
+      that the two directions are shown equivalent under sc)
+- [ ] seed-2 `central_rkd`+sc / `central_kid`+sc before citing 72.34/72.24
+- [ ] R2 federated headline (`fedavg`/`fedavg_pub`/`fedkd`, eval k0 + sc)
+- [ ] Spider-Realistic/Syn/DK eval — only after R2 arms are chosen, never
+      to pick a config
