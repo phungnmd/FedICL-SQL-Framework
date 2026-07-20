@@ -96,15 +96,18 @@ absolute parity with the teacher.
   V2-1/V2-2 (§8.3/§8.4) are all locked by user decision. Nothing in this doc
   currently blocks on advisor sign-off.
 
-**Next (top priority):** the federated pipeline — Flower simulation (K=8),
-weighted FedAvg, server-distill step on §8.3/§8.4 targets. The paper has no
-federated number yet. GPU-idle item (elevated 2026-07-15): seed 2 for
+**Next (top priority; revised 2026-07-20):** run the newly implemented
+**weighted FLoRA-NA** custom sequential simulator at K=2/T=1, then K=8/T=1,
+using the paired Tier-1 aggregation × server-step ladder in §10. This code is
+not Flower. Factor-wise weighted FedAvg remains the required baseline, not the
+proposed aggregator. The paper has no federated number yet.
+GPU-idle item (elevated 2026-07-15): seed 2 for
 `central_rkd`/`central_kid` — the RKD-vs-KID gap is p=0.072 at 1 seed
 (caveat above), cheapest retest in the queue; the pick itself doesn't wait.
 
 **Deferred:** Tier-2 ablations (§10) until the Tier-1 ladder has numbers; the
-v2 extension arms (`fedkd_onpolicy`/`fedkd_onpolicy_exec`, §10) after
-`fedavg`/`fedavg_pub`/`fedkd` land.
+v2 extension arms (`florana_kd_onpolicy`/`florana_kd_onpolicy_exec`, §10) after the
+FLoRA-NA Tier-1 ladder lands.
 
 **Not planned by default:** DP noise on adapters (Tier 3 — add only if a
 reviewer demands it; otherwise handled in the Limitations/Discussion section).
@@ -131,8 +134,9 @@ pool after each aggregation round.
 
 **Novelty claims (paper):**
 1. Federated Text-to-SQL with realistic non-IID partition by schema/domain (new formulation).
-2. Server-side reverse-KL distillation on public data as a **consensus regularizer**
-   for FedAvg — teacher fully isolated from private data.
+2. Server-side reverse-KL distillation on public data as a **consensus
+   regularizer after weighted FLoRA-NA aggregation** — teacher fully isolated
+   from private data. Factor-wise FedAvg is the principal FL baseline.
 3. An ICL analysis finding + a cheap **execution-verified inference overlay**:
    on a fine-tuned/distilled student, demo *content* stops mattering — the
    full selection thang converges (random ≈ question-sim ≈ DAIL ≈ CodeS,
@@ -175,7 +179,7 @@ pool after each aggregation round.
 │    cacheable; future §8.3 on-policy needs teacher online)│
 │                                                          │
 │  [Phase 3 — every round]                                 │
-│  FedAvg(LoRA adapters, nᵢ/n) → global student M_G        │
+│  weighted FLoRA-NA(adapters, nᵢ/n) → global adapter     │
 │  → distill on P:  L = λ_ft·CE(y_pub) + λ_kd·RKL(q‖p)     │
 │    (a few hundred steps)                                 │
 │  → broadcast adapters                                    │
@@ -286,8 +290,15 @@ being made either way.
 | Exec-bootstrap | ExeSQL-style (arXiv:2505.17231): drop BIRD gold entirely; teacher zero-shot SQL on BIRD schemas → keep what executes (831/1000) → CE | **50.00** | **PASS, exactly at the floor** — bootstrap-CE no longer harmful; the real value test = federated `fedavg` vs `fedkd` |
 
 **Root cause:** BIRD's own annotation quality — not evidence-dependence, not
-domain/dialect. Independent confirmation: BIRD Mini-Dev is documented 52.8%
-annotation-error (VLDB CIDR 2026, "Text-to-SQL Benchmarks are Broken"). Side
+domain/dialect. Independent (weaker-than-we-first-wrote) corroboration: the
+CIDR 2026 audit ("Text-to-SQL Benchmarks are Broken") reports **52.8% of the
+~500-example Mini-Dev subset has some annotation issue** — a broad category
+that includes ambiguous questions and evidence problems, NOT "52.8% of gold
+SQL is wrong"; most flagged gold still executes, and the train split (our
+pool `P`) was never audited. Read it as "BIRD gold is an unreliable oracle,"
+not "majority-poisoned" — the load-bearing evidence for our own decisions
+stays our E0.1/lever-D probes above, with 52.8% as directional support
+(scope note added 2026-07-19). Side
 signal: the exec-bootstrap arm also had the lowest exec-error rate of any arm
 tested (20.5%, below even the Spider control's 26.7%) — execution-verified
 targets teach more executable-SQL habits generally, not just fix BIRD.
@@ -332,40 +343,69 @@ closed along with its premise. Live remnant: the Δ histogram quantifies what
 fraction of BIRD is evidence-dependent and feeds the A3 pool-quality
 analysis.
 
-### 3.3 Federated aggregation
+### 3.3 Federated aggregation — weighted FLoRA-NA (proposed main method)
+
+> **Decision 2026-07-19; implemented 2026-07-20.** Weighted FLoRA-NA is now
+> implemented in `fedicl_sql/federated/aggregate.py` and exposed as
+> `florana`/`florana_pub`/`florana_kd`. Weighted factor-wise FedAvg remains
+> unchanged as the paired `fedavg`/`fedavg_pub`/`fedkd` baseline. Existing
+> `fedkd` artifacts are still factor-average artifacts, never FLoRA-NA.
+
+For client `i`, let `p_i = n_i / Σ_j n_j` and its trained LoRA update be
+`ΔW_i = B_i A_i`. The model-space aggregation target is
 
 ```
-θ_t ← θ_{t-1} + Σᵢ (nᵢ/n)·Δθᵢ      # McMahan weighting, NOT 1/K — non-IID sizes differ
-M_G ← base_student + θ_t
+ΔW*_t = Σᵢ pᵢ BᵢAᵢ
 ```
 
-- **Uploads/downloads = LoRA adapters only** (a few MB/round).
-- LoRA-averaging caveat: averaging `A`,`B` factors separately ≠ averaging the
-  products (`mean(BᵢAᵢ) ≠ mean(Bᵢ)·mean(Aᵢ)` — FedIT/FLoRA issue). Default
-  mitigation: re-initializing every client from the same aggregated adapter
-  each round; acknowledge in one sentence in the paper.
-- **Candidate fix — FedEx-LoRA (ACL 2025, arXiv:2410.09432), Tier 2, to try:**
-  a different mechanism from FedProx below — this one corrects the
-  *aggregation math itself*, not client drift. Instead of only averaging
-  `A`/`B` (inexact by construction), FedEx-LoRA adds a **residual error
-  term to the frozen base weight matrix** each round to make the aggregated
-  update exact (`Σᵢ BᵢAᵢ` recovered, not `mean(Bᵢ)·mean(Aᵢ)`), at claimed
-  "minimal computational and communication overhead" — no architecture
-  change, still adapter-only upload. Directly targets the caveat above
-  instead of just acknowledging it. **Try if A4 (Dirichlet α sweep) shows
-  the averaging-inexactness gap actually costs EX** — cheap to test (one
-  aggregation-step change in `fedicl_sql/federated/aggregate.py`, same
-  round loop) before assuming the one-sentence acknowledgment is enough.
-- FedProx = Plan-B if drift under strong non-IID makes convergence unstable
-  (Tier 3, triggered by ablation A4) — a client-objective fix, orthogonal to
-  FedEx-LoRA's aggregation fix; both could apply if A4 shows problems on
-  both fronts.
+Factor-wise FedAvg instead produces `(ΣᵢpᵢBᵢ)(ΣᵢpᵢAᵢ)`, which is generally
+not `ΔW*_t`; common initialization does not remove the cross-client terms.
+Therefore **weighted factor-wise FedAvg is the principal baseline, not the
+default proposed aggregator**.
+
+Weighted FLoRA-NA keeps one rank-`r` adapter by solving on the server for
+client-combination coefficients `u,v`:
+
+```
+u*,v* = argmin || (Σᵢ uᵢBᵢ)(Σᵢ vᵢAᵢ) - Σᵢ pᵢBᵢAᵢ ||²_F
+B_hat = Σᵢ u*ᵢBᵢ
+A_hat = Σᵢ v*ᵢAᵢ
+θ_t_preKD = (A_hat, B_hat)
+```
+
+This is the required **sample-weighted extension** of FLoRA-NA's equal-client
+formulation; the target must retain McMahan weights because client sizes differ.
+It is nearly accurate, not exact: the global update remains constrained to
+rank `r`. The output is nevertheless a standard LoRA adapter, so the existing
+server CE/RKL trainer can continue optimizing both `A_hat` and `B_hat`, and
+the post-KD result remains one broadcastable adapter against the unchanged
+frozen base.
+
+- **Communication:** uploads and downloads remain one rank-`r` LoRA adapter
+  per client/round. Report measured bytes for the actual model/rank/dtype.
+- **Primary baseline:** weighted factor-wise FedAvg (`fedavg`). It matches the
+  current implementation and standard FedIT-style practice while exposing the
+  aggregation error FLoRA-NA is intended to reduce.
+- **Required diagnostic:** log
+  `e_agg = ||ΔW*_t-B_hat A_hat||_F/(||ΔW*_t||_F+ε)` for FLoRA-NA and the same
+  quantity with factor averages for FedAvg, per layer and overall.
+- **Exact reference, not the main method:** FedEx-LoRA (ACL 2025) can be run at
+  T=1 or Tier 2. It folds the exact residual into the frozen base and therefore
+  requires base/residual state plus the adapter; its downlink scales up to
+  rank `K·r`, conflicting with the paper's simple immutable-base/one-adapter
+  round contract.
+- **Communication-first alternative, Tier 2:** Fed-SB aggregates only a small
+  `R` between fixed bases. It is exact but constrains both private CE and public
+  KD to a fixed subspace, adding a capacity confound to the KD question.
+- FedProx remains Plan-B only if drift under strong non-IID is unstable after
+  aggregation error is measured separately; it does not repair LoRA factor
+  averaging.
 
 ### 3.4 Server distillation (Phase 3 — the consensus regularizer)
 
-After each FedAvg, the aggregated global student is distilled on `P` for a few
-hundred steps (default 300, batch 16 — the server is not VRAM-constrained the
-way clients are):
+After weighted FLoRA-NA (or the matched FedAvg baseline), the aggregated global
+student is distilled on `P` for a few hundred steps (default 300, batch 16 —
+the server is not VRAM-constrained the way clients are):
 
 ```
 L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe, defaults 1:1
@@ -391,7 +431,7 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
   Qwen2.5 7B vs 1.5B logit dims differ (V=152064 vs 151936, embedding padding)
   → slice both to the common vocab prefix; compute RKL in float32 (fp16 sum
   over a 150k vocab loses precision).
-- **Role:** after FedAvg on non-IID clients the global model's behaviour is a
+- **Role:** after aggregation of non-IID clients the global model's behaviour is a
   blend of divergent local optima; distilling every round toward one fixed
   teacher on one shared pool pulls the aggregate back to a consensus
   (FedDF/FedMD line of argument) — a regularizer, not a data-augmentation trick.
@@ -669,16 +709,39 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
 
 ## 6. Federated round loop
 
-> **Status: implemented 2026-07-15.** `fedicl-sql/experiments/federated/run.py`
-> runs the full loop below for all three Tier-1 arms (`fedavg`/`fedavg_pub`/
-> `fedkd`) — client local FT (`train_client`) → FedAvg
-> (`fedicl_sql/federated/aggregate.py`, already built earlier) → arm-dependent
-> server step (`train_client` gold-CE for `fedavg_pub`, `train_online_kd` RKL
-> for `fedkd`). Per-stage checkpoint/resume via `adapter_done()`
+> **Status: complete implementation 2026-07-20; real headline runs pending.**
+> `fedicl-sql/experiments/federated/run.py` runs all six paired arms — client
+> local FT (`train_client`) → weighted factor-wise FedAvg or weighted
+> FLoRA-NA → none / public CE / public CE+RKD-RKL. Per-stage checkpoint/resume
+> via `adapter_done()`
 > (`fedicl_sql/runtime/checkpoint.py`) — a crash/kill resumes at the first
 > incomplete client/fedavg/server stage, not the whole run. Smoke-tested
 > end-to-end on real Spider+BIRD data (2 clients, 1–2 rounds, tiny step caps);
-> real T=15/K=8 runs not yet executed (compute-host queue item).
+> real T=15/K=8 runs are not yet executed (compute-host queue item). Both
+> aggregators log per-layer and overall model-space `e_agg`; the no-op guard
+> uses true round deltas, including an exact saved pre-training PEFT reference
+> at round 1. Pool/cache/adapter fingerprints
+> fail loudly on provenance drift. The old three arms remain baselines and
+> must not be renamed retroactively.
+>
+> **Existing baseline pilot = R2.0-old (designed 2026-07-19, LAB_LOG (4)/(5));
+> retained as a smoke/diagnostic, no longer the complete Tier-1 pilot.** Its
+> round-1 client training + factor-wise FedAvg are identical across the old
+> three arms (same init/split/seed) → trained once, then
+> **shared by pointing `round`'s `--client-out` at one directory** for all
+> three arms' round-1 invocations (2026-07-19 (5) — `run.py` split into
+> `client`/`fedavg`/`server`/`round`/`run` subcommands; `check_fingerprint()`
+> fails loudly if the shared stage's config actually drifted between arms,
+> replacing the earlier copy-adapter-directories design). The three arms
+> therefore share one post-FedAvg adapter and differ ONLY in the server step
+> (none / CE-on-P / RKL-on-P), making T=1 a fully paired, row-level-McNemar-
+> able ablation of the server step at full scale (the §3.4 drift question,
+> previously only proxied by the centralized continuation probe). After the
+> T=1 read, T grows incrementally on the same `--out` dirs (`run --rounds 2`,
+> `--rounds 3`, … — resume semantics in the run.py docstring); arms diverge
+> from round 2 onward by design (clients warm-start from arm-specific `M_G`).
+> Each arm's M_G is resolved via `fedicl_sql.runtime.manifest.resolve_m_g`
+> (never by globbing `round_*/m_g`) — see §6 "Results/artifacts" below.
 >
 > The teacher logit cache below (Phase 1) is also implemented
 > (`fedicl_sql/training/logit_cache.py`, `scripts/build_teacher_logit_cache.py`)
@@ -693,9 +756,10 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
 > subset for the whole run so every round's revisit is a cache hit. RKD-only
 > (KID's `ŷ` is re-sampled every step) and symmetric-context-only
 > (`kd_teacher_k=0` — §8.1's asymmetric variant is shelved anyway). A
-> cache-key mismatch (train_k/demo_k_fixed/seed/schema_style/retrieval drift
-> between the offline build and the round loop) fails loudly (`KeyError`), it
-> does not silently fall back to a live teacher forward.
+> cache/config mismatch (pool content, train_k/demo_k_fixed/seed/schema_style/
+> retrieval drift between the offline build and the round loop) fails before
+> training; an individual missing rendered key also fails loudly (`KeyError`).
+> Neither case silently falls back to a live teacher forward.
 
 ```python
 # Phase 1 (offline, once): target bootstrap + logit cache on P (§3.2 rule)
@@ -712,8 +776,10 @@ Round t = 1 .. T:                                # T = 15 default
            update_lora(student, L)
        upload Δθᵢ = θᵢ − θ_{t-1}                 # adapters only
 
-  3. SERVER (Phase 3):
-       θ̃_t ← θ_{t-1} + Σᵢ (nᵢ/n)·Δθᵢ            # FedAvg
+  3. SERVER (Phase 3 — proposed full method):
+       ΔW*_t ← Σᵢ (nᵢ/n)·BᵢAᵢ                    # ideal weighted target
+       u*,v* ← weighted_FLoRA_NA({Aᵢ,Bᵢ,nᵢ})     # minimize model-space error
+       θ̃_t ← (Σᵢv*ᵢAᵢ, Σᵢu*ᵢBᵢ)                 # one rank-r adapter
        student.load_lora(θ̃_t)
        for step in range(300):                   # distill on P, batch 16
            x, y_pub = next_batch(P);  demos = DAIL(x, pool=P, k=k_teacher)
@@ -729,6 +795,53 @@ Inference (Phase 4, per client, no server / no teacher — sc-vote, §5.4):
        sql = majority_vote(executed, tiebreak=logprob)  # vote on execution RESULT, §5.4
        return sql
 ```
+
+### 6.1 Round loop CLI + results/artifacts (2026-07-19)
+
+`run.py` splits into six subcommands instead of one monolithic invocation —
+`client` / legacy `fedavg` / generic `aggregate` / `server` run one stage standalone (debugging, or
+building a custom orchestration like R2.0's arm-sharing); `round` runs one
+full round (client+fedavg+server) of a given arm; `run` is the T-round loop
+for one arm (headline runs), internally just calling `round`'s logic for
+t=1..T. Full flag reference lives in the script's own docstring, not
+duplicated here — this doc records the *design*, the code is the source of
+truth for exact flags.
+
+Three storage tiers, each with a distinct job:
+
+1. **`<out>/round_<t>/<stage>_meta.json`** — one training call's own metrics
+   (loss, step count, gpu_vram), written beside its adapter by every stage.
+   Low-level, per-invocation provenance; not meant for cross-run comparison.
+2. **`<out>/manifest.json`** (`fedicl_sql/runtime/manifest.py`) — the
+   arm-run-level index: which rounds are complete, and each one's
+   `client_out`/`aggregation_method`/`aggregation_adapter`/`m_g` paths
+   (plus legacy `fedavg_adapter` compatibility). `resolve_m_g(out_dir)` is the
+   one call eval/analysis code should use to find an arm's current M_G —
+   works identically whether round 1 lived inside `--out` (plain `run`) or
+   in a directory shared across arms via `--client-out` (R2.0). Avoids
+   re-deriving adapter paths from CLI flags in every downstream script.
+3. **`experiments/federated/results/<run_id>/metrics.json`** — one row PER
+   COMPLETED ROUND (not per process invocation), via the standard
+   `save_results` convention (§ conventions doc / repo `CLAUDE.md`) so
+   `analysis/compare.py` picks it up with no new tooling. `time_average`/
+   `gpu_vram` cover only the stages actually (re)trained that round — a
+   resumed round where every stage was already done reports ~0, not a
+   diluted average over skipped rounds (fixed a real bug in the pre-split
+   version, which divided total elapsed time by the target `--rounds` even
+   when most of those rounds were skip-resumed).
+
+**R2.0's arm-sharing mechanism, concretely:** round 1's client+FedAvg stage
+needs identical config across `fedavg`/`fedavg_pub`/`fedkd` (same split,
+seed, init=None) — so instead of training it three times (or the earlier
+copy-directories design), point all three arms' `round --round 1 --client-out
+<shared-dir>` at the same directory. `adapter_done()` skips every already-
+trained client/fedavg stage on the 2nd and 3rd calls; `check_fingerprint()`
+(`fedicl_sql/runtime/checkpoint.py`) writes the config on first use and
+raises loudly on any later call with a different config touching the same
+directory — the same fail-loud philosophy as the teacher-logit-cache
+key-mismatch `KeyError`. Each arm still gets its own `--out` (own
+`manifest.json`, own `round_<t>/m_g` for the server step) — only the
+client+fedavg artifacts are physically shared, never copied.
 
 ---
 
@@ -811,8 +924,10 @@ the last without measuring):
    re-scores stage 1's checkpoint against BIRD's own gold via
    `score_ex_detail` (no new generation): keeps a row only if the execution
    **result** matches gold's, not just "ran without error." **Caveat, not an
-   assumed upgrade:** BIRD Mini-Dev is 52.8% annotation-error, so gold-as-
-   oracle here inherits that noise as a selection bias in the *other*
+   assumed upgrade:** BIRD gold is an unreliable oracle (52.8% of Mini-Dev
+   flagged for annotation issues — broad category, see the scope note under
+   the gate trace above), so gold-as-oracle here inherits noise as a
+   selection bias in the *other*
    direction (wrongly rejects correct-but-gold-disagreeing teacher SQL,
    wrongly accepts SQL that mimics gold's own errors) — must be gated
    against stage 1's own numbers before it replaces anything (`kd/README.md`
@@ -940,7 +1055,7 @@ per-token as the signal. No reward model, no rollout search.
 > **Status: proposed, not built, locked (user, no advisor gate).** Does
 > **not** strictly require §8.3 — KID's existing masked-splice `ŷ` can also
 > be execution-filtered (imperfect targets can fail to execute too); pairing
-> with full on-policy (`fedkd_onpolicy_exec`, §10) is the strongest combined
+> with full on-policy (`florana_kd_onpolicy_exec`, §10) is the strongest combined
 > arm but not a hard dependency.
 
 Lit consensus 2025–26 for small-model text-to-SQL converges on execution
@@ -980,7 +1095,7 @@ GRPO:
 | Inference overlay | **self-consistency execution-voting (`sc`, N=8, temp 0.8, top_p 0.95)** — provisional default 2026-07-16 (§0 legend; full test set, p=0.00042; seed-2 retest pending); superseded the exec-gated k=3 fallback (§5.4/§7) |
 | Clients K | 8 |
 | Partition | non-IID by database (Dirichlet over domain groups, α=0.5; ablate 0.1/IID) — **implemented 2026-07-15**: 146 train DBs → 20 schema-embedding k-means clusters (`scripts/build_db_groups.py`, `processed_data/SPIDER/db_groups.json`), one shared Dirichlet(α) vector drawn per cluster (`make_federated_split(db_groups=...)`); committed splits at `processed_data/SPIDER/federated_noniid/alpha_{0.1,0.5}/k8/` + `federated_iid/k8/`, seed=0. Fixed a bug where the old flat per-DB Dirichlet draw made α a near no-op and produced 14–40-example starved clients at K=8; a `min_client_examples=150` resample guard now backstops the floor regardless of α |
-| Rounds / local epochs | T = 15, E = 2 |
+| Rounds / local epochs | T = 15, E = 2 — headline target only. Execution plan: use the old R2.0 T=1 run as a baseline smoke/diagnostic, then run the revised paired FedAvg/FLoRA-NA ladder from identical local adapters (LAB_LOG 2026-07-19 (7)); grow T incrementally and commit to T=15 only if the per-round trend justifies it |
 | Server distill | 300 steps/round on `P`, batch 16, `λ_ft:λ_kd = 1:1` |
 | KD loss | `CE + RKL(q‖p)` per [10] — reverse KL, full-vocab (common prefix), float32 |
 | KD direction | **RKD — provisional default 2026-07-12** (§0 legend; retests: seed-2/A1/§8.3); §8.3/§8.4 = future Tier-2 target upgrades |
@@ -1000,19 +1115,29 @@ splits shared by every experiment.
 Arms are named by **feature, never letters** (Suggest.MD's M1–M4 map below for
 cross-reading only). ICL is an eval-time overlay → suffix (`@k2`).
 
-### Tier 1 — main results (3 seeds)
+### Tier 1 — main results (3 seeds; revised 2026-07-19)
 
 | Arm | Suggest.MD | What it is | Role |
 |---|---|---|---|
 | `central` | M1 | centralized FT student on pooled data, no FL | upper bound |
-| `fedavg` | M2 | FedAvg + ICL, **no** server distill | main FL baseline |
-| `fedavg_pub` | — | FedAvg + CE-only on `P` gold, **no** teacher | control (added 2026-07-12): isolates public-data exposure from teacher-distill effect — confounded away otherwise, `fedkd` sees `P` data AND a teacher, `fedavg` sees neither (session 2026-07-06). `fedkd − fedavg_pub` = the real teacher value |
-| `fedkd` | M3 | **full Fed-ICKD**: FedAvg + ICL + server RKL-distill | proposed |
+| `fedavg` | M2 | weighted factor-wise FedAvg, **no** server step | principal FL/aggregation baseline |
+| `florana` | — | weighted FLoRA-NA, **no** server step | isolates aggregation value: `florana − fedavg` |
+| `florana_pub` | — | weighted FLoRA-NA + CE-only on `P`, no teacher | matched public-exposure/drift control |
+| `florana_kd` | M3 | **full Fed-ICKD**: weighted FLoRA-NA + server CE+RKL | proposed method; teacher value = `florana_kd − florana_pub` |
 | `teacher` | M4 | teacher 7B + DAIL, zero fine-tune | reference (inference-only) |
 
-Story: `fedkd > fedavg_pub > fedavg` (distillation adds value beyond just
-seeing public data, which itself adds value beyond none) and `fedkd`
-approaches `central`/`teacher`.
+Required diagnostic arm (one seed first, promote if informative): existing
+`fedkd` = factor-wise FedAvg + server CE+RKL. The interaction
+`(florana_kd−florana_pub) − (fedkd−fedavg_pub)` compares the matched
+teacher/RKL effect after each aggregator, testing whether RKD remains useful
+after reducing aggregation error instead of merely repairing factor averaging.
+The existing `fedavg_pub` is the factor-average CE-only control.
+
+Headline story: `florana > fedavg` establishes aggregation value;
+`florana_kd > florana_pub` establishes teacher/RKL value beyond identical
+public exposure; and `florana_kd` approaches `central`/`teacher`. Do not assume
+the ordering before results. At T=1, share the client outputs across all arms;
+each aggregator/server branch must start from the identical local adapters.
 
 ### Federated v2 extension arms (Tier 2, proposed, locked — no advisor gate, §8.3/§8.4)
 
@@ -1020,15 +1145,15 @@ Same server-distill step, target/filtering swapped one ingredient at a time.
 Run **after** the Tier-1 ladder above has real numbers — these are additive,
 not a replacement for the headline pair.
 
-| Arm | Adds vs `fedkd` | Mechanism |
+| Arm | Adds vs `florana_kd` | Mechanism |
 |---|---|---|
-| `fedkd_onpolicy` | KD target: gold `y` → student-sampled `ŷ` | §8.3 — tests the mask-token-artifact hypothesis behind `kid − rkd` |
-| `fedkd_onpolicy_exec` | + execution filter/weight on the sampled `ŷ` | §8.4 — execution-anchored distillation; the stronger novelty differentiator vs FedCoLLM [8] |
+| `florana_kd_onpolicy` | KD target: gold `y` → student-sampled `ŷ` | §8.3 — tests the mask-token-artifact hypothesis behind `kid − rkd` |
+| `florana_kd_onpolicy_exec` | + execution filter/weight on the sampled `ŷ` | §8.4 — execution-anchored distillation; the stronger novelty differentiator vs FedCoLLM [8] |
 
-Build order (`fed_ickd_v2_proposal.md` §Thứ tự build): probe `P` + student
-sweep → `fedavg`/`fedavg_pub`/`fedkd` (make-or-break) → these two rows as
-arms bolted onto a standing ladder → Tier-3 cheap items in parallel when GPU
-is idle.
+Build order (`fed_ickd_v2_proposal.md` §Thứ tự build): weighted
+FLoRA-NA + `e_agg` **implemented** → T=1 paired Tier-1 ladder → multi-round/3-seed headline
+→ these two on-policy rows as arms bolted onto the standing ladder → Tier-3
+cheap items in parallel when GPU is idle.
 
 ### Centralized KD PoC — COMPLETE 2026-07-11, verdict: RKD
 
@@ -1214,11 +1339,18 @@ targets · train-k=0 official default with eval-k=3 overlay.
 - **[11] Struct-SQL** — related work only (CoT direction dropped 2026-07-07).
 - **[4] Light-SQL / [6] IFed-ICL** — side references (retrieval masking; implicit
   federated ICL vectors).
-- Aggregation theory anchor: McMahan (FedAvg) / FedProx.
+- Aggregation theory anchors: McMahan (FedAvg) as the weighted factor-average
+  baseline; Nguyen et al., **FLoRA-NA** (arXiv:2509.26399, preprint) as the
+  proposed nearly-accurate, fixed-rank aggregator. Our implementation must
+  target `Σᵢ(nᵢ/n)BᵢAᵢ`, not the equal-client mean.
 - **FedEx-LoRA** — Singhal et al., ACL 2025, arXiv:2410.09432 — exact LoRA
-  aggregation via a residual term on the frozen base weight, candidate fix
-  for the §3.3 LoRA-averaging caveat (Tier 2, try if A4 shows the gap costs
-  EX).
+  aggregation via a residual term on the frozen base weight; exact reference,
+  not the main method, because the resulting state is residual/base + adapter
+  and exact downlink scales with `K·r`.
+- **Fed-SB** — Singhal et al., arXiv:2502.15436 — exact aggregation of a small
+  trainable `R` between fixed bases; communication-first Tier-2 alternative,
+  not the default because its fixed subspace confounds the server-KD capacity
+  question.
 - **ExeSQL** — arXiv:2505.17231 — execution-driven bootstrap (generate →
   exec-filter → train); the recipe behind §8.0's implemented Phase-1 target
   construction (`scripts/build_exec_bootstrap_probe.py` +

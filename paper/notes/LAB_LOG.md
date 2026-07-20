@@ -3846,3 +3846,611 @@ a training run on `bird_gold` or `y_pub` v2.
 - [ ] R2 federated headline (`fedavg`/`fedavg_pub`/`fedkd`, eval k0 + sc)
 - [ ] Spider-Realistic/Syn/DK eval — only after R2 arms are chosen, never
       to pick a config
+
+## Session 2026-07-19 — E-ICL-1 verdict: teacher-side ICL at target generation KILLED (zero-shot wins all three metrics)
+
+Probe ran on the box (scripts from `59faa2b`), probe_1k, teacher
+Coder-7B-4bit, k=3 question-kNN demos:
+
+| condition | exec% | timeout% | EM_gold% | len |
+|---|---|---|---|---|
+| zero_shot | **83.1** | **1.3** | **43.7** | 24.3 |
+| self_icl | 77.2 | 6.4 | 41.7 | 24.6 |
+| spider_seed | 72.0 | 5.5 | 42.3 | 23.5 |
+
+- **Kill rule fires exactly as pre-registered** (no ICL condition beats
+  zero-shot on exec AND style): demos *hurt* execution (−6 to −11pp
+  exec-pass, timeout rate 4–5×) and do NOT move style toward gold (EM flat
+  to slightly down). The +14 EM teacher-ICL effect (Spider eval,
+  same-distribution demos) does **not** generalize to cross-domain
+  generation on BIRD — low-similarity demos interfere instead of
+  canonicalizing; the timeout spike says they induce pathological joins.
+- **Consequences:**
+  1. `y_pub` stays §8.0 zero-shot. E-ICL-2 cancelled — the probe saved
+     that training run, as designed.
+  2. ICL-in-KD now rests entirely on seat B — k_teacher symmetric context
+     during KD *scoring* (E-ICL-3, untested, different mechanism: context
+     for logit quality, not generation). That is now the single remaining
+     experiment for "ICL has a role inside KD".
+  3. EM-collapse/domain-bridge fix candidates narrow to: §8.3 on-policy
+     (student-sampled targets carry Spider style — now the only live
+     candidate) and A3 mix. Teacher-side prompting is off the list.
+  4. If E-ICL-3 also fails → ICL narrative honestly reduces to client
+     prompt-format + baseline arms; flag in the advisor package.
+- Residual uncertainty, noted not relitigated: probe tested one demo
+  scheme (question-kNN, k=3). No signal here justifies buying variants.
+- Teacher-agreement pre-probe (gold-target question): output not yet
+  reported — pending from the box.
+
+### Next
+
+- [ ] E-ICL-3: `central_rkd` k=3 symmetric context vs k=0 (68.28/72.34
+      baselines) — last ICL-in-KD experiment; kill floor +1 EX
+- [ ] Collect `artifacts/probes/teacher_agreement.json` → closes the
+      `bird_gold` arm question
+- [ ] Then lock §9 config → R2 federated headline
+
+**Amendment 2026-07-19 (2) — 52.8% figure rescoped (user flag: "not as
+serious as we wrote").** The CIDR 2026 number = fraction of Mini-Dev (~500
+rows) flagged for annotation *issues* — broad category including ambiguous
+questions and evidence problems, NOT "52.8% of gold SQL is wrong"; most
+flagged gold executes fine, and BIRD *train* (our P) was never audited.
+Rewrote the claim in `system_architecture.md` (§3.2 root-cause scope note +
+§8.0 stage-2 caveat), `progress_report_vi.md`, `kd_methods_survey.md`, and
+the code-repo docstrings/README (fedicl-sql commit `docs: scope the BIRD
+52.8%...`). Standing rule going forward: E0.1/lever-D probes are the
+load-bearing evidence for the gold ban; 52.8% is directional support only.
+Relative comparisons using gold as a shared yardstick (probe conditions,
+exmatch rates) remain valid — the noise hits all conditions equally.
+
+## Session 2026-07-19 (2) — E-ICL-1 CLOSED: EX-match confirms zero-shot wins at every tier
+
+`score_bootstrap_ex_match.py` on all three probe_1k conditions:
+
+| condition | exec-pass | EX-match/exec-passed | EX-match/1000 (absolute) |
+|---|---|---|---|
+| zero_shot | 831 | 47.3% | **393 (39.3%)** |
+| self_icl | 772 | 46.5% | 359 (35.9%) |
+| spider_seed | 720 | 45.3% | 326 (32.6%) |
+
+Zero-shot wins at both the execution tier (07-18 result) and the EX-match
+tier now measured — no "fewer but higher-quality" trade-off exists (the
+conditional rate 47.3/46.5/45.3 is nearly flat; ICL's loss is almost
+entirely upstream, at exec-pass). Absolute gap zero-shot vs spider_seed =
+6.7pp. **E-ICL-1 formally closed — teacher-side ICL at target generation
+provides no benefit at any measured tier.** `y_pub` stays §8.0 zero-shot,
+permanently (not just "for now"). No further probes on this seat planned.
+
+Scale note: 39.3% here vs 84.4% on the full pool (`bootstrap_full_exmatch`,
+8128/9630) — different sample (probe_1k vs full 9630, different schema mix),
+not a contradiction; not comparable head-to-head.
+
+### Next
+
+- [ ] Collect `teacher_agreement.json` from the box — closes the `bird_gold`
+      arm question independently
+- [ ] E-ICL-3 (k=3 symmetric KD-scoring context) — now the ONLY open
+      ICL-in-KD experiment; plumbing not yet built
+- [ ] Then lock §9 config → R2 federated headline
+
+## Session 2026-07-19 (3) — KD-on-BIRD robustness transfer: EX edge survives (mostly noise-level), EM collapse is universal
+
+Cross-dataset probe, k=0, overlay=none (isolates the adapter — the SC
+confound flagged this session is deliberately excluded here), both arms =
+`central_ft` (`artifacts/icl_ladder/qwen1b/ft_no_icl/adapter`, the
+pre-continuation floor) vs `central_ft_then_kd_bird_exmatch` (BIRD-exmatch
+KD continuation). Spider dev numbers are the pre-existing 07-16 runs
+(same arms/config); Realistic/Syn/DK are new this session.
+
+| Dataset | n | ft EX | +KD EX | ΔEX | McNemar p | ft EM | +KD EM | exec_err ft→KD |
+|---|---|---|---|---|---|---|---|---|
+| Spider dev | 1034 | 62.19 | 65.47 | **+3.28** | (07-16: churn-based, not McNemar) | 57.16 | 32.50 | 211→111 |
+| Spider-Realistic | 508 | 55.31 | 56.30 | +0.99 | 0.704 | 50.98 | 30.71 | 110→65 |
+| Spider-Syn | 1034 | 51.06 | 51.45 | +0.39 | 0.838 | 45.55 | 25.53 | 234→154 |
+| Spider-DK | 535 | 46.92 | 49.91 | +2.99 | 0.085 | 43.93 | 24.67 | 116→75 |
+
+**Reading:**
+
+- **EX-delta direction is consistent (positive on all 4) but only Spider
+  dev's own +3.28 was ever near-significant territory; Realistic/Syn land
+  well inside noise (p=0.70/0.84), DK is suggestive but not significant
+  (p=0.085, n=535 — underpowered, not negative).** Honest read: KD-on-BIRD
+  does not have a demonstrated EX transfer effect at 1 seed — consistent
+  with, not proof of, a small universal effect. Needs seed-2 before any
+  robustness-transfer claim goes in the paper.
+- **Exec-reliability transfers cleanly and *is* the effect that
+  generalizes**: exec_err drops 30–45% relative on every single dataset
+  (211→111, 110→65, 234→154, 116→75) — same magnitude and same direction
+  everywhere, no exceptions, far more consistent than the EX numbers. This
+  matches the standing framing from 07-17/07-18 (BIRD-KD's real, reportable
+  effect is exec-reliability, not EX) — now confirmed to generalize across
+  4 held-out robustness sets, not just Spider dev.
+- **EM collapse is universal and severe** (Spider dev 57.16→32.50,
+  Realistic 50.98→30.71, Syn 45.55→25.53, DK 43.93→24.67 — roughly halved
+  every time). This is the same style-drift symptom E-ICL-1 was meant to
+  fix (now closed, no rescue found) — the collapse is a structural property
+  of distilling on `y_pub`'s zero-shot-teacher SQL style, independent of
+  which Spider variant is being tested. Strengthens the case for §8.3
+  on-policy (student-sampled targets) as the remaining domain-bridge lever,
+  since teacher-side prompting is now a closed door.
+- **Robustness-set EX are all far below Spider dev** (46.9–55.3 vs 62.2) —
+  expected (harder perturbations), not a new finding; just context for
+  reading the deltas above.
+
+### Next
+
+- [ ] Seed-2 on at least DK (the one suggestive p) before citing any
+      robustness-transfer number
+- [ ] Report exec-reliability transfer as the headline BIRD-KD finding in
+      the paper, EX-transfer as a secondary/non-significant note — matches
+      what the data actually supports
+- [ ] (carried) teacher_agreement.json still pending from the box
+- [ ] (carried) E-ICL-3, then lock §9 config → R2 federated headline
+
+## Session 2026-07-19 (4) — R2.0 designed: full federated pipeline at T=1, paired server-step ablation (docs-only)
+
+User decision (this session's Q&A): federated numbers come BEFORE any further
+KD optimization. Rationale recap: KD raises EX strongly when distilled
+on-domain (`central_rkd`+sc 72.34, +2.22 vs ft+sc, p=0.047) but KD-on-BIRD's
+EX effect is noise-level across 4 eval sets (07-19 (3)) — so whether `fedkd`
+earns its keep rests on the round-loop mechanism (§3.4 drift regularization +
+alternation), which only R2 measures. Optimizing KD first = optimizing blind;
+§8.3 on-policy stays the designated fix IF R2 shows the gap.
+
+Full R2 (3 arms × T=15) is a multi-day commitment. Instead: **R2.0 — the
+complete pipeline (cache build → 8 clients → FedAvg → server step → both
+evals) at `--rounds 1`**, designed so the T=1 numbers are decision-relevant
+on their own and the run extends into R2 without wasted compute.
+
+**Design:**
+
+1. All three Tier-1 arms at T=1, K=8, α=0.5 split, E=2, seed 0, full-scale
+   clients (no `--client-max-steps`), `--stage poc`.
+2. **Key structural move — the round-1 client stage is arm-invariant**
+   (identical `prev_adapter=None`, split, seed, config): train it once under
+   `fedavg`, then copy `round_1/client_*` + `round_1/fedavg_adapter*` into
+   the other two arms' `--out` dirs. `adapter_done()` guards skip everything
+   copied (verified in `run_round()` — every stage is guarded; `fedavg`
+   returns `fedavg_adapter`; pub/kd warm-start `m_g` from it), so
+   `fedavg_pub`/`fedkd` each cost only their 300-step server stage.
+   Copy, not symlink — Windows box.
+3. Consequence: all three arms share ONE post-FedAvg adapter → T=1 is a
+   **fully paired ablation of the server step alone** (none vs CE-on-P vs
+   RKL-on-P), row-level McNemar on Spider dev. This is §3.4's drift question
+   at full federated scale — until now proxied only by the centralized
+   continuation probe (CE-only −2.81, RKL neutralizes).
+4. `--k-teacher 0` (§9 says ablate 0 first; E-ICL-1 killed teacher-side
+   generation ICL; E-ICL-3 is untested but NOT a blocker — pilot runs k=0).
+   Cache built with the same flags/seed/pool-size → cache-hit by
+   construction (`prepare_kd_examples` shared renderer).
+5. Pool = `processed_data/BIRD/bootstrap_full_exmatch/train.csv` (y_pub,
+   exmatch-filtered), `--pool-size 1200`, seed 0 — same stratified subset in
+   cache build and round loop.
+6. Eval: 3 adapters × {k0, sc} on Spider dev (6 evals), single centralized
+   invocation matching the R1.1 run (`eval_arms__s0__20260718T062443` —
+   mirror its committed `config.json` flags; one-stack rule). Per-client-pool
+   mean±std reporting (§7) is a headline-time concern, not a pilot concern.
+
+**Runbook (compute host, in order):**
+
+```bash
+# 1. teacher logit cache — offline, once, ~1200 examples, RKD/k0
+uv run python scripts/build_teacher_logit_cache.py \
+    --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 1200 \
+    --k-teacher 0 --seed 0 --teacher-4bit \
+    --out artifacts/teacher_logit_cache/rkd_k0
+
+# 2. fedavg T=1 — trains the shared client stage + FedAvg
+uv run python experiments/federated/run.py --arm fedavg \
+    --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k8 --n-clients 8 \
+    --rounds 1 --local-epochs 2 --seed 0 --stage poc \
+    --out artifacts/fed_t1/fedavg_s0
+
+# 3. copy the arm-invariant client stage (adapter_done() skips it downstream)
+python - <<'PY'
+import shutil
+from pathlib import Path
+src = Path("artifacts/fed_t1/fedavg_s0/round_1")
+for arm in ("fedavg_pub_s0", "fedkd_s0"):
+    dst = Path("artifacts/fed_t1") / arm / "round_1"
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        if not (item.name.startswith("client_") or item.name.startswith("fedavg_adapter")):
+            continue
+        target = dst / item.name
+        if target.exists():
+            continue
+        shutil.copytree(item, target) if item.is_dir() else shutil.copy2(item, target)
+PY
+
+# 4a. fedavg_pub T=1 — server CE stage only (clients skipped via the copy)
+uv run python experiments/federated/run.py --arm fedavg_pub \
+    --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k8 --n-clients 8 \
+    --rounds 1 --local-epochs 2 --seed 0 --stage poc \
+    --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 1200 \
+    --distill-steps 300 \
+    --out artifacts/fed_t1/fedavg_pub_s0
+
+# 4b. fedkd T=1 — server RKL stage, cache-backed (7B never loads)
+uv run python experiments/federated/run.py --arm fedkd \
+    --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k8 --n-clients 8 \
+    --rounds 1 --local-epochs 2 --seed 0 --stage poc \
+    --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 1200 \
+    --distill-steps 300 --k-teacher 0 \
+    --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0 \
+    --out artifacts/fed_t1/fedkd_s0
+
+# 5. eval — both overlays, arm syntax name=adapter_path; remaining flags
+#    mirror eval_arms__s0__20260718T062443's config.json (one-stack rule)
+#    fedavg      -> artifacts/fed_t1/fedavg_s0/round_1/fedavg_adapter
+#    fedavg_pub  -> artifacts/fed_t1/fedavg_pub_s0/round_1/m_g
+#    fedkd       -> artifacts/fed_t1/fedkd_s0/round_1/m_g
+#    once with --k 0 --overlay none, once with --k 0 --overlay sc
+```
+
+**Pre-registered read rules (before numbers exist):**
+
+1. **Sanity, not verdict:** `fedavg` M_G k0 EX must clear the untrained base
+   by a wide margin; expected BELOW `central_ft` 62.19 (each client saw ~1/8
+   of the data for 2 epochs; T=1×E=2 = 2 epoch-equivalents). Absurdly low →
+   pipeline bug, debug before interpreting anything.
+2. **The numbers this pilot buys:** `fedavg_pub − fedavg` = CE-on-P server
+   step effect (§3.4 precedent predicts ≤ 0, drift); `fedkd − fedavg_pub` =
+   teacher/RKL value at round 1 (§3.4 predicts RKL neutralizes the drift).
+   Report as deltas + McNemar per convention — analysis, no pass/fail gate.
+3. **exec_err and sc_exec_rate are first-class** — exec-reliability is
+   BIRD-KD's one cleanly-transferring effect (07-19 (3)); expect it to show
+   here even if EX deltas are flat.
+4. **No kill rule on `fedkd` EX at T=1.** One server step ≠ the round-loop
+   alternation value; a flat T=1 does NOT close R2 — it just means the case
+   rests on multi-round dynamics, exactly what `--rounds 2/3` then measures.
+5. **EM:** expect a drop on `fedavg_pub`/`fedkd` vs `fedavg` (y_pub style;
+   the universal EM collapse of 07-19 (3)). Record, don't panic, don't
+   re-litigate — §8.3 on-policy is the designated fix candidate.
+
+**What T=1 does NOT decide:** round-loop alternation dynamics (needs T≥2),
+any headline claim (needs the final T + 3 seeds), the federation gap vs
+`central`. After a sane T=1 read: extend the SAME `--out` dirs with
+`--rounds 2`, then `--rounds 3` (docstring pattern; completed rounds skip).
+Arms diverge from round 2 onward (clients warm-start from arm-specific M_G)
+— by design, that IS the alternation being measured.
+
+**Doc changes this session:** `system_architecture.md` §6 status note + §9
+rounds row now carry the R2.0 T=1-first plan. Supersedes the "pilot at T=3"
+phrasing of 07-15 (5) in emphasis only — that session already moved to
+incremental `--rounds 1→2→3`; R2.0 adds the all-arms paired design and the
+client-stage copy-reuse. No code change needed anywhere (verified against
+`run_round()`'s guards and both CLIs).
+
+### Next
+
+- [ ] R2.0 on the box, in runbook order: cache → `fedavg` T=1 → copy →
+      `fedavg_pub`/`fedkd` T=1 → 6 evals → read against the rules above
+- [ ] After a sane read: `--rounds 2` → `--rounds 3` on the same out dirs
+- [ ] Optional backport: add the client-stage copy-reuse pattern to
+      `experiments/federated/run.py`'s docstring (code repo, separate commit)
+- [ ] (carried) teacher_agreement.json from the box; E-ICL-3; seed-2 items
+
+## Session 2026-07-19 (5) — federated run.py split into step subcommands; manifest.json + fingerprint guard; R2.0 runbook updated (code, fedicl-sql repo)
+
+User asked for two things: (1) a proper result/artifact storage design for
+federated experiments, (2) splitting the monolithic round-loop script into
+per-step commands instead of one all-or-nothing invocation. Both landed as
+code in `fedicl-sql` (`experiments/federated/run.py` rewritten,
+`fedicl_sql/runtime/manifest.py` new, `fedicl_sql/runtime/checkpoint.py`
+gained `check_fingerprint`) — this directly replaces the copy-adapter-
+directories workaround from session (4)'s R2.0 design, which was a real gap:
+no code-level way to actually share the round-1 stage across arms, just a
+manual shell script.
+
+**CLI split — five subcommands** (`client` / `fedavg` / `server` / `round` /
+`run`, full flags in the script's own docstring):
+- `client`/`fedavg`/`server` run one stage standalone.
+- `round` runs one full round (client+fedavg+server) of a given arm — new,
+  didn't exist before; the building block for multi-arm pilots.
+- `run` is the T-round loop for one arm (headline runs) — behaviorally
+  identical to the pre-split script (same flags, same resume-on-larger-
+  `--rounds` semantics), now implemented as a thin loop calling the same
+  `execute_round()` helper `round` uses.
+
+**R2.0's arm-sharing, now real:** round 1's client+FedAvg stage is arm-
+invariant (same split/seed/init=None) — point all three arms' `round --round
+1 --client-out <shared-dir>` at one directory. `adapter_done()` skips the
+2nd/3rd arms' already-done client/fedavg stages; `check_fingerprint()`
+(`fedicl_sql/runtime/checkpoint.py`, new) writes the stage's config on first
+use and raises `RuntimeError` with a field-level diff on any later mismatch
+— same fail-loud precedent as the teacher-logit-cache `KeyError`. No copying,
+no shell script; the shared directory IS the artifact, referenced by path.
+
+**Result/artifact design, three tiers:**
+1. `<out>/round_<t>/<stage>_meta.json` — per-stage training metrics (existing
+   `_write_stage_meta`, unchanged).
+2. `<out>/manifest.json` (`fedicl_sql/runtime/manifest.py`, new) — arm-run
+   index of completed rounds' adapter paths; `resolve_m_g(out_dir)` is the
+   one call downstream code should use, replacing ad hoc
+   `round_{t}/m_g`-path construction. Handles both plain (`run`, round-1
+   inside `--out`) and shared (`round`+`--client-out`, R2.0) layouts
+   identically.
+3. `experiments/federated/results/<run_id>/metrics.json` — now written PER
+   ROUND (`round`/`run` both call `save_results` after every completed
+   round), not once at the end of the whole invocation. Fixed a real bug
+   found while doing this: the old single end-of-run `save_results` computed
+   `time_average = elapsed / args.rounds`, which under-reports badly on a
+   resumed run (e.g. `--rounds 3` where rounds 1–2 were already done: elapsed
+   only covers round 3's work, divided by 3). Per-round rows report only the
+   stages actually (re)trained that round.
+
+**Verification:** `python -m py_compile` on all three files; `--help` on
+every subcommand; new tests (`tests/test_manifest.py` — 6 cases,
+`tests/test_checkpoint.py` +4 fingerprint cases); full suite **234/234
+pass** (was 224 before this session — no regressions, all new tests are
+additive). No GPU/training-call test coverage added for `execute_round`
+itself — it's thin glue over already-tested `train_client`/`train_online_kd`/
+`fedavg`/`delta_stats`; the project's standing practice for this script is
+smoke-test-on-real-data (session (4) of 07-15), not mocked orchestration
+tests, and that's unchanged.
+
+**Docs updated:** `fedicl-sql/CLAUDE.md` federated section rewritten for the
+subcommand split + 3-tier results design; `system_architecture.md` §6 status
+note + new §6.1 "Round loop CLI + results/artifacts" subsection — supersedes
+the copy-script language from session (4).
+
+### Next
+
+- [ ] R2.0 on the box, using the NEW subcommands (docstring in
+      `experiments/federated/run.py` has the exact 3 `round --round 1`
+      invocations sharing `--client-out`) — cache → 3× `round --round 1` →
+      6 evals → read against session (4)'s pre-registered rules
+- [ ] (carried) teacher_agreement.json from the box; E-ICL-3; seed-2 items
+
+## Session 2026-07-19 (6) — federated round loop split into a package module + CLI (code, fedicl-sql repo)
+
+User asked whether the round loop should be one file or several, then to
+implement it cleanly. Answer: split — but into `fedicl_sql/` (the package,
+where testable logic already lives — `LoraTrainConfig`/`train_client` in
+`fedicl_sql/training/`, `fedavg`/`delta_stats` in `fedicl_sql/federated/`),
+not into multiple files under `experiments/federated/` (no other experiment
+dir does that; would break the repo's existing thin-CLI convention).
+
+**New module `fedicl_sql/federated/round_loop.py`** (~340 lines): everything
+mechanical — `RoundLoopConfig` (dataclass, same style as `LoraTrainConfig`;
+holds the RECIPE — arm/hyperparams/model ids — round number and paths stay
+explicit call params, reused unchanged across every round of a run),
+`run_client_step`/`run_fedavg_step`/`run_server_step`/`execute_round`
+(orchestration), `persist_round` (manifest + results row). All plain
+functions taking a config object — no argparse dependency, so directly
+callable from tests or a future driver script.
+
+**`experiments/federated/run.py` cut from 513 → 290 lines**: pure argparse —
+five subparsers (`client`/`fedavg`/`server`/`round`/`run`) each build a
+`RoundLoopConfig` from their flags (`_config_from_args`, keyed off
+`RoundLoopConfig`'s own dataclass fields so each subcommand only needs to
+declare the flags it actually uses) and call straight into `round_loop`.
+
+**Real payoff — mocked unit tests now exist** (`tests/test_round_loop.py`,
+5 cases, monkeypatching `train_client`/`train_online_kd`/`fedavg`/
+`delta_stats` to fake adapter writes, no GPU/model needed):
+1. `fedavg` round trains 2 clients + aggregates, then a resume re-call
+   retrains NOTHING (verifies `adapter_done()` chain end-to-end).
+2. `fedkd` round runs the server RKL step on top (3 summaries: 2 client + 1
+   server).
+3. **R2.0 pattern verified mechanically**: `fedavg` round 1 followed by
+   `fedavg_pub` round 1 pointed at the same `--client-out` retrains 0
+   clients and re-aggregates 0 times — only the server step runs. This was
+   previously just a documented *intention*; now there's a test that would
+   fail if `execute_round`'s reuse logic ever broke.
+4. Fingerprint drift (different seed, same shared `client_out`) raises
+   `RuntimeError` as designed.
+5. `persist_round` writes both `manifest.json` (round entry, correct
+   `latest_m_g`) and a `results/<run_id>/metrics.json` row with the right
+   arm/round/m_g/gpu_vram.
+
+This is the concrete benefit of the split flagged in session (5)'s
+follow-up: `execute_round` was previously script-local (inside
+`experiments/federated/run.py`), so mocking `train_client` meant patching
+into the CLI script's namespace — awkward and untried. As a package module
+it's an ordinary monkeypatch target.
+
+**Verification:** `ruff check` clean on all touched files; `--help` on all
+5 subcommands; full suite **239/239 pass** (234 after session (5) + 5 new).
+
+**Docs:** `fedicl-sql/CLAUDE.md` federated section now describes the
+two-file split and its rationale (mirrors the existing
+`fedicl_sql/training/` vs `experiments/client_train/run.py` pattern).
+`system_architecture.md` unaffected — §6/§6.1 already described the
+subcommand-level design in session (5); this session is a pure code
+refactor underneath that design, no architecture change.
+
+### Next
+
+- [ ] R2.0 on the box — same runbook as session (5), CLI surface unchanged
+      by this refactor
+- [ ] (carried) teacher_agreement.json from the box; E-ICL-3; seed-2 items
+
+## Session 2026-07-19 (7) — weighted FLoRA-NA selected as the proposed aggregator; factor-wise FedAvg retained as baseline (architecture decision, no code yet)
+
+User requested a concrete method choice after comparing FLoRA-NA, Fed-SB and
+FedEx-LoRA, then asked to update the decision record and define a comparison
+baseline. Decision: **weighted FLoRA-NA + server CE/RKL is the proposed full
+Fed-ICKD method**. **Weighted factor-wise FedAvg/FedIT-style LoRA is the
+principal baseline**. This supersedes §3.3's old posture of treating naive
+factor averaging as the default and parking an exact fix behind the A4 alpha
+sweep. Aggregation error is algebraic and exists even under IID data; it does
+not need an alpha-sweep trigger before being controlled.
+
+**Why FLoRA-NA fits this paper:** it returns one ordinary rank-`r` LoRA adapter
+against the unchanged frozen 1.5B base. The already-implemented RKD trainer can
+therefore continue optimizing both factors on `P`, and the server still
+broadcasts one post-KD adapter. This preserves the architecture's simple
+adapter-only checkpoint/communication contract. In contrast, FedEx-LoRA's
+exact state is modified base/residual + adapter (exact residual downlink rank
+up to `K*r`), while Fed-SB trains only `R` between fixed bases and would add a
+fixed-subspace capacity confound to the question of whether public RKD works.
+FedEx is retained as an exact reference; Fed-SB as a communication-first
+Tier-2 alternative.
+
+**Weighted formulation is mandatory.** Original/equal-client FLoRA-NA must not
+be copied literally because Spider client sizes differ. For local adapters
+`(A_i,B_i)` and `p_i=n_i/sum_j n_j`, the server target is
+
+```
+DeltaW_star = sum_i p_i B_i A_i
+```
+
+and it solves for client-combination coefficients `u,v` minimizing
+
+```
+||(sum_i u_i B_i)(sum_i v_i A_i) - DeltaW_star||_F^2,
+```
+
+then emits `B_hat=sum_i u_iB_i`, `A_hat=sum_i v_iA_i`. The method is nearly
+accurate, not exact; rank remains `r`. Implementation must log normalized
+model-space aggregation error for both FLoRA-NA and factor FedAvg, per layer
+and overall.
+
+**Revised Tier-1 ladder (3 seeds for headline arms):**
+
+| arm | aggregation | server step | question answered |
+|---|---|---|---|
+| `fedavg` | weighted factor average | none | principal FL baseline |
+| `florana` | weighted FLoRA-NA | none | aggregation value vs `fedavg` |
+| `florana_pub` | weighted FLoRA-NA | CE-only on `P` | matched public-exposure/drift control |
+| `florana_kd` | weighted FLoRA-NA | CE+RKL on `P` | proposed full method; teacher value vs `florana_pub` |
+
+Existing `fedkd` (factor average + CE/RKL) is retained as a one-seed-first
+diagnostic, not renamed: the interaction
+`(florana_kd-florana_pub) - (fedkd-fedavg_pub)` compares the matched
+teacher/RKL effect after each aggregator and tests whether RKD still adds value
+after aggregation error is reduced rather than merely compensating for naive
+factor averaging. Existing `fedavg_pub` remains its matched CE-only control.
+Do not assume any result ordering before runs.
+
+**Status boundary:** documentation/architecture only. The current code still
+implements exactly the old `fedavg`/`fedavg_pub`/`fedkd` factor-average arms;
+no FLoRA-NA artifact exists. `system_architecture.md` §0/§1/§2/§3.3/§3.4/§6/
+§10/anchors now records the new decision and marks implementation pending.
+The R2.0 three-arm T=1 runbook in sessions (4)–(6) remains valid as a baseline
+smoke/diagnostic but is no longer the complete proposed-method pilot. The
+headline T=1 comparison must branch the *same local adapters* through both
+FedAvg and FLoRA-NA, followed by matched none/CE/RKL server steps.
+
+### Next
+
+- [ ] Implement weighted FLoRA-NA in `fedicl_sql/federated/` without changing
+      the existing `fedavg` path
+- [ ] Add `florana`/`florana_pub`/`florana_kd` CLI arms, manifest coverage,
+      fingerprint fields and mocked round-loop tests
+- [ ] Add `e_agg` diagnostics plus a tiny synthetic matrix test showing
+      FLoRA-NA improves over factor averaging and preserves output rank `r`
+- [ ] Run paired K=8/T=1 from one shared client stage, then extend sane arms
+      incrementally to T=2/T=3 and finally T=15 × 3 seeds
+- [ ] Keep FedEx exact reference and Fed-SB feasibility work after the main
+      weighted FLoRA-NA ladder; neither blocks first federated numbers
+
+## Session 2026-07-19 (4) — SC-overlay robustness eval: sign-flip pattern is universal, not Spider-dev-specific
+
+Same 4 datasets, same two arms, `--overlay sc` (deployed condition) this
+time. Combined with session (3)'s `none` numbers:
+
+| Dataset | none: ftEX→+KD | ΔEX(none) | sc: ftEX→+KD | ΔEX(sc) | McNemar(sc) | exec_err ft→KD (sc) | sc_exec_rate ft→KD |
+|---|---|---|---|---|---|---|---|
+| Spider dev | 62.19→65.47 | +3.28 | 70.12→69.25 | **−0.87** | (07-18, p not recomputed) | 61→34 | 75.1%→85.3% |
+| Realistic | 55.31→56.30 | +0.99 | 63.39→60.83 | **−2.56** | 0.237 | 34→20 | 72.5%→83.2% |
+| Syn | 51.06→51.45 | +0.39 | 56.58→56.87 | +0.29 | 0.890 | 80→38 | 71.2%→80.1% |
+| DK | 46.92→49.91 | +2.99 | 52.15→54.58 | +2.43 | 0.160 | 40→29 | 74.3%→80.6% |
+
+**Reading:**
+
+- **The none→sc sign-flip is NOT universal** — it repeats on Spider dev and
+  Realistic (both go from a positive EX delta to negative under sc) but
+  Syn and DK stay positive under sc (though non-significant, same as
+  under none). So the earlier hypothesis ("SC always cannibalizes BIRD-KD's
+  EX edge") is too strong — 2/4 datasets support it, 2/4 don't. Correct,
+  narrower claim: **on no dataset is BIRD-KD's EX delta significant under
+  either overlay** (all four McNemar p ≥ 0.16 under sc; none-overlay was
+  similarly non-significant except Spider dev's own churn-based framing).
+  There is no dataset where "KD-on-BIRD improves EX" is a defensible
+  citable claim at 1 seed.
+- **Exec-reliability transfer is now confirmed under BOTH overlays, on all
+  4 datasets, with zero exceptions** — this is the most consistent
+  finding across every eval run this session. sc_exec_rate rises 8–11pp
+  on every dataset (75.1%→85.3%, 72.5%→83.2%, 71.2%→80.1%, 74.3%→80.6%);
+  raw exec_err drops 30–52% relative in every case, both overlays. KD
+  teaches the model to produce more executable SQL, unconditionally —
+  this generalizes far more reliably than any EX number measured today.
+- **EM stays collapsed under sc too** (e.g. Realistic 56.69→32.87,
+  DK 47.66→24.49) — sc overlay does not rescue EM the way it partially
+  masks the EX picture. EM collapse is orthogonal to which overlay is
+  applied; it's purely a training-target-style property (§E-ICL-1 finding).
+
+**Net verdict for the paper (supersedes session (3)'s framing):** BIRD-KD's
+citable, defensible contribution is **exec-reliability**, full stop — one
+finding, four datasets, two overlays, zero exceptions, no seed-2 needed to
+believe the *direction* (magnitude still wants seed-2). EX is not a
+supportable claim at either overlay on any of the four robustness sets at
+1 seed; report as directional/non-significant if mentioned at all. This
+also answers the "should the paper claim KD improves EX under sc" question
+now blocking the federated headline framing: no, do not build R2's success
+narrative around EX composing — build it around reliability + the
+(separately confirmed) KD+SC composition on Spider dev itself
+(72.34, session 07-18 (4), a different comparison: RKD-on-Spider+sc vs
+FT+sc, not BIRD-KD).
+
+### Next
+
+- [ ] Seed-2 needed only if EX-transfer claim is wanted; skip if the paper
+      commits to the exec-reliability framing above
+- [ ] (carried) teacher_agreement.json still pending from the box
+- [ ] (carried) E-ICL-3, then lock §9 config → R2 federated headline
+- [ ] R2 framing update: `fedkd`'s success metric should be pre-registered
+      as exec-reliability-primary, EX-secondary, given BIRD-KD's own
+      evidence this session
+
+**Amendment:** user deferred the R2 success-metric pre-registration (reliability-primary
+framing) — not locking now, revisit before R2 actually runs, not blocking anything today.
+
+## Session 2026-07-20 — weighted FLoRA-NA federated pipeline implemented
+
+Implemented the architecture decision from 2026-07-19 end-to-end; no real
+K=8/T>0 training result is claimed in this session.
+
+- Added sample-weighted FLoRA-NA in
+  `fedicl_sql/federated/aggregate.py`. For every LoRA A/B layer it optimizes
+  client coefficients against `Σ_i (n_i/n) B_i A_i` using product Gram
+  matrices, so no full dense LLM update is materialized. Output remains one
+  standard rank-r PEFT adapter.
+- Preserved weighted factor-wise FedAvg as the direct baseline. Both methods
+  now emit per-layer and overall model-space aggregation error `e_agg`;
+  FLoRA-NA retains the factor-average initialization as a candidate, so the
+  optimizer cannot silently return a worse objective than that baseline.
+- Added the full paired arms: `fedavg`, `fedavg_pub`, `fedkd`, `florana`,
+  `florana_pub`, `florana_kd`. The two `*_kd` arms still invoke the existing
+  `train_online_kd` with `kd_direction="rkd"`: CE on the execution-matched
+  teacher target plus reverse KL on teacher logits. KD continues training the
+  aggregated LoRA A/B tensors; the frozen base is unchanged.
+- Corrected no-op diagnostics: every round uses
+  `client_adapter - round_start_adapter`. Round 1 saves the exact freshly
+  initialized PEFT adapter before the first optimizer step (LoRA-A is Kaiming
+  initialized, so treating it as zero would be wrong); later rounds use the
+  prior arm-specific global adapter.
+- Added content fingerprints for client CSVs, input/output adapters,
+  aggregation settings, public pool, and teacher-cache metadata. Cache use now
+  validates every render-critical setting before training. Pool generation
+  writes a provenance sidecar and cache metadata records the pool SHA-256.
+- Added optional `--eval-every-round`, evaluating the same frozen slice at
+  post-aggregation and post-server checkpoints. This implements the §3.4 drift
+  instrumentation without making expensive decode part of default smoke runs.
+- Extended manifests with generic `aggregation_method` and
+  `aggregation_adapter`, retaining the old `fedavg_adapter` field for backward
+  compatibility. Added standalone `aggregate` CLI while retaining `fedavg`.
+- Added synthetic tests for true round deltas and weighted FLoRA-NA's standard
+  adapter output / no-worse-than-factor objective, plus mocked
+  `florana_kd → RKD` round-loop coverage.
+
+### Next
+
+- [ ] On the compute host, build/rebuild the RKD k=0 cache so `meta.json`
+      includes `pool_sha256`.
+- [ ] Run the six-arm shared-client K=2/T=1 smoke, then K=8/T=1 paired ladder.
+- [ ] Inspect `e_agg`, post-aggregation EX, post-server EX and executable rate;
+      extend only sane arms to T=2/T=3, then T=15 × 3 seeds.
