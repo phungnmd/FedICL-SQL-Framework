@@ -2,7 +2,7 @@
 
 **Federated In-Context Knowledge Distillation for Text-to-SQL** *(repo name: FedICL-SQL)*
 
-> **Rewritten 2026-07-08; last consistency pass 2026-07-13.** This document
+> **Rewritten 2026-07-08; KD-pool consistency pass 2026-07-20.** This document
 > supersedes every prior version and all prior re-alignment notes. Architecture
 > source: `Suggest.MD` (accepted), with **one amendment**: the server-distillation
 > loss is **reverse-KL logit distillation from [10]** (`CE + RKL(q‖p)`), NOT
@@ -71,7 +71,12 @@ absolute parity with the teacher.
   (question, gold-SQL) pairs are permanently banned as CE/RKL targets
   (annotation quality — gate trace in §3.2); server-distill targets come from
   §8.0's implemented Phase-1 construction (§8.3/§8.4 = future online upgrade,
-  still unbuilt).
+  still unbuilt). **Canonical KD data freeze (locked 2026-07-20): all KD arms
+  use the same 3,873-row teacher-generated EX-match pool.** Counts such as
+  831 or 1,200 elsewhere in this document are retained only as historical
+  probe/budget counts; they are not the default KD pool and must not be
+  substituted silently. A previously reported “8,128 rows” was `wc -l` on a
+  multiline CSV, not a sample count, and is corrected in §8.0.
 - **ICL role settled empirically (§5.2/§5.4):** selection sophistication never
   pays (4 model families, uniform + gated); the verifier-gated retry (single
   k=3-demo retry on exec failure) was the shipping overlay through
@@ -416,9 +421,12 @@ L = λ_ft · CE(student, y_pub)  +  λ_kd · RKL(q ‖ p)        # [10]'s recipe
 - **Reverse KL, never forward KL**: mode-seeking fits SQL's precise,
   low-diversity token distribution ([10]); forward KL is mean-seeking and
   smears mass over invalid continuations.
-- **`y_pub` = execution-bootstrapped targets** (§8.0: teacher-generated SQL on
-  `P`'s schemas, execution-filtered — optionally EX-matched vs gold — on `P`'s
-  DBs; never BIRD's own gold text).
+- **`y_pub` = the frozen 3,873-row teacher EX-match pool** (§8.0):
+  teacher-generated SQL on `P`'s schemas, execution-filtered and then retained
+  only when its execution result matches gold. Gold is used only by the
+  selector; the training target remains the teacher's SQL text. This pool is
+  mandatory for every default KD arm; exec-only and BIRD-gold pools are
+  explicit ablations, never implicit substitutes.
 - **Direction: RKD — provisional default (2026-07-12; regraded 2026-07-15)**
   (gold-target reverse KL; PoC §8). KID trailed the PoC (−1.45 EX) but the
   paired gap is **not significant at 1 seed (p=0.072)** — the pick stands on
@@ -746,14 +754,18 @@ L = CE(student(P_ICL(q, Sᵢ, demos_Qᵢ)), gold SQL)     # E local epochs
 > The teacher logit cache below (Phase 1) is also implemented
 > (`fedicl_sql/training/logit_cache.py`, `scripts/build_teacher_logit_cache.py`)
 > — **one caveat vs the original design note**: it stores **full-vocab fp16
-> logits** per cached example (~0.3–0.6 MB/example, not top-K), because
+> logits** per cached example (size depends strongly on target length, not
+> top-K), because
 > `rkl_div_loss` was already decided full-vocab-online (`losses.py`'s "no
 > top-K logprob caching needed" comment predates this cache and describes a
 > *different, retired* sparse-KL design — not a conflict with this one, just a
-> naming collision worth flagging). Practical corollary: cache only a
-> **stratified distill subset** (`--pool-size`, default 1200 examples ≈
-> 0.5–1 GB), not the full pool — `experiments/federated/run.py` fixes the same
-> subset for the whole run so every round's revisit is a cache hit. RKD-only
+> naming collision worth flagging). **Canonical policy (2026-07-20): cache
+> identity and sampling population are the complete frozen 3,873-row pool.**
+> Every default KD server invocation consumes one complete epoch over that
+> pool. `--pool-size 0 --distill-steps 0` encodes this full-data default;
+> positive caps are smoke/data-budget ablations only. Full-vocab caching is
+> optional; online teacher scoring is valid when the full cache is not
+> economical. RKD-only
 > (KID's `ŷ` is re-sampled every step) and symmetric-context-only
 > (`kd_teacher_k=0` — §8.1's asymmetric variant is shelved anyway). A
 > cache/config mismatch (pool content, train_k/demo_k_fixed/seed/schema_style/
@@ -931,11 +943,16 @@ the last without measuring):
    direction (wrongly rejects correct-but-gold-disagreeing teacher SQL,
    wrongly accepts SQL that mimics gold's own errors) — must be gated
    against stage 1's own numbers before it replaces anything (`kd/README.md`
-   §6f vs §6g). The training target stays teacher's own SQL text either way
+   §6f vs §6g). That comparison is historical; the resulting method was
+   subsequently selected as the default data policy. The training target
+   stays teacher's own SQL text either way
    (never gold's text) — this only changes which rows get selected, so it
    does not reintroduce E0.1's failure mode. Data:
-   `processed_data/BIRD/bootstrap_full_exmatch/train.csv` (8128/9630 kept,
-   committed).
+   `processed_data/BIRD/bootstrap_full_exmatch/train.csv`, which contains
+   exactly **3,873 logical CSV records** across 69 DBs. It has 8,128 physical
+   text lines because quoted SQL/evidence fields contain embedded newlines;
+   `wc -l` therefore does not measure examples. Every real run must validate
+   the 3,873 parsed records and record the file SHA-256 in its manifest.
 
 Both stages checkpoint/resume + parallelize the SQLite exec pass
 (`ThreadPoolExecutor` — a sequential loop hit the same pathological-query
@@ -1096,10 +1113,10 @@ GRPO:
 | Clients K | 8 |
 | Partition | non-IID by database (Dirichlet over domain groups, α=0.5; ablate 0.1/IID) — **implemented 2026-07-15**: 146 train DBs → 20 schema-embedding k-means clusters (`scripts/build_db_groups.py`, `processed_data/SPIDER/db_groups.json`), one shared Dirichlet(α) vector drawn per cluster (`make_federated_split(db_groups=...)`); committed splits at `processed_data/SPIDER/federated_noniid/alpha_{0.1,0.5}/k8/` + `federated_iid/k8/`, seed=0. Fixed a bug where the old flat per-DB Dirichlet draw made α a near no-op and produced 14–40-example starved clients at K=8; a `min_client_examples=150` resample guard now backstops the floor regardless of α |
 | Rounds / local epochs | T = 15, E = 2 — headline target only. Execution plan: use the old R2.0 T=1 run as a baseline smoke/diagnostic, then run the revised paired FedAvg/FLoRA-NA ladder from identical local adapters (LAB_LOG 2026-07-19 (7)); grow T incrementally and commit to T=15 only if the per-round trend justifies it |
-| Server distill | 300 steps/round on `P`, batch 16, `λ_ft:λ_kd = 1:1` |
+| Server distill | **One full epoch over all 3,873 rows every KD round** (`pool_size=0`, `distill_steps=0`); batch 1 with gradient accumulation 16 (effective batch 16); `λ_ft:λ_kd = 1:1`. Positive caps are smoke/ablation only |
 | KD loss | `CE + RKL(q‖p)` per [10] — reverse KL, full-vocab (common prefix), float32 |
 | KD direction | **RKD — provisional default 2026-07-12** (§0 legend; retests: seed-2/A1/§8.3); §8.3/§8.4 = future Tier-2 target upgrades |
-| Public pool `P` | **BIRD schemas/DBs** — never BIRD's own gold SQL (resolved 2026-07-12/13, §3.2); targets via §8.0 (implemented) today, §8.3/§8.4 once online; distill subset a few k, stratified |
+| Public pool `P` | **Fixed 3,873-row BIRD teacher-generated EX-match snapshot** — never BIRD gold SQL text. All default KD arms use this identical pool and record its hash; smaller counts are explicit smoke/legacy ablations only |
 | Eval | Spider dev (EX + EM, official algorithms) + Spider-Realistic (robustness) |
 | Seeds | 3 for main results, 1 for ablations |
 | Hardware | 1× RTX A5000 24 GB; vLLM for all inference/eval, HF+PEFT for training |

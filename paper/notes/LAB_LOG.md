@@ -3921,9 +3921,10 @@ entirely upstream, at exec-pass). Absolute gap zero-shot vs spider_seed =
 provides no benefit at any measured tier.** `y_pub` stays §8.0 zero-shot,
 permanently (not just "for now"). No further probes on this seat planned.
 
-Scale note: 39.3% here vs 84.4% on the full pool (`bootstrap_full_exmatch`,
-8128/9630) — different sample (probe_1k vs full 9630, different schema mix),
-not a contradiction; not comparable head-to-head.
+Scale note (corrected 2026-07-20): the full pool has 3,873 parsed CSV records,
+so its absolute EX-match yield is 3,873/9,630 = **40.2%**, close to this
+probe's 39.3%. The earlier 8,128/9,630 = 84.4% statement mistakenly used
+physical text lines from a multiline CSV as examples.
 
 ### Next
 
@@ -3987,7 +3988,13 @@ KD continuation). Spider dev numbers are the pre-existing 07-16 runs
 - [ ] (carried) teacher_agreement.json still pending from the box
 - [ ] (carried) E-ICL-3, then lock §9 config → R2 federated headline
 
-## Session 2026-07-19 (4) — R2.0 designed: full federated pipeline at T=1, paired server-step ablation (docs-only)
+## Session 2026-07-19 (4) — HISTORICAL R2.0 design: full federated pipeline at T=1, paired server-step ablation (docs-only)
+
+> **Superseded data-budget note (2026-07-20):** the 1,200-row cap in this
+> section records the original pilot plan; it is not the current KD default.
+> The canonical policy is the frozen 3,873-row teacher EX-match pool documented
+> in the 2026-07-20 decision below. Historical commands are retained for
+> reproducibility and must not be copied as the current runbook.
 
 User decision (this session's Q&A): federated numbers come BEFORE any further
 KD optimization. Rationale recap: KD raises EX strongly when distilled
@@ -4023,9 +4030,10 @@ on their own and the run extends into R2 without wasted compute.
    generation ICL; E-ICL-3 is untested but NOT a blocker — pilot runs k=0).
    Cache built with the same flags/seed/pool-size → cache-hit by
    construction (`prepare_kd_examples` shared renderer).
-5. Pool = `processed_data/BIRD/bootstrap_full_exmatch/train.csv` (y_pub,
-   exmatch-filtered), `--pool-size 1200`, seed 0 — same stratified subset in
-   cache build and round loop.
+5. **Historical pilot setting:** pool source =
+   `processed_data/BIRD/bootstrap_full_exmatch/train.csv` (y_pub,
+   exmatch-filtered), capped to `--pool-size 1200`, seed 0. Superseded by the
+   locked 3,873-row canonical-pool policy below.
 6. Eval: 3 adapters × {k0, sc} on Spider dev (6 evals), single centralized
    invocation matching the R1.1 run (`eval_arms__s0__20260718T062443` —
    mirror its committed `config.json` flags; one-stack rule). Per-client-pool
@@ -4454,3 +4462,48 @@ K=8/T>0 training result is claimed in this session.
 - [ ] Run the six-arm shared-client K=2/T=1 smoke, then K=8/T=1 paired ladder.
 - [ ] Inspect `e_agg`, post-aggregation EX, post-server EX and executable rate;
       extend only sane arms to T=2/T=3, then T=15 × 3 seeds.
+
+## Session 2026-07-20 (2) — KD data policy locked to the 3,873-row teacher EX-match freeze
+
+User decision: **every default KD experiment uses one identical, frozen pool
+of 3,873 teacher-generated EX-match examples.** This applies to centralized
+KD probes and to both federated KD arms (`fedkd`, `florana_kd`). The teacher
+generated the SQL text zero-shot; execution matching against BIRD gold is a
+row-selection test only. BIRD gold SQL text is not used as the KD target.
+
+Canonical interpretation of “use the 3,873 pool”:
+
+1. The sampling population is always the full frozen set of 3,873 rows.
+   Dataset SHA-256 and row count must be written to the run manifest; a path
+   that currently resolves to a different cardinality must fail validation or
+   be replaced by an explicitly materialized 3,873-row snapshot.
+2. A centralized continuation run uses one epoch over all 3,873 rows unless
+   an experiment is explicitly labelled as a budget ablation.
+3. Every federated server KD stage runs one complete epoch over all 3,873
+   rows. Code represents the default as `pool_size=0` and `distill_steps=0`
+   (both mean uncapped/full). Positive values, including the historical 300
+   steps/round setting, are smoke or compute-budget ablations only.
+4. Offline full-vocabulary logit caching is optional. If a complete cache is
+   too large, use the online teacher or a lazy cache; do not redefine the pool
+   to fit storage.
+5. Historical sample counts remain valid only for their recorded runs: 831 =
+   early continuation probe and 1,200 = superseded R2.0 cache/subset budget.
+   The previously reported 8,128 was not an experiment sample count: it was
+   the number of physical lines in the multiline 3,873-record CSV.
+
+Comparability invariant: all KD arms in a comparison must resolve the same
+ordered 3,873 rows and pool hash. Any experiment using another count belongs
+in a separately named data-size/filter ablation and cannot be reported as the
+default KD arm.
+
+### Next
+
+- [x] Verify the canonical default file with a real CSV parser:
+      `processed_data/BIRD/bootstrap_full_exmatch/train.csv` contains 3,873
+      records across 69 DBs and zero empty SQL targets. Keep this path as the
+      default and record its hash in real-run manifests.
+- [x] Make uncapped full-pool selection and one full epoch the code defaults
+      (`pool_size=0`, `distill_steps=0`); no round-window scheduler is needed
+      for the locked full-data protocol.
+- [ ] Build cache metadata, if caching is used, against the canonical pool
+      hash and reject partial/different-pool caches.
