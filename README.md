@@ -4,9 +4,8 @@ Research repo for the paper *FedICL-SQL: A Novel Federated Large-Small Language
 Models Framework with In-Context Learning for Natural Language to SQL* (target:
 IAJIT, WoS-Q3).
 
-- Method mechanism: `paper/notes/fig1_architecture.md`
-- Decisions, notation & arm-naming map: `paper/notes/DECISIONS.md`
-- Progress log + results: `paper/notes/LAB_LOG.md` + `fedicl-sql/experiments/RUNS.csv`
+- Architecture + decisions + notation + arm-naming map: `paper/notes/system_architecture.md` (single source of truth since 2026-07-08; `DECISIONS.md` folded in and deleted; `fig1_architecture.md` predates the server-side pivot — Fig. 1 pending redraw)
+- Progress log + results: `paper/notes/LAB_LOG.md` + per-run `metrics.json` under `fedicl-sql/experiments/*/results/`
 - Code: `fedicl-sql/` (see `fedicl-sql/README.md` for architecture + quickstart)
 
 **Two-repo layout (intentional):** this outer repo = paper docs/plan/references

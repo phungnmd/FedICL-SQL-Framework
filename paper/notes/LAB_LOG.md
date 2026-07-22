@@ -4507,3 +4507,262 @@ default KD arm.
       for the locked full-data protocol.
 - [ ] Build cache metadata, if caching is used, against the canonical pool
       hash and reject partial/different-pool caches.
+
+## Session 2026-07-20 (3) — compare + McNemar on the FT→KD(BIRD)→re-FT ladder
+
+Eval run `eval_arms__s0__20260720T062440` (Spider dev, k=0, n=1034, seed 0):
+
+| stage | EX% | EM% | exec_err |
+|---|---|---|---|
+| `ft_spider` (spider FT only, `ft_no_icl`) | 62.19 | 57.16 | 211 |
+| `kd_before` (FT → KD BIRD exmatch) | 65.47 | 32.50 | 111 |
+| `kd_then_spider_ft` (→ spider re-FT) | 67.31 | 63.93 | 180 |
+| ref: `central_rkd` (1-stage spider-gold RKD) | 68.28 | 61.99 | 146 |
+
+Paired McNemar (exact, two-sided):
+
+- Full pipeline vs spider-FT-only: +5.12 pp EX, p=4.95e-6 — **significant**.
+- KD-BIRD stage alone (`ft_spider`→`kd_before`): +3.28 pp, p=0.023 — significant.
+- Final re-FT stage (`kd_before`→`kd_then_spider_ft`): +1.84 pp, p=0.20 — **not
+  significant on EX**. Its real effect is style restoration: EM 32.5→63.9.
+  Exec errors *rise* 111→180 — the re-FT costs execution reliability, consistent
+  with the exec-reliability framing from 2026-07-19.
+- vs `central_rkd`: −0.97 pp, p=0.43 — statistically indistinguishable from the
+  cheaper single-stage RKD.
+
+Read: KD-on-BIRD is where the significant EX gain comes from; the trailing
+spider re-FT recovers Spider surface form (EM) but not significant EX and
+worsens exec reliability. Three-stage pipeline does not beat one-stage
+`central_rkd` at 3× the training cost. Single seed, poc stage — no headline
+claim.
+
+### Next
+
+- [ ] If the ladder stays a paper arm: 3 seeds before any claim; otherwise
+      keep as ablation evidence that post-KD re-FT ≈ style restoration only.
+
+## Session 2026-07-20 (4) — batched SC decoding
+
+`--overlay sc` no longer forces `--batch-size 1` (fedicl-sql commit `4a802c7`).
+New `StudentModel.generate_batch_samples_scored` samples several prompts in one
+`generate()` pass (`num_return_sequences=sc_n`, rows grouped per prompt); OOM
+fallback halves prompts first, then n. `--batch-size 2 --sc-n 8` = 16 sequences
+in flight ≈ the proven batch-16 greedy load (~1.3–1.8× expected speedup, decode
+only — SQLite voting stays sequential). Caveat: batched vs batch-1 sampling
+draws different RNG streams → not bit-identical; don't resume an old batch-1 sc
+checkpoint expecting the same candidates. 246 tests pass.
+
+## Session 2026-07-20 (5) — eval CLI makes SC explicit; recovery-control run audited
+
+Changed `experiments/eval_arms/run.py` default from `--overlay sc` to
+`--overlay none`. SC remains the paper/deployment method, but every experiment
+must now spell out `--overlay sc`; a plain evaluator invocation is greedy.
+
+Audited the completed recovery-control result
+`eval_arms__s0__20260720T101354`: both `config.json` and `metrics.json` record
+`overlay="sc"`, `sc_n=8`, temperature 0.8, top-p 0.95, and the arm metrics
+also carry the SC execution/tie diagnostics. Therefore it is a valid SC run
+(Spider-FT2: EX 72.73, EM 67.02), not a greedy run. No result-file rename is
+needed: this repository intentionally stores the base arm name separately
+from the overlay field, and downstream reports compose the display label.
+
+## Session 2026-07-20 (6) — matched Spider-FT2 control changes the BIRD-KD conclusion
+
+This session adds the missing matched control for the three-stage continuation
+pipeline. The causal contrast is now:
+
+```text
+control: central Spider FT → central Spider FT
+treatment: central Spider FT → BIRD teacher-EX-match CE+RKL → central Spider FT
+```
+
+The two final Spider stages use the same 8,659 examples, one epoch, batch size
+1, gradient accumulation 16, learning rate 2e-4, LoRA rank 16, max length
+2,560 and seed 0. The treatment additionally sees the frozen 3,873-record
+BIRD teacher EX-match pool. This comparison identifies the effect of the
+**whole BIRD continuation stage**, not RKL alone; a matched
+`BIRD teacher-target CE-only → Spider FT` arm is still needed to isolate the
+teacher-logit/RKL contribution.
+
+The old recovery-control result `eval_arms__s0__20260720T101354` from session
+(5) was removed and replaced by explicit, clean greedy and SC reruns. It is
+not used in the analysis below. Authoritative run IDs:
+
+| condition | run ID | overlay | batch | decode |
+|---|---|---|---:|---|
+| Spider-FT2 | `eval_arms__s0__20260720T104756` | none | 16 | greedy |
+| BIRD-KD→Spider-FT | `eval_arms__s0__20260720T062440` | none | 16 | greedy |
+| Spider-FT2 | `eval_arms__s0__20260720T121259` | sc | 1 | N=8 |
+| BIRD-KD→Spider-FT | `eval_arms__s0__20260720T074657` | sc | 1 | N=8 |
+
+All use the frozen 1,034-row Spider dev set, k=0, full-schema prompting,
+`never_schema`, retrieval=`question` (irrelevant at k=0), Qwen2.5-1.5B and
+seed 0. Paired row IDs match.
+
+### Main matched results
+
+| overlay | metric | Spider-FT2 | +BIRD-KD | delta | paired evidence |
+|---|---|---:|---:|---:|---|
+| greedy | EX | 67.02 | 67.31 | **+0.29 pp** | 45 gains / 42 losses; McNemar p=0.830; 95% CI [−1.48,+2.06] |
+| greedy | EM | 62.57 | 63.93 | +1.35 pp | p=0.206 |
+| greedy | exec errors | 166 | 180 | +14 | p=0.180 |
+| SC | EX | 73.40 | 75.24 | **+1.84 pp** | 59 gains / 40 losses; McNemar p=0.0699; 95% CI [−0.05,+3.72] |
+| SC | EM | 67.41 | 69.83 | **+2.42 pp** | p=0.0300 |
+| SC | exec errors | 52 | 43 | −9 | p=0.200 |
+
+Greedy EX is flat: three net rows out of 1,034, with substantial bidirectional
+churn. The whole BIRD stage therefore has no measurable top-1 EX benefit after
+the matched final Spider epoch. Under SC the direction is practically useful
+but still suggestive rather than confirmed: +19 net correct rows and +1.84 pp
+EX narrowly miss p<0.05. EM improves significantly at this one seed.
+
+The SC EX signal is concentrated on `hard` queries: 60.34→67.82
+(+7.47 pp, nominal p=0.035); easy +0.81, medium +0.90, extra +0.00 pp. This is
+a mechanistically plausible but post-hoc subgroup and is not an independent
+claim until replicated. SC diagnostics also show that KD does not simply make
+every candidate executable: mean executable candidates/query is essentially
+unchanged (6.403→6.376), while zero-executable queries fall 52→43 and tie rate
+falls 5.32%→4.45%. The strongest behavioral gain is among partially
+executable (4–7 of 8) candidate sets, consistent with distribution shaping
+that makes execution voting more useful.
+
+SC lift over greedy is +6.38 pp for Spider-FT2 and +7.93 pp for the BIRD-KD
+pipeline, a descriptive +1.55 pp interaction. This supports the hypothesis
+that BIRD KD changes candidate-set/voteability more than the greedy top-1
+mode, but one sampling seed is insufficient for a causal interaction claim.
+
+**Correction / supersession:** session (3)'s statement that “KD-on-BIRD is
+where the significant EX gain comes from” compared the treatment against the
+one-epoch Spider floor, not against the matched Spider-FT2 training-budget
+control. It must not be used as causal evidence. The current supported claim
+is: **no greedy EX gain; suggestive KD×SC gain requiring replication**. The
+full detailed audit is in `paper/notes/bird_kd_effect_report.md`.
+
+### Next
+
+- [ ] Cheapest confirmation: rerun both SC adapters with sampling seeds 1 and
+      2; no adapter retraining is needed.
+- [ ] If attributing value specifically to RKL, train the matched
+      `BIRD teacher-target CE-only → Spider FT` control.
+- [ ] Pre-register `hard` and zero-executable analyses before replication;
+      do not promote the seed-0 subgroup result to a headline claim.
+
+## Session 2026-07-20 (7) — centralized RKD now consumes the offline teacher-logit cache
+
+Commit `cb73ba2` (`feat: enable cached logits for centralized RKD`) closes a
+pipeline gap: `experiments/client_train/run.py` now accepts
+`--teacher-logit-cache`, passes it into `LoraTrainConfig`, and uses the same
+cache-backed `train_online_kd` path as federated server KD. When supplied, the
+7B teacher is neither loaded nor run; every RKD step reads the cached full-vocab
+teacher logits. Cache misses remain fail-loud with no silent online fallback.
+
+Metadata validation was moved into a shared validator used by both centralized
+and federated runners. Before student loading it checks `meta.json`, the exact
+pool SHA-256, pool-size policy, seed, student/teacher identities,
+`teacher_4bit`, k/context, schema and demo styles, retrieval/embedder/tau and
+`max_len`. Centralized use is restricted to RKD with symmetric context
+(`kd_teacher_k=0`); k>0 cache runs require fixed demo count.
+
+The canonical full-pool cache is
+`artifacts/teacher_logit_cache/rkd_k0_full`. It contains logits for the full
+frozen 3,873-record pool and is distinct from the historical
+`artifacts/teacher_logit_cache/rkd_k0` 1,200-row pilot cache recorded in the
+older runbook above. The full cache is reusable for Skew-RKL:
+`--rkl-skew-lambda 0.1` changes only the student loss denominator and does not
+change cached teacher logits. The documented screening arm is:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 uv run python experiments/client_train/run.py \
+  --client processed_data/BIRD/bootstrap_full_exmatch/train.csv \
+  --kd-direction rkd --rkl-skew-lambda 0.1 \
+  --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit \
+  --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full \
+  --init-adapter artifacts/icl_ladder/qwen1b/ft_no_icl/adapter \
+  --out artifacts/probe_p/central_ft_then_srkd01_bird_exmatch/adapter \
+  --epochs 1 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
+```
+
+`--teacher-4bit` in the training command is a metadata-identity flag when a
+cache is used and must match how the cache was built; it does not cause the
+teacher to load. The command still uses all 3,873 records for one epoch.
+
+Validation: Ruff passed; targeted cache + federated round-loop tests passed
+18/18. The full local suite was not a valid offline check because an unrelated
+DAIL retrieval test attempted to download `BAAI/bge-small-en-v1.5` while
+network access was unavailable.
+
+**Status:** cache support is implemented and committed; no Skew-RKL training
+or evaluation result exists yet. Do not report Skew-RKL as an empirical gain.
+
+### Next
+
+- [ ] Run the single seed-0 `srkd01` screening arm from the same pre-BIRD
+      adapter and frozen pool as plain RKL.
+- [ ] Compare plain RKL vs `srkd01` immediately after BIRD under greedy and SC;
+      only run the matched final Spider recovery if EX or reliability improves.
+- [ ] If the centralized gate passes, expose `rkl_skew_lambda` in the
+      federated round-loop config and compare `florana_kd` plain vs skew from
+      identical aggregated adapters.
+
+## Session 2026-07-22 — matched Skew-RKL verdict: reject α=0.1 as the federated default
+
+The earlier Skew-RKL screen used a historical plain-RKL adapter trained before
+skeleton-weighted CE was removed, so it was not a valid one-variable
+comparison. The control was retrained with current code and the same full
+teacher-logit cache as Skew-RKL:
+
+- plain RKL: `client_train__s0__20260722T025623`, adapter
+  `artifacts/probe_p/central_ft_then_rkd_cache_bird_exmatch/adapter`;
+- Skew-RKL α=0.1: `client_train__s0__20260720T161928`, adapter
+  `artifacts/probe_p/central_ft_then_srkd01_bird_exmatch/adapter`;
+- matched eval: `eval_arms__s0__20260722T030448`, Spider dev, n=1,034,
+  k=0, greedy, batch 16.
+
+Both training configs use the identical Spider-FT init, frozen 3,873-record
+BIRD EX-match pool, `artifacts/teacher_logit_cache/rkd_k0_full`, 3,873 steps,
+seed 0 and all optimization/rendering settings. Ignoring output path, the only
+config difference is `rkl_skew_lambda: 0.0 → 0.1`.
+
+| metric | plain RKL | Skew-RKL 0.1 | delta | paired evidence |
+|---|---:|---:|---:|---|
+| EX | 64.99 | 66.05 | +1.06 pp | 39 gains / 28 losses; McNemar p=0.222; 95% CI [−0.49,+2.61] |
+| EM | 33.75 | 34.04 | +0.29 pp | p=0.761 |
+| execution errors | 104 | 124 | **+20** | 37 new / 17 repaired; McNemar p=0.009 |
+
+The EX direction is positive but noise-compatible. The reliability regression
+is significant and is concentrated in schema-grounding failures: `no such
+column` 92→102, `no such table` 3→8, aggregate misuse 5→8 and ambiguous column
+2→4. By hardness, Skew-RKL changes EX by easy +1.21, medium +1.12, hard +4.02
+and extra −2.41 pp; none is significant. This is redistribution, not a stable
+accuracy improvement.
+
+**Decision:** retain plain RKL (`skew_lambda=0`) for `fedkd` and
+`florana_kd`. Reject α=0.1 as the proposed/default objective; do not spend a
+federated training arm or Spider recovery run on it. An SC-only check is an
+optional completeness ablation, not a blocker. The lower Skew-RKL training
+loss is not comparable because skewing changes the objective's scale.
+
+## Session 2026-07-22 (2) — federated preflight: real SC seeds and canonical full-cache runbook
+
+Commit `b5cf373` fixes evaluation reproducibility before federated headline
+runs:
+
+- `experiments/eval_arms/run.py --seed` now resets Python, Torch and all CUDA
+  RNGs after loading each arm/pool. Previously it controlled only eval-subset
+  selection and checkpoint identity, so historical SC runs labelled seed 0/1
+  were stochastic repeats but not controlled sampling-seed replications.
+- Every arm now starts from the same RNG stream, enabling cleaner paired SC
+  comparisons. Greedy decoding is unchanged.
+- The resume fingerprint now includes `batch_size`; batch-1 and batched SC draw
+  different samples and can no longer silently share cached eval rows.
+- Federated and centralized KD runbooks now point to the canonical full cache
+  `artifacts/teacher_logit_cache/rkd_k0_full`, not the retired 1,200-row
+  `rkd_k0` pilot cache.
+
+Validation: focused eval, aggregation, round-loop, manifest and cache tests
+passed 64/64; Ruff and `git diff --check` passed.
+
+**Next locked action:** ICL work is deferred. Run a capped K=2/T=1 six-arm GPU
+smoke, then the full shared-client K=8/T=1 α=0.5 ladder. Keep plain RKL and
+prune arms from measured T=1 aggregation/server deltas before extending to
+T=2/T=3; do not jump directly to T=15.

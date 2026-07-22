@@ -79,9 +79,11 @@
 - **Link**: https://arxiv.org/abs/2402.16347
 - **Published**: SIGMOD 2024
 - **GitHub**: https://github.com/RUCKBReasoning/codes
+- **Local copy**: `paper/references/pdf/Natural Language to SQL/15-2024-CodeS- Towards Building Open-source Language Models for Text-to-SQL.pdf` (md: same path under `md/`)
 - **Model sizes**: 1B, 3B, 7B, 15B
 - **Core idea**: Incremental pre-training trên SQL-centric corpus + SFT. Bi-directional data augmentation + strategic prompt construction.
 - **Key result**: Competitive với GPT-4 trên Spider + BIRD, 10x–100x smaller.
+- **Đã implement trong `fedicl-sql`**: §6.3 schema metadata (`--schema-style codes`), §6.2 matched values, §8.2 question-pattern retriever (`--retrieval codes`). Chi tiết: `paper/notes/dail_vs_codes_prompt_methods.md`. Không dùng số `[10]` (đã gán cho KID) — xem note ở đầu `dail_vs_codes_prompt_methods.md`.
 
 ### SLM-SQL: An Exploration of Small Language Models for Text-to-SQL
 - **arXiv**: 2507.22478

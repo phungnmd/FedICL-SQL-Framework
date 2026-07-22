@@ -176,8 +176,9 @@ target) đặt mass cao lên chính token của target:
 
 - Target = teacher-text (`y_pub`): nhất quán **by construction** — text là mode
   của teacher. CE và RKL kéo cùng hướng.
-- Target = BIRD gold: tại token teacher không đồng ý (annotation error 52.8%
-  Mini-Dev + style lạ), CE kéo `q` về token gold, RKL kéo `q` về mode của
+- Target = BIRD gold: tại token teacher không đồng ý (gold là oracle không
+  đáng tin — 52.8% Mini-Dev bị flag annotation issue, phạm trù rộng gồm cả
+  mơ hồ, xem scope note §3.2 — cộng style lạ), CE kéo `q` về token gold, RKL kéo `q` về mode của
   teacher — **gradient conflict trong cùng một loss**. Gold càng nhiễu, vùng
   conflict càng rộng. Đây là giải thích mechanistic thống nhất cả E0.1 (CE
   thuần nuốt độc) lẫn dự đoán cho arm `bird_gold`.

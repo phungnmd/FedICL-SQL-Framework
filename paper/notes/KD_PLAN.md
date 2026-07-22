@@ -3,8 +3,8 @@
 > Goal: build Fed + ICL + KD framework that maximizes EX on a *small* student
 > (Qwen2.5-1.5B). Both distillation directions come from **[10] KID** (Zhong et al.
 > 2024, arXiv:2410.11371): **RKD** (Reverse KL on gold data) and **KID** (Reverse KL
-> on imperfect data). Full system: `system_architecture.md` §5.6/§5.6.1. Decision
-> record: `DECISIONS.md`.
+> on imperfect data). Full system + decision record: `system_architecture.md`
+> (§8 KD directions; `DECISIONS.md` folded in and deleted 2026-07-08).
 >
 > **Rev 2026-07-07 (2) — CoT direction dropped.** The Struct-SQL [11] QP-CoT
 > direction (`poc_struct`, offline teacher traces, `gen_teacher_targets.py` pipeline)
@@ -178,8 +178,14 @@ extra student `no_grad` forward (the fill).
 
 The full federated design (dual data streams, sequential Step-1 KD-pretrain on a
 public corpus → Step-2 FT on `Qᵢ`, control ladder, 4-stage experiment ladder) is
-deferred until the PoC has a verdict and a public KD corpus is picked. Re-derive the
-staged plan then. Design invariants that carry forward:
+deferred. Status 2026-07-12: **both former blockers are resolved** — the PoC has
+its verdict (RKD provisional winner, LAB_LOG 2026-07-11 (2)) and the public KD
+corpus is decided (`P` = BIRD train, `system_architecture.md` §3.2 — with the
+mandatory E0.1 transfer probe before any distill build). Note the architecture
+has ALSO changed since this section was written (server-side distill per the
+2026-07-08 pivot — no sequential two-step design, no client-side teacher);
+re-derive the staged plan from `system_architecture.md` + `fed_ickd_v2_proposal.md`,
+not from the 4-stage ladder below. Design invariants that carry forward:
 
 1. **KD data = public and equal for every direction compared** — keeps `kid − rkd`
    free of a data confound.

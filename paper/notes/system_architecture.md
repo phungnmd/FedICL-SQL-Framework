@@ -92,6 +92,11 @@ absolute parity with the teacher.
   latency. Client retrieval infra is now fully optional, not just
   accuracy-neutral: `sc` needs zero demos, so the ~14% fallback-retrieval
   path the gate used is gone too. Full trace: LAB_LOG 2026-07-16.
+  **CLI safety convention (2026-07-20):** this remains the paper/deployment
+  overlay, but `eval_arms/run.py` defaults to `--overlay none` (single greedy
+  decode). Every SC measurement must opt in with the literal `--overlay sc`,
+  preventing an omitted flag from silently multiplying cost or mislabelling a
+  control evaluation.
 - **Naming: "Fed-ICKD" stays**, regardless of the `k_teacher` 3-vs-0 ablation
   outcome (2026-07-12, user). ICL is an open experimental surface, not a
   single load-bearing ablation — apply it wherever it plausibly helps and

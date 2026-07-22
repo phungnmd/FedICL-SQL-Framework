@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fed-ICKD — Interactive System Architecture</title>
+<style>
+  :root {
+    --bg: #eef1f0;
+    --surface: #ffffff;
+    --surface-alt: #e4e9e6;
+    --ink: #16201c;
+    --ink-muted: #56655d;
+    --line: #c6cec8;
+    --server: #1f5c6b;
+    --server-soft: #dbe9ea;
+    --client: #9c6b1f;
+    --client-soft: #f1e6d2;
+    --private: #3f7d52;
+    --private-soft: #dcefe0;
+    --ring: rgba(31, 92, 107, 0.35);
+    --shadow: 0 1px 2px rgba(20, 30, 26, 0.06), 0 8px 22px rgba(20, 30, 26, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151a; --surface: #171d23; --surface-alt: #1e262d; --ink: #e7ece7;
+      --ink-muted: #8fa098; --line: #2b343b; --server: #6cc0d4; --server-soft: #16333b;
+      --client: #e3ac57; --client-soft: #3a2c15; --private: #79cf94; --private-soft: #173322;
+      --ring: rgba(108, 192, 212, 0.4);
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 26px rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10151a; --surface: #171d23; --surface-alt: #1e262d; --ink: #e7ece7;
+    --ink-muted: #8fa098; --line: #2b343b; --server: #6cc0d4; --server-soft: #16333b;
+    --client: #e3ac57; --client-soft: #3a2c15; --private: #79cf94; --private-soft: #173322;
+    --ring: rgba(108, 192, 212, 0.4);
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 26px rgba(0,0,0,0.4);
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f0; --surface: #ffffff; --surface-alt: #e4e9e6; --ink: #16201c;
+    --ink-muted: #56655d; --line: #c6cec8; --server: #1f5c6b; --server-soft: #dbe9ea;
+    --client: #9c6b1f; --client-soft: #f1e6d2; --private: #3f7d52; --private-soft: #dcefe0;
+    --ring: rgba(31, 92, 107, 0.35);
+    --shadow: 0 1px 2px rgba(20,30,26,0.06), 0 8px 22px rgba(20,30,26,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mono, code { font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace; }
+  svg.icon { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; }
+
+  .page { max-width: 1240px; margin: 0 auto; padding: 40px 24px 64px; display: flex; flex-direction: column; gap: 32px; }
+
+  /* ---------- header ---------- */
+  header { display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+  .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); }
+  h1 { margin: 0; font-size: 27px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .subtitle { color: var(--ink-muted); font-size: 14px; max-width: 74ch; }
+  .chiprow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+  .chip { font-family: ui-monospace, monospace; font-size: 11.5px; padding: 5px 10px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface-alt); color: var(--ink-muted); white-space: nowrap; }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .hint { font-size: 12.5px; color: var(--ink-muted); display: flex; align-items: center; gap: 6px; }
+  .hint svg { width: 14px; height: 14px; }
+
+  /* ---------- layout ---------- */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  main { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+
+  .section-label { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---------- interactive node ---------- */
+  .node { cursor: pointer; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease; }
+  .node:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--server) 40%, var(--line)); }
+  .node:focus-visible { outline: 2px solid var(--server); outline-offset: 2px; }
+  .node.active { box-shadow: 0 0 0 3px var(--ring), var(--shadow); border-color: var(--server); }
+  .band.client .node:hover, .band.client .node.active { border-color: color-mix(in srgb, var(--client) 45%, var(--line)); }
+  .band.client .node.active { box-shadow: 0 0 0 3px color-mix(in srgb, var(--client) 35%, transparent), var(--shadow); }
+  .inference .node.active, .inference .node:hover { border-color: color-mix(in srgb, var(--private) 45%, var(--line)); }
+
+  /* ---------- server / client bands ---------- */
+  .stage { display: flex; flex-direction: column; }
+  .band { border-radius: 12px; border: 1px solid var(--line); padding: 18px 20px 20px; }
+  .band.server { background: var(--server-soft); }
+  .band.client { background: var(--client-soft); }
+  .band-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .band-head svg.icon { width: 20px; height: 20px; }
+  .band.server .band-head { color: var(--server); }
+  .band.client .band-head { color: var(--client); }
+  .band-head .t { font-weight: 700; font-size: 13.5px; letter-spacing: .03em; text-transform: uppercase; }
+  .band-head .s { font-size: 12px; color: var(--ink-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .node-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 640px) { .node-row { grid-template-columns: 1fr; } }
+  .node-card { padding: 13px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .node-card .ic { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .band.server .node-card .ic { background: var(--surface-alt); color: var(--server); }
+  .band.client .node-card .ic { background: var(--surface-alt); color: var(--client); }
+  .node-card .ic svg { width: 17px; height: 17px; }
+  .node-card .nt { font-weight: 600; font-size: 13px; }
+  .node-card .ns { font-size: 12px; color: var(--ink-muted); }
+
+  /* ---------- channel ---------- */
+  .channel { display: grid; grid-template-columns: 60px 1fr 60px; align-items: center; gap: 14px; padding: 6px 0; }
+  .arrow-col { display: flex; justify-content: center; }
+  .arrow-col svg { width: 100%; height: 64px; overflow: visible; }
+  .flow-line { stroke: var(--server); stroke-width: 2.2; fill: none; stroke-dasharray: 7 7; }
+  .up-col .flow-line { stroke: var(--client); }
+  .arrowhead { fill: var(--server); }
+  .up-col .arrowhead { fill: var(--client); }
+  @media (prefers-reduced-motion: no-preference) {
+    .flow-line { animation: dash 1.1s linear infinite; }
+    .up-col .flow-line { animation: dashup 1.1s linear infinite; }
+  }
+  @keyframes dash { to { stroke-dashoffset: -28; } }
+  @keyframes dashup { to { stroke-dashoffset: 28; } }
+  .arrow-col.emphasis .flow-line { stroke-width: 3.4; }
+  .arrow-col.emphasis svg { filter: drop-shadow(0 0 4px var(--ring)); }
+
+  .comm-strip { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); padding: 12px 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 14px 22px; justify-content: center; }
+  .comm-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-muted); }
+  .comm-item svg { width: 16px; height: 16px; }
+  .comm-item.never { font-style: italic; }
+  .comm-item.never svg { color: var(--ink-muted); }
+
+  /* ---------- stacked client cards ---------- */
+  .stack-wrap { position: relative; padding-top: 6px; }
+  .ghost { position: absolute; inset: 6px -8px -8px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); opacity: .5; }
+  .ghost.g2 { inset: 12px -16px -16px 16px; opacity: .3; }
+  .stack-note { position: absolute; top: -2px; right: 4px; font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--ink-muted); background: var(--client-soft); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); }
+
+  /* ---------- round loop ---------- */
+  .loop-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .loop-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .loop-title { font-weight: 700; font-size: 13.5px; }
+  .loop-controls { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface-alt); cursor: pointer; }
+  .icon-btn svg { width: 15px; height: 15px; }
+  .icon-btn:hover { border-color: var(--server); color: var(--server); }
+  .icon-btn:focus-visible { outline: 2px solid var(--server); outline-offset: 1px; }
+  .step-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .step-chip { border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; font-size: 12px; cursor: pointer; background: var(--surface); color: var(--ink-muted); display: flex; align-items: center; gap: 7px; }
+  .step-chip .n { font-family: ui-monospace, monospace; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; }
+  .step-chip.active { border-color: var(--server); color: var(--ink); background: var(--server-soft); }
+  .step-chip.active .n { background: var(--server); color: var(--surface); }
+  .step-chip:focus-visible { outline: 2px solid var(--server); outline-offset: 1px; }
+  .loop-caption { font-size: 12.8px; color: var(--ink-muted); border-top: 1px dashed var(--line); padding-top: 12px; min-height: 1.4em; }
+  .loop-caption b { color: var(--ink); font-weight: 600; }
+  .loop-repeat { font-family: ui-monospace, monospace; font-size: 11px; color: var(--ink-muted); }
+
+  /* ---------- inference band ---------- */
+  .inference { border: 1px solid var(--line); border-radius: 12px; background: var(--private-soft); padding: 18px 20px 20px; }
+  .inference .band-head { color: var(--private); }
+  .infer-pipe { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+  .infer-pipe .node-card { flex: 1 1 150px; align-items: center; text-align: center; background: var(--surface); }
+  .infer-pipe .node-card .ic { background: var(--private-soft); color: var(--private); }
+  .infer-arrow { display: flex; align-items: center; color: var(--ink-muted); font-size: 15px; }
+
+  /* ---------- aside / inspector ---------- */
+  aside { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 20px; }
+  .inspector { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); padding: 18px 18px 20px; min-height: 220px; }
+  .insp-eyebrow { font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--server); margin-bottom: 6px; }
+  .insp-title { font-weight: 700; font-size: 15.5px; margin-bottom: 10px; text-wrap: balance; }
+  .insp-body { font-size: 12.8px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 8px; }
+  .insp-body ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+  .insp-body code { background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  .insp-empty { font-size: 12.8px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 8px; }
+
+  .facts { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); padding: 16px 18px; }
+  .facts h3 { margin: 0 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+  .facts ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .facts li { display: flex; gap: 8px; font-size: 12.5px; }
+  .facts li svg { width: 14px; height: 14px; color: var(--private); flex: none; margin-top: 2px; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 16px; font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--ink-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-teacher" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/><circle cx="15" cy="15" r="1.2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="9" x2="9" y2="15"/><line x1="15" y1="9" x2="15" y2="15"/><line x1="4" y1="9" x2="1.5" y2="9"/><line x1="4" y1="15" x2="1.5" y2="15"/><line x1="20" y1="9" x2="22.5" y2="9"/><line x1="20" y1="15" x2="22.5" y2="15"/><line x1="9" y1="4" x2="9" y2="1.5"/><line x1="15" y1="4" x2="15" y2="1.5"/></symbol>
+  <symbol id="i-pool" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6 v9 c0 1.7 3.1 3 7 3 s7 -1.3 7 -3 V6"/><path d="M5 11.5 c0 1.7 3.1 3 7 3 s7 -1.3 7 -3"/></symbol>
+  <symbol id="i-aggregator" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.4"/><rect x="3" y="10.5" width="18" height="5" rx="1.4"/><rect x="3" y="17" width="18" height="3.5" rx="1.2"/><circle cx="6.5" cy="6.5" r="0.9"/><circle cx="6.5" cy="13" r="0.9"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"/><circle cx="12" cy="15.2" r="1.2"/><line x1="12" y1="16.3" x2="12" y2="17.8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 l7 3 v6 c0 5-3 8-7 9 -4-1-7-4-7-9 V6 z"/><polyline points="8.7 12 11 14.3 15.3 9.8"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 12 a8 8 0 0 1 13.5-5.8"/><polyline points="17 3 17.5 6.5 14 6"/><path d="M20 12 a8 8 0 0 1 -13.5 5.8"/><polyline points="7 21 6.5 17.5 10 18"/></symbol>
+  <symbol id="i-never" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="6.5" y1="6.5" x2="17.5" y2="17.5"/></symbol>
+  <symbol id="i-student" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.4"/><circle cx="10" cy="10" r="0.9"/><circle cx="14" cy="10" r="0.9"/><circle cx="10" cy="14" r="0.9"/><circle cx="14" cy="14" r="0.9"/><line x1="10" y1="10" x2="14" y2="14"/><line x1="14" y1="10" x2="10" y2="14"/><line x1="6" y1="10" x2="3.5" y2="10"/><line x1="6" y1="14" x2="3.5" y2="14"/><line x1="18" y1="10" x2="20.5" y2="10"/><line x1="18" y1="14" x2="20.5" y2="14"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="10" height="17" rx="1"/><rect x="14.5" y="9" width="6" height="11.5" rx="1"/><rect x="6.8" y="6.3" width="1.6" height="1.6"/><rect x="10.5" y="6.3" width="1.6" height="1.6"/><rect x="6.8" y="10.3" width="1.6" height="1.6"/><rect x="10.5" y="10.3" width="1.6" height="1.6"/><rect x="6.8" y="14.3" width="1.6" height="1.6"/><rect x="10.5" y="14.3" width="1.6" height="1.6"/><rect x="16.5" y="11.8" width="1.6" height="1.6"/><rect x="16.5" y="15.8" width="1.6" height="1.6"/></symbol>
+  <symbol id="i-train" viewBox="0 0 24 24"><polygon points="12 4 22 8.5 12 13 2 8.5"/><path d="M6 10.3 V15 c0 1.7 2.7 3 6 3 s6 -1.3 6 -3 v-4.7"/><line x1="22" y1="8.5" x2="22" y2="15"/></symbol>
+  <symbol id="i-sample" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8.5" cy="8.5" r="1.1"/><circle cx="15.5" cy="8.5" r="1.1"/><circle cx="8.5" cy="15.5" r="1.1"/><circle cx="15.5" cy="15.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/></symbol>
+  <symbol id="i-exec" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><polyline points="7 9 10.5 12 7 15"/><line x1="12" y1="15" x2="17" y2="15"/></symbol>
+  <symbol id="i-vote" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><polyline points="8 12.5 11 15.5 16.5 8.5"/></symbol>
+  <symbol id="i-balance" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="19"/><line x1="5" y1="7" x2="19" y2="7"/><path d="M5 7 l-3 6 a3 3 0 0 0 6 0 z"/><path d="M19 7 l-3 6 a3 3 0 0 0 6 0 z"/><line x1="8" y1="21" x2="16" y2="21"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="7 5 19 12 7 19"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></symbol>
+  <symbol id="i-cursor" viewBox="0 0 24 24"><path d="M6 3 L6 19 L10.5 15.2 L13.3 21 L16 19.7 L13.1 14 L18.5 13.6 Z"/></symbol>
+</svg>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Fed-ICKD — repo: FedICL-SQL</div>
+    <h1>Federated In-Context Knowledge Distillation for Text-to-SQL</h1>
+    <div class="subtitle">Small student (1.5B) trained across K non-IID clients via FedAvg on LoRA adapters; a frozen 7B teacher distills the aggregated model on a public pool every round. Raw data never leaves a client — only adapters cross the wire.</div>
+    <div class="chiprow">
+      <span class="chip">Teacher <b>Qwen2.5-Coder-7B-Instruct</b></span>
+      <span class="chip">Student <b>Qwen2.5-1.5B-Instruct</b> + LoRA</span>
+      <span class="chip">Pool P = <b>BIRD schemas/DBs</b></span>
+      <span class="chip">KD: <b>RKD</b> (provisional)</span>
+      <span class="chip">Inference: <b>SC-vote</b> N=8</span>
+    </div>
+    <div class="hint"><svg class="icon"><use href="#i-cursor"/></svg> Click any block below to inspect it — the panel on the right updates with the exact mechanism.</div>
+  </header>
+
+  <div class="layout">
+    <main>
+
+      <!-- STAGE: server / channel / client -->
+      <div class="stage">
+        <div class="section-label">Architecture — server ↔ client</div>
+
+        <div class="band server">
+          <div class="band-head">
+            <svg class="icon"><use href="#i-aggregator"/></svg>
+            <span class="t">Server</span>
+            <span class="s">— structurally never receives client data</span>
+          </div>
+          <div class="node-row">
+            <div class="node node-card" data-node="teacher" tabindex="0" role="button">
+              <div class="ic"><svg class="icon"><use href="#i-teacher"/></svg></div>
+              <div class="nt">Teacher M_T</div>
+              <div class="ns">frozen 7B — KD scorer + reference arm</div>
+            </div>
+            <div class="node node-card" data-node="pool" tabindex="0" role="button">
+              <div class="ic"><svg class="icon"><use href="#i-pool"/></svg></div>
+              <div class="nt">Public pool P</div>
+              <div class="ns">BIRD schemas/DBs, never BIRD gold SQL</div>
+            </div>
+            <div class="node node-card" data-node="aggregator" tabindex="0" role="button">
+              <div class="ic"><svg class="icon"><use href="#i-aggregator"/></svg></div>
+              <div class="nt">FedAvg + distill</div>
+              <div class="ns">Phase 3, every round</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="channel">
+          <div class="arrow-col down-col" data-flow="down-arrow">
+            <svg viewBox="0 0 60 64" preserveAspectRatio="none">
+              <line class="flow-line" x1="30" y1="2" x2="30" y2="52"/>
+              <polygon class="arrowhead" points="22,50 38,50 30,62"/>
+            </svg>
+          </div>
+          <div class="comm-strip node" data-node="comm" tabindex="0" role="button">
+            <span class="comm-item"><svg class="icon"><use href="#i-lock"/></svg> SSL / TLS</span>
+            <span class="comm-item"><svg class="icon"><use href="#i-sync"/></svg> FedAvg, nᵢ/n weighted</span>
+            <span class="comm-item"><svg class="icon"><use href="#i-shield"/></svg> adapters only</span>
+            <span class="comm-item never"><svg class="icon"><use href="#i-never"/></svg> raw data never crosses</span>
+          </div>
+          <div class="arrow-col up-col" data-flow="up-arrow">
+            <svg viewBox="0 0 60 64" preserveAspectRatio="none">
+              <line class="flow-line" x1="30" y1="62" x2="30" y2="12"/>
+              <polygon class="arrowhead" points="22,14 38,14 30,2"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="band client" data-flow="client-band">
+          <div class="band-head">
+            <svg class="icon"><use href="#i-building"/></svg>
+            <span class="t">Client i × K</span>
+            <span class="s">— private, non-IID by schema/domain</span>
+          </div>
+          <div class="stack-wrap">
+            <div class="ghost g2" aria-hidden="true"></div>
+            <div class="ghost g1" aria-hidden="true"></div>
+            <span class="stack-note">K = 8, Dirichlet(α) by domain</span>
+            <div class="node-row">
+              <div class="node node-card" data-node="localdata" tabindex="0" role="button">
+                <div class="ic"><svg class="icon"><use href="#i-building"/></svg></div>
+                <div class="nt">Sᵢ + Qᵢ</div>
+                <div class="ns">schema + NL/SQL pairs, never uploaded</div>
+              </div>
+              <div class="node node-card" data-node="student" tabindex="0" role="button">
+                <div class="ic"><svg class="icon"><use href="#i-student"/></svg></div>
+                <div class="nt">Student Mᵢ</div>
+                <div class="ns">1.5B + LoRA r=16, fp16 base</div>
+              </div>
+              <div class="node node-card" data-node="localtrain" tabindex="0" role="button">
+                <div class="ic"><svg class="icon"><use href="#i-train"/></svg></div>
+                <div class="nt">Phase 2 — local FT</div>
+                <div class="ns">CE only, k=0, no teacher</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROUND LOOP -->
+      <div class="loop-card">
+        <div class="loop-top">
+          <div class="loop-title">Round loop — t = 1 … T</div>
+          <div class="loop-controls">
+            <button class="icon-btn" id="playBtn" aria-label="Play round loop"><svg class="icon"><use id="playIcon" href="#i-play"/></svg></button>
+            <span class="loop-repeat">↻ default T = 15</span>
+          </div>
+        </div>
+        <div class="step-chips" id="stepChips">
+          <button class="step-chip active" data-step="0"><span class="n">1</span> Broadcast</button>
+          <button class="step-chip" data-step="1"><span class="n">2</span> Local fine-tune</button>
+          <button class="step-chip" data-step="2"><span class="n">3</span> FedAvg + distill</button>
+        </div>
+        <div class="loop-caption" id="loopCaption"><b>Broadcast —</b> server sends θₜ₋₁ to all K clients over the adapter channel below.</div>
+      </div>
+
+      <!-- INFERENCE -->
+      <div class="inference">
+        <div class="band-head">
+          <svg class="icon"><use href="#i-vote"/></svg>
+          <span class="t">Inference — Phase 4</span>
+          <span class="s">client-only, no server round-trip, no ICL demos</span>
+        </div>
+        <div class="infer-pipe node" data-node="inference" tabindex="0" role="button">
+          <div class="node-card">
+            <div class="ic"><svg class="icon"><use href="#i-sample"/></svg></div>
+            <div class="nt">Sample N=8</div>
+            <div class="ns">k=0, temp 0.8, top_p .95</div>
+          </div>
+          <div class="infer-arrow">→</div>
+          <div class="node-card">
+            <div class="ic"><svg class="icon"><use href="#i-exec"/></svg></div>
+            <div class="nt">Execute each</div>
+            <div class="ns">against local DB</div>
+          </div>
+          <div class="infer-arrow">→</div>
+          <div class="node-card">
+            <div class="ic"><svg class="icon"><use href="#i-vote"/></svg></div>
+            <div class="nt">Majority vote</div>
+            <div class="ns">execution-RESULT equivalence</div>
+          </div>
+          <div class="infer-arrow">→</div>
+          <div class="node-card">
+            <div class="ic"><svg class="icon"><use href="#i-balance"/></svg></div>
+            <div class="nt">Tie-break</div>
+            <div class="ns">highest mean logprob</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <aside>
+      <div class="inspector" id="inspector">
+        <div class="insp-empty" id="inspEmpty">
+          <strong style="color:var(--ink); font-size:14px;">Inspector</strong>
+          Click any teacher, pool, aggregator, client, communication, or inference block to see its exact spec here — formulas, model ids, and the numbers behind each design pick.
+        </div>
+      </div>
+      <div class="facts">
+        <h3>What's actually shipping</h3>
+        <ul>
+          <li><svg class="icon"><use href="#i-vote"/></svg> SC-vote (N=8, k=0) is the default inference overlay — beat the gated-retry overlay, McNemar p=0.00042.</li>
+          <li><svg class="icon"><use href="#i-vote"/></svg> RKD is the provisional KD direction — rkd−ft = +6.09 EX, p=3.1e-07.</li>
+          <li><svg class="icon"><use href="#i-vote"/></svg> Pool P = BIRD schemas/DBs only — BIRD's own gold SQL is banned as a training target.</li>
+          <li><svg class="icon"><use href="#i-vote"/></svg> Demo content doesn't matter on a trained student — random ≈ DAIL, McNemar p=1.00.</li>
+          <li><svg class="icon"><use href="#i-vote"/></svg> Only LoRA adapters cross the wire — no formal DP claim, no "no weights leave" claim.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <span>Source: paper/notes/system_architecture.md (rewritten 2026-07-08, current as of 2026-07-18)</span>
+    <span>Cost framing: teacher cost paid once at server training time; per-query cost is the 1.5B student's</span>
+  </footer>
+
+</div>
+
+<script>
+  var nodeData = {
+    teacher: {
+      eyebrow: "SERVER · Phase 1 & 3",
+      title: "Teacher M_T — frozen 7B",
+      body: "<ul>"
+        + "<li><b>Qwen2.5-Coder-7B-Instruct</b> (switched 2026-07-08 — code-tuned, shares the Qwen2.5 tokenizer with the student, so RKL needs no vocab mapping).</li>"
+        + "<li>Two roles: <b>KD scorer</b> — one teacher-forced forward per step, no decoding; and <b>reference arm</b> <code>teacher</code> — DAIL ICL, zero fine-tune.</li>"
+        + "<li>Never receives client data — structurally, not by promise. Nothing but adapters ever arrives at the server.</li>"
+        + "<li>Teacher ICL: DAIL selection within P, k_teacher = 3. Teacher and student score the <b>same</b> ICL context when computing the KD pair (p, q).</li>"
+        + "</ul>"
+    },
+    pool: {
+      eyebrow: "SERVER · Phase 1",
+      title: "Public pool P — BIRD schemas/DBs",
+      body: "<ul>"
+        + "<li>~9.4k questions / ~70 DBs — DB-disjoint from every client's Spider data.</li>"
+        + "<li>BIRD's own gold SQL is <b>permanently off-limits</b> as a plain-CE training target — E0.1 gate: 47.10 EX, below the 50.00 untrained floor (annotation quality, not evidence-dependence).</li>"
+        + "<li>Targets instead: teacher zero-shot SQL on P's schemas → execution filter → optional EX-match filter. Exec-bootstrap <b>passed exactly at the floor</b> (50.00 EX).</li>"
+        + "<li><code>evidence</code> field + <code>database_description</code> dropped from every prompt — keeps prompt format byte-identical to what clients train/deploy on.</li>"
+        + "</ul>"
+    },
+    aggregator: {
+      eyebrow: "SERVER · Phase 3, every round",
+      title: "FedAvg + server distillation",
+      body: "<ul>"
+        + "<li><code>θ̃ₜ ← θₜ₋₁ + Σᵢ(nᵢ/n)·Δθᵢ</code> — McMahan weighting by client size, not 1/K.</li>"
+        + "<li>Distill M_G on P for ~300 steps, batch 16: <code>L = λ_ft·CE(y_pub) + λ_kd·RKL(q‖p)</code>, defaults 1:1.</li>"
+        + "<li><b>Reverse KL only</b> — mode-seeking fits SQL's precise, low-diversity token distribution; forward KL would smear mass over invalid continuations.</li>"
+        + "<li><b>RKD ships</b> (gold-target reverse KL, provisional default): target is fixed, so teacher logits are cacheable offline — no 7B co-load needed every round.</li>"
+        + "<li>Empirically validated: CE-only continuation on P regresses an already-converged student (−2.81 EX); adding RKL neutralizes the drift (+0.09) — matched-control KD value = <b>+2.90 EX</b>.</li>"
+        + "</ul>"
+    },
+    comm: {
+      eyebrow: "ADAPTERS ONLY",
+      title: "Communication channel",
+      body: "<ul>"
+        + "<li><b>DOWN</b> (server → client): aggregated LoRA adapter M_G, a few MB, over SSL/TLS.</li>"
+        + "<li><b>UP</b> (client → server): LoRA delta Δθᵢ only, over SSL/TLS (+ optional DP noise, Tier 3, not a default claim).</li>"
+        + "<li><b>Never</b>: raw rows, schema Sᵢ, Qᵢ, demos, embeddings, teacher outputs — stay local by design, structural isolation not policy.</li>"
+        + "<li>LoRA-averaging caveat: <code>mean(BᵢAᵢ) ≠ mean(Bᵢ)·mean(Aᵢ)</code> — mitigated by re-initializing every client from the same aggregated adapter each round.</li>"
+        + "</ul>"
+    },
+    localdata: {
+      eyebrow: "CLIENT · private, never leaves",
+      title: "Sᵢ + Qᵢ — local data",
+      body: "<ul>"
+        + "<li><b>Sᵢ</b> — relational schema: tables, columns, types, FK paths.</li>"
+        + "<li><b>Qᵢ</b> — NL/gold-SQL pairs on Sᵢ's databases; also the local ICL demo pool.</li>"
+        + "<li>Non-IID by domain: <b>Dirichlet(α) partition over 20 schema-embedding domain groups</b>, not a flat per-DB draw.</li>"
+        + "<li>Client fallback retrieval = anything cheap. No regime found where selection sophistication pays — random ≈ DAIL ≈ question-sim ≈ CodeS, across 4 model families.</li>"
+        + "</ul>"
+    },
+    student: {
+      eyebrow: "CLIENT · Phase 2",
+      title: "Student Mᵢ — 1.5B + LoRA",
+      body: "<ul>"
+        + "<li>Default candidate: <b>Qwen2.5-1.5B-Instruct</b> — tokenizer-aligned with the teacher.</li>"
+        + "<li>LoRA r=16, α=32, targets attn+MLP, fp16 base (1.5B fp16 ≈ 3 GB already fits the VRAM budget).</li>"
+        + "<li>Initialized from the broadcast global adapter every round.</li>"
+        + "<li>0.5B student = Tier-3 extra model pair (claim-strengthening, optional, not built).</li>"
+        + "</ul>"
+    },
+    localtrain: {
+      eyebrow: "CLIENT · Phase 2, every round",
+      title: "Local fine-tune — CE only",
+      body: "<ul>"
+        + "<li><code>L = CE(student(prompt(q, Sᵢ)), gold SQL)</code>, train k=0, E local epochs.</li>"
+        + "<li>No teacher, no KD loss, no public data at the client — everything heavy lives at the server.</li>"
+        + "<li>Upload <code>Δθᵢ = θᵢ − θₜ₋₁</code> — adapters only, a few MB.</li>"
+        + "</ul>"
+    },
+    inference: {
+      eyebrow: "CLIENT-ONLY · Phase 4, no server round-trip",
+      title: "SC-vote — self-consistency execution-voting",
+      body: "<ul>"
+        + "<li>Sample N=8 candidates at k=0, temperature 0.8, top_p 0.95 — <b>zero ICL demos, zero retrieval infrastructure</b>.</li>"
+        + "<li>Execute every candidate on the client's local DB; majority-vote on execution-<b>RESULT</b> equivalence (ties → highest mean logprob).</li>"
+        + "<li>Default since 2026-07-16 — beat the prior verifier-gated retry on the full 1034-row Spider dev set, same adapter (<code>central_rkd</code>): <b>EX 72.73 vs 69.92 (+2.81)</b>, EM +1.84, McNemar exact p=0.00042.</li>"
+        + "<li>Repair traces to execution verification, not demo content — random demos repair broken drafts exactly as well as DAIL-selected ones.</li>"
+        + "<li>Cost accepted: 1.37× latency, 1.34× VRAM vs. the overlay it replaced — the framework's cost claim is deployment footprint, not per-query latency.</li>"
+        + "</ul>"
+    }
+  };
+
+  var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-node]'));
+  var inspector = document.getElementById('inspector');
+
+  function selectNode(id) {
+    var d = nodeData[id];
+    if (!d) return;
+    nodes.forEach(function (n) { n.classList.toggle('active', n.dataset.node === id); });
+    inspector.innerHTML =
+      '<div class="insp-eyebrow">' + d.eyebrow + '</div>' +
+      '<div class="insp-title">' + d.title + '</div>' +
+      '<div class="insp-body">' + d.body + '</div>';
+  }
+
+  nodes.forEach(function (n) {
+    n.addEventListener('click', function () { selectNode(n.dataset.node); });
+    n.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNode(n.dataset.node); }
+    });
+  });
+
+  // ---- round loop stepper ----
+  var steps = [
+    {
+      targets: ['down-arrow', 'client-band'],
+      html: '<b>Broadcast —</b> server sends θₜ₋₁ to all K clients over the adapter channel below.'
+    },
+    {
+      targets: ['client-band'],
+      html: '<b>Local fine-tune —</b> each client trains E epochs of gold-CE on its own Qᵢ (k=0), then uploads Δθᵢ only — no teacher involved.'
+    },
+    {
+      targets: ['up-arrow'],
+      html: '<b>FedAvg + distill —</b> server averages the uploaded deltas (nᵢ/n weighted), then distills M_G on pool P with CE + reverse-KL against the teacher.'
+    }
+  ];
+  var stepChips = Array.prototype.slice.call(document.querySelectorAll('.step-chip'));
+  var caption = document.getElementById('loopCaption');
+  var flowEls = Array.prototype.slice.call(document.querySelectorAll('[data-flow]'));
+  var stepIdx = 0;
+
+  function renderStep() {
+    stepChips.forEach(function (c, i) { c.classList.toggle('active', i === stepIdx); });
+    flowEls.forEach(function (el) { el.classList.remove('emphasis'); });
+    steps[stepIdx].targets.forEach(function (t) {
+      document.querySelectorAll('[data-flow="' + t + '"]').forEach(function (el) { el.classList.add('emphasis'); });
+    });
+    caption.innerHTML = steps[stepIdx].html;
+  }
+  stepChips.forEach(function (c, i) {
+    c.addEventListener('click', function () { stepIdx = i; renderStep(); });
+  });
+
+  var playBtn = document.getElementById('playBtn');
+  var playIcon = document.getElementById('playIcon');
+  var timer = null;
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    playIcon.setAttribute('href', '#i-play');
+    playBtn.setAttribute('aria-label', 'Play round loop');
+  }
+  function start() {
+    timer = setInterval(function () {
+      stepIdx = (stepIdx + 1) % steps.length;
+      renderStep();
+    }, 2600);
+    playIcon.setAttribute('href', '#i-pause');
+    playBtn.setAttribute('aria-label', 'Pause round loop');
+  }
+  playBtn.addEventListener('click', function () { timer ? stop() : start(); });
+
+  renderStep();
+</script>
+</body>
+</html>

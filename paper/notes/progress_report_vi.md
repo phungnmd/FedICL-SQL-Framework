@@ -1,74 +1,103 @@
-# Báo cáo tiến độ FedICL-SQL — 13/07/2026
 
-Chào thầy Hùng,
 
-Tuần này em có 4 việc: chốt kiến trúc distillation ở server, PoC KD (RKD thắng KID), ICL vẫn chưa đóng góp dương (báo trung thực, chưa phải tin tốt), và chốt nguồn dữ liệu public BIRD cho distill (chỉ schema/DB, cấm gold SQL).
+# Báo cáo tiến độ — 21/07/2026 (giai đoạn 08–21/07)
 
-## 1. Kiến trúc mới: teacher chuyển sang server
+Kính gửi thầy Hùng,
 
-Đổi so với hướng "teacher ở client" hồi 16/06 — giờ **teacher 7B (frozen) đặt ở server**. Mỗi round:
+Hai tuần qua em hoàn thành ba việc: chốt lại kiến trúc, hoàn tất nhóm thực nghiệm distillation, xây xong pipeline federated. Kết luận cốt lõi: distillation tăng độ chính xác mạnh khi huấn luyện trên Spider (điều kiện lý tưởng), nhưng trên bộ dữ liệu công khai (điều kiện thực tế) mức tăng không còn ý nghĩa thống kê — giá trị chắc chắn còn lại là độ tin cậy thực thi (Mục 2). Mọi chỉ số dưới đây đo trên Spider, 1034 câu, độ chính xác thực thi EX (kèm kiểm định McNemar).
 
-1. Client fine-tune student 1.5B bằng LoRA, CE loss thường, không cần load teacher.
-2. Server FedAvg các adapter.
-3. Server dùng teacher distill model gộp trên public pool P, loss reverse-KL [10].
-4. Server gửi adapter mới về client, lặp lại.
+## 1. Thay đổi kiến trúc: chuyển teacher lên server, dùng dữ liệu công khai làm proxy KD
 
-Hướng hiện tại: client nhẹ, teacher không đụng data client. Paper FedDF/FedMD cho thấy bước distill ở server kỳ vọng "kéo model về 1 điểm chung" sau khi FedAvg gộp nhiều client phân kỳ (full pipeline federation em đang chuẩn bị thử tuần tới).
+- **Client** (mô hình nhỏ 1.5B): chỉ fine-tune trên dữ liệu riêng, gửi bản cập nhật trọng số (~vài MB) lên server. Dữ liệu không rời client.
+- **Server** (teacher 7B): gộp trọng số các client, rồi dùng teacher huấn luyện mô hình nhỏ đã gộp trên dữ liệu công khai mỗi vòng.
+- **Dữ liệu công khai:** BIRD — tập train ~9.400 câu / ~70 CSDL, tách biệt hoàn toàn với Spider ở client. Chỉ distillation trên **tập cố định 3.873 câu / 69 CSDL** (SQL do teacher tự sinh trên 9.400 câu gốc, lọc giữ câu thực thi khớp đáp án — không dùng SQL gốc của BIRD do chất lượng nhãn thấp: huấn luyện thử trên nhãn gốc chỉ đạt 47.1% EX, dưới cả mô hình chưa huấn luyện 50.0%).
 
-Config: K=8 client, Dirichlet α=0.5, teacher Qwen2.5-Coder-7B.
+**Phương pháp KD đang dùng** (reverse-KL logit distillation, theo KID [arXiv:2410.11371]): với mỗi câu trong tập công khai, teacher và student cùng chấm trên **một câu SQL mục tiêu** (do teacher sinh) với **cùng ngữ cảnh prompt**. Hàm loss:
 
-Hướng cũ (teacher ở client) là gợi ý của thầy — em báo lại rõ để thầy góp ý nếu cần điều chỉnh.
+```text
+L = λ_ft · CE(mục tiêu) + λ_kd · RKL(student ‖ teacher)     (tỉ lệ 1:1)
+```
 
-## 2. So sánh 2 cách distillation: RKD thắng KID
+- Dùng **reverse-KL** (mode-seeking) thay vì forward-KL: phù hợp với phân phối token hẹp, xác định của SQL (forward-KL trải xác suất sang các nhánh sai).
+- Teacher (Qwen2.5-Coder-7B) **chỉ chấm điểm, không sinh** — mỗi bước một lượt tính trên logit. Vì mục tiêu cố định, **logit teacher được tính sẵn offline một lần** rồi tái dùng mọi vòng, nên vòng lặp federated không phải nạp teacher 7B mỗi vòng.
 
-3 model cùng train từ base, cùng data Spider, chỉ khác loss distill. Eval Spider dev, n=1034, seed 0:
+## 2. Đánh giá hiệu quả của distillation
 
-| Cách sinh SQL | FT thường | RKD | KID |
-|---|---|---|---|
-| k=0 | 62.19 | **68.28** | 66.83 |
-| k=3 uniform ICL | 61.90 | 65.86 | 65.96 |
+Ba thí nghiệm, mỗi thí nghiệm là một so sánh có đối chứng (McNemar theo cặp câu).
 
-- **RKD** — teacher chấm trực tiếp trên gold SQL.
-- **KID** — che một phần gold SQL, student tự đoán lại thành bản "không hoàn hảo", teacher chấm trên bản đó (mô phỏng lỗi lúc inference).
+**Thí nghiệm 1 — distillation có tác dụng không?** (học trên đáp án Spider có sẵn = điều kiện lý tưởng). Hai nhánh **cùng huấn luyện một giai đoạn từ mô hình gốc**, trên cùng dữ liệu Spider, chỉ khác hàm mất mát.
 
-Kết quả:
-- **RKD − FT thường = +6.09 EX** (p=3.1e-07) — tín hiệu distillation thật, đáng build tiếp federation.
-- **KID − RKD = −1.45 EX** (p=0.072, chưa significant, 1 seed) — ngược headline paper KID gốc. KID chịu ICL tốt hơn (giảm 0.87 vs RKD giảm 2.42 khi thêm demo).
-- **Chốt: RKD làm hướng chính cho server-distill.** Chạy seed 2 để chốt số liệu.
+| So sánh (đều từ mô hình gốc)            | Cách suy luận | EX   | Δ EX     | p     |
+| --------------------------------------- | ------------- | ---- | -------- | ----- |
+| Chỉ Fine-tune thường (chỉ CE)           | greedy        | 62.2 | —        | —     |
+| Chỉ distillation (CE + RKL trên đáp án) | greedy        | 68.3 | **+6.1** | 3e-07 |
 
-## 3. ICL: vẫn chưa đóng góp dương — báo trung thực
+→ Distillation cho kết quả tốt hơn hẳn finetune.
 
-Tuần trước báo ICL làm giảm accuracy sau fine-tune. Tuần này điều tra sâu hơn — kết quả xấu hơn tưởng, chưa giải quyết xong.
+**Thí nghiệm 2 — distillation trên dữ liệu công khai (BIRD) có thêm giá trị không?** Đối chứng cùng ngân sách huấn luyện: fine-tune-2-lần (A) so với fine-tune → KD-BIRD → fine-tune (B). Hai nhánh chỉ khác ở khâu KD-BIRD chèn giữa.
 
-**Nội dung demo không giúp gì:** demo sửa đúng ~4-7% câu, làm sai thêm ~7-12% câu khác — triệt tiêu nhau. Demo ngẫu nhiên vs DAIL-SQL chọn lọc kỹ: sửa đúng ngang nhau (22 vs 23/146, không khác biệt thống kê). Test 4 họ model (Qwen 0.5B/1.5B, Gemma-2B, Llama-3.2B) — không tìm được cách chọn demo nào có lợi hơn random. Hướng cải tiến retrieval coi như đóng.
+| Chỉ số | Cách suy luận     | A (đối chứng) | B (có KD-BIRD) | Δ     | p     |
+| ------ | ----------------- | ------------- | -------------- | ----- | ----- |
+| EX     | greedy            | 67.0          | 67.3           | +0.29 | 0.83  |
+| EX     | +self-consistency | 73.4          | 75.2           | +1.84 | 0.070 |
+| EM     | +self-consistency | 67.4          | 69.8           | +2.42 | 0.030 |
 
-**Có 1 cơ chế tăng accuracy, nhưng chưa chắc là "ICL":** sinh SQL k=0 → chạy thử → lỗi mới thêm demo, sinh lại. Đo được tăng accuracy thật. Nhưng vì nội dung demo không quan trọng (mục trên), nghi cơ chế này chỉ cần verify bằng execution + đổi prompt bất kỳ — demo có thể thay bằng cách khác (vd resample temperature, không cần demo), chưa test. Nếu đúng, đây không phải bằng chứng ICL có ích.
+→ Greedy **phẳng** (+0.29, p=0.83). Chỉ dưới self-consistency mới có +1.84 EX nhưng **chưa đủ tin cậy** (p=0.070); EM cải thiện có ý nghĩa (+2.42, p=0.030).
 
-**Vấn đề:** paper cần ICL đóng góp dương (tên Fed-ICKD, RQ2). Hiện chưa có bằng chứng. Cần chạy retry-không-demo vs retry-có-demo để xác định — nếu ngang nhau, ICL không đóng góp gì, cần tìm hướng khác hoặc cân nhắc lại khung RQ2.
+**Thí nghiệm 3 — kiểm chứng chéo trên 3 biến thể khó của Spider** (cùng mô hình đã KD-BIRD so với chỉ fine-tune, cả 2 cách suy luận):
 
-## 4. Chốt nguồn public P = BIRD: chỉ schema/DB, cấm gold SQL
+| Tập              | n    | EX trước→sau        | Lỗi thực thi trước→sau |
+| ---------------- | ---- | ------------------- | ---------------------- |
+| Spider-Realistic | 508  | 55.3→56.3 (p=0.70)  | 110→65                 |
+| Spider-Syn       | 1034 | 51.1→51.5 (p=0.84)  | 234→154                |
+| Spider-DK        | 535  | 46.9→49.9 (p=0.085) | 116→75                 |
 
-Chuỗi thử nghiệm: train CE trên 1000 mẫu từ base, eval Spider dev, mốc so sánh = chưa train (50.00 EX):
+- EX: **không tập nào có ý nghĩa thống kê** (chiều dương, trong sai số).
+- **Độ tin cậy thực thi: giảm 30–52% số câu lỗi trên cả 3 biến thể × 2 cách suy luận, không ngoại lệ.** Đây là đóng góp chắc chắn và khái quát nhất của distillation-BIRD — sẽ là kết quả chính báo cáo cho phần này. EX chỉ nêu ở mức định hướng.
 
-| Cách train | Data | EX |
-|---|---|---|
-| Gold SQL của BIRD | BIRD gold | 47.10 — **fail, tệ hơn cả không train** |
-| Lọc bớt câu phụ thuộc `evidence` | BIRD gold, 700 câu | 46.71 — **vẫn fail** |
-| Teacher tự sinh SQL trên schema BIRD, giữ câu chạy được | 831/1000 câu | **50.00 — pass** (vừa chạm mốc) |
-| Đối chứng: Spider | 1000 câu | 51.74 |
+## 3. Kỹ thuật chọn đáp án khi suy luận (self-consistency)
 
-**Nguyên nhân:** chất lượng annotation BIRD kém, không phải do `evidence` hay domain — CIDR 2026 đo BIRD Mini-Dev 52.8% gold bị lỗi annotation. Sửa theo ExeSQL: bỏ gold gốc, teacher tự sinh + lọc bằng execution — arm này còn có tỉ lệ SQL lỗi thấp nhất (20.5%).
+Sinh 8 phương án SQL, thực thi từng phương án trên CSDL, bỏ phiếu chọn phương án cho kết quả nhất quán nhất.
 
-**Chốt:** BIRD chỉ làm nguồn schema/DB, không dùng gold gốc. Server-distill xây trên on-policy + execution-anchored — khác biệt chính vs FedCoLLM (họ distill mù trên public data, mình có thêm verifier lọc từng mẫu).
+- Tăng ~4 điểm EX (68.3%→72.3%), **không cần huấn luyện thêm, không cần ví dụ mẫu**.
+- Chi phí: suy luận chậm ~1.4× mỗi câu — chấp nhận được (lợi thế hệ thống là mô hình nhỏ, không phải tốc độ từng câu).
 
-**Thử thêm — centralized proxy cho 1 phần dynamic round loop** (chưa phải FedAvg thật): warm-start adapter đã FT (62.19), train tiếp trên data BIRD đã lọc. CE-only tụt còn **59.38** (−2.81, model quên kiến thức cũ). CE+RKL giữ **62.28** (−0.09, gần như không đổi). Bằng chứng thực nghiệm đầu tiên: train liên tục không distill làm model trôi, có distill thì giữ được. Phần "kéo nhiều client phân kỳ về 1 điểm chung" vẫn chưa test — cần federation thật.
+## 4. ICL (in-context learning)
 
-## 5. Việc tuần tới
+Đã thử các phương pháp chọn ví dụ mẫu: random, DAIL, question-similarity, schema-aware… Hiện chưa phương pháp nào cho cải thiện khả quan trên mô hình đã fine-tune (chọn công phu ≈ chọn ngẫu nhiên, McNemar p=1.00). Tạm giữ ICL để nghiên cứu sau.
 
-1. **Ưu tiên 1 — build federation thật:** chia K=8 client, code FedAvg + server-distill, chạy `fedavg`/`fedavg_pub`/`fedkd` — số federated đầu tiên.
-2. **Test retry-không-demo vs retry-có-demo** (mục 3) — xác định ICL có cần thiết không, trước khi đưa vào paper.
-3. Rerun PoC với student Qwen2.5-Coder-1.5B; seed 2 cho RKD/KID; ablation teacher 3 demo vs 0.
-4. Viết §2 (chưa viết §5 — chờ kết luận ICL); vẽ lại Hình 1 theo kiến trúc mới.
+## 5. Pipeline federated
+
+Ý tưởng: mỗi vòng, các client gửi LoRA adapter lên server để gộp; server distillation adapter đã gộp trên dữ liệu công khai rồi phát lại. Điểm kỹ thuật ở khâu gộp adapter:
+
+- **FedAvg** (McMahan 2017, arXiv:1602.05629) — mốc so sánh chuẩn: gộp trọng số trung bình theo lượng dữ liệu mỗi client. Với LoRA, gộp trung bình từng thừa số A, B sinh **sai số đại số**: (Σpᵢ·Bᵢ)(Σpᵢ·Aᵢ) ≠ Σpᵢ·BᵢAᵢ — sai số này tồn tại cả khi dữ liệu IID.
+- **FLoRA-NA** (Nguyen et al., arXiv:2509.26399) — phương pháp gộp chính đề xuất: giải hệ số kết hợp giữa các client để bám sát mục tiêu Σpᵢ·BᵢAᵢ, vẫn xuất ra một adapter rank-r duy nhất → giảm sai số gộp mà giữ nguyên chi phí truyền thông. Em mở rộng thành bản có trọng số theo lượng dữ liệu (client Spider kích thước khác nhau).
+- **6 cấu hình so cặp:** {FedAvg, FLoRA-NA} × {không distillation / distillation CE / distillation CE+RKL}. Đo được: giá trị của khâu gộp (FLoRA-NA − FedAvg) và giá trị của teacher (distillation − không distillation).
+- Đã implement + kiểm thử end-to-end trên dữ liệu thật (quy mô nhỏ), có lưu/khôi phục khi lỗi. **Chưa chạy quy mô lớn (8 client × 15 vòng)** — kết quả federated đầu tiên của bài báo, ưu tiên cao nhất.
+
+## 6. Bảng kết quả (Spider, 1034 câu)
+
+| Cấu hình                                                            | EX (greedy) | EX (+self-consistency) | Ghi chú                                                                        |
+| ------------------------------------------------------------------- | ----------- | ---------------------- | ------------------------------------------------------------------------------ |
+| Mô hình nhỏ, chưa huấn luyện                                        | 50.0%       | —                      | sàn                                                                            |
+| Fine-tune 1 lần                                                     | 62.2%       | 70.1%                  |                                                                                |
+| Fine-tune 2 lần (đối chứng ngân sách)                               | 67.0%       | 73.4%                  | mốc đối chứng cho KD-BIRD                                                      |
+| Fine-tune → KD-BIRD (2 giai đoạn)                                   | 65.5%       | 69.3%                  | EM sụt mạnh 57.2→32.5 (lệch văn phong SQL)                                     |
+| **Fine-tune → KD-BIRD → Fine-tune (3 giai đoạn, đường triển khai)** | **67.3%**   | **75.2%**              | +SC vượt đối chứng, p=0.070; EM phục hồi 63.9                                  |
+| Distillation trên Spider (oracle, từ mô hình gốc, 1 giai đoạn)      | 68.3%       | 72.3%                  | huấn luyện độc lập, không nối tiếp các dòng trên; không phải điều kiện thực tế |
+| Teacher 7B (tham chiếu)                                             | 78.7%       | —                      |                                                                                |
+
+- Đường triển khai thật là **Fine-tune → KD-BIRD → Fine-tune**; so với fine-tune-2-lần cùng ngân sách, khâu KD-BIRD hầu như không thêm EX ở greedy nhưng cộng hưởng với self-consistency (75.2 so 73.4).
+- Dòng "Distillation trên Spider" chỉ là oracle (học trên đáp án Spider có sẵn), dùng để chứng minh distillation có tác dụng — không đại diện cho hệ thống thật.
+- Các cấu hình federated chưa có số — pipeline vừa xong, chờ GPU.
+
+## 7. Kế hoạch tiếp theo
+
+1. Thực nghiệm federated quy mô lớn — số liệu cốt lõi của bài báo.
+2. Lặp distillation-BIRD với 2–3 seed để xác nhận số EX (độ tin cậy thực thi đã đủ nhất quán qua 4 tập). Chi phí thấp, mang tính quyết định.
+3. Biến thể Spider đã đánh giá xong (Mục 2); sẽ chạy lại trên mô hình federated sau khi có kết quả quy mô lớn.
+
+**Xin ý kiến thầy:** (1) phê duyệt chuyển teacher lên server; (2) nơi công bố — ban đầu nhắm IAJIT, lựa chọn mới gồm KBS / NCA / J. Supercomputing / IEEE Access.
 
 ---
 
@@ -111,33 +140,33 @@ Tuần trước ICL theo question-similarity retrieval không có contribution (
 
 ### Base model (Qwen2.5-1.5B-Instruct, chưa fine-tune)
 
-| Config | EX | EM | ghi chú |
-|--------|----|----|---------|
-| **k=0** (baseline) | 49.0% | 13.2% | — |
-| question-similarity, k=3 | 47.9% | 13.3% | neutral/âm (tuần trước) |
-| **DAIL k=1**, never_schema | **53.0%** | 17.2% | gate=77.1% ✅ |
-| **DAIL k=3**, never_schema | **52.5%** | 19.3% | gate=74.9% ✅ |
-| DAIL k=3, with_schema | 48.7% | 14.4% | schema bên ngoài làm hại |
+| Config                     | EX        | EM    | ghi chú                  |
+| -------------------------- | --------- | ----- | ------------------------ |
+| **k=0** (baseline)         | 49.0%     | 13.2% | —                        |
+| question-similarity, k=3   | 47.9%     | 13.3% | neutral/âm (tuần trước)  |
+| **DAIL k=1**, never_schema | **53.0%** | 17.2% | gate=77.1% ✅             |
+| **DAIL k=3**, never_schema | **52.5%** | 19.3% | gate=74.9% ✅             |
+| DAIL k=3, with_schema      | 48.7%     | 14.4% | schema bên ngoài làm hại |
 
 **Nhận xét:** DAIL selection **đảo ngược** kết quả ICL trên base model — từ neutral/âm sang **+4.0pp (k=1)** và **+3.5pp (k=3)**. Quality gate (lọc demo kém similarity) là yếu tố then chốt: giữ lại ~75% demo, loại bỏ nhiễu. Demo style `with_schema` vẫn bị âm vì DDL từ schema khác làm model nhầm cột/bảng.
 
 ### Central model (Qwen2.5-1.5B + LoRA fine-tuned trên toàn bộ train, k=0: 63.1%)
 
-| Config | EX | EM |
-|--------|----|----|
+| Config            | EX        | EM    |
+| ----------------- | --------- | ----- |
 | **k=0** (ceiling) | **63.1%** | 41.7% |
-| DAIL k=1 | 59.8% | 41.9% |
-| DAIL k=3 | 60.2% | 41.6% |
+| DAIL k=1          | 59.8%     | 41.9% |
+| DAIL k=3          | 60.2%     | 41.6% |
 
 **Nhận xét:** DAIL vẫn âm trên model fine-tuned (−2.9 đến −3.3pp), dù ít hại hơn question-similarity (tuần trước −5.6pp). Điều này nhất quán với DAIL-SQL [9] gốc và Open-SQL [arXiv:2405.06674] — model đã fine-tune "quên" cách đọc demo do lệch phân phối train/test. DAIL giảm được mức độ hại chứ chưa đảo ngược được.
 
 ### Gemma-2-2B (khảo sát cho slm_swap ablation)
 
-| Config | EX | EM |
-|--------|----|----|
-| k=0 | 50.8% | 13.9% |
+| Config                 | EX    | EM    |
+| ---------------------- | ----- | ----- |
+| k=0                    | 50.8% | 13.9% |
 | DAIL k=3, never_schema | 49.8% | 23.3% |
-| DAIL k=3, skeleton | 48.2% | 16.7% |
+| DAIL k=3, skeleton     | 48.2% | 16.7% |
 
 Gemma-2B có floor cao hơn Qwen-1.5B (+1.8pp) nhưng ICL cũng âm. Demo style `skeleton` (SQL identifier được mask) làm giảm thêm. Gemma-2B sẽ là candidate cho `slm_swap` ablation trong giai đoạn sau.
 
@@ -161,13 +190,13 @@ Sau khi review lại KID [arXiv:2410.11371, EMNLP Findings 2024], em quyết đ�
 
 ### Thay đổi so với kiến trúc cũ:
 
-| Cũ | Mới (KID) |
-|----|-----------|
+| Cũ                                                | Mới (KID)                                                  |
+| ------------------------------------------------- | ---------------------------------------------------------- |
 | Teacher offline inference trên `Qᵢ` (~13h/client) | Teacher online per step trên BIRD public (~100× nhanh hơn) |
-| Exec-filter lọc target | Không cần (ŷ từ student mask, teacher chỉ score) |
-| CoT generation | Không cần CoT riêng |
-| L_struct (skeleton-structure loss) | Không còn |
-| Forward KL | Reverse KL (per KID) |
+| Exec-filter lọc target                            | Không cần (ŷ từ student mask, teacher chỉ score)           |
+| CoT generation                                    | Không cần CoT riêng                                        |
+| L_struct (skeleton-structure loss)                | Không còn                                                  |
+| Forward KL                                        | Reverse KL (per KID)                                       |
 
 ### BIRD dataset — vai trò kép (locked 2026-06-29):
 
@@ -183,14 +212,14 @@ Sau khi review lại KID [arXiv:2410.11371, EMNLP Findings 2024], em quyết đ�
 
 ## 3. Scoreboard hiện tại (clean, citable)
 
-| Arm | Config | EX | EM | n_eval | run_date |
-|-----|--------|----|----|--------|---------|
-| `base` | Qwen-1.5B, k=0 | 49.0% | 13.2% | 1034 | 24/06 |
-| `base@dail_k1` | Qwen-1.5B, DAIL k=1 | **53.0%** | 17.2% | 1034 | 24/06 |
-| `base@dail_k3` | Qwen-1.5B, DAIL k=3 | 52.5% | 19.3% | 1034 | 24/06 |
-| `central` | Qwen-1.5B LoRA FT, k=0 | **63.1%** | 41.7% | 1034 | 24/06 |
-| `central@dail_k3` | Qwen-1.5B LoRA FT, DAIL k=3 | 60.2% | 41.6% | 1034 | 24/06 |
-| `gemma2b_base` | Gemma-2B, k=0 | 50.8% | 13.9% | 1034 | 24/06 |
+| Arm               | Config                      | EX        | EM    | n_eval | run_date |
+| ----------------- | --------------------------- | --------- | ----- | ------ | -------- |
+| `base`            | Qwen-1.5B, k=0              | 49.0%     | 13.2% | 1034   | 24/06    |
+| `base@dail_k1`    | Qwen-1.5B, DAIL k=1         | **53.0%** | 17.2% | 1034   | 24/06    |
+| `base@dail_k3`    | Qwen-1.5B, DAIL k=3         | 52.5%     | 19.3% | 1034   | 24/06    |
+| `central`         | Qwen-1.5B LoRA FT, k=0      | **63.1%** | 41.7% | 1034   | 24/06    |
+| `central@dail_k3` | Qwen-1.5B LoRA FT, DAIL k=3 | 60.2%     | 41.6% | 1034   | 24/06    |
+| `gemma2b_base`    | Gemma-2B, k=0               | 50.8%     | 13.9% | 1034   | 24/06    |
 
 > Các arm chính (`local`, `fedavg`, `fedkd`) chưa có số — đang chờ implement KID training loop.
 
