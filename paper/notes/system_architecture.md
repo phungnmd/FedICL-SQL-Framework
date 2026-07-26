@@ -632,18 +632,28 @@ student's demos from `P`.
 **Alternative selection methods considered, not adopted:** MARLO's learned
 retriever and DCG-SQL's schema-link graph beat DAIL on base/API models
 (+5.5/+10.9 EX resp., `icl_methods_survey.md` §2) but need a trained encoder
-or graph — cite-only, no build. **Skills Similarity (SS)** — MARLO's own
-baseline, LLM-summarized "skill" per question → embed → retrieve, no
-training — is the one candidate cheap enough to probe (+2.6 EX over
-masked-question sim on the same paper's ladder). **Implemented 2026-07-11**
-(`--retrieval ss`, `fedicl_sql/retrieval/ss_select.py` — our own few-shot
-prompt/exemplars, neither MARLO nor Skill-KNN [An et al. 2023] publishes
-theirs; eval-time only, needs `--ss-gen-model`, default Qwen2.5-1.5B-Instruct
-— verified the 0.5B generator collapses to boilerplate and tanks retrieval,
-1.5B follows the pattern correctly). **Closed 2026-07-11 — do not run:** the
-A5 gate condition fired (question-sim filled its column and converged with
-DAIL/CodeS, uniform and gated) → SS is presumed to converge too; code stays
-in-tree, no experiment scheduled. **DPC** (arXiv:2604.15163, training-free
+or graph — cite-only, no build. Their federated blocker is the same and is
+architectural, not budgetary: a learned encoder needs centralized question↔SQL
+training data, which is the exact thing this design refuses to move.
+
+**Skills Similarity (SS) — REMOVED 2026-07-26, never run.** MARLO's own
+baseline via Skill-KNN (An et al. 2023, arXiv:2305.14210): an LLM writes a
+"skill" description per question → embed → retrieve, no training (+2.6 EX over
+masked-question sim on MARLO's ladder). Implemented 2026-07-11 (`--retrieval
+ss`, `fedicl_sql/retrieval/ss_select.py`), closed by presumption the same day
+when the A5 thang converged, then **deleted with the code** on 2026-07-26
+(user decision) rather than left dormant — implemented-but-never-run code is a
+standing reviewer question with no answer behind it. Two grounds: (a) the A5
+null replicated 4/4 across selection methods and 4 model families, so the next
+rung of the same ladder is predicted to converge; (b) SS needs a second
+resident generator model at the client, conflicting with §5.4's light-client
+design (the shipped `sc` overlay needs zero retrieval infra at all). SS stays a
+**literature entry only** (`icl_methods_survey.md` §2) — cite as part of
+MARLO's ladder, never claim a measurement. Note if ever revived: the prompt and
+exemplars were ours, since neither MARLO nor Skill-KNN publishes theirs, so any
+result would have been a reproduction attempt, not the paper's method.
+
+**DPC** (arXiv:2604.15163, training-free
 execution-consistency candidate selection) is a different axis entirely
 (selects among generated SQL candidates, not among demos) — cite in §2
 Related Work as the closest prior-art anchor for the shipped `sc` overlay
@@ -1221,9 +1231,10 @@ adapters on `P` instead of the 7B teacher — separates "teacher quality" from
 "mere consensus signal", the reviewer question `fedavg_pub` doesn't cover;
 proxy data = `P`, never Spider dev; K=8 × 1.5B forwards, feasible on the
 A5000) · ~~asymmetric-context KD~~ (**killed 2026-07-11**, §8.1 —
-criterion met at −0.78 EX) · ~~Skills Similarity (SS) retrieval~~ (**closed
-2026-07-11**, §5.2 — A5 thang converged 4/4 incl. random; selection
-sophistication is dead post-FT/KD, SS included; code in-tree, no run).
+criterion met at −0.78 EX) · ~~Skills Similarity (SS) retrieval~~ (**code
+deleted 2026-07-26**, §5.2 — closed by presumption 2026-07-11 when the A5 thang
+converged 4/4 incl. random, then removed outright rather than left in-tree
+unexercised; never run, literature-only from here).
 
 **Inference-overlay probe verdict (2026-07-16, LAB_LOG same date) — SC-vote
 adopted.** Probed against the then-shipped verifier-gated retry on the full

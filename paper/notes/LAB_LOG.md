@@ -4766,3 +4766,122 @@ passed 64/64; Ruff and `git diff --check` passed.
 smoke, then the full shared-client K=8/T=1 α=0.5 ladder. Keep plain RKL and
 prune arms from measured T=1 aggregation/server deltas before extending to
 T=2/T=3; do not jump directly to T=15.
+
+## Session 2026-07-22 (3) — federated setup identity, round lineage, and resumable runbook
+
+The federated orchestration was hardened before spending A5000 time. Each
+`round`/`run` output root now creates an immutable `setup.json` containing a
+content-derived `setup_id` and the complete round-invariant recipe: arm,
+client CSV hashes, client/model/LoRA training settings, aggregation settings,
+public-pool identity, and teacher-cache identity. Reusing the same `--out`
+with a changed scientific or execution recipe fails before training. A changed
+setup must use a new output root; increasing only the requested total number
+of rounds remains the supported continuation path.
+
+Round lineage is now explicit and enforced. Round 1 must start from the base
+model. Round `t>1` requires the exact recorded `M_G` from round `t-1` in the
+same arm manifest, checked by resolved path plus adapter-file hashes. Each
+manifest round records `parent_round`, `parent_adapter`, `setup_id`, and its
+result path. This prevents a manual round-2 command from accidentally using an
+adapter from another arm, seed, or setup.
+
+Completed-round result persistence is idempotent. Federated result IDs are now
+deterministic over `{arm, seed, setup_id, output root, round}`; rerunning or
+extending a completed setup reuses its original metrics row instead of creating timestamped
+duplicates or overwriting the original elapsed-time/training-stage evidence.
+Client, aggregation, server, and evaluation checkpoint/fingerprint behavior is
+unchanged.
+
+Usage, artifact layout, T=1 sharing, T=2 continuation, new-setup rules,
+evaluation flags, and failure recovery are documented in
+`fedicl-sql/experiments/federated/README.md`. The canonical real KD settings
+remain the full 3,873-row BIRD EX-match pool,
+`artifacts/teacher_logit_cache/rkd_k0_full`, `pool_size=0`,
+`distill_steps=0`, and plain RKL. ICL remains deferred.
+
+Validation: Ruff passed. Focused round-loop, manifest, aggregation, evaluation,
+SC, teacher-cache, checkpoint, and result tests passed 87/87. New regression
+tests cover immutable setup drift, wrong round-2 parent rejection, recorded
+lineage, and duplicate-free repeated persistence. No GPU federated experiment
+was run in this session.
+
+**Next locked action:** run the documented K=2/T=1 capped GPU smoke. If all six
+arms complete and resume correctly, run the shared-client K=8/T=1 α=0.5 ladder
+and use measured aggregation/server deltas to decide which arms proceed to T=2.
+
+## Session 2026-07-26 — ICL evaluation audit; Skills Similarity removed from the tree
+
+Two outputs: an outsider-readable audit of every ICL measurement the repo holds
+(`paper/notes/icl_eval_report.md`), and the deletion of the SS retriever.
+
+### Audit findings (no new experiments run)
+
+Scanned all 103 arm-rows under `experiments/*/results/*/metrics.json`.
+
+1. **ICL is not exercised anywhere in the running pipeline.** Client training
+   k=0, client inference `sc` at k=0, teacher generation zero-shot (E-ICL-1
+   killed 2026-07-19), server-distill context k=0 (the `rkd_k0_full` cache is
+   built at k=0). The "IC" in Fed-ICKD currently has no active site.
+2. **Every k=3 number was measured under a superseded regime.** All k=3 runs are
+   `overlay=none`, seed 0. The default overlay since 2026-07-16 is `sc`, and
+   exactly ONE k=3 × `sc` cell exists (`qwen1b_ft_no_icl`, 68.28 vs 70.12 at
+   k=0), on a non-default arm, predating the `b5cf373` RNG fix.
+3. **The two strongest adapters have no ICL measurement at all** —
+   `kd_then_spider_ft` and `spider_ft2`, zero runs at k>0. Same for every
+   federated arm.
+4. Never-run axes: k∈{1,2,5} (only 0 and 3 exist), `--demo-style skeleton`,
+   `--icl-gate conf`, ICL on any robustness set.
+
+**Correction to an earlier reading in this session:** the `central_ft_then_kd_bird_exmatch`
+k=3 = 66.83 row was reported as a *uniform* +1.36 gain. It is an
+`--icl-gate exec` run. Cause: `gate_pass_rate` in `metrics.json` was used as a
+gate indicator, but it records DAIL's τ-threshold pass rate, not the exec gate —
+only `config.json → icl_gate` is authoritative. After refiltering, the
+trained-model uniform table has **1/11 positive rows** (gemma_ft +1.35), not
+2/12.
+
+**Latent bug found, not fixed:** `experiments/eval_arms/run.py --help` raises
+`ValueError: unsupported format character '>'` — argparse %-formats help
+strings and `--icl-gate`'s help contains bare `%` (lines ~150/151/157). Verified
+pre-existing via `git stash`. Does not affect runs, only `--help`.
+
+**Checkpoint hazard documented:** the eval resume fingerprint covers
+test_csv/n/k/demo_style/seed/adapter/overlay/gate/sc_*/batch_size — it does
+**not** include `--retrieval`, `--embedder` or `--tau`, and neither does the
+checkpoint filename. Two runs differing only in `--retrieval`, sharing an arm
+name and `--resume-dir`, will silently resume each other's rows. Mitigation used
+in the new scripts: a unique arm name per configuration. Worth fixing in
+`ckpt_key` itself.
+
+### Skills Similarity (SS) — code deleted, never run
+
+`--retrieval ss` and `fedicl_sql/retrieval/ss_select.py` existed from
+2026-07-11, closed by presumption the same day when the A5 thang converged, and
+were never executed. Removed entirely (user decision) rather than left dormant.
+
+Grounds: (a) the A5 null replicated 4/4 across selection methods and 4 model
+families, so the next rung of MARLO's ladder is predicted to converge; (b) SS
+needs a second resident generator model at the client, conflicting with §5.4's
+light-client design — the shipped `sc` overlay needs no retrieval infra at all.
+Provenance for the record: Skill-KNN, An et al. 2023 (arXiv:2305.14210), reached
+via MARLO's baseline ladder; the prompt/exemplars were ours since neither paper
+publishes theirs, so any result would have been a reproduction attempt.
+
+SS is literature-only from here (`icl_methods_survey.md` §2) — cite as part of
+MARLO's ladder, never claim a measurement. `StudentModel.generate_text_batch`
+was kept as the prose-generation counterpart to `generate_batch` for whichever
+selection method lands next; it has no in-tree caller now and is marked as such.
+
+Validation: 243 tests passed; Ruff 79→74 findings (the 5 removed belonged to the
+deleted files, no new ones).
+
+### Next
+
+- [ ] Run `scripts/run_icl_matrix_list1.sh` and `run_icl_matrix_list2.sh` in
+      parallel (18 runs, greedy, no gate, no SC) to fill the pure-ICL matrix
+      with Model A as the headline row.
+- [ ] Pick a replacement selection method for the vacated 5th column.
+- [ ] Decide the §4-② question: measure teacher-context k=3 at server distill
+      (needs a fresh k=3 logit cache), or drop "In-Context" from the method name.
+- [ ] Free wins whenever GPU is idle: `analysis/gate_sweep.py` conf-tau sweep
+      (0 GPU minutes), and `central_rkd` @ codes uniform (~10 min).
