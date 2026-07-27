@@ -1,6 +1,7 @@
 # Báo cáo đánh giá In-Context Learning (ICL) trong hệ Text-to-SQL liên kết
 
-**Ngày:** 2026-07-26 · **Phạm vi:** toàn bộ kết quả đo đã có + việc cần đo thêm
+**Ngày:** 2026-07-26 · **Cập nhật implementation:** 2026-07-27 · **Phạm vi:**
+toàn bộ kết quả đo đã có + kiểm toán mã nguồn ICL + việc cần đo/triển khai thêm
 **Đối tượng đọc:** người ngoài dự án — báo cáo tự chứa, không cần đọc tài liệu khác
 **Nguồn số:** quét trực tiếp 103 dòng kết quả trong `experiments/*/results/*/metrics.json`
 
@@ -75,8 +76,11 @@ nguyên khi cần.
 |---|---|---|
 | **Ngẫu nhiên** | Bốc bừa từ kho ví dụ. Dùng làm đối chứng — nếu phương pháp tinh vi không thắng được cái này thì nội dung ví dụ không quan trọng | `random` |
 | **Giống câu hỏi** | Nhúng câu hỏi thành vector, lấy k câu gần nhất | `question` |
-| **DAIL** | Che tên bảng/cột trong câu hỏi rồi mới đo độ giống, cộng thêm bước lọc theo cấu trúc câu SQL. Tốn thêm một lượt sinh nháp | `dail_select` |
-| **CodeS** | Đo độ giống trên "khung" câu hỏi (bỏ từ mang nghĩa cụ thể), một lượt duy nhất | `codes` |
+| **Giống câu hỏi đã che** | Che tên bảng/cột/giá trị rồi lấy top-k cosine; không sinh SQL nháp | `masked_question` |
+| **DAIL** | Ở lúc đánh giá: che tên bảng/cột/giá trị trong câu hỏi, xếp hạng bằng cosine, sinh SQL nháp k=0, chuyển nháp thành SQL skeleton rồi ưu tiên các ví dụ có Jaccard skeleton ≥ τ. Nếu không đủ ví dụ qua ngưỡng, lấy phần còn lại theo thứ hạng câu hỏi. Tốn thêm một lượt sinh nháp | `dail_select` |
+| **DAIL weighted** | Rerank top-32 masked-question candidates bằng `0,6 × cosine + 0,4 × skeleton Jaccard`; vẫn cần lượt sinh SQL nháp | `dail_weighted` |
+| **CodeS** | Chạy hai bộ tìm kiếm song song: câu hỏi nguyên văn và POS-skeleton (noun/number/preposition… → `_`), điểm cuối là `max(sim_raw, sim_pattern)`. Dùng BGE-small chung với các nhánh khác thay vì SimCSE của mã CodeS gốc, để chỉ thay chiến lược chọn | `codes` |
+| **Oracle cấu trúc** | Dùng skeleton SQL gold chỉ để chọn demo và đo retrieval headroom; không đưa gold vào prompt, không phải phương pháp deployment | `oracle_structure` |
 | ~~Kỹ năng (Skills)~~ | Nhờ một LLM viết tóm tắt "kỹ năng cần dùng" rồi tìm theo tóm tắt đó. **Đã gỡ khỏi mã nguồn 2026-07-26, chưa từng chạy** — xem §6 | ~~`ss`~~ |
 
 ### 3.3 Cách trình bày ví dụ trong prompt
@@ -95,6 +99,60 @@ nguyên khi cần.
 | **Chỉ khi nháp lỗi** | Sinh nháp không ví dụ trước; chỉ khi SQL nháp chạy lỗi mới sinh lại có ví dụ | `--icl-gate exec` |
 | **Khi lỗi hoặc thiếu tự tin** | Như trên, cộng thêm điều kiện xác suất mô hình thấp. **Đã lập trình, chưa chạy** | `--icl-gate conf` |
 | **Bỏ ví dụ, bỏ phiếu** (mặc định hiện tại) | Không dùng ví dụ. Sinh 8 lời giải khác nhau, chạy cả 8, lấy đáp án được nhiều phiếu nhất theo *kết quả thực thi* | `--overlay sc` |
+
+### 3.5 Kiểm toán implementation thực tế
+
+Bảng này được đối chiếu trực tiếp với mã nguồn, không suy ra từ tên cờ CLI.
+
+| Thành phần | Implementation hiện tại | File chính | Kết luận |
+|---|---|---|---|
+| Nguồn ví dụ | Chỉ lấy từ `centralized/train.csv` hoặc `client_i_train.csv`; tập test không bao giờ làm pool | `fedicl_sql/retrieval/pool.py` | Đúng thiết kế, không còn leakage kiểu leave-one-out |
+| Prompt ICL | Đảo danh sách để ví dụ gần nhất nằm sát câu hỏi; ví dụ đặt trước schema đích; mặc định chỉ `question + SQL` | `fedicl_sql/prompts/builder.py` | Đã có |
+| Giống câu hỏi | BGE-small → vector chuẩn hoá L2 → FAISS inner product, tức cosine | `retrieval/retriever.py` | Đã có |
+| Giống câu hỏi đã che | Tái dùng schema/cell-value masking và `.dailcache.json`; một lượt, không draft/gate | `retrieval/retriever.py`, `dail_select.py` | **Đã thêm 2026-07-27** |
+| DAIL khi đánh giá | Mask câu hỏi bằng schema linking + dò cell value; sinh nháp k=0 theo batch; skeleton hoá bằng `sql_metadata`; gate Jaccard τ=0,85 | `retrieval/schema_linking.py`, `dail_select.py`, `sql_skeleton.py` | Đã có bản hai lượt |
+| DAIL weighted | Rerank top-32 bằng `0,6 × masked cosine + 0,4 × skeleton Jaccard`; draft parse lỗi tự rơi về question score | `retrieval/retriever.py`, `dail_select.py` | **Đã thêm 2026-07-27** |
+| DAIL khi huấn luyện/KD | Không có model để sinh nháp, nên `dail_select` tự hạ xuống **masked-question kNN**, không chạy skeleton gate; `tau` không có tác dụng ở đường này | `training/lora_trainer.py::_make_train_demo_fn` | Chỉ có nửa đầu của DAIL |
+| CodeS | POS-tag bằng NLTK; hai FAISS index; lấy max của raw và pattern similarity | `retrieval/codes_select.py`, `retriever.py` | Đã có ở eval; CLI train/KD chưa cho chọn `codes` |
+| Cách biểu diễn schema | `full`, `compact`, `compact_fk`, `codes`; nhánh `codes` thêm metadata, sample values và matched values | `data/spider.py`, `eval_arms/run.py` | **Không phải schema pruning**: vẫn render toàn bộ bảng/cột |
+| SC execution voting | Sinh N candidate với temperature/top-p, chạy từng SQL, gom nhóm theo kết quả thực thi; chọn nhóm lớn nhất, hoà phiếu dùng mean log-prob | `eval/self_consistency.py`, `eval/loop.py` | Đã có; N tuỳ chỉnh, hiện mới báo cáo N=8 |
+| Correction pass | Không có prompt sửa lỗi sau SC/generation; gate cũ chỉ sinh lại với demo, không đưa SQLite error cho model | — | Chưa có |
+| Structured plan | Không có bước `tables/joins/filters/ops → SQL`; prompt vẫn yêu cầu chỉ SQL | — | Chưa có |
+| Schema pruning/vector linking | Không có top-k table/column, không có PK/FK closure sau retrieval | — | Chưa có |
+| Oracle structural retrieval | Dùng skeleton SQL gold để rank, cosine phá hoà; gold/skeleton gold không được ghi vào prompt/trace | `retrieval/retriever.py`, `dail_select.py`, `eval_arms/run.py` | **Đã thêm 2026-07-27; eval-only** |
+
+#### Các lỗi/hazard đã sửa trước khi mở rộng ma trận
+
+1. **Random seed:** seed nay đi từ CLI → pool → `DemoRetriever`; RNG được reset
+   trước từng arm/pool, nên kết quả không còn phụ thuộc thứ tự arm.
+2. **Resume fingerprint:** dùng JSON canonical chứa model/adapter, đường dẫn +
+   content hash của test/pool, retrieval, k, demo/schema style, prompt probe,
+   generation config, encoder, τ, DAIL parameters, seed, batch, gate và SC;
+   hash còn được đưa vào tên checkpoint.
+3. **DAIL draft cache:** fingerprint chứa model/adapter, prompt hash,
+   `schema_style`, hash toàn bộ DDL/example và generation config. Cache lưu cả
+   draft SQL, skeleton và cache-hit trace.
+4. **CLI help:** toàn bộ `%` trong help đã escape; `eval_arms/run.py --help`
+   chạy được.
+5. **Provenance:** `eval_set` lấy trực tiếp từ `--test-csv`; metrics ghi thêm
+   pool source/schema/retrieval parameters. Prediction CSV ghi demo IDs,
+   masked question, draft SQL/skeleton, skeleton scores, cache hit và số prompt
+   tokens.
+6. **Thống kê quyết định:** `analysis/icl_multiseed.py` ghép cặp theo câu hỏi,
+   báo mean ± std qua seed, paired-bootstrap CI, fixed/broken pairs và cổng
+   `KEEP/DROP ICL`.
+
+#### Điểm lệch giữa ba tài liệu
+
+- `system_architecture.md` §0, §5.4 và §7 đã chốt SC k=0, nhưng hình ASCII ở
+  §2 vẫn ghi Phase 4 là verifier-gated k=3 retry. Báo cáo này theo implementation
+  và các mục mới hơn: deployment hiện tại là SC k=0.
+- `system_architecture.md` gọi context teacher/KD k=3 là “DAIL”. Trong code
+  cache/training, tên cờ đúng là `dail_select` nhưng chỉ chạy masked-question
+  kNN vì chưa có student để pre-predict SQL. Không được mô tả thí nghiệm
+  KD-context tương lai là “full DAIL” nếu chưa bổ sung lượt draft/gate.
+- `LAB_LOG.md` 2026-07-26 ghi ICL đang deferred và không có active site; điều
+  này khớp code/config hiện tại và §4 của báo cáo.
 
 ---
 
@@ -262,14 +320,198 @@ tập kiểm tra độ bền.** Spider-Syn đã chuẩn bị dữ liệu, chưa 
 | Trục khảo sát | Đã đo | Chưa đo |
 |---|---|---|
 | Số ví dụ k | 0 và 3 | **1, 2, 5** — chưa có đường cong nào |
-| Phương pháp chọn ví dụ | Ngẫu nhiên · Giống câu hỏi · DAIL · CodeS | — (Kỹ năng/SS đã gỡ 2026-07-26; chỗ trống dành cho phương pháp sẽ chọn thêm) |
+| Phương pháp chọn ví dụ | Ngẫu nhiên · Giống câu hỏi · DAIL · CodeS | **Masked-question**, **DAIL-weighted** và oracle: đã implement 2026-07-27, **0 lần chạy** |
 | Cách trình bày ví dụ | Gọn; Đầy đủ (chỉ trên mô hình 0,5B) | **Che định danh** — đã lập trình, 0 lần chạy; Đầy đủ trên mô hình 1,5B |
 | Chính sách dùng ví dụ | Luôn dùng · Chỉ khi lỗi | **Khi lỗi hoặc thiếu tự tin** — đã lập trình, 0 lần chạy |
 | Kết hợp với bỏ phiếu 8 mẫu | 1 ô duy nhất | **Gần như trống hoàn toàn** |
+| Số candidate | N=1 greedy và N=8 SC | **N=4** đã được CLI hỗ trợ nhưng chưa chạy |
+| Xử lý schema đích | Render đầy đủ/compact/CodeS metadata | **Schema pruning thật**: top-k column/table + FK closure |
+| Reasoning | Sinh SQL trực tiếp | **Structured plan** được huấn luyện: tables/joins/filters/ops → SQL |
+| Hậu kiểm | Gate thực thi; SC execution voting | **Một correction pass có error message**, chỉ nhận nếu sửa được lỗi |
 | Mô hình được đo | Mô hình gốc ×4, C, C′, D, E, Gemma, Giáo viên | **Mô hình A và B (hai mô hình mạnh nhất)**; **mọi mô hình liên kết** |
 | Vị trí cắm ICL | ④ suy luận; ③ một phần | **② ngữ cảnh chưng cất — trống hoàn toàn** |
 | Tập đánh giá | Spider dev có ICL; Realistic/DK chỉ không-ví-dụ | ICL trên Realistic/DK/Syn |
 | Số seed | 0 cho tất cả; 1 cho đúng một lần chạy | **≥3 seed cho bất kỳ ô nào** |
+
+### 6.1 Các phương pháp chốt để bổ sung cho model 1,5B
+
+Không nên đưa tất cả vào một run duy nhất. Thứ tự dưới đây cho phép đo riêng
+từng nguồn cải thiện.
+
+#### Mục tiêu quyết định: giữ hay loại ICL
+
+Mục tiêu chính của vòng thí nghiệm này **không phải bắt buộc chọn ra một
+retriever thắng**. Câu hỏi chính là:
+
+> Với model 1,5B đã huấn luyện, ICL có tạo gain ổn định so với cùng model ở
+> `k=0` hay không?
+
+Phương pháp chọn demo chỉ là câu hỏi thứ cấp, được xét nếu ICL vượt qua cổng
+trên. Protocol ra quyết định:
+
+1. So các arm ICL deployment được (`random`, `question`, `masked_question`,
+   `codes`, `dail_select`, `dail_weighted`) với `k=0` dưới cùng schema,
+   decoding, checkpoint, batch size và seed.
+2. Chạy ít nhất ba seed cho baseline và arm ICL tốt nhất; báo mean ± std và
+   paired bootstrap confidence interval trên EX.
+3. **Giữ ICL** chỉ khi arm deployment tốt nhất có gain dương, confidence
+   interval không chứa 0 và không phụ thuộc một seed đơn lẻ.
+4. Nếu không arm nào qua cổng, **loại ICL khỏi phương pháp/hệ thống chính và
+   khỏi tên paper**. Kết quả âm vẫn được giữ thành ablation hoặc đưa vào phụ
+   lục; không tiếp tục sweep chỉ để tìm một cấu hình dương.
+5. `oracle_structure` chỉ đo headroom, không được dùng làm bằng chứng giữ ICL.
+6. Schema pruning, SC và correction là các thành phần **không phải ICL**.
+   Nếu full stack tăng điểm nhưng thêm demo không tăng trên cùng stack, phải
+   quy gain cho pruning/decoding/correction và vẫn loại ICL.
+
+#### M1 — Masked-question retrieval riêng, một lượt — ưu tiên cao
+
+**Trạng thái:** **đã implement và test 2026-07-27, chưa chạy GPU.** Đây là đối
+chứng cần thiết để biết phần tăng/giảm của DAIL đến từ masking hay từ
+SQL-draft gate.
+
+**Thiết kế:**
+
+```text
+question + target DB
+→ schema/cell-value linking
+→ mask table, column, value
+→ BGE embedding
+→ cosine top-k
+```
+
+**Implementation đã hoàn thành:**
+
+- Đã thêm retrieval mode `masked_question` vào
+  `retrieval/retriever.py`, `retrieval/dail_select.py` và choices của
+  `eval_arms/run.py`, `client_train/run.py`,
+  `build_teacher_logit_cache.py`, `federated/run.py`.
+- Tái dùng trường `"m"` trong `.dailcache.json`; không sinh target skeleton,
+  không gọi `predict_target_skeletons`, không dùng `tau`.
+- `select_demos()` truyền `query_db_path`; `_make_train_demo_fn()` hỗ trợ cùng
+  mode ở train/KD/federated CLI.
+- Test bao phủ: không gọi model pre-predict; ranking giống nửa question của
+  `dail_select`; cache cũ được đọc đúng; self-exclusion ở train.
+
+**So sánh sạch:** `question` vs `masked_question` vs `dail_select`, cùng k=1,
+prompt, encoder, schema style và greedy decoding.
+
+#### M2 — Vector schema pruning + PK/FK closure — ưu tiên cao nhất
+
+**Trạng thái hiện tại:** chưa có. `schema_style=codes` chỉ làm schema giàu
+thông tin hơn và thường dài hơn; nó không bỏ bảng/cột không liên quan.
+
+**Thiết kế tối thiểu:**
+
+1. Lập index cho từng item `table.column | type | natural-language name`.
+2. Kết hợp cosine với lexical match và cell-value match.
+3. Lấy mặc định top 20 columns, nhưng luôn giữ:
+   primary key của bảng được chọn, foreign key giữa các bảng được chọn, và
+   bridge table/column trên đường nối ngắn nhất.
+4. Render lại schema đã lọc bằng đúng `full` hoặc `compact_fk`.
+5. Log `n_tables_before/after`, `n_cols_before/after`, gold-schema recall
+   (chỉ khi đánh giá), prompt tokens và latency.
+
+**Implementation cần thêm:**
+
+- Module mới `fedicl_sql/retrieval/schema_pruning.py`.
+- API nên nhận `(db_path, question, top_cols)`; `schema_fn(db_path)` hiện tại
+  không question-aware, nên `training/dataset.py::build_examples` cần nhận
+  một renderer theo example hoặc thêm `question` vào lời gọi.
+- Cờ CLI:
+  `--schema-pruning {none,vector}`, `--schema-top-cols 20`,
+  `--schema-fk-closure`; mọi cờ phải vào resume fingerprint và metrics.
+- Cache embedding theo hash của schema + model encoder, không theo đường dẫn
+  tuyệt đối.
+- Test bắt buộc: column được lexical/value match không bị rơi; PK/FK closure;
+  bridge table; schema rỗng fallback về full schema.
+
+**So sánh sạch:** trước hết giữ ICL k=0 và greedy để đo riêng pruning. Sau đó
+mới ghép retriever thắng ở M1. Nếu dùng pruning ở hệ thống cuối, phải train
+adapter với cùng schema representation; chỉ pruning lúc eval tạo thêm
+train/eval shift.
+
+#### M3 — DAIL-weighted/lite + oracle structural upper bound — ưu tiên vừa
+
+**Trạng thái:** **đã implement và test 2026-07-27, chưa chạy GPU.** Hard-gate
+DAIL cũ vẫn giữ nguyên để làm đối chứng.
+
+**DAIL-weighted đề xuất:**
+
+```text
+score = 0.6 × masked-question cosine
+      + 0.4 × SQL-skeleton Jaccard
+```
+
+Chỉ rerank một shortlist, ví dụ top 32 theo câu hỏi, rồi lấy k. Tên “lite” ở
+đây nghĩa là bỏ hard threshold dễ fallback; **nó chưa giảm lượt sinh nháp**.
+Muốn thực sự một lượt phải thay SQL draft bằng classifier dự đoán operator
+signature — một nhánh khác, chưa nên xây trước khi M1 có số.
+
+**Oracle:** dùng skeleton của `ex.query` làm key chọn demo, nhưng tuyệt đối
+không đưa gold SQL vào prompt. Mode phải tên rõ `oracle_structure`, chỉ mở
+trong eval và metrics phải có `oracle=true`. Đây là upper bound, không phải
+phương pháp deployment.
+
+**Implementation đã hoàn thành:**
+
+- Retriever trả trace riêng cho question score và Jaccard.
+- Đã thêm `dail_weighted`; tái dùng batch draft/cache hiện có.
+- Đã thêm đường oracle trong `eval_arms/run.py`; không thêm vào training hay
+  federated deployment CLI.
+- Test xác nhận oracle không xuất gold vào `full_prompt`; weighted order đúng; SQL
+  draft parse lỗi rơi về question score thay vì làm run lỗi.
+
+#### M4 — SC với N=4 — đã có code, chỉ thiếu phép đo
+
+Không cần sửa algorithm: `--overlay sc --sc-n 4` đã chạy đúng đường execution
+voting hiện tại. Cần so `greedy N=1`, `SC N=4`, `SC N=8` trên cùng adapter,
+seed, batch size và k=0. Đây là ablation chi phí/accuracy phù hợp nhất cho
+model 1,5B.
+
+#### M5 — Một correction pass dựa trên SQLite error — ưu tiên sau M4
+
+**Trạng thái hiện tại:** chưa có. Gate cũ sinh lại với demos nhưng không cho
+model biết lỗi cụ thể; SC chỉ chọn candidate, không sửa.
+
+**Thiết kế an toàn:**
+
+```text
+question + pruned schema + failed SQL + exact SQLite error
+→ greedy corrected SQL
+→ execute again
+→ accept only if original không chạy được và bản sửa chạy được
+```
+
+Chỉ bắt đầu với syntax/unknown table/unknown column/type errors. Không tự sửa
+một SQL đang chạy được, và chưa dùng “empty result” làm lỗi vì dễ mis-repair
+semantic.
+
+**Implementation cần thêm:**
+
+- Thêm correction prompt builder riêng; không trộn vào prompt ICL.
+- Compose sau greedy hoặc sau SC winner trong `eval/loop.py`, ví dụ
+  `--correction exec --correction-max-passes 1`.
+- Log `correction_fired`, `correction_error`, `correction_predicted`,
+  `correction_accepted`; báo cả correction gain và mis-repair rate.
+- Test: không gọi correction khi SQL chạy được; chỉ accept bản sửa executable;
+  lỗi correction không làm hỏng prediction ban đầu.
+
+#### M6 — Structured plan được huấn luyện — ưu tiên thấp hơn
+
+Không nên chỉ thêm “hãy suy nghĩ từng bước” vào prompt của adapter hiện tại.
+Đó là distribution shift và không kiểm tra được lợi ích của reasoning.
+
+**Implementation đúng để so sánh:**
+
+- Dùng SQL parser tạo nhãn xác định:
+  `TABLES`, `JOINS`, `FILTERS`, `AGG`, `GROUP`, `ORDER`, `NESTED`.
+- Huấn luyện một adapter riêng với target
+  `PLAN: ...\nSQL: ...`; cùng dữ liệu, epoch và optimizer với direct-SQL SFT.
+- `_extract_sql()` hiện đã lấy được phần sau marker `SQL:`, nên scoring có thể
+  tái dùng; cần prompt mode và lưu plan riêng trong prediction CSV.
+- So direct-SQL SFT và plan+SQL SFT trước ở k=0/greedy; chỉ ghép ICL/SC nếu
+  plan arm thắng.
 
 ---
 
@@ -309,9 +551,9 @@ về mức độ mất cân bằng dữ liệu.
 
 1. **ICL không được dùng ở bất kỳ đâu trong hệ thống đang chạy**, dù nó nằm
    trong tên phương pháp. Cần hoặc đo chỗ ② để có bằng chứng, hoặc đổi tên.
-2. **Nội dung ví dụ không quan trọng.** Ngẫu nhiên ngang DAIL ở mọi cấu hình đã
-   đo (p = 0,20 đến 1,00). Cái có tác dụng là *xáo trộn prompt + kiểm tra bằng
-   thực thi*, không phải tri thức trong ví dụ.
+2. **Trong các cấu hình đã đo, chưa có bằng chứng nội dung ví dụ quan trọng.**
+   Ngẫu nhiên ngang DAIL (p = 0,20 đến 1,00). Cái có tác dụng quan sát được là
+   *xáo trộn prompt + kiểm tra bằng thực thi*, chưa phải tri thức trong ví dụ.
 3. **Chính sách dùng ví dụ mới là thứ đáng nghiên cứu**, không phải phương pháp
    chọn ví dụ. Dùng bừa: hại. Dùng khi nháp lỗi: lợi 8/8 mô hình. Đây là khoảng
    trống thật trong tài liệu khoa học hiện có.
@@ -322,8 +564,12 @@ về mức độ mất cân bằng dữ liệu.
 
 ## 9. Các lệnh cần chạy bổ sung
 
-Chạy từ thư mục mã nguồn `FedICL-SQL/` (thư mục chứa `experiments/`).
+Chạy từ thư mục mã nguồn `fedicl-sql/` (thư mục chứa `experiments/`).
 Thời gian ước tính lấy từ tốc độ thực đã ghi trong các lần chạy trước.
+
+> **Điều kiện tái lập đã hoàn thành 2026-07-27:** random seed, resume
+> fingerprint, DAIL draft-cache fingerprint, eval provenance và retrieval trace
+> đã được sửa; test suite 257/257 qua. Ma trận ICL mới có thể chạy.
 
 ### Nhóm P0 — bắt buộc, để bảng số khớp với hệ thống đang chạy (~3 giờ GPU)
 
@@ -418,6 +664,20 @@ for K in 1 2 5; do
 done
 ```
 
+**Lệnh 4b — đường cong candidate count, không cần code mới (~2 giờ).**
+
+```bash
+ADP=artifacts/probe_p/central_ft_then_kd_bird_exmatch_then_spider_ft/adapter
+for N in 4 8; do
+  uv run python experiments/eval_arms/run.py --pool-mode centralized \
+    --arms modelA_sc_n$N=$ADP --k 0 \
+    --overlay sc --sc-n $N --batch-size 2 --seed 0
+done
+```
+
+So với greedy k=0 hiện có. Giữ `batch-size=2`; thay batch size đồng thời sẽ làm
+thay chuỗi mẫu và không còn là ablation một biến.
+
 **Lệnh 5 — lặp lại với seed khác (4 lần chạy, ~4 giờ).**
 
 Đây là **lần đầu tiên** chạy được phép lặp có kiểm soát seed, sau bản vá §7.1.
@@ -501,18 +761,33 @@ uv run python scripts/build_teacher_logit_cache.py \
   --embedder BAAI/bge-small-en-v1.5 --tau 0.85 \
   --out artifacts/teacher_logit_cache/rkd_k3_full --seed 0
 
-# Bước 2 — chưng cất lại với ngữ cảnh k=3, mọi thứ khác giữ nguyên
+# Bước 2 — chưng cất lại với CHÍNH ngữ cảnh k=3 đã dùng để dựng cache.
+# Các cờ render-critical bên dưới là bắt buộc; thiếu một cờ sẽ bị cache
+# validator từ chối trước khi load model.
 uv run python experiments/client_train/run.py \
   --client processed_data/BIRD/bootstrap_full_exmatch/train.csv \
   --kd-direction rkd \
   --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit \
   --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k3_full \
+  --train-k 3 --train-k-fixed \
+  --retrieval dail_select --demo-style never_schema \
+  --schema-style full --embedder BAAI/bge-small-en-v1.5 --tau 0.85 \
   --init-adapter artifacts/icl_ladder/qwen1b/ft_no_icl/adapter \
   --out artifacts/probe_p/kd_ctx_k3/adapter \
   --epochs 1 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0
 ```
 
-Sau đó đánh giá bằng Lệnh 3a với adapter mới, so với Mô hình A.
+`--k-teacher 3` của script dựng cache ánh xạ sang `train_k=3` đối xứng:
+teacher và student cùng nhìn đúng ba demo cố định. Tuy tên retrieval là
+`dail_select`, đường train/cache không có pre-predict model nên thực tế dùng
+**masked-question kNN**, không chạy skeleton gate và `tau` không tác động đến
+ranking; cờ `tau` vẫn phải khớp metadata cache.
+
+Sau đó đánh giá adapter mới trước hết với **C″ k=0**
+`central_ft_then_kd_bird_exmatch`, vì đây mới là đối chứng cùng điểm khởi tạo và
+cùng số bước. Nếu muốn so ở tầng Mô hình A, phải chạy cùng một bước Spider FT
+lần hai cho cả adapter k=0 và k=3 rồi mới đánh giá; không so trực tiếp
+`kd_ctx_k3` trung gian với A.
 
 Kỳ vọng thấp — giáo viên tự nó cũng không hưởng lợi từ ví dụ (78,53 so với
 78,72). Nhưng kết quả âm ở đây **vẫn là kết quả công bố được**: "ICL không giúp
@@ -521,6 +796,88 @@ ngay cả ở kênh chưng cất" là câu trả lời sạch sẽ cho câu hỏ
 > **Cần quyết định trước khi chạy Lệnh 10:** hoặc (a) chấp nhận chi phí và báo
 > cáo dù kết quả âm, hoặc (b) bỏ cụm "In-Context" khỏi tên phương pháp. Giữ
 > nguyên tên mà không có ô số nào là vị thế yếu nhất trong ba lựa chọn.
+
+---
+
+### Nhóm P4 — ma trận ICL mới
+
+M1 và M3 **đã chạy được trên code hiện tại**. M2 schema pruning và M5
+correction vẫn chưa implement; lệnh của hai nhánh đó được giữ riêng bên dưới
+và không được trộn vào phép kiểm định ICL.
+
+Script điều phối tương đương đã có:
+
+```bash
+bash scripts/run_icl_report_matrix.sh screen
+bash scripts/run_icl_report_matrix.sh confirm masked_question  # thay bằng arm thắng
+```
+
+```bash
+ADP=artifacts/probe_p/central_ft_then_kd_bird_exmatch_then_spider_ft/adapter
+
+# Mốc k=0 cùng model/schema/decoding
+uv run python experiments/eval_arms/run.py --pool-mode centralized \
+  --arms modelA_k0=$ADP --k 0 --overlay none \
+  --schema-style full --batch-size 16 --seed 0
+
+# Screening toàn bộ arm ICL deployment được, k=1/greedy/seed 0
+for R in random question masked_question codes dail_select dail_weighted; do
+  uv run python experiments/eval_arms/run.py --pool-mode centralized \
+    --arms modelA_k1_$R=$ADP --k 1 --retrieval $R \
+    --overlay none --schema-style full --batch-size 16 --seed 0
+done
+
+# Oracle chỉ chạy một lần để đo headroom, không đưa vào cổng giữ ICL
+uv run python experiments/eval_arms/run.py --pool-mode centralized \
+  --arms modelA_k1_oracle=$ADP --k 1 --retrieval oracle_structure \
+  --overlay none --schema-style full --batch-size 16 --seed 0
+```
+
+Sau screening, thay `BEST` bằng arm deployment có EX cao nhất và xác nhận ba
+seed đối đầu baseline. Với greedy deterministic, ba seed chủ yếu kiểm tra
+pipeline/retrieval stability; random và mọi arm dùng sampling bắt buộc phải đủ
+ba seed.
+
+```bash
+BEST=masked_question  # thay sau screening
+for S in 0 1 2; do
+  uv run python experiments/eval_arms/run.py --pool-mode centralized \
+    --arms modelA_k0_s$S=$ADP --k 0 --overlay none \
+    --schema-style full --batch-size 16 --seed $S
+  uv run python experiments/eval_arms/run.py --pool-mode centralized \
+    --arms modelA_k1_${BEST}_s$S=$ADP --k 1 --retrieval $BEST \
+    --overlay none --schema-style full --batch-size 16 --seed $S
+done
+```
+
+Dùng `analysis/icl_multiseed.py` với ba CSV baseline và ba CSV của `BEST` để
+xuất mean ± std, paired-bootstrap CI và quyết định `KEEP/DROP ICL`.
+
+Các giao diện sau **chưa chạy được** vì M2/M5 chưa implement:
+
+```bash
+# M2 dự kiến: đo riêng schema pruning, chưa ICL/chưa SC
+uv run python experiments/eval_arms/run.py --pool-mode centralized \
+  --arms modelA_prune20=$ADP --k 0 --overlay none \
+  --schema-pruning vector --schema-top-cols 20 --schema-fk-closure \
+  --batch-size 16 --seed 0
+
+# M5 dự kiến: SC4 + một correction pass
+uv run python experiments/eval_arms/run.py --pool-mode centralized \
+  --arms modelA_sc4_correct=$ADP --k 0 \
+  --overlay sc --sc-n 4 --correction exec --correction-max-passes 1 \
+  --batch-size 2 --seed 0
+```
+
+Không ghép pruning + ICL + SC + correction ngay lần đầu. Thứ tự kết quả nên là:
+M1 retrieval → M2 pruning → M4 N=4/8 → M5 correction; M3/M6 chỉ tiếp tục nếu
+ablation trước cho thấy còn headroom.
+
+**Cổng dừng ICL:** sau screening M1/M3, lấy arm ICL deployment tốt nhất và chạy đủ ba
+seed đối đầu `k=0`. Nếu không có gain dương đáng tin cậy, dừng toàn bộ nhánh
+ICL: không chạy cấu hình kết hợp pruning + ICL + SC + correction, không dùng
+oracle để biện minh, và chuyển cấu hình cuối sang
+`schema pruning + SC + correction` ở `k=0`.
 
 ---
 
