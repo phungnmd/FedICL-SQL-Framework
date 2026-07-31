@@ -152,28 +152,25 @@ that unmatched inference-time ICL is harmful, but it does not test:
 Therefore ICL remains in the project until the matched federated experiment is
 complete.
 
-### 5.3 Required ICL wiring before the GPU run
+### 5.3 Implemented ICL execution contract
 
-The current code exposes `dail_weighted` in evaluation, but two gaps must be
-closed before claiming an end-to-end run:
+The federated runner now exposes and fingerprints the complete client ICL
+protocol: retrieval method, fixed demo count, demo/schema styles, embedder,
+DAIL weights, and shortlist size. For `dail_weighted`, each client generates
+and caches draft SQL skeletons using the global student at the start of the
+round, then ranks its private candidates with the same weighted DAIL rule used
+at evaluation. Missing draft skeletons are fatal; the run cannot silently fall
+back to masked-question retrieval while being reported as `dail_weighted`.
 
-1. the federated CLI retrieval choices must accept `dail_weighted`;
-2. train-time retrieval currently has no draft SQL skeleton, so structural
-   DAIL modes fall back to masked-question ranking.
+The setup identity separates ICL from no-ICL client training, while irrelevant
+retrieval flags do not split `k=0` controls. Evaluation fingerprints also
+include model, pool, prompt, retrieval, embedder, and DAIL settings, preventing
+stale per-round results from being reused under a changed protocol.
 
-The experiment must record which policy actually generated train demos. The
-preferred policy is to build/cache draft SQL skeletons from the round-start
-global student, then apply the same weighted DAIL rule used at evaluation.
-If that cost is rejected, the arm must be named and reported as
-`masked_question`, not `dail_weighted`.
-
-Before full training, a small deterministic preflight must verify:
-
-- no target example retrieves itself;
-- every demo comes from the same client's training pool;
-- train and eval render the same demo/schema format;
-- selected demo IDs and scores are persisted;
-- identical seed/config gives identical prompts.
+Deterministic tests cover private-pool/self-exclusion behavior in the existing
+retriever suite, exact client ICL propagation, round-start draft generation,
+cache use, setup/fingerprint separation, and the fatal missing-draft path. A
+capped GPU smoke remains required before the full run.
 
 ### 5.4 ICL decision experiment
 

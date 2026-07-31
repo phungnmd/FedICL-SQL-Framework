@@ -19,6 +19,8 @@
   inference-only ICL on a centralized adapter trained with `k=0`. It does not
   settle matched in-context training or federated ICL.
 - Federated implementation exists; real headline `K=8` results do not.
+- Matched ICL/no-ICL federated wiring was reviewed and completed on 2026-08-01;
+  the remaining gate is a capped GPU smoke followed by the real runs.
 
 ## Active decisions
 
@@ -254,24 +256,31 @@ Evaluation supports:
 Client training supports demo injection through `train_k`, fixed or sampled
 demo count, private client pools, and train/eval prompt styles.
 
-Known gap before the selected ICL arm can run faithfully:
+Federated ICL preflight closed on 2026-08-01:
 
-- federated CLI does not yet expose `dail_weighted`;
-- train-time structural retrieval has no draft skeleton and currently falls
-  back to masked-question ranking.
+- the CLI and immutable setup expose/fingerprint the full client ICL policy;
+- `dail_weighted` train retrieval generates cached draft skeletons with the
+  round-start global student;
+- fixed `k=3`, `never_schema`, `full` schema, DAIL alpha/shortlist, embedder,
+  and cache paths propagate into every client configuration;
+- missing drafts fail loudly instead of falling back to masked-question
+  retrieval;
+- per-round evaluation fingerprints now cover the complete ICL protocol;
+- focused federated/training/manifest tests pass (60 tests), the full suite
+  passes (267 tests), and lint is clean.
 
-The gap must be fixed and covered by deterministic prompt tests before GPU
-training. Otherwise the experiment must be labelled `masked_question`, not
-`dail_weighted`.
+The code review also confirmed immutable setup recipes, parent-adapter hashes,
+round lineage, idempotent round/result persistence, and deterministic result
+paths. No real GPU result is claimed. The local workspace does not contain the
+canonical full teacher-logit cache, so the compute environment must provide or
+rebuild a cache whose metadata matches the frozen public pool before KD runs.
 
 ## Active run queue
 
-1. Wire `dail_weighted` through federated client training.
-2. Add tests for private-pool ownership, self-exclusion, prompt parity,
-   selected-demo provenance, and deterministic replay.
-3. Run capped `K=2, T=1` six-arm smoke.
-4. Run shared-client `K=8, T=1` aggregation/server ladder.
-5. Run matched `florana_kd`:
+1. Validate the canonical teacher-logit cache on the compute host.
+2. Run a capped `K=2, T=1` wiring smoke using clients 1–2 of the committed
+   `K=8` split; do not report it as a scientific two-client result.
+3. Run matched `florana_kd`, first at `K=8, T=1`:
 
    ```text
    train/eval k=0
@@ -279,11 +288,13 @@ training. Otherwise the experiment must be labelled `masked_question`, not
    train/eval dail_weighted k=3
    ```
 
-6. Inspect EX/EM, execution errors, prompt cost, latency, per-client variance,
+4. Inspect EX/EM, execution errors, prompt cost, latency, per-client variance,
    `e_agg`, and post-aggregation/post-server changes.
-7. Extend viable conditions to `T=2`, `T=3`, then three seeds.
-8. Test SC composition only on the selected trained condition.
-9. Decide whether ICL and the name Fed-ICKD remain in the final paper.
+5. Run the `K=8, T=1` aggregation/server ladder needed to attribute gains
+   across FedAvg, FLoRA-NA, public CE, and public RKD.
+6. Extend viable conditions to `T=2`, `T=3`, then three seeds.
+7. Test SC composition only on the selected trained condition.
+8. Decide whether ICL and the name Fed-ICKD remain in the final paper.
 
 ## Closed or deferred branches
 
