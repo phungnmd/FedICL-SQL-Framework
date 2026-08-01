@@ -11,16 +11,20 @@
   CE/reverse-KL.
 - Student/teacher: Qwen2.5-1.5B-Instruct /
   Qwen2.5-Coder-7B-Instruct.
-- Public KD data: fixed 3,873-row BIRD teacher-generated EX-match pool.
+- Public KD data: fixed 8,127-row BIRD teacher-generated EX-match pool.
 - ICL status: **retained as an open full-pipeline experiment**.
 - Selected ICL candidate: `dail_weighted`, fixed `k=3`, `never_schema`,
   client-private demo pool, matched at train and eval.
 - Important scope correction: the negative 2026-07-29 result tested
   inference-only ICL on a centralized adapter trained with `k=0`. It does not
   settle matched in-context training or federated ICL.
-- Federated implementation exists; real headline `K=8` results do not.
+- Federated implementation exists; real headline `K=5` results do not.
 - Matched ICL/no-ICL federated wiring was reviewed and completed on 2026-08-01;
   the remaining gate is a capped GPU smoke followed by the real runs.
+- On 2026-08-01 the headline client count was reduced from `K=8` to `K=5`
+  at the same Dirichlet `alpha=0.5` and seed 0. The committed split has
+  910–2,749 rows and 17–49 databases per client; old K=8 artifacts are not
+  mixed with the new K=5 runs.
 
 ## Active decisions
 
@@ -30,7 +34,7 @@
 2. The server teacher never sees client data.
 3. Only LoRA adapters cross the network.
 4. Spider dev is a frozen test set and never a demo pool.
-5. Every default KD arm uses the same ordered 3,873-row public pool and hash.
+5. Every default KD arm uses the same ordered 8,127-row public pool and hash.
 6. BIRD gold SQL text is not a training target. It is used only to select
    teacher-generated SQL with matching execution results.
 
@@ -103,7 +107,7 @@ Plain CE on BIRD gold from the base model failed:
 | 1k BIRD-gold CE | 47.10 | harmful |
 | teacher bootstrap CE, 831 executable rows | 50.00 | removed the regression |
 
-The canonical pool was later frozen at 3,873 teacher-generated SQL rows whose
+The canonical pool was later frozen at 8,127 teacher-generated SQL rows whose
 execution results match BIRD gold.
 
 A centralized `Spider FT -> BIRD CE+RKL -> Spider FT` pipeline was compared
@@ -219,7 +223,7 @@ Implemented:
   checkpoint/resume, and deterministic result IDs;
 - optional post-aggregation and post-server evaluation per round.
 
-Real `K=8` headline training has not run.
+Real `K=5` headline training has not run.
 
 ### Evaluation-result retention
 
@@ -271,7 +275,10 @@ Federated ICL preflight closed on 2026-08-01:
 
 The code review also confirmed immutable setup recipes, parent-adapter hashes,
 round lineage, idempotent round/result persistence, and deterministic result
-paths. No real GPU result is claimed. The local workspace does not contain the
+paths. Round results now collect every completed client's loss/step/time/VRAM
+summary and exact train config, plus aggregation diagnostics and the server-KD
+summary, including stages reused after resume. No real GPU result is claimed.
+The local workspace does not contain the
 canonical full teacher-logit cache, so the compute environment must provide or
 rebuild a cache whose metadata matches the frozen public pool before KD runs.
 
@@ -279,8 +286,8 @@ rebuild a cache whose metadata matches the frozen public pool before KD runs.
 
 1. Validate the canonical teacher-logit cache on the compute host.
 2. Run a capped `K=2, T=1` wiring smoke using clients 1–2 of the committed
-   `K=8` split; do not report it as a scientific two-client result.
-3. Run matched `florana_kd`, first at `K=8, T=1`:
+   `K=5` split; do not report it as a scientific two-client result.
+3. Run matched `florana_kd`, first at `K=5, T=1`:
 
    ```text
    train/eval k=0
@@ -290,7 +297,7 @@ rebuild a cache whose metadata matches the frozen public pool before KD runs.
 
 4. Inspect EX/EM, execution errors, prompt cost, latency, per-client variance,
    `e_agg`, and post-aggregation/post-server changes.
-5. Run the `K=8, T=1` aggregation/server ladder needed to attribute gains
+5. Run the `K=5, T=1` aggregation/server ladder needed to attribute gains
    across FedAvg, FLoRA-NA, public CE, and public RKD.
 6. Extend viable conditions to `T=2`, `T=3`, then three seeds.
 7. Test SC composition only on the selected trained condition.

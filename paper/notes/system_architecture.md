@@ -45,7 +45,7 @@ Client `i` owns:
 - a private ICL demo pool drawn only from `Q_i`.
 
 Spider train databases are partitioned non-IID by domain group. The default
-headline setup is `K=8`, Dirichlet `alpha=0.5`; `alpha=0.1` and IID are
+headline setup is `K=5`, Dirichlet `alpha=0.5`; `alpha=0.1` and IID are
 robustness settings.
 
 Only LoRA adapters cross the network. Raw rows, schemas, questions, SQL,
@@ -62,7 +62,7 @@ structural isolation claim, not formal differential privacy.
 | Adapter | LoRA `r=16`, `alpha=32`, attention + MLP projections |
 | Private training data | Non-IID Spider train shards |
 | Evaluation | Frozen Spider dev, 1,034 rows |
-| Public pool `P` | Frozen 3,873-row BIRD teacher-generated EX-match pool |
+| Public pool `P` | Frozen 8,127-row BIRD teacher-generated EX-match pool |
 
 The public pool uses BIRD schemas and databases, but not BIRD gold SQL text as
 the training target:
@@ -74,7 +74,7 @@ the training target:
 5. teacher logits on `y_pub` are cached offline.
 
 Gold SQL is therefore a row-selection oracle only. All default KD arms must
-use the same ordered 3,873 rows and record the pool hash. Smaller pools are
+use the same ordered 8,127 rows and record the pool hash. Smaller pools are
 explicit smoke or data-budget ablations.
 
 ## 4. End-to-end pipeline
@@ -302,7 +302,7 @@ Do not assume any ordering before the runs finish.
 1. Close the `dail_weighted` train/federated wiring and run deterministic
    prompt preflight.
 2. Run a capped `K=2, T=1` six-arm smoke.
-3. Run the shared-client `K=8, T=1` aggregation/server ladder.
+3. Run the shared-client `K=5, T=1` aggregation/server ladder.
 4. Run the matched `florana_kd` no-ICL versus ICL-training comparison.
 5. Inspect `e_agg`, post-aggregation/post-server EX, execution errors, and
    per-client variance.
@@ -357,7 +357,7 @@ Implemented:
 Pending before paper claims:
 
 - complete `dail_weighted` train/federated wiring;
-- real `K=8` federated results;
+- real `K=5` federated results;
 - matched federated ICL-training comparison;
 - multi-round and multi-seed confirmation;
 - final method name/title decision after the ICL result.
