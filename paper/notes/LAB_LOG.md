@@ -336,6 +336,57 @@ ICL from the method and renaming away from `Fed-ICKD`; advisor sign-off is
 pending and the original ICL direction predates it, so nothing is rewritten in
 `system_architecture.md` until that conversation happens.
 
+### Component ablation, K=5 T=1 seed 0, no-ICL branch
+
+Completed 2026-08-11 when the base-only control finally ran. Every teacher
+distillation before it had started from an already-trained adapter, so "base
+model plus the same server step" — the ablation that removes the federated
+stage — had never been measured. `experiments/client_train/run.py` with
+`--init-adapter` unset on the same pool, same cache, same budget per stage;
+evals in `eval_arms__s0__20260810T180648`.
+
+| Configuration | EX | Δ vs full | `p` |
+|---|---:|---:|---:|
+| **Full pipeline** (client FT → FedAvg → SeqKD → RKL) | **63.35** | — | — |
+| − reverse KL | 61.32 | −2.03 | 0.042 |
+| − the whole server distillation | 57.35 | −6.00 | **4.8e−05** |
+| − the whole federated stage (base + SeqKD + RKL) | 61.22 | −2.13 | 0.017 |
+| − everything (base 1.5B) | 50.00 | −13.35 | — |
+
+**Every component's removal costs significant EX.** The ablation table is
+complete and it passes.
+
+Two readings that need stating plainly, because they change how the work is
+pitched:
+
+- **Public-pool distillation does most of the lifting.** Base → base+SeqKD+RKL
+  is `+11.22` of the total `+13.35`; the federated stage adds `+2.13` on top.
+  This does not weaken the ablation — a component earns its place by making
+  things worse when removed, not by contributing equally — but the headline can
+  no longer imply that federation produced the whole gain.
+- **Federation alone is not competitive.** `fedavg_adapter` at 57.35 loses to
+  public distillation from base at 61.22 (`+3.87` for the latter, `p=0.013`),
+  and `base_rkl` (61.22) is statistically identical to `fedavg_pub` (61.32,
+  `p=1.00`). The defensible claim is the interaction: neither half is enough on
+  its own, and the combination beats each (`+2.13` over distillation alone,
+  `+6.00` over federation alone).
+
+**Reverse KL over its matched SeqKD control now replicates three times**, on
+three unrelated client populations: `+1.55` from base (`p=0.121`), `+2.03`
+federated no-ICL (`p=0.042`), `+2.51` federated ICL (`p=0.013`). Same sign,
+magnitudes 1.55–2.51. This is the most robust result in the project.
+
+A matched-compute control was considered and rejected. The full pipeline runs
+12,532 optimiser steps against the base control's 3,873, but the extra steps
+are on *different* data (private Spider shards), so re-running the control for
+three epochs over the same 3,873 public rows would measure diminishing returns
+on repeated data, not the value of private data. An ablation removes a
+component together with its compute; that is what removing it means, and no FL
+paper compute-matches ablation rows. Report the step counts as a cost column
+instead. If the compute question ever needs a real answer, the control is *more
+public data* (`bootstrap_full`, 7,968 rows) rather than more epochs, and it
+would need a fresh teacher logit cache.
+
 ### Aggregate versus the best single client, K=5 seed 0
 
 Asked on 2026-08-10, since "federation beats going it alone" was being claimed
@@ -517,10 +568,11 @@ ICL-versus-no-ICL question is answered and FLoRA-NA is closed; neither needs
 more cells. Remaining order, highest value first:
 
 1. **Seeds 1 and 2 on the no-ICL factor-FedAvg ladder**
-   (`fedavg -> fedavg_pub -> fedkd`). Every headline number is single-seed,
-   including the `+2.03` reverse-KL delta the paper rests on. About 4 h per
-   seed: clients 4,100 s plus two server stages ~8,100 s. Nothing else changes
-   what can be claimed.
+   (`fedavg -> fedavg_pub -> fedkd`). Every ablation row is single-seed, and the
+   two rows the paper rests on sit at `p = 0.017` and `p = 0.042` — close enough
+   to the threshold that one more seed could move them either way. About 4 h per
+   seed: clients 4,100 s plus two server stages ~8,100 s. This is the only
+   remaining risk to the claims. Runbook: `experiments/federated/PIPELINE_NEXT.md`.
 2. **Evaluate the five no-ICL client adapters at `k=0`** (about 1 h). The
    report's "local versus federated" row currently borrows ICL-branch numbers,
    and the `+7.35` step cannot be split into local training and aggregation
