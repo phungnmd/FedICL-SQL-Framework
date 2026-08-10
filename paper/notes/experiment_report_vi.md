@@ -72,32 +72,70 @@ Câu trả lời trung thực: **model gộp hơn 4 trên 5 client, nhưng thua 
 nhất 1,84 điểm** (p = 0,164 — không có ý nghĩa thống kê). Nó chỉ hơn client yếu
 nhất một cách có ý nghĩa (+3,48, p = 0,009).
 
-Ba điểm cần nói kèm để không hiểu sai:
+Khoảng cách 1,84 điểm này đã được truy nguyên đến tận cùng. Hai giả thuyết được
+kiểm tra, một bị bác bỏ và một được xác nhận.
 
-- **Client 5 giỏi thật, không phải may.** Chia đôi tập test ngẫu nhiên 100 lần,
-  nó được chọn là tốt nhất ở 193/200 nửa, và hai nửa đồng ý 93/100 lần. Không
-  thể quy cho hiệu ứng chọn lọc hậu nghiệm.
-- **Nhưng khoảng cách thì chưa chắc chắn.** Bootstrap 2.000 lần cho khoảng tin
-  cậy 95% của chênh lệch là **[−0,77 ; +4,16]** — vẫn chứa số 0.
-- **Client 5 không giỏi đều, nó giỏi theo miền.** Trên 20 database của Spider
-  dev, nó hơn model gộp ở 8, thua ở 8, hoà 4. Lợi thế dồn vào vài miền cụ thể
-  (`network_1`, `world_1`, `pets_1`, `dog_kennels`). Đây là dấu hiệu của
-  **chuyên biệt hoá miền dưới phân phối không đồng nhất**, không phải dấu hiệu
-  model gộp bị hỏng. Ghi chú thêm: client 5 lại là client nhỏ nhất (910 dòng,
-  trọng số 0,105 khi gộp).
+**Giả thuyết 1 — lỗi gộp LoRA. Bị bác bỏ.** Phép gộp trung bình từng thừa số
+cho $\bar{B}\bar{A} \neq \sum_i w_i B_i A_i$, một sai số đã biết trong tài liệu
+(FedEx-LoRA, FLoRA, Fed-SB đều nhằm sửa nó). Đã dựng tổng chính xác từ chính 5
+adapter đó, không cần huấn luyện lại:
 
-Một model toàn cục thua một chuyên gia trên hợp của mọi miền là đánh đổi cố
-hữu của học liên kết, không phải lỗi kỹ thuật. Dù vậy vẫn còn một giả thuyết
-kỹ thuật chưa loại trừ: phép gộp LoRA theo từng thừa số cho
-$\bar{B}\bar{A} \neq \sum_i w_i B_i A_i$. Thí nghiệm kiểm chứng đã được chuẩn
-bị (`scripts/exact_aggregate.py`, dựng tổng chính xác ở rank 80 cùng một đối
-chứng rank 16) và sẽ chạy trong đợt tới.
+| Cách gộp | rank | sai số tích | EX | so với FedAvg | p |
+|---|---:|---:|---:|---:|---:|
+| Trung bình từng thừa số (đang dùng) | 16 | 0,069 | 54,45 | — | — |
+| FLoRA-NA | 16 | 0,066 | 54,45 | 0,00 | — |
+| Xấp xỉ rank-16 tối ưu | 16 | tối thiểu | 54,26 | −0,19 | 0,851 |
+| **Tổng chính xác** | 80 | **0** | 55,13 | +0,68 | 0,311 |
 
-Kết luận đúng mức: **ở chặng này gộp liên kết chưa tự chứng minh được giá trị**
-so với một client may mắn. Giá trị của hệ nằm ở bước sau — trên cùng nhánh và
-cùng 5 client đó, sau khi giáo viên chưng cất, model chung đạt 64,02, hơn
-client mạnh nhất **7,73 điểm**. Nói cách khác: liên kết một mình chưa đủ; liên
-kết cộng chưng cất mới đủ.
+Dòng thứ ba là mấu chốt: nó cùng mục tiêu với dòng thứ tư nhưng bị giữ ở rank
+16, và cho **đúng số không**. Nên phần +0,68 của tổng chính xác đến từ việc
+adapter to gấp 5, không phải từ việc sửa sai số. Bốn cách gộp trải sai số từ
+0,069 xuống 0 cho EX trong dải 0,87 điểm, không cách nào đạt ý nghĩa thống kê.
+
+**Giả thuyết 2 — hiệu ứng trọng số của tập test. Được xác nhận.** Chỉ số EX
+chuẩn của Spider cân mỗi database theo số câu hỏi. Tính lại với mỗi database
+cân bằng nhau:
+
+| | EX theo câu hỏi | EX theo database |
+|---|---:|---:|
+| Client 5 | **56,29** (hạng 1) | 58,21 (hạng 3) |
+| Model gộp (FedAvg) | 54,45 | **58,25** (hạng 2) |
+| Tổng chính xác | 55,13 | **58,62** (hạng 1) |
+| Client 1 | 53,29 | 57,43 |
+| Client 2 | 52,51 | 56,79 |
+| Client 3 | 53,00 | 56,31 |
+| Client 4 | 50,97 | 55,30 |
+
+**Thứ hạng đảo ngược.** Cân bằng theo database thì model gộp đã ngang hoặc hơn
+mọi client lẻ. Client 5 mạnh đúng ở những database lớn nhất — `world_1` (120
+câu, chiếm 11,6% tập test), `dog_kennels` (82), `tvshow` (62), `pets_1` (42).
+Bốn database trên tổng số 20 đã chiếm hơn toàn bộ khoảng cách 1,84 điểm.
+
+Ba dữ kiện phụ khớp với cách đọc này:
+
+- **Model gộp bằng trung bình theo database cộng 1,24 điểm.** Nó hành xử đúng
+  như một phép trung bình lành mạnh; một phép gộp hỏng sẽ rơi *xuống dưới* mức
+  trung bình đó.
+- **Tập test hoàn toàn không chung schema với tập huấn luyện** — 20 database
+  test, 146 database train, giao rỗng. Không client nào từng thấy database nào
+  trong tập test, nên đây là khác biệt về khả năng chuyển giao, không phải ghi
+  nhớ.
+- **Không client nào thực sự trội.** Số database mà mỗi client thắng rải đều
+  4/6/4/1/5. Client 2 thắng nhiều database nhất (6 trên 20) nhưng chỉ xếp hạng
+  5. "Client mạnh nhất" không phải một tính chất ổn định của client, mà phụ
+  thuộc vào phân bố kích thước database của tập test.
+
+Kết luận: **model gộp không kém client mạnh nhất.** Trên tập test này một client
+tình cờ mạnh ở đúng những database lớn nhất, và cách tính điểm theo câu hỏi
+khuếch đại điều đó thành khoảng cách 1,84 điểm vốn đã không có ý nghĩa thống kê.
+Giá trị của việc gộp là có thật, và giá trị của cả hệ nằm ở bước tiếp theo: trên
+cùng 5 client đó, sau khi giáo viên chưng cất, model chung đạt 64,02 — hơn
+client mạnh nhất **7,73 điểm**.
+
+Hệ quả thực dụng: câu hỏi "sao không dùng FedEx-LoRA hay Fed-SB" đã có câu trả
+lời bằng số. Sửa sai số gộp mà giữ nguyên rank cho −0,19 điểm; sửa triệt để
+bằng cách tăng rank gấp 5 cho +0,68 điểm, không có ý nghĩa thống kê. Không có
+dư địa đáng kể ở tầng này.
 
 ---
 

@@ -372,17 +372,51 @@ represent a sum of rank up to `K·r`. That is why its product error moves only
 — the FLoRA-NA verdict below stands as a verdict on FLoRA-NA, not on exact
 aggregation.
 
-`scripts/exact_aggregate.py` (+ `tests/test_exact_aggregate.py`, 5 tests) was
-written for this. It needs no retraining: `stack` concatenates the factors into
-an exact rank-`K·r` aggregate with `lora_alpha` rescaled so PEFT's `alpha/r`
-is unchanged, and `svd` gives the best rank-`r` fit to the same target — the
-control that separates "the aggregation error was fixed" from "the server just
-got a 5x bigger adapter". Queued as one aggregation plus one eval, about 25
-minutes. Predictions: `stack` ≈ 54.45 closes the question; `stack` high with
-`svd` ≈ 54.45 means capacity, not exactness; both high would make aggregation
-error a real finding, though a rank-80 aggregate cannot be handed back to
-rank-16 clients for a round 2, which is precisely why FedEx-LoRA uses a
-residual correction instead of stacking.
+`scripts/exact_aggregate.py` (+ `tests/test_exact_aggregate.py`) settled it
+without retraining. `stack` concatenates the factors into an exact rank-`K·r`
+aggregate with `lora_alpha` rescaled so PEFT's `alpha/r` is unchanged; `svd`
+gives the best rank-`r` fit to the same target — the control separating "the
+aggregation error was fixed" from "the server just got a 5x bigger adapter".
+Evaluated at `k=0` in `eval_arms__s0__20260810T151051`:
+
+| Aggregator | rank | product error | EX | vs `factor_fedavg` | `p` |
+|---|---:|---:|---:|---:|---:|
+| `factor_fedavg` | 16 | 0.0687 | 54.45 | — | — |
+| `florana` | 16 | 0.0661 | 54.45 | 0.00 | — |
+| `exact_svd` | 16 | minimal at rank 16 | 54.26 | −0.19 | 0.851 |
+| `exact_stack` | 80 | 0 | 55.13 | +0.68 | 0.311 |
+
+**Aggregation error is not the cause.** `exact_svd` shares `exact_stack`'s
+objective but is held at rank 16 and returns exactly nothing, so `exact_stack`'s
+`+0.68` is the 5x capacity, not the exactness. Four aggregators spanning product
+error 0.069 → 0 land within 0.87 EX with no cell significant, and `exact_stack`
+is still 1.16 below the best client (`p=0.396`). `exact_svd` is the optimal
+rank-preserving minimiser of that error, which bounds what any aggregator in the
+FedEx-LoRA / Fed-SB family can buy here.
+
+**The cause is test-set weighting.** Spider's EX weights each database by its
+question count. Re-scored with databases weighted equally:
+
+| | EX per question | EX per database |
+|---|---:|---:|
+| client 5 | **56.29** (1st) | 58.21 (3rd) |
+| `factor_fedavg` | 54.45 | **58.25** (2nd) |
+| `exact_stack` | 55.13 | **58.62** (1st) |
+| clients 1 / 2 / 3 / 4 | 53.29 / 52.51 / 53.00 / 50.97 | 57.43 / 56.79 / 56.31 / 55.30 |
+
+The ranking inverts: per database the aggregate already matches or beats every
+client. Client 5 is strong on the largest databases — `world_1` (120 questions,
+11.6% of the test set), `dog_kennels` (82), `tvshow` (62), `pets_1` (42) — and
+those four alone exceed the whole 1.84 gap. Supporting facts: the aggregate sits
+at per-database client mean **+1.24** (a broken aggregation would sit below it);
+the test set shares no schema with training (20 test databases, 146 training
+databases, empty intersection), so this is transfer, not memorisation; and
+per-database wins are spread 4/6/4/1/5, with client 2 winning the most databases
+(6/20) while ranking 5th overall. "Best client" is a property of the test set's
+database-size mix, not a stable property of any client.
+
+Verdict: the aggregate is not worse than the best client, and there is no
+material headroom at the aggregation stage of this configuration.
 
 EM is not comparable across the server step. It falls `46.9 -> 31.3` while EX
 rises, and prediction diffs show the cause is BIRD surface convention
@@ -487,18 +521,19 @@ more cells. Remaining order, highest value first:
    including the `+2.03` reverse-KL delta the paper rests on. About 4 h per
    seed: clients 4,100 s plus two server stages ~8,100 s. Nothing else changes
    what can be claimed.
-2. **Exact-aggregation diagnostic** (`scripts/exact_aggregate.py`, `stack` and
-   `svd` modes, then one `k=0` eval of both). No retraining; about 25 minutes.
-   Settles whether the pre-server gap to the best client is aggregation error
-   or client drift, and it is the one open question the FLoRA-NA verdict does
-   not cover.
-3. **Evaluate the five no-ICL client adapters at `k=0`** (about 1 h). The
+2. **Evaluate the five no-ICL client adapters at `k=0`** (about 1 h). The
    report's "local versus federated" row currently borrows ICL-branch numbers,
    and the `+7.35` step cannot be split into local training and aggregation
    without it.
-4. Extend the winning condition to `T=2`, `T=3`.
-5. Test SC composition only on the selected trained condition.
-6. Advisor conversation on demoting ICL and renaming away from Fed-ICKD.
+3. Extend the winning condition to `T=2`, `T=3`. This is now also the only
+   remaining place an aggregation method could pay off, since the error the
+   FedEx-LoRA family targets compounds across rounds and T=1 applies it once.
+4. Test SC composition only on the selected trained condition.
+5. Advisor conversation on demoting ICL and renaming away from Fed-ICKD.
+
+Closed on 2026-08-10: the exact-aggregation diagnostic. Aggregation error is
+not what separates the aggregate from the best client, and no aggregator in
+that family has material headroom at `K=5, T=1`.
 
 Closed on 2026-08-10: the 2x2 completion cell (`train_noicl` at `k=3`) ran and
 refuted the parity hypothesis, so §5 is fully evidenced. Its private-pool twin
