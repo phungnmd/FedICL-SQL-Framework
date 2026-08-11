@@ -383,8 +383,14 @@ stage's own value is smaller than the `+2.13` recorded below: against
 only one seed, so that row is untested across seeds.
 
 Power: at `n=3`, `df=2`, an effect of 1.71 with `sd=1.38` cannot reach
-significance. Detecting `d=1.24` at 80% power needs about `n=7`. The reverse-KL
-delta is unresolved, not refuted.
+significance. Detecting `d=1.24` at 80% power needs about `n=7`.
+
+Scope correction, same day: this does not need resolving. SeqKD and reverse KL
+are both distillation — hard labels and soft labels inside one component — so
+the split is a design choice, not an ablation of the proposal. The ablation
+that matters removes a whole component: distillation (`−4.55, p=0.046`) or the
+federated stage (`−1.5`, one seed). Reverse KL stays, argued from [10] KID,
+with `+1.71 ± 1.38` reported as measured and no claim resting on it.
 
 **Unaffected:** every ICL conclusion. Those rest on six independent cells
 pointing the same way with larger effects (`−3.87, p=0.003`; `−2.90, p=0.008`).
@@ -626,25 +632,29 @@ Both `K=5, T=1, seed 0` runbooks are executed as of 2026-08-10. The
 ICL-versus-no-ICL question is answered and FLoRA-NA is closed; neither needs
 more cells. Remaining order, highest value first:
 
-1. **Seeds 3–6 on the no-ICL ladder**, taking the design to `n=7`. At `n=3` the
-   reverse-KL delta is `+1.71 ± 1.38, p=0.165`; if that effect is real, `n=7`
-   reaches roughly `p=0.02`. This is the only experiment that can preserve the
-   paper's specific contribution rather than its general one. About 4 h per
-   seed, 16 h total. Runbook: `experiments/federated/PIPELINE_NEXT.md`, block C,
-   with the seed and every `_s1` path substituted.
-2. **`base_seqkd` and `base_rkl` on seeds 1 and 2** (about 2.4 h). The "remove
-   the whole federated stage" ablation row is still single-seed, and it is the
-   row that says what private data is worth. Block A with the seed changed.
-3. Extend the winning condition to `T=2`, `T=3`. Also the only remaining place
-   an aggregation method could pay off, since the error the FedEx-LoRA family
-   targets compounds across rounds and T=1 applies it once.
+The proposal is federated training combined with server-side distillation, so
+the ablation removes one component at a time. SeqKD and reverse KL are both
+distillation — hard labels and soft labels within the same component — so which
+of them wins is a design choice rather than a component, cited to [10] KID and
+reported without a claim resting on it. That demotes the extra ladder seeds and
+leaves two runs on the critical path.
+
+1. **`base_rkl` on seeds 1 and 2** (about 3 h, two GPUs in parallel). "Remove
+   the federated component" is the last single-seed row in the ablation table,
+   and it is the row that says what private data is worth. Block A.
+2. **Rounds 2 and 3 on seed 0** (about 8 h). At `T=1` the federated component
+   is worth about 1.5 EX over distillation alone; multi-round warm-starting is
+   the mechanism designed to grow that, and a flat result has to be known
+   before §3 is written. Block B, using `round --round N --init-adapter`
+   because `run` has no `--client-out` and would retrain seed 0's round 1.
+3. Optional: seeds 3–6 to tighten the `−4.55` distillation row. Block C.
 4. Test SC composition only on the selected trained condition.
-5. Advisor conversation on demoting ICL and renaming away from Fed-ICKD.
+5. Advisor conversation on dropping ICL, on renaming away from Fed-ICKD, and on
+   how the work is positioned against FedCoLLM once reverse KL is no longer
+   advanced as a differentiator.
 
 Write §3 Method and §2 Related Work while 1 and 2 run — neither depends on how
-they come out. Do not settle the paper's framing until `n=7` exists: whether
-the contribution is stated as reverse KL over SeqKD or as server-side
-distillation in general is exactly what those runs decide.
+they come out.
 
 Closed on 2026-08-11: seeds 1 and 2, and the no-ICL client evaluation.
 
