@@ -1,176 +1,94 @@
-# Kết quả pipeline liên kết và đề xuất bỏ ICL
+# Kiểm chứng pipeline đề xuất: ICL có đóng góp không, và phần còn lại hiệu quả đến đâu
 
-**Ngày:** 11/08/2026 · **Cấu hình:** K=5 client, non-IID Dirichlet α=0,5, T=1 vòng, 3 seed
+**Ngày:** 11/08/2026 · **Cấu hình:** K=5 client, non-IID Dirichlet α=0,5, T=1 vòng
 **Student:** Qwen2.5-1.5B-Instruct · **Teacher:** Qwen2.5-Coder-7B-Instruct (4-bit, đóng băng)
 **Đo trên:** toàn bộ Spider dev (n=1.034), greedy decoding, chỉ số EX (execution accuracy)
-**Kiểm định:** McNemar ghép cặp chính xác, trên dự đoán từng câu của cùng 1.034 câu hỏi
-
-Báo cáo trả lời hai câu hỏi: **(A)** pipeline đề xuất có hiệu quả không và từng
-thành phần đóng góp gì, **(B)** có nên giữ In-Context Learning không.
+**Kiểm định:** McNemar ghép cặp chính xác trên dự đoán từng câu; so sánh nhiều seed dùng kiểm định t
 
 ---
 
-## 1. Hệ thống làm gì
+## 1. Pipeline đề xuất và hai câu hỏi
 
-Nhiều bên giữ cơ sở dữ liệu riêng, không chia sẻ dữ liệu thô. Mỗi bên tự huấn
-luyện một mô hình nhỏ 1,5 tỷ tham số trên dữ liệu của mình, rồi **chỉ gửi bản
-vá trọng số (LoRA adapter)** lên máy chủ. Máy chủ gộp các bản vá thành một mô
-hình chung, sau đó dùng một **mô hình 7 tỷ tham số làm "giáo viên"** dạy lại mô
-hình chung — giáo viên chỉ được chạm vào **kho dữ liệu công khai** (BIRD),
-không bao giờ chạm dữ liệu riêng của bất kỳ bên nào.
-
-Bốn thành phần xếp chồng:
+Pipeline được đề xuất ban đầu gồm **ba thành phần**:
 
 ```text
-client tự huấn luyện  →  gộp liên kết (FedAvg)  →  học câu SQL của giáo viên (SeqKD)  →  học phân phối xác suất của giáo viên (reverse-KL)
+LIÊN KẾT           client tự huấn luyện trên dữ liệu riêng  →  gộp adapter tại máy chủ
+ICL                client huấn luyện kèm 3 ví dụ mẫu lấy từ kho riêng của mình
+CHƯNG CẤT (KD)     giáo viên 7B dạy lại mô hình chung trên kho công khai BIRD
 ```
+
+Dữ liệu riêng không bao giờ rời khỏi chủ sở hữu; chỉ bản vá trọng số LoRA được
+gửi lên máy chủ, và giáo viên chỉ chạm vào kho công khai.
+
+Báo cáo trả lời hai câu hỏi, theo đúng thứ tự đó:
+
+**(1)** Thành phần ICL có đóng góp không? → §2
+**(2)** Nếu không, pipeline còn lại (LIÊN KẾT + KD) hiệu quả đến đâu, và mỗi
+thành phần đóng góp bao nhiêu? → §3
 
 ---
 
-## 2. (A) Kết quả pipeline đề xuất
+## 2. Câu hỏi 1 — ICL có đóng góp không
 
-Chạy trên **3 seed độc lập** (0, 1, 2). Mỗi seed huấn luyện lại toàn bộ 5
-client và chạy lại cả hai bước máy chủ.
+Đã chạy **hai pipeline song song hoàn toàn**: cùng phân hoạch dữ liệu, cùng
+seed, cùng kho công khai, cùng bước máy chủ, cùng ngân sách huấn luyện. Khác
+đúng một biến — client có dùng ví dụ mẫu hay không.
 
-### 2.1 Kết quả hệ đầy đủ
+### 2.1 So sánh trực tiếp
 
-| Chặng | seed 0 | seed 1 | seed 2 | Trung bình | Độ lệch chuẩn |
-|---|---:|---:|---:|---:|---:|
-| Mô hình 1,5B chưa huấn luyện | 50,00 | 50,00 | 50,00 | 50,00 | — |
-| Client tự huấn luyện + gộp liên kết | 57,35 | 57,45 | 59,77 | 58,19 | 1,37 |
-| + học câu SQL của giáo viên (SeqKD) | 61,32 | 62,28 | 59,48 | 61,03 | 1,42 |
-| **+ học phân phối xác suất (reverse-KL)** | 63,35 | 62,48 | 62,38 | **62,74** | **0,53** |
-
-**Hệ đầy đủ đạt 62,74 ± 0,53, tăng 12,74 điểm so với mô hình gốc, và không một
-dòng dữ liệu nào rời khỏi chủ sở hữu.** Độ lệch chuẩn 0,53 qua 3 seed cho thấy
-kết quả này ổn định.
-
-Đối chiếu: gom hết dữ liệu về một chỗ huấn luyện tập trung đạt **68,28**; bản
-thân giáo viên 7B đạt **78,72**. Hệ liên kết lấp được khoảng 70% khoảng cách
-tới trần tập trung.
-
-### 2.2 Gỡ từng thành phần
-
-Đề xuất có hai thành phần: **liên kết** và **chưng cất**. Gỡ lần lượt từng cái
-khỏi hệ đầy đủ:
-
-| Cấu hình | EX | Mất bao nhiêu | Số seed | p |
-|---|---:|---:|---:|---:|
-| **Hệ đầy đủ** (liên kết + chưng cất) | **62,74** | — | 3 | — |
-| Gỡ **chưng cất** (chỉ còn liên kết) | 58,19 | **−4,55** | 3 | **0,046** |
-| Gỡ **liên kết** (chỉ còn chưng cất) | 61,22 | ~−1,5 | **1** | chưa kiểm định |
-| Gỡ cả hai (mô hình gốc) | 50,00 | −12,74 | — | — |
-
-**Gỡ bước chưng cất làm mất 4,55 điểm, có ý nghĩa thống kê qua 3 seed.** Thành
-phần này đã chứng minh được giá trị.
-
-**Dòng "gỡ liên kết" mới có 1 seed** — đây là đối chứng quan trọng nhất còn
-thiếu và đang được bổ sung, xem §2.4.
-
-Ghi chú về lựa chọn bên trong thành phần chưng cất: bước này gồm hai tầng, học
-câu SQL của giáo viên (nhãn cứng) rồi học thêm phân phối xác suất (nhãn mềm).
-Thêm tầng nhãn mềm cho **+1,71 điểm, độ lệch 1,38 qua 3 seed** — dương cả ba
-lần nhưng chưa đủ lực thống kê để tách riêng ở cỡ mẫu này. Đây là lựa chọn
-thiết kế bên trong một thành phần, không phải một thành phần riêng, nên báo cáo
-số và không đưa vào phần đóng góp. Cơ sở lý thuyết của việc chọn reverse-KL lấy
-từ [10] KID.
-
-### 2.3 Vì sao các bước trung gian dao động mà điểm cuối thì không
-
-```text
-seed 0:  trước server 57,35  →  máy chủ bù +6,00  →  63,35
-seed 1:  trước server 57,45  →  máy chủ bù +5,03  →  62,48
-seed 2:  trước server 59,77  →  máy chủ bù +2,61  →  62,38
-```
-
-**Xuất phát càng cao, bước chưng cất bù càng ít, điểm cuối gần như không đổi.**
-Bước chưng cất kéo mọi thứ về khoảng 62,7 bất kể đi vào ở đâu.
-
-Hai hệ quả. Thứ nhất, kết quả đầu ra của hệ ổn định bất kể phần liên kết chạy
-tốt hay xấu ở seed đó — đó là lý do độ lệch chuẩn của hệ đầy đủ chỉ 0,53 trong
-khi các chặng trước nó dao động 1,4. Thứ hai, đầu tư công sức vào cải thiện
-tầng gộp là kém hiệu quả, vì bước chưng cất sẽ bù trừ phần lớn — đã kiểm chứng
-riêng bằng thực nghiệm dựng phép gộp chính xác tuyệt đối, kết quả không cải
-thiện có ý nghĩa.
-
-### 2.4 Giá trị của dữ liệu riêng
-
-Đối chứng quan trọng nhất: lấy mô hình gốc, áp đúng bước chưng cất của máy chủ,
-**không dùng một dòng dữ liệu riêng nào**. Kết quả 61,22 (mới có 1 seed).
-
-So với hệ đầy đủ 62,74, **giá trị của toàn bộ dữ liệu riêng khoảng +1,5 điểm**.
-Con số này chưa được lặp lại trên nhiều seed nên chỉ là ước lượng.
-
-Ba điều đi kèm cần nói thẳng:
-
-- **Liên kết một mình không cạnh tranh được.** Gộp 5 client mà không chưng cất
-  đạt 58,19, **thua** việc chưng cất từ mô hình gốc bằng dữ liệu công khai
-  (61,22).
-- **Phần lớn mức tăng đến từ kho công khai**, không phải từ dữ liệu riêng:
-  khoảng 11 trên tổng 12,74 điểm. Không được phát biểu rằng liên kết tạo ra
-  toàn bộ mức tăng.
-- **Đóng góp nằm ở sự kết hợp.** Không nửa nào tự đủ; hệ đầy đủ hơn cả hai.
-  Phát biểu đúng là: *liên kết mô hình nhỏ chỉ đáng làm khi có bước chưng cất
-  từ kho công khai*.
-
-### 2.5 Gộp liên kết có hơn từng bên tự làm không
-
-Đo 5 adapter client của nhánh khuyến nghị (seed 0):
+Pipeline đề xuất phải được đánh giá **đúng cách nó được thiết kế**: huấn luyện
+có ví dụ mẫu thì lúc chạy cũng đưa ví dụ mẫu vào, lấy từ kho riêng của từng bên.
 
 | | EX |
 |---|---:|
-| Client yếu nhất | 53,38 |
-| Trung bình 5 client | 54,99 |
-| Client mạnh nhất | 57,64 |
-| **Model sau khi gộp** | **57,35** |
+| **Pipeline đề xuất** (LIÊN KẾT + ICL + KD), chạy đúng thiết kế | **60,74 ± 0,65** |
+| **Bỏ ICL** (LIÊN KẾT + KD) | **63,35** |
+| | **−2,61** |
 
-Model gộp hơn trung bình client **2,36 điểm** và chỉ kém client mạnh nhất
-**0,29 điểm** — tức là ngang. Đáng chú ý: không bên nào biết trước mình là bên
-mạnh, nên trong thực tế model gộp là lựa chọn tốt hơn hẳn kỳ vọng của việc tự
-làm.
+Đánh giá lặp lại trên cả 5 kho ví dụ riêng, không kho nào cho kết quả cao hơn:
 
----
+| Kho ví dụ của | EX | Chênh so với bỏ ICL | p |
+|---|---:|---:|---:|
+| Client 1 | 61,03 | −2,32 | 0,083 |
+| Client 2 | 60,15 | −3,19 | **0,014** |
+| Client 3 | 59,96 | −3,38 | **0,007** |
+| Client 4 | 61,03 | −2,32 | 0,083 |
+| Client 5 | 61,51 | −1,84 | 0,173 |
 
-## 3. (B) Có nên giữ ICL không
+**Pipeline có ICL thua pipeline không ICL 2,61 điểm.** Năm trên năm kho đều âm,
+hai trong đó đạt ý nghĩa thống kê.
 
-**ICL ở đây là:** chèn 3 ví dụ mẫu (câu hỏi + SQL đúng, lấy từ kho riêng của
-chính client đó) vào prompt để mô hình bắt chước. Kỹ thuật này nằm trong tên
-phương pháp nên phải được kiểm chứng nghiêm túc.
+Còn một khả năng cần loại trừ: nếu huấn luyện có ví dụ mẫu nhưng lúc chạy
+**không** đưa ví dụ vào thì sao? Kết quả 64,02 so với 63,35 — chênh **+0,68 với
+p = 0,401**, không phân biệt được. Tức là huấn luyện kèm ví dụ mẫu rồi vứt bỏ
+chúng lúc triển khai cũng không mua được gì.
 
-Đã chạy **hai pipeline song song hoàn toàn** — cùng phân hoạch dữ liệu, cùng
-seed, cùng kho công khai, cùng bước máy chủ, cùng ngân sách — khác đúng một
-biến: client có dùng ví dụ mẫu khi huấn luyện hay không.
-
-### 3.1 Bảng 2×2
+### 2.2 Vì sao — bảng 2×2
 
 | | Chạy không ví dụ mẫu | Chạy có 3 ví dụ mẫu | Mất khi thêm ví dụ |
 |---|---:|---:|---:|
 | **Huấn luyện có ICL** | 63,93 | 60,06 | **−3,87** (p = 0,003) |
 | **Huấn luyện không ICL** | 62,57 | 59,48 | **−3,09** (p = 0,014) |
-| Chênh lệch | +1,35 (p = 0,060) | +0,58 (p = 0,572) | |
 
-**(1) Đưa ví dụ mẫu vào lúc chạy làm giảm độ chính xác, có ý nghĩa thống kê.**
-Mất 3,87 điểm (p = 0,003). Đây là hiệu ứng ICL lớn nhất đo được, và nó âm.
+**(a) Đưa ví dụ mẫu vào lúc chạy làm giảm độ chính xác.** Mất 3,87 điểm,
+p = 0,003. Đây là hiệu ứng ICL lớn nhất đo được và nó âm.
 
-**(2) Huấn luyện có ví dụ mẫu KHÔNG bảo vệ được khỏi (1) — điểm quyết định.**
-Lý lẽ của DAIL-SQL, cũng là lý lẽ duy nhất từng biện minh cho việc cho client
-huấn luyện kèm ví dụ, dự đoán mô hình huấn luyện không ví dụ sẽ sụp đổ khi gặp
-ví dụ còn mô hình huấn luyện có ví dụ thì không. Thực tế **ngược lại**: mô hình
-huấn luyện không ví dụ mất *ít hơn* (−3,09 so với −3,87). Tương tác đi sai
-chiều.
+**(b) Huấn luyện kèm ví dụ mẫu KHÔNG bảo vệ được khỏi (a).** Đây là điểm quyết
+định. Lý lẽ của DAIL-SQL — cũng là lý lẽ duy nhất từng biện minh cho việc cho
+client huấn luyện kèm ví dụ — dự đoán rằng mô hình huấn luyện không ví dụ sẽ
+sụp đổ khi gặp ví dụ, còn mô hình huấn luyện có ví dụ thì không. Thực tế
+**ngược lại**: mô hình huấn luyện không ví dụ mất *ít hơn* (−3,09 so với
+−3,87). Tương tác đi sai chiều.
 
 Ba mô hình độc lập, ba công thức huấn luyện khác nhau, đều mất khoảng 3 điểm
 khi gặp ví dụ mẫu. **Hình phạt này là thuộc tính của mô hình 1,5B, không phải
-của cách huấn luyện.** Không có cách huấn luyện nào chữa được nó.
+của cách huấn luyện.** Không có cách huấn luyện nào chữa được.
 
-**(3) Nếu triển khai có ví dụ mẫu, huấn luyện có ICL mua được đúng số không.**
-60,06 so với 59,48, chênh 0,58 điểm, p = 0,572.
+**(c) Huấn luyện có ICL còn làm mô hình gộp kém đi.** Trước bước chưng cất,
+nhánh không ICL đạt 57,35 còn nhánh ICL chỉ 54,45 — kém **2,90 điểm,
+p = 0,008**, kèm nhiều lỗi thực thi hơn (258 so với 236).
 
-**(4) Huấn luyện có ICL còn làm mô hình gộp kém đi.** Trước bước máy chủ, nhánh
-không ICL đạt 57,35 còn nhánh ICL chỉ 54,45 — kém **2,90 điểm, p = 0,008**, kèm
-nhiều lỗi thực thi hơn (258 so với 236).
-
-### 3.2 Cái giá phải trả
+### 2.3 Cái giá phải trả
 
 | | Không ICL | Có ICL | Tỉ lệ |
 |---|---:|---:|---:|
@@ -179,52 +97,127 @@ nhiều lỗi thực thi hơn (258 so với 236).
 | Thời gian mỗi câu hỏi | 0,289 giây | 1,224 giây | **4,2×** |
 | Hạ tầng tại mỗi bên | không cần | phải lưu và đánh chỉ mục kho ví dụ riêng | — |
 
-### 3.3 Đề xuất
-
-Bốn kiểm định đều cùng một hướng, không có ô nào ủng hộ ICL:
+### 2.4 Kết luận câu hỏi 1
 
 | Bằng chứng | Giá trị | p |
 |---|---:|---:|
-| Huấn luyện có ICL làm mô hình gộp kém đi | −2,90 | 0,008 |
+| Pipeline có ICL thua pipeline không ICL (chạy đúng thiết kế) | −2,61 | 2/5 kho đạt <0,05 |
 | Ví dụ mẫu lúc chạy làm giảm độ chính xác | −3,87 | 0,003 |
+| Huấn luyện có ICL làm mô hình gộp kém đi | −2,90 | 0,008 |
 | Huấn luyện có ICL không bảo vệ được (bác bỏ DAIL-SQL) | sai chiều 0,78 | — |
-| Ở chế độ triển khai có ví dụ, hai nhánh như nhau | +0,58 | 0,572 |
+| Huấn luyện có ICL rồi bỏ ví dụ lúc chạy | +0,68 | 0,401 |
 
-Cộng thêm chi phí 2,35× khi huấn luyện và 4,2× khi chạy.
+Không ô nào ủng hộ ICL, cộng thêm chi phí 2,35× khi huấn luyện và 4,2× khi
+chạy. **Đề xuất bỏ ICL khỏi phương pháp.** Pipeline chính thức còn lại:
+client tự huấn luyện không ví dụ mẫu → gộp FedAvg → chưng cất tại máy chủ.
 
-Kết luận về ICL dựa trên 6 ô đo độc lập với hiệu ứng 3–4 điểm, lớn gấp đôi
-biến thiên giữa các seed đo được ở §2. Khác với phần phân rã thành phần, phần
-này không bị đe doạ bởi việc thêm seed.
+Kèm theo: tên `Fed-ICKD` và `FedICL-SQL` đều lấy ICL làm trung tâm nên cần đổi.
 
-1. **Bỏ ICL khỏi phương pháp đề xuất.** Pipeline chính thức: client tự huấn
-   luyện không ví dụ mẫu → gộp FedAvg → chưng cất tại máy chủ trên kho công
-   khai.
-2. **Giữ ICL trong bài báo như một kết quả âm có kiểm định.** Đây không phải
-   phần bỏ đi — nó bác bỏ một cơ chế đang được coi là hiển nhiên trong tài liệu
-   (DAIL-SQL) ở quy mô mô hình nhỏ, và có đủ số liệu để bảo vệ trước phản biện.
-3. **Tên phương pháp cần đổi.** `Fed-ICKD` và `FedICL-SQL` đều lấy ICL làm
-   trung tâm, không còn khớp với bằng chứng.
+---
+
+## 3. Câu hỏi 2 — pipeline LIÊN KẾT + KD hiệu quả đến đâu
+
+Phần này chạy trên **3 seed độc lập** (0, 1, 2); mỗi seed huấn luyện lại toàn
+bộ 5 client và chạy lại bước chưng cất.
+
+### 3.1 Kết quả
+
+| Chặng | seed 0 | seed 1 | seed 2 | Trung bình | Độ lệch |
+|---|---:|---:|---:|---:|---:|
+| Mô hình 1,5B chưa huấn luyện | 50,00 | 50,00 | 50,00 | 50,00 | — |
+| Liên kết (client tự train + gộp) | 57,35 | 57,45 | 59,77 | 58,19 | 1,37 |
+| **+ chưng cất (hệ đầy đủ)** | 63,35 | 62,48 | 62,38 | **62,74** | **0,53** |
+
+**Hệ nâng mô hình nhỏ từ 50,00 lên 62,74 ± 0,53 mà không một dòng dữ liệu nào
+rời khỏi chủ sở hữu.** Độ lệch 0,53 qua 3 seed cho thấy kết quả ổn định.
+
+Đối chiếu: gom hết dữ liệu về một chỗ huấn luyện tập trung đạt **68,28**; bản
+thân giáo viên 7B đạt **78,72**. Hệ liên kết lấp khoảng 70% khoảng cách tới
+trần tập trung.
+
+### 3.2 Đóng góp của từng thành phần
+
+Gỡ lần lượt từng thành phần khỏi hệ đầy đủ:
+
+| Cấu hình | EX | Mất bao nhiêu | Số seed | p |
+|---|---:|---:|---:|---:|
+| **Hệ đầy đủ** (liên kết + chưng cất) | **62,74** | — | 3 | — |
+| Gỡ **chưng cất** (chỉ còn liên kết) | 58,19 | **−4,55** | 3 | **0,046** |
+| Gỡ **liên kết** (chỉ còn chưng cất) | 61,22 | ~−1,5 | **1** | chưa kiểm định |
+| Gỡ cả hai (mô hình gốc) | 50,00 | −12,74 | — | — |
+
+Dòng "gỡ liên kết" là đối chứng quan trọng nhất: lấy mô hình gốc, áp đúng bước
+chưng cất, **không dùng một dòng dữ liệu riêng nào**. Nó mới có 1 seed, đang
+được bổ sung.
+
+Ba điều rút ra:
+
+- **Liên kết một mình không cạnh tranh được.** Gộp 5 client mà không chưng cất
+  đạt 58,19, **thua** chưng cất từ mô hình gốc bằng dữ liệu công khai (61,22).
+- **Chưng cất một mình cũng chưa tối ưu.** 61,22 so với 62,74 của hệ đầy đủ.
+- **Đóng góp nằm ở sự kết hợp.** Không nửa nào tự đủ. Phát biểu đúng là: *liên
+  kết mô hình nhỏ chỉ đáng làm khi có bước chưng cất từ kho công khai*.
+
+Cần nói thẳng để tránh hiểu sai: phần lớn mức tăng (khoảng 11 trên 12,74 điểm)
+đến từ kho công khai, dữ liệu riêng đóng góp khoảng 1,5. Điều này không làm yếu
+bảng ablation — một thành phần chứng minh giá trị bằng việc gỡ ra thì tệ đi,
+không phải bằng việc đóng góp ngang nhau — nhưng không được phát biểu rằng
+liên kết tạo ra toàn bộ mức tăng.
+
+Ghi chú về lựa chọn bên trong thành phần chưng cất: bước này gồm học câu SQL
+của giáo viên (nhãn cứng) rồi học thêm phân phối xác suất (nhãn mềm). Thêm tầng
+nhãn mềm cho **+1,71 điểm, độ lệch 1,38** — dương cả ba seed nhưng chưa đủ lực
+thống kê để tách riêng ở cỡ mẫu này. Đây là lựa chọn thiết kế bên trong một
+thành phần, cơ sở lý thuyết lấy từ [10] KID, không đưa vào phần đóng góp.
+
+### 3.3 Vì sao điểm cuối ổn định hơn các chặng trước
+
+```text
+seed 0:  liên kết 57,35  →  chưng cất bù +6,00  →  63,35
+seed 1:  liên kết 57,45  →  chưng cất bù +5,03  →  62,48
+seed 2:  liên kết 59,77  →  chưng cất bù +2,61  →  62,38
+```
+
+**Phần liên kết chạy càng tốt thì bước chưng cất bù càng ít, và điểm cuối gần
+như không đổi.** Đây là lý do độ lệch của hệ đầy đủ chỉ 0,53 trong khi chặng
+trước nó dao động 1,37.
+
+Hệ quả thực dụng: đầu tư vào cải thiện thuật toán gộp là kém hiệu quả, vì bước
+chưng cất bù trừ phần lớn. Đã kiểm chứng riêng bằng cách dựng phép gộp chính
+xác tuyệt đối — không cải thiện có ý nghĩa.
+
+### 3.4 Gộp liên kết có hơn từng bên tự làm không
+
+| | EX |
+|---|---:|
+| Client yếu nhất | 53,38 |
+| Trung bình 5 client | 54,99 |
+| Client mạnh nhất | 57,64 |
+| **Model sau khi gộp** | **57,35** |
+
+Model gộp hơn trung bình client **2,36 điểm** và ngang client mạnh nhất (kém
+0,29). Trong thực tế không bên nào biết trước mình là bên mạnh, nên model gộp
+là lựa chọn tốt hơn hẳn kỳ vọng của việc tự làm.
 
 ---
 
 ## 4. Giới hạn
 
-**Số seed.** Phần §2 dùng 3 seed; phần §3 (ICL) dùng 1 seed nhưng 6 ô đo độc
-lập với hiệu ứng lớn. Với 3 seed, chỉ những hiệu ứng lớn hơn khoảng 4 điểm mới
-đạt được ý nghĩa thống kê. Điều đó đủ cho dòng "gỡ chưng cất" (−4,55) nhưng
-không đủ để tách các lựa chọn thiết kế nhỏ hơn bên trong từng thành phần.
+**Số seed.** §3 dùng 3 seed. §2 (ICL) dùng 1 seed nhưng 6 ô đo độc lập với hiệu
+ứng 3–4 điểm, lớn gấp đôi biến thiên giữa các seed đo được ở §3, nên kết luận
+bỏ ICL không bị đe doạ. Với 3 seed chỉ những hiệu ứng lớn hơn khoảng 4 điểm mới
+đạt ý nghĩa thống kê.
 
-**Dòng "gỡ liên kết" mới có 1 seed.** Đang bổ sung seed 1 và 2 — đây là phép đo
-còn thiếu duy nhất của bảng ablation.
+**Dòng "gỡ liên kết" mới có 1 seed.** Đang bổ sung seed 1 và 2 — phép đo còn
+thiếu duy nhất của bảng ablation.
 
 **Một vòng.** Toàn bộ số liệu là T = 1. Đang chạy T = 2 và T = 3: nếu đóng góp
 của phần liên kết tăng theo số vòng thì con số ~1,5 điểm hiện tại là cận dưới.
 
-Một phương án gộp adapter tinh vi hơn (FLoRA-NA) đã được thử và **không cải
-thiện** ở bất kỳ cấu hình nào — kể cả khi dựng phép gộp chính xác tuyệt đối,
-mức tăng là +0,68 điểm không có ý nghĩa thống kê (p = 0,311). Đề xuất dùng
-FedAvg thường.
+**Thuật toán gộp.** Một phương án tinh vi hơn (FLoRA-NA) đã thử và không cải
+thiện ở bất kỳ cấu hình nào, kể cả khi dựng phép gộp chính xác tuyệt đối
+(+0,68, p = 0,311). Dùng FedAvg thường.
 
-BIRD chỉ dùng làm kho công khai để chưng cất, **không** dùng làm tập đánh giá.
-Mọi con số EX đều đo trên Spider dev, vốn không chung schema nào với dữ liệu
-huấn luyện.
+**Dữ liệu.** BIRD chỉ dùng làm kho công khai để chưng cất, **không** dùng làm
+tập đánh giá. Mọi con số EX đo trên Spider dev, vốn không chung schema nào với
+dữ liệu huấn luyện (20 database test, 146 database train, giao rỗng).
