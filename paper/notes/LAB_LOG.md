@@ -336,6 +336,65 @@ ICL from the method and renaming away from `Fed-ICKD`; advisor sign-off is
 pending and the original ICL direction predates it, so nothing is rewritten in
 `system_architecture.md` until that conversation happens.
 
+### Three seeds, 2026-08-11 — the endpoint holds, the decomposition does not
+
+Seeds 1 and 2 of the no-ICL factor-FedAvg ladder completed
+(`federated__*__s{1,2}__*__r1`, evals `eval_arms__s0__20260811T*`). They change
+what can be claimed, so read this before the single-seed section below.
+
+| Stage | seed 0 | seed 1 | seed 2 | mean | sd |
+|---|---:|---:|---:|---:|---:|
+| FedAvg, pre-server | 57.35 | 57.45 | 59.77 | 58.19 | 1.37 |
+| + SeqKD | 61.32 | 62.28 | 59.48 | 61.03 | 1.42 |
+| **+ reverse KL (full pipeline)** | 63.35 | 62.48 | 62.38 | **62.74** | **0.53** |
+
+**The full pipeline is stable: `62.74 ± 0.53`, `+12.74` over the 50.00 base.**
+That result is safe.
+
+**The per-component decomposition is not.** Seed-level deltas, two-sided `t` on
+three paired differences:
+
+| Component | per-seed | mean | sd | `p` |
+|---|---|---:|---:|---:|
+| SeqKD over FedAvg | 3.97 / 4.83 / **−0.29** | +2.84 | 2.74 | 0.215 |
+| reverse KL over SeqKD | 2.03 / **0.20** / 2.90 | +1.71 | 1.38 | 0.165 |
+| whole server distillation | 6.00 / 5.03 / 2.61 | +4.55 | 1.75 | **0.046** |
+
+The `+2.03 (p=0.042)` recorded below was a single-seed paired McNemar, which
+answers "are these two models different on these 1,034 questions" and not "are
+these two methods different". Seed variance swallows it: across three seeds the
+reverse-KL delta is `+1.71 ± 1.38`. Seed 1 gives it `+0.20`; seed 2 gives SeqKD
+a **negative** `−0.29`. Only the server stage taken as a whole survives.
+
+**Why, and this is the interesting part.** Higher pre-server scores buy smaller
+server gains, and the endpoint barely moves:
+
+```text
+seed 0:  pre 57.35  ->  server +6.00  ->  63.35
+seed 1:  pre 57.45  ->  server +5.03  ->  62.48
+seed 2:  pre 59.77  ->  server +2.61  ->  62.38
+```
+
+The distillation stage pulls everything to about 62.7 regardless of where it
+starts. That matches the 77% compression already measured on the ICL/no-ICL
+contrast (2.90 pre-server becoming 0.68 after). It also means the federated
+stage's own value is smaller than the `+2.13` recorded below: against
+`base_rkl` at 61.22 the three-seed mean gives `+1.52`, and `base_rkl` still has
+only one seed, so that row is untested across seeds.
+
+Power: at `n=3`, `df=2`, an effect of 1.71 with `sd=1.38` cannot reach
+significance. Detecting `d=1.24` at 80% power needs about `n=7`. The reverse-KL
+delta is unresolved, not refuted.
+
+**Unaffected:** every ICL conclusion. Those rest on six independent cells
+pointing the same way with larger effects (`−3.87, p=0.003`; `−2.90, p=0.008`).
+
+**Improved:** the no-ICL client adapters were finally evaluated
+(54.55 / 53.38 / 55.71 / 53.68 / 57.64, mean 54.99). On the recommended branch
+FedAvg reaches 57.35 — `+2.36` over the client mean and only `−0.29` from the
+best client, a much better local-versus-federated story than the ICL branch's
+`−1.84`.
+
 ### Component ablation, K=5 T=1 seed 0, no-ICL branch
 
 Completed 2026-08-11 when the base-only control finally ran. Every teacher
@@ -567,21 +626,27 @@ Both `K=5, T=1, seed 0` runbooks are executed as of 2026-08-10. The
 ICL-versus-no-ICL question is answered and FLoRA-NA is closed; neither needs
 more cells. Remaining order, highest value first:
 
-1. **Seeds 1 and 2 on the no-ICL factor-FedAvg ladder**
-   (`fedavg -> fedavg_pub -> fedkd`). Every ablation row is single-seed, and the
-   two rows the paper rests on sit at `p = 0.017` and `p = 0.042` — close enough
-   to the threshold that one more seed could move them either way. About 4 h per
-   seed: clients 4,100 s plus two server stages ~8,100 s. This is the only
-   remaining risk to the claims. Runbook: `experiments/federated/PIPELINE_NEXT.md`.
-2. **Evaluate the five no-ICL client adapters at `k=0`** (about 1 h). The
-   report's "local versus federated" row currently borrows ICL-branch numbers,
-   and the `+7.35` step cannot be split into local training and aggregation
-   without it.
-3. Extend the winning condition to `T=2`, `T=3`. This is now also the only
-   remaining place an aggregation method could pay off, since the error the
-   FedEx-LoRA family targets compounds across rounds and T=1 applies it once.
+1. **Seeds 3–6 on the no-ICL ladder**, taking the design to `n=7`. At `n=3` the
+   reverse-KL delta is `+1.71 ± 1.38, p=0.165`; if that effect is real, `n=7`
+   reaches roughly `p=0.02`. This is the only experiment that can preserve the
+   paper's specific contribution rather than its general one. About 4 h per
+   seed, 16 h total. Runbook: `experiments/federated/PIPELINE_NEXT.md`, block C,
+   with the seed and every `_s1` path substituted.
+2. **`base_seqkd` and `base_rkl` on seeds 1 and 2** (about 2.4 h). The "remove
+   the whole federated stage" ablation row is still single-seed, and it is the
+   row that says what private data is worth. Block A with the seed changed.
+3. Extend the winning condition to `T=2`, `T=3`. Also the only remaining place
+   an aggregation method could pay off, since the error the FedEx-LoRA family
+   targets compounds across rounds and T=1 applies it once.
 4. Test SC composition only on the selected trained condition.
 5. Advisor conversation on demoting ICL and renaming away from Fed-ICKD.
+
+Write §3 Method and §2 Related Work while 1 and 2 run — neither depends on how
+they come out. Do not settle the paper's framing until `n=7` exists: whether
+the contribution is stated as reverse KL over SeqKD or as server-side
+distillation in general is exactly what those runs decide.
+
+Closed on 2026-08-11: seeds 1 and 2, and the no-ICL client evaluation.
 
 Closed on 2026-08-10: the exact-aggregation diagnostic. Aggregation error is
 not what separates the aggregate from the best client, and no aggregator in
