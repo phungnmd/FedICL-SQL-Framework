@@ -5,27 +5,15 @@ Hai pipeline đồng nhất mọi tham số trừ khối `client ICL`. Giá tr�
 
 | | `fed_kd` | `fed_kd_icl` |
 |---|---|---|
-| `model_id` | `Qwen/Qwen2.5-1.5B-Instruct` | ← |
-| `teacher_model` / `teacher_4bit` | `Qwen2.5-Coder-7B-Instruct` / `true`, frozen | ← |
-| `lora_r` / `lora_alpha` / `lora_dropout` | 16 / 32 / 0,05 | ← |
-| `target_modules` | `q,k,v,o,gate,up,down_proj` | ← |
-| `split_dir` | `federated_noniid/alpha_0.5/k5` | ← |
-| `n_clients` / `rounds` / `local_epochs` | 5 / 1 / 1 | ← |
-| `client_sizes` | 2377, 986, 2749, 1637, 910 | ← |
-| `aggregation` | `factor_fedavg`, weighted by `n_i` | ← |
-| `lr` / `batch_size` / `grad_accum` / `max_len` | 2e-4 / 1 / 16 / 2560 | ← |
-| `schema_style` / `demo_style` | `full` / `never_schema` | ← |
-| **`train_k`** | **0** | **3** |
-| **`retrieval`** | — | **`dail_weighted`**, private pool của client |
-| **`demo_k_fixed`** / **`embedder`** | — | **`true`** / **`bge-small-en-v1.5`** |
-| **`tau`** / **`dail_alpha`** / **`dail_shortlist`** | — | **0,85 / 0,6 / 32** |
-| Server KD `pool` | BIRD, 3.873 mẫu, teacher-generated, execution-verified | ← |
-| Server KD `kd_direction` / `k_teacher` | `rkd` / 0 | ← |
-| Server KD `lambda_ft` / `lambda_kd` | 1,0 / 1,0 | ← |
-| Eval `test_csv` / `n_eval` | Spider dev / 1034 | ← |
-| Eval decoding / `batch_size` / `seed` | greedy / 16 / 0 | ← |
-| **Eval `k`** | **0** | **3, `pool_mode=per_client`** |
+| Student / Teacher | Qwen2.5-1.5B-Instruct / Qwen2.5-Coder-7B-Instruct, frozen | ← |
+| Federated | K=5, non-IID Dirichlet α=0,5, T=1, FedAvg weighted by `n_i` | ← |
+| Client training | LoRA r=16, lr 2e-4, 1 epoch, effective batch 16 | ← |
+| Server KD | reverse-KL trên BIRD, 3.873 mẫu teacher-generated, execution-verified | ← |
+| **Client demos** | **không** | **k=3, `dail_weighted`, private pool** |
+| **Eval** | **zero-shot** | **k=3, `pool_mode=per_client`** |
 | **EX** | **63,35** | **60,74 ± 0,65** |
+
+Eval: Spider dev, n=1034, greedy, seed 0.
 
 Mỗi pipeline eval đúng deployment mode của nó. **ICL thấp hơn 2,61 EX.**
 
