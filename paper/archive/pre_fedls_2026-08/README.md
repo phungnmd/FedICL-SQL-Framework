@@ -10,11 +10,11 @@ labels.
 
 | Directory | Contents | Current replacement |
 |---|---|---|
-| `old_outlines/` | FedICL/Fed-ICKD outlines and early figures | `paper/drafts/fedls_sql_outline.md` |
+| `old_outlines/` | FedICL/Fed-ICKD proposals, outlines, and early figures | `paper/drafts/fedls_sql_outline.md` |
 | `icl/` | ICL surveys, runbook, and negative-result reports | `paper/notes/ICL_NEGATIVE_RESULT.md` |
 | `old_emails/` | sent/draft email material and screenshots | current manuscript/result registry |
 | `exploratory_methods/` | KD, aggregation, and alternative-method research | `paper/notes/system_architecture.md` |
-| `legacy_reports/` | superseded reports and the full lab chronology through 2026-08-20 | `paper/notes/LAB_LOG.md` |
+| `legacy_reports/` | superseded reports, the 30/07 result PDF, and the full lab chronology through 2026-08-20 | `paper/notes/LAB_LOG.md` |
 | `legacy_runbooks/` | completed or superseded command collections | `paper/notes/PIPELINE_NEXT.md` |
 
 Artifact directories and internal run IDs were intentionally not renamed.
