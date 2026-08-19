@@ -29,7 +29,8 @@
 - **Authors**: Xinyi Wang, John Wieting, Jonathan H. Clark (Google DeepMind)
 - **Core idea**: Fuse FT + ICL bằng SFT trên instruction-accelerated data (prompt engineering + chain-of-thought) với parameter-efficient tuning.
 - **Method**: Dùng ICL-style reasoning (CoT từ large model) làm SFT data cho small model. Kết hợp paradigm thay vì chọn một.
-- **Why relevant**: Template cho cách combine FT và ICL mà không bị negative gain. Related work cho phần methodology FedICL-SQL.
+- **Why relevant**: Giải thích nhánh ICL đã thử và negative result; không phải
+  thành phần của FedLS-SQL.
 - **Key result**: Better than both ICL-only và FT-only ở 100–10,000 training examples.
 
 ---
@@ -45,7 +46,8 @@
 - **Method**:
   - Schema Retriever: vector DB pre-computed schema embeddings, hard-negative contrastive training
   - SQL Generator: 2-stage — SFT rồi execution-guided RL, tự-correct không cần multi-candidate
-- **Why relevant**: Closest existing work kết hợp FT + ICL/retrieval trên Spider. Centralized baseline để so sánh với federated version của FedICL-SQL.
+- **Why relevant**: Centralized lightweight NL-to-SQL reference; retrieval/ICL
+  chỉ dùng để thảo luận negative ablation của FedLS-SQL.
 - **Key result**: Spider 1.0 → **88.45% EX**, BIRD → 72.10% EX. Best among 7B FT-based methods.
 
 ---
@@ -83,7 +85,7 @@
 - **Model sizes**: 1B, 3B, 7B, 15B
 - **Core idea**: Incremental pre-training trên SQL-centric corpus + SFT. Bi-directional data augmentation + strategic prompt construction.
 - **Key result**: Competitive với GPT-4 trên Spider + BIRD, 10x–100x smaller.
-- **Đã implement trong `fedicl-sql`**: §6.3 schema metadata (`--schema-style codes`), §6.2 matched values, §8.2 question-pattern retriever (`--retrieval codes`). Chi tiết: `paper/notes/dail_vs_codes_prompt_methods.md`. Không dùng số `[10]` (đã gán cho KID) — xem note ở đầu `dail_vs_codes_prompt_methods.md`.
+- **Đã implement trong `fedicl-sql`**: §6.3 schema metadata (`--schema-style codes`), §6.2 matched values, §8.2 question-pattern retriever (`--retrieval codes`). Chi tiết lịch sử: `paper/archive/pre_fedls_2026-08/icl/dail_vs_codes_prompt_methods.md`.
 
 ### SLM-SQL: An Exploration of Small Language Models for Text-to-SQL
 - **arXiv**: 2507.22478
@@ -92,11 +94,12 @@
 - **Model sizes**: 0.5B, 1.5B
 - **Core idea**: SFT + RL post-training + corrective self-consistency.
 - **Key result**: BIRD dev — 0.5B: 56.87%, 1.5B: **67.08%**. BIRD test — 1.5B: **70.49%**.
-- **Why relevant**: Exact model size range (0.5B–1.5B) = FedICL-SQL student SLM range.
+- **Why relevant**: Exact model size range (0.5B–1.5B) = FedLS-SQL student SLM range.
 
 ### Optimizing Small Language Models for NL2SQL via Chain-of-Thought Fine-Tuning
 - **arXiv**: 2603.22942
 - **Link**: https://arxiv.org/abs/2603.22942
 - **Core idea**: CoT data làm SFT → small Qwen model.
 - **Key result**: SFT baseline 36% → CoT-SFT **54.5%**. Large models (Gemini 2.5) gain nothing; small models gain a lot.
-- **Why relevant**: Validates CoT distillation signal cho SLM FT — aligns với FedICL-SQL KD approach.
+- **Why relevant**: Validates knowledge-transfer signal for SLM fine-tuning;
+  related to the large-to-small collaboration motivation of FedLS-SQL.

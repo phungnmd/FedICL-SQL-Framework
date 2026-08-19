@@ -1,4 +1,4 @@
-# FedICL-SQL — Condensed Lab Log
+# FedLS-SQL — Condensed Lab Log
 
 > Rewritten 2026-07-31. This file keeps only decisions, results, and
 > implementation milestones needed to reproduce the current research path.
@@ -7,19 +7,18 @@
 
 ## Current snapshot
 
-- Proposed system: private client FT + weighted FLoRA-NA + server public
-  CE/reverse-KL.
+- Advisor decision, 2026-08-19: the paper is renamed **FedLS-SQL: A Novel
+  Federated Large-Small Language Models Framework for Natural Language to
+  SQL**. The main method is private client LoRA fine-tuning, sample-weighted
+  factor-wise FedAvg, and server-side LLM-to-SLM CE/reverse-KL distillation.
 - Student/teacher: Qwen2.5-1.5B-Instruct /
   Qwen2.5-Coder-7B-Instruct.
-- Public KD data: fixed 8,127-row BIRD teacher-generated EX-match pool.
-- ICL status (revised 2026-08-10): **measured and negative** in the matched
+- Public KD data: fixed **3,873-row** BIRD teacher-generated EX-match pool.
+- ICL status (final decision 2026-08-19): **measured and negative** in the matched
   federated experiment. In-context client training costs `2.90 EX` before the
   server step (`p=0.008`); demos at inference cost `3.87 EX` (`p=0.003`);
-  training costs `2.35x`. Proposed demotion to a §5 negative result, with the
-  method name `Fed-ICKD` no longer matching the evidence. Advisor sign-off
-  required before the paper's framing changes.
-- Selected ICL candidate: `dail_weighted`, fixed `k=3`, `never_schema`,
-  client-private demo pool, matched at train and eval.
+  training costs `2.35x`. ICL is removed from the main method and retained as
+  a negative ablation/reproducibility record.
 - Important scope correction: the negative 2026-07-29 result tested
   inference-only ICL on a centralized adapter trained with `k=0`. It does not
   settle matched in-context training or federated ICL.
@@ -31,8 +30,48 @@
 - On 2026-08-10 the aggregation choice was settled: factor-wise FedAvg is the
   default. FLoRA-NA lost or tied all four `k=0` head-to-head cells and is
   removed from the contribution list.
-- The binding gap is now replication, not coverage: every headline delta rests
-  on seed 0 alone.
+- Replication closed on the two rows that carry the proposal (2026-08-15). The
+  full pipeline is `62.74 ± 0.53` and the distillation-only control is
+  `61.35 ± 0.88`, both at three seeds. The federated component is therefore
+  worth `+1.39 ± 1.12`, `p = 0.165` — positive in all three seeds, individually
+  significant in two, not established across them. This is now the weakest
+  load-bearing row in the paper.
+- Pipeline order is settled: distillation last. Running it first scores
+  `61.61` against `63.35` at seed 0.
+- **Headline as of 2026-08-16: `T=3` reaches 69.54 EX**, up from 63.35 at
+  `T=1` (`+6.19`, `p<1e−4`), with both the pre-server and post-server curves
+  rising at every round. Multi-round federation is now the project's strongest
+  result. One seed; not yet budget-matched against centralized at three passes;
+  not yet evaluated off-distribution.
+- Scope correction 2026-08-19: the `T=2`/`T=3` pre-server adapters are not
+  pure FL controls. Each starts from the previous round's post-KD `m_g`, so the
+  64.02/66.05 curve already contains one/two earlier KD stages. A separate
+  `--arm fedavg --rounds 3` branch is now required before reporting the requested
+  `Centralized <> FL <> FL-KD` final-model comparison.
+- The matched control settles what drives it: at two passes of local training,
+  `T=2, E=1` beats `T=1, E=2` by `+2.61` (`p=0.0067`). The gain comes from
+  repeated communication rounds, not from training clients longer.
+- The centralized reference saturates after two epochs (62.19 → 67.02 → 67.60,
+  third epoch `p=0.606`) while the federated curve is still rising. Matched on
+  private-data passes, `T=3` is `+1.93` over `central_3ep` (`p=0.172`). The
+  claim is the shape of the two curves, not the gap.
+- The round result holds on every benchmark separately: `T1→T3` is `+6.19`
+  Spider dev, `+6.69` Realistic, `+5.90` Syn, `+4.86` DK, all significant.
+- **The two components are orthogonal** (2026-08-18). On the Spider variants the
+  rounds carry everything and the server step is null in all nine cells; on BIRD
+  dev the server step is `+8.28`/`+3.91` (`p<1e-6`) and federation alone is
+  `+0.26` (`p=0.82`). Neither half is redundant, and Spider dev alone cannot
+  separate them because both work there.
+- Out-of-distribution evaluation (2026-08-15) reversed which row is safe. Over
+  2,077 questions on three perturbed Spider sets, the federated stage holds
+  (`+1.64`, `p=0.0098`) while distillation's increment over it collapses
+  (`+0.34`, `p=0.76`). The components turn out to be complementary along
+  different shift axes, which is a better argument for the combination than the
+  Spider-dev ablation gave.
+- One local epoch is not the converged operating point: a second identical
+  Spider epoch is worth `+4.83 EX` centrally (62.19 → 67.02). The
+  compute-matched comparison is unaffected; the "reference ceiling" label on
+  62.19 is wrong and the ablation's external validity is open.
 - On 2026-08-01 the headline client count was reduced from `K=8` to `K=5`
   at the same Dirichlet `alpha=0.5` and seed 0. The committed split has
   910–2,749 rows and 17–49 databases per client; old K=8 artifacts are not
@@ -46,7 +85,8 @@
 2. The server teacher never sees client data.
 3. Only LoRA adapters cross the network.
 4. Spider dev is a frozen test set and never a demo pool.
-5. Every default KD arm uses the same ordered 8,127-row public pool and hash.
+5. Every default headline KD arm uses the same ordered 3,873-row public pool
+   and hash.
 6. BIRD gold SQL text is not a training target. It is used only to select
    teacher-generated SQL with matching execution results.
 
@@ -54,33 +94,21 @@
 
 1. Client training is gold CE only.
 2. Factor-wise sample-weighted FedAvg is the primary FL baseline.
-3. Sample-weighted FLoRA-NA is the proposed aggregator.
-4. Both aggregators report model-space aggregation error `e_agg`.
+3. Factor-wise sample-weighted FedAvg is also the FedLS-SQL aggregator.
+4. FLoRA-NA is a closed exploratory branch, not a proposed contribution.
 5. Server KD is `CE + RKL(q_student || p_teacher)`, with plain reverse KL.
 6. Skew-RKL `alpha=0.1` is rejected as a default because it significantly
    increased execution errors despite a non-significant EX increase.
 7. RKD remains the provisional KD direction; KID remains an ablation.
 
-### ICL
+### ICL — closed decision
 
-1. Do not drop ICL before matched train/eval ICL is tested in the federated
-   pipeline.
-2. Use `dail_weighted k=3` as the retained candidate because it was the best
-   deployable ICL cell already measured.
-3. The primary ICL comparison is:
-
-   ```text
-   control: train k=0 -> greedy eval k=0
-   ICL:     train fixed k=3 -> greedy eval dail_weighted k=3
-   ```
-
-4. Both conditions must share split, initialization, aggregation, public pool,
-   server step, seed, and training budget.
-5. Test greedy first. Evaluate SC composition only after the base ICL effect
-   is known.
-6. Teacher-side ICL target generation remains retired: zero-shot teacher
+1. Canonical FedLS-SQL uses `train_k=0`, `k_teacher=0`, and `eval_k=0`.
+2. The matched `dail_weighted k=3` experiment is retained as a negative
+   ablation; no additional ICL sweep is planned.
+3. ICL code and old artifacts remain available solely for reproducibility.
+4. Teacher-side ICL target generation remains retired: zero-shot teacher
    generation was better on the tested BIRD setup.
-7. Final paper/method naming waits for the matched federated ICL verdict.
 
 ## Retained empirical results
 
@@ -333,8 +361,8 @@ measured negative result carrying four tests — pre-server `−2.90 (p=0.008)`,
 demos at inference `−3.87 (p=0.003)`, the refuted parity interaction, and a
 `2.35x` training cost. On 2026-08-10 the author decided to propose dropping
 ICL from the method and renaming away from `Fed-ICKD`; advisor sign-off is
-pending and the original ICL direction predates it, so nothing is rewritten in
-`system_architecture.md` until that conversation happens.
+recorded on 2026-08-19. The current architecture now uses the FedLS-SQL
+framing; this paragraph is retained as the chronology of the earlier decision.
 
 ### Three seeds, 2026-08-11 — the endpoint holds, the decomposition does not
 
@@ -401,6 +429,452 @@ FedAvg reaches 57.35 — `+2.36` over the client mean and only `−0.29` from th
 best client, a much better local-versus-federated story than the ICL branch's
 `−1.84`.
 
+### The distillation-only control at three seeds, 2026-08-15
+
+`base_rkl` — the base model given the same server step and no private data at
+all — was the last single-seed row in the ablation. Seeds 1 and 2 completed
+(`artifacts/control/base_rkl_s{1,2}`, evals `eval_arms__s0__20260811T15{3849,5102}`).
+
+| Seed | full pipeline | `base_rkl` | federated component | paired `p` |
+|---|---:|---:|---:|---:|
+| 0 | 63.35 | 61.22 | +2.13 | 0.017 |
+| 1 | 62.48 | 60.54 | +1.93 | 0.025 |
+| 2 | 62.38 | 62.28 | +0.10 | 1.000 |
+| **mean** | **62.74** | **61.35** | **+1.39** | — |
+| sd | 0.53 | 0.88 | 1.12 | `t=2.15`, `p=0.165` |
+
+Per-seed `p` are exact two-sided McNemar on paired 1,034-row prediction files;
+the bottom row is a two-sided `t` on three paired seed differences.
+
+Reading: the federated stage is positive in every seed and never negative, but
+seed 2 gives it essentially nothing, and across seeds it does not reach
+significance. The same compression already seen elsewhere explains why — seed 2
+starts from the highest pre-server score (59.77) and its distillation-only
+control lands at 62.28, within 0.10 of the full pipeline. Whatever private data
+adds, the teacher largely already supplies.
+
+Consequence: the strong claim is the combination against **federation alone**
+(`+4.55, p=0.046`). The claim against **distillation alone** is `+1.39` and is
+reported as measured, not as established. Block B (out-of-distribution
+evaluation) exists because Spider dev shares its corpus with the client shards
+and not with the public BIRD pool, which biases this very row in the federated
+arm's favour.
+
+### Out-of-distribution evaluation, 2026-08-15 — the rows swap places
+
+Six arms on `SPIDER_REALISTIC` (508), `SPIDER_SYN` (1,034), and `SPIDER_DK`
+(535), seed 0, greedy, `k=0`. Runs `eval_arms__s0__20260815T*`. Motivation:
+Spider dev shares its corpus with the private client shards and not with the
+public BIRD pool, so the federated arm was being scored on its home
+distribution.
+
+| Arm | Spider dev | REALISTIC | SYN | DK | OOD pooled | drop |
+|---|---:|---:|---:|---:|---:|---:|
+| `base` | 50.00 | 40.35 | 37.04 | 41.68 | 39.05 | −10.95 |
+| `fed_only` | 57.35 | 54.92 | 49.32 | 45.23 | 49.64 | **−7.71** |
+| `seqkd_only` | 61.32 | 50.98 | 46.32 | 46.36 | 47.47 | −13.85 |
+| `kd_only` | 61.22 | 51.18 | 47.20 | 47.85 | 48.34 | −12.88 |
+| `full` | 63.35 | 52.95 | 49.61 | 47.85 | 49.98 | −13.37 |
+| `central_ft` | 62.19 | 55.31 | 51.06 | 46.92 | **51.04** | −11.15 |
+
+Pooled paired McNemar over all 2,077 questions:
+
+| Contrast | Spider dev | OOD pooled | verdict |
+|---|---:|---:|---|
+| `full − base` | +13.35 | +10.93, `p<1e−4` | holds |
+| `full − kd_only` (federated stage) | +2.13 | **+1.64, `p=0.0098`** | holds |
+| `full − seqkd_only` (reverse KL over SeqKD) | +2.03 | **+2.50, `p=1e−4`** | stronger |
+| `full − fed_only` (distillation) | +6.00 | **+0.34, `p=0.76`** | collapses |
+| `full − central_ft` | +1.16 | −1.06, `p=0.30` | sign flips, neither significant |
+
+**1. The row under test passed.** Per-set the federated stage is
+`+1.77 / +2.42 / 0.00`, mean `+1.40` against the three-seed Spider figure of
+`+1.39`. Pooled it reaches `p=0.0098`, tighter than anything it managed across
+seeds on Spider dev. It is not an artefact of evaluating on the clients' own
+corpus, and that was the question block B existed to answer.
+
+**2. The row that was settled is the one that broke.** Distillation's marginal
+value over the federated stage falls from `+6.00` (`p=4.8e−5`) to `+0.34`
+(`p=0.76`), and is negative on REALISTIC. Distillation *from base* is still
+worth a great deal — `kd_only − base` is `+10.15` to `+10.83` — so what
+collapses is specifically its increment on top of federated training.
+
+**3. The components are complementary along different shift axes.** On
+paraphrase and synonym shift, private Spider federation carries the result and
+distillation adds nothing (`fed_only − base` `+14.57` and `+12.28`). On
+domain-knowledge shift it inverts: `kd_only` is `+6.17` over base while
+`fed_only` manages `+3.55` (`p=0.067`). `full` is third, second, and joint first
+across the three sets — the only arm that is never worst. This is a better
+argument for the combination than the Spider-dev ablation was: neither half is
+sufficient, and which half matters depends on the shift.
+
+**4. Reverse KL over SeqKD is stronger off-distribution than on it.** `+2.50`,
+`p=1e−4` pooled, against `+2.03` on Spider dev and `+1.71 ± 1.38` (`p=0.165`)
+across seeds. Consistent with soft labels transferring teacher uncertainty in a
+way hard labels do not. One seed off-distribution — do not promote it back to a
+load-bearing claim, but "design choice with nothing resting on it" now
+understates it.
+
+**Cost:** `central_ft`, the compute-matched privacy-relaxed baseline, has the
+best pooled OOD score. `full` beats it on Spider dev by `+1.16` and loses
+off-distribution by `−1.06`, neither significant. "Competitive with centralized"
+is accurate in both directions; "better than centralized" is not.
+
+### Rounds 2 and 3, 2026-08-16 — the federated stage compounds
+
+`fedkd` seed 0 extended to `T=3` (`federated__fedkd__s0__*__r{2,3}`), both the
+pre-server aggregate and the post-server `M_G` evaluated each round
+(`eval_arms__s0__20260816T034740`, `k=0`, `dail_weighted`, `n=1034`).
+
+| Round | pre-server | endpoint |
+|---|---:|---:|
+| `T=1` | 57.35 | 63.35 |
+| `T=2` | 64.02 | 66.15 |
+| `T=3` | **66.05** | **69.54** |
+
+| Contrast | Δ | `p` |
+|---|---:|---:|
+| pre-server `T=1→2` | +6.67 | <1e−4 |
+| pre-server `T=2→3` | +2.03 | 0.046 |
+| endpoint `T=1→2` | +2.80 | 0.0019 |
+| endpoint `T=2→3` | +3.38 | 0.0002 |
+| endpoint `T=1→3` | **+6.19** | <1e−4 |
+| server step within `T=1` / `T=2` / `T=3` | +6.00 / +2.13 / +3.48 | <1e−4 / 0.123 / 0.0078 |
+
+Both curves rise and every step is significant. The multi-round mechanism works,
+and this is now the strongest result in the project.
+
+**The fixed-point attractor is refuted for rounds, and only for rounds.**
+Raising the pre-server score with a second *local epoch* moved the endpoint
+`+0.19`; raising it with *rounds* moved the endpoint from 63.35 to 69.54.
+Interleaved aggregation and distillation is what unlocks the gain; more local
+training at one round does not.
+
+**The confound control paid for itself.** At matched local work — two passes
+over each client's data either way:
+
+| | pre-server | endpoint |
+|---|---:|---:|
+| `T=1, E=2` | 61.90 | 63.54 |
+| `T=2, E=1` | 64.02 | 66.15 |
+| Δ | +2.13, `p=0.059` | **+2.61, `p=0.0067`** |
+
+The value is in repeated communication rounds, not in more local training.
+Without the `T=1, E=2` arm this would have been dismissed as "trained longer".
+
+**Against centralized.** `T=2` beats the 1-epoch centralized reference by
+`+3.97` (`p=0.0058`) and ties the 2-epoch one (`−0.87`, `p=0.552`) at matched
+local work. `T=3` reaches `+2.51` over `central_2ep` (`p=0.055`) but is **not
+budget-matched** — clients have taken three passes against the reference's two.
+`central_3ep` is required before that row can be claimed.
+
+Three limits: one seed; `T=3` also spends three server distillation stages
+(3 × 3,873 public steps), so the compute story must be reported as a cost
+column; and none of `T=2`/`T=3` has been evaluated out of distribution.
+
+**Protocol note.** The first attempt at this evaluation
+(`eval_arms__s0__20260816T015558`, deleted 2026-08-16) ran at `k=3` with
+`dail_select` and `batch_size 1` because a PowerShell one-liner used `$T` for a
+flag array and `$t` for a loop variable — PowerShell variable names are
+case-insensitive, so the flags resolved to the integer `3` and argparse fell
+back to defaults, adding a stray arm named `3`. Its numbers were discarded.
+Check `config.json` for `k`, `retrieval`, and `batch_size` before trusting any
+eval.
+
+### Rounds off-distribution, per dataset, 2026-08-17
+
+`T=2` and `T=3`, both stages, on the three perturbed Spider sets
+(`eval_arms__s0__2026081{7T091741,7T093838,7T095343}`). Reported per dataset,
+not pooled: the three sets probe different shift types and pooling hides which.
+
+| Post-server EX | `T=1` | `T=2` | `T=3` | `T1→T3` | `p` |
+|---|---:|---:|---:|---:|---:|
+| Spider dev | 63.35 | 66.15 | 69.54 | +6.19 | <1e-4 |
+| Spider-Realistic | 52.95 | 56.30 | 59.65 | +6.69 | <1e-4 |
+| Spider-Syn | 49.61 | 52.03 | 55.51 | +5.90 | <1e-4 |
+| Spider-DK | 47.85 | 50.47 | 52.71 | +4.86 | 0.0007 |
+
+**The round result is distribution-independent.** Four benchmarks, same
+direction, same magnitude, all significant. This is the paper's headline table.
+
+The server step, however, is not:
+
+| Server KD step | `T=1` | `T=2` | `T=3` |
+|---|---:|---:|---:|
+| Spider dev | **+6.00** (`p<1e-4`) | +2.13 (`p=0.123`) | **+3.48** (`p=0.0078`) |
+| Spider-Realistic | -1.97 (`p=0.391`) | -0.79 (`p=0.767`) | +1.38 (`p=0.538`) |
+| Spider-Syn | +0.29 (`p=0.887`) | -0.87 (`p=0.546`) | **0.00** (`p=1.000`) |
+| Spider-DK | +2.62 (`p=0.130`) | -0.37 (`p=0.910`) | +1.87 (`p=0.229`) |
+
+Nine off-distribution cells, none significant, signs alternating. The sharpest
+comparison is Spider-Syn: `n=1034`, identical to Spider dev, so identical power.
+Spider dev finds `+6.00` and `+3.48`; Spider-Syn finds `+0.29`, `-0.87`, and
+exactly `0.00`. Realistic (`n=508`) and DK (`n=535`) lack the power to detect
+~2 EX, so for those two the correct phrasing is "no evidence of an effect", not
+"evidence of no effect".
+
+**Execution errors tell the opposite story, and it is unanimous.** Every one of
+the twelve pre→post cells reduces them:
+
+| Exec-error rate | `T=1` | `T=2` | `T=3` |
+|---|---|---|---|
+| Spider dev | 22.8% → 12.9% | 18.4% → 12.0% | 17.2% → **9.8%** |
+| Spider-Realistic | 23.0% → 14.4% | 19.5% → 15.2% | 18.5% → 13.0% |
+| Spider-Syn | 27.8% → 17.9% | 20.8% → 17.6% | 19.6% → 16.4% |
+| Spider-DK | 23.4% → 18.1% | 20.2% → 15.9% | 17.6% → 15.7% |
+
+Read together: the teacher reliably teaches *executable* SQL everywhere, but the
+conversion into *correct* SQL only shows up in distribution. Off distribution
+the failures move from crashes into runnable-but-wrong answers.
+
+**Interpretation caveat.** The `T=3` pre-server column is not a no-KD arm — its
+clients started from `M_G(t=2)`, which had already been distilled twice. It
+cannot be read as an ablation of the server step.
+
+### BIRD cross-corpus transfer, 2026-08-18 — the components are orthogonal
+
+BIRD dev, `n=1534`, `k=0`, greedy (`eval_arms__s0__20260818T140415`). This
+reverses the 2026-07 decision to keep BIRD out of evaluation entirely; it enters
+as a **cross-corpus transfer** row, never as a headline benchmark, and always
+with its bias stated. BIRD dev's 11 databases are disjoint from the pool's 69,
+so there is no schema leakage, but the corpus is the one the teacher was
+distilled on, so the row favours the pipeline exactly as the Spider-derived sets
+favour a Spider-trained model.
+
+Absolute EX is low because `build_prompt` never renders BIRD's `evidence` hint.
+All arms are handicapped identically, so within-table comparisons hold; the
+numbers must not be compared to published BIRD results.
+
+| Arm | EX | Exec-error |
+|---|---:|---:|
+| base | 10.89 | 46.5% |
+| `T=1` pre-server | 11.15 | 55.3% |
+| centralized 1 epoch | 11.34 | 48.9% |
+| centralized 3 epochs | 12.91 | 42.6% |
+| `T=3` pre-server | 17.67 | 37.9% |
+| `T=1` post-server | 19.43 | 33.4% |
+| **`T=3` post-server** | **21.58** | **29.9%** |
+
+**1. The server step is decisive here**: `+8.28` at `T=1` (`p=2.8e-20`) and
+`+3.91` at `T=3` (`p=6.1e-07`). Distillation's EX gain does transfer — within
+the corpus it was distilled on. The precise statement is therefore not "KD does
+not transfer" but **KD's gain is brittle to question paraphrase**: it appears on
+BIRD (its training distribution) and on canonical Spider dev, and vanishes once
+Spider questions are reworded.
+
+**2. Federation alone buys nothing here**: `T=1` pre-server over base is `+0.26`
+(`p=0.82`). Note that `t3_pre − fed_only = +6.52` is *not* the federated
+contribution — `t3_pre` carries two prior distillation stages.
+
+**3. Centralized is barely above base**: `+0.46` (`p=0.65`) at one epoch,
+`+2.02` (`p=0.029`) at three. `T=3` beats `central_3ep` by `+8.67`
+(`p=4.3e-20`); even `T=1` beats it by `+6.52`.
+
+**4. The two components are orthogonal**, which is the strongest architectural
+evidence the project has produced:
+
+| | Spider-Realistic/Syn/DK | BIRD dev |
+|---|---|---|
+| federated rounds | +4.86 … +6.69, all significant | +0.26, `p=0.82` |
+| server KD | 9 cells, none significant | +8.28 and +3.91, `p<1e-6` |
+
+Each component carries exactly what the other leaves. Neither is redundant. On
+Spider dev both work at once, which is why that benchmark alone cannot separate
+them — it takes two corpora biased in opposite directions.
+
+The asymmetry is worth stating: on the Spider variants centralized leads by
+1–4 EX; on BIRD the pipeline leads by 8.67.
+
+Also filled on 2026-08-18: the `fedkd` `T=1` cell at eval `k=3` is **60.06**,
+i.e. `−3.29` against its own `k=0` result (`p=0.011`), consistent with every
+other demos-at-inference measurement. The older 59.48 figure is the FLoRA-NA
+branch and should not be used for the factor-FedAvg table.
+
+### Missing pure-FL multi-round control, identified 2026-08-19
+
+Advisor feedback requested one final-model comparison:
+
+```text
+Centralized <> FL <> FL-KD
+```
+
+The existing `fedkd_t2_preserver=64.02` and `fedkd_t3_preserver=66.05` cannot
+fill the `FL` row. They are pre-server only within their current round; their
+lineage is:
+
+```text
+base -> FL -> KD -> FL -> KD -> FL
+```
+
+Thus `T=2` pre-server already contains round-1 KD, and `T=3` pre-server contains
+round-1 and round-2 KD. Only `T=1` pre-server (57.35) is currently a pure-FL
+adapter.
+
+Decision: run a separate factor-FedAvg branch through three rounds with no
+server step at any round:
+
+```text
+base -> FL -> FL -> FL
+```
+
+Canonical output:
+
+```text
+artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0
+```
+
+The runner's `fedavg` arm has `server_method="none"`; its round output is the
+FedAvg adapter itself, which becomes the next round's initialization. Exact
+training and Spider/OOD/BIRD evaluation commands are Block K in
+`PIPELINE_NEXT.md`. Status: **pending**. Until it completes, do not publish the
+66.05 adapter under the name `FL` and do not make a causal `FL` versus `FL-KD`
+claim at `T=3`.
+
+### The budget-matched ceiling, 2026-08-16 — centralized saturates, federated does not
+
+`central_3ep` trained as a third one-epoch continuation from
+`central_ft_then_spider_ft` (same recipe that produced 67.02, one cosine cycle
+per epoch), evaluated on Spider dev and the three OOD sets
+(`eval_arms__s0__20260816T20{4913,5209,5930},T210235`).
+
+| Centralized | Spider dev | Δ | `p` | OOD pooled |
+|---|---:|---:|---:|---:|
+| 1 epoch | 62.19 | — | — | 51.04 |
+| 2 epochs | 67.02 | +4.84 | <1e−4 | 54.31 |
+| 3 epochs | **67.60** | **+0.58** | **0.606** | **54.16** |
+
+**The centralized curve is flat after epoch 2**, on Spider dev and pooled
+off-distribution alike (`−0.14`, `p=0.888`). It plateaus around 67.0–67.6 EX.
+
+Matched on passes over private data:
+
+| Passes | federated | centralized | Δ | `p` |
+|---|---:|---:|---:|---:|
+| 1 | 63.35 | 62.19 | +1.16 | 0.432 |
+| 2 | 66.15 | 67.02 | −0.87 | 0.552 |
+| 3 | **69.54** | 67.60 | **+1.93** | 0.172 |
+
+No cell is individually significant, so the claim is not the gap but the
+**shape**: centralized goes `+4.84 → +0.58` and stops; federated goes
+`+2.80 → +3.38` (`p=0.0002`) and is still rising. A plausible mechanism is that
+each federated round adds a fresh teacher-distillation pass over public data,
+whereas a third centralized epoch only re-reads Spider, which has run out of
+signal. Execution quality differs in the same direction: `fedkd_t3` makes 101
+execution errors against `central_3ep`'s 163.
+
+**Compute is not matched, and must not be described as if it were.** `t3` spends
+25,977 client steps plus 11,619 server steps (37,596 total) against `c3`'s
+25,977 — about 45% more. What is matched is *private-data access*, which is the
+privacy-relevant axis and the right one for this comparison, but the step counts
+belong in a cost column.
+
+**Where centralized still wins: off-distribution.** `central_3ep` is `+4.19`
+(`p=0.0001`) over the `T=1` pipeline pooled across the three perturbed sets.
+That gap has only ever been measured at `T=1`; `T=2` and `T=3` have not been
+scored off-distribution. Closing or confirming it is now the highest-value
+remaining run.
+
+### The operating point problem, found 2026-08-15
+
+Every federated arm trains one local epoch. A retained centralized result shows
+that is far from converged:
+
+| Adapter | Recipe | EX |
+|---|---|---:|
+| `ft_no_icl` | 1 epoch Spider from base | 62.19 |
+| `central_ft_then_spider_ft` | plus a second identical epoch | **67.02** |
+
+Verified: the second run's `init_adapter` is `ft_no_icl`, same data, same `lr`.
+The extra pass is worth `+4.83 EX`, larger than every effect in the ablation.
+
+This does **not** invalidate the compute-matched comparison — federated
+`T=1, E=1` spends exactly one pass over the union of client data, so 62.19
+remains the right matched baseline. It does invalidate the *ceiling* label:
+whoever holds all the data trains to convergence, so the data-access ceiling is
+67.02, not 62.19. Both belong in the paper under distinct labels. The residual
+risk is external validity — arm rankings measured at an undertrained point need
+not survive to convergence.
+
+An LR-restart explanation is weakened by the code: each client runs its own
+cosine schedule, so the federated branch already performs five restarts per
+round and still reaches only 57.35. Working the other way, raising local epochs
+under non-IID is the classic FedAvg drift trade.
+
+Both questions were answered on 2026-08-15.
+
+**The ceiling reproduces and it generalises** (`central_2ep`,
+`eval_arms__s0__20260815T08{4527,4756,5343,5649}`):
+
+| | Spider dev | REALISTIC | SYN | DK | OOD pooled |
+|---|---:|---:|---:|---:|---:|
+| `central_ft` (1 epoch) | 62.19 | 55.31 | 51.06 | 46.92 | 51.04 |
+| `central_2ep` | **67.02** | **58.07** | **55.22** | **48.97** | **54.31** |
+
+67.02 reproduces the old figure exactly under the current protocol. The second
+epoch is `+4.84` on Spider dev and `+3.27` pooled off-distribution (`p<1e−4`),
+so it is genuine capability, not Spider overfitting. This kills the hoped-for
+argument that the public pool buys out-of-distribution robustness a centralized
+model lacks — `central_2ep` leads on all four test sets.
+
+**A second local epoch survives aggregation but not the server step**
+(`eval_arms__s0__20260815T13{4454,4951,5953},T140507`):
+
+| | Spider dev | OOD pooled |
+|---|---:|---:|
+| `fed_only` (`E=1`, pre-server) | 57.35 | 49.64 |
+| `e2_pre_server` | **61.90** | **51.28** |
+| `full` (`E=1`, endpoint) | 63.35 | 49.98 |
+| `e2_full` | 63.54 | 50.02 |
+
+The second epoch is worth `+4.55` (`p<1e−4`) before the server and `+0.19`
+(`p=0.897`) after it. The classic FedAvg drift penalty did not appear at
+`alpha=0.5, K=5`: `+4.83` centrally becomes `+4.55` after aggregation.
+
+The consequence looked severe at the time: the distillation increment falls from
+`+6.00` (`p<1e−4`) at `E=1` to `+1.64` (`p=0.264`) at `E=2`, and to `−1.25`
+off-distribution. Read alone, that says the server stage is mostly a repair for
+undertrained clients. The `T=2`/`T=3` results above put that in context — the
+server step keeps contributing across rounds (`+2.13`, `+3.48`), so what `E=2`
+shows is that a single round has a ceiling the server step cannot push past, not
+that distillation is worthless.
+
+### Reordering the pipeline, rejected 2026-08-12
+
+Distillation first and the federated stage last (`kdfirst_s0`, eval
+`eval_arms__s0__20260811T224124`) scores **61.61** against the current order's
+63.35 at seed 0 (`+1.74` for the current order, `n01=108`, `n10=90`,
+`p=0.227` — the two models disagree on 198 questions but not systematically).
+Client training starting from an already-distilled model adds only `+0.38` over
+`base_rkl`'s 61.22. Most of what the clients teach, the teacher already knows.
+Keep distillation last.
+
+### Centralized ICL 2x2, evaluated 2026-08-15
+
+The federated 2x2 was completed on 2026-08-10; its centralized twin ran on
+matched adapters (`ft_no_icl`, `ft_icl_k3`), evals
+`eval_arms__s0__20260811T19{0659,2854}`, full Spider dev, greedy, seed 0.
+
+| | eval `k=0` | eval `k=3` | drop under demos |
+|---|---:|---:|---:|
+| train `k=0` | 62.19 | 61.32 | −0.87, `p=0.526` |
+| train `k=3` | **64.02** | 58.61 | **−5.42, `p=0.0001`** |
+| delta | +1.84, `p=0.079` | **−2.71, `p=0.033`** | |
+
+Two things, and they point opposite ways:
+
+- **In-context training helps as pure augmentation, centrally.** At `k=0` the
+  demo-trained adapter is `+1.84` (`p=0.079`, not significant). The federated
+  pre-server cells gave the opposite sign (`−2.90, p=0.008`), so this is a
+  centralized-only effect and does not rescue federated ICL.
+- **At the ICL deployment mode the demo-trained model is worse**, `−2.71`
+  (`p=0.033`), and it is the model that collapses hardest when handed demos
+  (`−5.42, p=0.0001` versus `−0.87, p=0.526`). This is the fourth independent
+  refutation of the DAIL-SQL §4.4.4 parity argument and the first one that is
+  individually significant in both directions.
+
+Net: every setting measured so far agrees that demonstrations at inference cost
+this 1.5B student roughly 1–5 EX, regardless of how it was trained.
+
 ### Component ablation, K=5 T=1 seed 0, no-ICL branch
 
 Completed 2026-08-11 when the base-only control finally ran. Every teacher
@@ -418,8 +892,12 @@ evals in `eval_arms__s0__20260810T180648`.
 | − the whole federated stage (base + SeqKD + RKL) | 61.22 | −2.13 | 0.017 |
 | − everything (base 1.5B) | 50.00 | −13.35 | — |
 
-**Every component's removal costs significant EX.** The ablation table is
-complete and it passes.
+**Every component's removal costs significant EX at this seed.** The ablation
+table is complete and it passes at seed 0. Superseded in part on 2026-08-15:
+the `−2.13` federated row now has three seeds and becomes `−1.39, p=0.165`; the
+`−2.03` reverse-KL row becomes `−1.71, p=0.165`. Only the whole-distillation
+row (`−4.55, p=0.046`) survives replication. Read the three-seed section above
+before quoting any number from this table.
 
 Two readings that need stating plainly, because they change how the work is
 pitched:
@@ -433,8 +911,10 @@ pitched:
   public distillation from base at 61.22 (`+3.87` for the latter, `p=0.013`),
   and `base_rkl` (61.22) is statistically identical to `fedavg_pub` (61.32,
   `p=1.00`). The defensible claim is the interaction: neither half is enough on
-  its own, and the combination beats each (`+2.13` over distillation alone,
-  `+6.00` over federation alone).
+  its own, and the combination beats each. At three seeds those two margins are
+  `+1.39 (p=0.165)` over distillation alone and `+4.55 (p=0.046)` over
+  federation alone — the second half of the interaction claim is established,
+  the first is not.
 
 **Reverse KL over its matched SeqKD control now replicates three times**, on
 three unrelated client populations: `+1.55` from base (`p=0.121`), `+2.03`
@@ -639,22 +1119,61 @@ of them wins is a design choice rather than a component, cited to [10] KID and
 reported without a claim resting on it. That demotes the extra ladder seeds and
 leaves two runs on the critical path.
 
-1. **`base_rkl` on seeds 1 and 2** (about 3 h, two GPUs in parallel). "Remove
-   the federated component" is the last single-seed row in the ablation table,
-   and it is the row that says what private data is worth. Block A.
-2. **Rounds 2 and 3 on seed 0** (about 8 h). At `T=1` the federated component
-   is worth about 1.5 EX over distillation alone; multi-round warm-starting is
-   the mechanism designed to grow that, and a flat result has to be known
-   before §3 is written. Block B, using `round --round N --init-adapter`
-   because `run` has no `--client-out` and would retrain seed 0's round 1.
-3. Optional: seeds 3–6 to tighten the `−4.55` distillation row. Block C.
-4. Test SC composition only on the selected trained condition.
-5. Advisor conversation on dropping ICL, on renaming away from Fed-ICKD, and on
-   how the work is positioned against FedCoLLM once reverse KL is no longer
-   advanced as a differentiator.
+Rewritten 2026-08-19 after the advisor requested a final
+`Centralized <> FL <> FL-KD` comparison. The pure-FL multi-round control is now
+the first critical-path run.
 
-Write §3 Method and §2 Related Work while 1 and 2 run — neither depends on how
-they come out.
+1. **Pure FL-only through `T=3`, seed 0** (Block K in `PIPELINE_NEXT.md`). This
+   is the missing row in the advisor-requested final-model table. Evaluate all
+   three rounds on Spider dev, the three Spider variants, and BIRD dev.
+2. **`T=4` and `T=5` on seed 0** (about 8 h). The curve is still rising at
+   `T=3` (`+3.38`, `p=0.0002`) and nobody knows where it stops. Where it
+   plateaus is the number the paper reports. Block F.
+3. **Seeds 1 and 2**, rounds 2 and 3 (about 8 h each; round 1 already exists for
+   both). Everything is one seed. Seed 1 can run on the second GPU in parallel
+   with block F — the headline is the `T=1→3` trajectory, not the plateau value,
+   so replicating the trajectory does not wait on F.
+4. Off-distribution and BIRD evaluation of whatever `T` wins, once F lands.
+5. Test SC composition only on the selected trained condition.
+6. Advisor decision completed 2026-08-19: drop ICL from the main method, rename
+   the paper FedLS-SQL, and frame the contribution as LLM-SLM collaboration.
+
+Write §3 Method and §2 Related Work while these run — none of them depends on
+how the others come out.
+
+Framing changes the 2026-08-15/16 results force, needed before §1 and §5 are
+drafted:
+
+- **The headline is multi-round federation, not distillation.** At `T=1`
+  distillation carried the result on Spider dev and vanished off-distribution
+  (`+0.34`). Across rounds the federated stage moves the endpoint `+6.19` while
+  the server step contributes a steady `+2` to `+3.5` per round. Both components
+  stay, but the ordering of the story inverts.
+- **Every `T=1` number in the paper is a waypoint, not a result.** The ablation,
+  the three-seed table, and the OOD table were all measured at `T=1`. They
+  remain valid as reported, but the method's operating point is now `T≥3`, and
+  §4 must say which table describes which point.
+- `non_icl_full_pipeline_ablation_report.md` needs the `67.02` ceiling row, the
+  OOD table, and the round trajectory. As written it reports `T=1` only and
+  compares against the undertrained 62.19 centralized reference, which reads
+  more favourably than the evidence supports in one direction and badly
+  understates the method in the other.
+
+Closed on 2026-08-18: the BIRD cross-corpus transfer table (7 arms), which
+showed the two components are orthogonal, and the `fedkd` `T=1` eval-`k=3` cell.
+
+Closed on 2026-08-17: `T=2`/`T=3` off-distribution at both stages (Block H).
+The round result holds on all four benchmarks; the server step is null on all
+nine off-distribution cells.
+
+Closed on 2026-08-16: rounds 2 and 3 with per-round pre-server evaluation
+(Block D), the `T=1, E=2` operating-point control and the `central_2ep` ceiling
+(Block C), and `central_3ep`, the budget-matched ceiling (Block G) — which
+showed the centralized curve saturating after epoch 2.
+
+Closed on 2026-08-15: `base_rkl` seeds 1 and 2 (Block A), the six-arm
+out-of-distribution evaluation (Block B), the pipeline-reorder probe, and the
+centralized ICL 2x2.
 
 Closed on 2026-08-11: seeds 1 and 2, and the no-ICL client evaluation.
 
@@ -669,12 +1188,17 @@ remaining nine `k=3` no-ICL cells only describe a retired eval mode.
 
 ## Closed or deferred branches
 
+- Distillation-first pipeline order: rejected 2026-08-12, `61.61` against
+  `63.35`. Distillation stays last.
 - Relational hidden-state KD: removed; “RKD” means reverse-KL KD.
 - Struct-SQL/SeqKD direction: removed from the active pipeline.
 - Asymmetric-context KD: shelved after a negative one-seed probe.
 - Skew-RKL `alpha=0.1`: rejected as default.
-- BIRD as a trained-model evaluation benchmark: not used because it is the
-  public training pool.
+- BIRD as a *headline* evaluation benchmark: still not used, because it is the
+  public training pool. Reopened 2026-08-18 as a **cross-corpus transfer** row
+  only, with its pro-pipeline bias stated alongside the Spider variants'
+  pro-centralized bias. Dev databases are disjoint from the pool's, so there is
+  no schema leakage.
 - Formal DP: not claimed; optional only if explicitly implemented.
 - Additional ICL retriever sweeps: dropped 2026-08-10. The matched federated
   ladder showed in-context client training is `2.90 EX` worse before the server

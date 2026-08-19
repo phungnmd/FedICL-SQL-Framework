@@ -1,18 +1,33 @@
-# FedICL-SQL
+# FedLS-SQL
 
-Research repo for the paper *FedICL-SQL: A Novel Federated Large-Small Language
-Models Framework with In-Context Learning for Natural Language to SQL* (target:
-IAJIT, WoS-Q3).
+Research repository for the paper *FedLS-SQL: A Novel Federated Large-Small
+Language Models Framework for Natural Language to SQL*.
 
-- Architecture + decisions + notation + arm-naming map: `paper/notes/system_architecture.md` (single source of truth since 2026-07-08; `DECISIONS.md` folded in and deleted; `fig1_architecture.md` predates the server-side pivot — Fig. 1 pending redraw)
-- Progress log + results: `paper/notes/LAB_LOG.md` + per-run `metrics.json` under `fedicl-sql/experiments/*/results/`
-- Code: `fedicl-sql/` (see `fedicl-sql/README.md` for architecture + quickstart)
+FedLS-SQL combines private client-side LoRA fine-tuning of a lightweight SLM,
+sample-weighted FedAvg, and server-side knowledge distillation from a frozen
+LLM on a public Text-to-SQL pool. The deployed model is the SLM; the teacher is
+not required at clients or at inference time.
 
-**Two-repo layout (intentional):** this outer repo = paper docs/plan/references
-(private — reference PDFs must never be published); `fedicl-sql/` = its **own git
-repo** (gitignored here, not a submodule) = the code + results evidence trail,
-releasable standalone on GitHub at submission (TODO P6). Commit code-stage
-progress in the inner repo; commit plan/doc changes here.
+The current research question is:
+
+> Can large-to-small language model collaboration overcome the accuracy
+> limitations of lightweight federated NL-to-SQL models while retaining the
+> privacy, communication-efficiency, and resource advantages of federated
+> learning?
+
+- Canonical architecture and terminology: `paper/notes/system_architecture.md`
+- Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
+- RQ-to-evidence map: `paper/notes/EXPERIMENT_MATRIX.md`
+- Canonical checkpoint/result map: `paper/notes/RESULT_REGISTRY.md`
+- Complete research history: `paper/notes/LAB_LOG.md`
+- Superseded FedICL/ICL material: `paper/archive/pre_fedls_2026-08/`
+- Code: `fedicl-sql/`
+
+**Two-repo layout (intentional):** this outer repo contains private paper
+materials, plans, and references. `fedicl-sql/` is a separate Git repository
+containing code and the reproducibility trail. The legacy Python namespace
+`fedicl_sql` is retained for compatibility; old artifact paths and run IDs are
+immutable provenance identifiers, not presentation names.
 
 ---
 
