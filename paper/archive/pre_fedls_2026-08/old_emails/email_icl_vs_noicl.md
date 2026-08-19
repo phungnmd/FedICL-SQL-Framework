@@ -5,7 +5,7 @@
 Chào Thầy,
 
 Em xin cập nhật kết quả paper với student Qwen2.5-1.5B-Instruct, teacher
-Qwen2.5-Coder-7B-Instruct và greedy decoding. 
+Qwen2.5-Coder-7B-Instruct và greedy decoding.
 
 ## 1. Đề xuất bỏ ICL
 
