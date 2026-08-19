@@ -1,6 +1,7 @@
 # FedLS-SQL — Condensed Lab Log
 
-> Rewritten 2026-07-31. This file keeps only decisions, results, and
+> Rewritten 2026-07-31; active state refreshed 2026-08-20 for FedLS-SQL. This
+> file keeps only decisions, results, and
 > implementation milestones needed to reproduce the current research path.
 > Superseded discussion remains available in Git history. Per-run truth lives
 > in `experiments/*/results/*/{config,metrics,predictions}.*`.
@@ -19,14 +20,10 @@
   server step (`p=0.008`); demos at inference cost `3.87 EX` (`p=0.003`);
   training costs `2.35x`. ICL is removed from the main method and retained as
   a negative ablation/reproducibility record.
-- Important scope correction: the negative 2026-07-29 result tested
-  inference-only ICL on a centralized adapter trained with `k=0`. It does not
-  settle matched in-context training or federated ICL.
-- Both `K=5, T=1, seed 0` ladders are trained and evaluated at `k=0`. The ICL
-  side additionally has all `k=3` cells; the no-ICL side has none of them.
 - Established at one seed with paired tests: server-side reverse KL beats its
   matched SeqKD control by `+2.03 EX (p=0.042)` on the no-ICL ladder and
-  `+2.51 EX (p=0.013)` on the ICL ladder. This is the paper's contribution.
+  `+2.51 EX (p=0.013)` on the ICL ladder. This supports the server-KD component;
+  the paper's contribution is the complete LLM-SLM federated framework.
 - On 2026-08-10 the aggregation choice was settled: factor-wise FedAvg is the
   default. FLoRA-NA lost or tied all four `k=0` head-to-head cells and is
   removed from the contribution list.
@@ -41,8 +38,8 @@
 - **Headline as of 2026-08-16: `T=3` reaches 69.54 EX**, up from 63.35 at
   `T=1` (`+6.19`, `p<1e−4`), with both the pre-server and post-server curves
   rising at every round. Multi-round federation is now the project's strongest
-  result. One seed; not yet budget-matched against centralized at three passes;
-  not yet evaluated off-distribution.
+  result. The budget-matched centralized and out-of-distribution evaluations
+  are complete; the independent pure-FL multi-round control is still pending.
 - Scope correction 2026-08-19: the `T=2`/`T=3` pre-server adapters are not
   pure FL controls. Each starts from the previous round's post-KD `m_g`, so the
   64.02/66.05 curve already contains one/two earlier KD stages. A separate
@@ -147,8 +144,9 @@ Plain CE on BIRD gold from the base model failed:
 | 1k BIRD-gold CE | 47.10 | harmful |
 | teacher bootstrap CE, 831 executable rows | 50.00 | removed the regression |
 
-The canonical pool was later frozen at 8,127 teacher-generated SQL rows whose
-execution results match BIRD gold.
+An 8,127-row candidate pool was constructed during development. The canonical
+headline subset was later frozen at **3,873 teacher-generated SQL rows** whose
+execution results match BIRD gold; the larger candidate is not the method pool.
 
 A centralized `Spider FT -> BIRD CE+RKL -> Spider FT` pipeline was compared
 with a matched `Spider FT -> Spider FT` control:
@@ -1108,56 +1106,26 @@ rebuild a cache whose metadata matches the frozen public pool before KD runs.
 
 ## Active run queue
 
-Both `K=5, T=1, seed 0` runbooks are executed as of 2026-08-10. The
-ICL-versus-no-ICL question is answered and FLoRA-NA is closed; neither needs
-more cells. Remaining order, highest value first:
+Refreshed 2026-08-20 after the FedLS-SQL rename. `PIPELINE_NEXT.md` is the
+executable source of truth; this section records only priority and rationale.
 
-The proposal is federated training combined with server-side distillation, so
-the ablation removes one component at a time. SeqKD and reverse KL are both
-distillation — hard labels and soft labels within the same component — so which
-of them wins is a design choice rather than a component, cited to [10] KID and
-reported without a claim resting on it. That demotes the extra ladder seeds and
-leaves two runs on the critical path.
+1. **P0 — pure FL through `T=3`, seed 0.** This is the missing independent
+   lineage for the final `Centralized <> FL <> FedLS-SQL` table. Evaluate T1-T3
+   on Spider dev, Realistic, Syn, DK, and BIRD.
+2. **P0 — finalize the result registry.** Fill the FL row only from
+   `fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter`; never use a pre-server
+   adapter from the `fedkd` lineage as pure FL.
+3. **P0 — consolidate efficiency evidence.** Report trainable parameters,
+   adapter bytes, communication per round/total, wall time, peak VRAM, and
+   deployed-SLM inference latency.
+4. **P1 — replicate the T1-T3 trajectory** for seeds 1 and 2.
+5. **P2 — optional baselines/sensitivity.** FedProx, teacher/student size,
+   LoRA rank, and broader skew sweeps require scope agreement before compute is
+   spent.
 
-Rewritten 2026-08-19 after the advisor requested a final
-`Centralized <> FL <> FL-KD` comparison. The pure-FL multi-round control is now
-the first critical-path run.
-
-1. **Pure FL-only through `T=3`, seed 0** (Block K in `PIPELINE_NEXT.md`). This
-   is the missing row in the advisor-requested final-model table. Evaluate all
-   three rounds on Spider dev, the three Spider variants, and BIRD dev.
-2. **`T=4` and `T=5` on seed 0** (about 8 h). The curve is still rising at
-   `T=3` (`+3.38`, `p=0.0002`) and nobody knows where it stops. Where it
-   plateaus is the number the paper reports. Block F.
-3. **Seeds 1 and 2**, rounds 2 and 3 (about 8 h each; round 1 already exists for
-   both). Everything is one seed. Seed 1 can run on the second GPU in parallel
-   with block F — the headline is the `T=1→3` trajectory, not the plateau value,
-   so replicating the trajectory does not wait on F.
-4. Off-distribution and BIRD evaluation of whatever `T` wins, once F lands.
-5. Test SC composition only on the selected trained condition.
-6. Advisor decision completed 2026-08-19: drop ICL from the main method, rename
-   the paper FedLS-SQL, and frame the contribution as LLM-SLM collaboration.
-
-Write §3 Method and §2 Related Work while these run — none of them depends on
-how the others come out.
-
-Framing changes the 2026-08-15/16 results force, needed before §1 and §5 are
-drafted:
-
-- **The headline is multi-round federation, not distillation.** At `T=1`
-  distillation carried the result on Spider dev and vanished off-distribution
-  (`+0.34`). Across rounds the federated stage moves the endpoint `+6.19` while
-  the server step contributes a steady `+2` to `+3.5` per round. Both components
-  stay, but the ordering of the story inverts.
-- **Every `T=1` number in the paper is a waypoint, not a result.** The ablation,
-  the three-seed table, and the OOD table were all measured at `T=1`. They
-  remain valid as reported, but the method's operating point is now `T≥3`, and
-  §4 must say which table describes which point.
-- `non_icl_full_pipeline_ablation_report.md` needs the `67.02` ceiling row, the
-  OOD table, and the round trajectory. As written it reports `T=1` only and
-  compares against the undertrained 62.19 centralized reference, which reads
-  more favourably than the evidence supports in one direction and badly
-  understates the method in the other.
+No additional ICL, FLoRA-NA, SC, or T4/T5 run is currently on the active queue.
+Those branches remain reproducible but are closed or deferred under the new
+paper scope.
 
 Closed on 2026-08-18: the BIRD cross-corpus transfer table (7 arms), which
 showed the two components are orthogonal, and the `fedkd` `T=1` eval-`k=3` cell.
