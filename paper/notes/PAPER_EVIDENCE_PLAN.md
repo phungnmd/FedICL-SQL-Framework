@@ -478,13 +478,13 @@ Update this table after every gate. Never rewrite old decisions silently.
 
 ## 6. Current next actions
 
-1. Run P0.7a: smoke-test Gemma 2B training, LoRA reload, chat-template inference,
-   and resumable evaluation; stop if architecture/access/VRAM fails.
-2. Run P0.7b: smoke Gemma 9B target generation, exact tokenizer compatibility,
-   and offline logit scoring on eight matched rows.
-3. If both smokes pass, generate the full row-matched Gemma targets, then run
-   the four-arm Gemma T1 ladder with online teacher scoring. Defer a full cache
-   until a positive T1 result justifies T3 reuse.
+1. P0.7a is complete: Gemma 2B training/reload/inference compatibility passed;
+   do not interpret its eight-row accuracy.
+2. In parallel, run P0.7b-c on GPU 0 for Gemma 9B target/logit compatibility
+   and full target generation, and P0.7s on GPU 1 for pure FL plus gold CE.
+3. After both lanes complete, run P0.7d target CE, full online CE+RKL, and the
+   canonical four-arm evaluation. Defer a full cache until a positive T1 result
+   justifies T3 reuse.
 4. Review full FedLS against FL, matched public gold, and sequence KD before any
    T3/OOD or additional family/size expansion.
 5. After T1F, export the exact LoRA trainable-parameter count and add fixed

@@ -43,10 +43,10 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 
 ## Recommended execution order
 
-1. Run the Gemma 2B client/LoRA compatibility smoke.
-2. If it passes, smoke Gemma 9B target generation, exact token-ID compatibility,
-   and teacher-logit caching on eight matched rows.
-3. If both pass, regenerate the full Gemma targets and run the four-arm T1
+1. Gemma 2B client/LoRA compatibility smoke is complete.
+2. In parallel, use GPU 0 for the Gemma 9B target/logit smoke plus full target
+   generation, and GPU 1 for pure FL plus matched gold CE.
+3. After both lanes pass, run Gemma target CE and full online CE+RKL, then the four-arm T1
    ladder with online teacher scoring: FL, public-gold CE, Gemma-target CE, and
    full CE+RKL. Build a full cache only if T3 reuse is justified.
 4. Review portability before any Gemma T3/OOD or model-size expansion.

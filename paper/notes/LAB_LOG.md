@@ -25,9 +25,9 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P0.7a, a Gemma 2B client compatibility smoke, is active. P0.7b then checks
-  Gemma 9B→2B target generation, exact token-ID compatibility, and logit cache.
-  If both pass, the full matched Gemma T1 ladder includes CE+reverse KL.
+- P0.7a passed: Gemma 2B trained/reloaded/evaluated; its eight-row `37.5 EX`
+  is diagnostic only. P0.7b-c may now run on GPU 0 while P0.7s independently
+  precomputes Gemma pure FL and gold CE on GPU 1.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -174,10 +174,11 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7a/T1F: Gemma 2B training/load/inference smoke.
-2. P0.7b/T1F: Gemma 9B→2B target/cache/tokenizer smoke on eight rows.
-3. P0.7c-d/T1F: full matched targets, then FL/gold-CE/target-CE/full online
-   CE+RKL T1 evaluation; build a full cache only after a positive gate.
+1. P0.7b-c/T1F, GPU 0: Gemma 9B→2B target/cache/tokenizer smoke, then full
+   row-matched target generation.
+2. P0.7s/T1F, GPU 1 in parallel: pure FL, matched gold CE, and diagnostic eval.
+3. P0.7d/T1F after both lanes: target CE, full online CE+RKL, and canonical
+   four-arm evaluation; build a full cache only after a positive gate.
 4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
 5. CPU-only EX-EM/error audit when it does not block the active GPU task.
 6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
@@ -232,6 +233,7 @@ internal artifact identities.
 | 2026-08-20 | P0.6 filled all centralized-standard transfer cells; no uniform FedLS-over-centralized OOD claim is supported. |
 | 2026-08-20 | After P0.6, Gemma matched T1 portability moved ahead of seed replication. |
 | 2026-08-21 | The portability gate was strengthened from Qwen-teacher→Gemma-student sequence KD to a complete Gemma 2 9B→2B same-family replication with regenerated targets/logits and exact token-ID validation. |
+| 2026-08-21 | P0.7a Gemma 2B smoke passed (8-row diagnostic EX 37.5, EM 12.5, one execution error); teacher and student-independent work split across GPU 0/1. |
 
 ## 8. Archived branches
 
