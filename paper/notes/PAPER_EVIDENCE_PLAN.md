@@ -66,12 +66,12 @@ below it.
 
 ### T0 — align claims and experimental vocabulary
 
-**Status:** next, no GPU.
+**Status:** complete 2026-08-20, no GPU.
 
 **Purpose:** prevent the manuscript from promising mechanisms or settings that
 the implementation does not support.
 
-**Todo:**
+**Decisions applied:**
 
 - Replace “heterogeneous client models” with “asymmetric server-client model
   setting”; all clients currently share the same SLM architecture.
@@ -80,14 +80,22 @@ the implementation does not support.
 - Remove structural distillation from the proposed method and ablation list.
 - Present FedAvg-LoRA as the FL baseline/protocol, not a novel optimizer.
 - State that current logit KD requires teacher/student vocabulary compatibility.
-- Decide the RQ2 wording:
-  - pragmatic: resource/communication savings relative to using a 7B model;
-  - strong: competitive accuracy versus actual federated 7B training.
+- Use the pragmatic RQ2 wording: resource/communication savings from keeping
+  the 7B teacher off clients and out of deployment inference while measuring
+  how much accuracy the 1.5B model retains.
+- Do not claim competitive accuracy versus actual federated 7B training; full
+  7B FL is not scheduled by default.
 - Collapse duplicated outline baselines such as FedAvg-SLM and FedAvg-LoRA
   unless full-model FL is genuinely implemented.
 
-**Deliverable:** one frozen claim-to-evidence table identifying each planned
-paper claim, its current support, and its forbidden stronger wording.
+**Frozen claim-to-evidence boundary:**
+
+| Planned claim | Required evidence | Forbidden stronger wording |
+|---|---|---|
+| LLM guidance improves federated SLM accuracy | matched T1 supervision ladder, then targeted replication if decisive | any gain is caused by the LLM before the public-gold control |
+| The 1.5B client/deployed model avoids 7B costs | adapter traffic plus matched 1.5B/7B resource measurements | empirically cheaper or more accurate than full federated 7B training |
+| Private rows stay local in the implemented protocol | architecture/data-flow audit | formal privacy, DP, or secure aggregation guarantee |
+| Method operates under non-IID client data | frozen split statistics and scoped results | broad non-IID robustness from one `alpha=0.5` setting |
 
 **Gate T0:**
 
@@ -98,7 +106,7 @@ paper claim, its current support, and its forbidden stronger wording.
 
 ### T1 — matched public-supervision ablation
 
-**Status:** highest-priority empirical task after T0.
+**Status:** active; P0.0 data reconstruction verified locally, GPU branch next.
 
 **Question:** does improvement come from LLM guidance, or merely from adding a
 public supervised training pass?
@@ -124,6 +132,13 @@ public supervised training pass?
   zero-shot protocol.
 - Compare EX, execution-error rate, paired wins/losses, and confidence intervals;
   treat EM as secondary across different target conventions.
+
+**Reconstruction audit:** the selection checkpoint contains all 3,873 retained
+source indices, so the control is recoverable exactly. Joining on
+`(question, db_id)` is forbidden because five duplicated/ambiguous keys affect
+nine rows. `scripts/build_public_gold_control.py` instead aligns by stored source
+index, verifies question/database/path identity, preserves row order and prompt
+fields, replaces only `query`, and records input/output hashes.
 
 **Gate T1:**
 
@@ -339,14 +354,19 @@ Update this table after every gate. Never rewrite old decisions silently.
 | Date | Gate | Evidence reviewed | Decision | Next active task |
 |---|---|---|---|---|
 | 2026-08-20 | initial architecture review | outline, architecture, lab log, result registry, implementation | multi-seed moved behind causal, efficiency, baseline, and heterogeneity evidence | T0 |
+| 2026-08-20 | T0 claim alignment | outline claims versus implemented architecture and available resource evidence | pragmatic RQ2 selected; no full 7B FL by default; claims limited to asymmetric server-client setting and structural data isolation | T1 |
+| 2026-08-20 | T1 reconstruction preflight | BIRD source CSV, frozen teacher pool, selection checkpoint, duplicate-key audit | exact 3,873-row gold control is reconstructable by source index; activate only the missing gold-CE branch | T1 P0.1 |
 
 ## 6. Current next actions
 
-1. Complete T0 and choose pragmatic versus strong RQ2 wording.
-2. Design the exact 3,873-row public-gold control for T1 and verify that its
-   provenance can be reconstructed without changing the frozen teacher pool.
-3. Only after that verification, replace the active seed commands in
-   `PIPELINE_NEXT.md` with the smallest resumable T1 command block.
+1. On the compute host, run P0.0 in `PIPELINE_NEXT.md` to reproduce and verify
+   the exact 3,873-row public-gold CSV.
+2. Run only the missing seed-0 public-gold CE server branch from the shared T1
+   FedAvg adapter.
+3. Evaluate FL, public-gold CE, teacher-target CE, and full FedLS-SQL together
+   on the same Spider rows.
+4. Stop at Gate T1 and update this plan from the observed causal contrast. Do
+   not automatically proceed to T2 or restore seed runs.
 
-Until T1 is reviewed, the existing seed-1/seed-2 commands are parked, not
-deleted; they may become useful later under T7.
+Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be
+reactivated later under T7 if the final headline contrast needs replication.
