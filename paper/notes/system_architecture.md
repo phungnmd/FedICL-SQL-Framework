@@ -49,13 +49,30 @@ inference from model updates.
 | Robustness tests | Spider-Realistic, Spider-Syn, Spider-DK |
 | Cross-corpus test | BIRD dev, disjoint evaluation databases |
 
-The public targets are constructed once:
+The public targets are constructed once per frozen-teacher lineage:
 
 1. the frozen teacher generates SQL zero-shot on public BIRD examples;
 2. the SQL must execute;
 3. its execution result must match the gold execution result;
 4. the retained teacher SQL becomes the public hard target;
 5. teacher logits on the same target span are cached.
+
+### Teacher-specific KD-pool invariant
+
+For a frozen teacher `T` and the complete public source `D_public`, define
+
+```text
+P_T = {(x, y_hat_T) in D_public : EX(y_hat_T, y_gold) = 1}
+N_T = |P_T|
+```
+
+FedLS-SQL trains on the retained **teacher-generated SQL** `y_hat_T` and its
+teacher logits; BIRD gold is only the execution oracle and matched-control
+target. Therefore `P_T`, `N_T`, selected source indices, SQL targets, and logit
+cache are teacher-specific artifacts. Replacing the teacher requires rebuilding
+all of them from the complete `D_public`. A retained count such as 3,873 is an
+observed output for one teacher, never a method hyperparameter or portable
+public-data budget.
 
 BIRD gold SQL is used for result-based filtering, not as the canonical method's
 training target. A matched causal control replaces the teacher SQL with BIRD
@@ -212,7 +229,7 @@ teacher/student family. It does not make reverse KL cross-tokenizer: exact
 token-to-ID equality is a hard prerequisite, and arbitrary mixed-family logits
 remain unsupported.
 
-The fixed 3,873-row pool above is specific to the canonical Qwen teacher. A
+The 3,873-row pool above is specific to the canonical Qwen teacher. A
 second-family replication must begin with all 9,428 BIRD training rows, run its
 own teacher generation and the same EX-match selection rule, and derive its own
 retained count (`N_gemma` for Gemma). Its gold, target-CE, and CE+RKL controls

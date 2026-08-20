@@ -64,6 +64,10 @@ active files without a clear owner.
 - Client-private data never moves to the server in the canonical protocol.
 - Privacy claims must distinguish structural isolation from DP, secure
   aggregation, and resistance to parameter-inference attacks.
+- A KD pool selected by teacher/gold execution match belongs to that teacher:
+  changing teacher requires regeneration from the complete public source and
+  teacher-specific filtering. Never reuse another teacher's selected indices
+  or treat its retained count as a fixed method budget.
 
 ## 6. Experiment lifecycle
 

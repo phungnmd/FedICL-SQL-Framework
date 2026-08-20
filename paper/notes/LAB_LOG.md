@@ -20,7 +20,8 @@ decisions. It deliberately does not own result tables:
   Qwen2.5-Coder-7B-Instruct teacher.
 - Method: private client LoRA fine-tuning, sample-weighted factor-wise FedAvg,
   then server-side teacher-target CE plus reverse KL on public data.
-- Public pool: fixed 3,873-row BIRD teacher-generated EX-match subset.
+- Primary Qwen public pool: 3,873 BIRD teacher-generated EX-match rows; this is
+  `N_qwen`, not a fixed cross-teacher budget.
 - Canonical inference: greedy, zero-shot, `k=0`.
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
@@ -47,7 +48,7 @@ decisions. It deliberately does not own result tables:
 | Aggregation | sample-weighted factor-wise FedAvg |
 | Teacher | frozen `Qwen/Qwen2.5-Coder-7B-Instruct` |
 | Server objective | teacher-target CE + reverse KL |
-| Public data | 3,873 BIRD teacher-generated EX-match rows |
+| Public data | Qwen-specific `N_qwen=3,873` BIRD teacher-generated EX-match rows |
 | Primary evaluation | Spider dev, 1,034 rows |
 | Robustness | Spider-Realistic, Spider-Syn, Spider-DK |
 | Cross-corpus diagnostic | BIRD dev, 1,534 rows |
