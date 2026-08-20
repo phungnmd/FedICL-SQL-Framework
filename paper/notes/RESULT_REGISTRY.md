@@ -42,8 +42,9 @@ already exists.
 
 | Stable ID | Student family | Paper role | Expected output root | Status |
 |---|---|---|---|---|
-| `gemma.fl.t1.s0` | Gemma 2 | cross-family pure FL | assign when P0.8 command is frozen | `PENDING:P0.8` |
-| `gemma.seqkd.t1.s0` | Gemma 2 | cross-family teacher-target CE | assign when P0.8 command is frozen | `PENDING:P0.8` |
+| `gemma.fl.t1.s0` | Gemma 2 2B | cross-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | matched public-supervision control | `artifacts/federated/gemma2_2b_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | cross-family teacher-target CE | `artifacts/federated/gemma2_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 
 `gemma.seqkd.t1.s0` must not be labeled full FedLS-SQL CE+RKL. Qwen teacher
 logits are not reusable across the Gemma tokenizer.

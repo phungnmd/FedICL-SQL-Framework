@@ -178,11 +178,14 @@ positive component pending stronger across-seed evidence. Do not claim that it
 transfers latent reasoning without a dedicated analysis.
 
 Do not activate FedProx, heterogeneity sweeps, or broad replication before the
-two targeted gates below establish headline reliability and model-family scope.
+cross-family gate is reviewed. Final-endpoint replication remains required
+before submission, but it is deferred under the current evidence-discovery
+priority.
 
 ### T1R — final-endpoint reliability
 
-**Status:** active highest-impact GPU task; P0.6 is complete.
+**Status:** deferred by current research priority; commands are preserved as
+P0.8 and may be reactivated after the portability/resource gates.
 
 **Question:** is the headline T3 gain over independent pure FL stable across
 training randomness, rather than a seed-0 outcome?
@@ -209,7 +212,8 @@ training randomness, rather than a seed-0 outcome?
 
 ### T1F — cross-family portability screen
 
-**Status:** gated by T1R; run a one-round, one-seed screen before any expansion.
+**Status:** active as P0.7; run the smoke first, then one round and one seed
+before any expansion.
 
 **Question:** does the strongest family-agnostic mechanism—teacher-generated
 sequence supervision—help a non-Qwen student?
@@ -221,17 +225,18 @@ sequence supervision—help a non-Qwen student?
   fallback if Gemma cannot run cleanly.
 - Keep the current frozen Qwen2.5-Coder-7B teacher targets, public-pool row
   identities, Spider split, prompts, LoRA policy, seed 0, and T1 evaluation.
-- Compare cross-family pure FL against FL followed by CE on the existing
-  teacher-generated SQL (`fedavg_pub`). Do not reuse the Qwen teacher-logit
-  cache with a different tokenizer.
+- From one shared Gemma T1 FedAvg adapter, compare no server treatment, CE on
+  the exact matched BIRD-gold rows, and CE on the existing teacher-generated
+  SQL (`fedavg_pub`). Do not reuse the Qwen teacher-logit cache with a different
+  tokenizer.
 - Label the transferred endpoint `FedLS-SeqKD`, not full FedLS-SQL CE+RKL.
 - Do not add model-size sweeps or a second alternative family at this gate.
 
 **Gate T1F:**
 
-- **Positive, material T1 gain:** the teacher-target mechanism has portability
-  evidence; extend only this pair to T3/Spider, then decide whether OOD is
-  needed.
+- **Teacher target materially beats both FL and matched public gold:** the
+  teacher-target mechanism has portability evidence; consider extending only
+  this matched family track to T3/Spider, then decide whether OOD is needed.
 - **Small or uncertain gain:** add at most one training seed before deciding.
 - **No gain or regression:** stop the branch and scope the paper to the tested
   vocabulary-compatible Qwen setting; do not tune until positive.
@@ -244,8 +249,8 @@ present token-level RKL as an optional compatible-vocabulary enhancement.
 ### T2 — efficiency and resource evidence
 
 **Status:** communication payload is complete; controlled measurement follows
-T1R and T1F because it supports the efficiency claim but does not resolve the
-more serious reliability or model-family objections.
+the active T1F gate. It supports the efficiency claim but does not replace
+eventual final-endpoint reliability.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
@@ -465,21 +470,24 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | post-P0.5 evidence audit | canonical registry, committed communication metrics, and resource instrumentation | fill standard centralized OOD/BIRD cells first; communication payload needs no rerun; add fixed in-process warm-up before official latency | P0.6 centralized transfer suite |
 | 2026-08-20 | Q3 evidence-priority review | headline seed coverage, Qwen-only scope, resource claim, and compute cost | after P0.6, prioritize final T3 seed-1/2 reliability, then one-round Gemma sequence-KD portability; resource benchmark follows those scientific-validity gates | P0.6, then T1R |
 | 2026-08-20 | P0.6 centralized transfer gate | official standard adapter on Realistic, Syn, DK, and BIRD with paired final-model audit | fill final table; retain competitiveness claim but reject uniform FedLS-over-centralized OOD superiority | T1R/P0.7 |
+| 2026-08-20 | post-P0.6 priority revision | advisor outline ablations, Qwen-only limitation, existing seed-0 breadth, and user compute priority | defer final seed replication; activate a cheap Gemma smoke followed by a matched FL/public-gold/teacher-target T1 portability ladder | T1F/P0.7a |
 
 ## 6. Current next actions
 
-1. Run T1R/P0.7: execute only the final T3 pure-FL versus full
-   FedLS-SQL contrast at training seeds 1/2 on Spider.
-2. If T1R is stable, activate T1F: smoke-test Gemma 2 2B, then run the seed-0
-   T1 pure-FL versus teacher-target sequence-KD screen.
-3. After T1F, export the exact LoRA trainable-parameter count and add fixed
+1. Run P0.7a: smoke-test Gemma 2 2B training, LoRA reload, chat-template
+   inference, and resumable evaluation; stop if architecture/access/VRAM fails.
+2. If the smoke passes, run P0.7b: one shared Gemma T1 FedAvg stage followed by
+   no treatment, matched public-gold CE, and teacher-target CE.
+3. Review whether teacher-target CE beats both controls before extending Gemma
+   to T3/OOD or adding another student family/size.
+4. After T1F, export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
-4. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
+5. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
    active GPU task.
-5. Decide whether seed-1/2 public-gold controls are necessary for the final
-   causal table; do not repeat all datasets or rounds automatically.
-6. Do not interpret shared-server time/RAM as official evidence;
+6. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
+   do not start it until the current discovery-first gate is reviewed.
+7. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
-Final T3 seed-1/2 replication is now an early targeted task under T1R. Only
-additional component/public-gold replication remains parked under T7.
+Final T3 seed-1/2 replication is deferred, not cancelled. Additional component
+replication remains parked under T7.

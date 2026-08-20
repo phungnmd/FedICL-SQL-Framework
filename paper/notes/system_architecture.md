@@ -199,14 +199,13 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. evaluate the official standard centralized recipe on the four transfer/OOD
-   datasets; historical restart values cannot fill those cells;
+1. test family portability with a one-round Gemma 2 2B matched ladder: pure
+   FL, matched public-gold CE, and teacher-target sequence KD, without
+   incompatible Qwen logits;
 2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
-   training seeds 1/2;
-3. test family portability with a one-round Gemma 2 2B pure-FL versus
-   teacher-target sequence-KD screen, without incompatible Qwen logits;
-4. finish resource benchmarking with fixed warm-up and exclusive hardware;
-5. audit the large server-stage EX-EM divergence and execution-error types.
+   training seeds 1/2 before submission; currently deferred;
+3. finish resource benchmarking with fixed warm-up and exclusive hardware;
+4. audit the large server-stage EX-EM divergence and execution-error types.
 
 The cross-family screen tests the portable hard-target mechanism, not the full
 reverse-KL endpoint. Until a vocabulary-independent soft-distillation method is

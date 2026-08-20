@@ -25,9 +25,10 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P0.7, final T3 pure-FL versus FedLS-SQL replication at seeds 1/2, is active.
-- Final T3 seed-1/2 reliability and a one-round Gemma sequence-KD portability
-  screen follow only after their preceding gates pass.
+- P0.7a, a Gemma 2 2B compatibility smoke, is active. If it passes, P0.7b
+  compares Gemma FL, matched public-gold CE, and teacher-target CE at T1.
+- Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
+  current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -172,12 +173,13 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7/T1R: final T3 pure-FL versus full FedLS-SQL at training seeds 1/2,
-   Spider final endpoints only.
-2. P0.8/T1F: if T1R is stable, Gemma 2 2B T1 pure FL versus
-   teacher-target sequence KD, seed 0.
+1. P0.7a/T1F: Gemma 2 2B training/load/inference smoke.
+2. P0.7b/T1F: if smoke passes, one shared Gemma T1 FedAvg stage followed by
+   no treatment, matched public-gold CE, and teacher-target CE.
 3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
 4. CPU-only EX-EM/error audit when it does not block the active GPU task.
+5. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
+   not the current discovery task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
 component seeds remain behind these gates.
@@ -226,6 +228,7 @@ internal artifact identities.
 | 2026-08-20 | Adapter-payload accounting closed at 739.111 MB/round and 2.217 GB through T3. |
 | 2026-08-20 | Paper tables moved to `paper/results/MAIN_RESULTS.md` and separated by model family/evidence role. |
 | 2026-08-20 | P0.6 filled all centralized-standard transfer cells; no uniform FedLS-over-centralized OOD claim is supported. |
+| 2026-08-20 | After P0.6, Gemma matched T1 portability moved ahead of seed replication to test whether teacher-target transfer survives a non-Qwen student family. |
 
 ## 8. Archived branches
 

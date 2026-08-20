@@ -18,9 +18,9 @@ part of the default evidence package.
 
 The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
 gates are complete. `Centralized-standard-3ep` is the official baseline; the
-historical restart recipe remains schedule-sensitivity evidence. The next GPU
-block is the final T3 seed-1/2 reliability test. Do not expand it to intermediate
-rounds or OOD datasets before reviewing the final Spider endpoints.
+historical restart recipe remains schedule-sensitivity evidence. By current
+research priority, the next GPU task is a cross-family Gemma smoke test, then a
+matched T1 portability gate. Final T3 seed replication is retained but deferred.
 
 | Order | Action | Status |
 |---|---|---|
@@ -31,16 +31,17 @@ rounds or OOD datasets before reviewing the final Spider endpoints.
 | P0.4 | Evaluate both centralized recipes on Spider | complete; no meaningful difference |
 | P0.5 | Select the official centralized ceiling | complete; standard continuous selected |
 | P0.6 | Evaluate the official centralized baseline on Realistic, Syn, DK, and BIRD | complete; 55.91 / 54.06 / 53.27 / 13.04 EX |
-| P0.7 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | **active next gate** |
-| P0.8 | Cross-family T1 screen: Gemma 2 2B FL vs teacher-target sequence KD | gated by P0.7 |
+| P0.7a | Smoke Gemma 2 2B training, adapter load, and inference | **run next; stop if it fails** |
+| P0.7b | Gemma T1 matched ladder: FL vs public-gold CE vs teacher-target CE | gated by successful smoke |
+| P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
-| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.8 |
+| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.7 review |
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
 it completed before the snapshot feature existed. Do not start FedProx,
-heterogeneity, sensitivity, or any broader replication beyond P0.7-P0.8 until
-their gates are reviewed.
+heterogeneity, sensitivity, or model-size/rank/client sweeps until P0.7 is
+reviewed.
 
 ## Fixed T1 comparison
 
@@ -151,25 +152,59 @@ provenance and an exact completed rerun is a no-op.
 $env:CUDA_VISIBLE_DEVICES='1'; $A='artifacts/baselines/central_3ep_standard_s0/adapter'; if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing official centralized adapter: $A" }; foreach ($D in @(@{Test='processed_data/SPIDER_REALISTIC/test.csv';Tag='realistic'},@{Test='processed_data/SPIDER_SYN/test.csv';Tag='syn'},@{Test='processed_data/SPIDER_DK/test.csv';Tag='dk'},@{Test='processed_data/BIRD/centralized/test.csv';Tag='bird'})) { $E="artifacts/eval_resume/central_3ep_standard_$($D.Tag)_s0/eval_k0"; Write-Host "=== Centralized-standard-3ep: $($D.Test)"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv $D.Test --arms "central_3ep_standard=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Centralized transfer evaluation failed: $($D.Test)" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" } }; Write-Host 'P0.6 complete: stop, commit results, and review the final-model table before any new GPU block'
 ```
 
-## P0.7 — final T3 reliability at seeds 1 and 2
+## P0.7 — cross-family Gemma portability gate
+
+This gate tests the family-agnostic part of large-to-small transfer without
+pretending that Qwen token logits are compatible with Gemma. Before running,
+accept the official Gemma license for the compute host's Hugging Face account.
+The smoke uses a separate non-paper output root and verifies training, LoRA
+save/load, chat-template inference, and evaluation resume behavior.
+
+### P0.7a — Gemma smoke
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $M='google/gemma-2-2b-it'; $O='artifacts/smoke/gemma2_2b_t1_s0/round_1'; $E='artifacts/eval_resume/gemma2_2b_smoke_s0/eval_k0'; uv run python experiments/federated/run.py client --round 1 --client-id 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --client-max-steps 2 --model $M --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 1 --out $O --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma smoke training failed; check model access, target modules, and VRAM' }; $A="$O/client_1/adapter"; if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing Gemma smoke adapter: $A" }; uv run python experiments/eval_arms/run.py --model $M --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_smoke=$A" --n-eval 8 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --overlay none --batch-size 2 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma smoke inference failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma smoke manifests: $E/manifests" }; Write-Host 'P0.7a complete: stop and review smoke artifacts before full T1'
+```
+
+Do not interpret smoke accuracy. If it succeeds without model-specific code
+changes, run P0.7b. If it fails from license access, fix access and rerun the
+same line. If it fails from architecture incompatibility or OOM, stop and
+review before choosing a fallback model.
+
+### P0.7b — matched Gemma T1 ladder
+
+The three arms share one private-client/FedAvg stage and the exact same 3,873
+public row identities. Only the server treatment changes. `gemma_seqkd_t1` is
+family-portable teacher-target CE and must not be called full CE+RKL FedLS-SQL.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $M='google/gemma-2-2b-it'; $F='artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0'; $G='artifacts/federated/gemma2_2b_goldce_noicl_k5_e1_t1_s0'; $K='artifacts/federated/gemma2_2b_seqkd_noicl_k5_e1_t1_s0'; $E='artifacts/eval_resume/gemma2_2b_t1_matched_s0/eval_k0'; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv','processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv.provenance.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.7b input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL T1 failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out "$F/round_1" --out $G --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched public-gold CE failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out "$F/round_1" --out $K --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma teacher-target CE failed; rerun this exact line to resume' }; foreach ($A in @("$F/round_1/fedavg_adapter","$G/round_1/m_g","$K/round_1/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing Gemma T1 adapter: $A" } }; uv run python experiments/eval_arms/run.py --model $M --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_fl_t1=$F/round_1/fedavg_adapter" "gemma_goldce_t1=$G/round_1/m_g" "gemma_seqkd_t1=$K/round_1/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 8 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched T1 evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma T1 manifests: $E/manifests" }; Write-Host 'P0.7b complete: stop, commit results, and review portability before any expansion'
+```
+
+**Stop rule:** teacher-target CE must be assessed against both pure FL and the
+matched public-gold CE branch. A positive material gain supports portable
+large-to-small sequence supervision. A null or negative result scopes the
+paper to the primary Qwen-compatible setting; do not tune Gemma until positive.
+
+## P0.8 — final T3 reliability at seeds 1 and 2 (deferred)
 
 Each block is one independently resumable scientific checkpoint: train pure FL
 through T3, train full FedLS-SQL through T3, then evaluate only the two final
 Spider endpoints. Completed stages are validated and skipped by the federated
-runner; partial stages resume from their existing `_ckpt` state. Run seed 1,
-then seed 2. Stop after both results are committed and review the three
-training-seed deltas before activating P0.8.
+runner; partial stages resume from their existing `_ckpt` state. These commands
+remain ready but are not active under the current research priority. When
+reactivated, run seed 1, then seed 2, and review the three training-seed deltas.
 
 ### Seed 1
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='1'; $S=1; $F="artifacts/federated/fedavg_only_noicl_k5_e1_t3_s$S"; $K="artifacts/federated/fedkd_noicl_k5_e1_t1_s$S"; $E="artifacts/eval_resume/fedls_final_t3_spider_s$S/eval_k0"; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.7 input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed $S; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed $S failed; rerun this exact line to resume" }; uv run python experiments/federated/run.py run --arm fedkd --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $K --seed $S; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed $S failed; rerun this exact line to resume" }; foreach ($A in @("$F/round_3/fedavg_adapter","$K/round_3/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing final seed-${S} adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s${S}_t3=$F/round_3/fedavg_adapter" "fedls_s${S}_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Final Spider evaluation seed $S failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" }; Write-Host "P0.7 seed $S complete: final FL and FedLS-SQL T3 evaluated"
+$env:CUDA_VISIBLE_DEVICES='1'; $S=1; $F="artifacts/federated/fedavg_only_noicl_k5_e1_t3_s$S"; $K="artifacts/federated/fedkd_noicl_k5_e1_t1_s$S"; $E="artifacts/eval_resume/fedls_final_t3_spider_s$S/eval_k0"; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.8 input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed $S; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed $S failed; rerun this exact line to resume" }; uv run python experiments/federated/run.py run --arm fedkd --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $K --seed $S; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed $S failed; rerun this exact line to resume" }; foreach ($A in @("$F/round_3/fedavg_adapter","$K/round_3/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing final seed-${S} adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s${S}_t3=$F/round_3/fedavg_adapter" "fedls_s${S}_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Final Spider evaluation seed $S failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" }; Write-Host "P0.8 seed $S complete: final FL and FedLS-SQL T3 evaluated"
 ```
 
 ### Seed 2
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='1'; $S=2; $F="artifacts/federated/fedavg_only_noicl_k5_e1_t3_s$S"; $K="artifacts/federated/fedkd_noicl_k5_e1_t1_s$S"; $E="artifacts/eval_resume/fedls_final_t3_spider_s$S/eval_k0"; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.7 input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed $S; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed $S failed; rerun this exact line to resume" }; uv run python experiments/federated/run.py run --arm fedkd --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $K --seed $S; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed $S failed; rerun this exact line to resume" }; foreach ($A in @("$F/round_3/fedavg_adapter","$K/round_3/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing final seed-${S} adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s${S}_t3=$F/round_3/fedavg_adapter" "fedls_s${S}_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Final Spider evaluation seed $S failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" }; Write-Host "P0.7 seed $S complete: final FL and FedLS-SQL T3 evaluated"
+$env:CUDA_VISIBLE_DEVICES='1'; $S=2; $F="artifacts/federated/fedavg_only_noicl_k5_e1_t3_s$S"; $K="artifacts/federated/fedkd_noicl_k5_e1_t1_s$S"; $E="artifacts/eval_resume/fedls_final_t3_spider_s$S/eval_k0"; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.8 input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed $S; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed $S failed; rerun this exact line to resume" }; uv run python experiments/federated/run.py run --arm fedkd --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $K --seed $S; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed $S failed; rerun this exact line to resume" }; foreach ($A in @("$F/round_3/fedavg_adapter","$K/round_3/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing final seed-${S} adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s${S}_t3=$F/round_3/fedavg_adapter" "fedls_s${S}_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Final Spider evaluation seed $S failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" }; Write-Host "P0.8 seed $S complete: final FL and FedLS-SQL T3 evaluated"
 ```
 
 ## P1.0 — communication accounting from existing records
@@ -183,14 +218,13 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-After P0.6, the GPU priority is P0.7 headline reliability, then the P0.8
-cross-family screen, then controlled resource measurement. P0.7 replicates
-only the final Spider contrast at training seeds 1/2; it does not repeat every
-round or dataset. P0.8 starts with one seed and one round using Gemma 2 2B:
-pure FL versus CE on the existing teacher-generated SQL. It must be labeled
-`FedLS-SeqKD`, not full CE+RKL FedLS-SQL, because Qwen teacher logits are not
-vocabulary-compatible with Gemma. Extend P0.8 to T3/OOD only if the T1 gate is
-positive and material.
+After P0.6, the active GPU priority is P0.7 cross-family portability. It starts
+with a smoke, then changes only the server treatment after one shared Gemma T1
+FedAvg adapter: none, matched public-gold CE, or teacher-target CE. It must be
+labeled `FedLS-SeqKD`, not full CE+RKL FedLS-SQL, because Qwen teacher logits
+are not vocabulary-compatible with Gemma. Extend it to T3/OOD only if the T1
+matched gate is positive and material. P0.8 seed reliability remains ready but
+deferred.
 
 Before collecting official latency, add a warm-up-capable benchmark path. Do
 not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes
@@ -227,10 +261,10 @@ $Gpu=1; $Busy=@(nvidia-smi -i $Gpu --query-compute-apps=pid --format=csv,noheade
 
 ## Parked work
 
-- Final T3 seed-1/2 replication has moved forward to T1R/P0.7. Older broad seed
-  commands remain provenance only at Git commit `b996594`; do not reuse them
-  without narrowing them to the final Spider endpoints. Additional public-gold
-  or component replication remains conditional under T7.
+- Final T3 seed-1/2 replication is retained as T1R/P0.8 but deferred. Its
+  narrowed commands above are the only active-form provenance; older broad seed
+  commands at Git commit `b996594` must not be reused. Additional component
+  replication remains conditional under T7.
 - No “Centralized + CE/KD” command is activated. Historical variants use
   mismatched 1k pools or mixed stages. Add a new matched centralized lineage
   only if the final reviewer audit needs to separate federation from the same

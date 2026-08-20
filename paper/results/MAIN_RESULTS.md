@@ -19,7 +19,7 @@ blocks. A cross-tokenizer sequence-KD result is not the full reverse-KL method.
 | Track | Student family/model | Teacher family/model | Server transfer | Paper label | Status |
 |---|---|---|---|---|---|
 | Primary | Qwen2.5 / `Qwen/Qwen2.5-1.5B-Instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE + token-level reverse KL | FedLS-SQL | canonical |
-| Cross-family portability | Gemma 2 / `google/gemma-2-2b-it` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE only | FedLS-SeqKD | `PENDING:P0.8` |
+| Cross-family portability | Gemma 2 / `google/gemma-2-2b-it` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE only | FedLS-SeqKD | `PENDING:P0.7` |
 | Cross-family fallback | Phi-3.5 / `microsoft/Phi-3.5-mini-instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE only | FedLS-SeqKD | use only if Gemma smoke fails |
 
 ## 2. Overall NL-to-SQL performance
@@ -56,8 +56,9 @@ can be consumed by a different tokenizer.
 
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
 |---|---|---|---|---:|---:|---:|---:|---|
-| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.8` | `PENDING:P0.8` | gated by T3 reliability |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | teacher-target CE | 1 | 0 | `PENDING:P0.8` | `PENDING:P0.8` | no reverse KL |
+| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | active matched gate |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | same public rows |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | no reverse KL |
 
 Do not merge this block with §2.1. Extend it to T3 or OOD only if the T1 gate
 is positive and material.
@@ -77,7 +78,7 @@ controlled protocol.
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
-| Gemma 2 2B | FedLS-SeqKD, T1 | `PENDING:P0.8` | `PENDING:P0.8` | `PENDING:P0.8` | `PENDING` | portability table, not main endpoint |
+| Gemma 2 2B | FedLS-SeqKD, T1 | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING` | portability table, not main endpoint |
 
 Few-shot LLM prompting and ICL are not silently promoted from legacy runs.
 They may appear as a closed negative/diagnostic ablation only if the manuscript
@@ -159,7 +160,7 @@ significance.
 | full method over distillation-only | +1.39 | 1.12 | 0.165 |
 
 The server stage as a whole is supported; standalone reverse KL remains
-provisional. Final T3 seed-1/2 reliability is `PENDING:P0.7`.
+provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
 
 ### 4.3 Outline sensitivity matrix
 
@@ -238,7 +239,7 @@ Supports the error analysis currently proposed in draft §4.4.
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | pending controlled benchmark |
 | Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |
-| Convergence analysis | §3.1–§3.2 | seed 0 complete; final reliability pending P0.7 |
+| Convergence analysis | §3.1–§3.2 | seed 0 complete; final reliability deferred as P0.8 |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | predictions available; structured audit pending |
 
