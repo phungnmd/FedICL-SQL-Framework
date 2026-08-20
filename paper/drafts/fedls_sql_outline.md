@@ -59,12 +59,18 @@ module.
 
 ## 6. Results
 
-1. Final Centralized vs FL vs FedLS-SQL comparison.
-2. Round-wise convergence under non-IID partitioning.
-3. Robustness and cross-corpus transfer.
-4. Accuracy/communication/resource trade-offs.
-5. Component and sensitivity ablations.
-6. Error analysis by SQL difficulty and failure type.
+Canonical values and pending cells are maintained in
+`paper/results/MAIN_RESULTS.md`, aligned with the supplied outline:
+
+1. Overall performance: primary Qwen2.5 track, with the cross-family Gemma
+   portability result in a separate block.
+2. Round-wise convergence and robustness under the current non-IID partition.
+3. Matched supervision/KD ablation and training-seed reliability.
+4. Communication payload and controlled accuracy/resource trade-offs.
+5. Conditional teacher/student-size, LoRA-rank, client-count, FedProx, and
+   broader-skew evidence; absent sweeps are not implied to be complete.
+6. Error analysis by execution validity, EX-EM disagreement, SQL difficulty,
+   and validated failure categories.
 
 ## 7. Discussion
 

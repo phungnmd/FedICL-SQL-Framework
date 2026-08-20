@@ -37,6 +37,7 @@ archive directory with a README explaining their replacement.
 | What is the method? | `paper/notes/system_architecture.md` |
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
+| Which metric appears in the paper? | `paper/results/MAIN_RESULTS.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
 | Which RQ still lacks evidence? | `paper/notes/EXPERIMENT_MATRIX.md` |
 | What happened historically? | `paper/archive/` and Git history |
@@ -130,8 +131,9 @@ During and after running:
 2. commit metrics, config, predictions, and manifests where defined;
 3. record the producing Git SHA;
 4. update `RESULT_REGISTRY.md` only after validation;
-5. update `LAB_LOG.md` with the result and its claim limit;
-6. move superseded eval runs out of the active scanner into a dated archive.
+5. update the affected canonical table in `paper/results/MAIN_RESULTS.md`;
+6. update `LAB_LOG.md` with the result and its claim limit;
+7. move superseded eval runs out of the active scanner into a dated archive.
 
 ### 6.2 Paper resource-measurement contract
 

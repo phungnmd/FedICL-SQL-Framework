@@ -222,4 +222,6 @@ $Gpu=1; $Busy=@(nvidia-smi -i $Gpu --query-compute-apps=pid --format=csv,noheade
 1. Preserve output roots and resume directories exactly as written.
 2. Commit generated configs, metrics, predictions, and manifests from the code
    repository; never commit adapter/cache directories under `artifacts/`.
-3. Update `RESULT_REGISTRY.md` and `LAB_LOG.md` only after validating results.
+3. After validation, update the stable IDs in `RESULT_REGISTRY.md`, the affected
+   canonical table in `paper/results/MAIN_RESULTS.md`, and the decision in
+   `LAB_LOG.md`.

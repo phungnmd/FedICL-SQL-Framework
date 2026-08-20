@@ -31,6 +31,9 @@ an uncertainty exposed by an earlier result.
    receive new output and evaluation-resume directories.
 7. After each decision gate, update this file, `EXPERIMENT_MATRIX.md`, and the
    active portion of `PIPELINE_NEXT.md` before launching more work.
+8. After validating a result, update its stable ID in `RESULT_REGISTRY.md` and
+   its single paper-facing value in `paper/results/MAIN_RESULTS.md`; do not
+   create a competing summary table in the plan or lab log.
 
 ## 3. Current assessment
 
@@ -399,6 +402,8 @@ decisions.
   2. matched supervision/KD ablation table;
   3. convergence/heterogeneity figure;
   4. accuracy-resource-communication table.
+- Freeze all table values through `paper/results/MAIN_RESULTS.md`; manuscript
+  drafts should consume that file rather than maintain independent numbers.
 - Record limitations: no formal privacy, public-pool dependence,
   vocabulary-compatible KD, one teacher/student family, and offline teacher
   cost.

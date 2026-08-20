@@ -18,7 +18,8 @@ The current research question is:
 - Canonical architecture and terminology: `paper/notes/system_architecture.md`
 - Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
 - RQ-to-evidence map: `paper/notes/EXPERIMENT_MATRIX.md`
-- Canonical checkpoint/result map: `paper/notes/RESULT_REGISTRY.md`
+- Canonical paper result tables: `paper/results/MAIN_RESULTS.md`
+- Checkpoint/evaluation artifact map: `paper/notes/RESULT_REGISTRY.md`
 - Complete research history: `paper/notes/LAB_LOG.md`
 - Superseded FedICL/ICL material: `paper/archive/pre_fedls_2026-08/`
 - Code: `fedicl-sql/`

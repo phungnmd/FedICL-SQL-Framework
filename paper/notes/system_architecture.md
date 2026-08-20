@@ -2,7 +2,8 @@
 
 > Canonical design record from 2026-08-19. It supersedes the FedICL-SQL and
 > Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
-> lives in `LAB_LOG.md`; superseded documents are retained under
+> lives in `LAB_LOG.md`; canonical paper tables live in
+> `paper/results/MAIN_RESULTS.md`; superseded documents are retained under
 > `paper/archive/pre_fedls_2026-08/`.
 
 ## 1. Research problem

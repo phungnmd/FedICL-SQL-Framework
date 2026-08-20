@@ -1,8 +1,9 @@
 # FedLS-SQL experiment matrix
 
 This file maps paper questions to the minimum evidence needed for a defensible
-claim. `PIPELINE_NEXT.md` contains executable commands; `RESULT_REGISTRY.md`
-contains canonical checkpoints and values.
+claim. `PIPELINE_NEXT.md` contains executable commands;
+`paper/results/MAIN_RESULTS.md` contains canonical paper values; and
+`RESULT_REGISTRY.md` maps stable IDs to checkpoints and evaluation artifacts.
 
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|

@@ -1,46 +1,70 @@
-# FedLS-SQL result registry
+# FedLS-SQL artifact registry
 
-This is the canonical presentation-name-to-checkpoint map. Internal artifact
-paths are immutable even when the paper terminology changes.
+This file maps stable paper result IDs to immutable checkpoints and evaluation
+artifacts. Paper-facing metric values live only in
+`../results/MAIN_RESULTS.md`; interpretation lives in `LAB_LOG.md`.
 
-| Paper label | Canonical checkpoint | Spider EX | Spider EM | Spider exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| `Centralized-standard-3ep` (official) | `artifacts/baselines/central_3ep_standard_s0/adapter` | 67.31 | 64.41 | 14.31% | — | — | — | — |
-| `Centralized-3pass-restart` (schedule sensitivity) | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 62.67 | 15.76% | 57.87 | 53.19 | 52.52 | 12.91 |
-| `FL` | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | 64.31 | 57.45 | 18.67% | 56.10 | 51.93 | 46.73 | 12.91 |
-| `FedLS-SQL` (`FL-KD`) | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | 69.54 | 38.59 | 9.77% | 59.65 | 55.51 | 52.71 | 21.58 |
+Presentation labels may change. Stable IDs and historical artifact paths must
+not be renamed.
 
-Notes:
+## 1. Primary Qwen2.5 checkpoints
 
-- All values use greedy decoding at `k=0`, seed 0.
-- The official standard and restart recipes are indistinguishable in paired
-  Spider EX (`0.29 pp`, `p=0.863`). Standard is selected for conventional
-  methodology; its OOD cells remain unevaluated rather than borrowing restart
-  results. Their evaluation is the active P0.6 block in `PIPELINE_NEXT.md`.
-- EM is comparable only within the same training stage because server KD changes
-  SQL surface convention.
-- The FL row comes from the independent `fedavg` setup
-  `229fe736042acd80df29a19e577963e4f69a5e6bb62d41ac5964fbeee9f629d2`.
-  The 66.05 adapter inside the FedKD lineage is not FL-only.
-- BIRD dev is a cross-corpus transfer evaluation, not a headline benchmark.
-- Old names such as `fedkd`, `noicl`, or `fedicl` inside paths are provenance
-  identifiers and must not be rewritten.
+| Stable ID | Paper role | Canonical checkpoint | Lineage status |
+|---|---|---|---|
+| `qwen.central.standard3.s0` | official centralized SLM | `artifacts/baselines/central_3ep_standard_s0/adapter` | one continuous three-epoch schedule |
+| `qwen.central.restart3.s0` | schedule sensitivity only | `artifacts/probe_p/central_3ep/adapter` | three independently scheduled passes |
+| `qwen.fl.t3.s0` | final independent pure FL | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | setup `229fe736042acd80df29a19e577963e4f69a5e6bb62d41ac5964fbeee9f629d2` |
+| `qwen.fedls.t3.s0` | final full FedLS-SQL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | teacher-target CE + reverse KL |
 
-## Matched T1 supervision ladder
+The `round_2/round_3/fedavg_adapter` objects inside the FedLS lineage inherit
+earlier KD and are not independent pure-FL checkpoints.
 
-All four seed-0 arms start from the same T1 FedAvg adapter and are evaluated on
-the same 1,034 Spider rows.
+## 2. Matched Qwen2.5 T1 checkpoints
 
-| Paper label | Canonical checkpoint | EX | EM | Exec. error |
-|---|---|---:|---:|---:|
-| `FL-T1-shared` | `artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | 57.35 | 50.58 | 22.82% |
-| `FL + matched public-gold CE` | `artifacts/federated/fedavg_pub_gold_noicl_k5_e1_t1_s0/round_1/m_g` | 57.83 | 23.89 | 18.86% |
-| `FL + teacher-target CE` | `artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g` | 61.32 | 30.27 | 15.57% |
-| `FedLS-SQL-T1` | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_1/m_g` | **63.35** | 31.53 | **12.86%** |
+All four rows start from the same seed-0 T1 client training and factor-wise
+FedAvg adapter. Only the server treatment differs.
 
-Canonical committed evaluation:
+| Stable ID | Paper role | Canonical checkpoint | Server treatment |
+|---|---|---|---|
+| `qwen.fl.shared.t1.s0` | shared FL starting point | `artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | none |
+| `qwen.goldce.t1.s0` | matched public-supervision control | `artifacts/federated/fedavg_pub_gold_noicl_k5_e1_t1_s0/round_1/m_g` | BIRD-gold CE on the exact retained rows |
+| `qwen.seqkd.t1.s0` | hard-target transfer ablation | `artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g` | teacher-target CE |
+| `qwen.fedls.t1.s0` | full T1 endpoint | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_1/m_g` | teacher-target CE + reverse KL |
+
+Canonical matched evaluation:
 `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`
-(`git_sha=b3fd32f`, committed by `7c1414b`). The decisive paired EX contrasts
-are teacher target over public gold `+3.48 pp` (`p=0.0026`) and full FedLS-SQL
-over public gold `+5.51 pp` (`p<1e-6`). Question-level tests at one training
-seed are not across-seed method significance.
+(`git_sha=b3fd32f`, result commit `7c1414b`).
+
+## 3. Cross-family reserved IDs
+
+These IDs reserve presentation semantics; they do not assert that an artifact
+already exists.
+
+| Stable ID | Student family | Paper role | Expected output root | Status |
+|---|---|---|---|---|
+| `gemma.fl.t1.s0` | Gemma 2 | cross-family pure FL | assign when P0.8 command is frozen | `PENDING:P0.8` |
+| `gemma.seqkd.t1.s0` | Gemma 2 | cross-family teacher-target CE | assign when P0.8 command is frozen | `PENDING:P0.8` |
+
+`gemma.seqkd.t1.s0` must not be labeled full FedLS-SQL CE+RKL. Qwen teacher
+logits are not reusable across the Gemma tokenizer.
+
+## 4. Canonical evaluation artifacts
+
+| Evaluation ID | Scope | Committed result directory | Status |
+|---|---|---|---|
+| `eval.qwen.t1.matched.s0.spider` | four-arm matched T1 ladder | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954` | canonical |
+| `eval.qwen.central.recipe.s0.spider` | standard continuous vs restart schedule | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T132026` | canonical |
+| `eval.qwen.central.standard.s0.ood` | official centralized Realistic/Syn/DK/BIRD cells | assigned after result commit | `PENDING:P0.6` |
+
+## 5. Registry rules
+
+- `MAIN_RESULTS.md` owns published values; do not add a second metric table
+  here.
+- Every new model family receives a separate stable-ID namespace.
+- Include student family/model, teacher family/model, transfer objective,
+  round, training seed, checkpoint, evaluation directory, and Git SHA before a
+  row becomes canonical.
+- `PENDING` rows may reserve IDs but may not contain guessed metrics or paths.
+- BIRD dev is cross-corpus transfer, not a headline in-domain benchmark.
+- Old path tokens such as `fedkd`, `noicl`, and `fedicl` are provenance and must
+  remain unchanged.
