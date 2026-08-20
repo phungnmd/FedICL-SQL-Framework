@@ -198,9 +198,18 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. consolidate communication and resource metrics;
-2. audit the large server-stage EX-EM divergence and execution-error types;
-3. replicate only the decisive causal/final contrasts across additional seeds.
+1. evaluate the official standard centralized recipe on the four transfer/OOD
+   datasets; historical restart values cannot fill those cells;
+2. finish resource benchmarking with fixed warm-up and exclusive hardware;
+3. audit the large server-stage EX-EM divergence and execution-error types;
+4. replicate only the decisive causal/final contrasts across additional seeds.
+
+Communication payload accounting is already available from committed round
+metrics. With five clients, each round transmits `369,555,560` upload bytes and
+`369,555,400` broadcast bytes, or `739,110,960` bytes total; three rounds total
+`2,217,332,880` bytes (`2.065 GiB`). Pure FL and FedLS-SQL transmit the same
+client-side adapter payload because the teacher stage is confined to the
+server. This count excludes transport framing and other protocol metadata.
 
 Outline items not yet supported by current evidence include FedProx, a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual

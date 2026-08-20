@@ -21,7 +21,8 @@ canonical checkpoint labels belong in `RESULT_REGISTRY.md`.
 - Canonical inference: greedy, zero-shot, `k=0`.
 - Best current FedLS-SQL endpoint: **69.54 Spider EX at T=3, seed 0**.
 - Independent pure-FL T1-T3 and the final
-  `Centralized <> FL <> FedLS-SQL` comparison are complete at seed 0.
+  `Centralized <> FL <> FedLS-SQL` comparison are complete on Spider at seed 0;
+  the official centralized recipe still needs its four transfer/OOD cells.
 - The matched T1 public-supervision gate is complete: teacher-target CE and
   full FedLS-SQL beat an equal-row BIRD-gold CE control, so extra public
   supervision alone does not explain the gain.
@@ -219,7 +220,17 @@ This is not compute matching. At three passes, FedLS-SQL uses 25,977 client
 steps plus 11,619 public server steps, versus 25,977 centralized steps. Report
 the additional server compute rather than claiming equal cost.
 
-### 3.7 BIRD cross-corpus transfer
+### 3.7 Communication accounting
+
+Committed round metrics report a serialized global-adapter payload of
+`73,911,080` bytes. Across five clients, one round contains `369,555,560` bytes
+of uploads and `369,555,400` bytes of broadcasts, totaling `739,110,960` bytes
+(`704.87 MiB`). Three rounds total `2,217,332,880` bytes (`2.065 GiB`). Pure FL
+and FedLS-SQL have the same client-network payload because KD is server-local.
+The count excludes transport framing and protocol metadata; trainable-parameter
+count remains to be exported alongside these byte values.
+
+### 3.8 BIRD cross-corpus transfer
 
 | Arm | EX | Execution-error rate |
 |---|---:|---:|
@@ -243,7 +254,7 @@ BIRD is a cross-corpus diagnostic, not a headline benchmark. Its evaluation
 databases are disjoint from the public pool, but the corpus favors the BIRD-KD
 branch and the current prompt omits BIRD evidence hints.
 
-### 3.8 ICL negative ablation
+### 3.9 ICL negative ablation
 
 | Effect | Result |
 |---|---:|
@@ -301,11 +312,15 @@ positives.
 
 ## 5. Active queue
 
-1. **P0:** consolidate trainable parameters, adapter bytes, total communication,
-   controlled wall time, peak VRAM/RSS, and inference latency; audit T1
-   execution errors and EX-EM disagreement.
-2. **P1:** run only targeted seed-1/2 public-gold controls needed for the causal
-   table, then consider FedProx or broader-skew experiments at later gates.
+1. **P0:** evaluate `Centralized-standard-3ep` on Realistic, Syn, DK, and BIRD,
+   then fill the canonical final-model table without borrowing restart values.
+2. **P1:** export the trainable-parameter count, add fixed in-process warm-up,
+   and collect controlled wall time, peak VRAM/RSS, and inference latency on an
+   exclusive GPU; communication payload bytes are already consolidated.
+3. **P1:** audit T1 execution errors and EX-EM disagreement, then run only
+   targeted seed-1/2 public-gold controls if the causal table still needs them.
+
+FedProx and broader-skew experiments remain behind these gates.
 
 No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 
@@ -349,6 +364,7 @@ internal artifact identities.
 | 2026-08-20 | Independent pure-FL T1-T3 completed; final three-way table closed at seed 0. |
 | 2026-08-20 | Matched public-gold gate passed: teacher targets, not merely extra public CE, explain the main T1 server gain; standalone RKL evidence remains provisional. |
 | 2026-08-20 | Standard continuous and restart centralized recipes are EX-equivalent; standard 67.31 selected as official methodology, restart retained as sensitivity. |
+| 2026-08-20 | Existing round metrics close adapter-payload communication accounting at 739.111 MB/round and 2.217 GB over T1-T3; standard centralized transfer/OOD evaluation becomes the next run. |
 
 ## 8. Archived branches
 

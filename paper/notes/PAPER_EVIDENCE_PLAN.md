@@ -177,16 +177,20 @@ T2 and the mechanism audit establish the remaining paper needs.
 
 ### T2 — efficiency and resource evidence
 
-**Status:** next block to activate. T1 and the centralized-recipe gate support a
-paperable method; most subtasks do not require accuracy retraining.
+**Status:** partially active. Communication payload is consolidated from
+committed metrics. First fill the official centralized transfer/OOD cells, then
+collect controlled resource measurements; no accuracy retraining is required.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
 
 **Todo — extract existing evidence:**
 
-- Adapter bytes and estimated trainable parameter count.
-- Client upload, server broadcast, per-round total, and cumulative T3 traffic.
+- Adapter bytes are closed; export the exact trainable parameter count beside
+  them.
+- Client upload, server broadcast, per-round total, and cumulative T3 traffic
+  are closed: `369,555,560` upload + `369,555,400` broadcast = `739,110,960`
+  bytes per round and `2,217,332,880` bytes through T3.
 - Treat old client/server time as operational logs unless the run was fresh and
   hardware-exclusive. Accuracy and communication fields remain usable.
 - Extract client/server training steps and communication from existing records;
@@ -387,14 +391,18 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | baseline/resource audit | centralized configs, trainer/eval timing paths, VRAM and communication logging | keep P0.1 running for accuracy; add standard continuous 3-epoch centralized baseline; old shared-server timing is operational only; instrument future official measurements | finish T1, then centralized recipe check |
 | 2026-08-20 | T1 matched-supervision gate | 1,034 paired Spider predictions for FL, public-gold CE, teacher-target CE, and full FedLS-SQL | teacher targets beat matched public gold by 3.48 EX; full method beats it by 5.51 EX; retain large-to-small claim, keep standalone RKL claim provisional | P0.3-P0.4 centralized recipe check |
 | 2026-08-20 | P0.5 centralized-recipe gate | standard continuous 3 epochs versus three-pass restart on 1,034 paired Spider rows | recipes are indistinguishable in EX; select standard 67.31 as official baseline, retain restart 67.60 as schedule sensitivity | T2 resources and T1 mechanism audit |
+| 2026-08-20 | post-P0.5 evidence audit | canonical registry, committed communication metrics, and resource instrumentation | fill standard centralized OOD/BIRD cells first; communication payload needs no rerun; add fixed in-process warm-up before official latency | P0.6 centralized transfer suite |
 
 ## 6. Current next actions
 
-1. Author and activate the T2 communication/resource consolidation commands
-   and the no-GPU T1 execution-error/EX-EM audit.
-2. Decide whether seed-1/2 public-gold controls are necessary for the final
+1. Run P0.6 from `PIPELINE_NEXT.md`: evaluate the official centralized standard
+   adapter on Realistic, Syn, DK, and BIRD, then stop and review.
+2. Export the exact LoRA trainable-parameter count and add fixed in-process
+   warm-up before the controlled 1.5B/7B resource benchmark.
+3. Run the no-GPU T1 execution-error/EX-EM audit.
+4. Decide whether seed-1/2 public-gold controls are necessary for the final
    causal table; do not repeat all datasets or rounds automatically.
-3. Do not interpret shared-server time/RAM as official evidence;
+5. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be

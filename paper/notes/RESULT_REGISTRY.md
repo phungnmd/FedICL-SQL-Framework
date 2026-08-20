@@ -16,7 +16,7 @@ Notes:
 - The official standard and restart recipes are indistinguishable in paired
   Spider EX (`0.29 pp`, `p=0.863`). Standard is selected for conventional
   methodology; its OOD cells remain unevaluated rather than borrowing restart
-  results.
+  results. Their evaluation is the active P0.6 block in `PIPELINE_NEXT.md`.
 - EM is comparable only within the same training stage because server KD changes
   SQL surface convention.
 - The FL row comes from the independent `fedavg` setup

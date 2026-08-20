@@ -18,8 +18,9 @@ part of the default evidence package.
 
 The matched public-supervision and centralized-recipe gates are complete.
 `Centralized-standard-3ep` is the official baseline; the historical restart
-recipe remains schedule-sensitivity evidence. No new GPU task is active until
-the T2 resource/communication block receives explicit commands.
+recipe remains schedule-sensitivity evidence. The next run is evaluation-only:
+fill the official centralized baseline's four missing transfer/OOD cells before
+starting controlled resource benchmarks.
 
 | Order | Action | Status |
 |---|---|---|
@@ -29,12 +30,14 @@ the T2 resource/communication block receives explicit commands.
 | P0.3 | Train standard continuous centralized 3-epoch baseline | complete; 67.31 EX |
 | P0.4 | Evaluate both centralized recipes on Spider | complete; no meaningful difference |
 | P0.5 | Select the official centralized ceiling | complete; standard continuous selected |
+| P0.6 | Evaluate the official centralized baseline on Realistic, Syn, DK, and BIRD | **run next; stop after completion** |
+| P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
+| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.6 review |
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
 it completed before the snapshot feature existed. Do not start FedProx,
-heterogeneity, sensitivity, or broad seed replication until the next block is
-activated in `PAPER_EVIDENCE_PLAN.md`.
+heterogeneity, sensitivity, or broad seed replication until P0.6 is reviewed.
 
 ## Fixed T1 comparison
 
@@ -132,9 +135,36 @@ and `15.76%` errors. Their paired EX difference is `0.29 pp` (`p=0.863`), so
 the conventional standard recipe is selected rather than choosing three noisy
 EX wins. Never relabel `central_3pass_restart` as standard three-epoch training.
 
-The next commands to author are T2 resource/communication evidence and the
-initial T1 mechanism audit. Replicate the matched public-gold control at seeds
-1/2 only as a targeted reliability task; do not rerun the full grid.
+## P0.6 — fill the official centralized transfer/OOD cells
+
+This is the immediate next run. It evaluates the selected standard continuous
+adapter on the four datasets whose registry cells are still blank. It does not
+train or modify a checkpoint. The server may be shared because only accuracy is
+being collected; do not use timing from this invocation as paper resource
+evidence. Each dataset has a separate resume root, and an exact completed rerun
+is a no-op.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $A='artifacts/baselines/central_3ep_standard_s0/adapter'; if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing official centralized adapter: $A" }; foreach ($D in @(@{Test='processed_data/SPIDER_REALISTIC/test.csv';Tag='realistic'},@{Test='processed_data/SPIDER_SYN/test.csv';Tag='syn'},@{Test='processed_data/SPIDER_DK/test.csv';Tag='dk'},@{Test='processed_data/BIRD/centralized/test.csv';Tag='bird'})) { $E="artifacts/eval_resume/central_3ep_standard_$($D.Tag)_s0/eval_k0"; Write-Host "=== Centralized-standard-3ep: $($D.Test)"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv $D.Test --arms "central_3ep_standard=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Centralized transfer evaluation failed: $($D.Test)" }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" } }; Write-Host 'P0.6 complete: stop, commit results, and review the final-model table before any new GPU block'
+```
+
+## P1.0 — communication accounting from existing records
+
+No rerun is required. The committed T1-T3 FedLS-SQL metrics and pure-FL T3
+metrics agree on the adapter payload: one global adapter is `73,911,080` bytes;
+five client uploads total `369,555,560` bytes and five broadcasts total
+`369,555,400` bytes per round. Thus the measured payload is `739,110,960`
+bytes per round and `2,217,332,880` bytes over three rounds (`2.065 GiB`). FL
+and FedLS-SQL have identical client-network payload under this protocol because
+teacher transfer is server-local. These are serialized adapter-weight bytes;
+transport framing and protocol metadata are excluded.
+
+After P0.6, add a warm-up-capable benchmark path before collecting official
+latency. Do not treat an ordinary `eval_arms` run as the final benchmark: its
+timer excludes model loading but currently includes the first measured decode
+without a fixed in-process warm-up. The initial mechanism/error audit and any
+seed-1/2 matched public-gold controls remain targeted follow-ups, not the next
+GPU run.
 
 ## Resource-measurement eligibility
 
