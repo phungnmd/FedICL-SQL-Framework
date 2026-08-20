@@ -53,16 +53,14 @@ an uncertainty exposed by an earlier result.
 
 1. **Efficiency claim:** communication is recorded, but the client/server
    resource story and fair 1.5B-versus-7B comparison are incomplete.
-2. **Centralized ceiling:** the standard continuous three-epoch recipe is not
-   yet evaluated beside the historical three-pass-restart artifact.
-3. **Mechanism/metric risk:** server refinement sharply reduces EM while EX and
+2. **Mechanism/metric risk:** server refinement sharply reduces EM while EX and
    execution validity improve; equivalent-SQL and false-positive EX cases need
    an explicit audit.
-4. **Component reliability:** teacher-target CE is causally supported at seed
+3. **Component reliability:** teacher-target CE is causally supported at seed
    0, but the standalone reverse-KL increment is not established across seeds.
-5. **Baseline strength:** FedProx-LoRA is absent.
-6. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
-7. **Reliability:** T2/T3 has one training seed; replication remains targeted,
+4. **Baseline strength:** FedProx-LoRA is absent.
+5. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
+6. **Reliability:** T2/T3 has one training seed; replication remains targeted,
    not a default full-grid rerun.
 
 ## 4. Adaptive task queue
@@ -151,13 +149,10 @@ losses (`p=0.800`); teacher targets over public gold are `+3.48 pp`, 86/50
   existing three-seed reverse-KL contrast is `+1.71 ± 1.38 pp`, `p=0.165`.
 - Replicate only the missing public-gold control at seeds 1/2 if the final
   headline causal statement requires training-seed uncertainty.
-- Correct the centralized ceiling before freezing the main table:
-  - retain the existing three chained one-epoch artifact as
-    `Centralized-3pass-restart`;
-  - run `Centralized-3ep-standard` once with one optimizer and one cosine
-    schedule across `epochs=3`;
-  - evaluate both on identical Spider rows and use the stronger result while
-    reporting its exact schedule.
+- The centralized correction is complete: standard continuous is `67.31 EX`
+  and three-pass restart is `67.60 EX`; the `0.29 pp` paired difference is null
+  (`p=0.863`). Use standard as the official conventional baseline and retain
+  restart only as schedule sensitivity.
 - Do not revive historical “Centralized + CE” artifacts as official evidence:
   they use mismatched public-pool sizes or mixed CE/RKL/re-finetuning stages.
   Add a new matched centralized teacher-guidance lineage only if the final
@@ -177,14 +172,13 @@ to teacher-generated hard targets; describe reverse KL as an additional
 positive component pending stronger across-seed evidence. Do not claim that it
 transfers latent reasoning without a dedicated analysis.
 
-Do not activate FedProx, heterogeneity sweeps, or broad T2/T3 replication until
-the centralized-recipe check is reviewed.
+Do not activate FedProx, heterogeneity sweeps, or broad T2/T3 replication before
+T2 and the mechanism audit establish the remaining paper needs.
 
 ### T2 — efficiency and resource evidence
 
-**Status:** eligible because T1 supports a paperable method; queued immediately
-after the centralized-recipe check. Most subtasks do not require accuracy
-retraining.
+**Status:** next block to activate. T1 and the centralized-recipe gate support a
+paperable method; most subtasks do not require accuracy retraining.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
@@ -392,17 +386,15 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | T1 reconstruction preflight | BIRD source CSV, frozen teacher pool, selection checkpoint, duplicate-key audit | exact 3,873-row gold control is reconstructable by source index; activate only the missing gold-CE branch | T1 P0.1 |
 | 2026-08-20 | baseline/resource audit | centralized configs, trainer/eval timing paths, VRAM and communication logging | keep P0.1 running for accuracy; add standard continuous 3-epoch centralized baseline; old shared-server timing is operational only; instrument future official measurements | finish T1, then centralized recipe check |
 | 2026-08-20 | T1 matched-supervision gate | 1,034 paired Spider predictions for FL, public-gold CE, teacher-target CE, and full FedLS-SQL | teacher targets beat matched public gold by 3.48 EX; full method beats it by 5.51 EX; retain large-to-small claim, keep standalone RKL claim provisional | P0.3-P0.4 centralized recipe check |
+| 2026-08-20 | P0.5 centralized-recipe gate | standard continuous 3 epochs versus three-pass restart on 1,034 paired Spider rows | recipes are indistinguishable in EX; select standard 67.31 as official baseline, retain restart 67.60 as schedule sensitivity | T2 resources and T1 mechanism audit |
 
 ## 6. Current next actions
 
-1. Run P0.3-P0.4: one standard continuous centralized three-epoch training run,
-   then evaluate it beside the existing three-pass-restart adapter.
-2. Stop at P0.5 and select the stronger explicitly named centralized recipe.
-3. Activate T2 communication/resource consolidation and the no-GPU T1
-   execution-error/EX-EM audit.
-4. Decide whether seed-1/2 public-gold controls are necessary for the final
+1. Author and activate the T2 communication/resource consolidation commands
+   and the no-GPU T1 execution-error/EX-EM audit.
+2. Decide whether seed-1/2 public-gold controls are necessary for the final
    causal table; do not repeat all datasets or rounds automatically.
-5. Do not interpret P0.1/P0.2 shared-server time/RAM as official evidence;
+3. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be

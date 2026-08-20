@@ -5,13 +5,18 @@ paths are immutable even when the paper terminology changes.
 
 | Paper label | Canonical checkpoint | Spider EX | Spider EM | Spider exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| `Centralized-3pass-restart` (historical ceiling) | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 62.67 | 15.76% | 57.87 | 53.19 | 52.52 | 12.91 |
+| `Centralized-standard-3ep` (official) | `artifacts/baselines/central_3ep_standard_s0/adapter` | 67.31 | 64.41 | 14.31% | — | — | — | — |
+| `Centralized-3pass-restart` (schedule sensitivity) | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 62.67 | 15.76% | 57.87 | 53.19 | 52.52 | 12.91 |
 | `FL` | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | 64.31 | 57.45 | 18.67% | 56.10 | 51.93 | 46.73 | 12.91 |
 | `FedLS-SQL` (`FL-KD`) | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | 69.54 | 38.59 | 9.77% | 59.65 | 55.51 | 52.71 | 21.58 |
 
 Notes:
 
 - All values use greedy decoding at `k=0`, seed 0.
+- The official standard and restart recipes are indistinguishable in paired
+  Spider EX (`0.29 pp`, `p=0.863`). Standard is selected for conventional
+  methodology; its OOD cells remain unevaluated rather than borrowing restart
+  results.
 - EM is comparable only within the same training stage because server KD changes
   SQL surface convention.
 - The FL row comes from the independent `fedavg` setup

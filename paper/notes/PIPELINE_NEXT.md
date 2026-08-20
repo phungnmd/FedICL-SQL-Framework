@@ -4,6 +4,11 @@
 > block below is exactly one physical line, fail-fast, and safe to rerun. The
 > governing rules are in `CONVENTION.MD` §6.1.
 
+> **Multi-epoch command rule:** every future `client_train/run.py --epochs N`
+> command with `N > 1` must add `--save-epoch-checkpoints`. Epoch directories
+> are adapter-only; only `resume_latest/` keeps optimizer/scheduler state. See
+> `CONVENTION.MD` §6.1 before emitting or modifying a training command.
+
 ## Active task and stop rule
 
 T0 is closed with the **pragmatic RQ2**: demonstrate the client/deployment
@@ -11,24 +16,25 @@ resource and communication savings of retaining a 1.5B SLM rather than placing
 the 7B teacher on clients or in inference. Full federated 7B training is not
 part of the default evidence package.
 
-The matched public-supervision gate is complete and supports the FedLS-SQL
-large-to-small claim. The only active GPU task is now the centralized-recipe
-correction; stop again after P0.4 for the combined baseline review.
+The matched public-supervision and centralized-recipe gates are complete.
+`Centralized-standard-3ep` is the official baseline; the historical restart
+recipe remains schedule-sensitivity evidence. No new GPU task is active until
+the T2 resource/communication block receives explicit commands.
 
 | Order | Action | Status |
 |---|---|---|
 | P0.0 | Build and verify the exact 3,873-row BIRD-gold control | complete |
 | P0.1 | Train the missing public-gold CE server branch from the shared T1 adapter | complete |
 | P0.2 | Evaluate the four matched T1 arms on Spider | complete; Gate T1 passed |
-| P0.3 | Train standard continuous centralized 3-epoch baseline | pending |
-| P0.4 | Evaluate both centralized recipes on Spider | pending |
-| P0.5 | Review centralized ceiling and activate the next evidence block | gated |
+| P0.3 | Train standard continuous centralized 3-epoch baseline | complete; 67.31 EX |
+| P0.4 | Evaluate both centralized recipes on Spider | complete; no meaningful difference |
+| P0.5 | Select the official centralized ceiling | complete; standard continuous selected |
 
-P0.1/P0.2 accuracy is valid, but its opportunistic wall-time/RAM values are not
-paper resource evidence. Run P0.3 and P0.4 next, then stop. Do not start
-FedProx, heterogeneity, sensitivity, or broad seed replication until the
-centralized recipe is reviewed and the next block is activated in
-`PAPER_EVIDENCE_PLAN.md`.
+P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
+paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
+it completed before the snapshot feature existed. Do not start FedProx,
+heterogeneity, sensitivity, or broad seed replication until the next block is
+activated in `PAPER_EVIDENCE_PLAN.md`.
 
 ## Fixed T1 comparison
 
@@ -91,9 +97,11 @@ $env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1
 
 The existing `central_3ep` is three independently scheduled one-epoch passes.
 Keep it as `Centralized-3pass-restart`; it is process-matched to three FL
-rounds but is not a conventional three-epoch run. This command creates the
-missing standard baseline with one optimizer and one cosine schedule across
-all three epochs. A completed adapter is skipped; a partial `_ckpt` resumes.
+rounds but is not a conventional three-epoch run. The command below is retained
+as executed provenance: it created the standard baseline with one optimizer
+and one cosine schedule across all three epochs before epoch snapshots were
+implemented. Do not modify or rerun it merely to backfill snapshots. A
+completed adapter is skipped; a partial `_ckpt` resumes.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/baselines/central_3ep_standard_s0/adapter'; if (Test-Path -LiteralPath "$O/adapter_config.json") { Write-Host "P0.3 already complete: $O" } else { uv run python experiments/client_train/run.py --client processed_data/SPIDER/centralized/train.csv --out $O --kd-direction none --epochs 3 --batch-size 1 --grad-accum 16 --max-len 2560 --train-k 0 --schema-style full --demo-style never_schema --save-steps 200 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Standard centralized 3-epoch training failed; rerun this exact line to resume' } }; if (-not (Test-Path -LiteralPath "$O/adapter_config.json")) { throw "Incomplete standard centralized adapter: $O" }; Write-Host 'P0.3 complete: standard continuous centralized 3-epoch adapter ready'
@@ -101,9 +109,10 @@ $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/baselines/central_3ep_standard_s0/a
 
 ## P0.4 — compare centralized recipes
 
-This evaluates the conventional continuous recipe and the existing restart
-recipe on identical Spider rows. Keep both results; use the stronger one as the
-paper's centralized ceiling and name its schedule explicitly.
+This completed comparison evaluates the conventional continuous recipe and the
+existing restart recipe on identical Spider rows. The standard recipe is the
+paper baseline; the statistically indistinguishable restart result is retained
+as schedule sensitivity.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $S='artifacts/baselines/central_3ep_standard_s0/adapter'; $R='artifacts/probe_p/central_3ep/adapter'; $E='artifacts/eval_resume/central_3ep_recipe_check_s0/eval_k0'; foreach ($A in @($S,$R)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing centralized adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "central_3ep_standard=$S" "central_3pass_restart=$R" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Centralized recipe evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing centralized evaluation manifests: $E/manifests" }; Write-Host 'P0.4 complete: stop and review both centralized recipes'
@@ -117,14 +126,15 @@ increment, and reverse KL provides a smaller positive increment whose
 across-seed reliability remains unresolved. The server stage also reduces
 execution errors from `22.82%` for FL to `12.86%` for full FedLS-SQL.
 
-After P0.4, report or commit the centralized result directory. Report both
-centralized schedules and select the stronger result. Never relabel
-`central_3pass_restart` as standard three-epoch training.
+P0.5 is complete. Standard continuous reaches `67.31 EX`, `64.41 EM`, and
+`14.31%` execution errors; three-pass restart reaches `67.60 EX`, `62.67 EM`,
+and `15.76%` errors. Their paired EX difference is `0.29 pp` (`p=0.863`), so
+the conventional standard recipe is selected rather than choosing three noisy
+EX wins. Never relabel `central_3pass_restart` as standard three-epoch training.
 
-Once the centralized ceiling is fixed, activate T2 resource/communication
-evidence and the initial T1 mechanism audit. Replicate the matched public-gold
-control at seeds 1/2 only as a targeted reliability task; do not rerun the full
-experiment grid automatically.
+The next commands to author are T2 resource/communication evidence and the
+initial T1 mechanism audit. Replicate the matched public-gold control at seeds
+1/2 only as a targeted reliability task; do not rerun the full grid.
 
 ## Resource-measurement eligibility
 

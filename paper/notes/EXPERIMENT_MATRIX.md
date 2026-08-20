@@ -6,7 +6,7 @@ contains canonical checkpoints and values.
 
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|
-| P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | standard centralized recipe pending |
+| P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | complete on Spider seed 0; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
@@ -40,13 +40,10 @@ contains canonical checkpoints and values.
 
 ## Recommended execution order
 
-1. Run and evaluate the standard continuous centralized three-epoch recipe
-   beside the existing three-pass-restart ceiling.
-2. Stop and select the stronger explicitly named centralized recipe.
-3. Consolidate communication/resource evidence and run only
+1. Consolidate communication/resource evidence and run only
    the missing matched resource benchmarks.
-4. Audit the matched T1 predictions, especially execution errors and
+2. Audit the matched T1 predictions, especially execution errors and
    `EX=1, EM=0` cases; replicate public-gold seeds 1/2 only if needed for the
    headline causal claim.
-5. Activate FedProx or heterogeneity only when the
+3. Activate FedProx or heterogeneity only when the
    preceding gate identifies it as necessary.

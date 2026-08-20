@@ -131,14 +131,15 @@ The primary final-model comparison is:
 
 | Paper label | Training path | Canonical checkpoint |
 |---|---|---|
+| Centralized-standard-3ep (official) | one continuous three-epoch Spider run, no FL/KD | `artifacts/baselines/central_3ep_standard_s0/adapter` |
 | Centralized-3pass-restart (historical) | three independently scheduled Spider passes, no FL/KD | `artifacts/probe_p/central_3ep/adapter` |
 | FL | three pure FedAvg rounds, no teacher/public pool | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` |
 | FedLS-SQL (FL-KD) | three rounds of FedAvg followed by server KD | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` |
 
-A conventional continuous centralized three-epoch adapter is pending. The
-stronger of the two explicitly named schedules will become the final
-centralized ceiling; the historical restart artifact must not be relabeled as
-standard three-epoch training.
+The standard and restart recipes reach `67.31` and `67.60` Spider EX
+respectively and are statistically indistinguishable (`p=0.863`). The standard
+continuous recipe is the official baseline because it matches conventional
+three-epoch training; restart remains schedule-sensitivity evidence.
 
 The `round_2/round_3/fedavg_adapter` objects inside the `fedkd` lineage are not
 pure-FL controls: they inherit the previous round's post-KD global adapter.
@@ -197,10 +198,9 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. establish the standard continuous centralized ceiling;
-2. consolidate communication and resource metrics;
-3. audit the large server-stage EX-EM divergence and execution-error types;
-4. replicate only the decisive causal/final contrasts across additional seeds.
+1. consolidate communication and resource metrics;
+2. audit the large server-stage EX-EM divergence and execution-error types;
+3. replicate only the decisive causal/final contrasts across additional seeds.
 
 Outline items not yet supported by current evidence include FedProx, a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual

@@ -77,7 +77,7 @@ FL: they inherit earlier post-KD global adapters.
 
 | Model | Checkpoint | Spider EX | Realistic | Syn | DK | BIRD |
 |---|---|---:|---:|---:|---:|---:|
-| Centralized, 3 epochs | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 57.87 | 53.19 | 52.52 | 12.91 |
+| Centralized-standard-3ep | `artifacts/baselines/central_3ep_standard_s0/adapter` | 67.31 | — | — | — | — |
 | Pure FL, T=3 | `fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | 64.31 | 56.10 | 51.93 | 46.73 | 12.91 |
 | FedLS-SQL, T=3 | `fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | **69.54** | **59.65** | **55.51** | **52.71** | **21.58** |
 
@@ -86,10 +86,10 @@ and `+8.67` EX on Spider, Realistic, Syn, DK, and BIRD respectively. The paired
 exact McNemar results are significant on Spider (`p=0.0001`), Syn (`p=0.0094`),
 DK (`p=0.0002`), and BIRD (`p<1e-19`), but not Realistic (`p=0.095`).
 
-FedLS-SQL also has the highest EX in all five final-model comparisons. Its
-advantage over centralized training is not significant on the four Spider
-sets; BIRD is the exception, but remains a cross-corpus diagnostic favorable
-to the BIRD-trained public-server branch.
+On Spider, FedLS-SQL is `+2.22 EX` above the official centralized standard, but
+the paired difference is not significant (`p=0.0865`). Standard centralized
+OOD cells are not yet evaluated; historical restart OOD values must not be
+silently attached to the standard recipe.
 
 ### 3.2 Multi-round trajectory, seed 0
 
@@ -196,15 +196,24 @@ Safe reading:
 
 ### 3.6 Centralized training reference
 
-| Centralized private-data passes | Spider EX | OOD pooled EX |
+The official conventional recipe is one continuous three-epoch run. It reaches
+`67.31 EX`, `64.41 EM`, and `14.31%` execution errors. The historical
+three-pass-restart recipe reaches `67.60 EX`, `62.67 EM`, and `15.76%` errors.
+Their EX difference is only `0.29 pp` (66 standard wins versus 69 restart wins,
+`p=0.863`), so standard is selected rather than optimizing the label around
+three noisy examples.
+
+| Historical restart private-data passes | Spider EX | OOD pooled EX |
 |---|---:|---:|
 | 1 | 62.19 | 51.04 |
 | 2 | 67.02 | **54.31** |
 | 3 | **67.60** | 54.16 |
 
-The centralized curve saturates after the second pass. Matched by private-data
-passes, the FedLS-SQL endpoints differ from centralized by `+1.16`, `-0.87`,
-and `+1.93` at passes 1, 2, and 3; none is individually significant.
+The historical restart curve saturates after the second pass. As a diagnostic
+matched by private-data passes, the FedLS-SQL endpoints differ from that
+restart schedule by `+1.16`, `-0.87`, and `+1.93` at passes 1, 2, and 3; none
+is individually significant. These values do not replace the official
+continuous three-epoch baseline above.
 
 This is not compute matching. At three passes, FedLS-SQL uses 25,977 client
 steps plus 11,619 public server steps, versus 25,977 centralized steps. Report
@@ -218,7 +227,7 @@ the additional server compute rather than claiming equal cost.
 | T1 pure FL | 11.21 | 55.2% |
 | T3 pure FL | 12.91 | 49.3% |
 | T1 FedKD-lineage pre-server | 11.15 | 55.3% |
-| Centralized, 3 epochs | 12.91 | 42.6% |
+| Centralized-3pass-restart (historical) | 12.91 | 42.6% |
 | T3 FedKD-lineage pre-server | 17.67 | 37.9% |
 | T1 FedLS-SQL | 19.43 | 33.4% |
 | T3 FedLS-SQL | **21.58** | **29.9%** |
@@ -292,12 +301,10 @@ positives.
 
 ## 5. Active queue
 
-1. **P0:** run the standard continuous centralized three-epoch recipe and
-   compare it with the historical three-pass-restart reference.
-2. **P1:** consolidate trainable parameters, adapter bytes, total communication,
+1. **P0:** consolidate trainable parameters, adapter bytes, total communication,
    controlled wall time, peak VRAM/RSS, and inference latency; audit T1
    execution errors and EX-EM disagreement.
-3. **P2:** run only targeted seed-1/2 public-gold controls needed for the causal
+2. **P1:** run only targeted seed-1/2 public-gold controls needed for the causal
    table, then consider FedProx or broader-skew experiments at later gates.
 
 No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
@@ -307,6 +314,7 @@ No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 | Evidence | Canonical location |
 |---|---|
 | Centralized 3-pass adapter | `artifacts/probe_p/central_3ep/adapter` |
+| Centralized standard 3-epoch adapter | `artifacts/baselines/central_3ep_standard_s0/adapter` |
 | FedLS-SQL T1-T3 lineage | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0` |
 | Pure-FL T1-T3 lineage | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
@@ -340,6 +348,7 @@ internal artifact identities.
 | 2026-08-20 | Active documentation and lab log refactored around FedLS-SQL. |
 | 2026-08-20 | Independent pure-FL T1-T3 completed; final three-way table closed at seed 0. |
 | 2026-08-20 | Matched public-gold gate passed: teacher targets, not merely extra public CE, explain the main T1 server gain; standalone RKL evidence remains provisional. |
+| 2026-08-20 | Standard continuous and restart centralized recipes are EX-equivalent; standard 67.31 selected as official methodology, restart retained as sensitivity. |
 
 ## 8. Archived branches
 

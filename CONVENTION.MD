@@ -86,6 +86,27 @@ Every active experiment command must:
   another character that can be parsed as part of the variable name;
 - avoid deletion, wildcard cleanup, checkpoint copying, and silent overwrite.
 
+For every new centralized/client `experiments/client_train/run.py` command with
+`--epochs > 1`:
+
+- include `--save-epoch-checkpoints`;
+- verify adapter-only snapshots at `<out>/epochs/epoch_1` through
+  `<out>/epochs/epoch_N` and the single full-state checkpoint at
+  `<out>/resume_latest`;
+- treat `_ckpt` only as crash recovery for an unfinished invocation and resume
+  it by rerunning the exact command against the same output root;
+- extend a completed run only from `resume_latest`, into a new immutable output
+  root, with `--epochs` set to the new total and
+  `--allow-epoch-extension` supplied explicitly;
+- never copy trainer state into every old epoch directory, and never imply that
+  a cosine-horizon extension is identical to declaring the longer horizon at
+  step zero.
+
+Epoch adapters from one `N`-epoch run are valid checkpoints of that continuous
+trajectory and should be reused for convergence evaluation. They are not
+separate runs whose cosine schedules were independently planned for 1, 2, ...,
+`N` epochs.
+
 Federated `setup.json`, `manifest.json`, stage fingerprints, and
 `adapter_config.json` are the completion/lineage contract. A partial `_ckpt`
 directory is resumable by rerunning the exact command. A setup, lineage, cache,
