@@ -13,14 +13,14 @@ in `../notes/PAPER_EVIDENCE_PLAN.md` take precedence.
 
 ## 1. Model and method scope
 
-Keep different student families and transfer objectives in separate result
-blocks. A cross-tokenizer sequence-KD result is not the full reverse-KL method.
+Keep model families in separate result blocks. Full-vocabulary reverse KL is
+valid only inside a pair whose complete token-to-ID mappings have been checked
+for equality.
 
 | Track | Student family/model | Teacher family/model | Server transfer | Paper label | Status |
 |---|---|---|---|---|---|
 | Primary | Qwen2.5 / `Qwen/Qwen2.5-1.5B-Instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE + token-level reverse KL | FedLS-SQL | canonical |
-| Cross-family portability | Gemma 2 / `google/gemma-2-2b-it` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE only | FedLS-SeqKD | `PENDING:P0.7` |
-| Cross-family fallback | Phi-3.5 / `microsoft/Phi-3.5-mini-instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE only | FedLS-SeqKD | use only if Gemma smoke fails |
+| Second family | Gemma 2 / `google/gemma-2-2b-it` | Gemma 2 / `google/gemma-2-9b-it` | regenerated teacher-target CE + token-level reverse KL | FedLS-SQL | `PENDING:P0.7` |
 
 ## 2. Overall NL-to-SQL performance
 
@@ -49,16 +49,18 @@ FedLS-SQL is `+3.74` EX on Realistic (`p=0.081`), `+1.45` on Syn (`p=0.337`),
 evidence supports competitiveness with centralized training, not uniform OOD
 superiority. BIRD remains a public-domain-adjacent cross-corpus diagnostic.
 
-### 2.2 Cross-family portability track
+### 2.2 Second-family portability track
 
-This table answers model-family portability without implying that Qwen logits
-can be consumed by a different tokenizer.
+This table replicates the matched mechanism ladder within Gemma. Its teacher
+targets and logits are regenerated with Gemma 2 9B; no Qwen target/cache may be
+reused.
 
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
 |---|---|---|---|---:|---:|---:|---:|---|
 | `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | active matched gate |
 | `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | same public rows |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | no reverse KL |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | matched sequence-KD ablation |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | requires exact tokenizer compatibility |
 
 Do not merge this block with §2.1. Extend it to T3 or OOD only if the T1 gate
 is positive and material.
@@ -78,7 +80,7 @@ controlled protocol.
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
-| Gemma 2 2B | FedLS-SeqKD, T1 | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING` | portability table, not main endpoint |
+| Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING` | second-family table, not main endpoint |
 
 Few-shot LLM prompting and ICL are not silently promoted from legacy runs.
 They may appear as a closed negative/diagnostic ablation only if the manuscript
@@ -169,8 +171,8 @@ provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
 | Remove LLM guidance | complete: pure FL vs FedLS-SQL | main ablation |
 | Remove knowledge distillation | complete via matched ladder | main ablation |
 | Structural distillation | not implemented | remove from claims/tables |
-| Teacher sizes 7B/8B/14B | only 7B canonical | optional, not promised |
-| Student sizes 0.5B/1.1B/1.5B/3B | only 1.5B canonical | cross-family T1 is higher priority than a size sweep |
+| Teacher sizes 7B/8B/14B | Qwen 7B canonical; Gemma 9B family replication pending | model-size sweep remains optional |
+| Student sizes 0.5B/1.1B/1.5B/3B | Qwen 1.5B canonical; Gemma 2B family replication pending | family replication, not a controlled size sweep |
 | LoRA ranks 4/8/16/32 | only r=16 canonical | optional |
 | Clients 5/10/20 | only K=5 canonical | optional |
 | FedProx | not implemented/run | conditional baseline |

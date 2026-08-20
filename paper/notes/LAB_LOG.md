@@ -25,8 +25,9 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P0.7a, a Gemma 2 2B compatibility smoke, is active. If it passes, P0.7b
-  compares Gemma FL, matched public-gold CE, and teacher-target CE at T1.
+- P0.7a, a Gemma 2B client compatibility smoke, is active. P0.7b then checks
+  Gemma 9B→2B target generation, exact token-ID compatibility, and logit cache.
+  If both pass, the full matched Gemma T1 ladder includes CE+reverse KL.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -173,12 +174,13 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7a/T1F: Gemma 2 2B training/load/inference smoke.
-2. P0.7b/T1F: if smoke passes, one shared Gemma T1 FedAvg stage followed by
-   no treatment, matched public-gold CE, and teacher-target CE.
-3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-4. CPU-only EX-EM/error audit when it does not block the active GPU task.
-5. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
+1. P0.7a/T1F: Gemma 2B training/load/inference smoke.
+2. P0.7b/T1F: Gemma 9B→2B target/cache/tokenizer smoke on eight rows.
+3. P0.7c-d/T1F: full matched targets, then FL/gold-CE/target-CE/full online
+   CE+RKL T1 evaluation; build a full cache only after a positive gate.
+4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
+5. CPU-only EX-EM/error audit when it does not block the active GPU task.
+6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
    not the current discovery task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -228,7 +230,8 @@ internal artifact identities.
 | 2026-08-20 | Adapter-payload accounting closed at 739.111 MB/round and 2.217 GB through T3. |
 | 2026-08-20 | Paper tables moved to `paper/results/MAIN_RESULTS.md` and separated by model family/evidence role. |
 | 2026-08-20 | P0.6 filled all centralized-standard transfer cells; no uniform FedLS-over-centralized OOD claim is supported. |
-| 2026-08-20 | After P0.6, Gemma matched T1 portability moved ahead of seed replication to test whether teacher-target transfer survives a non-Qwen student family. |
+| 2026-08-20 | After P0.6, Gemma matched T1 portability moved ahead of seed replication. |
+| 2026-08-21 | The portability gate was strengthened from Qwen-teacher→Gemma-student sequence KD to a complete Gemma 2 9B→2B same-family replication with regenerated targets/logits and exact token-ID validation. |
 
 ## 8. Archived branches
 

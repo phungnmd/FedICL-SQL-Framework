@@ -178,7 +178,7 @@ positive component pending stronger across-seed evidence. Do not claim that it
 transfers latent reasoning without a dedicated analysis.
 
 Do not activate FedProx, heterogeneity sweeps, or broad replication before the
-cross-family gate is reviewed. Final-endpoint replication remains required
+second-family gate is reviewed. Final-endpoint replication remains required
 before submission, but it is deferred under the current evidence-discovery
 priority.
 
@@ -203,48 +203,51 @@ training randomness, rather than a seed-0 outcome?
 **Gate T1R:**
 
 - **Direction and magnitude remain stable:** retain the headline accuracy
-  claim and proceed to cross-family portability.
+  claim and proceed to second-family portability.
 - **Direction is stable but noisy:** report the uncertainty and consider only
   one additional seed; do not expand the whole grid.
 - **One or both new seeds reverse the gain:** weaken the headline claim and
   investigate training instability before spending compute on portability or
   heterogeneity.
 
-### T1F — cross-family portability screen
+### T1F — second-family full-method screen
 
 **Status:** active as P0.7; run the smoke first, then one round and one seed
 before any expansion.
 
-**Question:** does the strongest family-agnostic mechanism—teacher-generated
-sequence supervision—help a non-Qwen student?
+**Question:** does the complete teacher-guided server stage transfer from the
+Qwen family to a second, internally tokenizer-compatible Gemma teacher/student
+pair?
 
 **Minimum screen:**
 
-- Preferred student: `google/gemma-2-2b-it`, subject to license access and a
-  LoRA/chat-template smoke test; `microsoft/Phi-3.5-mini-instruct` is the
-  fallback if Gemma cannot run cleanly.
-- Keep the current frozen Qwen2.5-Coder-7B teacher targets, public-pool row
-  identities, Spider split, prompts, LoRA policy, seed 0, and T1 evaluation.
+- Use `google/gemma-2-9b-it` as teacher and `google/gemma-2-2b-it` as student,
+  subject to license access, student LoRA/inference smoke, and an exact
+  token-to-ID compatibility check.
+- Keep the same 3,873 public-pool row identities, Spider split, prompts, LoRA
+  policy, seed 0, and T1 evaluation, but regenerate both teacher SQL targets
+  and full-vocabulary teacher logits with Gemma 2 9B. Score logits online for
+  T1; cache the full pool only if later rounds will reuse them.
 - From one shared Gemma T1 FedAvg adapter, compare no server treatment, CE on
-  the exact matched BIRD-gold rows, and CE on the existing teacher-generated
-  SQL (`fedavg_pub`). Do not reuse the Qwen teacher-logit cache with a different
-  tokenizer.
-- Label the transferred endpoint `FedLS-SeqKD`, not full FedLS-SQL CE+RKL.
+  the exact matched BIRD-gold rows, CE on Gemma-teacher SQL, and CE plus reverse
+  KL from the Gemma teacher. Never reuse Qwen targets or Qwen logits.
+- Label the final compatible-family endpoint full FedLS-SQL; retain the
+  teacher-target-only branch as the sequence-KD ablation.
 - Do not add model-size sweeps or a second alternative family at this gate.
 
 **Gate T1F:**
 
-- **Teacher target materially beats both FL and matched public gold:** the
-  teacher-target mechanism has portability evidence; consider extending only
-  this matched family track to T3/Spider, then decide whether OOD is needed.
+- **Full Gemma FedLS materially beats FL and matched public gold, with a useful
+  teacher-target increment:** the complete framework has second-family
+  evidence; consider extending only this track to T3/Spider.
 - **Small or uncertain gain:** add at most one training seed before deciding.
 - **No gain or regression:** stop the branch and scope the paper to the tested
-  vocabulary-compatible Qwen setting; do not tune until positive.
+  Qwen setting; do not tune Gemma until positive.
 
-Cross-family sequence KD does not by itself establish portability of the
-reverse-KL component. If the manuscript presents family-agnostic FedLS-SQL as
-the core framework, define teacher-target sequence KD as the portable core and
-present token-level RKL as an optional compatible-vocabulary enhancement.
+The claim remains family-level replication, not arbitrary cross-tokenizer
+distillation. Full-vocabulary reverse KL is allowed only after exact token-ID
+compatibility passes; a failure stops the full Gemma branch rather than silently
+slicing unrelated vocabularies.
 
 ### T2 — efficiency and resource evidence
 
@@ -471,22 +474,26 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | Q3 evidence-priority review | headline seed coverage, Qwen-only scope, resource claim, and compute cost | after P0.6, prioritize final T3 seed-1/2 reliability, then one-round Gemma sequence-KD portability; resource benchmark follows those scientific-validity gates | P0.6, then T1R |
 | 2026-08-20 | P0.6 centralized transfer gate | official standard adapter on Realistic, Syn, DK, and BIRD with paired final-model audit | fill final table; retain competitiveness claim but reject uniform FedLS-over-centralized OOD superiority | T1R/P0.7 |
 | 2026-08-20 | post-P0.6 priority revision | advisor outline ablations, Qwen-only limitation, existing seed-0 breadth, and user compute priority | defer final seed replication; activate a cheap Gemma smoke followed by a matched FL/public-gold/teacher-target T1 portability ladder | T1F/P0.7a |
+| 2026-08-21 | same-family replication revision | a mixed Qwen-teacher/Gemma-student run cannot test the full reverse-KL endpoint | use Gemma 2 9B→2B, regenerate targets and logits, and compare the full four-arm ladder after strict tokenizer validation | T1F/P0.7a-d |
 
 ## 6. Current next actions
 
-1. Run P0.7a: smoke-test Gemma 2 2B training, LoRA reload, chat-template
-   inference, and resumable evaluation; stop if architecture/access/VRAM fails.
-2. If the smoke passes, run P0.7b: one shared Gemma T1 FedAvg stage followed by
-   no treatment, matched public-gold CE, and teacher-target CE.
-3. Review whether teacher-target CE beats both controls before extending Gemma
-   to T3/OOD or adding another student family/size.
-4. After T1F, export the exact LoRA trainable-parameter count and add fixed
+1. Run P0.7a: smoke-test Gemma 2B training, LoRA reload, chat-template inference,
+   and resumable evaluation; stop if architecture/access/VRAM fails.
+2. Run P0.7b: smoke Gemma 9B target generation, exact tokenizer compatibility,
+   and offline logit scoring on eight matched rows.
+3. If both smokes pass, generate the full row-matched Gemma targets, then run
+   the four-arm Gemma T1 ladder with online teacher scoring. Defer a full cache
+   until a positive T1 result justifies T3 reuse.
+4. Review full FedLS against FL, matched public gold, and sequence KD before any
+   T3/OOD or additional family/size expansion.
+5. After T1F, export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
-5. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
+6. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
    active GPU task.
-6. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
+7. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
    do not start it until the current discovery-first gate is reviewed.
-7. Do not interpret shared-server time/RAM as official evidence;
+8. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Final T3 seed-1/2 replication is deferred, not cancelled. Additional component

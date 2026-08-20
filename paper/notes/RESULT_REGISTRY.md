@@ -35,19 +35,21 @@ Canonical matched evaluation:
 `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`
 (`git_sha=b3fd32f`, result commit `7c1414b`).
 
-## 3. Cross-family reserved IDs
+## 3. Second-family reserved IDs
 
 These IDs reserve presentation semantics; they do not assert that an artifact
 already exists.
 
 | Stable ID | Student family | Paper role | Expected output root | Status |
 |---|---|---|---|---|
-| `gemma.fl.t1.s0` | Gemma 2 2B | cross-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
+| `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
 | `gemma.goldce.t1.s0` | Gemma 2 2B | matched public-supervision control | `artifacts/federated/gemma2_2b_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | cross-family teacher-target CE | `artifacts/federated/gemma2_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 
-`gemma.seqkd.t1.s0` must not be labeled full FedLS-SQL CE+RKL. Qwen teacher
-logits are not reusable across the Gemma tokenizer.
+Gemma targets and logits must be regenerated with `google/gemma-2-9b-it` and
+must never reuse Qwen artifacts. `gemma.fedls.t1.s0` becomes eligible only after
+the exact Gemma 9B/2B token-to-ID compatibility check passes.
 
 ## 4. Canonical evaluation artifacts
 

@@ -199,18 +199,18 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. test family portability with a one-round Gemma 2 2B matched ladder: pure
-   FL, matched public-gold CE, and teacher-target sequence KD, without
-   incompatible Qwen logits;
+1. test family portability with a one-round Gemma 2 9B→2B matched ladder: pure
+   FL, matched public-gold CE, Gemma-target CE, and full CE+reverse KL using
+   regenerated Gemma targets/logits after exact token-ID validation;
 2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
    training seeds 1/2 before submission; currently deferred;
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;
 4. audit the large server-stage EX-EM divergence and execution-error types.
 
-The cross-family screen tests the portable hard-target mechanism, not the full
-reverse-KL endpoint. Until a vocabulary-independent soft-distillation method is
-implemented, token-level RKL remains a compatible-vocabulary enhancement and
-must not be claimed as family-agnostic.
+The second-family screen tests the full endpoint inside another compatible
+teacher/student family. It does not make reverse KL cross-tokenizer: exact
+token-to-ID equality is a hard prerequisite, and arbitrary mixed-family logits
+remain unsupported.
 
 Communication payload accounting is already available from committed round
 metrics. With five clients, each round transmits `369,555,560` upload bytes and
