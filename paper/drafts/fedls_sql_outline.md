@@ -60,7 +60,9 @@ module.
 ## 6. Results
 
 Canonical values and pending cells are maintained in
-`paper/results/MAIN_RESULTS.md`, aligned with the supplied outline:
+`paper/results/MAIN_RESULTS.md`. The supplied August 19 outline is a draft
+planning input: this section remains adaptive and must follow validated evidence
+rather than preserving the draft structure:
 
 1. Overall performance: primary Qwen2.5 track, with the cross-family Gemma
    portability result in a separate block.

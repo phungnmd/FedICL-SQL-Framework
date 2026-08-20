@@ -6,6 +6,11 @@
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
 > invitation.
 
+The August 19 PDF outline is a draft planning input, not a fixed experimental
+contract. Table structure and priorities may change when new evidence changes
+the paper's claims. The research question, validated method, and evidence gates
+in `../notes/PAPER_EVIDENCE_PLAN.md` take precedence.
+
 ## 1. Model and method scope
 
 Keep different student families and transfer objectives in separate result
@@ -19,9 +24,9 @@ blocks. A cross-tokenizer sequence-KD result is not the full reverse-KL method.
 
 ## 2. Overall NL-to-SQL performance
 
-Maps to the supplied outline §4.2 “Overall NL-to-SQL Performance” and the live
-manuscript outline §6.1. This is the headline final-model table. All current
-values use training seed 0, greedy decoding, and no ICL.
+Supports the current overall-performance claim and the draft outline's §4.2.
+This is the headline final-model table. All current values use training seed 0,
+greedy decoding, and no ICL.
 
 ### 2.1 Primary Qwen2.5 track
 
@@ -53,9 +58,10 @@ is positive and material.
 
 ### 2.3 Outline headline accuracy-efficiency table
 
-This is the direct successor to the supplied outline's
-`Method–EM–EX–Trainable Params–Latency` table. Accuracy is Spider; resource
-cells remain pending until measured under the controlled protocol.
+This is the current candidate for the draft outline's
+`Method–EM–EX–Trainable Params–Latency` table, not a frozen paper table.
+Accuracy is Spider; resource cells remain pending until measured under the
+controlled protocol.
 
 | Model family | Method | Spider EM | Spider EX | Trainable parameters | Inference latency | Inclusion status |
 |---|---|---:|---:|---:|---:|---|
@@ -73,8 +79,8 @@ needs them; they are not part of the canonical deployment method.
 
 ## 3. Convergence and generalization
 
-Maps to outline §4.2 “Convergence Analysis” and “Non-IID Robustness”. The split
-is the fixed `K=5`, grouped-domain Dirichlet `alpha=0.5` setting.
+Supports the convergence and non-IID claims currently proposed in draft §4.2.
+The split is the fixed `K=5`, grouped-domain Dirichlet `alpha=0.5` setting.
 
 ### 3.1 Spider trajectory, Qwen2.5, seed 0
 
@@ -107,9 +113,10 @@ so this is not the headline benchmark.
 
 ## 4. Ablation and causal evidence
 
-Maps to outline §4.3. Structural distillation is omitted because it is not an
-implemented component. The matched ladder changes only the server treatment
-after one shared Qwen T1 FedAvg adapter.
+Supports the causal evidence currently proposed in draft §4.3. Structural
+distillation is omitted because it is not an implemented component. The matched
+ladder changes only the server treatment after one shared Qwen T1 FedAvg
+adapter.
 
 ### 4.1 Matched T1 supervision ladder, Qwen2.5, seed 0
 
@@ -175,7 +182,7 @@ restart OOD values to the standard row.
 
 ## 5. Efficiency and trade-offs
 
-Maps to outline §4.2 “Communication Efficiency” and “Resource Efficiency”.
+Supports the communication/resource claims currently proposed in draft §4.2.
 
 ### 5.1 Communication payload
 
@@ -205,7 +212,7 @@ dispersion.
 
 ## 6. Error analysis
 
-Maps to outline §4.4.
+Supports the error analysis currently proposed in draft §4.4.
 
 | Analysis | Available evidence | Status |
 |---|---|---|
@@ -217,9 +224,9 @@ Maps to outline §4.4.
 | Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
 | LLM-SLM transfer failures | matched prediction rows available | ready for representative audit |
 
-## 7. Outline coverage dashboard
+## 7. Adaptive evidence dashboard
 
-| Supplied outline requirement | Canonical section here | Coverage |
+| Current candidate paper evidence | Canonical section here | Coverage |
 |---|---|---|
 | Overall NL-to-SQL performance | §2 | partial: centralized P0.6 cells pending |
 | Communication efficiency | §5.1 | complete for adapter payload |
@@ -229,6 +236,7 @@ Maps to outline §4.4.
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | predictions available; structured audit pending |
 
-The outline is an experiment menu, not evidence that every proposed sweep has
-been completed. Manuscript claims must follow this dashboard and the adaptive
-gates in `../notes/PAPER_EVIDENCE_PLAN.md`.
+This dashboard may be reordered, reduced, or extended after each evidence gate.
+The draft outline is an experiment menu, not evidence that every proposed sweep
+must be completed. Manuscript claims must follow validated results and the
+adaptive gates in `../notes/PAPER_EVIDENCE_PLAN.md`.

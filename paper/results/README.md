@@ -2,6 +2,10 @@
 
 This directory owns paper-facing result tables.
 
+The August 19 PDF outline is a revisable planning document. It can suggest
+candidate tables, but it does not freeze the experiment matrix, table schema, or
+paper claims.
+
 - `MAIN_RESULTS.md` is the single source of truth for values presented in the
   manuscript, slides, or advisor email.
 - `../notes/RESULT_REGISTRY.md` maps stable result IDs to immutable checkpoints
@@ -24,4 +28,3 @@ Use `PENDING:<task>` for a scheduled missing result, `NOT RUN` for an absent
 comparison, `N/A` when a metric is not applicable, and `—` only when a value is
 intentionally not shown. Model family, exact model ID, transfer objective,
 round, and training seed must be explicit before two results are compared.
-
