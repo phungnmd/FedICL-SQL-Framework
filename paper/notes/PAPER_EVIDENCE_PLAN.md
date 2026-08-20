@@ -231,9 +231,10 @@ pair?
   3,873 success indices.
 - Keep the Spider split, prompts, LoRA policy, seed 0, and T1 evaluation fixed.
   Score logits online for T1; cache the full pool only if later rounds reuse it.
-- From one shared Gemma T1 FedAvg adapter, compare no server treatment, CE on
-  the exact matched BIRD-gold rows, CE on Gemma-teacher SQL, and CE plus reverse
-  KL from the Gemma teacher. Never reuse Qwen targets or Qwen logits.
+- Evaluate the untouched Gemma 2B base, then from one shared Gemma T1 FedAvg
+  adapter compare no server treatment, CE on the exact matched BIRD-gold rows,
+  CE on Gemma-teacher SQL, and CE plus reverse KL from the Gemma teacher. Never
+  reuse Qwen targets or Qwen logits.
 - Label the final compatible-family endpoint full FedLS-SQL; retain the
   teacher-target-only branch as the sequence-KD ablation.
 - Do not add model-size sweeps or a second alternative family at this gate.
@@ -487,10 +488,10 @@ Update this table after every gate. Never rewrite old decisions silently.
 1. P0.7a is complete: Gemma 2B training/reload/inference compatibility passed;
    do not interpret its eight-row accuracy.
 2. In parallel, run P0.7b-c on GPU 0 for Gemma 9B target/logit compatibility
-   and full target generation, and P0.7s on GPU 1 for pure FL plus gold CE.
-3. After both lanes complete, run P0.7d target CE, full online CE+RKL, and the
-   canonical four-arm evaluation. Defer a full cache until a positive T1 result
-   justifies T3 reuse.
+   and full target generation, and P0.7s on GPU 1 for pure FL only.
+3. After selection completes, run P0.7d gold CE, target CE, full online CE+RKL,
+   and the canonical five-arm base/FL/gold/target/full evaluation. Defer a full
+   cache until a positive T1 result justifies T3 reuse.
 4. Review full FedLS against FL, matched public gold, and sequence KD before any
    T3/OOD or additional family/size expansion.
 5. After T1F, export the exact LoRA trainable-parameter count and add fixed

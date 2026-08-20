@@ -9,7 +9,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 |---|---|---|---|
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
-| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical 8-second quick-exec + official EX selector to obtain `N_gemma`; T1 FL vs same-row gold CE vs target CE vs full CE+RKL | active; student smoke passed |
+| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | active; student smoke passed |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
@@ -47,9 +47,10 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 2. In parallel, use GPU 0 for the Gemma 9B target/logit smoke plus full 9,428-row
    generation, and GPU 1 for pure FL only.
 3. Apply the fixed quick-exec and official EX stages, build gold on Gemma's
-   selected indices, then run gold CE, target CE, and full online CE+RKL followed by the four-arm T1
-   ladder with online teacher scoring: FL, public-gold CE, Gemma-target CE, and
-   full CE+RKL. Build a full cache only if T3 reuse is justified.
+   selected indices, then run gold CE, target CE, and full online CE+RKL,
+   followed by the five-arm T1 ladder: untouched base, FL, public-gold CE,
+   Gemma-target CE, and full CE+RKL.
+   Build a full cache only if T3 reuse is justified.
 4. Review portability before any Gemma T3/OOD or model-size expansion.
 5. Add fixed in-process warm-up to the resource benchmark path, then run only
    the missing matched 1.5B/7B measurements on an exclusive GPU.

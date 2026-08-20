@@ -216,9 +216,9 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. test family portability with a one-round Gemma 2 9B→2B matched ladder: pure
-   FL, matched public-gold CE, Gemma-target CE, and full CE+reverse KL using
-   regenerated Gemma targets/logits after exact token-ID validation;
+1. test family portability with a one-round Gemma 2 9B→2B ladder: untouched
+   base, pure FL, matched public-gold CE, Gemma-target CE, and full CE+reverse
+   KL using regenerated Gemma targets/logits after exact token-ID validation;
 2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
    training seeds 1/2 before submission; currently deferred;
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;

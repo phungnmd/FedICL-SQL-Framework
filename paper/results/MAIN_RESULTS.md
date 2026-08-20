@@ -59,6 +59,7 @@ those rows. The Qwen-specific count 3,873 is not imposed on this track.
 
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
 |---|---|---|---|---:|---:|---:|---:|---|
+| `gemma.base.s0` | Gemma 2 2B | Untouched base | none | 0 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | pretrained anchor; no adapter |
 | `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | active matched gate |
 | `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | Gemma-selected `N_gemma` rows |
 | `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | matched sequence-KD ablation |

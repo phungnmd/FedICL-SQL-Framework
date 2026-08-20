@@ -42,6 +42,7 @@ already exists.
 
 | Stable ID | Student family | Paper role | Expected output root | Status |
 |---|---|---|---|---|
+| `gemma.base.s0` | Gemma 2 2B | untouched pretrained anchor | base model, no adapter | `PENDING:P0.7` |
 | `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
 | `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 | `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |

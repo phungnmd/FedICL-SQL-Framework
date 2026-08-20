@@ -180,8 +180,9 @@ currently justify.
    BIRD targets, then apply the canonical 8-second quick-exec and official EX
    stages to obtain `N_gemma` and build its gold control.
 2. P0.7s/T1F, GPU 1 in parallel: pure FL and diagnostic evaluation only.
-3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL, and canonical
-   four-arm evaluation; build a full cache only after a positive gate.
+3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL,
+   and canonical five-arm base/FL/gold/target/full evaluation; build a full
+   cache only after a positive gate.
 4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
 5. CPU-only EX-EM/error audit when it does not block the active GPU task.
 6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
@@ -239,6 +240,7 @@ internal artifact identities.
 | 2026-08-21 | P0.7a Gemma 2B smoke passed (8-row diagnostic EX 37.5, EM 12.5, one execution error); teacher and student-independent work split across GPU 0/1. |
 | 2026-08-21 | Corrected the Gemma pool design: 3,873 is Qwen's EX-match count, so Gemma now generates all 9,428 BIRD train rows and independently derives `N_gemma`; Qwen-selected indices are prohibited. |
 | 2026-08-21 | Refactored the archived Qwen selector into the active common teacher pipeline: raw generation, fixed 8-second quick-exec, then official EX match, each fingerprinted and resumable. |
+| 2026-08-21 | Added untouched Gemma 2B base to canonical P0.7d so FL and full FedLS-SQL are both anchored to the pretrained student; overnight lanes remain unchanged. |
 
 ## 8. Archived branches
 
