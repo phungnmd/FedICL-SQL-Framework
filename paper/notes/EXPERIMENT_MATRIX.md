@@ -7,11 +7,11 @@ contains canonical checkpoints and values.
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|
 | P0 | RQ1 accuracy | Centralized vs pure FL vs FedLS-SQL at three private-data passes | complete at seed 0 |
-| P0 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seed 0 |
-| P0 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | complete at seed 0 |
+| P0 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; seeds 1–2 next |
+| P0 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; T3 seeds 1–2 queued |
 | P0 | RQ4 communication | adapter parameters/bytes per client, round, and total | pending consolidation |
 | P0 | RQ4 resources | wall time, peak VRAM, inference latency | partially recorded |
-| P1 | reliability | repeat multi-round trajectories for seeds 1 and 2 | pending |
+| P0 | reliability | repeat multi-round trajectories for seeds 1 and 2 | queued evidence-first |
 | P1 | component value | FL, public CE, distillation-only, full method | substantially complete at T1 |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P2 | optimizer baseline | FedProx SLM | not implemented/run |
@@ -32,7 +32,10 @@ contains canonical checkpoints and values.
 
 ## Recommended execution order
 
-1. Extract communication and resource measurements from configs/logs.
-2. Run seeds 1 and 2 for the multi-round comparison.
-3. Decide with the advisor which P2 experiments are necessary before spending
+1. Run and evaluate pure FL and FedLS-SQL T1–T3 for seed 1, then seed 2.
+2. Review the three-seed Spider trajectories; if the claim survives, evaluate
+   T3 on Realistic, Syn, DK, and BIRD for seeds 1–2.
+3. Consolidate communication and resource measurements from existing
+   configs/logs; no accuracy rerun is required.
+4. Decide with the advisor which P2 experiments are necessary before spending
    compute on model-size or skew sweeps.

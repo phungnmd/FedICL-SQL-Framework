@@ -66,6 +66,36 @@ active files without a clear owner.
 
 ## 6. Experiment lifecycle
 
+### 6.1 Executable command contract
+
+`paper/notes/PIPELINE_NEXT.md` is the only active owner of paper experiment
+commands. Commands in archived runbooks are provenance, not the current queue.
+
+Every active experiment command must:
+
+- target PowerShell and occupy one physical line in one `powershell` code
+  block;
+- run from the `fedicl-sql/` repository root and define every variable it uses,
+  so it does not depend on shell state from an earlier block;
+- use a deterministic output root containing the method/setup and seed;
+- use the same output root and exact scientific flags when resuming;
+- fail after a non-zero Python exit and verify the expected terminal artifacts;
+- use a dataset/seed/config-specific `--resume-dir` plus `--skip-completed` for
+  evaluation;
+- use `${name}` when a PowerShell variable is immediately followed by `:` or
+  another character that can be parsed as part of the variable name;
+- avoid deletion, wildcard cleanup, checkpoint copying, and silent overwrite.
+
+Federated `setup.json`, `manifest.json`, stage fingerprints, and
+`adapter_config.json` are the completion/lineage contract. A partial `_ckpt`
+directory is resumable by rerunning the exact command. A setup, lineage, cache,
+or evaluation fingerprint mismatch is a scientific configuration error: use
+the original flags or a new output/resume root; never bypass the guard.
+
+Keep long-running blocks independently resumable. Prefer one command per
+scientific checkpoint (training seed, matched evaluation, transfer suite) over
+one all-or-nothing command spanning the entire experiment queue.
+
 Before running:
 
 1. identify the RQ and missing comparison in `EXPERIMENT_MATRIX.md`;
