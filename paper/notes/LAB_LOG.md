@@ -20,8 +20,8 @@ canonical checkpoint labels belong in `RESULT_REGISTRY.md`.
 - Public KD pool: fixed **3,873-row** BIRD teacher-generated EX-match subset.
 - Canonical inference: greedy, zero-shot, `k=0`.
 - Best current FedLS-SQL endpoint: **69.54 Spider EX at T=3, seed 0**.
-- Critical missing result: independent pure-FL T1-T3 lineage for the final
-  `Centralized <> FL <> FedLS-SQL` comparison.
+- Independent pure-FL T1-T3 and the final
+  `Centralized <> FL <> FedLS-SQL` comparison are complete at seed 0.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, `noicl`, and old artifact paths
   remain unchanged for compatibility and provenance.
@@ -75,18 +75,26 @@ FL: they inherit earlier post-KD global adapters.
 | Model | Checkpoint | Spider EX | Realistic | Syn | DK | BIRD |
 |---|---|---:|---:|---:|---:|---:|
 | Centralized, 3 epochs | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 57.87 | 53.19 | 52.52 | 12.91 |
-| Pure FL, T=3 | `fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | pending | pending | pending | pending | pending |
+| Pure FL, T=3 | `fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | 64.31 | 56.10 | 51.93 | 46.73 | 12.91 |
 | FedLS-SQL, T=3 | `fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | **69.54** | **59.65** | **55.51** | **52.71** | **21.58** |
 
-Do not publish the final three-way comparison until the pure-FL row is filled.
+At T3, FedLS-SQL exceeds pure FL by `+5.23`, `+3.55`, `+3.58`, `+5.98`,
+and `+8.67` EX on Spider, Realistic, Syn, DK, and BIRD respectively. The paired
+exact McNemar results are significant on Spider (`p=0.0001`), Syn (`p=0.0094`),
+DK (`p=0.0002`), and BIRD (`p<1e-19`), but not Realistic (`p=0.095`).
+
+FedLS-SQL also has the highest EX in all five final-model comparisons. Its
+advantage over centralized training is not significant on the four Spider
+sets; BIRD is the exception, but remains a cross-corpus diagnostic favorable
+to the BIRD-trained public-server branch.
 
 ### 3.2 Multi-round trajectory, seed 0
 
-| Round | FedKD-lineage pre-server | FedLS-SQL endpoint |
-|---|---:|---:|
-| T=1 | 57.35 | 63.35 |
-| T=2 | 64.02 | 66.15 |
-| T=3 | 66.05 | **69.54** |
+| Round | Independent pure FL | FedKD-lineage pre-server | FedLS-SQL endpoint |
+|---|---:|---:|---:|
+| T=1 | 56.67 | 57.35 | 63.35 |
+| T=2 | 62.19 | 64.02 | 66.15 |
+| T=3 | 64.31 | 66.05 | **69.54** |
 
 | Endpoint contrast | Delta | Paired `p` |
 |---|---:|---:|
@@ -166,14 +174,18 @@ the additional server compute rather than claiming equal cost.
 | Arm | EX | Execution-error rate |
 |---|---:|---:|
 | Base SLM | 10.89 | 46.5% |
-| T1 pure-FL/pre-server | 11.15 | 55.3% |
+| T1 pure FL | 11.21 | 55.2% |
+| T3 pure FL | 12.91 | 49.3% |
+| T1 FedKD-lineage pre-server | 11.15 | 55.3% |
 | Centralized, 3 epochs | 12.91 | 42.6% |
 | T3 FedKD-lineage pre-server | 17.67 | 37.9% |
 | T1 FedLS-SQL | 19.43 | 33.4% |
 | T3 FedLS-SQL | **21.58** | **29.9%** |
 
-The server step contributes `+8.28 EX` at T1 and `+3.91` at T3 (`p<1e-6`).
-Federation alone at T1 contributes `+0.26` (`p=0.82`). This complements the
+Within the FedKD lineage, the server step contributes `+8.28 EX` at T1 and
+`+3.91` at T3 (`p<1e-6`).
+Independent pure FL rises from 11.21 to 12.91 EX between T1 and T3, whereas
+FedLS-SQL reaches 21.58. This complements the
 perturbed Spider result, where federated rounds dominate and marginal server KD
 is not established.
 
@@ -199,25 +211,25 @@ No further ICL sweep is planned. Detailed evidence is in
 
 1. Multi-round FedLS-SQL improves from T1 to T3 on Spider and all three Spider
    perturbation sets at seed 0.
-2. At T1 across three seeds, the full server distillation stage improves over
+2. At T3 seed 0, FedLS-SQL beats independent pure FL on Spider by `+5.23 EX`
+   (`p=0.0001`), with positive gains on every additional test set.
+3. At T1 across three seeds, the full server distillation stage improves over
    federation alone by `+4.55 EX` (`p=0.046`).
-3. Server guidance strongly improves BIRD cross-corpus transfer and reduces
+4. Server guidance strongly improves BIRD cross-corpus transfer and reduces
    execution errors across all evaluated datasets.
-4. The 1.5B deployed model requires neither the 7B teacher nor public data at
+5. The 1.5B deployed model requires neither the 7B teacher nor public data at
    client inference time.
-5. ICL and FLoRA-NA do not improve the retained configuration.
+6. ICL and FLoRA-NA do not improve the retained configuration.
 
 ### Not yet supported
 
-1. A causal T3 claim that FedLS-SQL beats pure FL; the independent FL lineage
-   is still pending.
-2. A statistically established multi-seed T2/T3 trajectory.
-3. Better accuracy than centralized training; the T3 difference is not
+1. A statistically established multi-seed T2/T3 trajectory.
+2. Better accuracy than centralized training; the T3 difference is not
    significant and compute is not matched.
-4. Lower empirical cost than federated large-model training; no actual
+3. Lower empirical cost than federated large-model training; no actual
    large-model FL baseline has been run.
-5. Formal privacy guarantees.
-6. A distinct structural-distillation contribution; the implemented server
+4. Formal privacy guarantees.
+5. A distinct structural-distillation contribution; the implemented server
    objective is teacher-target CE plus reverse KL.
 
 ### Metric caveat
@@ -228,14 +240,10 @@ and execution-error rate as primary metrics.
 
 ## 5. Active queue
 
-1. **P0:** run pure FL through T1-T3, seed 0, and evaluate Spider, Realistic,
-   Syn, DK, and BIRD.
-2. **P0:** fill the FL row in `RESULT_REGISTRY.md`; do not use the 66.05 mixed
-   lineage adapter.
-3. **P0:** consolidate trainable parameters, adapter bytes, total
+1. **P0:** consolidate trainable parameters, adapter bytes, total
    communication, wall time, peak VRAM, and inference latency.
-4. **P1:** replicate the T1-T3 trajectory for seeds 1 and 2.
-5. **P2:** run FedProx, size/rank, or broader-skew sweeps only after advisor
+2. **P1:** replicate the T1-T3 trajectory for seeds 1 and 2.
+3. **P2:** run FedProx, size/rank, or broader-skew sweeps only after advisor
    scope confirmation.
 
 No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
@@ -249,7 +257,8 @@ No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 | Pure-FL T1-T3 lineage | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
-| Exact commands | `paper/notes/PIPELINE_NEXT.md` |
+| Completed pure-FL command | `paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_BLOCK_K_completed_2026-08-20.md` |
+| Active experiment queue | `paper/notes/PIPELINE_NEXT.md` |
 | Checkpoint/result labels | `paper/notes/RESULT_REGISTRY.md` |
 | RQ-to-evidence status | `paper/notes/EXPERIMENT_MATRIX.md` |
 | Full historical log | `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md` |
@@ -273,6 +282,7 @@ internal artifact identities.
 | 2026-08-19 | Pre-server T2/T3 identified as mixed KD lineage; pure FL required. |
 | 2026-08-19 | Advisor renamed the paper FedLS-SQL and removed ICL from method. |
 | 2026-08-20 | Active documentation and lab log refactored around FedLS-SQL. |
+| 2026-08-20 | Independent pure-FL T1-T3 completed; final three-way table closed at seed 0. |
 
 ## 8. Archived branches
 

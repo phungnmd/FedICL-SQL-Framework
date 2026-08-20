@@ -171,6 +171,8 @@ configuration, and Git SHA.
 Established evidence:
 
 - FedLS-SQL reaches 69.54 Spider EX at `T=3`, seed 0;
+- at T3, FedLS-SQL improves over the independent pure-FL lineage by 5.23 EX
+  on Spider (`p=0.0001`), with positive deltas on all four additional tests;
 - the `T=1 -> T=3` trajectory improves Spider and all three perturbation sets;
 - server KD is strongly beneficial on BIRD cross-corpus evaluation;
 - ICL is negative for the tested 1.5B student and is retained only as a
@@ -179,10 +181,8 @@ Established evidence:
 
 Blocking evidence gaps:
 
-1. finish the independent pure-FL `T=1..3` lineage;
-2. complete the final Centralized vs FL vs FedLS-SQL table;
-3. consolidate communication and resource metrics;
-4. replicate the multi-round trajectory across additional seeds.
+1. consolidate communication and resource metrics;
+2. replicate the multi-round trajectory across additional seeds.
 
 Outline items not yet supported by current evidence include FedProx, a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual

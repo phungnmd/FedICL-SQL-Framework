@@ -6,9 +6,9 @@ contains canonical checkpoints and values.
 
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|
-| P0 | RQ1 accuracy | Centralized vs pure FL vs FedLS-SQL at three private-data passes | blocked by pure-FL T3 |
-| P0 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | blocked by pure-FL lineage |
-| P0 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | FedLS-SQL done; pure FL pending |
+| P0 | RQ1 accuracy | Centralized vs pure FL vs FedLS-SQL at three private-data passes | complete at seed 0 |
+| P0 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seed 0 |
+| P0 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | complete at seed 0 |
 | P0 | RQ4 communication | adapter parameters/bytes per client, round, and total | pending consolidation |
 | P0 | RQ4 resources | wall time, peak VRAM, inference latency | partially recorded |
 | P1 | reliability | repeat multi-round trajectories for seeds 1 and 2 | pending |
@@ -32,9 +32,7 @@ contains canonical checkpoints and values.
 
 ## Recommended execution order
 
-1. Block K: pure FL, T1-T3, seed 0, all evaluation datasets.
-2. Fill the three-row final comparison and convergence table.
-3. Extract communication and resource measurements from configs/logs.
-4. Run seeds 1 and 2 for the multi-round comparison.
-5. Decide with the advisor which P2 experiments are necessary before spending
+1. Extract communication and resource measurements from configs/logs.
+2. Run seeds 1 and 2 for the multi-round comparison.
+3. Decide with the advisor which P2 experiments are necessary before spending
    compute on model-size or skew sweeps.
