@@ -177,7 +177,8 @@ currently justify.
 ## 5. Active queue
 
 1. P0.7b-c/e/T1F, GPU 0: teacher/cache/tokenizer smoke, generate all 9,428
-   BIRD targets, then independently EX-filter to `N_gemma` and build gold control.
+   BIRD targets, then apply the canonical 8-second quick-exec and official EX
+   stages to obtain `N_gemma` and build its gold control.
 2. P0.7s/T1F, GPU 1 in parallel: pure FL and diagnostic evaluation only.
 3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL, and canonical
    four-arm evaluation; build a full cache only after a positive gate.
@@ -237,6 +238,7 @@ internal artifact identities.
 | 2026-08-21 | The portability gate was strengthened from Qwen-teacher→Gemma-student sequence KD to a complete Gemma 2 9B→2B same-family replication with regenerated targets/logits and exact token-ID validation. |
 | 2026-08-21 | P0.7a Gemma 2B smoke passed (8-row diagnostic EX 37.5, EM 12.5, one execution error); teacher and student-independent work split across GPU 0/1. |
 | 2026-08-21 | Corrected the Gemma pool design: 3,873 is Qwen's EX-match count, so Gemma now generates all 9,428 BIRD train rows and independently derives `N_gemma`; Qwen-selected indices are prohibited. |
+| 2026-08-21 | Refactored the archived Qwen selector into the active common teacher pipeline: raw generation, fixed 8-second quick-exec, then official EX match, each fingerprinted and resumable. |
 
 ## 8. Archived branches
 

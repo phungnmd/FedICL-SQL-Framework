@@ -68,6 +68,10 @@ active files without a clear owner.
   changing teacher requires regeneration from the complete public source and
   teacher-specific filtering. Never reuse another teacher's selected indices
   or treat its retained count as a fixed method budget.
+- The canonical teacher-target selector is two-stage: an 8-second quick
+  execution filter, followed by official EX-to-gold scoring on survivors.
+  Teacher-family replications must keep both stages and their timeouts fixed;
+  changing either creates a new result lineage.
 
 ## 6. Experiment lifecycle
 

@@ -52,8 +52,8 @@ inference from model updates.
 The public targets are constructed once per frozen-teacher lineage:
 
 1. the frozen teacher generates SQL zero-shot on public BIRD examples;
-2. the SQL must execute;
-3. its execution result must match the gold execution result;
+2. the SQL must pass the fixed 8-second quick-execution filter;
+3. survivors must match the gold execution result under the official EX scorer;
 4. the retained teacher SQL becomes the public hard target;
 5. teacher logits on the same target span are cached.
 
@@ -231,10 +231,11 @@ remain unsupported.
 
 The 3,873-row pool above is specific to the canonical Qwen teacher. A
 second-family replication must begin with all 9,428 BIRD training rows, run its
-own teacher generation and the same EX-match selection rule, and derive its own
-retained count (`N_gemma` for Gemma). Its gold, target-CE, and CE+RKL controls
-then share those exact selected indices. Reusing Qwen's success indices would
-condition the second-family result on Qwen and is not method-faithful.
+own teacher generation, the same 8-second quick-execution filter, and the same
+official EX-match stage, then derive its own retained count (`N_gemma` for
+Gemma). Its gold, target-CE, and CE+RKL controls share those exact selected
+indices. Reusing Qwen's success indices would condition the second-family
+result on Qwen and is not method-faithful.
 
 Communication payload accounting is already available from committed round
 metrics. With five clients, each round transmits `369,555,560` upload bytes and

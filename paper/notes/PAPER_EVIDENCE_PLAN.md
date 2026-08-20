@@ -224,10 +224,11 @@ pair?
 - Use `google/gemma-2-9b-it` as teacher and `google/gemma-2-2b-it` as student,
   subject to license access, student LoRA/inference smoke, and an exact
   token-to-ID compatibility check.
-- Generate targets for all 9,428 BIRD training rows, apply the same
-  execution-match-to-gold rule independently to Gemma, and call the retained
-  count `N_gemma`. Build the gold control on exactly those Gemma-selected
-  indices; never select Gemma rows using Qwen's 3,873 success indices.
+- Generate targets for all 9,428 BIRD training rows, apply Qwen's same
+  8-second quick-execution filter and official EX-to-gold stage independently
+  to Gemma, and call the retained count `N_gemma`. Build the gold control on
+  exactly those Gemma-selected indices; never select Gemma rows using Qwen's
+  3,873 success indices.
 - Keep the Spider split, prompts, LoRA policy, seed 0, and T1 evaluation fixed.
   Score logits online for T1; cache the full pool only if later rounds reuse it.
 - From one shared Gemma T1 FedAvg adapter, compare no server treatment, CE on
