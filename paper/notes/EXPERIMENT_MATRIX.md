@@ -6,12 +6,12 @@ contains canonical checkpoints and values.
 
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|
-| P0 | RQ1 accuracy | Centralized vs pure FL vs FedLS-SQL at three private-data passes | complete at seed 0 |
-| P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | active; missing gold-CE branch only |
+| P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | standard centralized recipe pending |
+| P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | public-gold CE branch running |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | pending consolidation after causal gate |
-| P1 | RQ4 resources | wall time, peak VRAM, inference latency | partially recorded |
+| P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | instrumentation ready; official controlled runs pending |
 | P2 | reliability | targeted seed 1/2 replication of final headline contrasts | parked until method/claims stabilize |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P2 | optimizer baseline | FedProx SLM | not implemented/run |
@@ -29,14 +29,21 @@ contains canonical checkpoints and values.
 4. Scope RQ2 to avoided client/deployment use of the 7B teacher. Do not claim
    empirical superiority to full federated 7B training, which is not run.
 5. ICL and FLoRA-NA are negative/closed branches, not FedLS-SQL components.
+6. Do not call the existing chained centralized artifact “standard 3 epochs”;
+   label it `Centralized-3pass-restart` and compare it with one continuous
+   `epochs=3` run.
+7. Shared-server accuracy is valid, but timing is not paper evidence. Official
+   resource runs require fresh execution, exclusive hardware, and repetition.
 
 ## Recommended execution order
 
-1. Run the missing matched public-gold CE branch at T1, seed 0, then evaluate
+1. Finish the running matched public-gold CE branch at T1, seed 0, then evaluate
    the four-arm supervision ladder on identical Spider rows.
-2. Stop and decide whether the teacher-target and/or reverse-KL contribution
-   survives the matched public-gold control.
-3. If it survives, consolidate communication/resource evidence and run only
+2. Run and evaluate the standard continuous centralized three-epoch recipe
+   beside the existing three-pass-restart ceiling.
+3. Stop and decide whether the teacher-target and/or reverse-KL contribution
+   survives and which explicitly named centralized recipe is stronger.
+4. If it survives, consolidate communication/resource evidence and run only
    the missing matched resource benchmarks.
-4. Activate FedProx, heterogeneity, or targeted seed replication only when the
+5. Activate FedProx, heterogeneity, or targeted seed replication only when the
    preceding gate identifies it as necessary.

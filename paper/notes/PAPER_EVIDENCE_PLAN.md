@@ -106,7 +106,9 @@ the implementation does not support.
 
 ### T1 — matched public-supervision ablation
 
-**Status:** active; P0.0 data reconstruction verified locally, GPU branch next.
+**Status:** active; P0.0 verified and P0.1 public-gold CE is currently running.
+Do not interrupt P0.1; treat its accuracy as valid and its opportunistic shared-
+server resource measurements as non-paper evidence.
 
 **Question:** does improvement come from LLM guidance, or merely from adding a
 public supervised training pass?
@@ -132,6 +134,17 @@ public supervised training pass?
   zero-shot protocol.
 - Compare EX, execution-error rate, paired wins/losses, and confidence intervals;
   treat EM as secondary across different target conventions.
+- Correct the centralized ceiling before freezing the main table:
+  - retain the existing three chained one-epoch artifact as
+    `Centralized-3pass-restart`;
+  - run `Centralized-3ep-standard` once with one optimizer and one cosine
+    schedule across `epochs=3`;
+  - evaluate both on identical Spider rows and use the stronger result while
+    reporting its exact schedule.
+- Do not revive historical “Centralized + CE” artifacts as official evidence:
+  they use mismatched public-pool sizes or mixed CE/RKL/re-finetuning stages.
+  After Gate T1, add a new matched centralized public-supervision lineage only
+  if the final paper table needs it and the intended target is unambiguous.
 
 **Reconstruction audit:** the selection checkpoint contains all 3,873 retained
 source indices, so the control is recoverable exactly. Joining on
@@ -157,7 +170,7 @@ fields, replaces only `query`, and records input/output hashes.
   easier or more useful than BIRD gold.
 
 Do not activate FedProx, heterogeneity sweeps, or T2/T3 seed replication until
-this gate is reviewed.
+this gate and the centralized-recipe check are reviewed.
 
 ### T2 — efficiency and resource evidence
 
@@ -171,8 +184,10 @@ avoided by keeping the 7B teacher off clients and out of inference?
 
 - Adapter bytes and estimated trainable parameter count.
 - Client upload, server broadcast, per-round total, and cumulative T3 traffic.
-- Client training time and peak VRAM by client and round.
-- Server CE/KD time and peak VRAM by round.
+- Treat old client/server time as operational logs unless the run was fresh and
+  hardware-exclusive. Accuracy and communication fields remain usable.
+- Extract client/server training steps and communication from existing records;
+  do not silently promote opportunistic wall time to paper evidence.
 - One-time teacher generation, EX filtering, logit-cache build time, and cache
   disk footprint; keep offline and recurring costs separate.
 
@@ -180,7 +195,16 @@ avoided by keeping the 7B teacher off clients and out of inference?
 
 - Add a tested analysis utility that consumes committed metrics/manifests and
   emits a reproducible resource table.
-- Record CPU peak memory or explicitly mark it unavailable.
+- Use the new process resource instrumentation for all future official runs:
+  synchronized elapsed time, processed examples, optimizer updates,
+  examples/second, process peak RSS, peak PyTorch allocated/reserved VRAM,
+  runtime versions, and fresh/resumed/reused-stage eligibility.
+- Consider `paper_timing_eligible=true` necessary but not sufficient: the GPU
+  must also be exclusive and the run explicitly logged as controlled.
+- Never use resumed eval timing or a federated round wall time that reused
+  client/server stages. Their accuracy remains valid.
+- Keep metric labels precise: process RSS is not system RAM, and PyTorch
+  allocated/reserved memory is not total `nvidia-smi` device memory.
 - Run matched inference benchmarks for:
   - base 1.5B SLM;
   - final FedLS-SQL 1.5B;
@@ -356,17 +380,20 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | initial architecture review | outline, architecture, lab log, result registry, implementation | multi-seed moved behind causal, efficiency, baseline, and heterogeneity evidence | T0 |
 | 2026-08-20 | T0 claim alignment | outline claims versus implemented architecture and available resource evidence | pragmatic RQ2 selected; no full 7B FL by default; claims limited to asymmetric server-client setting and structural data isolation | T1 |
 | 2026-08-20 | T1 reconstruction preflight | BIRD source CSV, frozen teacher pool, selection checkpoint, duplicate-key audit | exact 3,873-row gold control is reconstructable by source index; activate only the missing gold-CE branch | T1 P0.1 |
+| 2026-08-20 | baseline/resource audit | centralized configs, trainer/eval timing paths, VRAM and communication logging | keep P0.1 running for accuracy; add standard continuous 3-epoch centralized baseline; old shared-server timing is operational only; instrument future official measurements | finish T1, then centralized recipe check |
 
 ## 6. Current next actions
 
-1. On the compute host, run P0.0 in `PIPELINE_NEXT.md` to reproduce and verify
-   the exact 3,873-row public-gold CSV.
-2. Run only the missing seed-0 public-gold CE server branch from the shared T1
-   FedAvg adapter.
-3. Evaluate FL, public-gold CE, teacher-target CE, and full FedLS-SQL together
-   on the same Spider rows.
-4. Stop at Gate T1 and update this plan from the observed causal contrast. Do
-   not automatically proceed to T2 or restore seed runs.
+1. Let the currently running P0.1 public-gold CE branch finish; do not pull code
+   or interrupt that process mid-run.
+2. After it exits, pull the instrumentation update and run P0.2: evaluate FL,
+   public-gold CE, teacher-target CE, and full FedLS-SQL on the same Spider rows.
+3. Run P0.3-P0.4: one standard continuous centralized three-epoch training run,
+   then evaluate it beside the existing three-pass-restart adapter.
+4. Stop at the combined gate. Select the stronger explicitly named centralized
+   recipe and update the plan from the observed T1 causal contrast.
+5. Do not interpret P0.1's shared-server time/RAM as official resource evidence;
+   T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be
 reactivated later under T7 if the final headline contrast needs replication.

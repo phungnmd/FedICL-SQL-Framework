@@ -15,12 +15,17 @@ The only active empirical task is **T1: matched public-supervision ablation**.
 
 | Order | Action | Status |
 |---|---|---|
-| P0.0 | Build and verify the exact 3,873-row BIRD-gold control | next |
-| P0.1 | Train the missing public-gold CE server branch from the shared T1 adapter | pending |
+| P0.0 | Build and verify the exact 3,873-row BIRD-gold control | complete |
+| P0.1 | Train the missing public-gold CE server branch from the shared T1 adapter | running; do not stop |
 | P0.2 | Evaluate the four matched T1 arms on Spider | pending |
-| P0.3 | Review the causal result and choose the next task | gated |
+| P0.3 | Train standard continuous centralized 3-epoch baseline | pending |
+| P0.4 | Evaluate both centralized recipes on Spider | pending |
+| P0.5 | Review causal result and centralized ceiling | gated |
 
-Stop after P0.2. Do not start seed replication, FedProx, heterogeneity, or
+Let the currently running P0.1 finish; its accuracy and checkpoint are valid.
+Do not use its opportunistic wall-time/RAM values as paper resource evidence.
+Pull the instrumentation update only after that process exits, then continue
+with P0.2. Stop after P0.4. Do not start seed replication, FedProx, heterogeneity, or
 sensitivity runs until the T1 result has been reviewed against the decision
 gate in `PAPER_EVIDENCE_PLAN.md`.
 
@@ -72,12 +77,38 @@ completed exact rerun a no-op and a partial run resumes from its JSONL rows.
 $env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $G='artifacts/federated/fedavg_pub_gold_noicl_k5_e1_t1_s0/round_1/m_g'; $H='artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g'; $K='artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_1/m_g'; $E='artifacts/eval_resume/fedls_t1_public_supervision_s0/eval_k0'; foreach ($A in @("$C/fedavg_adapter",$G,$H,$K)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing evaluation adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_t1_shared=$C/fedavg_adapter" "public_gold_ce=$G" "teacher_target_ce=$H" "fedls_t1=$K" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Matched T1 evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing evaluation manifests: $E/manifests" }; Write-Host 'P0.2 complete: stop and review the four-arm T1 result'
 ```
 
-## P0.3 — review gate
+## P0.3 — standard continuous centralized baseline
 
-After P0.2, report the generated result directory or commit it. The review must
+The existing `central_3ep` is three independently scheduled one-epoch passes.
+Keep it as `Centralized-3pass-restart`; it is process-matched to three FL
+rounds but is not a conventional three-epoch run. This command creates the
+missing standard baseline with one optimizer and one cosine schedule across
+all three epochs. A completed adapter is skipped; a partial `_ckpt` resumes.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/baselines/central_3ep_standard_s0/adapter'; if (Test-Path -LiteralPath "$O/adapter_config.json") { Write-Host "P0.3 already complete: $O" } else { uv run python experiments/client_train/run.py --client processed_data/SPIDER/centralized/train.csv --out $O --kd-direction none --epochs 3 --batch-size 1 --grad-accum 16 --max-len 2560 --train-k 0 --schema-style full --demo-style never_schema --save-steps 200 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Standard centralized 3-epoch training failed; rerun this exact line to resume' } }; if (-not (Test-Path -LiteralPath "$O/adapter_config.json")) { throw "Incomplete standard centralized adapter: $O" }; Write-Host 'P0.3 complete: standard continuous centralized 3-epoch adapter ready'
+```
+
+## P0.4 — compare centralized recipes
+
+This evaluates the conventional continuous recipe and the existing restart
+recipe on identical Spider rows. Keep both results; use the stronger one as the
+paper's centralized ceiling and name its schedule explicitly.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $S='artifacts/baselines/central_3ep_standard_s0/adapter'; $R='artifacts/probe_p/central_3ep/adapter'; $E='artifacts/eval_resume/central_3ep_recipe_check_s0/eval_k0'; foreach ($A in @($S,$R)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing centralized adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "central_3ep_standard=$S" "central_3pass_restart=$R" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Centralized recipe evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing centralized evaluation manifests: $E/manifests" }; Write-Host 'P0.4 complete: stop and review both centralized recipes'
+```
+
+## P0.5 — combined review gate
+
+After P0.2 and P0.4, report the generated result directories or commit them.
+The T1 review must
 compare EX, execution-error rate, paired wins/losses, and uncertainty on the
 same Spider rows. EM is secondary because BIRD gold and teacher SQL can be
 semantically equivalent but textually different.
+
+For the centralized ceiling, report both schedules and select the stronger
+result. Never relabel `central_3pass_restart` as standard three-epoch training.
 
 The result chooses the next branch:
 
@@ -88,10 +119,41 @@ The result chooses the next branch:
 - public-gold CE hurts but teacher supervision helps: retain the transfer story
   and prioritize mechanism/error analysis.
 
+## Resource-measurement eligibility
+
+Future results now record accelerator-synchronized elapsed time, examples/sec,
+optimizer updates, process peak RSS, peak PyTorch allocated/reserved VRAM,
+fresh/resumed state, runtime versions, and whether a round reused stages.
+These fields make measurement scope auditable; they do not make a busy shared
+machine controlled.
+
+- Accuracy runs may execute while the server is shared.
+- A resource number is paper-eligible only when `paper_timing_eligible=true`,
+  the selected GPU has no competing process, and the run is explicitly logged
+  as controlled.
+- Resumed eval timing and federated round timing with reused stages are not
+  paper-eligible. Their accuracy remains valid.
+- `gpu_vram` means peak PyTorch allocated memory for this process, not total
+  device VRAM. Report `gpu_peak_reserved_mb` and `process_peak_rss_mb`
+  separately.
+- Official latency/resource benchmarks remain gated under T2; run each recipe
+  at least three times after fixed warm-up and report median plus dispersion.
+
+Before each future controlled resource run on GPU 1, this read-only preflight
+must return no PIDs:
+
+```powershell
+$Gpu=1; $Busy=@(nvidia-smi -i $Gpu --query-compute-apps=pid --format=csv,noheader,nounits | Where-Object { $_.Trim() -match '^\d+$' }); if ($LASTEXITCODE -ne 0) { throw "Cannot inspect GPU $Gpu" }; if ($Busy.Count -gt 0) { throw "GPU $Gpu is busy with PID(s): $($Busy -join ', ')" }; Write-Host "GPU $Gpu has no competing compute process"
+```
+
 ## Parked work
 
 - Seed 1/2 replication is retained as T7 in `PAPER_EVIDENCE_PLAN.md`; its old
   executable queue remains recoverable from Git commit `b996594`.
+- No “Centralized + CE” command is activated yet. Historical variants use
+  mismatched 1k pools or mixed CE/RKL/re-finetuning stages. Gate T1 must first
+  decide whether the official matched treatment is public-gold CE,
+  teacher-target CE, or unnecessary; only then create a new immutable lineage.
 - FedProx, heterogeneity, and sensitivity tasks remain gated.
 - ICL and FLoRA-NA remain archived negative branches.
 

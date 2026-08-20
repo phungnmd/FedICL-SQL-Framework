@@ -112,6 +112,32 @@ During and after running:
 5. update `LAB_LOG.md` with the result and its claim limit;
 6. move superseded eval runs out of the active scanner into a dated archive.
 
+### 6.2 Paper resource-measurement contract
+
+Accuracy and resource eligibility are separate. A run on a shared server may
+provide valid checkpoints and predictions while providing non-comparable wall
+time, throughput, or memory pressure.
+
+For a number to enter a paper resource table:
+
+- use a fresh, non-resumed measurement on an otherwise idle selected GPU;
+- record the exact GPU, runtime versions, precision, batch size, sequence
+  length, warm-up, measured scope, and repetition count;
+- synchronize the accelerator at timing boundaries;
+- repeat the fixed recipe at least three times and report median plus
+  dispersion;
+- report process peak RSS separately from system RAM;
+- label PyTorch allocated and reserved VRAM separately and never present either
+  as total device VRAM;
+- exclude resumed eval timing and round wall time assembled from reused stages;
+- keep offline one-time teacher/cache cost separate from recurring client,
+  server-round, and deployment inference cost.
+
+`paper_timing_eligible=true` in a result means the code observed a fresh,
+non-reused measurement path. It is necessary but not sufficient: the run log
+must also confirm exclusive hardware. Communication bytes are artifact-derived
+and do not require an exclusive machine.
+
 ## 7. Result retention
 
 Keep a result active when it directly supports a current table, claim,
