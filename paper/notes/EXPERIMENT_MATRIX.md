@@ -7,9 +7,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 
 | Priority | RQ | Comparison/evidence | Status |
 |---|---|---|---|
-| P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | Spider complete at seed 0; standard recipe selected; standard OOD/BIRD eval queued |
+| P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
-| P0 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 next after centralized OOD fill |
+| P0 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 are the active next gate |
 | P1 | cross-family portability | Gemma 2 2B T1 pure FL vs teacher-target sequence KD | gated by headline reliability; one seed/round first |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |

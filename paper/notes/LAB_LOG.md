@@ -23,8 +23,9 @@ decisions. It deliberately does not own result tables:
 - Public pool: fixed 3,873-row BIRD teacher-generated EX-match subset.
 - Canonical inference: greedy, zero-shot, `k=0`.
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
-- The matched public-supervision and centralized-recipe gates are complete.
-- P0.6, the official centralized OOD/BIRD evaluation, is the active run.
+- The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
+  gates are complete.
+- P0.7, final T3 pure-FL versus FedLS-SQL replication at seeds 1/2, is active.
 - Final T3 seed-1/2 reliability and a one-round Gemma sequence-KD portability
   screen follow only after their preceding gates pass.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -92,6 +93,10 @@ currently justify.
 - The official centralized recipe is one continuous three-epoch run at `67.31`
   Spider EX. The historical three-pass restart reaches `67.60`; their `0.29`
   difference is null (`p=0.863`) and remains schedule sensitivity only.
+- Centralized-standard reaches `55.91`, `54.06`, `53.27`, and `13.04` EX on
+  Realistic, Syn, DK, and BIRD. FedLS-SQL is respectively `+3.74`, `+1.45`,
+  `-0.56`, and `+8.54` points relative to it; only the BIRD contrast is
+  significant. Do not claim uniform OOD superiority over centralized training.
 
 ### 3.2 Mechanism evidence
 
@@ -126,6 +131,9 @@ currently justify.
 - BIRD is a cross-corpus diagnostic whose evaluation databases are disjoint
   from the public pool; it favors the BIRD-trained KD branch and is not a
   headline benchmark.
+- The completed centralized transfer suite makes the seed-0 final table whole:
+  FedLS-SQL is competitive with centralized training across the retained
+  Spider variants, while its decisive advantage remains over pure FL.
 - Current primary evidence uses one Qwen student/teacher family. The planned
   Gemma T1 gate tests family-agnostic teacher-target sequence KD only; it does
   not test cross-tokenizer reverse KL.
@@ -164,13 +172,12 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.6: fill centralized-standard Realistic, Syn, DK, and BIRD cells.
-2. P0.7/T1R: final T3 pure-FL versus full FedLS-SQL at training seeds 1/2,
+1. P0.7/T1R: final T3 pure-FL versus full FedLS-SQL at training seeds 1/2,
    Spider final endpoints only.
-3. P0.8/T1F: if T1R is stable, Gemma 2 2B T1 pure FL versus
+2. P0.8/T1F: if T1R is stable, Gemma 2 2B T1 pure FL versus
    teacher-target sequence KD, seed 0.
-4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-5. CPU-only EX-EM/error audit when it does not block the active GPU task.
+3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
+4. CPU-only EX-EM/error audit when it does not block the active GPU task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
 component seeds remain behind these gates.
@@ -189,6 +196,7 @@ component seeds remain behind these gates.
 | Matched BIRD-gold control | `processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
 | Matched T1 evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954` |
+| Centralized-standard OOD/BIRD suite | four eval runs `20260820T143356` through `20260820T150048`; nested result commit `7eb7d44` |
 | Active commands | `paper/notes/PIPELINE_NEXT.md` |
 | RQ-to-evidence status | `paper/notes/EXPERIMENT_MATRIX.md` |
 | Historical chronology | `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md` |
@@ -217,6 +225,7 @@ internal artifact identities.
 | 2026-08-20 | Continuous and restart centralized recipes are EX-equivalent; continuous selected. |
 | 2026-08-20 | Adapter-payload accounting closed at 739.111 MB/round and 2.217 GB through T3. |
 | 2026-08-20 | Paper tables moved to `paper/results/MAIN_RESULTS.md` and separated by model family/evidence role. |
+| 2026-08-20 | P0.6 filled all centralized-standard transfer cells; no uniform FedLS-over-centralized OOD claim is supported. |
 
 ## 8. Archived branches
 

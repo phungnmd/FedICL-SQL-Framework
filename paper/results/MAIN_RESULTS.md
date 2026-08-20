@@ -32,7 +32,7 @@ greedy decoding, and no ICL.
 
 | Stable ID | Method | Spider EX | Spider EM | Exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX | Evidence status |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
-| `qwen.central.standard3.s0` | Centralized-standard-3ep | 67.31 | 64.41 | 14.31 | `PENDING:P0.6` | `PENDING:P0.6` | `PENDING:P0.6` | `PENDING:P0.6` | official centralized recipe |
+| `qwen.central.standard3.s0` | Centralized-standard-3ep | 67.31 | 64.41 | 14.31 | 55.91 | 54.06 | **53.27** | 13.04 | canonical official recipe |
 | `qwen.fl.t3.s0` | Pure FL, T3 | 64.31 | 57.45 | 18.67 | 56.10 | 51.93 | 46.73 | 12.91 | canonical independent FL |
 | `qwen.fedls.t3.s0` | FedLS-SQL, T3 | **69.54** | 38.59 | **9.77** | **59.65** | **55.51** | **52.71** | **21.58** | canonical full method |
 
@@ -42,6 +42,12 @@ are significant on Spider (`p=0.0001`), Syn (`p=0.0094`), DK (`p=0.0002`), and
 BIRD (`p<1e-19`), but not Realistic (`p=0.095`). The `+2.22` Spider EX margin
 over centralized-standard is not significant (`p=0.0865`) and is not a claim of
 superiority to centralized training.
+
+The official centralized OOD suite is now complete. Relative to centralized,
+FedLS-SQL is `+3.74` EX on Realistic (`p=0.081`), `+1.45` on Syn (`p=0.337`),
+`-0.56` on DK (`p=0.842`), and `+8.54` on BIRD (`p<1e-17`). Thus the current
+evidence supports competitiveness with centralized training, not uniform OOD
+superiority. BIRD remains a public-domain-adjacent cross-corpus diagnostic.
 
 ### 2.2 Cross-family portability track
 
@@ -174,7 +180,7 @@ provisional. Final T3 seed-1/2 reliability is `PENDING:P0.7`.
 
 | Stable ID | Recipe | Spider EX | Spider EM | Exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX | Role |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
-| `qwen.central.standard3.s0` | one continuous three-epoch schedule | 67.31 | 64.41 | 14.31 | `PENDING:P0.6` | `PENDING:P0.6` | `PENDING:P0.6` | `PENDING:P0.6` | official methodology |
+| `qwen.central.standard3.s0` | one continuous three-epoch schedule | 67.31 | 64.41 | 14.31 | 55.91 | 54.06 | 53.27 | 13.04 | official methodology |
 | `qwen.central.restart3.s0` | three independently scheduled passes | 67.60 | 62.67 | 15.76 | 57.87 | 53.19 | 52.52 | 12.91 | historical sensitivity only |
 
 The paired Spider EX difference is `0.29` points (`p=0.863`). Never attach the
@@ -228,7 +234,7 @@ Supports the error analysis currently proposed in draft §4.4.
 
 | Current candidate paper evidence | Canonical section here | Coverage |
 |---|---|---|
-| Overall NL-to-SQL performance | §2 | partial: centralized P0.6 cells pending |
+| Overall NL-to-SQL performance | §2 | seed-0 final-model table complete |
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | pending controlled benchmark |
 | Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |

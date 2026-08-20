@@ -182,7 +182,7 @@ two targeted gates below establish headline reliability and model-family scope.
 
 ### T1R — final-endpoint reliability
 
-**Status:** highest-impact GPU task after the P0.6 centralized transfer suite.
+**Status:** active highest-impact GPU task; P0.6 is complete.
 
 **Question:** is the headline T3 gain over independent pure FL stable across
 training randomness, rather than a seed-0 outcome?
@@ -464,22 +464,21 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | P0.5 centralized-recipe gate | standard continuous 3 epochs versus three-pass restart on 1,034 paired Spider rows | recipes are indistinguishable in EX; select standard 67.31 as official baseline, retain restart 67.60 as schedule sensitivity | T2 resources and T1 mechanism audit |
 | 2026-08-20 | post-P0.5 evidence audit | canonical registry, committed communication metrics, and resource instrumentation | fill standard centralized OOD/BIRD cells first; communication payload needs no rerun; add fixed in-process warm-up before official latency | P0.6 centralized transfer suite |
 | 2026-08-20 | Q3 evidence-priority review | headline seed coverage, Qwen-only scope, resource claim, and compute cost | after P0.6, prioritize final T3 seed-1/2 reliability, then one-round Gemma sequence-KD portability; resource benchmark follows those scientific-validity gates | P0.6, then T1R |
+| 2026-08-20 | P0.6 centralized transfer gate | official standard adapter on Realistic, Syn, DK, and BIRD with paired final-model audit | fill final table; retain competitiveness claim but reject uniform FedLS-over-centralized OOD superiority | T1R/P0.7 |
 
 ## 6. Current next actions
 
-1. Run P0.6 from `PIPELINE_NEXT.md`: evaluate the official centralized standard
-   adapter on Realistic, Syn, DK, and BIRD, then stop and review.
-2. Activate T1R: author and run only the final T3 pure-FL versus full
+1. Run T1R/P0.7: execute only the final T3 pure-FL versus full
    FedLS-SQL contrast at training seeds 1/2 on Spider.
-3. If T1R is stable, activate T1F: smoke-test Gemma 2 2B, then run the seed-0
+2. If T1R is stable, activate T1F: smoke-test Gemma 2 2B, then run the seed-0
    T1 pure-FL versus teacher-target sequence-KD screen.
-4. After T1F, export the exact LoRA trainable-parameter count and add fixed
+3. After T1F, export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
-5. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
+4. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
    active GPU task.
-6. Decide whether seed-1/2 public-gold controls are necessary for the final
+5. Decide whether seed-1/2 public-gold controls are necessary for the final
    causal table; do not repeat all datasets or rounds automatically.
-7. Do not interpret shared-server time/RAM as official evidence;
+6. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Final T3 seed-1/2 replication is now an early targeted task under T1R. Only

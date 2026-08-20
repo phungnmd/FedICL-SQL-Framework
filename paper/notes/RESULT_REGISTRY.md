@@ -54,7 +54,10 @@ logits are not reusable across the Gemma tokenizer.
 |---|---|---|---|
 | `eval.qwen.t1.matched.s0.spider` | four-arm matched T1 ladder | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954` | canonical |
 | `eval.qwen.central.recipe.s0.spider` | standard continuous vs restart schedule | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T132026` | canonical |
-| `eval.qwen.central.standard.s0.ood` | official centralized Realistic/Syn/DK/BIRD cells | assigned after result commit | `PENDING:P0.6` |
+| `eval.qwen.central.standard.s0.realistic` | official centralized Realistic cell | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T143356` | canonical; result commit `7eb7d44` |
+| `eval.qwen.central.standard.s0.syn` | official centralized Syn cell | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T144343` | canonical; result commit `7eb7d44` |
+| `eval.qwen.central.standard.s0.dk` | official centralized DK cell | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T144700` | canonical; result commit `7eb7d44` |
+| `eval.qwen.central.standard.s0.bird` | official centralized BIRD diagnostic | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T150048` | canonical; result commit `7eb7d44` |
 
 ## 5. Registry rules
 
