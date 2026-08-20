@@ -54,8 +54,9 @@ superiority. BIRD remains a public-domain-adjacent cross-corpus diagnostic.
 This table replicates the matched mechanism ladder within Gemma. Its teacher
 targets and logits are regenerated with Gemma 2 9B; no Qwen target/cache may be
 reused. Gemma generates all 9,428 BIRD training rows and is independently
-execution-filtered to `N_gemma`; the three server-treated arms use exactly
-those rows. The Qwen-specific count 3,873 is not imposed on this track.
+filtered by the fixed 8-second quick-execution stage and the official EX scorer
+to obtain `N_gemma`; the three server-treated arms use exactly those rows. The
+Qwen-specific count 3,873 is not imposed on this track.
 
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
 |---|---|---|---|---:|---:|---:|---:|---|

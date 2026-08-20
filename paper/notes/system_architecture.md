@@ -44,7 +44,7 @@ inference from model updates.
 | Server LLM teacher | `Qwen/Qwen2.5-Coder-7B-Instruct`, frozen |
 | Client adaptation | LoRA, default `r=16`, `alpha=32` |
 | Private training | Spider non-IID client shards |
-| Public KD pool | fixed 3,873-row BIRD teacher-generated EX-match pool |
+| Primary Qwen KD pool | teacher-specific `N_qwen=3,873` BIRD targets retained by quick-exec and official EX |
 | Primary test | Spider dev, 1,034 rows |
 | Robustness tests | Spider-Realistic, Spider-Syn, Spider-DK |
 | Cross-corpus test | BIRD dev, disjoint evaluation databases |
@@ -62,7 +62,8 @@ The public targets are constructed once per frozen-teacher lineage:
 For a frozen teacher `T` and the complete public source `D_public`, define
 
 ```text
-P_T = {(x, y_hat_T) in D_public : EX(y_hat_T, y_gold) = 1}
+P_T = {(x, y_hat_T) in D_public : QuickExec_8s(y_hat_T) = 1
+                                      and EX(y_hat_T, y_gold) = 1}
 N_T = |P_T|
 ```
 
@@ -75,9 +76,10 @@ observed output for one teacher, never a method hyperparameter or portable
 public-data budget.
 
 BIRD gold SQL is used for result-based filtering, not as the canonical method's
-training target. A matched causal control replaces the teacher SQL with BIRD
-gold on the exact same 3,873 row identities; it is an ablation, not a FedLS-SQL
-component. Changing the pool or teacher cache creates a new result lineage.
+training target. In the primary Qwen lineage, a matched causal control replaces
+the teacher SQL with BIRD gold on the exact same `N_qwen=3,873` row identities;
+it is an ablation, not a FedLS-SQL component. Changing the pool or teacher cache
+creates a new result lineage.
 
 ## 4. End-to-end method
 
@@ -85,8 +87,9 @@ component. Changing the pool or teacher cache creates a new result lineage.
 OFFLINE AT SERVER
   frozen 7B teacher + public BIRD schemas/databases
     -> teacher SQL generation
-    -> execution and EX-match filtering
-    -> 3,873-row public target pool + teacher-logit cache
+    -> fixed 8-second quick-execution filter
+    -> official EX-match filter
+    -> Qwen-specific N_qwen=3,873 target pool + teacher-logit cache
 
 FOR ROUND t = 1..T
   server broadcasts global SLM LoRA adapter theta_(t-1)

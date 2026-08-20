@@ -27,9 +27,12 @@ decisions. It deliberately does not own result tables:
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
 - P0.7a passed: Gemma 2B trained/reloaded/evaluated; its eight-row `37.5 EX`
-  is diagnostic only. GPU 0 must generate Gemma targets over all 9,428 BIRD
-  training rows and derive Gemma's own EX-match pool (`N_gemma`). GPU 1 may
-  independently train pure FL, but gold CE waits for the selected indices.
+  is diagnostic only. P0.7b must use the immutable `fullsource` smoke roots
+  because the earlier smoke checkpoint came from Qwen's 3,873-row source.
+  GPU 0 must generate Gemma targets over all 9,428 BIRD training rows, then
+  apply the fixed 8-second quick-exec and official EX stages to derive
+  `N_gemma`. GPU 1 may independently train pure FL, but gold CE waits for the
+  selected indices.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -241,6 +244,7 @@ internal artifact identities.
 | 2026-08-21 | Corrected the Gemma pool design: 3,873 is Qwen's EX-match count, so Gemma now generates all 9,428 BIRD train rows and independently derives `N_gemma`; Qwen-selected indices are prohibited. |
 | 2026-08-21 | Refactored the archived Qwen selector into the active common teacher pipeline: raw generation, fixed 8-second quick-exec, then official EX match, each fingerprinted and resumable. |
 | 2026-08-21 | Added untouched Gemma 2B base to canonical P0.7d so FL and full FedLS-SQL are both anchored to the pretrained student; overnight lanes remain unchanged. |
+| 2026-08-21 | The P0.7b fingerprint guard correctly rejected an old eight-row checkpoint sourced from Qwen's 3,873-row pool; corrected Gemma smoke artifacts use new `fullsource` roots, while the old artifacts remain immutable provenance. |
 
 ## 8. Archived branches
 

@@ -35,7 +35,7 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.7a | Smoke Gemma 2B training, adapter load, and inference | complete; pipeline pass, 8-row EX is non-paper diagnostic |
 | P0.7b | Smoke Gemma 9B→2B targets, token-ID compatibility, and logit cache | **run next on GPU 0** |
 | P0.7c | Generate Gemma 9B targets for all 9,428 BIRD training rows | gated by both smokes |
-| P0.7e | EX-match Gemma targets and build its matched-gold control | gated by P0.7c; discovers `N_gemma` |
+| P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | gated by P0.7c; discovers `N_gemma` |
 | P0.7s | Train/evaluate Gemma 2B pure FL | may run concurrently on GPU 1 |
 | P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | gated by P0.7e |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |

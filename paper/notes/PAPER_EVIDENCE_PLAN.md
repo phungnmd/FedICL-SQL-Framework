@@ -212,8 +212,9 @@ training randomness, rather than a seed-0 outcome?
 
 ### T1F — second-family full-method screen
 
-**Status:** active as P0.7; run the smoke first, then one round and one seed
-before any expansion.
+**Status:** active as P0.7; the Gemma 2B client smoke passed. Run the
+teacher/tokenizer/cache smoke next, then one round and one seed before any
+expansion.
 
 **Question:** does the complete teacher-guided server stage transfer from the
 Qwen family to a second, internally tokenizer-compatible Gemma teacher/student
@@ -481,7 +482,8 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | Q3 evidence-priority review | headline seed coverage, Qwen-only scope, resource claim, and compute cost | after P0.6, prioritize final T3 seed-1/2 reliability, then one-round Gemma sequence-KD portability; resource benchmark follows those scientific-validity gates | P0.6, then T1R |
 | 2026-08-20 | P0.6 centralized transfer gate | official standard adapter on Realistic, Syn, DK, and BIRD with paired final-model audit | fill final table; retain competitiveness claim but reject uniform FedLS-over-centralized OOD superiority | T1R/P0.7 |
 | 2026-08-20 | post-P0.6 priority revision | advisor outline ablations, Qwen-only limitation, existing seed-0 breadth, and user compute priority | defer final seed replication; activate a cheap Gemma smoke followed by a matched FL/public-gold/teacher-target T1 portability ladder | T1F/P0.7a |
-| 2026-08-21 | same-family replication revision | a mixed Qwen-teacher/Gemma-student run cannot test the full reverse-KL endpoint | use Gemma 2 9B→2B, regenerate targets and logits, and compare the full four-arm ladder after strict tokenizer validation | T1F/P0.7a-d |
+| 2026-08-21 | same-family replication revision | a mixed Qwen-teacher/Gemma-student run cannot test the full reverse-KL endpoint | use Gemma 2 9B→2B, regenerate targets and logits, and compare the five-arm base/FL/gold/target/full ladder after strict tokenizer validation | T1F/P0.7a-d |
+| 2026-08-21 | Gemma lineage correction | fingerprint audit found the old smoke output was sourced from Qwen's selected 3,873 rows | use new immutable `fullsource` smoke roots and the common raw-generation → 8-second quick-exec → official-EX selector over all 9,428 BIRD rows | T1F/P0.7b-e |
 
 ## 6. Current next actions
 

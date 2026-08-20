@@ -52,8 +52,10 @@ Gemma targets and logits must be regenerated with `google/gemma-2-9b-it` and
 must never reuse Qwen artifacts. `gemma.fedls.t1.s0` becomes eligible only after
 the exact Gemma 9B/2B token-to-ID compatibility check passes. Its public pool
 must be derived by generating all 9,428 BIRD training rows and independently
-filtering Gemma execution matches; Qwen's 3,873 selected indices are invalid
-inputs to this track.
+applying the fixed 8-second quick-execution filter followed by the official EX
+stage. Qwen's 3,873 selected indices are invalid inputs to this track. P0.7b
+uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matching
+`gemma2_9b_to_2b_smoke8_fullsource_k0` cache root.
 
 ## 4. Canonical evaluation artifacts
 
