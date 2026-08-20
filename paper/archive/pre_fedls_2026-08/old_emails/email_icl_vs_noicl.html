@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kết quả pipeline non-ICL: federated nhiều round + server KD</title>
+</head>
+<body style="margin:0; padding:24px; background:#ffffff; color:#202124; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.55;">
+  <div style="max-width:760px; margin:0 auto;">
+    <p style="margin:0 0 20px;"><strong>Tiêu đề:</strong> Kết quả pipeline non-ICL: federated nhiều round + server KD</p>
+
+    <p style="margin:0 0 14px;">Chào Thầy,</p>
+
+    <p style="margin:0 0 20px;">
+      Em xin cập nhật kết quả paper với student Qwen2.5-1.5B-Instruct, teacher
+      Qwen2.5-Coder-7B-Instruct và greedy decoding.
+    </p>
+
+    <h2 style="margin:24px 0 10px; font-size:18px; line-height:1.3; color:#202124;">1. Đề xuất bỏ ICL</h2>
+
+    <p style="margin:0 0 12px;">
+      Spider dev, 1.034 mẫu. <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">Train k</code>
+      là số demo lúc fine-tuning, <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">Eval k</code>
+      là số demo lúc inference.
+    </p>
+
+    <div style="margin:12px 0 16px; text-align:left;">
+      <img
+        src="Screenshot%202026-08-19%20at%2010.10.03.png"
+        alt="Bảng so sánh ICL và non-ICL"
+        width="661"
+        style="display:block; width:100%; max-width:661px; height:auto; border:0;"
+      >
+    </div>
+
+    <ul style="margin:8px 0 14px; padding-left:22px;">
+      <li style="margin:0 0 6px;">
+        Demo lúc inference làm giảm EX ở cả centralized và federated; train/eval cùng.
+        <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">k=3</code>
+        không khắc phục được suy giảm.
+      </li>
+      <li style="margin:0 0 6px;">ICL chỉ có tác dụng ở base model (đã thử trên vài model khác cho kết quả tương tự)</li>
+      <li style="margin:0;">Phương pháp ICL hiện tại đã là tốt nhất từ các phương pháp e đã thử trên nhiều model.</li>
+    </ul>
+
+    <p style="margin:0 0 22px;">
+      Nên em đề xuất <strong>bỏ ICL khỏi method chính</strong> , mong thầy review chỗ này giúp em.
+    </p>
+
+    <h2 style="margin:24px 0 10px; font-size:18px; line-height:1.3; color:#202124;">2. Kết quả pipeline non-ICL</h2>
+
+    <p style="margin:0 0 18px;">
+      Pipeline:
+      <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">client_ft</code>
+      →
+      <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">fedavg</code>
+      →
+      <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">server_kd</code>
+      (CE + reverse KL trên public pool), lặp qua từng round. Mỗi round cho client đi qua private data đúng 1 pass,
+      nên round <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">N</code>
+      được matched với centralized <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">N</code>
+      epoch theo số lượt train trên Spider data.
+    </p>
+
+    <h3 style="margin:20px 0 10px; font-size:16px; line-height:1.3; color:#202124;">2.1. Kết quả theo data pass — Spider dev</h3>
+
+    <div style="margin:12px 0 16px; text-align:left;">
+      <img
+        src="Screenshot%202026-08-19%20at%2010.10.21.png"
+        alt="Bảng kết quả theo data pass trên Spider dev"
+        width="698"
+        style="display:block; width:100%; max-width:698px; height:auto; border:0;"
+      >
+    </div>
+
+    <ul style="margin:8px 0 18px; padding-left:22px;">
+      <li style="margin:0 0 6px;">
+        Federated tăng <strong>6,19 EX</strong> từ round 1 đến round 3 và có thể tiếp tục tăng ở round sau;
+        centralized gần như dừng sau epoch 2 đã bão hòa.
+      </li>
+      <li style="margin:0 0 6px;">Ở pass 3, federated đạt 69,54 EX vượt centralized đạt 67,60 EX</li>
+      <li style="margin:0;">
+        Exec. error của federated giảm còn <strong>9,77%</strong>, so với 15,76% của centralized.
+        EM chỉ so sánh trong cùng stage vì server KD thay đổi cách biểu diễn SQL.
+      </li>
+    </ul>
+
+    <h3 style="margin:20px 0 10px; font-size:16px; line-height:1.3; color:#202124;">2.2. Robustness và vai trò của fedavg và KD</h3>
+
+    <div style="margin:12px 0 16px; text-align:left;">
+      <img
+        src="Screenshot%202026-08-19%20at%2010.10.37.png"
+        alt="Bảng robustness trên Spider và BIRD dev"
+        width="629"
+        style="display:block; width:100%; max-width:629px; height:auto; border:0;"
+      >
+    </div>
+
+    <p style="margin:8px 0 6px;"><strong>Ý chính:</strong></p>
+    <ul style="margin:0 0 18px; padding-left:22px;">
+      <li style="margin:0 0 6px;">
+        Round 3 tăng <strong>+10,69 đến +19,54 EX</strong> so với base và bằng hoặc hơn centralized
+        3 epoch trên cả năm bộ.
+      </li>
+      <li style="margin:0 0 6px;">
+        Hai component bổ sung nhau: federation mạnh trên các biến thể Spider, server KD mạnh trên BIRD
+        và giảm exec. error ở 12/12 cell.
+      </li>
+      <li style="margin:0;">BIRD dev vì hiện đang chỉ KD từ data mà teacher sinh ra đúng (40%) nên EX thấp.</li>
+    </ul>
+
+    <p style="margin:0;">
+      Em xin ý kiến Thầy về vấn đề bỏ ICL khỏi method chính và nếu bỏ thì chỉ Fed + KD thì bài có đủ value
+      hay cần đổi hướng khác, mong Thầy review giúp em.
+    </p>
+  </div>
+</body>
+</html>

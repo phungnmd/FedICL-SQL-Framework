@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>So sánh kết quả cuối cùng: Centralized, FL và FL-KD</title>
+</head>
+<body style="margin:0; padding:24px; background:#ffffff; color:#202124; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.55;">
+  <div style="max-width:720px; margin:0 auto;">
+    <p style="margin:0 0 20px;"><strong>Tiêu đề:</strong> So sánh kết quả cuối cùng: Centralized, FL và FL-KD</p>
+
+    <p style="margin:0 0 14px;">Chào Thầy,</p>
+
+    <p style="margin:0 0 16px;">
+      Em đã tổng hợp lại kết quả chính, chỉ giữ ba model cuối cùng: Centralized, FL và FL-KD.
+      Cả ba đều dùng Qwen2.5-1.5B-Instruct và được so sánh tại ba lượt train trên Spider data.
+    </p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px; line-height:1.3; color:#202124;">1. Đề xuất bỏ ICL</h2>
+
+    <ul style="margin:0 0 12px; padding-left:22px;">
+      <li style="margin:0 0 6px;">Demo lúc inference làm giảm EX ở cả Centralized (<strong>−5,42</strong>) và Federated (<strong>−4,64</strong>); train/eval cùng <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">k=3</code> không khắc phục được suy giảm.</li>
+      <li style="margin:0;">Đây đã là cấu hình ICL tốt nhất trong các phương pháp em thử, và xu hướng tương tự xuất hiện trên nhiều model.</li>
+    </ul>
+
+    <p style="margin:0 0 18px;">Vì vậy, em đề xuất bỏ ICL khỏi method chính và chỉ giữ như negative ablation.</p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px; line-height:1.3; color:#202124;">2. So sánh kết quả cuối cùng</h2>
+
+    <table summary="So sánh kết quả Centralized, FL và FL-KD" cellspacing="0" cellpadding="0" style="width:100%; max-width:650px; margin:12px 0 18px; border-collapse:collapse; font-size:14px;">
+      <thead>
+        <tr style="background:#f1f3f4;">
+          <th style="padding:8px 10px; border-bottom:2px solid #9aa0a6; text-align:left;">Model</th>
+          <th style="padding:8px 10px; border-bottom:2px solid #9aa0a6; text-align:left;">Cấu hình cuối</th>
+          <th style="padding:8px 10px; border-bottom:2px solid #9aa0a6; text-align:right;">EX</th>
+          <th style="padding:8px 10px; border-bottom:2px solid #9aa0a6; text-align:right;">EM</th>
+          <th style="padding:8px 10px; border-bottom:2px solid #9aa0a6; text-align:right;">Exec. error</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;">Centralized</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;">3 epoch</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;">67,60</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><strong>62,67</strong></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;">15,76%</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;">FL</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;">3 round, pure-FL ablation</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><em>Pending</em></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><em>Pending</em></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><em>Pending</em></td>
+        </tr>
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;"><strong>FL-KD</strong></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0;"><strong>3 round</strong></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><strong>69,54</strong></td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;">38,59</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #dadce0; text-align:right;"><strong>9,77%</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin:0 0 6px;"><strong>Kết luận:</strong></p>
+    <ul style="margin:0 0 16px; padding-left:22px;">
+      <li style="margin:0 0 6px;">FL-KD đạt 69,54 EX, hơn Centralized <strong>1,94 EX</strong>. Chênh lệch với FL sẽ được điền sau khi ablation hoàn tất.</li>
+      <li style="margin:0 0 6px;">FL-KD cũng có execution error thấp nhất: <strong>9,77%</strong>.</li>
+      <li style="margin:0;">EM sau KD không so sánh trực tiếp với hai model còn lại vì teacher thay đổi cách biểu diễn SQL; vì vậy kết luận chính dựa trên EX và execution error.</li>
+    </ul>
+
+    <p style="margin:0 0 14px;">
+      Trên các bộ robustness, FL-KD cũng bằng hoặc cao hơn Centralized. Em đính kèm file tổng hợp đầy đủ metric của ba model để Thầy xem thêm.
+    </p>
+
+    <p style="margin:0 0 6px;">Em xin ý kiến Thầy về hai điểm:</p>
+    <ol style="margin:0 0 14px; padding-left:22px;">
+      <li style="margin:0 0 6px;">Có nên bỏ ICL khỏi method chính và giữ như negative ablation không?</li>
+      <li style="margin:0;">Sau khi có kết quả FL-only, hướng <code style="font-family:Consolas, 'Courier New', monospace; background:#f1f3f4; padding:1px 4px; border-radius:3px;">FL + KD</code> có đủ giá trị và nên positioning như thế nào?</li>
+    </ol>
+
+    <p style="margin:0;">Trân trọng,<br><br>[Tên của bạn]</p>
+  </div>
+</body>
+</html>

@@ -1,363 +1,201 @@
-# Fed-ICKD — System Architecture
+# FedLS-SQL — System Architecture
 
-**Federated In-Context Knowledge Distillation for Text-to-SQL**
+> Canonical design record from 2026-08-19. It supersedes the FedICL-SQL and
+> Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
+> lives in `LAB_LOG.md`; superseded documents are retained under
+> `paper/archive/pre_fedls_2026-08/`.
 
-> Current design record. Rewritten 2026-07-31 to remove superseded branches.
-> Detailed run history belongs in `LAB_LOG.md`; exact CLI flags belong in the
-> experiment code and READMEs.
+## 1. Research problem
 
-## 1. Goal and research questions
-
-Fed-ICKD trains a small open-source Text-to-SQL model across organizations
-without centralizing their databases, schemas, or query logs. A frozen 7B
-teacher is used only at the server on public data. Deployment uses the 1.5B
-student locally, with no teacher, API call, or server round-trip.
+FedLS-SQL studies whether collaboration between a server-side large language
+model (LLM) and federated small language models (SLMs) can overcome the accuracy
+limitations of lightweight federated NL-to-SQL while preserving its privacy,
+communication-efficiency, and resource advantages.
 
 The project answers four questions:
 
-1. **Federation:** can schema/domain-skewed clients collaboratively train a
-   useful Text-to-SQL student while exchanging only LoRA adapters?
-2. **Aggregation:** does sample-weighted FLoRA-NA improve over factor-wise
-   weighted FedAvg for LoRA aggregation?
-3. **Knowledge distillation:** after controlling for public-data exposure,
-   does server-side reverse-KL distillation improve the aggregated model?
-4. **ICL:** does training and evaluating the federated student with private
-   client demonstrations help, even though adding demonstrations only at
-   inference to a `k=0`-trained centralized model was harmful?
+1. **Accuracy:** does server-side LLM-to-SLM transfer improve federated
+   NL-to-SQL over pure FL and centralized SLM training?
+2. **Efficiency:** can the method remain practical for resource-constrained
+   clients and communicate only parameter-efficient updates?
+3. **Federated behavior:** how does LLM guidance affect convergence and
+   generalization under non-IID data?
+4. **Trade-offs:** what accuracy is obtained for the communication, training,
+   and inference cost?
 
-Success is measured primarily by Spider execution accuracy (EX), plus exact
-match (EM), execution-error rate, latency, VRAM, and the share of the
-base-to-teacher gap recovered:
+## 2. System setting and privacy boundary
 
-```text
-gap_recovery = (method_EX - base_EX) / (teacher_EX - base_EX)
-```
+Client `i` owns a private database/schema `S_i` and private examples
+`Q_i = {(question, gold_SQL)}`. Spider training databases are partitioned among
+clients; the current headline split uses `K=5`, Dirichlet `alpha=0.5`, seed 0.
 
-No final claim is made until the complete federated pipeline and the matched
-ICL-training comparison have run.
+Only LoRA adapter parameters are exchanged. Raw rows, database contents,
+schemas, questions, and SQL never leave a client. The server-side teacher sees
+only the public pool. This is a **structural data-isolation claim**, not formal
+differential privacy, secure aggregation, or protection against information
+inference from model updates.
 
-## 2. Setting and privacy boundary
+## 3. Models, data, and training units
 
-Client `i` owns:
-
-- private database and schema `S_i`;
-- private examples `Q_i = {(question, gold_SQL)}`;
-- a private ICL demo pool drawn only from `Q_i`.
-
-Spider train databases are partitioned non-IID by domain group. The default
-headline setup is `K=5`, Dirichlet `alpha=0.5`; `alpha=0.1` and IID are
-robustness settings.
-
-Only LoRA adapters cross the network. Raw rows, schemas, questions, SQL,
-demos, and retrieval embeddings never leave the client. The server teacher
-never receives client data and sees only the public pool `P`. This is a
-structural isolation claim, not formal differential privacy.
-
-## 3. Models and data
-
-| Component | Default |
+| Component | Canonical setting |
 |---|---|
-| Student | `Qwen/Qwen2.5-1.5B-Instruct` |
-| Teacher | `Qwen/Qwen2.5-Coder-7B-Instruct`, frozen |
-| Adapter | LoRA `r=16`, `alpha=32`, attention + MLP projections |
-| Private training data | Non-IID Spider train shards |
-| Evaluation | Frozen Spider dev, 1,034 rows |
-| Public pool `P` | Frozen 8,127-row BIRD teacher-generated EX-match pool |
+| Client/deployed SLM | `Qwen/Qwen2.5-1.5B-Instruct` |
+| Server LLM teacher | `Qwen/Qwen2.5-Coder-7B-Instruct`, frozen |
+| Client adaptation | LoRA, default `r=16`, `alpha=32` |
+| Private training | Spider non-IID client shards |
+| Public KD pool | fixed 3,873-row BIRD teacher-generated EX-match pool |
+| Primary test | Spider dev, 1,034 rows |
+| Robustness tests | Spider-Realistic, Spider-Syn, Spider-DK |
+| Cross-corpus test | BIRD dev, disjoint evaluation databases |
 
-The public pool uses BIRD schemas and databases, but not BIRD gold SQL text as
-the training target:
+The public targets are constructed once:
 
-1. the teacher generates SQL zero-shot;
-2. generated SQL must execute;
-3. its execution result must match the BIRD gold result;
-4. the retained teacher SQL becomes `y_pub`;
-5. teacher logits on `y_pub` are cached offline.
+1. the frozen teacher generates SQL zero-shot on public BIRD examples;
+2. the SQL must execute;
+3. its execution result must match the gold execution result;
+4. the retained teacher SQL becomes the public hard target;
+5. teacher logits on the same target span are cached.
 
-Gold SQL is therefore a row-selection oracle only. All default KD arms must
-use the same ordered 8,127 rows and record the pool hash. Smaller pools are
-explicit smoke or data-budget ablations.
+BIRD gold SQL is used for result-based filtering, not as the training target.
+Changing the pool or teacher cache creates a new result lineage.
 
-## 4. End-to-end pipeline
-
-```text
-OFFLINE ON SERVER
-  Teacher 7B + public BIRD schemas/DBs
-  -> zero-shot SQL generation
-  -> execution + EX-match filtering
-  -> frozen y_pub pool
-  -> full-vocabulary teacher-logit cache
-
-ROUND t = 1..T
-  Server broadcasts global LoRA adapter theta_(t-1)
-
-  Each client i:
-    load theta_(t-1)
-    train student on private Q_i with CE
-    optionally inject private ICL demos using the matched ICL protocol
-    upload the trained adapter only
-
-  Server:
-    aggregate client adapters with weighted FedAvg or weighted FLoRA-NA
-    optionally continue on P with public CE
-    optionally continue on P with public CE + reverse KL
-    broadcast theta_t
-
-INFERENCE AT CLIENT
-  student + theta_T
-  -> k=0 or matched private-demo ICL prompt
-  -> greedy decode for the controlled ICL comparison
-  -> optional self-consistency execution voting after the base comparison
-```
-
-## 5. Client training and ICL
-
-### 5.1 Control condition
-
-The control uses no demonstrations:
+## 4. End-to-end method
 
 ```text
-train_k = 0
-eval_k  = 0
-L_client = CE(student(schema, question), gold_SQL)
+OFFLINE AT SERVER
+  frozen 7B teacher + public BIRD schemas/databases
+    -> teacher SQL generation
+    -> execution and EX-match filtering
+    -> 3,873-row public target pool + teacher-logit cache
+
+FOR ROUND t = 1..T
+  server broadcasts global SLM LoRA adapter theta_(t-1)
+
+  each client i:
+    train theta_i on private Q_i with gold cross-entropy
+    upload theta_i only
+
+  server:
+    sample-weighted factor-wise FedAvg -> theta_FL,t
+    public CE + reverse-KL distillation -> theta_FedLS,t
+    broadcast theta_FedLS,t
+
+DEPLOYMENT
+  SLM + final LoRA adapter -> greedy zero-shot NL-to-SQL inference
 ```
 
-### 5.2 ICL candidate retained for the full-pipeline test
+No in-context examples are used in the canonical client training, server KD,
+or evaluation protocol (`train_k=0`, `k_teacher=0`, `eval_k=0`).
 
-The selected candidate is:
+## 5. Optimization objectives
 
-| Setting | Value |
-|---|---|
-| Retrieval | `dail_weighted` |
-| Number of demos | `k=3` |
-| Demo format | `question + SQL`, no demo schema (`never_schema`) |
-| Demo pool | the same client's private `Q_i` only |
-| Train/eval parity | fixed `k=3` at both training and evaluation |
-| Training loss | target SQL only (`demo_loss=false`) |
-| Schema format | `full` |
+### 5.1 Client objective
 
-`dail_weighted` is selected because it was the best deployable method in the
-completed centralized inference-only matrix: 64.60 EX at `k=3`. It still lost
-to the matched `k=0` result of 67.31 EX, so this is a **candidate**, not a
-positive finding.
+Each client trains only on its private gold SQL:
 
-The old matrix does not answer the current question: its adapter was trained
-with `k=0`, then demos were introduced only at evaluation. It establishes
-that unmatched inference-time ICL is harmful, but it does not test:
+```text
+L_client = CE(q_student, y_private)
+```
 
-- in-context training with matched prompts;
-- private per-client demo pools;
-- non-IID federated training;
-- interaction between ICL, aggregation, and server KD.
+### 5.2 Federated aggregation
 
-Therefore ICL remains in the project until the matched federated experiment is
-complete.
+The default aggregator is sample-weighted factor-wise FedAvg over compatible
+LoRA adapters:
 
-### 5.3 Implemented ICL execution contract
+```text
+theta_FL,t = sum_i (n_i / sum_j n_j) * theta_i,t
+```
 
-The federated runner now exposes and fingerprints the complete client ICL
-protocol: retrieval method, fixed demo count, demo/schema styles, embedder,
-DAIL weights, and shortlist size. For `dail_weighted`, each client generates
-and caches draft SQL skeletons using the global student at the start of the
-round, then ranks its private candidates with the same weighted DAIL rule used
-at evaluation. Missing draft skeletons are fatal; the run cannot silently fall
-back to masked-question retrieval while being reported as `dail_weighted`.
+FLoRA-NA was evaluated but did not improve the retained comparisons and is not
+a contribution of FedLS-SQL.
 
-The setup identity separates ICL from no-ICL client training, while irrelevant
-retrieval flags do not split `k=0` controls. Evaluation fingerprints also
-include model, pool, prompt, retrieval, embedder, and DAIL settings, preventing
-stale per-round results from being reused under a changed protocol.
+### 5.3 Server LLM-to-SLM transfer
 
-Deterministic tests cover private-pool/self-exclusion behavior in the existing
-retriever suite, exact client ICL propagation, round-start draft generation,
-cache use, setup/fingerprint separation, and the fatal missing-draft path. A
-capped GPU smoke remains required before the full run.
+Starting from the aggregated adapter, the server optimizes the SLM on public
+teacher targets:
 
-### 5.4 ICL decision experiment
+```text
+L_server = lambda_CE * CE(q_student, y_teacher)
+         + lambda_KD * KL(q_student || p_teacher)
+```
 
-The primary comparison is matched and changes only the ICL protocol:
+This implementation is teacher-target sequence KD plus token-level reverse KL.
+It must not be described as a separate “structural distillation” mechanism
+unless such a component is later defined, implemented, and ablated.
 
-| Condition | Client train | Evaluation |
+## 6. Canonical comparisons
+
+The primary final-model comparison is:
+
+| Paper label | Training path | Canonical checkpoint |
 |---|---|---|
-| no ICL | `k=0` | greedy `k=0` |
-| ICL | fixed `dail_weighted k=3` | greedy `dail_weighted k=3` |
+| Centralized | three Spider passes, no FL/KD | `artifacts/probe_p/central_3ep/adapter` |
+| FL | three pure FedAvg rounds, no teacher/public pool | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` |
+| FedLS-SQL (FL-KD) | three rounds of FedAvg followed by server KD | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` |
 
-Run this comparison first on the full proposed federated arm
-(`florana_kd`) using identical split, initialization, aggregation, public
-pool, server step, seed, and training budget.
+The `round_2/round_3/fedavg_adapter` objects inside the `fedkd` lineage are not
+pure-FL controls: they inherit the previous round's post-KD global adapter.
 
-To localize any effect, retain the same comparison on `fedavg` or `florana`
-if compute allows. Only after the greedy comparison is understood should the
-winning training condition be evaluated with self-consistency. This prevents
-SC from hiding or manufacturing the ICL effect.
+Additional ablations isolate:
 
-ICL is dropped from the main method only if matched in-context training fails
-to improve the federated method across the planned seeds, or if any gain is
-dominated by its measured cost. The centralized `k=0`-trained matrix alone is
-not a system-level drop gate.
+- base SLM;
+- centralized SLM fine-tuning;
+- pure FL;
+- public hard-target CE without teacher logits;
+- distillation without private federation;
+- full FedLS-SQL;
+- teacher direction/objective variants where already measured.
 
-## 6. Federated aggregation
+## 7. Evaluation contract
 
-For client weight `p_i = n_i / sum_j(n_j)` and LoRA update
-`Delta W_i = B_i A_i`, the desired model-space update is:
+Primary metrics:
 
-```text
-Delta W* = sum_i p_i B_i A_i
-```
+- execution accuracy (EX);
+- exact match (EM);
+- execution-error rate.
 
-Factor-wise FedAvg instead produces:
+Efficiency metrics required by the new paper framing:
 
-```text
-(sum_i p_i B_i)(sum_i p_i A_i)
-```
+- trainable and transmitted parameter counts;
+- adapter bytes per client and total bytes per round;
+- training wall time and rounds to convergence;
+- client/server peak VRAM, with CPU memory where measurable;
+- deployed SLM inference latency.
 
-which contains cross-client terms and generally differs from `Delta W*`.
-It remains the principal aggregation baseline.
+All headline comparisons use the same frozen test rows, greedy decoding, and
+`k=0`. Every result must retain its dataset, seed, checkpoint, run
+configuration, and Git SHA.
 
-Weighted FLoRA-NA finds client-combination coefficients `u,v` such that:
+## 8. Current evidence and open gaps
 
-```text
-B_hat = sum_i u_i B_i
-A_hat = sum_i v_i A_i
+Established evidence:
 
-minimize || B_hat A_hat - Delta W* ||_F^2
-```
+- FedLS-SQL reaches 69.54 Spider EX at `T=3`, seed 0;
+- at T3, FedLS-SQL improves over the independent pure-FL lineage by 5.23 EX
+  on Spider (`p=0.0001`), with positive deltas on all four additional tests;
+- the `T=1 -> T=3` trajectory improves Spider and all three perturbation sets;
+- server KD is strongly beneficial on BIRD cross-corpus evaluation;
+- ICL is negative for the tested 1.5B student and is retained only as a
+  negative ablation;
+- factor-wise FedAvg is the selected aggregator.
 
-The result remains one rank-`r` LoRA adapter. Both aggregators must report:
+Blocking evidence gaps:
 
-```text
-e_agg = ||Delta W* - B_hat A_hat||_F / (||Delta W*||_F + epsilon)
-```
+1. consolidate communication and resource metrics;
+2. replicate the multi-round trajectory across additional seeds.
 
-per layer and overall.
+Outline items not yet supported by current evidence include FedProx, a full
+IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual
+large-model federated baseline. These remain optional experiments, not current
+claims.
 
-## 7. Server distillation
+## 9. Naming and provenance policy
 
-After aggregation, the server may continue the adapter on `P`:
+- **Paper/method name:** FedLS-SQL.
+- **Legacy paper names:** FedICL-SQL, Fed-ICKD, and Fed-ICL-KD are historical.
+- **Internal arm names:** `fedavg`, `fedkd`, and existing run IDs remain stable.
+- **Python namespace:** `fedicl_sql` remains unchanged for compatibility.
+- **Artifact paths:** never rename old checkpoints or evaluation directories.
+- **ICL code:** retained for reproducibility but outside the main method.
 
-```text
-L_server = lambda_ft * CE(student, y_pub)
-         + lambda_kd * RKL(q_student || p_teacher)
-```
-
-Defaults are `lambda_ft=lambda_kd=1`. Reverse KL is computed over the common
-teacher/student vocabulary prefix in float32.
-
-RKD is the current direction:
-
-- centralized `central_rkd - central_ft = +6.09 EX`;
-- the paired gain is significant (`p=3.1e-7`);
-- KID was 1.45 EX below RKD, but the difference was not significant
-  (`p=0.072`, one seed);
-- RKD uses fixed targets, so teacher logits can be cached once.
-
-This supports the existence of a KD signal but does not yet prove that
-server-side KD improves the complete federated method. That claim requires
-`*_kd` versus the matched public-CE control.
-
-## 8. Inference
-
-Greedy decoding is the primary controlled evaluation for training and
-ablation comparisons.
-
-Self-consistency execution voting is an optional deployment overlay:
-
-1. sample `N=8` candidates at `temperature=0.8`, `top_p=0.95`;
-2. execute them on the client's local database;
-3. group candidates by equivalent execution result;
-4. select the majority group, breaking ties by mean log-probability.
-
-SC previously beat verifier-gated retry on one centralized adapter, but it
-must be requested explicitly with `--overlay sc`. It is evaluated only after
-the matched greedy comparison because it changes decoding cost and can
-interact with ICL.
-
-## 9. Experiment ladder
-
-### 9.1 Main federated arms
-
-| Arm | Aggregation | Server step | Purpose |
-|---|---|---|---|
-| `central` | none | centralized private-data FT | non-private upper reference |
-| `fedavg` | factor-wise FedAvg | none | FL baseline |
-| `fedavg_pub` | factor-wise FedAvg | public CE | public-exposure control |
-| `fedkd` | factor-wise FedAvg | public CE + RKL | KD after baseline aggregation |
-| `florana` | weighted FLoRA-NA | none | aggregation contribution |
-| `florana_pub` | weighted FLoRA-NA | public CE | matched public-exposure control |
-| `florana_kd` | weighted FLoRA-NA | public CE + RKL | proposed KD backbone |
-| `teacher` | none | frozen 7B inference | reference |
-
-The main causal contrasts are:
-
-```text
-aggregation value = florana - fedavg
-teacher/RKL value = florana_kd - florana_pub
-public CE effect  = florana_pub - florana
-ICL value         = florana_kd[train/eval k3] - florana_kd[train/eval k0]
-```
-
-Do not assume any ordering before the runs finish.
-
-### 9.2 Execution order
-
-1. Close the `dail_weighted` train/federated wiring and run deterministic
-   prompt preflight.
-2. Run a capped `K=2, T=1` six-arm smoke.
-3. Run the shared-client `K=5, T=1` aggregation/server ladder.
-4. Run the matched `florana_kd` no-ICL versus ICL-training comparison.
-5. Inspect `e_agg`, post-aggregation/post-server EX, execution errors, and
-   per-client variance.
-6. Extend only viable arms to `T=2`, then `T=3`.
-7. Run the selected headline conditions for three seeds; extend toward
-   `T=15` only if round trends justify it.
-8. Evaluate SC composition on the winning trained condition.
-
-## 10. Evidence currently retained
-
-| Finding | Scope |
-|---|---|
-| Centralized RKD beats FT by 6.09 EX | strong paired result, one training seed |
-| RKD beats KID by 1.45 EX | provisional; `p=0.072` |
-| Zero-shot teacher target generation beats teacher ICL on BIRD | closed for tested target-generation setup |
-| `dail_weighted k=3` is the best tested deployable ICL retriever | selection fact, not a positive ICL result |
-| All inference-only ICL cells hurt the `k=0`-trained Model A | closed for that centralized unmatched setup |
-| SC beat verifier-gated retry | provisional deployment result, one sampling seed |
-| Full federated method improves accuracy | **not tested yet** |
-| Matched federated in-context training helps or hurts | **not tested yet** |
-
-## 11. Invariants
-
-1. Private data, schema, demos, and embeddings never leave the client.
-2. The teacher never touches client data.
-3. Test examples are never used as training or retrieval demos.
-4. Client/demo pools and evaluation databases remain disjoint as configured.
-5. All compared KD arms use the same ordered public pool and recorded hash.
-6. Reverse KL means `RKL(q_student || p_teacher)`; relational KD is not used.
-7. Comparisons change one named factor at a time and share seeds/splits where
-   pairing is claimed.
-8. Every reported result records model, adapter, data, prompt, retrieval,
-   decoding, and seed identity.
-9. Negative results remain reportable; their scope must not be generalized
-   beyond the experiment that produced them.
-10. No formal DP claim is made without an explicit DP mechanism and privacy
-    accounting.
-
-## 12. Current status
-
-Implemented:
-
-- non-IID Spider partitioning;
-- client LoRA training with optional train-time demos;
-- factor-wise weighted FedAvg and weighted FLoRA-NA;
-- public CE and cached-logit RKD server stages;
-- six-arm federated orchestration with checkpoint/resume, setup identity,
-  manifests, and round lineage;
-- greedy and SC evaluation;
-- reproducible retrieval/evaluation artifacts.
-
-Pending before paper claims:
-
-- complete `dail_weighted` train/federated wiring;
-- real `K=5` federated results;
-- matched federated ICL-training comparison;
-- multi-round and multi-seed confirmation;
-- final method name/title decision after the ICL result.
+Presentation names may change; provenance identifiers must not.

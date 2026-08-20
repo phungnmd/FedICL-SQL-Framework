@@ -1,693 +1,294 @@
-# FedICL-SQL — Condensed Lab Log
+# FedLS-SQL — Active Lab Log
 
-> Rewritten 2026-07-31. This file keeps only decisions, results, and
-> implementation milestones needed to reproduce the current research path.
-> Superseded discussion remains available in Git history. Per-run truth lives
-> in `experiments/*/results/*/{config,metrics,predictions}.*`.
+> Refreshed 2026-08-20. This is the compact evidence ledger for the current
+> paper. The complete chronology through this date is preserved at
+> `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`.
 
-## Current snapshot
+This file records only the current protocol, decision-relevant results, claim
+limits, open work, and provenance. Detailed method description belongs in
+`system_architecture.md`; executable commands belong in `PIPELINE_NEXT.md`;
+canonical checkpoint labels belong in `RESULT_REGISTRY.md`.
 
-- Proposed system: private client FT + weighted FLoRA-NA + server public
-  CE/reverse-KL.
-- Student/teacher: Qwen2.5-1.5B-Instruct /
-  Qwen2.5-Coder-7B-Instruct.
-- Public KD data: fixed 8,127-row BIRD teacher-generated EX-match pool.
-- ICL status (revised 2026-08-10): **measured and negative** in the matched
-  federated experiment. In-context client training costs `2.90 EX` before the
-  server step (`p=0.008`); demos at inference cost `3.87 EX` (`p=0.003`);
-  training costs `2.35x`. Proposed demotion to a §5 negative result, with the
-  method name `Fed-ICKD` no longer matching the evidence. Advisor sign-off
-  required before the paper's framing changes.
-- Selected ICL candidate: `dail_weighted`, fixed `k=3`, `never_schema`,
-  client-private demo pool, matched at train and eval.
-- Important scope correction: the negative 2026-07-29 result tested
-  inference-only ICL on a centralized adapter trained with `k=0`. It does not
-  settle matched in-context training or federated ICL.
-- Both `K=5, T=1, seed 0` ladders are trained and evaluated at `k=0`. The ICL
-  side additionally has all `k=3` cells; the no-ICL side has none of them.
-- Established at one seed with paired tests: server-side reverse KL beats its
-  matched SeqKD control by `+2.03 EX (p=0.042)` on the no-ICL ladder and
-  `+2.51 EX (p=0.013)` on the ICL ladder. This is the paper's contribution.
-- On 2026-08-10 the aggregation choice was settled: factor-wise FedAvg is the
-  default. FLoRA-NA lost or tied all four `k=0` head-to-head cells and is
-  removed from the contribution list.
-- The binding gap is now replication, not coverage: every headline delta rests
-  on seed 0 alone.
-- On 2026-08-01 the headline client count was reduced from `K=8` to `K=5`
-  at the same Dirichlet `alpha=0.5` and seed 0. The committed split has
-  910–2,749 rows and 17–49 databases per client; old K=8 artifacts are not
-  mixed with the new K=5 runs.
+## 1. Current status
 
-## Active decisions
+- Paper: **FedLS-SQL: A Novel Federated Large-Small Language Models Framework
+  for Natural Language to SQL**.
+- Method: private client LoRA fine-tuning on an SLM, sample-weighted
+  factor-wise FedAvg, then server-side LLM-to-SLM distillation on public data.
+- Student: `Qwen/Qwen2.5-1.5B-Instruct`.
+- Frozen teacher: `Qwen/Qwen2.5-Coder-7B-Instruct`.
+- Public KD pool: fixed **3,873-row** BIRD teacher-generated EX-match subset.
+- Canonical inference: greedy, zero-shot, `k=0`.
+- Best current FedLS-SQL endpoint: **69.54 Spider EX at T=3, seed 0**.
+- Independent pure-FL T1-T3 and the final
+  `Centralized <> FL <> FedLS-SQL` comparison are complete at seed 0.
+- ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
+- Internal names such as `fedicl_sql`, `fedkd`, `noicl`, and old artifact paths
+  remain unchanged for compatibility and provenance.
 
-### Privacy and data
+## 2. Canonical protocol
 
-1. Raw client data, schema, demos, and embeddings never leave the client.
-2. The server teacher never sees client data.
-3. Only LoRA adapters cross the network.
-4. Spider dev is a frozen test set and never a demo pool.
-5. Every default KD arm uses the same ordered 8,127-row public pool and hash.
-6. BIRD gold SQL text is not a training target. It is used only to select
-   teacher-generated SQL with matching execution results.
+| Item | Setting |
+|---|---|
+| Clients | `K=5` |
+| Partition | Spider non-IID, Dirichlet `alpha=0.5`, seed 0 |
+| Client model | Qwen2.5-1.5B-Instruct + LoRA |
+| Client objective | gold-SQL cross-entropy |
+| Local work | one epoch per round unless explicitly labeled otherwise |
+| Aggregation | sample-weighted factor-wise FedAvg |
+| Server teacher | frozen Qwen2.5-Coder-7B-Instruct |
+| Server objective | teacher-target CE + reverse KL |
+| Public data | 3,873 BIRD teacher-generated EX-match rows |
+| Primary evaluation | Spider dev, 1,034 rows |
+| Robustness | Spider-Realistic, Spider-Syn, Spider-DK |
+| Cross-corpus | BIRD dev, 1,534 rows |
+| Decoding | greedy, no ICL |
 
-### Training and aggregation
-
-1. Client training is gold CE only.
-2. Factor-wise sample-weighted FedAvg is the primary FL baseline.
-3. Sample-weighted FLoRA-NA is the proposed aggregator.
-4. Both aggregators report model-space aggregation error `e_agg`.
-5. Server KD is `CE + RKL(q_student || p_teacher)`, with plain reverse KL.
-6. Skew-RKL `alpha=0.1` is rejected as a default because it significantly
-   increased execution errors despite a non-significant EX increase.
-7. RKD remains the provisional KD direction; KID remains an ablation.
-
-### ICL
-
-1. Do not drop ICL before matched train/eval ICL is tested in the federated
-   pipeline.
-2. Use `dail_weighted k=3` as the retained candidate because it was the best
-   deployable ICL cell already measured.
-3. The primary ICL comparison is:
-
-   ```text
-   control: train k=0 -> greedy eval k=0
-   ICL:     train fixed k=3 -> greedy eval dail_weighted k=3
-   ```
-
-4. Both conditions must share split, initialization, aggregation, public pool,
-   server step, seed, and training budget.
-5. Test greedy first. Evaluate SC composition only after the base ICL effect
-   is known.
-6. Teacher-side ICL target generation remains retired: zero-shot teacher
-   generation was better on the tested BIRD setup.
-7. Final paper/method naming waits for the matched federated ICL verdict.
-
-## Retained empirical results
-
-### Centralized baselines
-
-| Condition | EX | EM | Notes |
-|---|---:|---:|---|
-| Base Qwen2.5-1.5B | 50.00 | 21.08 | retained current-family base run |
-| Centralized FT | 61.70 | 42.50 | early clean baseline |
-| `ft_no_icl` | 62.19 | 57.16 | later centralized reference |
-| `central_rkd` | 68.28 | 61.99 | one-stage Spider RKD |
-
-Different rows above come from different experiment snapshots; use paired
-prediction files, not this table alone, for causal comparisons.
-
-### RKD versus FT and KID
-
-On identical Spider data from the base model:
-
-- `central_rkd - central_ft = +6.09 EX`;
-- paired McNemar `p=3.1e-7`;
-- `central_kid - central_rkd = -1.45 EX`;
-- RKD-versus-KID paired `p=0.072`.
-
-Conclusion: a teacher-logit KD signal is established in the centralized PoC.
-RKD versus KID is not statistically settled; RKD is retained because its fixed
-targets allow offline logit caching.
-
-### Public BIRD continuation
-
-Plain CE on BIRD gold from the base model failed:
-
-| Probe | EX | Verdict |
-|---|---:|---|
-| untrained floor | 50.00 | reference |
-| 1k BIRD-gold CE | 47.10 | harmful |
-| teacher bootstrap CE, 831 executable rows | 50.00 | removed the regression |
-
-The canonical pool was later frozen at 8,127 teacher-generated SQL rows whose
-execution results match BIRD gold.
-
-A centralized `Spider FT -> BIRD CE+RKL -> Spider FT` pipeline was compared
-with a matched `Spider FT -> Spider FT` control:
-
-| Decode | Control EX | +BIRD stage EX | Delta | Evidence |
-|---|---:|---:|---:|---|
-| greedy | 67.02 | 67.31 | +0.29 | `p=0.830` |
-| SC N=8 | 73.40 | 75.24 | +1.84 | `p=0.0699` |
-
-Supported reading: no greedy EX gain after matched training budget; an SC
-interaction is suggestive but unconfirmed. A matched teacher-target CE-only
-arm is still required to attribute any effect specifically to RKL.
-
-### Teacher-side ICL for public target generation
-
-On a 1,000-row BIRD probe:
-
-| Teacher prompting | Exec pass | EX-match / 1,000 |
-|---|---:|---:|
-| zero-shot | 83.1% | 39.3% |
-| self-ICL k=3 | 77.2% | 35.9% |
-| Spider-seed ICL k=3 | 72.0% | 32.6% |
-
-Decision: public `y_pub` generation stays zero-shot. This finding is scoped to
-teacher target generation and does not decide client in-context training.
-
-### Inference-only ICL matrix
-
-Controlled setup:
-
-- Model A:
-  `central_ft_then_kd_bird_exmatch_then_spider_ft`;
-- full Spider dev, 1,034 rows;
-- centralized Spider-train demo pool;
-- adapter trained with `k=0`;
-- greedy evaluation, seed 0.
-
-Baseline: `k=0` = **67.31 EX / 63.93 EM**.
-
-| k | random | question | masked | CodeS | DAIL hard | DAIL weighted | oracle |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 63.93 | 64.12 | **64.22** | 63.83 | 64.02 | 64.12 | 62.96 |
-| 3 | 63.83 | 63.06 | 64.31 | 64.31 | 64.41 | **64.60** | 64.22 |
-
-All cells were below `k=0`; every paired bootstrap interval was wholly
-negative. Best deployable cell:
+Canonical method lineage:
 
 ```text
-dail_weighted k=3
-EX delta = -2.71 pp
-95% CI = [-5.03, -0.48]
-McNemar p = 0.0251
-prompt tokens = +33.1%
-latency = 2.67x
+round t:
+  private client CE -> weighted FedAvg -> public teacher CE + reverse KL
 ```
 
-Decision revised 2026-07-31: this closes **unmatched centralized
-inference-only ICL**, not ICL for the whole project. `dail_weighted k=3`
-becomes the candidate for the missing matched train/federated experiment.
-
-### Inference overlay
-
-On `central_rkd`, self-consistency execution voting (`N=8`,
-temperature `0.8`, top-p `0.95`) beat the previous verifier-gated retry:
+Canonical pure-FL control lineage:
 
 ```text
-SC EX = 72.73
-gate EX = 69.92
-delta = +2.81
-McNemar p = 0.00042
+base -> FedAvg T1 -> FedAvg T2 -> FedAvg T3
 ```
 
-This result used one sampling seed. SC remains an optional deployment overlay,
-not part of the primary greedy ICL comparison.
+The `round_2/round_3/fedavg_adapter` objects inside a `fedkd` run are not pure
+FL: they inherit earlier post-KD global adapters.
 
-### Skew-RKL
+### Privacy boundary
 
-Matched plain-RKL versus Skew-RKL `alpha=0.1`:
+- Raw client rows, schemas, questions, and SQL do not leave clients.
+- The server teacher sees only the public pool.
+- Only LoRA adapter parameters cross the network.
+- This is structural data isolation, not differential privacy, secure
+  aggregation, or a formal defense against update inference.
 
-| Metric | Plain RKL | Skew-RKL | Delta |
+## 3. Main results
+
+### 3.1 Final-model table
+
+| Model | Checkpoint | Spider EX | Realistic | Syn | DK | BIRD |
+|---|---|---:|---:|---:|---:|---:|
+| Centralized, 3 epochs | `artifacts/probe_p/central_3ep/adapter` | 67.60 | 57.87 | 53.19 | 52.52 | 12.91 |
+| Pure FL, T=3 | `fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | 64.31 | 56.10 | 51.93 | 46.73 | 12.91 |
+| FedLS-SQL, T=3 | `fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | **69.54** | **59.65** | **55.51** | **52.71** | **21.58** |
+
+At T3, FedLS-SQL exceeds pure FL by `+5.23`, `+3.55`, `+3.58`, `+5.98`,
+and `+8.67` EX on Spider, Realistic, Syn, DK, and BIRD respectively. The paired
+exact McNemar results are significant on Spider (`p=0.0001`), Syn (`p=0.0094`),
+DK (`p=0.0002`), and BIRD (`p<1e-19`), but not Realistic (`p=0.095`).
+
+FedLS-SQL also has the highest EX in all five final-model comparisons. Its
+advantage over centralized training is not significant on the four Spider
+sets; BIRD is the exception, but remains a cross-corpus diagnostic favorable
+to the BIRD-trained public-server branch.
+
+### 3.2 Multi-round trajectory, seed 0
+
+| Round | Independent pure FL | FedKD-lineage pre-server | FedLS-SQL endpoint |
 |---|---:|---:|---:|
-| EX | 64.99 | 66.05 | +1.06, `p=0.222` |
-| execution errors | 104 | 124 | +20, `p=0.009` |
+| T=1 | 56.67 | 57.35 | 63.35 |
+| T=2 | 62.19 | 64.02 | 66.15 |
+| T=3 | 64.31 | 66.05 | **69.54** |
 
-Decision: keep plain RKL. Do not spend a federated arm on `alpha=0.1`.
+| Endpoint contrast | Delta | Paired `p` |
+|---|---:|---:|
+| T1 → T2 | +2.80 | 0.0019 |
+| T2 → T3 | +3.38 | 0.0002 |
+| T1 → T3 | **+6.19** | <1e-4 |
 
-### Federated ICL ladder, K=5 T=1 seed 0
+At matched two passes over private data, `T=2, E=1` beats `T=1, E=2` by
+`+2.61 EX` (`p=0.0067`). The observed gain therefore comes from repeated
+communication/aggregation/distillation rounds, not merely longer local
+training.
 
-First real federated results. Clients trained with `dail_weighted k=3` fixed,
-`never_schema`, full schema; public pool `P` = BIRD `bootstrap_full_exmatch`
-(3,873 rows used); server `k_teacher=0`; Spider dev `n=1034`, greedy.
-Run IDs: `federated__{florana_kd,fedavg,fedavg_pub,fedkd}__s0__*__r1` plus
-`eval_arms__s0__202608{05,06,07,08}T*`.
+The pre-server trajectory above is diagnostic only. T2 and T3 already contain
+earlier KD and cannot be labeled pure FL.
 
-| Adapter | Aggregation | Server step | EX k=0 | EX k=3 central | EX k=3 per-client |
-|---|---|---|---:|---:|---:|
-| `fedavg_adapter` | factor FedAvg | none | 54.45 | 54.26 | 55.57 ± 0.97 |
-| `florana_adapter` | FLoRA-NA | none | 54.45 | 54.35 | 55.65 ± 1.04 |
-| `fedavg_pub` M_G | factor FedAvg | CE on teacher SQL | 61.51 | 57.74 | 58.82 ± 0.80 |
-| `fedkd` M_G | factor FedAvg | CE + RKL on teacher SQL | 64.02 | 59.38 | 60.74 ± 0.65 |
-| `florana_kd` M_G | FLoRA-NA | CE + RKL on teacher SQL | 63.93 | 60.06 | 61.24 ± 0.37 |
+### 3.3 Robustness across rounds
 
-Supported readings:
+| FedLS-SQL endpoint EX | T=1 | T=2 | T=3 | T1 → T3 | `p` |
+|---|---:|---:|---:|---:|---:|
+| Spider dev | 63.35 | 66.15 | **69.54** | +6.19 | <1e-4 |
+| Spider-Realistic | 52.95 | 56.30 | **59.65** | +6.69 | <1e-4 |
+| Spider-Syn | 49.61 | 52.03 | **55.51** | +5.90 | <1e-4 |
+| Spider-DK | 47.85 | 50.47 | **52.71** | +4.86 | 0.0007 |
 
-- Server-side RKD carries measurable value over its matched public-CE control:
-  `61.51 -> 64.02`, **+2.51 EX** on the factor-FedAvg branch. This is the
-  cleanest evidence for the paper's central mechanism so far.
-- **The whole server-step gain is teacher-derived; none of it is "more data".**
-  Pool `P` rows carry the TEACHER's own exec-verified SQL as their target text,
-  not BIRD gold (`build_exec_bootstrap_probe.py` then
-  `score_bootstrap_ex_match.py`; 80.7% of the 3,873 target strings differ from
-  BIRD gold). So `fedavg_pub` is sequence-level KD on hard labels, not a plain
-  data top-up, and the ladder reads: no distillation `54.45` -> hard-label KD
-  `61.51` (+7.06) -> hard+soft-label KD `64.02` (+2.51). `+2.51` is therefore
-  the value of logit-level reverse KL OVER SeqKD, which is a sharper claim than
-  "teacher helps". The plain-data arm is E0.1 and it was negative: CE on BIRD's
-  own gold scored `47.10` against a `50.00` base floor.
-  Execution errors drop from ~25% pre-server to 11–16% post-server.
-- Client-private demo pools do not cost accuracy versus a pooled demo source
-  (`61.24` vs `60.06`), with per-pool spread ≤ 1.0. The privacy framing holds.
-- **FLoRA-NA and factor FedAvg are indistinguishable at this scale.** Pre-server
-  EX is identical to four decimals; post-RKD they differ by 0.09–0.68 EX in
-  mixed directions, well inside the ~1.5 EX binomial standard error at
-  `n=1034`. FLoRA reduced relative product error `0.0893 -> 0.0827` (7% better
-  reconstruction) with zero downstream effect — a real finding in itself:
-  better factor reconstruction does not transfer to SQL quality. Default to
-  factor FedAvg; FLoRA-NA earns a place only if a higher-`K` or `alpha=0.1`
-  ablation separates them.
+The multi-round improvement has the same direction on all four benchmarks.
+This is currently the strongest evidence for the method, but it is still one
+seed at T2/T3.
 
-The `k=3` penalty visible in the last two columns is explained by the matched
-no-ICL ladder below, not by the server step's `k_teacher=0` setting.
+The marginal server step is distribution-dependent: it improves canonical
+Spider at T1 and T3, but none of the nine pre/post cells on the three perturbed
+Spider sets is significant. It consistently reduces execution errors, even
+when EX does not increase.
 
-### Federated no-ICL ladder, K=5 T=1 seed 0, and the matched verdict
+### 3.4 T=1 replication and component evidence
 
-Identical protocol to the ICL ladder — same split, seed, pool, server step,
-budget — with `--client-train-k 0`. Run IDs `federated__*__s0__*__r1` dated
-2026-08-08/09, evals `eval_arms__s0__20260809T*`. The `k=0` column is complete
-plus one `k=3` cell for `train_noicl`; the other nine `k=3` cells describe a
-retired eval mode and were deliberately not run.
-
-| Stage, both at eval `k=0` | ICL-train | no-ICL-train | Delta | paired `p` |
+| Stage | seed 0 | seed 1 | seed 2 | mean ± sd |
 |---|---:|---:|---:|---:|
-| `fedavg_adapter` | 54.45 | **57.35** | **+2.90** | **0.008** |
-| `florana_adapter` | 54.45 | **56.87** | **+2.42** | **0.026** |
-| + SeqKD on teacher SQL | 61.51 | 61.32 | −0.19 | — |
-| + CE/RKL, factor FedAvg | **64.02** | 63.35 | −0.68 | 0.401 |
-| + CE/RKL, FLoRA-NA | 63.93 | 62.57 | −1.35 | 0.060 |
+| FedAvg, pre-server | 57.35 | 57.45 | 59.77 | 58.19 ± 1.37 |
+| + teacher-target CE | 61.32 | 62.28 | 59.48 | 61.03 ± 1.42 |
+| + reverse KL, full endpoint | 63.35 | 62.48 | 62.38 | **62.74 ± 0.53** |
 
-All `p` are exact two-sided McNemar on paired 1,034-row prediction files.
+Three-seed component contrasts:
 
-**1. The reverse-KL claim replicates.** `+2.03 EX, p=0.042` on the no-ICL
-ladder against `+2.51 EX, p=0.013` on the ICL ladder — same direction, same
-magnitude, two independent client populations, both significant. The matched
-SeqKD step is itself `+3.97, p=0.010`. The paper's central mechanism is the
-one result here that is established rather than suggestive.
-
-**2. In-context client training produces worse aggregated models.** The
-pre-server gap is `+2.90 EX (p=0.008)` in favour of no-ICL, with fewer
-execution errors (236 vs 258) and higher EM (50.6 vs 46.7). The server step
-then lifts the ICL branch further (`+9.57`) than the no-ICL branch (`+6.00`)
-purely because it starts lower, and the endpoints converge to a
-non-significant `0.68`. Reading the endpoints alone had suggested ICL training
-was a mild augmentation win; the pre-server cells show the opposite and are
-the significant ones.
-
-**3. Demonstrations at inference cost 3.87 EX, `p=0.003`,** within the ICL
-model itself (`k=3` 60.06 versus `k=0` 63.93). This is the largest and
-best-supported ICL effect measured, and it is negative. It also removes the
-`k_teacher=0` explanation offered above: the no-ICL model never saw a demo in
-training yet reaches 62.57–63.35, so nothing about the server step is
-destroying a capability the clients had.
-
-**3b. The train/eval-parity hypothesis is refuted, not merely unsupported.**
-Completing the 2x2 on 2026-08-10 (`eval_arms__s0__20260809T184408`):
-
-| | eval `k=0` | eval `k=3` | drop under demos |
+| Contrast | Mean delta | sd | `p` |
 |---|---:|---:|---:|
-| train `k=3` | 63.93 | 60.06 | −3.87, `p=0.003` |
-| train `k=0` | 62.57 | **59.48** | −3.09, `p=0.014` |
-| delta | +1.35, `p=0.060` | +0.58, `p=0.572` | |
+| whole server distillation over FedAvg | **+4.55** | 1.75 | **0.046** |
+| reverse KL over teacher-target CE | +1.71 | 1.38 | 0.165 |
+| full method over distillation-only | +1.39 | 1.12 | 0.165 |
 
-The DAIL-SQL §4.4.4 argument reproduced in `build_examples`' docstring predicts
-that a `k=0`-trained adapter collapses under demos while a demo-trained one
-does not. The `k=0`-trained model drops **less** (−3.09 versus −3.87). The
-interaction runs the wrong way by 0.78 EX. Three independent adapters — the
-2026-07-29 centralized Model A (−2.71), `train_noicl` (−3.09), `train_icl3`
-(−3.87) — all lose about 3 EX when given demos regardless of how they were
-trained, so the demo penalty is a property of the 1.5B student, not of the
-training recipe. Matched at the ICL deployment mode the two pipelines are
-indistinguishable (`+0.58, p=0.572`): in-context client training buys nothing
-in the very mode that justifies paying for it.
+Safe reading:
 
-**4. Cost, measured not estimated.** Client training 9,651 s versus 4,100 s
-(**2.35x**), plus a draft-skeleton pre-pass and a per-client DAIL cache that
-the no-ICL path does not build; client VRAM 28.2 GB versus 25.9 GB; inference
-prompt +38.7% characters and 4.2x latency in-run (0.289 -> 1.224 s/query);
-and every deployed client must hold and index a private demo pool.
+- the full T1 endpoint is stable across three seeds;
+- the server stage as a whole improves federation alone;
+- the extra value of reverse KL and the private federated stage is positive but
+  not established across three seeds;
+- single-seed McNemar results must not be presented as across-seed method
+  significance.
 
-**5. FLoRA-NA is closed.** Six head-to-head cells: tie, −0.09, −0.48
-(`p=0.405`), −0.77 (`p=0.215`), +0.68, +0.50. The only two wins are `k=3`
-cells, the eval mode this section retires. Its relative product error is lower
-in both pipelines (0.0827 vs 0.0871; 0.0661 vs 0.0717) and transfers to EX in
-none of them. Retain factor-wise FedAvg. Keep the negative observation —
-better factor reconstruction does not improve SQL — as a §5 remark, not a
-contribution.
+### 3.5 Centralized training reference
 
-Consequence for the paper: the defensible contribution is federated LoRA plus
-server-side reverse-KL distillation on a public pool. ICL moves to §5 as a
-measured negative result carrying four tests — pre-server `−2.90 (p=0.008)`,
-demos at inference `−3.87 (p=0.003)`, the refuted parity interaction, and a
-`2.35x` training cost. On 2026-08-10 the author decided to propose dropping
-ICL from the method and renaming away from `Fed-ICKD`; advisor sign-off is
-pending and the original ICL direction predates it, so nothing is rewritten in
-`system_architecture.md` until that conversation happens.
-
-### Three seeds, 2026-08-11 — the endpoint holds, the decomposition does not
-
-Seeds 1 and 2 of the no-ICL factor-FedAvg ladder completed
-(`federated__*__s{1,2}__*__r1`, evals `eval_arms__s0__20260811T*`). They change
-what can be claimed, so read this before the single-seed section below.
-
-| Stage | seed 0 | seed 1 | seed 2 | mean | sd |
-|---|---:|---:|---:|---:|---:|
-| FedAvg, pre-server | 57.35 | 57.45 | 59.77 | 58.19 | 1.37 |
-| + SeqKD | 61.32 | 62.28 | 59.48 | 61.03 | 1.42 |
-| **+ reverse KL (full pipeline)** | 63.35 | 62.48 | 62.38 | **62.74** | **0.53** |
-
-**The full pipeline is stable: `62.74 ± 0.53`, `+12.74` over the 50.00 base.**
-That result is safe.
-
-**The per-component decomposition is not.** Seed-level deltas, two-sided `t` on
-three paired differences:
-
-| Component | per-seed | mean | sd | `p` |
-|---|---|---:|---:|---:|
-| SeqKD over FedAvg | 3.97 / 4.83 / **−0.29** | +2.84 | 2.74 | 0.215 |
-| reverse KL over SeqKD | 2.03 / **0.20** / 2.90 | +1.71 | 1.38 | 0.165 |
-| whole server distillation | 6.00 / 5.03 / 2.61 | +4.55 | 1.75 | **0.046** |
-
-The `+2.03 (p=0.042)` recorded below was a single-seed paired McNemar, which
-answers "are these two models different on these 1,034 questions" and not "are
-these two methods different". Seed variance swallows it: across three seeds the
-reverse-KL delta is `+1.71 ± 1.38`. Seed 1 gives it `+0.20`; seed 2 gives SeqKD
-a **negative** `−0.29`. Only the server stage taken as a whole survives.
-
-**Why, and this is the interesting part.** Higher pre-server scores buy smaller
-server gains, and the endpoint barely moves:
-
-```text
-seed 0:  pre 57.35  ->  server +6.00  ->  63.35
-seed 1:  pre 57.45  ->  server +5.03  ->  62.48
-seed 2:  pre 59.77  ->  server +2.61  ->  62.38
-```
-
-The distillation stage pulls everything to about 62.7 regardless of where it
-starts. That matches the 77% compression already measured on the ICL/no-ICL
-contrast (2.90 pre-server becoming 0.68 after). It also means the federated
-stage's own value is smaller than the `+2.13` recorded below: against
-`base_rkl` at 61.22 the three-seed mean gives `+1.52`, and `base_rkl` still has
-only one seed, so that row is untested across seeds.
-
-Power: at `n=3`, `df=2`, an effect of 1.71 with `sd=1.38` cannot reach
-significance. Detecting `d=1.24` at 80% power needs about `n=7`.
-
-Scope correction, same day: this does not need resolving. SeqKD and reverse KL
-are both distillation — hard labels and soft labels inside one component — so
-the split is a design choice, not an ablation of the proposal. The ablation
-that matters removes a whole component: distillation (`−4.55, p=0.046`) or the
-federated stage (`−1.5`, one seed). Reverse KL stays, argued from [10] KID,
-with `+1.71 ± 1.38` reported as measured and no claim resting on it.
-
-**Unaffected:** every ICL conclusion. Those rest on six independent cells
-pointing the same way with larger effects (`−3.87, p=0.003`; `−2.90, p=0.008`).
-
-**Improved:** the no-ICL client adapters were finally evaluated
-(54.55 / 53.38 / 55.71 / 53.68 / 57.64, mean 54.99). On the recommended branch
-FedAvg reaches 57.35 — `+2.36` over the client mean and only `−0.29` from the
-best client, a much better local-versus-federated story than the ICL branch's
-`−1.84`.
-
-### Component ablation, K=5 T=1 seed 0, no-ICL branch
-
-Completed 2026-08-11 when the base-only control finally ran. Every teacher
-distillation before it had started from an already-trained adapter, so "base
-model plus the same server step" — the ablation that removes the federated
-stage — had never been measured. `experiments/client_train/run.py` with
-`--init-adapter` unset on the same pool, same cache, same budget per stage;
-evals in `eval_arms__s0__20260810T180648`.
-
-| Configuration | EX | Δ vs full | `p` |
-|---|---:|---:|---:|
-| **Full pipeline** (client FT → FedAvg → SeqKD → RKL) | **63.35** | — | — |
-| − reverse KL | 61.32 | −2.03 | 0.042 |
-| − the whole server distillation | 57.35 | −6.00 | **4.8e−05** |
-| − the whole federated stage (base + SeqKD + RKL) | 61.22 | −2.13 | 0.017 |
-| − everything (base 1.5B) | 50.00 | −13.35 | — |
-
-**Every component's removal costs significant EX.** The ablation table is
-complete and it passes.
-
-Two readings that need stating plainly, because they change how the work is
-pitched:
-
-- **Public-pool distillation does most of the lifting.** Base → base+SeqKD+RKL
-  is `+11.22` of the total `+13.35`; the federated stage adds `+2.13` on top.
-  This does not weaken the ablation — a component earns its place by making
-  things worse when removed, not by contributing equally — but the headline can
-  no longer imply that federation produced the whole gain.
-- **Federation alone is not competitive.** `fedavg_adapter` at 57.35 loses to
-  public distillation from base at 61.22 (`+3.87` for the latter, `p=0.013`),
-  and `base_rkl` (61.22) is statistically identical to `fedavg_pub` (61.32,
-  `p=1.00`). The defensible claim is the interaction: neither half is enough on
-  its own, and the combination beats each (`+2.13` over distillation alone,
-  `+6.00` over federation alone).
-
-**Reverse KL over its matched SeqKD control now replicates three times**, on
-three unrelated client populations: `+1.55` from base (`p=0.121`), `+2.03`
-federated no-ICL (`p=0.042`), `+2.51` federated ICL (`p=0.013`). Same sign,
-magnitudes 1.55–2.51. This is the most robust result in the project.
-
-A matched-compute control was considered and rejected. The full pipeline runs
-12,532 optimiser steps against the base control's 3,873, but the extra steps
-are on *different* data (private Spider shards), so re-running the control for
-three epochs over the same 3,873 public rows would measure diminishing returns
-on repeated data, not the value of private data. An ablation removes a
-component together with its compute; that is what removing it means, and no FL
-paper compute-matches ablation rows. Report the step counts as a cost column
-instead. If the compute question ever needs a real answer, the control is *more
-public data* (`bootstrap_full`, 7,968 rows) rather than more epochs, and it
-would need a fresh teacher logit cache.
-
-### Aggregate versus the best single client, K=5 seed 0
-
-Asked on 2026-08-10, since "federation beats going it alone" was being claimed
-from the client *mean*. At `k=0` on the ICL branch the five client adapters
-score 53.29 / 52.51 / 53.00 / 50.97 / 56.29 (mean 53.21) and the aggregate
-scores 54.45. **The aggregate beats four clients and loses to the best one by
-1.84 EX.** It beats only the weakest client significantly (+3.48, `p=0.009`).
-
-Three diagnostics, all run on existing prediction files, no GPU:
-
-- **Client 5's advantage is real, not a selection artefact.** Across 100 random
-  half-splits it is the best client in 193/200 halves, and the two halves agree
-  93/100 times. An earlier note in this log claimed the gap was mostly the
-  order statistic of five noisy draws; that claim is withdrawn.
-- **The gap itself is not established.** Bootstrap (2,000 resamples) gives
-  `best client − FedAvg = +1.84 EX, 95% CI [−0.77, +4.16]`.
-- **The advantage is domain-shaped, not uniform.** Over Spider dev's 20
-  databases client 5 beats the aggregate on 8, loses on 8, ties on 4, with the
-  surplus concentrated in `network_1`, `world_1`, `pets_1`, `dog_kennels`.
-  Client 5 is also the *smallest* client (910 rows, FedAvg weight 0.105).
-
-Reading: this is domain specialisation under non-IID, the standard trade a
-global model makes, not evidence that aggregation is broken. Supporting that,
-the aggregate sits *above* the client mean — a broken aggregation would land
-below it. And the gap is confined to the pre-server stage: after distillation
-the global model reaches 64.02, **7.73 EX above the best client**.
-
-One technical hypothesis is not yet excluded, and an earlier entry in this log
-overstated its closure. `factor_fedavg` does carry the FedIT error
-`mean(B)·mean(A) ≠ sum_i w_i B_i A_i`, and `florana` does **not** fix it: it
-only fits scalar client coefficients while staying at rank `r`, so it cannot
-represent a sum of rank up to `K·r`. That is why its product error moves only
-0.0687 → 0.0661 (7.8%). **Exact aggregation has therefore never been tested**
-— the FLoRA-NA verdict below stands as a verdict on FLoRA-NA, not on exact
-aggregation.
-
-`scripts/exact_aggregate.py` (+ `tests/test_exact_aggregate.py`) settled it
-without retraining. `stack` concatenates the factors into an exact rank-`K·r`
-aggregate with `lora_alpha` rescaled so PEFT's `alpha/r` is unchanged; `svd`
-gives the best rank-`r` fit to the same target — the control separating "the
-aggregation error was fixed" from "the server just got a 5x bigger adapter".
-Evaluated at `k=0` in `eval_arms__s0__20260810T151051`:
-
-| Aggregator | rank | product error | EX | vs `factor_fedavg` | `p` |
-|---|---:|---:|---:|---:|---:|
-| `factor_fedavg` | 16 | 0.0687 | 54.45 | — | — |
-| `florana` | 16 | 0.0661 | 54.45 | 0.00 | — |
-| `exact_svd` | 16 | minimal at rank 16 | 54.26 | −0.19 | 0.851 |
-| `exact_stack` | 80 | 0 | 55.13 | +0.68 | 0.311 |
-
-**Aggregation error is not the cause.** `exact_svd` shares `exact_stack`'s
-objective but is held at rank 16 and returns exactly nothing, so `exact_stack`'s
-`+0.68` is the 5x capacity, not the exactness. Four aggregators spanning product
-error 0.069 → 0 land within 0.87 EX with no cell significant, and `exact_stack`
-is still 1.16 below the best client (`p=0.396`). `exact_svd` is the optimal
-rank-preserving minimiser of that error, which bounds what any aggregator in the
-FedEx-LoRA / Fed-SB family can buy here.
-
-**The cause is test-set weighting.** Spider's EX weights each database by its
-question count. Re-scored with databases weighted equally:
-
-| | EX per question | EX per database |
+| Centralized private-data passes | Spider EX | OOD pooled EX |
 |---|---:|---:|
-| client 5 | **56.29** (1st) | 58.21 (3rd) |
-| `factor_fedavg` | 54.45 | **58.25** (2nd) |
-| `exact_stack` | 55.13 | **58.62** (1st) |
-| clients 1 / 2 / 3 / 4 | 53.29 / 52.51 / 53.00 / 50.97 | 57.43 / 56.79 / 56.31 / 55.30 |
+| 1 | 62.19 | 51.04 |
+| 2 | 67.02 | **54.31** |
+| 3 | **67.60** | 54.16 |
 
-The ranking inverts: per database the aggregate already matches or beats every
-client. Client 5 is strong on the largest databases — `world_1` (120 questions,
-11.6% of the test set), `dog_kennels` (82), `tvshow` (62), `pets_1` (42) — and
-those four alone exceed the whole 1.84 gap. Supporting facts: the aggregate sits
-at per-database client mean **+1.24** (a broken aggregation would sit below it);
-the test set shares no schema with training (20 test databases, 146 training
-databases, empty intersection), so this is transfer, not memorisation; and
-per-database wins are spread 4/6/4/1/5, with client 2 winning the most databases
-(6/20) while ranking 5th overall. "Best client" is a property of the test set's
-database-size mix, not a stable property of any client.
+The centralized curve saturates after the second pass. Matched by private-data
+passes, the FedLS-SQL endpoints differ from centralized by `+1.16`, `-0.87`,
+and `+1.93` at passes 1, 2, and 3; none is individually significant.
 
-Verdict: the aggregate is not worse than the best client, and there is no
-material headroom at the aggregation stage of this configuration.
+This is not compute matching. At three passes, FedLS-SQL uses 25,977 client
+steps plus 11,619 public server steps, versus 25,977 centralized steps. Report
+the additional server compute rather than claiming equal cost.
 
-EM is not comparable across the server step. It falls `46.9 -> 31.3` while EX
-rises, and prediction diffs show the cause is BIRD surface convention
-(`count(*)` becomes `COUNT(Singer_ID)`, separator spacing changes). Report EX
-and execution errors for pre/post-server comparisons; EM only within a stage.
+### 3.6 BIRD cross-corpus transfer
 
-## Implementation milestones retained
+| Arm | EX | Execution-error rate |
+|---|---:|---:|
+| Base SLM | 10.89 | 46.5% |
+| T1 pure FL | 11.21 | 55.2% |
+| T3 pure FL | 12.91 | 49.3% |
+| T1 FedKD-lineage pre-server | 11.15 | 55.3% |
+| Centralized, 3 epochs | 12.91 | 42.6% |
+| T3 FedKD-lineage pre-server | 17.67 | 37.9% |
+| T1 FedLS-SQL | 19.43 | 33.4% |
+| T3 FedLS-SQL | **21.58** | **29.9%** |
 
-### Data and evaluation hygiene
+Within the FedKD lineage, the server step contributes `+8.28 EX` at T1 and
+`+3.91` at T3 (`p<1e-6`).
+Independent pure FL rises from 11.21 to 12.91 EX between T1 and T3, whereas
+FedLS-SQL reaches 21.58. This complements the
+perturbed Spider result, where federated rounds dominate and marginal server KD
+is not established.
 
-- Removed test-set leave-one-out ICL leakage; demo pools now come from train
-  data only.
-- Implemented domain-group non-IID Spider partitions with a minimum client
-  example guard.
-- Evaluation artifacts record model, adapter, data/pool hashes, retrieval,
-  prompt settings, decoding settings, seed, and selected demo traces.
-- SC RNG seeding and resume fingerprints were fixed before headline runs.
+BIRD is a cross-corpus diagnostic, not a headline benchmark. Its evaluation
+databases are disjoint from the public pool, but the corpus favors the BIRD-KD
+branch and the current prompt omits BIRD evidence hints.
 
-### Federated pipeline
+### 3.7 ICL negative ablation
 
-Implemented:
+| Effect | Result |
+|---|---:|
+| matched client ICL training before server | -2.90 EX, `p=0.008` |
+| demonstrations at inference within ICL-trained model | -3.87 EX, `p=0.003` |
+| client training-time multiplier | 2.35x |
 
-- client LoRA training;
-- factor-wise weighted FedAvg;
-- sample-weighted FLoRA-NA;
-- public CE and public CE+RKL server stages;
-- full teacher-logit cache;
-- six arms: `fedavg`, `fedavg_pub`, `fedkd`, `florana`,
-  `florana_pub`, `florana_kd`;
-- per-layer and overall `e_agg`;
-- immutable `setup.json`, content fingerprints, round lineage,
-  checkpoint/resume, and deterministic result IDs;
-- optional post-aggregation and post-server evaluation per round.
+Decision: canonical FedLS-SQL uses `train_k=0`, `k_teacher=0`, and `eval_k=0`.
+No further ICL sweep is planned. Detailed evidence is in
+`ICL_NEGATIVE_RESULT.md` and the pre-FedLS archive.
 
-Real `K=5` headline training has not run.
+## 4. Claims and limits
 
-### Evaluation-result retention
+### Supported
 
-The result store was audited on 2026-07-31:
+1. Multi-round FedLS-SQL improves from T1 to T3 on Spider and all three Spider
+   perturbation sets at seed 0.
+2. At T3 seed 0, FedLS-SQL beats independent pure FL on Spider by `+5.23 EX`
+   (`p=0.0001`), with positive gains on every additional test set.
+3. At T1 across three seeds, the full server distillation stage improves over
+   federation alone by `+4.55 EX` (`p=0.046`).
+4. Server guidance strongly improves BIRD cross-corpus transfer and reduces
+   execution errors across all evaluated datasets.
+5. The 1.5B deployed model requires neither the 7B teacher nor public data at
+   client inference time.
+6. ICL and FLoRA-NA do not improve the retained configuration.
 
-- retained 30 `eval_arms` runs covering current references, public-pool
-  quality gates, matched continuation/loss controls, and the complete Model-A
-  ICL matrix;
-- retained two full 1,034-row inference-overlay runs;
-- removed 79 superseded `eval_arms` runs and one 200-row overlay probe;
-- removed categories include old model/retriever/gate sweeps, retired methods,
-  obsolete local 0.5B pilots, replaced controls, out-of-scope robustness runs,
-  and pre-reproducibility SC duplicates;
-- `client_train/results` was intentionally untouched because it is training
-  provenance.
+### Not yet supported
 
-Exact retained run IDs and rationale are recorded in:
+1. A statistically established multi-seed T2/T3 trajectory.
+2. Better accuracy than centralized training; the T3 difference is not
+   significant and compute is not matched.
+3. Lower empirical cost than federated large-model training; no actual
+   large-model FL baseline has been run.
+4. Formal privacy guarantees.
+5. A distinct structural-distillation contribution; the implemented server
+   objective is teacher-target CE plus reverse KL.
 
-- `experiments/eval_arms/results/README.md`;
-- `experiments/inference_overlay/results/README.md`.
+### Metric caveat
 
-### ICL infrastructure
+EM is comparable only within the same training stage. Server KD changes SQL
+surface conventions while EX improves, so pre/post-server claims should use EX
+and execution-error rate as primary metrics.
 
-Evaluation supports:
+## 5. Active queue
 
-- `random`;
-- `question`;
-- `masked_question`;
-- `codes`;
-- `dail_select`;
-- `dail_weighted`;
-- eval-only `oracle_structure`.
+1. **P0:** consolidate trainable parameters, adapter bytes, total
+   communication, wall time, peak VRAM, and inference latency.
+2. **P1:** replicate the T1-T3 trajectory for seeds 1 and 2.
+3. **P2:** run FedProx, size/rank, or broader-skew sweeps only after advisor
+   scope confirmation.
 
-Client training supports demo injection through `train_k`, fixed or sampled
-demo count, private client pools, and train/eval prompt styles.
+No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 
-Federated ICL preflight closed on 2026-08-01:
+## 6. Provenance map
 
-- the CLI and immutable setup expose/fingerprint the full client ICL policy;
-- `dail_weighted` train retrieval generates cached draft skeletons with the
-  round-start global student;
-- fixed `k=3`, `never_schema`, `full` schema, DAIL alpha/shortlist, embedder,
-  and cache paths propagate into every client configuration;
-- missing drafts fail loudly instead of falling back to masked-question
-  retrieval;
-- per-round evaluation fingerprints now cover the complete ICL protocol;
-- focused federated/training/manifest tests pass (60 tests), the full suite
-  passes (267 tests), and lint is clean.
+| Evidence | Canonical location |
+|---|---|
+| Centralized 3-pass adapter | `artifacts/probe_p/central_3ep/adapter` |
+| FedLS-SQL T1-T3 lineage | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0` |
+| Pure-FL T1-T3 lineage | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
+| Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
+| Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
+| Completed pure-FL command | `paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_BLOCK_K_completed_2026-08-20.md` |
+| Active experiment queue | `paper/notes/PIPELINE_NEXT.md` |
+| Checkpoint/result labels | `paper/notes/RESULT_REGISTRY.md` |
+| RQ-to-evidence status | `paper/notes/EXPERIMENT_MATRIX.md` |
+| Full historical log | `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md` |
 
-The code review also confirmed immutable setup recipes, parent-adapter hashes,
-round lineage, idempotent round/result persistence, and deterministic result
-paths. Round results now collect every completed client's loss/step/time/VRAM
-summary and exact train config, plus aggregation diagnostics and the server-KD
-summary, including stages reused after resume. No real GPU result is claimed.
-The local workspace does not contain the
-canonical full teacher-logit cache, so the compute environment must provide or
-rebuild a cache whose metadata matches the frozen public pool before KD runs.
+Per-run truth remains in saved `config.json`, `metrics.json`, predictions,
+manifest fingerprints, and Git SHAs. Presentation labels never replace
+internal artifact identities.
 
-## Active run queue
+## 7. Decision log
 
-Both `K=5, T=1, seed 0` runbooks are executed as of 2026-08-10. The
-ICL-versus-no-ICL question is answered and FLoRA-NA is closed; neither needs
-more cells. Remaining order, highest value first:
+| Date | Decision |
+|---|---|
+| 2026-08-01 | Headline setting reduced to K=5, `alpha=0.5`, seed 0. |
+| 2026-08-10 | Factor-wise FedAvg retained; FLoRA-NA closed. |
+| 2026-08-10 | Matched ICL evidence negative; no-ICL branch selected. |
+| 2026-08-11 | T1 endpoint replicated across three seeds. |
+| 2026-08-15 | Distillation-only, OOD, and local-epoch controls completed. |
+| 2026-08-16 | T2/T3 and centralized three-pass reference completed. |
+| 2026-08-17 | Multi-round result confirmed on three Spider perturbations. |
+| 2026-08-18 | BIRD cross-corpus evaluation completed. |
+| 2026-08-19 | Pre-server T2/T3 identified as mixed KD lineage; pure FL required. |
+| 2026-08-19 | Advisor renamed the paper FedLS-SQL and removed ICL from method. |
+| 2026-08-20 | Active documentation and lab log refactored around FedLS-SQL. |
+| 2026-08-20 | Independent pure-FL T1-T3 completed; final three-way table closed at seed 0. |
 
-The proposal is federated training combined with server-side distillation, so
-the ablation removes one component at a time. SeqKD and reverse KL are both
-distillation — hard labels and soft labels within the same component — so which
-of them wins is a design choice rather than a component, cited to [10] KID and
-reported without a claim resting on it. That demotes the extra ladder seeds and
-leaves two runs on the critical path.
+## 8. Archived branches
 
-1. **`base_rkl` on seeds 1 and 2** (about 3 h, two GPUs in parallel). "Remove
-   the federated component" is the last single-seed row in the ablation table,
-   and it is the row that says what private data is worth. Block A.
-2. **Rounds 2 and 3 on seed 0** (about 8 h). At `T=1` the federated component
-   is worth about 1.5 EX over distillation alone; multi-round warm-starting is
-   the mechanism designed to grow that, and a flat result has to be known
-   before §3 is written. Block B, using `round --round N --init-adapter`
-   because `run` has no `--client-out` and would retrain seed 0's round 1.
-3. Optional: seeds 3–6 to tighten the `−4.55` distillation row. Block C.
-4. Test SC composition only on the selected trained condition.
-5. Advisor conversation on dropping ICL, on renaming away from Fed-ICKD, and on
-   how the work is positioned against FedCoLLM once reverse KL is no longer
-   advanced as a differentiator.
+The full chronology retains teacher-side ICL, retriever sweeps, centralized ICL
+matrices, FLoRA-NA, exact aggregation, skew-RKL, pipeline reordering, early
+public-pool probes, and discarded evaluation attempts. These are useful for
+reproducibility but are not active paper components.
 
-Write §3 Method and §2 Related Work while 1 and 2 run — neither depends on how
-they come out.
-
-Closed on 2026-08-11: seeds 1 and 2, and the no-ICL client evaluation.
-
-Closed on 2026-08-10: the exact-aggregation diagnostic. Aggregation error is
-not what separates the aggregate from the best client, and no aggregator in
-that family has material headroom at `K=5, T=1`.
-
-Closed on 2026-08-10: the 2x2 completion cell (`train_noicl` at `k=3`) ran and
-refuted the parity hypothesis, so §5 is fully evidenced. Its private-pool twin
-was dropped — the centralized cell already answered the question, and the
-remaining nine `k=3` no-ICL cells only describe a retired eval mode.
-
-## Closed or deferred branches
-
-- Relational hidden-state KD: removed; “RKD” means reverse-KL KD.
-- Struct-SQL/SeqKD direction: removed from the active pipeline.
-- Asymmetric-context KD: shelved after a negative one-seed probe.
-- Skew-RKL `alpha=0.1`: rejected as default.
-- BIRD as a trained-model evaluation benchmark: not used because it is the
-  public training pool.
-- Formal DP: not claimed; optional only if explicitly implemented.
-- Additional ICL retriever sweeps: dropped 2026-08-10. The matched federated
-  ladder showed in-context client training is `2.90 EX` worse before the server
-  step (`p=0.008`), so there is no branch left for a retriever sweep to tune.
-- Larger pool `P` = `bootstrap_full` (7,968 rows, teacher SQL, exec-only filter)
-  instead of `bootstrap_full_exmatch` (3,873, additionally filtered to match
-  BIRD gold's execution result): an option, never measured downstream. The
-  exmatch filter was adopted because it looks stricter, but its own docstring
-  flags the trade — BIRD gold is an unreliable oracle, so the filter trades
-  teacher-hallucination risk for gold-error-mimicry risk. Costs a fresh teacher
-  logit cache (the current one is keyed to the 3,873-row pool hash).
-- `k_teacher=3` server distillation: dropped 2026-08-10. It was proposed to
-  test whether the zero-shot server step erases client ICL ability. The no-ICL
-  ladder answered that without it: a model that never saw a demo in training
-  reaches `62.57–63.35`, so no capability is being erased. `k_teacher=0` also
-  keeps RKD logits offline cacheable.
+See `paper/archive/pre_fedls_2026-08/README.md` for routing.
