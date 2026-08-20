@@ -314,10 +314,15 @@ positives.
 
 1. **P0:** evaluate `Centralized-standard-3ep` on Realistic, Syn, DK, and BIRD,
    then fill the canonical final-model table without borrowing restart values.
-2. **P1:** export the trainable-parameter count, add fixed in-process warm-up,
+2. **P0:** replicate only the final T3 pure-FL versus full FedLS-SQL Spider
+   contrast at training seeds 1/2 and review mean, variance, and direction.
+3. **P1:** if the headline contrast is stable, run a one-round seed-0 Gemma 2
+   2B screen: pure FL versus teacher-target sequence KD. Do not call this
+   cross-tokenizer arm full CE+RKL FedLS-SQL.
+4. **P1:** export the trainable-parameter count, add fixed in-process warm-up,
    and collect controlled wall time, peak VRAM/RSS, and inference latency on an
    exclusive GPU; communication payload bytes are already consolidated.
-3. **P1:** audit T1 execution errors and EX-EM disagreement, then run only
+5. **P1:** audit T1 execution errors and EX-EM disagreement, then run only
    targeted seed-1/2 public-gold controls if the causal table still needs them.
 
 FedProx and broader-skew experiments remain behind these gates.

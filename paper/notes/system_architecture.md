@@ -200,9 +200,17 @@ Blocking evidence gaps:
 
 1. evaluate the official standard centralized recipe on the four transfer/OOD
    datasets; historical restart values cannot fill those cells;
-2. finish resource benchmarking with fixed warm-up and exclusive hardware;
-3. audit the large server-stage EX-EM divergence and execution-error types;
-4. replicate only the decisive causal/final contrasts across additional seeds.
+2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
+   training seeds 1/2;
+3. test family portability with a one-round Gemma 2 2B pure-FL versus
+   teacher-target sequence-KD screen, without incompatible Qwen logits;
+4. finish resource benchmarking with fixed warm-up and exclusive hardware;
+5. audit the large server-stage EX-EM divergence and execution-error types.
+
+The cross-family screen tests the portable hard-target mechanism, not the full
+reverse-KL endpoint. Until a vocabulary-independent soft-distillation method is
+implemented, token-level RKL remains a compatible-vocabulary enhancement and
+must not be claimed as family-agnostic.
 
 Communication payload accounting is already available from committed round
 metrics. With five clients, each round transmits `369,555,560` upload bytes and

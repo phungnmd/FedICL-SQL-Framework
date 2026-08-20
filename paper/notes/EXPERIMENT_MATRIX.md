@@ -8,11 +8,13 @@ contains canonical checkpoints and values.
 |---|---|---|---|
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | Spider complete at seed 0; standard recipe selected; standard OOD/BIRD eval queued |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
+| P0 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 next after centralized OOD fill |
+| P1 | cross-family portability | Gemma 2 2B T1 pure FL vs teacher-target sequence KD | gated by headline reliability; one seed/round first |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | payload bytes consolidated; trainable-parameter count and table export pending |
 | P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | instrumentation ready; official controlled runs pending |
-| P2 | reliability | targeted seed 1/2 matched public-gold controls and final headline contrasts | parked until centralized/resource gates |
+| P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P2 | optimizer baseline | FedProx SLM | not implemented/run |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
@@ -42,10 +44,14 @@ contains canonical checkpoints and values.
 
 1. Evaluate `Centralized-standard-3ep` on Realistic, Syn, DK, and BIRD so the
    primary comparison uses one centralized recipe in every column.
-2. Add fixed in-process warm-up to the resource benchmark path, then run only
+2. Replicate only final T3 pure FL versus full FedLS-SQL on Spider at training
+   seeds 1/2; stop and review stability.
+3. If stable, run one T1 seed-0 cross-family screen with Gemma 2 2B: pure FL
+   versus teacher-target sequence KD, without Qwen logits.
+4. Add fixed in-process warm-up to the resource benchmark path, then run only
    the missing matched 1.5B/7B measurements on an exclusive GPU.
-3. Audit the matched T1 predictions, especially execution errors and
+5. Audit the matched T1 predictions, especially execution errors and
    `EX=1, EM=0` cases; replicate public-gold seeds 1/2 only if needed for the
    headline causal claim.
-4. Activate FedProx or heterogeneity only when the
+6. Activate FedProx or heterogeneity only when the
    preceding gate identifies it as necessary.

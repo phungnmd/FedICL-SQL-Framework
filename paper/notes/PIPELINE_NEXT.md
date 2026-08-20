@@ -20,7 +20,7 @@ The matched public-supervision and centralized-recipe gates are complete.
 `Centralized-standard-3ep` is the official baseline; the historical restart
 recipe remains schedule-sensitivity evidence. The next run is evaluation-only:
 fill the official centralized baseline's four missing transfer/OOD cells before
-starting controlled resource benchmarks.
+activating the highest-impact reliability and portability gates.
 
 | Order | Action | Status |
 |---|---|---|
@@ -31,13 +31,16 @@ starting controlled resource benchmarks.
 | P0.4 | Evaluate both centralized recipes on Spider | complete; no meaningful difference |
 | P0.5 | Select the official centralized ceiling | complete; standard continuous selected |
 | P0.6 | Evaluate the official centralized baseline on Realistic, Syn, DK, and BIRD | **run next; stop after completion** |
+| P0.7 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | gated; author after P0.6 review |
+| P0.8 | Cross-family T1 screen: Gemma 2 2B FL vs teacher-target sequence KD | gated by P0.7 |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
-| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.6 review |
+| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.8 |
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
 it completed before the snapshot feature existed. Do not start FedProx,
-heterogeneity, sensitivity, or broad seed replication until P0.6 is reviewed.
+heterogeneity, sensitivity, or any broader replication beyond P0.7-P0.8 until
+their gates are reviewed.
 
 ## Fixed T1 comparison
 
@@ -159,12 +162,20 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-After P0.6, add a warm-up-capable benchmark path before collecting official
-latency. Do not treat an ordinary `eval_arms` run as the final benchmark: its
-timer excludes model loading but currently includes the first measured decode
-without a fixed in-process warm-up. The initial mechanism/error audit and any
-seed-1/2 matched public-gold controls remain targeted follow-ups, not the next
-GPU run.
+After P0.6, the GPU priority is P0.7 headline reliability, then the P0.8
+cross-family screen, then controlled resource measurement. P0.7 replicates
+only the final Spider contrast at training seeds 1/2; it does not repeat every
+round or dataset. P0.8 starts with one seed and one round using Gemma 2 2B:
+pure FL versus CE on the existing teacher-generated SQL. It must be labeled
+`FedLS-SeqKD`, not full CE+RKL FedLS-SQL, because Qwen teacher logits are not
+vocabulary-compatible with Gemma. Extend P0.8 to T3/OOD only if the T1 gate is
+positive and material.
+
+Before collecting official latency, add a warm-up-capable benchmark path. Do
+not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes
+model loading but currently includes the first measured decode without a fixed
+in-process warm-up. The mechanism/error audit is CPU-only and may proceed while
+a GPU task runs; seed-1/2 matched public-gold controls remain conditional.
 
 ## Resource-measurement eligibility
 
@@ -195,8 +206,10 @@ $Gpu=1; $Busy=@(nvidia-smi -i $Gpu --query-compute-apps=pid --format=csv,noheade
 
 ## Parked work
 
-- Seed 1/2 replication is retained as T7 in `PAPER_EVIDENCE_PLAN.md`; its old
-  executable queue remains recoverable from Git commit `b996594`.
+- Final T3 seed-1/2 replication has moved forward to T1R/P0.7. Older broad seed
+  commands remain provenance only at Git commit `b996594`; do not reuse them
+  without narrowing them to the final Spider endpoints. Additional public-gold
+  or component replication remains conditional under T7.
 - No “Centralized + CE/KD” command is activated. Historical variants use
   mismatched 1k pools or mixed stages. Add a new matched centralized lineage
   only if the final reviewer audit needs to separate federation from the same

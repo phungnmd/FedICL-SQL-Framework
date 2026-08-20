@@ -51,17 +51,19 @@ an uncertainty exposed by an earlier result.
 
 ### Main unresolved threats
 
-1. **Efficiency claim:** communication is recorded, but the client/server
+1. **Headline reliability:** the final T3 FL-versus-FedLS-SQL contrast has only
+   one training seed.
+2. **Model-family scope:** student and teacher are both Qwen-family models, and
+   token-level RKL is vocabulary-dependent.
+3. **Efficiency claim:** communication is recorded, but the client/server
    resource story and fair 1.5B-versus-7B comparison are incomplete.
-2. **Mechanism/metric risk:** server refinement sharply reduces EM while EX and
+4. **Mechanism/metric risk:** server refinement sharply reduces EM while EX and
    execution validity improve; equivalent-SQL and false-positive EX cases need
    an explicit audit.
-3. **Component reliability:** teacher-target CE is causally supported at seed
+5. **Component reliability:** teacher-target CE is causally supported at seed
    0, but the standalone reverse-KL increment is not established across seeds.
-4. **Baseline strength:** FedProx-LoRA is absent.
-5. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
-6. **Reliability:** T2/T3 has one training seed; replication remains targeted,
-   not a default full-grid rerun.
+6. **Baseline strength:** FedProx-LoRA is absent.
+7. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
 
 ## 4. Adaptive task queue
 
@@ -172,14 +174,75 @@ to teacher-generated hard targets; describe reverse KL as an additional
 positive component pending stronger across-seed evidence. Do not claim that it
 transfers latent reasoning without a dedicated analysis.
 
-Do not activate FedProx, heterogeneity sweeps, or broad T2/T3 replication before
-T2 and the mechanism audit establish the remaining paper needs.
+Do not activate FedProx, heterogeneity sweeps, or broad replication before the
+two targeted gates below establish headline reliability and model-family scope.
+
+### T1R — final-endpoint reliability
+
+**Status:** highest-impact GPU task after the P0.6 centralized transfer suite.
+
+**Question:** is the headline T3 gain over independent pure FL stable across
+training randomness, rather than a seed-0 outcome?
+
+**Minimum screen:**
+
+- Train only independent pure FL and full FedLS-SQL through T3 at training
+  seeds 1 and 2 on the existing fixed `K=5, alpha=0.5` partition.
+- Evaluate only the final T3 endpoints on Spider first.
+- Do not repeat all intermediate rounds, OOD datasets, public-gold controls, or
+  centralized baselines unless the final contrast is unstable.
+- Report the three training-seed FL/FedLS deltas and mean ± sample SD. Keep
+  question-level paired tests separate from training-seed uncertainty.
+
+**Gate T1R:**
+
+- **Direction and magnitude remain stable:** retain the headline accuracy
+  claim and proceed to cross-family portability.
+- **Direction is stable but noisy:** report the uncertainty and consider only
+  one additional seed; do not expand the whole grid.
+- **One or both new seeds reverse the gain:** weaken the headline claim and
+  investigate training instability before spending compute on portability or
+  heterogeneity.
+
+### T1F — cross-family portability screen
+
+**Status:** gated by T1R; run a one-round, one-seed screen before any expansion.
+
+**Question:** does the strongest family-agnostic mechanism—teacher-generated
+sequence supervision—help a non-Qwen student?
+
+**Minimum screen:**
+
+- Preferred student: `google/gemma-2-2b-it`, subject to license access and a
+  LoRA/chat-template smoke test; `microsoft/Phi-3.5-mini-instruct` is the
+  fallback if Gemma cannot run cleanly.
+- Keep the current frozen Qwen2.5-Coder-7B teacher targets, public-pool row
+  identities, Spider split, prompts, LoRA policy, seed 0, and T1 evaluation.
+- Compare cross-family pure FL against FL followed by CE on the existing
+  teacher-generated SQL (`fedavg_pub`). Do not reuse the Qwen teacher-logit
+  cache with a different tokenizer.
+- Label the transferred endpoint `FedLS-SeqKD`, not full FedLS-SQL CE+RKL.
+- Do not add model-size sweeps or a second alternative family at this gate.
+
+**Gate T1F:**
+
+- **Positive, material T1 gain:** the teacher-target mechanism has portability
+  evidence; extend only this pair to T3/Spider, then decide whether OOD is
+  needed.
+- **Small or uncertain gain:** add at most one training seed before deciding.
+- **No gain or regression:** stop the branch and scope the paper to the tested
+  vocabulary-compatible Qwen setting; do not tune until positive.
+
+Cross-family sequence KD does not by itself establish portability of the
+reverse-KL component. If the manuscript presents family-agnostic FedLS-SQL as
+the core framework, define teacher-target sequence KD as the portable core and
+present token-level RKL as an optional compatible-vocabulary enhancement.
 
 ### T2 — efficiency and resource evidence
 
-**Status:** partially active. Communication payload is consolidated from
-committed metrics. First fill the official centralized transfer/OOD cells, then
-collect controlled resource measurements; no accuracy retraining is required.
+**Status:** communication payload is complete; controlled measurement follows
+T1R and T1F because it supports the efficiency claim but does not resolve the
+more serious reliability or model-family objections.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
@@ -345,11 +408,14 @@ decisions.
 - Perform a reviewer-style evidence audit. Any new run must map to a concrete
   missing cell or objection; otherwise it is not scheduled.
 
-### T7 — targeted reliability replication
+### T7 — additional targeted reliability replication
 
-**Status:** intentionally late and conditional.
+**Status:** intentionally late and conditional. T1R already covers the final
+T3 FL-versus-FedLS-SQL headline contrast; this task covers only uncertainty
+that remains after the main gates.
 
-**Question:** which final headline contrasts still depend too heavily on seed 0?
+**Question:** which causal components or secondary contrasts still depend too
+heavily on seed 0 after T1R closes the final endpoint comparison?
 
 **Todo:**
 
@@ -392,18 +458,24 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | T1 matched-supervision gate | 1,034 paired Spider predictions for FL, public-gold CE, teacher-target CE, and full FedLS-SQL | teacher targets beat matched public gold by 3.48 EX; full method beats it by 5.51 EX; retain large-to-small claim, keep standalone RKL claim provisional | P0.3-P0.4 centralized recipe check |
 | 2026-08-20 | P0.5 centralized-recipe gate | standard continuous 3 epochs versus three-pass restart on 1,034 paired Spider rows | recipes are indistinguishable in EX; select standard 67.31 as official baseline, retain restart 67.60 as schedule sensitivity | T2 resources and T1 mechanism audit |
 | 2026-08-20 | post-P0.5 evidence audit | canonical registry, committed communication metrics, and resource instrumentation | fill standard centralized OOD/BIRD cells first; communication payload needs no rerun; add fixed in-process warm-up before official latency | P0.6 centralized transfer suite |
+| 2026-08-20 | Q3 evidence-priority review | headline seed coverage, Qwen-only scope, resource claim, and compute cost | after P0.6, prioritize final T3 seed-1/2 reliability, then one-round Gemma sequence-KD portability; resource benchmark follows those scientific-validity gates | P0.6, then T1R |
 
 ## 6. Current next actions
 
 1. Run P0.6 from `PIPELINE_NEXT.md`: evaluate the official centralized standard
    adapter on Realistic, Syn, DK, and BIRD, then stop and review.
-2. Export the exact LoRA trainable-parameter count and add fixed in-process
-   warm-up before the controlled 1.5B/7B resource benchmark.
-3. Run the no-GPU T1 execution-error/EX-EM audit.
-4. Decide whether seed-1/2 public-gold controls are necessary for the final
+2. Activate T1R: author and run only the final T3 pure-FL versus full
+   FedLS-SQL contrast at training seeds 1/2 on Spider.
+3. If T1R is stable, activate T1F: smoke-test Gemma 2 2B, then run the seed-0
+   T1 pure-FL versus teacher-target sequence-KD screen.
+4. After T1F, export the exact LoRA trainable-parameter count and add fixed
+   in-process warm-up before the controlled 1.5B/7B resource benchmark.
+5. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
+   active GPU task.
+6. Decide whether seed-1/2 public-gold controls are necessary for the final
    causal table; do not repeat all datasets or rounds automatically.
-5. Do not interpret shared-server time/RAM as official evidence;
+7. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
-Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be
-reactivated later under T7 if the final headline contrast needs replication.
+Final T3 seed-1/2 replication is now an early targeted task under T1R. Only
+additional component/public-gold replication remains parked under T7.
