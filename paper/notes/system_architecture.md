@@ -56,8 +56,10 @@ The public targets are constructed once:
 4. the retained teacher SQL becomes the public hard target;
 5. teacher logits on the same target span are cached.
 
-BIRD gold SQL is used for result-based filtering, not as the training target.
-Changing the pool or teacher cache creates a new result lineage.
+BIRD gold SQL is used for result-based filtering, not as the canonical method's
+training target. A matched causal control replaces the teacher SQL with BIRD
+gold on the exact same 3,873 row identities; it is an ablation, not a FedLS-SQL
+component. Changing the pool or teacher cache creates a new result lineage.
 
 ## 4. End-to-end method
 
@@ -129,9 +131,14 @@ The primary final-model comparison is:
 
 | Paper label | Training path | Canonical checkpoint |
 |---|---|---|
-| Centralized | three Spider passes, no FL/KD | `artifacts/probe_p/central_3ep/adapter` |
+| Centralized-3pass-restart (historical) | three independently scheduled Spider passes, no FL/KD | `artifacts/probe_p/central_3ep/adapter` |
 | FL | three pure FedAvg rounds, no teacher/public pool | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` |
 | FedLS-SQL (FL-KD) | three rounds of FedAvg followed by server KD | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` |
+
+A conventional continuous centralized three-epoch adapter is pending. The
+stronger of the two explicitly named schedules will become the final
+centralized ceiling; the historical restart artifact must not be relabeled as
+standard three-epoch training.
 
 The `round_2/round_3/fedavg_adapter` objects inside the `fedkd` lineage are not
 pure-FL controls: they inherit the previous round's post-KD global adapter.
@@ -141,7 +148,8 @@ Additional ablations isolate:
 - base SLM;
 - centralized SLM fine-tuning;
 - pure FL;
-- public hard-target CE without teacher logits;
+- matched BIRD-gold CE on the same public row identities;
+- teacher-target CE without teacher logits;
 - distillation without private federation;
 - full FedLS-SQL;
 - teacher direction/objective variants where already measured.
@@ -177,12 +185,22 @@ Established evidence:
 - server KD is strongly beneficial on BIRD cross-corpus evaluation;
 - ICL is negative for the tested 1.5B student and is retained only as a
   negative ablation;
-- factor-wise FedAvg is the selected aggregator.
+- factor-wise FedAvg is the selected aggregator;
+- at matched T1 seed 0, public-gold CE is neutral relative to FL (`+0.48 EX`,
+  `p=0.800`), teacher-target CE beats public-gold CE by `+3.48 EX`
+  (`p=0.0026`), and full FedLS-SQL beats public-gold CE by `+5.51 EX`
+  (`p<1e-6`);
+- reverse KL adds `+2.03 EX` over teacher-target CE at seed 0, but its existing
+  three-seed incremental contrast is not significant and must be presented as
+  provisional;
+- the server treatment reduces T1 Spider execution errors from 236 to 133.
 
 Blocking evidence gaps:
 
-1. consolidate communication and resource metrics;
-2. replicate the multi-round trajectory across additional seeds.
+1. establish the standard continuous centralized ceiling;
+2. consolidate communication and resource metrics;
+3. audit the large server-stage EX-EM divergence and execution-error types;
+4. replicate only the decisive causal/final contrasts across additional seeds.
 
 Outline items not yet supported by current evidence include FedProx, a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual

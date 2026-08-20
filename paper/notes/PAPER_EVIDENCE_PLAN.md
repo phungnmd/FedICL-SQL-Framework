@@ -41,6 +41,9 @@ an uncertainty exposed by an earlier result.
 - FedLS-SQL exceeds pure FL on Spider and has positive T3 deltas on Realistic,
   Syn, DK, and BIRD.
 - T1 server-stage effect has three-seed evidence.
+- The matched T1 seed-0 ladder separates teacher guidance from an equal-size
+  public-gold CE control: public gold is neutral, teacher targets add `3.48`
+  EX, and full FedLS-SQL adds `5.51` EX over public gold.
 - Pure FL and FedLS-SQL T1-T3 trajectories exist at seed 0.
 - ICL and FLoRA-NA are closed negative branches.
 - The privacy boundary is documented as structural data isolation rather than
@@ -48,15 +51,19 @@ an uncertainty exposed by an earlier result.
 
 ### Main unresolved threats
 
-1. **Causal attribution:** teacher guidance is not yet separated cleanly from
-   learning on an additional public labeled pool.
-2. **Efficiency claim:** communication is recorded, but the client/server
+1. **Efficiency claim:** communication is recorded, but the client/server
    resource story and fair 1.5B-versus-7B comparison are incomplete.
-3. **Baseline strength:** FedProx-LoRA is absent.
-4. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
-5. **Analysis depth:** paper-facing error analysis is absent.
-6. **Reliability:** T2/T3 has one training seed, but this is secondary until the
-   final causal comparison and paper claims are stable.
+2. **Centralized ceiling:** the standard continuous three-epoch recipe is not
+   yet evaluated beside the historical three-pass-restart artifact.
+3. **Mechanism/metric risk:** server refinement sharply reduces EM while EX and
+   execution validity improve; equivalent-SQL and false-positive EX cases need
+   an explicit audit.
+4. **Component reliability:** teacher-target CE is causally supported at seed
+   0, but the standalone reverse-KL increment is not established across seeds.
+5. **Baseline strength:** FedProx-LoRA is absent.
+6. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
+7. **Reliability:** T2/T3 has one training seed; replication remains targeted,
+   not a default full-grid rerun.
 
 ## 4. Adaptive task queue
 
@@ -106,9 +113,9 @@ the implementation does not support.
 
 ### T1 — matched public-supervision ablation
 
-**Status:** active; P0.0 verified and P0.1 public-gold CE is currently running.
-Do not interrupt P0.1; treat its accuracy as valid and its opportunistic shared-
-server resource measurements as non-paper evidence.
+**Status:** complete at seed 0 on 2026-08-20; Gate T1 passed. Shared-server
+accuracy is valid, but opportunistic resource measurements are non-paper
+evidence.
 
 **Question:** does improvement come from LLM guidance, or merely from adding a
 public supervised training pass?
@@ -122,18 +129,28 @@ public supervised training pass?
 | FL + teacher-target CE | same FedAvg adapter | CE on teacher SQL (`fedavg_pub`) |
 | FedLS-SQL | same FedAvg adapter | teacher-target CE + reverse KL (`fedkd`) |
 
-**Todo:**
+**Observed matched result:**
 
-- Build a provenance-preserving public-gold CSV using exactly the row identities
-  in the frozen 3,873-row teacher pool.
-- Verify schema/database paths, row count, row identity, split isolation, and
-  target-source metadata.
-- Reuse the same T1 FedAvg checkpoint so only server supervision changes.
-- Initially run only the missing public-gold server arm at seed 0.
-- Evaluate all four arms on identical Spider rows with the canonical greedy,
-  zero-shot protocol.
-- Compare EX, execution-error rate, paired wins/losses, and confidence intervals;
-  treat EM as secondary across different target conventions.
+| Arm | EX | EM | Execution-error rate |
+|---|---:|---:|---:|
+| FL | 57.35 | 50.58 | 22.82% |
+| FL + matched public-gold CE | 57.83 | 23.89 | 18.86% |
+| FL + teacher-target CE | 61.32 | 30.27 | 15.57% |
+| FedLS-SQL | **63.35** | 31.53 | **12.86%** |
+
+On the same 1,034 rows, public gold over FL is `+0.48 pp` with 127 wins and 122
+losses (`p=0.800`); teacher targets over public gold are `+3.48 pp`, 86/50
+(`p=0.0026`); reverse KL over teacher-target CE is `+2.03 pp`, 59/38
+(`p=0.0417`); and full FedLS-SQL over public gold is `+5.51 pp`, 93/36
+(`p<1e-6`). These are paired question-level tests for one training seed.
+
+**Remaining work attached to T1:**
+
+- Audit execution-error categories and representative `EX=1, EM=0` cases.
+- Do not infer that reverse KL is independently stable from seed 0: the
+  existing three-seed reverse-KL contrast is `+1.71 ± 1.38 pp`, `p=0.165`.
+- Replicate only the missing public-gold control at seeds 1/2 if the final
+  headline causal statement requires training-seed uncertainty.
 - Correct the centralized ceiling before freezing the main table:
   - retain the existing three chained one-epoch artifact as
     `Centralized-3pass-restart`;
@@ -143,8 +160,8 @@ public supervised training pass?
     reporting its exact schedule.
 - Do not revive historical “Centralized + CE” artifacts as official evidence:
   they use mismatched public-pool sizes or mixed CE/RKL/re-finetuning stages.
-  After Gate T1, add a new matched centralized public-supervision lineage only
-  if the final paper table needs it and the intended target is unambiguous.
+  Add a new matched centralized teacher-guidance lineage only if the final
+  reviewer audit needs to separate federation from the same server treatment.
 
 **Reconstruction audit:** the selection checkpoint contains all 3,873 retained
 source indices, so the control is recoverable exactly. Joining on
@@ -153,29 +170,21 @@ nine rows. `scripts/build_public_gold_control.py` instead aligns by stored sourc
 index, verifies question/database/path identity, preserves row order and prompt
 fields, replaces only `query`, and records input/output hashes.
 
-**Gate T1:**
+**Gate T1 decision:** retain LLM-to-SLM guidance as the central contribution.
+The null public-gold control rules out “merely one extra public supervised pass”
+as the main explanation at seed 0. Attribute the strongest supported mechanism
+to teacher-generated hard targets; describe reverse KL as an additional
+positive component pending stronger across-seed evidence. Do not claim that it
+transfers latent reasoning without a dedicated analysis.
 
-- **Teacher targets and/or logits clearly improve over matched public gold:**
-  retain LLM-to-SLM guidance as the central contribution. Decide whether the
-  comparison must be extended to T3 or additional seeds based on effect size
-  and uncertainty.
-- **Teacher-target CE is similar to public-gold CE, but reverse KL adds value:**
-  center the method on soft teacher guidance; replicate only the decisive
-  public-gold versus full comparison.
-- **Public-gold CE explains most or all of the gain:** reframe the paper as
-  public-data-assisted federated SLM training, or redesign the transfer
-  mechanism before spending compute on robustness/seeds.
-- **Public-gold CE is harmful while teacher supervision helps:** retain the
-  large-to-small story, but analyze why teacher-generated equivalent SQL is
-  easier or more useful than BIRD gold.
-
-Do not activate FedProx, heterogeneity sweeps, or T2/T3 seed replication until
-this gate and the centralized-recipe check are reviewed.
+Do not activate FedProx, heterogeneity sweeps, or broad T2/T3 replication until
+the centralized-recipe check is reviewed.
 
 ### T2 — efficiency and resource evidence
 
-**Status:** activate after T1 supports a paperable method; most subtasks do not
-require accuracy retraining.
+**Status:** eligible because T1 supports a paperable method; queued immediately
+after the centralized-recipe check. Most subtasks do not require accuracy
+retraining.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
@@ -315,7 +324,8 @@ analysis exposes a specific missing prediction set.
 
 ### T6 — manuscript skeleton and table freeze
 
-**Status:** can begin after T1; freeze results only after T2-T5 decisions.
+**Status:** manuscript skeleton may now begin; freeze results only after T2-T5
+decisions.
 
 **Todo:**
 
@@ -381,18 +391,18 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | T0 claim alignment | outline claims versus implemented architecture and available resource evidence | pragmatic RQ2 selected; no full 7B FL by default; claims limited to asymmetric server-client setting and structural data isolation | T1 |
 | 2026-08-20 | T1 reconstruction preflight | BIRD source CSV, frozen teacher pool, selection checkpoint, duplicate-key audit | exact 3,873-row gold control is reconstructable by source index; activate only the missing gold-CE branch | T1 P0.1 |
 | 2026-08-20 | baseline/resource audit | centralized configs, trainer/eval timing paths, VRAM and communication logging | keep P0.1 running for accuracy; add standard continuous 3-epoch centralized baseline; old shared-server timing is operational only; instrument future official measurements | finish T1, then centralized recipe check |
+| 2026-08-20 | T1 matched-supervision gate | 1,034 paired Spider predictions for FL, public-gold CE, teacher-target CE, and full FedLS-SQL | teacher targets beat matched public gold by 3.48 EX; full method beats it by 5.51 EX; retain large-to-small claim, keep standalone RKL claim provisional | P0.3-P0.4 centralized recipe check |
 
 ## 6. Current next actions
 
-1. Let the currently running P0.1 public-gold CE branch finish; do not pull code
-   or interrupt that process mid-run.
-2. After it exits, pull the instrumentation update and run P0.2: evaluate FL,
-   public-gold CE, teacher-target CE, and full FedLS-SQL on the same Spider rows.
-3. Run P0.3-P0.4: one standard continuous centralized three-epoch training run,
+1. Run P0.3-P0.4: one standard continuous centralized three-epoch training run,
    then evaluate it beside the existing three-pass-restart adapter.
-4. Stop at the combined gate. Select the stronger explicitly named centralized
-   recipe and update the plan from the observed T1 causal contrast.
-5. Do not interpret P0.1's shared-server time/RAM as official resource evidence;
+2. Stop at P0.5 and select the stronger explicitly named centralized recipe.
+3. Activate T2 communication/resource consolidation and the no-GPU T1
+   execution-error/EX-EM audit.
+4. Decide whether seed-1/2 public-gold controls are necessary for the final
+   causal table; do not repeat all datasets or rounds automatically.
+5. Do not interpret P0.1/P0.2 shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Seed-1/seed-2 commands are parked, not scientifically cancelled; they may be

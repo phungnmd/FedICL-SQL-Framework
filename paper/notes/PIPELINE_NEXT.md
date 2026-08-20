@@ -11,23 +11,24 @@ resource and communication savings of retaining a 1.5B SLM rather than placing
 the 7B teacher on clients or in inference. Full federated 7B training is not
 part of the default evidence package.
 
-The only active empirical task is **T1: matched public-supervision ablation**.
+The matched public-supervision gate is complete and supports the FedLS-SQL
+large-to-small claim. The only active GPU task is now the centralized-recipe
+correction; stop again after P0.4 for the combined baseline review.
 
 | Order | Action | Status |
 |---|---|---|
 | P0.0 | Build and verify the exact 3,873-row BIRD-gold control | complete |
-| P0.1 | Train the missing public-gold CE server branch from the shared T1 adapter | running; do not stop |
-| P0.2 | Evaluate the four matched T1 arms on Spider | pending |
+| P0.1 | Train the missing public-gold CE server branch from the shared T1 adapter | complete |
+| P0.2 | Evaluate the four matched T1 arms on Spider | complete; Gate T1 passed |
 | P0.3 | Train standard continuous centralized 3-epoch baseline | pending |
 | P0.4 | Evaluate both centralized recipes on Spider | pending |
-| P0.5 | Review causal result and centralized ceiling | gated |
+| P0.5 | Review centralized ceiling and activate the next evidence block | gated |
 
-Let the currently running P0.1 finish; its accuracy and checkpoint are valid.
-Do not use its opportunistic wall-time/RAM values as paper resource evidence.
-Pull the instrumentation update only after that process exits, then continue
-with P0.2. Stop after P0.4. Do not start seed replication, FedProx, heterogeneity, or
-sensitivity runs until the T1 result has been reviewed against the decision
-gate in `PAPER_EVIDENCE_PLAN.md`.
+P0.1/P0.2 accuracy is valid, but its opportunistic wall-time/RAM values are not
+paper resource evidence. Run P0.3 and P0.4 next, then stop. Do not start
+FedProx, heterogeneity, sensitivity, or broad seed replication until the
+centralized recipe is reviewed and the next block is activated in
+`PAPER_EVIDENCE_PLAN.md`.
 
 ## Fixed T1 comparison
 
@@ -70,6 +71,15 @@ $env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1
 
 ## P0.2 — evaluate the four matched arms
 
+**Completed result (seed 0, Spider, 1,034 identical rows):** FL `57.35`, matched
+public-gold CE `57.83`, teacher-target CE `61.32`, and full FedLS-SQL `63.35`
+EX. Public gold does not improve over FL (`+0.48 pp`, paired `p=0.800`), while
+teacher targets improve over matched public gold (`+3.48 pp`, `p=0.0026`) and
+reverse KL adds `+2.03 pp` over teacher-target CE (`p=0.0417`). Treat the RKL
+increment as provisional because its three-seed training-level contrast is not
+yet significant. Canonical committed result:
+`experiments/eval_arms/results/eval_arms__s0__20260820T065954/`.
+
 The resume directory is unique to this comparison. `--skip-completed` makes a
 completed exact rerun a no-op and a partial run resumes from its JSONL rows.
 
@@ -99,25 +109,22 @@ paper's centralized ceiling and name its schedule explicitly.
 $env:CUDA_VISIBLE_DEVICES='1'; $S='artifacts/baselines/central_3ep_standard_s0/adapter'; $R='artifacts/probe_p/central_3ep/adapter'; $E='artifacts/eval_resume/central_3ep_recipe_check_s0/eval_k0'; foreach ($A in @($S,$R)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing centralized adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "central_3ep_standard=$S" "central_3pass_restart=$R" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Centralized recipe evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing centralized evaluation manifests: $E/manifests" }; Write-Host 'P0.4 complete: stop and review both centralized recipes'
 ```
 
-## P0.5 — combined review gate
+## P0.5 — centralized review and next-block gate
 
-After P0.2 and P0.4, report the generated result directories or commit them.
-The T1 review must
-compare EX, execution-error rate, paired wins/losses, and uncertainty on the
-same Spider rows. EM is secondary because BIRD gold and teacher SQL can be
-semantically equivalent but textually different.
+Gate T1 is already decided: additional public supervision does not explain the
+FedLS-SQL gain, teacher-generated hard targets provide the clearest causal
+increment, and reverse KL provides a smaller positive increment whose
+across-seed reliability remains unresolved. The server stage also reduces
+execution errors from `22.82%` for FL to `12.86%` for full FedLS-SQL.
 
-For the centralized ceiling, report both schedules and select the stronger
-result. Never relabel `central_3pass_restart` as standard three-epoch training.
+After P0.4, report or commit the centralized result directory. Report both
+centralized schedules and select the stronger result. Never relabel
+`central_3pass_restart` as standard three-epoch training.
 
-The result chooses the next branch:
-
-- teacher-target CE or reverse KL beats public-gold CE: continue the FedLS-SQL
-  large-to-small claim, then activate efficiency evidence;
-- reverse KL is the only added value: center the paper on soft guidance;
-- public-gold CE explains the gain: reframe or redesign before more compute;
-- public-gold CE hurts but teacher supervision helps: retain the transfer story
-  and prioritize mechanism/error analysis.
+Once the centralized ceiling is fixed, activate T2 resource/communication
+evidence and the initial T1 mechanism audit. Replicate the matched public-gold
+control at seeds 1/2 only as a targeted reliability task; do not rerun the full
+experiment grid automatically.
 
 ## Resource-measurement eligibility
 
@@ -150,10 +157,10 @@ $Gpu=1; $Busy=@(nvidia-smi -i $Gpu --query-compute-apps=pid --format=csv,noheade
 
 - Seed 1/2 replication is retained as T7 in `PAPER_EVIDENCE_PLAN.md`; its old
   executable queue remains recoverable from Git commit `b996594`.
-- No “Centralized + CE” command is activated yet. Historical variants use
-  mismatched 1k pools or mixed CE/RKL/re-finetuning stages. Gate T1 must first
-  decide whether the official matched treatment is public-gold CE,
-  teacher-target CE, or unnecessary; only then create a new immutable lineage.
+- No “Centralized + CE/KD” command is activated. Historical variants use
+  mismatched 1k pools or mixed stages. Add a new matched centralized lineage
+  only if the final reviewer audit needs to separate federation from the same
+  teacher-guided server treatment.
 - FedProx, heterogeneity, and sensitivity tasks remain gated.
 - ICL and FLoRA-NA remain archived negative branches.
 

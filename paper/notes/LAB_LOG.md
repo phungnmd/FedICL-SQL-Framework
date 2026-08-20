@@ -22,6 +22,9 @@ canonical checkpoint labels belong in `RESULT_REGISTRY.md`.
 - Best current FedLS-SQL endpoint: **69.54 Spider EX at T=3, seed 0**.
 - Independent pure-FL T1-T3 and the final
   `Centralized <> FL <> FedLS-SQL` comparison are complete at seed 0.
+- The matched T1 public-supervision gate is complete: teacher-target CE and
+  full FedLS-SQL beat an equal-row BIRD-gold CE control, so extra public
+  supervision alone does not explain the gain.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, `noicl`, and old artifact paths
   remain unchanged for compatibility and provenance.
@@ -128,7 +131,45 @@ Spider at T1 and T3, but none of the nine pre/post cells on the three perturbed
 Spider sets is significant. It consistently reduces execution errors, even
 when EX does not increase.
 
-### 3.4 T=1 replication and component evidence
+### 3.4 Matched T=1 public-supervision gate
+
+All arms below start from the same seed-0 T1 FedAvg adapter and use the same
+3,873 retained BIRD row identities. Only the server treatment differs.
+
+| Arm | Spider EX | Spider EM | Exec. errors | Error rate |
+|---|---:|---:|---:|---:|
+| FL, shared pre-server | 57.35 | 50.58 | 236 | 22.82% |
+| + matched BIRD-gold CE | 57.83 | 23.89 | 195 | 18.86% |
+| + teacher-target CE | 61.32 | 30.27 | 161 | 15.57% |
+| + teacher-target CE and reverse KL | **63.35** | 31.53 | **133** | **12.86%** |
+
+Paired Spider EX contrasts on the same 1,034 rows:
+
+| Contrast | Delta | Wins/losses | Approx. paired 95% CI | Exact McNemar `p` |
+|---|---:|---:|---:|---:|
+| public gold over FL | +0.48 | 127/122 | [-2.51, +3.48] | 0.800 |
+| teacher target over public gold | **+3.48** | 86/50 | [+1.28, +5.68] | **0.0026** |
+| reverse KL over teacher target | +2.03 | 59/38 | [+0.17, +3.89] | 0.0417 |
+| full FedLS-SQL over public gold | **+5.51** | 93/36 | [+3.38, +7.64] | **<1e-6** |
+| full FedLS-SQL over FL | **+6.00** | 145/83 | [+3.16, +8.84] | **<1e-4** |
+
+Decision: Gate T1 passes. A matched public labeled pass does not improve EX
+over FL, whereas teacher-generated hard targets provide the clearest causal
+increment. Reverse KL adds a positive seed-0 increment but remains provisional
+at the training-seed level. The full server treatment also cuts execution
+errors by 103 relative to FL.
+
+The EM decline is real under the official Spider component-set evaluator:
+server-refined models produce substantially more `EX=1, EM=0` predictions
+(`338` for full FedLS-SQL versus `101` for FL). Before publication, audit
+whether these are legitimate equivalent SQL forms or single-database EX false
+positives. Do not use EM to reject the EX result, and do not hide the gap.
+
+Canonical result:
+`fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`,
+produced with `git_sha=b3fd32f` and committed in `7c1414b`.
+
+### 3.5 T=1 replication and component evidence
 
 | Stage | seed 0 | seed 1 | seed 2 | mean ± sd |
 |---|---:|---:|---:|---:|
@@ -153,7 +194,7 @@ Safe reading:
 - single-seed McNemar results must not be presented as across-seed method
   significance.
 
-### 3.5 Centralized training reference
+### 3.6 Centralized training reference
 
 | Centralized private-data passes | Spider EX | OOD pooled EX |
 |---|---:|---:|
@@ -169,7 +210,7 @@ This is not compute matching. At three passes, FedLS-SQL uses 25,977 client
 steps plus 11,619 public server steps, versus 25,977 centralized steps. Report
 the additional server compute rather than claiming equal cost.
 
-### 3.6 BIRD cross-corpus transfer
+### 3.7 BIRD cross-corpus transfer
 
 | Arm | EX | Execution-error rate |
 |---|---:|---:|
@@ -193,7 +234,7 @@ BIRD is a cross-corpus diagnostic, not a headline benchmark. Its evaluation
 databases are disjoint from the public pool, but the corpus favors the BIRD-KD
 branch and the current prompt omits BIRD evidence hints.
 
-### 3.7 ICL negative ablation
+### 3.8 ICL negative ablation
 
 | Effect | Result |
 |---|---:|
@@ -215,11 +256,15 @@ No further ICL sweep is planned. Detailed evidence is in
    (`p=0.0001`), with positive gains on every additional test set.
 3. At T1 across three seeds, the full server distillation stage improves over
    federation alone by `+4.55 EX` (`p=0.046`).
-4. Server guidance strongly improves BIRD cross-corpus transfer and reduces
+4. At matched T1 seed 0, teacher-target CE beats equal-row BIRD-gold CE by
+   `+3.48 EX` (`p=0.0026`); full FedLS-SQL beats public-gold CE by `+5.51 EX`
+   (`p<1e-6`). Extra public supervision alone does not explain the observed
+   gain at this gate.
+5. Server guidance strongly improves BIRD cross-corpus transfer and reduces
    execution errors across all evaluated datasets.
-5. The 1.5B deployed model requires neither the 7B teacher nor public data at
+6. The 1.5B deployed model requires neither the 7B teacher nor public data at
    client inference time.
-6. ICL and FLoRA-NA do not improve the retained configuration.
+7. ICL and FLoRA-NA do not improve the retained configuration.
 
 ### Not yet supported
 
@@ -231,20 +276,29 @@ No further ICL sweep is planned. Detailed evidence is in
 4. Formal privacy guarantees.
 5. A distinct structural-distillation contribution; the implemented server
    objective is teacher-target CE plus reverse KL.
+6. An independently stable reverse-KL contribution across training seeds; its
+   three-seed incremental contrast is positive but not significant.
+7. That every `EX=1, EM=0` server-stage prediction is semantically equivalent;
+   the large metric divergence still requires an error audit.
 
 ### Metric caveat
 
-EM is comparable only within the same training stage. Server KD changes SQL
-surface conventions while EX improves, so pre/post-server claims should use EX
-and execution-error rate as primary metrics.
+EM uses the official Spider component-set evaluator, not raw string equality.
+Server refinement nevertheless changes query structure enough that EM falls
+while EX and execution validity improve. Pre/post-server claims should use EX
+and execution-error rate as primary metrics, report EM transparently, and
+audit representative `EX=1, EM=0` cases for equivalent forms and EX false
+positives.
 
 ## 5. Active queue
 
-1. **P0:** consolidate trainable parameters, adapter bytes, total
-   communication, wall time, peak VRAM, and inference latency.
-2. **P1:** replicate the T1-T3 trajectory for seeds 1 and 2.
-3. **P2:** run FedProx, size/rank, or broader-skew sweeps only after advisor
-   scope confirmation.
+1. **P0:** run the standard continuous centralized three-epoch recipe and
+   compare it with the historical three-pass-restart reference.
+2. **P1:** consolidate trainable parameters, adapter bytes, total communication,
+   controlled wall time, peak VRAM/RSS, and inference latency; audit T1
+   execution errors and EX-EM disagreement.
+3. **P2:** run only targeted seed-1/2 public-gold controls needed for the causal
+   table, then consider FedProx or broader-skew experiments at later gates.
 
 No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 
@@ -256,7 +310,9 @@ No ICL, FLoRA-NA, self-consistency, or T4/T5 experiment is active.
 | FedLS-SQL T1-T3 lineage | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0` |
 | Pure-FL T1-T3 lineage | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
+| Matched BIRD-gold control | `processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
+| Matched T1 evaluation | `experiments/eval_arms/results/eval_arms__s0__20260820T065954` |
 | Completed pure-FL command | `paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_BLOCK_K_completed_2026-08-20.md` |
 | Active experiment queue | `paper/notes/PIPELINE_NEXT.md` |
 | Checkpoint/result labels | `paper/notes/RESULT_REGISTRY.md` |
@@ -283,6 +339,7 @@ internal artifact identities.
 | 2026-08-19 | Advisor renamed the paper FedLS-SQL and removed ICL from method. |
 | 2026-08-20 | Active documentation and lab log refactored around FedLS-SQL. |
 | 2026-08-20 | Independent pure-FL T1-T3 completed; final three-way table closed at seed 0. |
+| 2026-08-20 | Matched public-gold gate passed: teacher targets, not merely extra public CE, explain the main T1 server gain; standalone RKL evidence remains provisional. |
 
 ## 8. Archived branches
 
