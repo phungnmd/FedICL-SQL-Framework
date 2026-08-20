@@ -212,6 +212,13 @@ teacher/student family. It does not make reverse KL cross-tokenizer: exact
 token-to-ID equality is a hard prerequisite, and arbitrary mixed-family logits
 remain unsupported.
 
+The fixed 3,873-row pool above is specific to the canonical Qwen teacher. A
+second-family replication must begin with all 9,428 BIRD training rows, run its
+own teacher generation and the same EX-match selection rule, and derive its own
+retained count (`N_gemma` for Gemma). Its gold, target-CE, and CE+RKL controls
+then share those exact selected indices. Reusing Qwen's success indices would
+condition the second-family result on Qwen and is not method-faithful.
+
 Communication payload accounting is already available from committed round
 metrics. With five clients, each round transmits `369,555,560` upload bytes and
 `369,555,400` broadcast bytes, or `739,110,960` bytes total; three rounds total

@@ -224,10 +224,12 @@ pair?
 - Use `google/gemma-2-9b-it` as teacher and `google/gemma-2-2b-it` as student,
   subject to license access, student LoRA/inference smoke, and an exact
   token-to-ID compatibility check.
-- Keep the same 3,873 public-pool row identities, Spider split, prompts, LoRA
-  policy, seed 0, and T1 evaluation, but regenerate both teacher SQL targets
-  and full-vocabulary teacher logits with Gemma 2 9B. Score logits online for
-  T1; cache the full pool only if later rounds will reuse them.
+- Generate targets for all 9,428 BIRD training rows, apply the same
+  execution-match-to-gold rule independently to Gemma, and call the retained
+  count `N_gemma`. Build the gold control on exactly those Gemma-selected
+  indices; never select Gemma rows using Qwen's 3,873 success indices.
+- Keep the Spider split, prompts, LoRA policy, seed 0, and T1 evaluation fixed.
+  Score logits online for T1; cache the full pool only if later rounds reuse it.
 - From one shared Gemma T1 FedAvg adapter, compare no server treatment, CE on
   the exact matched BIRD-gold rows, CE on Gemma-teacher SQL, and CE plus reverse
   KL from the Gemma teacher. Never reuse Qwen targets or Qwen logits.
@@ -245,9 +247,12 @@ pair?
   Qwen setting; do not tune Gemma until positive.
 
 The claim remains family-level replication, not arbitrary cross-tokenizer
-distillation. Full-vocabulary reverse KL is allowed only after exact token-ID
-compatibility passes; a failure stops the full Gemma branch rather than silently
-slicing unrelated vocabularies.
+distillation. It replicates the generation and selection procedure, not an
+equal-row cross-family budget: `N_gemma` may differ from Qwen's 3,873. A later
+equal-budget comparison must subsample each teacher's own matched pool to a
+common count. Full-vocabulary reverse KL is allowed only after exact token-ID
+compatibility passes; a failure stops the full Gemma branch rather than
+silently slicing unrelated vocabularies.
 
 ### T2 — efficiency and resource evidence
 

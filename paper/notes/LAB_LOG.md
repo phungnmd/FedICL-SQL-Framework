@@ -26,8 +26,9 @@ decisions. It deliberately does not own result tables:
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
 - P0.7a passed: Gemma 2B trained/reloaded/evaluated; its eight-row `37.5 EX`
-  is diagnostic only. P0.7b-c may now run on GPU 0 while P0.7s independently
-  precomputes Gemma pure FL and gold CE on GPU 1.
+  is diagnostic only. GPU 0 must generate Gemma targets over all 9,428 BIRD
+  training rows and derive Gemma's own EX-match pool (`N_gemma`). GPU 1 may
+  independently train pure FL, but gold CE waits for the selected indices.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -137,8 +138,8 @@ currently justify.
   FedLS-SQL is competitive with centralized training across the retained
   Spider variants, while its decisive advantage remains over pure FL.
 - Current primary evidence uses one Qwen student/teacher family. The planned
-  Gemma T1 gate tests family-agnostic teacher-target sequence KD only; it does
-  not test cross-tokenizer reverse KL.
+  Gemma T1 gate tests same-family teacher-target CE and reverse KL after exact
+  Gemma 9B/2B token-ID validation; it does not test cross-tokenizer KL.
 - ICL reduced accuracy and increased client training time in the matched tested
   setting. Canonical FedLS-SQL therefore uses `train_k=0`, `k_teacher=0`, and
   `eval_k=0`.
@@ -174,10 +175,10 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7b-c/T1F, GPU 0: Gemma 9B→2B target/cache/tokenizer smoke, then full
-   row-matched target generation.
-2. P0.7s/T1F, GPU 1 in parallel: pure FL, matched gold CE, and diagnostic eval.
-3. P0.7d/T1F after both lanes: target CE, full online CE+RKL, and canonical
+1. P0.7b-c/e/T1F, GPU 0: teacher/cache/tokenizer smoke, generate all 9,428
+   BIRD targets, then independently EX-filter to `N_gemma` and build gold control.
+2. P0.7s/T1F, GPU 1 in parallel: pure FL and diagnostic evaluation only.
+3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL, and canonical
    four-arm evaluation; build a full cache only after a positive gate.
 4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
 5. CPU-only EX-EM/error audit when it does not block the active GPU task.
@@ -234,6 +235,7 @@ internal artifact identities.
 | 2026-08-20 | After P0.6, Gemma matched T1 portability moved ahead of seed replication. |
 | 2026-08-21 | The portability gate was strengthened from Qwen-teacher→Gemma-student sequence KD to a complete Gemma 2 9B→2B same-family replication with regenerated targets/logits and exact token-ID validation. |
 | 2026-08-21 | P0.7a Gemma 2B smoke passed (8-row diagnostic EX 37.5, EM 12.5, one execution error); teacher and student-independent work split across GPU 0/1. |
+| 2026-08-21 | Corrected the Gemma pool design: 3,873 is Qwen's EX-match count, so Gemma now generates all 9,428 BIRD train rows and independently derives `N_gemma`; Qwen-selected indices are prohibited. |
 
 ## 8. Archived branches
 

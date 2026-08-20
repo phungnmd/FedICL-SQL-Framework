@@ -53,12 +53,14 @@ superiority. BIRD remains a public-domain-adjacent cross-corpus diagnostic.
 
 This table replicates the matched mechanism ladder within Gemma. Its teacher
 targets and logits are regenerated with Gemma 2 9B; no Qwen target/cache may be
-reused.
+reused. Gemma generates all 9,428 BIRD training rows and is independently
+execution-filtered to `N_gemma`; the three server-treated arms use exactly
+those rows. The Qwen-specific count 3,873 is not imposed on this track.
 
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
 |---|---|---|---|---:|---:|---:|---:|---|
 | `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | active matched gate |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | same public rows |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | Gemma-selected `N_gemma` rows |
 | `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | matched sequence-KD ablation |
 | `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | requires exact tokenizer compatibility |
 

@@ -43,13 +43,16 @@ already exists.
 | Stable ID | Student family | Paper role | Expected output root | Status |
 |---|---|---|---|---|
 | `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | matched public-supervision control | `artifacts/federated/gemma2_2b_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 | `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 | `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
 
 Gemma targets and logits must be regenerated with `google/gemma-2-9b-it` and
 must never reuse Qwen artifacts. `gemma.fedls.t1.s0` becomes eligible only after
-the exact Gemma 9B/2B token-to-ID compatibility check passes.
+the exact Gemma 9B/2B token-to-ID compatibility check passes. Its public pool
+must be derived by generating all 9,428 BIRD training rows and independently
+filtering Gemma execution matches; Qwen's 3,873 selected indices are invalid
+inputs to this track.
 
 ## 4. Canonical evaluation artifacts
 

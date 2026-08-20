@@ -9,7 +9,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 |---|---|---|---|
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
-| P0 | second-family portability | Gemma 2 9B→2B T1 FL vs matched public-gold CE vs Gemma-target CE vs full CE+RKL | active; two smokes, then one seed/round |
+| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, independently EX-filters to `N_gemma`; T1 FL vs same-row gold CE vs target CE vs full CE+RKL | active; student smoke passed |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
@@ -44,9 +44,10 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 ## Recommended execution order
 
 1. Gemma 2B client/LoRA compatibility smoke is complete.
-2. In parallel, use GPU 0 for the Gemma 9B target/logit smoke plus full target
-   generation, and GPU 1 for pure FL plus matched gold CE.
-3. After both lanes pass, run Gemma target CE and full online CE+RKL, then the four-arm T1
+2. In parallel, use GPU 0 for the Gemma 9B target/logit smoke plus full 9,428-row
+   generation, and GPU 1 for pure FL only.
+3. EX-filter Gemma's targets, build gold on Gemma's selected indices, then run
+   gold CE, target CE, and full online CE+RKL followed by the four-arm T1
    ladder with online teacher scoring: FL, public-gold CE, Gemma-target CE, and
    full CE+RKL. Build a full cache only if T3 reuse is justified.
 4. Review portability before any Gemma T3/OOD or model-size expansion.
