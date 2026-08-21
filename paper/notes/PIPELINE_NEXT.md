@@ -36,10 +36,10 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.7b | Smoke Gemma 9B→2B targets, token-ID compatibility, and logit cache | complete |
 | P0.7c | Generate Gemma 9B targets for all 9,428 BIRD training rows | generation complete; one deterministic empty target is recorded at index 7004 |
 | P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | complete; `N_gemma=2,487` |
-| P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | **run next; CPU-only, run alone** |
-| P0.7s | Train/evaluate Gemma 2B pure FL | running; yields the pure-FL endpoint |
-| P0.7g | Evaluate untouched Gemma 2B base on full Spider | run immediately after P0.7s; required FL anchor |
-| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | ready after P0.7s |
+| P0.7s | Train/evaluate Gemma 2B pure FL | complete; 57.16 EX / 49.52 EM |
+| P0.7g | Evaluate untouched Gemma 2B base on full Spider | complete; 52.22 EX / 22.44 EM |
+| P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | **active gate; CPU-only, run alone** |
+| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | gated by P0.7q review |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | diagnostic teacher ceiling after P0.7d |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -246,7 +246,11 @@ $S='processed_data/BIRD/centralized/train.csv'; $A='processed_data/BIRD/gold_exe
 Pure FL is logically independent of the teacher, but Gemma 9B and Gemma 2B
 cannot run safely in parallel on the current Windows host because they share
 RAM and pagefile. Run P0.7s only after P0.7b-c/e. Do not train gold CE on
-Qwen's 3,873 selected rows.
+Qwen's 3,873 selected rows. This stage is complete: pure FL reaches `57.16 EX`,
+`49.52 EM`, with 212 execution errors on all 1,034 Spider rows. The client-1
+stage resumed from row 1,248 and completed the remaining 1,129 rows; all five
+client adapters and factor-wise aggregation are complete. Accuracy is valid,
+but the resumed training resource measurements are not paper evidence.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $M='google/gemma-2-2b-it'; $F='artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0'; $E='artifacts/eval_resume/gemma2_2b_t1_fl_s0/eval_k0'; foreach ($X in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv')) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.7s input: $X" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL T1 failed; rerun this exact line to resume' }; $A="$F/round_1/fedavg_adapter"; if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing Gemma FL adapter: $A" }; uv run python experiments/eval_arms/run.py --model $M --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_fl_t1=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 8 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma FL manifests: $E/manifests" }; Write-Host 'P0.7s complete: pure FL is ready for matched-ladder reuse'
@@ -254,11 +258,12 @@ $env:CUDA_VISIBLE_DEVICES='1'; $M='google/gemma-2-2b-it'; $F='artifacts/federate
 
 ### P0.7g — untouched Gemma 2B base anchor
 
-This full 1,034-row Spider evaluation should have accompanied P0.7s from the
-start. Run it immediately after the current P0.7s process exits; do not load a
-second Gemma model concurrently while P0.7s is still training/evaluating. It
-uses P0.7d's resume root, so the later five-arm evaluation reuses the completed
-base checkpoint rather than generating it again.
+This stage is complete on all 1,034 Spider rows: the untouched base reaches
+`52.22 EX`, `22.44 EM`, with 162 execution errors. Pure FL therefore adds
+`+4.94 EX` with 141 paired gains and 90 losses (exact McNemar `p=0.00096`), but
+also adds 50 execution errors. The result uses P0.7d's resume root, so the later
+five-arm evaluation reuses the completed base checkpoint rather than
+generating it again.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $E='artifacts/eval_resume/gemma2_9b_to_2b_t1_five_arm_s0/eval_k0'; foreach ($X in @('processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv')) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.7g input: $X" } }; uv run python experiments/eval_arms/run.py --model google/gemma-2-2b-it --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_base=" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 8 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma base evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma base manifests: $E/manifests" }; Write-Host 'P0.7g complete: compare untouched Gemma base against the P0.7s pure-FL result before server training'

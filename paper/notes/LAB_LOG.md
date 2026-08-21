@@ -1,6 +1,6 @@
 # FedLS-SQL — active lab log
 
-> Refreshed 2026-08-20. This is the compact decision ledger for the current
+> Refreshed 2026-08-22. This is the compact decision ledger for the current
 > paper. The complete chronology through this date is preserved at
 > `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`.
 
@@ -37,6 +37,16 @@ decisions. It deliberately does not own result tables:
 - P0.7q establishes consistency on the current local CSV/SQLite snapshot. It
   cannot distinguish an upstream BIRD defect from a locally mismatched database
   version without a clean official-package schema/hash comparison.
+- P0.7s/g are complete on the same 1,034 Spider rows. Untouched Gemma 2B scores
+  `52.22 EX / 22.44 EM`; pure FL T1 scores `57.16 EX / 49.52 EM`. The paired
+  EX change is `+4.94` points (141 gains, 90 losses, `p=0.00096`). This passes
+  the pre-server family/FL gate but does not yet establish FedLS portability.
+- Gemma FL raises execution errors from 162 (`15.67%`) to 212 (`20.50%`) even
+  while improving EX. P0.7d must be interpreted using both EX and error rate.
+- The FL eval config uses the pre-`--model-4bit` runner schema although its
+  metrics report SHA `e144d8b`, indicating a mid-run worktree update. Accuracy
+  remains comparable because both effective paths are unquantized defaults;
+  exact process provenance is limited to the saved config for this artifact.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -167,6 +177,9 @@ currently justify.
 5. Client-network communication consists of LoRA adapter payloads and is the
    same for pure FL and FedLS-SQL under the implemented protocol.
 6. ICL and FLoRA-NA do not improve the retained configuration.
+7. At seed 0, one-round Gemma 2B pure FL improves over the untouched Gemma base
+   on paired Spider rows; this supports a viable second-family FL starting
+   point, not full-method portability.
 
 ### Not yet supported
 
@@ -183,19 +196,16 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7s/T1F: finish pure FL, then P0.7g immediately evaluates the untouched
-   Gemma 2B base on all Spider rows so FL is anchored before server training;
-   the current Windows host cannot safely co-load Gemma 9B and train Gemma 2B.
-2. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
+1. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
    compare Qwen/Gemma selection checkpoints on the common valid-gold mask.
-3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL,
+2. P0.7d/T1F after the audit review: matched gold CE, target CE, full online CE+RKL,
    and canonical five-arm base/FL/gold/target/full evaluation; build a full
    cache only after a positive gate.
-4. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
+3. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
    five-arm ladder; no such completed result exists yet.
-5. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-6. CPU-only EX-EM/error audit when it does not block the active GPU task.
-7. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
+4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
+5. CPU-only EX-EM/error audit when it does not block the active GPU task.
+6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
    not the current discovery task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -211,6 +221,9 @@ component seeds remain behind these gates.
 | Centralized restart adapter | `artifacts/probe_p/central_3ep/adapter` |
 | FedLS-SQL T1-T3 lineage | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0` |
 | Independent pure-FL T1-T3 | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
+| Gemma 2B pure-FL T1 | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` |
+| Gemma base evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` |
+| Gemma pure-FL evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
 | Matched BIRD-gold control | `processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
@@ -258,6 +271,8 @@ internal artifact identities.
 | 2026-08-22 | Added P0.7q: a read-only, resumable audit of all 9,428 BIRD gold SQL plus Qwen/Gemma comparison on one common valid mask; conditional gold-failure counts are no longer treated as cross-family denominators. |
 | 2026-08-22 | Added a 4-bit Gemma 9B zero-shot Spider reference as P0.7t; it is contextual teacher-ceiling evidence after the main Gemma ladder, not a causal method arm. |
 | 2026-08-22 | Corrected the Gemma queue by adding P0.7g immediately after pure FL: the untouched 2B base is evaluated on full Spider before server training and stored in P0.7d's resume root for reuse. |
+| 2026-08-22 | P0.7s/g completed: Gemma pure FL improves base by 4.94 Spider EX (141/90 paired gains/losses, `p=0.00096`) but increases execution errors by 50; retain the family branch and audit both accuracy and validity after server transfer. |
+| 2026-08-22 | Recorded the P0.7s eval provenance caveat: its config predates the opt-in 4-bit field while metrics report the later repository SHA; effective inference remains the same unquantized default, but future experiment worktrees must not be pulled or changed mid-run. |
 
 ## 8. Archived branches
 

@@ -35,18 +35,18 @@ Canonical matched evaluation:
 `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`
 (`git_sha=b3fd32f`, result commit `7c1414b`).
 
-## 3. Second-family reserved IDs
+## 3. Second-family checkpoints and reserved IDs
 
-These IDs reserve presentation semantics; they do not assert that an artifact
-already exists.
+Completed rows identify canonical artifacts; pending rows reserve presentation
+semantics only.
 
-| Stable ID | Student family | Paper role | Expected output root | Status |
+| Stable ID | Student family | Paper role | Canonical checkpoint/output | Status |
 |---|---|---|---|---|
-| `gemma.base.s0` | Gemma 2 2B | untouched pretrained anchor | base model, no adapter | `PENDING:P0.7` |
-| `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | `PENDING:P0.7` |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
-| `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7` |
+| `gemma.base.s0` | Gemma 2 2B | untouched pretrained anchor | `google/gemma-2-2b-it`, no adapter | canonical; reported eval SHA `e144d8b` |
+| `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | canonical; train code SHA `45d5995` |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
 
 Gemma targets and logits must be regenerated with `google/gemma-2-9b-it` and
 must never reuse Qwen artifacts. `gemma.fedls.t1.s0` becomes eligible only after
@@ -67,6 +67,16 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.qwen.central.standard.s0.syn` | official centralized Syn cell | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T144343` | canonical; result commit `7eb7d44` |
 | `eval.qwen.central.standard.s0.dk` | official centralized DK cell | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T144700` | canonical; result commit `7eb7d44` |
 | `eval.qwen.central.standard.s0.bird` | official centralized BIRD diagnostic | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T150048` | canonical; result commit `7eb7d44` |
+| `eval.gemma.base.s0.spider` | untouched Gemma 2B, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` | canonical; reported SHA `e144d8b`, result commit `c760523` |
+| `eval.gemma.fl.t1.s0.spider` | Gemma 2B pure FL T1, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` | canonical; pre-`--model-4bit` runner schema, result commit `c760523` |
+
+The FL eval config predates the opt-in `--model-4bit` field while its metrics
+report repository SHA `e144d8b`, showing that the worktree changed before
+artifact finalization. This does not change the result: the old runner and the
+new runner with `model_4bit=false` both load Gemma in the same default
+full-precision path, and the e144d8b eval change only added the opt-in 4-bit
+loader/fingerprint. Treat the metrics SHA as end-of-run repository state, not
+exact process-code provenance for this one artifact.
 
 ## 5. Registry rules
 

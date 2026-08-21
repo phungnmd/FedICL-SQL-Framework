@@ -1,6 +1,6 @@
 # FedLS-SQL — canonical paper result tables
 
-> Updated 2026-08-20. This file is the single source of truth for paper-facing
+> Updated 2026-08-22. This file is the single source of truth for paper-facing
 > values. Stable artifact IDs resolve through
 > `../notes/RESULT_REGISTRY.md`. Values are percentages unless stated
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
@@ -20,7 +20,7 @@ for equality.
 | Track | Student family/model | Teacher family/model | Server transfer | Paper label | Status |
 |---|---|---|---|---|---|
 | Primary | Qwen2.5 / `Qwen/Qwen2.5-1.5B-Instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE + token-level reverse KL | FedLS-SQL | canonical |
-| Second family | Gemma 2 / `google/gemma-2-2b-it` | Gemma 2 / `google/gemma-2-9b-it` | regenerated teacher-target CE + token-level reverse KL | FedLS-SQL | `PENDING:P0.7` |
+| Second family | Gemma 2 / `google/gemma-2-2b-it` | Gemma 2 / `google/gemma-2-9b-it` | regenerated teacher-target CE + token-level reverse KL | FedLS-SQL | pre-server gate passed; full endpoint `PENDING:P0.7d` |
 
 ## 2. Overall NL-to-SQL performance
 
@@ -58,13 +58,21 @@ filtered by the fixed 8-second quick-execution stage and the official EX scorer
 to obtain `N_gemma`; the three server-treated arms use exactly those rows. The
 Qwen-specific count 3,873 is not imposed on this track.
 
-| Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Status |
-|---|---|---|---|---:|---:|---:|---:|---|
-| `gemma.base.s0` | Gemma 2 2B | Untouched base | none | 0 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | pretrained anchor; no adapter |
-| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | active matched gate |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | Gemma-selected `N_gemma` rows |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | matched sequence-KD ablation |
-| `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | `PENDING:P0.7` | `PENDING:P0.7` | requires exact tokenizer compatibility |
+| Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Exec. errors | Error rate | Status |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| `gemma.base.s0` | Gemma 2 2B | Untouched base | none | 0 | 0 | 52.22 | 22.44 | 162 | 15.67 | canonical pretrained anchor |
+| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | **57.16** | **49.52** | 212 | 20.50 | canonical pre-server endpoint |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | Gemma-selected `N_gemma=2,487` rows |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | matched sequence-KD ablation |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | tokenizer compatibility passed |
+
+Pure FL improves over the untouched Gemma base by `+4.94` EX. On the paired
+1,034 rows it gains 141 questions and loses 90 (`p=0.00096`, exact McNemar).
+The improvement appears at every Spider hardness level and is largest on hard
+queries (`+11.49` points). However, execution errors increase from 162 to 212;
+the P0.7d server arms must therefore be judged on both EX and error rate. This
+is a one-seed pre-server result, not evidence that full FedLS-SQL transfers to
+Gemma yet.
 
 Do not merge this block with §2.1. Extend it to T3 or OOD only if the T1 gate
 is positive and material.
@@ -84,7 +92,7 @@ controlled protocol.
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
-| Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING:P0.7` | `PENDING` | second-family table, not main endpoint |
+| Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING` | second-family table, not main endpoint |
 
 Few-shot LLM prompting and ICL are not silently promoted from legacy runs.
 They may appear as a closed negative/diagnostic ablation only if the manuscript

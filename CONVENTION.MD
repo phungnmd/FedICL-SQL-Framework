@@ -95,6 +95,12 @@ Every active experiment command must:
   another character that can be parsed as part of the variable name;
 - avoid deletion, wildcard cleanup, checkpoint copying, and silent overwrite.
 
+Once a long-running experiment starts, do not pull, checkout, commit, or edit
+its code worktree until the process exits. Some artifacts resolve `git_sha` at
+finalization rather than process launch, so a mid-run worktree change can make
+the recorded SHA newer than the code already loaded in memory. Use a separate
+worktree for concurrent development.
+
 For every new centralized/client `experiments/client_train/run.py` command with
 `--epochs > 1`:
 

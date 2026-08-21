@@ -212,9 +212,11 @@ training randomness, rather than a seed-0 outcome?
 
 ### T1F — second-family full-method screen
 
-**Status:** active as P0.7; the Gemma 2B client smoke passed. Run the
-teacher/tokenizer/cache smoke next, then one round and one seed before any
-expansion.
+**Status:** active as P0.7. Compatibility, full-source target selection,
+untouched-base evaluation, and pure-FL T1 are complete. Base reaches `52.22`
+EX and pure FL reaches `57.16` EX on the same 1,034 Spider rows (`+4.94`,
+141/90 paired gains/losses, `p=0.00096`). Finish the gold audit, then run the
+three server treatments before any expansion.
 
 **Question:** does the complete teacher-guided server stage transfer from the
 Qwen family to a second, internally tokenizer-compatible Gemma teacher/student
@@ -246,6 +248,12 @@ pair?
 - Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider only after the main
   ladder; use it as ceiling/context evidence, not as a substitute for FL vs
   FedLS causal comparisons.
+
+The base-to-FL gate is positive, but FL also increases execution errors from
+162 to 212. Therefore the server-stage decision must require a useful EX gain
+without ignoring SQL validity. No centralized Gemma arm exists yet; a
+continuous one-epoch centralized anchor is conditional after a positive P0.7d,
+and a three-epoch version is justified only if the Gemma track extends to T3.
 
 **Gate T1F:**
 
@@ -491,27 +499,28 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-20 | post-P0.6 priority revision | advisor outline ablations, Qwen-only limitation, existing seed-0 breadth, and user compute priority | defer final seed replication; activate a cheap Gemma smoke followed by a matched FL/public-gold/teacher-target T1 portability ladder | T1F/P0.7a |
 | 2026-08-21 | same-family replication revision | a mixed Qwen-teacher/Gemma-student run cannot test the full reverse-KL endpoint | use Gemma 2 9B→2B, regenerate targets and logits, and compare the five-arm base/FL/gold/target/full ladder after strict tokenizer validation | T1F/P0.7a-d |
 | 2026-08-21 | Gemma lineage correction | fingerprint audit found the old smoke output was sourced from Qwen's selected 3,873 rows | use new immutable `fullsource` smoke roots and the common raw-generation → 8-second quick-exec → official-EX selector over all 9,428 BIRD rows | T1F/P0.7b-e |
+| 2026-08-22 | Gemma pre-server gate | full 1,034-row base and pure-FL predictions | FL improves base by 4.94 EX with positive paired evidence, but adds 50 execution errors; retain the branch, require EX plus validity review for P0.7d, and do not block it on centralized Gemma | P0.7q, then P0.7d |
 
 ## 6. Current next actions
 
-1. P0.7a is complete: Gemma 2B training/reload/inference compatibility passed;
-   do not interpret its eight-row accuracy.
-2. P0.7b-c generated all Gemma teacher outcomes; retain deterministic empty
-   generations as teacher failures and reject them before SQL execution.
-3. Run P0.7e next, then run P0.7s sequentially because this host cannot safely
-   co-load the 9B teacher and train the 2B student.
-4. After selection completes, run P0.7d gold CE, target CE, full online CE+RKL,
+1. P0.7a-c/e/s/g are complete: compatibility passed, `N_gemma=2,487`, and
+   Gemma base/pure-FL endpoints are canonical.
+2. Finish P0.7q and review the common valid-gold mask. Treat environment/disk
+   failures separately from stable schema mismatches.
+3. If the local data snapshot is acceptable, run P0.7d gold CE, target CE, full online CE+RKL,
    and the canonical five-arm base/FL/gold/target/full evaluation. Defer a full
    cache until a positive T1 result justifies T3 reuse.
-5. Review full FedLS against FL, matched public gold, and sequence KD before any
+4. Review full FedLS against FL, matched public gold, and sequence KD before any
    T3/OOD or additional family/size expansion.
-6. After T1F, export the exact LoRA trainable-parameter count and add fixed
+5. After T1F, decide whether a one-epoch centralized Gemma anchor adds useful
+   context; do not run three epochs unless Gemma advances to T3.
+6. Export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
-6. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
+7. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
    active GPU task.
-7. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
+8. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
    do not start it until the current discovery-first gate is reviewed.
-8. Do not interpret shared-server time/RAM as official evidence;
+9. Do not interpret shared-server time/RAM as official evidence;
    T2 will use controlled, repeated, hardware-exclusive measurements.
 
 Final T3 seed-1/2 replication is deferred, not cancelled. Additional component
