@@ -183,10 +183,11 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
-   compare Qwen/Gemma selection checkpoints on the common valid-gold mask.
-2. P0.7s/T1F: pure FL and diagnostic evaluation only;
+1. P0.7s/T1F: finish pure FL, then P0.7g immediately evaluates the untouched
+   Gemma 2B base on all Spider rows so FL is anchored before server training;
    the current Windows host cannot safely co-load Gemma 9B and train Gemma 2B.
+2. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
+   compare Qwen/Gemma selection checkpoints on the common valid-gold mask.
 3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL,
    and canonical five-arm base/FL/gold/target/full evaluation; build a full
    cache only after a positive gate.
@@ -256,6 +257,7 @@ internal artifact identities.
 | 2026-08-22 | P0.7e retained `N_gemma=2,487` from 7,162 quick-exec survivors; conditional official statuses were 2,487 match, 4,443 mismatch, 231 gold failure, and one prediction failure. |
 | 2026-08-22 | Added P0.7q: a read-only, resumable audit of all 9,428 BIRD gold SQL plus Qwen/Gemma comparison on one common valid mask; conditional gold-failure counts are no longer treated as cross-family denominators. |
 | 2026-08-22 | Added a 4-bit Gemma 9B zero-shot Spider reference as P0.7t; it is contextual teacher-ceiling evidence after the main Gemma ladder, not a causal method arm. |
+| 2026-08-22 | Corrected the Gemma queue by adding P0.7g immediately after pure FL: the untouched 2B base is evaluated on full Spider before server training and stored in P0.7d's resume root for reuse. |
 
 ## 8. Archived branches
 
