@@ -215,8 +215,8 @@ training randomness, rather than a seed-0 outcome?
 **Status:** active as P0.7. Compatibility, full-source target selection,
 untouched-base evaluation, and pure-FL T1 are complete. Base reaches `52.22`
 EX and pure FL reaches `57.16` EX on the same 1,034 Spider rows (`+4.94`,
-141/90 paired gains/losses, `p=0.00096`). Finish the gold audit, then run the
-three server treatments before any expansion.
+141/90 paired gains/losses, `p=0.00096`). The gold audit passed the supervision
+gate, and the three server treatments are now running.
 
 **Question:** does the complete teacher-guided server stage transfer from the
 Qwen family to a second, internally tokenizer-compatible Gemma teacher/student
@@ -254,6 +254,10 @@ The base-to-FL gate is positive, but FL also increases execution errors from
 without ignoring SQL validity. No centralized Gemma arm exists yet; a
 continuous one-epoch centralized anchor is conditional after a positive P0.7d,
 and a three-epoch version is justified only if the Gemma track extends to T3.
+The full-source audit records 9,056 valid and 372 invalid local gold rows; 350
+fail structurally and 330 are in `retail_world`. Qwen/Gemma common-mask match
+yields are `42.72%` and `27.46%`, respectively. All 2,487 Gemma-selected rows
+are valid, so the audit does not require rebuilding the P0.7d pool.
 
 **Gate T1F:**
 
@@ -500,14 +504,15 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-21 | same-family replication revision | a mixed Qwen-teacher/Gemma-student run cannot test the full reverse-KL endpoint | use Gemma 2 9B→2B, regenerate targets and logits, and compare the five-arm base/FL/gold/target/full ladder after strict tokenizer validation | T1F/P0.7a-d |
 | 2026-08-21 | Gemma lineage correction | fingerprint audit found the old smoke output was sourced from Qwen's selected 3,873 rows | use new immutable `fullsource` smoke roots and the common raw-generation → 8-second quick-exec → official-EX selector over all 9,428 BIRD rows | T1F/P0.7b-e |
 | 2026-08-22 | Gemma pre-server gate | full 1,034-row base and pure-FL predictions | FL improves base by 4.94 EX with positive paired evidence, but adds 50 execution errors; retain the branch, require EX plus validity review for P0.7d, and do not block it on centralized Gemma | P0.7q, then P0.7d |
+| 2026-08-22 | BIRD gold/common-mask audit | all 9,428 gold rows and both teacher score checkpoints | 9,056 rows are valid; local failures are concentrated in `retail_world`; all Gemma-selected rows are valid; proceed without rebuilding the pool and keep the snapshot caveat | P0.7d |
 
 ## 6. Current next actions
 
 1. P0.7a-c/e/s/g are complete: compatibility passed, `N_gemma=2,487`, and
    Gemma base/pure-FL endpoints are canonical.
-2. Finish P0.7q and review the common valid-gold mask. Treat environment/disk
-   failures separately from stable schema mismatches.
-3. If the local data snapshot is acceptable, run P0.7d gold CE, target CE, full online CE+RKL,
+2. P0.7q is complete; retain its local data-quality caveat and canonical audit
+   artifacts.
+3. P0.7d is running: gold CE, target CE, full online CE+RKL,
    and the canonical five-arm base/FL/gold/target/full evaluation. Defer a full
    cache until a positive T1 result justifies T3 reuse.
 4. Review full FedLS against FL, matched public gold, and sequence KD before any

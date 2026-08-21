@@ -38,8 +38,8 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | complete; `N_gemma=2,487` |
 | P0.7s | Train/evaluate Gemma 2B pure FL | complete; 57.16 EX / 49.52 EM |
 | P0.7g | Evaluate untouched Gemma 2B base on full Spider | complete; 52.22 EX / 22.44 EM |
-| P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | **active gate; CPU-only, run alone** |
-| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | gated by P0.7q review |
+| P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | complete; 9,056 valid / 372 invalid |
+| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | **running; no concurrent model job or worktree change** |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | diagnostic teacher ceiling after P0.7d |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -236,6 +236,18 @@ gold/database snapshot. It does **not** by itself prove that the official BIRD
 release is wrong: if structural failures remain, compare the affected local
 SQLite schemas/files with a clean official BIRD download before assigning the
 fault to the dataset rather than local data assembly/version drift.
+
+P0.7q completed with 9,056/9,428 (`96.05%`) gold rows executable under the
+60-second audit and 372 invalid outcomes: 350 stable missing-table/column
+failures, 21 timeouts, and one `database or disk is full` failure. `retail_world`
+accounts for 330/372 failures. On the common valid mask, Qwen matches 3,869
+rows (`42.72%`) and Gemma matches 2,487 (`27.46%`), with 2,019 common matches.
+All 2,487 Gemma-selected training rows are audit-valid, so P0.7d may proceed;
+the 372-row snapshot issue remains a data-quality limitation, not teacher
+training data. Canonical committed artifacts are
+`processed_data/BIRD/gold_exec_audit_t60/` and
+`audits/bird_train_gold_exec_t60_teacher_comparison.json` (nested commit
+`3e673ef`).
 
 ```powershell
 $S='processed_data/BIRD/centralized/train.csv'; $A='processed_data/BIRD/gold_exec_audit_t60/train.csv'; $Q='processed_data/BIRD/bootstrap_full_exmatch/train.score_ckpt.jsonl'; $G='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.score_ckpt.jsonl'; $C='artifacts/audits/bird_train_gold_exec_t60_teacher_comparison.json'; foreach ($I in @($S,$Q,$G)) { if (-not (Test-Path -LiteralPath $I)) { throw "Missing P0.7q input: $I" } }; uv run python scripts/audit_gold_execution.py --source-csv $S --out $A --exec-timeout 60 --workers 1; if ($LASTEXITCODE -ne 0) { throw 'BIRD gold audit failed; rerun this exact line to resume' }; $V=Get-Content -LiteralPath "${A}.provenance.json" -Raw | ConvertFrom-Json; $N=(Import-Csv -LiteralPath $A).Count; if ($V.n_scored -ne 9428 -or $N -ne $V.n_gold_valid) { throw "Gold audit verification failed: scored=$($V.n_scored) valid_csv=$N valid_provenance=$($V.n_gold_valid)" }; uv run python scripts/summarize_teacher_selection_on_gold_mask.py --gold-audit "${A}.provenance.json" --teacher-checkpoint "qwen=$Q" --teacher-checkpoint "gemma=$G" --out $C; if ($LASTEXITCODE -ne 0) { throw 'Common-mask teacher comparison failed' }; if (-not (Test-Path -LiteralPath $C)) { throw "Missing common-mask report: $C" }; Write-Host "P0.7q complete: gold-valid=$N; review $C before interpreting cross-family retention"

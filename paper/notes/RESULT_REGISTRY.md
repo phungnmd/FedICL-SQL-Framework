@@ -57,7 +57,7 @@ stage. Qwen's 3,873 selected indices are invalid inputs to this track. P0.7b
 uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matching
 `gemma2_9b_to_2b_smoke8_fullsource_k0` cache root.
 
-## 4. Canonical evaluation artifacts
+## 4. Canonical evaluation and audit artifacts
 
 | Evaluation ID | Scope | Committed result directory | Status |
 |---|---|---|---|
@@ -69,6 +69,8 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.qwen.central.standard.s0.bird` | official centralized BIRD diagnostic | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T150048` | canonical; result commit `7eb7d44` |
 | `eval.gemma.base.s0.spider` | untouched Gemma 2B, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` | canonical; reported SHA `e144d8b`, result commit `c760523` |
 | `eval.gemma.fl.t1.s0.spider` | Gemma 2B pure FL T1, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` | canonical; pre-`--model-4bit` runner schema, result commit `c760523` |
+| `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
+| `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before

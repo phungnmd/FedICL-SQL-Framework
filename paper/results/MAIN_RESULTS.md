@@ -58,6 +58,14 @@ filtered by the fixed 8-second quick-execution stage and the official EX scorer
 to obtain `N_gemma`; the three server-treated arms use exactly those rows. The
 Qwen-specific count 3,873 is not imposed on this track.
 
+The independent 60-second gold audit finds 9,056/9,428 executable rows. Of the
+372 invalid outcomes, 350 are missing-table/column failures, 21 are timeouts,
+and one is a disk-full failure; 330 are concentrated in `retail_world`. On the
+common valid mask, Qwen retains 3,869 matches (`42.72%`) and Gemma retains
+2,487 (`27.46%`), with 2,019 in common. Every Gemma-selected row is audit-valid.
+These figures characterize the concrete teacher pipelines and local data
+snapshot; they do not isolate model-family or parameter-count effects.
+
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Exec. errors | Error rate | Status |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | `gemma.base.s0` | Gemma 2 2B | Untouched base | none | 0 | 0 | 52.22 | 22.44 | 162 | 15.67 | canonical pretrained anchor |

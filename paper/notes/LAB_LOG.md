@@ -30,13 +30,15 @@ decisions. It deliberately does not own result tables:
   9,428 outcomes (9,427 non-empty), 7,162 passed quick execution, and
   `N_gemma=2,487` matched BIRD gold. The official stage also recorded 4,443
   mismatches, 231 gold failures, and one prediction failure.
-- The 231 Gemma and 23 Qwen `gold_exec_failed` counts use different
-  teacher-conditioned survivor sets and are not directly comparable. P0.7q
-  now audits all 9,428 gold SQL independently and projects both teachers onto
-  one common valid mask before any cross-family retention claim.
-- P0.7q establishes consistency on the current local CSV/SQLite snapshot. It
-  cannot distinguish an upstream BIRD defect from a locally mismatched database
-  version without a clean official-package schema/hash comparison.
+- P0.7q audited all 9,428 gold SQL independently: 9,056 (`96.05%`) execute,
+  while 350 have missing-table/column failures, 21 time out, and one hits a
+  disk-full error. `retail_world` contributes 330/372 failures. This establishes
+  a local CSV/SQLite compatibility issue but cannot assign it to upstream BIRD
+  without a clean official-package schema/hash comparison.
+- On the 9,056 common valid-gold rows, Qwen matches 3,869 (`42.72%`) and Gemma
+  matches 2,487 (`27.46%`); 2,019 are common. The earlier 231 Gemma gold
+  failures split into 198 audit-invalid and 33 audit-valid-at-rerun rows. All
+  2,487 Gemma-selected training rows are audit-valid.
 - P0.7s/g are complete on the same 1,034 Spider rows. Untouched Gemma 2B scores
   `52.22 EX / 22.44 EM`; pure FL T1 scores `57.16 EX / 49.52 EM`. The paired
   EX change is `+4.94` points (141 gains, 90 losses, `p=0.00096`). This passes
@@ -196,16 +198,15 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
-   compare Qwen/Gemma selection checkpoints on the common valid-gold mask.
-2. P0.7d/T1F after the audit review: matched gold CE, target CE, full online CE+RKL,
+1. P0.7d/T1F is running: matched gold CE, target CE, full online CE+RKL,
    and canonical five-arm base/FL/gold/target/full evaluation; build a full
-   cache only after a positive gate.
-3. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
+   cache only after a positive gate. Do not run another model or change the
+   experiment worktree until it exits.
+2. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
    five-arm ladder; no such completed result exists yet.
-4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-5. CPU-only EX-EM/error audit when it does not block the active GPU task.
-6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
+3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
+4. CPU-only EX-EM/error audit when it does not block the active GPU task.
+5. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
    not the current discovery task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -224,6 +225,8 @@ component seeds remain behind these gates.
 | Gemma 2B pure-FL T1 | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` |
 | Gemma base evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` |
 | Gemma pure-FL evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` |
+| BIRD gold audit | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` |
+| Common-mask teacher report | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
 | Matched BIRD-gold control | `processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
@@ -273,6 +276,7 @@ internal artifact identities.
 | 2026-08-22 | Corrected the Gemma queue by adding P0.7g immediately after pure FL: the untouched 2B base is evaluated on full Spider before server training and stored in P0.7d's resume root for reuse. |
 | 2026-08-22 | P0.7s/g completed: Gemma pure FL improves base by 4.94 Spider EX (141/90 paired gains/losses, `p=0.00096`) but increases execution errors by 50; retain the family branch and audit both accuracy and validity after server transfer. |
 | 2026-08-22 | Recorded the P0.7s eval provenance caveat: its config predates the opt-in 4-bit field while metrics report the later repository SHA; effective inference remains the same unquantized default, but future experiment worktrees must not be pulled or changed mid-run. |
+| 2026-08-22 | P0.7q found 9,056 valid and 372 invalid local BIRD gold rows; 350 are structural and 330 failures belong to `retail_world`. Every Gemma-selected row is valid, so P0.7d proceeds while the snapshot mismatch remains an explicit data-quality caveat. |
 
 ## 8. Archived branches
 

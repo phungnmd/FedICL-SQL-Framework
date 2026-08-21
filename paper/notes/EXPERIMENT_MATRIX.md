@@ -10,7 +10,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
 | P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | base 52.22 and FL 57.16 EX complete; server ladder pending |
-| P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | active gate as P0.7q |
+| P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | complete: 9,056 valid; Qwen 42.72%, Gemma 27.46% match yield |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | queued after Gemma five-arm ladder |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
@@ -49,8 +49,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 1. Gemma 2B compatibility, full target generation/selection, untouched-base
    evaluation, and pure-FL T1 are complete. FL improves base by 4.94 EX but
    increases execution errors from 162 to 212.
-2. Finish the teacher-independent full BIRD gold audit and common-mask comparison.
-3. Build gold on Gemma's selected indices, then run gold CE, target CE, and full online CE+RKL,
+2. The independent gold audit is complete. Retain the 372-row local snapshot
+   limitation; every Gemma-selected supervision row is valid.
+3. P0.7d is running: run gold CE, target CE, and full online CE+RKL,
    followed by the five-arm T1 ladder: untouched base, FL, public-gold CE,
    Gemma-target CE, and full CE+RKL.
    Build a full cache only if T3 reuse is justified.
