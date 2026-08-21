@@ -230,6 +230,10 @@ pair?
   to Gemma, and call the retained count `N_gemma`. Build the gold control on
   exactly those Gemma-selected indices; never select Gemma rows using Qwen's
   3,873 success indices.
+- Before making a cross-family retention claim, execute all 9,428 source gold
+  SQL independently and report each teacher's matches over the same valid-gold
+  mask. Teacher-conditioned `gold_exec_failed` counts are diagnostics, not
+  comparable denominators.
 - Keep the Spider split, prompts, LoRA policy, seed 0, and T1 evaluation fixed.
   Score logits online for T1; cache the full pool only if later rounds reuse it.
 - Evaluate the untouched Gemma 2B base, then from one shared Gemma T1 FedAvg
@@ -239,6 +243,9 @@ pair?
 - Label the final compatible-family endpoint full FedLS-SQL; retain the
   teacher-target-only branch as the sequence-KD ablation.
 - Do not add model-size sweeps or a second alternative family at this gate.
+- Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider only after the main
+  ladder; use it as ceiling/context evidence, not as a substitute for FL vs
+  FedLS causal comparisons.
 
 **Gate T1F:**
 

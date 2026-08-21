@@ -35,9 +35,11 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.7a | Smoke Gemma 2B training, adapter load, and inference | complete; pipeline pass, 8-row EX is non-paper diagnostic |
 | P0.7b | Smoke Gemma 9B→2B targets, token-ID compatibility, and logit cache | complete |
 | P0.7c | Generate Gemma 9B targets for all 9,428 BIRD training rows | generation complete; one deterministic empty target is recorded at index 7004 |
-| P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | **run next after pulling the empty-target selector fix** |
-| P0.7s | Train/evaluate Gemma 2B pure FL | run sequentially after the teacher lane on this host |
-| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | gated by P0.7e |
+| P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | complete; `N_gemma=2,487` |
+| P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | **run next; CPU-only, run alone** |
+| P0.7s | Train/evaluate Gemma 2B pure FL | next GPU task after P0.7q |
+| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | ready after P0.7s |
+| P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | diagnostic teacher ceiling after P0.7d |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
 | P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.7 review |
@@ -206,10 +208,36 @@ teacher SQL that cannot finish within the fixed 8-second quick-execution
 timeout, then apply the official EX comparison against BIRD gold to survivors.
 Both checkpoints are resumable and fingerprinted. It retains teacher SQL only
 for official `match` rows and reconstructs BIRD gold on those exact indices.
-The resulting `N_gemma` is a measured property of Gemma.
+The resulting `N_gemma` is a measured property of Gemma. This stage completed
+with 9,428 generated outcomes, 7,162 quick-exec survivors, and
+`N_gemma=2,487` official matches. The official stage recorded 4,443
+mismatches, 231 gold-execution failures, and one prediction-execution failure.
+Those 231 rows are conditional on Gemma's survivor set, so they must not be
+compared directly with Qwen's 23 conditional gold failures.
 
 ```powershell
 $S='processed_data/BIRD/centralized/train.csv'; $R='processed_data/BIRD/gemma2_9b_bootstrap_full/train.csv'; $X='processed_data/BIRD/gemma2_9b_bootstrap_full_exec/train.csv'; $P='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.csv'; $G='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch_gold/train.csv'; foreach ($I in @($S,$R,"${R}.provenance.json")) { if (-not (Test-Path -LiteralPath $I)) { throw "Missing P0.7e input: $I" } }; uv run python scripts/filter_teacher_targets_exmatch.py --source-csv $S --teacher-targets $R --exec-out $X --exec-timeout 8 --out $P --workers 8; if ($LASTEXITCODE -ne 0) { throw 'Gemma quick-exec/EX filtering failed; rerun this exact line to resume' }; uv run python scripts/build_public_gold_control.py --source-csv $S --teacher-pool $P --selection-ckpt processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.score_ckpt.jsonl --out $G; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched-gold control build failed' }; $NX=(Import-Csv -LiteralPath $X).Count; $N=(Import-Csv -LiteralPath $P).Count; $NG=(Import-Csv -LiteralPath $G).Count; $V=Get-Content -LiteralPath "${P}.provenance.json" -Raw | ConvertFrom-Json; $VG=Get-Content -LiteralPath "${G}.provenance.json" -Raw | ConvertFrom-Json; if ($N -le 0 -or $N -ne $NG -or $N -ne $V.n_exmatched -or $N -ne $VG.n_rows -or $V.n_generated -ne 9428 -or $NX -ne $V.n_exec_kept -or $V.n_scored -ne $V.n_exec_kept) { throw "Gemma pool verification failed: generated=$($V.n_generated) exec=$NX official_scored=$($V.n_scored) matched=$N gold=$NG" }; Write-Host "P0.7e complete: Gemma-specific matched pool has N_gemma=$N rows"
+```
+
+### P0.7q — teacher-independent BIRD gold audit and common-mask comparison
+
+Run this CPU step alone so concurrent SQLite jobs cannot introduce shared-disk
+or timeout noise. It executes gold SQL for all 9,428 source rows in read-only
+mode with the same 60-second timeout used by official EX. The checkpoint is
+fingerprinted by the source CSV, timeout, and local SQLite inventory. The
+second script then projects both teacher score checkpoints onto this one valid
+gold mask. The paper-safe cross-family quantities are each teacher's
+`matches / n_gold_valid`, not the conditional `gold_exec_failed` counts from
+different survivor sets. Rerun the exact line to resume.
+
+This proves whether both selectors are being judged against the same local
+gold/database snapshot. It does **not** by itself prove that the official BIRD
+release is wrong: if structural failures remain, compare the affected local
+SQLite schemas/files with a clean official BIRD download before assigning the
+fault to the dataset rather than local data assembly/version drift.
+
+```powershell
+$S='processed_data/BIRD/centralized/train.csv'; $A='processed_data/BIRD/gold_exec_audit_t60/train.csv'; $Q='processed_data/BIRD/bootstrap_full_exmatch/train.score_ckpt.jsonl'; $G='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.score_ckpt.jsonl'; $C='artifacts/audits/bird_train_gold_exec_t60_teacher_comparison.json'; foreach ($I in @($S,$Q,$G)) { if (-not (Test-Path -LiteralPath $I)) { throw "Missing P0.7q input: $I" } }; uv run python scripts/audit_gold_execution.py --source-csv $S --out $A --exec-timeout 60 --workers 1; if ($LASTEXITCODE -ne 0) { throw 'BIRD gold audit failed; rerun this exact line to resume' }; $V=Get-Content -LiteralPath "${A}.provenance.json" -Raw | ConvertFrom-Json; $N=(Import-Csv -LiteralPath $A).Count; if ($V.n_scored -ne 9428 -or $N -ne $V.n_gold_valid) { throw "Gold audit verification failed: scored=$($V.n_scored) valid_csv=$N valid_provenance=$($V.n_gold_valid)" }; uv run python scripts/summarize_teacher_selection_on_gold_mask.py --gold-audit "${A}.provenance.json" --teacher-checkpoint "qwen=$Q" --teacher-checkpoint "gemma=$G" --out $C; if ($LASTEXITCODE -ne 0) { throw 'Common-mask teacher comparison failed' }; if (-not (Test-Path -LiteralPath $C)) { throw "Missing common-mask report: $C" }; Write-Host "P0.7q complete: gold-valid=$N; review $C before interpreting cross-family retention"
 ```
 
 ### P0.7s — pure FL after the teacher lane
@@ -254,6 +282,19 @@ experiment when `N_gemma != 3,873`. If a later
 controlled family comparison is needed, deterministically subsample each
 family's own matched pool to a common budget; never condition Gemma on Qwen's
 success indices.
+
+### P0.7t — Gemma 9B teacher zero-shot Spider reference
+
+There is no completed Gemma teacher/Spider result yet. The existing teacher
+reference is Qwen2.5-Coder-7B-Instruct (`78.72 EX`, `51.64 EM`). This command
+evaluates the same 4-bit Gemma 9B instance used by P0.7 generation on all 1,034
+Spider dev rows. It is a teacher ceiling/context diagnostic, not a replacement
+for the P0.7d method comparison, so run it after the five-arm ladder. Batch size
+2 is intentionally conservative for the current Windows RAM/pagefile limit.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $E='artifacts/eval_resume/gemma2_9b_teacher_spider_s0/eval_k0'; foreach ($X in @('processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv')) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.7t input: $X" } }; uv run python experiments/eval_arms/run.py --model google/gemma-2-9b-it --model-4bit --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma2_9b_teacher=" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 2 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma 9B Spider teacher evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma teacher evaluation manifests: $E/manifests" }; Write-Host 'P0.7t complete: commit the result and report it as a 4-bit teacher reference'
+```
 
 ## P0.8 — final T3 reliability at seeds 1 and 2 (deferred)
 

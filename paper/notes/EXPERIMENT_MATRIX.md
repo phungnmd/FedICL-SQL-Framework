@@ -9,7 +9,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 |---|---|---|---|
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
-| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | active; student smoke passed |
+| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | active; `N_gemma=2,487`, training ladder pending |
+| P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | queued as P0.7q |
+| P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | queued after Gemma five-arm ladder |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
@@ -46,18 +48,19 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 1. Gemma 2B client/LoRA compatibility smoke is complete.
 2. The Gemma 9B target/logit smoke and full 9,428-row generation are complete;
    deterministic empty generations remain recorded teacher failures.
-3. Apply the fixed quick-exec and official EX stages, then run pure FL
-   sequentially because the current host cannot safely co-load Gemma 9B/2B.
-4. Build gold on Gemma's
-   selected indices, then run gold CE, target CE, and full online CE+RKL,
+3. Run the teacher-independent full BIRD gold audit and common-mask comparison.
+4. Run pure FL sequentially because the current host cannot safely co-load
+   Gemma 9B/2B.
+5. Build gold on Gemma's selected indices, then run gold CE, target CE, and full online CE+RKL,
    followed by the five-arm T1 ladder: untouched base, FL, public-gold CE,
    Gemma-target CE, and full CE+RKL.
    Build a full cache only if T3 reuse is justified.
-5. Review portability before any Gemma T3/OOD or model-size expansion.
-6. Add fixed in-process warm-up to the resource benchmark path, then run only
+6. Review portability, then optionally evaluate the 4-bit Gemma 9B teacher on
+   Spider before any Gemma T3/OOD or model-size expansion.
+7. Add fixed in-process warm-up to the resource benchmark path, then run only
    the missing matched 1.5B/7B measurements on an exclusive GPU.
-6. Audit the matched T1 predictions, especially execution errors and
+8. Audit the matched T1 predictions, especially execution errors and
    `EX=1, EM=0` cases; replicate public-gold seeds 1/2 only if needed for the
    headline causal claim.
-7. Reactivate final T3 seeds, FedProx, or heterogeneity only when the
+9. Reactivate final T3 seeds, FedProx, or heterogeneity only when the
    preceding gate identifies it as necessary.

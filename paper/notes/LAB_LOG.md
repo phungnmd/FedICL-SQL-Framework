@@ -26,13 +26,17 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P0.7a passed: Gemma 2B trained/reloaded/evaluated; its eight-row `37.5 EX`
-  is diagnostic only. P0.7b must use the immutable `fullsource` smoke roots
-  because the earlier smoke checkpoint came from Qwen's 3,873-row source.
-  GPU 0 must generate Gemma targets over all 9,428 BIRD training rows, then
-  apply the fixed 8-second quick-exec and official EX stages to derive
-  `N_gemma`. GPU 1 may independently train pure FL, but gold CE waits for the
-  selected indices.
+- P0.7a-c/e technical prerequisites passed through selection. Gemma generated
+  9,428 outcomes (9,427 non-empty), 7,162 passed quick execution, and
+  `N_gemma=2,487` matched BIRD gold. The official stage also recorded 4,443
+  mismatches, 231 gold failures, and one prediction failure.
+- The 231 Gemma and 23 Qwen `gold_exec_failed` counts use different
+  teacher-conditioned survivor sets and are not directly comparable. P0.7q
+  now audits all 9,428 gold SQL independently and projects both teachers onto
+  one common valid mask before any cross-family retention claim.
+- P0.7q establishes consistency on the current local CSV/SQLite snapshot. It
+  cannot distinguish an upstream BIRD defect from a locally mismatched database
+  version without a clean official-package schema/hash comparison.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
@@ -179,17 +183,18 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7b-c/e/T1F, GPU 0: teacher/cache/tokenizer smoke, generate all 9,428
-   BIRD targets, then apply the canonical 8-second quick-exec and official EX
-   stages to obtain `N_gemma` and build its gold control.
-2. P0.7s/T1F after the teacher lane: pure FL and diagnostic evaluation only;
+1. P0.7q, CPU-only and run alone: execute every BIRD train gold SQL once, then
+   compare Qwen/Gemma selection checkpoints on the common valid-gold mask.
+2. P0.7s/T1F: pure FL and diagnostic evaluation only;
    the current Windows host cannot safely co-load Gemma 9B and train Gemma 2B.
 3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL,
    and canonical five-arm base/FL/gold/target/full evaluation; build a full
    cache only after a positive gate.
-4. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-5. CPU-only EX-EM/error audit when it does not block the active GPU task.
-6. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
+4. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
+   five-arm ladder; no such completed result exists yet.
+5. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
+6. CPU-only EX-EM/error audit when it does not block the active GPU task.
+7. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
    not the current discovery task.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -248,6 +253,9 @@ internal artifact identities.
 | 2026-08-21 | The P0.7b fingerprint guard correctly rejected an old eight-row checkpoint sourced from Qwen's 3,873-row pool; corrected Gemma smoke artifacts use new `fullsource` roots, while the old artifacts remain immutable provenance. |
 | 2026-08-21 | P0.7c recorded all 9,428 Gemma teacher outcomes; index 7004 deterministically produced an empty target on retry. Empty output is retained as a teacher failure and rejected before SQLite execution, not retried into success. |
 | 2026-08-21 | Retired the parallel Gemma 9B/2B launch after Windows pagefile exhaustion; P0.7 runs sequentially on this host. |
+| 2026-08-22 | P0.7e retained `N_gemma=2,487` from 7,162 quick-exec survivors; conditional official statuses were 2,487 match, 4,443 mismatch, 231 gold failure, and one prediction failure. |
+| 2026-08-22 | Added P0.7q: a read-only, resumable audit of all 9,428 BIRD gold SQL plus Qwen/Gemma comparison on one common valid mask; conditional gold-failure counts are no longer treated as cross-family denominators. |
+| 2026-08-22 | Added a 4-bit Gemma 9B zero-shot Spider reference as P0.7t; it is contextual teacher-ceiling evidence after the main Gemma ladder, not a causal method arm. |
 
 ## 8. Archived branches
 
