@@ -489,14 +489,16 @@ Update this table after every gate. Never rewrite old decisions silently.
 
 1. P0.7a is complete: Gemma 2B training/reload/inference compatibility passed;
    do not interpret its eight-row accuracy.
-2. In parallel, run P0.7b-c on GPU 0 for Gemma 9B target/logit compatibility
-   and full target generation, and P0.7s on GPU 1 for pure FL only.
-3. After selection completes, run P0.7d gold CE, target CE, full online CE+RKL,
+2. P0.7b-c generated all Gemma teacher outcomes; retain deterministic empty
+   generations as teacher failures and reject them before SQL execution.
+3. Run P0.7e next, then run P0.7s sequentially because this host cannot safely
+   co-load the 9B teacher and train the 2B student.
+4. After selection completes, run P0.7d gold CE, target CE, full online CE+RKL,
    and the canonical five-arm base/FL/gold/target/full evaluation. Defer a full
    cache until a positive T1 result justifies T3 reuse.
-4. Review full FedLS against FL, matched public gold, and sequence KD before any
+5. Review full FedLS against FL, matched public gold, and sequence KD before any
    T3/OOD or additional family/size expansion.
-5. After T1F, export the exact LoRA trainable-parameter count and add fixed
+6. After T1F, export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
 6. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
    active GPU task.

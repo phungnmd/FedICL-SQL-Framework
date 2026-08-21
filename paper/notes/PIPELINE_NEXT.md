@@ -33,10 +33,10 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.5 | Select the official centralized ceiling | complete; standard continuous selected |
 | P0.6 | Evaluate the official centralized baseline on Realistic, Syn, DK, and BIRD | complete; 55.91 / 54.06 / 53.27 / 13.04 EX |
 | P0.7a | Smoke Gemma 2B training, adapter load, and inference | complete; pipeline pass, 8-row EX is non-paper diagnostic |
-| P0.7b | Smoke Gemma 9B→2B targets, token-ID compatibility, and logit cache | **run next on GPU 0** |
-| P0.7c | Generate Gemma 9B targets for all 9,428 BIRD training rows | gated by both smokes |
-| P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | gated by P0.7c; discovers `N_gemma` |
-| P0.7s | Train/evaluate Gemma 2B pure FL | may run concurrently on GPU 1 |
+| P0.7b | Smoke Gemma 9B→2B targets, token-ID compatibility, and logit cache | complete |
+| P0.7c | Generate Gemma 9B targets for all 9,428 BIRD training rows | generation complete; one deterministic empty target is recorded at index 7004 |
+| P0.7e | Quick-exec and official-EX filter Gemma targets; build matched gold | **run next after pulling the empty-target selector fix** |
+| P0.7s | Train/evaluate Gemma 2B pure FL | run sequentially after the teacher lane on this host |
 | P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | gated by P0.7e |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -190,10 +190,13 @@ $env:CUDA_VISIBLE_DEVICES='0'; $S='processed_data/BIRD/centralized/train.csv'; $
 ### P0.7c — generate all Gemma teacher targets on GPU 0
 
 The source is all 9,428 BIRD training rows. Generation checkpoints each row at
-`train.ckpt.jsonl`; rerunning this exact command resumes safely.
+`train.ckpt.jsonl`; rerunning this exact command resumes safely. Coverage means
+every source identity has a recorded teacher outcome. A deterministic empty
+generation remains a teacher failure in provenance and is rejected by P0.7e;
+do not retry until the teacher happens to succeed.
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='0'; $S='processed_data/BIRD/centralized/train.csv'; $R='processed_data/BIRD/gemma2_9b_bootstrap_full/train.csv'; if (-not (Test-Path -LiteralPath $S)) { throw "Missing full BIRD source: $S" }; uv run python scripts/build_teacher_targets.py --source-csv $S --teacher-model google/gemma-2-9b-it --student-model google/gemma-2-2b-it --teacher-4bit --batch-size 4 --max-new-tokens 128 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Full Gemma target generation failed; rerun this exact line to resume' }; $N=(Import-Csv -LiteralPath $R).Count; $V=Get-Content -LiteralPath "${R}.provenance.json" -Raw | ConvertFrom-Json; if ($N -ne 9428 -or $V.n_output_rows -ne 9428 -or $V.n_nonempty_targets -ne 9428 -or -not $V.tokenizer_compatibility.compatible) { throw "Full Gemma target verification failed: csv=$N provenance=$($V.n_output_rows) nonempty=$($V.n_nonempty_targets) tokenizer=$($V.tokenizer_compatibility.compatible)" }; Write-Host 'P0.7c complete: all 9,428 Gemma targets generated'
+$env:CUDA_VISIBLE_DEVICES='0'; $S='processed_data/BIRD/centralized/train.csv'; $R='processed_data/BIRD/gemma2_9b_bootstrap_full/train.csv'; if (-not (Test-Path -LiteralPath $S)) { throw "Missing full BIRD source: $S" }; uv run python scripts/build_teacher_targets.py --source-csv $S --teacher-model google/gemma-2-9b-it --student-model google/gemma-2-2b-it --teacher-4bit --batch-size 4 --max-new-tokens 128 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Full Gemma target generation failed; rerun this exact line to resume' }; $N=(Import-Csv -LiteralPath $R).Count; $V=Get-Content -LiteralPath "${R}.provenance.json" -Raw | ConvertFrom-Json; $NE=@($V.empty_target_indices).Count; if ($N -ne 9428 -or $V.n_output_rows -ne 9428 -or ($V.n_nonempty_targets + $NE) -ne 9428 -or -not $V.tokenizer_compatibility.compatible) { throw "Full Gemma target verification failed: csv=$N provenance=$($V.n_output_rows) nonempty=$($V.n_nonempty_targets) empty=$NE tokenizer=$($V.tokenizer_compatibility.compatible)" }; Write-Host "P0.7c complete: all 9,428 teacher outcomes recorded; empty teacher failures=$NE"
 ```
 
 ### P0.7e — derive the Gemma-specific EX-match pool and gold control
@@ -209,22 +212,24 @@ The resulting `N_gemma` is a measured property of Gemma.
 $S='processed_data/BIRD/centralized/train.csv'; $R='processed_data/BIRD/gemma2_9b_bootstrap_full/train.csv'; $X='processed_data/BIRD/gemma2_9b_bootstrap_full_exec/train.csv'; $P='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.csv'; $G='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch_gold/train.csv'; foreach ($I in @($S,$R,"${R}.provenance.json")) { if (-not (Test-Path -LiteralPath $I)) { throw "Missing P0.7e input: $I" } }; uv run python scripts/filter_teacher_targets_exmatch.py --source-csv $S --teacher-targets $R --exec-out $X --exec-timeout 8 --out $P --workers 8; if ($LASTEXITCODE -ne 0) { throw 'Gemma quick-exec/EX filtering failed; rerun this exact line to resume' }; uv run python scripts/build_public_gold_control.py --source-csv $S --teacher-pool $P --selection-ckpt processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.score_ckpt.jsonl --out $G; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched-gold control build failed' }; $NX=(Import-Csv -LiteralPath $X).Count; $N=(Import-Csv -LiteralPath $P).Count; $NG=(Import-Csv -LiteralPath $G).Count; $V=Get-Content -LiteralPath "${P}.provenance.json" -Raw | ConvertFrom-Json; $VG=Get-Content -LiteralPath "${G}.provenance.json" -Raw | ConvertFrom-Json; if ($N -le 0 -or $N -ne $NG -or $N -ne $V.n_exmatched -or $N -ne $VG.n_rows -or $V.n_generated -ne 9428 -or $NX -ne $V.n_exec_kept -or $V.n_scored -ne $V.n_exec_kept) { throw "Gemma pool verification failed: generated=$($V.n_generated) exec=$NX official_scored=$($V.n_scored) matched=$N gold=$NG" }; Write-Host "P0.7e complete: Gemma-specific matched pool has N_gemma=$N rows"
 ```
 
-### P0.7s — independent pure-FL lane on GPU 1
+### P0.7s — pure FL after the teacher lane
 
-Before `N_gemma` exists, only pure FL is independent of the teacher. Run this
-concurrently with P0.7b-c. Do not train gold CE on Qwen's 3,873 selected rows.
+Pure FL is logically independent of the teacher, but Gemma 9B and Gemma 2B
+cannot run safely in parallel on the current Windows host because they share
+RAM and pagefile. Run P0.7s only after P0.7b-c/e. Do not train gold CE on
+Qwen's 3,873 selected rows.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $M='google/gemma-2-2b-it'; $F='artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0'; $E='artifacts/eval_resume/gemma2_2b_t1_fl_s0/eval_k0'; foreach ($X in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv')) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.7s input: $X" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL T1 failed; rerun this exact line to resume' }; $A="$F/round_1/fedavg_adapter"; if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing Gemma FL adapter: $A" }; uv run python experiments/eval_arms/run.py --model $M --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_fl_t1=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 8 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma FL manifests: $E/manifests" }; Write-Host 'P0.7s complete: pure FL is ready for matched-ladder reuse'
 ```
 
-### Overnight parallel launch
+### Retired parallel launch — do not run
 
-Run this teacher lane on GPU 0 and P0.7s above on GPU 1. If the old command is
-only downloading the model, stop it and use this corrected line; the local
-model cache remains reusable. The final execution-match stage is the relevant
-teacher-supervision quality gate. A separate held-out teacher zero-shot
-benchmark is optional P1.1 evidence, not a prerequisite for the Gemma ladder.
+The former combined GPU-0/GPU-1 overnight recipe is retained below only for
+command provenance. It caused Windows commit-memory pressure and must not be
+used. Run the individual P0.7 stages sequentially. A separate held-out teacher
+zero-shot benchmark remains optional P1.1 evidence, not a prerequisite for the
+Gemma ladder.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='0'; $S='processed_data/BIRD/centralized/train.csv'; $Q='processed_data/BIRD/gemma2_9b_targets_smoke8_fullsource/train.csv'; $C='artifacts/teacher_logit_cache/gemma2_9b_to_2b_smoke8_fullsource_k0'; $R='processed_data/BIRD/gemma2_9b_bootstrap_full/train.csv'; $X='processed_data/BIRD/gemma2_9b_bootstrap_full_exec/train.csv'; $P='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.csv'; $G='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch_gold/train.csv'; uv run python scripts/build_teacher_targets.py --source-csv $S --teacher-model google/gemma-2-9b-it --student-model google/gemma-2-2b-it --teacher-4bit --batch-size 2 --max-new-tokens 128 --schema-style full --limit 8 --out $Q --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma target/tokenizer smoke failed; rerun this exact line to resume' }; uv run python scripts/build_teacher_logit_cache.py --pool $Q --pool-size 0 --seed 0 --model google/gemma-2-2b-it --teacher-model google/gemma-2-9b-it --teacher-4bit --k-teacher 0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --max-len 2560 --out $C; if ($LASTEXITCODE -ne 0) { throw 'Gemma teacher-logit smoke failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$C/meta.json")) { throw "Missing Gemma smoke cache metadata: $C/meta.json" }; uv run python scripts/build_teacher_targets.py --source-csv $S --teacher-model google/gemma-2-9b-it --student-model google/gemma-2-2b-it --teacher-4bit --batch-size 4 --max-new-tokens 128 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Full Gemma target generation failed; rerun this exact line to resume' }; $NR=(Import-Csv -LiteralPath $R).Count; if ($NR -ne 9428) { throw "Expected 9,428 raw Gemma targets, found $NR" }; uv run python scripts/filter_teacher_targets_exmatch.py --source-csv $S --teacher-targets $R --exec-out $X --exec-timeout 8 --out $P --workers 8; if ($LASTEXITCODE -ne 0) { throw 'Gemma quick-exec/EX filtering failed; rerun this exact line to resume' }; uv run python scripts/build_public_gold_control.py --source-csv $S --teacher-pool $P --selection-ckpt processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.score_ckpt.jsonl --out $G; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched-gold control build failed' }; $NX=(Import-Csv -LiteralPath $X).Count; $N=(Import-Csv -LiteralPath $P).Count; $NG=(Import-Csv -LiteralPath $G).Count; $V=Get-Content -LiteralPath "${P}.provenance.json" -Raw | ConvertFrom-Json; if ($N -le 0 -or $N -ne $NG -or $N -ne $V.n_exmatched -or $V.n_generated -ne 9428 -or $NX -ne $V.n_exec_kept -or $V.n_scored -ne $V.n_exec_kept) { throw "Gemma pool verification failed: generated=$($V.n_generated) exec=$NX official_scored=$($V.n_scored) matched=$N gold=$NG" }; Write-Host "GPU-0 lane complete: N_gemma=$N targets and matched gold rows are ready"

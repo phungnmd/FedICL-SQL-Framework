@@ -44,15 +44,17 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 ## Recommended execution order
 
 1. Gemma 2B client/LoRA compatibility smoke is complete.
-2. In parallel, use GPU 0 for the Gemma 9B target/logit smoke plus full 9,428-row
-   generation, and GPU 1 for pure FL only.
-3. Apply the fixed quick-exec and official EX stages, build gold on Gemma's
+2. The Gemma 9B target/logit smoke and full 9,428-row generation are complete;
+   deterministic empty generations remain recorded teacher failures.
+3. Apply the fixed quick-exec and official EX stages, then run pure FL
+   sequentially because the current host cannot safely co-load Gemma 9B/2B.
+4. Build gold on Gemma's
    selected indices, then run gold CE, target CE, and full online CE+RKL,
    followed by the five-arm T1 ladder: untouched base, FL, public-gold CE,
    Gemma-target CE, and full CE+RKL.
    Build a full cache only if T3 reuse is justified.
-4. Review portability before any Gemma T3/OOD or model-size expansion.
-5. Add fixed in-process warm-up to the resource benchmark path, then run only
+5. Review portability before any Gemma T3/OOD or model-size expansion.
+6. Add fixed in-process warm-up to the resource benchmark path, then run only
    the missing matched 1.5B/7B measurements on an exclusive GPU.
 6. Audit the matched T1 predictions, especially execution errors and
    `EX=1, EM=0` cases; replicate public-gold seeds 1/2 only if needed for the

@@ -182,7 +182,8 @@ currently justify.
 1. P0.7b-c/e/T1F, GPU 0: teacher/cache/tokenizer smoke, generate all 9,428
    BIRD targets, then apply the canonical 8-second quick-exec and official EX
    stages to obtain `N_gemma` and build its gold control.
-2. P0.7s/T1F, GPU 1 in parallel: pure FL and diagnostic evaluation only.
+2. P0.7s/T1F after the teacher lane: pure FL and diagnostic evaluation only;
+   the current Windows host cannot safely co-load Gemma 9B and train Gemma 2B.
 3. P0.7d/T1F after selection: matched gold CE, target CE, full online CE+RKL,
    and canonical five-arm base/FL/gold/target/full evaluation; build a full
    cache only after a positive gate.
@@ -245,6 +246,8 @@ internal artifact identities.
 | 2026-08-21 | Refactored the archived Qwen selector into the active common teacher pipeline: raw generation, fixed 8-second quick-exec, then official EX match, each fingerprinted and resumable. |
 | 2026-08-21 | Added untouched Gemma 2B base to canonical P0.7d so FL and full FedLS-SQL are both anchored to the pretrained student; overnight lanes remain unchanged. |
 | 2026-08-21 | The P0.7b fingerprint guard correctly rejected an old eight-row checkpoint sourced from Qwen's 3,873-row pool; corrected Gemma smoke artifacts use new `fullsource` roots, while the old artifacts remain immutable provenance. |
+| 2026-08-21 | P0.7c recorded all 9,428 Gemma teacher outcomes; index 7004 deterministically produced an empty target on retry. Empty output is retained as a teacher failure and rejected before SQLite execution, not retried into success. |
+| 2026-08-21 | Retired the parallel Gemma 9B/2B launch after Windows pagefile exhaustion; P0.7 runs sequentially on this host. |
 
 ## 8. Archived branches
 
