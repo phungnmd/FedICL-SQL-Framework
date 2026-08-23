@@ -9,9 +9,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 |---|---|---|---|
 | P0 | RQ1 accuracy | standard continuous centralized 3 epochs and 3-pass-restart vs pure FL vs FedLS-SQL | seed-0 Spider/OOD/BIRD table complete; standard recipe selected |
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
-| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | base 52.22 and FL 57.16 EX complete; server ladder pending |
+| P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | complete: FL 57.16, target CE 61.22, full 61.41 EX; full-vs-FL significant, RKL-vs-target CE not significant |
 | P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | complete: 9,056 valid; Qwen 42.72%, Gemma 27.46% match yield |
-| P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | queued after Gemma five-arm ladder |
+| P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | next GPU task; contextual reference only |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
@@ -21,7 +21,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P2 | optimizer baseline | FedProx SLM | not implemented/run |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
-| P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after a positive P0.7d |
+| P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
 | P2 | broader skew | IID, quantity, domain, and SQL-pattern controlled suite | not complete |
 | P2 | pragmatic RQ2 | matched 1.5B/7B resource benchmark; no full 7B FL by default | wording fixed; evidence pending |
 
@@ -51,14 +51,14 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    increases execution errors from 162 to 212.
 2. The independent gold audit is complete. Retain the 372-row local snapshot
    limitation; every Gemma-selected supervision row is valid.
-3. P0.7d is running: run gold CE, target CE, and full online CE+RKL,
-   followed by the five-arm T1 ladder: untouched base, FL, public-gold CE,
-   Gemma-target CE, and full CE+RKL.
-   Build a full cache only if T3 reuse is justified.
-4. Review portability, then optionally evaluate the 4-bit Gemma 9B teacher on
-   Spider before any Gemma T3/OOD or model-size expansion.
-5. Add a one-epoch centralized Gemma anchor only if the positive T1 result
-   makes the additional family comparison useful; do not block P0.7d on it.
+3. P0.7d is complete. Retain second-family endpoint portability: full FedLS is
+   `+4.25` EX over FL, while teacher-target CE already supplies `+4.06` and the
+   extra RKL increment is only `+0.19` (`p=0.916`).
+4. Evaluate the 4-bit Gemma 9B teacher on Spider as a contextual ceiling, then
+   audit the Gemma gold/teacher target-form contrast before any T3/OOD or
+   model-size expansion.
+5. A one-epoch centralized Gemma anchor remains conditional; do not interpret
+   the positive T1 endpoint as justification for an automatic T3 expansion.
 6. Add fixed in-process warm-up to the resource benchmark path, then run only
    the missing matched 1.5B/7B measurements on an exclusive GPU.
 7. Audit the matched T1 predictions, especially execution errors and

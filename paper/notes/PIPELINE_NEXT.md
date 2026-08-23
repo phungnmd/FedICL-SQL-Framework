@@ -18,10 +18,11 @@ part of the default evidence package.
 
 The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
 gates are complete. `Centralized-standard-3ep` is the official baseline; the
-historical restart recipe remains schedule-sensitivity evidence. By current
-research priority, the next GPU task is a complete second-family Gemma gate.
-Gemma targets and logits are regenerated; Qwen artifacts are never mixed into
-the Gemma branch. Final T3 seed replication is retained but deferred.
+historical restart recipe remains schedule-sensitivity evidence. The complete
+second-family Gemma gate is now closed: full FedLS beats FL, while
+teacher-target CE carries nearly all of the Gemma gain and reverse KL is not
+independently significant. The next GPU task is the already-scoped 4-bit Gemma
+9B Spider reference. Final T3 seed replication is retained but deferred.
 
 | Order | Action | Status |
 |---|---|---|
@@ -39,11 +40,11 @@ the Gemma branch. Final T3 seed replication is retained but deferred.
 | P0.7s | Train/evaluate Gemma 2B pure FL | complete; 57.16 EX / 49.52 EM |
 | P0.7g | Evaluate untouched Gemma 2B base on full Spider | complete; 52.22 EX / 22.44 EM |
 | P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | complete; 9,056 valid / 372 invalid |
-| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | **running; no concurrent model job or worktree change** |
-| P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | diagnostic teacher ceiling after P0.7d |
+| P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | complete; 52.22 / 57.16 / 41.68 / 61.22 / 61.41 EX |
+| P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | **next GPU task; diagnostic ceiling, not a causal arm** |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
-| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.7 review |
+| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.7t and target-form audit |
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
@@ -242,7 +243,8 @@ P0.7q completed with 9,056/9,428 (`96.05%`) gold rows executable under the
 failures, 21 timeouts, and one `database or disk is full` failure. `retail_world`
 accounts for 330/372 failures. On the common valid mask, Qwen matches 3,869
 rows (`42.72%`) and Gemma matches 2,487 (`27.46%`), with 2,019 common matches.
-All 2,487 Gemma-selected training rows are audit-valid, so P0.7d may proceed;
+All 2,487 Gemma-selected training rows are audit-valid, so P0.7d used the pool
+without reconstruction;
 the 372-row snapshot issue remains a data-quality limitation, not teacher
 training data. Canonical committed artifacts are
 `processed_data/BIRD/gold_exec_audit_t60/` and
@@ -301,6 +303,14 @@ FL shares the identical private-client/FedAvg stage and has no public stage.
 The untouched Gemma 2B base arm anchors whether private federated training and
 the complete framework improve or degrade the pretrained student.
 
+**Completed result (seed 0, Spider, 1,034 identical rows):** base `52.22`, FL
+`57.16`, matched-gold CE `41.68`, teacher-target CE `61.22`, and full FedLS
+`61.41` EX. Teacher-target CE beats FL by `+4.06` (137/95 paired gains/losses,
+`p=0.00698`); full FedLS beats FL by `+4.25` (132/88, `p=0.00365`). Full FedLS
+is only `+0.19` over target CE (46/44, `p=0.916`), so RKL portability is not an
+independent claim. Canonical committed evaluation:
+`experiments/eval_arms/results/eval_arms__s0__20260823T005329/`.
+
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='0'; $M='google/gemma-2-2b-it'; $T='google/gemma-2-9b-it'; $P='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch/train.csv'; $GOLD='processed_data/BIRD/gemma2_9b_bootstrap_full_exec_exmatch_gold/train.csv'; $F='artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0'; $G='artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0'; $H='artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0'; $K='artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0'; $E='artifacts/eval_resume/gemma2_9b_to_2b_t1_five_arm_s0/eval_k0'; foreach ($X in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv',$P,"${P}.provenance.json",$GOLD,"${GOLD}.provenance.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.7d input: $X" } }; $NP=(Import-Csv -LiteralPath $P).Count; $NG=(Import-Csv -LiteralPath $GOLD).Count; if ($NP -le 0 -or $NP -ne $NG) { throw "Gemma supervision pools are not matched: targets=$NP gold=$NG" }; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --out $F --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma pure-FL T1 failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $GOLD --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out "$F/round_1" --out $G --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma matched gold CE failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out "$F/round_1" --out $H --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Gemma teacher-target CE failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedkd --round 1 --model $M --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --teacher-model $T --teacher-4bit --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out "$F/round_1" --out $K --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Full Gemma FedLS-SQL failed; rerun this exact line to resume' }; foreach ($A in @("$F/round_1/fedavg_adapter","$G/round_1/m_g","$H/round_1/m_g","$K/round_1/m_g")) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing Gemma T1 adapter: $A" } }; uv run python experiments/eval_arms/run.py --model $M --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "gemma_base=" "gemma_fl_t1=$F/round_1/fedavg_adapter" "gemma_goldce_t1=$G/round_1/m_g" "gemma_seqkd_t1=$H/round_1/m_g" "gemma_fedls_t1=$K/round_1/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 8 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Gemma five-arm T1 evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing Gemma T1 manifests: $E/manifests" }; Write-Host "P0.7d complete: stop and review the five-arm result at N_gemma=$NP"
 ```
@@ -311,7 +321,9 @@ filter, and official EX matching. It is not an equal-row cross-family
 experiment when `N_gemma != 3,873`. If a later
 controlled family comparison is needed, deterministically subsample each
 family's own matched pool to a common budget; never condition Gemma on Qwen's
-success indices.
+success indices. The endpoint transfers, but the common cross-family mechanism
+supported most clearly is hard teacher-target CE; reverse KL remains
+model-family dependent.
 
 ### P0.7t — Gemma 9B teacher zero-shot Spider reference
 

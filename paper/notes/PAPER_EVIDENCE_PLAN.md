@@ -212,11 +212,11 @@ training randomness, rather than a seed-0 outcome?
 
 ### T1F — second-family full-method screen
 
-**Status:** active as P0.7. Compatibility, full-source target selection,
-untouched-base evaluation, and pure-FL T1 are complete. Base reaches `52.22`
-EX and pure FL reaches `57.16` EX on the same 1,034 Spider rows (`+4.94`,
-141/90 paired gains/losses, `p=0.00096`). The gold audit passed the supervision
-gate, and the three server treatments are now running.
+**Status:** complete at seed 0. On the same 1,034 Spider rows, base reaches
+`52.22`, pure FL `57.16`, matched-gold CE `41.68`, teacher-target CE `61.22`,
+and full CE+RKL `61.41` EX. Full FedLS beats FL by `+4.25` (132/88 paired
+gains/losses, `p=0.00365`), but adds only `+0.19` over teacher-target CE
+(46/44, `p=0.916`).
 
 **Question:** does the complete teacher-guided server stage transfer from the
 Qwen family to a second, internally tokenizer-compatible Gemma teacher/student
@@ -249,24 +249,24 @@ pair?
   ladder; use it as ceiling/context evidence, not as a substitute for FL vs
   FedLS causal comparisons.
 
-The base-to-FL gate is positive, but FL also increases execution errors from
-162 to 212. Therefore the server-stage decision must require a useful EX gain
-without ignoring SQL validity. No centralized Gemma arm exists yet; a
-continuous one-epoch centralized anchor is conditional after a positive P0.7d,
-and a three-epoch version is justified only if the Gemma track extends to T3.
+The endpoint-to-FL gate is positive, and the teacher-guided arms reduce
+execution errors from 212 for FL to 119 for target CE and 137 for full FedLS.
+Matched gold CE regresses to `41.68` EX with 303 errors despite using the exact
+same 2,487 identities; target-form/style and cross-corpus supervision mismatch
+must be audited before this contrast receives a strong causal explanation. No
+centralized Gemma arm exists yet; a continuous one-epoch anchor remains
+conditional, and three epochs are justified only if the Gemma track extends to
+T3.
 The full-source audit records 9,056 valid and 372 invalid local gold rows; 350
 fail structurally and 330 are in `retail_world`. Qwen/Gemma common-mask match
 yields are `42.72%` and `27.46%`, respectively. All 2,487 Gemma-selected rows
 are valid, so the audit does not require rebuilding the P0.7d pool.
 
-**Gate T1F:**
-
-- **Full Gemma FedLS materially beats FL and matched public gold, with a useful
-  teacher-target increment:** the complete framework has second-family
-  evidence; consider extending only this track to T3/Spider.
-- **Small or uncertain gain:** add at most one training seed before deciding.
-- **No gain or regression:** stop the branch and scope the paper to the tested
-  Qwen setting; do not tune Gemma until positive.
+**Gate T1F decision:** the full endpoint materially beats FL and matched public
+gold, so second-family endpoint portability is retained. The stronger portable
+mechanism is teacher-target CE: it supplies `+4.06` EX over FL, whereas reverse
+KL supplies only `+0.19` over target CE and is not significant. Do not claim a
+family-independent RKL contribution or automatically extend Gemma to T3/OOD.
 
 The claim remains family-level replication, not arbitrary cross-tokenizer
 distillation. It replicates the generation and selection procedure, not an
@@ -505,20 +505,21 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-21 | Gemma lineage correction | fingerprint audit found the old smoke output was sourced from Qwen's selected 3,873 rows | use new immutable `fullsource` smoke roots and the common raw-generation → 8-second quick-exec → official-EX selector over all 9,428 BIRD rows | T1F/P0.7b-e |
 | 2026-08-22 | Gemma pre-server gate | full 1,034-row base and pure-FL predictions | FL improves base by 4.94 EX with positive paired evidence, but adds 50 execution errors; retain the branch, require EX plus validity review for P0.7d, and do not block it on centralized Gemma | P0.7q, then P0.7d |
 | 2026-08-22 | BIRD gold/common-mask audit | all 9,428 gold rows and both teacher score checkpoints | 9,056 rows are valid; local failures are concentrated in `retail_world`; all Gemma-selected rows are valid; proceed without rebuilding the pool and keep the snapshot caveat | P0.7d |
+| 2026-08-23 | Gemma full-method portability gate | five fresh arms on 1,034 paired Spider rows; base, FL, matched gold CE, teacher-target CE, full CE+RKL | retain second-family full endpoint over FL (`+4.25`, `p=0.00365`); identify hard teacher targets as the stable cross-family mechanism; RKL-vs-target CE is inconclusive (`+0.19`, `p=0.916`) | P0.7t, then target-form audit/resource evidence |
 
 ## 6. Current next actions
 
-1. P0.7a-c/e/s/g are complete: compatibility passed, `N_gemma=2,487`, and
-   Gemma base/pure-FL endpoints are canonical.
-2. P0.7q is complete; retain its local data-quality caveat and canonical audit
-   artifacts.
-3. P0.7d is running: gold CE, target CE, full online CE+RKL,
-   and the canonical five-arm base/FL/gold/target/full evaluation. Defer a full
-   cache until a positive T1 result justifies T3 reuse.
-4. Review full FedLS against FL, matched public gold, and sequence KD before any
-   T3/OOD or additional family/size expansion.
-5. After T1F, decide whether a one-epoch centralized Gemma anchor adds useful
-   context; do not run three epochs unless Gemma advances to T3.
+1. P0.7a-g/q/d are complete; compatibility, selection/audit, and the canonical
+   five-arm Gemma T1 evaluation are closed.
+2. Run P0.7t once as the 4-bit Gemma 9B zero-shot Spider reference. It is a
+   contextual teacher ceiling, not another causal method arm.
+3. Audit matched Gemma gold versus teacher targets for length, structure,
+   execution validity, and prediction/error shifts before explaining the large
+   gold-CE regression in the manuscript.
+4. Do not build the full Gemma logit cache or extend Gemma to T3/OOD merely
+   because the endpoint gate passed; RKL added no material T1 gain.
+5. Keep the one-epoch centralized Gemma anchor conditional on whether the
+   portability table needs a within-family centralized reference.
 6. Export the exact LoRA trainable-parameter count and add fixed
    in-process warm-up before the controlled 1.5B/7B resource benchmark.
 7. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the

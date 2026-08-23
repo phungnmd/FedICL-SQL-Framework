@@ -39,12 +39,23 @@ decisions. It deliberately does not own result tables:
   matches 2,487 (`27.46%`); 2,019 are common. The earlier 231 Gemma gold
   failures split into 198 audit-invalid and 33 audit-valid-at-rerun rows. All
   2,487 Gemma-selected training rows are audit-valid.
-- P0.7s/g are complete on the same 1,034 Spider rows. Untouched Gemma 2B scores
-  `52.22 EX / 22.44 EM`; pure FL T1 scores `57.16 EX / 49.52 EM`. The paired
-  EX change is `+4.94` points (141 gains, 90 losses, `p=0.00096`). This passes
-  the pre-server family/FL gate but does not yet establish FedLS portability.
-- Gemma FL raises execution errors from 162 (`15.67%`) to 212 (`20.50%`) even
-  while improving EX. P0.7d must be interpreted using both EX and error rate.
+- P0.7d is complete on 1,034 paired Spider rows. Gemma base, FL, matched-gold
+  CE, teacher-target CE, and full FedLS reach respectively `52.22`, `57.16`,
+  `41.68`, `61.22`, and `61.41` EX. Full FedLS beats FL by `+4.25` (132/88,
+  `p=0.00365`), establishing a positive second-family endpoint.
+- Teacher-target CE alone beats FL by `+4.06` EX (137/95, `p=0.00698`) and has
+  the lowest execution-error count (119). Full CE+RKL adds only `+0.19` EX
+  over it (46/44, `p=0.916`) and has 137 errors, so the stable cross-family
+  mechanism is hard teacher-target transfer; an independent RKL portability
+  claim is unsupported.
+- Matched BIRD-gold CE falls to `41.68` EX with 303 execution errors although
+  it uses the same 2,487 source identities. Selection count is therefore not
+  the explanation; target form/style and cross-corpus supervision mismatch
+  remain an explicit audit question.
+- All five P0.7d evaluations are fresh and complete. Full FedLS server training
+  resumed from step 1,872 and its saved timing covers only the final 615
+  examples (`paper_timing_eligible=false`); no P0.7d training time is official
+  resource evidence.
 - The FL eval config uses the pre-`--model-4bit` runner schema although its
   metrics report SHA `e144d8b`, indicating a mid-run worktree update. Accuracy
   remains comparable because both effective paths are unquantized defaults;
@@ -179,14 +190,15 @@ currently justify.
 5. Client-network communication consists of LoRA adapter payloads and is the
    same for pure FL and FedLS-SQL under the implemented protocol.
 6. ICL and FLoRA-NA do not improve the retained configuration.
-7. At seed 0, one-round Gemma 2B pure FL improves over the untouched Gemma base
-   on paired Spider rows; this supports a viable second-family FL starting
-   point, not full-method portability.
+7. At seed 0, full Gemma FedLS improves over pure FL by 4.25 Spider EX with
+   positive paired evidence. The endpoint transfers, while most of the gain is
+   already present in the teacher-target CE ablation.
 
 ### Not yet supported
 
 1. A statistically established multi-seed final T3 gain.
-2. Family-agnostic portability of full CE+RKL FedLS-SQL.
+2. A family-independent incremental benefit from reverse KL beyond
+   teacher-target CE.
 3. Better accuracy than centralized training.
 4. Lower empirical cost than federated large-model training; no federated 7B
    baseline has been run.
@@ -198,14 +210,13 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7d/T1F is running: matched gold CE, target CE, full online CE+RKL,
-   and canonical five-arm base/FL/gold/target/full evaluation; build a full
-   cache only after a positive gate. Do not run another model or change the
-   experiment worktree until it exits.
-2. P0.7t: 4-bit Gemma 9B zero-shot Spider teacher reference after the main
-   five-arm ladder; no such completed result exists yet.
+1. P0.7t: run the 4-bit Gemma 9B zero-shot Spider teacher reference; no such
+   completed result exists yet, and it is contextual rather than causal.
+2. CPU-only matched gold-versus-teacher-target structure/error audit to explain
+   the Gemma gold-CE regression without overclaiming from it.
 3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-4. CPU-only EX-EM/error audit when it does not block the active GPU task.
+4. Decide whether a one-epoch Gemma centralized anchor is worth its cost; do
+   not automatically extend Gemma to T3/OOD or build a full logit cache.
 5. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
    not the current discovery task.
 
@@ -223,8 +234,8 @@ component seeds remain behind these gates.
 | FedLS-SQL T1-T3 lineage | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0` |
 | Independent pure-FL T1-T3 | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0` |
 | Gemma 2B pure-FL T1 | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` |
-| Gemma base evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` |
-| Gemma pure-FL evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` |
+| Gemma full FedLS T1 | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` |
+| Gemma canonical five-arm evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260823T005329` |
 | BIRD gold audit | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` |
 | Common-mask teacher report | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` |
 | Frozen public pool | `processed_data/BIRD/bootstrap_full_exmatch/train.csv` |
@@ -277,6 +288,7 @@ internal artifact identities.
 | 2026-08-22 | P0.7s/g completed: Gemma pure FL improves base by 4.94 Spider EX (141/90 paired gains/losses, `p=0.00096`) but increases execution errors by 50; retain the family branch and audit both accuracy and validity after server transfer. |
 | 2026-08-22 | Recorded the P0.7s eval provenance caveat: its config predates the opt-in 4-bit field while metrics report the later repository SHA; effective inference remains the same unquantized default, but future experiment worktrees must not be pulled or changed mid-run. |
 | 2026-08-22 | P0.7q found 9,056 valid and 372 invalid local BIRD gold rows; 350 are structural and 330 failures belong to `retail_world`. Every Gemma-selected row is valid, so P0.7d proceeds while the snapshot mismatch remains an explicit data-quality caveat. |
+| 2026-08-23 | P0.7d completed the Gemma five-arm ladder: base 52.22, FL 57.16, gold CE 41.68, target CE 61.22, and full FedLS 61.41 EX. Retain endpoint portability over FL, identify teacher-target CE as the robust mechanism, and keep the RKL increment provisional (`+0.19`, `p=0.916`). |
 
 ## 8. Archived branches
 

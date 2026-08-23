@@ -44,9 +44,9 @@ semantics only.
 |---|---|---|---|---|
 | `gemma.base.s0` | Gemma 2 2B | untouched pretrained anchor | `google/gemma-2-2b-it`, no adapter | canonical; reported eval SHA `e144d8b` |
 | `gemma.fl.t1.s0` | Gemma 2 2B | second-family pure FL | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | canonical; train code SHA `45d5995` |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
-| `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.7d` |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | gold CE on Gemma-selected rows | `artifacts/federated/gemma2_9b_selected_goldce_noicl_k5_e1_t1_s0/round_1/m_g` | canonical; nested result commit `e53bfe7` |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | Gemma 2 9B teacher-target CE | `artifacts/federated/gemma2_9b_to_2b_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | canonical; nested result commit `e53bfe7` |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | Gemma 2 9B target CE + reverse KL | `artifacts/federated/gemma2_9b_to_2b_fedls_noicl_k5_e1_t1_s0/round_1/m_g` | canonical; nested result commit `e53bfe7` |
 
 Gemma targets and logits must be regenerated with `google/gemma-2-9b-it` and
 must never reuse Qwen artifacts. `gemma.fedls.t1.s0` becomes eligible only after
@@ -69,6 +69,7 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.qwen.central.standard.s0.bird` | official centralized BIRD diagnostic | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T150048` | canonical; result commit `7eb7d44` |
 | `eval.gemma.base.s0.spider` | untouched Gemma 2B, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183818` | canonical; reported SHA `e144d8b`, result commit `c760523` |
 | `eval.gemma.fl.t1.s0.spider` | Gemma 2B pure FL T1, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` | canonical; pre-`--model-4bit` runner schema, result commit `c760523` |
+| `eval.gemma.t1.matched.s0.spider` | base/FL/gold CE/teacher-target CE/full FedLS, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260823T005329` | canonical paper evaluation; code SHA `3e673ef`, result commit `e53bfe7` |
 | `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
 

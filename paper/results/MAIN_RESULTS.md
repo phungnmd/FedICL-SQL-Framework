@@ -1,6 +1,6 @@
 # FedLS-SQL — canonical paper result tables
 
-> Updated 2026-08-22. This file is the single source of truth for paper-facing
+> Updated 2026-08-23. This file is the single source of truth for paper-facing
 > values. Stable artifact IDs resolve through
 > `../notes/RESULT_REGISTRY.md`. Values are percentages unless stated
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
@@ -20,7 +20,7 @@ for equality.
 | Track | Student family/model | Teacher family/model | Server transfer | Paper label | Status |
 |---|---|---|---|---|---|
 | Primary | Qwen2.5 / `Qwen/Qwen2.5-1.5B-Instruct` | Qwen2.5 / `Qwen/Qwen2.5-Coder-7B-Instruct` | teacher-target CE + token-level reverse KL | FedLS-SQL | canonical |
-| Second family | Gemma 2 / `google/gemma-2-2b-it` | Gemma 2 / `google/gemma-2-9b-it` | regenerated teacher-target CE + token-level reverse KL | FedLS-SQL | pre-server gate passed; full endpoint `PENDING:P0.7d` |
+| Second family | Gemma 2 / `google/gemma-2-2b-it` | Gemma 2 / `google/gemma-2-9b-it` | regenerated teacher-target CE + token-level reverse KL | FedLS-SQL | canonical T1 portability endpoint; RKL increment is not independently significant |
 
 ## 2. Overall NL-to-SQL performance
 
@@ -69,21 +69,31 @@ snapshot; they do not isolate model-family or parameter-count effects.
 | Stable ID | Student | Method | Transfer objective | Round | Seed | Spider EX | Spider EM | Exec. errors | Error rate | Status |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---|
 | `gemma.base.s0` | Gemma 2 2B | Untouched base | none | 0 | 0 | 52.22 | 22.44 | 162 | 15.67 | canonical pretrained anchor |
-| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | **57.16** | **49.52** | 212 | 20.50 | canonical pre-server endpoint |
-| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | Gemma-selected `N_gemma=2,487` rows |
-| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | matched sequence-KD ablation |
-| `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | tokenizer compatibility passed |
+| `gemma.fl.t1.s0` | Gemma 2 2B | Pure FL | none | 1 | 0 | 57.16 | **49.52** | 212 | 20.50 | canonical pre-server endpoint |
+| `gemma.goldce.t1.s0` | Gemma 2 2B | Matched public CE | BIRD gold SQL | 1 | 0 | 41.68 | 23.60 | 303 | 29.30 | same Gemma-selected `N_gemma=2,487` identities |
+| `gemma.seqkd.t1.s0` | Gemma 2 2B | FedLS-SeqKD | Gemma 9B teacher-target CE | 1 | 0 | 61.22 | 32.98 | **119** | **11.51** | matched hard-target ablation |
+| `gemma.fedls.t1.s0` | Gemma 2 2B | FedLS-SQL | Gemma 9B target CE + reverse KL | 1 | 0 | **61.41** | 33.85 | 137 | 13.25 | canonical full endpoint |
 
-Pure FL improves over the untouched Gemma base by `+4.94` EX. On the paired
-1,034 rows it gains 141 questions and loses 90 (`p=0.00096`, exact McNemar).
-The improvement appears at every Spider hardness level and is largest on hard
-queries (`+11.49` points). However, execution errors increase from 162 to 212;
-the P0.7d server arms must therefore be judged on both EX and error rate. This
-is a one-seed pre-server result, not evidence that full FedLS-SQL transfers to
-Gemma yet.
+Pure FL improves over the untouched Gemma base by `+4.94` EX (141 paired gains,
+90 losses, exact McNemar `p=0.00096`). Teacher-target CE then improves over FL
+by `+4.06` EX (137/95, `p=0.00698`) and full FedLS-SQL improves over FL by
+`+4.25` EX (132/88, `p=0.00365`). Full FedLS-SQL is the numerical maximum, but
+its `+0.19` EX over teacher-target CE is only two net questions (46/44,
+`p=0.916`); its `+0.87` EM increment is also not significant (`p=0.281`). The
+second family therefore supports the complete endpoint and, more strongly,
+the hard teacher-target mechanism, but not a family-independent standalone RKL
+gain.
 
-Do not merge this block with §2.1. Extend it to T3 or OOD only if the T1 gate
-is positive and material.
+Matched BIRD-gold CE falls `15.48` EX below FL and raises execution errors to
+303. Because gold CE and both teacher-guided arms use the same 2,487 source
+identities, selection count does not explain this contrast. The target form,
+SQL style/complexity, and cross-corpus supervision mismatch require a focused
+audit before causal wording is finalized. EX remains primary: teacher-guided
+arms lower EM relative to FL while increasing execution accuracy, consistent
+with semantically correct but non-canonical SQL generation.
+
+Do not merge this block with §2.1. The endpoint gate is positive, but the RKL
+increment is not material; do not extend Gemma to T3/OOD automatically.
 
 ### 2.3 Outline headline accuracy-efficiency table
 
@@ -100,7 +110,7 @@ controlled protocol.
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
-| Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING:P0.7d` | `PENDING` | second-family table, not main endpoint |
+| Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | 33.85 | 61.41 | `PENDING:P1.1` | `PENDING:P1.1` | second-family portability endpoint |
 
 Few-shot LLM prompting and ICL are not silently promoted from legacy runs.
 They may appear as a closed negative/diagnostic ablation only if the manuscript
@@ -191,8 +201,8 @@ provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
 | Remove LLM guidance | complete: pure FL vs FedLS-SQL | main ablation |
 | Remove knowledge distillation | complete via matched ladder | main ablation |
 | Structural distillation | not implemented | remove from claims/tables |
-| Teacher sizes 7B/8B/14B | Qwen 7B canonical; Gemma 9B family replication pending | model-size sweep remains optional |
-| Student sizes 0.5B/1.1B/1.5B/3B | Qwen 1.5B canonical; Gemma 2B family replication pending | family replication, not a controlled size sweep |
+| Teacher families/sizes | Qwen 7B canonical; Gemma 9B T1 replication complete | family replication, not a controlled size sweep |
+| Student families/sizes | Qwen 1.5B canonical; Gemma 2B T1 replication complete | family replication, not a controlled size sweep |
 | LoRA ranks 4/8/16/32 | only r=16 canonical | optional |
 | Clients 5/10/20 | only K=5 canonical | optional |
 | FedProx | not implemented/run | conditional baseline |

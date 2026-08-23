@@ -215,13 +215,19 @@ Established evidence:
 - reverse KL adds `+2.03 EX` over teacher-target CE at seed 0, but its existing
   three-seed incremental contrast is not significant and must be presented as
   provisional;
-- the server treatment reduces T1 Spider execution errors from 236 to 133.
+- the server treatment reduces T1 Spider execution errors from 236 to 133;
+- in the Gemma family, full FedLS beats pure FL by `+4.25` EX (`p=0.00365`),
+  while teacher-target CE beats FL by `+4.06` (`p=0.00698`); full CE+RKL is
+  only `+0.19` above target CE (`p=0.916`), so hard-target transfer is the
+  clearest common mechanism across the two families;
+- Gemma matched-gold CE is a negative control at 41.68 EX and 303 execution
+  errors despite using the same 2,487 source identities as the teacher-guided
+  arms; its target-form/style mismatch remains under audit.
 
-Blocking evidence gaps:
+Open evidence gaps:
 
-1. test family portability with a one-round Gemma 2 9B→2B ladder: untouched
-   base, pure FL, matched public-gold CE, Gemma-target CE, and full CE+reverse
-   KL using regenerated Gemma targets/logits after exact token-ID validation;
+1. record the 4-bit Gemma 9B zero-shot Spider reference and audit why matched
+   BIRD-gold CE regresses relative to Gemma teacher targets;
 2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
    training seeds 1/2 before submission; currently deferred;
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;
