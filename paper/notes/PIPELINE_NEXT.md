@@ -344,7 +344,8 @@ Use the immutable Qwen T1 client adapters and their shared FedAvg adapter. On a
 deterministic public subset from the existing 3,873-row verified teacher pool,
 record per row:
 
-- global-adapter SQL, execution status, and EX against public gold;
+- global-adapter SQL, execution status, and EX against the verified teacher
+  target, which was retained only after EX matching to public gold;
 - each client-adapter SQL and execution-result-group agreement;
 - SQL structure and length;
 - stable source index, hashes, adapter IDs, and decoding configuration.
