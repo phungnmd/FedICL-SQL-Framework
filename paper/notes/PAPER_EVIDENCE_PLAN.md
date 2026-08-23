@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper evidence plan
 
-> Updated 2026-08-20. This is a decision plan, not a fixed experiment list.
+> Updated 2026-08-24. This is a decision plan, not a fixed experiment list.
 > Results from an earlier task may reorder, replace, or cancel later tasks.
 > `PIPELINE_NEXT.md` contains commands only for the task currently activated by
 > this plan; it must not be treated as an unconditional queue.
@@ -67,6 +67,54 @@ an uncertainty exposed by an earlier result.
    0, but the standalone reverse-KL increment is not established across seeds.
 6. **Baseline strength:** FedProx-LoRA is absent.
 7. **Non-IID scope:** only one grouped Dirichlet setting is evaluated.
+8. **Method distinctness:** the current endpoint is effective, but its most
+   portable mechanism is execution-verified hard SeqKD. Plain RKL is not a
+   stable cross-family contribution, and the present server stage reacts to
+   neither global-student errors nor disagreement among client adapters.
+
+### Direction decision after the Qwen/Gemma evidence
+
+The evidence is **already sufficient to freeze a defensible framework paper**:
+private client LoRA training, FedAvg, and public execution-verified LLM-to-SLM
+hard-target transfer improve over pure FL in two model families. It is **not yet
+sufficient to claim a new KD objective or a stronger federated optimizer**.
+
+If the goal is to strengthen the proposed method before freezing the paper, the
+next research budget should test one coupled improvement:
+
+> Use public execution outcomes and disagreement from the current federated
+> student/client adapters to decide which verified teacher examples receive
+> server distillation updates.
+
+This working direction is called **federated-aware execution-guided public
+distillation** in planning documents. It is not a paper component or final name
+until it beats uniform hard SeqKD under an equal-update control.
+
+Why this direction ranks first:
+
+- it builds on the component that transfers across Qwen and Gemma: verified
+  teacher-generated SQL;
+- it makes the LLM stage respond to the current federated state instead of
+  being a generic fixed public fine-tuning pass;
+- it needs only student/client inference on public rows and reuses cached
+  teacher targets/logits;
+- it does not change the privacy or communication boundary because the server
+  already holds uploaded adapters and all scored prompts are public;
+- it directly addresses the method-novelty objection while remaining much
+  cheaper than KID, GKD, mutual FedMKT, or execution RL.
+
+Federated alternatives are ranked lower for this configuration:
+
+1. exact/FLoRA-style aggregation is closed as a main direction because the
+   existing exact-SVD/stack and FLoRA-NA diagnostics found no material EX
+   headroom at `K=5, T=1`;
+2. FedProx is a useful reviewer baseline, but with one local epoch and no
+   demonstrated drift it is not a justified proposed contribution;
+3. public-loss-weighted client aggregation is a secondary probe only if client
+   disagreement predicts global errors; weighting clients directly risks
+   biasing Spider federation toward the BIRD proxy;
+4. personalization changes the one-global-adapter problem and is out of scope
+   unless worst-client evidence becomes the paper's main question.
 
 ## 4. Adaptive task queue
 
@@ -275,6 +323,67 @@ equal-budget comparison must subsample each teacher's own matched pool to a
 common count. Full-vocabulary reverse KL is allowed only after exact token-ID
 compatibility passes; a failure stops the full Gemma branch rather than
 silently slicing unrelated vocabularies.
+
+### T1M — proposed-method direction gate
+
+**Status:** active planning priority as of 2026-08-24. No new method has been
+promoted. The canonical method remains uniform execution-verified teacher-target
+CE plus auxiliary RKL until this gate passes.
+
+**Question:** can public LLM guidance be made specifically responsive to the
+federated model's failure modes, rather than applying the same static public
+distillation schedule after every FedAvg round?
+
+**Candidate method:** after client training and FedAvg, score a fixed public
+subset using the aggregated adapter and, in the stronger variant, the uploaded
+client adapters. For each row record:
+
+```text
+global execution state: correct / executable-wrong / execution-error
+client disagreement: agreement of SQL execution-result groups
+teacher gap: NLL or cached teacher-student KL on verified teacher SQL
+SQL structure: joins / nesting / aggregation / set operation / length
+```
+
+Use these features to select or cap-weight existing verified teacher examples.
+The teacher targets and optional logits remain unchanged and cacheable. Start
+with hard-target CE; do not make RKL mandatory because its portable incremental
+effect is unsupported.
+
+**Minimum ladder:**
+
+1. `uniform-SeqKD`: current teacher-target CE with a fixed update budget;
+2. `random-subset-SeqKD`: same number of rows and updates as the proposed
+   selector;
+3. `global-error-SeqKD`: select a balanced mixture of global execution errors,
+   executable-wrong rows, and uniform rows;
+4. `federated-disagreement-SeqKD`: add client-disagreement strata only if the
+   no-training diagnostic shows that disagreement predicts aggregate errors;
+5. add cached RKL only after the selected hard-target method beats its matched
+   uniform/random control.
+
+**Mandatory controls:** shared pre-server FedAvg adapter, identical public row
+population, optimizer/update count, seed, decoding, and evaluation rows. Keep a
+uniform fraction in every selected batch so hard-example mining cannot collapse
+to only invalid or unusually complex SQL. Record selection manifests and row
+weights as immutable provenance.
+
+**Gate T1M:**
+
+- **Global-error selection beats uniform/random by at least 1 EX point without
+  increasing execution errors:** promote it as the proposed method and repeat
+  the minimal Qwen T1 causal ladder.
+- **Client disagreement adds further gain:** retain the federated-aware variant;
+  this is the strongest integration of FL and LLM guidance.
+- **Selection is neutral:** freeze the current hard-SeqKD framework; do not
+  tune weighting repeatedly. Move to final reliability/resources and write the
+  method as an execution-verified framework contribution.
+- **Selection hurts:** close this branch. Consider one fixed-budget KID probe
+  only if prefix-error analysis specifically shows cascading exposure errors.
+
+**Explicitly not active:** full GKD/MiniLLM, online KID at every federated
+round, FedDF/FedMKT logit exchange, execution-RL, new LoRA aggregation methods,
+and broad hyperparameter sweeps. These require a separate scope decision.
 
 ### T2 — efficiency and resource evidence
 
@@ -506,28 +615,35 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-22 | Gemma pre-server gate | full 1,034-row base and pure-FL predictions | FL improves base by 4.94 EX with positive paired evidence, but adds 50 execution errors; retain the branch, require EX plus validity review for P0.7d, and do not block it on centralized Gemma | P0.7q, then P0.7d |
 | 2026-08-22 | BIRD gold/common-mask audit | all 9,428 gold rows and both teacher score checkpoints | 9,056 rows are valid; local failures are concentrated in `retail_world`; all Gemma-selected rows are valid; proceed without rebuilding the pool and keep the snapshot caveat | P0.7d |
 | 2026-08-23 | Gemma full-method portability gate | five fresh arms on 1,034 paired Spider rows; base, FL, matched gold CE, teacher-target CE, full CE+RKL | retain second-family full endpoint over FL (`+4.25`, `p=0.00365`); identify hard teacher targets as the stable cross-family mechanism; RKL-vs-target CE is inconclusive (`+0.19`, `p=0.916`) | P0.7t, then target-form audit/resource evidence |
+| 2026-08-24 | method-direction review | Qwen/Gemma causal ladders, three-seed T1 server effect, RKL portability, FLoRA-NA and exact-aggregation diagnostics, KD literature | evidence is sufficient for a framework paper but not a new KD-loss claim; activate one federated-aware execution-guided hard-SeqKD gate before freezing the method | T1M diagnostic and matched subset screen |
 
 ## 6. Current next actions
 
-1. P0.7a-g/q/d are complete; compatibility, selection/audit, and the canonical
-   five-arm Gemma T1 evaluation are closed.
-2. Run P0.7t once as the 4-bit Gemma 9B zero-shot Spider reference. It is a
-   contextual teacher ceiling, not another causal method arm.
-3. Audit matched Gemma gold versus teacher targets for length, structure,
-   execution validity, and prediction/error shifts before explaining the large
-   gold-CE regression in the manuscript.
-4. Do not build the full Gemma logit cache or extend Gemma to T3/OOD merely
-   because the endpoint gate passed; RKL added no material T1 gain.
-5. Keep the one-epoch centralized Gemma anchor conditional on whether the
-   portability table needs a within-family centralized reference.
-6. Export the exact LoRA trainable-parameter count and add fixed
-   in-process warm-up before the controlled 1.5B/7B resource benchmark.
-7. Run the no-GPU T1 execution-error/EX-EM audit whenever it does not block the
-   active GPU task.
-8. Retain T1R/P0.8 final seed replication as a pre-submission reliability task;
-   do not start it until the current discovery-first gate is reviewed.
-9. Do not interpret shared-server time/RAM as official evidence;
-   T2 will use controlled, repeated, hardware-exclusive measurements.
+1. Freeze the current method as the fallback: execution-verified teacher-target
+   CE is the supported core; RKL remains auxiliary and provisional.
+2. Run the implemented P0.9a **diagnostic only** on the deterministic 512-row
+   public subset: measure global/SeqKD execution state, client execution-result
+   disagreement, correction behavior, and SQL structure. This uses public data
+   and existing adapters; it must precede any new training arm.
+3. If disagreement/error strata are informative, implement the smallest
+   deterministic selector and run `uniform`, `random subset`, and
+   `global-error subset` hard-SeqKD from the same Qwen T1 FedAvg adapter with
+   equal updates. Add the client-disagreement arm only if its diagnostic signal
+   is incremental.
+4. Promote a new method only after a preregistered positive T1 gate. Otherwise
+   stop method development and retain the current framework; do not replace a
+   negative result with an uncontrolled KD/FL sweep.
+5. Keep P0.7t and the Gemma target-form audit as contextual analysis. They no
+   longer outrank the method-direction gate because neither can change the
+   proposed training algorithm.
+6. Do not build the full Gemma logit cache or extend Gemma to T3/OOD unless a
+   promoted method requires a portability test.
+7. After T1M is closed, complete the controlled resource benchmark, T1
+   execution/error audit, and final T3 seed-1/2 reliability for the method that
+   will actually appear in the paper.
+8. Keep FedProx as a later baseline and heterogeneity as a conditional claim
+   test. Exact aggregation, FLoRA-NA, new LoRA parameterizations, and direct
+   public-loss client weighting are not active method directions.
 
 Final T3 seed-1/2 replication is deferred, not cancelled. Additional component
 replication remains parked under T7.

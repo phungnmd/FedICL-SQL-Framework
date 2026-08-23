@@ -62,6 +62,11 @@ decisions. It deliberately does not own result tables:
   exact process provenance is limited to the saved config for this artifact.
 - Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
   current discovery-first priority.
+- The 2026-08-24 method review concludes that existing evidence is sufficient
+  for a defensible FedLS-SQL framework paper, but not for a new RKL objective
+  claim. The active method gate is federated-aware execution-guided hard SeqKD:
+  first diagnose global public errors and client disagreement, then test one
+  equal-budget selector before freezing the method.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -210,15 +215,19 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.7t: run the 4-bit Gemma 9B zero-shot Spider teacher reference; no such
-   completed result exists yet, and it is contextual rather than causal.
-2. CPU-only matched gold-versus-teacher-target structure/error audit to explain
-   the Gemma gold-CE regression without overclaiming from it.
-3. P1.1: controlled accuracy/resource benchmark after fixed in-process warm-up.
-4. Decide whether a one-epoch Gemma centralized anchor is worth its cost; do
-   not automatically extend Gemma to T3/OOD or build a full logit cache.
-5. P0.8/T1R: final T3 seed-1/2 reliability remains pre-submission work but is
-   not the current discovery task.
+1. P0.9a is implemented and ready: use existing Qwen T1 client/FedAvg/SeqKD
+   adapters to profile global failures, uniform-SeqKD corrections, and client
+   execution-result disagreement on a deterministic 512-row public subset; no
+   training before this diagnostic is reviewed.
+2. P0.9b: if the signal is usable, compare equal-budget uniform, random-subset,
+   and global-error hard-SeqKD from the shared T1 FedAvg adapter. Add the
+   client-disagreement arm only if it contributes independent signal.
+3. Freeze the current hard-SeqKD framework if the single method gate is neutral;
+   do not replace it with a broad KD or federated sweep.
+4. P0.7t and the Gemma target-form audit remain contextual tasks; neither
+   decides the proposed method.
+5. After method freeze, run P1.1 controlled resources, the error audit, and
+   P0.8/T1R final T3 seed-1/2 reliability for the selected method.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
 component seeds remain behind these gates.
@@ -289,6 +298,8 @@ internal artifact identities.
 | 2026-08-22 | Recorded the P0.7s eval provenance caveat: its config predates the opt-in 4-bit field while metrics report the later repository SHA; effective inference remains the same unquantized default, but future experiment worktrees must not be pulled or changed mid-run. |
 | 2026-08-22 | P0.7q found 9,056 valid and 372 invalid local BIRD gold rows; 350 are structural and 330 failures belong to `retail_world`. Every Gemma-selected row is valid, so P0.7d proceeds while the snapshot mismatch remains an explicit data-quality caveat. |
 | 2026-08-23 | P0.7d completed the Gemma five-arm ladder: base 52.22, FL 57.16, gold CE 41.68, target CE 61.22, and full FedLS 61.41 EX. Retain endpoint portability over FL, identify teacher-target CE as the robust mechanism, and keep the RKL increment provisional (`+0.19`, `p=0.916`). |
+| 2026-08-24 | Evidence is sufficient to retain the framework but not a new RKL-loss claim. Exact/FLoRA aggregation has no measured headroom at the current setting, so the only active method-improvement gate is federated-aware execution-guided hard-SeqKD with equal-budget uniform/random controls. |
+| 2026-08-24 | Implemented P0.9a as a resumable, fingerprinted no-training diagnostic over one FedAvg adapter, its uniform-SeqKD descendant, and five client adapters on a deterministic 512-row public subset. Selector training remains blocked until its disagreement/correction report is reviewed. |
 
 ## 8. Archived branches
 

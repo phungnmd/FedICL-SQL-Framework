@@ -16,13 +16,14 @@ resource and communication savings of retaining a 1.5B SLM rather than placing
 the 7B teacher on clients or in inference. Full federated 7B training is not
 part of the default evidence package.
 
-The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
-gates are complete. `Centralized-standard-3ep` is the official baseline; the
-historical restart recipe remains schedule-sensitivity evidence. The complete
-second-family Gemma gate is now closed: full FedLS beats FL, while
-teacher-target CE carries nearly all of the Gemma gain and reverse KL is not
-independently significant. The next GPU task is the already-scoped 4-bit Gemma
-9B Spider reference. Final T3 seed replication is retained but deferred.
+The matched public-supervision, centralized-recipe, centralized OOD/BIRD, and
+second-family gates are complete. The evidence is sufficient to retain the
+FedLS-SQL framework, but not to present plain RKL as a stable new KD method.
+The active priority is now **T1M method selection**: determine whether
+federated-aware execution-guided selection improves hard teacher-target
+distillation. P0.7t remains a contextual teacher ceiling and no longer blocks
+this decision. Final T3 seed replication is retained until the final method is
+frozen, so seeds are not spent on a method that may be replaced.
 
 | Order | Action | Status |
 |---|---|---|
@@ -41,16 +42,21 @@ independently significant. The next GPU task is the already-scoped 4-bit Gemma
 | P0.7g | Evaluate untouched Gemma 2B base on full Spider | complete; 52.22 EX / 22.44 EM |
 | P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | complete; 9,056 valid / 372 invalid |
 | P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | complete; 52.22 / 57.16 / 41.68 / 61.22 / 61.41 EX |
-| P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | **next GPU task; diagnostic ceiling, not a causal arm** |
+| P0.9a | Profile Qwen T1 public-pool failures and client disagreement from existing adapters | **ready; next method task, no training** |
+| P0.9b | Matched uniform vs random-subset vs global-error hard-SeqKD screen | pending P0.9a signal and implementation audit |
+| P0.9c | Add client-disagreement selection | conditional; only if disagreement predicts aggregate errors beyond global status |
+| P0.9d | Add cached logits/skew/AKL to the winning selector | conditional; hard-target selection must win first |
+| P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | optional contextual ceiling; does not decide the method |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
-| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after P0.7t and target-form audit |
+| P1.1 | Add warm-up-capable controlled inference benchmark and run 1.5B vs 7B | pending after method freeze |
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
-it completed before the snapshot feature existed. Do not start FedProx,
-heterogeneity, sensitivity, or model-size/rank/client sweeps until P0.7 is
-reviewed.
+it completed before the snapshot feature existed. P0.9a now has one executable
+diagnostic command below; P0.9b-d intentionally have none until its report is
+reviewed. Do not improvise a selector or start FedProx, heterogeneity, new
+aggregation, sensitivity, or model-size/rank/client sweeps while T1M is open.
 
 ## Fixed T1 comparison
 
@@ -325,6 +331,71 @@ success indices. The endpoint transfers, but the common cross-family mechanism
 supported most clearly is hard teacher-target CE; reverse KL remains
 model-family dependent.
 
+## P0.9 — method-direction gate (active)
+
+P0.9 decides whether the paper retains the current framework or promotes a
+federated-aware execution-guided distillation method. It intentionally begins
+without training. P0.9a's row schema, immutable subset, resume fingerprints,
+and analysis tests are now implemented; later training commands remain gated.
+
+### P0.9a — public failure/disagreement diagnostic
+
+Use the immutable Qwen T1 client adapters and their shared FedAvg adapter. On a
+deterministic public subset from the existing 3,873-row verified teacher pool,
+record per row:
+
+- global-adapter SQL, execution status, and EX against public gold;
+- each client-adapter SQL and execution-result-group agreement;
+- SQL structure and length;
+- stable source index, hashes, adapter IDs, and decoding configuration.
+
+Teacher-target NLL/KL is deliberately excluded from this first diagnostic. It
+requires an additional student-forward path and is activated only if execution
+state plus client disagreement are insufficient to define a selector.
+
+The first report must answer whether global execution errors and client
+disagreement identify different rows and whether either predicts errors after
+uniform SeqKD. If disagreement adds no signal beyond the global model, cancel
+P0.9c and keep the cheaper global-error selector.
+
+The command builds one deterministic 512-row subset, evaluates the shared T1
+FedAvg adapter, its uniform hard-SeqKD descendant, and all five uploaded client
+adapters with greedy `k=0`, then groups client predictions by execution-result
+equivalence. Evaluation and the final SQL analysis both resume from
+fingerprinted checkpoints. Rerunning the exact line skips verified completed
+work; any source/adapter/config drift requires a new immutable root.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $H='artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0'; $S='processed_data/BIRD/bootstrap_full_exmatch/train.csv'; $U='processed_data/BIRD/p09a_qwen_public512_s0/train.csv'; $E='artifacts/eval_resume/p09a_qwen_t1_public512_s0/eval_k0'; $O='artifacts/analysis/p09a_qwen_t1_public512_s0'; foreach ($P in @($S,"$C/fedavg_adapter/adapter_config.json","$H/round_1/m_g/adapter_config.json") + @(1..5 | ForEach-Object { "$C/client_$_/adapter/adapter_config.json" })) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.9a input: $P" } }; uv run python scripts/build_fedkd_diagnostic_subset.py --source-csv $S --out $U --size 512 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.9a subset build failed; rerun this exact line to resume' }; if ((Import-Csv -LiteralPath $U).Count -ne 512 -or -not (Test-Path -LiteralPath "${U}.provenance.json")) { throw 'P0.9a subset verification failed' }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/BIRD/centralized/train.csv --test-csv $U --arms "global_fl=$C/fedavg_adapter" "uniform_seqkd=$H/round_1/m_g" "client_1=$C/client_1/adapter" "client_2=$C/client_2/adapter" "client_3=$C/client_3/adapter" "client_4=$C/client_4/adapter" "client_5=$C/client_5/adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.9a public adapter evaluation failed; rerun this exact line to resume' }; uv run python scripts/analyze_fedkd_public_diagnostic.py --subset-csv $U --eval-manifest-dir "$E/manifests" --global-arm global_fl --seqkd-arm uniform_seqkd --client-prefix client_ --n-clients 5 --exec-timeout 8 --workers 8 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P0.9a disagreement analysis failed; rerun this exact line to resume' }; foreach ($P in @("$O/rows.csv","$O/summary.json","$O/provenance.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.9a output: $P" } }; $V=Get-Content -LiteralPath "$O/summary.json" -Raw | ConvertFrom-Json; if ($V.n_rows -ne 512 -or $V.n_clients -ne 5) { throw "P0.9a summary verification failed: rows=$($V.n_rows) clients=$($V.n_clients)" }; Write-Host "P0.9a complete: review $O/summary.json before activating any selector training"
+```
+
+### P0.9b — matched hard-SeqKD screen
+
+From the same pre-server T1 FedAvg adapter compare:
+
+```text
+uniform full/subset hard SeqKD
+random subset hard SeqKD
+global-error-balanced subset hard SeqKD
+```
+
+Match optimizer updates and the number of target tokens as closely as possible;
+row count alone is insufficient. Every selected set must retain a fixed uniform
+fraction, and every manifest must save source indices, strata, weights, and
+selection hashes. The promotion gate is at least `+1.0` Spider EX over the
+matched uniform/random control with no increase in execution-error rate.
+
+### P0.9c-d — conditional extensions
+
+- Add client-disagreement selection only if P0.9a shows incremental predictive
+  value.
+- Add cached RKL/skew/AKL only after hard-target selection wins. Do not use a
+  logit-loss change to rescue a selector that failed.
+- If all selection arms are neutral, freeze current hard SeqKD and proceed to
+  final seeds/resources. KID is considered only when the error audit shows
+  prefix-cascade failures; GKD, FedDF/FedMKT, execution-RL, FedProx-as-method,
+  and new LoRA aggregators remain out of scope.
+
 ### P0.7t — Gemma 9B teacher zero-shot Spider reference
 
 There is no completed Gemma teacher/Spider result yet. The existing teacher
@@ -370,12 +441,9 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-After P0.6, the active GPU priority is P0.7 second-family portability. It first
-smokes the Gemma 2B client and Gemma 9B teacher/cache path, then regenerates
-Gemma targets and logits before a five-arm base/FL/gold/target/full T1 ladder.
-Full Gemma FedLS-SQL is permitted only after exact token-ID compatibility passes. Extend
-to T3/OOD only if the T1 gate is positive and material. P0.8 seed reliability
-remains ready but deferred.
+The second-family ladder is complete. The active scientific priority is P0.9;
+P0.7t is optional ceiling context, and P0.8 remains ready but deferred until the
+method that will appear in the paper is frozen.
 
 Before collecting official latency, add a warm-up-capable benchmark path. Do
 not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes

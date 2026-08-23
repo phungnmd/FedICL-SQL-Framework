@@ -233,6 +233,20 @@ Open evidence gaps:
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;
 4. audit the large server-stage EX-EM divergence and execution-error types.
 
+**Method-freeze gate (2026-08-24):** the architecture above remains canonical.
+Before the manuscript is frozen, one bounded improvement is being evaluated:
+use execution failures of the aggregated public-data student and, only if
+informative, disagreement among uploaded client adapters on public rows to
+select verified teacher targets for server hard SeqKD. This does not alter the
+privacy/communication boundary. It becomes part of FedLS-SQL only if it beats
+equal-update uniform and random-subset controls; otherwise the current uniform
+execution-verified hard-target server stage is retained.
+
+New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
+rank-preserving/rank-expanded diagnostics showed no material accuracy headroom
+at the current `K=5, T=1` configuration. FedProx remains a possible baseline,
+not a proposed component unless later drift evidence changes that decision.
+
 The second-family screen tests the full endpoint inside another compatible
 teacher/student family. It does not make reverse KL cross-tokenizer: exact
 token-to-ID equality is a hard prerequisite, and arbitrary mixed-family logits
