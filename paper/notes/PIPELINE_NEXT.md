@@ -42,9 +42,9 @@ frozen, so seeds are not spent on a method that may be replaced.
 | P0.7g | Evaluate untouched Gemma 2B base on full Spider | complete; 52.22 EX / 22.44 EM |
 | P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | complete; 9,056 valid / 372 invalid |
 | P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | complete; 52.22 / 57.16 / 41.68 / 61.22 / 61.41 EX |
-| P0.9a | Profile Qwen T1 public-pool failures and client disagreement from existing adapters | **ready; next method task, no training** |
-| P0.9b | Matched uniform vs random-subset vs global-error hard-SeqKD screen | pending P0.9a signal and implementation audit |
-| P0.9c | Add client-disagreement selection | conditional; only if disagreement predicts aggregate errors beyond global status |
+| P0.9a | Profile Qwen T1 public-pool failures and client disagreement from existing adapters | complete; global-error signal retained, disagreement rejected |
+| P0.9b | Matched random-subset vs global-error hard-SeqKD screen | **ready; next GPU task** |
+| P0.9c | Add client-disagreement selection | cancelled at this gate; no incremental correction evidence |
 | P0.9d | Add cached logits/skew/AKL to the winning selector | conditional; hard-target selection must win first |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | optional contextual ceiling; does not decide the method |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
@@ -53,10 +53,10 @@ frozen, so seeds are not spent on a method that may be replaced.
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
-it completed before the snapshot feature existed. P0.9a now has one executable
-diagnostic command below; P0.9b-d intentionally have none until its report is
-reviewed. Do not improvise a selector or start FedProx, heterogeneity, new
-aggregation, sensitivity, or model-size/rank/client sweeps while T1M is open.
+it completed before the snapshot feature existed. P0.9b is now the only active
+method-training screen. Do not improvise another selector or start FedProx,
+heterogeneity, new aggregation, sensitivity, or model-size/rank/client sweeps
+while T1M is open.
 
 ## Fixed T1 comparison
 
@@ -340,6 +340,18 @@ and analysis tests are now implemented; later training commands remain gated.
 
 ### P0.9a — public failure/disagreement diagnostic
 
+**Completed result (512 Qwen public rows):** the shared FL adapter obtains
+`32.23` EX and uniform SeqKD obtains `53.13` EX. Uniform SeqKD corrects 141 FL
+errors and regresses 34 correct rows (net `+107`, or `+20.90` EX points on this
+training-domain diagnostic). FL has 347 errors; high client disagreement finds
+331 of them (`95.39%`) but flags 454/512 rows (`88.67%`). Disagreement is
+associated with FL error (odds ratio `7.06`, Fisher `p=2.69e-11`), yet among FL
+errors its SeqKD correction rate is 137/331 versus 4/16 (odds ratio `2.12`,
+`p=0.297`). Thus it is not selective enough and adds no established signal to
+the directly observed global execution state. P0.9c is cancelled; P0.9b uses
+global state only. These public-pool numbers are diagnostics, not paper test
+accuracy.
+
 Use the immutable Qwen T1 client adapters and their shared FedAvg adapter. On a
 deterministic public subset from the existing 3,873-row verified teacher pool,
 record per row:
@@ -380,16 +392,50 @@ random subset hard SeqKD
 global-error-balanced subset hard SeqKD
 ```
 
-Match optimizer updates and the number of target tokens as closely as possible;
-row count alone is insufficient. Every selected set must retain a fixed uniform
-fraction, and every manifest must save source indices, strata, weights, and
-selection hashes. The promotion gate is at least `+1.0` Spider EX over the
-matched uniform/random control with no increase in execution-error rate.
+The activated screen uses 256 rows per arm. The hard pool explicitly samples
+96 global execution errors and 96 executable-wrong rows, then draws 64 rows
+uniformly without replacement from the remainder. The control is a 256-row
+uniform random sample chosen only to match the hard pool's teacher-SQL token
+count. Both arms therefore start at the same pre-server adapter and receive 256
+examples, 16 optimizer updates (`batch=1`, accumulation 16), and nearly equal
+target tokens. The existing 3,873-row uniform SeqKD arm is shown only as a
+full-budget context, not as the matched primary control. Selection provenance
+saves source indices, states, token totals, hashes, and the random seed.
+
+Build the two CPU-only immutable pools:
+
+```powershell
+$U='processed_data/BIRD/p09a_qwen_public512_s0/train.csv'; $D='artifacts/analysis/p09a_qwen_t1_public512_s0/rows.csv'; $H='processed_data/BIRD/p09b_qwen_global_error256_s0/train.csv'; $R='processed_data/BIRD/p09b_qwen_random256_s0/train.csv'; foreach ($P in @($U,$D)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.9b pool input: $P" } }; uv run python scripts/build_fedkd_training_pools.py --subset-csv $U --analysis-rows $D --hard-out $H --random-out $R --size 256 --hard-fraction 0.75 --match-trials 4096 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.9b pool build failed; rerun this exact line' }; $V=Get-Content -LiteralPath "${H}.provenance.json" -Raw | ConvertFrom-Json; $TD=[Math]::Abs([int]$V.teacher_sql_token_difference); if ((Import-Csv -LiteralPath $H).Count -ne 256 -or (Import-Csv -LiteralPath $R).Count -ne 256 -or $TD -gt [Math]::Ceiling(0.01*[int]$V.hard_teacher_sql_tokens)) { throw "P0.9b pool verification failed: token_difference=$TD" }; Write-Host "P0.9b pools complete: hard/random=256 rows, token_difference=$TD"
+```
+
+Train the matched random control (GPU):
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $P='processed_data/BIRD/p09b_qwen_random256_s0/train.csv'; $O='artifacts/federated/p09b_qwen_random256_seqkd_noicl_k5_e1_t1_s0'; foreach ($X in @("$C/fedavg_adapter/adapter_config.json",$P,'processed_data/BIRD/p09b_qwen_global_error256_s0/train.csv.provenance.json')) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.9b random input: $X" } }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out $C --out $O --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.9b random SeqKD failed; rerun this exact line to resume' }; foreach ($X in @("$O/round_1/m_g/adapter_config.json","$O/setup.json","$O/manifest.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Incomplete P0.9b random output: $X" } }; Write-Host 'P0.9b matched random SeqKD complete'
+```
+
+Train the global-error pool from the same FedAvg adapter (GPU):
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $P='processed_data/BIRD/p09b_qwen_global_error256_s0/train.csv'; $O='artifacts/federated/p09b_qwen_global_error256_seqkd_noicl_k5_e1_t1_s0'; foreach ($X in @("$C/fedavg_adapter/adapter_config.json",$P,"${P}.provenance.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.9b hard input: $X" } }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out $C --out $O --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.9b global-error SeqKD failed; rerun this exact line to resume' }; foreach ($X in @("$O/round_1/m_g/adapter_config.json","$O/setup.json","$O/manifest.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Incomplete P0.9b hard output: $X" } }; Write-Host 'P0.9b global-error SeqKD complete'
+```
+
+Evaluate the matched arms on all 1,034 Spider rows (GPU). `uniform_full` is
+context only; the preregistered comparison is `global_error256` versus
+`random256`:
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1/fedavg_adapter'; $F='artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g'; $R='artifacts/federated/p09b_qwen_random256_seqkd_noicl_k5_e1_t1_s0/round_1/m_g'; $H='artifacts/federated/p09b_qwen_global_error256_seqkd_noicl_k5_e1_t1_s0/round_1/m_g'; $E='artifacts/eval_resume/p09b_qwen_global_error_vs_random256_spider_s0/eval_k0'; foreach ($A in @($C,$F,$R,$H)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing P0.9b evaluation adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "global_fl=$C" "uniform_full=$F" "random256=$R" "global_error256=$H" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.9b Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.9b evaluation manifests: $E/manifests" }; Write-Host 'P0.9b complete: stop and review global_error256 versus random256 before any new method run'
+```
+
+The promotion gate remains at least `+1.0` Spider EX over `random256` with no
+increase in execution-error count. A neutral result freezes uniform hard
+SeqKD; do not tune the fraction or subset size after seeing the result.
 
 ### P0.9c-d — conditional extensions
 
-- Add client-disagreement selection only if P0.9a shows incremental predictive
-  value.
+- Client-disagreement selection is cancelled for this gate: P0.9a found no
+  significant incremental correction signal.
 - Add cached RKL/skew/AKL only after hard-target selection wins. Do not use a
   logit-loss change to rescue a selector that failed.
 - If all selection arms are neutral, freeze current hard SeqKD and proceed to

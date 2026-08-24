@@ -234,12 +234,12 @@ Open evidence gaps:
 4. audit the large server-stage EX-EM divergence and execution-error types.
 
 **Method-freeze gate (2026-08-24):** the architecture above remains canonical.
-Before the manuscript is frozen, one bounded improvement is being evaluated:
-use execution failures of the aggregated public-data student and, only if
-informative, disagreement among uploaded client adapters on public rows to
-select verified teacher targets for server hard SeqKD. This does not alter the
-privacy/communication boundary. It becomes part of FedLS-SQL only if it beats
-equal-update uniform and random-subset controls; otherwise the current uniform
+P0.9a found global execution state usable for selection, but client
+disagreement was too non-selective and did not significantly enrich rows that
+uniform SeqKD corrects. The sole remaining bounded improvement is therefore a
+global-error hard-target pool against a token/update-matched random control.
+This does not alter the privacy/communication boundary. It becomes part of
+FedLS-SQL only if it passes the Spider gate; otherwise the current uniform
 execution-verified hard-target server stage is retained.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact

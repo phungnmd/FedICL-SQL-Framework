@@ -52,7 +52,7 @@ not be ranked by reported headline gain alone:
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
 | Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Small probe, not default** |
-| What is the best project-specific research bet? | Federated-aware execution-guided SeqKD | Uses global errors and, conditionally, client disagreement to focus existing verified targets/cache on failures of the current federated state | **Highest-priority new method** |
+| What is the best project-specific research bet? | Global-error execution-guided SeqKD | Uses observed aggregate-model failures to focus existing verified targets; P0.9a rejected client disagreement as an incremental selector | **Active final method gate** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits; tests whether plain RKL is too sharp, but the expected ceiling is limited by the weak current RKL increment | **One matched gate** |
 | What is the best offline extension if student errors remain? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Second-line extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
@@ -773,6 +773,12 @@ is important to the paper.
 
 ### Gate 2 — federated-aware selection probe (highest-priority new method)
 
+**P0.9a decision:** steps 1--4 are complete on 512 public rows. High client
+disagreement is associated with aggregate error, but it marks 454/512 rows and
+does not significantly enrich uniform-SeqKD corrections within aggregate
+errors (Fisher `p=0.297`). Therefore step 5 proceeds with global execution state
+only; the disagreement arm is cancelled.
+
 Using the frozen pre-server FedAvg adapter:
 
 1. generate student SQL on a public subset;
@@ -781,8 +787,8 @@ Using the frozen pre-server FedAvg adapter:
    and eventual per-example correction;
 4. measure whether client execution-result disagreement adds predictive value
    beyond the aggregated student's status;
-5. compare a fixed-size execution-aware subset against a random subset, adding
-   disagreement selection only if step 4 passes.
+5. compare the activated 256-row global-error mixture against a teacher-token-
+   matched 256-row random subset; do not add disagreement selection.
 
 This probe requires no new teacher inference if the row is already in `P_T`.
 

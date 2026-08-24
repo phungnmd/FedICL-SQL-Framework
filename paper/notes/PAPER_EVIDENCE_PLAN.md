@@ -82,13 +82,14 @@ sufficient to claim a new KD objective or a stronger federated optimizer**.
 If the goal is to strengthen the proposed method before freezing the paper, the
 next research budget should test one coupled improvement:
 
-> Use public execution outcomes and disagreement from the current federated
-> student/client adapters to decide which verified teacher examples receive
-> server distillation updates.
+> Use public execution outcomes from the current aggregated federated student
+> to decide which verified teacher examples receive server distillation updates.
 
-This working direction is called **federated-aware execution-guided public
-distillation** in planning documents. It is not a paper component or final name
-until it beats uniform hard SeqKD under an equal-update control.
+P0.9a rejected client disagreement as an additional selector: it covered
+88.67% of the pool and did not significantly enrich SeqKD corrections within
+global errors. The remaining working direction is therefore **global-error
+execution-guided public distillation**. It is not a paper component or final
+name until it beats random hard SeqKD under an equal-update/token control.
 
 Why this direction ranks first:
 
@@ -110,8 +111,8 @@ Federated alternatives are ranked lower for this configuration:
    headroom at `K=5, T=1`;
 2. FedProx is a useful reviewer baseline, but with one local epoch and no
    demonstrated drift it is not a justified proposed contribution;
-3. public-loss-weighted client aggregation is a secondary probe only if client
-   disagreement predicts global errors; weighting clients directly risks
+3. public-loss-weighted client aggregation is inactive: P0.9a did not establish
+   useful incremental client-disagreement signal, and weighting clients risks
    biasing Spider federation toward the BIRD proxy;
 4. personalization changes the one-global-adapter problem and is out of scope
    unless worst-client evidence becomes the paper's main question.
@@ -335,12 +336,12 @@ federated model's failure modes, rather than applying the same static public
 distillation schedule after every FedAvg round?
 
 **Candidate method:** after client training and FedAvg, score a fixed public
-subset using the aggregated adapter and, in the stronger variant, the uploaded
-client adapters. For each row record:
+subset using the aggregated adapter. P0.9a also scored uploaded client adapters,
+but rejected that signal for the activated selector. For each row retain:
 
 ```text
 global execution state: correct / executable-wrong / execution-error
-client disagreement: agreement of SQL execution-result groups
+client disagreement: diagnostic only; excluded from P0.9b
 teacher gap: NLL or cached teacher-student KL on verified teacher SQL
 SQL structure: joins / nesting / aggregation / set operation / length
 ```
@@ -357,8 +358,7 @@ effect is unsupported.
    selector;
 3. `global-error-SeqKD`: select a balanced mixture of global execution errors,
    executable-wrong rows, and uniform rows;
-4. `federated-disagreement-SeqKD`: add client-disagreement strata only if the
-   no-training diagnostic shows that disagreement predicts aggregate errors;
+4. `federated-disagreement-SeqKD`: cancelled by P0.9a;
 5. add cached RKL only after the selected hard-target method beats its matched
    uniform/random control.
 
@@ -373,8 +373,7 @@ weights as immutable provenance.
 - **Global-error selection beats uniform/random by at least 1 EX point without
   increasing execution errors:** promote it as the proposed method and repeat
   the minimal Qwen T1 causal ladder.
-- **Client disagreement adds further gain:** retain the federated-aware variant;
-  this is the strongest integration of FL and LLM guidance.
+- **Client disagreement:** closed for this gate; do not reopen it after P0.9b.
 - **Selection is neutral:** freeze the current hard-SeqKD framework; do not
   tune weighting repeatedly. Move to final reliability/resources and write the
   method as an execution-verified framework contribution.
@@ -616,20 +615,19 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-22 | BIRD gold/common-mask audit | all 9,428 gold rows and both teacher score checkpoints | 9,056 rows are valid; local failures are concentrated in `retail_world`; all Gemma-selected rows are valid; proceed without rebuilding the pool and keep the snapshot caveat | P0.7d |
 | 2026-08-23 | Gemma full-method portability gate | five fresh arms on 1,034 paired Spider rows; base, FL, matched gold CE, teacher-target CE, full CE+RKL | retain second-family full endpoint over FL (`+4.25`, `p=0.00365`); identify hard teacher targets as the stable cross-family mechanism; RKL-vs-target CE is inconclusive (`+0.19`, `p=0.916`) | P0.7t, then target-form audit/resource evidence |
 | 2026-08-24 | method-direction review | Qwen/Gemma causal ladders, three-seed T1 server effect, RKL portability, FLoRA-NA and exact-aggregation diagnostics, KD literature | evidence is sufficient for a framework paper but not a new KD-loss claim; activate one federated-aware execution-guided hard-SeqKD gate before freezing the method | T1M diagnostic and matched subset screen |
+| 2026-08-24 | P0.9a selector diagnostic | 512 paired public rows from global FL, uniform SeqKD, and five clients | global state retained; disagreement detects FL error but is too broad and does not significantly enrich correction (`p=0.297`) | P0.9b global-error256 vs token-matched random256 |
 
 ## 6. Current next actions
 
 1. Freeze the current method as the fallback: execution-verified teacher-target
    CE is the supported core; RKL remains auxiliary and provisional.
-2. Run the implemented P0.9a **diagnostic only** on the deterministic 512-row
-   public subset: measure global/SeqKD execution state, client execution-result
-   disagreement, correction behavior, and SQL structure. This uses public data
-   and existing adapters; it must precede any new training arm.
-3. If disagreement/error strata are informative, implement the smallest
-   deterministic selector and run `uniform`, `random subset`, and
-   `global-error subset` hard-SeqKD from the same Qwen T1 FedAvg adapter with
-   equal updates. Add the client-disagreement arm only if its diagnostic signal
-   is incremental.
+2. Treat P0.9a as complete: uniform SeqKD corrected 141 FL failures and
+   regressed 34 public rows; global execution state is usable, while client
+   disagreement adds no established correction signal and is removed.
+3. Run the activated P0.9b screen: `global-error256` against a teacher-token-
+   matched `random256`, with the same Qwen T1 FedAvg initialization, 256 rows,
+   16 optimizer updates, seed, and Spider evaluation. The 3,873-row uniform arm
+   is contextual only, not the matched control.
 4. Promote a new method only after a preregistered positive T1 gate. Otherwise
    stop method development and retain the current framework; do not replace a
    negative result with an uncontrolled KD/FL sweep.
