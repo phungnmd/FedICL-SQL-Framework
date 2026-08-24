@@ -85,11 +85,12 @@ next research budget should test one coupled improvement:
 > Use public execution outcomes from the current aggregated federated student
 > to decide which verified teacher examples receive server distillation updates.
 
-P0.9a rejected client disagreement as an additional selector: it covered
-88.67% of the pool and did not significantly enrich SeqKD corrections within
-global errors. The remaining working direction is therefore **global-error
-execution-guided public distillation**. It is not a paper component or final
-name until it beats random hard SeqKD under an equal-update/token control.
+P0.9a rejected client disagreement as an additional selector. P0.9b then
+rejected **global-error execution-guided public distillation** itself: the
+matched selector lost 2.03 Spider EX and added 18 execution errors relative to
+random256. Neither selector is a paper component. Uniform execution-verified
+hard SeqKD remains the fallback while one substantively different
+KD/Federated direction may still be discussed.
 
 Why this direction ranks first:
 
@@ -327,9 +328,10 @@ silently slicing unrelated vocabularies.
 
 ### T1M — proposed-method direction gate
 
-**Status:** active planning priority as of 2026-08-24. No new method has been
-promoted. The canonical method remains uniform execution-verified teacher-target
-CE plus auxiliary RKL until this gate passes.
+**Status:** closed negative 2026-08-24. No new method was promoted. The
+canonical fallback remains uniform execution-verified teacher-target CE plus
+auxiliary RKL. A separate discussion gate may replace this candidate only with
+a new hypothesis and preregistered comparison.
 
 **Question:** can public LLM guidance be made specifically responsive to the
 federated model's failure modes, rather than applying the same static public
@@ -379,6 +381,13 @@ weights as immutable provenance.
   method as an execution-verified framework contribution.
 - **Selection hurts:** close this branch. Consider one fixed-budget KID probe
   only if prefix-error analysis specifically shows cascading exposure errors.
+
+**Observed decision:** selection hurts. Global-error256 reaches `56.67` EX
+versus `58.70` for random256, with 47/68 paired gains/losses (`p=0.0617`) and
+18 additional execution errors. Close the entire selector-dependent ladder,
+including disagreement weighting and cached KL variants. This result freezes
+uniform hard SeqKD as the fallback but does not prohibit discussion of a
+different KD/Federated mechanism.
 
 **Explicitly not active:** full GKD/MiniLLM, online KID at every federated
 round, FedDF/FedMKT logit exchange, execution-RL, new LoRA aggregation methods,
@@ -616,21 +625,20 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-23 | Gemma full-method portability gate | five fresh arms on 1,034 paired Spider rows; base, FL, matched gold CE, teacher-target CE, full CE+RKL | retain second-family full endpoint over FL (`+4.25`, `p=0.00365`); identify hard teacher targets as the stable cross-family mechanism; RKL-vs-target CE is inconclusive (`+0.19`, `p=0.916`) | P0.7t, then target-form audit/resource evidence |
 | 2026-08-24 | method-direction review | Qwen/Gemma causal ladders, three-seed T1 server effect, RKL portability, FLoRA-NA and exact-aggregation diagnostics, KD literature | evidence is sufficient for a framework paper but not a new KD-loss claim; activate one federated-aware execution-guided hard-SeqKD gate before freezing the method | T1M diagnostic and matched subset screen |
 | 2026-08-24 | P0.9a selector diagnostic | 512 paired public rows from global FL, uniform SeqKD, and five clients | global state retained; disagreement detects FL error but is too broad and does not significantly enrich correction (`p=0.297`) | P0.9b global-error256 vs token-matched random256 |
+| 2026-08-24 | P0.9b matched selector gate | 1,034 paired Spider rows; shared FedAvg initialization; random256 vs global-error256, 16 updates each | selector fails: `-2.03` EX, `-5.22` EM, `+18` execution errors; close selector-dependent extensions | discuss one different KD/Federated hypothesis or proceed to submission evidence |
 
 ## 6. Current next actions
 
 1. Freeze the current method as the fallback: execution-verified teacher-target
    CE is the supported core; RKL remains auxiliary and provisional.
-2. Treat P0.9a as complete: uniform SeqKD corrected 141 FL failures and
-   regressed 34 public rows; global execution state is usable, while client
-   disagreement adds no established correction signal and is removed.
-3. Run the activated P0.9b screen: `global-error256` against a teacher-token-
-   matched `random256`, with the same Qwen T1 FedAvg initialization, 256 rows,
-   16 optimizer updates, seed, and Spider evaluation. The 3,873-row uniform arm
-   is contextual only, not the matched control.
-4. Promote a new method only after a preregistered positive T1 gate. Otherwise
-   stop method development and retain the current framework; do not replace a
-   negative result with an uncontrolled KD/FL sweep.
+2. Close P0.9a-d. Diagnosis predicted error, but the matched P0.9b intervention
+   reduced EX and execution validity; do not tune or relabel this branch.
+3. Hold a method-direction discussion before further GPU work. Any candidate
+   must be substantively different from global-error sampling, preserve the
+   privacy/communication boundary or state its cost, and define one equal-budget
+   comparison plus stop rule before implementation.
+4. If no candidate clears that conceptual gate, retain uniform FedLS-SQL and
+   stop method development rather than launch an uncontrolled KD/FL sweep.
 5. Keep P0.7t and the Gemma target-form audit as contextual analysis. They no
    longer outrank the method-direction gate because neither can change the
    proposed training algorithm.

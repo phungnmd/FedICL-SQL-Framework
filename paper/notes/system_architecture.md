@@ -233,14 +233,14 @@ Open evidence gaps:
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;
 4. audit the large server-stage EX-EM divergence and execution-error types.
 
-**Method-freeze gate (2026-08-24):** the architecture above remains canonical.
-P0.9a found global execution state usable for selection, but client
-disagreement was too non-selective and did not significantly enrich rows that
-uniform SeqKD corrects. The sole remaining bounded improvement is therefore a
-global-error hard-target pool against a token/update-matched random control.
-This does not alter the privacy/communication boundary. It becomes part of
-FedLS-SQL only if it passes the Spider gate; otherwise the current uniform
-execution-verified hard-target server stage is retained.
+**Method-freeze gate (2026-08-24):** the architecture above remains the
+canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that
+global-error hard-target selection is worse than its token/update-matched
+random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
+selection is not a FedLS-SQL component and its KL extensions are closed. A
+different KD/Federated mechanism may still be discussed, but it changes this
+architecture only after a new preregistered positive gate; no method change is
+currently active.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom

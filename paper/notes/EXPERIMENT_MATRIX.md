@@ -11,7 +11,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | causal attribution | FL, matched BIRD-gold CE, teacher-target CE, full FedLS-SQL | complete at T1 seed 0; teacher guidance survives matched control |
 | P0 | second-family portability | Gemma 2 9B generates all BIRD train rows, then uses the canonical selector to obtain `N_gemma`; T1 base vs FL vs same-row gold CE vs target CE vs full CE+RKL | complete: FL 57.16, target CE 61.22, full 61.41 EX; full-vs-FL significant, RKL-vs-target CE not significant |
 | P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | complete: 9,056 valid; Qwen 42.72%, Gemma 27.46% match yield |
-| P0 | method direction | token-matched random hard SeqKD vs global-error selection from the shared T1 FedAvg adapter | P0.9a complete; P0.9b activated, client-disagreement arm cancelled |
+| P0 | method direction | token-matched random hard SeqKD vs global-error selection from the shared T1 FedAvg adapter | complete negative: global-error256 is 2.03 EX below random256 and adds 18 execution errors |
+| P0 | next KD/Federated direction | one bounded hypothesis with shared initialization, equal compute, and a preregistered stop rule | discussion open; no run activated |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
@@ -52,12 +53,13 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 2. Treat P0.9a as complete: global failure state is usable, while client
    disagreement is too broad and has no significant incremental correction
    signal.
-3. Run the activated equal-row/update/token P0.9b comparison between random256
-   and global-error256 hard SeqKD. Do not add a disagreement arm.
-4. Promote the new method only after its preregistered T1 gate; otherwise freeze
-   the current framework and stop method search.
-5. After method freeze, complete controlled resources, error audit, and final
-   T3 seed replication for the selected method.
+3. Treat P0.9b as a closed negative branch: global-error256 loses to random256
+   on EX, EM, and execution validity. Do not tune the selector or add KL to it.
+4. Keep uniform FedLS-SQL frozen as the fallback while discussing whether one
+   different KD/Federated hypothesis is strong enough to preregister. No broad
+   method sweep is authorized.
+5. After the discussion gate closes, complete controlled resources, error
+   audit, and final T3 seed replication for the selected method.
 6. Keep Gemma teacher ceiling and target-form audit as context. Extend the new
    method to Gemma only after a positive Qwen gate.
 7. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed

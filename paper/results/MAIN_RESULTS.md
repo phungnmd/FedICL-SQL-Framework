@@ -1,6 +1,6 @@
 # FedLS-SQL — canonical paper result tables
 
-> Updated 2026-08-23. This file is the single source of truth for paper-facing
+> Updated 2026-08-24. This file is the single source of truth for paper-facing
 > values. Stable artifact IDs resolve through
 > `../notes/RESULT_REGISTRY.md`. Values are percentages unless stated
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
@@ -194,7 +194,28 @@ significance.
 The server stage as a whole is supported; standalone reverse KL remains
 provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
 
-### 4.3 Outline sensitivity matrix
+### 4.3 P0.9b execution-guided selection screen (negative)
+
+This method-selection screen starts both 256-row arms from
+`qwen.fl.shared.t1.s0` and matches row count, 256 micro-steps, 16 optimizer
+updates, seed, and all training flags. The full uniform arm is approximately
+15 times larger and is context only.
+
+| Stable ID | Server treatment | Spider EX | Spider EM | Exec. errors | Role |
+|---|---|---:|---:|---:|---|
+| `qwen.fl.shared.t1.s0` | none | 57.35 | **50.58** | 236 | shared initialization |
+| `qwen.seqkd.random256.t1.s0` | random 256 teacher targets | **58.70** | 35.88 | **222** | matched primary control |
+| `qwen.seqkd.globalerror256.t1.s0` | 192 global-error-prioritized + 64 uniform-remainder targets | 56.67 | 30.66 | 240 | rejected selector |
+| `qwen.seqkd.t1.s0` | full uniform 3,873 targets | 61.32 | 30.27 | 161 | larger-budget context |
+
+Global-error selection is `-2.03` EX versus random256 (47 paired gains, 68
+losses, exact McNemar `p=0.0617`), `-5.22` EM (`p=5.15e-9`), and adds 18
+execution errors. It fails the preregistered `+1.0` EX/no-error-increase gate
+and is not part of FedLS-SQL. Training resource measurements are ineligible:
+the arms ran concurrently and the random arm had a failed OOM attempt before a
+fresh successful rerun.
+
+### 4.4 Outline sensitivity matrix
 
 | Outline item | Current evidence | Paper treatment |
 |---|---|---|
@@ -209,7 +230,7 @@ provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
 | Federated 7B LLM | not run | do not claim comparison |
 | ICL | matched negative evidence: -2.90 train-side EX, -3.87 inference-demo EX, 2.35x client time | closed negative appendix/limitation only |
 
-### 4.4 Centralized schedule sensitivity, Qwen2.5, seed 0
+### 4.5 Centralized schedule sensitivity, Qwen2.5, seed 0
 
 | Stable ID | Recipe | Spider EX | Spider EM | Exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX | Role |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|

@@ -19,11 +19,12 @@ part of the default evidence package.
 The matched public-supervision, centralized-recipe, centralized OOD/BIRD, and
 second-family gates are complete. The evidence is sufficient to retain the
 FedLS-SQL framework, but not to present plain RKL as a stable new KD method.
-The active priority is now **T1M method selection**: determine whether
-federated-aware execution-guided selection improves hard teacher-target
-distillation. P0.7t remains a contextual teacher ceiling and no longer blocks
-this decision. Final T3 seed replication is retained until the final method is
-frozen, so seeds are not spent on a method that may be replaced.
+P0.9 has closed the first T1M candidate: global-error selection does not improve
+hard teacher-target distillation. The current uniform FedLS-SQL method is frozen
+as the fallback, while the next KD/Federated direction remains under discussion.
+No new method command is active until that discussion produces one bounded,
+controlled hypothesis. P0.7t remains optional context; final T3 seeds and
+resources remain queued behind the method decision.
 
 | Order | Action | Status |
 |---|---|---|
@@ -43,9 +44,10 @@ frozen, so seeds are not spent on a method that may be replaced.
 | P0.7q | Audit all 9,428 BIRD gold SQL once and compare both teachers on the common valid mask | complete; 9,056 valid / 372 invalid |
 | P0.7d | Gemma T1 five-arm ladder: base, FL, gold CE, target CE, full FedLS | complete; 52.22 / 57.16 / 41.68 / 61.22 / 61.41 EX |
 | P0.9a | Profile Qwen T1 public-pool failures and client disagreement from existing adapters | complete; global-error signal retained, disagreement rejected |
-| P0.9b | Matched random-subset vs global-error hard-SeqKD screen | **ready; next GPU task** |
+| P0.9b | Matched random-subset vs global-error hard-SeqKD screen | complete; negative, gate failed |
 | P0.9c | Add client-disagreement selection | cancelled at this gate; no incremental correction evidence |
-| P0.9d | Add cached logits/skew/AKL to the winning selector | conditional; hard-target selection must win first |
+| P0.9d | Add cached logits/skew/AKL to the winning selector | cancelled; selector did not win |
+| T1M-next | Discuss and preregister one alternative KD/Federated hypothesis | **active discussion; no experiment command** |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | optional contextual ceiling; does not decide the method |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -53,10 +55,11 @@ frozen, so seeds are not spent on a method that may be replaced.
 
 P0.1-P0.4 accuracy is valid, but opportunistic wall-time/RAM values are not
 paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
-it completed before the snapshot feature existed. P0.9b is now the only active
-method-training screen. Do not improvise another selector or start FedProx,
-heterogeneity, new aggregation, sensitivity, or model-size/rank/client sweeps
-while T1M is open.
+it completed before the snapshot feature existed. P0.9b commands below are
+retained as executed provenance, not active work. Do not improvise another
+selector or start FedProx, heterogeneity, new aggregation, sensitivity, or
+model-size/rank/client sweeps before the next T1M hypothesis is agreed and
+preregistered here.
 
 ## Fixed T1 comparison
 
@@ -331,12 +334,12 @@ success indices. The endpoint transfers, but the common cross-family mechanism
 supported most clearly is hard teacher-target CE; reverse KL remains
 model-family dependent.
 
-## P0.9 — method-direction gate (active)
+## P0.9 — global-error method-direction gate (closed negative)
 
-P0.9 decides whether the paper retains the current framework or promotes a
-federated-aware execution-guided distillation method. It intentionally begins
-without training. P0.9a's row schema, immutable subset, resume fingerprints,
-and analysis tests are now implemented; later training commands remain gated.
+P0.9 tested whether the paper should promote a federated-aware
+execution-guided distillation method. P0.9a diagnosed the signal and P0.9b
+tested the intervention under a matched budget. The intervention failed; all
+commands in this section are completed provenance.
 
 ### P0.9a — public failure/disagreement diagnostic
 
@@ -384,6 +387,17 @@ $env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1
 
 ### P0.9b — matched hard-SeqKD screen
 
+**Completed result (seed 0, 1,034 paired Spider rows):** global FL is `57.35`
+EX / `50.58` EM with 236 execution errors; full uniform SeqKD is `61.32` /
+`30.27` with 161 errors; `random256` is `58.70` / `35.88` with 222 errors; and
+`global_error256` is `56.67` / `30.66` with 240 errors. Against the matched
+random control, global-error selection loses `2.03` EX (47 gains / 68 losses,
+exact McNemar `p=0.0617`), loses `5.22` EM (`p=5.15e-9`), and introduces 18
+net execution errors. It therefore fails both the `+1.0` EX and no-error-
+increase gates. Close this selector and do not tune its fraction or add a logit
+loss to rescue it. The full uniform arm has about 15 times the row/update budget
+and is contextual, not the matched causal control.
+
 From the same pre-server T1 FedAvg adapter compare:
 
 ```text
@@ -428,18 +442,18 @@ context only; the preregistered comparison is `global_error256` versus
 $env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1/fedavg_adapter'; $F='artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g'; $R='artifacts/federated/p09b_qwen_random256_seqkd_noicl_k5_e1_t1_s0/round_1/m_g'; $H='artifacts/federated/p09b_qwen_global_error256_seqkd_noicl_k5_e1_t1_s0/round_1/m_g'; $E='artifacts/eval_resume/p09b_qwen_global_error_vs_random256_spider_s0/eval_k0'; foreach ($A in @($C,$F,$R,$H)) { if (-not (Test-Path -LiteralPath "$A/adapter_config.json")) { throw "Missing P0.9b evaluation adapter: $A" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "global_fl=$C" "uniform_full=$F" "random256=$R" "global_error256=$H" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.9b Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.9b evaluation manifests: $E/manifests" }; Write-Host 'P0.9b complete: stop and review global_error256 versus random256 before any new method run'
 ```
 
-The promotion gate remains at least `+1.0` Spider EX over `random256` with no
-increase in execution-error count. A neutral result freezes uniform hard
-SeqKD; do not tune the fraction or subset size after seeing the result.
+The preregistered promotion gate was at least `+1.0` Spider EX over `random256`
+with no increase in execution-error count. P0.9b failed both conditions. These
+commands are now provenance only.
 
 ### P0.9c-d — conditional extensions
 
 - Client-disagreement selection is cancelled for this gate: P0.9a found no
   significant incremental correction signal.
-- Add cached RKL/skew/AKL only after hard-target selection wins. Do not use a
-  logit-loss change to rescue a selector that failed.
-- If all selection arms are neutral, freeze current hard SeqKD and proceed to
-  final seeds/resources. KID is considered only when the error audit shows
+- Cached RKL/skew/AKL on this selector is cancelled. Do not use a logit-loss
+  change to rescue the failed selection rule.
+- The selection arm is harmful rather than neutral; retain current hard SeqKD
+  as fallback. KID is considered only when the error audit shows
   prefix-cascade failures; GKD, FedDF/FedMKT, execution-RL, FedProx-as-method,
   and new LoRA aggregators remain out of scope.
 
@@ -488,9 +502,11 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-The second-family ladder is complete. The active scientific priority is P0.9;
-P0.7t is optional ceiling context, and P0.8 remains ready but deferred until the
-method that will appear in the paper is frozen.
+The second-family ladder and P0.9 global-error gate are complete. The active
+scientific activity is discussion of one possible next KD/Federated direction;
+there is no authorized experiment command yet. If no stronger bounded
+hypothesis is selected, retain uniform FedLS-SQL and proceed with P1.1 resources
+and P0.8 final reliability. P0.7t remains optional ceiling context.
 
 Before collecting official latency, add a warm-up-capable benchmark path. Do
 not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes

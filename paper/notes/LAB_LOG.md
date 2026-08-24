@@ -64,9 +64,10 @@ decisions. It deliberately does not own result tables:
   current discovery-first priority.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
-  claim. P0.9a retains global public error state as the only selection feature;
-  client disagreement is rejected at this gate. One equal-budget global-error
-  versus random hard-SeqKD screen remains before method freeze.
+  claim. P0.9a retained global public error state as a candidate feature, but
+  P0.9b showed that training on that signal is worse than a matched random
+  subset. Uniform hard SeqKD is frozen as the fallback; discussion of a
+  different KD/Federated direction remains open.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -219,10 +220,11 @@ currently justify.
    53.13 EX; SeqKD corrects 141 FL errors and regresses 34 rows. High client
    disagreement catches 331/347 FL errors but flags 454/512 rows, and its
    correction-rate lift within FL errors is not significant (`p=0.297`).
-2. P0.9b is active: compare a 256-row global-error mixture with a token-matched
-   256-row random control from the shared T1 FedAvg adapter. P0.9c is cancelled.
-3. Freeze the current hard-SeqKD framework if the single method gate is neutral;
-   do not replace it with a broad KD or federated sweep.
+2. P0.9b is complete and negative: global-error256 scores 56.67 EX versus
+   random256 at 58.70, with 240 versus 222 execution errors. P0.9c/d are closed.
+3. Uniform hard SeqKD is the frozen fallback. Discuss one alternative
+   KD/Federated hypothesis before adding any new command; do not start a broad
+   sweep or reuse the failed selector with another loss.
 4. P0.7t and the Gemma target-form audit remain contextual tasks; neither
    decides the proposed method.
 5. After method freeze, run P1.1 controlled resources, the error audit, and
@@ -300,6 +302,8 @@ internal artifact identities.
 | 2026-08-24 | Evidence is sufficient to retain the framework but not a new RKL-loss claim. Exact/FLoRA aggregation has no measured headroom at the current setting, so the only active method-improvement gate is federated-aware execution-guided hard-SeqKD with equal-budget uniform/random controls. |
 | 2026-08-24 | Implemented P0.9a as a resumable, fingerprinted no-training diagnostic over one FedAvg adapter, its uniform-SeqKD descendant, and five client adapters on a deterministic 512-row public subset. Selector training remains blocked until its disagreement/correction report is reviewed. |
 | 2026-08-24 | P0.9a completed: global FL 32.23 EX versus uniform SeqKD 53.13 on 512 public rows; 141 failures corrected and 34 regressions. Client disagreement captures 95.39% of FL errors but labels 88.67% of all rows; within-error correction enrichment is not significant (Fisher `p=0.297`). Activate global-error-only P0.9b and cancel P0.9c. |
+| 2026-08-24 | Pulled nested result commit `10a0bbd` and validated P0.9b. The two training configs differ only by pool and share 256 examples, 16 optimizer updates, initialization, seed, and all training flags. Global-error256 loses 2.03 Spider EX to random256 (47/68, exact `p=0.0617`) and adds 18 execution errors; the preregistered gate fails. |
+| 2026-08-24 | Closed global-error selection and its dependent disagreement/KL extensions. Retain uniform execution-verified hard SeqKD as the fallback method, but keep a separate discussion gate open for a substantively different KD/Federated hypothesis. P0.9 parallel/OOM timing, RAM, and VRAM are not paper resource evidence. |
 
 ## 8. Archived branches
 

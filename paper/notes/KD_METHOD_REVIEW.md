@@ -52,16 +52,15 @@ not be ranked by reported headline gain alone:
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
 | Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Small probe, not default** |
-| What is the best project-specific research bet? | Global-error execution-guided SeqKD | Uses observed aggregate-model failures to focus existing verified targets; P0.9a rejected client disagreement as an incremental selector | **Active final method gate** |
+| What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits; tests whether plain RKL is too sharp, but the expected ceiling is limited by the weak current RKL increment | **One matched gate** |
 | What is the best offline extension if student errors remain? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Second-line extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
-Thus, **KID is the strongest published Text-to-SQL candidate**, while
-**federated-aware execution-guided SeqKD is the best fit for this project**.  A
-skew/adaptive-KL result would strengthen the auxiliary logit-loss story, but it
-is less likely to change the paper's main conclusion than better public-example
-selection.
+Thus, **KID remains the strongest published Text-to-SQL candidate**, while the
+first project-specific execution-guided selector is now empirically rejected.
+The current method stays the fallback. Any further KD/Federated proposal must
+be discussed as a new mechanism, not a retuning or relabeling of P0.9.
 
 ## 2. Notation and KD axes
 
@@ -597,6 +596,11 @@ framework claim and avoid cross-tokenizer logit KD.
 
 ### Tier A2 — federated-aware subset selection
 
+**Post-P0.9 status: closed negative.** The implemented balanced hard subset is
+worse than its random control on EX, EM, and execution validity. The diagnostic
+signal predicts failure but does not produce a useful training curriculum.
+Do not tune its ratio, add client disagreement, or rerun it with another loss.
+
 Select a fixed budget of public examples using:
 
 - student execution failure;
@@ -618,7 +622,11 @@ only the small aggregated student must generate predictions.
 
 ### Tier A3 — execution-weighted cached KD
 
-This is the most promising new training method under the actual constraints.
+**Post-P0.9 status: not active.** This uses the same global execution-state
+signal as the failed selector. Smooth capped weights differ from hard
+subsampling, but that distinction alone is insufficient to justify another run.
+Reconsider it only if analysis identifies a specific coverage failure that a
+prespecified weighting rule resolves.
 
 At the start of server refinement, the aggregated 1.5B student generates one SQL
 per public example.  The public executor assigns a difficulty state:
@@ -771,7 +779,12 @@ whether the framework can be presented as teacher-agnostic.  Do not add
 cross-tokenizer logits unless hard-target portability fails and that question
 is important to the paper.
 
-### Gate 2 — federated-aware selection probe (highest-priority new method)
+### Gate 2 — federated-aware selection probe (closed negative)
+
+**Final result:** closed negative. `global_error256` scores `56.67` EX versus
+`58.70` for `random256`, with 47/68 paired gains/losses (`p=0.0617`) and 240
+versus 222 execution errors. It fails both promotion conditions. Steps below
+are retained as executed design provenance.
 
 **P0.9a decision:** steps 1--4 are complete on 512 public rows. High client
 disagreement is associated with aggregate error, but it marks 454/512 rows and
@@ -794,10 +807,9 @@ This probe requires no new teacher inference if the row is already in `P_T`.
 
 ### Gate 3 — execution-weighted cached KD
 
-Only if Gate 2 shows a usable mixture of easy and difficult rows, run one T1 arm
-with capped execution weights and the same update count as uniform KD.  Promote
-to additional seeds only after a positive paired result and no degradation in
-execution-error rate.
+Cancelled as the automatic continuation of Gate 2. A future weighting proposal
+must first explain why it avoids the observed loss of coverage and must enter as
+a new preregistered hypothesis, not as P0.9 tuning.
 
 ### Gate 4 — cheapest objective test
 
@@ -861,25 +873,27 @@ For the current paper and one RTX A5000 24 GB:
 1. keep **execution-verified teacher-target CE** as the established core;
 2. keep cached RKL as an auxiliary component but describe its independent
    evidence as provisional;
-3. run the **common-mask cross-family hard-SeqKD diagnostic** before building a
-   cross-tokenizer loss;
-4. prioritize **execution-aware subset selection or execution-weighted cached
-   KD** as the most promising new direction, because it remains public-only,
-   preserves the teacher cache, adds no model, and targets the current student's
-   actual failure modes;
-5. give **cached skew-RKL** one inexpensive matched gate; consider adaptive KL
-   only if analysis supports it;
-6. use **KID** as the first task-specific on-policy probe if prefix-error analysis
-   shows cascading failures, or use offline contrastive KD if failed student SQL
-   already provides clean negative pairs;
-7. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
+3. treat P0.9 global-error selection, client-disagreement selection, and their
+   direct weighted/KL continuations as closed;
+4. keep the next-method decision open for discussion, but activate at most one
+   substantively different hypothesis with an equal-budget control and stop
+   rule;
+5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
+   FL--KD integration claim;
+6. discuss **KID** if prefix-error analysis shows cascading failures, or
+   execution-verified preference KD if failed student SQL provides clean
+   negative pairs;
+7. discuss FedDF/FedMKT-style public-logit collaboration only if the paper is
+   willing to accept new communication/privacy assumptions; it is not a free
+   extension of the current architecture;
+8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
    training under the present GPU-hour and scope budget.
 
 The key design principle is:
 
 > Use the large teacher once to construct verified, reusable public knowledge;
-> use the changing small federated student and the public SQL executor to decide
-> where that knowledge is most valuable.
+> do not assume that examples where the federated student fails are therefore
+> the examples on which extra distillation will generalize best.
 
 ## References
 
