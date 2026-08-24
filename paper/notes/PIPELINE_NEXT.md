@@ -24,9 +24,11 @@ different directions without training. Client execution-result plurality gives
 the strongest feasibility signal, so **LLM-anchored FedDF** is now the first
 discussion candidate; KID and execution-verified preference KD rank second and
 third. This is not yet a method change. The current uniform FedLS-SQL method
-remains the frozen fallback. P0.10b has now frozen a hard-LLM-target control
-against the same target plus sparse client-ensemble forward KL. P0.10c smoke is
-the next active run; P0.10d remains blocked until that smoke passes.
+remains the frozen fallback. P0.10b froze a hard-LLM-target control against the
+same target plus sparse client-ensemble forward KL. P0.10c passed its technical
+smoke, and P0.10d passed the preregistered 512-row causal gate. P0.10e is now
+the only active method run: one untuned 3,873-row confirmation against the
+existing canonical hard-target and reverse-KL endpoints.
 
 | Order | Action | Status |
 |---|---|---|
@@ -51,8 +53,9 @@ the next active run; P0.10d remains blocked until that smoke passes.
 | P0.9d | Add cached logits/skew/AKL to the winning selector | cancelled; selector did not win |
 | P0.10a | No-training triage of client ensemble, prefix-cascade, and preference-pair signals | complete; all gates pass, FedDF proxy ranks first |
 | P0.10b | Specify and preregister an LLM-anchored FedDF screen | complete; hard LLM CE anchor + sparse client FKL |
-| P0.10c | Build 8-row sparse cache and smoke the hybrid training/resume path | **active; run next** |
-| P0.10d | Matched 512-row hard-SeqKD control vs LLM-anchored FedDF | conditional on P0.10c |
+| P0.10c | Build 8-row sparse cache and smoke the hybrid training/resume path | complete; mean tail `0.000752`, training path passed |
+| P0.10d | Matched 512-row hard-SeqKD control vs LLM-anchored FedDF | complete; `+1.45` EX and 11 fewer execution errors, gate passed |
+| P0.10e | Full 3,873-row LLM-anchored FedDF confirmation | **active; run next** |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | optional contextual ceiling; does not decide the method |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -63,7 +66,8 @@ paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
 it completed before the snapshot feature existed. P0.9b commands below are
 retained as executed provenance, not active work. Do not improvise another
 selector or start FedProx, heterogeneity, new aggregation, sensitivity, or
-model-size/rank/client sweeps while the preregistered P0.10c/d gate is active.
+model-size/rank/client sweeps while the preregistered P0.10e confirmation is
+active.
 
 ## Fixed T1 comparison
 
@@ -514,7 +518,7 @@ temperature, and source file. This is LLM-anchored FedDF, not the existing RKL:
 the LLM supplies the verified target while the client ensemble supplies the
 additional distributional term.
 
-### P0.10c — 8-row cache/training smoke (GPU, active)
+### P0.10c — 8-row cache/training smoke (complete)
 
 Run this first. It sequentially loads the five T1 client adapters, creates a
 resume-safe top-32 cache for eight deterministic rows, rejects a mean tail mass
@@ -526,7 +530,17 @@ training; any fingerprint drift requires a new root.
 $env:CUDA_VISIBLE_DEVICES='1'; $P='processed_data/BIRD/p09a_qwen_public512_s0/train.csv'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $K='artifacts/client_ensemble_logit_cache/p010c_qwen_clients5_public8_top32_t1_s0'; $O='artifacts/federated/p010c2_qwen_llm_client_feddf8_noicl_k5_e1_t1_s0'; $A=@(1..5 | ForEach-Object { "$C/client_$_/adapter" }); foreach ($X in @($P,"$C/fedavg_adapter/adapter_config.json") + @($A | ForEach-Object { "$_/adapter_config.json" })) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.10c input: $X" } }; uv run python scripts/build_client_ensemble_logit_cache.py --pool $P --pool-size 8 --client-adapters $A --model Qwen/Qwen2.5-1.5B-Instruct --top-k 32 --temperature 1 --k-teacher 0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --max-len 2560 --seed 0 --out $K; if ($LASTEXITCODE -ne 0) { throw 'P0.10c client-ensemble cache smoke failed; rerun this exact line to resume' }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 8 -or $M.n_clients -ne 5 -or $M.top_k -ne 32 -or $M.mean_tail_probability -gt 0.10) { throw "P0.10c cache gate failed: examples=$($M.n_examples) clients=$($M.n_clients) top_k=$($M.top_k) mean_tail=$($M.mean_tail_probability)" }; uv run python experiments/federated/run.py round --arm feddf --round 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 8 --distill-steps 8 --k-teacher 0 --lambda-ft 1 --lambda-kd 0 --client-ensemble-cache $K --lambda-client-kd 0.5 --client-kd-temperature 1 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out $C --out $O --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.10c FedDF training smoke failed; rerun this exact line to resume' }; foreach ($X in @("$O/round_1/m_g/adapter_config.json","$O/round_1/m_g_meta.json","$O/setup.json","$O/manifest.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Incomplete P0.10c output: $X" } }; Write-Host "P0.10c passed: sparse client cache and hybrid training path complete; mean_tail=$($M.mean_tail_probability)"
 ```
 
-### P0.10d — matched 512-row causal screen (conditional)
+### P0.10d — matched 512-row causal screen (complete)
+
+The smoke passed with mean top-32 tail probability `0.000752`. On 1,034 paired
+Spider rows, `llm_only512` reached `56.87` EX / `31.91` EM with 230 execution
+errors, while `llm_client_feddf512` reached `58.32` EX / `39.94` EM with 219
+execution errors. The hybrid corrected 58 control failures and regressed 43
+control successes: a net 15 questions (`+1.45` EX), with 11 fewer execution
+errors. This passes the frozen `+1.0` EX/no-error-increase gate. The paired EX
+effect is still uncertain at this budget (exact McNemar `p=0.163`), so it
+authorizes one full-pool confirmation rather than a method claim or parameter
+sweep.
 
 After P0.10c passes, build the full cache:
 
@@ -558,6 +572,47 @@ count over `llm_only512`. Otherwise close the branch without tuning lambda,
 temperature, top-k, or row selection. A positive seed-0 gate permits one full-
 pool confirmation and then a client-only ablation; it does not immediately
 replace the canonical method or trigger a parameter sweep.
+
+### P0.10e — full 3,873-row confirmation (GPU, active)
+
+This confirmation freezes the successful screen settings: five clients,
+top-32, temperature 1, client-KL weight 0.5, seed 0, and the complete canonical
+Qwen teacher-selected pool. Do not tune from P0.10d. The existing
+`qwen.seqkd.t1.s0` checkpoint is the exact hard-target-only control: it starts
+from the same shared T1 FedAvg adapter and trains once over these same 3,873
+targets with the same optimizer/rendering flags. It must be reused rather than
+retrained. The existing `qwen.fedls.t1.s0` reverse-KL endpoint is evaluated as
+context for deciding which server objective belongs in the paper.
+
+First build the full client-ensemble cache. This is the expensive inference
+stage and sequentially loads the five 1.5B client adapters on one GPU. Rerun the
+exact line to resume complete content-addressed shards.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $P='processed_data/BIRD/bootstrap_full_exmatch/train.csv'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $K='artifacts/client_ensemble_logit_cache/p010e_qwen_clients5_public3873_top32_t1_s0'; $A=@(1..5 | ForEach-Object { "$C/client_$_/adapter" }); foreach ($X in @($P,"$C/fedavg_adapter/adapter_config.json") + @($A | ForEach-Object { "$_/adapter_config.json" })) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.10e cache input: $X" } }; if ((Import-Csv -LiteralPath $P).Count -ne 3873) { throw 'P0.10e requires the exact 3,873-row Qwen teacher pool' }; uv run python scripts/build_client_ensemble_logit_cache.py --pool $P --pool-size 0 --client-adapters $A --model Qwen/Qwen2.5-1.5B-Instruct --top-k 32 --temperature 1 --k-teacher 0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --max-len 2560 --seed 0 --out $K; if ($LASTEXITCODE -ne 0) { throw 'P0.10e full client-ensemble cache failed; rerun this exact line to resume' }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 3873 -or $M.n_clients -ne 5 -or $M.top_k -ne 32 -or $M.mean_tail_probability -gt 0.10) { throw "P0.10e cache gate failed: examples=$($M.n_examples) clients=$($M.n_clients) top_k=$($M.top_k) mean_tail=$($M.mean_tail_probability)" }; Write-Host "P0.10e cache complete: mean_tail=$($M.mean_tail_probability)"
+```
+
+After the cache exits, train the single new hybrid endpoint. The exact line is
+resume-safe through the federated setup/stage fingerprints and `_ckpt`.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $P='processed_data/BIRD/bootstrap_full_exmatch/train.csv'; $C='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $K='artifacts/client_ensemble_logit_cache/p010e_qwen_clients5_public3873_top32_t1_s0'; $O='artifacts/federated/p010e_qwen_llm_client_feddf3873_noicl_k5_e1_t1_s0'; foreach ($X in @($P,"$C/fedavg_adapter/adapter_config.json","$K/meta.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.10e training input: $X" } }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 3873 -or $M.n_clients -ne 5 -or $M.top_k -ne 32) { throw 'P0.10e cache metadata does not match the frozen full-pool design' }; uv run python experiments/federated/run.py round --arm feddf --round 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-schema-style full --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1 --lambda-kd 0 --client-ensemble-cache $K --lambda-client-kd 0.5 --client-kd-temperature 1 --schema-style full --retrieval dail_select --demo-style never_schema --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out $C --out $O --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P0.10e full LLM-anchored FedDF failed; rerun this exact line to resume' }; foreach ($X in @("$O/round_1/m_g/adapter_config.json","$O/round_1/m_g_meta.json","$O/setup.json","$O/manifest.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Incomplete P0.10e output: $X" } }; Write-Host 'P0.10e full LLM-anchored FedDF training complete'
+```
+
+Then evaluate the new hybrid against both immutable canonical server controls
+on all 1,034 Spider rows.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $C='artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s0/round_1/m_g'; $R='artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_1/m_g'; $H='artifacts/federated/p010e_qwen_llm_client_feddf3873_noicl_k5_e1_t1_s0/round_1/m_g'; $E='artifacts/eval_resume/p010e_qwen_seqkd_vs_rkl_vs_feddf3873_spider_s0/eval_k0'; foreach ($X in @($C,$R,$H)) { if (-not (Test-Path -LiteralPath "$X/adapter_config.json")) { throw "Missing P0.10e evaluation adapter: $X" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "teacher_target_ce=$C" "fedls_rkl=$R" "llm_client_feddf3873=$H" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.10e Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.10e evaluation manifests: $E/manifests" }; Write-Host 'P0.10e complete: stop and review full-pool FedDF before any ablation or method change'
+```
+
+The full-pool causal gate remains `+1.0` EX over `teacher_target_ce` with no
+execution-error increase. Also report the paired comparison with `fedls_rkl`:
+beating it clearly supports replacing RKL in the proposed endpoint; matching it
+within normal paired uncertainty supports FedDF as a more federated-specific,
+tokenizer-independent alternative; materially trailing it keeps FedDF as an
+ablation only. A passing result permits one client-only ablation. A failed
+result closes P0.10 without lambda, temperature, top-k, or selection tuning.
 
 ### P0.7t — Gemma 9B teacher zero-shot Spider reference
 
@@ -604,11 +659,12 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-The second-family ladder, P0.9 gate, P0.10a triage, and P0.10b preregistration
-are complete. Run the P0.10c smoke next; only a passing cache/training smoke
-activates the matched P0.10d screen. A failed promotion gate freezes uniform
-FedLS-SQL and returns the queue to P1.1 resources and P0.8 final reliability.
-P0.7t remains optional ceiling context.
+The second-family ladder and P0.9 gate are complete. P0.10c/d passed: the
+512-row hybrid gains 1.45 Spider EX and removes 11 execution errors. Run only
+the frozen P0.10e full-pool confirmation next. Its result decides whether to
+run one client-only ablation or freeze the original uniform FedLS-SQL method
+and return to P1.1 resources and P0.8 final reliability. P0.7t remains optional
+ceiling context.
 
 Before collecting official latency, add a warm-up-capable benchmark path. Do
 not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes

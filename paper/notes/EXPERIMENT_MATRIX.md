@@ -13,7 +13,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | complete: 9,056 valid; Qwen 42.72%, Gemma 27.46% match yield |
 | P0 | method direction | token-matched random hard SeqKD vs global-error selection from the shared T1 FedAvg adapter | complete negative: global-error256 is 2.03 EX below random256 and adds 18 execution errors |
 | P0 | method-signal triage | client execution-result plurality, Spider prefix cascade, and execution-verified preference inventory from existing predictions | complete diagnostic: all gates pass; plurality proxy is strongest (`+10.55` public EX), but no training gain is established |
-| P0 | next KD/Federated direction | 512-row hard-LLM-target CE vs the same CE + sparse client-ensemble FKL, shared FedAvg initialization and 32 updates | P0.10b preregistered; P0.10c smoke active, P0.10d conditional |
+| P0 | next KD/Federated direction | hard-LLM-target CE vs the same CE + sparse client-ensemble FKL from a shared FedAvg initialization | 512-row gate passed (`+1.45` EX, 11 fewer execution errors); full 3,873-row confirmation active |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
@@ -56,14 +56,14 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    signal.
 3. Treat P0.9b as a closed negative branch: global-error256 loses to random256
    on EX, EM, and execution validity. Do not tune the selector or add KL to it.
-4. Keep uniform FedLS-SQL frozen as the fallback. P0.10a ranks LLM-anchored
-   FedDF first, KID second, and preference KD third; these are feasibility
-   signals, not model results.
-5. P0.10b is frozen: the server recomputes five client top-32 distributions on
-   public rows and adds sparse FKL to the hard-LLM-target CE control. Run P0.10c
-   smoke, then P0.10d only if cache tail mass and resume checks pass.
-6. Promote only at `+1.0` Spider EX with no execution-error increase; otherwise
-   close the branch without hyperparameter tuning.
+4. Keep uniform FedLS-SQL frozen as the fallback. P0.10c/d passed, so
+   LLM-anchored FedDF has moved from a feasibility signal to a positive
+   512-row training result; KID and preference KD remain diagnostic only.
+5. Run one untuned P0.10e confirmation on all 3,873 canonical Qwen targets.
+   Reuse the existing hard-target CE and reverse-KL checkpoints as controls;
+   train only the new sparse-client-FKL hybrid.
+6. The full-pool causal gate remains `+1.0` Spider EX over hard-target CE with
+   no execution-error increase. Otherwise close the branch without tuning.
 7. After the method gate closes, complete controlled resources, error
    audit, and final T3 seed replication for the selected method.
 8. Keep Gemma teacher ceiling and target-form audit as context. Extend the new

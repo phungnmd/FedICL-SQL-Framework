@@ -215,7 +215,25 @@ and is not part of FedLS-SQL. Training resource measurements are ineligible:
 the arms ran concurrently and the random arm had a failed OOM attempt before a
 fresh successful rerun.
 
-### 4.4 Outline sensitivity matrix
+### 4.4 P0.10d LLM-anchored FedDF screen (positive)
+
+Both arms start from `qwen.fl.shared.t1.s0`, train on the same 512 verified
+teacher targets for 32 optimizer updates, and differ only by the sparse
+five-client forward-KL term. This is a bounded method screen, not the canonical
+full-pool endpoint.
+
+| Stable ID | Server treatment | Spider EX | Spider EM | Exec. errors |
+|---|---|---:|---:|---:|
+| `qwen.seqkd.512.t1.s0` | hard LLM-target CE | 56.87 | 31.91 | 230 |
+| `qwen.feddf.512.t1.s0` | hard LLM-target CE + client-ensemble FKL | **58.32** | **39.94** | **219** |
+
+The hybrid gains `+1.45` EX, corrects 58 control failures, regresses 43 control
+successes, and removes 11 net execution errors. It passes the preregistered
+`+1.0` EX/no-error-increase gate, but the paired EX contrast is uncertain at
+this budget (exact McNemar `p=0.163`). It therefore authorizes P0.10e on the
+full 3,873-row pool; it does not yet replace the canonical reverse-KL endpoint.
+
+### 4.5 Outline sensitivity matrix
 
 | Outline item | Current evidence | Paper treatment |
 |---|---|---|
@@ -230,7 +248,7 @@ fresh successful rerun.
 | Federated 7B LLM | not run | do not claim comparison |
 | ICL | matched negative evidence: -2.90 train-side EX, -3.87 inference-demo EX, 2.35x client time | closed negative appendix/limitation only |
 
-### 4.5 Centralized schedule sensitivity, Qwen2.5, seed 0
+### 4.6 Centralized schedule sensitivity, Qwen2.5, seed 0
 
 | Stable ID | Recipe | Spider EX | Spider EM | Exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX | Role |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
@@ -283,7 +301,7 @@ Supports the error analysis currently proposed in draft §4.4.
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |
 | Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
 | LLM-SLM transfer failures | matched prediction rows available | ready for representative audit |
-| P0.10a method triage | client plurality `+10.55` public EX; 82.20% early-prefix share of FL execution errors; 122 clean global preference rows | diagnostic only; ranks hypotheses, does not establish a new method |
+| P0.10a/P0.10d FedDF path | plurality diagnostic `+10.55` public EX; trained 512-row hybrid `+1.45` Spider EX and 11 fewer execution errors | positive bounded screen; full-pool confirmation pending |
 
 ## 7. Adaptive evidence dashboard
 

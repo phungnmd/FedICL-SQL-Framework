@@ -66,9 +66,11 @@ decisions. It deliberately does not own result tables:
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
   P0.9b showed that training on that signal is worse than a matched random
-  subset. Uniform hard SeqKD is frozen as the fallback. P0.10a subsequently
-  ranks an LLM-anchored FedDF screen above KID and preference KD, without
-  changing the canonical method.
+  subset. Uniform hard SeqKD remains the fallback. P0.10c/d subsequently
+  validated an LLM-anchored FedDF training path: on the matched 512-row screen
+  it gains 1.45 Spider EX and removes 11 execution errors. This passes the
+  preregistered screen but does not change the canonical method before the
+  active 3,873-row P0.10e confirmation.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -226,11 +228,12 @@ currently justify.
 3. The prefix audit finds early divergence in 82.20% of FL execution errors
    and an 18.29-point early/late error-risk gap. The preference inventory has
    2,177 pairs but only 122 clean global executable-wrong rows.
-4. Uniform hard SeqKD remains the frozen fallback. P0.10b is now specified:
-   matched hard LLM CE versus hard LLM CE + sparse client-ensemble FKL, with
-   fixed top-32, temperature 1, lambda 0.5, 512 rows, and 32 updates.
-5. Run P0.10c 8-row cache/training smoke next. P0.10d is conditional on tail
-   mass at most 10%, complete artifacts, and resume/fingerprint checks.
+4. P0.10c passed with mean tail `0.000752`. P0.10d then compared matched hard
+   LLM CE with hard LLM CE + sparse client FKL: `56.87` versus `58.32` EX,
+   `31.91` versus `39.94` EM, and 230 versus 219 execution errors.
+5. The hybrid has 58 paired corrections and 43 regressions (`+1.45` EX; exact
+   McNemar `p=0.163`). It passes the frozen practical gate but remains a screen,
+   not a paper method change. Run only P0.10e on the full 3,873-row pool next.
 6. P0.7t and the Gemma target-form audit remain contextual tasks; neither
    decides the proposed method.
 7. After method freeze, run P1.1 controlled resources, the error audit, and
@@ -311,8 +314,9 @@ internal artifact identities.
 | 2026-08-24 | Pulled nested result commit `10a0bbd` and validated P0.9b. The two training configs differ only by pool and share 256 examples, 16 optimizer updates, initialization, seed, and all training flags. Global-error256 loses 2.03 Spider EX to random256 (47/68, exact `p=0.0617`) and adds 18 execution errors; the preregistered gate fails. |
 | 2026-08-24 | Closed global-error selection and its dependent disagreement/KL extensions. Retain uniform execution-verified hard SeqKD as the fallback method, but keep a separate discussion gate open for a substantively different KD/Federated hypothesis. P0.9 parallel/OOM timing, RAM, and VRAM are not paper resource evidence. |
 | 2026-08-24 | Implemented P0.10a as a fingerprinted CPU-only triage over committed P0.9a and canonical Spider predictions. Reusing frozen P0.9a row states is required because re-executing SQL can shift a timeout-bound row. All three discussion gates pass: client plurality `+10.55` public EX, prefix error-risk gap `+18.29` points, and 122 clean global preference rows. Rank LLM-anchored FedDF first, KID second, preference KD third; activate no training automatically. |
-| 2026-08-24 | Implemented and preregistered P0.10b code path. New `feddf` server arm keeps verified hard LLM targets and adds forward KL from a sparse five-client ensemble. Cache shards are content-addressed and resumable; metadata fingerprints client adapter weights and rendering flags; union top-k support plus an explicit tail bucket preserves total mass. P0.10c smoke is active; P0.10d requires `+1.0` Spider EX and no execution-error increase over the 512-row hard-target control. |
+| 2026-08-24 | Implemented and preregistered P0.10b code path. New `feddf` server arm keeps verified hard LLM targets and adds forward KL from a sparse five-client ensemble. Cache shards are content-addressed and resumable; metadata fingerprints client adapter weights and rendering flags; union top-k support plus an explicit tail bucket preserves total mass. P0.10c smoke was activated; P0.10d required `+1.0` Spider EX and no execution-error increase over the 512-row hard-target control. |
 | 2026-08-24 | P0.10c cache smoke completed with 5 clients, 8 examples, top-32, and mean tail probability `0.000752`, comfortably passing the 10% fidelity gate. The first training launch stopped before training because its reused client stage was fingerprinted with `save_steps=200` while the command requested 4. Preserve the client stage and correct all P0.10 shared-stage commands to 200; use fresh immutable smoke output `p010c2_*` because the failed root already owns the old setup fingerprint. |
+| 2026-08-24 | Pulled nested result commit `52fb878` and validated P0.10d on 1,034 paired Spider rows. Hard-target CE scores 56.87 EX / 31.91 EM with 230 execution errors; adding sparse five-client FKL scores 58.32 / 39.94 with 219 errors. The hybrid corrects 58 rows and regresses 43 (`+1.45` EX, exact McNemar `p=0.163`), passing the preregistered practical gate. Activate one untuned 3,873-row P0.10e confirmation; do not change the canonical method yet. |
 
 ## 8. Archived branches
 

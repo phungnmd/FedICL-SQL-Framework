@@ -53,14 +53,14 @@ not be ranked by reported headline gain alone:
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
 | Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Small probe, not default** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
-| Which project-specific direction now has the strongest feasibility signal? | LLM-anchored FedDF | P0.10a client plurality proxy gains 10.55 public EX with 62 corrections and 8 regressions; training is untested | **First discussion candidate** |
+| Which project-specific direction now has the strongest feasibility signal? | LLM-anchored FedDF | P0.10d matched training gains 1.45 Spider EX and removes 11 execution errors over hard-target CE; full-pool confirmation is pending | **First positive candidate** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits; tests whether plain RKL is too sharp, but the expected ceiling is limited by the weak current RKL increment | **One matched gate** |
 | What is the best offline extension if student errors remain? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Second-line extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, **KID remains the strongest published Text-to-SQL-specific candidate**,
-while P0.10a makes LLM-anchored FedDF the strongest project-specific discussion
-candidate. The current method stays the fallback. Any further KD/Federated
+while P0.10d makes LLM-anchored FedDF the strongest project-specific positive
+candidate. The current method stays the fallback pending P0.10e. Any further KD/Federated
 proposal is a new mechanism, not a retuning or relabeling of P0.9.
 
 ## 2. Notation and KD axes
@@ -869,16 +869,15 @@ Claims to avoid without new evidence:
 
 ## 10. Final recommendation
 
-### Post-P0.10a evidence update
+### Post-P0.10d evidence update
 
-The no-training triage changes the order of candidates, not the current method.
+The no-training triage changed the order of candidates, not the current method.
 On 512 public BIRD rows, semantic execution-result plurality among the five
 client models, with the global model as fallback, reaches 42.77 EX versus 32.23
 for global FL (`+10.55` points; 62 corrections, 8 regressions; 71.88% unique-
 plurality coverage). The any-client oracle recovers 107/347 global errors.
-This is the clearest federated-specific signal and makes **LLM-anchored FedDF**
-the first discussion candidate. It is only a plurality feasibility proxy; no
-logit-distillation objective has been trained or evaluated.
+This was the clearest federated-specific diagnostic and motivated the
+**LLM-anchored FedDF** screen.
 
 KID ranks second. On canonical Spider T1 predictions, 82.20% of the FL model's
 236 execution errors have lexical divergence within the first token quartile,
@@ -888,13 +887,16 @@ Execution-verified preference KD ranks third: 2,177 pairs can be formed across
 global/client predictions, but only 122 distinct global rows provide the clean
 executable-wrong negatives for the strict screen.
 
-P0.10b now defines that gate: both arms use verified hard LLM-target CE on the
+P0.10b defined that gate: both arms use verified hard LLM-target CE on the
 same 512 rows from one FedAvg initialization; the hybrid alone adds
 `0.5 * KL(p_clients || q_student)`. Five top-32 client distributions are
 recomputed server-side from uploaded adapters at temperature 1, merged on union
 support, and retain an explicit tail bucket. Thus the screen adds server compute
-and cache storage but no network payload. P0.10c smoke precedes P0.10d; the
-hybrid must gain at least 1.0 Spider EX without increasing execution errors.
+and cache storage but no network payload. P0.10c passed. P0.10d then found
+58.32 EX / 39.94 EM / 219 execution errors for the hybrid versus 56.87 / 31.91
+/ 230 for the matched hard-target control. The `+1.45` EX practical gate
+passes, but 58 paired corrections versus 43 regressions give exact McNemar
+`p=0.163`; this is positive screening evidence rather than a final method claim.
 
 For the current paper and one RTX A5000 24 GB:
 
@@ -903,9 +905,8 @@ For the current paper and one RTX A5000 24 GB:
    evidence as provisional;
 3. treat P0.9 global-error selection, client-disagreement selection, and their
    direct weighted/KL continuations as closed;
-4. discuss LLM-anchored FedDF first and activate at most one matched screen
-   after its objective, system boundary, equal-budget control, and stop rule
-   are preregistered;
+4. run one untuned 3,873-row confirmation of LLM-anchored FedDF and compare it
+   with the existing hard-target CE and reverse-KL endpoints;
 5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
    FL--KD integration claim;
 6. retain **KID** and execution-verified preference KD as second- and third-line

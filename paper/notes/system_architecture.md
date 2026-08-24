@@ -242,7 +242,7 @@ different KD/Federated mechanism may still be discussed, but it changes this
 architecture only after a new preregistered positive gate; no method change is
 currently active.
 
-P0.10a does not alter this freeze. It finds client-model complementarity on a
+P0.10a alone did not alter this freeze. It found client-model complementarity on a
 public diagnostic: execution-result plurality plus global fallback improves
 over global FL by 10.55 points, while prefix and preference diagnostics also
 clear feasibility thresholds. The first design candidate is therefore an
@@ -255,9 +255,11 @@ LLM-target CE plus `0.5 * KL(p_clients || q_student)`. The server sequentially
 loads the five uploaded adapters on public teacher-forced trajectories and
 caches each top-32 distribution; an explicit tail bucket preserves truncated
 mass. Because logits are recomputed at the server, network payload is unchanged.
-This candidate remains outside the canonical diagram until P0.10d beats the
-matched hard-target-only control by at least 1.0 Spider EX without more
-execution errors.
+P0.10c/d now pass that bounded gate. On the matched 512-target screen, the
+hybrid reaches 58.32 Spider EX versus 56.87 for hard-target CE and reduces
+execution errors from 230 to 219. The paired EX contrast remains uncertain
+(`p=0.163`), so the candidate remains outside the canonical diagram until the
+active P0.10e confirmation repeats the fixed objective on all 3,873 targets.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom
