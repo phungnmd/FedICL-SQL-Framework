@@ -13,7 +13,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | teacher/data audit | Execute all 9,428 BIRD gold SQL independently; compare Qwen/Gemma matches on one valid-gold mask | complete: 9,056 valid; Qwen 42.72%, Gemma 27.46% match yield |
 | P0 | method direction | token-matched random hard SeqKD vs global-error selection from the shared T1 FedAvg adapter | complete negative: global-error256 is 2.03 EX below random256 and adds 18 execution errors |
 | P0 | method-signal triage | client execution-result plurality, Spider prefix cascade, and execution-verified preference inventory from existing predictions | complete diagnostic: all gates pass; plurality proxy is strongest (`+10.55` public EX), but no training gain is established |
-| P0 | next KD/Federated direction | LLM-only server transfer vs LLM-anchored client-ensemble distillation with shared initialization, equal rows/updates, and a preregistered stop rule | P0.10b design discussion active; no run activated |
+| P0 | next KD/Federated direction | 512-row hard-LLM-target CE vs the same CE + sparse client-ensemble FKL, shared FedAvg initialization and 32 updates | P0.10b preregistered; P0.10c smoke active, P0.10d conditional |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
@@ -59,13 +59,15 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 4. Keep uniform FedLS-SQL frozen as the fallback. P0.10a ranks LLM-anchored
    FedDF first, KID second, and preference KD third; these are feasibility
    signals, not model results.
-5. In P0.10b, preregister only the LLM-anchored FedDF screen, including its
-   communication/privacy accounting and matched LLM-only control. Do not train
-   before this design is frozen.
-6. After the discussion gate closes, complete controlled resources, error
+5. P0.10b is frozen: the server recomputes five client top-32 distributions on
+   public rows and adds sparse FKL to the hard-LLM-target CE control. Run P0.10c
+   smoke, then P0.10d only if cache tail mass and resume checks pass.
+6. Promote only at `+1.0` Spider EX with no execution-error increase; otherwise
+   close the branch without hyperparameter tuning.
+7. After the method gate closes, complete controlled resources, error
    audit, and final T3 seed replication for the selected method.
-7. Keep Gemma teacher ceiling and target-form audit as context. Extend the new
+8. Keep Gemma teacher ceiling and target-form audit as context. Extend the new
    method to Gemma only after a positive Qwen gate.
-8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
+9. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
    as method directions at the current `K=5, T=1` setting; broader
    heterogeneity is conditional rather than an automatic sweep.

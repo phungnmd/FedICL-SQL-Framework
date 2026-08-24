@@ -888,11 +888,13 @@ Execution-verified preference KD ranks third: 2,177 pairs can be formed across
 global/client predictions, but only 122 distinct global rows provide the clean
 executable-wrong negatives for the strict screen.
 
-The next gate must define an LLM-only versus LLM-plus-client-ensemble server
-treatment with the same public rows, initialization, and optimizer updates. It
-must also state whether client logits are recomputed server-side from uploaded
-adapters or transmitted, because the latter changes communication and leakage
-claims. No training is activated by P0.10a.
+P0.10b now defines that gate: both arms use verified hard LLM-target CE on the
+same 512 rows from one FedAvg initialization; the hybrid alone adds
+`0.5 * KL(p_clients || q_student)`. Five top-32 client distributions are
+recomputed server-side from uploaded adapters at temperature 1, merged on union
+support, and retain an explicit tail bucket. Thus the screen adds server compute
+and cache storage but no network payload. P0.10c smoke precedes P0.10d; the
+hybrid must gain at least 1.0 Spider EX without increasing execution errors.
 
 For the current paper and one RTX A5000 24 GB:
 

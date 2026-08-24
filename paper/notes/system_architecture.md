@@ -250,8 +250,14 @@ clear feasibility thresholds. The first design candidate is therefore an
 LLM remains the knowledge anchor and client ensemble information would add a
 federated signal on public rows. Its objective, client-logit location,
 communication/privacy cost, and matched LLM-only control must be preregistered
-before implementation. Until a positive causal gate, the diagram, checkpoints,
-and paper method remain unchanged.
+before implementation. P0.10b now freezes the candidate implementation as hard
+LLM-target CE plus `0.5 * KL(p_clients || q_student)`. The server sequentially
+loads the five uploaded adapters on public teacher-forced trajectories and
+caches each top-32 distribution; an explicit tail bucket preserves truncated
+mass. Because logits are recomputed at the server, network payload is unchanged.
+This candidate remains outside the canonical diagram until P0.10d beats the
+matched hard-target-only control by at least 1.0 Spider EX without more
+execution errors.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom

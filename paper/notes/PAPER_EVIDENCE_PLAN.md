@@ -629,6 +629,7 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-24 | P0.9a selector diagnostic | 512 paired public rows from global FL, uniform SeqKD, and five clients | global state retained; disagreement detects FL error but is too broad and does not significantly enrich correction (`p=0.297`) | P0.9b global-error256 vs token-matched random256 |
 | 2026-08-24 | P0.9b matched selector gate | 1,034 paired Spider rows; shared FedAvg initialization; random256 vs global-error256, 16 updates each | selector fails: `-2.03` EX, `-5.22` EM, `+18` execution errors; close selector-dependent extensions | discuss one different KD/Federated hypothesis or proceed to submission evidence |
 | 2026-08-24 | P0.10a no-training method triage | client execution-result plurality on 512 public rows, prefix divergence on 1,034 Spider rows, verified preference-pair inventory | all feasibility gates pass; plurality has the strongest federated-specific signal, but none establishes a training improvement | P0.10b LLM-anchored FedDF design gate |
+| 2026-08-24 | P0.10b FedDF preregistration | stable hard-target mechanism, weak cross-family RKL increment, client plurality complementarity, current adapter-upload boundary | use hard LLM CE as both-arm anchor; add only server-side sparse client FKL in the hybrid; fixed `lambda=0.5`, `T=1`, top-32, 512 rows, 32 updates | P0.10c smoke, then conditional P0.10d |
 
 ## 6. Current next actions
 
@@ -639,10 +640,11 @@ Update this table after every gate. Never rewrite old decisions silently.
 3. Treat P0.10a as diagnostic only. Client plurality recovers 62 global errors
    with 8 regressions (`+10.55` public EX); KID and preference signals also pass
    their feasibility thresholds. Rank LLM-anchored FedDF first.
-4. In P0.10b, freeze one LLM-only versus hybrid comparison with equal public
-   rows and updates. Specify the ensemble target, LLM anchor, client-logit
-   location, extra payload/privacy implications, and EX/error stop rule before
-   implementation.
+4. P0.10b is frozen: compare hard LLM-target CE against the same CE plus
+   `0.5 * KL(p_clients || q_student)` on 512 rows and 32 updates. Compute five
+   top-32 client distributions server-side from uploaded adapters; preserve
+   discarded mass in a tail bucket, so no new client payload is introduced.
+   Run the 8-row P0.10c smoke before the matched P0.10d screen.
 5. If that design cannot preserve a defensible system boundary, retain uniform
    FedLS-SQL and stop method development rather than launch an uncontrolled
    KD/FL sweep.

@@ -226,12 +226,14 @@ currently justify.
 3. The prefix audit finds early divergence in 82.20% of FL execution errors
    and an 18.29-point early/late error-risk gap. The preference inventory has
    2,177 pairs but only 122 clean global executable-wrong rows.
-4. Uniform hard SeqKD remains the frozen fallback. P0.10b must specify the
-   matched LLM-anchored FedDF objective, control, privacy/communication cost,
-   and stop rule before any GPU command is added.
-5. P0.7t and the Gemma target-form audit remain contextual tasks; neither
+4. Uniform hard SeqKD remains the frozen fallback. P0.10b is now specified:
+   matched hard LLM CE versus hard LLM CE + sparse client-ensemble FKL, with
+   fixed top-32, temperature 1, lambda 0.5, 512 rows, and 32 updates.
+5. Run P0.10c 8-row cache/training smoke next. P0.10d is conditional on tail
+   mass at most 10%, complete artifacts, and resume/fingerprint checks.
+6. P0.7t and the Gemma target-form audit remain contextual tasks; neither
    decides the proposed method.
-6. After method freeze, run P1.1 controlled resources, the error audit, and
+7. After method freeze, run P1.1 controlled resources, the error audit, and
    P0.8/T1R final T3 seed-1/2 reliability for the selected method.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -309,6 +311,7 @@ internal artifact identities.
 | 2026-08-24 | Pulled nested result commit `10a0bbd` and validated P0.9b. The two training configs differ only by pool and share 256 examples, 16 optimizer updates, initialization, seed, and all training flags. Global-error256 loses 2.03 Spider EX to random256 (47/68, exact `p=0.0617`) and adds 18 execution errors; the preregistered gate fails. |
 | 2026-08-24 | Closed global-error selection and its dependent disagreement/KL extensions. Retain uniform execution-verified hard SeqKD as the fallback method, but keep a separate discussion gate open for a substantively different KD/Federated hypothesis. P0.9 parallel/OOM timing, RAM, and VRAM are not paper resource evidence. |
 | 2026-08-24 | Implemented P0.10a as a fingerprinted CPU-only triage over committed P0.9a and canonical Spider predictions. Reusing frozen P0.9a row states is required because re-executing SQL can shift a timeout-bound row. All three discussion gates pass: client plurality `+10.55` public EX, prefix error-risk gap `+18.29` points, and 122 clean global preference rows. Rank LLM-anchored FedDF first, KID second, preference KD third; activate no training automatically. |
+| 2026-08-24 | Implemented and preregistered P0.10b code path. New `feddf` server arm keeps verified hard LLM targets and adds forward KL from a sparse five-client ensemble. Cache shards are content-addressed and resumable; metadata fingerprints client adapter weights and rendering flags; union top-k support plus an explicit tail bucket preserves total mass. P0.10c smoke is active; P0.10d requires `+1.0` Spider EX and no execution-error increase over the 512-row hard-target control. |
 
 ## 8. Archived branches
 
