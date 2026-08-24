@@ -19,12 +19,13 @@ part of the default evidence package.
 The matched public-supervision, centralized-recipe, centralized OOD/BIRD, and
 second-family gates are complete. The evidence is sufficient to retain the
 FedLS-SQL framework, but not to present plain RKL as a stable new KD method.
-P0.9 has closed the first T1M candidate: global-error selection does not improve
-hard teacher-target distillation. The current uniform FedLS-SQL method is frozen
-as the fallback, while the next KD/Federated direction remains under discussion.
-No new method command is active until that discussion produces one bounded,
-controlled hypothesis. P0.7t remains optional context; final T3 seeds and
-resources remain queued behind the method decision.
+P0.9 has closed global-error selection. P0.10a then triaged three substantively
+different directions without training. Client execution-result plurality gives
+the strongest feasibility signal, so **LLM-anchored FedDF** is now the first
+discussion candidate; KID and execution-verified preference KD rank second and
+third. This is not yet a method change. The current uniform FedLS-SQL method
+remains the frozen fallback until P0.10b specifies one matched objective,
+control, privacy boundary, compute budget, and stop rule.
 
 | Order | Action | Status |
 |---|---|---|
@@ -47,7 +48,8 @@ resources remain queued behind the method decision.
 | P0.9b | Matched random-subset vs global-error hard-SeqKD screen | complete; negative, gate failed |
 | P0.9c | Add client-disagreement selection | cancelled at this gate; no incremental correction evidence |
 | P0.9d | Add cached logits/skew/AKL to the winning selector | cancelled; selector did not win |
-| T1M-next | Discuss and preregister one alternative KD/Federated hypothesis | **active discussion; no experiment command** |
+| P0.10a | No-training triage of client ensemble, prefix-cascade, and preference-pair signals | complete; all gates pass, FedDF proxy ranks first |
+| P0.10b | Specify and preregister an LLM-anchored FedDF screen | **active design discussion; no training command** |
 | P0.7t | Evaluate the 4-bit Gemma 9B teacher zero-shot on Spider | optional contextual ceiling; does not decide the method |
 | P0.8 | Replicate final T3 pure FL vs full FedLS-SQL at training seeds 1/2 on Spider | deferred by current research priority |
 | P1.0 | Consolidate adapter-payload communication from committed round metrics | complete; no rerun needed |
@@ -58,7 +60,7 @@ paper resource evidence. Do not rerun P0.3 merely to backfill epoch snapshots:
 it completed before the snapshot feature existed. P0.9b commands below are
 retained as executed provenance, not active work. Do not improvise another
 selector or start FedProx, heterogeneity, new aggregation, sensitivity, or
-model-size/rank/client sweeps before the next T1M hypothesis is agreed and
+model-size/rank/client sweeps before the P0.10b hypothesis is agreed and
 preregistered here.
 
 ## Fixed T1 comparison
@@ -453,9 +455,52 @@ commands are now provenance only.
 - Cached RKL/skew/AKL on this selector is cancelled. Do not use a logit-loss
   change to rescue the failed selection rule.
 - The selection arm is harmful rather than neutral; retain current hard SeqKD
-  as fallback. KID is considered only when the error audit shows
-  prefix-cascade failures; GKD, FedDF/FedMKT, execution-RL, FedProx-as-method,
-  and new LoRA aggregators remain out of scope.
+  as fallback. P0.10a diagnoses different mechanisms without reopening it.
+
+## P0.10 — bounded KD/Federated method triage
+
+### P0.10a — no-training feasibility audit (complete)
+
+The audit reuses the frozen P0.9a row-level execution states and canonical
+Spider T1 predictions; it performs no model training and no teacher inference.
+On the 512 public BIRD rows, execution-result plurality among five clients,
+falling back to the global model when no unique plurality exists, scores
+`42.77` EX versus global FL at `32.23` (`+10.55` points), with 62 corrections,
+8 regressions, and `71.88%` unique-plurality coverage. Any client is correct on
+107/347 global failures, establishing ensemble complementarity but not yet a
+trainable FedDF gain.
+
+On canonical Spider T1 predictions, 82.20% of the FL model's 236 execution
+errors diverge from gold within the first token quartile; early-divergence rows
+have an execution-error rate 18.29 points above late-divergence rows. This
+passes the KID discussion gate but is lexical correlation, not causal evidence.
+The public audit also constructs 2,177 execution-verified preference pairs;
+only 122 distinct global-model rows provide clean executable-wrong pairs, so
+preference KD is feasible but narrower.
+
+Decision order: (1) LLM-anchored FedDF, (2) KID, (3) execution-verified
+preference KD. All three gates are diagnostic. No candidate is a FedLS-SQL
+component and no GPU run is activated by this result.
+
+Reproduce the CPU-only audit from the immutable P0.9a analysis rows. Using
+`--public-analysis-rows` avoids re-executing SQL and therefore avoids changing
+the result because of transient execution timeouts. The line is fingerprinted,
+safe to rerun, and refuses incompatible reuse of the output root.
+
+```powershell
+$U='processed_data/BIRD/p09a_qwen_public512_s0/train.csv'; $D='artifacts/analysis/p09a_qwen_t1_public512_s0/rows.csv'; $P='experiments/eval_arms/results/eval_arms__s0__20260823T205511/predictions'; $S='experiments/eval_arms/results/eval_arms__s0__20260820T065954/predictions'; $O='artifacts/analysis/p010a_fedkd_method_triage_s0'; foreach ($X in @($U,$D,$P,$S)) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.10a input: $X" } }; uv run python scripts/analyze_fedkd_method_triage.py --public-subset $U --public-pred-dir $P --public-analysis-rows $D --spider-pred-dir $S --out $O --feddf-min-delta-pp 2 --feddf-min-coverage-pct 50 --kid-min-early-exec-pct 60 --kid-min-risk-diff-pp 15 --preference-min-clean-rows 100 --preference-min-unique-pct 80; if ($LASTEXITCODE -ne 0) { throw 'P0.10a audit failed; rerun this exact line to resume' }; foreach ($X in @("$O/summary.json","$O/public_ensemble_rows.csv","$O/spider_prefix_rows.csv","$O/preference_pairs.csv","$O/provenance.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P0.10a output: $X" } }; $V=Get-Content -LiteralPath "$O/summary.json" -Raw | ConvertFrom-Json; if (-not $V.gates.llm_anchored_feddf -or -not $V.gates.kid -or -not $V.gates.preference_kd) { throw 'P0.10a decision verification failed' }; Write-Host 'P0.10a complete: all discussion gates pass; no training is activated'
+```
+
+### P0.10b — LLM-anchored FedDF design gate (active, no command)
+
+Before implementation, specify how client ensemble knowledge and the frozen
+LLM target are combined on the same public rows. The minimum causal screen must
+start from one shared FedAvg adapter and compare an LLM-only server treatment
+against an equal-row, equal-update hybrid. It must state whether client logits
+are computed server-side from uploaded adapters or transmitted by clients,
+account for that communication/privacy cost, and use a preregistered Spider EX
+and execution-error promotion rule. Until those choices are frozen, do not emit
+a training command or alter the canonical architecture.
 
 ### P0.7t — Gemma 9B teacher zero-shot Spider reference
 
@@ -502,11 +547,12 @@ and FedLS-SQL have identical client-network payload under this protocol because
 teacher transfer is server-local. These are serialized adapter-weight bytes;
 transport framing and protocol metadata are excluded.
 
-The second-family ladder and P0.9 global-error gate are complete. The active
-scientific activity is discussion of one possible next KD/Federated direction;
-there is no authorized experiment command yet. If no stronger bounded
-hypothesis is selected, retain uniform FedLS-SQL and proceed with P1.1 resources
-and P0.8 final reliability. P0.7t remains optional ceiling context.
+The second-family ladder, P0.9 global-error gate, and P0.10a method triage are
+complete. The active scientific activity is P0.10b design of one matched
+LLM-anchored FedDF screen; there is no authorized training command yet. If its
+system boundary or causal control cannot be made defensible, retain uniform
+FedLS-SQL and proceed with P1.1 resources and P0.8 final reliability. P0.7t
+remains optional ceiling context.
 
 Before collecting official latency, add a warm-up-capable benchmark path. Do
 not treat an ordinary `eval_arms` run as the final benchmark: its timer excludes

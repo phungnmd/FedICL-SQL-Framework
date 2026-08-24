@@ -283,6 +283,7 @@ Supports the error analysis currently proposed in draft §4.4.
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |
 | Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
 | LLM-SLM transfer failures | matched prediction rows available | ready for representative audit |
+| P0.10a method triage | client plurality `+10.55` public EX; 82.20% early-prefix share of FL execution errors; 122 clean global preference rows | diagnostic only; ranks hypotheses, does not establish a new method |
 
 ## 7. Adaptive evidence dashboard
 

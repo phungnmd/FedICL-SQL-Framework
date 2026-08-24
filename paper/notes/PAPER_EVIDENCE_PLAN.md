@@ -79,18 +79,19 @@ private client LoRA training, FedAvg, and public execution-verified LLM-to-SLM
 hard-target transfer improve over pure FL in two model families. It is **not yet
 sufficient to claim a new KD objective or a stronger federated optimizer**.
 
-If the goal is to strengthen the proposed method before freezing the paper, the
-next research budget should test one coupled improvement:
+P0.9 rejected execution-guided example selection: its matched arm lost 2.03
+Spider EX and added 18 execution errors relative to random256. P0.10a therefore
+tested different signals without training. Client execution-result plurality
+shows the strongest federated-specific complementarity, ahead of prefix/KID
+and preference-pair diagnostics. If the method is extended, the next research
+budget should test one coupled improvement:
 
-> Use public execution outcomes from the current aggregated federated student
-> to decide which verified teacher examples receive server distillation updates.
+> Anchor server distillation in the frozen LLM target while adding client-
+> ensemble knowledge on the same public rows.
 
-P0.9a rejected client disagreement as an additional selector. P0.9b then
-rejected **global-error execution-guided public distillation** itself: the
-matched selector lost 2.03 Spider EX and added 18 execution errors relative to
-random256. Neither selector is a paper component. Uniform execution-verified
-hard SeqKD remains the fallback while one substantively different
-KD/Federated direction may still be discussed.
+This proposed LLM-anchored FedDF screen is not yet part of FedLS-SQL. Uniform
+execution-verified hard SeqKD remains the fallback until the objective, matched
+LLM-only control, system boundary, compute budget, and stop rule are frozen.
 
 Why this direction ranks first:
 
@@ -98,10 +99,11 @@ Why this direction ranks first:
   teacher-generated SQL;
 - it makes the LLM stage respond to the current federated state instead of
   being a generic fixed public fine-tuning pass;
-- it needs only student/client inference on public rows and reuses cached
-  teacher targets/logits;
-- it does not change the privacy or communication boundary because the server
-  already holds uploaded adapters and all scored prompts are public;
+- it can reuse cached teacher targets/logits and compute client predictions on
+  public rows;
+- server-side recomputation from already-uploaded adapters can preserve the
+  current network payload, whereas transmitted client logits would add payload
+  and leakage surface and must be reported explicitly;
 - it directly addresses the method-novelty objection while remaining much
   cheaper than KID, GKD, mutual FedMKT, or execution RL.
 
@@ -626,6 +628,7 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-24 | method-direction review | Qwen/Gemma causal ladders, three-seed T1 server effect, RKL portability, FLoRA-NA and exact-aggregation diagnostics, KD literature | evidence is sufficient for a framework paper but not a new KD-loss claim; activate one federated-aware execution-guided hard-SeqKD gate before freezing the method | T1M diagnostic and matched subset screen |
 | 2026-08-24 | P0.9a selector diagnostic | 512 paired public rows from global FL, uniform SeqKD, and five clients | global state retained; disagreement detects FL error but is too broad and does not significantly enrich correction (`p=0.297`) | P0.9b global-error256 vs token-matched random256 |
 | 2026-08-24 | P0.9b matched selector gate | 1,034 paired Spider rows; shared FedAvg initialization; random256 vs global-error256, 16 updates each | selector fails: `-2.03` EX, `-5.22` EM, `+18` execution errors; close selector-dependent extensions | discuss one different KD/Federated hypothesis or proceed to submission evidence |
+| 2026-08-24 | P0.10a no-training method triage | client execution-result plurality on 512 public rows, prefix divergence on 1,034 Spider rows, verified preference-pair inventory | all feasibility gates pass; plurality has the strongest federated-specific signal, but none establishes a training improvement | P0.10b LLM-anchored FedDF design gate |
 
 ## 6. Current next actions
 
@@ -633,21 +636,25 @@ Update this table after every gate. Never rewrite old decisions silently.
    CE is the supported core; RKL remains auxiliary and provisional.
 2. Close P0.9a-d. Diagnosis predicted error, but the matched P0.9b intervention
    reduced EX and execution validity; do not tune or relabel this branch.
-3. Hold a method-direction discussion before further GPU work. Any candidate
-   must be substantively different from global-error sampling, preserve the
-   privacy/communication boundary or state its cost, and define one equal-budget
-   comparison plus stop rule before implementation.
-4. If no candidate clears that conceptual gate, retain uniform FedLS-SQL and
-   stop method development rather than launch an uncontrolled KD/FL sweep.
-5. Keep P0.7t and the Gemma target-form audit as contextual analysis. They no
+3. Treat P0.10a as diagnostic only. Client plurality recovers 62 global errors
+   with 8 regressions (`+10.55` public EX); KID and preference signals also pass
+   their feasibility thresholds. Rank LLM-anchored FedDF first.
+4. In P0.10b, freeze one LLM-only versus hybrid comparison with equal public
+   rows and updates. Specify the ensemble target, LLM anchor, client-logit
+   location, extra payload/privacy implications, and EX/error stop rule before
+   implementation.
+5. If that design cannot preserve a defensible system boundary, retain uniform
+   FedLS-SQL and stop method development rather than launch an uncontrolled
+   KD/FL sweep.
+6. Keep P0.7t and the Gemma target-form audit as contextual analysis. They no
    longer outrank the method-direction gate because neither can change the
    proposed training algorithm.
-6. Do not build the full Gemma logit cache or extend Gemma to T3/OOD unless a
+7. Do not build the full Gemma logit cache or extend Gemma to T3/OOD unless a
    promoted method requires a portability test.
-7. After T1M is closed, complete the controlled resource benchmark, T1
+8. After T1M is closed, complete the controlled resource benchmark, T1
    execution/error audit, and final T3 seed-1/2 reliability for the method that
    will actually appear in the paper.
-8. Keep FedProx as a later baseline and heterogeneity as a conditional claim
+9. Keep FedProx as a later baseline and heterogeneity as a conditional claim
    test. Exact aggregation, FLoRA-NA, new LoRA parameterizations, and direct
    public-loss client weighting are not active method directions.
 

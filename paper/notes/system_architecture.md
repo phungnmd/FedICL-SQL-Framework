@@ -242,6 +242,17 @@ different KD/Federated mechanism may still be discussed, but it changes this
 architecture only after a new preregistered positive gate; no method change is
 currently active.
 
+P0.10a does not alter this freeze. It finds client-model complementarity on a
+public diagnostic: execution-result plurality plus global fallback improves
+over global FL by 10.55 points, while prefix and preference diagnostics also
+clear feasibility thresholds. The first design candidate is therefore an
+**LLM-anchored FedDF** server stage, not pure client-ensemble FedDF: the frozen
+LLM remains the knowledge anchor and client ensemble information would add a
+federated signal on public rows. Its objective, client-logit location,
+communication/privacy cost, and matched LLM-only control must be preregistered
+before implementation. Until a positive causal gate, the diagram, checkpoints,
+and paper method remain unchanged.
+
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom
 at the current `K=5, T=1` configuration. FedProx remains a possible baseline,

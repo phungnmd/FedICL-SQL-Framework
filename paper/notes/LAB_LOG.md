@@ -66,8 +66,9 @@ decisions. It deliberately does not own result tables:
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
   P0.9b showed that training on that signal is worse than a matched random
-  subset. Uniform hard SeqKD is frozen as the fallback; discussion of a
-  different KD/Federated direction remains open.
+  subset. Uniform hard SeqKD is frozen as the fallback. P0.10a subsequently
+  ranks an LLM-anchored FedDF screen above KID and preference KD, without
+  changing the canonical method.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -216,18 +217,21 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.9a is complete. On 512 public rows, FL is 32.23 EX and uniform SeqKD is
-   53.13 EX; SeqKD corrects 141 FL errors and regresses 34 rows. High client
-   disagreement catches 331/347 FL errors but flags 454/512 rows, and its
-   correction-rate lift within FL errors is not significant (`p=0.297`).
-2. P0.9b is complete and negative: global-error256 scores 56.67 EX versus
-   random256 at 58.70, with 240 versus 222 execution errors. P0.9c/d are closed.
-3. Uniform hard SeqKD is the frozen fallback. Discuss one alternative
-   KD/Federated hypothesis before adding any new command; do not start a broad
-   sweep or reuse the failed selector with another loss.
-4. P0.7t and the Gemma target-form audit remain contextual tasks; neither
+1. P0.9a-d are closed. Global-error256 scores 56.67 Spider EX versus random256
+   at 58.70, with 240 versus 222 execution errors.
+2. P0.10a is complete without training. Client execution-result plurality plus
+   global fallback reaches 42.77 EX versus global FL at 32.23 on 512 public
+   rows (`+10.55`), with 62 corrections and 8 regressions. This supports
+   ensemble complementarity, not a FedDF training claim.
+3. The prefix audit finds early divergence in 82.20% of FL execution errors
+   and an 18.29-point early/late error-risk gap. The preference inventory has
+   2,177 pairs but only 122 clean global executable-wrong rows.
+4. Uniform hard SeqKD remains the frozen fallback. P0.10b must specify the
+   matched LLM-anchored FedDF objective, control, privacy/communication cost,
+   and stop rule before any GPU command is added.
+5. P0.7t and the Gemma target-form audit remain contextual tasks; neither
    decides the proposed method.
-5. After method freeze, run P1.1 controlled resources, the error audit, and
+6. After method freeze, run P1.1 controlled resources, the error audit, and
    P0.8/T1R final T3 seed-1/2 reliability for the selected method.
 
 FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
@@ -304,6 +308,7 @@ internal artifact identities.
 | 2026-08-24 | P0.9a completed: global FL 32.23 EX versus uniform SeqKD 53.13 on 512 public rows; 141 failures corrected and 34 regressions. Client disagreement captures 95.39% of FL errors but labels 88.67% of all rows; within-error correction enrichment is not significant (Fisher `p=0.297`). Activate global-error-only P0.9b and cancel P0.9c. |
 | 2026-08-24 | Pulled nested result commit `10a0bbd` and validated P0.9b. The two training configs differ only by pool and share 256 examples, 16 optimizer updates, initialization, seed, and all training flags. Global-error256 loses 2.03 Spider EX to random256 (47/68, exact `p=0.0617`) and adds 18 execution errors; the preregistered gate fails. |
 | 2026-08-24 | Closed global-error selection and its dependent disagreement/KL extensions. Retain uniform execution-verified hard SeqKD as the fallback method, but keep a separate discussion gate open for a substantively different KD/Federated hypothesis. P0.9 parallel/OOM timing, RAM, and VRAM are not paper resource evidence. |
+| 2026-08-24 | Implemented P0.10a as a fingerprinted CPU-only triage over committed P0.9a and canonical Spider predictions. Reusing frozen P0.9a row states is required because re-executing SQL can shift a timeout-bound row. All three discussion gates pass: client plurality `+10.55` public EX, prefix error-risk gap `+18.29` points, and 122 clean global preference rows. Rank LLM-anchored FedDF first, KID second, preference KD third; activate no training automatically. |
 
 ## 8. Archived branches
 

@@ -75,6 +75,7 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.qwen.t1.p09b.s0.spider` | FL/full-uniform/random256/global-error256 method gate, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T042237` | canonical negative ablation; code SHA `a45f683`, result commit `10a0bbd` |
 | `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
+| `audit.qwen.p010a.method-triage` | client-ensemble, prefix-cascade, and preference-pair feasibility audit | `fedicl-sql/audits/p010a_fedkd_method_triage_s0.json` | canonical diagnostic; nested commit `c5528b1`; no training claim |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before

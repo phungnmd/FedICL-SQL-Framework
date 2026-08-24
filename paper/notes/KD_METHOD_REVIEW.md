@@ -53,14 +53,15 @@ not be ranked by reported headline gain alone:
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
 | Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Small probe, not default** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
+| Which project-specific direction now has the strongest feasibility signal? | LLM-anchored FedDF | P0.10a client plurality proxy gains 10.55 public EX with 62 corrections and 8 regressions; training is untested | **First discussion candidate** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits; tests whether plain RKL is too sharp, but the expected ceiling is limited by the weak current RKL increment | **One matched gate** |
 | What is the best offline extension if student errors remain? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Second-line extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
-Thus, **KID remains the strongest published Text-to-SQL candidate**, while the
-first project-specific execution-guided selector is now empirically rejected.
-The current method stays the fallback. Any further KD/Federated proposal must
-be discussed as a new mechanism, not a retuning or relabeling of P0.9.
+Thus, **KID remains the strongest published Text-to-SQL-specific candidate**,
+while P0.10a makes LLM-anchored FedDF the strongest project-specific discussion
+candidate. The current method stays the fallback. Any further KD/Federated
+proposal is a new mechanism, not a retuning or relabeling of P0.9.
 
 ## 2. Notation and KD axes
 
@@ -868,6 +869,31 @@ Claims to avoid without new evidence:
 
 ## 10. Final recommendation
 
+### Post-P0.10a evidence update
+
+The no-training triage changes the order of candidates, not the current method.
+On 512 public BIRD rows, semantic execution-result plurality among the five
+client models, with the global model as fallback, reaches 42.77 EX versus 32.23
+for global FL (`+10.55` points; 62 corrections, 8 regressions; 71.88% unique-
+plurality coverage). The any-client oracle recovers 107/347 global errors.
+This is the clearest federated-specific signal and makes **LLM-anchored FedDF**
+the first discussion candidate. It is only a plurality feasibility proxy; no
+logit-distillation objective has been trained or evaluated.
+
+KID ranks second. On canonical Spider T1 predictions, 82.20% of the FL model's
+236 execution errors have lexical divergence within the first token quartile,
+and the early-versus-late execution-error risk differs by 18.29 points. This is
+correlational and does not show that prefix intervention will improve EX.
+Execution-verified preference KD ranks third: 2,177 pairs can be formed across
+global/client predictions, but only 122 distinct global rows provide the clean
+executable-wrong negatives for the strict screen.
+
+The next gate must define an LLM-only versus LLM-plus-client-ensemble server
+treatment with the same public rows, initialization, and optimizer updates. It
+must also state whether client logits are recomputed server-side from uploaded
+adapters or transmitted, because the latter changes communication and leakage
+claims. No training is activated by P0.10a.
+
 For the current paper and one RTX A5000 24 GB:
 
 1. keep **execution-verified teacher-target CE** as the established core;
@@ -875,17 +901,16 @@ For the current paper and one RTX A5000 24 GB:
    evidence as provisional;
 3. treat P0.9 global-error selection, client-disagreement selection, and their
    direct weighted/KL continuations as closed;
-4. keep the next-method decision open for discussion, but activate at most one
-   substantively different hypothesis with an equal-budget control and stop
-   rule;
+4. discuss LLM-anchored FedDF first and activate at most one matched screen
+   after its objective, system boundary, equal-budget control, and stop rule
+   are preregistered;
 5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
    FL--KD integration claim;
-6. discuss **KID** if prefix-error analysis shows cascading failures, or
-   execution-verified preference KD if failed student SQL provides clean
-   negative pairs;
-7. discuss FedDF/FedMKT-style public-logit collaboration only if the paper is
-   willing to accept new communication/privacy assumptions; it is not a free
-   extension of the current architecture;
+6. retain **KID** and execution-verified preference KD as second- and third-line
+   fallbacks supported only by feasibility diagnostics;
+7. treat FedDF-style public-logit collaboration as a new mechanism with
+   explicit communication/privacy assumptions, not a free relabeling of the
+   current post-FedAvg server KD;
 8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
    training under the present GPU-hour and scope budget.
 
