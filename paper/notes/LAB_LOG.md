@@ -29,10 +29,10 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P1.1a is implemented through nested commit `cfa8d59`: fixed in-process warm-up,
+- P1.1a is implemented through nested commit `0d0faa5`: fixed in-process warm-up,
   synchronized steady-state generation, process RSS/PyTorch VRAM, atomic
-  repetitions, observed foreign-PID monitoring, guarded eligible-only
-  aggregation, and cross-model comparison are tested.
+  repetitions, live foreign-PID transition warnings plus persisted events,
+  guarded eligible-only aggregation, and cross-model comparison are tested.
 - P1.2 is complete at artifact commit `4527a76`. On 1,034 paired T3 Spider
   rows, FedLS corrects 121 FL failures and regresses 67 (`p=0.0001002`) while
   reducing execution errors from 193 to 101. Medium, aggregation, GROUP BY,
@@ -323,6 +323,7 @@ internal artifact identities.
 | 2026-08-25 | Retired P0.10 from the active project surface. The nested repository keeps compact evidence under `experiments/archive/p010_feddf_2026-08/` and a full recovery point at tag `archive/p010-feddf-evidence`; active FedDF CLI/trainer/cache code and row-level predictions were removed from HEAD. Canonical result tables, registry, architecture, and queue no longer present P0.10 as a paper component. |
 | 2026-08-25 | Replaced the broad planning outline with an evidence-backed target outline. EX is the primary endpoint; EM is a secondary cross-dataset SQL-form diagnostic. Resource evidence now uses fixed-warm-up, contention-audited shared-server windows rather than an infeasible exclusivity requirement. Method remains frozen; mandatory next gates are resources, EX-oriented audit, and final T3 seed reliability. |
 | 2026-08-25 | Completed P1.1a implementation through `cfa8d59` and P1.2 artifact `4527a76`. The benchmark admits only fresh repetitions with no observed foreign GPU PID into primary latency summaries and preserves failed attempts for safe restart. The T3 audit confirms a 121/67 correction/regression balance and 92 fewer execution failures, but exposes set operations as a significant negative stratum; retain the frozen method and activate P1.1b rather than opening a new KD branch. |
+| 2026-08-25 | Added live contention visibility at nested commit `0d0faa5`. The runner prints timestamped detection and clearance transitions with phase/repetition label, physical GPU, PID, process name when accessible, and process GPU memory; identical events remain in `contention_events`. Repeated unchanged PID sets do not spam the console, and any affected repetition remains excluded even after the foreign process clears. |
 
 ## 8. Archived branches
 

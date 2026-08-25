@@ -29,7 +29,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 
 | Order | Task | Status / decision |
 |---|---|---|
-| P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | complete: final code `cfa8d59`, 12 targeted tests plus full suite |
+| P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | complete: final code `0d0faa5`, 13 targeted tests plus full 319-test suite |
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
 | P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | **active GPU evidence command below** |
 | P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory after the short resource block |
@@ -51,8 +51,9 @@ The benchmark implementation must:
    process RSS for at least five repetitions;
 5. compare identical rows and decoding, declare precision/quantization and
    batch size, and run student/teacher sequentially on the same selected GPU;
-6. sample GPU state throughout each repetition, record visible foreign
-   processes, and label the run `eligible`, `contended`, `resumed`, or `failed`;
+6. sample GPU state throughout each repetition, print timestamped foreign-PID
+   appearance/clearance transitions live, retain them as `contention_events`,
+   and label the run `eligible`, `contended`, `resumed`, or `failed`;
 7. report medians plus IQR and exclude observed-contended/resumed runs from the
    primary paper-facing latency table;
 8. preserve raw per-repetition JSON and runtime/GPU provenance.

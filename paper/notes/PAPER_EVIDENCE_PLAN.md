@@ -72,8 +72,8 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ### P1.1a — implement a shared-server resource benchmark
 
-**Status:** complete. Nested implementation commits `74f70c1` and `cfa8d59`;
-targeted resource/audit tests and the full 318-test suite pass.
+**Status:** complete. Nested implementation commits `74f70c1`, `cfa8d59`, and
+`0d0faa5`; 13 targeted resource/audit tests and the full 319-test suite pass.
 
 **Reviewer objection resolved:** the paper claims resource and deployment
 advantages but current timing came from opportunistic shared-server runs.
@@ -96,6 +96,8 @@ Required implementation contract:
 - at least five fresh repetitions, reporting median and IQR;
 - sample NVML/`nvidia-smi` state during every repetition and record visible
   foreign GPU processes, utilization, memory, clocks, and device identity;
+- print foreign-process appearance/clearance transitions to the console in
+  real time and persist the same events in each raw measurement artifact;
 - mark each repetition `eligible`, `contended`, `resumed`, or `failed`;
 - exclude observed-contended runs from the primary latency summary;
 - preserve raw per-repetition JSON and runtime provenance.

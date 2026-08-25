@@ -159,6 +159,8 @@ For a number to enter a paper resource table:
 
 - use fresh, non-resumed measurement windows on one selected GPU and audit
   visible compute processes throughout each window;
+- print timestamped foreign-process appearance/clearance transitions during
+  the run and retain the same events in the raw repetition artifact;
 - record the exact GPU, runtime versions, precision, batch size, sequence
   length, warm-up, measured scope, and repetition count;
 - synchronize the accelerator at timing boundaries;
