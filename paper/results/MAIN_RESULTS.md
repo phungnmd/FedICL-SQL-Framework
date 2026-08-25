@@ -6,10 +6,11 @@
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
 > invitation.
 
-The August 19 PDF outline is a draft planning input, not a fixed experimental
-contract. Table structure and priorities may change when new evidence changes
-the paper's claims. The research question, validated method, and evidence gates
-in `../notes/PAPER_EVIDENCE_PLAN.md` take precedence.
+The August 19 PDF is the advisor-provided planning input, not a fixed
+experimental contract. The evidence-backed manuscript structure is
+`../notes/PAPER_OUTLINE_TARGET.md`; the validated method and adaptive gates in
+`../notes/PAPER_EVIDENCE_PLAN.md` determine which proposed experiments and
+claims are retained.
 
 ## 1. Model and method scope
 
@@ -267,8 +268,10 @@ metadata.
 
 Old shared-server timing is operational evidence only and must not fill this
 table. Resource runs require fixed in-process warm-up, identical rows/decoding,
-exclusive hardware, at least three fresh repetitions, and median plus
-dispersion.
+at least five fresh repetitions, process/GPU contention monitoring, and median
+plus dispersion. Primary latency summaries retain only measurement windows
+with no observed foreign process on the selected GPU; guaranteed hardware
+exclusivity is not claimed.
 
 ## 6. Error analysis
 
@@ -277,7 +280,7 @@ Supports the error analysis currently proposed in draft §4.4.
 | Analysis | Available evidence | Status |
 |---|---|---|
 | Invalid/execution failures | per-row `exec_error` plus aggregate rates | ready for audit |
-| EX=1, EM=0 equivalent SQL | 338 FedLS-T1 vs 101 FL-T1 cases | `PENDING:error-audit` |
+| EX=1, EM=0 SQL-form variation | 338 FedLS-T1 vs 101 FL-T1 cases | `PENDING:error-audit`; secondary diagnostic, not an optimization target |
 | Spider hardness | easy/medium/hard/extra metrics logged | ready |
 | JOIN/nested/aggregation/filtering constructs | predictions available; validated classifier absent | pending utility |
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |

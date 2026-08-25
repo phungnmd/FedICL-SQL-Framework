@@ -29,10 +29,11 @@ The execution-guided selector and client-ensemble distillation branches are clos
 
 | Order | Task | Status / decision |
 |---|---|---|
-| P1.1a | Add and test fixed in-process warm-up for controlled inference benchmarking | **active engineering task; no experiment command yet** |
-| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B on exclusive hardware | blocked on P1.1a |
-| P1.2 | Audit server-stage execution errors and `EX=1, EM=0` cases | next CPU evidence task |
-| P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | deferred by current priority, not cancelled |
+| P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | **active engineering task; no experiment command yet** |
+| P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | next CPU evidence task; may run while waiting for a GPU window |
+| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | blocked on P1.1a |
+| P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory after the short resource block |
+| P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
 No GPU experiment should start until P1.1a defines and tests warm-up semantics,
@@ -48,12 +49,19 @@ The benchmark implementation must:
 2. synchronize CUDA immediately before and after every timed region;
 3. separate model loading, warm-up, generation, and SQL scoring time;
 4. report fresh-run latency/throughput, peak allocated and reserved VRAM, and
-   process RSS for at least three exclusive-hardware repetitions;
-5. compare identical rows, decoding, precision/quantization declarations, and
-   batch size where memory permits;
-6. report medians plus dispersion and reject resumed/contended runs from the
-   paper-facing resource table;
-7. preserve raw per-repetition JSON and runtime/GPU provenance.
+   process RSS for at least five repetitions;
+5. compare identical rows and decoding, declare precision/quantization and
+   batch size, and run student/teacher sequentially on the same selected GPU;
+6. sample GPU state throughout each repetition, record visible foreign
+   processes, and label the run `eligible`, `contended`, `resumed`, or `failed`;
+7. report medians plus IQR and exclude observed-contended/resumed runs from the
+   primary paper-facing latency table;
+8. preserve raw per-repetition JSON and runtime/GPU provenance.
+
+This is a contention-audited shared-server benchmark, not a guarantee of
+hardware exclusivity. If fewer than three eligible repetitions are available,
+latency remains observational; deterministic counts and precisely labeled
+process-memory measurements may still be reported.
 
 After the code and tests pass, add the exact single-line PowerShell commands
 here before launching P1.1b. Do not reuse opportunistic P0.x timing values.

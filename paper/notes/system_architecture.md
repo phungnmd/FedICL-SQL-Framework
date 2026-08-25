@@ -3,7 +3,8 @@
 > Canonical design record from 2026-08-19. It supersedes the FedICL-SQL and
 > Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
 > lives in `LAB_LOG.md`; canonical paper tables live in
-> `paper/results/MAIN_RESULTS.md`; superseded documents are retained under
+> `paper/results/MAIN_RESULTS.md`; the active manuscript structure lives in
+> `PAPER_OUTLINE_TARGET.md`; superseded documents are retained under
 > `paper/archive/pre_fedls_2026-08/`.
 
 ## 1. Research problem
@@ -226,12 +227,16 @@ Established evidence:
 
 Open evidence gaps:
 
-1. record the 4-bit Gemma 9B zero-shot Spider reference and audit why matched
-   BIRD-gold CE regresses relative to Gemma teacher targets;
-2. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
+1. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
    training seeds 1/2 before submission; currently deferred;
-3. finish resource benchmarking with fixed warm-up and exclusive hardware;
-4. audit the large server-stage EX-EM divergence and execution-error types.
+2. finish resource benchmarking with fixed warm-up and contention-audited
+   measurement windows on the shared server;
+3. audit EX gains, execution-error transitions, and representative transfer
+   failures. EM remains a secondary syntactic diagnostic rather than an
+   optimization target because BIRD supervision and Spider evaluation can use
+   different SQL forms;
+4. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
+   validated minimal heterogeneity sensitivity.
 
 **Method-freeze gate (finalized 2026-08-25):** the architecture above remains the
 canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that

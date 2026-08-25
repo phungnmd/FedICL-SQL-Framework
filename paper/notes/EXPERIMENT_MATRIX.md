@@ -41,11 +41,14 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 6. Do not call the existing chained centralized artifact “standard 3 epochs”;
    label it `Centralized-3pass-restart` and compare it with one continuous
    `epochs=3` run.
-7. Shared-server accuracy is valid, but timing is not paper evidence. Official
-   resource runs require fresh execution, exclusive hardware, and repetition.
-8. Treat EX as primary for the server-stage comparison. The large EX-EM
-   divergence requires an explicit equivalent-SQL/error audit; do not describe
-   the reverse-KL increment as across-seed significant.
+7. Shared-server accuracy is valid, but opportunistic timing is not paper
+   evidence. Official resource runs require fresh execution, fixed warm-up,
+   repetition, and observed-contention auditing; guaranteed exclusivity is not
+   claimed.
+8. Treat EX as primary for the server-stage comparison. Audit `EX=1, EM=0` as
+   cross-dataset SQL-form variation and an EX-validity check, not as a defect to
+   optimize away; do not describe the reverse-KL increment as across-seed
+   significant.
 
 ## Recommended execution order
 
@@ -62,7 +65,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. Complete controlled resources next, then the execution/error audit and
+6. Implement contention-audited resources next; complete the CPU-only
+   EX-oriented error audit while waiting for usable GPU windows, then run the
    final T3 seed replication for the frozen method.
 7. Keep the Gemma teacher ceiling and target-form audit as optional context.
 8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed

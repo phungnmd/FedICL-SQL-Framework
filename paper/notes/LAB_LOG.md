@@ -16,6 +16,9 @@ decisions. It deliberately does not own result tables:
 
 - Paper: **FedLS-SQL: A Novel Federated Large-Small Language Models Framework
   for Natural Language to SQL**.
+- Active manuscript structure: `PAPER_OUTLINE_TARGET.md`; the August 19 PDF is
+  retained as the advisor-provided planning source rather than a fixed
+  experiment contract.
 - Primary track: Qwen2.5-1.5B-Instruct student and frozen
   Qwen2.5-Coder-7B-Instruct teacher.
 - Method: private client LoRA fine-tuning, sample-weighted factor-wise FedAvg,
@@ -153,8 +156,10 @@ currently justify.
   `+1.71 ± 1.38 EX` with `p=0.165`. Treat RKL as provisional rather than an
   independently established contribution.
 - Server refinement lowers execution failures but creates many more
-  `EX=1, EM=0` cases. Equivalent-SQL and EX false-positive auditing remains
-  required; report EM transparently.
+  `EX=1, EM=0` cases. This is consistent with BIRD-to-Spider SQL-form
+  variation and is not a defect to optimize away. Audit representative cases
+  only to verify EX validity and explain the metric gap; report EM
+  transparently as a secondary syntactic metric.
 
 ### 3.3 Efficiency evidence
 
@@ -166,7 +171,7 @@ currently justify.
 - These values exclude transport framing and protocol metadata.
 - Shared-server timing and RAM are operational logs only. Official latency,
   VRAM, RSS, throughput, and trainable-parameter table cells remain pending a
-  fixed-warm-up, exclusive-hardware benchmark.
+  fixed-warm-up, contention-audited shared-server benchmark.
 
 ### 3.4 Generalization, portability, and negative evidence
 
@@ -218,29 +223,21 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.9a-d are closed. Global-error256 scores 56.67 Spider EX versus random256
-   at 58.70, with 240 versus 222 execution errors.
-2. P0.10a is complete without training. Client execution-result plurality plus
-   global fallback reaches 42.77 EX versus global FL at 32.23 on 512 public
-   rows (`+10.55`), with 62 corrections and 8 regressions. This supports
-   ensemble complementarity, not a FedDF training claim.
-3. The prefix audit finds early divergence in 82.20% of FL execution errors
-   and an 18.29-point early/late error-risk gap. The preference inventory has
-   2,177 pairs but only 122 clean global executable-wrong rows.
-4. P0.10d's 512-row hybrid has 58 paired corrections and 43 regressions
-   (`+1.45` EX; exact McNemar `p=0.163`), but P0.10e reverses the result at full
-   pool: 50 corrections, 62 regressions, `-1.17` EX, and 30 more execution
-   errors than hard-target CE.
-5. Close/archive P0.10 and cancel its client-only ablation. Do not tune client
-   FKL. The next active work is P1.1a warm-up-capable controlled benchmarking;
-   no official resource command is valid until that implementation is tested.
-6. P0.7t and the Gemma target-form audit remain contextual tasks; neither
-   decides the proposed method.
-7. After method freeze, run P1.1 controlled resources, the error audit, and
-   P0.8/T1R final T3 seed-1/2 reliability for the selected method.
+1. P1.1a: implement and test fixed warm-up, process-resource metrics, and
+   observed-contention auditing for the shared server.
+2. P1.2: run the CPU-only EX-oriented error/transfer audit while waiting for a
+   usable GPU measurement window. EM is explanatory only.
+3. P1.1b: collect sequential same-GPU 1.5B/7B measurements; exclude observed
+   contended or resumed repetitions from primary latency summaries.
+4. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+5. Decide whether to scope RQ3 to the fixed partition or add exactly one
+   validated heterogeneity sensitivity.
+6. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
+   experiments only for a named missing cell or reviewer objection.
 
-FedProx, broader heterogeneity, model-size/rank/client sweeps, and additional
-component seeds remain behind these gates.
+FedProx, teacher ceilings, broader heterogeneity, and model-size/rank/client
+sweeps are conditional baselines or sensitivities rather than active method
+directions.
 
 ## 6. Provenance map
 
@@ -319,6 +316,7 @@ internal artifact identities.
 | 2026-08-24 | Pulled nested result commit `52fb878` and validated P0.10d on 1,034 paired Spider rows. Hard-target CE scores 56.87 EX / 31.91 EM with 230 execution errors; adding sparse five-client FKL scores 58.32 / 39.94 with 219 errors. The hybrid corrects 58 rows and regresses 43 (`+1.45` EX, exact McNemar `p=0.163`), passing the preregistered practical gate. Activate one untuned 3,873-row P0.10e confirmation; do not change the canonical method yet. |
 | 2026-08-25 | Pulled nested result commit `e914efd` and closed P0.10e. Full-pool FedDF scores 60.15 EX / 41.01 EM with 191 execution errors, versus hard-target CE at 61.32 / 30.27 / 161 and RKL at 63.35 / 31.53 / 133. Relative to hard-target CE it has 50/62 paired gains/losses (`p=0.299`), misses the gate by 2.17 points, and adds 30 errors; relative to RKL it is `-3.20` EX (`p=0.00318`). Archive the branch without tuning and activate controlled resource benchmarking. Training resumed from step 416, so accuracy is valid but timing is not paper-eligible. |
 | 2026-08-25 | Retired P0.10 from the active project surface. The nested repository keeps compact evidence under `experiments/archive/p010_feddf_2026-08/` and a full recovery point at tag `archive/p010-feddf-evidence`; active FedDF CLI/trainer/cache code and row-level predictions were removed from HEAD. Canonical result tables, registry, architecture, and queue no longer present P0.10 as a paper component. |
+| 2026-08-25 | Replaced the broad planning outline with an evidence-backed target outline. EX is the primary endpoint; EM is a secondary cross-dataset SQL-form diagnostic. Resource evidence now uses fixed-warm-up, contention-audited shared-server windows rather than an infeasible exclusivity requirement. Method remains frozen; mandatory next gates are resources, EX-oriented audit, and final T3 seed reliability. |
 
 ## 8. Archived branches
 
