@@ -31,14 +31,20 @@ The execution-guided selector and client-ensemble distillation branches are clos
 |---|---|---|
 | P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | complete: final code `0d0faa5`, 13 targeted tests plus full 319-test suite |
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
-| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | **active GPU evidence command below** |
-| P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory after the short resource block |
+| P1.4a/b | Deterministic table manifest, related-work matrix, and manuscript skeleton | **active CPU/writing lane while GPU is unavailable; no experiment command** |
+| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | first queued GPU task; temporarily unavailable |
+| P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory second GPU task after the short resource block |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
 Ordinary `eval_arms` timing is not official resource evidence because it
 measures the first decode without a fixed warm-up. Use only the runner below
 for P1.1b.
+
+GPU hold rule: leave the command and immutable roots unchanged while capacity
+is unavailable. Do not substitute an optional teacher ceiling, method branch,
+or opportunistic timing run. Continue P1.4a/b and manuscript preparation, then
+return to this exact queue when a GPU is usable.
 
 ## P1.1 acceptance contract
 

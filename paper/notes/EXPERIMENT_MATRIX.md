@@ -66,9 +66,10 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. Implement contention-audited resources next; complete the CPU-only
-   EX-oriented error audit while waiting for usable GPU windows, then run the
-   final T3 seed replication for the frozen method.
+6. The contention-audited runner and EX audit are complete. While GPU capacity
+   is unavailable, finish the deterministic table manifest, novelty matrix,
+   and manuscript skeleton. When capacity returns, run P1.1b first and final
+   T3 seed replication second.
 7. Keep the Gemma teacher ceiling and target-form audit as optional context.
 8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
    as method directions at the current `K=5, T=1` setting; broader

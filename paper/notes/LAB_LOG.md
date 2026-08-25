@@ -232,12 +232,15 @@ currently justify.
 
 ## 5. Active queue
 
-1. P1.1b: collect sequential same-GPU 1.5B/7B measurements; exclude observed
-   contended or resumed repetitions from primary latency summaries.
-2. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
-3. Decide whether to scope RQ3 to the fixed partition or add exactly one
+1. While no GPU is available, complete the deterministic efficiency/table
+   manifest, related-work novelty matrix, and manuscript skeleton.
+2. P1.1b: when GPU capacity returns, collect sequential same-GPU 1.5B/7B
+   measurements; exclude observed contended or resumed repetitions from
+   primary latency summaries.
+3. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+4. Decide whether to scope RQ3 to the fixed partition or add exactly one
    validated heterogeneity sensitivity.
-4. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
+5. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
    experiments only for a named missing cell or reviewer objection.
 
 FedProx, teacher ceilings, broader heterogeneity, and model-size/rank/client
@@ -324,6 +327,7 @@ internal artifact identities.
 | 2026-08-25 | Replaced the broad planning outline with an evidence-backed target outline. EX is the primary endpoint; EM is a secondary cross-dataset SQL-form diagnostic. Resource evidence now uses fixed-warm-up, contention-audited shared-server windows rather than an infeasible exclusivity requirement. Method remains frozen; mandatory next gates are resources, EX-oriented audit, and final T3 seed reliability. |
 | 2026-08-25 | Completed P1.1a implementation through `cfa8d59` and P1.2 artifact `4527a76`. The benchmark admits only fresh repetitions with no observed foreign GPU PID into primary latency summaries and preserves failed attempts for safe restart. The T3 audit confirms a 121/67 correction/regression balance and 92 fewer execution failures, but exposes set operations as a significant negative stratum; retain the frozen method and activate P1.1b rather than opening a new KD branch. |
 | 2026-08-25 | Added live contention visibility at nested commit `0d0faa5`. The runner prints timestamped detection and clearance transitions with phase/repetition label, physical GPU, PID, process name when accessible, and process GPU memory; identical events remain in `contention_events`. Repeated unchanged PID sets do not spam the console, and any affected repetition remains excluded even after the foreign process clears. |
+| 2026-08-25 | GPU capacity is temporarily unavailable. Preserve P1.1b as the first unchanged GPU task and P0.8 seeds as the second; do not replace either with an optional method experiment. Activate the CPU lane: deterministic efficiency/table manifest, related-work novelty audit, and manuscript skeleton. After P0.8, either collect controlled client/server training-resource microbenchmarks or narrow RQ4 to communication plus deployment inference. |
 
 ## 8. Archived branches
 

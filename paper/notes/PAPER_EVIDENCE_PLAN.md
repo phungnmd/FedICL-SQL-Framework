@@ -70,6 +70,25 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ## 5. Active priority order
 
+### Current execution constraint — no usable GPU
+
+GPU availability is an external scheduling constraint, not an evidence or
+method failure. Do not start a different GPU experiment merely because P1.1b
+cannot launch. While the GPU lane is unavailable, work proceeds on the CPU and
+manuscript lane below; P1.1b remains the first GPU job when capacity returns.
+
+The two lanes rejoin only after P0.8:
+
+| Lane | Order | Deliverable | Gate |
+|---|---:|---|---|
+| CPU now | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
+| CPU now | 2 | P1.4b related-work/novelty matrix | retain “novel” only if the complete combination is defensible |
+| CPU now | 3 | P2 manuscript skeleton and completed evidence sections | unresolved GPU values remain explicit placeholders |
+| GPU later | 1 | P1.1b deployment inference resource block | at least three eligible repetitions per model for primary latency |
+| GPU later | 2 | P0.8 pure-FL/FedLS T3 seeds 1/2 | decide claim strength from training-seed deltas |
+| Decision | 3 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires a broader claim |
+| Decision | 4 | client/server training-resource extension | run only if RQ4 still claims measured training-resource advantages |
+
 ### P1.1a — implement a shared-server resource benchmark
 
 **Status:** complete. Nested implementation commits `74f70c1`, `cfa8d59`, and
@@ -156,17 +175,25 @@ gates.
 
 ### P1.1b — collect resource evidence
 
-**Status:** active. The exact sequential GPU-0 command is in
-`PIPELINE_NEXT.md`.
+**Status:** queued as the first GPU task; temporarily blocked only by GPU
+availability. The exact sequential GPU-0 command is in `PIPELINE_NEXT.md`.
 
-Collect three evidence blocks:
+The current P1.1b command collects the first evidence block:
 
 1. deployed Qwen 1.5B FedLS versus Qwen 7B teacher inference on identical
-   rows;
+   rows.
+
+Two possible training-resource blocks remain a post-P0.8 decision, not an
+implicit promise:
+
 2. client 1.5B LoRA training process memory and throughput on a fixed
    microbenchmark;
 3. recurring server KD process memory/throughput, separated from one-time
    teacher target generation and cache construction.
+
+If blocks 2/3 are not run, narrow RQ4 and contribution 4 to deterministic
+adapter communication plus measured deployment inference. Do not retain prose
+claiming measured client/server training-resource savings without those runs.
 
 Do not compare 1.5B client training with 7B inference as though it were an
 empirical federated-7B baseline. The supported conclusion is that the teacher
@@ -209,7 +236,26 @@ are outside the default paper.
 **Gate:** run the sensitivity only if the advisor/manuscript retains wording
 about changing or increasing heterogeneity. Otherwise narrow RQ3 and stop.
 
-### P1.4 — related-work and novelty audit
+### P1.4a — deterministic efficiency and table manifest
+
+**Status:** active CPU task while GPU is unavailable.
+
+Produce a compact paper-table manifest that:
+
+- derives trainable LoRA parameter counts and serialized adapter bytes from
+  immutable artifacts without loading a model on GPU;
+- records upload, broadcast, per-round, and T3 cumulative communication with
+  units and formulas;
+- maps every completed main, ablation, convergence, portability, and error
+  value to a stable registry ID;
+- leaves resource and seed cells as explicit `PENDING` entries;
+- can be consumed when drafting tables without copying values from terminal
+  logs.
+
+**Gate:** no paper-facing number may lack a registry/artifact path and formula
+or evaluation provenance.
+
+### P1.4b — related-work and novelty audit
 
 **Status:** mandatory CPU/writing task; may start immediately.
 
@@ -270,10 +316,16 @@ These are not part of the active queue:
 
 ## 8. Current next actions
 
-1. Run the single P1.1b PowerShell block and review repetition eligibility.
-2. If either role has fewer than three eligible repetitions, retain the result
-   as observational and schedule a fresh-root retry only for that role.
-3. After P1.1b closes, reactivate P0.8 seeds 1/2.
-4. Decide scoped RQ3 versus one minimal heterogeneity sensitivity.
-5. Build the manuscript and stop experiments unless the reviewer audit exposes
-   a named evidence gap.
+1. With no GPU, complete P1.4a, then P1.4b, and draft the manuscript skeleton
+   using only completed evidence.
+2. When a GPU becomes usable, run the unchanged P1.1b PowerShell block first
+   and review repetition eligibility.
+3. If either role has fewer than three eligible repetitions, retain it as
+   observational and schedule a fresh-root retry only for that role.
+4. Run P0.8 seeds 1/2 and decide the final accuracy-claim strength.
+5. Default RQ3 to the fixed validated partition unless a concrete manuscript
+   claim requires one heterogeneity sensitivity.
+6. Decide whether to measure client/server training resources or narrow RQ4;
+   do not hold the entire paper open for optional resource claims.
+7. Freeze the manuscript and schedule another experiment only for a named
+   missing cell or reviewer objection.
