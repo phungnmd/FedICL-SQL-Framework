@@ -195,11 +195,17 @@ is absent from clients/deployment and client network payload is adapter-only.
 
 ### P0.8 — final T3 training-seed reliability
 
-**Status:** active. Audit and reactivate seed-1 commands first; seed 2 is a
-scientific decision gate rather than an automatic parallel launch.
+**Status:** active. The audited seed-1 T2/T3 continuation and final Spider
+evaluation command is in `PIPELINE_NEXT.md`; seed 2 remains a scientific
+decision gate rather than an automatic parallel launch.
 
 Train only independent pure FL and frozen FedLS-SQL through T3 at seeds 1 and
 2 on the existing split. Evaluate the final Spider endpoints first.
+
+Seed 1 resumes the already-established canonical T1 roots
+`fedavg_noicl_k5_e1_t1_s1` and `fedkd_noicl_k5_e1_t1_s1` by invoking rounds 2
+and 3 explicitly. Restarting a three-round loop from round 1 or creating a new
+pure-FL seed-1 root would break the intended lineage and is prohibited.
 
 Decision gate:
 

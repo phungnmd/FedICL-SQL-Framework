@@ -33,7 +33,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
 | P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; implementation `62cd3f6`** |
 | P1.4b | Related-work matrix and manuscript skeleton | next CPU/writing task after P1.4a |
-| P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | **active priority; audit and reactivate exact commands next** |
+| P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | **active GPU command below; continue canonical T1 lineages through T2/T3** |
 | P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | gated on seed-1 endpoint remaining positive |
 | P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | deferred by operator; v2 command retained below, not active |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
@@ -51,6 +51,28 @@ P1.1b-v2 is now explicitly deferred, not failed or cancelled. Do not launch it
 until resource evidence is reactivated. The current GPU priority is P0.8a.
 Archived seed commands must be audited against the current checkpoint/resume
 contract before being copied back here; do not run an old block blindly.
+
+## P0.8a — final T3 reliability at seed 1
+
+**Purpose:** test whether the final T3 FedLS-SQL improvement over independent
+pure FL survives a second training seed. Seed 1 already has canonical T1
+checkpoints; this command extends those exact lineages through rounds 2 and 3
+and evaluates only the two final Spider endpoints. It does not retrain round 1.
+
+The preflight pins the existing T1 setup identities (`3680b91c...` for pure
+FL and `c695a493...` for FedLS-SQL). Each round is an independent resumable
+stage: rerun this exact command after interruption. Completed adapters and an
+exact completed evaluation manifest are reused safely. Do not replace this
+with the archived `run --rounds 3` block, which would restart at round 1 and
+would not preserve the established seed-1 lineage.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $S=1; $F='artifacts/federated/fedavg_noicl_k5_e1_t1_s1'; $K='artifacts/federated/fedkd_noicl_k5_e1_t1_s1'; $E='artifacts/eval_resume/fedls_final_t3_spider_s1/eval_k0'; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json',"$F/setup.json","$F/manifest.json","$F/round_1/fedavg_adapter/adapter_config.json","$K/setup.json","$K/manifest.json","$K/round_1/m_g/adapter_config.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.8a input or canonical T1 artifact: $P" } }; $FS=Get-Content -LiteralPath "$F/setup.json" -Raw | ConvertFrom-Json; $KS=Get-Content -LiteralPath "$K/setup.json" -Raw | ConvertFrom-Json; if ($FS.setup_id -ne '3680b91c34f6631fea4cca61573f28edfe30e75a51e01bef19167e87ad13b5e1') { throw "Unexpected pure-FL seed-1 setup identity: $($FS.setup_id)" }; if ($KS.setup_id -ne 'c695a4936ed59b6609bc48909f22b94ade2375cfc061386c8b4d3847f3264994') { throw "Unexpected FedLS seed-1 setup identity: $($KS.setup_id)" }; foreach ($N in @(2,3)) { $P=$N-1; $I="$F/round_${P}/fedavg_adapter"; uv run python experiments/federated/run.py round --arm fedavg --round $N --init-adapter $I --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --seed $S --stage poc --out $F; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed 1 round $N failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$F/round_${N}/fedavg_adapter/adapter_config.json")) { throw "Incomplete pure-FL seed 1 round $N" } }; foreach ($N in @(2,3)) { $P=$N-1; $I="$K/round_${P}/m_g"; uv run python experiments/federated/run.py round --arm fedkd --round $N --init-adapter $I --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1.0 --lambda-kd 1.0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --seed $S --stage poc --out $K; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed 1 round $N failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$K/round_${N}/m_g/adapter_config.json")) { throw "Incomplete FedLS-SQL seed 1 round $N" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s1_t3=$F/round_3/fedavg_adapter" "fedls_s1_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.8a final Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.8a evaluation manifest directory: $E/manifests" }; Write-Host 'P0.8a complete: seed-1 pure FL and FedLS-SQL T3 evaluated; stop and review the paired EX delta before seed 2'
+```
+
+After completion, push only compact federated results and evaluation
+metrics/configs/predictions/manifests. Do not launch seed 2 until the paired
+seed-1 EX result and lineage have been reviewed.
 
 ## P1.4a — deterministic paper-table manifest (CPU only)
 
