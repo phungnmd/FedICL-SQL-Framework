@@ -223,7 +223,11 @@ Established evidence:
   clearest common mechanism across the two families;
 - Gemma matched-gold CE is a negative control at 41.68 EX and 303 execution
   errors despite using the same 2,487 source identities as the teacher-guided
-  arms; its target-form/style mismatch remains under audit.
+  arms; its target-form/style mismatch remains contextual rather than a blocker;
+- the paired Qwen T3 audit finds 121 FedLS corrections versus 67 regressions
+  (`p=0.0001002`) and reduces execution errors from 193 to 101. Improvements
+  concentrate in common aggregation/order/limit structures, while set
+  operations are the clearest negative stratum (`-18.75` EX).
 
 Open evidence gaps:
 
@@ -231,11 +235,7 @@ Open evidence gaps:
    training seeds 1/2 before submission; currently deferred;
 2. finish resource benchmarking with fixed warm-up and contention-audited
    measurement windows on the shared server;
-3. audit EX gains, execution-error transitions, and representative transfer
-   failures. EM remains a secondary syntactic diagnostic rather than an
-   optimization target because BIRD supervision and Spider evaluation can use
-   different SQL forms;
-4. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
+3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
    validated minimal heterogeneity sensitivity.
 
 **Method-freeze gate (finalized 2026-08-25):** the architecture above remains the

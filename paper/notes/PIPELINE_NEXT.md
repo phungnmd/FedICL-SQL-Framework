@@ -29,17 +29,16 @@ The execution-guided selector and client-ensemble distillation branches are clos
 
 | Order | Task | Status / decision |
 |---|---|---|
-| P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | **active engineering task; no experiment command yet** |
-| P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | next CPU evidence task; may run while waiting for a GPU window |
-| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | blocked on P1.1a |
+| P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | complete: final code `cfa8d59`, 12 targeted tests plus full suite |
+| P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
+| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | **active GPU evidence command below** |
 | P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory after the short resource block |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
-No GPU experiment should start until P1.1a defines and tests warm-up semantics,
-timing scope, repeated-run aggregation, and fresh-run eligibility. Ordinary
-`eval_arms` timing is not official resource evidence because it measures the
-first decode without a fixed warm-up.
+Ordinary `eval_arms` timing is not official resource evidence because it
+measures the first decode without a fixed warm-up. Use only the runner below
+for P1.1b.
 
 ## P1.1 acceptance contract
 
@@ -63,8 +62,27 @@ hardware exclusivity. If fewer than three eligible repetitions are available,
 latency remains observational; deterministic counts and precisely labeled
 process-memory measurements may still be reported.
 
-After the code and tests pass, add the exact single-line PowerShell commands
-here before launching P1.1b. Do not reuse opportunistic P0.x timing values.
+P1.1a is implemented by `experiments/resource_benchmark/run.py` and guarded by
+`experiments/resource_benchmark/summarize.py`. Each complete repetition is an
+atomic resumable unit. Re-running the exact command skips a terminal result or
+continues missing repetitions; a fingerprint mismatch requires a new root.
+
+## P1.1b — Qwen 1.5B versus 7B steady-state inference
+
+**Purpose:** measure the deployment-side cost difference on the same 32 Spider
+rows. The final 1.5B FedLS adapter runs in its canonical BF16 path; the 7B
+teacher runs in its canonical 4-bit reference path. This is deliberately
+conservative for the teacher and is not a federated-7B training comparison.
+
+Run both models sequentially on physical GPU 0. If GPU 0 is unsuitable, do not
+edit only `CUDA_VISIBLE_DEVICES`; create a separately documented GPU-1 command
+with new output roots and `--gpu-index 1`.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $S='experiments/resource_benchmark/results/p11b_qwen15b_fedls_t3_spider32_s0_gpu0'; $T='experiments/resource_benchmark/results/p11b_qwen7b_teacher4bit_spider32_s0_gpu0'; $O='experiments/resource_benchmark/results/p11b_qwen15b_vs_7b_spider32_s0_gpu0.json'; uv run python experiments/resource_benchmark/run.py --role deployed_student --model Qwen/Qwen2.5-1.5B-Instruct --adapter artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g --test-csv processed_data/SPIDER/centralized/test.csv --schema-style full --n-eval 32 --warmup-rows 2 --repetitions 5 --minimum-eligible 3 --batch-size 4 --max-new-tokens 256 --gpu-index 0 --seed 0 --out $S; if ($LASTEXITCODE -ne 0) { throw 'P1.1b student benchmark failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$S/result.json")) { throw "Missing student terminal result: $S/result.json" }; uv run python experiments/resource_benchmark/run.py --role teacher_reference --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --test-csv processed_data/SPIDER/centralized/test.csv --schema-style full --n-eval 32 --warmup-rows 2 --repetitions 5 --minimum-eligible 3 --batch-size 4 --max-new-tokens 256 --gpu-index 0 --seed 0 --out $T; if ($LASTEXITCODE -ne 0) { throw 'P1.1b teacher benchmark failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$T/result.json")) { throw "Missing teacher terminal result: $T/result.json" }; uv run python experiments/resource_benchmark/summarize.py --student "$S/result.json" --teacher "$T/result.json" --minimum-eligible 3 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P1.1b comparison summary failed' }; if (-not (Test-Path -LiteralPath $O)) { throw "Missing P1.1b comparison: $O" }; $V=Get-Content -LiteralPath $O -Raw | ConvertFrom-Json; if ($V.paper_latency_comparison_eligible) { Write-Host "P1.1b complete: teacher/student latency ratio=$($V.teacher_over_student_latency_ratio)" } else { Write-Warning 'P1.1b completed but has fewer than three clean repetitions for one or both models; retain as observational and review contention before scheduling a fresh-root retry' }
+```
+
+Do not run the two roles in parallel or reuse opportunistic P0.x timing values.
 
 ## Deferred command provenance
 

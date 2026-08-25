@@ -19,7 +19,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | payload bytes consolidated; trainable-parameter count and table export pending |
-| P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | instrumentation ready; official controlled runs pending |
+| P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | contention-audited runner complete at `cfa8d59`; official P1.1b run pending |
+| P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P2 | optimizer baseline | FedProx SLM | not implemented/run; baseline only, not proposed direction without drift evidence |

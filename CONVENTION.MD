@@ -157,12 +157,14 @@ time, throughput, or memory pressure.
 
 For a number to enter a paper resource table:
 
-- use a fresh, non-resumed measurement on an otherwise idle selected GPU;
+- use fresh, non-resumed measurement windows on one selected GPU and audit
+  visible compute processes throughout each window;
 - record the exact GPU, runtime versions, precision, batch size, sequence
   length, warm-up, measured scope, and repetition count;
 - synchronize the accelerator at timing boundaries;
-- repeat the fixed recipe at least three times and report median plus
-  dispersion;
+- run at least five fixed repetitions, require at least three repetitions with
+  no observed foreign process for the primary latency summary, and report
+  median plus dispersion;
 - report process peak RSS separately from system RAM;
 - label PyTorch allocated and reserved VRAM separately and never present either
   as total device VRAM;
@@ -170,10 +172,12 @@ For a number to enter a paper resource table:
 - keep offline one-time teacher/cache cost separate from recurring client,
   server-round, and deployment inference cost.
 
-`paper_timing_eligible=true` in a result means the code observed a fresh,
-non-reused measurement path. It is necessary but not sufficient: the run log
-must also confirm exclusive hardware. Communication bytes are artifact-derived
-and do not require an exclusive machine.
+`paper_timing_eligible=true` in a result means the code observed enough fresh,
+non-reused, non-contended measurement windows. The claim is limited to **no
+observed foreign compute process on the selected GPU**; it is not a guarantee
+of scheduler-level hardware exclusivity. If fewer than three eligible windows
+are available, latency is observational only. Communication bytes are
+artifact-derived and do not require a contention-free machine.
 
 ## 7. Result retention
 

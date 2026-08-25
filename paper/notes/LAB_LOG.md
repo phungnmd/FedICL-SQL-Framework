@@ -29,6 +29,15 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
+- P1.1a is implemented through nested commit `cfa8d59`: fixed in-process warm-up,
+  synchronized steady-state generation, process RSS/PyTorch VRAM, atomic
+  repetitions, observed foreign-PID monitoring, guarded eligible-only
+  aggregation, and cross-model comparison are tested.
+- P1.2 is complete at artifact commit `4527a76`. On 1,034 paired T3 Spider
+  rows, FedLS corrects 121 FL failures and regresses 67 (`p=0.0001002`) while
+  reducing execution errors from 193 to 101. Medium, aggregation, GROUP BY,
+  JOIN, ORDER BY, and LIMIT improve; set operations regress by 18.75 points and
+  are the clearest method limitation.
 - P0.7a-c/e technical prerequisites passed through selection. Gemma generated
   9,428 outcomes (9,427 non-empty), 7,162 passed quick execution, and
   `N_gemma=2,487` matched BIRD gold. The official stage also recorded 4,443
@@ -223,16 +232,12 @@ currently justify.
 
 ## 5. Active queue
 
-1. P1.1a: implement and test fixed warm-up, process-resource metrics, and
-   observed-contention auditing for the shared server.
-2. P1.2: run the CPU-only EX-oriented error/transfer audit while waiting for a
-   usable GPU measurement window. EM is explanatory only.
-3. P1.1b: collect sequential same-GPU 1.5B/7B measurements; exclude observed
+1. P1.1b: collect sequential same-GPU 1.5B/7B measurements; exclude observed
    contended or resumed repetitions from primary latency summaries.
-4. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
-5. Decide whether to scope RQ3 to the fixed partition or add exactly one
+2. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+3. Decide whether to scope RQ3 to the fixed partition or add exactly one
    validated heterogeneity sensitivity.
-6. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
+4. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
    experiments only for a named missing cell or reviewer objection.
 
 FedProx, teacher ceilings, broader heterogeneity, and model-size/rank/client
@@ -317,6 +322,7 @@ internal artifact identities.
 | 2026-08-25 | Pulled nested result commit `e914efd` and closed P0.10e. Full-pool FedDF scores 60.15 EX / 41.01 EM with 191 execution errors, versus hard-target CE at 61.32 / 30.27 / 161 and RKL at 63.35 / 31.53 / 133. Relative to hard-target CE it has 50/62 paired gains/losses (`p=0.299`), misses the gate by 2.17 points, and adds 30 errors; relative to RKL it is `-3.20` EX (`p=0.00318`). Archive the branch without tuning and activate controlled resource benchmarking. Training resumed from step 416, so accuracy is valid but timing is not paper-eligible. |
 | 2026-08-25 | Retired P0.10 from the active project surface. The nested repository keeps compact evidence under `experiments/archive/p010_feddf_2026-08/` and a full recovery point at tag `archive/p010-feddf-evidence`; active FedDF CLI/trainer/cache code and row-level predictions were removed from HEAD. Canonical result tables, registry, architecture, and queue no longer present P0.10 as a paper component. |
 | 2026-08-25 | Replaced the broad planning outline with an evidence-backed target outline. EX is the primary endpoint; EM is a secondary cross-dataset SQL-form diagnostic. Resource evidence now uses fixed-warm-up, contention-audited shared-server windows rather than an infeasible exclusivity requirement. Method remains frozen; mandatory next gates are resources, EX-oriented audit, and final T3 seed reliability. |
+| 2026-08-25 | Completed P1.1a implementation through `cfa8d59` and P1.2 artifact `4527a76`. The benchmark admits only fresh repetitions with no observed foreign GPU PID into primary latency summaries and preserves failed attempts for safe restart. The T3 audit confirms a 121/67 correction/regression balance and 92 fewer execution failures, but exposes set operations as a significant negative stratum; retain the frozen method and activate P1.1b rather than opening a new KD branch. |
 
 ## 8. Archived branches
 

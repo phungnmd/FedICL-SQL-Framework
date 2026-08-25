@@ -72,7 +72,8 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ### P1.1a — implement a shared-server resource benchmark
 
-**Status:** active engineering task; no official benchmark command yet.
+**Status:** complete. Nested implementation commits `74f70c1` and `cfa8d59`;
+targeted resource/audit tests and the full 318-test suite pass.
 
 **Reviewer objection resolved:** the paper claims resource and deployment
 advantages but current timing came from opportunistic shared-server runs.
@@ -111,8 +112,8 @@ impossible to aggregate silently before P1.1b commands are added.
 
 ### P1.2 — EX-oriented error and transfer audit
 
-**Status:** next CPU evidence task; it may be completed while waiting for a
-usable GPU measurement window.
+**Status:** complete. Canonical artifact commit `4527a76` compares all 1,034
+paired Qwen T3 Spider rows.
 
 **Reviewer objection resolved:** what kinds of NL-to-SQL errors are corrected
 by the server treatment, and are the reported EX gains interpretable?
@@ -132,9 +133,29 @@ Minimum analysis:
 reliable, report a smaller descriptive analysis rather than inferred labels.
 Do not create a method branch merely to increase EM.
 
+Observed decision:
+
+- FedLS corrects 121 rows and regresses 67 (`+5.22 EX`, exact McNemar
+  `p=0.0001002`).
+- Execution errors fall from 193 to 101; 72 former execution failures become
+  correct and another 56 become executable.
+- The largest positive strata are medium difficulty (`+9.87`), LIMIT
+  (`+13.23`), ORDER BY (`+11.81`), GROUP BY (`+7.22`), aggregation (`+5.99`),
+  and JOIN (`+5.39`).
+- Set operations are the clearest weakness (`-18.75`, 5 wins/20 losses); hard
+  and nested-query subsets are approximately neutral.
+- All 1,034 gold SQL parse under the SQLGlot SQLite audit. Construct strata are
+  overlapping exploratory subsets, not multiple-testing-adjusted causal
+  claims.
+
+This evidence supports a targeted discussion and future-work limitation; it
+does not reopen method development before the mandatory resource and seed
+gates.
+
 ### P1.1b — collect resource evidence
 
-**Status:** blocked on P1.1a.
+**Status:** active. The exact sequential GPU-0 command is in
+`PIPELINE_NEXT.md`.
 
 Collect three evidence blocks:
 
@@ -247,10 +268,10 @@ These are not part of the active queue:
 
 ## 8. Current next actions
 
-1. Implement and test P1.1a's contention-audited benchmark path.
-2. Run the CPU-only P1.2 audit while waiting for acceptable GPU windows.
-3. Add single-line PowerShell P1.1b commands only after P1.1a passes.
-4. Collect the short resource block, then reactivate P0.8 seeds 1/2.
-5. Decide scoped RQ3 versus one minimal heterogeneity sensitivity.
-6. Build the manuscript and stop experiments unless the reviewer audit exposes
+1. Run the single P1.1b PowerShell block and review repetition eligibility.
+2. If either role has fewer than three eligible repetitions, retain the result
+   as observational and schedule a fresh-root retry only for that role.
+3. After P1.1b closes, reactivate P0.8 seeds 1/2.
+4. Decide scoped RQ3 versus one minimal heterogeneity sensitivity.
+5. Build the manuscript and stop experiments unless the reviewer audit exposes
    a named evidence gap.

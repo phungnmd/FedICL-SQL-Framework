@@ -75,6 +75,8 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.qwen.t1.p09b.s0.spider` | FL/full-uniform/random256/global-error256 method gate, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T042237` | canonical negative ablation; code SHA `a45f683`, result commit `10a0bbd` |
 | `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
+| `audit.qwen.t3.fl-fedls.ex-transfer` | paired EX state transitions, hardness, SQL constructs, and execution errors on 1,034 Spider rows | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_ex_transfer.json` | canonical; analysis code `74f70c1`, artifact commit `4527a76` |
+| `audit.qwen.t3.fl-fedls.examples` | deterministic fixed-rule corrected/regressed/EX-valid SQL-form examples | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_examples.csv` | canonical companion to the EX-transfer audit |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before

@@ -275,17 +275,58 @@ exclusivity is not claimed.
 
 ## 6. Error analysis
 
-Supports the error analysis currently proposed in draft §4.4.
+The canonical paired audit uses the independent pure-FL and FedLS-SQL T3
+predictions on all 1,034 Spider rows. EX is primary; EM is retained only as a
+SQL-form diagnostic.
+
+### 6.1 Outcome-state transitions
+
+| Outcome | Pure FL | FedLS-SQL | Change |
+|---|---:|---:|---:|
+| EX correct | 665 | **719** | +54 net |
+| Executable but wrong | 176 | 214 | +38 |
+| Execution error | 193 | **101** | -92 (-47.7%) |
+
+FedLS corrects 121 FL failures and regresses 67 FL-correct rows, reproducing the
+headline `+5.22` EX difference (exact McNemar `p=0.0001002`). Of the 193 FL
+execution errors, 72 become correct, 56 become executable-but-wrong, and 65
+remain execution errors. Missing-column failures fall from 163 to 91 and
+missing-table failures from 20 to 2.
+
+### 6.2 Hardness and SQL-construct strata
+
+| Stratum | n | FL EX | FedLS EX | Delta | Wins/losses | Paired `p` |
+|---|---:|---:|---:|---:|---:|---:|
+| Medium | 446 | 64.35 | **74.22** | +9.87 | 64/20 | <0.00001 |
+| Aggregation | 551 | 67.15 | **73.14** | +5.99 | 62/29 | 0.00071 |
+| GROUP BY | 277 | 61.37 | **68.59** | +7.22 | 38/18 | 0.0105 |
+| JOIN | 408 | 46.57 | **51.96** | +5.39 | 56/34 | 0.0263 |
+| ORDER BY | 237 | 59.49 | **71.31** | +11.81 | 40/12 | 0.00013 |
+| LIMIT | 189 | 57.67 | **70.90** | +13.23 | 35/10 | 0.00025 |
+| Hard | 174 | **55.17** | 54.60 | -0.57 | 19/20 | 1.000 |
+| Nested query | 83 | 49.40 | **50.60** | +1.20 | 6/5 | 1.000 |
+| Set operation | 80 | **50.00** | 31.25 | **-18.75** | 5/20 | 0.00408 |
+
+All 1,034 gold queries parse under SQLGlot's SQLite dialect. Construct subsets
+overlap and the displayed tests are exploratory, not adjusted for multiple
+comparisons. The robust paper interpretation is that FedLS sharply reduces
+invalid SQL and helps several common structures, while set operations remain a
+specific limitation rather than a reason to change the frozen method.
+
+FedLS T3 has 333 `EX=1, EM=0` rows. These pass the execution-result criterion
+and are consistent with BIRD-to-Spider SQL-form variation; a deterministic
+example file is retained for transparent qualitative inspection. EM is not an
+optimization target.
 
 | Analysis | Available evidence | Status |
 |---|---|---|
-| Invalid/execution failures | per-row `exec_error` plus aggregate rates | ready for audit |
-| EX=1, EM=0 SQL-form variation | 338 FedLS-T1 vs 101 FL-T1 cases | `PENDING:error-audit`; secondary diagnostic, not an optimization target |
-| Spider hardness | easy/medium/hard/extra metrics logged | ready |
-| JOIN/nested/aggregation/filtering constructs | predictions available; validated classifier absent | pending utility |
+| Invalid/execution failures | paired states and grouped SQLite errors | complete |
+| EX=1, EM=0 SQL-form variation | 333 FedLS-T3 cases plus deterministic examples | complete as secondary diagnostic |
+| Spider hardness | paired T3 audit | complete |
+| JOIN/nested/aggregation/filtering constructs | SQLGlot parse coverage 1,034/1,034 | complete exploratory strata |
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |
 | Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
-| LLM-SLM transfer failures | matched prediction rows available | ready for representative audit |
+| LLM-SLM transfer failures | 121 corrections, 67 regressions, fixed-rule examples | complete descriptive audit |
 
 ## 7. Adaptive evidence dashboard
 
@@ -297,7 +338,7 @@ Supports the error analysis currently proposed in draft §4.4.
 | Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |
 | Convergence analysis | §3.1–§3.2 | seed 0 complete; final reliability deferred as P0.8 |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
-| Error analysis | §6 | predictions available; structured audit pending |
+| Error analysis | §6 | paired EX-oriented T3 audit complete |
 
 This dashboard may be reordered, reduced, or extended after each evidence gate.
 The draft outline is an experiment menu, not evidence that every proposed sweep
