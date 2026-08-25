@@ -33,8 +33,9 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
 | P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; implementation `62cd3f6`** |
 | P1.4b | Related-work matrix and manuscript skeleton | next CPU/writing task after P1.4a |
-| P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one selected GPU | **active fresh-root GPU command below** |
-| P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory second GPU task after the short resource block |
+| P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | **active priority; audit and reactivate exact commands next** |
+| P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | gated on seed-1 endpoint remaining positive |
+| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | deferred by operator; v2 command retained below, not active |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
@@ -45,6 +46,11 @@ for P1.1b.
 The first P1.1b collection used a superseded PID-presence rule and produced
 zero eligible rows under Windows/WDDM. Retain it as observational provenance;
 do not merge it with the revised independent-repetition protocol.
+
+P1.1b-v2 is now explicitly deferred, not failed or cancelled. Do not launch it
+until resource evidence is reactivated. The current GPU priority is P0.8a.
+Archived seed commands must be audited against the current checkpoint/resume
+contract before being copied back here; do not run an old block blindly.
 
 ## P1.4a — deterministic paper-table manifest (CPU only)
 

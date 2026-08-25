@@ -70,20 +70,21 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ## 5. Active priority order
 
-### Current execution state — GPU available
+### Current execution state — resource block deferred
 
-P1.1b-v2 is the active task. Run the student and teacher sequentially as fresh
-independent repetitions. The earlier PID-gated collection is observational
-only and must not be merged into v2.
+P1.1b-v2 is pending by operator decision. This does not weaken existing
+accuracy evidence; it leaves RQ4 resource cells open. The active GPU priority
+is the final seed-reliability gate, with seed 1 deciding whether seed 2 should
+run unchanged or the claim should first be reviewed.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
-| GPU now | 1 | P1.1b-v2 deployment inference resource block | at least three fresh successful repetitions per model |
-| GPU next | 2 | P0.8 pure-FL/FedLS T3 seeds 1/2 | decide claim strength from training-seed deltas |
+| GPU now | 1 | P0.8a pure-FL/FedLS T3 seed 1 | continue only after paired Spider endpoint review |
+| GPU next | 2 | P0.8b pure-FL/FedLS T3 seed 2 | run unchanged if seed 1 remains positive; otherwise review claim first |
 | CPU | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
 | CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | retain “novel” only if the complete combination is defensible |
 | Decision | 3 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires a broader claim |
-| Decision | 4 | client/server training-resource extension | run only if RQ4 still claims measured training-resource advantages |
+| Deferred | 4 | P1.1b-v2 and client/server training-resource extension | reactivate only when RQ4 evidence is scheduled again |
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -167,8 +168,9 @@ gates.
 
 ### P1.1b — collect resource evidence
 
-**Status:** queued as the first GPU task; temporarily blocked only by GPU
-availability. The exact sequential GPU-0 command is in `PIPELINE_NEXT.md`.
+**Status:** deferred by operator decision. The fresh-root v2 command remains in
+`PIPELINE_NEXT.md` for later reactivation and must not be mixed with the
+superseded PID-gated collection.
 
 The current P1.1b command collects the first evidence block:
 
@@ -193,14 +195,17 @@ is absent from clients/deployment and client network payload is adapter-only.
 
 ### P0.8 — final T3 training-seed reliability
 
-**Status:** mandatory after the short resource block; commands are preserved
-but not currently active.
+**Status:** active. Audit and reactivate seed-1 commands first; seed 2 is a
+scientific decision gate rather than an automatic parallel launch.
 
 Train only independent pure FL and frozen FedLS-SQL through T3 at seeds 1 and
 2 on the existing split. Evaluate the final Spider endpoints first.
 
 Decision gate:
 
+- seed 1 positive: run the unchanged seed-2 design;
+- seed 1 reversed: stop before seed 2, verify lineage/evaluation first, and
+  review whether the headline claim must be weakened;
 - stable positive deltas: report the three-seed mean and sample SD and retain
   the headline claim;
 - positive but noisy: report uncertainty and avoid expanding all OOD runs;
@@ -308,14 +313,16 @@ These are not part of the active queue:
 
 ## 8. Current next actions
 
-1. Run the fresh-root P1.1b-v2 PowerShell block and validate both repeated
-   collections; do not merge the superseded PID-gated result.
-2. Run P0.8 seeds 1/2 and decide the final accuracy-claim strength.
-3. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
+1. Audit and add exact P0.8a seed-1 PowerShell commands under the current
+   checkpoint/resume contract.
+2. Run and review the paired seed-1 Spider endpoints before activating P0.8b.
+3. If seed 1 is positive, run seed 2 and report the three-training-seed mean
+   and sample SD; if reversed, inspect lineage and weaken the claim as needed.
+4. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
    resource windows.
-4. Default RQ3 to the fixed validated partition unless a concrete manuscript
+5. Default RQ3 to the fixed validated partition unless a concrete manuscript
    claim requires one heterogeneity sensitivity.
-5. Decide whether to measure client/server training resources or narrow RQ4;
-   do not hold the entire paper open for optional resource claims.
-6. Freeze the manuscript and schedule another experiment only for a named
+6. Later, either reactivate P1.1b-v2 and optional training-resource measurements
+   or narrow RQ4; do not hold the accuracy paper open for this deferred block.
+7. Freeze the manuscript and schedule another experiment only for a named
    missing cell or reviewer objection.

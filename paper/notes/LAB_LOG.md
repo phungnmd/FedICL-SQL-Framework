@@ -72,8 +72,8 @@ decisions. It deliberately does not own result tables:
   metrics report SHA `e144d8b`, indicating a mid-run worktree update. Accuracy
   remains comparable because both effective paths are unquantized defaults;
   exact process provenance is limited to the saved config for this artifact.
-- Final T3 seed-1/2 reliability is retained as P0.8 but deferred under the
-  current discovery-first priority.
+- Final T3 seed-1/2 reliability is retained as P0.8; seed 1 is now the active
+  gate and seed 2 depends on its paired endpoint review.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
@@ -232,14 +232,17 @@ currently justify.
 
 ## 5. Active queue
 
-1. P1.1b-v2: collect sequential same-GPU 1.5B/7B measurements under the
-   independent-repetition protocol; do not merge the superseded PID-gated run.
-2. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+1. P0.8a/T1R: audit and run final T3 pure-FL versus frozen FedLS-SQL at seed 1,
+   then review paired Spider EX before activating seed 2.
+2. P0.8b/T1R: run seed 2 only if the seed-1 gate remains positive; otherwise
+   inspect lineage and claim strength first.
 3. Complete the deterministic efficiency/table manifest, related-work novelty
    matrix, and manuscript skeleton outside timed resource windows.
-4. Decide whether to scope RQ3 to the fixed partition or add exactly one
+4. Keep P1.1b-v2 pending for later reactivation or narrow RQ4 if it remains
+   unmeasured.
+5. Decide whether to scope RQ3 to the fixed partition or add exactly one
    validated heterogeneity sensitivity.
-5. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
+6. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
    experiments only for a named missing cell or reviewer objection.
 
 FedProx, teacher ceilings, broader heterogeneity, and model-size/rank/client
@@ -329,6 +332,7 @@ internal artifact identities.
 | 2026-08-25 | GPU capacity is temporarily unavailable. Preserve P1.1b as the first unchanged GPU task and P0.8 seeds as the second; do not replace either with an optional method experiment. Activate the CPU lane: deterministic efficiency/table manifest, related-work novelty audit, and manuscript skeleton. After P0.8, either collect controlled client/server training-resource microbenchmarks or narrow RQ4 to communication plus deployment inference. |
 | 2026-08-25 | Implemented P1.4a at nested commit `62cd3f6`. The CPU-only builder reads adapter tensor metadata without model loading, validates stable IDs and canonical paths, reconciles every client upload/global broadcast byte count with each round's aggregation metadata, structures canonical result tables, inventories pending cells, and writes an immutable JSON/CSV pair. The production command is active; no paper values change until its server artifact is validated. |
 | 2026-08-25 | The first P1.1b collection completed but the PID-presence gate classified all 5/5 student and 5/5 teacher repetitions as contended because Windows/WDDM exposed many persistent contexts. Its descriptive medians were about 25.62 s/32 queries for the 1.5B student and 53.44 s/32 queries for the 7B teacher (about 2.09x), but these are not canonical. Per operator decision, commit `487b3b2` removes PID enumeration and treats each fresh successful repetition independently while retaining device telemetry. P1.1b-v2 must use new roots and must not merge the superseded collection. |
+| 2026-08-25 | Deferred P1.1b-v2 by operator decision and promoted P0.8 seed reliability. Seed 1 is now the active GPU gate; seed 2 runs only after the paired seed-1 Spider endpoint remains positive. Resource code and the v2 command remain reproducible for later reactivation, but the resource block must not delay the primary accuracy-evidence decision. |
 
 ## 8. Archived branches
 
