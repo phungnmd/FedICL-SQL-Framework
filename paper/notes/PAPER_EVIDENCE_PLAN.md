@@ -238,7 +238,8 @@ about changing or increasing heterogeneity. Otherwise narrow RQ3 and stop.
 
 ### P1.4a — deterministic efficiency and table manifest
 
-**Status:** active CPU task while GPU is unavailable.
+**Status:** implementation complete at nested commit `62cd3f6`; the CPU-only
+production command is active in `PIPELINE_NEXT.md` and its artifact is pending.
 
 Produce a compact paper-table manifest that:
 

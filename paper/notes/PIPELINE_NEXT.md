@@ -31,7 +31,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 |---|---|---|
 | P1.1a | Add fixed warm-up, process metrics, and observed-contention auditing | complete: final code `0d0faa5`, 13 targeted tests plus full 319-test suite |
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
-| P1.4a/b | Deterministic table manifest, related-work matrix, and manuscript skeleton | **active CPU/writing lane while GPU is unavailable; no experiment command** |
+| P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; implementation `62cd3f6`** |
+| P1.4b | Related-work matrix and manuscript skeleton | next CPU/writing task after P1.4a |
 | P1.1b | Benchmark Qwen student 1.5B versus teacher 7B sequentially on one contention-audited GPU | first queued GPU task; temporarily unavailable |
 | P0.8 | Final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2 | mandatory second GPU task after the short resource block |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
@@ -45,6 +46,26 @@ GPU hold rule: leave the command and immutable roots unchanged while capacity
 is unavailable. Do not substitute an optional teacher ceiling, method branch,
 or opportunistic timing run. Continue P1.4a/b and manuscript preparation, then
 return to this exact queue when a GPU is usable.
+
+## P1.4a — deterministic paper-table manifest (CPU only)
+
+**Purpose:** fill the deterministic part of RQ4 without loading either base
+model. The script reads `safetensors` headers, verifies canonical registry
+paths, checks every round's client/global adapter bytes against its immutable
+`factor_fedavg_meta.json`, structures all canonical result tables, and records
+remaining `PENDING` cells. Pure FL and FedLS T3 adapters must have the same
+tensor schema.
+
+The output root is immutable. Re-running the exact command skips a matching
+JSON/CSV pair, repairs only a missing companion CSV, and rejects any changed
+input or corrupted companion output.
+
+```powershell
+$O='audits/paper_table_manifest_qwen_t3_s0.json'; $C='audits/paper_table_manifest_qwen_t3_s0.communication.csv'; uv run python scripts/build_paper_table_manifest.py --adapter 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter' --adapter 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g' --federated-run 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0' --federated-run 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0' --registry ../paper/notes/RESULT_REGISTRY.md --main-results ../paper/results/MAIN_RESULTS.md --n-clients 5 --rounds 3 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P1.4a deterministic manifest failed; inspect provenance drift before using a new output root' }; if (-not (Test-Path -LiteralPath $O) -or -not (Test-Path -LiteralPath $C)) { throw 'P1.4a terminal JSON/CSV pair is incomplete; rerun this exact line to repair or resume' }; $V=Get-Content -LiteralPath $O -Raw | ConvertFrom-Json; if ($V.adapters.Count -ne 2 -or $V.communication.Count -ne 2 -or -not $V.validation.adapter_tensor_schema_shared -or -not $V.validation.communication_matches_round_metadata -or -not $V.validation.no_gpu_model_loading) { throw 'P1.4a manifest validation failed' }; Write-Host "P1.4a complete: adapter_params=$($V.adapters[0].adapter_tensor_parameters) FL_T3_bytes=$($V.communication[0].cumulative.round_total) FedLS_T3_bytes=$($V.communication[1].cumulative.round_total) pending_cells=$($V.pending_cells.Count)"
+```
+
+Commit the compact JSON and CSV after validating that the communication totals
+agree with §5.1 of `paper/results/MAIN_RESULTS.md`. Do not commit adapters.
 
 ## P1.1 acceptance contract
 

@@ -18,7 +18,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seed 0 complete; seeds 1/2 deferred, not cancelled |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
-| P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | payload bytes consolidated; trainable-parameter count and table export pending |
+| P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | CPU-only manifest implementation complete at `62cd3f6`; production artifact pending P1.4a command |
 | P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | contention-audited runner complete through `0d0faa5`, including live PID-transition warnings; official P1.1b run pending |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
