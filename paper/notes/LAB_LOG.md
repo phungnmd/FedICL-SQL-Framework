@@ -66,11 +66,10 @@ decisions. It deliberately does not own result tables:
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
   P0.9b showed that training on that signal is worse than a matched random
-  subset. Uniform hard SeqKD remains the fallback. P0.10c/d subsequently
-  validated an LLM-anchored FedDF training path: on the matched 512-row screen
-  it gains 1.45 Spider EX and removes 11 execution errors. This passes the
-  preregistered screen but does not change the canonical method before the
-  active 3,873-row P0.10e confirmation.
+  subset. Uniform hard SeqKD remains the fallback. P0.10d's positive 512-row
+  FedDF screen does not survive P0.10e: at 3,873 rows it loses 1.17 EX and adds
+  30 execution errors versus hard-target CE, and trails RKL by 3.20 EX. P0.10
+  is closed and archived without tuning; the canonical method is frozen.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -228,12 +227,13 @@ currently justify.
 3. The prefix audit finds early divergence in 82.20% of FL execution errors
    and an 18.29-point early/late error-risk gap. The preference inventory has
    2,177 pairs but only 122 clean global executable-wrong rows.
-4. P0.10c passed with mean tail `0.000752`. P0.10d then compared matched hard
-   LLM CE with hard LLM CE + sparse client FKL: `56.87` versus `58.32` EX,
-   `31.91` versus `39.94` EM, and 230 versus 219 execution errors.
-5. The hybrid has 58 paired corrections and 43 regressions (`+1.45` EX; exact
-   McNemar `p=0.163`). It passes the frozen practical gate but remains a screen,
-   not a paper method change. Run only P0.10e on the full 3,873-row pool next.
+4. P0.10d's 512-row hybrid has 58 paired corrections and 43 regressions
+   (`+1.45` EX; exact McNemar `p=0.163`), but P0.10e reverses the result at full
+   pool: 50 corrections, 62 regressions, `-1.17` EX, and 30 more execution
+   errors than hard-target CE.
+5. Close/archive P0.10 and cancel its client-only ablation. Do not tune client
+   FKL. The next active work is P1.1a warm-up-capable controlled benchmarking;
+   no official resource command is valid until that implementation is tested.
 6. P0.7t and the Gemma target-form audit remain contextual tasks; neither
    decides the proposed method.
 7. After method freeze, run P1.1 controlled resources, the error audit, and
@@ -317,6 +317,7 @@ internal artifact identities.
 | 2026-08-24 | Implemented and preregistered P0.10b code path. New `feddf` server arm keeps verified hard LLM targets and adds forward KL from a sparse five-client ensemble. Cache shards are content-addressed and resumable; metadata fingerprints client adapter weights and rendering flags; union top-k support plus an explicit tail bucket preserves total mass. P0.10c smoke was activated; P0.10d required `+1.0` Spider EX and no execution-error increase over the 512-row hard-target control. |
 | 2026-08-24 | P0.10c cache smoke completed with 5 clients, 8 examples, top-32, and mean tail probability `0.000752`, comfortably passing the 10% fidelity gate. The first training launch stopped before training because its reused client stage was fingerprinted with `save_steps=200` while the command requested 4. Preserve the client stage and correct all P0.10 shared-stage commands to 200; use fresh immutable smoke output `p010c2_*` because the failed root already owns the old setup fingerprint. |
 | 2026-08-24 | Pulled nested result commit `52fb878` and validated P0.10d on 1,034 paired Spider rows. Hard-target CE scores 56.87 EX / 31.91 EM with 230 execution errors; adding sparse five-client FKL scores 58.32 / 39.94 with 219 errors. The hybrid corrects 58 rows and regresses 43 (`+1.45` EX, exact McNemar `p=0.163`), passing the preregistered practical gate. Activate one untuned 3,873-row P0.10e confirmation; do not change the canonical method yet. |
+| 2026-08-25 | Pulled nested result commit `e914efd` and closed P0.10e. Full-pool FedDF scores 60.15 EX / 41.01 EM with 191 execution errors, versus hard-target CE at 61.32 / 30.27 / 161 and RKL at 63.35 / 31.53 / 133. Relative to hard-target CE it has 50/62 paired gains/losses (`p=0.299`), misses the gate by 2.17 points, and adds 30 errors; relative to RKL it is `-3.20` EX (`p=0.00318`). Archive the branch without tuning and activate controlled resource benchmarking. Training resumed from step 416, so accuracy is valid but timing is not paper-eligible. |
 
 ## 8. Archived branches
 

@@ -51,17 +51,17 @@ not be ranked by reported headline gain alone:
 | Question | Best candidate | Evidence and project fit | Decision |
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
-| Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Small probe, not default** |
+| Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Not active after method freeze** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
-| Which project-specific direction now has the strongest feasibility signal? | LLM-anchored FedDF | P0.10d matched training gains 1.45 Spider EX and removes 11 execution errors over hard-target CE; full-pool confirmation is pending | **First positive candidate** |
-| What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits; tests whether plain RKL is too sharp, but the expected ceiling is limited by the weak current RKL increment | **One matched gate** |
-| What is the best offline extension if student errors remain? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Second-line extension** |
+| What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
+| What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
+| What is the best offline extension if method work is reopened? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Archived option, not active** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, **KID remains the strongest published Text-to-SQL-specific candidate**,
-while P0.10d makes LLM-anchored FedDF the strongest project-specific positive
-candidate. The current method stays the fallback pending P0.10e. Any further KD/Federated
-proposal is a new mechanism, not a retuning or relabeling of P0.9.
+while P0.10e shows that LLM-anchored FedDF does not scale from its positive
+512-row screen. The current method is now frozen. Any further KD/Federated
+proposal would require a new paper-scope decision, not retuning P0.9/P0.10.
 
 ## 2. Notation and KD axes
 
@@ -869,7 +869,7 @@ Claims to avoid without new evidence:
 
 ## 10. Final recommendation
 
-### Post-P0.10d evidence update
+### Post-P0.10e evidence update
 
 The no-training triage changed the order of candidates, not the current method.
 On 512 public BIRD rows, semantic execution-result plurality among the five
@@ -887,16 +887,17 @@ Execution-verified preference KD ranks third: 2,177 pairs can be formed across
 global/client predictions, but only 122 distinct global rows provide the clean
 executable-wrong negatives for the strict screen.
 
-P0.10b defined that gate: both arms use verified hard LLM-target CE on the
+P0.10b defined the gate: both arms use verified hard LLM-target CE on the
 same 512 rows from one FedAvg initialization; the hybrid alone adds
 `0.5 * KL(p_clients || q_student)`. Five top-32 client distributions are
 recomputed server-side from uploaded adapters at temperature 1, merged on union
 support, and retain an explicit tail bucket. Thus the screen adds server compute
-and cache storage but no network payload. P0.10c passed. P0.10d then found
-58.32 EX / 39.94 EM / 219 execution errors for the hybrid versus 56.87 / 31.91
-/ 230 for the matched hard-target control. The `+1.45` EX practical gate
-passes, but 58 paired corrections versus 43 regressions give exact McNemar
-`p=0.163`; this is positive screening evidence rather than a final method claim.
+and cache storage but no network payload. P0.10d found 58.32 EX / 39.94 EM /
+219 execution errors for the hybrid versus 56.87 / 31.91 / 230 for its matched
+512-row control. P0.10e then reversed the finding at full pool: 60.15 / 41.01 /
+191 versus hard-target CE at 61.32 / 30.27 / 161. The hybrid has 50 paired EX
+gains and 62 losses (`p=0.299`) and also trails RKL by 3.20 EX (`p=0.00318`).
+High EM does not compensate for worse execution accuracy and validity.
 
 For the current paper and one RTX A5000 24 GB:
 
@@ -905,15 +906,15 @@ For the current paper and one RTX A5000 24 GB:
    evidence as provisional;
 3. treat P0.9 global-error selection, client-disagreement selection, and their
    direct weighted/KL continuations as closed;
-4. run one untuned 3,873-row confirmation of LLM-anchored FedDF and compare it
-   with the existing hard-target CE and reverse-KL endpoints;
+4. archive LLM-anchored FedDF as a negative full-pool ablation; do not tune its
+   lambda, temperature, top-k, row selector, or run client-only continuation;
 5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
    FL--KD integration claim;
 6. retain **KID** and execution-verified preference KD as second- and third-line
    fallbacks supported only by feasibility diagnostics;
-7. treat FedDF-style public-logit collaboration as a new mechanism with
-   explicit communication/privacy assumptions, not a free relabeling of the
-   current post-FedAvg server KD;
+7. use P0.10 as evidence that FedDF-style public-logit collaboration is not a
+   free improvement over post-FedAvg server KD and that small-budget screens
+   require full-scale confirmation;
 8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
    training under the present GPU-hour and scope budget.
 

@@ -233,7 +233,7 @@ Open evidence gaps:
 3. finish resource benchmarking with fixed warm-up and exclusive hardware;
 4. audit the large server-stage EX-EM divergence and execution-error types.
 
-**Method-freeze gate (2026-08-24):** the architecture above remains the
+**Method-freeze gate (finalized 2026-08-25):** the architecture above remains the
 canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that
 global-error hard-target selection is worse than its token/update-matched
 random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
@@ -242,24 +242,25 @@ different KD/Federated mechanism may still be discussed, but it changes this
 architecture only after a new preregistered positive gate; no method change is
 currently active.
 
-P0.10a alone did not alter this freeze. It found client-model complementarity on a
-public diagnostic: execution-result plurality plus global fallback improves
+P0.10a alone did not alter this freeze. It found client-model complementarity
+on a public diagnostic: execution-result plurality plus global fallback improves
 over global FL by 10.55 points, while prefix and preference diagnostics also
 clear feasibility thresholds. The first design candidate is therefore an
 **LLM-anchored FedDF** server stage, not pure client-ensemble FedDF: the frozen
 LLM remains the knowledge anchor and client ensemble information would add a
 federated signal on public rows. Its objective, client-logit location,
-communication/privacy cost, and matched LLM-only control must be preregistered
-before implementation. P0.10b now freezes the candidate implementation as hard
+communication/privacy cost, and matched LLM-only control were preregistered
+before implementation. P0.10b froze the candidate implementation as hard
 LLM-target CE plus `0.5 * KL(p_clients || q_student)`. The server sequentially
 loads the five uploaded adapters on public teacher-forced trajectories and
 caches each top-32 distribution; an explicit tail bucket preserves truncated
 mass. Because logits are recomputed at the server, network payload is unchanged.
-P0.10c/d now pass that bounded gate. On the matched 512-target screen, the
-hybrid reaches 58.32 Spider EX versus 56.87 for hard-target CE and reduces
-execution errors from 230 to 219. The paired EX contrast remains uncertain
-(`p=0.163`), so the candidate remains outside the canonical diagram until the
-active P0.10e confirmation repeats the fixed objective on all 3,873 targets.
+P0.10c/d passed the bounded 512-target gate, but P0.10e rejected the candidate
+at canonical scale. On 3,873 targets, the hybrid reaches 60.15 Spider EX versus
+61.32 for hard-target CE and increases execution errors from 161 to 191; it
+also trails the current RKL endpoint by 3.20 EX. Therefore client-ensemble FKL
+remains outside the canonical diagram and is archived as a negative ablation.
+Do not tune it or run the cancelled client-only continuation.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom

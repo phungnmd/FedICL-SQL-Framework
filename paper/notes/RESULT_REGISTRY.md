@@ -34,7 +34,7 @@ FedAvg adapter. Only the server treatment differs.
 | `qwen.seqkd.globalerror256.t1.s0` | P0.9b negative selector | `artifacts/federated/p09b_qwen_global_error256_seqkd_noicl_k5_e1_t1_s0/round_1/m_g` | failed promotion gate; not a paper component |
 | `qwen.seqkd.512.t1.s0` | P0.10d matched hard-target control | `artifacts/federated/p010d_qwen_llm_only512_noicl_k5_e1_t1_s0/round_1/m_g` | 512 teacher targets, 32 optimizer updates |
 | `qwen.feddf.512.t1.s0` | P0.10d positive LLM-anchored FedDF screen | `artifacts/federated/p010d_qwen_llm_client_feddf512_noicl_k5_e1_t1_s0/round_1/m_g` | same targets/budget plus sparse five-client FKL |
-| `qwen.feddf.3873.t1.s0` | reserved P0.10e full-pool confirmation | `artifacts/federated/p010e_qwen_llm_client_feddf3873_noicl_k5_e1_t1_s0/round_1/m_g` | `PENDING:P0.10e`; do not report before validation |
+| `qwen.feddf.3873.t1.s0` | P0.10e negative full-pool FedDF ablation | `artifacts/federated/p010e_qwen_llm_client_feddf3873_noicl_k5_e1_t1_s0/round_1/m_g` | canonical negative; failed EX/error promotion gate |
 
 Canonical matched evaluation:
 `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`
@@ -80,6 +80,7 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
 | `audit.qwen.p010a.method-triage` | client-ensemble, prefix-cascade, and preference-pair feasibility audit | `fedicl-sql/audits/p010a_fedkd_method_triage_s0.json` | canonical diagnostic; nested commit `c5528b1`; no training claim |
 | `eval.qwen.t1.p010d.s0.spider` | matched 512-row hard-target CE vs LLM-anchored FedDF | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T092737` | canonical positive screen; code SHA `8d2ba7f`, result commit `52fb878` |
+| `eval.qwen.t1.p010e.s0.spider` | full-pool hard-target CE vs RKL vs LLM-anchored FedDF | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T181741` | canonical negative gate; run SHA `52fb878`, result commit `e914efd` |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before

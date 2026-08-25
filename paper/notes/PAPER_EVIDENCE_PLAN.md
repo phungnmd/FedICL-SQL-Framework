@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper evidence plan
 
-> Updated 2026-08-24. This is a decision plan, not a fixed experiment list.
+> Updated 2026-08-25. This is a decision plan, not a fixed experiment list.
 > Results from an earlier task may reorder, replace, or cancel later tasks.
 > `PIPELINE_NEXT.md` contains commands only for the task currently activated by
 > this plan; it must not be treated as an unconditional queue.
@@ -89,11 +89,12 @@ budget should test one coupled improvement:
 > Anchor server distillation in the frozen LLM target while adding client-
 > ensemble knowledge on the same public rows.
 
-P0.10d now provides a positive bounded training screen for LLM-anchored FedDF:
-on the same 512 verified targets and 32 updates, adding client FKL improves EX
-by 1.45 points and removes 11 execution errors. Uniform execution-verified hard
-SeqKD remains the fallback because the paired EX result is not significant
-(`p=0.163`) and the complete 3,873-row confirmation is still pending.
+P0.10d provided a positive bounded training screen for LLM-anchored FedDF, but
+P0.10e rejected it at the canonical scale. On all 3,873 targets, client FKL is
+1.17 EX below hard-target CE and adds 30 execution errors; it is 3.20 EX below
+the current RKL endpoint. Uniform execution-verified hard SeqKD therefore
+remains the portable core, and FedDF joins P0.9 selection as a closed negative
+branch.
 
 Why this direction ranks first:
 
@@ -398,8 +399,7 @@ decision.
 
 ### T1N — LLM-anchored client-ensemble distillation
 
-**Status:** P0.10c/d complete and positive; P0.10e full-pool confirmation is
-active.
+**Status:** closed negative 2026-08-25. P0.10e failed the frozen full-pool gate.
 
 **Question:** does knowledge from the actual federated client adapters improve
 server refinement beyond verified LLM hard targets alone?
@@ -411,23 +411,25 @@ hard LLM targets; only the hybrid adds
 probability mass. This adds server compute/cache storage but no client-network
 payload or raw private data transfer.
 
-P0.10d passes the practical gate on 512 targets: `+1.45` Spider EX, `+8.03` EM,
-and 11 fewer execution errors. Its paired EX test is not significant
-(`p=0.163`), so P0.10e repeats the unchanged objective on all 3,873 canonical
-Qwen targets. Reuse the canonical hard-target CE and reverse-KL checkpoints as
-controls. Do not tune lambda, temperature, top-k, or row selection.
+P0.10d passed the practical gate on 512 targets: `+1.45` Spider EX, `+8.03` EM,
+and 11 fewer execution errors. Its paired EX test was not significant
+(`p=0.163`). P0.10e then repeated the unchanged objective on all 3,873
+canonical Qwen targets. The hybrid reaches `60.15` EX / `41.01` EM / 191
+execution errors versus hard-target CE at `61.32` / `30.27` / 161 and RKL at
+`63.35` / `31.53` / 133.
 
-**Gate T1N:** retain the hybrid as a proposed component only if it improves at
-least 1.0 Spider EX over full-pool hard-target CE without more execution
-errors. Compare it transparently with the current reverse-KL endpoint before
-changing the paper method. A failure closes the branch; a pass permits one
-client-only ablation before method freeze.
+**Observed decision:** the hybrid misses both conditions: `-1.17` EX and 30
+additional execution errors versus hard-target CE. It also trails RKL by 3.20
+EX with significantly worse paired EX (`p=0.00318`). Close the branch without
+lambda, temperature, top-k, or selector tuning and cancel the client-only
+ablation. Preserve it as a negative method ablation.
 
 ### T2 — efficiency and resource evidence
 
-**Status:** communication payload is complete; controlled measurement follows
-the active T1N gate. It supports the efficiency claim but does not replace
-eventual final-endpoint reliability.
+**Status:** active after T1N closed. Communication payload is complete;
+warm-up-capable controlled measurement is the next engineering/evidence task.
+It supports the efficiency claim but does not replace eventual final-endpoint
+reliability.
 
 **Question:** what accuracy is retained, and what client/deployment cost is
 avoided by keeping the 7B teacher off clients and out of inference?
@@ -659,6 +661,7 @@ Update this table after every gate. Never rewrite old decisions silently.
 | 2026-08-24 | P0.10a no-training method triage | client execution-result plurality on 512 public rows, prefix divergence on 1,034 Spider rows, verified preference-pair inventory | all feasibility gates pass; plurality has the strongest federated-specific signal, but none establishes a training improvement | P0.10b LLM-anchored FedDF design gate |
 | 2026-08-24 | P0.10b FedDF preregistration | stable hard-target mechanism, weak cross-family RKL increment, client plurality complementarity, current adapter-upload boundary | use hard LLM CE as both-arm anchor; add only server-side sparse client FKL in the hybrid; fixed `lambda=0.5`, `T=1`, top-32, 512 rows, 32 updates | P0.10c smoke, then conditional P0.10d |
 | 2026-08-24 | P0.10d matched FedDF screen | 1,034 paired Spider predictions after matched 512-target/32-update training | hybrid gains `+1.45` EX and `+8.03` EM with 11 fewer execution errors; practical gate passes, paired EX remains uncertain (`p=0.163`) | one untuned full-pool P0.10e confirmation |
+| 2026-08-25 | P0.10e full-pool FedDF gate | 3,873-row fixed-objective training; paired Spider evaluation against canonical hard-target CE and RKL | gate fails: `-1.17` EX and `+30` execution errors vs hard-target CE; `-3.20` EX vs RKL (`p=0.00318`) | close/archive P0.10; freeze method; activate controlled resources |
 
 ## 6. Current next actions
 
@@ -666,23 +669,20 @@ Update this table after every gate. Never rewrite old decisions silently.
    CE is the supported core; RKL remains auxiliary and provisional.
 2. Close P0.9a-d. Diagnosis predicted error, but the matched P0.9b intervention
    reduced EX and execution validity; do not tune or relabel this branch.
-3. P0.10a remains diagnostic, while P0.10c/d now establish a working and
-   positive bounded FedDF intervention. The 512-row hybrid gains `+1.45` EX
-   and has 11 fewer execution errors than matched hard-target CE.
-4. Run exactly one P0.10e confirmation with the frozen `lambda=0.5`, `T=1`,
-   top-32 configuration on all 3,873 Qwen-selected targets. Reuse the canonical
-   hard-target CE and reverse-KL endpoints; train only the new hybrid.
-5. If P0.10e does not retain at least `+1.0` EX over hard-target CE without
-   more execution errors, close the branch without tuning and retain uniform
-   FedLS-SQL.
+3. Close and archive P0.10. The positive 512-row effect reverses at full pool:
+   client FKL is `-1.17` EX with 30 more execution errors than hard-target CE.
+   Do not tune it or run the conditional client-only ablation.
+4. Freeze the paper method around verified teacher-target CE, with RKL retained
+   only as the auxiliary Qwen endpoint and described as provisional.
+5. Activate P1.1 controlled resource measurement. Implement and test fixed
+   in-process warm-up before issuing official benchmark commands.
 6. Keep P0.7t and the Gemma target-form audit as contextual analysis. They no
    longer outrank the method-direction gate because neither can change the
    proposed training algorithm.
 7. Do not build the full Gemma logit cache or extend Gemma to T3/OOD unless a
    promoted method requires a portability test.
-8. After T1M is closed, complete the controlled resource benchmark, T1
-   execution/error audit, and final T3 seed-1/2 reliability for the method that
-   will actually appear in the paper.
+8. After P1.1, complete the T1 execution/error audit and final T3 seed-1/2
+   reliability for the frozen method.
 9. Keep FedProx as a later baseline and heterogeneity as a conditional claim
    test. Exact aggregation, FLoRA-NA, new LoRA parameterizations, and direct
    public-loss client weighting are not active method directions.
