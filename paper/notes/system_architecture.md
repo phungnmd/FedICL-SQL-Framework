@@ -242,25 +242,9 @@ different KD/Federated mechanism may still be discussed, but it changes this
 architecture only after a new preregistered positive gate; no method change is
 currently active.
 
-P0.10a alone did not alter this freeze. It found client-model complementarity
-on a public diagnostic: execution-result plurality plus global fallback improves
-over global FL by 10.55 points, while prefix and preference diagnostics also
-clear feasibility thresholds. The first design candidate is therefore an
-**LLM-anchored FedDF** server stage, not pure client-ensemble FedDF: the frozen
-LLM remains the knowledge anchor and client ensemble information would add a
-federated signal on public rows. Its objective, client-logit location,
-communication/privacy cost, and matched LLM-only control were preregistered
-before implementation. P0.10b froze the candidate implementation as hard
-LLM-target CE plus `0.5 * KL(p_clients || q_student)`. The server sequentially
-loads the five uploaded adapters on public teacher-forced trajectories and
-caches each top-32 distribution; an explicit tail bucket preserves truncated
-mass. Because logits are recomputed at the server, network payload is unchanged.
-P0.10c/d passed the bounded 512-target gate, but P0.10e rejected the candidate
-at canonical scale. On 3,873 targets, the hybrid reaches 60.15 Spider EX versus
-61.32 for hard-target CE and increases execution errors from 161 to 191; it
-also trails the current RKL endpoint by 3.20 EX. Therefore client-ensemble FKL
-remains outside the canonical diagram and is archived as a negative ablation.
-Do not tune it or run the cancelled client-only continuation.
+The later P0.10 client-ensemble distillation probe failed its full-pool gate and
+has been removed from the active architecture. Its compact negative result and
+recovery tag are recorded only in the closed-branch archive.
 
 New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
 rank-preserving/rank-expanded diagnostics showed no material accuracy headroom

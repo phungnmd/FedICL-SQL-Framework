@@ -79,36 +79,11 @@ private client LoRA training, FedAvg, and public execution-verified LLM-to-SLM
 hard-target transfer improve over pure FL in two model families. It is **not yet
 sufficient to claim a new KD objective or a stronger federated optimizer**.
 
-P0.9 rejected execution-guided example selection: its matched arm lost 2.03
-Spider EX and added 18 execution errors relative to random256. P0.10a therefore
-tested different signals without training. Client execution-result plurality
-shows the strongest federated-specific complementarity, ahead of prefix/KID
-and preference-pair diagnostics. If the method is extended, the next research
-budget should test one coupled improvement:
-
-> Anchor server distillation in the frozen LLM target while adding client-
-> ensemble knowledge on the same public rows.
-
-P0.10d provided a positive bounded training screen for LLM-anchored FedDF, but
-P0.10e rejected it at the canonical scale. On all 3,873 targets, client FKL is
-1.17 EX below hard-target CE and adds 30 execution errors; it is 3.20 EX below
-the current RKL endpoint. Uniform execution-verified hard SeqKD therefore
-remains the portable core, and FedDF joins P0.9 selection as a closed negative
-branch.
-
-Why this direction ranks first:
-
-- it builds on the component that transfers across Qwen and Gemma: verified
-  teacher-generated SQL;
-- it makes the LLM stage respond to the current federated state instead of
-  being a generic fixed public fine-tuning pass;
-- it can reuse cached teacher targets/logits and compute client predictions on
-  public rows;
-- server-side recomputation from already-uploaded adapters can preserve the
-  current network payload, whereas transmitted client logits would add payload
-  and leakage surface and must be reported explicitly;
-- it directly addresses the method-novelty objection while remaining much
-  cheaper than KID, GKD, mutual FedMKT, or execution RL.
+P0.9 example selection and P0.10 client-ensemble distillation both failed their
+matched promotion gates. They are closed research branches, not paper
+components. Their detailed commands and negative evidence are retained in the
+closed-branch archive. Uniform execution-verified hard SeqKD remains the
+portable core; reverse KL remains an auxiliary Qwen endpoint.
 
 Federated alternatives are ranked lower for this configuration:
 
@@ -397,33 +372,6 @@ round, client-logit transmission/FedMKT, execution-RL, new LoRA aggregation
 methods, and broad hyperparameter sweeps. These require a separate scope
 decision.
 
-### T1N — LLM-anchored client-ensemble distillation
-
-**Status:** closed negative 2026-08-25. P0.10e failed the frozen full-pool gate.
-
-**Question:** does knowledge from the actual federated client adapters improve
-server refinement beyond verified LLM hard targets alone?
-
-The server reuses already-uploaded client adapters to compute top-32 token
-distributions on public LLM trajectories. Both control and hybrid use the same
-hard LLM targets; only the hybrid adds
-`0.5 * KL(p_clients || q_student)`. An explicit tail bucket preserves omitted
-probability mass. This adds server compute/cache storage but no client-network
-payload or raw private data transfer.
-
-P0.10d passed the practical gate on 512 targets: `+1.45` Spider EX, `+8.03` EM,
-and 11 fewer execution errors. Its paired EX test was not significant
-(`p=0.163`). P0.10e then repeated the unchanged objective on all 3,873
-canonical Qwen targets. The hybrid reaches `60.15` EX / `41.01` EM / 191
-execution errors versus hard-target CE at `61.32` / `30.27` / 161 and RKL at
-`63.35` / `31.53` / 133.
-
-**Observed decision:** the hybrid misses both conditions: `-1.17` EX and 30
-additional execution errors versus hard-target CE. It also trails RKL by 3.20
-EX with significantly worse paired EX (`p=0.00318`). Close the branch without
-lambda, temperature, top-k, or selector tuning and cancel the client-only
-ablation. Preserve it as a negative method ablation.
-
 ### T2 — efficiency and resource evidence
 
 **Status:** active after T1N closed. Communication payload is complete;
@@ -669,9 +617,7 @@ Update this table after every gate. Never rewrite old decisions silently.
    CE is the supported core; RKL remains auxiliary and provisional.
 2. Close P0.9a-d. Diagnosis predicted error, but the matched P0.9b intervention
    reduced EX and execution validity; do not tune or relabel this branch.
-3. Close and archive P0.10. The positive 512-row effect reverses at full pool:
-   client FKL is `-1.17` EX with 30 more execution errors than hard-target CE.
-   Do not tune it or run the conditional client-only ablation.
+3. Keep P0.10 closed in the internal archive; do not tune or continue it.
 4. Freeze the paper method around verified teacher-target CE, with RKL retained
    only as the auxiliary Qwen endpoint and described as provisional.
 5. Activate P1.1 controlled resource measurement. Implement and test fixed

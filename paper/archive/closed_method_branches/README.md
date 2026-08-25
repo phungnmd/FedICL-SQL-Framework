@@ -9,6 +9,8 @@ paper components or sources of commands to run next.
 |---|---|---|
 | `PIPELINE_THROUGH_P010E_2026-08-25.md` | completed P0.0–P0.10 commands, including P0.9 selection and P0.10 FedDF | P0.9 and P0.10 closed; current method frozen |
 
-Do not delete the corresponding code, committed predictions, configs, or
-external checkpoints merely because the research branch is closed. Their Git
-history and immutable artifact roots support auditability.
+Closed code and large row-level predictions may be removed from the active
+tree after a compact evidence record and a recovery commit/tag exist. P0.10 is
+recoverable in the nested repository from tag `archive/p010-feddf-evidence`;
+its compact evidence is under
+`fedicl-sql/experiments/archive/p010_feddf_2026-08/`.

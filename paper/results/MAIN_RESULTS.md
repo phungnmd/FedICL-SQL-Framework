@@ -215,38 +215,7 @@ and is not part of FedLS-SQL. Training resource measurements are ineligible:
 the arms ran concurrently and the random arm had a failed OOM attempt before a
 fresh successful rerun.
 
-### 4.4 P0.10 LLM-anchored FedDF screen and full-pool gate
-
-Both arms start from `qwen.fl.shared.t1.s0`, train on the same 512 verified
-teacher targets for 32 optimizer updates, and differ only by the sparse
-five-client forward-KL term. This is a bounded method screen, not the canonical
-full-pool endpoint.
-
-| Stable ID | Server treatment | Spider EX | Spider EM | Exec. errors |
-|---|---|---:|---:|---:|
-| `qwen.seqkd.512.t1.s0` | hard LLM-target CE | 56.87 | 31.91 | 230 |
-| `qwen.feddf.512.t1.s0` | hard LLM-target CE + client-ensemble FKL | **58.32** | **39.94** | **219** |
-
-The hybrid gains `+1.45` EX, corrects 58 control failures, regresses 43 control
-successes, and removes 11 net execution errors. It passes the preregistered
-small-budget gate, but the paired EX contrast is uncertain (exact McNemar
-`p=0.163`). P0.10e therefore repeats the unchanged objective at full scale.
-
-| Stable ID | Full 3,873-row server treatment | Spider EX | Spider EM | Exec. errors |
-|---|---|---:|---:|---:|
-| `qwen.seqkd.t1.s0` | hard LLM-target CE | 61.32 | 30.27 | 161 |
-| `qwen.fedls.t1.s0` | hard LLM-target CE + reverse KL | **63.35** | 31.53 | **133** |
-| `qwen.feddf.3873.t1.s0` | hard LLM-target CE + client-ensemble FKL | 60.15 | **41.01** | 191 |
-
-At full pool, FedDF is `-1.17` EX with 30 more execution errors than hard-target
-CE (50 paired gains, 62 losses; `p=0.299`) and `-3.20` EX with 58 more errors
-than RKL (43/76; `p=0.00318`). Its EM gain does not offset worse execution
-accuracy and validity. P0.10 is therefore a closed negative branch: do not tune
-its loss weight, temperature, top-k, selector, or run the conditional
-client-only ablation. The 512-row reversal remains useful evidence that a
-positive low-budget regularization screen need not scale to the complete pool.
-
-### 4.5 Outline sensitivity matrix
+### 4.4 Outline sensitivity matrix
 
 | Outline item | Current evidence | Paper treatment |
 |---|---|---|
@@ -314,7 +283,6 @@ Supports the error analysis currently proposed in draft §4.4.
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |
 | Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
 | LLM-SLM transfer failures | matched prediction rows available | ready for representative audit |
-| P0.10 FedDF path | plurality diagnostic and positive 512-row screen, followed by full-pool `-1.17` EX / `+30` execution errors vs hard-target CE | closed negative ablation |
 
 ## 7. Adaptive evidence dashboard
 

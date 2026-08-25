@@ -871,33 +871,10 @@ Claims to avoid without new evidence:
 
 ### Post-P0.10e evidence update
 
-The no-training triage changed the order of candidates, not the current method.
-On 512 public BIRD rows, semantic execution-result plurality among the five
-client models, with the global model as fallback, reaches 42.77 EX versus 32.23
-for global FL (`+10.55` points; 62 corrections, 8 regressions; 71.88% unique-
-plurality coverage). The any-client oracle recovers 107/347 global errors.
-This was the clearest federated-specific diagnostic and motivated the
-**LLM-anchored FedDF** screen.
-
-KID ranks second. On canonical Spider T1 predictions, 82.20% of the FL model's
-236 execution errors have lexical divergence within the first token quartile,
-and the early-versus-late execution-error risk differs by 18.29 points. This is
-correlational and does not show that prefix intervention will improve EX.
-Execution-verified preference KD ranks third: 2,177 pairs can be formed across
-global/client predictions, but only 122 distinct global rows provide the clean
-executable-wrong negatives for the strict screen.
-
-P0.10b defined the gate: both arms use verified hard LLM-target CE on the
-same 512 rows from one FedAvg initialization; the hybrid alone adds
-`0.5 * KL(p_clients || q_student)`. Five top-32 client distributions are
-recomputed server-side from uploaded adapters at temperature 1, merged on union
-support, and retain an explicit tail bucket. Thus the screen adds server compute
-and cache storage but no network payload. P0.10d found 58.32 EX / 39.94 EM /
-219 execution errors for the hybrid versus 56.87 / 31.91 / 230 for its matched
-512-row control. P0.10e then reversed the finding at full pool: 60.15 / 41.01 /
-191 versus hard-target CE at 61.32 / 30.27 / 161. The hybrid has 50 paired EX
-gains and 62 losses (`p=0.299`) and also trails RKL by 3.20 EX (`p=0.00318`).
-High EM does not compensate for worse execution accuracy and validity.
+Client-ensemble distillation passed a bounded screen but failed the unchanged
+full-pool promotion gate on EX and execution validity. It is archived as an
+internal negative experiment and is not part of the proposed method. Detailed
+metrics, commands, and recovery references live in the closed-branch archive.
 
 For the current paper and one RTX A5000 24 GB:
 
@@ -906,15 +883,13 @@ For the current paper and one RTX A5000 24 GB:
    evidence as provisional;
 3. treat P0.9 global-error selection, client-disagreement selection, and their
    direct weighted/KL continuations as closed;
-4. archive LLM-anchored FedDF as a negative full-pool ablation; do not tune its
-   lambda, temperature, top-k, row selector, or run client-only continuation;
+4. keep client-ensemble distillation closed in the internal archive;
 5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
    FL--KD integration claim;
 6. retain **KID** and execution-verified preference KD as second- and third-line
    fallbacks supported only by feasibility diagnostics;
-7. use P0.10 as evidence that FedDF-style public-logit collaboration is not a
-   free improvement over post-FedAvg server KD and that small-budget screens
-   require full-scale confirmation;
+7. require full-scale confirmation before promoting any future small-budget
+   method screen;
 8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
    training under the present GPU-hour and scope budget.
 

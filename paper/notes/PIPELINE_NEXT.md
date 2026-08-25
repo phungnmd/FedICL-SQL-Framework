@@ -17,17 +17,12 @@ Execution-verified hard teacher targets are the supported portable mechanism.
 Reverse KL remains auxiliary because its independent increment is not stable
 across training seeds or the Gemma family.
 
-The execution-guided selector and LLM-anchored FedDF branches are closed:
+The execution-guided selector and client-ensemble distillation branches are closed:
 
 - P0.9b global-error selection loses `2.03` Spider EX to its matched random
   control and adds 18 execution errors.
-- P0.10d's 512-row FedDF screen is positive (`+1.45` EX, 11 fewer execution
-  errors), but the frozen 3,873-row P0.10e confirmation fails.
-- At full pool, client FedDF reaches `60.15` EX / `41.01` EM / 191 execution
-  errors versus hard-target CE at `61.32` / `30.27` / 161 and RKL at `63.35`
-  / `31.53` / 133.
-- Do not tune FedDF lambda, temperature, top-k, row selection, or run its
-  client-only ablation. Exact commands and provenance are archived at
+- P0.10 failed its frozen full-pool EX and execution-validity gate after a
+  positive small screen. Do not tune or continue it. Exact commands and provenance are archived at
   `paper/archive/closed_method_branches/PIPELINE_THROUGH_P010E_2026-08-25.md`.
 
 ## Active order
