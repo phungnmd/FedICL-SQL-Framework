@@ -181,8 +181,8 @@ controlled size effect or a family-independent RKL gain.
 - Client LoRA process memory.
 - Server-KD process memory.
 - Student versus teacher deployment inference latency, throughput, and memory.
-- Contention-audited shared-server protocol, eligible-run count, median, and
-  dispersion.
+- Repeated shared-server protocol, fresh-run count, descriptive GPU telemetry,
+  median, and dispersion.
 
 ### 4.7 EX-oriented error and mechanism analysis
 

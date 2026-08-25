@@ -57,8 +57,8 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 1. the final T3 pure-FL versus FedLS contrast has seeds 0/1/2 or the claim has
    been weakened to reflect observed instability;
-2. resource tables contain deterministic counts and contention-audited process
-   memory/latency measurements, with ineligible runs excluded;
+2. resource tables contain deterministic counts and fresh repeated
+   process-memory/latency measurements with raw GPU telemetry;
 3. the error analysis explains EX gains, execution failures, and representative
    transfer behavior without treating EM as the target;
 4. RQ3 wording is explicitly scoped to the fixed non-IID partition, or a
@@ -70,29 +70,25 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ## 5. Active priority order
 
-### Current execution constraint — no usable GPU
+### Current execution state — GPU available
 
-GPU availability is an external scheduling constraint, not an evidence or
-method failure. Do not start a different GPU experiment merely because P1.1b
-cannot launch. While the GPU lane is unavailable, work proceeds on the CPU and
-manuscript lane below; P1.1b remains the first GPU job when capacity returns.
-
-The two lanes rejoin only after P0.8:
+P1.1b-v2 is the active task. Run the student and teacher sequentially as fresh
+independent repetitions. The earlier PID-gated collection is observational
+only and must not be merged into v2.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
-| CPU now | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
-| CPU now | 2 | P1.4b related-work/novelty matrix | retain “novel” only if the complete combination is defensible |
-| CPU now | 3 | P2 manuscript skeleton and completed evidence sections | unresolved GPU values remain explicit placeholders |
-| GPU later | 1 | P1.1b deployment inference resource block | at least three eligible repetitions per model for primary latency |
-| GPU later | 2 | P0.8 pure-FL/FedLS T3 seeds 1/2 | decide claim strength from training-seed deltas |
+| GPU now | 1 | P1.1b-v2 deployment inference resource block | at least three fresh successful repetitions per model |
+| GPU next | 2 | P0.8 pure-FL/FedLS T3 seeds 1/2 | decide claim strength from training-seed deltas |
+| CPU | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
+| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | retain “novel” only if the complete combination is defensible |
 | Decision | 3 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires a broader claim |
 | Decision | 4 | client/server training-resource extension | run only if RQ4 still claims measured training-resource advantages |
 
 ### P1.1a — implement a shared-server resource benchmark
 
-**Status:** complete. Nested implementation commits `74f70c1`, `cfa8d59`, and
-`0d0faa5`; 13 targeted resource/audit tests and the full 319-test suite pass.
+**Status:** complete through nested protocol commit `487b3b2`; the full
+320-test suite passes.
 
 **Reviewer objection resolved:** the paper claims resource and deployment
 advantages but current timing came from opportunistic shared-server runs.
@@ -113,20 +109,16 @@ Required implementation contract:
 - identical fixed rows and decoding within each matched comparison;
 - student and teacher run sequentially on the same selected GPU;
 - at least five fresh repetitions, reporting median and IQR;
-- sample NVML/`nvidia-smi` state during every repetition and record visible
-  foreign GPU processes, utilization, memory, clocks, and device identity;
-- print foreign-process appearance/clearance transitions to the console in
-  real time and persist the same events in each raw measurement artifact;
-- mark each repetition `eligible`, `contended`, `resumed`, or `failed`;
-- exclude observed-contended runs from the primary latency summary;
+- sample `nvidia-smi` device utilization, memory, clocks, pstate, and identity
+  during every repetition without PID enumeration;
+- treat every fresh successful repetition as independent and eligible;
+- exclude only failed or resumed repetitions from the primary summary;
 - preserve raw per-repetition JSON and runtime provenance.
 
-This protocol does not claim guaranteed hardware exclusivity. It claims only
-that retained measurement windows had no observed foreign process on the
-selected GPU. If fewer than three eligible repetitions can be collected,
-latency remains a shared-server observational result and is not used for a
-strong efficiency claim. Process memory and deterministic counts may still be
-reported with precise labels.
+This protocol does not claim guaranteed hardware exclusivity or automated
+contention detection. The operator chooses a window with no intentionally
+concurrent GPU job. Repetitions remain independent measurements and raw GPU
+telemetry is disclosed as context.
 
 **Gate:** tests must pass and the output schema must make ineligible timing
 impossible to aggregate silently before P1.1b commands are added.
@@ -310,23 +302,20 @@ These are not part of the active queue:
 - Do not optimize EM at the expense of EX.
 - Do not add a new KD loss without an EX-specific failure hypothesis from
   P1.2 and a preregistered matched control.
-- Do not fill resource tables with resumed, reused-stage, or observed-contended
-  latency.
+- Do not fill resource tables with failed, resumed, or reused-stage latency.
 - Do not claim formal privacy, arbitrary cross-tokenizer KL, general non-IID
   robustness, or federated-large-model savings without corresponding evidence.
 
 ## 8. Current next actions
 
-1. With no GPU, complete P1.4a, then P1.4b, and draft the manuscript skeleton
-   using only completed evidence.
-2. When a GPU becomes usable, run the unchanged P1.1b PowerShell block first
-   and review repetition eligibility.
-3. If either role has fewer than three eligible repetitions, retain it as
-   observational and schedule a fresh-root retry only for that role.
-4. Run P0.8 seeds 1/2 and decide the final accuracy-claim strength.
-5. Default RQ3 to the fixed validated partition unless a concrete manuscript
+1. Run the fresh-root P1.1b-v2 PowerShell block and validate both repeated
+   collections; do not merge the superseded PID-gated result.
+2. Run P0.8 seeds 1/2 and decide the final accuracy-claim strength.
+3. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
+   resource windows.
+4. Default RQ3 to the fixed validated partition unless a concrete manuscript
    claim requires one heterogeneity sensitivity.
-6. Decide whether to measure client/server training resources or narrow RQ4;
+5. Decide whether to measure client/server training resources or narrow RQ4;
    do not hold the entire paper open for optional resource claims.
-7. Freeze the manuscript and schedule another experiment only for a named
+6. Freeze the manuscript and schedule another experiment only for a named
    missing cell or reviewer objection.

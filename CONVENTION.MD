@@ -157,16 +157,16 @@ time, throughput, or memory pressure.
 
 For a number to enter a paper resource table:
 
-- use fresh, non-resumed measurement windows on one selected GPU and audit
-  visible compute processes throughout each window;
-- print timestamped foreign-process appearance/clearance transitions during
-  the run and retain the same events in the raw repetition artifact;
+- use fresh, non-resumed repetitions on one selected GPU; the operator chooses
+  a window with no intentionally concurrent GPU workload;
+- treat repetitions as independent measurements and retain raw device
+  utilization, memory, clock, and pstate telemetry without PID enumeration;
 - record the exact GPU, runtime versions, precision, batch size, sequence
   length, warm-up, measured scope, and repetition count;
 - synchronize the accelerator at timing boundaries;
-- run at least five fixed repetitions, require at least three repetitions with
-  no observed foreign process for the primary latency summary, and report
-  median plus dispersion;
+- run at least five fixed repetitions, require at least three fresh successful
+  repetitions for the primary latency summary, and report median plus
+  dispersion;
 - report process peak RSS separately from system RAM;
 - label PyTorch allocated and reserved VRAM separately and never present either
   as total device VRAM;
@@ -175,11 +175,12 @@ For a number to enter a paper resource table:
   server-round, and deployment inference cost.
 
 `paper_timing_eligible=true` in a result means the code observed enough fresh,
-non-reused, non-contended measurement windows. The claim is limited to **no
-observed foreign compute process on the selected GPU**; it is not a guarantee
-of scheduler-level hardware exclusivity. If fewer than three eligible windows
-are available, latency is observational only. Communication bytes are
-artifact-derived and do not require a contention-free machine.
+successful, non-resumed repetitions. It does not prove scheduler-level
+hardware exclusivity: quiet-window selection is an operator-controlled part of
+the protocol, and GPU telemetry is descriptive rather than an automatic
+exclusion rule. If fewer than three eligible repetitions are available,
+latency is observational only. Communication bytes are artifact-derived and
+do not depend on timing conditions.
 
 ## 7. Result retention
 

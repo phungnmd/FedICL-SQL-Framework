@@ -19,7 +19,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | CPU-only manifest implementation complete at `62cd3f6`; production artifact pending P1.4a command |
-| P1 | RQ4 resources | controlled repeated wall time, process RSS, allocated/reserved VRAM, inference latency | contention-audited runner complete through `0d0faa5`, including live PID-transition warnings; official P1.1b run pending |
+| P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | independent-repetition telemetry protocol complete at `487b3b2`; P1.1b-v2 pending |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
@@ -43,9 +43,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    label it `Centralized-3pass-restart` and compare it with one continuous
    `epochs=3` run.
 7. Shared-server accuracy is valid, but opportunistic timing is not paper
-   evidence. Official resource runs require fresh execution, fixed warm-up,
-   repetition, and observed-contention auditing; guaranteed exclusivity is not
-   claimed.
+   evidence. Resource runs require fresh execution, fixed warm-up, at least
+   five independent repetitions, and descriptive GPU telemetry. PID presence
+   is not used as a contention proxy; exclusivity is not claimed.
 8. Treat EX as primary for the server-stage comparison. Audit `EX=1, EM=0` as
    cross-dataset SQL-form variation and an EX-validity check, not as a defect to
    optimize away; do not describe the reverse-KL increment as across-seed
@@ -66,10 +66,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. The contention-audited runner and EX audit are complete. While GPU capacity
-   is unavailable, finish the deterministic table manifest, novelty matrix,
-   and manuscript skeleton. When capacity returns, run P1.1b first and final
-   T3 seed replication second.
+6. The repeated-resource runner and EX audit are complete. Run P1.1b-v2 first
+   and final T3 seed replication second; CPU table/novelty work may continue
+   only when it does not overlap a timed resource benchmark.
 7. Keep the Gemma teacher ceiling and target-form audit as optional context.
 8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
    as method directions at the current `K=5, T=1` setting; broader

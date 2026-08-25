@@ -29,10 +29,10 @@ decisions. It deliberately does not own result tables:
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
-- P1.1a is implemented through nested commit `0d0faa5`: fixed in-process warm-up,
+- P1.1a's active protocol is implemented at nested commit `487b3b2`: fixed in-process warm-up,
   synchronized steady-state generation, process RSS/PyTorch VRAM, atomic
-  repetitions, live foreign-PID transition warnings plus persisted events,
-  guarded eligible-only aggregation, and cross-model comparison are tested.
+  independent fresh repetitions, descriptive device telemetry without PID
+  enumeration, guarded aggregation, and cross-model comparison are tested.
 - P1.2 is complete at artifact commit `4527a76`. On 1,034 paired T3 Spider
   rows, FedLS corrects 121 FL failures and regresses 67 (`p=0.0001002`) while
   reducing execution errors from 193 to 101. Medium, aggregation, GROUP BY,
@@ -180,7 +180,7 @@ currently justify.
 - These values exclude transport framing and protocol metadata.
 - Shared-server timing and RAM are operational logs only. Official latency,
   VRAM, RSS, throughput, and trainable-parameter table cells remain pending a
-  fixed-warm-up, contention-audited shared-server benchmark.
+  fixed-warm-up repeated shared-server benchmark.
 
 ### 3.4 Generalization, portability, and negative evidence
 
@@ -232,12 +232,11 @@ currently justify.
 
 ## 5. Active queue
 
-1. While no GPU is available, complete the deterministic efficiency/table
-   manifest, related-work novelty matrix, and manuscript skeleton.
-2. P1.1b: when GPU capacity returns, collect sequential same-GPU 1.5B/7B
-   measurements; exclude observed contended or resumed repetitions from
-   primary latency summaries.
-3. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+1. P1.1b-v2: collect sequential same-GPU 1.5B/7B measurements under the
+   independent-repetition protocol; do not merge the superseded PID-gated run.
+2. P0.8/T1R: run final T3 pure-FL versus frozen FedLS-SQL at seeds 1/2.
+3. Complete the deterministic efficiency/table manifest, related-work novelty
+   matrix, and manuscript skeleton outside timed resource windows.
 4. Decide whether to scope RQ3 to the fixed partition or add exactly one
    validated heterogeneity sensitivity.
 5. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
@@ -329,6 +328,7 @@ internal artifact identities.
 | 2026-08-25 | Added live contention visibility at nested commit `0d0faa5`. The runner prints timestamped detection and clearance transitions with phase/repetition label, physical GPU, PID, process name when accessible, and process GPU memory; identical events remain in `contention_events`. Repeated unchanged PID sets do not spam the console, and any affected repetition remains excluded even after the foreign process clears. |
 | 2026-08-25 | GPU capacity is temporarily unavailable. Preserve P1.1b as the first unchanged GPU task and P0.8 seeds as the second; do not replace either with an optional method experiment. Activate the CPU lane: deterministic efficiency/table manifest, related-work novelty audit, and manuscript skeleton. After P0.8, either collect controlled client/server training-resource microbenchmarks or narrow RQ4 to communication plus deployment inference. |
 | 2026-08-25 | Implemented P1.4a at nested commit `62cd3f6`. The CPU-only builder reads adapter tensor metadata without model loading, validates stable IDs and canonical paths, reconciles every client upload/global broadcast byte count with each round's aggregation metadata, structures canonical result tables, inventories pending cells, and writes an immutable JSON/CSV pair. The production command is active; no paper values change until its server artifact is validated. |
+| 2026-08-25 | The first P1.1b collection completed but the PID-presence gate classified all 5/5 student and 5/5 teacher repetitions as contended because Windows/WDDM exposed many persistent contexts. Its descriptive medians were about 25.62 s/32 queries for the 1.5B student and 53.44 s/32 queries for the 7B teacher (about 2.09x), but these are not canonical. Per operator decision, commit `487b3b2` removes PID enumeration and treats each fresh successful repetition independently while retaining device telemetry. P1.1b-v2 must use new roots and must not merge the superseded collection. |
 
 ## 8. Archived branches
 

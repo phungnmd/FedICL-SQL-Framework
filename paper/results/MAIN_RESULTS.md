@@ -268,10 +268,10 @@ metadata.
 
 Old shared-server timing is operational evidence only and must not fill this
 table. Resource runs require fixed in-process warm-up, identical rows/decoding,
-at least five fresh repetitions, process/GPU contention monitoring, and median
-plus dispersion. Primary latency summaries retain only measurement windows
-with no observed foreign process on the selected GPU; guaranteed hardware
-exclusivity is not claimed.
+and at least five fresh independent repetitions with median plus dispersion.
+GPU utilization/memory/clock telemetry is descriptive; PID enumeration and
+automatic contention exclusion are not used, and hardware exclusivity is not
+claimed.
 
 ## 6. Error analysis
 

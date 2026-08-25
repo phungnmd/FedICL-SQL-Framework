@@ -233,8 +233,8 @@ Open evidence gaps:
 
 1. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
    training seeds 1/2 before submission; currently deferred;
-2. finish resource benchmarking with fixed warm-up and contention-audited
-   measurement windows on the shared server;
+2. finish resource benchmarking with fixed warm-up, independent repetitions,
+   and descriptive GPU telemetry on the shared server;
 3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
    validated minimal heterogeneity sensitivity.
 
