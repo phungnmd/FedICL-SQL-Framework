@@ -31,8 +31,9 @@ prediction file, config, metrics file, and result commit.
 - [ ] Run `P1.4a` from `PIPELINE_NEXT.md`.
 - [ ] Validate LoRA trainable-parameter counts, serialized adapter bytes,
   upload/broadcast bytes per round, and cumulative T3 communication.
-- [ ] Promote the compact manifest JSON/CSV to `RESULT_REGISTRY.md` and replace
-  the corresponding `PENDING` cells in `MAIN_RESULTS.md`.
+- [ ] Push the server-side artifact-only JSON/CSV, then reconcile it locally
+  with `RESULT_REGISTRY.md` and replace the corresponding `PENDING` cells in
+  `MAIN_RESULTS.md`; the server does not require the paper repository.
 
 **Done when:** no deterministic parameter or communication number is copied
 from a terminal log or lacks a formula/provenance path.
