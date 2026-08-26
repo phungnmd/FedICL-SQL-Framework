@@ -33,7 +33,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 |---|---|---|
 | P1.1a | Add fixed warm-up, process metrics, and repeated GPU telemetry | complete: final protocol code `487b3b2`, full 320-test suite |
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
-| P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; artifact-only server mode `a25db62`** |
+| P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; artifact-only split-lineage mode `f59a040`** |
 | P1.4b | Related-work matrix and manuscript skeleton | mandatory CPU/writing task after P1.4a; tracked in `PAPER_TODO.md` |
 | P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
 | P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | **active eval-only GPU command below; no training** |
@@ -108,12 +108,18 @@ against its immutable `factor_fedavg_meta.json`. Pure FL and FedLS T3 adapters
 must have the same tensor schema. After the compact JSON/CSV is pushed, the
 paper workspace performs the separate registry/table reconciliation.
 
+Seed-0 FedLS round 1 has an intentional split lineage: its shared private
+client/FedAvg stage is stored under
+`florana_kd_noicl_k5_e1_t1_s0/round_1`, while its server-refined `m_g` is under
+the canonical FedLS root. `--round-dir` pins that historical aggregation
+source; rounds 2–3 resolve normally from the FedLS root.
+
 The output root is immutable. Re-running the exact command skips a matching
 JSON/CSV pair, repairs only a missing companion CSV, and rejects any changed
 input or corrupted companion output.
 
 ```powershell
-$O='audits/paper_table_manifest_qwen_t3_s0.json'; $C='audits/paper_table_manifest_qwen_t3_s0.communication.csv'; uv run python scripts/build_paper_table_manifest.py --adapter 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter' --adapter 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g' --federated-run 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0' --federated-run 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0' --canonical 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter' --canonical 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g' --n-clients 5 --rounds 3 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P1.4a deterministic manifest failed; inspect artifact drift before using a new output root' }; if (-not (Test-Path -LiteralPath $O) -or -not (Test-Path -LiteralPath $C)) { throw 'P1.4a terminal JSON/CSV pair is incomplete; rerun this exact line to repair or resume' }; $V=Get-Content -LiteralPath $O -Raw | ConvertFrom-Json; if ($V.schema_version -ne 2 -or $V.adapters.Count -ne 2 -or $V.communication.Count -ne 2 -or $V.validation.paper_context_included -or -not $V.validation.adapter_tensor_schema_shared -or -not $V.validation.communication_matches_round_metadata -or -not $V.validation.no_gpu_model_loading) { throw 'P1.4a artifact-only manifest validation failed' }; Write-Host "P1.4a complete: adapter_params=$($V.adapters[0].adapter_tensor_parameters) FL_T3_bytes=$($V.communication[0].cumulative.round_total) FedLS_T3_bytes=$($V.communication[1].cumulative.round_total); push JSON/CSV for local paper reconciliation"
+$O='audits/paper_table_manifest_qwen_t3_s0.json'; $C='audits/paper_table_manifest_qwen_t3_s0.communication.csv'; $H='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; if (-not (Test-Path -LiteralPath "$H/factor_fedavg_meta.json")) { throw "Missing shared FedLS round-1 aggregation metadata: $H/factor_fedavg_meta.json" }; uv run python scripts/build_paper_table_manifest.py --adapter 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter' --adapter 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g' --federated-run 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0' --federated-run 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0' --round-dir "qwen.fedls.t3.s0:1=$H" --canonical 'qwen.fl.t3.s0=artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter' --canonical 'qwen.fedls.t3.s0=artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g' --n-clients 5 --rounds 3 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P1.4a deterministic manifest failed; inspect artifact lineage or byte drift before using a new output root' }; if (-not (Test-Path -LiteralPath $O) -or -not (Test-Path -LiteralPath $C)) { throw 'P1.4a terminal JSON/CSV pair is incomplete; rerun this exact line to repair or resume' }; $V=Get-Content -LiteralPath $O -Raw | ConvertFrom-Json; if ($V.schema_version -ne 2 -or $V.adapters.Count -ne 2 -or $V.communication.Count -ne 2 -or $V.validation.paper_context_included -or -not $V.validation.adapter_tensor_schema_shared -or -not $V.validation.communication_matches_round_metadata -or -not $V.validation.no_gpu_model_loading -or $V.communication[1].rounds[0].source_round_dir -notlike '*florana_kd_noicl_k5_e1_t1_s0/round_1') { throw 'P1.4a artifact-only manifest validation failed' }; Write-Host "P1.4a complete: adapter_params=$($V.adapters[0].adapter_tensor_parameters) FL_T3_bytes=$($V.communication[0].cumulative.round_total) FedLS_T3_bytes=$($V.communication[1].cumulative.round_total); push JSON/CSV for local paper reconciliation"
 ```
 
 Commit the compact JSON and CSV in the code repository. After pulling them to
