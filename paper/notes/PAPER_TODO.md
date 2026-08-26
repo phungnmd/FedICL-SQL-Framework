@@ -14,13 +14,13 @@
 
 ## Ordered work
 
-### 1. Close the seed-1 convergence observations — active GPU, eval only
+### 1. Close the seed-1 convergence observations — complete
 
-- [-] Run `P0.8a-E` from `PIPELINE_NEXT.md`.
-- [ ] Validate four new full-Spider arms: independent FL T2, FedLS pre-server
+- [x] Run `P0.8a-E` from `PIPELINE_NEXT.md`.
+- [x] Validate four new full-Spider arms: independent FL T2, FedLS pre-server
   T2, FedLS post-server T2, and FedLS pre-server T3.
-- [ ] Combine them with the existing seed-1 T1 ladder and final T3 endpoints.
-- [ ] Add the seed-1 T1/T2/T3 trajectory to `MAIN_RESULTS.md`, registry, and
+- [x] Combine them with the existing seed-1 T1 ladder and final T3 endpoints.
+- [x] Add the seed-1 T1/T2/T3 trajectory to `MAIN_RESULTS.md`, registry, and
   lab log; keep mixed-lineage pre-server checkpoints diagnostic only.
 
 **Done when:** every seed-1 convergence cell resolves to a checkpoint,

@@ -77,14 +77,14 @@ The experimental phase is ready to freeze when all mandatory items hold:
 ### Current execution state — resource block deferred
 
 P1.1b-v2 is pending by operator decision. This does not weaken existing
-accuracy evidence; it leaves RQ4 resource cells open. P0.8a is complete and
-positive. The active GPU task is now the four-cell seed-1 trajectory
-evaluation; P0.8b seed 2 is intentionally delayed.
+accuracy evidence; it leaves RQ4 resource cells open. P0.8a and the four-cell
+P0.8a-E seed-1 trajectory completion are both complete and positive. No GPU
+run is activated automatically; P0.8b seed 2 is intentionally delayed.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
 | GPU complete | 1 | P0.8a pure-FL/FedLS T3 seed 1 | 61.99 vs 65.76 EX; `+3.77`, paired `p=0.00483` |
-| GPU now | 2 | P0.8a-E missing seed-1 trajectory cells | eval-only: FL T2 and FedLS pre/post-server observations |
+| GPU complete | 2 | P0.8a-E seed-1 trajectory cells | result commit `dbd703b`; full T1/T2/T3 trajectory registered |
 | GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | next mandatory task; retain “novel” only if the complete combination is defensible |
@@ -202,9 +202,9 @@ is absent from clients/deployment and client network payload is adapter-only.
 
 ### P0.8 — final T3 training-seed reliability
 
-**Status:** seed 1 final endpoint complete and positive; seed 2 deferred. Four
-missing seed-1 convergence observations are active as an eval-only block in
-`PIPELINE_NEXT.md`.
+**Status:** seed 1 final endpoint and full trajectory are complete and
+positive; seed 2 is deferred. The trajectory completion is registered at
+result commit `dbd703b`.
 
 Reliability extensions use only independent pure FL and frozen FedLS-SQL on
 the existing split. Seed 1 is complete; seed 2 resumes only when final
@@ -335,9 +335,9 @@ These require a gate and are not yet executable commands:
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a is complete; the immediate executable
-work is P0.8a-E on GPU. The next mandatory CPU/writing work is the novelty
-matrix and method draft, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
+Follow `PAPER_TODO.md` in order. P1.4a and P0.8a-E are complete. The immediate
+mandatory CPU/writing work is the novelty matrix and method draft, followed by
+explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
 recommended next training baseline; seed 2 remains the preferred final
 reliability closure after higher-value gaps. Do not add a model family, OOD
 seed sweep, or hyperparameter Cartesian sweep by default.

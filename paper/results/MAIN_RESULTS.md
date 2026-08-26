@@ -136,7 +136,28 @@ T3 (`p<1e-4`). At matched two passes over private data, `T=2, E=1` exceeds
 `T=1, E=2` by `+2.61` EX (`p=0.0067`), supporting repeated
 communication/aggregation/distillation rather than local duration alone.
 
-### 3.2 FedLS-SQL robustness trajectory, Qwen2.5, seed 0
+### 3.2 Spider trajectory replication, Qwen2.5, seed 1
+
+| Round | Independent pure FL EX / errors | Mixed-lineage pre-server EX / errors | FedLS-SQL endpoint EX / errors | FedLS − pure FL |
+|---:|---:|---:|---:|---:|
+| 1 | 57.45 / 247 | 57.45 / 247 | 62.48 / 139 | **+5.03** |
+| 2 | 61.70 / 213 | 63.25 / 195 | 64.22 / 121 | +2.51 |
+| 3 | 61.99 / 213 | 64.70 / 156 | **65.76 / 126** | **+3.77** |
+
+FedLS-SQL rises `+3.29` EX from T1 to T3 (78/44 paired wins/losses,
+`p=0.00266`), whereas independent pure FL gains only `+0.29` from T2 to T3
+(`p=0.810`). Earlier server knowledge survives subsequent private training and
+aggregation: before the new server step, the mixed lineage exceeds pure FL by
+`+1.55` at T2 (`p=0.152`) and `+2.71` at T3 (`p=0.0193`). The individual T2
+and T3 server steps add `+0.97` and `+1.06` EX but are not independently
+significant (`p=0.498`, `p=0.413`); they reduce execution errors from 195 to
+121 and from 156 to 126. Thus the replication supports cumulative recurring
+transfer and retained knowledge, not a claim that every server step must yield
+a separately significant EX increment. “Seed 1” denotes training seed; the
+older T1 ladder stored evaluation RNG seed 0, which does not alter greedy
+`k=0` decoding.
+
+### 3.3 FedLS-SQL robustness trajectory, Qwen2.5, seed 0
 
 | Dataset | T1 EX | T2 EX | T3 EX | T1→T3 | Paired `p` |
 |---|---:|---:|---:|---:|---:|
@@ -363,8 +384,8 @@ optimization target.
 | Overall NL-to-SQL performance | §2 | seed-0 final-model table complete |
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | pending controlled benchmark |
-| Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |
-| Convergence analysis | §3.1–§4.3 | seed-0 trajectory complete; final T3 seeds 0/1 positive; seed-1 missing-cell eval active |
+| Non-IID robustness | §3.3 | scoped to one partition; broader settings pending |
+| Convergence analysis | §3.1–§4.3 | complete trajectories at seeds 0/1; final T3 gain positive at both seeds |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | paired EX-oriented T3 audit complete |
 | Optimizer baseline breadth | §2.3/§4.5 | FedProx-LoRA recommended; design/run pending |

@@ -77,9 +77,15 @@ decisions. It deliberately does not own result tables:
   111/72 paired gains/losses; exact McNemar `p=0.00483`). The paired bootstrap
   95% interval is approximately `[+1.26,+6.38]`, and every hardness stratum is
   positive. Across seeds 0/1 the mean delta is `+4.50` EX with sample SD
-  `1.03`. This is sufficient for the current direction decision. P0.8b seed 2
-  is deferred; the active task is an eval-only completion of the seed-1
-  trajectory.
+  `1.03`. This is sufficient for the current direction decision. P0.8a-E is
+  also complete at result commit `dbd703b`: seed-1 FedLS progresses
+  `62.48→64.22→65.76` EX from T1 to T3, while pure FL progresses
+  `57.45→61.70→61.99`. The FedLS T1→T3 gain is `+3.29` (78/44,
+  `p=0.00266`), while pure FL plateaus from T2 to T3 (`+0.29`, `p=0.810`).
+  The mixed-lineage pre-server advantage over pure FL reaches `+2.71` at T3
+  (`p=0.0193`), showing retained earlier server knowledge. Incremental T2/T3
+  server EX gains are positive but not separately significant; their execution
+  errors fall 195→121 and 156→126. P0.8b seed 2 remains deferred.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
@@ -243,12 +249,11 @@ currently justify.
 
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
-1. P0.8a-E seed-1 trajectory evaluation on GPU.
-2. P1.4b novelty matrix and method/figure draft.
-3. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
+1. P1.4b novelty matrix and method/figure draft.
+2. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
    decisions.
-4. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
-5. Final claim/evidence QA and manuscript freeze.
+3. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
+4. Final claim/evidence QA and manuscript freeze.
 
 FedProx is a recommended reviewer baseline rather than a method direction.
 Teacher ceilings and model-size/rank/client sweeps remain optional; broader
@@ -273,6 +278,7 @@ heterogeneity is activated only if the paper retains a broad RQ3 claim.
 | Matched BIRD-gold control | `processed_data/BIRD/bootstrap_full_exmatch_gold/train.csv` |
 | Teacher-logit cache | `artifacts/teacher_logit_cache/rkd_k0_full` |
 | Matched T1 evaluation | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954` |
+| Seed-1 trajectory completion | `fedicl-sql/experiments/eval_arms/results/eval_arms__s1__20260826T094419`; nested result commit `dbd703b` |
 | Centralized-standard OOD/BIRD suite | four eval runs `20260820T143356` through `20260820T150048`; nested result commit `7eb7d44` |
 | Active commands | `paper/notes/PIPELINE_NEXT.md` |
 | RQ-to-evidence status | `paper/notes/EXPERIMENT_MATRIX.md` |
@@ -345,6 +351,7 @@ internal artifact identities.
 | 2026-08-26 | Corrected P1.4a at code commit `a25db62` after the first server attempt showed that the training host does not contain the separate paper repository. `build_paper_table_manifest.py` now supports an artifact-only mode with explicit canonical checkpoint mappings. The server continues to verify safetensors schema, serialized payload bytes, and immutable round metadata, then pushes only compact JSON/CSV; registry and paper-table reconciliation remains a local documentation step. No adapter transfer is required. |
 | 2026-08-26 | The second P1.4a attempt exposed the seed-0 FedLS split lineage rather than missing scientific evidence: round-1 clients/FedAvg were intentionally shared from `florana_kd_noicl_k5_e1_t1_s0/round_1`, while the refined `m_g` lives in `fedkd_noicl_k5_e1_t1_s0/round_1`; rounds 2–3 use the FedLS root normally. Code commit `f59a040` adds an explicit per-round artifact-source override so the audit follows the immutable historical lineage without copying files, mutating artifacts, or rerunning training. |
 | 2026-08-26 | Closed P1.4a with artifact commit `147f455`, fingerprint `d665d476...`, and registry ID `audit.paper.tables.qwen.s0`. Both final adapters contain 18,464,768 FP32 parameters across the same 392-tensor schema. The paper reports method-faithful logical tensor payload: 73,859,072 bytes/adapter, 738,590,720 bytes/round for five uploads plus five broadcasts, and 2,215,772,160 bytes through T3. The serialized audit proxy is retained separately because round metadata sizes `fedavg_adapter`, while FedLS broadcasts post-server `m_g`; the final files differ only by 32 bytes of safetensors header. Runtime resource cells remain open. |
+| 2026-08-26 | Closed P0.8a-E at nested result commit `dbd703b`. The four fresh 1,034-row evaluations complete seed-1 convergence without retraining: pure FL T2 61.70 EX/213 errors; FedLS mixed pre-server T2 63.25/195; FedLS T2 endpoint 64.22/121; mixed pre-server T3 64.70/156. Combined with registered T1 and T3 endpoints, FedLS rises 62.48→64.22→65.76 while pure FL rises 57.45→61.70→61.99. FedLS T1→T3 is +3.29 EX (78/44, `p=0.00266`); pure FL T2→T3 is +0.29 (`p=0.810`). The T3 pre-server model retains a significant +2.71 over pure FL (`p=0.0193`). T2/T3 server increments are +0.97/+1.06 but individually non-significant, so claim cumulative recurring transfer and retained knowledge rather than guaranteed per-round EX gains. |
 
 ## 8. Archived branches
 

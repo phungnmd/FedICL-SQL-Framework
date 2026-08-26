@@ -16,7 +16,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | next KD/Federated direction | hard-LLM-target CE vs the same CE + sparse client-ensemble FKL from a shared FedAvg initialization | closed negative: full-pool FedDF is 1.17 EX below hard-target CE and adds 30 execution errors |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for the current direction decision, seed 2 deferred for final reporting |
-| P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; seed-1 missing-cell eval active, no training required |
+| P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seeds 0/1; seed-1 FedLS T1→T3 `+3.29` EX (`p=0.00266`), pure FL plateaus T2→T3 |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
 | P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 deferred by operator, not cancelled |
