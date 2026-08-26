@@ -179,15 +179,17 @@ currently justify.
 
 ### 3.3 Efficiency evidence
 
-- The serialized global adapter is `73,911,080` bytes.
-- Five uploads plus five broadcasts total `739,110,960` bytes per round and
-  `2,217,332,880` bytes (`2.065 GiB`) through T3.
+- The Qwen LoRA adapter has `18,464,768` FP32 parameters across 392 tensors,
+  or `73,859,072` logical tensor bytes.
+- Five uploads plus five broadcasts total `738,590,720` logical tensor bytes
+  per round and `2,215,772,160` bytes (`2.064 GiB`) through T3.
 - Pure FL and FedLS-SQL have the same client-network payload because teacher
   transfer is server-local.
-- These values exclude transport framing and protocol metadata.
+- The artifact audit also retains serialized-file accounting, but the paper
+  excludes safetensors headers, transport framing, and protocol metadata.
 - Shared-server timing and RAM are operational logs only. Official latency,
-  VRAM, RSS, throughput, and trainable-parameter table cells remain pending a
-  fixed-warm-up repeated shared-server benchmark.
+  VRAM, RSS, and throughput remain pending a fixed-warm-up repeated
+  shared-server benchmark; the trainable-parameter cell is closed.
 
 ### 3.4 Generalization, portability, and negative evidence
 
@@ -242,12 +244,11 @@ currently justify.
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
 1. P0.8a-E seed-1 trajectory evaluation on GPU.
-2. P1.4a deterministic efficiency/table manifest on CPU.
-3. P1.4b novelty matrix and method/figure draft.
-4. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
+2. P1.4b novelty matrix and method/figure draft.
+3. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
    decisions.
-5. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
-6. Final claim/evidence QA and manuscript freeze.
+4. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
+5. Final claim/evidence QA and manuscript freeze.
 
 FedProx is a recommended reviewer baseline rather than a method direction.
 Teacher ceilings and model-size/rank/client sweeps remain optional; broader
@@ -343,6 +344,7 @@ internal artifact identities.
 | 2026-08-26 | Audited the advisor outline against current evidence and recent nearest work. The core accuracy/transfer result is sufficient to draft but not yet submission-ready for Q3: novelty positioning, deterministic/resource evidence, claim-scoped non-IID support, and baseline breadth remain the main risks. Added `PAPER_TODO.md` as the adaptive ordered backlog. Generic federated LLM-SLM novelty is no longer claimed; P1.4b must compare FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and execution-aware NL-to-SQL. Recommend one matched FedProx-LoRA baseline before final seed-2 closure; retain one heterogeneity sensitivity only if broad RQ3 wording survives. |
 | 2026-08-26 | Corrected P1.4a at code commit `a25db62` after the first server attempt showed that the training host does not contain the separate paper repository. `build_paper_table_manifest.py` now supports an artifact-only mode with explicit canonical checkpoint mappings. The server continues to verify safetensors schema, serialized payload bytes, and immutable round metadata, then pushes only compact JSON/CSV; registry and paper-table reconciliation remains a local documentation step. No adapter transfer is required. |
 | 2026-08-26 | The second P1.4a attempt exposed the seed-0 FedLS split lineage rather than missing scientific evidence: round-1 clients/FedAvg were intentionally shared from `florana_kd_noicl_k5_e1_t1_s0/round_1`, while the refined `m_g` lives in `fedkd_noicl_k5_e1_t1_s0/round_1`; rounds 2–3 use the FedLS root normally. Code commit `f59a040` adds an explicit per-round artifact-source override so the audit follows the immutable historical lineage without copying files, mutating artifacts, or rerunning training. |
+| 2026-08-26 | Closed P1.4a with artifact commit `147f455`, fingerprint `d665d476...`, and registry ID `audit.paper.tables.qwen.s0`. Both final adapters contain 18,464,768 FP32 parameters across the same 392-tensor schema. The paper reports method-faithful logical tensor payload: 73,859,072 bytes/adapter, 738,590,720 bytes/round for five uploads plus five broadcasts, and 2,215,772,160 bytes through T3. The serialized audit proxy is retained separately because round metadata sizes `fedavg_adapter`, while FedLS broadcasts post-server `m_g`; the final files differ only by 32 bytes of safetensors header. Runtime resource cells remain open. |
 
 ## 8. Archived branches
 

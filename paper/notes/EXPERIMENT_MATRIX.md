@@ -18,7 +18,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for the current direction decision, seed 2 deferred for final reporting |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; seed-1 missing-cell eval active, no training required |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
-| P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | CPU-only manifest implementation complete at `62cd3f6`; production artifact pending P1.4a command |
+| P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
 | P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 deferred by operator, not cancelled |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | mandatory P1.4b; broad “first federated LLM-SLM framework” claim is prohibited |
@@ -67,8 +67,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. Complete the four missing seed-1 trajectory evaluations and P1.4a before
-   more training.
+6. P1.4a is complete; finish the four missing seed-1 trajectory evaluations
+   before more training.
 7. Complete the mandatory novelty matrix and method draft, then decide RQ4
    measurement versus narrowing and fixed-partition scope versus one validated
    heterogeneity sensitivity.

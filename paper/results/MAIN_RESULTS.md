@@ -100,14 +100,14 @@ increment is not material; do not extend Gemma to T3/OOD automatically.
 
 This is the current candidate for the draft outline's
 `Method–EM–EX–Trainable Params–Latency` table, not a frozen paper table.
-Accuracy is Spider; resource cells remain pending until measured under the
-controlled protocol.
+Accuracy is Spider. Artifact-derived parameter counts are closed for the
+audited T3 FL/FedLS adapters; latency remains pending the controlled protocol.
 
 | Model family | Method | Spider EM | Spider EX | Trainable parameters | Inference latency | Inclusion status |
 |---|---|---:|---:|---:|---:|---|
 | Qwen2.5 1.5B | Centralized-standard-3ep | 64.41 | 67.31 | `PENDING:P1.1` | `PENDING:P1.1` | main baseline |
-| Qwen2.5 1.5B | Pure FL, T3 | 57.45 | 64.31 | `PENDING:P1.1` | `PENDING:P1.1` | main baseline |
-| Qwen2.5 1.5B | FedLS-SQL, T3 | 38.59 | **69.54** | `PENDING:P1.1` | `PENDING:P1.1` | proposed method |
+| Qwen2.5 1.5B | Pure FL, T3 | 57.45 | 64.31 | 18,464,768 | `PENDING:P1.1` | main baseline |
+| Qwen2.5 1.5B | FedLS-SQL, T3 | 38.59 | **69.54** | 18,464,768 | `PENDING:P1.1` | proposed method |
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
@@ -267,23 +267,31 @@ Supports the communication/resource claims currently proposed in draft §4.2.
 
 ### 5.1 Communication payload
 
-| Quantity | Bytes | MiB/GiB | Scope |
+| Quantity | Logical tensor bytes | MiB/GiB | Scope |
 |---|---:|---:|---|
-| One serialized global adapter | 73,911,080 | 70.487 MiB | weight payload only |
-| Five client uploads per round | 369,555,560 | 352.436 MiB | five serialized adapters |
-| Five client broadcasts per round | 369,555,400 | 352.435 MiB | five global adapters |
-| Total per round | 739,110,960 | 704.871 MiB | upload + broadcast |
-| Total through T3 | 2,217,332,880 | 2.065 GiB | three rounds |
+| One global LoRA adapter | 73,859,072 | 70.438 MiB | 18,464,768 FP32 adapter parameters |
+| Five client uploads per round | 369,295,360 | 352.188 MiB | five adapter tensor payloads |
+| Five global broadcasts per round | 369,295,360 | 352.188 MiB | five post-server/global tensor payloads |
+| Total per round | 738,590,720 | 704.375 MiB | upload + broadcast |
+| Total through T3 | 2,215,772,160 | 2.064 GiB | three rounds |
 
-Pure FL and FedLS-SQL have identical client-network payload because teacher
-transfer is server-local. Counts exclude transport framing and protocol
-metadata.
+Pure FL and FedLS-SQL have identical tensor payload because every client and
+global adapter has the same 392-tensor schema and the teacher transfer is
+server-local. The production audit at nested commit `147f455` independently
+checks all six round records and reports the serialized-file accounting proxy:
+`369,555,560` upload bytes, `369,555,400` aggregation-adapter broadcast bytes,
+`739,110,960` bytes per round, and `2,217,332,880` through T3. That proxy
+includes safetensors headers and records `fedavg_adapter`; the algorithm
+broadcasts post-server `m_g` for FedLS. Their logical tensor payload is
+identical, while the audited final serialized files differ by only 32 header
+bytes. The paper therefore reports logical FP32 tensor bytes and excludes
+serialization headers, transport framing, and protocol metadata.
 
 ### 5.2 Accuracy-resource table
 
 | Track/model | EX scope | Trainable parameters | Inference latency | Peak allocated/reserved VRAM | Process RSS | Status |
 |---|---|---:|---:|---:|---:|---|
-| FedLS-SQL / Qwen2.5-1.5B | Spider T3 | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | requires controlled warm-up benchmark |
+| FedLS-SQL / Qwen2.5-1.5B | Spider T3 | 18,464,768 | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | parameters/communication closed; controlled runtime pending |
 | Teacher / Qwen2.5-Coder-7B | matched resource subset | N/A | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | cost reference, not federated-7B baseline |
 
 Old shared-server timing is operational evidence only and must not fill this

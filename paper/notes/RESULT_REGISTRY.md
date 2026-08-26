@@ -93,7 +93,7 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
 | `audit.qwen.t3.fl-fedls.ex-transfer` | paired EX state transitions, hardness, SQL constructs, and execution errors on 1,034 Spider rows | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_ex_transfer.json` | canonical; analysis code `74f70c1`, artifact commit `4527a76` |
 | `audit.qwen.t3.fl-fedls.examples` | deterministic fixed-rule corrected/regressed/EX-valid SQL-form examples | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_examples.csv` | canonical companion to the EX-transfer audit |
-| `audit.paper.tables.qwen.s0` | deterministic Qwen adapter parameters, T1-T3 communication, structured canonical tables, and pending-cell inventory | `PENDING:P1.4a` | CPU-only builder `62cd3f6`; promote after production JSON/CSV validation |
+| `audit.paper.tables.qwen.s0` | deterministic Qwen adapter parameters and T1-T3 communication audit | `fedicl-sql/audits/paper_table_manifest_qwen_t3_s0.json` | canonical artifact-only manifest; fingerprint `d665d476aa5bb0d2a151cecfdcd18c6687f1785ebb1c57721b257322a65eea28`; producer `f59a040`, result commit `147f455`; CSV companion beside JSON |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before

@@ -50,8 +50,9 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 - Pure-FL and FedLS-SQL T1-T3 convergence trajectories exist.
 - Gemma T1 provides a positive second-family endpoint and identifies hard
   teacher-target transfer as the portable mechanism.
-- Adapter communication is closed at `739,110,960` bytes per round and
-  `2,217,332,880` bytes through T3.
+- Adapter communication is closed at `738,590,720` logical FP32 tensor bytes
+  per round and `2,215,772,160` bytes through T3; serialized artifact-file
+  accounting is retained separately as an implementation audit.
 - ICL, FLoRA-NA, adaptive selection, and FedDF are closed negative branches.
 
 ## 4. Definition of done for the target paper
@@ -85,8 +86,8 @@ evaluation; P0.8b seed 2 is intentionally delayed.
 | GPU complete | 1 | P0.8a pure-FL/FedLS T3 seed 1 | 61.99 vs 65.76 EX; `+3.77`, paired `p=0.00483` |
 | GPU now | 2 | P0.8a-E missing seed-1 trajectory cells | eval-only: FL T2 and FedLS pre/post-server observations |
 | GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
-| CPU | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
-| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | mandatory; retain “novel” only if the complete combination is defensible |
+| CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
+| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | next mandatory task; retain “novel” only if the complete combination is defensible |
 | Decision | 3 | RQ4 measured-resource path versus narrowed claim | complete before freezing contribution 4 |
 | Decision | 4 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires broader robustness |
 | Recommended | 5 | one matched FedProx-LoRA baseline | stronger reviewer baseline; design before activating a command |
@@ -250,8 +251,9 @@ about changing or increasing heterogeneity. Otherwise narrow RQ3 and stop.
 
 ### P1.4a — deterministic efficiency and table manifest
 
-**Status:** implementation complete at nested commit `62cd3f6`; the CPU-only
-production command is active in `PIPELINE_NEXT.md` and its artifact is pending.
+**Status:** complete. Artifact-only builder lineage ends at `f59a040`; compact
+JSON/CSV were committed at nested result commit `147f455` and registered as
+`audit.paper.tables.qwen.s0`.
 
 Produce a compact paper-table manifest that:
 
@@ -259,11 +261,10 @@ Produce a compact paper-table manifest that:
   immutable artifacts without loading a model on GPU;
 - records upload, broadcast, per-round, and T3 cumulative communication with
   units and formulas;
-- maps every completed main, ablation, convergence, portability, and error
-  value to a stable registry ID;
-- leaves resource and seed cells as explicit `PENDING` entries;
-- can be consumed when drafting tables without copying values from terminal
-  logs.
+- validates the intentional seed-0 FedLS split lineage and every round's
+  aggregation metadata;
+- emits compact JSON/CSV that can be registered and consumed locally without
+  copying terminal values or moving adapter weights.
 
 **Gate:** no paper-facing number may lack a registry/artifact path and formula
 or evaluation provenance.
@@ -334,9 +335,9 @@ These require a gate and are not yet executable commands:
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. The immediate executable work is P0.8a-E on
-GPU and P1.4a on CPU. The next mandatory work is the novelty matrix and method
-draft, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
+Follow `PAPER_TODO.md` in order. P1.4a is complete; the immediate executable
+work is P0.8a-E on GPU. The next mandatory CPU/writing work is the novelty
+matrix and method draft, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
 recommended next training baseline; seed 2 remains the preferred final
 reliability closure after higher-value gaps. Do not add a model family, OOD
 seed sweep, or hyperparameter Cartesian sweep by default.

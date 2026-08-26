@@ -278,12 +278,16 @@ Gemma). Its gold, target-CE, and CE+RKL controls share those exact selected
 indices. Reusing Qwen's success indices would condition the second-family
 result on Qwen and is not method-faithful.
 
-Communication payload accounting is already available from committed round
-metrics. With five clients, each round transmits `369,555,560` upload bytes and
-`369,555,400` broadcast bytes, or `739,110,960` bytes total; three rounds total
-`2,217,332,880` bytes (`2.065 GiB`). Pure FL and FedLS-SQL transmit the same
-client-side adapter payload because the teacher stage is confined to the
-server. This count excludes transport framing and other protocol metadata.
+Communication payload accounting is closed by the artifact-only audit at
+nested result commit `147f455`. Every adapter has 18,464,768 FP32 parameters,
+so five uploads plus five broadcasts transmit `738,590,720` logical tensor
+bytes per round and `2,215,772,160` bytes (`2.064 GiB`) through T3. Pure FL and
+FedLS-SQL transmit the same client-side tensor payload because the teacher
+stage is confined to the server. The companion serialized-file audit reports
+`739,110,960` bytes per round, including safetensors headers; it uses the
+aggregation adapter as the recorded broadcast proxy, whereas FedLS actually
+broadcasts post-server `m_g`. The paper therefore uses logical tensor bytes
+and excludes serialization headers, transport framing, and protocol metadata.
 
 Outline items not yet supported by current evidence include FedProx, a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual

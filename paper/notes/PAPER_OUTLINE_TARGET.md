@@ -184,7 +184,7 @@ controlled size effect or a family-independent RKL gain.
 
 ### 4.6 Communication and resource trade-offs — RQ4
 
-- Trainable parameters and serialized adapter bytes.
+- Trainable parameters, logical tensor payload, and serialized-file audit.
 - Upload, broadcast, per-round, and T3 cumulative communication.
 - Client LoRA process memory.
 - Server-KD process memory.

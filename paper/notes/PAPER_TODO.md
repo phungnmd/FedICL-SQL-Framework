@@ -26,12 +26,12 @@
 **Done when:** every seed-1 convergence cell resolves to a checkpoint,
 prediction file, config, metrics file, and result commit.
 
-### 2. Close deterministic efficiency/accounting — active CPU
+### 2. Close deterministic efficiency/accounting — complete
 
-- [ ] Run `P1.4a` from `PIPELINE_NEXT.md`.
-- [ ] Validate LoRA trainable-parameter counts, serialized adapter bytes,
+- [x] Run `P1.4a` from `PIPELINE_NEXT.md`.
+- [x] Validate LoRA trainable-parameter counts, serialized adapter bytes,
   upload/broadcast bytes per round, and cumulative T3 communication.
-- [ ] Push the server-side artifact-only JSON/CSV, then reconcile it locally
+- [x] Push the server-side artifact-only JSON/CSV, then reconcile it locally
   with `RESULT_REGISTRY.md` and replace the corresponding `PENDING` cells in
   `MAIN_RESULTS.md`; the server does not require the paper repository.
 
