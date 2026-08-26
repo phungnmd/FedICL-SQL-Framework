@@ -1,6 +1,6 @@
 # FedLS-SQL — canonical paper result tables
 
-> Updated 2026-08-25. This file is the single source of truth for paper-facing
+> Updated 2026-08-26. This file is the single source of truth for paper-facing
 > values. Stable artifact IDs resolve through
 > `../notes/RESULT_REGISTRY.md`. Values are percentages unless stated
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
@@ -193,9 +193,27 @@ significance.
 | full method over distillation-only | +1.39 | 1.12 | 0.165 |
 
 The server stage as a whole is supported; standalone reverse KL remains
-provisional. Final T3 seed-1/2 reliability is deferred as `PENDING:P0.8`.
+provisional. Final T3 seed reliability is reported separately below; seed 2
+remains `PENDING:P0.8b`.
 
-### 4.3 P0.9b execution-guided selection screen (negative)
+### 4.3 Final T3 training-seed reliability, Qwen2.5
+
+| Training seed | Pure FL EX | FedLS-SQL EX | Delta | FedLS wins/losses | Exact McNemar `p` | FL/FedLS exec. errors |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 64.31 | 69.54 | **+5.23** | 121/67 | 0.0001002 | 193/101 |
+| 1 | 61.99 | 65.76 | **+3.77** | 111/72 | 0.00483 | 213/126 |
+| 2 | `PENDING:P0.8b` | `PENDING:P0.8b` | `PENDING:P0.8b` | `PENDING:P0.8b` | `PENDING:P0.8b` | `PENDING:P0.8b` |
+| Mean over completed seeds | 63.15 | 67.65 | **+4.50** | N/A | N/A | N/A |
+
+Across the two completed training seeds, the EX-delta sample SD is `1.03`
+points. At seed 1, the paired bootstrap 95% interval is approximately
+`[+1.26,+6.38]` points, and FedLS-SQL improves every Spider hardness stratum.
+The two positive seeds establish replication but are not reported as a final
+three-seed uncertainty result; P0.8b closes that cell. Question-level McNemar
+tests characterize paired test-row evidence and are not substitutes for
+training-seed uncertainty.
+
+### 4.4 P0.9b execution-guided selection screen (negative)
 
 This method-selection screen starts both 256-row arms from
 `qwen.fl.shared.t1.s0` and matches row count, 256 micro-steps, 16 optimizer
@@ -216,7 +234,7 @@ and is not part of FedLS-SQL. Training resource measurements are ineligible:
 the arms ran concurrently and the random arm had a failed OOM attempt before a
 fresh successful rerun.
 
-### 4.4 Outline sensitivity matrix
+### 4.5 Outline sensitivity matrix
 
 | Outline item | Current evidence | Paper treatment |
 |---|---|---|
@@ -336,7 +354,7 @@ optimization target.
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | pending controlled benchmark |
 | Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |
-| Convergence analysis | §3.1–§3.2 | seed 0 complete; final reliability deferred as P0.8 |
+| Convergence analysis | §3.1–§4.3 | seed-0 trajectory complete; final T3 seeds 0/1 positive, seed 2 active |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | paired EX-oriented T3 audit complete |
 

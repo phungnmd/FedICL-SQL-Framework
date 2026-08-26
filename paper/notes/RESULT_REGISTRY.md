@@ -15,6 +15,8 @@ not be renamed.
 | `qwen.central.restart3.s0` | schedule sensitivity only | `artifacts/probe_p/central_3ep/adapter` | three independently scheduled passes |
 | `qwen.fl.t3.s0` | final independent pure FL | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | setup `229fe736042acd80df29a19e577963e4f69a5e6bb62d41ac5964fbeee9f629d2` |
 | `qwen.fedls.t3.s0` | final full FedLS-SQL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | teacher-target CE + reverse KL |
+| `qwen.fl.t3.s1` | seed-1 independent pure FL | `artifacts/federated/fedavg_noicl_k5_e1_t1_s1/round_3/fedavg_adapter` | setup `3680b91c34f6631fea4cca61573f28edfe30e75a51e01bef19167e87ad13b5e1` |
+| `qwen.fedls.t3.s1` | seed-1 full FedLS-SQL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_3/m_g` | setup `c695a4936ed59b6609bc48909f22b94ade2375cfc061386c8b4d3847f3264994`; teacher-target CE + reverse KL |
 
 The `round_2/round_3/fedavg_adapter` objects inside the FedLS lineage inherit
 earlier KD and are not independent pure-FL checkpoints.
@@ -73,6 +75,7 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.gemma.fl.t1.s0.spider` | Gemma 2B pure FL T1, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` | canonical; pre-`--model-4bit` runner schema, result commit `c760523` |
 | `eval.gemma.t1.matched.s0.spider` | base/FL/gold CE/teacher-target CE/full FedLS, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260823T005329` | canonical paper evaluation; code SHA `3e673ef`, result commit `e53bfe7` |
 | `eval.qwen.t1.p09b.s0.spider` | FL/full-uniform/random256/global-error256 method gate, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T042237` | canonical negative ablation; code SHA `a45f683`, result commit `10a0bbd` |
+| `eval.qwen.t3.fl-fedls.s1.spider` | final T3 pure FL versus FedLS-SQL, seed 1, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s1__20260826T070328` | canonical reliability endpoint; code SHA `62cd3f6`, result commit `2237b22` |
 | `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |
 | `audit.qwen.t3.fl-fedls.ex-transfer` | paired EX state transitions, hardness, SQL constructs, and execution errors on 1,034 Spider rows | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_ex_transfer.json` | canonical; analysis code `74f70c1`, artifact commit `4527a76` |

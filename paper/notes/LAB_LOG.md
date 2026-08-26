@@ -1,6 +1,6 @@
 # FedLS-SQL — active lab log
 
-> Refreshed 2026-08-22. This is the compact decision ledger for the current
+> Refreshed 2026-08-26. This is the compact decision ledger for the current
 > paper. The complete chronology through this date is preserved at
 > `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`.
 
@@ -72,8 +72,12 @@ decisions. It deliberately does not own result tables:
   metrics report SHA `e144d8b`, indicating a mid-run worktree update. Accuracy
   remains comparable because both effective paths are unquantized defaults;
   exact process provenance is limited to the saved config for this artifact.
-- Final T3 seed-1/2 reliability is retained as P0.8; seed 1 is now the active
-  gate and seed 2 depends on its paired endpoint review.
+- P0.8a is complete. At T3 seed 1, pure FL reaches `61.99` Spider EX with 213
+  execution errors and FedLS-SQL reaches `65.76` with 126 (`+3.77` EX;
+  111/72 paired gains/losses; exact McNemar `p=0.00483`). The paired bootstrap
+  95% interval is approximately `[+1.26,+6.38]`, and every hardness stratum is
+  positive. Across seeds 0/1 the mean delta is `+4.50` EX with sample SD
+  `1.03`. P0.8b seed 2 is now the active final reliability gate.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
@@ -143,7 +147,8 @@ currently justify.
   is not significant (`p=0.0865`) and compute is not matched. Do not claim
   superiority to centralized training.
 - Multi-round FedLS-SQL improves from T1 to T3 on Spider and all three Spider
-  perturbation sets at seed 0. Final T3 training-seed reliability remains open.
+  perturbation sets at seed 0. The final T3 gain replicates at seed 1
+  (`+3.77` EX); seed 2 remains the final reliability cell.
 - The official centralized recipe is one continuous three-epoch run at `67.31`
   Spider EX. The historical three-pass restart reaches `67.60`; their `0.29`
   difference is null (`p=0.863`) and remains schedule sensitivity only.
@@ -232,10 +237,10 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.8a/T1R: audit and run final T3 pure-FL versus frozen FedLS-SQL at seed 1,
-   then review paired Spider EX before activating seed 2.
-2. P0.8b/T1R: run seed 2 only if the seed-1 gate remains positive; otherwise
-   inspect lineage and claim strength first.
+1. P0.8b/T1R: continue the canonical seed-2 pure-FL and FedLS-SQL T1 roots
+   through T2/T3, then evaluate the two final Spider endpoints.
+2. Pull the paired seed-2 predictions and close the three-seed mean, sample SD,
+   and claim-strength decision.
 3. Complete the deterministic efficiency/table manifest, related-work novelty
    matrix, and manuscript skeleton outside timed resource windows.
 4. Keep P1.1b-v2 pending for later reactivation or narrow RQ4 if it remains
@@ -334,6 +339,7 @@ internal artifact identities.
 | 2026-08-25 | The first P1.1b collection completed but the PID-presence gate classified all 5/5 student and 5/5 teacher repetitions as contended because Windows/WDDM exposed many persistent contexts. Its descriptive medians were about 25.62 s/32 queries for the 1.5B student and 53.44 s/32 queries for the 7B teacher (about 2.09x), but these are not canonical. Per operator decision, commit `487b3b2` removes PID enumeration and treats each fresh successful repetition independently while retaining device telemetry. P1.1b-v2 must use new roots and must not merge the superseded collection. |
 | 2026-08-25 | Deferred P1.1b-v2 by operator decision and promoted P0.8 seed reliability. Seed 1 is now the active GPU gate; seed 2 runs only after the paired seed-1 Spider endpoint remains positive. Resource code and the v2 command remain reproducible for later reactivation, but the resource block must not delay the primary accuracy-evidence decision. |
 | 2026-08-25 | Audited P0.8a against the current checkpoint contract. Seed 1 already has canonical T1 roots (`fedavg_noicl_k5_e1_t1_s1`, setup `3680b91c...`; `fedkd_noicl_k5_e1_t1_s1`, setup `c695a493...`). The active command now pins those identities, executes rounds 2 and 3 explicitly, and evaluates only final Spider T3 endpoints. The archived `run --rounds 3` recipe is superseded because it would restart at round 1 and could break the established lineage. |
+| 2026-08-26 | Pulled nested result commit `2237b22` through merge `78cc611` and closed P0.8a. At seed 1, final pure FL/FedLS-SQL score 61.99/65.76 Spider EX with 213/126 execution errors. FedLS has 111 paired corrections and 72 regressions (`+3.77`, exact `p=0.00483`; paired bootstrap 95% interval about `[+1.26,+6.38]`) and remains positive in every hardness stratum. Seeds 0/1 therefore give deltas `+5.23/+3.77`, mean `+4.50`, sample SD `1.03`; activate the unchanged seed-2 continuation as P0.8b. |
 
 ## 8. Archived branches
 

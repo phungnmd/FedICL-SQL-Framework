@@ -204,6 +204,10 @@ Established evidence:
 - FedLS-SQL reaches 69.54 Spider EX at `T=3`, seed 0;
 - at T3, FedLS-SQL improves over the independent pure-FL lineage by 5.23 EX
   on Spider (`p=0.0001`), with positive deltas on all four additional tests;
+- the final T3 contrast replicates at training seed 1: FedLS-SQL reaches 65.76
+  EX versus 61.99 for pure FL (`+3.77`, 111 paired gains/72 losses,
+  `p=0.00483`) and reduces execution errors from 213 to 126; seeds 0/1 have a
+  mean delta of `+4.50` EX with sample SD `1.03`;
 - the `T=1 -> T=3` trajectory improves Spider and all three perturbation sets;
 - server KD is strongly beneficial on BIRD cross-corpus evaluation;
 - ICL is negative for the tested 1.5B student and is retained only as a
@@ -231,8 +235,8 @@ Established evidence:
 
 Open evidence gaps:
 
-1. replicate the final T3 pure-FL versus full FedLS-SQL Spider contrast at
-   training seed 1, then activate seed 2 only after endpoint review;
+1. complete the already-activated seed-2 T3 pure-FL versus full FedLS-SQL
+   Spider contrast, then report the three-training-seed mean and sample SD;
 2. either reactivate the deferred resource benchmark with fixed warm-up and
    independent repetitions or narrow the corresponding RQ4 claim;
 3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
