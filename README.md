@@ -17,6 +17,7 @@ The current research question is:
 
 - Canonical architecture and terminology: `paper/notes/system_architecture.md`
 - Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
+- Ordered adaptive paper TODO: `paper/notes/PAPER_TODO.md`
 - RQ-to-evidence map: `paper/notes/EXPERIMENT_MATRIX.md`
 - Canonical paper result tables: `paper/results/MAIN_RESULTS.md`
 - Checkpoint/evaluation artifact map: `paper/notes/RESULT_REGISTRY.md`
@@ -29,6 +30,11 @@ materials, plans, and references. `fedicl-sql/` is a separate Git repository
 containing code and the reproducibility trail. The legacy Python namespace
 `fedicl_sql` is retained for compatibility; old artifact paths and run IDs are
 immutable provenance identifiers, not presentation names.
+
+The training server may contain only the inner code repository. Paper-facing
+commands must therefore avoid runtime dependencies on this outer repository;
+compact result artifacts are pushed from the server and reconciled with the
+registry and paper tables here.
 
 ---
 
