@@ -14,8 +14,9 @@ decisions. It deliberately does not own result tables:
 
 ## 1. Current status
 
-- Paper: **FedLS-SQL: A Novel Federated Large-Small Language Models Framework
-  for Natural Language to SQL**.
+- Paper: **FedLS-SQL: Execution-Verified Large-to-Small Knowledge Transfer for
+  Federated NL-to-SQL**. P1.4b removed the generic “A Novel ... Framework”
+  claim after comparison with FedCoLLM and Struct-SQL.
 - Active manuscript structure: `PAPER_OUTLINE_TARGET.md`; the August 19 PDF is
   retained as the advisor-provided planning source rather than a fixed
   experiment contract.
@@ -249,7 +250,8 @@ currently justify.
 
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
-1. P1.4b novelty matrix and method/figure draft.
+1. Method prose and architecture/privacy-boundary figure from the completed
+   P1.4b manuscript skeleton.
 2. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
    decisions.
 3. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
@@ -352,6 +354,7 @@ internal artifact identities.
 | 2026-08-26 | The second P1.4a attempt exposed the seed-0 FedLS split lineage rather than missing scientific evidence: round-1 clients/FedAvg were intentionally shared from `florana_kd_noicl_k5_e1_t1_s0/round_1`, while the refined `m_g` lives in `fedkd_noicl_k5_e1_t1_s0/round_1`; rounds 2–3 use the FedLS root normally. Code commit `f59a040` adds an explicit per-round artifact-source override so the audit follows the immutable historical lineage without copying files, mutating artifacts, or rerunning training. |
 | 2026-08-26 | Closed P1.4a with artifact commit `147f455`, fingerprint `d665d476...`, and registry ID `audit.paper.tables.qwen.s0`. Both final adapters contain 18,464,768 FP32 parameters across the same 392-tensor schema. The paper reports method-faithful logical tensor payload: 73,859,072 bytes/adapter, 738,590,720 bytes/round for five uploads plus five broadcasts, and 2,215,772,160 bytes through T3. The serialized audit proxy is retained separately because round metadata sizes `fedavg_adapter`, while FedLS broadcasts post-server `m_g`; the final files differ only by 32 bytes of safetensors header. Runtime resource cells remain open. |
 | 2026-08-26 | Closed P0.8a-E at nested result commit `dbd703b`. The four fresh 1,034-row evaluations complete seed-1 convergence without retraining: pure FL T2 61.70 EX/213 errors; FedLS mixed pre-server T2 63.25/195; FedLS T2 endpoint 64.22/121; mixed pre-server T3 64.70/156. Combined with registered T1 and T3 endpoints, FedLS rises 62.48→64.22→65.76 while pure FL rises 57.45→61.70→61.99. FedLS T1→T3 is +3.29 EX (78/44, `p=0.00266`); pure FL T2→T3 is +0.29 (`p=0.810`). The T3 pre-server model retains a significant +2.71 over pure FL (`p=0.0193`). T2/T3 server increments are +0.97/+1.06 but individually non-significant, so claim cumulative recurring transfer and retained knowledge rather than guaranteed per-round EX gains. |
+| 2026-08-26 | Closed P1.4b with `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md`. FedCoLLM already contains the closest generic client-LoRA aggregation plus recurring server LLM/SLM KD loop, and Struct-SQL already filters teacher Text-to-SQL samples by execution correctness. Removed “A Novel ... Framework” from the active title. The defensible contribution is the complete federated NL-to-SQL workflow: frozen server teacher, public result-equivalent SQL targets, private adapter-only clients, recurring global-SLM refinement, EX-oriented controls, and SLM-only deployment. Generic first/novel FL, KD, PEFT, or execution-filtering claims are prohibited. |
 
 ## 8. Archived branches
 

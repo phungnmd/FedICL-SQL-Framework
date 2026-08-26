@@ -41,6 +41,8 @@ archive directory with a README explaining their replacement.
 | Which metric appears in the paper? | `paper/results/MAIN_RESULTS.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
 | Which RQ still lacks evidence? | `paper/notes/EXPERIMENT_MATRIX.md` |
+| What novelty/claim boundary is defensible? | `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md` |
+| How is the manuscript mapped to evidence? | `paper/notes/MANUSCRIPT_SKELETON.md` |
 | What happened historically? | `paper/archive/` and Git history |
 
 Do not duplicate commands, result tables, or current decisions across multiple

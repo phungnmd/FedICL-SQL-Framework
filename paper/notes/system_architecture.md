@@ -235,17 +235,19 @@ Established evidence:
 
 Open evidence gaps:
 
-1. complete the missing seed-1 T2/T3 trajectory evaluations; seed 2 is
-   deferred but remains the path to a final three-seed mean and sample SD;
+1. seed 2 is deferred but remains the path to a final three-seed T3 mean and
+   sample SD; the seed-1 T2/T3 trajectory is complete;
 2. either reactivate the deferred resource benchmark with fixed warm-up and
    independent repetitions or narrow the corresponding RQ4 claim;
 3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
    validated minimal heterogeneity sensitivity;
-4. position novelty against FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT,
-   and execution-aware NL-to-SQL rather than claiming generic LLM-SLM
-   federation as new;
-5. add one matched FedProx-LoRA reviewer baseline or document why the paper is
+4. add one matched FedProx-LoRA reviewer baseline or document why the paper is
    scoped to FedAvg-based federated optimization.
+
+Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
+the closest architecture and Struct-SQL the closest execution-filtered SQL KD
+prior. The active claim is the task-specific frozen-teacher/public-EX/private-
+LoRA/SLM-deployment workflow, not generic LLM-SLM federation.
 
 **Method-freeze gate (finalized 2026-08-25):** the architecture above remains the
 canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that

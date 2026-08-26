@@ -38,26 +38,29 @@ prediction file, config, metrics file, and result commit.
 **Done when:** no deterministic parameter or communication number is copied
 from a terminal log or lacks a formula/provenance path.
 
-### 3. Establish defensible novelty — mandatory research/writing
+### 3. Establish defensible novelty — complete
 
-- [ ] Build the related-work comparison matrix across federated NL-to-SQL,
+- [x] Build the related-work comparison matrix across federated NL-to-SQL,
   federated PEFT, federated KD, and LLM-to-SLM collaboration.
-- [ ] Include at minimum FedMKT, FedCoLLM, FedCoT, LaDa, FedGen/data-free
+- [x] Include at minimum FedMKT, FedCoLLM, FedCoT, LaDa, FedGen/data-free
   server refinement, and the closest small-model NL-to-SQL transfer papers.
-- [ ] Compare task, teacher location, direction of transfer, private/public
+- [x] Compare task, teacher location, direction of transfer, private/public
   boundary, execution verification, transmitted object, client model, and
   deployed model.
-- [ ] Rewrite the novelty claim around the complete NL-to-SQL workflow:
+- [x] Rewrite the novelty claim around the complete NL-to-SQL workflow:
   execution-verified public teacher SQL, private client LoRA/FedAvg, recurring
   server refinement, EX-oriented validation, and SLM-only deployment.
-- [ ] Remove “novel” from the title if the complete combination cannot be
-  distinguished clearly.
+- [x] Remove “novel” from the title because FedCoLLM covers the closest generic
+  loop and Struct-SQL already covers execution-correct teacher SQL; use the
+  narrower title and claim in `RELATED_WORK_NOVELTY_MATRIX.md`.
 
 **Done when:** every contribution has a nearest-work comparison and no claim
 implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 
 ### 4. Draft the method and core paper artifacts — mandatory CPU/writing
 
+- [x] Create the evidence-mapped manuscript skeleton in
+  `MANUSCRIPT_SKELETON.md`.
 - [ ] Write the problem formulation and structural privacy boundary.
 - [ ] Write the round algorithm: broadcast, private client LoRA CE,
   sample-weighted factor-wise FedAvg, public server transfer, rebroadcast.

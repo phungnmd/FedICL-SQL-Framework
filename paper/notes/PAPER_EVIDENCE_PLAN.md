@@ -62,14 +62,16 @@ The experimental phase is ready to freeze when all mandatory items hold:
 1. the final T3 pure-FL versus FedLS contrast has seeds 0/1/2 or the claim has
    been weakened to reflect observed instability;
 2. resource tables contain deterministic counts and fresh repeated
-   process-memory/latency measurements with raw GPU telemetry;
+   process-memory/latency measurements with raw GPU telemetry, or the resource
+   claim is narrowed to deterministic communication and structural deployment;
 3. the error analysis explains EX gains, execution failures, and representative
    transfer behavior without treating EM as the target;
 4. RQ3 wording is explicitly scoped to the fixed non-IID partition, or a
    minimal validated heterogeneity screen has been completed;
-5. the related-work matrix establishes novelty at the intersection of
-   federated NL-to-SQL, asymmetric server/client models, execution-verified
-   teacher transfer, and adapter-only communication;
+5. the related-work matrix locates the contribution boundary at the
+   intersection of federated NL-to-SQL, asymmetric server/client models,
+   execution-verified teacher transfer, and adapter-only communication without
+   claiming that the individual components are new;
 6. every paper value resolves to `MAIN_RESULTS.md` and `RESULT_REGISTRY.md`.
 
 ## 5. Active priority order
@@ -87,7 +89,7 @@ run is activated automatically; P0.8b seed 2 is intentionally delayed.
 | GPU complete | 2 | P0.8a-E seed-1 trajectory cells | result commit `dbd703b`; full T1/T2/T3 trajectory registered |
 | GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
-| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | next mandatory task; retain “novel” only if the complete combination is defensible |
+| CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | Decision | 3 | RQ4 measured-resource path versus narrowed claim | complete before freezing contribution 4 |
 | Decision | 4 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires broader robustness |
 | Recommended | 5 | one matched FedProx-LoRA baseline | stronger reviewer baseline; design before activating a command |
@@ -271,7 +273,7 @@ or evaluation provenance.
 
 ### P1.4b — related-work and novelty audit
 
-**Status:** mandatory CPU/writing task; may start immediately.
+**Status:** complete 2026-08-26.
 
 Build a comparison matrix covering recent:
 
@@ -290,10 +292,18 @@ teacher location, transferred object, execution verification, communication,
 and deployed model. Revise the title if “novel” cannot be defended for the
 complete combination.
 
+Outcome: FedCoLLM is the closest architectural prior and Struct-SQL the
+closest execution-filtered Text-to-SQL KD prior. The title is now
+“FedLS-SQL: Execution-Verified Large-to-Small Knowledge Transfer for
+Federated NL-to-SQL.” The full matrix and safe/prohibited wording are in
+`RELATED_WORK_NOVELTY_MATRIX.md`; the P2 section/evidence map is in
+`MANUSCRIPT_SKELETON.md`.
+
 ### P2 — manuscript build and evidence freeze
 
-**Status:** the skeleton may begin now; final tables wait for the mandatory
-gates above.
+**Status:** evidence-mapped skeleton complete in `MANUSCRIPT_SKELETON.md`;
+method prose and the architecture figure are next. Final resource/robustness
+wording waits for the remaining decision gates.
 
 Draft against `PAPER_OUTLINE_TARGET.md`. Freeze seven core artifacts:
 
@@ -335,9 +345,9 @@ These require a gate and are not yet executable commands:
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a and P0.8a-E are complete. The immediate
-mandatory CPU/writing work is the novelty matrix and method draft, followed by
-explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
+Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, and P0.8a-E are complete. The
+immediate mandatory CPU/writing work is the method prose and architecture
+figure, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
 recommended next training baseline; seed 2 remains the preferred final
 reliability closure after higher-value gaps. Do not add a model family, OOD
 seed sweep, or hyperparameter Cartesian sweep by default.

@@ -1,7 +1,12 @@
 # FedLS-SQL manuscript outline
 
-**Working title:** *FedLS-SQL: A Novel Federated Large-Small Language Models
-Framework for Natural Language to SQL*
+**Working title:** *FedLS-SQL: Execution-Verified Large-to-Small Knowledge
+Transfer for Federated NL-to-SQL*
+
+The P1.4b audit removes the generic “novel framework” claim. FedCoLLM is the
+closest architectural prior and Struct-SQL already uses execution-correct
+teacher SQL. The active distinction and citation matrix live in
+`paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`.
 
 ## Research question
 
@@ -27,6 +32,10 @@ learning?
 2. Federated learning for NLP and parameter-efficient fine-tuning.
 3. LLM-based NL-to-SQL and knowledge distillation.
 4. Large-small language model collaboration.
+
+End with the nearest-work matrix and distinguish FedLS-SQL through its frozen
+teacher, execution-verified public SQL, recurring post-aggregation refinement,
+adapter-only client communication, and SLM-only deployment.
 
 ## 3. Problem formulation
 

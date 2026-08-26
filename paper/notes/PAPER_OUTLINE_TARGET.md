@@ -7,12 +7,14 @@
 
 ## Paper title
 
-**FedLS-SQL: A Novel Federated Large-Small Language Models Framework for
-Natural Language to SQL**
+**FedLS-SQL: Execution-Verified Large-to-Small Knowledge Transfer for
+Federated NL-to-SQL**
 
-This retains the advisor-provided working title. Keep “novel” in the submitted
-title only after the related-work audit confirms that the complete system
-setting and transfer loop are not already covered.
+P1.4b removed “A Novel ... Framework”. FedCoLLM already covers the closest
+generic LoRA-FL plus recurring server LLM/SLM distillation loop, while
+Struct-SQL already admits teacher SQL by execution correctness. The defensible
+position is the complete task-specific workflow and evidence boundary recorded
+in `RELATED_WORK_NOVELTY_MATRIX.md`.
 
 ## Target claim
 
@@ -86,6 +88,10 @@ End with a comparison matrix locating FedLS-SQL by task, private/public data
 boundary, model asymmetry, transferred object, execution verification, client
 payload, and deployed model. Novelty must be assigned to the complete setting
 and workflow, not to KD, LoRA, or FedAvg in isolation.
+
+Canonical matrix and manuscript wording: `RELATED_WORK_NOVELTY_MATRIX.md`.
+Treat FedCoLLM as the closest architectural prior and Struct-SQL as the closest
+execution-filtered Text-to-SQL distillation prior.
 
 The mandatory nearest-work set includes FedMKT, FedCoLLM, FedCoT, LaDa,
 FedGen/data-free server refinement, federated PEFT, and the closest

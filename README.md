@@ -1,7 +1,7 @@
 # FedLS-SQL
 
-Research repository for the paper *FedLS-SQL: A Novel Federated Large-Small
-Language Models Framework for Natural Language to SQL*.
+Research repository for the paper *FedLS-SQL: Execution-Verified
+Large-to-Small Knowledge Transfer for Federated NL-to-SQL*.
 
 FedLS-SQL combines private client-side LoRA fine-tuning of a lightweight SLM,
 sample-weighted FedAvg, and server-side knowledge distillation from a frozen
@@ -18,6 +18,8 @@ The current research question is:
 - Canonical architecture and terminology: `paper/notes/system_architecture.md`
 - Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
 - Ordered adaptive paper TODO: `paper/notes/PAPER_TODO.md`
+- Related-work and claim-boundary audit: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`
+- Evidence-mapped manuscript skeleton: `paper/notes/MANUSCRIPT_SKELETON.md`
 - RQ-to-evidence map: `paper/notes/EXPERIMENT_MATRIX.md`
 - Canonical paper result tables: `paper/results/MAIN_RESULTS.md`
 - Checkpoint/evaluation artifact map: `paper/notes/RESULT_REGISTRY.md`
