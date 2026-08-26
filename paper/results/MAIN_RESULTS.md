@@ -194,7 +194,8 @@ significance.
 
 The server stage as a whole is supported; standalone reverse KL remains
 provisional. Final T3 seed reliability is reported separately below; seed 2
-remains `PENDING:P0.8b`.
+remains `PENDING:P0.8b` and is intentionally deferred while higher-value
+evidence gaps are reviewed.
 
 ### 4.3 Final T3 training-seed reliability, Qwen2.5
 
@@ -208,8 +209,9 @@ remains `PENDING:P0.8b`.
 Across the two completed training seeds, the EX-delta sample SD is `1.03`
 points. At seed 1, the paired bootstrap 95% interval is approximately
 `[+1.26,+6.38]` points, and FedLS-SQL improves every Spider hardness stratum.
-The two positive seeds establish replication but are not reported as a final
-three-seed uncertainty result; P0.8b closes that cell. Question-level McNemar
+The two positive seeds establish enough replication for the current direction
+decision but are not reported as a final three-seed uncertainty result; P0.8b
+closes that cell when reactivated. Question-level McNemar
 tests characterize paired test-row evidence and are not substitutes for
 training-seed uncertainty.
 
@@ -354,7 +356,7 @@ optimization target.
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | pending controlled benchmark |
 | Non-IID robustness | §3.2 | scoped to one partition; broader settings pending |
-| Convergence analysis | §3.1–§4.3 | seed-0 trajectory complete; final T3 seeds 0/1 positive, seed 2 active |
+| Convergence analysis | §3.1–§4.3 | seed-0 trajectory complete; final T3 seeds 0/1 positive; seed-1 missing-cell eval active |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | paired EX-oriented T3 audit complete |
 

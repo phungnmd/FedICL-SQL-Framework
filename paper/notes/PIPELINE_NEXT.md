@@ -34,7 +34,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; implementation `62cd3f6`** |
 | P1.4b | Related-work matrix and manuscript skeleton | next CPU/writing task after P1.4a |
 | P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
-| P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | **active GPU command below; final three-seed reliability gate** |
+| P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | **active eval-only GPU command below; no training** |
+| P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
 | P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | deferred by operator; v2 command retained below, not active |
 | P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
@@ -48,19 +49,37 @@ zero eligible rows under Windows/WDDM. Retain it as observational provenance;
 do not merge it with the revised independent-repetition protocol.
 
 P1.1b-v2 is now explicitly deferred, not failed or cancelled. Do not launch it
-until resource evidence is reactivated. The current GPU priority is P0.8b.
+until resource evidence is reactivated. The current GPU priority is the
+P0.8a-E seed-1 trajectory evaluation; P0.8b training is intentionally delayed.
 Archived seed commands must be audited against the current checkpoint/resume
 contract before being copied back here; do not run an old block blindly.
 
-## P0.8b — final T3 reliability at seed 2
+## P0.8a-E — missing seed-1 trajectory observations (eval only)
 
-**Purpose:** close the three-training-seed reliability result after seed 1
+**Purpose:** complete the seed-1 analogue of the seed-0 convergence table
+without retraining or reevaluating checkpoints whose predictions are already
+canonical. Seed 1 already has its T1 FL/teacher-target/full-FedLS ladder and
+its final T3 FL/FedLS endpoints. The four missing cells are independent pure
+FL T2, FedLS pre-server T2, FedLS post-server T2, and FedLS pre-server T3.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $S=1; $F='artifacts/federated/fedavg_noicl_k5_e1_t1_s1'; $K='artifacts/federated/fedkd_noicl_k5_e1_t1_s1'; $E='artifacts/eval_resume/fedls_trajectory_spider_s1/eval_k0'; foreach ($P in @('processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv',"$F/round_2/fedavg_adapter/adapter_config.json","$K/round_2/fedavg_adapter/adapter_config.json","$K/round_2/m_g/adapter_config.json","$K/round_3/fedavg_adapter/adapter_config.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.8a-E checkpoint or input: $P" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s1_t2=$F/round_2/fedavg_adapter" "fedls_s1_t2_preserver=$K/round_2/fedavg_adapter" "fedls_s1_t2=$K/round_2/m_g" "fedls_s1_t3_preserver=$K/round_3/fedavg_adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.8a-E seed-1 trajectory evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.8a-E evaluation manifest directory: $E/manifests" }; Write-Host 'P0.8a-E complete: push compact eval results and stop for seed-1 trajectory analysis'
+```
+
+After completion, combine these four cells with the existing canonical seed-1
+T1 ladder and T3 endpoint evaluation. Do not rerun those five existing arms and
+do not launch seed 2 automatically.
+
+## P0.8b — deferred final T3 reliability at seed 2
+
+**Purpose when reactivated:** close the three-training-seed reliability result after seed 1
 replicated the final FedLS-SQL gain (`+3.77` Spider EX, `p=0.00483`). Seed 2
 already has canonical T1 checkpoints. This command extends those exact
 lineages through rounds 2 and 3 and evaluates only the final Spider endpoints;
 it does not retrain round 1.
 
-The preflight pins seed-2 setup identities (`8b02d882...` for pure FL and
+This block is retained for exact future resumption but is not active. The
+preflight pins seed-2 setup identities (`8b02d882...` for pure FL and
 `99aa70ed...` for FedLS-SQL). Every stage is independently resumable by
 rerunning this exact line. Do not replace it with `run --rounds 3`, change the
 roots, or reuse the seed-1 evaluation root.

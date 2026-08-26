@@ -235,8 +235,8 @@ Established evidence:
 
 Open evidence gaps:
 
-1. complete the already-activated seed-2 T3 pure-FL versus full FedLS-SQL
-   Spider contrast, then report the three-training-seed mean and sample SD;
+1. complete the missing seed-1 T2/T3 trajectory evaluations; seed 2 is
+   deferred but remains the path to a final three-seed mean and sample SD;
 2. either reactivate the deferred resource benchmark with fixed warm-up and
    independent repetitions or narrow the corresponding RQ4 claim;
 3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one

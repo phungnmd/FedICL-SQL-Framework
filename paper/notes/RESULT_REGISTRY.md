@@ -39,6 +39,17 @@ Canonical matched evaluation:
 `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260820T065954/`
 (`git_sha=b3fd32f`, result commit `7c1414b`).
 
+Training-seed replication checkpoints:
+
+| Stable ID | Seed | Stage | Canonical checkpoint |
+|---|---:|---|---|
+| `qwen.fl.shared.t1.s1` | 1 | pure FL / shared pre-server | `artifacts/federated/fedavg_noicl_k5_e1_t1_s1/round_1/fedavg_adapter` |
+| `qwen.seqkd.t1.s1` | 1 | teacher-target CE | `artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s1/round_1/m_g` |
+| `qwen.fedls.t1.s1` | 1 | teacher-target CE + reverse KL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_1/m_g` |
+| `qwen.fl.shared.t1.s2` | 2 | pure FL / shared pre-server | `artifacts/federated/fedavg_noicl_k5_e1_t1_s2/round_1/fedavg_adapter` |
+| `qwen.seqkd.t1.s2` | 2 | teacher-target CE | `artifacts/federated/fedavg_pub_noicl_k5_e1_t1_s2/round_1/m_g` |
+| `qwen.fedls.t1.s2` | 2 | teacher-target CE + reverse KL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s2/round_1/m_g` |
+
 ## 3. Second-family checkpoints and reserved IDs
 
 Completed rows identify canonical artifacts; pending rows reserve presentation
@@ -75,6 +86,8 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `eval.gemma.fl.t1.s0.spider` | Gemma 2B pure FL T1, 1,034 Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260821T183420` | canonical; pre-`--model-4bit` runner schema, result commit `c760523` |
 | `eval.gemma.t1.matched.s0.spider` | base/FL/gold CE/teacher-target CE/full FedLS, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260823T005329` | canonical paper evaluation; code SHA `3e673ef`, result commit `e53bfe7` |
 | `eval.qwen.t1.p09b.s0.spider` | FL/full-uniform/random256/global-error256 method gate, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260824T042237` | canonical negative ablation; code SHA `a45f683`, result commit `10a0bbd` |
+| `eval.qwen.t1.ladder.s1.spider` | seed-1 FL/teacher-target CE/full FedLS ladder, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260811T134646` | canonical training-seed replication; greedy `k=0`, evaluation RNG seed 0 |
+| `eval.qwen.t1.ladder.s2.spider` | seed-2 FL/teacher-target CE/full FedLS ladder, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s0__20260811T135515` | canonical training-seed replication; greedy `k=0`, evaluation RNG seed 0 |
 | `eval.qwen.t3.fl-fedls.s1.spider` | final T3 pure FL versus FedLS-SQL, seed 1, 1,034 paired Spider rows | `fedicl-sql/experiments/eval_arms/results/eval_arms__s1__20260826T070328` | canonical reliability endpoint; code SHA `62cd3f6`, result commit `2237b22` |
 | `audit.bird.train.gold.t60` | all 9,428 BIRD train gold SQL, read-only 60-second execution | `fedicl-sql/processed_data/BIRD/gold_exec_audit_t60/` | canonical; nested commit `3e673ef` |
 | `audit.teacher.qwen-gemma.commonmask` | Qwen/Gemma selectors projected onto 9,056 valid-gold rows | `fedicl-sql/audits/bird_train_gold_exec_t60_teacher_comparison.json` | canonical; nested commit `3e673ef` |

@@ -15,8 +15,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | method-signal triage | client execution-result plurality, Spider prefix cascade, and execution-verified preference inventory from existing predictions | complete diagnostic: all gates pass; plurality proxy is strongest (`+10.55` public EX), but no training gain is established |
 | P0 | next KD/Federated direction | hard-LLM-target CE vs the same CE + sparse client-ensemble FKL from a shared FedAvg initialization | closed negative: full-pool FedDF is 1.17 EX below hard-target CE and adds 30 execution errors |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
-| P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider at training seeds 0/1/2 | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); seed 2 active final gate |
-| P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; replication gated |
+| P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for the current direction decision, seed 2 deferred for final reporting |
+| P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | seed 0 complete; seed-1 missing-cell eval active, no training required |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | CPU-only manifest implementation complete at `62cd3f6`; production artifact pending P1.4a command |
 | P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 deferred by operator, not cancelled |
@@ -66,9 +66,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. The repeated-resource runner and EX audit are complete. P0.8b seed 2 is the
-   active GPU task; CPU table/novelty work may continue separately. P1.1b-v2
-   remains deferred by operator decision.
+6. Complete the four missing seed-1 trajectory evaluations before more
+   training. Seed 2 and P1.1b-v2 remain deferred; prioritize a named evidence
+   gap over a third seed during the current direction-setting phase.
 7. Keep the Gemma teacher ceiling and target-form audit as optional context.
 8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
    as method directions at the current `K=5, T=1` setting; broader

@@ -77,7 +77,9 @@ decisions. It deliberately does not own result tables:
   111/72 paired gains/losses; exact McNemar `p=0.00483`). The paired bootstrap
   95% interval is approximately `[+1.26,+6.38]`, and every hardness stratum is
   positive. Across seeds 0/1 the mean delta is `+4.50` EX with sample SD
-  `1.03`. P0.8b seed 2 is now the active final reliability gate.
+  `1.03`. This is sufficient for the current direction decision. P0.8b seed 2
+  is deferred; the active task is an eval-only completion of the seed-1
+  trajectory.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL framework paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
@@ -237,10 +239,10 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.8b/T1R: continue the canonical seed-2 pure-FL and FedLS-SQL T1 roots
-   through T2/T3, then evaluate the two final Spider endpoints.
-2. Pull the paired seed-2 predictions and close the three-seed mean, sample SD,
-   and claim-strength decision.
+1. P0.8a-E: evaluate the four missing seed-1 trajectory cells—pure FL T2,
+   FedLS pre/post-server T2, and FedLS pre-server T3—without retraining.
+2. Assemble the complete seed-1 T1/T2/T3 table from those cells and the
+   existing T1 ladder/T3 endpoints.
 3. Complete the deterministic efficiency/table manifest, related-work novelty
    matrix, and manuscript skeleton outside timed resource windows.
 4. Keep P1.1b-v2 pending for later reactivation or narrow RQ4 if it remains
@@ -340,6 +342,7 @@ internal artifact identities.
 | 2026-08-25 | Deferred P1.1b-v2 by operator decision and promoted P0.8 seed reliability. Seed 1 is now the active GPU gate; seed 2 runs only after the paired seed-1 Spider endpoint remains positive. Resource code and the v2 command remain reproducible for later reactivation, but the resource block must not delay the primary accuracy-evidence decision. |
 | 2026-08-25 | Audited P0.8a against the current checkpoint contract. Seed 1 already has canonical T1 roots (`fedavg_noicl_k5_e1_t1_s1`, setup `3680b91c...`; `fedkd_noicl_k5_e1_t1_s1`, setup `c695a493...`). The active command now pins those identities, executes rounds 2 and 3 explicitly, and evaluates only final Spider T3 endpoints. The archived `run --rounds 3` recipe is superseded because it would restart at round 1 and could break the established lineage. |
 | 2026-08-26 | Pulled nested result commit `2237b22` through merge `78cc611` and closed P0.8a. At seed 1, final pure FL/FedLS-SQL score 61.99/65.76 Spider EX with 213/126 execution errors. FedLS has 111 paired corrections and 72 regressions (`+3.77`, exact `p=0.00483`; paired bootstrap 95% interval about `[+1.26,+6.38]`) and remains positive in every hardness stratum. Seeds 0/1 therefore give deltas `+5.23/+3.77`, mean `+4.50`, sample SD `1.03`; activate the unchanged seed-2 continuation as P0.8b. |
+| 2026-08-26 | Reprioritized after endpoint review. Seed 2 already has canonical T1 FL, teacher-target CE, and full CE+RKL checkpoints, but its T2/T3 continuation is delayed. Two positive final T3 seeds are enough for the current method-direction decision. Activate an eval-only seed-1 trajectory completion for the four missing observations; next scientific expansion should target a named gap such as federated heterogeneity or resource evidence rather than another model family/OOD seed sweep. |
 
 ## 8. Archived branches
 

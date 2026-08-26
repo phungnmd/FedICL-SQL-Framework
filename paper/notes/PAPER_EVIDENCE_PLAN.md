@@ -43,7 +43,8 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
   retained robustness/cross-dataset evaluations.
 - T1 server-stage improvement has three-seed evidence.
 - The final T3 FedLS-SQL advantage has replicated at seeds 0 and 1 (`+5.23`
-  and `+3.77` EX); seed 2 is the remaining reliability cell.
+  and `+3.77` EX). This is sufficient for the current direction decision;
+  seed 2 remains desirable for final three-seed reporting but is deferred.
 - The matched public-supervision ladder shows that equal-row public-gold CE
   does not explain the teacher-target gain.
 - Pure-FL and FedLS-SQL T1-T3 convergence trajectories exist.
@@ -76,12 +77,14 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 P1.1b-v2 is pending by operator decision. This does not weaken existing
 accuracy evidence; it leaves RQ4 resource cells open. P0.8a is complete and
-positive, so P0.8b seed 2 is now the active final seed-reliability gate.
+positive. The active GPU task is now the four-cell seed-1 trajectory
+evaluation; P0.8b seed 2 is intentionally delayed.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
 | GPU complete | 1 | P0.8a pure-FL/FedLS T3 seed 1 | 61.99 vs 65.76 EX; `+3.77`, paired `p=0.00483` |
-| GPU now | 2 | P0.8b pure-FL/FedLS T3 seed 2 | run the frozen design and close the three-seed summary |
+| GPU now | 2 | P0.8a-E missing seed-1 trajectory cells | eval-only: FL T2 and FedLS pre/post-server observations |
+| GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
 | CPU | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
 | CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | retain “novel” only if the complete combination is defensible |
 | Decision | 3 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires a broader claim |
@@ -196,12 +199,13 @@ is absent from clients/deployment and client network payload is adapter-only.
 
 ### P0.8 — final T3 training-seed reliability
 
-**Status:** seed 1 complete and positive; seed 2 active. The audited seed-2
-T2/T3 continuation and final Spider evaluation command is in
+**Status:** seed 1 final endpoint complete and positive; seed 2 deferred. Four
+missing seed-1 convergence observations are active as an eval-only block in
 `PIPELINE_NEXT.md`.
 
-Train only independent pure FL and frozen FedLS-SQL through T3 at seeds 1 and
-2 on the existing split. Evaluate the final Spider endpoints first.
+Reliability extensions use only independent pure FL and frozen FedLS-SQL on
+the existing split. Seed 1 is complete; seed 2 resumes only when final
+three-seed reporting is prioritized.
 
 Seed 1 reaches 61.99 EX for pure FL and 65.76 for FedLS-SQL (`+3.77`), with
 111 paired corrections versus 72 regressions (`p=0.00483`) and execution
@@ -213,7 +217,7 @@ Seed 2 resumes the already-established canonical T1 roots
 and 3 explicitly. Restarting a three-round loop from round 1 or creating a new
 pure-FL seed-2 root would break the intended lineage and is prohibited.
 
-Decision gate:
+Deferred seed-2 decision gate:
 
 - seed 2 positive: report the three-seed mean and sample SD and retain
   the headline claim;
@@ -322,14 +326,15 @@ These are not part of the active queue:
 
 ## 8. Current next actions
 
-1. Run the active P0.8b seed-2 PowerShell block under the pinned T1 lineage and
-   exact resume contract.
-2. Pull and validate its paired Spider predictions, then report the
-   three-training-seed mean and sample SD.
-3. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
+1. Run P0.8a-E and assemble the full seed-1 T1/T2/T3 trajectory from existing
+   and new canonical evaluations.
+2. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
    resource windows.
-4. Default RQ3 to the fixed validated partition unless a concrete manuscript
-   claim requires one heterogeneity sensitivity.
+3. Decide whether the paper will scope RQ3 to the fixed validated partition or
+   justify one additional heterogeneity setting; do not run another model
+   family or OOD seed sweep by default.
+4. Keep seed 2 available for final three-seed reporting after higher-value
+   evidence gaps are resolved.
 5. Later, either reactivate P1.1b-v2 and optional training-resource measurements
    or narrow RQ4; do not hold the accuracy paper open for this deferred block.
 6. Freeze the manuscript and schedule another experiment only for a named
