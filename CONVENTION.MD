@@ -37,6 +37,7 @@ archive directory with a README explaining their replacement.
 | What is the method? | `paper/notes/system_architecture.md` |
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
+| What paper work remains and in what order? | `paper/notes/PAPER_TODO.md` |
 | Which metric appears in the paper? | `paper/results/MAIN_RESULTS.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
 | Which RQ still lacks evidence? | `paper/notes/EXPERIMENT_MATRIX.md` |

@@ -239,22 +239,19 @@ currently justify.
 
 ## 5. Active queue
 
-1. P0.8a-E: evaluate the four missing seed-1 trajectory cells—pure FL T2,
-   FedLS pre/post-server T2, and FedLS pre-server T3—without retraining.
-2. Assemble the complete seed-1 T1/T2/T3 table from those cells and the
-   existing T1 ladder/T3 endpoints.
-3. Complete the deterministic efficiency/table manifest, related-work novelty
-   matrix, and manuscript skeleton outside timed resource windows.
-4. Keep P1.1b-v2 pending for later reactivation or narrow RQ4 if it remains
-   unmeasured.
-5. Decide whether to scope RQ3 to the fixed partition or add exactly one
-   validated heterogeneity sensitivity.
-6. Build the manuscript against `PAPER_OUTLINE_TARGET.md`; schedule further
-   experiments only for a named missing cell or reviewer objection.
+The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
-FedProx, teacher ceilings, broader heterogeneity, and model-size/rank/client
-sweeps are conditional baselines or sensitivities rather than active method
-directions.
+1. P0.8a-E seed-1 trajectory evaluation on GPU.
+2. P1.4a deterministic efficiency/table manifest on CPU.
+3. P1.4b novelty matrix and method/figure draft.
+4. Explicit RQ4 resource-versus-narrowing and RQ3 scope-versus-sensitivity
+   decisions.
+5. One matched FedProx-LoRA reviewer baseline, then deferred seed-2 T2/T3.
+6. Final claim/evidence QA and manuscript freeze.
+
+FedProx is a recommended reviewer baseline rather than a method direction.
+Teacher ceilings and model-size/rank/client sweeps remain optional; broader
+heterogeneity is activated only if the paper retains a broad RQ3 claim.
 
 ## 6. Provenance map
 
@@ -343,6 +340,7 @@ internal artifact identities.
 | 2026-08-25 | Audited P0.8a against the current checkpoint contract. Seed 1 already has canonical T1 roots (`fedavg_noicl_k5_e1_t1_s1`, setup `3680b91c...`; `fedkd_noicl_k5_e1_t1_s1`, setup `c695a493...`). The active command now pins those identities, executes rounds 2 and 3 explicitly, and evaluates only final Spider T3 endpoints. The archived `run --rounds 3` recipe is superseded because it would restart at round 1 and could break the established lineage. |
 | 2026-08-26 | Pulled nested result commit `2237b22` through merge `78cc611` and closed P0.8a. At seed 1, final pure FL/FedLS-SQL score 61.99/65.76 Spider EX with 213/126 execution errors. FedLS has 111 paired corrections and 72 regressions (`+3.77`, exact `p=0.00483`; paired bootstrap 95% interval about `[+1.26,+6.38]`) and remains positive in every hardness stratum. Seeds 0/1 therefore give deltas `+5.23/+3.77`, mean `+4.50`, sample SD `1.03`; activate the unchanged seed-2 continuation as P0.8b. |
 | 2026-08-26 | Reprioritized after endpoint review. Seed 2 already has canonical T1 FL, teacher-target CE, and full CE+RKL checkpoints, but its T2/T3 continuation is delayed. Two positive final T3 seeds are enough for the current method-direction decision. Activate an eval-only seed-1 trajectory completion for the four missing observations; next scientific expansion should target a named gap such as federated heterogeneity or resource evidence rather than another model family/OOD seed sweep. |
+| 2026-08-26 | Audited the advisor outline against current evidence and recent nearest work. The core accuracy/transfer result is sufficient to draft but not yet submission-ready for Q3: novelty positioning, deterministic/resource evidence, claim-scoped non-IID support, and baseline breadth remain the main risks. Added `PAPER_TODO.md` as the adaptive ordered backlog. Generic federated LLM-SLM novelty is no longer claimed; P1.4b must compare FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and execution-aware NL-to-SQL. Recommend one matched FedProx-LoRA baseline before final seed-2 closure; retain one heterogeneity sensitivity only if broad RQ3 wording survives. |
 
 ## 8. Archived branches
 

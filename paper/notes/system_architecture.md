@@ -240,7 +240,12 @@ Open evidence gaps:
 2. either reactivate the deferred resource benchmark with fixed warm-up and
    independent repetitions or narrow the corresponding RQ4 claim;
 3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
-   validated minimal heterogeneity sensitivity.
+   validated minimal heterogeneity sensitivity;
+4. position novelty against FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT,
+   and execution-aware NL-to-SQL rather than claiming generic LLM-SLM
+   federation as new;
+5. add one matched FedProx-LoRA reviewer baseline or document why the paper is
+   scoped to FedAvg-based federated optimization.
 
 **Method-freeze gate (finalized 2026-08-25):** the architecture above remains the
 canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that

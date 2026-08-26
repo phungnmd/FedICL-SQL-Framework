@@ -3,7 +3,7 @@
 > Updated 2026-08-26. This is an adaptive plan for the target outline in
 > `PAPER_OUTLINE_TARGET.md`, not a promise to execute every experiment in the
 > advisor's August 19 planning outline. Exact runnable commands belong only in
-> `PIPELINE_NEXT.md`.
+> `PIPELINE_NEXT.md`; the ordered adaptive backlog is `PAPER_TODO.md`.
 
 ## 1. Submission objective
 
@@ -86,9 +86,11 @@ evaluation; P0.8b seed 2 is intentionally delayed.
 | GPU now | 2 | P0.8a-E missing seed-1 trajectory cells | eval-only: FL T2 and FedLS pre/post-server observations |
 | GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
 | CPU | 1 | P1.4a deterministic efficiency/table manifest | every value resolves to a stable artifact; no guessed cells |
-| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | retain “novel” only if the complete combination is defensible |
-| Decision | 3 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires a broader claim |
-| Deferred | 4 | P1.1b-v2 and client/server training-resource extension | reactivate only when RQ4 evidence is scheduled again |
+| CPU | 2 | P1.4b related-work/novelty matrix and P2 skeleton | mandatory; retain “novel” only if the complete combination is defensible |
+| Decision | 3 | RQ4 measured-resource path versus narrowed claim | complete before freezing contribution 4 |
+| Decision | 4 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires broader robustness |
+| Recommended | 5 | one matched FedProx-LoRA baseline | stronger reviewer baseline; design before activating a command |
+| Deferred | 6 | P0.8b seed-2 T2/T3 | preferred final three-seed package after higher-value gaps |
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -277,6 +279,11 @@ Build a comparison matrix covering recent:
 - federated PEFT/LoRA;
 - federated NL-to-SQL.
 
+The nearest-work set must explicitly cover FedMKT, FedCoLLM, FedCoT, LaDa,
+FedGen/data-free server refinement, and the closest execution-aware
+small-model NL-to-SQL systems. The broad large-small federated architecture is
+not itself a defensible first claim.
+
 Compare task, client/server model asymmetry, private/public data boundary,
 teacher location, transferred object, execution verification, communication,
 and deployed model. Revise the title if “novel” cannot be defended for the
@@ -300,12 +307,13 @@ Draft against `PAPER_OUTLINE_TARGET.md`. Freeze seven core artifacts:
 Perform a reviewer-style audit before scheduling anything else. Every new run
 must fill a named missing cell or answer a concrete objection.
 
-## 6. Conditional reviewer baselines
+## 6. Gated reviewer baselines
 
-These are not part of the active queue:
+These require a gate and are not yet executable commands:
 
-- **FedProx-LoRA:** add only if the target venue/advisor requires a
-  heterogeneity-aware optimizer baseline or if P1.3 becomes a main claim.
+- **FedProx-LoRA:** recommended before submission as the minimum stronger
+  federated optimizer baseline. Match model, split, LoRA, local work, rounds,
+  and evaluation; predeclare coefficient selection without test-set tuning.
 - **Qwen/Gemma teacher zero-shot:** contextual accuracy/resource reference,
   not a causal method arm.
 - **Federated 7B:** required only for a strong empirical claim against
@@ -326,16 +334,9 @@ These are not part of the active queue:
 
 ## 8. Current next actions
 
-1. Run P0.8a-E and assemble the full seed-1 T1/T2/T3 trajectory from existing
-   and new canonical evaluations.
-2. Complete P1.4a, then P1.4b, and draft the manuscript skeleton outside timed
-   resource windows.
-3. Decide whether the paper will scope RQ3 to the fixed validated partition or
-   justify one additional heterogeneity setting; do not run another model
-   family or OOD seed sweep by default.
-4. Keep seed 2 available for final three-seed reporting after higher-value
-   evidence gaps are resolved.
-5. Later, either reactivate P1.1b-v2 and optional training-resource measurements
-   or narrow RQ4; do not hold the accuracy paper open for this deferred block.
-6. Freeze the manuscript and schedule another experiment only for a named
-   missing cell or reviewer objection.
+Follow `PAPER_TODO.md` in order. The immediate executable work is P0.8a-E on
+GPU and P1.4a on CPU. The next mandatory work is the novelty matrix and method
+draft, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
+recommended next training baseline; seed 2 remains the preferred final
+reliability closure after higher-value gaps. Do not add a model family, OOD
+seed sweep, or hyperparameter Cartesian sweep by default.

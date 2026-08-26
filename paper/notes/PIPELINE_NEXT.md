@@ -3,6 +3,8 @@
 > Run from the `fedicl-sql/` repository root in PowerShell. Every executable
 > command added here must follow `CONVENTION.MD` §6.1: one physical line,
 > fail-fast, immutable output roots, and exact-command resume safety.
+> The ordered paper backlog and decision gates live in `PAPER_TODO.md`; this
+> file contains only runnable or exactly preserved deferred commands.
 
 ## Method freeze
 
@@ -32,12 +34,13 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.1a | Add fixed warm-up, process metrics, and repeated GPU telemetry | complete: final protocol code `487b3b2`, full 320-test suite |
 | P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
 | P1.4a | Deterministic adapter/communication/table manifest | **active CPU command below; implementation `62cd3f6`** |
-| P1.4b | Related-work matrix and manuscript skeleton | next CPU/writing task after P1.4a |
+| P1.4b | Related-work matrix and manuscript skeleton | mandatory CPU/writing task after P1.4a; tracked in `PAPER_TODO.md` |
 | P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
 | P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | **active eval-only GPU command below; no training** |
 | P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
 | P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | deferred by operator; v2 command retained below, not active |
-| P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | conditional after P0.8 |
+| P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | mandatory claim gate after novelty/method draft; no command yet |
+| P1.5 | Matched FedProx-LoRA reviewer baseline | recommended before submission; no command until design/coefficient gate is approved |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
 Ordinary `eval_arms` timing is not official resource evidence because it

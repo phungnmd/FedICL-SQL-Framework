@@ -55,8 +55,9 @@ heterogeneity screen is completed. Do not compare empirically with federated
    hard targets, and auxiliary reverse KL, plus a same-family replication with
    a second model family.
 4. An evaluation of execution accuracy, convergence, cross-dataset
-   generalization, adapter communication, process memory, and deployment
-   inference cost under a transparent shared-server measurement protocol.
+   generalization, and adapter communication. Process memory and deployment
+   inference cost remain part of this contribution only after the repeated
+   shared-server resource block is completed.
 
 FedAvg-LoRA and reverse KL are not claimed as independently novel algorithms.
 The portable mechanism supported across Qwen and Gemma is execution-verified
@@ -85,6 +86,13 @@ End with a comparison matrix locating FedLS-SQL by task, private/public data
 boundary, model asymmetry, transferred object, execution verification, client
 payload, and deployed model. Novelty must be assigned to the complete setting
 and workflow, not to KD, LoRA, or FedAvg in isolation.
+
+The mandatory nearest-work set includes FedMKT, FedCoLLM, FedCoT, LaDa,
+FedGen/data-free server refinement, federated PEFT, and the closest
+small-model NL-to-SQL transfer systems. Generic “first federated LLM-SLM
+framework” wording is prohibited; the defensible candidate novelty is the
+execution-verified NL-to-SQL workflow and its private/public/deployment
+boundary.
 
 ## 3. FedLS-SQL
 
@@ -223,6 +231,9 @@ as completed contributions.
 6. Accuracy-resource-communication table.
 7. EX-oriented error analysis table or figure.
 
+The ordered production and decision checklist for these artifacts is
+`PAPER_TODO.md`.
+
 ## Explicitly outside the target paper
 
 - ICL as a method component;
@@ -234,3 +245,7 @@ as completed contributions.
 - full teacher-size, student-size, LoRA-rank, client-count, or skew Cartesian
   sweeps;
 - treating Qwen and Gemma as a controlled parameter-size comparison.
+
+FedProx-LoRA is a recommended reviewer baseline, not a proposed contribution.
+One matched run is preferred before submission; if omitted, explain the scope
+instead of presenting FedAvg as representative of every federated optimizer.

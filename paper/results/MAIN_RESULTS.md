@@ -359,6 +359,8 @@ optimization target.
 | Convergence analysis | §3.1–§4.3 | seed-0 trajectory complete; final T3 seeds 0/1 positive; seed-1 missing-cell eval active |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | paired EX-oriented T3 audit complete |
+| Optimizer baseline breadth | §2.3/§4.5 | FedProx-LoRA recommended; design/run pending |
+| Novelty positioning | related-work matrix | mandatory nearest-work audit pending |
 
 This dashboard may be reordered, reduced, or extended after each evidence gate.
 The draft outline is an experiment menu, not evidence that every proposed sweep

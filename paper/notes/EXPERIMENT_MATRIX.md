@@ -21,13 +21,14 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | CPU-only manifest implementation complete at `62cd3f6`; production artifact pending P1.4a command |
 | P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 deferred by operator, not cancelled |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
+| P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | mandatory P1.4b; broad “first federated LLM-SLM framework” claim is prohibited |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
-| P2 | optimizer baseline | FedProx SLM | not implemented/run; baseline only, not proposed direction without drift evidence |
+| P1 | optimizer baseline | matched FedProx-LoRA | recommended reviewer baseline before submission; design/coefficient gate pending, not a proposed contribution |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
 | P2 | broader skew | IID, quantity, domain, and SQL-pattern controlled suite | not complete |
-| P2 | pragmatic RQ2 | matched 1.5B/7B resource benchmark; no full 7B FL by default | wording fixed; evidence pending |
+| P1 | pragmatic RQ4 | matched 1.5B/7B deployment-resource benchmark; no full 7B FL by default | protocol ready; measure or narrow the claim before freeze |
 
 ## Claim gates
 
@@ -66,10 +67,10 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 5. Freeze the existing method: execution-verified hard targets are the portable
    core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
    contribution.
-6. Complete the four missing seed-1 trajectory evaluations before more
-   training. Seed 2 and P1.1b-v2 remain deferred; prioritize a named evidence
-   gap over a third seed during the current direction-setting phase.
-7. Keep the Gemma teacher ceiling and target-form audit as optional context.
-8. FedProx remains a reviewer baseline. Exact aggregation/FLoRA-NA are closed
-   as method directions at the current `K=5, T=1` setting; broader
-   heterogeneity is conditional rather than an automatic sweep.
+6. Complete the four missing seed-1 trajectory evaluations and P1.4a before
+   more training.
+7. Complete the mandatory novelty matrix and method draft, then decide RQ4
+   measurement versus narrowing and fixed-partition scope versus one validated
+   heterogeneity sensitivity.
+8. Prefer one matched FedProx-LoRA reviewer baseline before returning to
+   seed-2 T2/T3. Keep teacher ceilings and all model/rank/client sweeps optional.
