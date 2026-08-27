@@ -29,6 +29,13 @@ itself a method failure or an optimization target.
 
 ## Research questions
 
+The advisor's umbrella question remains the project target: whether
+large-to-small collaboration can address the accuracy limitation of a
+lightweight federated NL-to-SQL model while retaining data locality,
+communication efficiency, and resource advantages. The four RQs below make
+each part independently testable without implying formal privacy or an
+unmeasured federated-7B comparison.
+
 1. **RQ1 — Accuracy:** Does FedLS-SQL improve execution accuracy over pure
    federated SLM training and remain competitive with centralized SLM training?
 2. **RQ2 — Transfer mechanism:** Do execution-verified teacher targets provide
@@ -41,9 +48,10 @@ itself a method failure or an optimization target.
    trade-offs result from keeping the large teacher off clients and out of
    deployment inference?
 
-Do not strengthen RQ3 to broad heterogeneity robustness unless the controlled
-heterogeneity screen is completed. Do not compare empirically with federated
-7B training unless such a baseline is actually run.
+The completion plan now includes exactly one audited stronger-skew sensitivity
+for RQ3. If its split or T1 gate fails, fall back to the fixed-partition claim.
+Do not compare empirically with federated 7B training unless the separate
+P1.6 feasibility gate produces that baseline.
 
 ## Contributions
 
@@ -179,8 +187,8 @@ the independent RKL increment as provisional.
 - Independent pure-FL versus FedLS-SQL at T1, T2, and T3.
 - Same-work comparison of more rounds versus more local epochs.
 - Spider perturbation results.
-- Explicitly scope conclusions to the frozen non-IID partition unless the
-  optional heterogeneity screen is promoted.
+- Add one audited stronger-skew T1 screen; explicitly fall back to the frozen
+  non-IID partition if its validation or promotion gate fails.
 
 ### 4.5 Second-family portability
 
@@ -207,11 +215,12 @@ controlled size effect or a family-independent RKL gain.
   cross-dataset SQL-form variation; do not optimize or rank methods by EM.
 - Representative transfer successes and failures selected by fixed rules.
 
-### 4.8 Optional heterogeneity sensitivity
+### 4.8 Controlled heterogeneity sensitivity
 
-Include only if a validated near-IID or stronger-skew comparison is completed.
-Otherwise state that all federated conclusions concern the fixed
-`K=5, alpha=0.5` partition.
+The advisor-aligned plan attempts exactly one validated stronger-skew
+comparison: audit the split, screen pure FL versus FedLS-SQL at T1, and extend
+only after a positive gate. If the audit or screen fails, state that all
+federated conclusions concern the fixed `K=5, alpha=0.5` partition.
 
 ## 5. Discussion
 

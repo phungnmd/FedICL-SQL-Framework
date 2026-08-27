@@ -15,6 +15,10 @@ The current research question is:
 > privacy, communication-efficiency, and resource advantages of federated
 > learning?
 
+This remains the advisor-level scientific target. The operational evidence
+contract and limits for “overcome”, privacy, resources, and large-model FL are
+defined in `paper/notes/PAPER_EVIDENCE_PLAN.md`.
+
 - Canonical architecture and terminology: `paper/notes/system_architecture.md`
 - Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
 - Ordered adaptive paper TODO: `paper/notes/PAPER_TODO.md`

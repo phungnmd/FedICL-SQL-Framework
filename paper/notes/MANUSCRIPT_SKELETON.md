@@ -40,9 +40,13 @@ endpoint.
 
 ### Research question
 
-Can a frozen server-side LLM improve a federated SLM through public,
-execution-verified supervision while preserving adapter-only client
-communication and SLM-only deployment?
+Advisor-level question: can large-to-small collaboration address the accuracy
+limitations of lightweight federated NL-to-SQL while retaining the data-
+locality, communication, and resource properties motivating FL?
+
+Operational question: can execution-verified guidance from a frozen
+server-side LLM improve the EX of a federated LoRA-adapted SLM while client
+rows remain local, communication is adapter-only, and deployment is SLM-only?
 
 ### Contributions
 
@@ -255,6 +259,7 @@ or federated optimizer.
 | EX-oriented error analysis | `audit.qwen.t3.fl-fedls.ex-transfer` | values ready |
 | Nearest-work comparison | `RELATED_WORK_NOVELTY_MATRIX.md` | ready |
 
-The next writing task is the Method prose and architecture figure. The next
-experiment decision is RQ4 measurement versus narrowing, followed by RQ3 scope
-and the matched FedProx-LoRA baseline gate.
+The next writing task is the Method prose and architecture figure. P1.1b-v2 is
+the next GPU task, followed by the matched FedProx-LoRA baseline, one audited
+stronger-skew screen, and seed-2 T3. A federated-7B run remains a separate
+feasibility/claim gate after the deployment-resource result.

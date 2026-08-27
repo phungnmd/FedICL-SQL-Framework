@@ -19,16 +19,17 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seeds 0/1; seed-1 FedLS T1→T3 `+3.29` EX (`p=0.00266`), pure FL plateaus T2→T3 |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
-| P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 deferred by operator, not cancelled |
+| P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 reactivated as next GPU task on 2026-08-27 |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | complete in `RELATED_WORK_NOVELTY_MATRIX.md`; title narrowed; FedCoLLM and Struct-SQL are the closest priors |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
-| P1 | optimizer baseline | matched FedProx-LoRA | recommended reviewer baseline before submission; design/coefficient gate pending, not a proposed contribution |
+| P1 | optimizer baseline | matched FedProx-LoRA | next experiment design after P1.1b; implementation and coefficient rule must be frozen before a command |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
-| P2 | broader skew | IID, quantity, domain, and SQL-pattern controlled suite | not complete |
+| P1 | stronger-skew sensitivity | exactly one audited split with fixed source rows and `K=5`; FL vs FedLS T1 screen before any T3 extension | selected advisor-aligned RQ3 path; design/audit pending, not a broad skew suite |
 | P1 | pragmatic RQ4 | matched 1.5B/7B deployment-resource benchmark; no full 7B FL by default | protocol ready; measure or narrow the claim before freeze |
+| P2 | federated-7B claim | at most one matched T1 QLoRA feasibility/reference | conditional after P1.1b; required only for an empirical large-model-FL claim |
 
 ## Claim gates
 
@@ -70,7 +71,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 6. P1.4a and the four seed-1 trajectory evaluations are complete; their
    communication and convergence artifacts are registered.
 7. P1.4b is complete. Draft the method and architecture figure from
-   `MANUSCRIPT_SKELETON.md`, then decide RQ4 measurement versus narrowing and
-   fixed-partition scope versus one validated heterogeneity sensitivity.
-8. Prefer one matched FedProx-LoRA reviewer baseline before returning to
-   seed-2 T2/T3. Keep teacher ceilings and all model/rank/client sweeps optional.
+   `MANUSCRIPT_SKELETON.md` while running P1.1b-v2 as the next GPU task.
+8. Then design/run one matched FedProx-LoRA baseline, audit and screen one
+   stronger-skew split at T1, and close seed-2 T3. Decide federated-7B
+   feasibility only if retaining the corresponding empirical claim. Keep
+   teacher ceilings and all model/rank/client sweeps optional.

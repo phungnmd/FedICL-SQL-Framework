@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper TODO
 
-> Updated 2026-08-26. This is the ordered paper-work backlog. It records what
+> Updated 2026-08-27. This is the ordered paper-work backlog. It records what
 > to do and why; executable PowerShell commands belong only in
 > `PIPELINE_NEXT.md`. Re-rank conditional items whenever an earlier gate changes
 > the manuscript claim.
@@ -73,45 +73,52 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [ ] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
 
-### 5. Close or narrow RQ4 resource claims — mandatory decision gate
+### 5. Close RQ4 deployment-resource evidence — next GPU task
 
-- [ ] `GATE`: choose between measured resource evidence and a narrower RQ4.
-- [ ] Preferred path: reactivate `P1.1b-v2` for repeated student-1.5B versus
+- [x] Select the measured deployment path for the advisor-aligned question;
+  retain narrowing as the fallback if the controlled collection cannot close.
+- [ ] Run `P1.1b-v2` for repeated student-1.5B versus
   teacher-7B deployment inference with fixed warm-up, median/IQR, process RSS,
   allocated/reserved VRAM, and raw GPU telemetry.
-- [ ] Optional extension: controlled client-LoRA and recurring server-KD
-  process-memory/throughput microbenchmarks.
-- [ ] Narrow path: retain deterministic adapter communication and SLM-only
+- [ ] After reviewing P1.1b, decide whether to run controlled client-LoRA and
+  recurring server-KD process-memory/throughput microbenchmarks.
+- [ ] Fallback: retain deterministic adapter communication and SLM-only
   deployment properties, but remove claims of measured client/server training
   savings or superiority to federated large-model training.
 
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
 
-### 6. Decide the non-IID claim boundary — mandatory decision gate
-
-- [ ] `GATE`: decide whether RQ3 remains scoped to the fixed
-  `K=5, alpha=0.5` grouped-domain partition.
-- [ ] Scoped path: remove “increasingly heterogeneous”, IID, quantity-skew,
-  SQL-pattern-skew, and broad robustness language from title/RQs/contributions.
-- [ ] Sensitivity path: construct and audit exactly one stronger-skew split
-  while holding `K=5` and the source rows fixed; validate database/domain
-  distributions, client sizes, entropy/JSD, and intended skew before training.
-- [ ] If promoted, screen pure FL versus frozen FedLS-SQL at T1 first and
-  extend to T3 only after a positive, interpretable gate.
-
-**Done when:** either one controlled sensitivity exists or every federated
-generalization claim explicitly names the fixed partition.
-
-### 7. Add a stronger federated baseline — recommended before submission
+### 6. Add a stronger federated baseline — next experiment design
 
 - [ ] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
-- [ ] Predeclare the proximal coefficient selection rule; do not tune on the
+- [ ] Predeclare the proximal coefficient selection rule without tuning on the
   Spider test set.
+- [ ] Add a PowerShell single-line, fail-fast, exact-resume command only after
+  the design/config support is verified.
 - [ ] Run only the minimum baseline needed for the headline comparison.
-- [ ] If FedProx is not run, document the omission and avoid implying that
-  FedAvg is representative of all federated optimizers.
+- [ ] If FedProx cannot be run, document the omission and avoid presenting
+  FedAvg as representative of all federated optimizers.
+
+**Done when:** the headline table includes one matched stronger federated
+optimizer or the omission and claim boundary are explicit.
+
+### 7. Test one controlled non-IID sensitivity — advisor-aligned RQ3
+
+- [x] Select the minimal-sensitivity path rather than the full IID/quantity/
+  SQL-pattern Cartesian suite proposed in the August outline.
+- [ ] Construct exactly one stronger-skew split while holding `K=5` and the
+  source rows fixed.
+- [ ] Validate database/domain distributions, client sizes, entropy/JSD, and
+  that the new split is measurably more heterogeneous than `alpha=0.5`.
+- [ ] Predeclare and run a pure-FL versus frozen-FedLS T1 Spider screen.
+- [ ] Extend to T3 only if the T1 result passes a positive, interpretable gate.
+- [ ] If split validation or the screen fails, stop and scope RQ3 explicitly to
+  the original fixed partition.
+
+**Done when:** one controlled sensitivity supports the claim or the manuscript
+falls back transparently to the fixed-partition scope.
 
 ### 8. Close final training-seed reporting — deferred GPU
 
@@ -121,7 +128,20 @@ generalization claim explicitly names the fixed partition.
 - [ ] Report the three-seed T3 FL, FedLS, and paired-delta mean with sample SD.
 - [ ] Keep question-level paired tests separate from training-seed uncertainty.
 
-### 9. Final manuscript QA and submission packaging
+### 9. Decide the empirical large-model-FL claim — conditional gate
+
+- [ ] Review P1.1b-v2 before deciding whether the paper needs a federated-7B
+  training reference.
+- [ ] If retaining “lower client requirements than large-model FL”, perform a
+  feasibility audit for at most one matched T1 7B QLoRA reference and define
+  its accuracy/resource/communication contract before adding a command.
+- [ ] Otherwise state that no federated-7B baseline was run and restrict RQ4 to
+  adapter communication plus measured SLM-versus-teacher deployment inference.
+
+**Done when:** no sentence equates a 1.5B/7B inference comparison with
+federated-7B training evidence.
+
+### 10. Final manuscript QA and submission packaging
 
 - [ ] Resolve every paper value through `MAIN_RESULTS.md` and
   `RESULT_REGISTRY.md`.
@@ -145,7 +165,8 @@ distillation, or an unmeasured federated-7B claim.
 
 ## Submission-readiness gate
 
-The paper is ready to freeze when items 1–4 and 9 are complete, RQ4 and RQ3
-have each taken one explicit supported path, the FedProx decision is recorded,
-and final seed reporting is either completed or transparently limited to the
-two positive T3 seeds. Three T3 seeds remain the preferred final package.
+The paper is ready to freeze when items 1–4 and 10 are complete, P1.1b has
+closed or narrowed RQ4, the FedProx and stronger-skew gates are recorded, the
+federated-7B wording is resolved, and final seed reporting is either completed
+or transparently limited to the two positive T3 seeds. Three T3 seeds remain
+the preferred final package.

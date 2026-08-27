@@ -1,17 +1,31 @@
 # FedLS-SQL — target evidence and submission plan
 
-> Updated 2026-08-26. This is an adaptive plan for the target outline in
+> Updated 2026-08-27. This is an adaptive plan for the target outline in
 > `PAPER_OUTLINE_TARGET.md`, not a promise to execute every experiment in the
 > advisor's August 19 planning outline. Exact runnable commands belong only in
 > `PIPELINE_NEXT.md`; the ordered adaptive backlog is `PAPER_TODO.md`.
 
 ## 1. Submission objective
 
-Build the smallest defensible Q3 evidence package for the claim:
+The advisor's umbrella question remains the scientific target:
+
+> Can large-to-small language model collaboration overcome the accuracy
+> limitations of lightweight federated NL-to-SQL models while retaining the
+> privacy, communication-efficiency, and resource advantages of federated
+> learning?
+
+The evidence-backed operational form avoids promising more than the protocol
+can test:
 
 > Execution-verified guidance from a server-side LLM improves a federated
-> LoRA-adapted SLM for NL-to-SQL, while the large teacher remains outside the
-> client and deployment paths and communication remains adapter-only.
+> LoRA-adapted SLM for NL-to-SQL while client rows remain local, client
+> communication is adapter-only, and deployment uses only the SLM.
+
+The paper therefore keeps the advisor's direction but resolves its four parts
+separately: EX improvement, causal large-to-small transfer, scoped non-IID
+behavior, and measured communication/resource trade-offs. “Privacy” means
+structural data isolation unless a formal mechanism is added; “large-model FL
+advantage” requires an actual federated-7B experiment.
 
 Execution accuracy (EX) is the primary endpoint. EM is reported transparently
 as a secondary syntactic metric; it is not an optimization target because
@@ -76,24 +90,27 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ## 5. Active priority order
 
-### Current execution state — resource block deferred
+### Current execution state — advisor-aligned completion path
 
-P1.1b-v2 is pending by operator decision. This does not weaken existing
-accuracy evidence; it leaves RQ4 resource cells open. P0.8a and the four-cell
-P0.8a-E seed-1 trajectory completion are both complete and positive. No GPU
-run is activated automatically; P0.8b seed 2 is intentionally delayed.
+P0.8a and P0.8a-E are complete and positive, so accuracy no longer blocks the
+remaining parts of the advisor question. P1.1b-v2 is reactivated as the next
+GPU task. In parallel, draft the method/architecture figure, then design one
+matched FedProx-LoRA baseline and one audited stronger-skew sensitivity. Seed 2
+closes final reliability after these higher-value gaps. Federated 7B remains a
+separate feasibility/claim gate rather than an implicit requirement.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
 | GPU complete | 1 | P0.8a pure-FL/FedLS T3 seed 1 | 61.99 vs 65.76 EX; `+3.77`, paired `p=0.00483` |
 | GPU complete | 2 | P0.8a-E seed-1 trajectory cells | result commit `dbd703b`; full T1/T2/T3 trajectory registered |
-| GPU deferred | 3 | P0.8b pure-FL/FedLS T3 seed 2 | close three-seed reporting later; not required for the current method decision |
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
-| Decision | 3 | RQ4 measured-resource path versus narrowed claim | complete before freezing contribution 4 |
-| Decision | 4 | P1.3 fixed-partition scope versus one sensitivity | default to scoped RQ3 unless the manuscript requires broader robustness |
-| Recommended | 5 | one matched FedProx-LoRA baseline | stronger reviewer baseline; design before activating a command |
-| Deferred | 6 | P0.8b seed-2 T2/T3 | preferred final three-seed package after higher-value gaps |
+| CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
+| GPU next | 4 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path selected; existing safe command is active |
+| Design | 5 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
+| Design | 6 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| GPU deferred | 7 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
+| Claim gate | 8 | P1.6 federated-7B feasibility | run only if the paper retains empirical comparison with large-model FL |
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -177,9 +194,9 @@ gates.
 
 ### P1.1b — collect resource evidence
 
-**Status:** deferred by operator decision. The fresh-root v2 command remains in
-`PIPELINE_NEXT.md` for later reactivation and must not be mixed with the
-superseded PID-gated collection.
+**Status:** reactivated 2026-08-27 as the next GPU task. The fresh-root v2
+command in `PIPELINE_NEXT.md` must not be mixed with the superseded PID-gated
+collection.
 
 The current P1.1b command collects the first evidence block:
 
@@ -234,22 +251,26 @@ Question-level paired tests and training-seed uncertainty must remain separate.
 
 ### P1.3 — RQ3 scope decision
 
-**Status:** decision gate after P0.8, not an automatic sweep.
+**Status:** the advisor-aligned path selects exactly one audited stronger-skew
+sensitivity. Design and split audit precede any training command.
 
-Choose exactly one path:
+The scoped fallback remains valid if the split audit cannot demonstrate a
+meaningful increase in heterogeneity. The selected path is:
 
-1. **Scoped paper:** retain only the validated `K=5, alpha=0.5`
-   grouped-domain non-IID claim; or
-2. **Minimal sensitivity:** add one validated near-IID or stronger-skew split
-   and compare only pure FL with FedLS-SQL on Spider.
+1. construct one stronger-skew split while holding source rows and `K=5`
+   fixed;
+2. verify client sizes, database/domain distributions, entropy/JSD, and the
+   direction of the intended skew;
+3. compare only pure FL and frozen FedLS-SQL on Spider at T1;
+4. extend to T3 only after a positive, interpretable preregistered gate.
 
 Do not call `alpha=100` IID or `alpha=0.1` stronger heterogeneity until split
 statistics confirm database/domain distribution, row-count variation, and
 entropy/JSD differences. Separate quantity-skew and SQL-pattern-skew builders
 are outside the default paper.
 
-**Gate:** run the sensitivity only if the advisor/manuscript retains wording
-about changing or increasing heterogeneity. Otherwise narrow RQ3 and stop.
+**Fallback gate:** if the new split is not measurably more heterogeneous or the
+T1 contrast is uninterpretable, stop and scope RQ3 to the existing partition.
 
 ### P1.4a — deterministic efficiency and table manifest
 
@@ -328,7 +349,9 @@ These require a gate and are not yet executable commands:
 - **Qwen/Gemma teacher zero-shot:** contextual accuracy/resource reference,
   not a causal method arm.
 - **Federated 7B:** required only for a strong empirical claim against
-  large-model FL; otherwise explicitly absent.
+  large-model FL. After P1.1b, perform a feasibility decision for at most one
+  matched T1 QLoRA reference; otherwise explicitly narrow RQ2/RQ4 and keep it
+  absent.
 - **Model size, LoRA rank, client count, and public-pool size:** at most one
   targeted sensitivity chosen after the manuscript audit, never a Cartesian
   sweep.
@@ -346,8 +369,8 @@ These require a gate and are not yet executable commands:
 ## 8. Current next actions
 
 Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, and P0.8a-E are complete. The
-immediate mandatory CPU/writing work is the method prose and architecture
-figure, followed by explicit RQ4 and RQ3 decisions. FedProx-LoRA is the
-recommended next training baseline; seed 2 remains the preferred final
-reliability closure after higher-value gaps. Do not add a model family, OOD
-seed sweep, or hyperparameter Cartesian sweep by default.
+immediate CPU work is the method prose and architecture figure; P1.1b-v2 is
+the next GPU task. Then design/run the matched FedProx-LoRA baseline, audit and
+screen one stronger-skew split, and close seed-2 T3. Decide the federated-7B
+claim only after the resource result. Do not add a model family, OOD seed
+sweep, or hyperparameter Cartesian sweep by default.

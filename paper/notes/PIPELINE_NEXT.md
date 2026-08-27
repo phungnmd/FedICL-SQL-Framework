@@ -37,10 +37,12 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.4b | Related-work matrix and manuscript skeleton | complete: title narrowed; canonical outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
 | P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | complete: result commit `dbd703b`, registered full seed-1 trajectory |
+| P2.1 | Method prose and architecture/privacy-boundary figure | active CPU/writing task; no experiment command |
+| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | **next GPU task; P1.1b-v2 command below is active** |
+| P1.5 | Matched FedProx-LoRA reviewer baseline | next experiment design; no command until implementation and coefficient gates are approved |
+| P1.3 | One audited stronger-skew sensitivity | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3 |
 | P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
-| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | deferred by operator; v2 command retained below, not active |
-| P1.3 | Decide scoped RQ3 versus one validated heterogeneity sensitivity | mandatory claim gate after the method/figure draft; no command yet |
-| P1.5 | Matched FedProx-LoRA reviewer baseline | recommended before submission; no command until design/coefficient gate is approved |
+| P1.6 | Federated-7B feasibility/claim gate | conditional after P1.1b; no command and no empirical claim yet |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
 
 Ordinary `eval_arms` timing is not official resource evidence because it
@@ -51,17 +53,16 @@ The first P1.1b collection used a superseded PID-presence rule and produced
 zero eligible rows under Windows/WDDM. Retain it as observational provenance;
 do not merge it with the revised independent-repetition protocol.
 
-P1.1b-v2 is now explicitly deferred, not failed or cancelled. Do not launch it
-until resource evidence is reactivated. P0.8a-E is complete; no GPU task is
-activated automatically, and P0.8b training remains intentionally delayed.
-Archived seed commands must be audited against the current checkpoint/resume
-contract before being copied back here; do not run an old block blindly.
+P1.1b-v2 is reactivated on 2026-08-27 to close the resource component of the
+advisor's scientific question. Its existing fresh-root command is the only
+active GPU block. P0.8b remains intentionally delayed. Archived seed commands
+must be audited against the current checkpoint/resume contract before being
+copied back here; do not run an old block blindly.
 
-P1.4b is closed. The next active work is CPU writing: method prose and the
-architecture/privacy-boundary figure from `MANUSCRIPT_SKELETON.md`. No new GPU
-command is activated by that completion. After the draft exposes the exact
-claim boundary, decide RQ4 measurement versus narrowing, then RQ3 scope and the
-matched FedProx-LoRA baseline design.
+P1.4b is closed. In parallel with P1.1b-v2, continue CPU writing from
+`MANUSCRIPT_SKELETON.md`. After P1.1b, design FedProx-LoRA, then one audited
+stronger-skew T1 screen, then close seed-2 T3. Decide federated-7B feasibility
+only if the manuscript retains an empirical large-model-FL comparison.
 
 ## P0.8a-E — complete
 
@@ -131,6 +132,8 @@ atomic resumable unit. Re-running the exact command skips a terminal result or
 continues missing repetitions; a fingerprint mismatch requires a new root.
 
 ## P1.1b — Qwen 1.5B versus 7B steady-state inference
+
+**Status:** active next GPU task as of 2026-08-27.
 
 **Purpose:** measure the deployment-side cost difference on the same 32 Spider
 rows. The final 1.5B FedLS adapter runs in its canonical BF16 path; the 7B

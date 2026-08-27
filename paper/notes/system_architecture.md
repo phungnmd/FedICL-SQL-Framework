@@ -1,6 +1,6 @@
 # FedLS-SQL — System Architecture
 
-> Canonical design record from 2026-08-19. It supersedes the FedICL-SQL and
+> Canonical design record, updated 2026-08-27. It supersedes the FedICL-SQL and
 > Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
 > lives in `LAB_LOG.md`; canonical paper tables live in
 > `paper/results/MAIN_RESULTS.md`; the active manuscript structure lives in
@@ -13,6 +13,12 @@ FedLS-SQL studies whether collaboration between a server-side large language
 model (LLM) and federated small language models (SLMs) can overcome the accuracy
 limitations of lightweight federated NL-to-SQL while preserving its privacy,
 communication-efficiency, and resource advantages.
+
+This is the advisor-level target. Operationally, “overcome” means a validated
+EX improvement over matched pure FL and competitiveness with centralized SLM
+training; “privacy” means client-row locality, not formal DP; communication is
+measured from adapter tensors; resource advantage requires P1.1b-v2; and a
+direct comparison with large-model FL requires the separate federated-7B gate.
 
 The project answers four questions:
 
@@ -235,14 +241,16 @@ Established evidence:
 
 Open evidence gaps:
 
-1. seed 2 is deferred but remains the path to a final three-seed T3 mean and
-   sample SD; the seed-1 T2/T3 trajectory is complete;
-2. either reactivate the deferred resource benchmark with fixed warm-up and
-   independent repetitions or narrow the corresponding RQ4 claim;
-3. either scope RQ3 to the fixed `K=5, alpha=0.5` non-IID partition or run one
-   validated minimal heterogeneity sensitivity;
-4. add one matched FedProx-LoRA reviewer baseline or document why the paper is
-   scoped to FedAvg-based federated optimization.
+1. P1.1b-v2 is the next GPU task: collect repeated student-1.5B versus
+   teacher-7B deployment inference or narrow the corresponding RQ4 claim;
+2. design and run one matched FedProx-LoRA reviewer baseline, or document why
+   the paper is scoped to FedAvg-based federated optimization;
+3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+   only after a positive gate, otherwise scope RQ3 to the existing partition;
+4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+   the higher-value resource/baseline/sensitivity gaps;
+5. decide whether an empirical large-model-FL sentence justifies at most one
+   matched federated-7B T1 feasibility reference; otherwise keep it absent.
 
 Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
 the closest architecture and Struct-SQL the closest execution-filtered SQL KD
