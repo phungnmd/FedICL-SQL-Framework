@@ -25,6 +25,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P1 | optimizer baseline | matched FedProx-LoRA | next experiment design after P1.1b; implementation and coefficient rule must be frozen before a command |
+| P1/P2 | method innovation | new KD/Federated mechanism against the fixed canonical control | open P1.7 lane; requires documented failure/novelty hypothesis, materially new mechanism, matched budget/control, staged promotion, and full-scale confirmation |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
 | P1 | stronger-skew sensitivity | exactly one audited split with fixed source rows and `K=5`; FL vs FedLS T1 screen before any T3 extension | selected advisor-aligned RQ3 path; design/audit pending, not a broad skew suite |
@@ -65,9 +66,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 4. Close P0.10 despite its positive 512-row screen. At 3,873 rows, FedDF loses
    1.17 EX to hard-target CE, adds 30 execution errors, and trails RKL by 3.20
    EX. Do not tune or run the conditional client-only ablation.
-5. Freeze the existing method: execution-verified hard targets are the portable
-   core and RKL remains an auxiliary Qwen endpoint rather than a stable new KD
-   contribution.
+5. Protect the existing method as the canonical baseline: execution-verified
+   hard targets are the portable core and RKL remains an auxiliary Qwen
+   endpoint. This does not prohibit a materially new P1.7 proposal.
 6. P1.4a and the four seed-1 trajectory evaluations are complete; their
    communication and convergence artifacts are registered.
 7. P1.4b is complete. Draft the method and architecture figure from
@@ -76,3 +77,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    stronger-skew split at T1, and close seed-2 T3. Decide federated-7B
    feasibility only if retaining the corresponding empirical claim. Keep
    teacher ceilings and all model/rank/client sweeps optional.
+9. Treat that order as the default rather than a ban on method research. A
+   P1.7 KD/Federated proposal may move earlier if it targets a documented gap,
+   is materially different from P0.9/P0.10, and has a cheaper falsifiable gate
+   plus a credible paper contribution.

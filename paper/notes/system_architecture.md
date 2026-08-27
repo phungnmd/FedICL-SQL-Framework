@@ -257,23 +257,28 @@ the closest architecture and Struct-SQL the closest execution-filtered SQL KD
 prior. The active claim is the task-specific frozen-teacher/public-EX/private-
 LoRA/SLM-deployment workflow, not generic LLM-SLM federation.
 
-**Method-freeze gate (finalized 2026-08-25):** the architecture above remains the
-canonical fallback. P0.9a rejected client disagreement, and P0.9b showed that
+**Canonical-baseline gate (revised 2026-08-27):** the architecture above remains
+the protected fallback and matched comparison point. This prevents silent
+method drift but does not ban new research. P0.9a rejected client disagreement,
+and P0.9b showed that
 global-error hard-target selection is worse than its token/update-matched
 random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
-selection is not a FedLS-SQL component and its KL extensions are closed. A
-different KD/Federated mechanism may still be discussed, but it changes this
-architecture only after a new preregistered positive gate; no method change is
-currently active.
+selection is not a FedLS-SQL component and its dependent implementation is
+closed. A materially different KD/Federated mechanism may be proposed through
+P1.7 when it targets a documented EX/federated/novelty gap and predeclares a
+matched control, fixed budget, compute cost, promotion criterion, and stop
+rule. It changes this architecture only after positive full-scale matched
+confirmation.
 
 The later P0.10 client-ensemble distillation probe failed its full-pool gate and
 has been removed from the active architecture. Its compact negative result and
 recovery tag are recorded only in the closed-branch archive.
 
-New LoRA aggregation is not an active direction. Existing FLoRA-NA and exact
-rank-preserving/rank-expanded diagnostics showed no material accuracy headroom
-at the current `K=5, T=1` configuration. FedProx remains a possible baseline,
-not a proposed component unless later drift evidence changes that decision.
+Ungrounded LoRA aggregation changes are not an active direction. Existing
+FLoRA-NA and exact rank-preserving/rank-expanded diagnostics showed no material
+accuracy headroom at the current `K=5, T=1` configuration. FedProx remains a
+possible baseline, while a new federated mechanism remains eligible if measured
+drift or heterogeneity supplies a concrete hypothesis.
 
 The second-family screen tests the full endpoint inside another compatible
 teacher/student family. It does not make reverse KL cross-tokenizer: exact

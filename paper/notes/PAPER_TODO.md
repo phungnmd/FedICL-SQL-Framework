@@ -73,6 +73,27 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [ ] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
 
+### 4A. Evaluate method innovation — open, evidence-gated lane
+
+- [ ] Allow new KD or federated proposals when they target a concrete EX
+  failure, client-drift problem, resource limitation, or defensible novelty
+  gap.
+- [ ] Require the proposal to be materially different from the closed P0.9
+  selector and P0.10 FedDF implementations.
+- [ ] Before implementation, write the hypothesis, closest prior work, matched
+  control, fixed data/update budget, promotion metric, compute estimate, and
+  stop rule.
+- [ ] Begin with the cheapest diagnostic or smoke; promote through a small
+  matched screen to full-scale confirmation only after each gate passes.
+- [ ] Change the canonical method only after a positive full-scale matched
+  result; otherwise archive the branch without hyperparameter fishing.
+
+Promising but uncommitted candidates are KID/exposure-bias-aware transfer,
+execution-verified preference/contrastive KD, structured SQL-plan supervision,
+and a federated mechanism tied to measured client drift. This lane may be
+reprioritized ahead of a lower-value queued task when the expected paper value
+and compute cost justify it.
+
 ### 5. Close RQ4 deployment-resource evidence — next GPU task
 
 - [x] Select the measured deployment path for the advisor-aligned question;
@@ -160,8 +181,9 @@ federated-7B training evidence.
 - teacher/student size, LoRA-rank, client-count, or public-pool sensitivity;
 - additional OOD seed replication.
 
-Do not reopen ICL, FLoRA-NA, execution-guided selection, FedDF, structural
-distillation, or an unmeasured federated-7B claim.
+Do not retune the exact closed ICL, FLoRA-NA, P0.9 selection, or P0.10 FedDF
+implementations, and do not make an unmeasured federated-7B claim. New
+KD/Federated mechanisms remain allowed through the evidence-gated P1.7 lane.
 
 ## Submission-readiness gate
 

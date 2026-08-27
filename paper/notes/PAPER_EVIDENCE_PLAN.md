@@ -31,7 +31,7 @@ Execution accuracy (EX) is the primary endpoint. EM is reported transparently
 as a secondary syntactic metric; it is not an optimization target because
 public BIRD teacher targets and Spider evaluation can use different SQL forms.
 
-## 2. Frozen method and claim boundary
+## 2. Canonical method and claim boundary
 
 ```text
 private client LoRA CE -> sample-weighted factor-wise FedAvg
@@ -46,8 +46,9 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 - FedAvg-LoRA is the federated protocol, not a novel optimizer.
 - The privacy claim is structural data isolation, not DP or secure aggregation.
 - The paper does not claim empirical superiority to federated 7B training.
-- P0.9 selection and P0.10 FedDF are closed; no new KD/Federated branch is
-  active.
+- The exact P0.9 selection and P0.10 FedDF implementations are closed. New
+  KD/Federated mechanisms remain admissible through the P1.7 hypothesis,
+  matched-control, budget, and stop-rule gate.
 
 ## 3. Evidence already sufficient
 
@@ -109,6 +110,7 @@ separate feasibility/claim gate rather than an implicit requirement.
 | GPU next | 4 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path selected; existing safe command is active |
 | Design | 5 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
 | Design | 6 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| Open lane | — | P1.7 evidence-gated KD/Federated innovation | may be proposed or reprioritized after the documented hypothesis and staged matched gate |
 | GPU deferred | 7 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
 | Claim gate | 8 | P1.6 federated-7B feasibility | run only if the paper retains empirical comparison with large-model FL |
 
@@ -188,9 +190,11 @@ Observed decision:
   overlapping exploratory subsets, not multiple-testing-adjusted causal
   claims.
 
-This evidence supports a targeted discussion and future-work limitation; it
-does not reopen method development before the mandatory resource and seed
-gates.
+This evidence supports a targeted discussion and can motivate a new P1.7
+method hypothesis. It does not by itself authorize a training branch: the
+hypothesis must explain the affected EX stratum, matched control, budget, and
+promotion rule. A high-value low-cost proposal may be reprioritized explicitly
+rather than being blocked behind every existing queue item.
 
 ### P1.1b — collect resource evidence
 
@@ -356,12 +360,34 @@ These require a gate and are not yet executable commands:
   targeted sensitivity chosen after the manuscript audit, never a Cartesian
   sweep.
 
+## 6.1 Open method-innovation lane
+
+The canonical method is a protected comparison point, not a permanent ban on
+research. P1.7 may consider a new KD or federated mechanism when it has a
+specific reason to outperform or clarify the current workflow. Current
+research-backed candidates include:
+
+- KID/exposure-bias-aware Text-to-SQL transfer;
+- execution-verified contrastive or preference transfer built from clear
+  teacher-correct/student-failed pairs;
+- structured SQL-plan supervision if the expected EX gain justifies the
+  changed output format and inference cost;
+- a federated mechanism addressing measured client drift or heterogeneity,
+  rather than changing aggregation without such evidence.
+
+These are candidates, not scheduled runs. Every proposal must be materially
+different from the closed P0.9/P0.10 implementations, preserve a matched
+canonical baseline, begin with the cheapest falsifiable diagnostic, and stop
+after a negative gate. A positive small screen is insufficient to replace the
+method; P0.10 is the precedent for requiring full-scale confirmation.
+
 ## 7. Stop rules
 
-- Do not reopen P0.9 or P0.10.
+- Do not retune or relabel the exact failed P0.9/P0.10 implementations. A new
+  mechanism that uses a materially different hypothesis remains allowed.
 - Do not optimize EM at the expense of EX.
-- Do not add a new KD loss without an EX-specific failure hypothesis from
-  P1.2 and a preregistered matched control.
+- Add a new KD/Federated branch only with an EX-specific or federated-specific
+  hypothesis, a preregistered matched control, a fixed budget, and a stop rule.
 - Do not fill resource tables with failed, resumed, or reused-stage latency.
 - Do not claim formal privacy, arbitrary cross-tokenizer KL, general non-IID
   robustness, or federated-large-model savings without corresponding evidence.
@@ -373,4 +399,6 @@ immediate CPU work is the method prose and architecture figure; P1.1b-v2 is
 the next GPU task. Then design/run the matched FedProx-LoRA baseline, audit and
 screen one stronger-skew split, and close seed-2 T3. Decide the federated-7B
 claim only after the resource result. Do not add a model family, OOD seed
-sweep, or hyperparameter Cartesian sweep by default.
+sweep, or hyperparameter Cartesian sweep by default. A P1.7 method proposal
+may be inserted when its expected contribution and gate justify reprioritizing
+the queue; the current order is a default, not a prohibition.

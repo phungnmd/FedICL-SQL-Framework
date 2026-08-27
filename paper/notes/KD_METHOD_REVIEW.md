@@ -51,17 +51,19 @@ not be ranked by reported headline gain alone:
 | Question | Best candidate | Evidence and project fit | Decision |
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
-| Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Not active after method freeze** |
+| Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Open P1.7 candidate; not yet scheduled** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
-| What is the best offline extension if method work is reopened? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Archived option, not active** |
+| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Open P1.7 candidate; requires matched gate** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, **KID remains the strongest published Text-to-SQL-specific candidate**,
 while P0.10e shows that LLM-anchored FedDF does not scale from its positive
-512-row screen. The current method is now frozen. Any further KD/Federated
-proposal would require a new paper-scope decision, not retuning P0.9/P0.10.
+512-row screen. The current method is the canonical fallback, not a permanent
+research ceiling. A further KD/Federated proposal may enter P1.7 when it is
+materially different from P0.9/P0.10 and defines its paper contribution,
+matched control, fixed budget, staged promotion, and stop rule before training.
 
 ## 2. Notation and KD axes
 
@@ -769,8 +771,10 @@ This section specifies decision gates, not executable commands.
 3. Keep fixed-warm-up resource measurements and final seed replication in the
    submission queue, but do not require them before the cheap method probes.
 
-Do not sacrifice these submission-critical controls to run a large new KD grid;
-the gates below are deliberately narrow and stop early on a negative result.
+Do not silently sacrifice submission-critical controls to run a large new KD
+grid. A focused proposal may be reprioritized when its expected contribution
+and compute cost are documented; the gates below are deliberately narrow and
+stop early on a negative result.
 
 ### Gate 1 — zero-new-teacher diagnostic
 

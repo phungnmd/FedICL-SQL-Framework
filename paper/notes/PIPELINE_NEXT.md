@@ -6,9 +6,10 @@
 > The ordered paper backlog and decision gates live in `PAPER_TODO.md`; this
 > file contains only runnable or exactly preserved deferred commands.
 
-## Method freeze
+## Canonical baseline and innovation gate
 
-The proposed method is frozen after the P0.10e decision gate:
+The evidence-backed method is held fixed as the canonical fallback and matched
+baseline after the P0.10e decision gate:
 
 ```text
 private client LoRA CE -> sample-weighted factor-wise FedAvg
@@ -18,6 +19,24 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 Execution-verified hard teacher targets are the supported portable mechanism.
 Reverse KL remains auxiliary because its independent increment is not stable
 across training seeds or the Gemma family.
+
+This fixed reference prevents silent baseline drift; it does **not** prohibit new
+KD/Federated proposals. A substantively different mechanism may enter P1.7 if
+it satisfies all of the following before a training command is added:
+
+1. targets a documented EX failure, federated limitation, or novelty gap;
+2. explains why it differs from the failed P0.9 selector and P0.10 FedDF
+   implementations rather than retuning them;
+3. preserves or explicitly revises the client-data, communication, teacher,
+   and SLM-deployment boundaries;
+4. defines a matched control, fixed budget, promotion metric, and stop rule;
+5. starts with the cheapest diagnostic/smoke and reaches the full pool only
+   after passing its preregistered gate.
+
+A strong P1.7 proposal may be promoted ahead of a lower-value queued run after
+the expected paper contribution and compute cost are documented. The
+canonical method changes only after a positive full-scale matched result;
+otherwise the branch is archived without tuning.
 
 The execution-guided selector and client-ensemble distillation branches are closed:
 
@@ -41,6 +60,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | **next GPU task; P1.1b-v2 command below is active** |
 | P1.5 | Matched FedProx-LoRA reviewer baseline | next experiment design; no command until implementation and coefficient gates are approved |
 | P1.3 | One audited stronger-skew sensitivity | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3 |
+| P1.7 | Evidence-gated KD/Federated innovation | open design lane; may be proposed or reprioritized when it meets the five-part gate above |
 | P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
 | P1.6 | Federated-7B feasibility/claim gate | conditional after P1.1b; no command and no empirical claim yet |
 | P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |

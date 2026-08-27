@@ -88,13 +88,14 @@ decisions. It deliberately does not own result tables:
   server EX gains are positive but not separately significant; their execution
   errors fall 195→121 and 156→126. P0.8b seed 2 remains deferred.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
-  for a defensible FedLS-SQL framework paper, but not for a new RKL objective
+  for a defensible FedLS-SQL workflow paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
   P0.9b showed that training on that signal is worse than a matched random
   subset. Uniform hard SeqKD remains the fallback. P0.10d's positive 512-row
   FedDF screen does not survive P0.10e: at 3,873 rows it loses 1.17 EX and adds
   30 execution errors versus hard-target CE, and trails RKL by 3.20 EX. P0.10
-  is closed and archived without tuning; the canonical method is frozen.
+  is closed and archived without tuning; the current method is the protected
+  canonical fallback rather than a ban on a materially new proposal.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -356,6 +357,7 @@ internal artifact identities.
 | 2026-08-26 | Closed P0.8a-E at nested result commit `dbd703b`. The four fresh 1,034-row evaluations complete seed-1 convergence without retraining: pure FL T2 61.70 EX/213 errors; FedLS mixed pre-server T2 63.25/195; FedLS T2 endpoint 64.22/121; mixed pre-server T3 64.70/156. Combined with registered T1 and T3 endpoints, FedLS rises 62.48→64.22→65.76 while pure FL rises 57.45→61.70→61.99. FedLS T1→T3 is +3.29 EX (78/44, `p=0.00266`); pure FL T2→T3 is +0.29 (`p=0.810`). The T3 pre-server model retains a significant +2.71 over pure FL (`p=0.0193`). T2/T3 server increments are +0.97/+1.06 but individually non-significant, so claim cumulative recurring transfer and retained knowledge rather than guaranteed per-round EX gains. |
 | 2026-08-26 | Closed P1.4b with `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md`. FedCoLLM already contains the closest generic client-LoRA aggregation plus recurring server LLM/SLM KD loop, and Struct-SQL already filters teacher Text-to-SQL samples by execution correctness. Removed “A Novel ... Framework” from the active title. The defensible contribution is the complete federated NL-to-SQL workflow: frozen server teacher, public result-equivalent SQL targets, private adapter-only clients, recurring global-SLM refinement, EX-oriented controls, and SLM-only deployment. Generic first/novel FL, KD, PEFT, or execution-filtering claims are prohibited. |
 | 2026-08-27 | Reconciled the adaptive plan with the advisor's original scientific target. The project still asks whether large-to-small collaboration addresses lightweight federated NL-to-SQL accuracy while retaining data locality, communication efficiency, and resource advantages; the operational wording separates those testable claims and avoids formal-privacy or unmeasured federated-7B implications. Reactivated P1.1b-v2 as the next GPU task. After method/figure drafting, prioritize matched FedProx-LoRA, exactly one audited stronger-skew T1 screen, and seed-2 T3. A federated-7B T1 feasibility reference is conditional on retaining a direct large-model-FL claim. |
+| 2026-08-27 | Relaxed the overly rigid method-freeze wording. The validated FedLS-SQL method remains the canonical fallback and matched baseline, while P1.7 is an open innovation lane for a substantively new KD or federated mechanism. A proposal may be reprioritized when it targets a documented EX/federated/novelty gap, differs materially from the failed P0.9/P0.10 implementations, and predeclares closest prior work, matched control, fixed budget, compute cost, staged promotion, and stop rule. Positive full-scale confirmation is required before replacing the canonical method; negative branches are archived without tuning. |
 
 ## 8. Archived branches
 
