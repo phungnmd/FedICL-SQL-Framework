@@ -78,18 +78,26 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [x] Reuse the completed P0.10a feasibility audit; do not rebuild its public
   pair inventory. It found 347 global-SLM failures on 512 public rows, including
   122 clean executable-but-wrong rows.
-- [ ] Freeze a reference-free pairwise objective that retains uniform verified
+- [x] Freeze a reference-free pairwise objective that retains uniform verified
   teacher-target CE and ranks `chosen=y_T` above `rejected=y_global` using
-  length-normalized sequence scores.
-- [ ] Use only rejected outputs from the pre-server global SLM in the first
+  length-normalized sequence scores. Implemented as the `fedpref` arm at
+  `bd150c5`.
+- [x] Use only rejected outputs from the pre-server global SLM in the first
   gate. Do not use client logits or client-specific rejected sequences, which
-  would reopen the failed P0.10 FedDF/client-over-alignment path.
-- [ ] Define one matched positive-only CE control with identical initialization,
+  would reopen the failed P0.10 FedDF/client-over-alignment path. The frozen
+  derived package at `d2a4d9b` contains 347 `global_fl` pairs only.
+- [x] Define one matched positive-only CE control with identical initialization,
   public row schedule, optimizer steps, seed, and primary teacher targets;
-  disclose any extra pair-scoring compute separately.
-- [ ] Freeze pair eligibility, the preference coefficient, fixed 512-row screen
+  disclose any extra pair-scoring compute separately. Reuse immutable P0.10d
+  `llm_only512`; P1.7a adds 347 rejected forwards but keeps 512 microsteps and
+  32 optimizer updates.
+- [x] Freeze pair eligibility, the preference coefficient, fixed 512-row screen
   budget, EX/execution-error promotion metric, compute estimate, and stop rule
-  before implementation or a PowerShell command.
+  before implementation or a PowerShell command: all 347 failed global outputs,
+  `lambda_preference=1.0`, promote at `>=+1.0` Spider EX with no execution-error
+  increase, and no coefficient/subset tuning.
+- [ ] Run the active P1.7a single-line PowerShell screen in `PIPELINE_NEXT.md`
+  and apply its fixed gate.
 - [ ] Promote to the full 3,873-row teacher pool only if the matched screen
   improves Spider EX by at least 1.0 point without increasing execution errors.
 - [ ] Replace the canonical method only after positive full-scale confirmation;

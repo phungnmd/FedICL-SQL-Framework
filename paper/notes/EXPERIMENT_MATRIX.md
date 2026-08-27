@@ -25,7 +25,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P1 | optimizer baseline | matched FedProx-LoRA | next experiment design after P1.1b; implementation and coefficient rule must be frozen before a command |
-| P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | P1.7a active for matched design; P0.10a feasibility is complete, 512-row screen precedes any full-pool confirmation |
+| P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | P1.7a implemented at `bd150c5`/`d2a4d9b`; active 512-row screen precedes any full-pool confirmation |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
 | P1 | stronger-skew sensitivity | exactly one audited split with fixed source rows and `K=5`; FL vs FedLS T1 screen before any T3 extension | selected advisor-aligned RQ3 path; design/audit pending, not a broad skew suite |
@@ -72,7 +72,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 6. P1.4a and the four seed-1 trajectory evaluations are complete; their
    communication and convergence artifacts are registered.
 7. P1.4b is complete. Draft the method and architecture figure from
-   `MANUSCRIPT_SKELETON.md` while freezing the P1.7a matched design.
+   `MANUSCRIPT_SKELETON.md` while running the frozen P1.7a matched screen.
 8. Then design/run one matched FedProx-LoRA baseline, audit and screen one
    stronger-skew split at T1, and close seed-2 T3. Decide federated-7B
    feasibility only if retaining the corresponding empirical claim. Keep

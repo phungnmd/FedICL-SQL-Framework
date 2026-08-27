@@ -241,7 +241,7 @@ Established evidence:
 
 Open evidence gaps:
 
-1. freeze and screen P1.7a execution-verified preference/contrastive KD against
+1. run the frozen P1.7a execution-verified preference/contrastive-KD screen against
    its matched positive-only CE control; retain the canonical method after a
    negative gate;
 2. run the ready P1.1b-v2 resource benchmark after P1.7a, or narrow the
@@ -272,6 +272,24 @@ teacher-target CE and add a pairwise preference/contrastive term that ranks the
 teacher SQL above a failed pre-server global-SLM SQL. It excludes client logits
 and client-specific rejected outputs, and changes this architecture only after
 positive matched 512-row and full-scale confirmation.
+
+### 8.1 P1.7a implementation boundary
+
+P1.7a is implemented as the experimental `fedpref` server arm at code commit
+`bd150c5`; its compact 347-row `global_fl` pair package is frozen at `d2a4d9b`.
+For every one of the 512 public rows, server training retains the same verified
+teacher-target token CE. On the 347 rows where the pre-server global SLM failed
+public scoring, it additionally minimizes
+`softplus(-(s(y_T)-s(y_global)))`, where each `s` is the mean causal target-token
+log-probability under an identical rendered prompt. The mean, rather than a
+sum, prevents target length alone from deciding the ranking.
+
+This candidate changes only the public server objective. It does not load the
+teacher during training, transmit new client information, consume client
+logits, use client-specific negatives, add ICL, or change aggregation and
+deployment. Pair CSV/provenance hashes, source arm, and coefficient are part of
+the immutable setup/server fingerprints. Existing CE/RKL fingerprints and
+setup IDs remain unchanged when the preference arm is unused.
 
 The later P0.10 client-ensemble distillation probe failed its full-pool gate and
 has been removed from the active architecture. Its compact negative result and

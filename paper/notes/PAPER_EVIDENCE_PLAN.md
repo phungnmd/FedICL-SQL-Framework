@@ -107,7 +107,7 @@ separate feasibility/claim gate rather than an implicit requirement.
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
-| Method next | 4 | P1.7a execution-verified preference/contrastive KD | freeze the matched design, then run its 512-row screen before other optional GPU work |
+| Method next | 4 | P1.7a execution-verified preference/contrastive KD | design/code/data frozen; run its active 512-row screen before other optional GPU work |
 | GPU pending | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path and safe command are ready; run after the P1.7a screen |
 | Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
 | Design | 7 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
@@ -363,7 +363,7 @@ These require a gate and are not yet executable commands:
 ## 6.1 Active method-innovation lane: P1.7a
 
 The canonical method remains the protected comparison point, but one focused
-extension is active for design: execution-verified preference/contrastive KD.
+extension is active for its frozen screen: execution-verified preference/contrastive KD.
 For the same public input, the verified teacher SQL is `chosen` and a failed
 pre-server global-SLM SQL is `rejected`. Uniform verified teacher-target CE
 remains active on the public pool; the proposed pairwise term must add explicit
@@ -377,6 +377,15 @@ from archived FedDF. Compare against a positive-only CE control with identical
 initialization, public row schedule, primary targets, updates, and seed. Promote
 only for at least `+1.0` Spider EX with no execution-error increase, then require
 an untuned full-3,873-row confirmation before changing the method.
+
+The design is now frozen and implemented (`bd150c5`, pair package `d2a4d9b`).
+Eligibility is all 347 failed `global_fl` outputs: 225 execution-error and 122
+executable-wrong rejects. The fixed reference-free logistic loss uses
+length-normalized target-sequence scores with coefficient `1.0`. The completed
+P0.10d `llm_only512` checkpoint is the positive-only control. Both arms retain
+512 chosen-CE microsteps and 32 optimizer updates; only P1.7a adds 347 rejected
+forwards. The active command and exact resume contract live only in
+`PIPELINE_NEXT.md`.
 
 Other former candidates are inactive:
 

@@ -55,7 +55,7 @@ not be ranked by reported headline gain alone:
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
-| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus global-student-failed SQL into reusable pairs; P0.10a feasibility is complete and later training loads only the student | **Active P1.7a design; requires matched gate** |
+| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus global-student-failed SQL into reusable pairs; P0.10a feasibility is complete and later training loads only the student | **P1.7a implemented at `bd150c5`/`d2a4d9b`; requires matched 512-row gate** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, KID remains an important Text-to-SQL prior but is not an active project
