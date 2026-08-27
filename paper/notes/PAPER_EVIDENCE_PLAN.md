@@ -107,12 +107,12 @@ separate feasibility/claim gate rather than an implicit requirement.
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
-| GPU next | 4 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path selected; existing safe command is active |
-| Design | 5 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
-| Design | 6 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
-| Open lane | — | P1.7 evidence-gated KD/Federated innovation | may be proposed or reprioritized after the documented hypothesis and staged matched gate |
-| GPU deferred | 7 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
-| Claim gate | 8 | P1.6 federated-7B feasibility | run only if the paper retains empirical comparison with large-model FL |
+| Method next | 4 | P1.7a execution-verified preference/contrastive KD | freeze the matched design, then run its 512-row screen before other optional GPU work |
+| GPU pending | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path and safe command are ready; run after the P1.7a screen |
+| Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
+| Design | 7 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| GPU deferred | 8 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
+| Claim gate | 9 | P1.6 federated-7B feasibility | run only if the paper retains empirical comparison with large-model FL |
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -198,9 +198,9 @@ rather than being blocked behind every existing queue item.
 
 ### P1.1b — collect resource evidence
 
-**Status:** reactivated 2026-08-27 as the next GPU task. The fresh-root v2
-command in `PIPELINE_NEXT.md` must not be mixed with the superseded PID-gated
-collection.
+**Status:** command ready but pending behind the user-prioritized P1.7a screen.
+The fresh-root v2 command in `PIPELINE_NEXT.md` must not be mixed with the
+superseded PID-gated collection.
 
 The current P1.1b command collects the first evidence block:
 
@@ -360,45 +360,50 @@ These require a gate and are not yet executable commands:
   targeted sensitivity chosen after the manuscript audit, never a Cartesian
   sweep.
 
-## 6.1 Open method-innovation lane
+## 6.1 Active method-innovation lane: P1.7a
 
-The canonical method is a protected comparison point, not a permanent ban on
-research. P1.7 may consider a new KD or federated mechanism when it has a
-specific reason to outperform or clarify the current workflow. Current
-research-backed candidates include:
+The canonical method remains the protected comparison point, but one focused
+extension is active for design: execution-verified preference/contrastive KD.
+For the same public input, the verified teacher SQL is `chosen` and a failed
+pre-server global-SLM SQL is `rejected`. Uniform verified teacher-target CE
+remains active on the public pool; the proposed pairwise term must add explicit
+negative-sequence information rather than selecting only hard rows.
 
-- KID/exposure-bias-aware Text-to-SQL transfer;
-- execution-verified contrastive or preference transfer built from clear
-  teacher-correct/student-failed pairs;
-- structured SQL-plan supervision if the expected EX gain justifies the
-  changed output format and inference cost;
-- a federated mechanism addressing measured client drift or heterogeneity,
-  rather than changing aggregation without such evidence.
+P0.10a already completed the feasibility diagnostic and found 347 global-SLM
+failures on its 512-row public subset, including 122 clean executable-but-wrong
+rows. Reuse those fingerprinted states. The first gate excludes client logits
+and client-specific rejected outputs so the experiment is materially different
+from archived FedDF. Compare against a positive-only CE control with identical
+initialization, public row schedule, primary targets, updates, and seed. Promote
+only for at least `+1.0` Spider EX with no execution-error increase, then require
+an untuned full-3,873-row confirmation before changing the method.
 
-These are candidates, not scheduled runs. Every proposal must be materially
-different from the closed P0.9/P0.10 implementations, preserve a matched
-canonical baseline, begin with the cheapest falsifiable diagnostic, and stop
-after a negative gate. A positive small screen is insufficient to replace the
-method; P0.10 is the precedent for requiring full-scale confirmation.
+Other former candidates are inactive:
+
+- true KID already trailed matched RKD by 1.45 EX (`p=0.072`) and cost about
+  4.4 times more per step with 35% higher measured peak VRAM;
+- structured-plan supervision changes the output and inference contract and is
+  retained as future work;
+- a new federated mechanism is deferred until FedProx and the stronger-skew
+  audit identify a concrete residual drift/heterogeneity problem.
 
 ## 7. Stop rules
 
 - Do not retune or relabel the exact failed P0.9/P0.10 implementations. A new
   mechanism that uses a materially different hypothesis remains allowed.
 - Do not optimize EM at the expense of EX.
-- Add a new KD/Federated branch only with an EX-specific or federated-specific
-  hypothesis, a preregistered matched control, a fixed budget, and a stop rule.
+- Do not activate another KD/Federated branch alongside P1.7a unless new
+  evidence invalidates this prioritization.
 - Do not fill resource tables with failed, resumed, or reused-stage latency.
 - Do not claim formal privacy, arbitrary cross-tokenizer KL, general non-IID
   robustness, or federated-large-model savings without corresponding evidence.
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, and P0.8a-E are complete. The
-immediate CPU work is the method prose and architecture figure; P1.1b-v2 is
-the next GPU task. Then design/run the matched FedProx-LoRA baseline, audit and
-screen one stronger-skew split, and close seed-2 T3. Decide the federated-7B
-claim only after the resource result. Do not add a model family, OOD seed
-sweep, or hyperparameter Cartesian sweep by default. A P1.7 method proposal
-may be inserted when its expected contribution and gate justify reprioritizing
-the queue; the current order is a default, not a prohibition.
+Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, and P0.8a-E are complete. Freeze
+the P1.7a matched design while continuing method prose and the architecture
+figure, then run its 512-row screen as the next method experiment. Return to
+P1.1b-v2 afterward, followed by the matched FedProx-LoRA baseline, one
+stronger-skew screen, and seed-2 T3. Decide the federated-7B claim only after the
+resource result. Do not add a model family, OOD seed sweep, or hyperparameter
+Cartesian sweep by default.

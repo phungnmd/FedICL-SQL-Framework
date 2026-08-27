@@ -73,28 +73,36 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [ ] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
 
-### 4A. Evaluate method innovation — open, evidence-gated lane
+### 4A. Test execution-verified preference/contrastive KD — active P1.7a
 
-- [ ] Allow new KD or federated proposals when they target a concrete EX
-  failure, client-drift problem, resource limitation, or defensible novelty
-  gap.
-- [ ] Require the proposal to be materially different from the closed P0.9
-  selector and P0.10 FedDF implementations.
-- [ ] Before implementation, write the hypothesis, closest prior work, matched
-  control, fixed data/update budget, promotion metric, compute estimate, and
-  stop rule.
-- [ ] Begin with the cheapest diagnostic or smoke; promote through a small
-  matched screen to full-scale confirmation only after each gate passes.
-- [ ] Change the canonical method only after a positive full-scale matched
-  result; otherwise archive the branch without hyperparameter fishing.
+- [x] Reuse the completed P0.10a feasibility audit; do not rebuild its public
+  pair inventory. It found 347 global-SLM failures on 512 public rows, including
+  122 clean executable-but-wrong rows.
+- [ ] Freeze a reference-free pairwise objective that retains uniform verified
+  teacher-target CE and ranks `chosen=y_T` above `rejected=y_global` using
+  length-normalized sequence scores.
+- [ ] Use only rejected outputs from the pre-server global SLM in the first
+  gate. Do not use client logits or client-specific rejected sequences, which
+  would reopen the failed P0.10 FedDF/client-over-alignment path.
+- [ ] Define one matched positive-only CE control with identical initialization,
+  public row schedule, optimizer steps, seed, and primary teacher targets;
+  disclose any extra pair-scoring compute separately.
+- [ ] Freeze pair eligibility, the preference coefficient, fixed 512-row screen
+  budget, EX/execution-error promotion metric, compute estimate, and stop rule
+  before implementation or a PowerShell command.
+- [ ] Promote to the full 3,873-row teacher pool only if the matched screen
+  improves Spider EX by at least 1.0 point without increasing execution errors.
+- [ ] Replace the canonical method only after positive full-scale confirmation;
+  otherwise archive P1.7a without coefficient or subset tuning.
 
-Promising but uncommitted candidates are KID/exposure-bias-aware transfer,
-execution-verified preference/contrastive KD, structured SQL-plan supervision,
-and a federated mechanism tied to measured client drift. This lane may be
-reprioritized ahead of a lower-value queued task when the expected paper value
-and compute cost justify it.
+KID is no longer an active candidate: the matched legacy experiment was 1.45
+EX below RKD (`p=0.072`), while measured cost was about 4.4 times slower and
+35% higher in peak VRAM. Structured-plan supervision is future work because it
+changes the output/inference contract and the current complex-query audit does
+not justify that scope. A new federated mechanism is deferred until FedProx and
+the stronger-skew audit demonstrate a specific unresolved drift problem.
 
-### 5. Close RQ4 deployment-resource evidence — next GPU task
+### 5. Close RQ4 deployment-resource evidence — pending after P1.7a
 
 - [x] Select the measured deployment path for the advisor-aligned question;
   retain narrowing as the fallback if the controlled collection cannot close.
@@ -182,8 +190,9 @@ federated-7B training evidence.
 - additional OOD seed replication.
 
 Do not retune the exact closed ICL, FLoRA-NA, P0.9 selection, or P0.10 FedDF
-implementations, and do not make an unmeasured federated-7B claim. New
-KD/Federated mechanisms remain allowed through the evidence-gated P1.7 lane.
+implementations, and do not make an unmeasured federated-7B claim. P1.7a is the
+only active innovation task; other new proposals require evidence that changes
+the current prioritization.
 
 ## Submission-readiness gate
 

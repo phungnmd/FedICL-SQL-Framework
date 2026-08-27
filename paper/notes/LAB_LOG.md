@@ -95,7 +95,9 @@ decisions. It deliberately does not own result tables:
   FedDF screen does not survive P0.10e: at 3,873 rows it loses 1.17 EX and adds
   30 execution errors versus hard-target CE, and trails RKL by 3.20 EX. P0.10
   is closed and archived without tuning; the current method is the protected
-  canonical fallback rather than a ban on a materially new proposal.
+  canonical fallback. P1.7a now prioritizes execution-verified
+  preference/contrastive KD using global-SLM rejected SQL; KID, structured
+  plans, and an evidence-free new federated mechanism are inactive.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -252,10 +254,12 @@ currently justify.
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
 1. Method prose and architecture/privacy-boundary figure from the completed
-   P1.4b manuscript skeleton, in parallel with P1.1b-v2 as the next GPU task.
-2. One matched FedProx-LoRA reviewer baseline.
-3. One audited stronger-skew T1 screen, then deferred seed-2 T2/T3.
-4. Federated-7B feasibility only if retaining that empirical claim, followed
+   P1.4b manuscript skeleton, in parallel with freezing the P1.7a matched
+   preference/contrastive-KD contract.
+2. P1.7a 512-row screen, then the ready P1.1b-v2 resource benchmark.
+3. One matched FedProx-LoRA reviewer baseline.
+4. One audited stronger-skew T1 screen, then deferred seed-2 T2/T3.
+5. Federated-7B feasibility only if retaining that empirical claim, followed
    by final claim/evidence QA and manuscript freeze.
 
 FedProx is a recommended reviewer baseline rather than a method direction.
@@ -358,6 +362,7 @@ internal artifact identities.
 | 2026-08-26 | Closed P1.4b with `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md`. FedCoLLM already contains the closest generic client-LoRA aggregation plus recurring server LLM/SLM KD loop, and Struct-SQL already filters teacher Text-to-SQL samples by execution correctness. Removed “A Novel ... Framework” from the active title. The defensible contribution is the complete federated NL-to-SQL workflow: frozen server teacher, public result-equivalent SQL targets, private adapter-only clients, recurring global-SLM refinement, EX-oriented controls, and SLM-only deployment. Generic first/novel FL, KD, PEFT, or execution-filtering claims are prohibited. |
 | 2026-08-27 | Reconciled the adaptive plan with the advisor's original scientific target. The project still asks whether large-to-small collaboration addresses lightweight federated NL-to-SQL accuracy while retaining data locality, communication efficiency, and resource advantages; the operational wording separates those testable claims and avoids formal-privacy or unmeasured federated-7B implications. Reactivated P1.1b-v2 as the next GPU task. After method/figure drafting, prioritize matched FedProx-LoRA, exactly one audited stronger-skew T1 screen, and seed-2 T3. A federated-7B T1 feasibility reference is conditional on retaining a direct large-model-FL claim. |
 | 2026-08-27 | Relaxed the overly rigid method-freeze wording. The validated FedLS-SQL method remains the canonical fallback and matched baseline, while P1.7 is an open innovation lane for a substantively new KD or federated mechanism. A proposal may be reprioritized when it targets a documented EX/federated/novelty gap, differs materially from the failed P0.9/P0.10 implementations, and predeclares closest prior work, matched control, fixed budget, compute cost, staged promotion, and stop rule. Positive full-scale confirmation is required before replacing the canonical method; negative branches are archived without tuning. |
+| 2026-08-27 | Narrowed the innovation lane to P1.7a execution-verified preference/contrastive KD. P0.10a already supplies the feasibility evidence (347 global-SLM failures on 512 public rows; 122 clean executable-but-wrong rows), so no pair-audit rerun is needed. The first gate retains uniform verified teacher CE and adds a length-normalized pairwise term using only pre-server global-SLM rejected SQL; client logits and client-specific rejects are excluded to avoid reopening FedDF's negative-transfer path. True KID is inactive after its matched `-1.45` EX result and roughly `4.4x` time/`+35%` peak-VRAM cost; structured plans move to future work, and new federated mechanisms wait for FedProx/stronger-skew evidence. |
 
 ## 8. Archived branches
 

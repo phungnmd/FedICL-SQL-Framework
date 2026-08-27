@@ -51,19 +51,19 @@ not be ranked by reported headline gain alone:
 | Question | Best candidate | Evidence and project fit | Decision |
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
-| Which published method has the strongest task-specific prior? | KID | Designed for Text-to-SQL; reports up to `+5.83` average points, but needs changing imperfect prefixes and online teacher scoring | **Open P1.7 candidate; not yet scheduled** |
+| Which published method has the strongest task-specific prior? | KID | Task-specific prior, but the project's matched legacy run is 1.45 EX below RKD (`p=0.072`) and measured about 4.4 times slower with 35% higher peak VRAM | **Historical comparator; inactive** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
-| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus student-failed SQL into reusable pairs; student-only training after pair construction | **Open P1.7 candidate; requires matched gate** |
+| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus global-student-failed SQL into reusable pairs; P0.10a feasibility is complete and later training loads only the student | **Active P1.7a design; requires matched gate** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
-Thus, **KID remains the strongest published Text-to-SQL-specific candidate**,
-while P0.10e shows that LLM-anchored FedDF does not scale from its positive
-512-row screen. The current method is the canonical fallback, not a permanent
-research ceiling. A further KD/Federated proposal may enter P1.7 when it is
-materially different from P0.9/P0.10 and defines its paper contribution,
-matched control, fixed budget, staged promotion, and stop rule before training.
+Thus, KID remains an important Text-to-SQL prior but is not an active project
+candidate, while P0.10e shows that LLM-anchored FedDF does not scale from its
+positive 512-row screen. P1.7a now prioritizes the one untrained signal already
+supported by project diagnostics: execution-verified global-SLM preference
+pairs. Its loss, matched control, fixed budget, staged promotion, and stop rule
+must be frozen before training.
 
 ## 2. Notation and KD axes
 
@@ -712,8 +712,9 @@ small mixture with, teacher-target CE.
 teacher target already exists and the repeated stage loads only the student.
 
 **Scientific risk:** it introduces a second optimization family and may make the
-paper harder to attribute.  Use it only after the current CE/RKL mechanism and
-multi-seed endpoint are closed.
+paper harder to attribute. P1.7a therefore permits only one fixed 512-row
+matched screen before any full-pool confirmation; it does not open a loss or
+coefficient sweep.
 
 ### Tier B2 — compact structured-plan distillation
 
@@ -830,16 +831,15 @@ Gemma's own `P_T`.  Never reuse Qwen-selected row identities or Qwen difficulty
 labels as the Gemma method, because that would condition the second-family result
 on the Qwen lineage.
 
-### Gate 6 — optional KID or contrastive extension
+### Gate 6 — P1.7a preference/contrastive extension
 
-Choose at most one based on error analysis:
-
-- errors cascade after imperfect prefixes -> a fixed-budget KID probe;
-- many valid-but-wrong or non-executable student queries -> execution-verified
-  contrastive/preference distillation;
-- many complex-structure failures -> compact structured-plan distillation.
-
-Do not run both without expanding the research scope and ablation budget.
+Use the completed P0.10a inventory rather than rerunning diagnosis. Keep
+uniform verified teacher-target CE on all scheduled public rows, and add a
+reference-free length-normalized pairwise term only where the pre-server global
+SLM produced a verified failure. Exclude client logits and client-specific
+rejected outputs. Compare against the matched positive-only CE control, promote
+at `+1.0` Spider EX with no execution-error increase, and require one untuned
+full-pool confirmation. KID and structured-plan training are inactive.
 
 ## 9. Recommended paper positioning
 
@@ -888,14 +888,15 @@ For the current paper and one RTX A5000 24 GB:
 3. treat P0.9 global-error selection, client-disagreement selection, and their
    direct weighted/KL continuations as closed;
 4. keep client-ensemble distillation closed in the internal archive;
-5. discuss **cached skew-RKL** only as a cheap objective ablation, not a strong
-   FL--KD integration claim;
-6. retain **KID** and execution-verified preference KD as second- and third-line
-   fallbacks supported only by feasibility diagnostics;
-7. require full-scale confirmation before promoting any future small-budget
-   method screen;
-8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and long-CoT
-   training under the present GPU-hour and scope budget.
+5. keep cached skew-RKL and KID inactive because their local evidence/cost does
+   not justify another gate;
+6. activate only **execution-verified preference/contrastive KD** as P1.7a,
+   using global-SLM rejected outputs rather than client signals;
+7. require full-scale confirmation before promoting the small-budget screen;
+8. retain structured plans as future work and defer new federated mechanisms
+   until FedProx/stronger-skew evidence identifies a residual problem;
+9. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and
+   long-CoT training under the present GPU-hour and scope budget.
 
 The key design principle is:
 

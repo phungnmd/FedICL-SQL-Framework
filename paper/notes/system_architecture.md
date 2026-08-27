@@ -241,15 +241,18 @@ Established evidence:
 
 Open evidence gaps:
 
-1. P1.1b-v2 is the next GPU task: collect repeated student-1.5B versus
-   teacher-7B deployment inference or narrow the corresponding RQ4 claim;
-2. design and run one matched FedProx-LoRA reviewer baseline, or document why
+1. freeze and screen P1.7a execution-verified preference/contrastive KD against
+   its matched positive-only CE control; retain the canonical method after a
+   negative gate;
+2. run the ready P1.1b-v2 resource benchmark after P1.7a, or narrow the
+   corresponding RQ4 claim;
+3. design and run one matched FedProx-LoRA reviewer baseline, or document why
    the paper is scoped to FedAvg-based federated optimization;
-3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+4. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+5. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-5. decide whether an empirical large-model-FL sentence justifies at most one
+6. decide whether an empirical large-model-FL sentence justifies at most one
    matched federated-7B T1 feasibility reference; otherwise keep it absent.
 
 Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
@@ -264,11 +267,11 @@ and P0.9b showed that
 global-error hard-target selection is worse than its token/update-matched
 random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
 selection is not a FedLS-SQL component and its dependent implementation is
-closed. A materially different KD/Federated mechanism may be proposed through
-P1.7 when it targets a documented EX/federated/novelty gap and predeclares a
-matched control, fixed budget, compute cost, promotion criterion, and stop
-rule. It changes this architecture only after positive full-scale matched
-confirmation.
+closed. The current method-design gate is P1.7a: retain uniform verified
+teacher-target CE and add a pairwise preference/contrastive term that ranks the
+teacher SQL above a failed pre-server global-SLM SQL. It excludes client logits
+and client-specific rejected outputs, and changes this architecture only after
+positive matched 512-row and full-scale confirmation.
 
 The later P0.10 client-ensemble distillation probe failed its full-pool gate and
 has been removed from the active architecture. Its compact negative result and
@@ -277,8 +280,8 @@ recovery tag are recorded only in the closed-branch archive.
 Ungrounded LoRA aggregation changes are not an active direction. Existing
 FLoRA-NA and exact rank-preserving/rank-expanded diagnostics showed no material
 accuracy headroom at the current `K=5, T=1` configuration. FedProx remains a
-possible baseline, while a new federated mechanism remains eligible if measured
-drift or heterogeneity supplies a concrete hypothesis.
+possible baseline. A new federated mechanism is deferred until FedProx and
+stronger-skew evidence supplies a concrete residual hypothesis.
 
 The second-family screen tests the full endpoint inside another compatible
 teacher/student family. It does not make reverse KL cross-tokenizer: exact

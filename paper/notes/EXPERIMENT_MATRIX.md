@@ -19,13 +19,13 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seeds 0/1; seed-1 FedLS T1→T3 `+3.29` EX (`p=0.00266`), pure FL plateaus T2→T3 |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
-| P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 reactivated as next GPU task on 2026-08-27 |
+| P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | protocol ready at `487b3b2`; P1.1b-v2 is pending behind the P1.7a screen |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | complete in `RELATED_WORK_NOVELTY_MATRIX.md`; title narrowed; FedCoLLM and Struct-SQL are the closest priors |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
 | P1 | optimizer baseline | matched FedProx-LoRA | next experiment design after P1.1b; implementation and coefficient rule must be frozen before a command |
-| P1/P2 | method innovation | new KD/Federated mechanism against the fixed canonical control | open P1.7 lane; requires documented failure/novelty hypothesis, materially new mechanism, matched budget/control, staged promotion, and full-scale confirmation |
+| P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | P1.7a active for matched design; P0.10a feasibility is complete, 512-row screen precedes any full-pool confirmation |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
 | P1 | stronger-skew sensitivity | exactly one audited split with fixed source rows and `K=5`; FL vs FedLS T1 screen before any T3 extension | selected advisor-aligned RQ3 path; design/audit pending, not a broad skew suite |
@@ -72,12 +72,13 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 6. P1.4a and the four seed-1 trajectory evaluations are complete; their
    communication and convergence artifacts are registered.
 7. P1.4b is complete. Draft the method and architecture figure from
-   `MANUSCRIPT_SKELETON.md` while running P1.1b-v2 as the next GPU task.
+   `MANUSCRIPT_SKELETON.md` while freezing the P1.7a matched design.
 8. Then design/run one matched FedProx-LoRA baseline, audit and screen one
    stronger-skew split at T1, and close seed-2 T3. Decide federated-7B
    feasibility only if retaining the corresponding empirical claim. Keep
    teacher ceilings and all model/rank/client sweeps optional.
-9. Treat that order as the default rather than a ban on method research. A
-   P1.7 KD/Federated proposal may move earlier if it targets a documented gap,
-   is materially different from P0.9/P0.10, and has a cheaper falsifiable gate
-   plus a credible paper contribution.
+9. Run P1.7a before the remaining optional GPU work: reuse P0.10a global
+   preference pairs, exclude client logits/rejected outputs, and compare a
+   fixed preference/contrastive loss with its matched positive-only CE control.
+   KID, structured plans, and a new federated mechanism are not active
+   alternatives. Return to P1.1b immediately after the P1.7a decision gate.
