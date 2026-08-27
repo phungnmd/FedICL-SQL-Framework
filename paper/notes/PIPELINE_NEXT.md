@@ -45,6 +45,10 @@ The execution-guided selector and client-ensemble distillation branches are clos
 - P0.10 failed its frozen full-pool EX and execution-validity gate after a
   positive small screen. Do not tune or continue it. Exact commands and provenance are archived at
   `paper/archive/closed_method_branches/PIPELINE_THROUGH_P010E_2026-08-25.md`.
+- P1.7a failed its fixed 512-row EX gate: preference KD scored 54.9 EX versus
+  56.9 for matched positive-only CE (`-2.0` points at displayed precision).
+  Its command and implementation are closed without tuning; compact evidence
+  is archived at `paper/archive/closed_method_branches/P017A_PREFERENCE_KD_2026-08-28.md`.
 
 ## Active order
 
@@ -57,8 +61,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
 | P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | complete: result commit `dbd703b`, registered full seed-1 trajectory |
 | P2.1 | Method prose and architecture/privacy-boundary figure | active CPU/writing task; no experiment command |
-| P1.7a | Execution-verified preference/contrastive KD | **implemented at code commits `bd150c5` + `d2a4d9b`; 512-row screen below is the next GPU run** |
-| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | ready and still required for RQ4, but pending behind the P1.7a screen |
+| P1.7a | Execution-verified preference/contrastive KD | closed negative: 54.9 vs 56.9 EX; implementation archived at nested `7de7840` |
+| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | **next GPU task; ready and required for RQ4** |
 | P1.5 | Matched FedProx-LoRA reviewer baseline | next experiment design; no command until implementation and coefficient gates are approved |
 | P1.3 | One audited stronger-skew sensitivity | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3 |
 | P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
@@ -73,57 +77,24 @@ The first P1.1b collection used a superseded PID-presence rule and produced
 zero eligible rows under Windows/WDDM. Retain it as observational provenance;
 do not merge it with the revised independent-repetition protocol.
 
-P1.1b-v2 remains ready to close the resource component of the advisor's
-scientific question, but the user-prioritized P1.7a screen now precedes it. Its
-existing fresh-root command remains valid and must not be launched concurrently
-with P1.7a training. P0.8b remains intentionally delayed. Archived seed
+P1.1b-v2 is now the next GPU task to close the resource component of the
+advisor's scientific question. Its existing fresh-root command remains valid.
+P0.8b remains intentionally delayed. Archived seed
 commands must be audited against the current checkpoint/resume contract before
 being copied back here; do not run an old block blindly.
 
 P1.4b is closed. Continue CPU writing from `MANUSCRIPT_SKELETON.md` while
-running the frozen P1.7a screen. After its decision, return to P1.1b, then design FedProx-LoRA,
+running P1.1b, then design FedProx-LoRA,
 audit one stronger-skew T1 screen, and close seed-2 T3. Decide federated-7B
 feasibility only if the manuscript retains an empirical large-model-FL
 comparison.
 
-P1.7a is the only active method-innovation candidate. It keeps uniform verified
-teacher-target CE as the anchor and adds a pairwise loss that ranks a verified
-teacher SQL above a failed SQL produced by the pre-server global SLM. P0.10a
-already established pair feasibility; do not rerun that diagnostic. The first
-training gate must use global-SLM rejected outputs only, not client logits or
-client-specific rejected outputs, so it does not reopen the failed P0.10 FedDF
-mechanism. The frozen screen uses all 347 failed `global_fl` rows in the fixed
-512-row public subset (225 execution errors and 122 executable-wrong outputs),
-reference-free logistic ranking over length-normalized chosen/rejected sequence
-log-probabilities, `lambda_preference=1.0`, and uniform chosen CE on all 512
-rows. It preserves the positive-only control's 512 microsteps and 32 optimizer
-updates; the 347 rejected-sequence forwards are additional compute and are
-reported separately. The arm and its compact derived pair package are frozen
-at code commits `bd150c5` and `d2a4d9b`.
-
-## P1.7a — active 512-row execution-preference screen
-
-**Purpose:** test whether explicit negative SQL information improves the
-already-positive hard-target transfer signal. This is not FedDF: the server
-loads only the 1.5B student, ranks each verified teacher SQL over the failed
-pre-server global-FL SQL for the same public input, and never consumes client
-logits or client-specific outputs.
-
-**Matched control:** reuse the completed immutable P0.10d `llm_only512` arm.
-Both arms start from the exact same round-1 factor-wise FedAvg adapter, traverse
-the same 512 teacher-target rows in the same seed-0 order, use the same CE,
-optimizer schedule, 512 microsteps, and 32 optimizer updates. P1.7a alone adds
-347 rejected-sequence forwards. The fixed coefficient is `1.0`; do not sweep it
-or replace the subset after observing Spider.
-
-**Promotion/stop rule:** promote once to an untuned full-3,873 screen only if
-P1.7a is at least `+1.0` Spider EX over `positive_ce512` and has no more
-execution errors. Otherwise archive the branch immediately. EM is diagnostic
-only and cannot override the EX gate.
-
-```powershell
-$env:CUDA_VISIBLE_DEVICES='1'; $P='processed_data/BIRD/p09a_qwen_public512_s0/train.csv'; $Q='processed_data/BIRD/p017a_qwen_global_preference512_s0/preference_pairs.csv'; $V='processed_data/BIRD/p017a_qwen_global_preference512_s0/provenance.json'; $H='artifacts/federated/florana_kd_noicl_k5_e1_t1_s0/round_1'; $C='artifacts/federated/p010d_qwen_llm_only512_noicl_k5_e1_t1_s0/round_1/m_g'; $O='artifacts/federated/p017a_qwen_globalpref512_noicl_k5_e1_t1_s0'; $E='artifacts/eval_resume/p017a_qwen_positivece_vs_globalpref512_spider_s0/eval_k0'; $G=(git rev-parse HEAD).Trim(); if ($G -ne 'd2a4d9b1c8113e4bbcce00c47b6bead0fe6d0492') { throw "P1.7a requires code/data commit d2a4d9b1c8113e4bbcce00c47b6bead0fe6d0492; current=$G" }; foreach ($X in @($P,$Q,$V,"$H/fedavg_adapter/adapter_config.json","$C/adapter_config.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P1.7a frozen input: $X" } }; $PV=Get-Content -LiteralPath $V -Raw | ConvertFrom-Json; $QH=(Get-FileHash -Algorithm SHA256 -LiteralPath $Q).Hash.ToLowerInvariant(); if ($PV.source_arm -ne 'global_fl' -or $PV.n_pairs -ne 347 -or $PV.rejected_state_counts.execution_error -ne 225 -or $PV.rejected_state_counts.executable_wrong -ne 122 -or $PV.output.sha256 -ne $QH) { throw "P1.7a pair provenance mismatch: source=$($PV.source_arm) n=$($PV.n_pairs) sha=$QH" }; uv run python experiments/federated/run.py round --arm fedpref --round 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1 --lambda-kd 0 --preference-pairs $Q --preference-source-arm global_fl --lambda-preference 1 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --client-out $H --out $O --seed 0 --stage poc; if ($LASTEXITCODE -ne 0) { throw 'P1.7a preference training failed; rerun this exact line to resume' }; foreach ($X in @("$O/round_1/m_g/adapter_config.json","$O/round_1/m_g_meta.json","$O/setup.json","$O/manifest.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Incomplete P1.7a output: $X" } }; $M=Get-Content -LiteralPath "$O/round_1/m_g_meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 512 -or $M.n_preference_examples -ne 347 -or $M.steps -ne 512) { throw "P1.7a terminal-count mismatch: examples=$($M.n_examples) pairs=$($M.n_preference_examples) steps=$($M.steps)" }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "positive_ce512=$C" "global_pref512=$O/round_1/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P1.7a Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P1.7a evaluation manifests: $E/manifests" }; Write-Host 'P1.7a screen complete: push compact results and stop for the fixed EX/execution-error gate; do not tune lambda or launch full 3,873 yet'
-```
+P1.7a is closed. Its fixed global-SLM preference loss reduced Spider EX by
+approximately 2.0 points versus positive-only CE, so no full-pool extension,
+coefficient sweep, pair filtering, or related command remains active. The
+canonical verified-target CE plus auxiliary RKL method is unchanged. A future
+method proposal must begin from a new evidence-backed hypothesis rather than
+retuning P1.7a.
 
 ## P0.8a-E — complete
 
@@ -194,7 +165,7 @@ continues missing repetitions; a fingerprint mismatch requires a new root.
 
 ## P1.1b — Qwen 1.5B versus 7B steady-state inference
 
-**Status:** command ready; pending behind the user-prioritized P1.7a screen.
+**Status:** active next GPU command; P1.7a is closed.
 
 **Purpose:** measure the deployment-side cost difference on the same 32 Spider
 rows. The final 1.5B FedLS adapter runs in its canonical BF16 path; the 7B

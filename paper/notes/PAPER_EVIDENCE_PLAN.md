@@ -107,8 +107,8 @@ separate feasibility/claim gate rather than an implicit requirement.
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
-| Method next | 4 | P1.7a execution-verified preference/contrastive KD | design/code/data frozen; run its active 512-row screen before other optional GPU work |
-| GPU pending | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path and safe command are ready; run after the P1.7a screen |
+| Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.9 vs 56.9 EX; archived without tuning at nested `7de7840` |
+| GPU next | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path and safe command are ready |
 | Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
 | Design | 7 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
 | GPU deferred | 8 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
@@ -198,7 +198,7 @@ rather than being blocked behind every existing queue item.
 
 ### P1.1b — collect resource evidence
 
-**Status:** command ready but pending behind the user-prioritized P1.7a screen.
+**Status:** active next GPU command; the negative P1.7a gate is closed.
 The fresh-root v2 command in `PIPELINE_NEXT.md` must not be mixed with the
 superseded PID-gated collection.
 
@@ -360,10 +360,10 @@ These require a gate and are not yet executable commands:
   targeted sensitivity chosen after the manuscript audit, never a Cartesian
   sweep.
 
-## 6.1 Active method-innovation lane: P1.7a
+## 6.1 Closed method-innovation lane: P1.7a
 
-The canonical method remains the protected comparison point, but one focused
-extension is active for its frozen screen: execution-verified preference/contrastive KD.
+The canonical method remains the protected comparison point. The focused
+execution-verified preference/contrastive-KD extension has completed and is closed.
 For the same public input, the verified teacher SQL is `chosen` and a failed
 pre-server global-SLM SQL is `rejected`. Uniform verified teacher-target CE
 remains active on the public pool; the proposed pairwise term must add explicit
@@ -378,14 +378,12 @@ initialization, public row schedule, primary targets, updates, and seed. Promote
 only for at least `+1.0` Spider EX with no execution-error increase, then require
 an untuned full-3,873-row confirmation before changing the method.
 
-The design is now frozen and implemented (`bd150c5`, pair package `d2a4d9b`).
-Eligibility is all 347 failed `global_fl` outputs: 225 execution-error and 122
-executable-wrong rejects. The fixed reference-free logistic loss uses
-length-normalized target-sequence scores with coefficient `1.0`. The completed
-P0.10d `llm_only512` checkpoint is the positive-only control. Both arms retain
-512 chosen-CE microsteps and 32 optimizer updates; only P1.7a adds 347 rejected
-forwards. The active command and exact resume contract live only in
-`PIPELINE_NEXT.md`.
+The matched screen scored 54.9 EX/26.9 EM versus 56.9 EX/31.9 EM for
+positive-only CE. The approximately `-2.0` EX difference fails the primary
+gate regardless of execution-error counts. Per the preregistered stop rule,
+there is no full-pool extension, coefficient sweep, or pair-subset revision.
+The active implementation/data were removed at nested `7de7840`; compact
+evidence and recovery tag are retained in the closed-branch archive.
 
 Other former candidates are inactive:
 
@@ -401,18 +399,17 @@ Other former candidates are inactive:
 - Do not retune or relabel the exact failed P0.9/P0.10 implementations. A new
   mechanism that uses a materially different hypothesis remains allowed.
 - Do not optimize EM at the expense of EX.
-- Do not activate another KD/Federated branch alongside P1.7a unless new
-  evidence invalidates this prioritization.
+- Do not reopen P1.7a through coefficient or pair-subset tuning. Any later
+  KD/Federated proposal needs a new documented failure hypothesis and gate.
 - Do not fill resource tables with failed, resumed, or reused-stage latency.
 - Do not claim formal privacy, arbitrary cross-tokenizer KL, general non-IID
   robustness, or federated-large-model savings without corresponding evidence.
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, and P0.8a-E are complete. Freeze
-the P1.7a matched design while continuing method prose and the architecture
-figure, then run its 512-row screen as the next method experiment. Return to
-P1.1b-v2 afterward, followed by the matched FedProx-LoRA baseline, one
+Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, and the negative P1.7a
+gate are complete. Continue method prose and the architecture figure while
+running P1.1b-v2 next, followed by the matched FedProx-LoRA baseline, one
 stronger-skew screen, and seed-2 T3. Decide the federated-7B claim only after the
 resource result. Do not add a model family, OOD seed sweep, or hyperparameter
 Cartesian sweep by default.

@@ -95,9 +95,9 @@ decisions. It deliberately does not own result tables:
   FedDF screen does not survive P0.10e: at 3,873 rows it loses 1.17 EX and adds
   30 execution errors versus hard-target CE, and trails RKL by 3.20 EX. P0.10
   is closed and archived without tuning; the current method is the protected
-  canonical fallback. P1.7a now prioritizes execution-verified
-  preference/contrastive KD using global-SLM rejected SQL; KID, structured
-  plans, and an evidence-free new federated mechanism are inactive.
+  canonical fallback. P1.7a preference KD also failed its matched screen
+  (54.9 vs 56.9 EX) and is archived without tuning. KID, structured plans,
+  and an evidence-free new federated mechanism are inactive.
 - ICL is a closed negative ablation; FLoRA-NA is a closed aggregation branch.
 - Internal names such as `fedicl_sql`, `fedkd`, and `noicl` remain immutable
   provenance identifiers.
@@ -254,9 +254,8 @@ currently justify.
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
 1. Method prose and architecture/privacy-boundary figure from the completed
-   P1.4b manuscript skeleton, in parallel with freezing the P1.7a matched
-   preference/contrastive-KD contract.
-2. P1.7a 512-row screen, then the ready P1.1b-v2 resource benchmark.
+   P1.4b manuscript skeleton, in parallel with P1.1b-v2.
+2. P1.1b-v2 controlled student/teacher resource benchmark.
 3. One matched FedProx-LoRA reviewer baseline.
 4. One audited stronger-skew T1 screen, then deferred seed-2 T2/T3.
 5. Federated-7B feasibility only if retaining that empirical claim, followed
@@ -363,7 +362,7 @@ internal artifact identities.
 | 2026-08-27 | Reconciled the adaptive plan with the advisor's original scientific target. The project still asks whether large-to-small collaboration addresses lightweight federated NL-to-SQL accuracy while retaining data locality, communication efficiency, and resource advantages; the operational wording separates those testable claims and avoids formal-privacy or unmeasured federated-7B implications. Reactivated P1.1b-v2 as the next GPU task. After method/figure drafting, prioritize matched FedProx-LoRA, exactly one audited stronger-skew T1 screen, and seed-2 T3. A federated-7B T1 feasibility reference is conditional on retaining a direct large-model-FL claim. |
 | 2026-08-27 | Relaxed the overly rigid method-freeze wording. The validated FedLS-SQL method remains the canonical fallback and matched baseline, while P1.7 is an open innovation lane for a substantively new KD or federated mechanism. A proposal may be reprioritized when it targets a documented EX/federated/novelty gap, differs materially from the failed P0.9/P0.10 implementations, and predeclares closest prior work, matched control, fixed budget, compute cost, staged promotion, and stop rule. Positive full-scale confirmation is required before replacing the canonical method; negative branches are archived without tuning. |
 | 2026-08-27 | Narrowed the innovation lane to P1.7a execution-verified preference/contrastive KD. P0.10a already supplies the feasibility evidence (347 global-SLM failures on 512 public rows; 122 clean executable-but-wrong rows), so no pair-audit rerun is needed. The first gate retains uniform verified teacher CE and adds a length-normalized pairwise term using only pre-server global-SLM rejected SQL; client logits and client-specific rejects are excluded to avoid reopening FedDF's negative-transfer path. True KID is inactive after its matched `-1.45` EX result and roughly `4.4x` time/`+35%` peak-VRAM cost; structured plans move to future work, and new federated mechanisms wait for FedProx/stronger-skew evidence. |
-| 2026-08-27 | Implemented P1.7a as experimental arm `fedpref` (`bd150c5`, 328 tests passed) and froze the compact input package (`d2a4d9b`): 347 `global_fl` pairs from the fixed public-512 subset, comprising 225 execution-error and 122 executable-wrong rejects. The loss is uniform chosen CE on all 512 rows plus coefficient-1 reference-free logistic ranking on length-normalized chosen/rejected SQL scores. It uses no teacher/client logits during training, fingerprints pair CSV and provenance, preserves old arm setup/checkpoint identities, and reuses P0.10d `llm_only512` as the matched control. The active resume-safe PowerShell screen is in `PIPELINE_NEXT.md`; full 3,873 remains blocked by the fixed `>=+1.0` Spider EX/no-extra-execution-error gate. |
+| 2026-08-28 | Closed P1.7a at its preregistered 512-row gate. `global_pref512` reached 54.9 EX/26.9 EM versus 56.9/31.9 for matched `positive_ce512`, an approximately `-2.0` EX-point result at displayed precision; therefore execution-error counts cannot rescue the primary gate. No coefficient, pair-subset, or full-3,873 continuation is allowed. Removed `fedpref`, its pair builder/tests, and the 347-pair package from the active code/data path at nested `7de7840` (321 tests passed). Compact evidence is retained under the nested experiment archive; exact recovery remains at tag `archive/p017-preference-kd-implementation`. P1.1b-v2 becomes the next GPU task and the canonical FedLS-SQL method remains unchanged. |
 
 ## 8. Archived branches
 

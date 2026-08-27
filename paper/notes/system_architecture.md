@@ -241,18 +241,15 @@ Established evidence:
 
 Open evidence gaps:
 
-1. run the frozen P1.7a execution-verified preference/contrastive-KD screen against
-   its matched positive-only CE control; retain the canonical method after a
-   negative gate;
-2. run the ready P1.1b-v2 resource benchmark after P1.7a, or narrow the
+1. run the ready P1.1b-v2 resource benchmark, or narrow the
    corresponding RQ4 claim;
-3. design and run one matched FedProx-LoRA reviewer baseline, or document why
+2. design and run one matched FedProx-LoRA reviewer baseline, or document why
    the paper is scoped to FedAvg-based federated optimization;
-4. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-5. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-6. decide whether an empirical large-model-FL sentence justifies at most one
+5. decide whether an empirical large-model-FL sentence justifies at most one
    matched federated-7B T1 feasibility reference; otherwise keep it absent.
 
 Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
@@ -267,29 +264,13 @@ and P0.9b showed that
 global-error hard-target selection is worse than its token/update-matched
 random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
 selection is not a FedLS-SQL component and its dependent implementation is
-closed. The current method-design gate is P1.7a: retain uniform verified
-teacher-target CE and add a pairwise preference/contrastive term that ranks the
-teacher SQL above a failed pre-server global-SLM SQL. It excludes client logits
-and client-specific rejected outputs, and changes this architecture only after
-positive matched 512-row and full-scale confirmation.
-
-### 8.1 P1.7a implementation boundary
-
-P1.7a is implemented as the experimental `fedpref` server arm at code commit
-`bd150c5`; its compact 347-row `global_fl` pair package is frozen at `d2a4d9b`.
-For every one of the 512 public rows, server training retains the same verified
-teacher-target token CE. On the 347 rows where the pre-server global SLM failed
-public scoring, it additionally minimizes
-`softplus(-(s(y_T)-s(y_global)))`, where each `s` is the mean causal target-token
-log-probability under an identical rendered prompt. The mean, rather than a
-sum, prevents target length alone from deciding the ranking.
-
-This candidate changes only the public server objective. It does not load the
-teacher during training, transmit new client information, consume client
-logits, use client-specific negatives, add ICL, or change aggregation and
-deployment. Pair CSV/provenance hashes, source arm, and coefficient are part of
-the immutable setup/server fingerprints. Existing CE/RKL fingerprints and
-setup IDs remain unchanged when the preference arm is unused.
+closed. P1.7a subsequently tested a distinct pairwise preference term that
+ranked the teacher SQL above a failed pre-server global-SLM SQL while retaining
+uniform verified-target CE. It scored 54.9 EX versus 56.9 for matched
+positive-only CE and therefore failed its fixed primary gate. The implementation
+was archived without tuning at nested `7de7840`; it is not part of this
+architecture. The canonical verified-target CE plus auxiliary RKL method remains
+unchanged.
 
 The later P0.10 client-ensemble distillation probe failed its full-pool gate and
 has been removed from the active architecture. Its compact negative result and

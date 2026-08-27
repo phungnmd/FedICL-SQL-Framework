@@ -55,15 +55,14 @@ not be ranked by reported headline gain alone:
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
-| What is the best offline extension under the innovation gate? | Execution-verified contrastive/preference KD | Converts teacher-correct versus global-student-failed SQL into reusable pairs; P0.10a feasibility is complete and later training loads only the student | **P1.7a implemented at `bd150c5`/`d2a4d9b`; requires matched 512-row gate** |
+| What happened to the offline preference extension? | Execution-verified contrastive/preference KD | Matched P1.7a screen scores 54.9 EX versus 56.9 for positive-only CE | **Closed negative; no tuning/full extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, KID remains an important Text-to-SQL prior but is not an active project
 candidate, while P0.10e shows that LLM-anchored FedDF does not scale from its
-positive 512-row screen. P1.7a now prioritizes the one untrained signal already
-supported by project diagnostics: execution-verified global-SLM preference
-pairs. Its loss, matched control, fixed budget, staged promotion, and stop rule
-must be frozen before training.
+positive 512-row screen. P1.7a also failed: execution-verified global-SLM
+preference pairs reduced Spider EX by approximately 2.0 displayed points versus
+matched positive-only CE. The implementation is archived without tuning.
 
 ## 2. Notation and KD axes
 
@@ -695,7 +694,7 @@ large divergence grid.  Implement an AKL-style forward/reverse schedule only if
 token-level analysis shows complementary head/tail errors.  A loss-only change
 is an ablation, not the paper's standalone contribution.
 
-### Tier B1 — offline execution-verified preference distillation
+### Tier B1 — offline execution-verified preference distillation (tested; closed)
 
 Generate one student SQL per public row from `theta_FL,t`, pair it with verified
 `y_T`, and retain pairs with a meaningful quality gap:
@@ -711,10 +710,9 @@ small mixture with, teacher-target CE.
 **Hardware:** pair construction and student training fit the A5000 because the
 teacher target already exists and the repeated stage loads only the student.
 
-**Scientific risk:** it introduces a second optimization family and may make the
-paper harder to attribute. P1.7a therefore permits only one fixed 512-row
-matched screen before any full-pool confirmation; it does not open a loss or
-coefficient sweep.
+**Observed result:** the fixed P1.7a screen reached 54.9 EX versus 56.9 for
+positive-only CE. It therefore failed before full-pool confirmation. Per the
+frozen protocol, no loss/coefficient or pair-subset sweep is permitted.
 
 ### Tier B2 — compact structured-plan distillation
 
@@ -841,6 +839,11 @@ rejected outputs. Compare against the matched positive-only CE control, promote
 at `+1.0` Spider EX with no execution-error increase, and require one untuned
 full-pool confirmation. KID and structured-plan training are inactive.
 
+**Decision:** closed negative. `global_pref512` scored 54.9 EX/26.9 EM versus
+56.9/31.9 for `positive_ce512`, failing the primary `+1.0` EX gate. The active
+code/data were removed at nested `7de7840` and remain recoverable only through
+the closed-branch archive and tag.
+
 ## 9. Recommended paper positioning
 
 The current contribution should be presented as a framework contribution:
@@ -890,12 +893,11 @@ For the current paper and one RTX A5000 24 GB:
 4. keep client-ensemble distillation closed in the internal archive;
 5. keep cached skew-RKL and KID inactive because their local evidence/cost does
    not justify another gate;
-6. activate only **execution-verified preference/contrastive KD** as P1.7a,
-   using global-SLM rejected outputs rather than client signals;
-7. require full-scale confirmation before promoting the small-budget screen;
-8. retain structured plans as future work and defer new federated mechanisms
+6. keep P1.7a execution-verified preference KD closed after its negative matched
+   screen; do not retune its coefficient or pair subset;
+7. retain structured plans as future work and defer new federated mechanisms
    until FedProx/stronger-skew evidence identifies a residual problem;
-9. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and
+8. defer full GKD, MiniLLM, SKD, cross-tokenizer DSKD, mutual FedMKT, and
    long-CoT training under the present GPU-hour and scope budget.
 
 The key design principle is:

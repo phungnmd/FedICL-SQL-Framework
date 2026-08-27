@@ -73,35 +73,29 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [ ] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
 
-### 4A. Test execution-verified preference/contrastive KD — active P1.7a
+### 4A. Test execution-verified preference/contrastive KD — closed negative
 
 - [x] Reuse the completed P0.10a feasibility audit; do not rebuild its public
   pair inventory. It found 347 global-SLM failures on 512 public rows, including
   122 clean executable-but-wrong rows.
 - [x] Freeze a reference-free pairwise objective that retains uniform verified
   teacher-target CE and ranks `chosen=y_T` above `rejected=y_global` using
-  length-normalized sequence scores. Implemented as the `fedpref` arm at
-  `bd150c5`.
+  length-normalized sequence scores.
 - [x] Use only rejected outputs from the pre-server global SLM in the first
   gate. Do not use client logits or client-specific rejected sequences, which
-  would reopen the failed P0.10 FedDF/client-over-alignment path. The frozen
-  derived package at `d2a4d9b` contains 347 `global_fl` pairs only.
+  would reopen the failed P0.10 FedDF/client-over-alignment path.
 - [x] Define one matched positive-only CE control with identical initialization,
   public row schedule, optimizer steps, seed, and primary teacher targets;
-  disclose any extra pair-scoring compute separately. Reuse immutable P0.10d
-  `llm_only512`; P1.7a adds 347 rejected forwards but keeps 512 microsteps and
-  32 optimizer updates.
+  disclose any extra pair-scoring compute separately.
 - [x] Freeze pair eligibility, the preference coefficient, fixed 512-row screen
   budget, EX/execution-error promotion metric, compute estimate, and stop rule
-  before implementation or a PowerShell command: all 347 failed global outputs,
-  `lambda_preference=1.0`, promote at `>=+1.0` Spider EX with no execution-error
-  increase, and no coefficient/subset tuning.
-- [ ] Run the active P1.7a single-line PowerShell screen in `PIPELINE_NEXT.md`
-  and apply its fixed gate.
-- [ ] Promote to the full 3,873-row teacher pool only if the matched screen
-  improves Spider EX by at least 1.0 point without increasing execution errors.
-- [ ] Replace the canonical method only after positive full-scale confirmation;
-  otherwise archive P1.7a without coefficient or subset tuning.
+  before implementation or a PowerShell command.
+- [x] Run the matched screen: `global_pref512` reached 54.9 EX versus 56.9 for
+  `positive_ce512`, failing the `>= +1.0` EX gate by a wide margin.
+- [x] Apply the stop rule: do not run full 3,873, retune the coefficient, or
+  filter the pair subset; archive the implementation and compact negative result.
+- [x] Retain the canonical method unchanged. Recovery tag:
+  `archive/p017-preference-kd-implementation`; cleanup commit: `7de7840`.
 
 KID is no longer an active candidate: the matched legacy experiment was 1.45
 EX below RKD (`p=0.072`), while measured cost was about 4.4 times slower and
@@ -110,7 +104,7 @@ changes the output/inference contract and the current complex-query audit does
 not justify that scope. A new federated mechanism is deferred until FedProx and
 the stronger-skew audit demonstrate a specific unresolved drift problem.
 
-### 5. Close RQ4 deployment-resource evidence — pending after P1.7a
+### 5. Close RQ4 deployment-resource evidence — active next
 
 - [x] Select the measured deployment path for the advisor-aligned question;
   retain narrowing as the fallback if the controlled collection cannot close.
@@ -197,10 +191,10 @@ federated-7B training evidence.
 - teacher/student size, LoRA-rank, client-count, or public-pool sensitivity;
 - additional OOD seed replication.
 
-Do not retune the exact closed ICL, FLoRA-NA, P0.9 selection, or P0.10 FedDF
-implementations, and do not make an unmeasured federated-7B claim. P1.7a is the
-only active innovation task; other new proposals require evidence that changes
-the current prioritization.
+Do not retune the exact closed ICL, FLoRA-NA, P0.9 selection, P0.10 FedDF, or
+P1.7a preference-KD implementations, and do not make an unmeasured federated-7B
+claim. No method-innovation branch is active; a new proposal requires a new
+documented failure hypothesis and matched gate.
 
 ## Submission-readiness gate
 
