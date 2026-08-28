@@ -1,6 +1,6 @@
 # FedLS-SQL — System Architecture
 
-> Canonical design record, updated 2026-08-27. It supersedes the FedICL-SQL and
+> Canonical design record, updated 2026-08-28. It supersedes the FedICL-SQL and
 > Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
 > lives in `LAB_LOG.md`; canonical paper tables live in
 > `paper/results/MAIN_RESULTS.md`; the active manuscript structure lives in
@@ -17,7 +17,8 @@ communication-efficiency, and resource advantages.
 This is the advisor-level target. Operationally, “overcome” means a validated
 EX improvement over matched pure FL and competitiveness with centralized SLM
 training; “privacy” means client-row locality, not formal DP; communication is
-measured from adapter tensors; resource advantage requires P1.1b-v2; and a
+measured from adapter tensors; resource advantage is scoped to the completed
+P1.1b-v2 deployment-inference benchmark; and a
 direct comparison with large-model FL requires the separate federated-7B gate.
 
 The project answers four questions:
@@ -238,19 +239,23 @@ Established evidence:
   (`p=0.0001002`) and reduces execution errors from 193 to 101. Improvements
   concentrate in common aggregation/order/limit structures, while set
   operations are the clearest negative stratum (`-18.75` EX).
+- the P1.1b deployment benchmark completes 5/5 eligible repetitions for both
+  models on identical 32-row Spider inputs. The BF16 FedLS-SQL student has
+  median latency 0.7873 s/query and 3,474.6 MB peak allocated VRAM, versus
+  1.6460 s/query and 6,776.8 MB for the 4-bit teacher: `2.09x` faster and
+  `48.73%` less allocated VRAM. This does not measure training or federated 7B.
 
 Open evidence gaps:
 
-1. run the ready P1.1b-v2 resource benchmark, or narrow the
-   corresponding RQ4 claim;
-2. design and run one matched FedProx-LoRA reviewer baseline, or document why
+1. design and run one matched FedProx-LoRA reviewer baseline, or document why
    the paper is scoped to FedAvg-based federated optimization;
-3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+2. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+3. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-5. decide whether an empirical large-model-FL sentence justifies at most one
-   matched federated-7B T1 feasibility reference; otherwise keep it absent.
+4. keep federated 7B absent by default; only an explicit empirical
+   large-model-FL sentence can justify reopening one matched T1 feasibility
+   reference.
 
 Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
 the closest architecture and Struct-SQL the closest execution-filtered SQL KD
@@ -266,9 +271,10 @@ random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
 selection is not a FedLS-SQL component and its dependent implementation is
 closed. P1.7a subsequently tested a distinct pairwise preference term that
 ranked the teacher SQL above a failed pre-server global-SLM SQL while retaining
-uniform verified-target CE. It scored 54.9 EX versus 56.9 for matched
-positive-only CE and therefore failed its fixed primary gate. The implementation
-was archived without tuning at nested `7de7840`; it is not part of this
+uniform verified-target CE. It scored 54.93 EX versus 56.87 for matched
+positive-only CE, added 22 execution errors, and therefore failed both fixed
+gates. The implementation was removed at nested `7de7840` and exact artifacts
+were archived at `74f0a43`; it is not part of this
 architecture. The canonical verified-target CE plus auxiliary RKL method remains
 unchanged.
 

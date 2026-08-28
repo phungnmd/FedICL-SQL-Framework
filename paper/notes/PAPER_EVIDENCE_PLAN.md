@@ -93,12 +93,12 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ### Current execution state — advisor-aligned completion path
 
-P0.8a and P0.8a-E are complete and positive, so accuracy no longer blocks the
-remaining parts of the advisor question. P1.1b-v2 is reactivated as the next
-GPU task. In parallel, draft the method/architecture figure, then design one
-matched FedProx-LoRA baseline and one audited stronger-skew sensitivity. Seed 2
-closes final reliability after these higher-value gaps. Federated 7B remains a
-separate feasibility/claim gate rather than an implicit requirement.
+P0.8a, P0.8a-E, and P1.1b-v2 are complete. Accuracy and scoped deployment
+resources no longer block the remaining parts of the advisor question. Draft
+the method/architecture figure, then design one matched FedProx-LoRA baseline
+and one audited stronger-skew sensitivity. Seed 2 closes final reliability
+after these higher-value gaps. Federated 7B is excluded by default and becomes
+relevant only if a direct empirical large-model-FL claim is reintroduced.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
@@ -107,12 +107,12 @@ separate feasibility/claim gate rather than an implicit requirement.
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
-| Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.9 vs 56.9 EX; archived without tuning at nested `7de7840` |
-| GPU next | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | measured path and safe command are ready |
+| Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
+| GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
 | Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
 | Design | 7 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
 | GPU deferred | 8 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
-| Claim gate | 9 | P1.6 federated-7B feasibility | run only if the paper retains empirical comparison with large-model FL |
+| Claim gate | 9 | P1.6 federated-7B feasibility | default excluded; reopen only if the paper retains empirical comparison with large-model FL |
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -198,26 +198,32 @@ rather than being blocked behind every existing queue item.
 
 ### P1.1b — collect resource evidence
 
-**Status:** active next GPU command; the negative P1.7a gate is closed.
-The fresh-root v2 command in `PIPELINE_NEXT.md` must not be mixed with the
-superseded PID-gated collection.
+**Status:** complete. Canonical fingerprint
+`60665e60a63ae93c1871401d01a9094caa0e82454f79bf1be473085d794c13c9`;
+5/5 fresh repetitions are eligible for both models.
 
-The current P1.1b command collects the first evidence block:
+P1.1b closes the first evidence block:
 
 1. deployed Qwen 1.5B FedLS versus Qwen 7B teacher inference on identical
    rows.
 
-Two possible training-resource blocks remain a post-P0.8 decision, not an
-implicit promise:
+The BF16 FedLS-SQL student records 0.7873 s/query and 3,474.6 MB peak allocated
+VRAM; the 4-bit teacher records 1.6460 s/query and 6,776.8 MB. Thus the student
+is `2.09x` faster and uses `48.73%` less allocated VRAM. Values are medians
+over identical 32-row Spider inference runs; latency IQR is 0.0671 and 0.0100
+s/query respectively.
+
+Two possible training-resource blocks were considered but are not active:
 
 2. client 1.5B LoRA training process memory and throughput on a fixed
    microbenchmark;
 3. recurring server KD process memory/throughput, separated from one-time
    teacher target generation and cache construction.
 
-If blocks 2/3 are not run, narrow RQ4 and contribution 4 to deterministic
-adapter communication plus measured deployment inference. Do not retain prose
-claiming measured client/server training-resource savings without those runs.
+RQ4 and contribution 4 are therefore narrowed to deterministic adapter
+communication plus measured deployment inference. Do not retain prose claiming
+measured client/server training-resource savings without those runs. P1.1b is
+also not energy, concurrency, full-test, or federated-7B evidence.
 
 Do not compare 1.5B client training with 7B inference as though it were an
 empirical federated-7B baseline. The supported conclusion is that the teacher
@@ -378,12 +384,14 @@ initialization, public row schedule, primary targets, updates, and seed. Promote
 only for at least `+1.0` Spider EX with no execution-error increase, then require
 an untuned full-3,873-row confirmation before changing the method.
 
-The matched screen scored 54.9 EX/26.9 EM versus 56.9 EX/31.9 EM for
-positive-only CE. The approximately `-2.0` EX difference fails the primary
-gate regardless of execution-error counts. Per the preregistered stop rule,
+The matched screen scored 54.93 EX/26.89 EM with 252 execution errors versus
+56.87 EX/31.91 EM with 230 errors for positive-only CE. The `-1.93` EX
+difference, 45 paired wins versus 65 losses (exact McNemar `p=0.0696`), and 22
+additional execution errors fail both gates. Per the preregistered stop rule,
 there is no full-pool extension, coefficient sweep, or pair-subset revision.
-The active implementation/data were removed at nested `7de7840`; compact
-evidence and recovery tag are retained in the closed-branch archive.
+The active implementation/data were removed at nested `7de7840`; exact result
+artifacts were moved to the closed-branch archive at nested `74f0a43` and the
+recovery tag remains available.
 
 Other former candidates are inactive:
 
@@ -407,9 +415,9 @@ Other former candidates are inactive:
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, and the negative P1.7a
-gate are complete. Continue method prose and the architecture figure while
-running P1.1b-v2 next, followed by the matched FedProx-LoRA baseline, one
-stronger-skew screen, and seed-2 T3. Decide the federated-7B claim only after the
-resource result. Do not add a model family, OOD seed sweep, or hyperparameter
-Cartesian sweep by default.
+Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, P1.1b-v2, and the
+negative P1.7a gate are complete. Continue method prose and the architecture
+figure, followed by the matched FedProx-LoRA baseline, one stronger-skew
+screen, and seed-2 T3. Keep federated 7B excluded unless the manuscript later
+introduces a direct empirical large-model-FL claim. Do not add a model family,
+OOD seed sweep, or hyperparameter Cartesian sweep by default.

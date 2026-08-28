@@ -15,15 +15,15 @@ subset, and update budget were not eligible for post-result tuning.
 
 ## Result and decision
 
-| Arm | Spider EX | EM |
-|---|---:|---:|
-| Positive-only teacher-target CE (`positive_ce512`) | 56.9 | 31.9 |
-| CE + global-model preference loss (`global_pref512`) | 54.9 | 26.9 |
+| Arm | Correct / 1,034 | Spider EX | EM | Execution errors |
+|---|---:|---:|---:|---:|
+| Positive-only teacher-target CE (`positive_ce512`) | 588 | 56.87 | 31.91 | 230 |
+| CE + global-model preference loss (`global_pref512`) | 568 | 54.93 | 26.89 | 252 |
 
-The preference arm is approximately `-2.0` EX points at the displayed
-precision, so it fails the primary gate regardless of its execution-error
-count. No full-3,873 extension or hyperparameter/subset tuning is authorized.
-EM is secondary and does not affect this decision.
+The preference arm is `-1.93` EX points, with 45 paired wins versus 65 losses
+(exact McNemar `p=0.069565`) and 22 additional execution errors. It therefore
+fails both promotion gates. No full-3,873 extension or hyperparameter/subset
+tuning is authorized. EM is secondary and does not affect this decision.
 
 This result rejects the tested objective, not preference KD as a general
 research family. The project-level interpretation is narrower: explicit
@@ -33,13 +33,11 @@ teacher targets in this matched screen.
 ## Cleanup and recovery
 
 The active `fedpref` arm, pair builder, tests, and committed 347-pair package
-were removed from the main code/data path at nested commit `7de7840`. Compact
-evidence remains under
-`experiments/archive/p017_preference_kd_2026-08/` in the code repository.
+were removed from the main code/data path at nested commit `7de7840`. Exact
+evaluation and federated-result artifacts were moved under
+`experiments/archive/p017_preference_kd_2026-08/` at nested commit `74f0a43`.
 The exact implementation and pair package remain recoverable from Git tag
 `archive/p017-preference-kd-implementation`, pointing to commits `bd150c5` and
-`d2a4d9b`.
-
-The result values above come from the user-provided `eval_arms` terminal
-summary on 2026-08-28. No unobserved execution-error count or artifact path is
-invented in this archive.
+`d2a4d9b`. The archived training result records a resumed/shared-stage run, so
+its accuracy is valid but its wall time and resource peaks are not paper
+eligible.

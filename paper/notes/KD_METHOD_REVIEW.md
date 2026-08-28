@@ -55,7 +55,7 @@ not be ranked by reported headline gain alone:
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
 | What is the cheapest loss-only probe? | Skew-RKL, then adaptive KL if needed | Reuses cached logits, but the expected ceiling is limited by the weak current RKL increment | **Archived option, not active** |
-| What happened to the offline preference extension? | Execution-verified contrastive/preference KD | Matched P1.7a screen scores 54.9 EX versus 56.9 for positive-only CE | **Closed negative; no tuning/full extension** |
+| What happened to the offline preference extension? | Execution-verified contrastive/preference KD | Matched P1.7a screen scores 54.93 EX versus 56.87 for positive-only CE and adds 22 execution errors | **Closed negative; no tuning/full extension** |
 | What should be deferred? | Full MiniLLM, GKD, SWITCH/SKD, cross-tokenizer logit KD | Requires on-policy/interactive teacher inference, invalidates the fixed cache, or expands the paper substantially | **Defer** |
 
 Thus, KID remains an important Text-to-SQL prior but is not an active project
@@ -710,7 +710,7 @@ small mixture with, teacher-target CE.
 **Hardware:** pair construction and student training fit the A5000 because the
 teacher target already exists and the repeated stage loads only the student.
 
-**Observed result:** the fixed P1.7a screen reached 54.9 EX versus 56.9 for
+**Observed result:** the fixed P1.7a screen reached 54.93 EX versus 56.87 for
 positive-only CE. It therefore failed before full-pool confirmation. Per the
 frozen protocol, no loss/coefficient or pair-subset sweep is permitted.
 
@@ -839,8 +839,9 @@ rejected outputs. Compare against the matched positive-only CE control, promote
 at `+1.0` Spider EX with no execution-error increase, and require one untuned
 full-pool confirmation. KID and structured-plan training are inactive.
 
-**Decision:** closed negative. `global_pref512` scored 54.9 EX/26.9 EM versus
-56.9/31.9 for `positive_ce512`, failing the primary `+1.0` EX gate. The active
+**Decision:** closed negative. `global_pref512` scored 54.93 EX/26.89 EM versus
+56.87/31.91 for `positive_ce512` and added 22 execution errors, failing both
+gates. The active
 code/data were removed at nested `7de7840` and remain recoverable only through
 the closed-branch archive and tag.
 

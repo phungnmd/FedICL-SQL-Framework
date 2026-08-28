@@ -45,29 +45,29 @@ The execution-guided selector and client-ensemble distillation branches are clos
 - P0.10 failed its frozen full-pool EX and execution-validity gate after a
   positive small screen. Do not tune or continue it. Exact commands and provenance are archived at
   `paper/archive/closed_method_branches/PIPELINE_THROUGH_P010E_2026-08-25.md`.
-- P1.7a failed its fixed 512-row EX gate: preference KD scored 54.9 EX versus
-  56.9 for matched positive-only CE (`-2.0` points at displayed precision).
+- P1.7a failed its fixed 512-row EX gate: preference KD scored 54.93 EX versus
+  56.87 for matched positive-only CE (`-1.93` points).
   Its command and implementation are closed without tuning; compact evidence
   is archived at `paper/archive/closed_method_branches/P017A_PREFERENCE_KD_2026-08-28.md`.
 
 ## Active order
 
-| Order | Task | Status / decision |
-|---|---|---|
-| P1.1a | Add fixed warm-up, process metrics, and repeated GPU telemetry | complete: final protocol code `487b3b2`, full 320-test suite |
-| P1.2 | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76` |
-| P1.4a | Deterministic adapter/communication/table manifest | complete: producer `f59a040`, artifact commit `147f455`, registry ID `audit.paper.tables.qwen.s0` |
-| P1.4b | Related-work matrix and manuscript skeleton | complete: title narrowed; canonical outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
-| P0.8a | Final T3 pure-FL versus frozen FedLS-SQL at seed 1 | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`) |
-| P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations | complete: result commit `dbd703b`, registered full seed-1 trajectory |
-| P2.1 | Method prose and architecture/privacy-boundary figure | active CPU/writing task; no experiment command |
-| P1.7a | Execution-verified preference/contrastive KD | closed negative: 54.9 vs 56.9 EX; implementation archived at nested `7de7840` |
-| P1.1b | Qwen student 1.5B versus teacher 7B resource benchmark | **next GPU task; ready and required for RQ4** |
-| P1.5 | Matched FedProx-LoRA reviewer baseline | next experiment design; no command until implementation and coefficient gates are approved |
-| P1.3 | One audited stronger-skew sensitivity | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3 |
-| P0.8b | Final T3 pure-FL versus frozen FedLS-SQL at seed 2 | deferred; two positive T3 seeds are sufficient for the current direction decision |
-| P1.6 | Federated-7B feasibility/claim gate | conditional after P1.1b; no command and no empirical claim yet |
-| P0.7t | Gemma 9B zero-shot Spider ceiling | optional context only |
+| Order   | Task                                                                           | Status / decision                                                                                         |
+| ------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| P1.1a   | Add fixed warm-up, process metrics, and repeated GPU telemetry                 | complete: final protocol code `487b3b2`, full 320-test suite                                              |
+| P1.2    | Audit EX gains, execution-error transitions, and representative transfer cases | complete: artifact `4527a76`                                                                              |
+| P1.4a   | Deterministic adapter/communication/table manifest                             | complete: producer `f59a040`, artifact commit `147f455`, registry ID `audit.paper.tables.qwen.s0`         |
+| P1.4b   | Related-work matrix and manuscript skeleton                                    | complete: title narrowed; canonical outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
+| P0.8a   | Final T3 pure-FL versus frozen FedLS-SQL at seed 1                             | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`)                                                 |
+| P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations                      | complete: result commit `dbd703b`, registered full seed-1 trajectory                                      |
+| P2.1    | Method prose and architecture/privacy-boundary figure                          | active CPU/writing task; no experiment command                                                            |
+| P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
+| P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
+| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | next experiment design; no command until implementation and coefficient gates are approved                |
+| P1.3    | One audited stronger-skew sensitivity                                          | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3                            |
+| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | deferred; two positive T3 seeds are sufficient for the current direction decision                         |
+| P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
+| P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
 
 Ordinary `eval_arms` timing is not official resource evidence because it
 measures the first decode without a fixed warm-up. Use only the runner below
@@ -77,20 +77,20 @@ The first P1.1b collection used a superseded PID-presence rule and produced
 zero eligible rows under Windows/WDDM. Retain it as observational provenance;
 do not merge it with the revised independent-repetition protocol.
 
-P1.1b-v2 is now the next GPU task to close the resource component of the
-advisor's scientific question. Its existing fresh-root command remains valid.
-P0.8b remains intentionally delayed. Archived seed
+P1.1b-v2 is complete and closes the scoped deployment-inference component of
+the advisor's scientific question. It does not establish training-resource or
+federated-7B superiority. P0.8b remains intentionally delayed. Archived seed
 commands must be audited against the current checkpoint/resume contract before
 being copied back here; do not run an old block blindly.
 
-P1.4b is closed. Continue CPU writing from `MANUSCRIPT_SKELETON.md` while
-running P1.1b, then design FedProx-LoRA,
+P1.4b and P1.1b are closed. Continue CPU writing from
+`MANUSCRIPT_SKELETON.md`, then design FedProx-LoRA,
 audit one stronger-skew T1 screen, and close seed-2 T3. Decide federated-7B
 feasibility only if the manuscript retains an empirical large-model-FL
 comparison.
 
 P1.7a is closed. Its fixed global-SLM preference loss reduced Spider EX by
-approximately 2.0 points versus positive-only CE, so no full-pool extension,
+1.93 points versus positive-only CE, so no full-pool extension,
 coefficient sweep, pair filtering, or related command remains active. The
 canonical verified-target CE plus auxiliary RKL method is unchanged. A future
 method proposal must begin from a new evidence-backed hypothesis rather than
@@ -163,26 +163,24 @@ P1.1a is implemented by `experiments/resource_benchmark/run.py` and guarded by
 atomic resumable unit. Re-running the exact command skips a terminal result or
 continues missing repetitions; a fingerprint mismatch requires a new root.
 
-## P1.1b — Qwen 1.5B versus 7B steady-state inference
+## P1.1b — Qwen 1.5B versus 7B steady-state inference — complete
 
-**Status:** active next GPU command; P1.7a is closed.
+**Status:** complete; canonical comparison fingerprint
+`60665e60a63ae93c1871401d01a9094caa0e82454f79bf1be473085d794c13c9`.
 
 **Purpose:** measure the deployment-side cost difference on the same 32 Spider
 rows. The final 1.5B FedLS adapter runs in its canonical BF16 path; the 7B
 teacher runs in its canonical 4-bit reference path. This is deliberately
 conservative for the teacher and is not a federated-7B training comparison.
 
-Run both models sequentially on physical GPU 0 while no other intentional GPU
-job is running. If GPU 0 is unsuitable, do not
-edit only `CUDA_VISIBLE_DEVICES`; create a separately documented GPU-1 command
-with new output roots and `--gpu-index 1`.
-
-```powershell
-$env:CUDA_VISIBLE_DEVICES='0'; $S='experiments/resource_benchmark/results/p11b_v2_qwen15b_fedls_t3_spider32_s0_independent_gpu0'; $T='experiments/resource_benchmark/results/p11b_v2_qwen7b_teacher4bit_spider32_s0_independent_gpu0'; $O='experiments/resource_benchmark/results/p11b_v2_qwen15b_vs_7b_spider32_s0_independent_gpu0.json'; uv run python experiments/resource_benchmark/run.py --role deployed_student --model Qwen/Qwen2.5-1.5B-Instruct --adapter artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g --test-csv processed_data/SPIDER/centralized/test.csv --schema-style full --n-eval 32 --warmup-rows 2 --repetitions 5 --minimum-eligible 3 --batch-size 4 --max-new-tokens 256 --gpu-index 0 --seed 0 --out $S; if ($LASTEXITCODE -ne 0) { throw 'P1.1b-v2 student benchmark failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$S/result.json")) { throw "Missing student terminal result: $S/result.json" }; uv run python experiments/resource_benchmark/run.py --role teacher_reference --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --test-csv processed_data/SPIDER/centralized/test.csv --schema-style full --n-eval 32 --warmup-rows 2 --repetitions 5 --minimum-eligible 3 --batch-size 4 --max-new-tokens 256 --gpu-index 0 --seed 0 --out $T; if ($LASTEXITCODE -ne 0) { throw 'P1.1b-v2 teacher benchmark failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$T/result.json")) { throw "Missing teacher terminal result: $T/result.json" }; uv run python experiments/resource_benchmark/summarize.py --student "$S/result.json" --teacher "$T/result.json" --minimum-eligible 3 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P1.1b-v2 comparison summary failed' }; if (-not (Test-Path -LiteralPath $O)) { throw "Missing P1.1b-v2 comparison: $O" }; $V=Get-Content -LiteralPath $O -Raw | ConvertFrom-Json; if (-not $V.paper_latency_comparison_eligible) { throw 'P1.1b-v2 has fewer than three fresh successful repetitions for one or both models' }; Write-Host "P1.1b-v2 complete: teacher/student latency ratio=$($V.teacher_over_student_latency_ratio)"
-```
-
-Do not run the two roles in parallel, reuse the superseded PID-gated roots, or
-reuse opportunistic P0.x timing values.
+Both models completed 5/5 eligible fresh repetitions on identical 32-row
+Spider inputs. Median latency was 0.7873 s/query for the BF16 FedLS-SQL student
+and 1.6460 s/query for the 4-bit teacher (`2.09x`); peak allocated VRAM was
+3,474.6 versus 6,776.8 MB. Exact commands, protocol, output roots, dispersion,
+and claim limits are archived at
+`paper/archive/completed_runbooks/P1_1B_RESOURCE_BENCHMARK_2026-08-28.md`.
+Do not rerun unless the deployment claim, hardware, model precision, or
+protocol changes and a new immutable comparison is explicitly required.
 
 ## Deferred command provenance
 

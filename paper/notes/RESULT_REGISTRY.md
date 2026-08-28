@@ -99,6 +99,9 @@ uses the immutable `gemma2_9b_targets_smoke8_fullsource` target root and matchin
 | `audit.qwen.t3.fl-fedls.ex-transfer` | paired EX state transitions, hardness, SQL constructs, and execution errors on 1,034 Spider rows | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_ex_transfer.json` | canonical; analysis code `74f70c1`, artifact commit `4527a76` |
 | `audit.qwen.t3.fl-fedls.examples` | deterministic fixed-rule corrected/regressed/EX-valid SQL-form examples | `fedicl-sql/audits/qwen_t3_fl_vs_fedls_examples.csv` | canonical companion to the EX-transfer audit |
 | `audit.paper.tables.qwen.s0` | deterministic Qwen adapter parameters and T1-T3 communication audit | `fedicl-sql/audits/paper_table_manifest_qwen_t3_s0.json` | canonical artifact-only manifest; fingerprint `d665d476aa5bb0d2a151cecfdcd18c6687f1785ebb1c57721b257322a65eea28`; producer `f59a040`, result commit `147f455`; CSV companion beside JSON |
+| `benchmark.resource.qwen.student-t3.s0` | FedLS-SQL Qwen2.5-1.5B BF16 T3 deployment inference, 32 fixed Spider rows, 5 repetitions | `fedicl-sql/experiments/resource_benchmark/results/p11b_v2_qwen15b_fedls_t3_spider32_s0_independent_gpu0/result.json` | canonical P1.1b collection; 5/5 eligible; nested result commit `1c82be5` |
+| `benchmark.resource.qwen.teacher-4bit.s0` | Qwen2.5-Coder-7B 4-bit teacher inference on the identical protocol | `fedicl-sql/experiments/resource_benchmark/results/p11b_v2_qwen7b_teacher4bit_spider32_s0_independent_gpu0/result.json` | canonical P1.1b teacher reference; 5/5 eligible; nested result commit `1c82be5` |
+| `benchmark.resource.qwen.student-vs-teacher.s0` | eligible-only median/IQR comparison for the two P1.1b collections | `fedicl-sql/experiments/resource_benchmark/results/p11b_v2_qwen15b_vs_7b_spider32_s0_independent_gpu0.json` | canonical comparison; fingerprint `60665e60a63ae93c1871401d01a9094caa0e82454f79bf1be473085d794c13c9`; teacher/student latency ratio `2.090592` |
 
 The FL eval config predates the opt-in `--model-4bit` field while its metrics
 report repository SHA `e144d8b`, showing that the worktree changed before
@@ -111,6 +114,9 @@ exact process-code provenance for this one artifact.
 Closed P0.10 artifacts are intentionally excluded from this canonical registry.
 Compact evidence and the Git recovery tag are documented in
 `fedicl-sql/experiments/archive/p010_feddf_2026-08/`.
+Closed P1.7a artifacts are likewise excluded and retained under
+`fedicl-sql/experiments/archive/p017_preference_kd_2026-08/` at nested archive
+commit `74f0a43`.
 
 ## 5. Registry rules
 

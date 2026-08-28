@@ -200,9 +200,13 @@ execution-verified hard targets transfer; do not claim robust portable RKL.
 
 Artifact: `audit.paper.tables.qwen.s0` and `MAIN_RESULTS.md` efficiency table.
 
-Communication is closed and deterministic. Deployment latency/memory remains
-pending P1.1b-v2. Until that gate closes, state only the structural fact that
-clients and inference use the SLM, not a measured speed/memory superiority.
+Communication is closed and deterministic. P1.1b-v2 closes the scoped
+deployment comparison: over five eligible repetitions on the same fixed 32
+Spider rows, the BF16 FedLS-SQL student has median latency 0.7873 s/query and
+3,474.6 MB peak allocated VRAM, versus 1.6460 s/query and 6,776.8 MB for the
+4-bit teacher. Report the student as `2.09x` faster with `48.73%` less allocated
+VRAM. Do not turn this into a training, energy, concurrency, full-test, or
+federated-7B claim.
 
 ### 5.6 EX-oriented error analysis
 
@@ -231,7 +235,8 @@ terminal outputs.
 - Two positive final training seeds; seed 2 not yet closed at T3.
 - No formal DP or update-leakage defense.
 - No matched federated 7B baseline and no measured claim against 7B FL.
-- Shared-server latency/resource evidence remains pending.
+- Shared-server resource evidence is limited to repeated 32-row steady-state
+  inference; hardware exclusivity, training cost, and energy are not measured.
 - Public teacher-pool dependence and teacher-specific retention rates.
 - RKL's independent increment is unstable; only hard-target transfer clearly
   replicates across families.
@@ -255,11 +260,11 @@ or federated optimizer.
 | Matched transfer ablation | `MAIN_RESULTS.md` §4 | values ready |
 | Two-seed convergence figure | `MAIN_RESULTS.md` §3 | values ready |
 | Gemma portability table | `MAIN_RESULTS.md` §2.2 | values ready |
-| Communication/resource table | `audit.paper.tables.qwen.s0`; P1.1b-v2 | communication ready; resource pending |
+| Communication/resource table | `audit.paper.tables.qwen.s0`; P1.1b-v2 | ready for adapter communication and scoped deployment inference |
 | EX-oriented error analysis | `audit.qwen.t3.fl-fedls.ex-transfer` | values ready |
 | Nearest-work comparison | `RELATED_WORK_NOVELTY_MATRIX.md` | ready |
 
 The next writing task is the Method prose and architecture figure. P1.1b-v2 is
-the next GPU task, followed by the matched FedProx-LoRA baseline, one audited
-stronger-skew screen, and seed-2 T3. A federated-7B run remains a separate
-feasibility/claim gate after the deployment-resource result.
+complete; next design the matched FedProx-LoRA baseline, one audited
+stronger-skew screen, and seed-2 T3. A federated-7B run is excluded unless a
+direct empirical large-model-FL claim is introduced.

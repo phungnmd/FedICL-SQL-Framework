@@ -101,16 +101,18 @@ increment is not material; do not extend Gemma to T3/OOD automatically.
 This is the current candidate for the draft outline's
 `Method–EM–EX–Trainable Params–Latency` table, not a frozen paper table.
 Accuracy is Spider. Artifact-derived parameter counts are closed for the
-audited T3 FL/FedLS adapters; latency remains pending the controlled protocol.
+audited T3 FL/FedLS adapters. Controlled latency is closed only for the
+deployed T3 FedLS adapter and the 4-bit teacher reference on the fixed P1.1b
+32-row inference subset; other latency cells remain unmeasured.
 
 | Model family | Method | Spider EM | Spider EX | Trainable parameters | Inference latency | Inclusion status |
 |---|---|---:|---:|---:|---:|---|
 | Qwen2.5 1.5B | Centralized-standard-3ep | 64.41 | 67.31 | `PENDING:P1.1` | `PENDING:P1.1` | main baseline |
 | Qwen2.5 1.5B | Pure FL, T3 | 57.45 | 64.31 | 18,464,768 | `PENDING:P1.1` | main baseline |
-| Qwen2.5 1.5B | FedLS-SQL, T3 | 38.59 | **69.54** | 18,464,768 | `PENDING:P1.1` | proposed method |
+| Qwen2.5 1.5B | FedLS-SQL, T3 | 38.59 | **69.54** | 18,464,768 | 0.7873 s/query (IQR 0.0671) | proposed method; P1.1b fixed 32-row scope |
 | Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
-| Qwen2.5-Coder 7B | Teacher zero-shot | `PENDING:P1.1` | `PENDING:P1.1` | N/A | `PENDING:P1.1` | resource/accuracy reference only |
+| Qwen2.5-Coder 7B | Teacher zero-shot | `NOT MEASURED` | `NOT MEASURED` | N/A | 1.6460 s/query (IQR 0.0100) | 4-bit resource reference only; accuracy not scored in P1.1b |
 | Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | 33.85 | 61.41 | `PENDING:P1.1` | `PENDING:P1.1` | second-family portability endpoint |
 
 Few-shot LLM prompting and ICL are not silently promoted from legacy runs.
@@ -312,15 +314,17 @@ serialization headers, transport framing, and protocol metadata.
 
 | Track/model | EX scope | Trainable parameters | Inference latency | Peak allocated/reserved VRAM | Process RSS | Status |
 |---|---|---:|---:|---:|---:|---|
-| FedLS-SQL / Qwen2.5-1.5B | Spider T3 | 18,464,768 | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | parameters/communication closed; controlled runtime pending |
-| Teacher / Qwen2.5-Coder-7B | matched resource subset | N/A | `PENDING:P1.1` | `PENDING:P1.1` | `PENDING:P1.1` | cost reference, not federated-7B baseline |
+| FedLS-SQL / Qwen2.5-1.5B BF16 | Spider T3 accuracy; fixed 32-row resource subset | 18,464,768 | 0.7873 s/query (IQR 0.0671) | 3,474.6 / 3,684.7 MB | 1,815.2 MB (IQR 1.3) | 5/5 fresh repetitions eligible |
+| Teacher / Qwen2.5-Coder-7B 4-bit | fixed 32-row resource subset; accuracy not scored | N/A | 1.6460 s/query (IQR 0.0100) | 6,776.8 / 7,044.3 MB | 2,021.0 MB (IQR 2.4) | 5/5 fresh repetitions eligible; not a federated-7B baseline |
 
-Old shared-server timing is operational evidence only and must not fill this
-table. Resource runs require fixed in-process warm-up, identical rows/decoding,
-and at least five fresh independent repetitions with median plus dispersion.
-GPU utilization/memory/clock telemetry is descriptive; PID enumeration and
-automatic contention exclusion are not used, and hardware exclusivity is not
-claimed.
+P1.1b used identical deterministic rows and decoding, two in-process warm-up
+rows, batch size 4, five fresh independent repetitions per model, and excluded
+model loading and SQL scoring from the timed region. The student is `2.09x`
+faster by both latency and throughput and uses `48.73%` less peak allocated
+VRAM, `47.69%` less reserved VRAM, and `10.18%` less process RSS than the
+already-quantized 4-bit teacher. These are shared-server steady-state inference
+measurements, not training, energy, concurrency, full-test, or federated-7B
+evidence; hardware exclusivity is not claimed.
 
 ## 6. Error analysis
 
@@ -383,7 +387,7 @@ optimization target.
 |---|---|---|
 | Overall NL-to-SQL performance | §2 | seed-0 final-model table complete |
 | Communication efficiency | §5.1 | complete for adapter payload |
-| Resource efficiency | §5.2 | pending controlled benchmark |
+| Resource efficiency | §5.2 | complete for scoped deployment inference; training/federated-7B resources not measured |
 | Non-IID robustness | §3.3 | scoped to one partition; broader settings pending |
 | Convergence analysis | §3.1–§4.3 | complete trajectories at seeds 0/1; final T3 gain positive at both seeds |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |

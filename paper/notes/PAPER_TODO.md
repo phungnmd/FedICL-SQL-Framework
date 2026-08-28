@@ -90,12 +90,14 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [x] Freeze pair eligibility, the preference coefficient, fixed 512-row screen
   budget, EX/execution-error promotion metric, compute estimate, and stop rule
   before implementation or a PowerShell command.
-- [x] Run the matched screen: `global_pref512` reached 54.9 EX versus 56.9 for
-  `positive_ce512`, failing the `>= +1.0` EX gate by a wide margin.
+- [x] Run the matched screen: `global_pref512` reached 54.93 EX with 252
+  execution errors versus 56.87 and 230 for `positive_ce512`, failing both
+  fixed gates.
 - [x] Apply the stop rule: do not run full 3,873, retune the coefficient, or
   filter the pair subset; archive the implementation and compact negative result.
 - [x] Retain the canonical method unchanged. Recovery tag:
-  `archive/p017-preference-kd-implementation`; cleanup commit: `7de7840`.
+  `archive/p017-preference-kd-implementation`; cleanup commit: `7de7840`;
+  exact result archive commit: `74f0a43`.
 
 KID is no longer an active candidate: the matched legacy experiment was 1.45
 EX below RKD (`p=0.072`), while measured cost was about 4.4 times slower and
@@ -104,18 +106,20 @@ changes the output/inference contract and the current complex-query audit does
 not justify that scope. A new federated mechanism is deferred until FedProx and
 the stronger-skew audit demonstrate a specific unresolved drift problem.
 
-### 5. Close RQ4 deployment-resource evidence — active next
+### 5. Close RQ4 deployment-resource evidence — complete for scoped inference
 
 - [x] Select the measured deployment path for the advisor-aligned question;
   retain narrowing as the fallback if the controlled collection cannot close.
-- [ ] Run `P1.1b-v2` for repeated student-1.5B versus
+- [x] Run `P1.1b-v2` for repeated student-1.5B versus
   teacher-7B deployment inference with fixed warm-up, median/IQR, process RSS,
   allocated/reserved VRAM, and raw GPU telemetry.
-- [ ] After reviewing P1.1b, decide whether to run controlled client-LoRA and
-  recurring server-KD process-memory/throughput microbenchmarks.
-- [ ] Fallback: retain deterministic adapter communication and SLM-only
-  deployment properties, but remove claims of measured client/server training
-  savings or superiority to federated large-model training.
+- [x] Review P1.1b: retain the measured deployment-inference comparison and
+  deterministic adapter communication. Do not add client/server training
+  microbenchmarks by default because the manuscript makes no measured
+  training-resource comparison.
+- [x] Narrow the claim explicitly: no measured client/server training savings,
+  energy/concurrency result, full-test timing, or superiority to federated
+  large-model training.
 
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
@@ -161,12 +165,11 @@ falls back transparently to the fixed-partition scope.
 
 ### 9. Decide the empirical large-model-FL claim — conditional gate
 
-- [ ] Review P1.1b-v2 before deciding whether the paper needs a federated-7B
-  training reference.
+- [x] Review P1.1b-v2: exclude a federated-7B training reference by default.
 - [ ] If retaining “lower client requirements than large-model FL”, perform a
   feasibility audit for at most one matched T1 7B QLoRA reference and define
   its accuracy/resource/communication contract before adding a command.
-- [ ] Otherwise state that no federated-7B baseline was run and restrict RQ4 to
+- [x] State that no federated-7B baseline was run and restrict RQ4 to
   adapter communication plus measured SLM-versus-teacher deployment inference.
 
 **Done when:** no sentence equates a 1.5B/7B inference comparison with
@@ -198,8 +201,8 @@ documented failure hypothesis and matched gate.
 
 ## Submission-readiness gate
 
-The paper is ready to freeze when items 1–4 and 10 are complete, P1.1b has
-closed or narrowed RQ4, the FedProx and stronger-skew gates are recorded, the
+The paper is ready to freeze when items 1–5 and 10 are complete, the FedProx
+and stronger-skew gates are recorded, the
 federated-7B wording is resolved, and final seed reporting is either completed
 or transparently limited to the two positive T3 seeds. Three T3 seeds remain
 the preferred final package.
