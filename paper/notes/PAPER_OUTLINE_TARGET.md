@@ -110,6 +110,9 @@ boundary.
 
 ## 3. FedLS-SQL
 
+Paper-ready section draft: `paper/drafts/FEDLS_SQL_METHOD.md`. Canonical vector
+figure: `paper/drafts/figures/fedls_sql_architecture.svg`.
+
 ### 3.1 Problem formulation and structural data-isolation boundary
 
 - Client-private schemas and NL-SQL pairs.

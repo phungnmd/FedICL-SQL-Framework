@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900" role="img" aria-labelledby="title desc">
+  <title id="title">FedLS-SQL architecture and data-isolation boundary</title>
+  <desc id="desc">Offline public teacher target construction, private federated client adaptation, server refinement, and small-model-only deployment.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2563eb"/></marker>
+  </defs>
+  <rect width="1500" height="900" fill="#ffffff"/>
+  <g font-family="Helvetica,Arial,sans-serif" fill="#0f172a">
+    <text x="750" y="42" font-size="28" font-weight="700" text-anchor="middle">FedLS-SQL: server-guided federated NL-to-SQL with SLM-only deployment</text>
+
+    <!-- Public/server zone -->
+    <rect x="30" y="70" width="1440" height="300" rx="20" fill="#f8fbff" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="9 7"/>
+    <text x="55" y="102" font-size="20" font-weight="700">SERVER / PUBLIC ZONE</text>
+    <text x="1440" y="101" font-size="14" text-anchor="end" fill="#334155">No private client rows enter this zone</text>
+
+    <g font-size="16" text-anchor="middle">
+      <rect x="65" y="140" width="195" height="88" rx="13" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="162" y="174" font-weight="700">Public BIRD train</text><text x="162" y="201" font-size="13" fill="#334155">question + schema + gold SQL</text>
+
+      <rect x="320" y="140" width="205" height="88" rx="13" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="422" y="174" font-weight="700">Frozen LLM teacher</text><text x="422" y="201" font-size="13" fill="#334155">zero-shot SQL generation</text>
+
+      <rect x="585" y="128" width="225" height="112" rx="13" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+      <text x="697" y="158" font-weight="700">Execution verification</text><text x="697" y="187" font-size="13" fill="#334155">1. QuickExec, fixed 8 s</text><text x="697" y="212" font-size="13" fill="#334155">2. Official result-equivalent EX</text>
+
+      <rect x="870" y="128" width="225" height="112" rx="13" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="982" y="158" font-weight="700">Teacher-specific pool</text><text x="982" y="187" font-size="13" fill="#334155">verified teacher SQL targets</text><text x="982" y="212" font-size="13" fill="#334155">+ teacher-logit cache</text>
+
+      <rect x="1160" y="120" width="265" height="138" rx="13" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+      <text x="1292" y="151" font-weight="700">Public server transfer</text><text x="1292" y="180" font-size="13" fill="#334155">initialize from aggregated adapter</text><text x="1292" y="205" font-size="13" fill="#334155">teacher-target CE + auxiliary RKL</text><text x="1292" y="230" font-size="13" fill="#334155">KL(q_SLM || p_LLM)</text>
+    </g>
+    <g fill="#334155"><rect x="260" y="183" width="49" height="3"/><rect x="525" y="183" width="49" height="3"/><rect x="810" y="183" width="49" height="3"/><rect x="1095" y="183" width="54" height="3"/></g>
+    <g fill="#334155"><path d="M320 184L309 178V190Z"/><path d="M585 184L574 178V190Z"/><path d="M870 184L859 178V190Z"/><path d="M1160 184L1149 178V190Z"/></g>
+    <text x="982" y="275" font-size="13" text-anchor="middle" fill="#475569">Qwen: N_teacher = 3,873 (observed output, not a fixed budget)</text>
+
+    <!-- Private client zone -->
+    <rect x="30" y="400" width="1025" height="375" rx="20" fill="#fffaf5" stroke="#ea580c" stroke-width="2.5" stroke-dasharray="9 7"/>
+    <text x="55" y="433" font-size="20" font-weight="700">CLIENT-PRIVATE ZONE</text>
+    <text x="1028" y="432" font-size="14" text-anchor="end" fill="#334155">Raw questions, schemas, databases, and SQL remain local</text>
+
+    <g font-size="16" text-anchor="middle">
+      <rect x="75" y="475" width="240" height="116" rx="13" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+      <text x="195" y="507" font-weight="700">Client 1</text><text x="195" y="536" font-size="13" fill="#334155">private Spider shard D_1</text><text x="195" y="562" font-size="13" fill="#334155">local LoRA CE -&gt; theta_1[t]</text>
+      <rect x="405" y="475" width="240" height="116" rx="13" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+      <text x="525" y="507" font-weight="700">Client 2</text><text x="525" y="536" font-size="13" fill="#334155">private Spider shard D_2</text><text x="525" y="562" font-size="13" fill="#334155">local LoRA CE -&gt; theta_2[t]</text>
+      <rect x="735" y="475" width="240" height="116" rx="13" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+      <text x="855" y="507" font-weight="700">Client K</text><text x="855" y="536" font-size="13" fill="#334155">private Spider shard D_K</text><text x="855" y="562" font-size="13" fill="#334155">local LoRA CE -&gt; theta_K[t]</text>
+      <text x="690" y="538" font-size="18">...</text>
+      <rect x="330" y="665" width="390" height="82" rx="13" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+      <text x="525" y="697" font-weight="700">Sample-weighted factor-wise FedAvg</text><text x="525" y="724" font-size="13" fill="#334155">theta_FL[t] = sum_k (n_k / sum_j n_j) theta_k[t]</text>
+    </g>
+    <g fill="#334155"><rect x="194" y="591" width="3" height="35"/><rect x="195" y="624" width="240" height="3"/><rect x="434" y="625" width="3" height="29"/><rect x="524" y="591" width="3" height="63"/><rect x="854" y="591" width="3" height="35"/><rect x="615" y="624" width="240" height="3"/><rect x="614" y="625" width="3" height="29"/></g>
+    <g fill="#334155"><path d="M435 665L429 654H441Z"/><path d="M525 665L519 654H531Z"/><path d="M615 665L609 654H621Z"/></g>
+    <text x="525" y="620" font-size="13" text-anchor="middle" fill="#475569">uploads: LoRA tensors only</text>
+
+    <!-- Global state and cross-boundary flow -->
+    <rect x="1100" y="410" width="325" height="84" rx="13" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="1262" y="444" font-size="16" font-weight="700" text-anchor="middle">Global SLM adapter theta[t-1]</text><text x="1262" y="470" font-size="13" text-anchor="middle" fill="#334155">broadcast to initialize every client</text>
+    <g fill="#2563eb"><rect x="1015" y="450" width="85" height="3"/><rect x="195" y="453" width="820" height="3"/><rect x="194" y="455" width="3" height="9"/><rect x="524" y="455" width="3" height="9"/><rect x="854" y="455" width="3" height="9"/><rect x="720" y="704" width="352" height="3"/><rect x="1069" y="305" width="3" height="402"/><rect x="1070" y="303" width="79" height="3"/><rect x="1290" y="258" width="3" height="141"/></g>
+    <g fill="#2563eb"><path d="M195 475L189 464H201Z"/><path d="M525 475L519 464H531Z"/><path d="M855 475L849 464H861Z"/><path d="M1160 305L1149 299V311Z"/><path d="M1292 410L1286 399H1298Z"/></g>
+    <text x="1010" y="447" font-size="13" text-anchor="end" fill="#475569">broadcast: LoRA tensors only</text>
+    <text x="890" y="691" font-size="13" text-anchor="middle" fill="#475569">aggregated adapter theta_FL[t]</text>
+    <text x="1306" y="337" font-size="13" fill="#475569">refined theta_FedLS[t]</text><text x="1306" y="357" font-size="13" fill="#475569">becomes next-round state</text>
+
+    <!-- Deployment -->
+    <rect x="1100" y="555" width="325" height="190" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+    <text x="1262" y="591" font-size="20" font-weight="700" text-anchor="middle">DEPLOYMENT</text><text x="1262" y="632" font-size="16" font-weight="700" text-anchor="middle">SLM + final LoRA adapter</text><text x="1262" y="662" font-size="13" text-anchor="middle" fill="#334155">greedy zero-shot NL-to-SQL</text><text x="1262" y="697" font-size="13" text-anchor="middle" fill="#334155">No LLM teacher / no public pool</text><text x="1262" y="722" font-size="13" text-anchor="middle" fill="#334155">No client training data</text>
+    <rect x="1261" y="494" width="3" height="50" fill="#334155"/><path d="M1262 555L1256 544H1268Z" fill="#334155"/>
+
+    <rect x="30" y="820" width="1440" height="50" rx="12" fill="#f1f5f9" stroke="#94a3b8"/>
+    <text x="750" y="851" font-size="14" text-anchor="middle" fill="#334155">Structural data locality only: no differential privacy, secure aggregation, or model-update leakage guarantee.</text>
+  </g>
+</svg>

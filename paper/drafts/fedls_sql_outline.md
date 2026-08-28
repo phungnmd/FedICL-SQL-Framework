@@ -46,6 +46,9 @@ adapter-only client communication, and SLM-only deployment.
 
 ## 4. FedLS-SQL
 
+Paper-ready prose and Fig. 1 are maintained in `FEDLS_SQL_METHOD.md` and
+`figures/fedls_sql_architecture.svg`.
+
 1. System overview.
 2. Client-side LoRA fine-tuning on private gold SQL.
 3. Sample-weighted factor-wise FedAvg.
@@ -61,10 +64,10 @@ module.
 - Data: Spider training/dev, Spider-Realistic, Spider-Syn, Spider-DK, and BIRD.
 - Models: Qwen2.5-1.5B student and frozen Qwen2.5-Coder-7B teacher.
 - Main baselines: base SLM, centralized SLM, pure FL, and FedLS-SQL.
-- Additional baselines where feasible: FedProx and resource comparison with
-  large-model FL.
-- Metrics: EX, EM, execution errors, parameters, bytes communicated, time,
-  VRAM/CPU memory, latency, and convergence rounds.
+- Recommended missing baseline: matched FedProx-LoRA. No federated large-model
+  baseline is run or implied.
+- Metrics: primary EX; secondary EM and execution errors; parameters and bytes
+  communicated; scoped deployment VRAM/RSS/latency; and convergence rounds.
 
 ## 6. Results
 

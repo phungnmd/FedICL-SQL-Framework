@@ -91,6 +91,11 @@ creates a new result lineage.
 
 ## 4. End-to-end method
 
+Paper-ready prose and the verified architecture/privacy-boundary figure are in
+`paper/drafts/FEDLS_SQL_METHOD.md` and
+`paper/drafts/figures/fedls_sql_architecture.svg` respectively. This section
+remains the canonical design record.
+
 ```text
 OFFLINE AT SERVER
   frozen 7B teacher + public BIRD schemas/databases

@@ -106,7 +106,7 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | GPU complete | 2 | P0.8a-E seed-1 trajectory cells | result commit `dbd703b`; full T1/T2/T3 trajectory registered |
 | CPU complete | 1 | P1.4a deterministic efficiency/table manifest | artifact commit `147f455`; registry ID `audit.paper.tables.qwen.s0` |
 | CPU complete | 2 | P1.4b related-work/novelty matrix and P2 skeleton | title narrowed; outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
-| CPU active | 3 | Method prose and architecture/privacy-boundary figure | immediate writing task; no GPU required |
+| CPU complete | 3 | Method prose and architecture/privacy-boundary figure | paper-ready draft and verified vector figure under `paper/drafts/` |
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
 | Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
@@ -332,9 +332,9 @@ Federated NL-to-SQL.” The full matrix and safe/prohibited wording are in
 
 ### P2 — manuscript build and evidence freeze
 
-**Status:** evidence-mapped skeleton complete in `MANUSCRIPT_SKELETON.md`;
-method prose and the architecture figure are next. Final resource/robustness
-wording waits for the remaining decision gates.
+**Status:** evidence-mapped skeleton, paper-ready Method prose, and the verified
+architecture/privacy-boundary figure are complete. Main table/plot assembly
+and final robustness wording remain open.
 
 Draft against `PAPER_OUTLINE_TARGET.md`. Freeze seven core artifacts:
 
@@ -415,9 +415,9 @@ Other former candidates are inactive:
 
 ## 8. Current next actions
 
-Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, P1.1b-v2, and the
-negative P1.7a gate are complete. Continue method prose and the architecture
-figure, followed by the matched FedProx-LoRA baseline, one stronger-skew
-screen, and seed-2 T3. Keep federated 7B excluded unless the manuscript later
+Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, P1.1b-v2, P2.1, and
+the negative P1.7a gate are complete. Design the matched FedProx-LoRA baseline,
+then run one stronger-skew screen and seed-2 T3. Keep federated 7B excluded
+unless the manuscript later
 introduces a direct empirical large-model-FL claim. Do not add a model family,
 OOD seed sweep, or hyperparameter Cartesian sweep by default.

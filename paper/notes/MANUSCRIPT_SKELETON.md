@@ -255,7 +255,7 @@ or federated optimizer.
 
 | Paper artifact | Evidence owner | State |
 |---|---|---|
-| Architecture/privacy-boundary figure | `system_architecture.md` + §3 above | draft next |
+| Architecture/privacy-boundary figure | `paper/drafts/FEDLS_SQL_METHOD.md`; `paper/drafts/figures/fedls_sql_architecture.svg` | paper-ready draft; SVG visually verified |
 | Main accuracy table | `MAIN_RESULTS.md` §2.1 | values ready |
 | Matched transfer ablation | `MAIN_RESULTS.md` §4 | values ready |
 | Two-seed convergence figure | `MAIN_RESULTS.md` §3 | values ready |
@@ -264,7 +264,7 @@ or federated optimizer.
 | EX-oriented error analysis | `audit.qwen.t3.fl-fedls.ex-transfer` | values ready |
 | Nearest-work comparison | `RELATED_WORK_NOVELTY_MATRIX.md` | ready |
 
-The next writing task is the Method prose and architecture figure. P1.1b-v2 is
-complete; next design the matched FedProx-LoRA baseline, one audited
+The Method prose and architecture/privacy-boundary figure are complete in
+`paper/drafts/`. Next design the matched FedProx-LoRA baseline, one audited
 stronger-skew screen, and seed-2 T3. A federated-7B run is excluded unless a
 direct empirical large-model-FL claim is introduced.

@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper TODO
 
-> Updated 2026-08-27. This is the ordered paper-work backlog. It records what
+> Updated 2026-08-29. This is the ordered paper-work backlog. It records what
 > to do and why; executable PowerShell commands belong only in
 > `PIPELINE_NEXT.md`. Re-rank conditional items whenever an earlier gate changes
 > the manuscript claim.
@@ -61,16 +61,18 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 
 - [x] Create the evidence-mapped manuscript skeleton in
   `MANUSCRIPT_SKELETON.md`.
-- [ ] Write the problem formulation and structural privacy boundary.
-- [ ] Write the round algorithm: broadcast, private client LoRA CE,
+- [x] Write the problem formulation and structural privacy boundary in
+  `paper/drafts/FEDLS_SQL_METHOD.md`.
+- [x] Write the round algorithm: broadcast, private client LoRA CE,
   sample-weighted factor-wise FedAvg, public server transfer, rebroadcast.
-- [ ] Specify teacher-target generation, quick execution filter, official EX
+- [x] Specify teacher-target generation, quick execution filter, official EX
   filter, teacher-specific pools, target CE, and auxiliary reverse KL.
-- [ ] Create the architecture/data-flow figure with private/public and
-  client/server/deployment boundaries.
+- [x] Create and visually verify the vector architecture/data-flow figure with
+  private/public and client/server/deployment boundaries at
+  `paper/drafts/figures/fedls_sql_architecture.svg`.
 - [ ] Draft the main accuracy, matched ablation, convergence, Gemma
   portability, efficiency, and error-analysis tables/figures.
-- [ ] State explicitly: EX is primary; privacy is structural rather than DP;
+- [x] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
 
 ### 4A. Test execution-verified preference/contrastive KD — closed negative

@@ -60,7 +60,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.4b   | Related-work matrix and manuscript skeleton                                    | complete: title narrowed; canonical outputs `RELATED_WORK_NOVELTY_MATRIX.md` and `MANUSCRIPT_SKELETON.md` |
 | P0.8a   | Final T3 pure-FL versus frozen FedLS-SQL at seed 1                             | complete: 61.99 vs 65.76 EX (`+3.77`, paired `p=0.00483`)                                                 |
 | P0.8a-E | Complete the missing seed-1 T2/T3 trajectory observations                      | complete: result commit `dbd703b`, registered full seed-1 trajectory                                      |
-| P2.1    | Method prose and architecture/privacy-boundary figure                          | active CPU/writing task; no experiment command                                                            |
+| P2.1    | Method prose and architecture/privacy-boundary figure                          | complete: paper-ready draft and verified SVG under `paper/drafts/`                                        |
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.5    | Matched FedProx-LoRA reviewer baseline                                         | next experiment design; no command until implementation and coefficient gates are approved                |
@@ -83,9 +83,8 @@ federated-7B superiority. P0.8b remains intentionally delayed. Archived seed
 commands must be audited against the current checkpoint/resume contract before
 being copied back here; do not run an old block blindly.
 
-P1.4b and P1.1b are closed. Continue CPU writing from
-`MANUSCRIPT_SKELETON.md`, then design FedProx-LoRA,
-audit one stronger-skew T1 screen, and close seed-2 T3. Decide federated-7B
+P1.4b, P1.1b, and P2.1 are closed. The next task is to design FedProx-LoRA,
+then audit one stronger-skew T1 screen and close seed-2 T3. Decide federated-7B
 feasibility only if the manuscript retains an empirical large-model-FL
 comparison.
 
