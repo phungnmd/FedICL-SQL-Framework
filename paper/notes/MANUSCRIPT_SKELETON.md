@@ -90,15 +90,18 @@ End with the condensed comparison table from
 
 Define `K` clients, private datasets `D_k`, public server corpus `D_pub`, the
 shared frozen SLM base, client/global LoRA parameters, and frozen teacher.
-State that structural isolation is not differential privacy, secure
-aggregation, or protection against model-update leakage.
+State that structural isolation is not differential privacy or protection
+against model-update leakage. Present P1.8 only as a separately measured local
+Secure Sum compatibility layer, not an end-to-end MPC deployment and not the
+source of the accuracy results.
 
 Evidence/source: `system_architecture.md` §§3–5 and `CONVENTION.MD` §5.
 
 ### 3.2 Round lifecycle
 
 Describe broadcast → private local CE → sample-weighted factor-wise FedAvg →
-public server refinement → rebroadcast. Make clear that mixed-lineage
+public server refinement → rebroadcast. Mention the optional masked-sum wrapper
+separately. Make clear that mixed-lineage
 pre-server T2/T3 checkpoints already contain earlier teacher knowledge.
 
 Evidence/source: `system_architecture.md`; implementation definitions should

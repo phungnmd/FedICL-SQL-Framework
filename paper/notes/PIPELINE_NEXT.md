@@ -65,11 +65,11 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P2.1    | Method prose and architecture/privacy-boundary figure                          | complete: paper-ready draft and verified SVG under `paper/drafts/`                                        |
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
-| P1.8    | Secure weighted aggregation and retained-result replay                         | implementation complete at nested `3c21b96`; P1.8a retained-adapter replay is ready                         |
-| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | gated after P1.8; every new federated run must use the secure backend                                     |
-| P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; privacy/communication cells remain provisional until P1.8 closes               |
+| P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
+| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | **active design; accuracy runs use explicit plaintext aggregation**                                        |
+| P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
-| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | gated on P1.8; continue through secure aggregation without retraining completed local work unnecessarily  |
+| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
 
@@ -83,16 +83,16 @@ do not merge it with the revised independent-repetition protocol.
 
 P1.1b-v2 is complete and closes the scoped deployment-inference component of
 the advisor's scientific question. It does not establish training-resource or
-federated-7B superiority. P0.8b remains gated until P1.8 replay validates the
-secure transition contract. Archived seed commands must be audited against the
-current checkpoint/resume contract before being copied back here; do not run an
-old block blindly.
+federated-7B superiority. P0.8b is independent of Secure Sum but its old
+`setup.json` predates the aggregation-protocol fingerprint, so the continuation
+command remains blocked until a tested legacy-plaintext migration exists.
 
-P1.4b, P1.1b, and P2.1 are closed. The P1.8 backend is implemented; the next
-task is retained-adapter replay and overhead measurement. FedProx-LoRA,
-stronger-skew, and seed-2 continuation must use that backend after the gate
-closes. Decide federated-7B feasibility only if the manuscript retains an
-empirical large-model-FL comparison.
+P1.4b, P1.1b, P2.1, and the scoped P1.8 compatibility audit are closed. The
+next method task is matched FedProx-LoRA, followed by one stronger-skew screen.
+Accuracy experiments use explicit plaintext weighted aggregation for matched
+lineage; Secure Sum is an optional audited layer, not an accuracy gate. Decide
+federated-7B feasibility only if the manuscript retains an empirical
+large-model-FL comparison.
 
 P1.7a is closed. Its fixed global-SLM preference loss reduced Spider EX by
 1.93 points versus positive-only CE, so no full-pool extension,
@@ -101,39 +101,28 @@ canonical verified-target CE plus auxiliary RKL method is unchanged. A future
 method proposal must begin from a new evidence-backed hypothesis rather than
 retuning P1.7a.
 
-## P1.8 — secure weighted aggregation — implementation complete; replay active
+## P1.8 — optional Secure Sum compatibility audit — complete
 
-**Purpose:** upgrade the paper from structural client-row locality to secure
-aggregation against a semi-honest server without changing weighted FedAvg or
-introducing DP.
+**Purpose:** show that FedLS-SQL's weighted LoRA aggregation can be wrapped by
+a pairwise-masked Secure Sum layer without changing its numerical objective,
+and quantify the added cost separately from accuracy experiments.
 
-The nested implementation at `3c21b96` uses deterministic pairwise float64
-masks over sample-weighted LoRA factors, supports threshold/dropout recovery,
-does not persist masked client tensors, and fails closed when decoded versus
-plaintext FedAvg exceeds `1e-6`. The federated CLI now defaults to
-`secure_sum`; plaintext aggregation remains an explicit oracle/debug backend.
-The core integration passed the full 328-test suite; the report-producing HEAD
-passes 31 focused tests and lint. A 10,240-value stress test measured maximum
-absolute error `1.1920928955078125e-7` and cosine similarity
-`0.9999999999999977`, so bit identity is recorded but not required.
+The implementation at `3c21b96` passed the core and dropout/equivalence tests.
+The real Qwen five-client replay at result commit `6c67e79` covered 18,464,768
+adapter parameters and passed with maximum error `3.7253e-9`, mean error
+`1.4493e-10`, and cosine `0.9999999999999983`. It took `7.1147 s`; float64
+masked uploads increased comparable round communication by approximately
+`49.93%`, while protocol metadata was only `1,401` bytes.
 
-### P1.8a — replay one retained Qwen aggregation — CPU ready
+This closes a compatibility and overhead claim, not a formal cryptographic or
+DP claim. Do not relabel historical accuracy lineages as Secure-Sum-produced,
+and do not replay every retained round. Standard matched accuracy experiments
+use `--aggregation-protocol plaintext`; a dedicated privacy-layer audit must
+opt in with `--aggregation-protocol secure_sum`. The default-policy change is
+nested commit `fc7899a`. Exact command and provenance:
+`paper/archive/completed_runbooks/P1_8A_SECURE_SUM_COMPATIBILITY_2026-08-29.md`.
 
-**Purpose:** validate the implementation on a real retained five-client round,
-write a portable immutable report, and gate wider replay. This does not train or
-evaluate a model and does not require a GPU.
-
-```powershell
-$C='artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_1'; $O='artifacts/secure_aggregation_replay/p18a_qwen_fl_s0_r1'; $J='experiments/federated/results/p18a_secure_replay_qwen_fl_s0_r1/metrics.json'; git merge-base --is-ancestor 3c21b9651835409eec3b8c590b685d1b773fb0a8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'P1.8 implementation commit is not present' }; $Need=@("$C/round_init_adapter/adapter_config.json","$C/fedavg_adapter/adapter_config.json"); foreach ($I in 1..5) { $Need += "$C/client_$I/adapter/adapter_config.json" }; foreach ($P in $Need) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.8a input: $P" } }; uv run python experiments/federated/run.py aggregate --arm fedavg --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --client-dir $C --init-adapter "$C/round_init_adapter" --reference-adapter "$C/fedavg_adapter" --out $O --report-out $J --seed 0 --aggregation-protocol secure_sum --secure-threshold 3 --secure-mask-scale 1.0 --secure-equivalence-atol 0.000001; if ($LASTEXITCODE -ne 0) { throw 'P1.8a secure replay failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath $J)) { throw "Missing P1.8a report: $J" }; $V=Get-Content -LiteralPath $J -Raw | ConvertFrom-Json; $E=$V.metrics.equivalence; if (-not $E.accepted -or [double]$E.max_abs_error -gt 0.000001 -or [double]$E.cosine_similarity -lt 0.999999999) { throw "P1.8a equivalence gate failed: accepted=$($E.accepted) max_abs=$($E.max_abs_error) cosine=$($E.cosine_similarity)" }; Write-Host "P1.8a complete: bit_identical=$($E.bit_identical) max_abs=$($E.max_abs_error) cosine=$($E.cosine_similarity); push $J and stop for review"
-```
-
-After P1.8a, replay the remaining retained paper aggregations and validate that
-predictions/EX are unchanged on the agreed evaluation slice before carrying
-old scores forward. Archived negative branches do not require replay. P1.8
-does not authorize DP, clipping, quantization tuning, robust aggregation, or a
-weighting change.
-
-## P1.5 — matched FedProx-LoRA baseline — gated after P1.8
+## P1.5 — matched FedProx-LoRA baseline — active design
 
 **Purpose:** answer the reviewer objection that the headline comparison uses
 only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
@@ -164,7 +153,7 @@ The exact command and acceptance record are archived at
 Canonical result commit: `dbd703b`. Do not rerun or launch seed 2
 automatically.
 
-## P0.8b — blocked pending P1.8 secure-backend rewrite
+## P0.8b — blocked pending legacy plaintext setup compatibility
 
 **Purpose when reactivated:** close the three-training-seed reliability result after seed 1
 replicated the final FedLS-SQL gain (`+3.77` Spider EX, `p=0.00483`). Seed 2
@@ -172,12 +161,12 @@ already has canonical T1 checkpoints. This command extends those exact
 lineages through rounds 2 and 3 and evaluates only the final Spider endpoints;
 it does not retrain round 1.
 
-The block below is the superseded plaintext command retained only for lineage
-and resume-contract audit. **Do not run it.** After P1.8 closes, replace it with
-a secure-backend command that preserves the seed-2 setup identities
-(`8b02d882...` for pure FL and `99aa70ed...` for FedLS-SQL), immutable roots,
-and completed-round work. Do not replace it with `run --rounds 3`, change the
-roots, or reuse the seed-1 evaluation root.
+The block below is retained only for lineage and resume-contract audit. **Do
+not run it under current code:** the old roots predate the aggregation-protocol
+field now included in `setup.json`. Reactivate it only after a tested migration
+treats the missing legacy field as explicit plaintext while preserving setup
+identities (`8b02d882...` and `99aa70ed...`). Secure Sum is not required for
+this accuracy continuation. Do not restart round 1 or change scientific flags.
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $S=2; $F='artifacts/federated/fedavg_noicl_k5_e1_t1_s2'; $K='artifacts/federated/fedkd_noicl_k5_e1_t1_s2'; $E='artifacts/eval_resume/fedls_final_t3_spider_s2/eval_k0'; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv','processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json',"$F/setup.json","$F/manifest.json","$F/round_1/fedavg_adapter/adapter_config.json","$K/setup.json","$K/manifest.json","$K/round_1/m_g/adapter_config.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P0.8b input or canonical T1 artifact: $P" } }; $FS=Get-Content -LiteralPath "$F/setup.json" -Raw | ConvertFrom-Json; $KS=Get-Content -LiteralPath "$K/setup.json" -Raw | ConvertFrom-Json; if ($FS.setup_id -ne '8b02d882fc9f3d4b1053959a189731d4d59969d430a1032a90e71f56520e4447') { throw "Unexpected pure-FL seed-2 setup identity: $($FS.setup_id)" }; if ($KS.setup_id -ne '99aa70edb94e06feff864ed5cfea6516e934e79314a60d11a38bac3f8ceb9ef3') { throw "Unexpected FedLS seed-2 setup identity: $($KS.setup_id)" }; foreach ($N in @(2,3)) { $P=$N-1; $I="$F/round_${P}/fedavg_adapter"; uv run python experiments/federated/run.py round --arm fedavg --round $N --init-adapter $I --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --seed $S --stage poc --out $F; if ($LASTEXITCODE -ne 0) { throw "Pure-FL seed 2 round $N failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$F/round_${N}/fedavg_adapter/adapter_config.json")) { throw "Incomplete pure-FL seed 2 round $N" } }; foreach ($N in @(2,3)) { $P=$N-1; $I="$K/round_${P}/m_g"; uv run python experiments/federated/run.py round --arm fedkd --round $N --init-adapter $I --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1.0 --lambda-kd 1.0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --seed $S --stage poc --out $K; if ($LASTEXITCODE -ne 0) { throw "FedLS-SQL seed 2 round $N failed; rerun this exact line to resume" }; if (-not (Test-Path -LiteralPath "$K/round_${N}/m_g/adapter_config.json")) { throw "Incomplete FedLS-SQL seed 2 round $N" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fl_s2_t3=$F/round_3/fedavg_adapter" "fedls_s2_t3=$K/round_3/m_g" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed $S --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P0.8b final Spider evaluation failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw "Missing P0.8b evaluation manifest directory: $E/manifests" }; Write-Host 'P0.8b complete: seed-2 pure FL and FedLS-SQL T3 evaluated; push compact results and stop for three-seed analysis'

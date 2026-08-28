@@ -17,8 +17,9 @@ constraints are:
 1. **Federated privacy boundary.** Private Spider questions, schemas, databases,
    and SQL remain at clients.  The server teacher may access only a public proxy
    corpus and its public databases.  Only LoRA adapter parameters cross the
-   client-server boundary.  This is structural data isolation, not differential
-   privacy or secure aggregation.
+   client-server boundary. The accuracy path provides structural data
+   isolation, not differential privacy; an optional Secure Sum simulator is
+   audited separately for compatibility/overhead and is not a KD constraint.
 2. **Small deployed model.** The student must remain below 3B parameters.  The
    primary student is Qwen2.5-1.5B-Instruct; the portability student is Gemma-2-2B-it.
 3. **One workstation GPU.** The target server is one NVIDIA RTX A5000 with 24 GB

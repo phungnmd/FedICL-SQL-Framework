@@ -18,7 +18,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for direction, seed 2 GPU-ready independently for final reporting |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seeds 0/1; seed-1 FedLS T1→T3 `+3.29` EX (`p=0.00266`), pure FL plateaus T2→T3 |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
-| P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
+| P1 | RQ4 communication | standard adapter payload plus optional Secure Sum compatibility/overhead | complete: plaintext 738,590,720 logical bytes/round and 2,215,772,160 through T3 (`147f455`); optional real Secure Sum replay adds about `49.93%` comparable round communication (`6c67e79`) |
 | P1 | RQ4 resources | repeated wall time, process RSS, allocated/reserved VRAM, inference latency | complete: 5/5 eligible each; BF16 student is `2.09x` faster and uses `48.73%` less allocated VRAM than the 4-bit teacher |
 | P1 | EX-oriented mechanism/error audit | paired T3 FL/FedLS transitions, hardness, SQL constructs, execution errors, deterministic examples | complete at `4527a76`: 121 corrections/67 regressions; errors 193→101; set operations are the main negative stratum |
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | complete in `RELATED_WORK_NOVELTY_MATRIX.md`; title narrowed; FedCoLLM and Struct-SQL are the closest priors |
@@ -36,7 +36,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 
 1. Do not call a `fedkd` round-2/3 pre-server adapter “pure FL”; it inherits
    earlier KD.
-2. Do not claim formal privacy guarantees without DP/secure aggregation.
+2. Privacy is structural client-row locality. P1.8 supports only a measured
+   local Secure Sum compatibility claim, not end-to-end MPC or DP.
 3. Do not claim structural distillation; the implemented objectives are
    teacher-target CE and reverse KL.
 4. Scope RQ2 to avoided client/deployment use of the 7B teacher. Do not claim

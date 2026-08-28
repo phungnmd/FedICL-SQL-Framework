@@ -58,6 +58,7 @@ of the cited method.
 |---|---|---|---|
 | Federated NL-to-SQL setting | Federated Semantic Parsing | Apply and evaluate an asymmetric server-teacher/SLM workflow in a fixed cross-schema federated setting. | “First federated NL-to-SQL/semantic-parsing system.” |
 | Adapter-only client training and communication | FedPETuning; FedCoLLM | Quantify the exact LoRA payload used by FedLS-SQL. | “Novel federated LoRA” or privacy from LoRA alone. |
+| Optional masked aggregation compatibility | [Bonawitz et al.](https://eprint.iacr.org/2017/281.pdf); [FedProx](https://proceedings.mlsys.org/paper/2020/file/1f5fe83998a09396ebe6477d9475ba0c-Paper.pdf) | Report the separate real-adapter numerical and overhead audit as evidence that the weighted LoRA sum admits a Secure Sum wrapper. | “All experiments used cryptographic Secure Aggregation,” end-to-end MPC, or DP. |
 | Recurring server LLM-to-SLM refinement | FedCoLLM; FedMKT; FedDF | Freeze the teacher and refine only the aggregated SLM on task-verified public supervision. | “First federated LLM-SLM collaboration” or “first server-side federated KD.” |
 | Execution-verified teacher SQL | Struct-SQL; KID; Pure-KD | Integrate result-equivalent teacher-target selection into the private-client/public-server FL loop and validate it against equal-row gold CE. | “First execution-aware Text-to-SQL distillation.” |
 | SLM-only deployment | Struct-SQL; FedCoT | Show that the trained global SLM operates without the LLM at clients or inference. | A measured resource advantage until P1.1b or equivalent evidence is closed. |
@@ -79,8 +80,9 @@ Use this distinction sentence at the end of Related Work:
 > communication remain confined to SLM LoRA updates.
 
 Do not use “first”, “novel framework”, “privacy-preserving” without a qualifier,
-or “execution verification is novel”. Describe privacy as **structural data
-isolation** unless a formal privacy mechanism is added and evaluated.
+or “execution verification is novel”. Describe headline privacy as
+**structural data isolation**; mention P1.8 only as an optional local Secure Sum
+compatibility/overhead audit.
 
 ## Audit limits
 

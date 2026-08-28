@@ -131,6 +131,13 @@ directory is resumable by rerunning the exact command. A setup, lineage, cache,
 or evaluation fingerprint mismatch is a scientific configuration error: use
 the original flags or a new output/resume root; never bypass the guard.
 
+Every new federated command must state its aggregation protocol explicitly.
+Matched accuracy, ablation, seed, FedProx, and non-IID runs use
+`--aggregation-protocol plaintext`. Use `--aggregation-protocol secure_sum`
+only for a separately labeled Secure Sum compatibility/overhead audit; do not
+mix it into an accuracy lineage or imply that historical plaintext results were
+cryptographically produced.
+
 Keep long-running blocks independently resumable. Prefer one command per
 scientific checkpoint (training seed, matched evaluation, transfer suite) over
 one all-or-nothing command spanning the entire experiment queue.

@@ -69,6 +69,6 @@
     <rect x="1261" y="494" width="3" height="50" fill="#334155"/><path d="M1262 555L1256 544H1268Z" fill="#334155"/>
 
     <rect x="30" y="820" width="1440" height="50" rx="12" fill="#f1f5f9" stroke="#94a3b8"/>
-    <text x="750" y="851" font-size="14" text-anchor="middle" fill="#334155">Structural data locality only: no differential privacy, secure aggregation, or model-update leakage guarantee.</text>
+    <text x="750" y="851" font-size="14" text-anchor="middle" fill="#334155">Accuracy path: structural locality; optional Secure Sum audited separately; no differential-privacy guarantee.</text>
   </g>
 </svg>

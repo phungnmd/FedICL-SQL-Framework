@@ -310,6 +310,17 @@ identical, while the audited final serialized files differ by only 32 header
 bytes. The paper therefore reports logical FP32 tensor bytes and excludes
 serialization headers, transport framing, and protocol metadata.
 
+### 5.1a Optional Secure Sum compatibility audit
+
+| Audit | Parameters | Max/mean abs. error vs plaintext | Cosine | Time | Masked upload | Metadata | Comparable communication expansion |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Qwen FL round 1, five clients | 18,464,768 | `3.7253e-9` / `1.4493e-10` | `0.9999999999999983` | 7.1147 s | 738,590,720 B | 1,401 B | about 49.93% |
+
+This P1.8 result (`6c67e79`) validates an optional local pairwise-mask Secure
+Sum wrapper over the same weighted aggregation. It is reported separately from
+accuracy: headline FL/FedLS results retain their standard plaintext FedAvg
+lineages. The audit is not an end-to-end MPC deployment or a DP guarantee.
+
 ### 5.2 Accuracy-resource table
 
 | Track/model | EX scope | Trainable parameters | Inference latency | Peak allocated/reserved VRAM | Process RSS | Status |

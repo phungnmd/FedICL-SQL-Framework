@@ -21,13 +21,15 @@ global adapter entering round (t) by \(\theta^{t-1}\). A larger frozen
 teacher (p_{\phi}\) and a separate public corpus \(\mathcal{D}_{pub}\) are
 available only at the server.
 
-The trust boundary is structural. Raw client questions, schemas, databases,
-and SQL labels remain at their originating clients. The server receives and
-broadcasts only SLM LoRA tensors; the teacher never observes private client
-examples. This design provides data locality, but it is not differential
-privacy, secure aggregation, or a guarantee against leakage from model
-updates. Test examples are used only for evaluation and never enter client
-training, public-target construction, or retrieval.
+The headline trust boundary is structural. Raw client questions, schemas,
+databases, and SQL labels remain at their originating clients. The server
+receives and broadcasts only SLM LoRA tensors; the teacher never observes
+private client examples. This provides data locality, but not differential
+privacy or a guarantee against leakage from model updates. We separately audit
+an optional pairwise-masked Secure Sum simulator for aggregation compatibility
+and overhead; it is not an end-to-end MPC deployment and is not used to relabel
+the standard weighted-FedAvg accuracy lineages. Test examples are used only for
+evaluation and never enter training or public-target construction.
 
 ## 3.2 Execution-verified public teacher targets
 
@@ -77,7 +79,8 @@ sample-weighted factor-wise FedAvg:
 \]
 
 This aggregation is the standard federated backbone rather than a claimed new
-optimizer. Starting from \(\theta_{FL}^{t}\), the server then refines the SLM
+optimizer. A separately evaluated optional layer masks the same weighted LoRA
+sum without changing this equation. Starting from \(\theta_{FL}^{t}\), the server then refines the SLM
 on the complete verified public pool to obtain \(\theta_{FedLS}^{t}\). This
 post-server adapter is the global state broadcast at round \(t+1\). Therefore,
 the pre-server FedAvg adapters in rounds (t>1) already inherit teacher
@@ -142,6 +145,14 @@ to 73,859,072 logical tensor bytes. With five clients, five uploads and five
 broadcasts total 738,590,720 logical bytes per round and 2,215,772,160 bytes
 through three rounds. Pure FL and FedLS-SQL therefore have the same client
 network payload; the teacher computation is confined to the server.
+
+The optional P1.8 pairwise-mask audit replays one canonical five-client
+aggregation over all 18,464,768 parameters. Against plaintext weighted FedAvg,
+it records maximum absolute error `3.7253e-9`, cosine
+`0.9999999999999983`, and `7.1147 s` aggregation time. Float64 masked uploads
+increase comparable per-round communication by approximately `49.93%`; this
+cost is reported separately and is not folded into the standard accuracy-path
+payload above.
 
 Deployment uses only the SLM backbone and the final adapter
 \(\theta_{FedLS}^{T}\), with greedy zero-shot decoding. Neither the teacher nor

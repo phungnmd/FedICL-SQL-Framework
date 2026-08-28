@@ -20,23 +20,21 @@ Quick operator view, including the GPU-ready queue:
 Scientific decisions are ordered, while independent GPU-ready work may run
 opportunistically so scarce GPU time is not wasted:
 
-1. **P1.8 secure aggregation — replay active:** the secure weighted backend,
-   numeric/dropout/artifact contract, and tests are complete. Replay every
-   retained aggregation and permit old EX to carry forward only after the
-   fixed numeric gate plus prediction/EX identity check. All subsequent
-   federated runs use the secure backend.
-2. **P1.5 FedProx-LoRA — gated after P1.8:** freeze the matched baseline and
+1. **P1.8 Secure Sum compatibility — complete:** implementation, tests, one
+   real canonical replay, numerical equivalence, and overhead evidence are
+   closed. It is optional and separate from accuracy lineages.
+2. **P1.5 FedProx-LoRA — active design:** freeze the matched baseline and
    coefficient rule, implement and test it, then add one safe command and run
    the minimum headline comparison.
 3. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
    `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
    interpretable gate.
-4. **P0.8b seed 2 — gated on P1.8:** continue the existing T1 lineages to T3
-   through the secure backend and report three-seed mean/sample SD; never
-   restart completed local training merely to recreate identical updates.
+4. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
+   lineages to T3 after backward-compatible setup handling is tested; never
+   restart completed round 1.
 5. **P2.2 paper artifacts — parallel CPU lane:** assemble all tables/figures
    whose values are already closed, retaining explicit placeholders only for
-   P1.8/P1.5/P1.3/P0.8b.
+   P1.5/P1.3/P0.8b.
 6. **P2.3 reviewer QA/freeze — final:** resolve every value to provenance,
    audit claims and limitations, then freeze code/result SHAs.
 
@@ -46,34 +44,31 @@ specific residual failure that the canonical method does not address.
 
 ## Ordered work
 
-### 0. Upgrade the federated privacy boundary with Secure Aggregation — replay active
+### 0. Validate optional Secure Sum compatibility — complete
 
 - [x] Design P1.8 as a protocol layer over the existing sample-weighted LoRA
   FedAvg objective; do not add DP noise, clipping, robust aggregation, or a new
   client weighting rule.
-- [x] Freeze numeric encoding, pairwise masking/key establishment, minimum
-  completion threshold, dropout recovery, and the semi-honest/non-collusion
-  threat model before adding a production command.
+- [x] Freeze numeric encoding, pairwise masking, minimum completion threshold,
+  dropout-recovery simulation, and the local-simulator claim boundary before
+  adding a production command.
 - [x] Add equivalence, threshold/dropout, incompatible-input, and server
   transcript/artifact-boundary tests.
-- [-] Replay every retained paper FL aggregation from its saved client
-  adapters. Record both aggregate fingerprints and numeric diagnostics.
-- [ ] Reuse existing downstream EX only when decoded versus plaintext FedAvg
-  passes `max_abs_error <= 1e-6`, cosine similarity `>= 0.999999999`, and the
-  validation slice has identical predictions/EX; otherwise rerun the affected
-  server stage/evaluation. Record bit identity as a diagnostic, not a gate.
-- [ ] Measure masking/aggregation/recovery time, host RAM, crypto metadata, and
-  communication expansion separately from model training.
-- [x] Make secure aggregation the CLI default for every new federated run. Keep
-  plaintext FedAvg only as a test oracle/debug backend.
-- [ ] After acceptance, revise Method, architecture figure, claim matrix, and
-  limitations to state secure aggregation against a semi-honest server while
-  preserving explicit no-DP/no-final-model-leakage/no-poisoning boundaries.
+- [x] Replay one canonical five-client, 18,464,768-parameter aggregation and
+  record numerical diagnostics plus overhead: maximum error `3.7253e-9`,
+  cosine `0.9999999999999983`, `7.1147 s`, and about `49.93%` communication
+  expansion.
+- [x] Keep accuracy lineages on explicit plaintext weighted FedAvg. Do not
+  relabel or replay every historical result because Secure Sum does not change
+  the scientific objective.
+- [x] Restore plaintext as the normal accuracy-experiment default. Require
+  explicit `--aggregation-protocol secure_sum` only for a dedicated audit.
+- [x] Scope the claim to compatibility with a local pairwise-mask simulator;
+  do not claim end-to-end MPC deployment, DP, final-model leakage protection,
+  or poisoning defense.
 
-**Done when:** every FL result retained by the paper has a secure replay record
-or a newly secure-produced lineage, future commands cannot silently select
-plaintext aggregation, and the privacy/communication claims resolve to
-measured artifacts.
+**Done:** P1.8 supports a separate compatibility/overhead row. It is not a gate
+for FedProx, stronger-skew, seed reliability, or historical EX.
 
 ### 1. Close the seed-1 convergence observations — complete
 
@@ -187,7 +182,7 @@ the stronger-skew audit demonstrate a specific unresolved drift problem.
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
 
-### 6. Add a stronger federated baseline — gated after P1.8
+### 6. Add a stronger federated baseline — active design
 
 - [-] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
@@ -218,11 +213,11 @@ optimizer or the omission and claim boundary are explicit.
 **Done when:** one controlled sensitivity supports the claim or the manuscript
 falls back transparently to the fixed-partition scope.
 
-### 8. Close final training-seed reporting — gated after P1.8
+### 8. Close final training-seed reporting — legacy-setup gated
 
-- [ ] Replace the preserved plaintext P0.8b command only after the secure
-  backend and transition contract close; it remains scientifically independent
-  of the P1.5/P1.3 outcomes.
+- [ ] Add and test backward compatibility for pre-P1.8 plaintext `setup.json`,
+  then reactivate the preserved continuation; it remains scientifically
+  independent of the P1.5/P1.3 outcomes.
 - [ ] Continue the existing canonical seed-2 T1 FL/FedLS lineages through
   T2/T3; do not restart round 1.
 - [ ] Report the three-seed T3 FL, FedLS, and paired-delta mean with sample SD.
@@ -266,7 +261,7 @@ documented failure hypothesis and matched gate.
 
 ## Submission-readiness gate
 
-The paper is ready to freeze when P1.8 and items 1–5 and 10 are complete, the
+The paper is ready to freeze when items 1–5 and 10 are complete, the
 FedProx and stronger-skew gates are recorded, the
 federated-7B wording is resolved, and final seed reporting is either completed
 or transparently limited to the two positive T3 seeds. Three T3 seeds remain

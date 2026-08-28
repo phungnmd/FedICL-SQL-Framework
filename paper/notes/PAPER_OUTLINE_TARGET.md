@@ -118,7 +118,9 @@ figure: `paper/drafts/figures/fedls_sql_architecture.svg`.
 - Client-private schemas and NL-SQL pairs.
 - Public server pool.
 - Shared SLM architecture across clients and larger frozen server teacher.
-- No formal DP, secure aggregation, or model-update leakage guarantee.
+- Structural locality is not DP or a model-update leakage guarantee.
+- Optional local pairwise-mask Secure Sum compatibility/overhead audit;
+  explicitly not an end-to-end MPC deployment or an accuracy component.
 
 ### 3.2 Overall architecture and round lifecycle
 
@@ -144,7 +146,8 @@ Define private CE, LoRA configuration, local epochs, and transmitted objects.
 ### 3.5 Federated aggregation
 
 Define sample-weighted factor-wise FedAvg. Present it as the protocol, not a
-new optimizer.
+new optimizer. Describe Secure Sum only as an optional audited wrapper around
+the same weighted sum.
 
 ### 3.6 Server-side large-to-small transfer
 
@@ -153,7 +156,8 @@ vocabulary/token-ID compatibility requirement for full-vocabulary KL.
 
 ### 3.7 Communication, deployment, and privacy properties
 
-Separate structural properties from empirical resource measurements.
+Separate structural properties, optional Secure Sum compatibility/overhead,
+and empirical deployment-resource measurements.
 
 ## 4. Experiments
 

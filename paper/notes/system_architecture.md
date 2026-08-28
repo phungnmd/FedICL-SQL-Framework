@@ -16,8 +16,8 @@ communication-efficiency, and resource advantages.
 
 This is the advisor-level target. Operationally, “overcome” means a validated
 EX improvement over matched pure FL and competitiveness with centralized SLM
-training; the implemented aggregation path masks individual adapter updates
-from a semi-honest server while keeping the same weighted FedAvg objective;
+training; privacy means client-row locality, with a separately evaluated
+optional Secure Sum compatibility layer rather than a formal MPC/DP claim;
 communication is measured from adapter tensors; resource advantage is scoped
 to the completed P1.1b-v2 deployment-inference benchmark; and a
 direct comparison with large-model FL requires the separate federated-7B gate.
@@ -41,11 +41,11 @@ clients; the current headline split uses `K=5`, Dirichlet `alpha=0.5`, seed 0.
 
 Only LoRA adapter parameters are exchanged. Raw rows, database contents,
 schemas, questions, and SQL never leave a client. The server-side teacher sees
-only the public pool. The current implementation securely sums
-sample-weighted LoRA factors with pairwise masks, threshold/dropout recovery,
-and no persisted per-client unmasked tensor at the aggregation boundary. P1.8
-retained-adapter replay is the remaining artifact gate before this replaces
-the older structural-locality wording in the reported result lineage.
+only the public pool. Headline accuracy runs use standard weighted FedAvg and
+therefore support structural data locality, not formal update privacy. P1.8
+separately implements and audits a local pairwise-mask Secure Sum simulator;
+it establishes compatibility and overhead, not an end-to-end cryptographic
+deployment or differential privacy.
 
 ## 3. Models, data, and training units
 
@@ -115,7 +115,8 @@ FOR ROUND t = 1..T
     upload theta_i only
 
   server:
-    secure sample-weighted factor-wise FedAvg -> theta_FL,t
+    sample-weighted factor-wise FedAvg -> theta_FL,t
+      [optional audited pairwise-masked Secure Sum wrapper]
     public CE + reverse-KL distillation -> theta_FedLS,t
     broadcast theta_FedLS,t
 
@@ -138,18 +139,19 @@ L_client = CE(q_student, y_private)
 
 ### 5.2 Federated aggregation
 
-The default CLI aggregator is secure sample-weighted factor-wise FedAvg over
+The canonical accuracy aggregator is sample-weighted factor-wise FedAvg over
 compatible LoRA adapters:
 
 ```text
 theta_FL,t = sum_i (n_i / sum_j n_j) * theta_i,t
 ```
 
-Clients locally mask their weighted factors with cancelling pairwise float64
-masks. The server reconstructs only the weighted sum when the configured
-completion threshold is met. The decoded result must match the plaintext
-FedAvg oracle within `1e-6`; plaintext mode is retained only for testing and
-replay comparison.
+Accuracy experiments select plaintext aggregation explicitly. The optional
+P1.8 layer masks weighted factors with cancelling pairwise float64 masks and
+reconstructs the same sum subject to a completion threshold. Its real
+18,464,768-parameter replay had maximum error `3.7253e-9`, cosine
+`0.9999999999999983`, `7.1147 s` aggregation time, and approximately `49.93%`
+communication expansion. Secure Sum is not an accuracy component.
 
 FLoRA-NA was evaluated but did not improve the retained comparisons and is not
 a contribution of FedLS-SQL.
@@ -261,14 +263,13 @@ Established evidence:
 
 Open evidence gaps:
 
-1. complete P1.8 replay/overhead records for every retained aggregation;
-2. design and run one matched FedProx-LoRA reviewer baseline, or document why
+1. design and run one matched FedProx-LoRA reviewer baseline, or document why
    the paper is scoped to FedAvg-based federated optimization;
-3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+2. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+3. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-5. keep federated 7B absent by default; only an explicit empirical
+4. keep federated 7B absent by default; only an explicit empirical
    large-model-FL sentence can justify reopening one matched T1 feasibility
    reference.
 
