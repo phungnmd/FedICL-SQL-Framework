@@ -5,6 +5,9 @@
 > `PIPELINE_NEXT.md`. Re-rank conditional items whenever an earlier gate changes
 > the manuscript claim.
 
+Quick operator view, including the GPU-ready queue:
+`PAPER_NEXT_TASKS.md`.
+
 ## Status legend
 
 - `[ ]` not started;
@@ -14,8 +17,8 @@
 
 ## Immediate completion plan
 
-Two lanes may progress in parallel, but the experiment lane is strictly
-sequential so that later work responds to earlier evidence:
+Scientific decisions are ordered, while independent GPU-ready work may run
+opportunistically so scarce GPU time is not wasted:
 
 1. **P1.5 FedProx-LoRA — active design:** freeze the matched baseline and
    coefficient rule, implement and test it, then add one safe command and run
@@ -23,8 +26,10 @@ sequential so that later work responds to earlier evidence:
 2. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
    `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
    interpretable gate.
-3. **P0.8b seed 2 — gated after P1.3:** continue the existing T1 lineages to
-   T3 and report three-seed mean/sample SD; never restart round 1.
+3. **P0.8b seed 2 — GPU-ready independently:** continue the existing T1
+   lineages to T3 and report three-seed mean/sample SD; run whenever a suitable
+   GPU is free, even if P1.5/P1.3 CPU preparation is unfinished; never restart
+   round 1.
 4. **P2.2 paper artifacts — parallel CPU lane:** assemble all tables/figures
    whose values are already closed, retaining explicit placeholders only for
    P1.5/P1.3/P0.8b.
@@ -180,9 +185,10 @@ optimizer or the omission and claim boundary are explicit.
 **Done when:** one controlled sensitivity supports the claim or the manuscript
 falls back transparently to the fixed-partition scope.
 
-### 8. Close final training-seed reporting — gated after P1.3
+### 8. Close final training-seed reporting — GPU-ready opportunistically
 
-- [ ] Reactivate `P0.8b` after the higher-value gaps above are closed.
+- [-] Run `P0.8b` whenever a suitable GPU window opens; it is scientifically
+  independent of the P1.5/P1.3 outcomes.
 - [ ] Continue the existing canonical seed-2 T1 FL/FedLS lineages through
   T2/T3; do not restart round 1.
 - [ ] Report the three-seed T3 FL, FedLS, and paired-delta mean with sample SD.

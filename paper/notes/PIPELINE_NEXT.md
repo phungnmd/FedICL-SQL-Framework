@@ -6,6 +6,8 @@
 > The ordered paper backlog and decision gates live in `PAPER_TODO.md`; this
 > file contains only runnable or exactly preserved deferred commands.
 
+For a short purpose/CPU/GPU/readiness view, see `PAPER_NEXT_TASKS.md`.
+
 ## Canonical baseline and innovation gate
 
 The evidence-backed method is held fixed as the canonical fallback and matched
@@ -66,7 +68,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.5    | Matched FedProx-LoRA reviewer baseline                                         | **active design; no command until objective, coefficient rule, implementation, and tests are frozen**     |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; retain placeholders for P1.5/P1.3/P0.8b until their gates close                 |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
-| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | gated after P1.3; resume existing T1 lineages, never restart round 1                                      |
+| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | **GPU-ready opportunistically; independent of P1.5/P1.3; resume T1 lineages, never restart round 1**      |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
 
@@ -80,14 +82,15 @@ do not merge it with the revised independent-repetition protocol.
 
 P1.1b-v2 is complete and closes the scoped deployment-inference component of
 the advisor's scientific question. It does not establish training-resource or
-federated-7B superiority. P0.8b remains intentionally delayed. Archived seed
+federated-7B superiority. P0.8b is GPU-ready and may run during any suitable
+free window because it is independent of the P1.5/P1.3 decisions. Archived seed
 commands must be audited against the current checkpoint/resume contract before
 being copied back here; do not run an old block blindly.
 
 P1.4b, P1.1b, and P2.1 are closed. The next task is to design FedProx-LoRA,
-then audit one stronger-skew T1 screen and close seed-2 T3. Decide federated-7B
-feasibility only if the manuscript retains an empirical large-model-FL
-comparison.
+then audit one stronger-skew T1 screen. The independent seed-2 T3 continuation
+may run in any suitable free GPU window. Decide federated-7B feasibility only
+if the manuscript retains an empirical large-model-FL comparison.
 
 P1.7a is closed. Its fixed global-SLM preference loss reduced Spider EX by
 1.93 points versus positive-only CE, so no full-pool extension,
@@ -127,7 +130,7 @@ The exact command and acceptance record are archived at
 Canonical result commit: `dbd703b`. Do not rerun or launch seed 2
 automatically.
 
-## P0.8b — gated final T3 reliability at seed 2
+## P0.8b — GPU-ready final T3 reliability at seed 2
 
 **Purpose when reactivated:** close the three-training-seed reliability result after seed 1
 replicated the final FedLS-SQL gain (`+3.77` Spider EX, `p=0.00483`). Seed 2
@@ -135,7 +138,7 @@ already has canonical T1 checkpoints. This command extends those exact
 lineages through rounds 2 and 3 and evaluates only the final Spider endpoints;
 it does not retrain round 1.
 
-This block is retained for exact future resumption after P1.3 but is not active. The
+This block is ready for exact resumption whenever the selected GPU is free. The
 preflight pins seed-2 setup identities (`8b02d882...` for pure FL and
 `99aa70ed...` for FedLS-SQL). Every stage is independently resumable by
 rerunning this exact line. Do not replace it with `run --rounds 3`, change the
