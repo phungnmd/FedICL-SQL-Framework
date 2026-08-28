@@ -24,7 +24,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | complete in `RELATED_WORK_NOVELTY_MATRIX.md`; title narrowed; FedCoLLM and Struct-SQL are the closest priors |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
-| P1 | optimizer baseline | matched FedProx-LoRA | next experiment design; implementation and coefficient rule must be frozen before a command |
+| P1 | optimizer baseline | matched FedProx-LoRA (`mu=0.01`, client-only proximal loss, plaintext weighted FedAvg) | implementation/fingerprints complete; 334 tests pass; P1.5a GPU smoke active before one T3 run |
 | P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | closed negative: 54.93 vs 56.87 EX, 22 more execution errors; no full-pool extension or tuning |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |

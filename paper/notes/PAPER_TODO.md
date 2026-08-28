@@ -23,9 +23,9 @@ opportunistically so scarce GPU time is not wasted:
 1. **P1.8 Secure Sum compatibility — complete:** implementation, tests, one
    real canonical replay, numerical equivalence, and overhead evidence are
    closed. It is optional and separate from accuracy lineages.
-2. **P1.5 FedProx-LoRA — active design:** freeze the matched baseline and
-   coefficient rule, implement and test it, then add one safe command and run
-   the minimum headline comparison.
+2. **P1.5 FedProx-LoRA — smoke ready:** the matched objective, `mu=0.01`,
+   implementation, fingerprints, and tests are frozen; run P1.5a, review it,
+   then add exactly one production command.
 3. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
    `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
    interpretable gate.
@@ -184,12 +184,17 @@ restated as a structural/deterministic property.
 
 ### 6. Add a stronger federated baseline — active design
 
-- [-] Design one matched FedProx-LoRA baseline using the same Qwen student,
+- [x] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
-- [-] Predeclare the proximal coefficient selection rule without tuning on the
-  Spider test set.
-- [ ] Add a PowerShell single-line, fail-fast, exact-resume command only after
-  the design/config support is verified.
+- [x] Predeclare `mu=0.01` before any FedProx Spider evaluation; do not sweep or
+  select it on the test set.
+- [x] Implement the client-only proximal loss, round-start reference,
+  setup/client/trainer fingerprints, metrics, and server-stage isolation;
+  334 tests and lint pass.
+- [x] Add the P1.5a PowerShell single-line, fail-fast, exact-resume smoke command
+  after design/config verification.
+- [ ] Run and review P1.5a; require nonzero proximal loss on all five clients
+  and a completed plaintext weighted FedAvg adapter.
 - [ ] Run only the minimum baseline needed for the headline comparison.
 - [ ] If FedProx cannot be run, document the omission and avoid presenting
   FedAvg as representative of all federated optimizers.

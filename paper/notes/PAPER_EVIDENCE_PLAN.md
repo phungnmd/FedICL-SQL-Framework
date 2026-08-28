@@ -104,8 +104,9 @@ The experimental phase is ready to freeze when all mandatory items hold:
 P0.8a, P0.8a-E, P1.1b-v2, and P2.1 are complete. Accuracy, scoped deployment
 resources, and Method drafting no longer block the remaining parts of the
 advisor question. The scoped P1.8 compatibility audit is complete and no
-longer gates accuracy work. FedProx-LoRA design/run and one audited
-stronger-skew T1 gate follow. Paper table/figure assembly runs in parallel from
+longer gates accuracy work. FedProx-LoRA implementation and its frozen
+`mu=0.01` rule are complete; the P1.5a GPU smoke and one gated production run
+come next, followed by one audited stronger-skew T1 gate. Paper table/figure assembly runs in parallel from
 already-closed evidence. Federated 7B is excluded by default and becomes
 relevant only if a direct empirical large-model-FL claim is reintroduced.
 
@@ -119,7 +120,7 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
 | CPU complete | 6 | P1.8 optional Secure Sum compatibility | real 18.46M-parameter replay passed at `6c67e79`; about `49.93%` communication expansion |
-| Design active | 7 | P1.5 matched FedProx-LoRA | freeze coefficient rule, implementation, tests, and matched plaintext contract before adding a command |
+| GPU ready | 7 | P1.5a matched FedProx-LoRA smoke | client-only proximal loss, `mu=0.01`, fingerprints, and 334 tests complete; exercise all clients and plaintext aggregation before one T3 production run |
 | CPU active | 7P | P2.2 paper tables/figures | assemble closed cells in parallel, including the separate P1.8 compatibility/overhead row |
 | Design gated | 8 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
 | GPU gated | 9 | P0.8b pure-FL/FedLS T3 seed 2 | blocked by backward compatibility for its legacy plaintext setup, not by Secure Sum |

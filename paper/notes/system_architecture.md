@@ -263,8 +263,9 @@ Established evidence:
 
 Open evidence gaps:
 
-1. design and run one matched FedProx-LoRA reviewer baseline, or document why
-   the paper is scoped to FedAvg-based federated optimization;
+1. run the implemented matched FedProx-LoRA reviewer baseline (`mu=0.01`) after
+   its integration smoke, or document why the paper is scoped to FedAvg-based
+   federated optimization;
 2. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
 3. seed 2 remains the path to a final three-seed T3 mean and sample SD after
@@ -300,8 +301,10 @@ recovery tag are recorded only in the closed-branch archive.
 
 Ungrounded LoRA aggregation changes are not an active direction. Existing
 FLoRA-NA and exact rank-preserving/rank-expanded diagnostics showed no material
-accuracy headroom at the current `K=5, T=1` configuration. FedProx remains a
-possible baseline. A new federated mechanism is deferred until FedProx and
+accuracy headroom at the current `K=5, T=1` configuration. FedProx is now an
+implemented reviewer baseline, not part of FedLS-SQL: it adds
+`(mu/2)||theta-theta_t||^2` only to private client LoRA CE and retains the same
+sample-weighted plaintext FedAvg, with no teacher/server stage. A new federated mechanism is deferred until FedProx and
 stronger-skew evidence supplies a concrete residual hypothesis.
 
 The second-family screen tests the full endpoint inside another compatible

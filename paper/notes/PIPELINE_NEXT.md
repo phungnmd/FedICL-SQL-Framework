@@ -66,7 +66,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
-| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | **active design; accuracy runs use explicit plaintext aggregation**                                        |
+| P1.5a   | Matched FedProx-LoRA integration smoke                                         | **GPU-ready; implementation/tests complete, run command below**                                             |
+| P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | gated on P1.5a review; one run only, explicit plaintext aggregation                                        |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
@@ -122,29 +123,41 @@ opt in with `--aggregation-protocol secure_sum`. The default-policy change is
 nested commit `fc7899a`. Exact command and provenance:
 `paper/archive/completed_runbooks/P1_8A_SECURE_SUM_COMPATIBILITY_2026-08-29.md`.
 
-## P1.5 — matched FedProx-LoRA baseline — active design
+## P1.5 — matched FedProx-LoRA baseline — smoke ready
 
 **Purpose:** answer the reviewer objection that the headline comparison uses
 only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
 component or a proposed optimizer contribution.
 
-The design must freeze all of the following before any command is added:
+The frozen design is:
 
-1. the FedProx client objective over trainable LoRA parameters, referenced to
-   the broadcast adapter at the start of each client/round;
-2. a proximal-coefficient rule that does not inspect Spider test EX;
+1. canonical client loss `CE + (mu/2)||theta-theta_t||^2` over trainable LoRA
+   parameters, where `theta_t` is captured from the broadcast adapter before
+   any local optimizer step or crash-checkpoint restore;
+2. `mu=0.01`, fixed on 2026-08-29 before any FedProx Spider evaluation; there
+   is no coefficient sweep or test-set selection;
 3. the same Qwen student, `K=5`, `alpha=0.5` split, LoRA rank, client rows,
    local epoch, optimizer budget, three rounds, seed 0, and evaluation protocol
    as the independent pure-FL headline lineage;
 4. no public teacher stage in the FedProx-only baseline, so it tests whether a
    stronger federated optimizer alone closes the FedLS-SQL accuracy gap;
-5. exact-resume fingerprints, unit tests for the proximal term/reference, and
-   a smoke run before the production PowerShell line;
+5. `client_prox_mu` is locked by the run setup, client-stage fingerprint, and
+   trainer resume signature; the mathematical/wiring tests pass in the full
+   334-test suite;
 6. one production run only, followed by Spider EX/execution-error comparison
    with pure FL, centralized-standard, and FedLS-SQL.
 
-Do not add a coefficient sweep, tune on Spider test, combine FedProx with a new
-KD objective, or start P1.3 before this design gate is resolved.
+P1.5a deliberately uses two client micro-steps and `grad_accum=1`, so the
+second step observes a nonzero distance from the round-start reference. It is
+an integration/resume smoke, not paper accuracy evidence. Rerunning the exact
+line resumes/skips completed stages safely.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15a_fedprox_mu001_noicl_k5_e1_t1_smoke_s0'; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-max-steps 2 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 1 --max-len 2560 --save-steps 1 --aggregation-protocol plaintext --out $R --seed 0 --stage p15a; if ($LASTEXITCODE -ne 0) { throw 'P1.5a FedProx smoke failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none') { throw 'P1.5a setup contract mismatch' }; foreach ($I in 1..5) { $A="$R/round_1/client_$I/adapter/adapter_config.json"; $M="$R/round_1/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5a client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0) { throw "FedProx objective was not exercised for client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_1/fedavg_adapter/adapter_config.json")) { throw 'Missing P1.5a weighted FedAvg output' }; Write-Host 'P1.5a complete: client-only FedProx objective, fingerprints, resume path, and plaintext weighted FedAvg integration passed; stop and review before P1.5b'
+```
+
+Do not add/launch P1.5b, sweep `mu`, combine FedProx with a teacher stage, or
+start P1.3 until the P1.5a artifacts are reviewed.
 
 ## P0.8a-E — complete
 
