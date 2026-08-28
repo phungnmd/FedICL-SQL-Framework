@@ -12,6 +12,29 @@
 - `[x]` complete;
 - `GATE` requires a documented decision before a command is activated.
 
+## Immediate completion plan
+
+Two lanes may progress in parallel, but the experiment lane is strictly
+sequential so that later work responds to earlier evidence:
+
+1. **P1.5 FedProx-LoRA — active design:** freeze the matched baseline and
+   coefficient rule, implement and test it, then add one safe command and run
+   the minimum headline comparison.
+2. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
+   `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
+   interpretable gate.
+3. **P0.8b seed 2 — gated after P1.3:** continue the existing T1 lineages to
+   T3 and report three-seed mean/sample SD; never restart round 1.
+4. **P2.2 paper artifacts — parallel CPU lane:** assemble all tables/figures
+   whose values are already closed, retaining explicit placeholders only for
+   P1.5/P1.3/P0.8b.
+5. **P2.3 reviewer QA/freeze — final:** resolve every value to provenance,
+   audit claims and limitations, then freeze code/result SHAs.
+
+Federated 7B and additional model/rank/client/public-pool sweeps are excluded
+by default. A new method branch may start only if P1.5 or P1.3 exposes a
+specific residual failure that the canonical method does not address.
+
 ## Ordered work
 
 ### 1. Close the seed-1 convergence observations — complete
@@ -57,7 +80,7 @@ from a terminal log or lacks a formula/provenance path.
 **Done when:** every contribution has a nearest-work comparison and no claim
 implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 
-### 4. Draft the method and core paper artifacts — mandatory CPU/writing
+### 4. Draft the method and core paper artifacts — active parallel CPU lane
 
 - [x] Create the evidence-mapped manuscript skeleton in
   `MANUSCRIPT_SKELETON.md`.
@@ -70,7 +93,7 @@ implies that generic FL+KD, FedAvg-LoRA, or LLM-SLM collaboration is new.
 - [x] Create and visually verify the vector architecture/data-flow figure with
   private/public and client/server/deployment boundaries at
   `paper/drafts/figures/fedls_sql_architecture.svg`.
-- [ ] Draft the main accuracy, matched ablation, convergence, Gemma
+- [-] Draft the main accuracy, matched ablation, convergence, Gemma
   portability, efficiency, and error-analysis tables/figures.
 - [x] State explicitly: EX is primary; privacy is structural rather than DP;
   RKL is auxiliary; no federated-7B empirical comparison exists.
@@ -126,11 +149,11 @@ the stronger-skew audit demonstrate a specific unresolved drift problem.
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
 
-### 6. Add a stronger federated baseline — next experiment design
+### 6. Add a stronger federated baseline — active experiment design
 
-- [ ] Design one matched FedProx-LoRA baseline using the same Qwen student,
+- [-] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
-- [ ] Predeclare the proximal coefficient selection rule without tuning on the
+- [-] Predeclare the proximal coefficient selection rule without tuning on the
   Spider test set.
 - [ ] Add a PowerShell single-line, fail-fast, exact-resume command only after
   the design/config support is verified.
@@ -141,7 +164,7 @@ restated as a structural/deterministic property.
 **Done when:** the headline table includes one matched stronger federated
 optimizer or the omission and claim boundary are explicit.
 
-### 7. Test one controlled non-IID sensitivity — advisor-aligned RQ3
+### 7. Test one controlled non-IID sensitivity — gated after P1.5
 
 - [x] Select the minimal-sensitivity path rather than the full IID/quantity/
   SQL-pattern Cartesian suite proposed in the August outline.
@@ -157,7 +180,7 @@ optimizer or the omission and claim boundary are explicit.
 **Done when:** one controlled sensitivity supports the claim or the manuscript
 falls back transparently to the fixed-partition scope.
 
-### 8. Close final training-seed reporting — deferred GPU
+### 8. Close final training-seed reporting — gated after P1.3
 
 - [ ] Reactivate `P0.8b` after the higher-value gaps above are closed.
 - [ ] Continue the existing canonical seed-2 T1 FL/FedLS lineages through

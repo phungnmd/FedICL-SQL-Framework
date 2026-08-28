@@ -81,8 +81,9 @@ rather than preserving the draft structure:
 2. Round-wise convergence and robustness under the current non-IID partition.
 3. Matched supervision/KD ablation and training-seed reliability.
 4. Communication payload and controlled accuracy/resource trade-offs.
-5. Conditional teacher/student-size, LoRA-rank, client-count, FedProx, and
-   broader-skew evidence; absent sweeps are not implied to be complete.
+5. One matched FedProx-LoRA reviewer baseline and one gated stronger-skew
+   sensitivity; teacher/student-size, LoRA-rank, and client-count sweeps remain
+   optional and absent sweeps are not implied to be complete.
 6. Error analysis by execution validity, EX-EM disagreement, SQL difficulty,
    and validated failure categories.
 

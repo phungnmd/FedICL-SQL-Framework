@@ -59,7 +59,8 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 - T1 server-stage improvement has three-seed evidence.
 - The final T3 FedLS-SQL advantage has replicated at seeds 0 and 1 (`+5.23`
   and `+3.77` EX). This is sufficient for the current direction decision;
-  seed 2 remains desirable for final three-seed reporting but is deferred.
+  seed 2 remains desirable for final three-seed reporting and is gated after
+  P1.3.
 - The matched public-supervision ladder shows that equal-row public-gold CE
   does not explain the teacher-target gain.
 - Pure-FL and FedLS-SQL T1-T3 convergence trajectories exist.
@@ -93,12 +94,13 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 ### Current execution state — advisor-aligned completion path
 
-P0.8a, P0.8a-E, and P1.1b-v2 are complete. Accuracy and scoped deployment
-resources no longer block the remaining parts of the advisor question. Draft
-the method/architecture figure, then design one matched FedProx-LoRA baseline
-and one audited stronger-skew sensitivity. Seed 2 closes final reliability
-after these higher-value gaps. Federated 7B is excluded by default and becomes
-relevant only if a direct empirical large-model-FL claim is reintroduced.
+P0.8a, P0.8a-E, P1.1b-v2, and P2.1 are complete. Accuracy, scoped deployment
+resources, and Method drafting no longer block the remaining parts of the
+advisor question. The experiment lane is now strictly FedProx-LoRA design/run,
+one audited stronger-skew T1 gate, then seed-2 T3. Paper table/figure assembly
+runs in parallel from already-closed evidence. Federated 7B is excluded by
+default and becomes relevant only if a direct empirical large-model-FL claim
+is reintroduced.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
@@ -109,9 +111,10 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | CPU complete | 3 | Method prose and architecture/privacy-boundary figure | paper-ready draft and verified vector figure under `paper/drafts/` |
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
-| Design | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule and matched scientific contract before adding a command |
-| Design | 7 | P1.3 one audited stronger-skew sensitivity | keep `K=5` and source rows fixed; T1 screen before any T3 extension |
-| GPU deferred | 8 | P0.8b pure-FL/FedLS T3 seed 2 | final three-seed reporting after resource/baseline/sensitivity gaps |
+| Design active | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule, implementation, tests, and matched contract before adding a command |
+| CPU active | 6P | P2.2 paper tables/figures | assemble closed cells in parallel; do not freeze P1.5/P1.3/P0.8b placeholders |
+| Design gated | 7 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| GPU gated | 8 | P0.8b pure-FL/FedLS T3 seed 2 | after P1.3; resume existing T1 lineages for final three-seed reporting |
 | Claim gate | 9 | P1.6 federated-7B feasibility | default excluded; reopen only if the paper retains empirical comparison with large-model FL |
 
 ### P1.1a — implement a shared-server resource benchmark
@@ -232,12 +235,12 @@ is absent from clients/deployment and client network payload is adapter-only.
 ### P0.8 — final T3 training-seed reliability
 
 **Status:** seed 1 final endpoint and full trajectory are complete and
-positive; seed 2 is deferred. The trajectory completion is registered at
-result commit `dbd703b`.
+positive; seed 2 is gated after P1.3. The trajectory completion is registered
+at result commit `dbd703b`.
 
 Reliability extensions use only independent pure FL and frozen FedLS-SQL on
-the existing split. Seed 1 is complete; seed 2 resumes only when final
-three-seed reporting is prioritized.
+the existing split. Seed 1 is complete; seed 2 resumes after the P1.3 decision
+when final three-seed reporting becomes the next experiment gate.
 
 Seed 1 reaches 61.99 EX for pure FL and 65.76 for FedLS-SQL (`+3.77`), with
 111 paired corrections versus 72 regressions (`p=0.00483`) and execution
@@ -249,7 +252,7 @@ Seed 2 resumes the already-established canonical T1 roots
 and 3 explicitly. Restarting a three-round loop from round 1 or creating a new
 pure-FL seed-2 root would break the intended lineage and is prohibited.
 
-Deferred seed-2 decision gate:
+Seed-2 decision gate:
 
 - seed 2 positive: report the three-seed mean and sample SD and retain
   the headline claim;
@@ -416,8 +419,9 @@ Other former candidates are inactive:
 ## 8. Current next actions
 
 Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, P1.1b-v2, P2.1, and
-the negative P1.7a gate are complete. Design the matched FedProx-LoRA baseline,
-then run one stronger-skew screen and seed-2 T3. Keep federated 7B excluded
-unless the manuscript later
+the negative P1.7a gate are complete. Design and run the matched FedProx-LoRA
+baseline, then run one stronger-skew T1 gate and seed-2 T3. Assemble closed
+paper tables/figures in parallel, but do not freeze them before these three
+experiment decisions. Keep federated 7B excluded unless the manuscript later
 introduces a direct empirical large-model-FL claim. Do not add a model family,
 OOD seed sweep, or hyperparameter Cartesian sweep by default.

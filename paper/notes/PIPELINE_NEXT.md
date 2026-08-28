@@ -63,9 +63,10 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P2.1    | Method prose and architecture/privacy-boundary figure                          | complete: paper-ready draft and verified SVG under `paper/drafts/`                                        |
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
-| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | next experiment design; no command until implementation and coefficient gates are approved                |
-| P1.3    | One audited stronger-skew sensitivity                                          | advisor-aligned RQ3 design; preserve `K=5`/source rows and screen T1 before T3                            |
-| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | deferred; two positive T3 seeds are sufficient for the current direction decision                         |
+| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | **active design; no command until objective, coefficient rule, implementation, and tests are frozen**     |
+| P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; retain placeholders for P1.5/P1.3/P0.8b until their gates close                 |
+| P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
+| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | gated after P1.3; resume existing T1 lineages, never restart round 1                                      |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
 
@@ -95,6 +96,30 @@ canonical verified-target CE plus auxiliary RKL method is unchanged. A future
 method proposal must begin from a new evidence-backed hypothesis rather than
 retuning P1.7a.
 
+## P1.5 — matched FedProx-LoRA baseline — active design
+
+**Purpose:** answer the reviewer objection that the headline comparison uses
+only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
+component or a proposed optimizer contribution.
+
+The design must freeze all of the following before any command is added:
+
+1. the FedProx client objective over trainable LoRA parameters, referenced to
+   the broadcast adapter at the start of each client/round;
+2. a proximal-coefficient rule that does not inspect Spider test EX;
+3. the same Qwen student, `K=5`, `alpha=0.5` split, LoRA rank, client rows,
+   local epoch, optimizer budget, three rounds, seed 0, and evaluation protocol
+   as the independent pure-FL headline lineage;
+4. no public teacher stage in the FedProx-only baseline, so it tests whether a
+   stronger federated optimizer alone closes the FedLS-SQL accuracy gap;
+5. exact-resume fingerprints, unit tests for the proximal term/reference, and
+   a smoke run before the production PowerShell line;
+6. one production run only, followed by Spider EX/execution-error comparison
+   with pure FL, centralized-standard, and FedLS-SQL.
+
+Do not add a coefficient sweep, tune on Spider test, combine FedProx with a new
+KD objective, or start P1.3 before this design gate is resolved.
+
 ## P0.8a-E — complete
 
 The exact command and acceptance record are archived at
@@ -102,7 +127,7 @@ The exact command and acceptance record are archived at
 Canonical result commit: `dbd703b`. Do not rerun or launch seed 2
 automatically.
 
-## P0.8b — deferred final T3 reliability at seed 2
+## P0.8b — gated final T3 reliability at seed 2
 
 **Purpose when reactivated:** close the three-training-seed reliability result after seed 1
 replicated the final FedLS-SQL gain (`+3.77` Spider EX, `p=0.00483`). Seed 2
@@ -110,7 +135,7 @@ already has canonical T1 checkpoints. This command extends those exact
 lineages through rounds 2 and 3 and evaluates only the final Spider endpoints;
 it does not retrain round 1.
 
-This block is retained for exact future resumption but is not active. The
+This block is retained for exact future resumption after P1.3 but is not active. The
 preflight pins seed-2 setup identities (`8b02d882...` for pure FL and
 `99aa70ed...` for FedLS-SQL). Every stage is independently resumable by
 rerunning this exact line. Do not replace it with `run --rounds 3`, change the

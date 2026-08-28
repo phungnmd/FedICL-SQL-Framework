@@ -15,7 +15,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P0 | method-signal triage | client execution-result plurality, Spider prefix cascade, and execution-verified preference inventory from existing predictions | complete diagnostic: all gates pass; plurality proxy is strongest (`+10.55` public EX), but no training gain is established |
 | P0 | next KD/Federated direction | hard-LLM-target CE vs the same CE + sparse client-ensemble FKL from a shared FedAvg initialization | closed negative: full-pool FedDF is 1.17 EX below hard-target CE and adds 30 execution errors |
 | P1 | teacher ceiling | 4-bit Gemma 9B zero-shot on Spider | optional contextual reference; does not decide method |
-| P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for the current direction decision, seed 2 deferred for final reporting |
+| P1 | headline reliability | final T3 pure FL vs full FedLS-SQL on Spider across training seeds | seeds 0/1 complete and positive (`+5.23`, `+3.77` EX); sufficient for the current direction decision, seed 2 gated after P1.3 for final reporting |
 | P1 | RQ3 convergence | Pure FL and FedLS-SQL at T1, T2, T3 | complete at seeds 0/1; seed-1 FedLS T1→T3 `+3.29` EX (`p=0.00266`), pure FL plateaus T2→T3 |
 | P1 | RQ3 generalization | Spider, Realistic, Syn, DK, and BIRD | seed 0 complete; replication gated |
 | P1 | RQ4 communication | adapter parameters/bytes per client, round, and total | complete at nested result commit `147f455`: 18,464,768 FP32 LoRA parameters; 738,590,720 logical tensor bytes/round; 2,215,772,160 through T3 |
@@ -75,8 +75,9 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    is archived; do not tune or extend it.
 8. Treat P1.1b-v2 as complete scoped deployment evidence: the student is
    `2.09x` faster and uses `48.73%` less allocated VRAM than the 4-bit teacher.
-9. Draft the method and architecture figure from `MANUSCRIPT_SKELETON.md`,
-   then design/run one matched FedProx-LoRA baseline, audit and screen one
-   stronger-skew split at T1, and close seed-2 T3. Decide federated-7B
+9. Treat the Method and architecture figure as complete. Design/run one
+   matched FedProx-LoRA baseline, audit and screen one stronger-skew split at
+   T1, and then close seed-2 T3. Assemble closed paper figures in parallel and
+   decide federated-7B
    feasibility only if introducing the corresponding empirical claim. Keep
    teacher ceilings and all model/rank/client sweeps optional.

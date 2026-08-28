@@ -1,6 +1,6 @@
 # FedLS-SQL — active lab log
 
-> Refreshed 2026-08-28. This is the compact decision ledger for the current
+> Refreshed 2026-08-29. This is the compact decision ledger for the current
 > paper. The complete chronology through this date is preserved at
 > `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`.
 
@@ -90,7 +90,7 @@ decisions. It deliberately does not own result tables:
   The mixed-lineage pre-server advantage over pure FL reaches `+2.71` at T3
   (`p=0.0193`), showing retained earlier server knowledge. Incremental T2/T3
   server EX gains are positive but not separately significant; their execution
-  errors fall 195→121 and 156→126. P0.8b seed 2 remains deferred.
+  errors fall 195→121 and 156→126. P0.8b seed 2 is gated after P1.3.
 - The 2026-08-24 method review concludes that existing evidence is sufficient
   for a defensible FedLS-SQL workflow paper, but not for a new RKL objective
   claim. P0.9a retained global public error state as a candidate feature, but
@@ -260,10 +260,13 @@ currently justify.
 
 The canonical ordered backlog is `PAPER_TODO.md`. Immediate execution is:
 
-1. Design and run one matched FedProx-LoRA reviewer baseline; P2.1 Method prose
-   and the architecture/privacy-boundary figure are complete.
-2. Audit one stronger-skew T1 screen, then close deferred seed-2 T2/T3.
-3. Federated-7B feasibility only if introducing that empirical claim, followed
+1. Design, implement, smoke-test, and run one matched FedProx-LoRA reviewer
+   baseline; no command exists until its objective/coefficient/tests are frozen.
+2. After P1.5, audit one stronger-skew T1 screen; extend only after its gate.
+3. After P1.3, resume the existing seed-2 T1 lineages through T3.
+4. In parallel, assemble closed paper tables/figures; freeze them only after
+   the three experiment decisions above.
+5. Federated-7B feasibility only if introducing that empirical claim, followed
    by final claim/evidence QA and manuscript freeze.
 
 FedProx is a recommended reviewer baseline rather than a method direction.
@@ -370,6 +373,7 @@ internal artifact identities.
 | 2026-08-28 | Closed P1.7a at its preregistered 512-row gate. `global_pref512` reached 54.93 EX/26.89 EM with 252 execution errors versus 56.87/31.91 and 230 for matched `positive_ce512`: `-1.93` EX, 45/65 paired wins/losses, exact McNemar `p=0.069565`, and 22 more errors. It fails both gates, so no coefficient, pair-subset, or full-3,873 continuation is allowed. Removed active code/data at nested `7de7840` (321 tests passed), then archived exact evaluation and federated-result artifacts at `74f0a43`; recovery remains at tag `archive/p017-preference-kd-implementation`. The archived training timing is ineligible because the run resumed and reused shared stages. |
 | 2026-08-28 | Pulled and validated canonical P1.1b-v2 resource result commit `1c82be5`, fingerprint `60665e60...`. Both roles completed 5/5 fresh eligible repetitions over identical deterministic 32-row Spider inputs with two warm-up rows, batch size 4, and model loading/SQL scoring excluded. The BF16 T3 FedLS-SQL student records median 0.7873 s/query (IQR 0.0671), 1.2701 queries/s, 3,474.6/3,684.7 MB allocated/reserved VRAM, and 1,815.2 MB RSS; the 4-bit 7B teacher records 1.6460 s/query (IQR 0.0100), 0.6075 queries/s, 6,776.8/7,044.3 MB, and 2,021.0 MB RSS. The student is `2.09x` faster and reduces allocated VRAM by `48.73%`. This closes scoped deployment inference only; it is not training, energy, concurrency, full-test, hardware-exclusivity, or federated-7B evidence. Exact runbook is archived under `completed_runbooks/P1_1B_RESOURCE_BENCHMARK_2026-08-28.md`. |
 | 2026-08-29 | Completed P2.1. Added paper-ready Method prose at `paper/drafts/FEDLS_SQL_METHOD.md`, grounded against the active round-loop, aggregation, trainer, and reverse-KL implementations. It defines the structural data-isolation boundary, teacher-specific two-stage EX selector, sample-weighted factor-wise FedAvg, recurring CE+auxiliary-RKL server stage, mixed-lineage warning, adapter communication, and SLM-only deployment claim limits. Added and visually verified the editable vector figure `paper/drafts/figures/fedls_sql_architecture.svg`; it separates public/server, client-private, recurring round, and deployment zones and shows only LoRA tensors crossing the boundary. P1.5 FedProx-LoRA design is now the next active task. |
+| 2026-08-29 | Reconciled the post-P2.1 completion plan. The sequential experiment lane is now P1.5 matched FedProx-LoRA, P1.3 one audited stronger-skew T1 gate, then P0.8b seed-2 T3; each later stage waits for the preceding decision. P2.2 table/figure assembly may proceed in parallel from closed evidence, but final freeze waits for those gates. P1.5 is a FedProx-only reviewer baseline with no teacher stage; its objective, non-test coefficient rule, implementation/tests, smoke, resume contract, and matched seed-0 budget must be frozen before a production command. Removed stale Method-next and client/server training-resource promises. Federated 7B and broad sweeps remain excluded by default. |
 
 ## 8. Archived branches
 

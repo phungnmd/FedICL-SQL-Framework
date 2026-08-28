@@ -203,11 +203,11 @@ controlled size effect or a family-independent RKL gain.
 
 - Trainable parameters, logical tensor payload, and serialized-file audit.
 - Upload, broadcast, per-round, and T3 cumulative communication.
-- Client LoRA process memory.
-- Server-KD process memory.
 - Student versus teacher deployment inference latency, throughput, and memory.
 - Repeated shared-server protocol, fresh-run count, descriptive GPU telemetry,
   median, and dispersion.
+- Do not claim measured client/server training-resource savings; these
+  microbenchmarks were deliberately omitted after narrowing RQ4.
 
 ### 4.7 EX-oriented error and mechanism analysis
 
