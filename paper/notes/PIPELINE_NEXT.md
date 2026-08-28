@@ -65,10 +65,11 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P2.1    | Method prose and architecture/privacy-boundary figure                          | complete: paper-ready draft and verified SVG under `paper/drafts/`                                        |
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
-| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | **active design; no command until objective, coefficient rule, implementation, and tests are frozen**     |
-| P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; retain placeholders for P1.5/P1.3/P0.8b until their gates close                 |
+| P1.8    | Secure weighted aggregation and retained-result replay                         | implementation complete at nested `3c21b96`; P1.8a retained-adapter replay is ready                         |
+| P1.5    | Matched FedProx-LoRA reviewer baseline                                         | gated after P1.8; every new federated run must use the secure backend                                     |
+| P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; privacy/communication cells remain provisional until P1.8 closes               |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
-| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | **GPU-ready opportunistically; independent of P1.5/P1.3; resume T1 lineages, never restart round 1**      |
+| P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | gated on P1.8; continue through secure aggregation without retraining completed local work unnecessarily  |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
 
@@ -82,15 +83,16 @@ do not merge it with the revised independent-repetition protocol.
 
 P1.1b-v2 is complete and closes the scoped deployment-inference component of
 the advisor's scientific question. It does not establish training-resource or
-federated-7B superiority. P0.8b is GPU-ready and may run during any suitable
-free window because it is independent of the P1.5/P1.3 decisions. Archived seed
-commands must be audited against the current checkpoint/resume contract before
-being copied back here; do not run an old block blindly.
+federated-7B superiority. P0.8b remains gated until P1.8 replay validates the
+secure transition contract. Archived seed commands must be audited against the
+current checkpoint/resume contract before being copied back here; do not run an
+old block blindly.
 
-P1.4b, P1.1b, and P2.1 are closed. The next task is to design FedProx-LoRA,
-then audit one stronger-skew T1 screen. The independent seed-2 T3 continuation
-may run in any suitable free GPU window. Decide federated-7B feasibility only
-if the manuscript retains an empirical large-model-FL comparison.
+P1.4b, P1.1b, and P2.1 are closed. The P1.8 backend is implemented; the next
+task is retained-adapter replay and overhead measurement. FedProx-LoRA,
+stronger-skew, and seed-2 continuation must use that backend after the gate
+closes. Decide federated-7B feasibility only if the manuscript retains an
+empirical large-model-FL comparison.
 
 P1.7a is closed. Its fixed global-SLM preference loss reduced Spider EX by
 1.93 points versus positive-only CE, so no full-pool extension,
@@ -99,7 +101,39 @@ canonical verified-target CE plus auxiliary RKL method is unchanged. A future
 method proposal must begin from a new evidence-backed hypothesis rather than
 retuning P1.7a.
 
-## P1.5 — matched FedProx-LoRA baseline — active design
+## P1.8 — secure weighted aggregation — implementation complete; replay active
+
+**Purpose:** upgrade the paper from structural client-row locality to secure
+aggregation against a semi-honest server without changing weighted FedAvg or
+introducing DP.
+
+The nested implementation at `3c21b96` uses deterministic pairwise float64
+masks over sample-weighted LoRA factors, supports threshold/dropout recovery,
+does not persist masked client tensors, and fails closed when decoded versus
+plaintext FedAvg exceeds `1e-6`. The federated CLI now defaults to
+`secure_sum`; plaintext aggregation remains an explicit oracle/debug backend.
+The core integration passed the full 328-test suite; the report-producing HEAD
+passes 31 focused tests and lint. A 10,240-value stress test measured maximum
+absolute error `1.1920928955078125e-7` and cosine similarity
+`0.9999999999999977`, so bit identity is recorded but not required.
+
+### P1.8a — replay one retained Qwen aggregation — CPU ready
+
+**Purpose:** validate the implementation on a real retained five-client round,
+write a portable immutable report, and gate wider replay. This does not train or
+evaluate a model and does not require a GPU.
+
+```powershell
+$C='artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_1'; $O='artifacts/secure_aggregation_replay/p18a_qwen_fl_s0_r1'; $J='experiments/federated/results/p18a_secure_replay_qwen_fl_s0_r1/metrics.json'; git merge-base --is-ancestor 3c21b9651835409eec3b8c590b685d1b773fb0a8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'P1.8 implementation commit is not present' }; $Need=@("$C/round_init_adapter/adapter_config.json","$C/fedavg_adapter/adapter_config.json"); foreach ($I in 1..5) { $Need += "$C/client_$I/adapter/adapter_config.json" }; foreach ($P in $Need) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.8a input: $P" } }; uv run python experiments/federated/run.py aggregate --arm fedavg --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --client-dir $C --init-adapter "$C/round_init_adapter" --reference-adapter "$C/fedavg_adapter" --out $O --report-out $J --seed 0 --aggregation-protocol secure_sum --secure-threshold 3 --secure-mask-scale 1.0 --secure-equivalence-atol 0.000001; if ($LASTEXITCODE -ne 0) { throw 'P1.8a secure replay failed; rerun this exact line to resume' }; if (-not (Test-Path -LiteralPath $J)) { throw "Missing P1.8a report: $J" }; $V=Get-Content -LiteralPath $J -Raw | ConvertFrom-Json; $E=$V.metrics.equivalence; if (-not $E.accepted -or [double]$E.max_abs_error -gt 0.000001 -or [double]$E.cosine_similarity -lt 0.999999999) { throw "P1.8a equivalence gate failed: accepted=$($E.accepted) max_abs=$($E.max_abs_error) cosine=$($E.cosine_similarity)" }; Write-Host "P1.8a complete: bit_identical=$($E.bit_identical) max_abs=$($E.max_abs_error) cosine=$($E.cosine_similarity); push $J and stop for review"
+```
+
+After P1.8a, replay the remaining retained paper aggregations and validate that
+predictions/EX are unchanged on the agreed evaluation slice before carrying
+old scores forward. Archived negative branches do not require replay. P1.8
+does not authorize DP, clipping, quantization tuning, robust aggregation, or a
+weighting change.
+
+## P1.5 — matched FedProx-LoRA baseline — gated after P1.8
 
 **Purpose:** answer the reviewer objection that the headline comparison uses
 only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
@@ -130,7 +164,7 @@ The exact command and acceptance record are archived at
 Canonical result commit: `dbd703b`. Do not rerun or launch seed 2
 automatically.
 
-## P0.8b — GPU-ready final T3 reliability at seed 2
+## P0.8b — blocked pending P1.8 secure-backend rewrite
 
 **Purpose when reactivated:** close the three-training-seed reliability result after seed 1
 replicated the final FedLS-SQL gain (`+3.77` Spider EX, `p=0.00483`). Seed 2
@@ -138,10 +172,11 @@ already has canonical T1 checkpoints. This command extends those exact
 lineages through rounds 2 and 3 and evaluates only the final Spider endpoints;
 it does not retrain round 1.
 
-This block is ready for exact resumption whenever the selected GPU is free. The
-preflight pins seed-2 setup identities (`8b02d882...` for pure FL and
-`99aa70ed...` for FedLS-SQL). Every stage is independently resumable by
-rerunning this exact line. Do not replace it with `run --rounds 3`, change the
+The block below is the superseded plaintext command retained only for lineage
+and resume-contract audit. **Do not run it.** After P1.8 closes, replace it with
+a secure-backend command that preserves the seed-2 setup identities
+(`8b02d882...` for pure FL and `99aa70ed...` for FedLS-SQL), immutable roots,
+and completed-round work. Do not replace it with `run --rounds 3`, change the
 roots, or reuse the seed-1 evaluation root.
 
 ```powershell

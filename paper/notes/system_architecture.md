@@ -1,6 +1,6 @@
 # FedLS-SQL — System Architecture
 
-> Canonical design record, updated 2026-08-28. It supersedes the FedICL-SQL and
+> Canonical design record, updated 2026-08-29. It supersedes the FedICL-SQL and
 > Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
 > lives in `LAB_LOG.md`; canonical paper tables live in
 > `paper/results/MAIN_RESULTS.md`; the active manuscript structure lives in
@@ -16,9 +16,10 @@ communication-efficiency, and resource advantages.
 
 This is the advisor-level target. Operationally, “overcome” means a validated
 EX improvement over matched pure FL and competitiveness with centralized SLM
-training; “privacy” means client-row locality, not formal DP; communication is
-measured from adapter tensors; resource advantage is scoped to the completed
-P1.1b-v2 deployment-inference benchmark; and a
+training; the implemented aggregation path masks individual adapter updates
+from a semi-honest server while keeping the same weighted FedAvg objective;
+communication is measured from adapter tensors; resource advantage is scoped
+to the completed P1.1b-v2 deployment-inference benchmark; and a
 direct comparison with large-model FL requires the separate federated-7B gate.
 
 The project answers four questions:
@@ -40,9 +41,11 @@ clients; the current headline split uses `K=5`, Dirichlet `alpha=0.5`, seed 0.
 
 Only LoRA adapter parameters are exchanged. Raw rows, database contents,
 schemas, questions, and SQL never leave a client. The server-side teacher sees
-only the public pool. This is a **structural data-isolation claim**, not formal
-differential privacy, secure aggregation, or protection against information
-inference from model updates.
+only the public pool. The current implementation securely sums
+sample-weighted LoRA factors with pairwise masks, threshold/dropout recovery,
+and no persisted per-client unmasked tensor at the aggregation boundary. P1.8
+retained-adapter replay is the remaining artifact gate before this replaces
+the older structural-locality wording in the reported result lineage.
 
 ## 3. Models, data, and training units
 
@@ -112,7 +115,7 @@ FOR ROUND t = 1..T
     upload theta_i only
 
   server:
-    sample-weighted factor-wise FedAvg -> theta_FL,t
+    secure sample-weighted factor-wise FedAvg -> theta_FL,t
     public CE + reverse-KL distillation -> theta_FedLS,t
     broadcast theta_FedLS,t
 
@@ -135,12 +138,18 @@ L_client = CE(q_student, y_private)
 
 ### 5.2 Federated aggregation
 
-The default aggregator is sample-weighted factor-wise FedAvg over compatible
-LoRA adapters:
+The default CLI aggregator is secure sample-weighted factor-wise FedAvg over
+compatible LoRA adapters:
 
 ```text
 theta_FL,t = sum_i (n_i / sum_j n_j) * theta_i,t
 ```
+
+Clients locally mask their weighted factors with cancelling pairwise float64
+masks. The server reconstructs only the weighted sum when the configured
+completion threshold is met. The decoded result must match the plaintext
+FedAvg oracle within `1e-6`; plaintext mode is retained only for testing and
+replay comparison.
 
 FLoRA-NA was evaluated but did not improve the retained comparisons and is not
 a contribution of FedLS-SQL.
@@ -252,13 +261,14 @@ Established evidence:
 
 Open evidence gaps:
 
-1. design and run one matched FedProx-LoRA reviewer baseline, or document why
+1. complete P1.8 replay/overhead records for every retained aggregation;
+2. design and run one matched FedProx-LoRA reviewer baseline, or document why
    the paper is scoped to FedAvg-based federated optimization;
-2. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+3. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-3. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+4. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-4. keep federated 7B absent by default; only an explicit empirical
+5. keep federated 7B absent by default; only an explicit empirical
    large-model-FL sentence can justify reopening one matched T1 feasibility
    reference.
 

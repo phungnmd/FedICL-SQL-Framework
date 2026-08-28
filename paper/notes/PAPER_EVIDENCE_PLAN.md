@@ -1,6 +1,6 @@
 # FedLS-SQL — target evidence and submission plan
 
-> Updated 2026-08-27. This is an adaptive plan for the target outline in
+> Updated 2026-08-29. This is an adaptive plan for the target outline in
 > `PAPER_OUTLINE_TARGET.md`, not a promise to execute every experiment in the
 > advisor's August 19 planning outline. Exact runnable commands belong only in
 > `PIPELINE_NEXT.md`; the ordered adaptive backlog is `PAPER_TODO.md`.
@@ -23,9 +23,11 @@ can test:
 
 The paper therefore keeps the advisor's direction but resolves its four parts
 separately: EX improvement, causal large-to-small transfer, scoped non-IID
-behavior, and measured communication/resource trade-offs. “Privacy” means
-structural data isolation unless a formal mechanism is added; “large-model FL
-advantage” requires an actual federated-7B experiment.
+behavior, and measured communication/resource trade-offs. The P1.8 Secure Sum
+backend is implemented without introducing DP; retained-adapter replay and
+overhead evidence remain the gate for upgrading the reported lineage from
+structural data isolation. “Large-model FL advantage” requires an actual
+federated-7B experiment.
 
 Execution accuracy (EX) is the primary endpoint. EM is reported transparently
 as a secondary syntactic metric; it is not an optimization target because
@@ -44,7 +46,10 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 - Reverse KL is retained in the canonical Qwen endpoint but is not claimed as
   an independently stable or family-general contribution.
 - FedAvg-LoRA is the federated protocol, not a novel optimizer.
-- The privacy claim is structural data isolation, not DP or secure aggregation.
+- Until P1.8 replay closes, old reported results retain their structural
+  data-isolation wording. Secure weighted aggregation is implemented and is the
+  CLI default; every paper-reported FL aggregation still requires a replay
+  record and carry-forward check.
 - The paper does not claim empirical superiority to federated 7B training.
 - The exact P0.9 selection and P0.10 FedDF implementations are closed. New
   KD/Federated mechanisms remain admissible through the P1.7 hypothesis,
@@ -59,8 +64,9 @@ private client LoRA CE -> sample-weighted factor-wise FedAvg
 - T1 server-stage improvement has three-seed evidence.
 - The final T3 FedLS-SQL advantage has replicated at seeds 0 and 1 (`+5.23`
   and `+3.77` EX). This is sufficient for the current direction decision;
-  seed 2 remains desirable for final three-seed reporting and may run
-  opportunistically because it is independent of P1.5/P1.3.
+  seed 2 remains desirable for final three-seed reporting and scientifically
+  independent of P1.5/P1.3, but it may run only after P1.8 supplies the secure
+  backend and transition contract.
 - The matched public-supervision ladder shows that equal-row public-gold CE
   does not explain the teacher-target gain.
 - Pure-FL and FedLS-SQL T1-T3 convergence trajectories exist.
@@ -88,7 +94,12 @@ The experimental phase is ready to freeze when all mandatory items hold:
    intersection of federated NL-to-SQL, asymmetric server/client models,
    execution-verified teacher transfer, and adapter-only communication without
    claiming that the individual components are new;
-6. every paper value resolves to `MAIN_RESULTS.md` and `RESULT_REGISTRY.md`.
+6. every paper-reported FL aggregation has a secure-sum replay record linking
+   client-update fingerprints, protocol configuration, decoded aggregate, and
+   its plaintext reference; existing EX may carry forward only after the fixed
+   numeric-equivalence gate and prediction/EX identity check, otherwise the
+   affected downstream stage/evaluation must be rerun;
+7. every paper value resolves to `MAIN_RESULTS.md` and `RESULT_REGISTRY.md`.
 
 ## 5. Active priority order
 
@@ -96,11 +107,13 @@ The experimental phase is ready to freeze when all mandatory items hold:
 
 P0.8a, P0.8a-E, P1.1b-v2, and P2.1 are complete. Accuracy, scoped deployment
 resources, and Method drafting no longer block the remaining parts of the
-advisor question. The experiment lane is now strictly FedProx-LoRA design/run,
-one audited stronger-skew T1 gate, then seed-2 T3. Paper table/figure assembly
-runs in parallel from already-closed evidence. Federated 7B is excluded by
-default and becomes relevant only if a direct empirical large-model-FL claim
-is reintroduced.
+advisor question. P1.8 secure aggregation hardening is now the first active
+gate: its backend and tests are complete; replay every aggregation that
+supports a paper result and measure overhead. FedProx-LoRA design/run and one
+audited stronger-skew T1 gate follow. Paper table/figure assembly runs in
+parallel from already-closed evidence. Federated 7B is excluded by default and
+becomes relevant only if a direct empirical large-model-FL claim is
+reintroduced.
 
 | Lane | Order | Deliverable | Gate |
 |---|---:|---|---|
@@ -111,11 +124,57 @@ is reintroduced.
 | CPU complete | 3 | Method prose and architecture/privacy-boundary figure | paper-ready draft and verified vector figure under `paper/drafts/` |
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
-| Design active | 6 | P1.5 matched FedProx-LoRA | freeze coefficient rule, implementation, tests, and matched contract before adding a command |
-| CPU active | 6P | P2.2 paper tables/figures | assemble closed cells in parallel; do not freeze P1.5/P1.3/P0.8b placeholders |
-| Design gated | 7 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
-| GPU ready | 8 | P0.8b pure-FL/FedLS T3 seed 2 | independent job; run in the next suitable GPU window and resume existing T1 lineages |
-| Claim gate | 9 | P1.6 federated-7B feasibility | default excluded; reopen only if the paper retains empirical comparison with large-model FL |
+| CPU active | 6 | P1.8 secure weighted aggregation and provenance replay | implementation complete at nested `3c21b96`; replay retained aggregations, validate prediction/EX identity, and benchmark overhead |
+| Design gated | 7 | P1.5 matched FedProx-LoRA | resume after the P1.8 backend contract is frozen; all new federated runs must use secure aggregation |
+| CPU active | 7P | P2.2 paper tables/figures | assemble closed cells in parallel; keep the privacy/communication cells provisional until P1.8 closes |
+| Design gated | 8 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| GPU gated | 9 | P0.8b pure-FL/FedLS T3 seed 2 | run only through the secure backend after P1.8; reuse completed local work only if the secure transition contract permits it |
+| Claim gate | 10 | P1.6 federated-7B feasibility | default excluded; reopen only if the paper retains empirical comparison with large-model FL |
+
+### P1.8 — secure weighted aggregation and result carry-forward
+
+**Status:** implementation complete at nested `3c21b96`; retained-adapter
+replay and overhead collection are active.
+
+P1.8 changes the visibility of client LoRA updates, not the FedAvg objective.
+Clients must mask their sample-weighted adapter contribution; the server may
+recover only the aggregate numerator and the permitted denominator/metadata.
+The paper does not add clipping, noise, differential privacy, or a new
+aggregation rule in this task.
+
+Required evidence:
+
+1. unit and integration tests for mask cancellation, weighted aggregation,
+   incompatible adapter rejection, threshold/dropout recovery, and failure
+   below threshold;
+2. a server-transcript/artifact audit showing that secure mode does not expose
+   or persist individual unmasked client tensors at the server boundary;
+3. replay of every FL aggregation used by a retained paper result, with client
+   adapter fingerprints, secure-protocol configuration, secure aggregate
+   fingerprint, plaintext reference fingerprint, maximum/mean absolute error,
+   cosine similarity, and a `bit_identical` decision;
+4. automatic carry-forward of existing downstream EX only when decoded versus
+   plaintext FedAvg has `max_abs_error <= 1e-6`, cosine similarity
+   `>= 0.999999999`, and unchanged predictions/EX on the validation slice. Bit
+   identity is recorded but is not required because masked floating-point
+   summation can differ by one ULP. Any failed gate triggers the affected
+   downstream training/evaluation rather than silently inheriting an old score;
+5. measured masking, aggregation, recovery, communication-metadata, and peak
+   host-memory overhead;
+6. secure aggregation as the mandatory backend for all new federated
+   experiments after this gate closes. Plaintext aggregation remains only as a
+   test oracle/debug backend and may not create new paper results.
+
+The implementation passed the 328-test core suite; current report-producing
+HEAD passes 31 focused tests and lint. A random 10,240-value stress test gave
+maximum absolute error `1.1920928955078125e-7` and cosine similarity
+`0.9999999999999977`, below the frozen gate.
+
+Only retained paper lineages require replay; archived negative branches do
+not. Closing P1.8 permits the method/privacy prose and architecture figure to
+be revised from structural locality to semi-honest-server secure aggregation,
+while explicitly retaining the limitations of no DP, no final-model leakage
+guarantee, and no poisoning defense.
 
 ### P1.1a — implement a shared-server resource benchmark
 
@@ -235,12 +294,14 @@ is absent from clients/deployment and client network payload is adapter-only.
 ### P0.8 — final T3 training-seed reliability
 
 **Status:** seed 1 final endpoint and full trajectory are complete and
-positive; seed 2 is GPU-ready and independent of P1.5/P1.3. The trajectory
-completion is registered at result commit `dbd703b`.
+positive; seed 2 is gated on P1.8 and remains independent of the later
+P1.5/P1.3 scientific decisions. The trajectory completion is registered at
+result commit `dbd703b`.
 
 Reliability extensions use only independent pure FL and frozen FedLS-SQL on
-the existing split. Seed 1 is complete; seed 2 resumes whenever a suitable GPU
-window opens, without changing the scientific order of P1.5/P1.3 decisions.
+the existing split. Seed 1 is complete; seed 2 resumes only after the secure
+aggregation backend and transition contract close, without changing the later
+scientific order of P1.5/P1.3 decisions.
 
 Seed 1 reaches 61.99 EX for pure FL and 65.76 for FedLS-SQL (`+3.77`), with
 111 paired corrections versus 72 regressions (`p=0.00483`) and execution
@@ -419,10 +480,11 @@ Other former candidates are inactive:
 ## 8. Current next actions
 
 Follow `PAPER_TODO.md` in order. P1.4a, P1.4b, P0.8a-E, P1.1b-v2, P2.1, and
-the negative P1.7a gate are complete. Design and run the matched FedProx-LoRA
-baseline, then run one stronger-skew T1 gate. Run the independent seed-2 T3
-continuation opportunistically in the next suitable GPU window. Assemble
-closed paper tables/figures in parallel, but do not freeze them before these
-three experiment decisions. Keep federated 7B excluded unless the manuscript later
-introduces a direct empirical large-model-FL claim. Do not add a model family,
-OOD seed sweep, or hyperparameter Cartesian sweep by default.
+the negative P1.7a gate are complete. Close P1.8 secure aggregation first,
+then design/run the matched FedProx-LoRA baseline and one stronger-skew T1
+gate. Continue seed-2 T3 only through the frozen secure backend. Assemble
+closed paper tables/figures in parallel, but do not freeze privacy or
+communication cells before P1.8. Keep federated 7B excluded unless the
+manuscript later introduces a direct empirical large-model-FL claim. Do not
+add a model family, OOD seed sweep, or hyperparameter Cartesian sweep by
+default.
