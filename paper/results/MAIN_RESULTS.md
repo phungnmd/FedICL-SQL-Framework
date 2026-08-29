@@ -119,7 +119,7 @@ deployed T3 FedLS adapter and the 4-bit teacher reference on the fixed P1.1b
 | Qwen2.5 1.5B | Centralized-standard-3ep | 64.41 | 67.31 | `PENDING:P1.1` | `PENDING:P1.1` | main baseline |
 | Qwen2.5 1.5B | Pure FL, T3 | 57.45 | 64.31 | 18,464,768 | `PENDING:P1.1` | main baseline |
 | Qwen2.5 1.5B | FedLS-SQL, T3 | 38.59 | **69.54** | 18,464,768 | 0.7873 s/query (IQR 0.0671) | proposed method; P1.1b fixed 32-row scope |
-| Qwen2.5 1.5B | FedProx-LoRA | `NOT RUN` | `NOT RUN` | `NOT RUN` | N/A | conditional baseline |
+| Qwen2.5 1.5B | FedProx-LoRA, T3 | 56.00 | 62.77 | 18,464,768 | N/A | matched negative optimizer baseline; T1/T2 diagnostic pending |
 | Qwen2.5-Coder 7B | Federated LLM | `NOT RUN` | `NOT RUN` | `NOT RUN` | `NOT RUN` | excluded from default evidence; no claim |
 | Qwen2.5-Coder 7B | Teacher zero-shot | `NOT MEASURED` | `NOT MEASURED` | N/A | 1.6460 s/query (IQR 0.0100) | 4-bit resource reference only; accuracy not scored in P1.1b |
 | Gemma 2 2B | FedLS-SQL (Gemma 9B teacher), T1 | 33.85 | 61.41 | `PENDING:P1.1` | `PENDING:P1.1` | second-family portability endpoint |

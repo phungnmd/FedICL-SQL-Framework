@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper TODO
 
-> Updated 2026-08-29. This is the ordered paper-work backlog. It records what
+> Updated 2026-08-30. This is the ordered paper-work backlog. It records what
 > to do and why; executable PowerShell commands belong only in
 > `PIPELINE_NEXT.md`. Re-rank conditional items whenever an earlier gate changes
 > the manuscript claim.
@@ -23,9 +23,9 @@ opportunistically so scarce GPU time is not wasted:
 1. **P1.8 Secure Sum compatibility — complete:** implementation, tests, one
    real canonical replay, numerical equivalence, and overhead evidence are
    closed. It is optional and separate from accuracy lineages.
-2. **P1.5 FedProx-LoRA — smoke ready:** the matched objective, `mu=0.01`,
-   implementation, fingerprints, and tests are frozen; run P1.5a, review it,
-   then add exactly one production command.
+2. **P1.5 FedProx-LoRA — endpoint closed, diagnostic open:** fixed `mu=0.01`
+   loses to pure FL at T3; evaluate its existing T1/T2 adapters only to explain
+   the training trajectory, never to select a checkpoint or tune the method.
 3. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
    `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
    interpretable gate.
@@ -182,7 +182,7 @@ the stronger-skew audit demonstrate a specific unresolved drift problem.
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
 
-### 6. Add a stronger federated baseline — active design
+### 6. Add a stronger federated baseline — endpoint closed, trajectory diagnostic active
 
 - [x] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
@@ -203,13 +203,15 @@ restated as a structural/deterministic property.
 - [x] Pull P1.5c and perform paired EX and
   execution-error comparisons against registered centralized, pure-FL, and
   FedLS checkpoints without retuning `mu`.
-- [x] Apply the operational stop rule: do not launch P1.5d T1/T2/OOD evaluation
-  or a FedLS-FedProx combined screen after the primary endpoint failed to
-  improve on registered pure FL.
+- [x] Apply the primary stop rule: no OOD evaluation, coefficient sweep, or
+  FedLS-FedProx combined screen after T3 failed to improve on pure FL.
+- [ ] Run P1.5d eval-only on the immutable T1/T2 adapters and compare each to
+  registered pure FL at the same round. Treat it only as a post-hoc trajectory
+  diagnostic; do not select a test checkpoint or revise the T3 decision.
 - [x] Close P1.5: FedProx has 22 paired corrections and 38 regressions versus
   pure FL (`-1.55` EX, `p=0.0519`) and 194 versus 193 execution errors.
-- [ ] If FedProx cannot be run, document the omission and avoid presenting
-  FedAvg as representative of all federated optimizers.
+- [x] Include the matched FedProx T3 result as a negative optimizer baseline;
+  do not present FedAvg as representative of all federated optimizers.
 
 **Done when:** the headline table includes one matched stronger federated
 optimizer or the omission and claim boundary are explicit.
