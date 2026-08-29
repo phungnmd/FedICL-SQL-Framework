@@ -193,8 +193,11 @@ restated as a structural/deterministic property.
   implementation `897fb66`, 334 tests and lint pass.
 - [x] Add the P1.5a PowerShell single-line, fail-fast, exact-resume smoke command
   after design/config verification.
-- [ ] Run and review P1.5a; require nonzero proximal loss on all five clients
-  and a completed plaintext weighted FedAvg adapter.
+- [x] Preserve the completed two-step P1.5a root as a diagnostic: training and
+  FedAvg passed, but warm-up delayed parameter drift until after its last
+  forward, so its observed proximal losses were zero.
+- [ ] Run and review the fresh three-step P1.5a-R root; require nonzero proximal
+  loss on all five clients and a completed plaintext weighted FedAvg adapter.
 - [ ] Run only the minimum baseline needed for the headline comparison.
 - [ ] If FedProx cannot be run, document the omission and avoid presenting
   FedAvg as representative of all federated optimizers.

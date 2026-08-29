@@ -66,7 +66,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
-| P1.5a   | Matched FedProx-LoRA integration smoke                                         | **GPU-ready; implementation `897fb66`, 334 tests pass; run command below**                                  |
+| P1.5a-R | Matched FedProx-LoRA integration smoke retry                                   | **GPU-ready; use fresh three-step root after the two-step diagnostic below**                               |
 | P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | gated on P1.5a review; one run only, explicit plaintext aggregation                                        |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
@@ -147,17 +147,26 @@ The frozen design is:
 6. one production run only, followed by Spider EX/execution-error comparison
    with pure FL, centralized-standard, and FedLS-SQL.
 
-P1.5a deliberately uses two client micro-steps and `grad_accum=1`, so the
-second step observes a nonzero distance from the round-start reference. It is
-an integration/resume smoke, not paper accuracy evidence. Rerunning the exact
-line resumes/skips completed stages safely.
+The first P1.5a root completed all client training and weighted FedAvg, but its
+acceptance check correctly found zero observed proximal loss. With two
+optimizer updates, the cosine/warm-up schedule makes the first update use LR
+zero; the second forward still sees the round-start parameters, and parameter
+drift occurs only after that forward. Preserve
+`p15a_fedprox_mu001_noicl_k5_e1_t1_smoke_s0` as a diagnostic; do not mutate or
+delete it.
+
+P1.5a-R uses three client micro-steps and `grad_accum=1`. The third forward
+must observe the drift created by update two and therefore a positive proximal
+term. It uses a fresh immutable root because `client_max_steps` is part of the
+setup/fingerprint. This remains an integration/resume smoke, not paper accuracy
+evidence. Rerunning the exact line resumes/skips completed stages safely.
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15a_fedprox_mu001_noicl_k5_e1_t1_smoke_s0'; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-max-steps 2 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 1 --max-len 2560 --save-steps 1 --aggregation-protocol plaintext --out $R --seed 0 --stage p15a; if ($LASTEXITCODE -ne 0) { throw 'P1.5a FedProx smoke failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none') { throw 'P1.5a setup contract mismatch' }; foreach ($I in 1..5) { $A="$R/round_1/client_$I/adapter/adapter_config.json"; $M="$R/round_1/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5a client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0) { throw "FedProx objective was not exercised for client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_1/fedavg_adapter/adapter_config.json")) { throw 'Missing P1.5a weighted FedAvg output' }; Write-Host 'P1.5a complete: client-only FedProx objective, fingerprints, resume path, and plaintext weighted FedAvg integration passed; stop and review before P1.5b'
+$env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15a2_fedprox_mu001_noicl_k5_e1_t1_smoke_s0'; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-max-steps 3 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 1 --max-len 2560 --save-steps 1 --aggregation-protocol plaintext --out $R --seed 0 --stage p15a2; if ($LASTEXITCODE -ne 0) { throw 'P1.5a-R FedProx smoke failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none' -or [int]$S.recipe.client_max_steps -ne 3) { throw 'P1.5a-R setup contract mismatch' }; foreach ($I in 1..5) { $A="$R/round_1/client_$I/adapter/adapter_config.json"; $M="$R/round_1/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5a-R client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0) { throw "FedProx objective was not exercised for client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_1/fedavg_adapter/adapter_config.json")) { throw 'Missing P1.5a-R weighted FedAvg output' }; Write-Host 'P1.5a-R complete: client-only FedProx objective, fingerprints, resume path, and plaintext weighted FedAvg integration passed; stop and review before P1.5b'
 ```
 
 Do not add/launch P1.5b, sweep `mu`, combine FedProx with a teacher stage, or
-start P1.3 until the P1.5a artifacts are reviewed.
+start P1.3 until the P1.5a-R artifacts are reviewed.
 
 ## P0.8a-E — complete
 
