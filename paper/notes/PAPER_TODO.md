@@ -200,12 +200,14 @@ restated as a structural/deterministic property.
   positive proximal loss; plaintext FedAvg completed with `noop_suspect=False`.
 - [x] Run the minimum P1.5b T3 training lineage: all 15 client stages are fresh
   with positive proximal loss and all three plaintext aggregates are valid.
-- [-] P1.5c T3-only full-Spider evaluation completed on server; push/pull it, then perform paired EX and
+- [x] Pull P1.5c and perform paired EX and
   execution-error comparisons against registered centralized, pure-FL, and
   FedLS checkpoints without retuning `mu`.
 - [x] Apply the operational stop rule: do not launch P1.5d T1/T2/OOD evaluation
   or a FedLS-FedProx combined screen after the primary endpoint failed to
   improve on registered pure FL.
+- [x] Close P1.5: FedProx has 22 paired corrections and 38 regressions versus
+  pure FL (`-1.55` EX, `p=0.0519`) and 194 versus 193 execution errors.
 - [ ] If FedProx cannot be run, document the omission and avoid presenting
   FedAvg as representative of all federated optimizers.
 

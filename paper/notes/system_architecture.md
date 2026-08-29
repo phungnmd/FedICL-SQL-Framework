@@ -305,9 +305,12 @@ accuracy headroom at the current `K=5, T=1` configuration. FedProx is now an
 implemented reviewer baseline, not part of FedLS-SQL: it adds
 `(mu/2)||theta-theta_t||^2` only to private client LoRA CE and retains the same
 sample-weighted plaintext FedAvg, with no teacher/server stage. Its primary
-endpoint has failed the operational promotion gate; canonical paired closure
-waits for the pushed predictions. A new federated mechanism is deferred until FedProx and
-stronger-skew evidence supplies a concrete residual hypothesis.
+endpoint is negative: 62.77 versus 64.31 pure-FL EX, 22/38 paired gains/losses
+(`p=0.0519`), and 194 versus 193 execution errors. The proximal term reduces
+local update norms but raises client CE, so FedAvg remains canonical. This is
+a result for fixed `mu=0.01` over LoRA factors, not a universal rejection of
+FedProx. A new federated mechanism is deferred until the stronger-skew
+evidence supplies a concrete residual hypothesis.
 
 The second-family screen tests the full endpoint inside another compatible
 teacher/student family. It does not make reverse KL cross-tokenizer: exact

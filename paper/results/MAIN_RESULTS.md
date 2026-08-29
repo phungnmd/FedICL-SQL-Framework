@@ -35,6 +35,7 @@ greedy decoding, and no ICL.
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | `qwen.central.standard3.s0` | Centralized-standard-3ep | 67.31 | 64.41 | 14.31 | 55.91 | 54.06 | **53.27** | 13.04 | canonical official recipe |
 | `qwen.fl.t3.s0` | Pure FL, T3 | 64.31 | 57.45 | 18.67 | 56.10 | 51.93 | 46.73 | 12.91 | canonical independent FL |
+| `qwen.fedprox.t3.s0` | FedProx-LoRA (`mu=0.01`), T3 | 62.77 | 56.00 | 18.76 | — | — | — | — | closed negative optimizer baseline |
 | `qwen.fedls.t3.s0` | FedLS-SQL, T3 | **69.54** | 38.59 | **9.77** | **59.65** | **55.51** | **52.71** | **21.58** | canonical full method |
 
 FedLS-SQL exceeds pure FL by `+5.23`, `+3.55`, `+3.58`, `+5.98`, and
@@ -49,6 +50,14 @@ FedLS-SQL is `+3.74` EX on Realistic (`p=0.081`), `+1.45` on Syn (`p=0.337`),
 `-0.56` on DK (`p=0.842`), and `+8.54` on BIRD (`p<1e-17`). Thus the current
 evidence supports competitiveness with centralized training, not uniform OOD
 superiority. BIRD remains a public-domain-adjacent cross-corpus diagnostic.
+
+The fixed FedProx-LoRA reviewer baseline is negative on the primary endpoint.
+Against the same-split pure-FL T3 checkpoint it changes 22 wrong rows to
+correct but regresses 38 correct rows: `-1.55` Spider EX, exact paired McNemar
+`p=0.0519`, and 194 versus 193 execution errors. It is also `-4.55` EX below
+centralized-standard (`p=0.00112`) and `-6.77` below FedLS-SQL
+(`p=6.37e-7`). This supports retaining FedAvg for the current method; it does
+not claim that FedProx is universally ineffective.
 
 ### 2.2 Second-family portability track
 
