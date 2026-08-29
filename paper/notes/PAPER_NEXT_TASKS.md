@@ -27,7 +27,7 @@ rủi ro chính còn lại là baseline breadth và phạm vi non-IID, không ph
 | Thứ tự khoa học | Task | Việc này chứng minh gì? | Compute | Trạng thái |
 |---:|---|---|---|---|
 | 0 | **P1.8 Secure Sum compatibility** | Chứng minh masked aggregation tương thích weighted FedAvg và lượng hóa overhead riêng. | complete | 18.46M-param replay passed; `6c67e79` |
-| 1 | **P1.5 FedProx-LoRA** | Kiểm tra FedLS có còn lợi thế khi so với optimizer FL mạnh hơn FedAvg. | GPU T3-only eval | P1.5b training complete; P1.5c GPU-ready |
+| 1 | **P1.5 FedProx-LoRA** | Kiểm tra optimizer mạnh hơn FedAvg. | result validation | P1.5c failed operational gate; push/pull before paired closure |
 | 2 | **P1.3 stronger-skew T1** | Kiểm tra kết luận có giữ được dưới một mức heterogeneous mạnh hơn. | CPU tạo/audit split, sau đó GPU train/eval | Chưa GPU-ready |
 | 3 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
 | 4 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; P1.8 cell đã đóng |
@@ -41,7 +41,7 @@ model/rank/client/public-pool không thuộc gói mặc định.
 
 ### GPU-READY NOW
 
-P1.8a đã xong và không còn chặn GPU. **P1.5c T3-only Spider eval là job GPU-ready hiện tại**;
+P1.8a đã xong và không còn chặn GPU. **Không chạy P1.5d**; P1.5c cần được push/pull và paired-audit trước;
 lệnh duy nhất nằm trong `PIPELINE_NEXT.md`. P0.8b vẫn cần backward
 compatibility với setup plaintext cũ.
 
@@ -51,9 +51,9 @@ compatibility với setup plaintext cũ.
    - Chờ: legacy plaintext setup compatibility; không chờ Secure Sum.
    - Sau khi mở lại: tiếp tục rounds 2–3, không restart round 1.
 
-2. **P1.5 post-eval decision**
-   - Chờ: chạy và pull P1.5c.
-   - So paired EX/execution errors với registered centralized, pure FL và FedLS; không tune `mu`.
+2. **P1.5 paired closure**
+   - Chờ: push/pull P1.5c.
+   - Tính paired EX/execution-error với registered controls; không chạy OOD, combined FedLS-FedProx hoặc tune `mu`.
 
 3. **P1.3 stronger-skew FL/FedLS T1**
    - Chờ: split cố định-row được tạo và audit entropy/JSD/client sizes.

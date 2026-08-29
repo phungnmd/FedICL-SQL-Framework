@@ -68,7 +68,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
 | P1.5a-R | Matched FedProx-LoRA integration smoke retry                                   | complete: five clients, positive proximal loss, plaintext FedAvg, 104 s, `noop_suspect=False`              |
 | P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | complete: setup `ed34fcfd...`, code `897fb66`, compact result `d48f05b`                                   |
-| P1.5c   | Full-Spider FedProx endpoint evaluation                                       | **GPU-ready; evaluate T3 only, then compare to registered controls; command below**                        |
+| P1.5c   | Full-Spider FedProx endpoint evaluation                                       | complete on server; operational gate failed; push/pull compact artifacts for paired closure               |
+| P1.5d/e | Extended FedProx evaluation / FedLS-FedProx                                   | **do not run: primary endpoint did not improve on registered pure FL**                                     |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
@@ -202,8 +203,9 @@ the new result is pulled. Rerun this exact line to resume missing rows safely.
 $env:CUDA_VISIBLE_DEVICES='0'; $A='artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0/round_3/fedavg_adapter'; $E='artifacts/eval_resume/p15c_fedprox_mu001_t3_spider_s0/eval_k0'; foreach ($P in @('processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv',"$A/adapter_config.json",'artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0/manifest.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.5c input: $P" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fedprox_mu001_t3=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P1.5c FedProx T3 Spider evaluation failed; rerun this exact line and resume root' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw 'Missing P1.5c evaluation manifests' }; Write-Host 'P1.5c complete: push compact eval results/config/predictions/manifests and stop for paired comparison against registered centralized, pure-FL, and FedLS-SQL T3 controls'
 ```
 
-Do not sweep `mu`, add a teacher stage, start P1.3, or evaluate extra datasets
-before the P1.5c Spider result is pulled and the baseline decision is closed.
+Do not run P1.5d, sweep `mu`, add a teacher stage, or start a FedLS-FedProx
+combined arm. Push P1.5c compact artifacts, then pull and perform the canonical
+paired analysis before closing P1.5 and moving to the next paper gate.
 
 ## P0.8a-E — complete
 

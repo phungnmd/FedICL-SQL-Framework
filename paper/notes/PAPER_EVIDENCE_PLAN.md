@@ -120,7 +120,7 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
 | CPU complete | 6 | P1.8 optional Secure Sum compatibility | real 18.46M-parameter replay passed at `6c67e79`; about `49.93%` communication expansion |
-| GPU ready | 7 | P1.5c matched FedProx-LoRA T3 evaluation | P1.5b training complete at `d48f05b`; evaluate only its T3 endpoint on full Spider before the paired baseline decision |
+| Result validation | 7 | P1.5c FedProx-LoRA T3 evaluation | server endpoint failed the operational promotion gate; do not run P1.5d or FedLS-FedProx, and pull predictions for canonical paired closure |
 | CPU active | 7P | P2.2 paper tables/figures | assemble closed cells in parallel, including the separate P1.8 compatibility/overhead row |
 | Design gated | 8 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
 | GPU gated | 9 | P0.8b pure-FL/FedLS T3 seed 2 | blocked by backward compatibility for its legacy plaintext setup, not by Secure Sum |
