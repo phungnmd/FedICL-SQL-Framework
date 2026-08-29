@@ -190,7 +190,7 @@ restated as a structural/deterministic property.
   select it on the test set.
 - [x] Implement the client-only proximal loss, round-start reference,
   setup/client/trainer fingerprints, metrics, and server-stage isolation;
-  334 tests and lint pass.
+  implementation `897fb66`, 334 tests and lint pass.
 - [x] Add the P1.5a PowerShell single-line, fail-fast, exact-resume smoke command
   after design/config verification.
 - [ ] Run and review P1.5a; require nonzero proximal loss on all five clients

@@ -66,7 +66,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
-| P1.5a   | Matched FedProx-LoRA integration smoke                                         | **GPU-ready; implementation/tests complete, run command below**                                             |
+| P1.5a   | Matched FedProx-LoRA integration smoke                                         | **GPU-ready; implementation `897fb66`, 334 tests pass; run command below**                                  |
 | P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | gated on P1.5a review; one run only, explicit plaintext aggregation                                        |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
@@ -141,7 +141,7 @@ The frozen design is:
    as the independent pure-FL headline lineage;
 4. no public teacher stage in the FedProx-only baseline, so it tests whether a
    stronger federated optimizer alone closes the FedLS-SQL accuracy gap;
-5. `client_prox_mu` is locked by the run setup, client-stage fingerprint, and
+5. implementation `897fb66`: `client_prox_mu` is locked by the run setup, client-stage fingerprint, and
    trainer resume signature; the mathematical/wiring tests pass in the full
    334-test suite;
 6. one production run only, followed by Spider EX/execution-error comparison

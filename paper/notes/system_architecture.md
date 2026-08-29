@@ -331,7 +331,8 @@ aggregation adapter as the recorded broadcast proxy, whereas FedLS actually
 broadcasts post-server `m_g`. The paper therefore uses logical tensor bytes
 and excludes serialization headers, transport framing, and protocol metadata.
 
-Outline items not yet supported by current evidence include FedProx, a full
+Outline items not yet supported by current **result evidence** include the
+FedProx accuracy comparison (implementation `897fb66` is smoke-ready), a full
 IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual
 large-model federated baseline. These remain optional experiments, not current
 claims.
