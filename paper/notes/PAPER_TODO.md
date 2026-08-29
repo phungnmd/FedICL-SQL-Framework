@@ -196,9 +196,10 @@ restated as a structural/deterministic property.
 - [x] Preserve the completed two-step P1.5a root as a diagnostic: training and
   FedAvg passed, but warm-up delayed parameter drift until after its last
   forward, so its observed proximal losses were zero.
-- [ ] Run and review the fresh three-step P1.5a-R root; require nonzero proximal
-  loss on all five clients and a completed plaintext weighted FedAvg adapter.
-- [ ] Run only the minimum baseline needed for the headline comparison.
+- [x] Run and review the fresh three-step P1.5a-R root: all five clients have
+  positive proximal loss; plaintext FedAvg completed with `noop_suspect=False`.
+- [-] Run only the minimum P1.5b T3 baseline needed for the headline comparison;
+  production training is active, while endpoint evaluation remains gated.
 - [ ] If FedProx cannot be run, document the omission and avoid presenting
   FedAvg as representative of all federated optimizers.
 

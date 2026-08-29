@@ -66,8 +66,9 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.7a   | Execution-verified preference/contrastive KD                                   | closed negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43`                          |
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
-| P1.5a-R | Matched FedProx-LoRA integration smoke retry                                   | **GPU-ready; use fresh three-step root after the two-step diagnostic below**                               |
-| P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | gated on P1.5a review; one run only, explicit plaintext aggregation                                        |
+| P1.5a-R | Matched FedProx-LoRA integration smoke retry                                   | complete: five clients, positive proximal loss, plaintext FedAvg, 104 s, `noop_suspect=False`              |
+| P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | **GPU-ready; one seed-0 run only, explicit plaintext aggregation; command below**                          |
+| P1.5c   | Full-Spider FedProx endpoint evaluation                                       | gated on P1.5b artifact review; evaluate T3 only, then compare to registered controls                      |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
@@ -123,7 +124,7 @@ opt in with `--aggregation-protocol secure_sum`. The default-policy change is
 nested commit `fc7899a`. Exact command and provenance:
 `paper/archive/completed_runbooks/P1_8A_SECURE_SUM_COMPATIBILITY_2026-08-29.md`.
 
-## P1.5 — matched FedProx-LoRA baseline — smoke ready
+## P1.5 — matched FedProx-LoRA baseline — production training ready
 
 **Purpose:** answer the reviewer objection that the headline comparison uses
 only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
@@ -165,8 +166,25 @@ evidence. Rerunning the exact line resumes/skips completed stages safely.
 $env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15a2_fedprox_mu001_noicl_k5_e1_t1_smoke_s0'; uv run python experiments/federated/run.py run --arm fedavg --rounds 1 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-max-steps 3 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 1 --max-len 2560 --save-steps 1 --aggregation-protocol plaintext --out $R --seed 0 --stage p15a2; if ($LASTEXITCODE -ne 0) { throw 'P1.5a-R FedProx smoke failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none' -or [int]$S.recipe.client_max_steps -ne 3) { throw 'P1.5a-R setup contract mismatch' }; foreach ($I in 1..5) { $A="$R/round_1/client_$I/adapter/adapter_config.json"; $M="$R/round_1/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5a-R client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0) { throw "FedProx objective was not exercised for client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_1/fedavg_adapter/adapter_config.json")) { throw 'Missing P1.5a-R weighted FedAvg output' }; Write-Host 'P1.5a-R complete: client-only FedProx objective, fingerprints, resume path, and plaintext weighted FedAvg integration passed; stop and review before P1.5b'
 ```
 
-Do not add/launch P1.5b, sweep `mu`, combine FedProx with a teacher stage, or
-start P1.3 until the P1.5a-R artifacts are reviewed.
+P1.5a-R passed: all five clients reported positive mean proximal loss, the
+sample-weighted plaintext factor FedAvg completed in 104 seconds,
+`noop_suspect=False`, and the minimum client-delta cosine was `0.2759`. The
+smoke has no accuracy interpretation.
+
+P1.5b is the single frozen production lineage. It matches the registered
+seed-0 pure-FL run in student, split, client rows, one local epoch, LoRA rank,
+optimizer budget, three rounds, and seed; the only intended training change is
+`client_prox_mu=0.01`. No public pool, teacher, CE server stage, or RKL stage is
+present. Rerun the exact line and root after interruption; completed clients and
+rounds are skipped by their immutable fingerprints.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0'; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_1_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_2_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_3_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_4_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_5_train.csv')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.5b input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --out $R --seed 0 --stage p15b; if ($LASTEXITCODE -ne 0) { throw 'P1.5b FedProx T3 training failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none' -or $null -ne $S.recipe.client_max_steps -or [int]$S.recipe.local_epochs -ne 1) { throw 'P1.5b setup contract mismatch' }; foreach ($N in 1..3) { foreach ($I in 1..5) { $A="$R/round_$N/client_$I/adapter/adapter_config.json"; $M="$R/round_$N/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5b round $N client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0 -or [int]$V.steps -le 0) { throw "Invalid P1.5b proximal metadata at round $N client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_$N/fedavg_adapter/adapter_config.json")) { throw "Missing P1.5b aggregate at round $N" } }; if (-not (Test-Path -LiteralPath "$R/manifest.json")) { throw 'Missing P1.5b manifest' }; Write-Host 'P1.5b complete: matched FedProx-LoRA T3 trained with positive proximal loss in all 15 client stages; push compact results and stop before P1.5c evaluation'
+```
+
+Do not sweep `mu`, add a teacher stage, or start P1.3. After P1.5b finishes,
+push only compact results/configs/manifests (no adapters), then review before
+activating the T3-only full-Spider P1.5c evaluation.
 
 ## P0.8a-E — complete
 
