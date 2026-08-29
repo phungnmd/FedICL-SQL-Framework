@@ -15,6 +15,7 @@ not be renamed.
 | `qwen.central.restart3.s0` | schedule sensitivity only | `artifacts/probe_p/central_3ep/adapter` | three independently scheduled passes |
 | `qwen.fl.t3.s0` | final independent pure FL | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | setup `229fe736042acd80df29a19e577963e4f69a5e6bb62d41ac5964fbeee9f629d2` |
 | `qwen.fedls.t3.s0` | final full FedLS-SQL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` | teacher-target CE + reverse KL |
+| `qwen.fedprox.t3.s0` | matched FedProx-LoRA reviewer baseline | `artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` | `mu=0.01`; setup `ed34fcfd0ac7e24a6082753e05ede6e5478ba49f75e521e1011941cf5250bc28`; code `897fb66`; result `d48f05b`; evaluation pending |
 | `qwen.fl.t2.s1` | seed-1 independent pure FL, T2 | `artifacts/federated/fedavg_noicl_k5_e1_t1_s1/round_2/fedavg_adapter` | canonical convergence checkpoint |
 | `qwen.fedls.pre.t2.s1` | seed-1 FedLS mixed-lineage pre-server, T2 | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_2/fedavg_adapter` | diagnostic; inherits round-1 server transfer |
 | `qwen.fedls.t2.s1` | seed-1 full FedLS-SQL, T2 | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_2/m_g` | canonical convergence checkpoint |

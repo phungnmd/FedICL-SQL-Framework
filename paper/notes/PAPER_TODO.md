@@ -198,8 +198,11 @@ restated as a structural/deterministic property.
   forward, so its observed proximal losses were zero.
 - [x] Run and review the fresh three-step P1.5a-R root: all five clients have
   positive proximal loss; plaintext FedAvg completed with `noop_suspect=False`.
-- [-] Run only the minimum P1.5b T3 baseline needed for the headline comparison;
-  production training is active, while endpoint evaluation remains gated.
+- [x] Run the minimum P1.5b T3 training lineage: all 15 client stages are fresh
+  with positive proximal loss and all three plaintext aggregates are valid.
+- [-] Run P1.5c T3-only full-Spider evaluation, then perform paired EX and
+  execution-error comparisons against registered centralized, pure-FL, and
+  FedLS checkpoints without retuning `mu`.
 - [ ] If FedProx cannot be run, document the omission and avoid presenting
   FedAvg as representative of all federated optimizers.
 

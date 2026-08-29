@@ -67,8 +67,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.1b   | Qwen student 1.5B versus teacher 7B resource benchmark                         | complete: 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM                 |
 | P1.8    | Optional Secure Sum compatibility and overhead audit                           | complete: real 18.46M-parameter replay passed; result `6c67e79`                                            |
 | P1.5a-R | Matched FedProx-LoRA integration smoke retry                                   | complete: five clients, positive proximal loss, plaintext FedAvg, 104 s, `noop_suspect=False`              |
-| P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | **GPU-ready; one seed-0 run only, explicit plaintext aggregation; command below**                          |
-| P1.5c   | Full-Spider FedProx endpoint evaluation                                       | gated on P1.5b artifact review; evaluate T3 only, then compare to registered controls                      |
+| P1.5b   | Matched FedProx-LoRA T3 production baseline                                   | complete: setup `ed34fcfd...`, code `897fb66`, compact result `d48f05b`                                   |
+| P1.5c   | Full-Spider FedProx endpoint evaluation                                       | **GPU-ready; evaluate T3 only, then compare to registered controls; command below**                        |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
@@ -124,7 +124,7 @@ opt in with `--aggregation-protocol secure_sum`. The default-policy change is
 nested commit `fc7899a`. Exact command and provenance:
 `paper/archive/completed_runbooks/P1_8A_SECURE_SUM_COMPATIBILITY_2026-08-29.md`.
 
-## P1.5 — matched FedProx-LoRA baseline — production training ready
+## P1.5 — matched FedProx-LoRA baseline — endpoint evaluation ready
 
 **Purpose:** answer the reviewer objection that the headline comparison uses
 only FedAvg-based federated optimization. P1.5 is a baseline, not a FedLS-SQL
@@ -182,9 +182,28 @@ rounds are skipped by their immutable fingerprints.
 $env:CUDA_VISIBLE_DEVICES='0'; $R='artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0'; foreach ($P in @('processed_data/SPIDER/federated_noniid/alpha_0.5/k5/meta.json','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_1_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_2_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_3_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_4_train.csv','processed_data/SPIDER/federated_noniid/alpha_0.5/k5/client_5_train.csv')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.5b input: $P" } }; uv run python experiments/federated/run.py run --arm fedavg --rounds 3 --split-dir processed_data/SPIDER/federated_noniid/alpha_0.5/k5 --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --client-prox-mu 0.01 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --out $R --seed 0 --stage p15b; if ($LASTEXITCODE -ne 0) { throw 'P1.5b FedProx T3 training failed; rerun this exact line and output root to resume' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; if ([double]$S.recipe.client_prox_mu -ne 0.01 -or $S.recipe.aggregation_protocol -ne 'plaintext' -or $S.recipe.server_method -ne 'none' -or $null -ne $S.recipe.client_max_steps -or [int]$S.recipe.local_epochs -ne 1) { throw 'P1.5b setup contract mismatch' }; foreach ($N in 1..3) { foreach ($I in 1..5) { $A="$R/round_$N/client_$I/adapter/adapter_config.json"; $M="$R/round_$N/client_$I/adapter_meta.json"; if (-not (Test-Path -LiteralPath $A) -or -not (Test-Path -LiteralPath $M)) { throw "Incomplete P1.5b round $N client $I" }; $V=Get-Content -LiteralPath $M -Raw | ConvertFrom-Json; if ([double]$V.prox_mu -ne 0.01 -or [double]$V.mean_prox_loss_this_call -le 0 -or [int]$V.steps -le 0) { throw "Invalid P1.5b proximal metadata at round $N client $I" } }; if (-not (Test-Path -LiteralPath "$R/round_$N/fedavg_adapter/adapter_config.json")) { throw "Missing P1.5b aggregate at round $N" } }; if (-not (Test-Path -LiteralPath "$R/manifest.json")) { throw 'Missing P1.5b manifest' }; Write-Host 'P1.5b complete: matched FedProx-LoRA T3 trained with positive proximal loss in all 15 client stages; push compact results and stop before P1.5c evaluation'
 ```
 
-Do not sweep `mu`, add a teacher stage, or start P1.3. After P1.5b finishes,
-push only compact results/configs/manifests (no adapters), then review before
-activating the T3-only full-Spider P1.5c evaluation.
+P1.5b passed artifact review at result commit `d48f05b`. All three rounds use
+setup `ed34fcfd0ac7e24a6082753e05ede6e5478ba49f75e521e1011941cf5250bc28`
+and producing code `897fb66`; each round contains all 8,659 examples, 543
+optimizer updates, five fresh client stages, positive proximal loss, and a
+plaintext aggregate with `noop_suspect=False`. Mean client proximal losses
+range from `0.0605–0.0753` at T1, `0.0335–0.0434` at T2, and
+`0.0313–0.0398` at T3. Minimum pairwise client-delta cosine declines
+`0.4527 -> 0.0616 -> 0.0123`; this documents persistent client disagreement
+but is not an accuracy conclusion. Training wall time/VRAM are not promoted to
+paper resource evidence because P1.5b was not a controlled repeated benchmark.
+
+P1.5c evaluates only the new T3 endpoint on all 1,034 Spider test rows.
+Centralized-standard, pure-FL T3, and FedLS-SQL T3 are not redundantly decoded;
+their registered predictions are used for the local paired comparison after
+the new result is pulled. Rerun this exact line to resume missing rows safely.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $A='artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0/round_3/fedavg_adapter'; $E='artifacts/eval_resume/p15c_fedprox_mu001_t3_spider_s0/eval_k0'; foreach ($P in @('processed_data/SPIDER/centralized/train.csv','processed_data/SPIDER/centralized/test.csv',"$A/adapter_config.json",'artifacts/federated/p15b_fedprox_mu001_noicl_k5_e1_t3_s0/manifest.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.5c input: $P" } }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train processed_data/SPIDER/centralized/train.csv --test-csv processed_data/SPIDER/centralized/test.csv --arms "fedprox_mu001_t3=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P1.5c FedProx T3 Spider evaluation failed; rerun this exact line and resume root' }; if (-not (Test-Path -LiteralPath "$E/manifests")) { throw 'Missing P1.5c evaluation manifests' }; Write-Host 'P1.5c complete: push compact eval results/config/predictions/manifests and stop for paired comparison against registered centralized, pure-FL, and FedLS-SQL T3 controls'
+```
+
+Do not sweep `mu`, add a teacher stage, start P1.3, or evaluate extra datasets
+before the P1.5c Spider result is pulled and the baseline decision is closed.
 
 ## P0.8a-E — complete
 
