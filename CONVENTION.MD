@@ -121,6 +121,16 @@ publication command may push only the releasable `fedicl-sql/` result commit;
 paper-document updates remain a separate outer-repository commit after local
 validation.
 
+On a shared experiment server, unrelated tracked processed-data edits may
+coexist with a valid run. A run preflight may therefore require a clean
+**scientific scope** instead of a globally clean worktree, but it must enumerate
+that scope explicitly: imported code/package directories, dependency locks,
+the exact split/audit files, and every training/evaluation input. Untracked
+datasets and caches outside that scope are preserved and ignored. A dirty file
+inside the declared scope remains a hard failure. Evaluation commands must
+include their centralized train/test inputs in the scoped check even when the
+preceding training command did not use them.
+
 Once a long-running experiment starts, do not pull, checkout, commit, or edit
 its code worktree until the process exits. Some artifacts resolve `git_sha` at
 finalization rather than process launch, so a mid-run worktree change can make
