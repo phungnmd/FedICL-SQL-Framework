@@ -122,7 +122,7 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | CPU complete | 6 | P1.8 optional Secure Sum compatibility | real 18.46M-parameter replay passed at `6c67e79`; about `49.93%` communication expansion |
 | Closed negative | 7 | P1.5 FedProx-LoRA | lower than pure FL by `0.87/2.22/1.55` EX at T1/T2/T3; no tuning/OOD/combined arm |
 | CPU active | 7P | P2.2 paper tables/figures | assemble closed cells in parallel, including the separate P1.8 compatibility/overhead row |
-| Design gated | 8 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
+| GPU ready | 8 | P1.3 stronger semantic-domain-skew sensitivity | audit passed at `e97583d`; shared-client FL/FedLS T1 training is active |
 | GPU gated | 9 | P0.8b pure-FL/FedLS T3 seed 2 | blocked by backward compatibility for its legacy plaintext setup, not by Secure Sum |
 | Claim gate | 10 | P1.6 federated-7B feasibility | default excluded; reopen only if the paper retains empirical comparison with large-model FL |
 
@@ -308,23 +308,24 @@ Question-level paired tests and training-seed uncertainty must remain separate.
 
 ### P1.3 — RQ3 scope decision
 
-**Status:** the advisor-aligned path selects exactly one audited stronger-skew
-sensitivity. Design and split audit precede any training command.
+**Status:** the advisor-aligned path selected exactly one stronger
+semantic-domain-skew sensitivity. P1.3a audit passed and P1.3b T1 training is
+GPU-ready.
 
 The scoped fallback remains valid if the split audit cannot demonstrate a
 meaningful increase in heterogeneity. The selected path is:
 
-1. construct one stronger-skew split while holding source rows and `K=5`
-   fixed;
-2. verify client sizes, database/domain distributions, entropy/JSD, and the
-   direction of the intended skew;
+1. use grouped-domain Dirichlet `alpha=0.1, K=5, seed=0`, holding the exact
+   8,659-row multiset fixed;
+2. retain the passed audit: mean JSD increases `0.5266→0.8047` bits and mean
+   client entropy decreases `3.0291→2.1834`; quantity imbalance decreases and
+   is not part of the stronger-skew claim;
 3. compare only pure FL and frozen FedLS-SQL on Spider at T1;
 4. extend to T3 only after a positive, interpretable preregistered gate.
 
-Do not call `alpha=100` IID or `alpha=0.1` stronger heterogeneity until split
-statistics confirm database/domain distribution, row-count variation, and
-entropy/JSD differences. Separate quantity-skew and SQL-pattern-skew builders
-are outside the default paper.
+Call `alpha=0.1` stronger only on the semantic-domain axis verified above.
+Separate quantity-skew and SQL-pattern-skew builders remain outside the default
+paper.
 
 **Fallback gate:** if the new split is not measurably more heterogeneous or the
 T1 contrast is uninterpretable, stop and scope RQ3 to the existing partition.

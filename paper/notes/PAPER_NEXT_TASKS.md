@@ -29,7 +29,7 @@ rủi ro chính còn lại là baseline breadth và phạm vi non-IID, không ph
 | 0 | **P1.8 Secure Sum compatibility** | Chứng minh masked aggregation tương thích weighted FedAvg và lượng hóa overhead riêng. | complete | 18.46M-param replay passed; `6c67e79` |
 | 1 | **P1.5 FedProx-LoRA** | Kiểm tra optimizer mạnh hơn FedAvg. | complete | Closed negative: `-1.55` EX, 22/38 gains/losses |
 | 2 | **P1.5d FedProx T1/T2 diagnostic** | Kiểm tra FedProx có lợi tạm thời ở round sớm rồi suy giảm hay không. | complete | Không: thấp hơn pure FL `0.87/2.22` EX |
-| 3 | **P1.3 stronger-skew T1** | Kiểm tra kết luận có giữ được dưới một mức heterogeneous mạnh hơn. | CPU tạo/audit split, sau đó GPU train/eval | Task khoa học tiếp theo |
+| 3 | **P1.3 stronger-domain-skew T1** | Kiểm tra kết luận dưới domain skew mạnh hơn nhưng quantity skew thấp hơn. | GPU train; eval sau review | P1.3a passed; P1.3b GPU-ready |
 | 4 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
 | 5 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; P1.8 cell đã đóng |
 | 6 | **P2.3 reviewer QA/freeze** | Bảo đảm mỗi claim có artifact, limitation và SHA tương ứng. | CPU | Làm sau các gate thực nghiệm |
@@ -42,8 +42,10 @@ model/rank/client/public-pool không thuộc gói mặc định.
 
 ### GPU-READY NOW
 
-**Hiện chưa có lệnh GPU-ready mới.** P1.5d đã đóng âm. P1.3 cần tạo/audit split
-trước khi train; P0.8b cần backward compatibility với setup plaintext cũ.
+**P1.3b là lệnh GPU-ready hiện tại.** Split `alpha=0.1, K=5` đã qua audit tại
+`e97583d`; lệnh train và publication nằm trong `PIPELINE_NEXT.md`. P1.3c eval
+chỉ mở sau khi pull/review compact training artifacts. P0.8b vẫn chờ backward
+compatibility với setup plaintext cũ.
 
 ### GPU TASKS CHƯA READY
 
@@ -55,9 +57,9 @@ trước khi train; P0.8b cần backward compatibility với setup plaintext cũ
    - FedProx thấp hơn pure FL ở T1/T2/T3: `-0.87/-2.22/-1.55` EX.
    - Không chạy OOD, combined FedLS-FedProx, chọn checkpoint hoặc tune `mu`.
 
-3. **P1.3 stronger-skew FL/FedLS T1**
-   - Chờ: split cố định-row được tạo và audit entropy/JSD/client sizes.
-   - Production đầu tiên chỉ là T1.
+3. **P1.3 stronger-domain-skew FL/FedLS T1**
+   - Audit passed: cùng 8.659 rows; JSD `0.527→0.805`, entropy `3.029→2.183`.
+   - P1.3b train T1 GPU-ready; P1.3c eval chờ artifact review.
 
 4. **P1.3 stronger-skew T3 extension — conditional**
    - Chỉ chạy nếu T1 qua promotion gate; nếu không thì task bị hủy.

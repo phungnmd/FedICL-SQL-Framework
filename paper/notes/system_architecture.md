@@ -263,8 +263,9 @@ Established evidence:
 
 Open evidence gaps:
 
-1. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
-   only after a positive gate, otherwise scope RQ3 to the existing partition;
+1. run the audited `alpha=0.1, K=5` stronger semantic-domain-skew FL/FedLS T1
+   screen; extend only after its frozen EX/error gate, otherwise scope RQ3 to
+   the existing partition;
 2. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
 3. keep federated 7B absent by default; only an explicit empirical

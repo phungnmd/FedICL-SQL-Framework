@@ -25,9 +25,9 @@ opportunistically so scarce GPU time is not wasted:
    closed. It is optional and separate from accuracy lineages.
 2. **P1.5 FedProx-LoRA — complete negative:** fixed `mu=0.01` loses to pure FL
    at T1/T2/T3; no OOD, tuning, or FedLS-FedProx extension remains.
-3. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
-   `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
-   interpretable gate.
+3. **P1.3 stronger semantic-domain skew — GPU-ready:** the fixed-row `alpha=0.1,
+   K=5` audit passed; run shared-client FL versus FedLS at T1, then evaluate
+   only after compact training-artifact review.
 4. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
    lineages to T3 after backward-compatible setup handling is tested; never
    restart completed round 1.
@@ -217,15 +217,18 @@ restated as a structural/deterministic property.
 **Done when:** the headline table includes one matched stronger federated
 optimizer or the omission and claim boundary are explicit.
 
-### 7. Test one controlled non-IID sensitivity — gated after P1.5
+### 7. Test one controlled non-IID sensitivity — training active
 
 - [x] Select the minimal-sensitivity path rather than the full IID/quantity/
   SQL-pattern Cartesian suite proposed in the August outline.
-- [ ] Construct exactly one stronger-skew split while holding `K=5` and the
+- [x] Construct exactly one stronger-skew split while holding `K=5` and the
   source rows fixed.
-- [ ] Validate database/domain distributions, client sizes, entropy/JSD, and
-  that the new split is measurably more heterogeneous than `alpha=0.5`.
+- [x] Validate database/domain distributions, client sizes, entropy/JSD, and
+  the intended axis: same 8,659 rows; domain JSD `0.527→0.805`, entropy
+  `3.029→2.183`; size ratio decreases `3.02x→1.88x`.
 - [ ] Predeclare and run a pure-FL versus frozen-FedLS T1 Spider screen.
+- [x] Freeze the promotion gate before evaluation: at least `+2.0` EX, more
+  paired corrections than regressions, and no added execution errors.
 - [ ] Extend to T3 only if the T1 result passes a positive, interpretable gate.
 - [ ] If split validation or the screen fails, stop and scope RQ3 explicitly to
   the original fixed partition.

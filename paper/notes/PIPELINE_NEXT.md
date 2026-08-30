@@ -73,7 +73,9 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.5d   | FedProx T1/T2 Spider trajectory diagnostic                                    | complete: T1/T2 deltas `-0.87/-2.22` EX; result `9537103`                                                  |
 | P1.5e   | FedProx OOD / FedLS-FedProx extension                                         | **do not run: primary T3 endpoint did not improve on registered pure FL**                                  |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
-| P1.3    | One audited stronger-skew sensitivity                                          | gated after P1.5; preserve `K=5`/source rows and screen T1 before T3                                      |
+| P1.3a   | Stronger semantic-domain-skew split and audit                                  | complete: audit passed at code/data commit `e97583d`                                                       |
+| P1.3b   | Shared-client FL/FedLS T1 training on stronger domain skew                     | **GPU-ready; train once, reuse client/FedAvg stage, stop before evaluation**                               |
+| P1.3c   | Full-Spider T1 paired evaluation                                               | gated on P1.3b artifact pull/review                                                                        |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
@@ -219,6 +221,41 @@ round advantage to motivate a FedLS-FedProx interaction screen. P1.5e remains
 closed: do not run OOD, sweep `mu`, add a teacher stage, or start a combined
 arm. Exact command and provenance are archived at
 `paper/archive/completed_runbooks/P1_5D_FEDPROX_TRAJECTORY_2026-08-30.md`.
+
+## P1.3 — stronger semantic-domain-skew sensitivity
+
+P1.3a is complete at nested commit `e97583d`. The candidate is the canonical
+grouped-domain Dirichlet split `alpha=0.1, K=5, seed=0`, compared with the main
+`alpha=0.5, K=5, seed=0` split. Both contain the exact same 8,659-row multiset
+(`sha256=dadda0e4...`) and keep databases disjoint across clients. Mean
+per-client domain entropy falls from `3.0291` to `2.1834` bits and mean pairwise
+domain JSD rises from `0.5266` to `0.8047` bits. Client-size ratio decreases
+from `3.02x` to `1.88x`, so the claim is specifically stronger semantic-domain
+skew, not stronger quantity skew or stronger heterogeneity on every axis.
+
+P1.3b trains one arm-invariant client/FedAvg stage and reuses it for the FedLS
+server stage. This makes the T1 comparison exactly matched in private rows,
+initialization, local optimization, and aggregate. Accuracy uses explicit
+plaintext weighted FedAvg; the existing Secure Sum audit is separate. Rerun
+the exact command and roots after interruption. Stop after publishing compact
+training results; P1.3c evaluation is added only after artifact review.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $H=(git rev-parse --short HEAD).Trim(); if ($H -ne 'e97583d') { throw "P1.3b requires nested code/data commit e97583d, found $H" }; $W=@(git status --porcelain --untracked-files=no); if ($W.Count -ne 0) { throw 'Tracked worktree changes detected; use a clean worktree before P1.3b' }; $D='processed_data/SPIDER/federated_noniid/alpha_0.1/k5'; $A='audits/p13_alpha01_k5_s0_vs_alpha05_k5_s0.json'; $C='artifacts/federated/p13_alpha01_k5_e1_t1_shared_s0/round_1'; $F='artifacts/federated/p13_alpha01_k5_e1_t1_fl_s0'; $K='artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0'; foreach ($P in @($A,"$D/meta.json","$D/split.json","$D/client_1_train.csv","$D/client_2_train.csv","$D/client_3_train.csv","$D/client_4_train.csv","$D/client_5_train.csv",'processed_data/BIRD/bootstrap_full_exmatch/train.csv','artifacts/teacher_logit_cache/rkd_k0_full/meta.json')) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.3b input: $P" } }; $V=Get-Content -LiteralPath $A -Raw | ConvertFrom-Json; if (-not $V.passed -or [int]$V.candidate.n_rows -ne 8659 -or $V.candidate.source_multiset_sha256 -ne 'dadda0e4eda6ccc08ec2784cb892bece2dd6704ffb50556eac841150414eeb42' -or [double]$V.comparison.mean_pairwise_jsd_increase_bits -lt 0.10 -or [double]$V.comparison.mean_client_entropy_decrease_bits -lt 0.25) { throw 'P1.3a stronger-domain-skew audit contract failed' }; uv run python experiments/federated/run.py round --arm fedavg --round 1 --split-dir $D --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --client-out $C --out $F --seed 0 --stage p13b; if ($LASTEXITCODE -ne 0) { throw 'P1.3b pure-FL/shared-client T1 failed; rerun this exact line to resume' }; uv run python experiments/federated/run.py round --arm fedkd --round 1 --split-dir $D --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool processed_data/BIRD/bootstrap_full_exmatch/train.csv --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1.0 --lambda-kd 1.0 --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache artifacts/teacher_logit_cache/rkd_k0_full --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --client-out $C --out $K --seed 0 --stage p13b; if ($LASTEXITCODE -ne 0) { throw 'P1.3b FedLS T1 server stage failed; rerun this exact line to resume' }; foreach ($P in @("$C/fedavg_adapter/adapter_config.json","$F/manifest.json","$K/round_1/m_g/adapter_config.json","$K/manifest.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Incomplete P1.3b terminal artifact: $P" } }; $FS=Get-Content -LiteralPath "$F/setup.json" -Raw | ConvertFrom-Json; $KS=Get-Content -LiteralPath "$K/setup.json" -Raw | ConvertFrom-Json; if ($FS.recipe.split_dir -ne $D -or $KS.recipe.split_dir -ne $D -or $FS.recipe.aggregation_protocol -ne 'plaintext' -or $KS.recipe.aggregation_protocol -ne 'plaintext' -or $FS.recipe.server_method -ne 'none' -or $KS.recipe.server_method -ne 'rkl') { throw 'P1.3b setup contract mismatch' }; Write-Host 'P1.3b complete: shared private-client/FedAvg stage and FedLS T1 endpoint ready; run the publication command, push, and stop before P1.3c evaluation'
+```
+
+Publication command for the completed P1.3b training records only; it excludes
+all adapters, checkpoints, resume state, and ignored `artifacts/` content.
+
+```powershell
+$F='artifacts/federated/p13_alpha01_k5_e1_t1_fl_s0'; $K='artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Staged changes already exist; publish them separately before P1.3b results' }; $FR=(Get-Content -LiteralPath "$F/manifest.json" -Raw | ConvertFrom-Json).rounds.'1'.result_path; $KR=(Get-Content -LiteralPath "$K/manifest.json" -Raw | ConvertFrom-Json).rounds.'1'.result_path; if ([string]::IsNullOrWhiteSpace($FR) -or [string]::IsNullOrWhiteSpace($KR)) { throw 'Missing P1.3b result paths in manifests' }; $FD=Split-Path -Parent $FR; $KD=Split-Path -Parent $KR; $Files=@("$FD/config.json","$FD/metrics.json","$KD/config.json","$KD/metrics.json"); foreach ($P in $Files) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing compact P1.3b result file: $P" } }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.3b git add failed' }; $Want=@($Files | ForEach-Object { ((Resolve-Path -LiteralPath $_ -Relative) -replace '^\.\\','' -replace '\\','/') } | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: add stronger-domain-skew T1 training'; if ($LASTEXITCODE -ne 0) { throw 'P1.3b git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.3b git push failed' }; Write-Host 'P1.3b compact training results committed and pushed; stop for pull/review before evaluation'
+```
+
+The frozen P1.3c promotion gate is Spider EX improvement of at least `+2.0`
+points, paired corrections greater than regressions, and no increase in
+execution-error count. Passing opens a T3 extension; a smaller positive result
+is reported as directional T1 evidence but does not open T3. Failure closes
+the sensitivity and narrows RQ3 to the main `alpha=0.5` partition.
 
 ## P0.8a-E — complete
 
