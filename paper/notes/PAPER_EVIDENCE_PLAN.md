@@ -104,9 +104,9 @@ The experimental phase is ready to freeze when all mandatory items hold:
 P0.8a, P0.8a-E, P1.1b-v2, and P2.1 are complete. Accuracy, scoped deployment
 resources, and Method drafting no longer block the remaining parts of the
 advisor question. The scoped P1.8 compatibility audit is complete and no
-longer gates accuracy work. The fixed-`mu=0.01` FedProx-LoRA T3 endpoint is a
-closed negative; only an eval-only T1/T2 trajectory diagnostic remains before
-one audited stronger-skew T1 gate. Paper table/figure assembly runs in parallel from
+longer gates accuracy work. The fixed-`mu=0.01` FedProx-LoRA baseline is lower
+than pure FL at T1/T2/T3 and is closed without a combined extension. One
+audited stronger-skew T1 gate comes next. Paper table/figure assembly runs in parallel from
 already-closed evidence. Federated 7B is excluded by default and becomes
 relevant only if a direct empirical large-model-FL claim is reintroduced.
 
@@ -120,7 +120,7 @@ relevant only if a direct empirical large-model-FL claim is reintroduced.
 | Method closed | 4 | P1.7a execution-verified preference/contrastive KD | negative: 54.93 vs 56.87 EX; exact artifacts archived at nested `74f0a43` |
 | GPU complete | 5 | P1.1b-v2 1.5B/7B deployment-resource benchmark | 5/5 eligible each; student `2.09x` faster and uses `48.73%` less allocated VRAM |
 | CPU complete | 6 | P1.8 optional Secure Sum compatibility | real 18.46M-parameter replay passed at `6c67e79`; about `49.93%` communication expansion |
-| Diagnostic active | 7 | P1.5 FedProx-LoRA | T3 closed negative at 62.77 vs 64.31 EX; eval immutable T1/T2 only to explain trajectory, with no selection/tuning/OOD |
+| Closed negative | 7 | P1.5 FedProx-LoRA | lower than pure FL by `0.87/2.22/1.55` EX at T1/T2/T3; no tuning/OOD/combined arm |
 | CPU active | 7P | P2.2 paper tables/figures | assemble closed cells in parallel, including the separate P1.8 compatibility/overhead row |
 | Design gated | 8 | P1.3 one audited stronger-skew sensitivity | after P1.5; keep `K=5` and source rows fixed; T1 screen before any T3 extension |
 | GPU gated | 9 | P0.8b pure-FL/FedLS T3 seed 2 | blocked by backward compatibility for its legacy plaintext setup, not by Secure Sum |
@@ -401,9 +401,9 @@ must fill a named missing cell or answer a concrete objection.
 Each item remains bounded by its stated gate; only FedProx T1/T2 currently has
 an executable diagnostic command.
 
-- **FedProx-LoRA:** matched T3 baseline is complete and negative. The only open
-  work is a round-matched T1/T2 Spider diagnostic from existing adapters; it
-  cannot be used for checkpoint selection, coefficient tuning, or OOD claims.
+- **FedProx-LoRA:** matched T1/T2/T3 baseline is complete and negative. It is
+  retained as reviewer evidence, with no checkpoint selection, coefficient
+  tuning, OOD suite, or FedLS-FedProx extension.
 - **Qwen/Gemma teacher zero-shot:** contextual accuracy/resource reference,
   not a causal method arm.
 - **Federated 7B:** required only for a strong empirical claim against

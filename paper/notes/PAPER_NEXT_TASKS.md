@@ -11,7 +11,7 @@
 | Accuracy và causal evidence | Mạnh | FedLS hơn pure FL ở hai seed T3; matched public-gold/target-CE controls và Gemma portability đã có. |
 | Communication/resource | Đủ trong phạm vi đã khai báo | Adapter bytes và deployment inference 1.5B/7B đã đo; không claim training-resource hoặc federated 7B. |
 | Privacy boundary | Đủ cho compatibility claim | P1.8 đã replay adapter thật và đo equivalence/overhead; không claim MPC/DP deployment. |
-| Reviewer baseline | Endpoint đã đóng; còn chẩn đoán | FedProx-LoRA `mu=0.01` đạt 62.77 EX, thấp hơn pure FL 1.55 điểm; T1/T2 chỉ giải thích quỹ đạo. |
+| Reviewer baseline | Đã đóng | FedProx thấp hơn pure FL tại cả T1/T2/T3; không mở FedLS–FedProx. |
 | Non-IID sensitivity | Còn thiếu hoặc phải thu hẹp claim | Hiện chỉ có split chính `K=5, alpha=0.5`. |
 | Final reliability | Gần đủ | Hai seed T3 đều dương; seed 2 cần cho gói ba-seed mạnh hơn. |
 | Paper packaging | Chưa xong | Các bảng/figure cuối, claim audit và artifact freeze còn mở. |
@@ -28,7 +28,7 @@ rủi ro chính còn lại là baseline breadth và phạm vi non-IID, không ph
 |---:|---|---|---|---|
 | 0 | **P1.8 Secure Sum compatibility** | Chứng minh masked aggregation tương thích weighted FedAvg và lượng hóa overhead riêng. | complete | 18.46M-param replay passed; `6c67e79` |
 | 1 | **P1.5 FedProx-LoRA** | Kiểm tra optimizer mạnh hơn FedAvg. | complete | Closed negative: `-1.55` EX, 22/38 gains/losses |
-| 2 | **P1.5d FedProx T1/T2 diagnostic** | Kiểm tra FedProx có lợi tạm thời ở round sớm rồi suy giảm hay không. | GPU eval-only | GPU-ready; không chọn checkpoint/tune `mu` |
+| 2 | **P1.5d FedProx T1/T2 diagnostic** | Kiểm tra FedProx có lợi tạm thời ở round sớm rồi suy giảm hay không. | complete | Không: thấp hơn pure FL `0.87/2.22` EX |
 | 3 | **P1.3 stronger-skew T1** | Kiểm tra kết luận có giữ được dưới một mức heterogeneous mạnh hơn. | CPU tạo/audit split, sau đó GPU train/eval | Task khoa học tiếp theo |
 | 4 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
 | 5 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; P1.8 cell đã đóng |
@@ -42,10 +42,8 @@ model/rank/client/public-pool không thuộc gói mặc định.
 
 ### GPU-READY NOW
 
-**P1.5d là lệnh GPU-ready hiện tại:** eval-only hai adapter T1/T2 đã có; lệnh
-single-line nằm trong `PIPELINE_NEXT.md`. Đây là chẩn đoán post-hoc, không phải
-model selection. P1.3 vẫn cần tạo/audit split; P0.8b cần backward compatibility
-với setup plaintext cũ.
+**Hiện chưa có lệnh GPU-ready mới.** P1.5d đã đóng âm. P1.3 cần tạo/audit split
+trước khi train; P0.8b cần backward compatibility với setup plaintext cũ.
 
 ### GPU TASKS CHƯA READY
 
@@ -53,10 +51,9 @@ với setup plaintext cũ.
    - Chờ: legacy plaintext setup compatibility; không chờ Secure Sum.
    - Sau khi mở lại: tiếp tục rounds 2–3, không restart round 1.
 
-2. **P1.5 endpoint — closed; P1.5d diagnostic ready**
-   - FedProx 62.77 vs pure FL 64.31 EX; exact paired `p=0.0519`; 194 vs 193 errors.
-   - Chỉ eval T1/T2 trên Spider để giải thích quỹ đạo; không chạy OOD,
-     combined FedLS-FedProx, chọn checkpoint hoặc tune `mu`.
+2. **P1.5 — complete negative**
+   - FedProx thấp hơn pure FL ở T1/T2/T3: `-0.87/-2.22/-1.55` EX.
+   - Không chạy OOD, combined FedLS-FedProx, chọn checkpoint hoặc tune `mu`.
 
 3. **P1.3 stronger-skew FL/FedLS T1**
    - Chờ: split cố định-row được tạo và audit entropy/JSD/client sizes.

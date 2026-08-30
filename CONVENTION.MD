@@ -98,6 +98,29 @@ Every active experiment command must:
   another character that can be parsed as part of the variable name;
 - avoid deletion, wildcard cleanup, checkpoint copying, and silent overwrite.
 
+Every newly activated task must also include a separate **publication command**
+immediately after its run command. The publication command is operator-invoked
+only after the run's completion checks pass and must:
+
+- target PowerShell and occupy one physical line in its own `powershell` block;
+- verify that no files are already staged, then add only an explicit allowlist
+  of compact result/config/metrics/prediction/manifest/provenance files;
+- never add `artifacts/`, adapters, model weights, resume caches, trainer state,
+  telemetry scratch data, or an entire result parent directory by wildcard;
+- resolve timestamped output directories through the task's config,
+  fingerprint, or exact printed path, never by an unchecked “newest folder”;
+- verify the staged path set before committing, use a task-specific commit
+  message, fail after a non-zero commit, and run `git push` only after the
+  commit succeeds;
+- remain separate from the long-running command so resuming computation never
+  implicitly commits or pushes partial output.
+
+If a producer cannot expose a deterministic result path, improve the producer
+or provide a fingerprint-checked resolver before activating the task. A
+publication command may push only the releasable `fedicl-sql/` result commit;
+paper-document updates remain a separate outer-repository commit after local
+validation.
+
 Once a long-running experiment starts, do not pull, checkout, commit, or edit
 its code worktree until the process exits. Some artifacts resolve `git_sha` at
 finalization rather than process launch, so a mid-run worktree change can make

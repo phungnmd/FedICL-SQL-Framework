@@ -135,14 +135,19 @@ The split is the fixed `K=5`, grouped-domain Dirichlet `alpha=0.5` setting.
 
 ### 3.1 Spider trajectory, Qwen2.5, seed 0
 
-| Round | Independent pure FL EX | Mixed-lineage pre-server EX | FedLS-SQL endpoint EX |
-|---:|---:|---:|---:|
-| 1 | 56.67 | 57.35 | 63.35 |
-| 2 | 62.19 | 64.02 | 66.15 |
-| 3 | 64.31 | 66.05 | **69.54** |
+| Round | Independent pure FL EX | FedProx-LoRA EX | Mixed-lineage pre-server EX | FedLS-SQL endpoint EX |
+|---:|---:|---:|---:|---:|
+| 1 | 56.67 | 55.80 | 57.35 | 63.35 |
+| 2 | 62.19 | 59.96 | 64.02 | 66.15 |
+| 3 | 64.31 | 62.77 | 66.05 | **69.54** |
 
-The mixed-lineage pre-server column is diagnostic only: T2/T3 inherit earlier
-KD and must never be labeled pure FL. FedLS-SQL improves `+6.19` EX from T1 to
+FedProx is below round-matched pure FL by `0.87`, `2.22`, and `1.55` EX at
+T1/T2/T3. The T2 paired comparison has 19 corrections versus 42 regressions
+(`p=0.00444`); T1 has 26/35 (`p=0.306`) and T3 has 22/38 (`p=0.0519`). This
+closes the proposed FedLS-FedProx interaction screen: there is no observed
+early-round FedProx advantage to promote. The mixed-lineage pre-server column
+is diagnostic only: T2/T3 inherit earlier KD and must never be labeled pure
+FL. FedLS-SQL improves `+6.19` EX from T1 to
 T3 (`p<1e-4`). At matched two passes over private data, `T=2, E=1` exceeds
 `T=1, E=2` by `+2.61` EX (`p=0.0067`), supporting repeated
 communication/aggregation/distillation rather than local duration alone.

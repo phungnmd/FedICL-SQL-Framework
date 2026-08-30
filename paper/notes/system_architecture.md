@@ -263,15 +263,11 @@ Established evidence:
 
 Open evidence gaps:
 
-1. finish the eval-only FedProx T1/T2 trajectory diagnostic. The fixed
-   `mu=0.01` T3 endpoint is already negative, so this can explain early versus
-   accumulated behavior but cannot select a checkpoint, tune the optimizer,
-   or replace FedAvg in the canonical method;
-2. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
+1. audit one stronger-skew `K=5` split and screen FL versus FedLS at T1; extend
    only after a positive gate, otherwise scope RQ3 to the existing partition;
-3. seed 2 remains the path to a final three-seed T3 mean and sample SD after
+2. seed 2 remains the path to a final three-seed T3 mean and sample SD after
    the higher-value resource/baseline/sensitivity gaps;
-4. keep federated 7B absent by default; only an explicit empirical
+3. keep federated 7B absent by default; only an explicit empirical
    large-model-FL sentence can justify reopening one matched T1 feasibility
    reference.
 

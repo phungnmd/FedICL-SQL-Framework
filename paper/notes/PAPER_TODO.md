@@ -23,9 +23,8 @@ opportunistically so scarce GPU time is not wasted:
 1. **P1.8 Secure Sum compatibility — complete:** implementation, tests, one
    real canonical replay, numerical equivalence, and overhead evidence are
    closed. It is optional and separate from accuracy lineages.
-2. **P1.5 FedProx-LoRA — endpoint closed, diagnostic open:** fixed `mu=0.01`
-   loses to pure FL at T3; evaluate its existing T1/T2 adapters only to explain
-   the training trajectory, never to select a checkpoint or tune the method.
+2. **P1.5 FedProx-LoRA — complete negative:** fixed `mu=0.01` loses to pure FL
+   at T1/T2/T3; no OOD, tuning, or FedLS-FedProx extension remains.
 3. **P1.3 stronger-skew — gated after P1.5:** audit exactly one fixed-row,
    `K=5` split and run FL versus FedLS at T1; extend to T3 only after a positive
    interpretable gate.
@@ -182,7 +181,7 @@ the stronger-skew audit demonstrate a specific unresolved drift problem.
 **Done when:** every RQ4 sentence is supported by a measured table or is
 restated as a structural/deterministic property.
 
-### 6. Add a stronger federated baseline — endpoint closed, trajectory diagnostic active
+### 6. Add a stronger federated baseline — complete negative
 
 - [x] Design one matched FedProx-LoRA baseline using the same Qwen student,
   split, LoRA rank, local work, rounds, and evaluation protocol.
@@ -205,9 +204,11 @@ restated as a structural/deterministic property.
   FedLS checkpoints without retuning `mu`.
 - [x] Apply the primary stop rule: no OOD evaluation, coefficient sweep, or
   FedLS-FedProx combined screen after T3 failed to improve on pure FL.
-- [ ] Run P1.5d eval-only on the immutable T1/T2 adapters and compare each to
+- [x] Run P1.5d eval-only on the immutable T1/T2 adapters and compare each to
   registered pure FL at the same round. Treat it only as a post-hoc trajectory
   diagnostic; do not select a test checkpoint or revise the T3 decision.
+- [x] Close the interaction hypothesis: FedProx is lower by `0.87`, `2.22`,
+  and `1.55` EX at T1/T2/T3, so no FedLS-FedProx screen is promoted.
 - [x] Close P1.5: FedProx has 22 paired corrections and 38 regressions versus
   pure FL (`-1.55` EX, `p=0.0519`) and 194 versus 193 execution errors.
 - [x] Include the matched FedProx T3 result as a negative optimizer baseline;

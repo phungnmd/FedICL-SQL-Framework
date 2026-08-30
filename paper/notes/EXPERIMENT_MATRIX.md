@@ -24,7 +24,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1 | novelty positioning | nearest-work matrix across FedMKT, FedCoLLM, FedCoT, LaDa, federated KD/PEFT, and NL-to-SQL transfer | complete in `RELATED_WORK_NOVELTY_MATRIX.md`; title narrowed; FedCoLLM and Struct-SQL are the closest priors |
 | P2 | additional reliability | matched public-gold seeds 1/2 or extra final seeds only if earlier gates remain uncertain | conditional |
 | P1 | non-IID | current domain/quantity-skewed `alpha=0.5`, K=5 split | complete for main setting |
-| P1 | optimizer baseline | matched FedProx-LoRA (`mu=0.01`, client-only proximal loss, plaintext weighted FedAvg) | T3 closed negative: 62.77 vs pure-FL 64.31 EX; T1/T2 Spider eval open only as a trajectory diagnostic, not selection |
+| P1 | optimizer baseline | matched FedProx-LoRA (`mu=0.01`, client-only proximal loss, plaintext weighted FedAvg) | complete negative: FedProx minus pure FL is `-0.87/-2.22/-1.55` EX at T1/T2/T3; no combined extension |
 | P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | closed negative: 54.93 vs 56.87 EX, 22 more execution errors; no full-pool extension or tuning |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
@@ -76,9 +76,8 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
    is archived; do not tune or extend it.
 8. Treat P1.1b-v2 as complete scoped deployment evidence: the student is
    `2.09x` faster and uses `48.73%` less allocated VRAM than the 4-bit teacher.
-9. Treat the Method and architecture figure as complete. Finish only the
-   existing FedProx T1/T2 trajectory diagnostic, then audit and screen one
-   stronger-skew split at T1, and close seed-2 T3. Assemble closed paper
+9. Treat the Method, architecture figure, and FedProx trajectory as complete.
+   Audit and screen one stronger-skew split at T1, then close seed-2 T3. Assemble closed paper
    figures in parallel and decide federated-7B
    feasibility only if introducing the corresponding empirical claim. Keep
    teacher ceilings and all model/rank/client sweeps optional.
