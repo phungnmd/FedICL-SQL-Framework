@@ -74,8 +74,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.5e   | FedProx OOD / FedLS-FedProx extension                                         | **do not run: primary T3 endpoint did not improve on registered pure FL**                                  |
 | P2.2    | Assemble paper tables and figures from closed evidence                         | active parallel CPU lane; include the separate P1.8 compatibility/overhead row                            |
 | P1.3a   | Stronger semantic-domain-skew split and audit                                  | complete: audit passed at code/data commit `e97583d`                                                       |
-| P1.3b   | Shared-client FL/FedLS T1 training on stronger domain skew                     | training complete; corrected verification and publication pending                                          |
-| P1.3c   | Full-Spider T1 paired evaluation                                               | gated on P1.3b artifact pull/review                                                                        |
+| P1.3b   | Shared-client FL/FedLS T1 training on stronger domain skew                     | complete: matched training records pulled at `ce93c79`                                                     |
+| P1.3c   | Full-Spider T1 paired evaluation                                               | **GPU-ready now**; run/publish, then stop for the frozen paired gate                                       |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
@@ -266,6 +266,32 @@ points, paired corrections greater than regressions, and no increase in
 execution-error count. Passing opens a T3 extension; a smaller positive result
 is reported as directional T1 evidence but does not open T3. Failure closes
 the sensitivity and narrows RQ3 to the main `alpha=0.5` partition.
+
+P1.3b artifact review passed at nested result commit `ce93c79`. The two records
+contain byte-equivalent `client_training` and `aggregation` summaries: 8,659
+private examples, 543 optimizer updates, five fresh client stages, and the
+same non-noop plaintext aggregate (`min_cosine=0.407722`). FedLS adds exactly
+one fresh RKL server stage over 3,873 teacher-selected public rows, initialized
+from that shared aggregate. These are valid training endpoints but contain no
+accuracy result; P1.3c evaluates both on the same 1,034 canonical Spider rows.
+The tracked-diff and Git-blob checks intentionally fail if the server's
+centralized CSVs differ from the committed evaluation inputs; inspect such
+drift instead of silently evaluating a different test set. Git blob identity
+is used instead of raw file SHA so a clean Windows checkout is not rejected
+only because of line-ending conversion. Rerun the exact command and resume root
+after interruption.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $H=(git rev-parse --short HEAD).Trim(); if ($H -ne 'ce93c79') { throw "P1.3c requires nested result commit ce93c79, found $H" }; $T='processed_data/SPIDER/centralized/train.csv'; $X='processed_data/SPIDER/centralized/test.csv'; $C='artifacts/federated/p13_alpha01_k5_e1_t1_shared_s0/round_1/fedavg_adapter'; $K='artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0/round_1/m_g'; $E='artifacts/eval_resume/p13c_alpha01_fl_fedls_t1_spider_s0/eval_k0'; foreach ($P in @($T,$X,"$C/adapter_config.json","$K/adapter_config.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.3c input: $P" } }; git diff --quiet -- $T $X; if ($LASTEXITCODE -ne 0) { throw 'P1.3c Spider evaluation inputs have unstaged tracked edits; inspect/reconcile them before evaluation' }; git diff --cached --quiet -- $T $X; if ($LASTEXITCODE -ne 0) { throw 'P1.3c Spider evaluation inputs have staged tracked edits; publish or restore them separately' }; $TB=(git rev-parse "HEAD:$T").Trim(); $XB=(git rev-parse "HEAD:$X").Trim(); if ($TB -ne 'c963d55bd42a2e6dddf73c06b355954855fc96a5' -or $XB -ne '5ab607083d932c05c4fdabe226a10e1729f6169c') { throw 'P1.3c canonical Spider Git-blob identity mismatch' }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $T --test-csv $X --arms "fl_alpha01_t1=$C" "fedls_alpha01_t1=$K" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P1.3c paired Spider evaluation failed; rerun this exact line to resume' }; $M=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | ForEach-Object { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; if ($V.status -eq 'completed') { $_ } }); if ($M.Count -ne 1) { throw "Expected one completed P1.3c manifest, found $($M.Count)" }; Write-Host 'P1.3c evaluation complete; run the publication command and stop for paired gate analysis'
+```
+
+Publication command for P1.3c only. It resolves the timestamped result through
+the dedicated completed manifest and publishes config, metrics, and both
+prediction files; the resume checkpoint and manifest remain server-local.
+
+```powershell
+$E='artifacts/eval_resume/p13c_alpha01_fl_fedls_t1_spider_s0/eval_k0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Staged changes already exist; publish them separately before P1.3c' }; $M=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | ForEach-Object { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; if ($V.status -eq 'completed') { [PSCustomObject]@{ Path=$_.FullName; Value=$V } } }); if ($M.Count -ne 1) { throw "Expected one completed P1.3c manifest, found $($M.Count)" }; $V=$M[0].Value; $Files=@([string]$V.artifacts.config,[string]$V.artifacts.metrics)+@($V.artifacts.predictions | ForEach-Object { [string]$_ }); if ($Files.Count -ne 4) { throw "Expected four compact P1.3c files, found $($Files.Count)" }; foreach ($P in $Files) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing compact P1.3c result file: $P" } }; $Cfg=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $Met=Get-Content -LiteralPath $V.artifacts.metrics -Raw | ConvertFrom-Json; if ($Cfg.resume_dir -ne $E -or (@($Cfg.arms) -join '|') -ne 'fl_alpha01_t1=artifacts/federated/p13_alpha01_k5_e1_t1_shared_s0/round_1/fedavg_adapter|fedls_alpha01_t1=artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0/round_1/m_g' -or [int]$Met.n_eval -ne 1034 -or @($Met.arms.PSObject.Properties.Name).Count -ne 2) { throw 'P1.3c compact result contract mismatch' }; foreach ($P in @($V.artifacts.predictions)) { if ((Import-Csv -LiteralPath $P).Count -ne 1034) { throw "Incomplete P1.3c predictions: $P" } }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.3c git add failed' }; $Want=@($Files | ForEach-Object { ((Resolve-Path -LiteralPath $_ -Relative) -replace '^\.\\','' -replace '\\','/') } | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: evaluate stronger-domain-skew T1'; if ($LASTEXITCODE -ne 0) { throw 'P1.3c git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.3c git push failed' }; Write-Host 'P1.3c compact evaluation committed and pushed; stop for pull/review before any T3 extension'
+```
 
 ## P0.8a-E — complete
 
