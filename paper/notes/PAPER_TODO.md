@@ -1,6 +1,6 @@
 # FedLS-SQL — adaptive paper TODO
 
-> Updated 2026-08-30. This is the ordered paper-work backlog. It records what
+> Updated 2026-09-01. This is the ordered paper-work backlog. It records what
 > to do and why; executable PowerShell commands belong only in
 > `PIPELINE_NEXT.md`. Re-rank conditional items whenever an earlier gate changes
 > the manuscript claim.
@@ -25,9 +25,10 @@ opportunistically so scarce GPU time is not wasted:
    closed. It is optional and separate from accuracy lineages.
 2. **P1.5 FedProx-LoRA — complete negative:** fixed `mu=0.01` loses to pure FL
    at T1/T2/T3; no OOD, tuning, or FedLS-FedProx extension remains.
-3. **P1.3 stronger semantic-domain skew — GPU-ready:** the fixed-row `alpha=0.1,
-   K=5` audit passed; run shared-client FL versus FedLS at T1, then evaluate
-   only after compact training-artifact review.
+3. **P1.3 stronger semantic-domain skew — final evaluation GPU-ready:** the
+   fixed-row `alpha=0.1, K=5` audit and T1 gate passed; independent T2/T3
+   training passed compact artifact review at `21f1a9c`. Run only the paired
+   final T3 endpoint next.
 4. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
    lineages to T3 after backward-compatible setup handling is tested; never
    restart completed round 1.
