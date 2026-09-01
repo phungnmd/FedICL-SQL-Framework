@@ -77,7 +77,7 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.3b   | Shared-client FL/FedLS T1 training on stronger domain skew                     | complete: matched training records pulled at `ce93c79`                                                     |
 | P1.3c   | Full-Spider T1 paired evaluation                                               | complete: `+4.06` EX, 129/87 corrections/regressions, 236→134 errors; `d4d8733`                            |
 | P1.3d   | Stronger-skew independent FL/FedLS rounds 2–3                                  | complete: four fresh non-noop records, result commit `21f1a9c`                                             |
-| P1.3e   | Stronger-skew final paired T3 evaluation                                       | **GPU-ready now**; evaluate the two final endpoints on the frozen 1,034-row Spider set                      |
+| P1.3e   | Stronger-skew final paired T3 evaluation                                       | complete: `63.64→68.28` EX (`+4.64`), 112/64 wins/losses, `p=0.000367`; result `9bfd42e`                   |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
@@ -97,7 +97,10 @@ federated-7B superiority. P0.8b is independent of Secure Sum but its old
 command remains blocked until a tested legacy-plaintext migration exists.
 
 P1.4b, P1.1b, P2.1, the scoped P1.8 compatibility audit, and all P1.5 FedProx
-work are closed. The next experimental gate is one stronger-skew screen.
+work are closed. P1.3 stronger-skew sensitivity is also closed positive at T1
+and T3. There is no mandatory GPU experiment currently active; prioritize
+P2.2 paper tables/figures and reviewer QA. P0.8b seed 2 remains a desirable
+but legacy-compatibility-gated reliability extension.
 Accuracy experiments use explicit plaintext weighted aggregation for matched
 lineage; Secure Sum is an optional audited layer, not an accuracy gate. Decide
 federated-7B feasibility only if the manuscript retains an empirical
@@ -357,6 +360,13 @@ Publication command for P1.3e only:
 ```powershell
 $E='artifacts/eval_resume/p13e_alpha01_fl_fedls_t3_spider_s0/eval_k0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Staged changes already exist; publish them separately before P1.3e' }; $M=@(); foreach ($Item in @(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File)) { $Value=Get-Content -LiteralPath $Item.FullName -Raw | ConvertFrom-Json; if ($Value.status -eq 'completed') { $M += [PSCustomObject]@{ Path=$Item.FullName; Value=$Value } } }; if ($M.Count -ne 1) { throw "Expected one completed P1.3e manifest, found $($M.Count)" }; $V=$M[0].Value; $Files=@([string]$V.artifacts.config,[string]$V.artifacts.metrics); foreach ($Prediction in @($V.artifacts.predictions)) { $Files += [string]$Prediction }; if ($Files.Count -ne 4) { throw "Expected four compact P1.3e files, found $($Files.Count)" }; foreach ($P in $Files) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing compact P1.3e result file: $P" } }; $Cfg=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $Met=Get-Content -LiteralPath $V.artifacts.metrics -Raw | ConvertFrom-Json; if ($Cfg.resume_dir -ne $E -or (@($Cfg.arms) -join '|') -ne 'fl_alpha01_t3=artifacts/federated/p13_alpha01_k5_e1_t1_fl_s0/round_3/fedavg_adapter|fedls_alpha01_t3=artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0/round_3/m_g' -or [int]$Met.n_eval -ne 1034 -or @($Met.arms.PSObject.Properties.Name).Count -ne 2) { throw 'P1.3e compact result contract mismatch' }; foreach ($P in @($V.artifacts.predictions)) { if ((Import-Csv -LiteralPath $P).Count -ne 1034) { throw "Incomplete P1.3e predictions: $P" } }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.3e git add failed' }; $Want=@(); foreach ($File in $Files) { $Want += ((Resolve-Path -LiteralPath $File -Relative) -replace '^\.\\','' -replace '\\','/') }; $Want=@($Want | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: evaluate stronger-domain-skew T3'; if ($LASTEXITCODE -ne 0) { throw 'P1.3e git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.3e git push failed' }; Write-Host 'P1.3e compact evaluation committed and pushed; stop for pull and paired significance analysis'
 ```
+
+P1.3e is complete at result commit `9bfd42e`. On 1,034 paired rows, FL and
+FedLS score `63.64` and `68.28` EX (`+4.64` points), with 112 corrections and
+64 regressions, exact McNemar `p=0.000367`, paired-bootstrap 95% interval
+`[+2.13,+7.16]`, and execution errors `192→96`. This closes the stronger
+semantic-domain-skew sensitivity positively. Do not rerun P1.3 or activate T2
+evaluation merely to select a checkpoint.
 
 ## P0.8a-E — complete
 

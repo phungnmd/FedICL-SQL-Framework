@@ -1,6 +1,6 @@
 # FedLS-SQL — active lab log
 
-> Refreshed 2026-08-29. This is the compact decision ledger for the current
+> Refreshed 2026-09-01. This is the compact decision ledger for the current
 > paper. The complete chronology through this date is preserved at
 > `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`.
 
@@ -28,6 +28,10 @@ decisions. It deliberately does not own result tables:
   `N_qwen`, not a fixed cross-teacher budget.
 - Canonical inference: greedy, zero-shot, `k=0`.
 - Best current endpoint: `69.54` Spider EX at T3, training seed 0.
+- Stronger semantic-domain-skew sensitivity is closed positive. On the same
+  1,034 Spider rows, FedLS exceeds matched FL by `+4.06` EX at T1 and `+4.64`
+  at T3; the T3 result has 112/64 corrections/regressions, `p=0.000367`, and
+  halves execution errors from 192 to 96.
 - The matched public-supervision, centralized-recipe, and centralized OOD/BIRD
   gates are complete.
 - P1.1a's active protocol is implemented at nested commit `487b3b2`: fixed in-process warm-up,
@@ -393,6 +397,7 @@ internal artifact identities.
 | 2026-08-31 | Pulled P1.3b result `ce93c79` and passed artifact review. FL and FedLS records have identical client-training and aggregation summaries: 8,659 examples, 543 updates, five fresh clients, plaintext weighted factor FedAvg, `min_cosine=0.407722`, and `noop_suspect=False`. The FedLS record adds only one fresh RKL server stage over the canonical 3,873-row Qwen teacher-selected pool, initialized from the shared aggregate; it processed all 3,873 rows in 6,896.5 s with `resumed_from=0`. Training records do not contain EX, so no stronger-skew method claim is made yet. Activated P1.3c paired T1 evaluation on the exact 1,034-row committed Spider test set, with a dedicated resume root and separate allowlisted publication. The first preflight correctly detected unrelated tracked edits in the server's centralized CSVs. Revised the command to preserve those edits and extract/verify canonical Git blobs from `ce93c79` under ignored `artifacts/eval_inputs`; also removed `$_` pipeline variables from run/publication commands to prevent rich-text copy corruption. The frozen gate remains `>=+2.0` EX, corrections greater than regressions, and no execution-error increase. |
 | 2026-08-31 | Pulled P1.3c result `d4d8733`; stronger semantic-domain skew passes every frozen promotion gate. FedLS scores 62.96 versus FL 58.90 EX on the same 1,034 Spider rows (`+4.06` points; 651 vs 609 correct), with 129 corrections versus 87 regressions, exact McNemar `p=0.00516`, paired-bootstrap 95% interval `[+1.26,+6.87]`, and execution errors reduced 236→134. Easy/medium/extra improve by 20/20/4 correct rows while hard decreases by two; the aggregate preregistered gate controls promotion. The server and Git centralized CSVs were separately audited as identical in all parsed `question/query/db_id/normalized db_path` fields despite raw serialization hashes, so no historical accuracy rerun is needed. Canonical Gemma teacher-selection data and execution checkpoint were normalized to repository-relative provenance and preserved at nested `895c2c3`/`9b1dc6b`; the server worktree is clean. Activated P1.3d as independent FL and FedLS rounds 2–3 in two disjoint GPU lanes, with combined compact publication and P1.3e eval gated on artifact review. Concurrent-run timing is not paper resource evidence. |
 | 2026-09-01 | Pulled P1.3d result `21f1a9c` and passed compact artifact review. FL and FedLS T2/T3 each contain five fresh client stages over 8,659 examples and 543 optimizer updates, the expected immutable parent, plaintext factor FedAvg, and `noop_suspect=False`; FedLS additionally contains a fresh 3,873-example, 243-update RKL server stage per round. Server mean loss declines `0.2795→0.2225`. FL minimum pairwise client-delta cosine falls `0.0405→0.0002`, whereas FedLS remains `0.4083→0.3066`; retain this only as mechanism diagnostic, not accuracy or causal proof. Concurrent-lane resource fields are ineligible for paper timing. Activated P1.3e as the single paired T3 endpoint evaluation on the exact canonical 1,034 Spider rows used by P1.3c; T2 evaluation remains optional and inactive. |
+| 2026-09-01 | Pulled P1.3e result `9bfd42e` and closed stronger semantic-domain-skew sensitivity positively. On 1,034 paired Spider rows, FL/FedLS T3 score `63.64/68.28` EX (`658/706` correct; `+4.64` points), with 112 corrections and 64 regressions, exact McNemar `p=0.000367`, and a 100,000-replicate seed-0 paired-bootstrap interval `[+2.13,+7.16]`. Execution errors halve `192→96`; 64 FL execution failures become correct and another 66 become executable-but-wrong. Improvements are largest on medium (`+7.62`), LIMIT (`+11.64`), ORDER BY (`+10.55`), and JOIN (`+5.88`) rows. Extra-hardness is `-2.41` and set operations `-13.75`, reinforcing the existing structured-composition limitation. EM `57.74→36.56` remains a secondary SQL-form diagnostic and does not override the EX endpoint. Relative to the main alpha=0.5 T3 setting, both methods shift slightly but the FedLS advantage remains similar (`+5.23→+4.64`). No P1.3 rerun or T2 checkpoint selection is warranted; proceed to paper assembly and reviewer QA. |
 
 ## 8. Archived branches
 

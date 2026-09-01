@@ -25,10 +25,9 @@ opportunistically so scarce GPU time is not wasted:
    closed. It is optional and separate from accuracy lineages.
 2. **P1.5 FedProx-LoRA — complete negative:** fixed `mu=0.01` loses to pure FL
    at T1/T2/T3; no OOD, tuning, or FedLS-FedProx extension remains.
-3. **P1.3 stronger semantic-domain skew — final evaluation GPU-ready:** the
-   fixed-row `alpha=0.1, K=5` audit and T1 gate passed; independent T2/T3
-   training passed compact artifact review at `21f1a9c`. Run only the paired
-   final T3 endpoint next.
+3. **P1.3 stronger semantic-domain skew — complete positive:** on the fixed-row
+   `alpha=0.1, K=5` setting, FedLS improves over FL by `+4.06` EX at T1 and
+   `+4.64` at T3; the final paired result is significant (`p=0.000367`).
 4. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
    lineages to T3 after backward-compatible setup handling is tested; never
    restart completed round 1.

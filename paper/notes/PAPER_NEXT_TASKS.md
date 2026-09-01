@@ -29,7 +29,7 @@ rủi ro chính còn lại là baseline breadth và phạm vi non-IID, không ph
 | 0 | **P1.8 Secure Sum compatibility** | Chứng minh masked aggregation tương thích weighted FedAvg và lượng hóa overhead riêng. | complete | 18.46M-param replay passed; `6c67e79` |
 | 1 | **P1.5 FedProx-LoRA** | Kiểm tra optimizer mạnh hơn FedAvg. | complete | Closed negative: `-1.55` EX, 22/38 gains/losses |
 | 2 | **P1.5d FedProx T1/T2 diagnostic** | Kiểm tra FedProx có lợi tạm thời ở round sớm rồi suy giảm hay không. | complete | Không: thấp hơn pure FL `0.87/2.22` EX |
-| 3 | **P1.3 stronger-domain-skew T1→T3** | Kiểm tra kết luận dưới domain skew mạnh hơn nhưng quantity skew thấp hơn. | GPU eval | T1 passed `+4.06` EX; P1.3d valid; P1.3e T3 ready |
+| 3 | **P1.3 stronger-domain-skew T1→T3** | Kiểm tra kết luận dưới domain skew mạnh hơn nhưng quantity skew thấp hơn. | complete | T1/T3 `+4.06/+4.64` EX; T3 `p=0.000367` |
 | 4 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
 | 5 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; P1.8 cell đã đóng |
 | 6 | **P2.3 reviewer QA/freeze** | Bảo đảm mỗi claim có artifact, limitation và SHA tương ứng. | CPU | Làm sau các gate thực nghiệm |
@@ -42,12 +42,11 @@ model/rank/client/public-pool không thuộc gói mặc định.
 
 ### GPU-READY NOW
 
-P1.3c đã qua toàn bộ gate tại `d4d8733`: `+4.06` EX, 129/87 paired
-corrections/regressions và giảm execution errors 236→134. P1.3d rounds 2–3 đã
-qua artifact review tại `21f1a9c`: bốn stage fresh/non-noop và đúng lineage.
-P1.3e paired T3 evaluation hiện là lệnh GPU-ready duy nhất trong
-`PIPELINE_NEXT.md`. P0.8b vẫn chờ backward compatibility với setup plaintext
-cũ.
+Hiện không có GPU experiment bắt buộc. P1.3 đã đóng dương: T3 đạt
+`63.64→68.28` EX (`+4.64`), 112/64 paired corrections/regressions,
+`p=0.000367`, CI `[+2.13,+7.16]`, errors `192→96`. Ưu tiên P2.2 tables/figures
+và reviewer QA. P0.8b vẫn chờ backward compatibility với setup plaintext cũ
+và chỉ là phần mở rộng reliability mong muốn.
 
 ### GPU TASKS CHƯA READY
 
@@ -61,10 +60,10 @@ cũ.
 
 3. **P1.3 stronger-domain-skew FL/FedLS T1→T3**
    - Audit passed: cùng 8.659 rows; JSD `0.527→0.805`, entropy `3.029→2.183`.
-   - T1 passed all gates; P1.3d rounds 2–3 passed artifact review at `21f1a9c`.
+   - Complete positive at T1/T3: `+4.06/+4.64` EX.
 
 4. **P1.3e stronger-skew T3 evaluation**
-   - Đã mở: paired FL/FedLS T3 trên đúng 1.034 Spider rows của P1.3c.
+   - Complete at `9bfd42e`: 112/64 wins/losses, `p=0.000367`, errors `192→96`.
 
 ## Quy tắc sử dụng GPU trống
 

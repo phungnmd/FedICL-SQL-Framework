@@ -1,6 +1,6 @@
 # FedLS-SQL — canonical paper result tables
 
-> Updated 2026-08-26. This file is the single source of truth for paper-facing
+> Updated 2026-09-01. This file is the single source of truth for paper-facing
 > values. Stable artifact IDs resolve through
 > `../notes/RESULT_REGISTRY.md`. Values are percentages unless stated
 > otherwise. `PENDING:<task>` is an evidence gap, not a zero or a missing-value
@@ -252,7 +252,29 @@ closes that cell when reactivated. Question-level McNemar
 tests characterize paired test-row evidence and are not substitutes for
 training-seed uncertainty.
 
-### 4.4 P0.9b execution-guided selection screen (negative)
+### 4.4 Stronger semantic-domain-skew sensitivity
+
+The fixed `alpha=0.1, K=5, seed=0` split preserves the same 8,659-row training
+multiset and zero cross-client database overlap as the main split. It increases
+mean pairwise domain JSD from `0.527` to `0.805` and reduces mean client domain
+entropy from `3.029` to `2.183`; it is stronger semantic-domain skew, not
+stronger quantity skew.
+
+| Round | Pure FL EX | FedLS-SQL EX | Delta | FedLS wins/losses | Exact McNemar `p` | FL/FedLS exec. errors |
+|---:|---:|---:|---:|---:|---:|---:|
+| T1 | 58.90 | 62.96 | **+4.06** | 129/87 | 0.00516 | 236/134 |
+| T3 | 63.64 | **68.28** | **+4.64** | 112/64 | **0.000367** | 192/96 |
+
+The T3 paired-bootstrap 95% interval is `[+2.13,+7.16]` points. FedLS improves
+medium, hard, and easy rows by `+7.62`, `+5.75`, and `+3.23`; extra decreases
+`2.41` points without a significant paired contrast. Set operations decrease
+`13.75` points (`p=0.0266`), consistent with the main split's known limitation.
+Compared with the main `alpha=0.5` T3 result, the FL/FedLS margin remains
+similar (`+5.23→+4.64`). This supports robustness to one stronger semantic
+domain-skew setting, not arbitrary non-IID distributions. EX is the primary
+endpoint; the lower FedLS EM is retained only as a SQL-form diagnostic.
+
+### 4.5 P0.9b execution-guided selection screen (negative)
 
 This method-selection screen starts both 256-row arms from
 `qwen.fl.shared.t1.s0` and matches row count, 256 micro-steps, 16 optimizer
@@ -273,7 +295,7 @@ and is not part of FedLS-SQL. Training resource measurements are ineligible:
 the arms ran concurrently and the random arm had a failed OOM attempt before a
 fresh successful rerun.
 
-### 4.5 Outline sensitivity matrix
+### 4.6 Outline sensitivity matrix
 
 | Outline item | Current evidence | Paper treatment |
 |---|---|---|
@@ -284,11 +306,11 @@ fresh successful rerun.
 | Student families/sizes | Qwen 1.5B canonical; Gemma 2B T1 replication complete | family replication, not a controlled size sweep |
 | LoRA ranks 4/8/16/32 | only r=16 canonical | optional |
 | Clients 5/10/20 | only K=5 canonical | optional |
-| FedProx | not implemented/run | conditional baseline |
+| FedProx | fixed `mu=0.01` matched T1/T2/T3 complete; below pure FL at every round | closed negative optimizer baseline |
 | Federated 7B LLM | not run | do not claim comparison |
 | ICL | matched negative evidence: -2.90 train-side EX, -3.87 inference-demo EX, 2.35x client time | closed negative appendix/limitation only |
 
-### 4.6 Centralized schedule sensitivity, Qwen2.5, seed 0
+### 4.7 Centralized schedule sensitivity, Qwen2.5, seed 0
 
 | Stable ID | Recipe | Spider EX | Spider EM | Exec. error | Realistic EX | Syn EX | DK EX | BIRD dev EX | Role |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
@@ -403,7 +425,7 @@ optimization target.
 | Spider hardness | paired T3 audit | complete |
 | JOIN/nested/aggregation/filtering constructs | SQLGlot parse coverage 1,034/1,034 | complete exploratory strata |
 | Schema-linking errors | predictions available; validated extractor absent | do not claim yet |
-| Federated-distribution errors | one `alpha=0.5` split only | insufficient for broad claim |
+| Federated-distribution errors | matched `alpha=0.5` main split plus stronger semantic-domain-skew `alpha=0.1` T1/T3 | complete for two audited settings; insufficient for arbitrary non-IID claims |
 | LLM-SLM transfer failures | 121 corrections, 67 regressions, fixed-rule examples | complete descriptive audit |
 
 ## 7. Adaptive evidence dashboard
@@ -413,12 +435,12 @@ optimization target.
 | Overall NL-to-SQL performance | §2 | seed-0 final-model table complete |
 | Communication efficiency | §5.1 | complete for adapter payload |
 | Resource efficiency | §5.2 | complete for scoped deployment inference; training/federated-7B resources not measured |
-| Non-IID robustness | §3.3 | scoped to one partition; broader settings pending |
+| Non-IID robustness | §4.4 | complete for main plus one stronger semantic-domain-skew setting; no arbitrary non-IID claim |
 | Convergence analysis | §3.1–§4.3 | complete trajectories at seeds 0/1; final T3 gain positive at both seeds |
 | Ablation and sensitivity | §4 | core causal ladder complete; broad sweeps optional |
 | Error analysis | §6 | paired EX-oriented T3 audit complete |
-| Optimizer baseline breadth | §2.3/§4.5 | FedProx-LoRA recommended; design/run pending |
-| Novelty positioning | related-work matrix | mandatory nearest-work audit pending |
+| Optimizer baseline breadth | §2.3 | complete negative FedProx-LoRA baseline |
+| Novelty positioning | related-work matrix | complete nearest-work audit |
 
 This dashboard may be reordered, reduced, or extended after each evidence gate.
 The draft outline is an experiment menu, not evidence that every proposed sweep

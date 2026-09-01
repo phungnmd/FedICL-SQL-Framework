@@ -28,7 +28,7 @@ claim. `PIPELINE_NEXT.md` contains executable commands;
 | P1/P2 | method innovation | uniform verified target CE vs CE + execution-verified global-SLM preference/contrastive loss | closed negative: 54.93 vs 56.87 EX, 22 more execution errors; no full-pool extension or tuning |
 | P2 | sensitivity | LoRA rank, teacher/student sizes, public-pool size | partial or not run |
 | P2 | Gemma centralized anchor | continuous one-epoch centralized Gemma for T1 private-pass matching; three epochs only if Gemma extends to T3 | conditional after positive endpoint; not activated automatically because RKL increment is weak |
-| P1 | stronger semantic-domain-skew sensitivity | fixed 8,659 rows and `K=5`; `alpha=0.1` FL vs FedLS T1 and promoted T3 endpoint | T1 passed `+4.06` EX at `d4d8733`; T2/T3 training valid at `21f1a9c`; paired T3 eval ready |
+| P1 | stronger semantic-domain-skew sensitivity | fixed 8,659 rows and `K=5`; `alpha=0.1` FL vs FedLS T1 and T3 | complete positive: T1 `+4.06` EX; T3 `+4.64`, 112/64 wins/losses, `p=0.000367`, errors `192→96`; result `9bfd42e` |
 | P1 | pragmatic RQ4 | matched 1.5B/7B deployment-resource benchmark; no full 7B FL by default | complete for steady-state 32-row inference; excludes training, energy, concurrency, and federated-7B claims |
 | P2 | federated-7B claim | at most one matched T1 QLoRA feasibility/reference | default excluded; required only if an empirical large-model-FL claim is introduced |
 
