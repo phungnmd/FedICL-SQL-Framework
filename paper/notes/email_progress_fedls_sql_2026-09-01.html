@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cập nhật tiến độ và kết quả chính của FedLS-SQL</title>
+</head>
+<body style="margin:0; padding:24px; background:#ffffff; color:#202124; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55;">
+  <div style="max-width:780px; margin:0 auto;">
+    <p style="margin:0 0 18px;"><strong>Tiêu đề:</strong> Cập nhật tiến độ và kết quả chính của FedLS-SQL</p>
+    <p style="margin:0 0 6px;">Chào Thầy,</p>
+    <p style="margin:0 0 14px;">Cc anh Vinh,</p>
+    <p style="margin:0 0 18px;">Em xin cập nhật tiến độ thực nghiệm FedLS-SQL theo outline Thầy đã gửi. Cấu hình chính dùng Qwen2.5-1.5B cho student, Qwen2.5-Coder-7B cho teacher, 5 clients và không dùng ICL. Metric chính là Execution Accuracy (EX).</p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px;">1. Kết quả chính trên Spider</h2>
+    <p style="margin:0 0 12px;">Spider dev có 1.034 mẫu. Centralized được train liên tục 3 epoch; FL và FedLS-SQL chạy 3 federated rounds, mỗi round client train 1 local epoch.</p>
+    <table cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:14px;">
+      <thead><tr style="background:#f1f3f4;"><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:left;">Model</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:left;">Cấu hình</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">EX</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">EM</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">Exec. error</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Centralized</td><td style="padding:8px; border-bottom:1px solid #dadce0;">3 epoch</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">67,31</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">64,41</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">14,31%</td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">FL</td><td style="padding:8px; border-bottom:1px solid #dadce0;">FedAvg-LoRA, 3 round</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">64,31</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">57,45</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">18,67%</td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;"><strong>FedLS-SQL</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0;">FedAvg-LoRA + server KD, 3 round</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>69,54</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">38,59</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>9,77%</strong></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:0 0 10px;">FedLS-SQL cao hơn FL <strong>5,23 EX</strong> với 121 câu cải thiện và 67 câu giảm, kiểm định paired <code>p=0,0001</code>. So với Centralized, FedLS-SQL cao hơn 2,22 EX nhưng chênh lệch chưa có ý nghĩa thống kê (<code>p=0,0865</code>), nên kết luận hiện tại là FedLS-SQL cạnh tranh được với Centralized và tốt hơn rõ ràng so với FL.</p>
+    <p style="margin:0 0 18px;">EM được giữ như metric phụ. Teacher sinh target từ BIRD nên có thể tạo SQL đúng kết quả nhưng khác dạng biểu diễn so với Spider; vì vậy kết luận chính dựa trên EX và execution error.</p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px;">2. Độ ổn định và non-IID</h2>
+    <table cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:14px;">
+      <thead><tr style="background:#f1f3f4;"><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:left;">Thiết lập</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">FL EX</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">FedLS-SQL EX</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">Chênh lệch</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">Paired p</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Main split, seed 0</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">64,31</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>69,54</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>+5,23</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">0,0001</td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Main split, seed 1</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">61,99</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>65,76</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>+3,77</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">0,00483</td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Domain skew mạnh hơn, seed 0</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">63,64</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>68,28</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>+4,64</strong></td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">0,000367</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:0 0 8px;">Kết quả dương ở cả hai training seeds. Với split có semantic-domain skew mạnh hơn, FedLS-SQL vẫn tăng 4,64 EX và giảm execution error từ 192 xuống 96.</p>
+    <p style="margin:0 0 18px;">Trên các bộ kiểm tra khác, FedLS-SQL cũng cao hơn FL: Realistic +3,55 EX, Syn +3,58, DK +5,98 và BIRD +8,67.</p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px;">3. Vai trò của large-to-small transfer</h2>
+    <table cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:14px;">
+      <thead><tr style="background:#f1f3f4;"><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:left;">Model family</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">FL</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">Teacher-target CE</th><th style="padding:8px; border-bottom:2px solid #9aa0a6; text-align:right;">Full FedLS-SQL</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Qwen 1.5B/7B</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">57,35</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">61,32</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>63,35</strong></td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #dadce0;">Gemma 2B/9B</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">57,16</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;">61,22</td><td style="padding:8px; border-bottom:1px solid #dadce0; text-align:right;"><strong>61,41</strong></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:0 0 10px;">Teacher-target CE cải thiện EX trên cả Qwen và Gemma. Phần reverse KL tăng thêm trên Qwen nhưng gần như không tăng trên Gemma, nên đóng góp ổn định nhất của phương pháp là teacher-generated SQL đã được kiểm tra bằng execution.</p>
+    <p style="margin:0 0 18px;">FedProx-LoRA cũng đã được chạy làm baseline. Kết quả T3 là 62,77 EX, thấp hơn FL 64,31 EX, nên hiện tại em giữ FedAvg-LoRA trong method chính.</p>
+
+    <h2 style="margin:22px 0 10px; font-size:18px;">4. Communication và resource</h2>
+    <ul style="margin:0 0 18px; padding-left:22px;">
+      <li style="margin:0 0 6px;">Mỗi client chỉ train và truyền LoRA adapter gồm 18,46 triệu tham số, khoảng 70,44 MiB. Tổng upload và broadcast của 5 clients là 704,38 MiB mỗi round, tương đương 2,064 GiB qua 3 rounds.</li>
+      <li style="margin:0 0 6px;">Trên cùng protocol inference, student 1.5B đạt 0,787 giây/câu, nhanh hơn teacher 7B 4-bit 2,09 lần và dùng ít hơn 48,73% peak allocated VRAM.</li>
+      <li style="margin:0;">Private data và schema vẫn ở client; server chỉ nhận adapter. Secure Sum wrapper cũng đã được kiểm tra tương đương số học với weighted FedAvg.</li>
+    </ul>
+
+    <p style="margin:0 0 12px;">Như vậy, các phần chính trong outline gồm overall performance, ablation, convergence, non-IID, model-family replication, communication và resource đã có kết quả. Em đang chuyển sang hoàn thiện bản thảo, bảng, hình và rà soát lại claim. Seed 2 ở T3 có thể chạy thêm để đủ ba seeds, nhưng hiện không làm thay đổi định hướng chính của bài.</p>
+    <p style="margin:0 0 18px;">Em gửi Thầy xem và cho em ý kiến về phạm vi thực nghiệm hiện tại để em chốt bản thảo.</p>
+    <p style="margin:0;">Trân trọng,<br><br>[Tên của bạn]</p>
+  </div>
+</body>
+</html>
