@@ -30,9 +30,10 @@ rủi ro chính còn lại là baseline breadth và phạm vi non-IID, không ph
 | 1 | **P1.5 FedProx-LoRA** | Kiểm tra optimizer mạnh hơn FedAvg. | complete | Closed negative: `-1.55` EX, 22/38 gains/losses |
 | 2 | **P1.5d FedProx T1/T2 diagnostic** | Kiểm tra FedProx có lợi tạm thời ở round sớm rồi suy giảm hay không. | complete | Không: thấp hơn pure FL `0.87/2.22` EX |
 | 3 | **P1.3 stronger-domain-skew T1→T3** | Kiểm tra kết luận dưới domain skew mạnh hơn nhưng quantity skew thấp hơn. | complete | T1/T3 `+4.06/+4.64` EX; T3 `p=0.000367` |
-| 4 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
-| 5 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; P1.8 cell đã đóng |
-| 6 | **P2.3 reviewer QA/freeze** | Bảo đảm mỗi claim có artifact, limitation và SHA tương ứng. | CPU | Làm sau các gate thực nghiệm |
+| 4 | **P1.9 RKL value-at-T3** | Tách cumulative value của RKL khỏi recurring verified teacher-target CE. | GPU train + eval | P1.9a CE-only T1→T3 ready; P1.9b gated on review |
+| 5 | **P0.8b seed 2 T3** | Chuyển kết quả cuối từ hai seed dương thành báo cáo ba seed có mean/SD. | GPU train rounds 2–3 + eval | Chờ legacy plaintext setup compatibility |
+| 6 | **P2.2 tables/figures** | Biến evidence hiện có thành các bảng và hình của manuscript. | CPU | Có thể làm song song; chưa freeze KD wording |
+| 7 | **P2.3 reviewer QA/freeze** | Bảo đảm mỗi claim có artifact, limitation và SHA tương ứng. | CPU | Làm sau P1.9 |
 
 P1.3 chỉ mở rộng T3 nếu T1 cho tín hiệu dương và diễn giải được. Nếu không,
 dừng và giới hạn RQ3 về split chính. Federated 7B, teacher ceiling và các sweep
@@ -42,11 +43,11 @@ model/rank/client/public-pool không thuộc gói mặc định.
 
 ### GPU-READY NOW
 
-Hiện không có GPU experiment bắt buộc. P1.3 đã đóng dương: T3 đạt
-`63.64→68.28` EX (`+4.64`), 112/64 paired corrections/regressions,
-`p=0.000367`, CI `[+2.13,+7.16]`, errors `192→96`. Ưu tiên P2.2 tables/figures
-và reviewer QA. P0.8b vẫn chờ backward compatibility với setup plaintext cũ
-và chỉ là phần mở rộng reliability mong muốn.
+P1.9a là GPU task ưu tiên hiện tại. Nó dùng lại đúng P1.3 shared T1 aggregate,
+giữ split/pool/seed/client budget, và chạy recurring teacher-target CE mà không
+có RKL đến T3. Publish compact training rồi dừng để review trước paired P1.9b.
+P2.2 có thể tiếp tục song song, nhưng chưa freeze wording về RKL. P0.8b vẫn
+chờ backward compatibility và xếp sau P1.9.
 
 ### GPU TASKS CHƯA READY
 
@@ -64,6 +65,9 @@ và chỉ là phần mở rộng reliability mong muốn.
 
 4. **P1.3e stronger-skew T3 evaluation**
    - Complete at `9bfd42e`: 112/64 wins/losses, `p=0.000367`, errors `192→96`.
+
+5. **P1.9 — cumulative RKL value at T3**
+   - P1.9a CE-only T1→T3 is GPU-ready; P1.9b stays gated on artifact review.
 
 ## Quy tắc sử dụng GPU trống
 

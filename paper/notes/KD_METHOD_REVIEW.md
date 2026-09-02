@@ -1,6 +1,6 @@
 # Knowledge Distillation Review for FedLS-SQL
 
-> **Status:** research and method-selection note, updated 2026-08-24.  The
+> **Status:** research and method-selection note, updated 2026-09-02.  The
 > canonical implemented method remains defined by
 > [`system_architecture.md`](system_architecture.md); empirical claims remain
 > governed by [`LAB_LOG.md`](LAB_LOG.md) and
@@ -52,6 +52,7 @@ not be ranked by reported headline gain alone:
 | Question | Best candidate | Evidence and project fit | Decision |
 |---|---|---|---|
 | What should remain the paper's KD core? | Execution-verified hard SeqKD | Already gives the stable Qwen/Gemma gain; cacheable and tokenizer-independent | **Keep** |
+| What is the immediate unresolved causal question? | Recurring SeqKD-only versus CE+RKL at T3 | T1 isolates only one server step; headline and stronger-skew T3 checkpoints include both losses | **P1.9 highest priority** |
 | Which published method has the strongest task-specific prior? | KID | Task-specific prior, but the project's matched legacy run is 1.45 EX below RKD (`p=0.072`) and measured about 4.4 times slower with 35% higher peak VRAM | **Historical comparator; inactive** |
 | What happened to the first project-specific bet? | Global-error execution-guided SeqKD | P0.9b loses 2.03 EX to a matched random subset and adds 18 execution errors | **Closed negative** |
 | What happened to LLM-anchored FedDF? | Positive small screen, negative full-pool result | P0.10d gains 1.45 EX on 512 rows, but P0.10e loses 1.17 EX and adds 30 execution errors versus full hard-target CE | **Closed negative** |
@@ -63,7 +64,10 @@ Thus, KID remains an important Text-to-SQL prior but is not an active project
 candidate, while P0.10e shows that LLM-anchored FedDF does not scale from its
 positive 512-row screen. P1.7a also failed: execution-verified global-SLM
 preference pairs reduced Spider EX by approximately 2.0 displayed points versus
-matched positive-only CE. The implementation is archived without tuning.
+matched positive-only CE. The implementation is archived without tuning. P1.9
+therefore tests the unresolved component already present in the headline
+method before any new KD mechanism: cumulative auxiliary-RKL value against a
+recurring execution-verified hard-SeqKD control.
 
 ## 2. Notation and KD axes
 
@@ -766,10 +770,12 @@ This section specifies decision gates, not executable commands.
 
 1. Freeze the current FL, hard-SeqKD, and CE+RKL checkpoints and paired outputs
    so a new method cannot silently replace the canonical baseline.
-2. Finish the `EX=1, EM=0` and execution-error audit needed to define the
-   student-aware strata.
+2. Run P1.9 recurring hard-SeqKD to T3 from the exact stronger-skew shared
+   aggregate, then pair it with the existing CE+RKL endpoint. This is now the
+   highest-value unresolved component test because all headline T3 models use
+   both objectives.
 3. Keep fixed-warm-up resource measurements and final seed replication in the
-   submission queue, but do not require them before the cheap method probes.
+   submission queue, but do not require seed 2 before this attribution gate.
 
 Do not silently sacrifice submission-critical controls to run a large new KD
 grid. A focused proposal may be reprioritized when its expected contribution

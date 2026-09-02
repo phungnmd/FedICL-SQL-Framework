@@ -28,13 +28,17 @@ opportunistically so scarce GPU time is not wasted:
 3. **P1.3 stronger semantic-domain skew — complete positive:** on the fixed-row
    `alpha=0.1, K=5` setting, FedLS improves over FL by `+4.06` EX at T1 and
    `+4.64` at T3; the final paired result is significant (`p=0.000367`).
-4. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
+4. **P1.9 RKL value-at-T3 — GPU-ready:** run one recurring verified-target
+   CE-only T1→T3 control from the exact stronger-skew shared T1 aggregate,
+   then compare its final endpoint with the existing CE+RKL T3 model. Use this
+   result to freeze whether RKL is a supported component or an auxiliary detail.
+5. **P0.8b seed 2 — legacy-setup gated:** continue the existing plaintext T1
    lineages to T3 after backward-compatible setup handling is tested; never
    restart completed round 1.
-5. **P2.2 paper artifacts — parallel CPU lane:** assemble all tables/figures
+6. **P2.2 paper artifacts — parallel CPU lane:** assemble all tables/figures
    whose values are already closed, retaining explicit placeholders only for
-   P1.5/P1.3/P0.8b.
-6. **P2.3 reviewer QA/freeze — final:** resolve every value to provenance,
+   P1.9/P0.8b.
+7. **P2.3 reviewer QA/freeze — final:** resolve every value to provenance,
    audit claims and limitations, then freeze code/result SHAs.
 
 Federated 7B and additional model/rank/client/public-pool sweeps are excluded

@@ -78,6 +78,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.3c   | Full-Spider T1 paired evaluation                                               | complete: `+4.06` EX, 129/87 corrections/regressions, 236→134 errors; `d4d8733`                            |
 | P1.3d   | Stronger-skew independent FL/FedLS rounds 2–3                                  | complete: four fresh non-noop records, result commit `21f1a9c`                                             |
 | P1.3e   | Stronger-skew final paired T3 evaluation                                       | complete: `63.64→68.28` EX (`+4.64`), 112/64 wins/losses, `p=0.000367`; result `9bfd42e`                   |
+| P1.9a   | Recurring SeqKD-only T1→T3 on the stronger-skew lineage                        | **GPU-ready now**; reuse the exact P1.3 shared T1 aggregate, omit RKL, publish training, then stop          |
+| P1.9b   | Paired SeqKD-only versus CE+RKL T3 evaluation                                  | gated on P1.9a compact training artifact review                                                            |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
@@ -98,9 +100,10 @@ command remains blocked until a tested legacy-plaintext migration exists.
 
 P1.4b, P1.1b, P2.1, the scoped P1.8 compatibility audit, and all P1.5 FedProx
 work are closed. P1.3 stronger-skew sensitivity is also closed positive at T1
-and T3. There is no mandatory GPU experiment currently active; prioritize
-P2.2 paper tables/figures and reviewer QA. P0.8b seed 2 remains a desirable
-but legacy-compatibility-gated reliability extension.
+and T3. P1.9 now takes experimental priority over seed 2 and paper freeze: it
+measures the cumulative value of auxiliary RKL against recurring verified
+teacher-target CE. P2.2 paper assembly may continue in parallel. P0.8b seed 2
+remains a desirable but legacy-compatibility-gated reliability extension.
 Accuracy experiments use explicit plaintext weighted aggregation for matched
 lineage; Secure Sum is an optional audited layer, not an accuracy gate. Decide
 federated-7B feasibility only if the manuscript retains an empirical
@@ -367,6 +370,33 @@ FedLS score `63.64` and `68.28` EX (`+4.64` points), with 112 corrections and
 `[+2.13,+7.16]`, and execution errors `192→96`. This closes the stronger
 semantic-domain-skew sensitivity positively. Do not rerun P1.3 or activate T2
 evaluation merely to select a checkpoint.
+
+## P1.9a — recurring SeqKD-only T1→T3 training — GPU-ready
+
+**Purpose:** isolate the cumulative value of auxiliary RKL in the recurring
+server loop. The control uses the same stronger semantic-domain-skew split,
+seed, private-client budget, verified 3,873-row public teacher-target pool, and
+exact shared P1.3 round-one FedAvg aggregate as the full CE+RKL lineage. The
+only server-objective difference is `fedavg_pub` CE-only versus `fedkd` CE+RKL.
+From T2 onward each arm correctly trains its own clients from its preceding
+post-server model, so the final contrast estimates the total effect of having
+RKL in the multi-round method. It is not an isolated last-step loss contrast.
+
+Round 1 reuses the immutable P1.3 shared client/FedAvg directory and trains only
+the new CE server stage. Rounds 2–3 use the new root. Rerun the exact line after
+interruption; fingerprints prevent partial or mismatched reuse. Stop after the
+separate publication command so P1.9b can be activated only after lineage
+review.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $H=(git rev-parse --short HEAD).Trim(); if ($H -ne '9bfd42e') { throw "P1.9a requires clean nested HEAD 9bfd42e, found $H" }; $D='processed_data/SPIDER/federated_noniid/alpha_0.1/k5'; $P='processed_data/BIRD/bootstrap_full_exmatch/train.csv'; $C='artifacts/federated/p13_alpha01_k5_e1_t1_shared_s0/round_1'; $R='artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0'; $Scope=@('fedicl_sql','experiments/federated/run.py',$D,$P,'pyproject.toml','uv.lock'); git diff --quiet -- $Scope; if ($LASTEXITCODE -ne 0) { throw 'P1.9a scientific scope has unstaged edits' }; git diff --cached --quiet -- $Scope; if ($LASTEXITCODE -ne 0) { throw 'P1.9a scientific scope has staged edits' }; foreach ($Q in @("$C/fedavg_adapter/adapter_config.json","$C/factor_fedavg_meta.json","$C/fingerprint.json","$D/meta.json",$P)) { if (-not (Test-Path -LiteralPath $Q)) { throw "Missing P1.9a input: $Q" } }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --split-dir $D --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1.0 --lambda-kd 1.0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --client-out $C --out $R --seed 0 --stage p19a; if ($LASTEXITCODE -ne 0) { throw 'P1.9a CE-only round 1 failed; rerun this exact line to resume' }; foreach ($N in @(2,3)) { $Prev=$N-1; $I="$R/round_${Prev}/m_g"; if (-not (Test-Path -LiteralPath "$I/adapter_config.json")) { throw "Missing P1.9a parent for round ${N}: $I" }; uv run python experiments/federated/run.py round --arm fedavg_pub --round $N --init-adapter $I --split-dir $D --n-clients 5 --local-epochs 1 --client-train-k 0 --client-retrieval dail_weighted --client-demo-style never_schema --client-demo-k-fixed --client-schema-style full --client-embedder BAAI/bge-small-en-v1.5 --client-tau 0.85 --client-dail-alpha 0.6 --client-dail-shortlist 32 --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --lambda-ft 1.0 --lambda-kd 1.0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --batch-size 1 --grad-accum 16 --max-len 2560 --save-steps 200 --aggregation-protocol plaintext --out $R --seed 0 --stage p19a; if ($LASTEXITCODE -ne 0) { throw "P1.9a CE-only round $N failed; rerun this exact line to resume" } }; foreach ($Q in @("$R/setup.json","$R/manifest.json","$R/round_1/m_g/adapter_config.json","$R/round_2/m_g/adapter_config.json","$R/round_3/m_g/adapter_config.json")) { if (-not (Test-Path -LiteralPath $Q)) { throw "Incomplete P1.9a terminal artifact: $Q" } }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/manifest.json" -Raw | ConvertFrom-Json; if ($S.recipe.arm -ne 'fedavg_pub' -or $S.recipe.server_method -ne 'ce' -or $S.recipe.aggregation_protocol -ne 'plaintext' -or [int]$M.latest_round -ne 3) { throw 'P1.9a setup or manifest contract mismatch' }; Write-Host 'P1.9a complete: recurring verified-target CE-only T1-T3 lineage ready; publish compact training results and stop before P1.9b evaluation'
+```
+
+Publication command for P1.9a only:
+
+```powershell
+$R='artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Existing staged files detected before P1.9a publication' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/manifest.json" -Raw | ConvertFrom-Json; if ($S.recipe.arm -ne 'fedavg_pub' -or $S.recipe.server_method -ne 'ce' -or $S.recipe.aggregation_protocol -ne 'plaintext' -or [int]$M.latest_round -ne 3) { throw 'P1.9a publication setup contract mismatch' }; $Files=@(); foreach ($N in @(1,2,3)) { $Entry=$M.rounds.PSObject.Properties[[string]$N].Value; $Result=[string]$Entry.result_path; if ([string]::IsNullOrWhiteSpace($Result) -or -not (Test-Path -LiteralPath $Result)) { throw "Missing P1.9a compact result for round $N" }; $Dir=Split-Path -Parent $Result; foreach ($Name in @('config.json','metrics.json')) { $Q="$Dir/$Name"; if (-not (Test-Path -LiteralPath $Q)) { throw "Missing P1.9a compact file: $Q" }; $Files += $Q }; $V=Get-Content -LiteralPath "$Dir/metrics.json" -Raw | ConvertFrom-Json; if ($V.arm -ne 'fedavg_pub' -or [int]$V.round -ne $N -or $V.stage -ne 'p19a' -or @($V.client_training).Count -ne 5 -or [int]$V.server_training.n_examples -ne 3873 -or $V.server_training.train_config.kd_direction -ne 'none' -or $null -ne $V.server_training.train_config.teacher_logit_cache) { throw "P1.9a result contract mismatch: $Dir" } }; if ($Files.Count -ne 6) { throw "Expected six P1.9a compact files, found $($Files.Count)" }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git add failed' }; $Want=@(); foreach ($File in $Files) { $Want += ((Resolve-Path -LiteralPath $File -Relative) -replace '^\.\\','' -replace '\\','/') }; $Want=@($Want | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: add recurring SeqKD-only T3 control'; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git push failed' }; Write-Host 'P1.9a compact training results committed and pushed; stop for pull and lineage review before P1.9b evaluation'
+```
 
 ## P0.8a-E — complete
 

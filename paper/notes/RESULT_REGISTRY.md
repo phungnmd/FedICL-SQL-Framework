@@ -24,6 +24,7 @@ not be renamed.
 | `qwen.fedls.pre.t3.s1` | seed-1 FedLS mixed-lineage pre-server, T3 | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_3/fedavg_adapter` | diagnostic; inherits earlier server transfer |
 | `qwen.fl.t3.s1` | seed-1 independent pure FL | `artifacts/federated/fedavg_noicl_k5_e1_t1_s1/round_3/fedavg_adapter` | setup `3680b91c34f6631fea4cca61573f28edfe30e75a51e01bef19167e87ad13b5e1` |
 | `qwen.fedls.t3.s1` | seed-1 full FedLS-SQL | `artifacts/federated/fedkd_noicl_k5_e1_t1_s1/round_3/m_g` | setup `c695a4936ed59b6609bc48909f22b94ade2375cfc061386c8b4d3847f3264994`; teacher-target CE + reverse KL |
+| `qwen.p19.alpha01.seqkd.t3.s0` | recurring verified teacher-target CE-only T3 control | `artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0/round_3/m_g` | `PENDING:P1.9a`; starts from the exact P1.3 alpha=0.1 shared T1 aggregate and omits RKL at every server stage |
 
 The `round_2/round_3/fedavg_adapter` objects inside the FedLS lineage inherit
 earlier KD and are not independent pure-FL checkpoints.
