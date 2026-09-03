@@ -78,8 +78,8 @@ The execution-guided selector and client-ensemble distillation branches are clos
 | P1.3c   | Full-Spider T1 paired evaluation                                               | complete: `+4.06` EX, 129/87 corrections/regressions, 236→134 errors; `d4d8733`                            |
 | P1.3d   | Stronger-skew independent FL/FedLS rounds 2–3                                  | complete: four fresh non-noop records, result commit `21f1a9c`                                             |
 | P1.3e   | Stronger-skew final paired T3 evaluation                                       | complete: `63.64→68.28` EX (`+4.64`), 112/64 wins/losses, `p=0.000367`; result `9bfd42e`                   |
-| P1.9a   | Recurring SeqKD-only T1→T3 on the stronger-skew lineage                        | **GPU-ready now**; reuse the exact P1.3 shared T1 aggregate, omit RKL, publish training, then stop          |
-| P1.9b   | Paired SeqKD-only versus CE+RKL T3 evaluation                                  | gated on P1.9a compact training artifact review                                                            |
+| P1.9a   | Recurring SeqKD-only T1→T3 on the stronger-skew lineage                        | complete: valid CE-only T1–T3 lineage, compact training result `60ef4e3`                                  |
+| P1.9b   | Paired SeqKD-only versus CE+RKL T3 evaluation                                  | **GPU-ready now**; same canonical 1,034 Spider rows, publish and stop for paired analysis                   |
 | P0.8b   | Final T3 pure-FL versus frozen FedLS-SQL at seed 2                             | blocked only by legacy setup compatibility under current code; not by Secure Sum                           |
 | P1.6    | Federated-7B feasibility/claim gate                                            | default excluded after P1.1b; reopen only if the manuscript retains a direct federated-7B claim           |
 | P0.7t   | Gemma 9B zero-shot Spider ceiling                                              | optional context only                                                                                     |
@@ -100,9 +100,10 @@ command remains blocked until a tested legacy-plaintext migration exists.
 
 P1.4b, P1.1b, P2.1, the scoped P1.8 compatibility audit, and all P1.5 FedProx
 work are closed. P1.3 stronger-skew sensitivity is also closed positive at T1
-and T3. P1.9 now takes experimental priority over seed 2 and paper freeze: it
-measures the cumulative value of auxiliary RKL against recurring verified
-teacher-target CE. P2.2 paper assembly may continue in parallel. P0.8b seed 2
+and T3. P1.9a produced a valid recurring CE-only T1–T3 lineage at result commit
+`60ef4e3`; P1.9b is now the highest-priority GPU task and measures the
+cumulative value of auxiliary RKL against recurring verified teacher-target
+CE. P2.2 paper assembly may continue in parallel. P0.8b seed 2
 remains a desirable but legacy-compatibility-gated reliability extension.
 Accuracy experiments use explicit plaintext weighted aggregation for matched
 lineage; Secure Sum is an optional audited layer, not an accuracy gate. Decide
@@ -396,6 +397,32 @@ Publication command for P1.9a only:
 
 ```powershell
 $R='artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Existing staged files detected before P1.9a publication' }; $S=Get-Content -LiteralPath "$R/setup.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/manifest.json" -Raw | ConvertFrom-Json; if ($S.recipe.arm -ne 'fedavg_pub' -or $S.recipe.server_method -ne 'ce' -or $S.recipe.aggregation_protocol -ne 'plaintext' -or [int]$M.latest_round -ne 3) { throw 'P1.9a publication setup contract mismatch' }; $Files=@(); foreach ($N in @(1,2,3)) { $Entry=$M.rounds.PSObject.Properties[[string]$N].Value; $Result=[string]$Entry.result_path; if ([string]::IsNullOrWhiteSpace($Result) -or -not (Test-Path -LiteralPath $Result)) { throw "Missing P1.9a compact result for round $N" }; $Dir=Split-Path -Parent $Result; foreach ($Name in @('config.json','metrics.json')) { $Q="$Dir/$Name"; if (-not (Test-Path -LiteralPath $Q)) { throw "Missing P1.9a compact file: $Q" }; $Files += $Q }; $V=Get-Content -LiteralPath "$Dir/metrics.json" -Raw | ConvertFrom-Json; if ($V.arm -ne 'fedavg_pub' -or [int]$V.round -ne $N -or $V.stage -ne 'p19a' -or @($V.client_training).Count -ne 5 -or [int]$V.server_training.n_examples -ne 3873 -or $V.server_training.train_config.kd_direction -ne 'none' -or $null -ne $V.server_training.train_config.teacher_logit_cache) { throw "P1.9a result contract mismatch: $Dir" } }; if ($Files.Count -ne 6) { throw "Expected six P1.9a compact files, found $($Files.Count)" }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git add failed' }; $Want=@(); foreach ($File in $Files) { $Want += ((Resolve-Path -LiteralPath $File -Relative) -replace '^\.\\','' -replace '\\','/') }; $Want=@($Want | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: add recurring SeqKD-only T3 control'; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.9a git push failed' }; Write-Host 'P1.9a compact training results committed and pushed; stop for pull and lineage review before P1.9b evaluation'
+```
+
+P1.9a is complete at result commit `60ef4e3`. All three server stages process
+the same 3,873 verified targets for 243 updates with `kd_direction=none` and no
+teacher-logit cache. Round 1 shares the exact P1.3 client/FedAvg aggregate;
+rounds 2–3 follow the CE-only lineage as intended. Training artifacts contain no
+accuracy claim.
+
+## P1.9b — recurring SeqKD-only versus CE+RKL T3 — GPU-ready
+
+**Purpose:** estimate the cumulative EX contribution of auxiliary RKL after
+three recurring server stages. Evaluate the P1.9 CE-only and existing P1.3
+CE+RKL endpoints on the exact canonical 1,034 Spider rows previously used by
+P1.3c/e. The primary contrast is `CE+RKL - CE-only` EX with paired
+corrections/regressions, exact McNemar, and paired-bootstrap interval computed
+after artifact pull. EM remains diagnostic and does not decide the RKL claim.
+Rerun this exact line and resume root after interruption.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $H=(git rev-parse --short HEAD).Trim(); if ($H -ne '60ef4e3') { throw "P1.9b requires nested result commit 60ef4e3, found $H" }; $T='artifacts/eval_inputs/p13c_ce93c79_spider/processed_data/SPIDER/centralized/train.csv'; $X='artifacts/eval_inputs/p13c_ce93c79_spider/processed_data/SPIDER/centralized/test.csv'; $C='artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0/round_3/m_g'; $K='artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0/round_3/m_g'; $E='artifacts/eval_resume/p19b_alpha01_seqkd_rkl_t3_spider_s0/eval_k0'; $Scope=@('fedicl_sql','experiments/eval_arms','pyproject.toml','uv.lock'); git diff --quiet -- $Scope; if ($LASTEXITCODE -ne 0) { throw 'P1.9b evaluation code scope has unstaged edits' }; git diff --cached --quiet -- $Scope; if ($LASTEXITCODE -ne 0) { throw 'P1.9b evaluation code scope has staged edits' }; foreach ($P in @($T,$X,"$C/adapter_config.json","$K/adapter_config.json")) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P1.9b input: $P" } }; $TB=(git hash-object --no-filters -- $T).Trim(); $XB=(git hash-object --no-filters -- $X).Trim(); if ($TB -ne 'c963d55bd42a2e6dddf73c06b355954855fc96a5' -or $XB -ne '5ab607083d932c05c4fdabe226a10e1729f6169c') { throw 'P1.9b Spider input identity mismatch; reuse the verified P1.3c snapshot' }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $T --test-csv $X --arms "seqkd_alpha01_t3=$C" "fedls_rkl_alpha01_t3=$K" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_weighted --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --dail-alpha 0.6 --dail-shortlist 32 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'P1.9b paired Spider evaluation failed; rerun this exact line to resume' }; $M=@(); foreach ($Item in @(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File)) { $V=Get-Content -LiteralPath $Item.FullName -Raw | ConvertFrom-Json; if ($V.status -eq 'completed') { $M += $Item } }; if ($M.Count -ne 1) { throw "Expected one completed P1.9b manifest, found $($M.Count)" }; Write-Host 'P1.9b evaluation complete; run the publication command and stop for paired RKL-value analysis'
+```
+
+Publication command for P1.9b only:
+
+```powershell
+$E='artifacts/eval_resume/p19b_alpha01_seqkd_rkl_t3_spider_s0/eval_k0'; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { throw 'Staged changes already exist; publish them separately before P1.9b' }; $M=@(); foreach ($Item in @(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File)) { $Value=Get-Content -LiteralPath $Item.FullName -Raw | ConvertFrom-Json; if ($Value.status -eq 'completed') { $M += [PSCustomObject]@{ Path=$Item.FullName; Value=$Value } } }; if ($M.Count -ne 1) { throw "Expected one completed P1.9b manifest, found $($M.Count)" }; $V=$M[0].Value; $Files=@([string]$V.artifacts.config,[string]$V.artifacts.metrics); foreach ($Prediction in @($V.artifacts.predictions)) { $Files += [string]$Prediction }; if ($Files.Count -ne 4) { throw "Expected four compact P1.9b files, found $($Files.Count)" }; foreach ($P in $Files) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing compact P1.9b result file: $P" } }; $Cfg=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $Met=Get-Content -LiteralPath $V.artifacts.metrics -Raw | ConvertFrom-Json; if ($Cfg.resume_dir -ne $E -or (@($Cfg.arms) -join '|') -ne 'seqkd_alpha01_t3=artifacts/federated/p19_alpha01_seqkd_only_k5_e1_t3_s0/round_3/m_g|fedls_rkl_alpha01_t3=artifacts/federated/p13_alpha01_k5_e1_t1_fedls_s0/round_3/m_g' -or [int]$Met.n_eval -ne 1034 -or @($Met.arms.PSObject.Properties.Name).Count -ne 2) { throw 'P1.9b compact result contract mismatch' }; foreach ($P in @($V.artifacts.predictions)) { if ((Import-Csv -LiteralPath $P).Count -ne 1034) { throw "Incomplete P1.9b predictions: $P" } }; git add -- $Files; if ($LASTEXITCODE -ne 0) { throw 'P1.9b git add failed' }; $Want=@(); foreach ($File in $Files) { $Want += ((Resolve-Path -LiteralPath $File -Relative) -replace '^\.\\','' -replace '\\','/') }; $Want=@($Want | Sort-Object); $Got=@(git diff --cached --name-only | Sort-Object); if (($Want -join '|') -ne ($Got -join '|')) { throw "Unexpected staged paths; expected=$($Want -join ',') actual=$($Got -join ',')" }; git commit -m 'exp: evaluate recurring RKL value at T3'; if ($LASTEXITCODE -ne 0) { throw 'P1.9b git commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'P1.9b git push failed' }; Write-Host 'P1.9b compact evaluation committed and pushed; stop for pull and paired RKL-value analysis'
 ```
 
 ## P0.8a-E — complete
