@@ -99,8 +99,9 @@ reported without the no-knowledge label.
 
 ## Implementation
 
-Protocol profiles and guards were added in nested commits `fa29734` and
-`2b40b73`. The executable contract is documented in
+Protocol profiles, dataset-neutral splits, audits, and versioned BIRD ingestion
+were added in nested commits `fa29734`, `2b40b73`, `dc1d24d`, and `fc0925b`.
+The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 
 Primary references: [BIRD paper](https://arxiv.org/abs/2305.03111),

@@ -9,8 +9,9 @@ an earlier result changes the method hypothesis.
 - [x] Add explicit Spider/BIRD profiles and evidence-aware prompt plumbing.
 - [x] Fingerprint train, KD cache, teacher target, federated, and eval policies.
 - [x] Make federated split construction dataset-neutral.
+- [x] Support explicit, versioned filtered-train/cleaned-dev BIRD ingestion.
 - [x] Add dry-run/quarantine server cleanup utility.
-- [ ] Freeze exact BIRD train/dev release identifiers and checksums.
+- [ ] Acquire and freeze exact BIRD train/dev release identifiers and checksums.
 - [ ] Add official BIRD evaluator adapter and a known-answer test fixture.
 - [ ] Build/audit v2 processed data; require zero train/test `db_id` overlap.
 - [ ] Run prompt parity smoke across teacher, centralized, client, server, and eval.

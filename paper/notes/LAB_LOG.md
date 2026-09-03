@@ -44,7 +44,9 @@ Implementation completed:
   model loading;
 - federated split construction now accepts arbitrary processed train/test CSVs;
 - server artifact retirement is dry-run/quarantine based and never deletes;
-- full nested test suite: 344 passed.
+- versioned explicit BIRD JSON/database ingestion now supports filtered-train
+  and cleaned/original dev without relying on archive layout;
+- full nested test suite: 345 passed.
 
 ## Next decision
 
