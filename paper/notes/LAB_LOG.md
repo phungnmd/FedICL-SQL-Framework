@@ -48,6 +48,12 @@ Implementation completed:
   and cleaned/original dev without relying on archive layout;
 - full nested test suite: 345 passed.
 
+P2.0a then froze deterministic audits at nested commit `4ae6e35`. Spider has
+8,659 train and 1,034 test rows. Original BIRD has 9,428/1,534 rows with
+8,783/1,386 populated evidence values. Both train/test pairs have zero DB
+overlap; the BIRD prompt probe contains `### Evidence:` and the Spider probe
+does not.
+
 ## Next decision
 
 Freeze one official BIRD release pair, rebuild processed data with release and

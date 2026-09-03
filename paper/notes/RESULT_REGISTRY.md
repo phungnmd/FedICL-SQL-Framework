@@ -15,6 +15,13 @@ registry is preserved at
 | `v2.bird_to_spider.reference` | pending | corrected BIRD-public evidence policy |
 | `v2.spider_to_bird.reference` | pending | corrected BIRD-private/eval evidence policy |
 
+## Protocol-v2 audits
+
+| Stable ID | Artifact | Status |
+|---|---|---|
+| `audit.v2.spider.original` | `fedicl-sql/audits/protocol_v2/spider_original.json` | passed; nested `4ae6e35` |
+| `audit.v2.bird.original` | `fedicl-sql/audits/protocol_v2/bird_original.json` | passed with evidence; compatibility release only; nested `4ae6e35` |
+
 ## Evidence retained independently of BIRD prompt v1
 
 - Spider-only centralized and pure-FL baselines;

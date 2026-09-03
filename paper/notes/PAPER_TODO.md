@@ -13,7 +13,9 @@ an earlier result changes the method hypothesis.
 - [x] Add dry-run/quarantine server cleanup utility.
 - [ ] Acquire and freeze exact BIRD train/dev release identifiers and checksums.
 - [ ] Add official BIRD evaluator adapter and a known-answer test fixture.
-- [ ] Build/audit v2 processed data; require zero train/test `db_id` overlap.
+- [x] Audit current Spider/original-BIRD processed data: hashes frozen, evidence
+  probes correct, and zero train/test `db_id` overlap (`4ae6e35`).
+- [ ] Build/audit the selected filtered/cleaned BIRD v2 release.
 - [ ] Run prompt parity smoke across teacher, centralized, client, server, and eval.
 
 ## P2.1 — Establish dataset-correct baselines
