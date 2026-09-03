@@ -64,6 +64,16 @@ active files without a clear owner.
 - Raw benchmark inputs remain unchanged after acquisition.
 - Every derived split records seed, method, source, and counts.
 - Test data never becomes a training, retrieval, or teacher-target pool.
+- Every new run declares an explicit dataset profile. `spider` has no evidence;
+  `bird_with_evidence` renders provided evidence; `bird_no_evidence` is an
+  ablation; `legacy` is protocol-v1 compatibility and is prohibited for new
+  paper runs.
+- Private/client, public/server, and evaluation dataset roles are configured
+  independently. Dataset names must never be inferred from a path.
+- Dataset release, role, evidence mode, prompt/schema policy, evaluator, and
+  source hashes belong in every protocol-v2 setup fingerprint.
+- Protocol-v2 outputs use `artifacts/protocol_v2/`. Cleanup never authorizes
+  reusing a protocol-v1 root.
 - Client-private data never moves to the server in the canonical protocol.
 - Privacy claims must distinguish structural isolation from DP, secure
   aggregation, and resistance to parameter-inference attacks.
@@ -241,6 +251,10 @@ Archive means Git move plus an index, never silent deletion. Training and
 federated result records referenced by artifact manifests remain in place even
 when their method branch is closed; breaking manifest provenance is worse than
 directory clutter.
+
+Server-only retirement is dry-run first and quarantine-only on apply. Manifests
+must contain exact repository-relative roots; wildcard or default deletion is
+forbidden.
 
 ## 8. Statistical reporting
 

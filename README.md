@@ -3,10 +3,10 @@
 Research repository for the paper *FedLS-SQL: Execution-Verified
 Large-to-Small Knowledge Transfer for Federated NL-to-SQL*.
 
-FedLS-SQL combines private client-side LoRA fine-tuning of a lightweight SLM,
-sample-weighted FedAvg, and server-side knowledge distillation from a frozen
-LLM on a public Text-to-SQL pool. The deployed model is the SLM; the teacher is
-not required at clients or at inference time.
+FedLS-SQL studies private client-side adaptation of a lightweight SLM and
+server-side collaboration with a frozen LLM. The deployed model is the SLM.
+The exact KD and federated mechanism is currently open while protocol v2
+re-establishes dataset-correct Spider and BIRD-with-evidence baselines.
 
 The current research question is:
 
@@ -28,6 +28,7 @@ defined in `paper/notes/PAPER_EVIDENCE_PLAN.md`.
 - Canonical paper result tables: `paper/results/MAIN_RESULTS.md`
 - Checkpoint/evaluation artifact map: `paper/notes/RESULT_REGISTRY.md`
 - Complete research history: `paper/notes/LAB_LOG.md`
+- Protocol-v1 no-BIRD-evidence archive: `paper/archive/protocol_v1_no_bird_evidence/`
 - Superseded FedICL/ICL material: `paper/archive/pre_fedls_2026-08/`
 - Code: `fedicl-sql/`
 

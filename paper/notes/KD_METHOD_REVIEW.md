@@ -1,5 +1,9 @@
 # Knowledge Distillation Review for FedLS-SQL
 
+> Protocol-v2 note (2026-09-03): this remains a candidate-method survey, not a
+> commitment. Re-rank candidates only after the corrected BIRD-with-evidence
+> baselines and reference ladder expose a specific failure.
+
 > **Status:** research and method-selection note, updated 2026-09-02.  The
 > canonical implemented method remains defined by
 > [`system_architecture.md`](system_architecture.md); empirical claims remain

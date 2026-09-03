@@ -1,352 +1,108 @@
-# FedLS-SQL — System Architecture
+# FedLS-SQL — protocol-v2 architecture
 
-> Canonical design record, updated 2026-08-29. It supersedes the FedICL-SQL and
-> Fed-ICKD framing. Exact commands live in `PIPELINE_NEXT.md`; empirical history
-> lives in `LAB_LOG.md`; canonical paper tables live in
-> `paper/results/MAIN_RESULTS.md`; the active manuscript structure lives in
-> `PAPER_OUTLINE_TARGET.md`; superseded documents are retained under
-> `paper/archive/pre_fedls_2026-08/`.
+> Reset on 2026-09-03 after confirming that protocol v1 retained BIRD
+> `evidence` in CSV but omitted it from every teacher, student, training, and
+> evaluation prompt. The full v1 record is archived under
+> `paper/archive/protocol_v1_no_bird_evidence/`.
 
-## 1. Research problem
+## Research target
 
-FedLS-SQL studies whether collaboration between a server-side large language
-model (LLM) and federated small language models (SLMs) can overcome the accuracy
-limitations of lightweight federated NL-to-SQL while preserving its privacy,
-communication-efficiency, and resource advantages.
+FedLS-SQL studies whether server-side LLM-to-SLM collaboration can improve an
+SLM trained across private federated Text-to-SQL clients while retaining SLM
+deployment and adapter-only communication.
 
-This is the advisor-level target. Operationally, “overcome” means a validated
-EX improvement over matched pure FL and competitiveness with centralized SLM
-training; privacy means client-row locality, with a separately evaluated
-optional Secure Sum compatibility layer rather than a formal MPC/DP claim;
-communication is measured from adapter tensors; resource advantage is scoped
-to the completed P1.1b-v2 deployment-inference benchmark; and a
-direct comparison with large-model FL requires the separate federated-7B gate.
+The final KD loss, target construction, aggregation rule, and round schedule
+are not frozen. Protocol v2 first establishes comparable dataset-correct
+baselines, reruns the previous method as a reference, then permits targeted
+method improvements supported by the observed failure modes.
 
-The project answers four questions:
+## Dataset contract
 
-1. **Accuracy:** does server-side LLM-to-SLM transfer improve federated
-   NL-to-SQL over pure FL and centralized SLM training?
-2. **Efficiency:** can the method remain practical for resource-constrained
-   clients and communicate only parameter-efficient updates?
-3. **Federated behavior:** how does LLM guidance affect convergence and
-   generalization under non-IID data?
-4. **Trade-offs:** what accuracy is obtained for the communication, training,
-   and inference cost?
+Every example contains question, SQL, database identity/path, optional
+evidence, dataset/release identity, source-row identity, and dialect. Every run
+declares one of these profiles:
 
-## 2. System setting and privacy boundary
-
-Client `i` owns a private database/schema `S_i` and private examples
-`Q_i = {(question, gold_SQL)}`. Spider training databases are partitioned among
-clients; the current headline split uses `K=5`, Dirichlet `alpha=0.5`, seed 0.
-
-Only LoRA adapter parameters are exchanged. Raw rows, database contents,
-schemas, questions, and SQL never leave a client. The server-side teacher sees
-only the public pool. Headline accuracy runs use standard weighted FedAvg and
-therefore support structural data locality, not formal update privacy. P1.8
-separately implements and audits a local pairwise-mask Secure Sum simulator;
-it establishes compatibility and overhead, not an end-to-end cryptographic
-deployment or differential privacy.
-
-## 3. Models, data, and training units
-
-| Component | Canonical setting |
-|---|---|
-| Client/deployed SLM | `Qwen/Qwen2.5-1.5B-Instruct` |
-| Server LLM teacher | `Qwen/Qwen2.5-Coder-7B-Instruct`, frozen |
-| Client adaptation | LoRA, default `r=16`, `alpha=32` |
-| Private training | Spider non-IID client shards |
-| Primary Qwen KD pool | teacher-specific `N_qwen=3,873` BIRD targets retained by quick-exec and official EX |
-| Primary test | Spider dev, 1,034 rows |
-| Robustness tests | Spider-Realistic, Spider-Syn, Spider-DK |
-| Cross-corpus test | BIRD dev, disjoint evaluation databases |
-
-The public targets are constructed once per frozen-teacher lineage:
-
-1. the frozen teacher generates SQL zero-shot on public BIRD examples;
-2. the SQL must pass the fixed 8-second quick-execution filter;
-3. survivors must match the gold execution result under the official EX scorer;
-4. the retained teacher SQL becomes the public hard target;
-5. teacher logits on the same target span are cached.
-
-### Teacher-specific KD-pool invariant
-
-For a frozen teacher `T` and the complete public source `D_public`, define
-
-```text
-P_T = {(x, y_hat_T) in D_public : QuickExec_8s(y_hat_T) = 1
-                                      and EX(y_hat_T, y_gold) = 1}
-N_T = |P_T|
-```
-
-FedLS-SQL trains on the retained **teacher-generated SQL** `y_hat_T` and its
-teacher logits; BIRD gold is only the execution oracle and matched-control
-target. Therefore `P_T`, `N_T`, selected source indices, SQL targets, and logit
-cache are teacher-specific artifacts. Replacing the teacher requires rebuilding
-all of them from the complete `D_public`. A retained count such as 3,873 is an
-observed output for one teacher, never a method hyperparameter or portable
-public-data budget.
-
-BIRD gold SQL is used for result-based filtering, not as the canonical method's
-training target. In the primary Qwen lineage, a matched causal control replaces
-the teacher SQL with BIRD gold on the exact same `N_qwen=3,873` row identities;
-it is an ablation, not a FedLS-SQL component. Changing the pool or teacher cache
-creates a new result lineage.
-
-## 4. End-to-end method
-
-Paper-ready prose and the verified architecture/privacy-boundary figure are in
-`paper/drafts/FEDLS_SQL_METHOD.md` and
-`paper/drafts/figures/fedls_sql_architecture.svg` respectively. This section
-remains the canonical design record.
-
-```text
-OFFLINE AT SERVER
-  frozen 7B teacher + public BIRD schemas/databases
-    -> teacher SQL generation
-    -> fixed 8-second quick-execution filter
-    -> official EX-match filter
-    -> Qwen-specific N_qwen=3,873 target pool + teacher-logit cache
-
-FOR ROUND t = 1..T
-  server broadcasts global SLM LoRA adapter theta_(t-1)
-
-  each client i:
-    train theta_i on private Q_i with gold cross-entropy
-    upload theta_i only
-
-  server:
-    sample-weighted factor-wise FedAvg -> theta_FL,t
-      [optional audited pairwise-masked Secure Sum wrapper]
-    public CE + reverse-KL distillation -> theta_FedLS,t
-    broadcast theta_FedLS,t
-
-DEPLOYMENT
-  SLM + final LoRA adapter -> greedy zero-shot NL-to-SQL inference
-```
-
-No in-context examples are used in the canonical client training, server KD,
-or evaluation protocol (`train_k=0`, `k_teacher=0`, `eval_k=0`).
-
-## 5. Optimization objectives
-
-### 5.1 Client objective
-
-Each client trains only on its private gold SQL:
-
-```text
-L_client = CE(q_student, y_private)
-```
-
-### 5.2 Federated aggregation
-
-The canonical accuracy aggregator is sample-weighted factor-wise FedAvg over
-compatible LoRA adapters:
-
-```text
-theta_FL,t = sum_i (n_i / sum_j n_j) * theta_i,t
-```
-
-Accuracy experiments select plaintext aggregation explicitly. The optional
-P1.8 layer masks weighted factors with cancelling pairwise float64 masks and
-reconstructs the same sum subject to a completion threshold. Its real
-18,464,768-parameter replay had maximum error `3.7253e-9`, cosine
-`0.9999999999999983`, `7.1147 s` aggregation time, and approximately `49.93%`
-communication expansion. Secure Sum is not an accuracy component.
-
-FLoRA-NA was evaluated but did not improve the retained comparisons and is not
-a contribution of FedLS-SQL.
-
-### 5.3 Server LLM-to-SLM transfer
-
-Starting from the aggregated adapter, the server optimizes the SLM on public
-teacher targets:
-
-```text
-L_server = lambda_CE * CE(q_student, y_teacher)
-         + lambda_KD * KL(q_student || p_teacher)
-```
-
-This implementation is teacher-target sequence KD plus token-level reverse KL.
-It must not be described as a separate “structural distillation” mechanism
-unless such a component is later defined, implemented, and ablated.
-
-## 6. Canonical comparisons
-
-The primary final-model comparison is:
-
-| Paper label | Training path | Canonical checkpoint |
+| Profile | Prompt policy | Paper role |
 |---|---|---|
-| Centralized-standard-3ep (official) | one continuous three-epoch Spider run, no FL/KD | `artifacts/baselines/central_3ep_standard_s0/adapter` |
-| Centralized-3pass-restart (historical) | three independently scheduled Spider passes, no FL/KD | `artifacts/probe_p/central_3ep/adapter` |
-| FL | three pure FedAvg rounds, no teacher/public pool | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_3/fedavg_adapter` |
-| FedLS-SQL (FL-KD) | three rounds of FedAvg followed by server KD | `artifacts/federated/fedkd_noicl_k5_e1_t1_s0/round_3/m_g` |
+| `spider` | schema + question; no evidence | Spider baseline/evaluation |
+| `bird_with_evidence` | schema + evidence + question | primary BIRD baseline/evaluation |
+| `bird_no_evidence` | schema + question | disclosed knowledge ablation |
+| `legacy` | historical Spider-shaped prompt | v1 compatibility only |
 
-The standard and restart recipes reach `67.31` and `67.60` Spider EX
-respectively and are statistically indistinguishable (`p=0.863`). The standard
-continuous recipe is the official baseline because it matches conventional
-three-epoch training; restart remains schedule-sensitivity evidence.
+BIRD's official formulation conditions generation on external evidence and
+reports both with-knowledge and without-knowledge settings. Therefore v1 is
+retained as a no-knowledge historical ablation, but it is not canonical
+evidence for the new with-evidence setup. The current BIRD release choice is a
+gate: prefer the official filtered training set and identify cleaned/original
+dev explicitly rather than combining releases silently.
 
-The `round_2/round_3/fedavg_adapter` objects inside the `fedkd` lineage are not
-pure-FL controls: they inherit the previous round's post-KD global adapter.
+## Role-independent pipeline
 
-Additional ablations isolate:
+Configuration separates:
 
-- base SLM;
-- centralized SLM fine-tuning;
-- pure FL;
-- matched BIRD-gold CE on the same public row identities;
-- teacher-target CE without teacher logits;
-- distillation without private federation;
-- full FedLS-SQL;
-- teacher direction/objective variants where already measured.
+1. private/client dataset and profile;
+2. public/server dataset and profile;
+3. evaluation dataset and profile.
 
-## 7. Evaluation contract
+This supports both directions without dataset-specific branches:
 
-Primary metrics:
+```text
+BIRD public(with evidence) -> Spider private -> Spider evaluation
+Spider public              -> BIRD private(with evidence) -> BIRD evaluation
+```
 
-- execution accuracy (EX);
-- exact match (EM);
-- execution-error rate.
+For BIRD-private training, evidence is available only inside the client prompt.
+For BIRD-public transfer, teacher and student server stages use the same
+declared evidence policy. A later teacher-privileged-evidence experiment would
+be a distinct learning-with-privileged-information method, not the default.
 
-Efficiency metrics required by the new paper framing:
+## Reference method, not frozen method
 
-- trainable and transmitted parameter counts;
-- adapter bytes per client and total bytes per round;
-- training wall time and rounds to convergence;
-- client/server peak VRAM, with CPU memory where measurable;
-- deployed SLM inference latency.
+The first v2 rerun mirrors the previous workflow under corrected prompts:
 
-All headline comparisons use the same frozen test rows, greedy decoding, and
-`k=0`. Every result must retain its dataset, seed, checkpoint, run
-configuration, and Git SHA.
+```text
+private client LoRA CE
+  -> sample-weighted factor-wise FedAvg
+  -> execution-verified public teacher-target CE
+  -> optional reverse KL
+  -> SLM deployment
+```
 
-## 8. Current evidence and open gaps
+Required matched controls are base SLM, centralized SFT, pure FL, public-gold
+CE, teacher-target CE, and target-CE plus RKL. EX is primary. RKL is not part of
+the final claimed method unless it adds reproducible EX under protocol v2.
 
-Established evidence:
+After the rerun, the method-improvement queue is adaptive. Candidate changes
+must target a measured failure, use a matched compute/data control, and pass a
+predeclared EX gate before full runs. KD and federated mechanisms may both
+change; failed v1 branches are not automatically reopened.
 
-- FedLS-SQL reaches 69.54 Spider EX at `T=3`, seed 0;
-- at T3, FedLS-SQL improves over the independent pure-FL lineage by 5.23 EX
-  on Spider (`p=0.0001`), with positive deltas on all four additional tests;
-- the final T3 contrast replicates at training seed 1: FedLS-SQL reaches 65.76
-  EX versus 61.99 for pure FL (`+3.77`, 111 paired gains/72 losses,
-  `p=0.00483`) and reduces execution errors from 213 to 126; seeds 0/1 have a
-  mean delta of `+4.50` EX with sample SD `1.03`;
-- the `T=1 -> T=3` trajectory improves Spider and all three perturbation sets;
-- server KD is strongly beneficial on BIRD cross-corpus evaluation;
-- ICL is negative for the tested 1.5B student and is retained only as a
-  negative ablation;
-- factor-wise FedAvg is the selected aggregator;
-- at matched T1 seed 0, public-gold CE is neutral relative to FL (`+0.48 EX`,
-  `p=0.800`), teacher-target CE beats public-gold CE by `+3.48 EX`
-  (`p=0.0026`), and full FedLS-SQL beats public-gold CE by `+5.51 EX`
-  (`p<1e-6`);
-- reverse KL adds `+2.03 EX` over teacher-target CE at seed 0, but its existing
-  three-seed incremental contrast is not significant and must be presented as
-  provisional;
-- the server treatment reduces T1 Spider execution errors from 236 to 133;
-- in the Gemma family, full FedLS beats pure FL by `+4.25` EX (`p=0.00365`),
-  while teacher-target CE beats FL by `+4.06` (`p=0.00698`); full CE+RKL is
-  only `+0.19` above target CE (`p=0.916`), so hard-target transfer is the
-  clearest common mechanism across the two families;
-- Gemma matched-gold CE is a negative control at 41.68 EX and 303 execution
-  errors despite using the same 2,487 source identities as the teacher-guided
-  arms; its target-form/style mismatch remains contextual rather than a blocker;
-- the paired Qwen T3 audit finds 121 FedLS corrections versus 67 regressions
-  (`p=0.0001002`) and reduces execution errors from 193 to 101. Improvements
-  concentrate in common aggregation/order/limit structures, while set
-  operations are the clearest negative stratum (`-18.75` EX).
-- the P1.1b deployment benchmark completes 5/5 eligible repetitions for both
-  models on identical 32-row Spider inputs. The BF16 FedLS-SQL student has
-  median latency 0.7873 s/query and 3,474.6 MB peak allocated VRAM, versus
-  1.6460 s/query and 6,776.8 MB for the 4-bit teacher: `2.09x` faster and
-  `48.73%` less allocated VRAM. This does not measure training or federated 7B.
+## Evaluation and lineage
 
-Open evidence gaps:
+- Split train/validation by `db_id`; database overlap is forbidden.
+- Spider and BIRD use dataset-specific evaluation profiles.
+- EX is primary; EM remains a surface-form diagnostic.
+- Dataset release, role, profile, evidence mode, schema mode, evaluator, and
+  source hashes enter setup/checkpoint/evaluation fingerprints.
+- Every v2 output lives under `artifacts/protocol_v2/`; v1 roots are immutable
+  even after quarantine.
+- Full teacher generation precedes execution filtering. Selection remains
+  teacher-specific and preserves source-row identity and prompt provenance.
 
-1. run the audited `alpha=0.1, K=5` stronger semantic-domain-skew FL/FedLS T1
-   screen; extend only after its frozen EX/error gate, otherwise scope RQ3 to
-   the existing partition;
-2. seed 2 remains the path to a final three-seed T3 mean and sample SD after
-   the higher-value resource/baseline/sensitivity gaps;
-3. keep federated 7B absent by default; only an explicit empirical
-   large-model-FL sentence can justify reopening one matched T1 feasibility
-   reference.
+## Claims retained independently of the reset
 
-Novelty positioning is closed in `RELATED_WORK_NOVELTY_MATRIX.md`: FedCoLLM is
-the closest architecture and Struct-SQL the closest execution-filtered SQL KD
-prior. The active claim is the task-specific frozen-teacher/public-EX/private-
-LoRA/SLM-deployment workflow, not generic LLM-SLM federation.
+The BIRD prompt defect does not invalidate Spider-only centralized/pure-FL/
+FedProx comparisons, adapter communication accounting, Secure Sum compatibility,
+or the controlled Spider deployment benchmark. It does invalidate canonical
+status for FedLS/KD lineages trained from no-evidence BIRD pools and BIRD evals
+reported without the no-knowledge label.
 
-**Canonical-baseline gate (revised 2026-08-27):** the architecture above remains
-the protected fallback and matched comparison point. This prevents silent
-method drift but does not ban new research. P0.9a rejected client disagreement,
-and P0.9b showed that
-global-error hard-target selection is worse than its token/update-matched
-random control (`-2.03` Spider EX, `+18` execution errors). Therefore adaptive
-selection is not a FedLS-SQL component and its dependent implementation is
-closed. P1.7a subsequently tested a distinct pairwise preference term that
-ranked the teacher SQL above a failed pre-server global-SLM SQL while retaining
-uniform verified-target CE. It scored 54.93 EX versus 56.87 for matched
-positive-only CE, added 22 execution errors, and therefore failed both fixed
-gates. The implementation was removed at nested `7de7840` and exact artifacts
-were archived at `74f0a43`; it is not part of this
-architecture. The canonical verified-target CE plus auxiliary RKL method remains
-unchanged.
+## Implementation
 
-The later P0.10 client-ensemble distillation probe failed its full-pool gate and
-has been removed from the active architecture. Its compact negative result and
-recovery tag are recorded only in the closed-branch archive.
+Protocol profiles and guards were added in nested commits `fa29734` and
+`2b40b73`. The executable contract is documented in
+`fedicl-sql/docs/PROTOCOL_V2.md`.
 
-Ungrounded LoRA aggregation changes are not an active direction. Existing
-FLoRA-NA and exact rank-preserving/rank-expanded diagnostics showed no material
-accuracy headroom at the current `K=5, T=1` configuration. FedProx is now an
-implemented reviewer baseline, not part of FedLS-SQL: it adds
-`(mu/2)||theta-theta_t||^2` only to private client LoRA CE and retains the same
-sample-weighted plaintext FedAvg, with no teacher/server stage. Its primary
-endpoint is negative: 62.77 versus 64.31 pure-FL EX, 22/38 paired gains/losses
-(`p=0.0519`), and 194 versus 193 execution errors. The proximal term reduces
-local update norms but raises client CE, so FedAvg remains canonical. This is
-a result for fixed `mu=0.01` over LoRA factors, not a universal rejection of
-FedProx. A new federated mechanism is deferred until the stronger-skew
-evidence supplies a concrete residual hypothesis.
-
-The second-family screen tests the full endpoint inside another compatible
-teacher/student family. It does not make reverse KL cross-tokenizer: exact
-token-to-ID equality is a hard prerequisite, and arbitrary mixed-family logits
-remain unsupported.
-
-The 3,873-row pool above is specific to the canonical Qwen teacher. A
-second-family replication must begin with all 9,428 BIRD training rows, run its
-own teacher generation, the same 8-second quick-execution filter, and the same
-official EX-match stage, then derive its own retained count (`N_gemma` for
-Gemma). Its gold, target-CE, and CE+RKL controls share those exact selected
-indices. Reusing Qwen's success indices would condition the second-family
-result on Qwen and is not method-faithful.
-
-Communication payload accounting is closed by the artifact-only audit at
-nested result commit `147f455`. Every adapter has 18,464,768 FP32 parameters,
-so five uploads plus five broadcasts transmit `738,590,720` logical tensor
-bytes per round and `2,215,772,160` bytes (`2.064 GiB`) through T3. Pure FL and
-FedLS-SQL transmit the same client-side tensor payload because the teacher
-stage is confined to the server. The companion serialized-file audit reports
-`739,110,960` bytes per round, including safetensors headers; it uses the
-aggregation adapter as the recorded broadcast proxy, whereas FedLS actually
-broadcasts post-server `m_g`. The paper therefore uses logical tensor bytes
-and excludes serialization headers, transport framing, and protocol metadata.
-
-Outline items not yet supported by current **result evidence** include the
-FedProx accuracy comparison (implementation `897fb66` is smoke-ready), a full
-IID/quantity/SQL-pattern skew suite, teacher/student-size sweeps, and an actual
-large-model federated baseline. These remain optional experiments, not current
-claims.
-
-## 9. Naming and provenance policy
-
-- **Paper/method name:** FedLS-SQL.
-- **Legacy paper names:** FedICL-SQL, Fed-ICKD, and Fed-ICL-KD are historical.
-- **Internal arm names:** `fedavg`, `fedkd`, and existing run IDs remain stable.
-- **Python namespace:** `fedicl_sql` remains unchanged for compatibility.
-- **Artifact paths:** never rename old checkpoints or evaluation directories.
-- **ICL code:** retained for reproducibility but outside the main method.
-
-Presentation names may change; provenance identifiers must not.
+Primary references: [BIRD paper](https://arxiv.org/abs/2305.03111),
+[official BIRD release page](https://github.com/bird-bench/bird-bench.github.io/blob/main/index.html),
+and [official mini-dev fine-tuning pipeline](https://github.com/bird-bench/mini_dev/tree/main/finetuning).

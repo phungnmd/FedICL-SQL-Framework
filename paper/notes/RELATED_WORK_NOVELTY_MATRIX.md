@@ -1,5 +1,9 @@
 # FedLS-SQL — related-work and novelty audit
 
+> Protocol-v2 note (2026-09-03): the literature comparison remains active, but
+> descriptions of the exact loss or aggregator are provisional until corrected
+> experiments select the final method.
+
 > Completed 2026-08-26 for P1.4b. This is the canonical claim-boundary audit,
 > not a complete bibliography. It prioritizes the work nearest to the method's
 > federated large/small-model loop, parameter-efficient communication, and
