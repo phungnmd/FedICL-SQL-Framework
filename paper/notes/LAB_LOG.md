@@ -54,10 +54,25 @@ P2.0a then froze deterministic audits at nested commit `4ae6e35`. Spider has
 overlap; the BIRD prompt probe contains `### Evidence:` and the Spider probe
 does not.
 
+## 2026-09-04 — overnight baseline preparation
+
+Nested commits `346342c` and `11ab685` close the remaining training-input mechanics:
+immutable protocol-v2 CSV materialization, semantic schema grouping for a
+BIRD K5 split, immutable shard hashes, and deterministic `client_train` result
+paths. Full test suite: 347 passed.
+
+The official filtered/cleaned release and evaluator remain open. Nevertheless,
+the audited original 9,428/1,534 BIRD release is a valid explicitly labeled
+with-evidence compatibility track. Centralized E1/E2 and pure-FL T1–T3 may be
+trained now because evaluation implementation cannot change their checkpoints.
+No EX result from this track becomes canonical until every checkpoint is scored
+through the same official BIRD evaluator.
+
 ## Next decision
 
-Freeze one official BIRD release pair, rebuild processed data with release and
-source-row provenance, then run zero-GPU prompt/split/evaluator smoke tests.
-Only after those pass should centralized, FL, and the reference FedLS ladder be
-rerun. The resulting error analysis determines whether to improve KD,
-aggregation/local optimization, target selection, or cross-dataset transfer.
+Publish the BIRD-original v2 materialization and semantic K5 split, then use the
+available overnight window for centralized E1/E2 and pure-FL T1–T3 training.
+In parallel only after those processes finish, close the official evaluator and
+release gates. Evaluate all baseline checkpoints before opening the reference
+FedLS ladder. The resulting EX/error transitions determine whether to improve
+KD, aggregation/local optimization, target selection, or cross-dataset transfer.

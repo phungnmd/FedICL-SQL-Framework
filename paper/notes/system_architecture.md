@@ -101,6 +101,13 @@ reported without the no-knowledge label.
 
 Protocol profiles, dataset-neutral splits, audits, and versioned BIRD ingestion
 were added in nested commits `fa29734`, `2b40b73`, `dc1d24d`, and `fc0925b`.
+Nested commit `346342c` adds immutable v2 materialization, dataset-neutral
+semantic DB grouping, and deterministic centralized result identities. This
+allows BIRD-original with-evidence centralized and FL checkpoints to train
+before evaluator integration; they remain unevaluated compatibility artifacts
+until the official BIRD evaluator contract is frozen.
+Nested commit `11ab685` additionally binds each generated client shard, split,
+and statistics file by hash and refuses drift on an exact rerun.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

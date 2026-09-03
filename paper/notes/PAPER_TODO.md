@@ -17,12 +17,20 @@ an earlier result changes the method hypothesis.
   probes correct, and zero train/test `db_id` overlap (`4ae6e35`).
 - [ ] Build/audit the selected filtered/cleaned BIRD v2 release.
 - [ ] Run prompt parity smoke across teacher, centralized, client, server, and eval.
+- [x] Add reproducible protocol-v2 materialization, semantic DB grouping, and
+  deterministic centralized result IDs (`346342c`).
+- [x] Make v2 split reruns content-hash verified and immutable (`11ab685`).
+- [ ] Freeze/publish the original-BIRD compatibility split before launching GPUs.
 
 ## P2.1 — Establish dataset-correct baselines
 
 - [ ] BIRD base model with evidence.
-- [ ] BIRD centralized SFT with evidence using a database-disjoint validation policy.
-- [ ] BIRD pure FL with evidence.
+- [ ] BIRD-original centralized SFT with evidence, continuous E1/E2 checkpoints
+  (may train before evaluator completion; no EX claim yet).
+- [ ] BIRD-original pure FL with evidence, semantic K5 split, T1–T3 checkpoints
+  (may train before evaluator completion; no EX claim yet).
+- [ ] Evaluate base, centralized E1/E2, and FL T1/T2/T3 through one official
+  BIRD evaluator after P2.0d.
 - [ ] Audit/re-evaluate Spider base, centralized, and pure FL under explicit profile.
 - [ ] Report EX and execution-error transitions; keep EM secondary.
 
