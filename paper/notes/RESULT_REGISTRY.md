@@ -22,6 +22,10 @@ registry is preserved at
 | `audit.v2.spider.original` | `fedicl-sql/audits/protocol_v2/spider_original.json` | passed; nested `4ae6e35` |
 | `audit.v2.bird.original` | `fedicl-sql/audits/protocol_v2/bird_original.json` | passed with evidence; compatibility release only; nested `4ae6e35` |
 
+All new BIRD result entries must record execution scorer
+`bird_official_set_v1`; manifests with the historical Spider scorer are
+protocol-v1 context even when their prompts otherwise contain evidence.
+
 ## Evidence retained independently of BIRD prompt v1
 
 - Spider-only centralized and pure-FL baselines;

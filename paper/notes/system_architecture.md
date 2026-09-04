@@ -108,6 +108,13 @@ before evaluator integration; they remain unevaluated compatibility artifacts
 until the official BIRD evaluator contract is frozen.
 Nested commit `11ab685` additionally binds each generated client shard, split,
 and statistics file by hash and refuses drift on an exact rerun.
+Nested commit `9d777db` closes the baseline execution path: evaluation now
+dispatches `spider_result_eq_v1` versus `bird_official_set_v1` from the dataset
+profile, scorer identity enters resume fingerprints, and one phase-separated
+PowerShell runner owns quarantine, BIRD-original preparation, parallel baseline
+training/evaluation, and allowlisted publication.
+Nested commit `40255f4` schedules train→eval independently per GPU lane so the
+shorter centralized lane does not wait for the three-round FL lane.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

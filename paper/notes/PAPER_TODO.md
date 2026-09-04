@@ -12,7 +12,8 @@ an earlier result changes the method hypothesis.
 - [x] Support explicit, versioned filtered-train/cleaned-dev BIRD ingestion.
 - [x] Add dry-run/quarantine server cleanup utility.
 - [ ] Acquire and freeze exact BIRD train/dev release identifiers and checksums.
-- [ ] Add official BIRD evaluator adapter and a known-answer test fixture.
+- [x] Add official BIRD SQLite EX dispatch, a versioned scorer fingerprint, and
+  known-answer fixtures distinguishing BIRD set semantics from Spider (`9d777db`).
 - [x] Audit current Spider/original-BIRD processed data: hashes frozen, evidence
   probes correct, and zero train/test `db_id` overlap (`4ae6e35`).
 - [ ] Build/audit the selected filtered/cleaned BIRD v2 release.
@@ -20,6 +21,8 @@ an earlier result changes the method hypothesis.
 - [x] Add reproducible protocol-v2 materialization, semantic DB grouping, and
   deterministic centralized result IDs (`346342c`).
 - [x] Make v2 split reruns content-hash verified and immutable (`11ab685`).
+- [x] Add one phase-separated Windows runner for cleanup, input publication,
+  two-GPU training/evaluation, and allowlisted result publication (`9d777db`).
 - [ ] Freeze/publish the original-BIRD compatibility split before launching GPUs.
 
 ## P2.1 — Establish dataset-correct baselines

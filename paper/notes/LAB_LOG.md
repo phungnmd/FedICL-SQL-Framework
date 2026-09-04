@@ -68,11 +68,26 @@ trained now because evaluation implementation cannot change their checkpoints.
 No EX result from this track becomes canonical until every checkpoint is scored
 through the same official BIRD evaluator.
 
+## 2026-09-04 — baseline runner and evaluator closure
+
+Nested commit `9d777db` fixes a final protocol gap: although dataset profiles
+previously recorded `evaluator=bird`, the shared loop still executed Spider EX.
+Evaluation now dispatches the official BIRD SQLite set-of-row-tuples comparison,
+records scorer identity `bird_official_set_v1` in resume fingerprints, and has
+fixtures showing the intended differences from Spider column/order semantics.
+
+The same commit adds `scripts/run_protocol_v2_baselines.ps1`. Separate phases
+validate code, quarantine 31 exact invalid v1 roots, materialize and publish
+inputs, run two-GPU training/evaluation, then publish only manifest-resolved
+compact outputs. The P2.1 suite yields base, centralized E1/E2, and pure-FL
+T1/T2/T3 under BIRD-original with evidence. Full nested suite: 350 passed.
+Nested commit `40255f4` then changed only orchestration: each GPU evaluates as
+soon as its own training lane completes, without changing scientific flags.
+
 ## Next decision
 
-Publish the BIRD-original v2 materialization and semantic K5 split, then use the
-available overnight window for centralized E1/E2 and pure-FL T1–T3 training.
-In parallel only after those processes finish, close the official evaluator and
-release gates. Evaluate all baseline checkpoints before opening the reference
-FedLS ladder. The resulting EX/error transitions determine whether to improve
+Run and analyze P2.1 before opening the reference FedLS ladder. The resulting
+official BIRD EX and execution-error transitions determine whether to improve
 KD, aggregation/local optimization, target selection, or cross-dataset transfer.
+The filtered-train/cleaned-dev release remains a separately labeled matched
+data-quality check, not a silent replacement for the BIRD-original lineage.
