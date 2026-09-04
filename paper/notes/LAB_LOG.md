@@ -88,6 +88,9 @@ resume behavior unchanged. Full nested suite remains 350 passed.
 Commit `8a17542` fixes server validation only: the runner resolves the locked
 `dev` extra for `pytest` and accepts descendants of the required refactor base
 without a misleading warning. No scientific or checkpoint contract changed.
+Commit `767301d` additionally forces UTF-8 for Python and inherited subprocesses
+after a Windows CP1252 console rejected a Unicode diagnostic arrow during the
+split test. This is an environment-compatibility fix only.
 
 ## Next decision
 

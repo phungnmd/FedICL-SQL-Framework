@@ -118,6 +118,8 @@ centralized training, FL training, centralized evaluation, and FL evaluation
 sequentially on physical GPU 0. Scientific flags and artifact roots are
 unchanged. Commit `8a17542` makes the validation phase self-provision its
 locked test dependency on compute-only servers; it does not affect experiments.
+Commit `767301d` fixes the runner's Python subprocess encoding to UTF-8 on
+Windows; dataset and experiment semantics remain unchanged.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 
