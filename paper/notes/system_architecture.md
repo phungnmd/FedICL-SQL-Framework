@@ -116,7 +116,8 @@ training/evaluation, and allowlisted publication. Nested commit `40255f4` added
 the former two-lane scheduler; `e1f3127` supersedes that orchestration and runs
 centralized training, FL training, centralized evaluation, and FL evaluation
 sequentially on physical GPU 0. Scientific flags and artifact roots are
-unchanged.
+unchanged. Commit `8a17542` makes the validation phase self-provision its
+locked test dependency on compute-only servers; it does not affect experiments.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

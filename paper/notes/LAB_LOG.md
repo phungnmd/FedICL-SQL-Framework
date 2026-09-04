@@ -85,6 +85,9 @@ Nested commit `40255f4` briefly added two-GPU parallel orchestration. Commit
 `e1f3127` supersedes it at operator request: all four compute stages now run
 sequentially on physical GPU 0, with scientific flags, output roots, and exact
 resume behavior unchanged. Full nested suite remains 350 passed.
+Commit `8a17542` fixes server validation only: the runner resolves the locked
+`dev` extra for `pytest` and accepts descendants of the required refactor base
+without a misleading warning. No scientific or checkpoint contract changed.
 
 ## Next decision
 
