@@ -78,11 +78,13 @@ fixtures showing the intended differences from Spider column/order semantics.
 
 The same commit adds `scripts/run_protocol_v2_baselines.ps1`. Separate phases
 validate code, quarantine 31 exact invalid v1 roots, materialize and publish
-inputs, run two-GPU training/evaluation, then publish only manifest-resolved
-compact outputs. The P2.1 suite yields base, centralized E1/E2, and pure-FL
-T1/T2/T3 under BIRD-original with evidence. Full nested suite: 350 passed.
-Nested commit `40255f4` then changed only orchestration: each GPU evaluates as
-soon as its own training lane completes, without changing scientific flags.
+inputs, run training/evaluation, then publish only manifest-resolved compact
+outputs. The P2.1 suite yields base, centralized E1/E2, and pure-FL T1/T2/T3
+under BIRD-original with evidence. Full nested suite: 350 passed.
+Nested commit `40255f4` briefly added two-GPU parallel orchestration. Commit
+`e1f3127` supersedes it at operator request: all four compute stages now run
+sequentially on physical GPU 0, with scientific flags, output roots, and exact
+resume behavior unchanged. Full nested suite remains 350 passed.
 
 ## Next decision
 

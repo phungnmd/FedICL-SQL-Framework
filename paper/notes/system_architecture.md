@@ -111,10 +111,12 @@ and statistics file by hash and refuses drift on an exact rerun.
 Nested commit `9d777db` closes the baseline execution path: evaluation now
 dispatches `spider_result_eq_v1` versus `bird_official_set_v1` from the dataset
 profile, scorer identity enters resume fingerprints, and one phase-separated
-PowerShell runner owns quarantine, BIRD-original preparation, parallel baseline
-training/evaluation, and allowlisted publication.
-Nested commit `40255f4` schedules train→eval independently per GPU lane so the
-shorter centralized lane does not wait for the three-round FL lane.
+PowerShell runner owns quarantine, BIRD-original preparation, baseline
+training/evaluation, and allowlisted publication. Nested commit `40255f4` added
+the former two-lane scheduler; `e1f3127` supersedes that orchestration and runs
+centralized training, FL training, centralized evaluation, and FL evaluation
+sequentially on physical GPU 0. Scientific flags and artifact roots are
+unchanged.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

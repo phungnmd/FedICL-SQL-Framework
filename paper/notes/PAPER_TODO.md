@@ -22,7 +22,8 @@ an earlier result changes the method hypothesis.
   deterministic centralized result IDs (`346342c`).
 - [x] Make v2 split reruns content-hash verified and immutable (`11ab685`).
 - [x] Add one phase-separated Windows runner for cleanup, input publication,
-  two-GPU training/evaluation, and allowlisted result publication (`9d777db`).
+  sequential GPU-0 training/evaluation, and allowlisted result publication
+  (`9d777db`, `e1f3127`).
 - [ ] Freeze/publish the original-BIRD compatibility split before launching GPUs.
 
 ## P2.1 — Establish dataset-correct baselines

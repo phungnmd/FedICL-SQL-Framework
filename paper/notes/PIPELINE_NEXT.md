@@ -33,7 +33,7 @@ publication must occur only after all GPU processes exit.
 Run only when no experiment is active in this worktree.
 
 ```powershell
-$Expected='40255f4'; $Scope=@('fedicl_sql','experiments/client_train/run.py','experiments/federated/run.py','experiments/eval_arms/run.py','scripts','tests','configs/archive/protocol_v1_no_bird_evidence.json','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Tracked scientific code is dirty; review before pulling' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward pull failed' }; $Head=(git rev-parse --short HEAD).Trim(); if ($Head -ne $Expected) { throw "Expected code commit $Expected, found $Head" }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Validate; if ($LASTEXITCODE -ne 0) { throw 'Protocol-v2 server validation failed' }
+$Expected='e1f3127'; $Scope=@('fedicl_sql','experiments/client_train/run.py','experiments/federated/run.py','experiments/eval_arms/run.py','scripts','tests','configs/archive/protocol_v1_no_bird_evidence.json','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Tracked scientific code is dirty; review before pulling' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward pull failed' }; $Head=(git rev-parse --short HEAD).Trim(); if ($Head -ne $Expected) { throw "Expected code commit $Expected, found $Head" }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Validate; if ($LASTEXITCODE -ne 0) { throw 'Protocol-v2 server validation failed' }
 ```
 
 ### 2. Prepare inputs and quarantine known invalid v1 artifacts
@@ -55,13 +55,9 @@ powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -
 
 ### 3. Full overnight P2.1 computation
 
-This one invocation runs two independent lanes in parallel:
-
-- GPU 0: centralized continuous E1/E2, then base + E1 + E2 evaluation;
-- GPU 1: pure FedAvg T1/T2/T3, then T1 + T2 + T3 evaluation.
-
-Each lane starts evaluation immediately after its own training finishes, so GPU
-0 does not wait idle for the longer FL lane (`40255f4`).
+This invocation uses only physical GPU 0 and runs four stages sequentially:
+centralized continuous E1/E2, pure FedAvg T1/T2/T3, base + E1 + E2 evaluation,
+then T1 + T2 + T3 evaluation. GPU 1 is never selected (`e1f3127`).
 
 Every training output is under `artifacts/protocol_v2/`. Centralized training
 retains adapter-only epoch snapshots plus one `resume_latest`; FL uses immutable
@@ -72,7 +68,7 @@ resume fingerprint. Rerun the exact command after interruption.
 powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'P2.1 full baseline suite stopped; rerun this exact line to resume completed checkpoints and eval rows' }
 ```
 
-Publication command — invoke only after both GPU lanes have exited:
+Publication command — invoke only after the sequential GPU-0 run has exited:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase PublishResults; if ($LASTEXITCODE -ne 0) { throw 'P2.1 allowlisted result publication failed; inspect manifests before retrying' }
