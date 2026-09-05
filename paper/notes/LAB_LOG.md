@@ -91,6 +91,9 @@ without a misleading warning. No scientific or checkpoint contract changed.
 Commit `767301d` additionally forces UTF-8 for Python and inherited subprocesses
 after a Windows CP1252 console rejected a Unicode diagnostic arrow during the
 split test. This is an environment-compatibility fix only.
+Commit `d1df12d` normalizes absolute Windows result paths from the federated
+manifest before applying the publication allowlist. P2.1 artifacts and metrics
+were unaffected; only compact result publication had failed.
 
 ## Next decision
 
