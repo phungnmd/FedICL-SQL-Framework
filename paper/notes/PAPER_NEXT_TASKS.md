@@ -2,13 +2,17 @@
 
 | Order | Task | Compute | Ready? |
 |---:|---|---|---|
-| 1 | Run P2.0a source/prompt audit | CPU | yes; command in `PIPELINE_NEXT.md` |
-| 2 | Review P2.0b server retirement dry-run | CPU | after P2.0a |
-| 3 | Import/freeze filtered BIRD train and selected dev release | CPU | code task |
-| 4 | Add official BIRD evaluator adapter + fixture | CPU | code task |
-| 5 | Run BIRD base/centralized/FL smoke and full baselines | GPU | after 3–4 |
-| 6 | Rerun old method as a reference in both directions | GPU | after 5 |
-| 7 | Select a method improvement from observed failures | adaptive | after 6 |
+| 1 | P2.1q actual token retention, independent dev gold, saved-SQL rescore | CPU | implemented; run on server |
+| 2 | Review P2.1q; accept checkpoints or fix measured input loss | CPU/code | after 1 |
+| 3 | Audit/reuse Spider-only baselines under explicit profile | CPU/GPU | after 2 |
+| 4 | Main flow: Spider private FL → BIRD public gold/SeqKD/SeqKD+RKL → Spider eval | GPU | after baseline acceptance |
+| 5 | Reverse flow using BIRD private baselines | GPU | after main flow |
+| 6 | Select targeted KD/federated improvement | adaptive | after reference ladder |
+
+Source/profile audit and EX comparison dispatch are implemented. Original BIRD
+P2.1 results were published at `f99febd`; acceptance awaits task 1. Filtered BIRD
+release is a separate later data-quality comparison. Evidence is required input,
+not an active effect ablation.
 
 Do not spend GPU on seeds, Gemma, or new KD/Federated mechanisms before the
 dataset-correct baseline and reference ladder exist.

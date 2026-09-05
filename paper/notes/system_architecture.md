@@ -79,6 +79,13 @@ change; failed v1 branches are not automatically reopened.
 
 ## Evaluation and lineage
 
+P2.1 BIRD-private results are recorded at `f99febd`; baseline acceptance awaits
+P2.1q (`0bf1ef0`): actual retained train tokens, independent dev gold execution,
+and raw-SQL rescore on saved predictions. Evidence is required baseline input;
+its causal benefit is not an active ablation. See `BIRD_BASELINE_AUDIT.md`.
+The primary method run remains Spider private FL → BIRD public KD → Spider eval;
+the existing BIRD-private baselines support a later reverse-direction comparison.
+
 - Split train/validation by `db_id`; database overlap is forbidden.
 - Spider and BIRD use dataset-specific evaluation profiles.
 - EX is primary; EM remains a surface-form diagnostic.

@@ -6,7 +6,7 @@
 - Primary metric: execution accuracy (EX).
 - Method status: open; previous FedAvg + verified-target CE + optional RKL is a
   reference implementation, not a frozen final contribution.
-- GPU work: paused until the BIRD release/data audit and protocol-v2 smoke pass.
+- P2.1 results published at `f99febd`; CPU acceptance audit P2.1q is next.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-03 — BIRD protocol reset
@@ -96,6 +96,13 @@ manifest before applying the publication allowlist. P2.1 artifacts and metrics
 were unaffected; only compact result publication had failed.
 
 ## Next decision
+
+2026-09-05: recorded BIRD dev EX is base 15.97, centralized E1/E2 31.55/35.07,
+and pure FL T1/T2/T3 22.56/27.31/29.99. Acceptance is pending actual train-token
+retention and independent SQL rescore (17 E2 rows contain disk-full errors).
+The server audit requires no GPU and does not open an evidence-effect ablation.
+See `BIRD_BASELINE_AUDIT.md`. Primary flow is Spider private FL → BIRD public KD
+→ Spider evaluation; the BIRD-private baseline is useful for the later reverse flow.
 
 Run and analyze P2.1 before opening the reference FedLS ladder. The resulting
 official BIRD EX and execution-error transitions determine whether to improve

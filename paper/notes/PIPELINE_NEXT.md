@@ -13,7 +13,8 @@
 | P2.0c | Official filtered BIRD train/cleaned-dev release | CPU | optional final-release gate; files pending |
 | P2.0d | Official BIRD SQLite EX adapter + versioned fingerprint fixture | CPU | complete: `9d777db` |
 | P2.0e | Materialize/audit BIRD-original and semantic K5 split | CPU | ready |
-| P2.1 | Base, centralized E1/E2, pure-FL T1/T2/T3 with evidence | GPUs 0+1 | ready after input publication |
+| P2.1 | Base, centralized E1/E2, pure-FL T1/T2/T3 with evidence | GPU 0 | results published `f99febd`; audit before acceptance |
+| P2.1q | Actual train token retention + independent dev gold and saved-prediction EX audit | CPU | next; no generation or retraining |
 | P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.1 analysis |
 | P2.3 | Diagnose and improve KD/Federated method | adaptive | blocked by P2.2 |
 
@@ -22,7 +23,38 @@ It provides the corrected baseline evidence now. The 6,601-row official
 filtered-train release remains a later matched data-quality experiment rather
 than silently replacing this lineage.
 
-## One runner, four invocations
+## Next: P2.1q baseline integrity audit
+
+Run on the Windows server containing the original BIRD SQLite files and cached
+Qwen tokenizer, after pulling the audit implementation. No GPU is required.
+This checks correct BIRD use; it does not compare evidence on versus off.
+Train evidence retention and SQL rescore require server data absent locally.
+The complete protocol is in `BIRD_BASELINE_AUDIT.md`.
+
+Sync once while no experiment is active in this worktree:
+
+```powershell
+git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 0bf1ef0 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Missing BIRD audit commit 0bf1ef0' }
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_bird_baseline_audit.ps1 -Phase Run; if ($LASTEXITCODE -ne 0) { throw 'P2.1q CPU audit stopped; rerun this exact line to resume' }
+```
+
+Publish after Run completes, including when `requires_review=True` (that is an
+audit finding to analyze, not permission to promote accuracy claims):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_bird_baseline_audit.ps1 -Phase Publish; if ($LASTEXITCODE -ne 0) { throw 'P2.1q audit publication failed; inspect output and retry Publish' }; git log -1 --oneline
+```
+
+The immutable contract binds tokenizer, script, data and database hashes. Resume
+the same command. The audit preserves original predictions and publishes only
+`contract.json`, `tokens.json`, `rows.jsonl`, and `summary.json` from its exact root.
+After reviewing this audit, prioritize Spider-private FL → BIRD-public KD →
+Spider evaluation. The BIRD-private reverse direction follows the main flow.
+
+## Completed P2.1 baseline runner — reference commands
 
 The single server runner is `scripts/run_protocol_v2_baselines.ps1`. Its phases
 are separated because dataset publication must precede GPU work, while result

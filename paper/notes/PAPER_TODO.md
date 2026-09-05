@@ -28,6 +28,11 @@ an earlier result changes the method hypothesis.
 
 ## P2.1 — Establish dataset-correct baselines
 
+- [x] Publish BIRD-original baseline predictions/metrics (`f99febd`).
+- [ ] P2.1q: audit actual train token retention and rescore saved SQL on server;
+  accept input/evaluator contracts before further method runs. Evidence is a
+  required input, not an effect ablation. See `BIRD_BASELINE_AUDIT.md`.
+
 - [ ] BIRD base model with evidence.
 - [ ] BIRD-original centralized SFT with evidence, continuous E1/E2 checkpoints
   (may train before evaluator completion; no EX claim yet).

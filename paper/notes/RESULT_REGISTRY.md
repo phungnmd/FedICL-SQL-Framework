@@ -8,14 +8,18 @@ registry is preserved at
 
 | Stable ID | Status | Required lineage |
 |---|---|---|
-| `v2.bird.base` | pending | explicit BIRD release + `bird_with_evidence` eval |
-| `v2.bird.central` | pending | standard with-evidence centralized SFT |
-| `v2.bird.fl` | pending | database-disjoint BIRD clients, with evidence |
+| `v2.bird.base` | recorded 15.97 EX; P2.1q acceptance pending | original BIRD dev, with evidence; `f99febd` |
+| `v2.bird.central` | recorded E1/E2 31.55/35.07 EX; P2.1q pending | with-evidence LoRA CE; `f99febd` |
+| `v2.bird.fl` | recorded T1/T2/T3 22.56/27.31/29.99 EX; P2.1q pending | original BIRD K5, with evidence; `f99febd` |
 | `v2.spider.fl` | pending/reuse audit | Spider-only lineage independent of BIRD |
 | `v2.bird_to_spider.reference` | pending | corrected BIRD-public evidence policy |
 | `v2.spider_to_bird.reference` | pending | corrected BIRD-private/eval evidence policy |
 
 ## Protocol-v2 audits
+
+Recorded P2.1 scores are not finalized until `BIRD_BASELINE_AUDIT.md` acceptance
+checks close. In particular the error field mixes prediction, gold and resource
+failures. BIRD `test.csv` here is the 1,534-row **development** set.
 
 | Stable ID | Artifact | Status |
 |---|---|---|
