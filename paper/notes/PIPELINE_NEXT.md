@@ -3,6 +3,7 @@
 > Run from the `fedicl-sql/` repository root on the Windows experiment server.
 > Every command is one physical PowerShell line. Exact reruns resume or skip
 > completed work; no command deletes artifacts.
+> The retained result/adapter allowlist is `VALID_RESULTS_AND_ADAPTERS.md`.
 
 ## Active order
 
@@ -70,9 +71,9 @@ $Required='d21f777'; $Scope=@('fedicl_sql','experiments/client_train/run.py','ex
 
 ### 2. Prepare inputs and quarantine known invalid v1 artifacts
 
-This invokes only exact paths from the committed 31-entry manifest. Cleanup is
-a recoverable move into `artifacts/archive/protocol_v1_no_bird_evidence/`; active
-or partial roots are refused. The new split is rejected if it loses rows, has a
+This invokes only exact paths from the committed protocol-v1 and truncated-P2.1
+manifests. Cleanup is a recoverable move into `artifacts/archive/`; active or
+partial roots are refused. The new split is rejected if it loses rows, has a
 client below 150 rows, or gives one client more than 50% of BIRD train.
 
 ```powershell

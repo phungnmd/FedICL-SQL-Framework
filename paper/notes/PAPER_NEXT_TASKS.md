@@ -1,5 +1,8 @@
 # FedLS-SQL — current operator dashboard
 
+See `VALID_RESULTS_AND_ADAPTERS.md` for the only retained accuracy rows and
+adapter paths. Anything absent there must not initialize a new run.
+
 | Order | Task | Compute | Ready? |
 |---:|---|---|---|
 | 1 | P2.1R longest-eight-row BIRD context/VRAM smoke | GPU 0 | ready (`d21f777`) |

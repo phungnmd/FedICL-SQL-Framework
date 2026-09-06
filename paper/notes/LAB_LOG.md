@@ -112,3 +112,16 @@ our frozen Qwen/full-schema setup, fail-closed overflow handling, fingerprinted
 gradient checkpointing, longest-eight-row VRAM smoke, and new immutable roots.
 P2.1R must finish before the reference FedLS ladder. The 6,601-row filtered
 release remains a separate, explicitly labeled final-release/data-quality gate.
+
+## 2026-09-06 — active-result cleanup
+
+`VALID_RESULTS_AND_ADAPTERS.md` now lists the only retained accuracy rows,
+server adapters, and missing baseline/ablation cells. Active result scanners
+retain Spider-only Base/Centralized/FL/FedProx, Gemma Base/FL, Secure Sum, and
+the independent teacher resource reference. BIRD-dependent v1 results,
+truncated-context P2.1 trained arms, mixed/superseded probes, generated teacher
+targets, and final-adapter resource comparisons were moved to recoverable Git
+archives. No historical evidence was deleted. Nested commit `7b487bd` records
+the archive moves, adds the second server-quarantine manifest, and makes active
+FedLS examples explicit about BIRD evidence, 4,096-token context, and v2 output
+roots. Full nested suite: 356 passed.

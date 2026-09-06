@@ -10,7 +10,7 @@
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |
 | P1 | Is it model-family specific? | Qwen primary; Gemma only after primary method stabilizes | conditional |
-| P1 | What efficiency/privacy claim survives? | audited adapter bytes, SLM/teacher inference, structural boundary | retained-lineage audit pending |
+| P1 | What efficiency/privacy claim survives? | audited adapter bytes, final SLM/teacher inference, structural boundary | teacher-only timing retained; final-adapter benchmark pending |
 
 EX is primary. EM is secondary. Protocol-v1 method results are historical
 no-knowledge evidence and cannot fill protocol-v2 cells.

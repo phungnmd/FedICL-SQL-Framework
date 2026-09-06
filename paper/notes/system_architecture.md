@@ -101,10 +101,12 @@ the existing BIRD-private baselines support a later reverse-direction comparison
 ## Claims retained independently of the reset
 
 The BIRD prompt defect does not invalidate Spider-only centralized/pure-FL/
-FedProx comparisons, adapter communication accounting, Secure Sum compatibility,
-or the controlled Spider deployment benchmark. It does invalidate canonical
-status for FedLS/KD lineages trained from no-evidence BIRD pools and BIRD evals
-reported without the no-knowledge label.
+FedProx comparisons, pure-FL adapter communication accounting, Secure Sum
+compatibility, or the standalone teacher resource measurement. It does
+invalidate canonical status for FedLS/KD lineages trained from no-evidence BIRD
+pools and BIRD evals reported without the no-knowledge label. The final
+student-versus-teacher deployment comparison must be rerun with the selected v2
+student adapter.
 
 ## Implementation
 

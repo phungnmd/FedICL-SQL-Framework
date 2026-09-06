@@ -3,6 +3,8 @@
 Only protocol-v2 results may enter new method/accuracy tables. The complete v1
 registry is preserved at
 `paper/archive/protocol_v1_no_bird_evidence/RESULT_REGISTRY_v1.md`.
+The compact source of truth for retained numeric rows, valid server adapters,
+and missing controls is `VALID_RESULTS_AND_ADAPTERS.md`.
 
 ## Canonical protocol-v2 results
 
@@ -38,10 +40,16 @@ protocol-v1 context even when their prompts otherwise contain evidence.
 - Spider-only FedProx negative baseline;
 - deterministic LoRA parameter/communication accounting;
 - Secure Sum numerical compatibility audit;
-- Qwen 1.5B versus 7B controlled Spider inference benchmark.
+- teacher-only Qwen 7B controlled Spider inference measurement.
 
 These remain usable only after verifying that their source lineage does not
 consume a BIRD-derived checkpoint or pool.
+
+The old student-versus-teacher resource comparison used a protocol-v1 FedLS
+student adapter. Its student side is archived; benchmark the eventual v2 final
+adapter again before making a deployment comparison. Communication accounting
+for the Spider-only FL adapter is valid, while the final FedLS communication
+row remains pending the v2 method.
 
 ## Protocol-v1 status
 
