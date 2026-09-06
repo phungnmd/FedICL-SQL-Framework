@@ -11,35 +11,38 @@ an earlier result changes the method hypothesis.
 - [x] Make federated split construction dataset-neutral.
 - [x] Support explicit, versioned filtered-train/cleaned-dev BIRD ingestion.
 - [x] Add dry-run/quarantine server cleanup utility.
-- [ ] Acquire and freeze exact BIRD train/dev release identifiers and checksums.
+- [x] Freeze exact BIRD-original train/dev identities and checksums.
 - [x] Add official BIRD SQLite EX dispatch, a versioned scorer fingerprint, and
   known-answer fixtures distinguishing BIRD set semantics from Spider (`9d777db`).
 - [x] Audit current Spider/original-BIRD processed data: hashes frozen, evidence
   probes correct, and zero train/test `db_id` overlap (`4ae6e35`).
 - [ ] Build/audit the selected filtered/cleaned BIRD v2 release.
-- [ ] Run prompt parity smoke across teacher, centralized, client, server, and eval.
+- [ ] Run prompt parity smoke across teacher, centralized, client, server, and eval
+  after the corrected full-context baseline.
 - [x] Add reproducible protocol-v2 materialization, semantic DB grouping, and
   deterministic centralized result IDs (`346342c`).
 - [x] Make v2 split reruns content-hash verified and immutable (`11ab685`).
 - [x] Add one phase-separated Windows runner for cleanup, input publication,
   sequential GPU-0 training/evaluation, and allowlisted result publication
   (`9d777db`, `e1f3127`).
-- [ ] Freeze/publish the original-BIRD compatibility split before launching GPUs.
+- [x] Freeze/publish the original-BIRD compatibility split before launching GPUs.
 
 ## P2.1 — Establish dataset-correct baselines
 
-- [x] Publish BIRD-original baseline predictions/metrics (`f99febd`).
-- [ ] P2.1q: audit actual train token retention and rescore saved SQL on server;
-  accept input/evaluator contracts before further method runs. Evidence is a
-  required input, not an effect ablation. See `BIRD_BASELINE_AUDIT.md`.
+- [x] Publish legacy-width BIRD-original diagnostics (`f99febd`).
+- [x] P2.1q audit (`e9bde43`): scorer accepted; checkpoints rejected because
+  974 prompts were truncated and 754 lost all evidence.
+- [x] Implement 7,168-token fail-closed training, gradient checkpointing,
+  longest-row smoke and fresh immutable roots (`d21f777`).
+- [ ] Pass P2.1R longest-eight-row context/VRAM smoke on GPU 0.
 
-- [ ] BIRD base model with evidence.
-- [ ] BIRD-original centralized SFT with evidence, continuous E1/E2 checkpoints
-  (may train before evaluator completion; no EX claim yet).
-- [ ] BIRD-original pure FL with evidence, semantic K5 split, T1–T3 checkpoints
-  (may train before evaluator completion; no EX claim yet).
-- [ ] Evaluate base, centralized E1/E2, and FL T1/T2/T3 through one official
-  BIRD evaluator after P2.0d.
+- [x] BIRD base model with evidence (inference-only result remains valid: 15.97 EX).
+- [ ] P2.1R BIRD-original centralized SFT with evidence, continuous E1/E2,
+  `max_len=7168`, no truncation.
+- [ ] P2.1R BIRD-original pure FL with evidence, semantic K5 split, T1–T3,
+  `max_len=7168`, no truncation.
+- [ ] Evaluate corrected centralized E1/E2 and FL T1/T2/T3 through
+  `bird_official_set_v1`; do not copy old trained-arm scores.
 - [ ] Audit/re-evaluate Spider base, centralized, and pure FL under explicit profile.
 - [ ] Report EX and execution-error transitions; keep EM secondary.
 

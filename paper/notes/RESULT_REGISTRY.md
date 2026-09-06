@@ -8,23 +8,25 @@ registry is preserved at
 
 | Stable ID | Status | Required lineage |
 |---|---|---|
-| `v2.bird.base` | recorded 15.97 EX; P2.1q acceptance pending | original BIRD dev, with evidence; `f99febd` |
-| `v2.bird.central` | recorded E1/E2 31.55/35.07 EX; P2.1q pending | with-evidence LoRA CE; `f99febd` |
-| `v2.bird.fl` | recorded T1/T2/T3 22.56/27.31/29.99 EX; P2.1q pending | original BIRD K5, with evidence; `f99febd` |
+| `v2.bird.base` | accepted inference baseline: 15.97 EX | original BIRD dev, full prompt with evidence; `f99febd`, rescore `e9bde43` |
+| `v2.bird.central` | pending P2.1R rerun | old 31.62/35.07 EX are diagnostic only; train context truncated |
+| `v2.bird.fl` | pending P2.1R rerun | old 22.56/27.31/29.99 EX are diagnostic only; train context truncated |
 | `v2.spider.fl` | pending/reuse audit | Spider-only lineage independent of BIRD |
 | `v2.bird_to_spider.reference` | pending | corrected BIRD-public evidence policy |
 | `v2.spider_to_bird.reference` | pending | corrected BIRD-private/eval evidence policy |
 
 ## Protocol-v2 audits
 
-Recorded P2.1 scores are not finalized until `BIRD_BASELINE_AUDIT.md` acceptance
-checks close. In particular the error field mixes prediction, gold and resource
-failures. BIRD `test.csv` here is the 1,534-row **development** set.
+P2.1q closed the scorer audit but rejected the trained checkpoints: 974/9,428
+prompts were truncated and 754 lost all evidence. Five rescored arms were
+unchanged; centralized E1 gained one row; no disk-full error recurred. BIRD
+`test.csv` here is the 1,534-row **development** set.
 
 | Stable ID | Artifact | Status |
 |---|---|---|
 | `audit.v2.spider.original` | `fedicl-sql/audits/protocol_v2/spider_original.json` | passed; nested `4ae6e35` |
 | `audit.v2.bird.original` | `fedicl-sql/audits/protocol_v2/bird_original.json` | passed with evidence; compatibility release only; nested `4ae6e35` |
+| `audit.v2.bird.p21` | `fedicl-sql/audits/protocol_v2/p21_bird_qwen15b_integrity_t60_s0/` | complete; scorer accepted, trained arms superseded; nested `e9bde43` |
 
 All new BIRD result entries must record execution scorer
 `bird_official_set_v1`; manifests with the historical Spider scorer are

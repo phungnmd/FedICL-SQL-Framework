@@ -2,8 +2,8 @@
 
 | Priority | Question | Minimum comparison | Status / gate |
 |---|---|---|---|
-| P0 | Is the BIRD setup dataset-correct? | original-release with-evidence baseline, actual token retention, raw-SQL EX rescore | P2.1 recorded; acceptance pending P2.1q |
-| P0 | Does FL preserve useful accuracy? | centralized vs matched pure FL within Spider and BIRD | pending P2.1 |
+| P0 | Is the BIRD setup dataset-correct? | full-context with-evidence baseline, fail-closed retention, raw-SQL EX | old P2.1 rejected; P2.1R ready |
+| P0 | Does FL preserve useful accuracy? | centralized vs matched pure FL within Spider and BIRD | pending P2.1R |
 | P0 | Does public LLM guidance add EX? | FL vs public-gold CE vs teacher-target CE vs CE+soft-KD | pending P2.2 |
 | P0 | Is the result direction-dependent? | BIRD→Spider and Spider→BIRD with explicit roles/profiles | pending P2.2 |
 | P1 | What is the final mechanism? | matched ablation selected after v2 failure analysis | adaptive P2.3 |

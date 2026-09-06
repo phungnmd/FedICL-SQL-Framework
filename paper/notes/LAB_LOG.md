@@ -6,7 +6,9 @@
 - Primary metric: execution accuracy (EX).
 - Method status: open; previous FedAvg + verified-target CE + optional RKL is a
   reference implementation, not a frozen final contribution.
-- P2.1 results published at `f99febd`; CPU acceptance audit P2.1q is next.
+- P2.1q completed at `e9bde43`: scoring is stable, but P2.1 training
+  checkpoints are diagnostic only because required BIRD context was truncated.
+- Next: P2.1R longest-context GPU smoke, then new full-context checkpoints.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-03 — BIRD protocol reset
@@ -95,17 +97,18 @@ Commit `d1df12d` normalizes absolute Windows result paths from the federated
 manifest before applying the publication allowlist. P2.1 artifacts and metrics
 were unaffected; only compact result publication had failed.
 
-## Next decision
+## 2026-09-06 — P2.1 audit result and context repair
 
-2026-09-05: recorded BIRD dev EX is base 15.97, centralized E1/E2 31.55/35.07,
-and pure FL T1/T2/T3 22.56/27.31/29.99. Acceptance is pending actual train-token
-retention and independent SQL rescore (17 E2 rows contain disk-full errors).
-The server audit requires no GPU and does not open an evidence-effect ablation.
-See `BIRD_BASELINE_AUDIT.md`. Primary flow is Spider private FL → BIRD public KD
-→ Spider evaluation; the BIRD-private baseline is useful for the later reverse flow.
+P2.1q audited all 9,428 train prompts and independently rescored all saved dev
+SQL. It found 974 truncated prompts; 754 lost all provided evidence. The old
+Spider-tuned `max_len=2560` checkpoints are therefore rejected as canonical.
+Scoring itself is stable: only centralized E1 changed by one correct row
+(31.55→31.62 EX), five arms were unchanged, no disk-full error recurred, and
+1,532/1,534 dev gold queries completed within 60 seconds.
 
-Run and analyze P2.1 before opening the reference FedLS ladder. The resulting
-official BIRD EX and execution-error transitions determine whether to improve
-KD, aggregation/local optimization, target selection, or cross-dataset transfer.
-The filtered-train/cleaned-dev release remains a separately labeled matched
-data-quality check, not a silent replacement for the BIRD-original lineage.
+Official BIRD's current fine-tuning example uses a long 18k context and gradient
+checkpointing. Nested `d21f777` introduces a measured 7,168-token contract for
+our frozen Qwen/full-schema setup, fail-closed overflow handling, fingerprinted
+gradient checkpointing, longest-eight-row VRAM smoke, and new immutable roots.
+P2.1R must finish before the reference FedLS ladder. The 6,601-row filtered
+release remains a separate, explicitly labeled final-release/data-quality gate.

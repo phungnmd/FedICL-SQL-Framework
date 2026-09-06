@@ -12,49 +12,49 @@
 | P2.0b | Quarantine known invalid protocol-v1 BIRD artifacts | CPU | ready in runner; recoverable move only |
 | P2.0c | Official filtered BIRD train/cleaned-dev release | CPU | optional final-release gate; files pending |
 | P2.0d | Official BIRD SQLite EX adapter + versioned fingerprint fixture | CPU | complete: `9d777db` |
-| P2.0e | Materialize/audit BIRD-original and semantic K5 split | CPU | ready |
-| P2.1 | Base, centralized E1/E2, pure-FL T1/T2/T3 with evidence | GPU 0 | results published `f99febd`; audit before acceptance |
-| P2.1q | Actual train token retention + independent dev gold and saved-prediction EX audit | CPU | next; no generation or retraining |
-| P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.1 analysis |
+| P2.0e | Materialize/audit BIRD-original and semantic K5 split | CPU | complete |
+| P2.1 | Legacy-width BIRD baseline (`max_len=2560`) | complete | diagnostic only; input truncation found |
+| P2.1q | Token-retention and independent EX audit | CPU | complete `e9bde43`; scorer accepted, checkpoints rejected |
+| P2.1R | Full-context BIRD baseline (`max_len=7168`, fail closed) | GPU 0 | next: longest-row smoke, then corrected full run |
+| P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.1R |
 | P2.3 | Diagnose and improve KD/Federated method | adaptive | blocked by P2.2 |
 
-P2.1 is an explicitly labeled `BIRD-original + evidence` compatibility track.
-It provides the corrected baseline evidence now. The 6,601-row official
-filtered-train release remains a later matched data-quality experiment rather
-than silently replacing this lineage.
+P2.1 is an explicitly labeled diagnostic track. Audit found 974 truncated train
+prompts and complete evidence loss in 754 rows; its scores must not enter the
+paper's canonical table. Independent EX rescore changed only one centralized-E1
+row and found no disk-full recurrence, so evaluator repair is not required.
 
-## Next: P2.1q baseline integrity audit
+## Next: P2.1R full-context repair
 
-Run on the Windows server containing the original BIRD SQLite files and cached
-Qwen tokenizer, after pulling the audit implementation. No GPU is required.
-This checks correct BIRD use; it does not compare evidence on versus off.
-Train evidence retention and SQL rescore require server data absent locally.
-The complete protocol is in `BIRD_BASELINE_AUDIT.md`.
+The corrected runner uses new immutable `bird_original_ctx7168` roots,
+`max_len=7168`, `--truncation-policy error`, and gradient checkpointing. The
+first command trains all eight longest audited prompts; it is the VRAM gate and
+also proves those rows fit without truncation. It uses only physical GPU 0.
 
 Sync once while no experiment is active in this worktree:
 
 ```powershell
-git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 0bf1ef0 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Missing BIRD audit commit 0bf1ef0' }
+git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor d21f777 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Missing BIRD full-context repair d21f777' }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Validate; if ($LASTEXITCODE -ne 0) { throw 'Protocol-v2 validation failed' }
 ```
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_bird_baseline_audit.ps1 -Phase Run; if ($LASTEXITCODE -ne 0) { throw 'P2.1q CPU audit stopped; rerun this exact line to resume' }
+powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase ContextSmoke; if ($LASTEXITCODE -ne 0) { throw 'P2.1R longest-context smoke failed; do not start full training' }
 ```
 
-Publish after Run completes, including when `requires_review=True` (that is an
-audit finding to analyze, not permission to promote accuracy claims):
+After the smoke passes, run the corrected full suite. Exact reruns skip completed
+immutable outputs or resume `_ckpt`; they never reuse old P2.1 roots:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_bird_baseline_audit.ps1 -Phase Publish; if ($LASTEXITCODE -ne 0) { throw 'P2.1q audit publication failed; inspect output and retry Publish' }; git log -1 --oneline
+powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'P2.1R corrected baseline stopped; rerun this exact line to resume' }
 ```
 
-The immutable contract binds tokenizer, script, data and database hashes. Resume
-the same command. The audit preserves original predictions and publishes only
-`contract.json`, `tokens.json`, `rows.jsonl`, and `summary.json` from its exact root.
-After reviewing this audit, prioritize Spider-private FL → BIRD-public KD →
-Spider evaluation. The BIRD-private reverse direction follows the main flow.
+Publish only after all GPU work exits:
 
-## Completed P2.1 baseline runner — reference commands
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase PublishResults; if ($LASTEXITCODE -ne 0) { throw 'P2.1R allowlisted result publication failed; inspect manifests and retry' }; git log -1 --oneline
+```
+
+## Runner preparation — reference commands
 
 The single server runner is `scripts/run_protocol_v2_baselines.ps1`. Its phases
 are separated because dataset publication must precede GPU work, while result
@@ -65,7 +65,7 @@ publication must occur only after all GPU processes exit.
 Run only when no experiment is active in this worktree.
 
 ```powershell
-$Expected='d1df12d'; $Scope=@('fedicl_sql','experiments/client_train/run.py','experiments/federated/run.py','experiments/eval_arms/run.py','scripts','tests','configs/archive/protocol_v1_no_bird_evidence.json','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Tracked scientific code is dirty; review before pulling' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward pull failed' }; $Head=(git rev-parse --short HEAD).Trim(); if ($Head -ne $Expected) { throw "Expected code commit $Expected, found $Head" }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Validate; if ($LASTEXITCODE -ne 0) { throw 'Protocol-v2 server validation failed' }
+$Required='d21f777'; $Scope=@('fedicl_sql','experiments/client_train/run.py','experiments/federated/run.py','experiments/eval_arms/run.py','scripts','tests','configs/archive/protocol_v1_no_bird_evidence.json','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Tracked scientific code is dirty; review before pulling' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward pull failed' }; git merge-base --is-ancestor $Required HEAD; if ($LASTEXITCODE -ne 0) { throw "Required full-context repair $Required is not in HEAD" }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Validate; if ($LASTEXITCODE -ne 0) { throw 'Protocol-v2 server validation failed' }
 ```
 
 ### 2. Prepare inputs and quarantine known invalid v1 artifacts
@@ -85,9 +85,9 @@ Publication command — run immediately after preparation and before GPU work:
 powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase PublishInputs; if ($LASTEXITCODE -ne 0) { throw 'P2.0e input publication failed; do not start GPU runs' }
 ```
 
-### 3. Full overnight P2.1 computation
+### 3. Corrected P2.1R computation
 
-This invocation uses only physical GPU 0 and runs four stages sequentially:
+This invocation first gates the eight longest prompts, then uses only physical GPU 0 and runs four stages sequentially:
 centralized continuous E1/E2, pure FedAvg T1/T2/T3, base + E1 + E2 evaluation,
 then T1 + T2 + T3 evaluation. GPU 1 is never selected (`e1f3127`).
 
@@ -97,13 +97,13 @@ setup/stage fingerprints; both eval lanes use `bird_official_set_v1` in their
 resume fingerprint. Rerun the exact command after interruption.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'P2.1 full baseline suite stopped; rerun this exact line to resume completed checkpoints and eval rows' }
+powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'P2.1R full-context suite stopped; rerun this exact line to resume completed checkpoints and eval rows' }
 ```
 
 Publication command — invoke only after the sequential GPU-0 run has exited:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase PublishResults; if ($LASTEXITCODE -ne 0) { throw 'P2.1 allowlisted result publication failed; inspect manifests before retrying' }
+powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_baselines.ps1 -Phase PublishResults; if ($LASTEXITCODE -ne 0) { throw 'P2.1R allowlisted result publication failed; inspect manifests before retrying' }
 ```
 
 ## What the runner does not run

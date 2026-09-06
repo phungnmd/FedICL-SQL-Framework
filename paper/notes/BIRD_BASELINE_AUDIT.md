@@ -19,29 +19,49 @@ Result commit: nested `f99febd`.
 | Pure FL T2 | 27.31 | 419 | 540 |
 | Pure FL T3 | 29.99 | 460 | 461 |
 
-These are recorded results pending the audit below. The error column includes
-gold/environment failures and must not be interpreted solely as invalid model SQL.
+These are retained diagnostic results, not canonical baselines. The completed
+audit found that their training contract silently truncated required inputs.
+The error column includes gold/environment failures and must not be interpreted solely as invalid model SQL.
 The centralized-versus-FL contrast also differs in epoch/round budgets; it does
 not isolate aggregation alone. Base-to-SFT improvement does not isolate evidence.
 
-## Checks already made
+## Completed audit (`e9bde43`)
 
 - All six prediction files cover 1,534 dev rows; 1,386 rendered prompts contain
   evidence, matching populated dev evidence. Maximum recorded prompt: 2,264 tokens.
 - Training uses `bird_with_evidence`; E2 is one continuous 2-epoch invocation.
 - The scorer dispatches to set-of-row-tuples equality for BIRD.
-- Train assembly keeps the SQL target and left-trims the prompt at 2,560 tokens.
-  Evidence precedes schema, so its retention must be checked on actual tokens.
-- E2 has 17 rows containing `database or disk is full` and 11 containing
-  `gold SQL failed`; these groups overlap. Full independent CPU rescore is pending.
+- Of 9,428 train rows, 974 prompts were truncated and 754 lost every evidence
+  token. No row became target-only; maximum untruncated prompt length was 6,779
+  tokens. The 2,560-token Spider-tuned budget is therefore invalid for this
+  BIRD-full-schema contract.
+- Independent read-only rescore was stable: five arms were identical and
+  centralized E1 changed by one row (31.55 to 31.62 EX). No `disk full` event
+  recurred. Dev gold was executable for 1,532/1,534 rows; two timed out at 60 s.
+- The scoring implementation is accepted. The P2.1 checkpoints are rejected as
+  canonical BIRD baselines because their training input was incomplete.
 
-## Acceptance work
+## Repair contract
 
-`scripts/run_bird_baseline_audit.ps1` performs:
+Nested commit `d21f777` adds the corrective contract:
 
-Implementation: nested `0bf1ef0`. Relevant tests: 42 passed; actual cached Qwen
-tokenizer retention smoke passed locally. Full data audit awaits the server's
-BIRD SQLite files; PowerShell runtime is unavailable on this local machine.
+- `max_len=7168`, above the measured 6,865-token maximum assembled
+  prompt-plus-target sequence;
+- `truncation_policy=error`, fingerprinted in centralized checkpoints and the
+  federated setup, so any remaining overflow aborts before optimization;
+- non-reentrant gradient checkpointing and `use_cache=False` to make the longer
+  context viable on the single 24 GiB GPU;
+- a deterministic eight-row smoke drawn from the longest audited prompts before
+  any full retraining;
+- new immutable `bird_original_ctx7168` roots. Old P2.1 roots are never reused.
+
+The official BIRD fine-tuning example uses `max_length=18000` and gradient
+checkpointing. Our 7,168 budget is dataset-measured for the frozen Qwen 1.5B,
+full-schema, no-demo contract rather than copied from a different 3B/FSDP setup.
+
+`scripts/run_bird_baseline_audit.ps1` performed:
+
+Implementation: nested `0bf1ef0`; completed artifacts: nested `e9bde43`.
 
 1. Hash source CSVs, saved predictions, tokenizer, prompt implementation and
    current SQLite databases; reject a changed contract on resume.
@@ -66,10 +86,9 @@ SQLite scratch files use the audit output volume. The audit pauses below 5 GiB
 free; this is a minimum check, not a guarantee that large joins fit. Remaining
 resource failures require another explicit rescore root after remediation.
 
-No production training policy changes until measured retention is available.
-If evidence or required schema was lost, choose a context budget or schema
-strategy that preserves the required input and use new checkpoint roots. If
-retention passes, existing checkpoints can be kept and scoring addressed alone.
+Do not promote the original P2.1 accuracy values into paper tables. Run the
+long-context smoke, then regenerate centralized and FL checkpoints/evaluation
+under the corrected immutable roots.
 
 ## Literature context
 

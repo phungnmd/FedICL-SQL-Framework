@@ -79,10 +79,12 @@ change; failed v1 branches are not automatically reopened.
 
 ## Evaluation and lineage
 
-P2.1 BIRD-private results are recorded at `f99febd`; baseline acceptance awaits
-P2.1q (`0bf1ef0`): actual retained train tokens, independent dev gold execution,
-and raw-SQL rescore on saved predictions. Evidence is required baseline input;
-its causal benefit is not an active ablation. See `BIRD_BASELINE_AUDIT.md`.
+P2.1 BIRD-private results at `f99febd` are diagnostic only. P2.1q (`e9bde43`)
+accepted the raw-SQL scorer but found 974 truncated train prompts and complete
+evidence loss in 754 rows. Canonical BIRD training now uses a measured
+`max_len=7168`, fail-closed overflow handling, gradient checkpointing and new
+immutable roots (`d21f777`). Evidence is required input; its causal benefit is
+not an active ablation. See `BIRD_BASELINE_AUDIT.md`.
 The primary method run remains Spider private FL → BIRD public KD → Spider eval;
 the existing BIRD-private baselines support a later reverse-direction comparison.
 
@@ -127,6 +129,10 @@ unchanged. Commit `8a17542` makes the validation phase self-provision its
 locked test dependency on compute-only servers; it does not affect experiments.
 Commit `767301d` fixes the runner's Python subprocess encoding to UTF-8 on
 Windows; dataset and experiment semantics remain unchanged.
+Nested `e9bde43` publishes the completed retention/rescore audit. Nested
+`d21f777` fingerprints truncation policy and gradient checkpointing, introduces
+fail-closed assembly, selects the eight longest audited prompts for a GPU memory
+gate, and moves corrected runs to `bird_original_ctx7168` roots.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 
