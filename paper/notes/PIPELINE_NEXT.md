@@ -34,6 +34,26 @@ While P2.1R evaluates on GPU 0, GPU 1 may resume only raw BIRD teacher
 generation. This invocation does not call the selector and resumes the existing
 row-level checkpoint.
 
+### Two-GPU overnight split after P2.1R
+
+If P2.1R has finished, stop any older teacher/gold-audit processes, pull
+`2178d5a`, then run the two independent lanes below. Start GPU 0 first and wait
+until its 7B weights finish loading before starting GPU 1, avoiding simultaneous
+host-memory loading peaks. GPU 0 measures teacher EX on BIRD dev; GPU 1 resumes
+raw BIRD-train target generation. Neither lane needs the selected teacher pool.
+
+```powershell
+$Required='2178d5a'; $Scope=@('fedicl_sql','experiments/eval_arms/run.py','scripts/build_teacher_targets.py','scripts/rescore_bird_predictions.py','tests/test_eval.py','tests/test_rescore_bird_predictions.py','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code is dirty; stop before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor $Required HEAD; if ($LASTEXITCODE -ne 0) { throw "Missing official BIRD evaluator $Required" }; $env:PYTHONUTF8='1'; uv run --extra dev python -m pytest -q tests/test_eval.py tests/test_filter_teacher_targets_exmatch.py tests/test_rescore_bird_predictions.py tests/test_data_protocol.py; if ($LASTEXITCODE -ne 0) { throw 'BIRD evaluator validation failed' }; Write-Host "Server ready at $((git rev-parse --short HEAD).Trim()); launch the two GPU lanes without further pull/edit"
+```
+
+GPU 0 — BIRD-dev teacher benchmark EX:
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $D='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $E='artifacts/eval_resume/protocol_v2/p22_qwen7b_bird_dev_evidence_pair_t30_s0/eval_k0'; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $S --test-csv $D --dataset-profile bird_with_evidence --arms teacher_qwen7b --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'GPU-0 teacher BIRD-dev evaluation stopped; rerun this exact line to resume' }; $M=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File); if ($M.Count -ne 1) { throw "Expected one teacher-eval manifest, found $($M.Count)" }; $V=Get-Content -LiteralPath $M[0].FullName -Raw | ConvertFrom-Json; if ($V.status -ne 'completed' -or @($V.artifacts.predictions).Count -ne 1) { throw 'Teacher BIRD-dev evaluation manifest is incomplete' }; Write-Host 'GPU-0 lane complete: Qwen-7B teacher BIRD-dev EX uses the official 30-second pair timeout'
+```
+
+GPU 1 — resumable raw target generation:
+
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $B='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0'; $R="$B/raw/train.csv"; if (-not (Test-Path -LiteralPath $S)) { throw "Missing BIRD protocol-v2 train: $S" }; uv run python scripts/build_teacher_targets.py --source-csv $S --dataset-profile bird_with_evidence --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --student-model Qwen/Qwen2.5-1.5B-Instruct --teacher-4bit --batch-size 1 --max-new-tokens 256 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Evidence-aware raw teacher generation stopped; rerun this exact line to resume' }; $RV=Get-Content -LiteralPath "${R}.provenance.json" -Raw | ConvertFrom-Json; if ((Import-Csv -LiteralPath $R).Count -ne 9428 -or $RV.dataset_profile -ne 'bird_with_evidence' -or $RV.evidence_mode -ne 'provided' -or $RV.max_new_tokens -ne 256) { throw 'Raw teacher-target contract mismatch' }; Write-Host 'P2.2a complete: 9,428 evidence-aware raw targets; no selection was run'
 ```
