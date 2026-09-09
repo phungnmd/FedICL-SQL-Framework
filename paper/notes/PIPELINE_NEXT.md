@@ -16,14 +16,35 @@
 | P2.0e | Materialize/audit BIRD-original and semantic K5 split | CPU | complete |
 | P2.1 | Legacy-width BIRD baseline (`max_len=2560`) | complete | diagnostic only; input truncation found |
 | P2.1q | Token-retention and independent EX audit | CPU | complete `e9bde43`; scorer accepted, checkpoints rejected |
-| P2.1R | Full-context BIRD baseline (`max_len=7168`, fail closed) | GPU 0 | next: longest-row smoke, then corrected full run |
-| P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.1R |
+| P2.1R | Full-context BIRD baseline (`max_len=7168`, fail closed) | GPU 0 | running: training complete, canonical evaluation active |
+| P2.2a | Evidence-aware Qwen-7B raw targets on BIRD train | GPU 1 | may run concurrently with P2.1R; generation only |
+| P2.2b | BIRD gold audit, corrected target selection, teacher dev EX | CPU/GPU 1 | after P2.1R exits and server pulls `18ae45f` |
+| P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.2b |
 | P2.3 | Diagnose and improve KD/Federated method | adaptive | blocked by P2.2 |
 
 P2.1 is an explicitly labeled diagnostic track. Audit found 974 truncated train
 prompts and complete evidence loss in 754 rows; its scores must not enter the
 paper's canonical table. Independent EX rescore changed only one centralized-E1
 row and found no disk-full recurrence, so evaluator repair is not required.
+
+## Concurrent P2.2 teacher lane
+
+While P2.1R evaluates on GPU 0, GPU 1 may resume only raw BIRD teacher
+generation. This invocation does not call the selector and resumes the existing
+row-level checkpoint.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $B='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0'; $R="$B/raw/train.csv"; if (-not (Test-Path -LiteralPath $S)) { throw "Missing BIRD protocol-v2 train: $S" }; uv run python scripts/build_teacher_targets.py --source-csv $S --dataset-profile bird_with_evidence --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --student-model Qwen/Qwen2.5-1.5B-Instruct --teacher-4bit --batch-size 1 --max-new-tokens 256 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Evidence-aware raw teacher generation stopped; rerun this exact line to resume' }; $RV=Get-Content -LiteralPath "${R}.provenance.json" -Raw | ConvertFrom-Json; if ((Import-Csv -LiteralPath $R).Count -ne 9428 -or $RV.dataset_profile -ne 'bird_with_evidence' -or $RV.evidence_mode -ne 'provided' -or $RV.max_new_tokens -ne 256) { throw 'Raw teacher-target contract mismatch' }; Write-Host 'P2.2a complete: 9,428 evidence-aware raw targets; no selection was run'
+```
+
+After all P2.1R processes exit, pull the corrected selector and close the
+teacher lane. New `bird_official_set_v1` roots cannot reuse a Spider-scored
+checkpoint. The train statistic is selection coverage; teacher benchmark EX is
+measured separately on BIRD dev.
+
+```powershell
+$Required='18ae45f'; $Scope=@('fedicl_sql','experiments/eval_arms/run.py','scripts/build_teacher_targets.py','scripts/filter_teacher_targets_exmatch.py','scripts/audit_gold_execution.py','scripts/build_public_gold_control.py','tests/test_filter_teacher_targets_exmatch.py','tests/test_build_public_gold_control.py','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code is dirty; stop before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor $Required HEAD; if ($LASTEXITCODE -ne 0) { throw "Missing corrected BIRD selector $Required" }; $env:PYTHONUTF8='1'; uv run --extra dev python -m pytest -q tests/test_filter_teacher_targets_exmatch.py tests/test_build_public_gold_control.py tests/test_eval.py tests/test_data_protocol.py; if ($LASTEXITCODE -ne 0) { throw 'Corrected BIRD selector validation failed' }; $env:CUDA_VISIBLE_DEVICES='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $D='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $B='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0'; $R="$B/raw/train.csv"; $G="$B/gold_audit_t60/train.csv"; $X="$B/exec_bird_official_set_v1/train.csv"; $P="$B/exmatch_bird_official_set_v1/train.csv"; $E='artifacts/eval_resume/protocol_v2/p22_qwen7b_bird_dev_evidence_s0/eval_k0'; uv run python scripts/build_teacher_targets.py --source-csv $S --dataset-profile bird_with_evidence --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --student-model Qwen/Qwen2.5-1.5B-Instruct --teacher-4bit --batch-size 1 --max-new-tokens 256 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Raw teacher generation incomplete; rerun this exact line to resume' }; uv run python scripts/audit_gold_execution.py --source-csv $S --out $G --workers 2 --exec-timeout 60; if ($LASTEXITCODE -ne 0) { throw 'Teacher-independent BIRD train gold audit stopped; rerun this exact line to resume' }; uv run python scripts/filter_teacher_targets_exmatch.py --source-csv $S --teacher-targets $R --exec-out $X --out $P --dataset-profile bird_with_evidence --workers 2 --exec-timeout 8; if ($LASTEXITCODE -ne 0) { throw 'BIRD-correct teacher selection stopped; rerun this exact line to resume' }; $GV=Get-Content -LiteralPath "${G}.provenance.json" -Raw | ConvertFrom-Json; $V=Get-Content -LiteralPath "${P}.provenance.json" -Raw | ConvertFrom-Json; $N=(Import-Csv -LiteralPath $P).Count; if ($V.execution_evaluator -ne 'bird_official_set_v1' -or $V.dataset_protocol.dataset_profile -ne 'bird_with_evidence' -or $V.n_source_rows -ne 9428 -or $N -ne $V.n_exmatched -or $N -le 0) { throw 'BIRD teacher-selection contract mismatch' }; $Coverage=[math]::Round(100.0*$N/$V.n_source_rows,2); $Conditional=[math]::Round(100.0*$N/$V.n_scored,2); Write-Host "BIRD-train selection: selected=$N/9428 coverage=$Coverage% match_over_quick_exec_scored=$Conditional% gold_valid=$($GV.n_gold_valid)/9428"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $S --test-csv $D --dataset-profile bird_with_evidence --arms teacher_qwen7b --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Qwen-7B BIRD-dev teacher evaluation stopped; rerun this exact line to resume' }; Write-Host 'P2.2b complete: gold audit, BIRD-correct selection, and independent BIRD-dev teacher EX'
+```
 
 ## Next: P2.1R full-context repair
 
