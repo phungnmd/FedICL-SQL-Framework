@@ -120,8 +120,10 @@ until the official BIRD evaluator contract is frozen.
 Nested commit `11ab685` additionally binds each generated client shard, split,
 and statistics file by hash and refuses drift on an exact rerun.
 Nested commit `9d777db` closes the baseline execution path: evaluation now
-dispatches `spider_result_eq_v1` versus `bird_official_set_v1` from the dataset
-profile, scorer identity enters resume fingerprints, and one phase-separated
+dispatches Spider EX versus BIRD set-of-row-tuples EX from the dataset profile.
+Commit `2178d5a` completes the official BIRD timing contract with one 30-second
+budget for the prediction/gold pair; scorer identity
+`bird_official_set_pair_timeout30_v2` enters resume fingerprints. One phase-separated
 PowerShell runner owns quarantine, BIRD-original preparation, baseline
 training/evaluation, and allowlisted publication. Nested commit `40255f4` added
 the former two-lane scheduler; `e1f3127` supersedes that orchestration and runs

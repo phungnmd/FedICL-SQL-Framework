@@ -26,9 +26,10 @@ Spider-only arm listed below.
 | Qwen2.5 1.5B | Spider | FedProx `mu=0.01` | 0 | T3 | 62.77 | 56.00 | 1,034 | negative optimizer ablation |
 | Gemma 2 2B | Spider | Base | 0 | — | 52.22 | 22.44 | 1,034 | second-family anchor |
 | Gemma 2 2B | Spider | Pure FedAvg | 0 | T1 | 57.16 | 49.52 | 1,034 | second-family FL baseline |
-| Qwen2.5 1.5B | BIRD-original dev, evidence | Base | 0 | — | 15.97 | 2.09 | 1,534 | valid inference-only anchor |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Base | 0 | — | pending 30s rescore | 2.09 | 1,534 | saved SQL valid; 15.97 was 60s diagnostic |
 
-The BIRD base row is anchored by independent rescore `e9bde43`. The archived
+The saved BIRD base SQL is anchored by independent audit `e9bde43`, but its EX
+must be rescored under the official 30-second pair deadline. The archived
 P2.1 Centralized E1/E2 and FL T1–T3 scores are deliberately absent because
 their training prompts were truncated.
 

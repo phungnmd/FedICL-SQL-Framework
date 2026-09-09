@@ -11,6 +11,18 @@
 - Next: P2.1R longest-context GPU smoke, then new full-context checkpoints.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-10 — official BIRD timeout closure
+
+Source audit found that BIRD's original and Mini-Dev EX evaluators assign one
+30-second deadline to the combined prediction/gold execution. MAC-SQL likewise
+uses 30 seconds for EX and 60 seconds only for VES. The previous live scorer
+used 60 seconds independently for each SQL, although its set-of-row-tuples
+comparison was correct. Nested commit `2178d5a` replaces it with
+`bird_official_set_pair_timeout30_v2` and adds a fingerprinted, resumable CPU
+rescorer for saved prediction CSVs. Training and generation remain valid; no
+model inference needs repeating. The independent BIRD-train gold audit remains
+at 60 seconds because it is a data-integrity diagnostic, not benchmark EX.
+
 ## 2026-09-03 — BIRD protocol reset
 
 Audit confirmed that BIRD `evidence` existed in processed source rows but was
@@ -77,6 +89,8 @@ previously recorded `evaluator=bird`, the shared loop still executed Spider EX.
 Evaluation now dispatches the official BIRD SQLite set-of-row-tuples comparison,
 records scorer identity `bird_official_set_v1` in resume fingerprints, and has
 fixtures showing the intended differences from Spider column/order semantics.
+This historical identity was superseded by the 30-second pair contract in
+`2178d5a`; only its saved SQL, not its embedded EX, remains reusable.
 
 The same commit adds `scripts/run_protocol_v2_baselines.ps1`. Separate phases
 validate code, quarantine 31 exact invalid v1 roots, materialize and publish

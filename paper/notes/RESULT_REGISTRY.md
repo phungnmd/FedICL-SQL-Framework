@@ -30,9 +30,11 @@ unchanged; centralized E1 gained one row; no disk-full error recurred. BIRD
 | `audit.v2.bird.original` | `fedicl-sql/audits/protocol_v2/bird_original.json` | passed with evidence; compatibility release only; nested `4ae6e35` |
 | `audit.v2.bird.p21` | `fedicl-sql/audits/protocol_v2/p21_bird_qwen15b_integrity_t60_s0/` | complete; scorer accepted, trained arms superseded; nested `e9bde43` |
 
-All new BIRD result entries must record execution scorer
-`bird_official_set_v1`; manifests with the historical Spider scorer are
-protocol-v1 context even when their prompts otherwise contain evidence.
+All canonical BIRD result entries must record execution scorer
+`bird_official_set_pair_timeout30_v2`. The earlier `bird_official_set_v1`
+implemented the correct set comparison but allowed 60 seconds independently
+for prediction and gold; its saved SQL remains rescorable but its embedded EX
+is diagnostic rather than paper-canonical.
 
 ## Evidence retained independently of BIRD prompt v1
 
