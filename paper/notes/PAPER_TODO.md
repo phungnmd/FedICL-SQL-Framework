@@ -56,7 +56,7 @@ an earlier result changes the method hypothesis.
 - [ ] Complete both public-teacher prerequisite lanes and freeze teacher EX,
   selection coverage, and exact matched-pool identities.
 - [ ] BIRD public → Spider private/evaluation: matched public gold, teacher-target
-  CE, and CE+RKL controls.
+  CE, and CE+Hinton-forward-KL controls.
 - [ ] Spider public → BIRD private/evaluation: same ladder with BIRD evidence on
   private/eval rows and explicit source identities.
 - [ ] Start with smoke, then T1; open T3 only for interpretable EX gain.
@@ -68,7 +68,7 @@ Do not choose a mechanism in advance. Diagnose the v2 results, then rank only
 the relevant candidates:
 
 - target construction/selection if teacher targets fail despite good teacher EX;
-- CE versus soft KD if hard targets dominate or RKL remains null;
+- SeqKD versus Hinton forward KL if hard targets dominate or soft KD remains null;
 - FedAvg/local optimizer if client drift is the limiting factor;
 - evidence-aware or privileged-information transfer if the two directions
   expose an information-asymmetry gap;

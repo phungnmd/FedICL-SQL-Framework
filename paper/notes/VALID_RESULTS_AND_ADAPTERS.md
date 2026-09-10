@@ -48,7 +48,7 @@ measure different splits and must not be presented as the same statistic.
 
 | GPU | Direction/task | Work included | Expected terminal evidence |
 |---:|---|---|---|
-| 0 | BIRD-public → Spider-private matched T1, seed 0 | one shared Spider-client FedAvg T1; Pure FL, matched BIRD-gold CE and BIRD teacher-target SeqKD; three-arm Spider evaluation | EX/EM and adapters for the three T1 arms; no RKL yet |
+| 0 | BIRD-public → Spider-private matched T1, seed 0 | one shared Spider-client FedAvg T1; Pure FL, matched BIRD-gold CE and BIRD teacher-target SeqKD; three-arm Spider evaluation | EX/EM and adapters for the three T1 arms; no soft-logit KD yet |
 | 1 | Spider-public → BIRD-private prerequisite lane, seed 0 | Spider teacher targets, gold audit, EX selection, matched-gold build, teacher Spider-dev evaluation, and official rescore of saved BIRD baselines | reverse-direction pool/teacher evidence plus BIRD Base/Centralized/FL rescore |
 
 Concurrent execution preserves accuracy validity, but its wall time and memory
@@ -82,7 +82,7 @@ is not listed, because later rounds inherit invalid public supervision.
 | Qwen BIRD centralized, continuous E1/E2 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/centralized_e2_s0/epochs/epoch_{1,2}` | BIRD-original with evidence; awaiting official EX publication |
 | Qwen BIRD pure FL, T1–T3 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/fedavg_k5_alpha05_e1_t3_s0/round_{1,2,3}/fedavg_adapter` | BIRD-original with evidence; awaiting official EX publication |
 
-There is not yet a completed protocol-v2 SeqKD, RKL, or FedLS adapter. The
+There is not yet a completed protocol-v2 SeqKD, Hinton-FKL, or FedLS adapter. The
 full-context BIRD centralized and pure-FL adapters are valid, but their official
 30-second EX rows remain pending publication. Base models are anchors, not
 adapters.
@@ -98,7 +98,7 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 3 | Spider Base / Centralized / pure FL under explicit `spider` profile | reuse audit first; rerun only if fingerprints cannot be reconciled |
 | 4 | Pure FL vs matched public-gold CE | running on GPU 0 for BIRD-public → Spider-private T1 |
 | 5 | Pure FL vs teacher-target CE (SeqKD) | running on GPU 0 on the same 5,319-row pool and shared FL initialization |
-| 6 | Teacher-target CE vs teacher-target CE + RKL | pending; isolates soft-logit value using a regenerated evidence-aware cache |
+| 6 | Teacher-target CE vs teacher-target CE + Hinton forward KL (`T=2`) | pending; primary soft-logit baseline using a new evidence-aware cache |
 | 7 | T1 vs recurring T2/T3 server transfer | run only if the matched T1 ladder improves EX |
 | 8 | Reverse direction: BIRD-private FL with Spider-public controls | prerequisite teacher/pool lane running on GPU 1; matched T1 not started |
 | 9 | Final method on `alpha=0.1` and a second training seed | after method selection |
@@ -111,7 +111,7 @@ Spider/BIRD EX semantics or invalidate any accepted row in this ledger.
 
 ## Excluded lineage
 
-All old Qwen/Gemma FedLS, SeqKD, public-gold, RKL, mixed pre-server, and BIRD
+All old Qwen/Gemma FedLS, SeqKD, public-gold, reverse-KL, mixed pre-server, and BIRD
 trained-arm results are archived. Their teacher targets/logits either omitted
 BIRD evidence or inherited such a server update. P2.1 trained arms are also
 archived because `max_len=2560` truncated required context. None may be copied

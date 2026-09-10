@@ -4,8 +4,8 @@
 
 - Active protocol: `v2`, dataset profiles explicit.
 - Primary metric: execution accuracy (EX).
-- Method status: open; previous FedAvg + verified-target CE + optional RKL is a
-  reference implementation, not a frozen final contribution.
+- Method status: open; FedAvg + verified-target SeqKD is the reference path,
+  with Hinton forward KL as the primary soft-logit baseline.
 - P2.1q completed at `e9bde43`: scoring is stable, but P2.1 training
   checkpoints are diagnostic only because required BIRD context was truncated.
 - P2.1R full-context Base/Centralized/FL computation is complete; official
@@ -181,7 +181,7 @@ reviewed runner base. Full nested suite: 369 passed.
 The runners deliberately stop after teacher/pool prerequisites. They do not
 yet produce FedLS adapters. The next scientific gate is the matched T1 ladder:
 pure FL, matched public-gold CE, execution-matched teacher-target CE, and the
-same target CE plus RKL from one shared T1 client/FedAvg initialization.
+  same target CE plus Hinton forward KL from one shared T1 client/FedAvg initialization.
 
 On 2026-09-11, the BIRD teacher dev evaluation completed at EX `47.1%`, EM
 `6.5%`, but the wrapper failed afterward because its resume directory contained
@@ -190,3 +190,14 @@ Nested `633743c` now validates evaluator, arm set and artifact existence across
 all manifests, selects the newest compatible completion, and skips model
 inference when such a result already exists. Nested `3b98b54` pins this fix for
 server runs. Full nested suite: 370 passed.
+
+## 2026-09-11 — soft-KD baseline reset
+
+Hinton forward KL replaces reverse KL as the active soft-logit baseline. The
+server loss is target CE plus `T^2 KL(p_teacher^T || p_student^T)`, with `T=2`
+and equal loss weights by default. Nested commits `3e85e77` and `951960b`
+remove the RKL/KID implementation and CLI, fingerprint temperature, and require
+new caches marked `kd_objective=hinton_forward_kl`; 362 tests pass. Existing
+RKL artifacts remain historical only and cannot resume into the new lineage.
+No further KD objective is opened until the corrected two-direction T1 ladder
+has been evaluated.

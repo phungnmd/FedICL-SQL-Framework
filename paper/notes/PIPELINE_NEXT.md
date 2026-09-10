@@ -97,10 +97,11 @@ Then freeze only the T1 comparison:
 Pure FL
   vs matched public-gold CE
   vs execution-matched teacher-target CE (SeqKD)
-  vs the same target CE + RKL
+  vs the same target CE + Hinton forward KL
 ```
 
-Open recurring T2/T3 only when T1 shows an interpretable EX gain. RKL remains
-an ablation until it adds EX. Publication commands are generated after the
+Open recurring T2/T3 only when T1 shows an interpretable EX gain. Hinton FKL is
+the primary soft-logit baseline and remains an ablation until it adds EX over
+SeqKD. Other KD objectives remain deferred. Publication commands are generated after the
 completion artifacts are inspected and an exact compact allowlist is known;
 model adapters, trainer state, raw caches, and `artifacts/` are never staged.

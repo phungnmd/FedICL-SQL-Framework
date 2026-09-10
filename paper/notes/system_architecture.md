@@ -64,13 +64,16 @@ The first v2 rerun mirrors the previous workflow under corrected prompts:
 private client LoRA CE
   -> sample-weighted factor-wise FedAvg
   -> execution-verified public teacher-target CE
-  -> optional reverse KL
+  -> optional Hinton forward KL
   -> SLM deployment
 ```
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
-CE, teacher-target CE, and target-CE plus RKL. EX is primary. RKL is not part of
-the final claimed method unless it adds reproducible EX under protocol v2.
+CE, teacher-target CE, and target-CE plus temperature-scaled
+`KL(p_teacher || p_student)`. EX is primary. Hinton FKL is the active
+soft-logit baseline, but it is not part of the final claimed method unless it
+adds reproducible EX over SeqKD under protocol v2. Reverse KL and KID are
+removed from the active implementation and retained only in the archive.
 
 After the rerun, the method-improvement queue is adaptive. Candidate changes
 must target a measured failure, use a matched compute/data control, and pass a
