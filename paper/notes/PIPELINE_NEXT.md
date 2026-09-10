@@ -36,6 +36,10 @@ read-only as a safety guard, while the established Spider/BIRD evaluator
 identities and all previously accepted results remain unchanged. Resume also
 repairs only an interrupted partial final JSONL append and rejects earlier
 checkpoint corruption.
+Nested `633743c` additionally treats a resume directory as a collection of
+fingerprinted runs: it selects the newest compatible completed manifest rather
+than requiring the directory to contain exactly one JSON file. Thus a completed
+teacher evaluation is preserved after code-only runner updates.
 
 Each `Full` phase currently closes the public-teacher prerequisites: validate,
 generate/resume all raw targets, audit public gold SQL, quick-execute and score

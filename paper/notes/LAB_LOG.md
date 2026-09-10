@@ -182,3 +182,11 @@ The runners deliberately stop after teacher/pool prerequisites. They do not
 yet produce FedLS adapters. The next scientific gate is the matched T1 ladder:
 pure FL, matched public-gold CE, execution-matched teacher-target CE, and the
 same target CE plus RKL from one shared T1 client/FedAvg initialization.
+
+On 2026-09-11, the BIRD teacher dev evaluation completed at EX `47.1%`, EM
+`6.5%`, but the wrapper failed afterward because its resume directory contained
+three manifests rather than exactly one. No inference result was lost.
+Nested `633743c` now validates evaluator, arm set and artifact existence across
+all manifests, selects the newest compatible completion, and skips model
+inference when such a result already exists. Nested `3b98b54` pins this fix for
+server runs. Full nested suite: 370 passed.
