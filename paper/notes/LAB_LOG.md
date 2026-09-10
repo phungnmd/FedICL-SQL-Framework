@@ -139,3 +139,20 @@ archives. No historical evidence was deleted. Nested commit `7b487bd` records
 the archive moves, adds the second server-quarantine manifest, and makes active
 FedLS examples explicit about BIRD evidence, 4,096-token context, and v2 output
 roots. Full nested suite: 356 passed.
+
+## 2026-09-10 — independent direction runners
+
+P2.1R baseline computation completed on the experiment server; its saved BIRD
+SQL still requires the official 30-second rescore before publication. The
+BIRD-public Qwen-7B target generator has a valid partial row checkpoint. Its
+new progress bar counts only pending rows, so `0/2300` denotes a resume after
+roughly 7,128 completed rows rather than regeneration of all 9,428 rows.
+
+Nested commit `8caa610` replaces the hard-coded GPU-0/GPU-1 closure scheduler
+with two output-disjoint entry points. `run_protocol_v2_spider_private.ps1`
+prepares BIRD-public targets for Spider-private/evaluation;
+`run_protocol_v2_bird_private.ps1` prepares Spider-public targets for
+BIRD-private/evaluation. The calling PowerShell process selects exactly one GPU
+through `CUDA_VISIBLE_DEVICES`. The same commit freezes metadata-complete
+Spider v2 train/dev files and the existing semantic K5 partition under a new
+immutable root. Full nested test suite: 364 passed.

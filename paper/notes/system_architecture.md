@@ -137,6 +137,12 @@ Nested `e9bde43` publishes the completed retention/rescore audit. Nested
 `d21f777` fingerprints truncation policy and gradient checkpointing, introduces
 fail-closed assembly, selects the eight longest audited prompts for a GPU memory
 gate, and moves corrected runs to `bird_original_ctx7168` roots.
+Nested `8caa610` freezes a metadata-complete Spider protocol-v2 copy and the
+same semantic K5 split, then replaces the hard-coded two-GPU closure scheduler
+with two independent direction runners. `spider_private` binds BIRD-public
+with-evidence transfer to Spider clients/evaluation; `bird_private` binds
+Spider-public transfer to BIRD clients/evaluation with evidence. Neither runner
+sets a physical GPU: the calling PowerShell process exposes exactly one device.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

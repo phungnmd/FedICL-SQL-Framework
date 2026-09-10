@@ -34,17 +34,19 @@ an earlier result changes the method hypothesis.
   974 prompts were truncated and 754 lost all evidence.
 - [x] Implement 7,168-token fail-closed training, gradient checkpointing,
   longest-row smoke and fresh immutable roots (`d21f777`).
-- [ ] Pass P2.1R longest-eight-row context/VRAM smoke on GPU 0.
+- [x] Pass P2.1R longest-eight-row context/VRAM smoke.
 
 - [ ] Rescore the saved BIRD base prediction at the official 30-second pair
   timeout; the prior 15.97 EX is a 60-second diagnostic anchor.
-- [ ] P2.1R BIRD-original centralized SFT with evidence, continuous E1/E2,
+- [x] P2.1R BIRD-original centralized SFT with evidence, continuous E1/E2,
   `max_len=7168`, no truncation.
-- [ ] P2.1R BIRD-original pure FL with evidence, semantic K5 split, T1–T3,
+- [x] P2.1R BIRD-original pure FL with evidence, semantic K5 split, T1–T3,
   `max_len=7168`, no truncation.
 - [ ] Rescore corrected centralized E1/E2 and FL T1/T2/T3 through
   `bird_official_set_pair_timeout30_v2`; no model regeneration is required.
-- [ ] Audit/re-evaluate Spider base, centralized, and pure FL under explicit profile.
+- [ ] Audit/re-evaluate Spider base, centralized, and pure FL under explicit
+  profile; metadata-complete Spider v2 train/dev and K5 split are frozen in
+  `8caa610`.
 - [ ] Report EX and execution-error transitions; keep EM secondary.
 
 ## P2.2 — Rerun the current reference method in both directions
