@@ -51,6 +51,10 @@ an earlier result changes the method hypothesis.
 
 ## P2.2 — Rerun the current reference method in both directions
 
+- [x] Split the two transfer directions into output-disjoint, caller-GPU
+  runners and technically audit profile/evidence/evaluator/resume contracts.
+- [ ] Complete both public-teacher prerequisite lanes and freeze teacher EX,
+  selection coverage, and exact matched-pool identities.
 - [ ] BIRD public → Spider private/evaluation: matched public gold, teacher-target
   CE, and CE+RKL controls.
 - [ ] Spider public → BIRD private/evaluation: same ladder with BIRD evidence on
@@ -80,3 +84,16 @@ unless v2 reveals the exact failure they were designed to solve.
 - [ ] Run minimal robustness: two seeds, one stronger non-IID split, two model families if feasible.
 - [ ] Restore only lineage-valid resource/privacy/communication evidence.
 - [ ] Rebuild tables, figures, manuscript claims, and reproducibility manifest.
+
+Minimum outline-aligned closure evidence before writing the headline claim:
+
+- matched T1 causal ladder in both transfer directions;
+- T1–T3 convergence for the promoted method and pure FL;
+- a second seed and one stronger non-IID setting for the promoted method;
+- final student-versus-teacher latency/memory plus adapter communication size;
+- paired EX/error analysis. EM remains descriptive only.
+
+Teacher/student size sweeps, a second model family, FedProx on BIRD, and
+federated 7B training are conditional extensions rather than blockers for the
+first defensible paper result. They become priorities only if the primary
+Qwen evidence is weak or reviewers require a broader generality claim.

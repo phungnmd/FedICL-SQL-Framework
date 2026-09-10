@@ -81,6 +81,8 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 
 Secure Sum equivalence and teacher-only resource measurements remain valid
 technical evidence. They are not accuracy arms and do not replace rows 1–10.
+The later read-only SQLite guard is operational safety only: it does not change
+Spider/BIRD EX semantics or invalidate any accepted row in this ledger.
 
 ## Excluded lineage
 

@@ -29,6 +29,14 @@ execution-matched selection. The Spider-private runner resumes the existing
 BIRD raw-target checkpoint; a progress display such as `0/2300` means 2,300
 pending rows, not a restart of all 9,428 rows.
 
+Technical review at nested `c13fc9f` confirms that BIRD evidence reaches raw
+teacher generation, server training inputs, private-client training, and BIRD
+evaluation through the explicit dataset profile. SQLite execution is now
+read-only as a safety guard, while the established Spider/BIRD evaluator
+identities and all previously accepted results remain unchanged. Resume also
+repairs only an interrupted partial final JSONL append and rejects earlier
+checkpoint corruption.
+
 Each `Full` phase currently closes the public-teacher prerequisites: validate,
 generate/resume all raw targets, audit public gold SQL, quick-execute and score
 teacher SQL with the public dataset's evaluator, build the exact row-matched
@@ -36,6 +44,8 @@ gold control, and evaluate the teacher on the public dev set. The BIRD-private
 runner additionally rescores the six completed P2.1R prediction files with the
 official BIRD 30-second pair deadline. Neither runner starts FedLS training;
 the selected-pool counts and teacher EX are the gate for the matched T1 ladder.
+Therefore `Full` means the complete public-teacher prerequisite lane, not the
+complete paper experiment matrix.
 
 ## Server launch
 
@@ -72,6 +82,10 @@ After both scripts complete, record for each direction:
 - generated, quick-executable, officially scored, and EX-matched row counts;
 - selected-pool coverage and matched-gold row count;
 - for BIRD-private, official Base/Centralized-E1/E2/FL-T1/T2/T3 EX.
+
+Do not regenerate already accepted Spider-only results merely because SQLite
+is now opened read-only. Re-evaluate their saved adapters/predictions under the
+explicit `spider` profile only where protocol-v2 provenance is still missing.
 
 Then freeze only the T1 comparison:
 

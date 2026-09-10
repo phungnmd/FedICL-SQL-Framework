@@ -143,6 +143,12 @@ with two independent direction runners. `spider_private` binds BIRD-public
 with-evidence transfer to Spider clients/evaluation; `bird_private` binds
 Spider-public transfer to BIRD clients/evaluation with evidence. Neither runner
 sets a physical GPU: the calling PowerShell process exposes exactly one device.
+Nested `c13fc9f` hardens both lanes without changing scientific result
+identity: SQL execution is read-only, interrupted teacher JSONL tails recover
+atomically, matched-gold provenance is dataset-neutral, and dataset/split
+contracts fail closed before model loading. Nested `8c72764` pins that reviewed
+base for server execution. Existing accepted results remain valid because the
+evaluator algorithms and their recorded identities did not change.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

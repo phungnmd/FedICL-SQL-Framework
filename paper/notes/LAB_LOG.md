@@ -8,7 +8,10 @@
   reference implementation, not a frozen final contribution.
 - P2.1q completed at `e9bde43`: scoring is stable, but P2.1 training
   checkpoints are diagnostic only because required BIRD context was truncated.
-- Next: P2.1R longest-context GPU smoke, then new full-context checkpoints.
+- P2.1R full-context Base/Centralized/FL computation is complete; official
+  30-second BIRD rescore/publication remains.
+- Next: close both public-teacher lanes, inspect teacher/pool quality, then run
+  the matched T1 causal ladder in both directions.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-10 — official BIRD timeout closure
@@ -156,3 +159,26 @@ BIRD-private/evaluation. The calling PowerShell process selects exactly one GPU
 through `CUDA_VISIBLE_DEVICES`. The same commit freezes metadata-complete
 Spider v2 train/dev files and the existing semantic K5 partition under a new
 immutable root. Full nested test suite: 364 passed.
+
+## 2026-09-10 — direction-runner technical review
+
+The two directions were audited end to end. `spider_private` uses Spider K5
+private clients/evaluation and BIRD-original public supervision with evidence;
+`bird_private` reverses those roles and retains evidence in every BIRD client
+and evaluation prompt. Teacher target generation uses full schema, zero demos,
+256 output tokens and the declared public profile. Selection first rejects
+non-executable SQL, then applies the dataset-specific EX evaluator; the gold-CE
+control uses the exact same selected source indices and differs only in target
+SQL. Both public teacher dev evaluations together provide the Qwen-7B anchor on
+both Spider and BIRD without duplicate inference.
+
+Nested `c13fc9f` adds read-only SQLite execution, atomic recovery of only a
+partial final teacher-target checkpoint line, generic source-gold provenance,
+and stronger frozen dataset/split guards. Evaluator identities are unchanged,
+so accepted historical results are not invalidated. Nested `8c72764` pins the
+reviewed runner base. Full nested suite: 369 passed.
+
+The runners deliberately stop after teacher/pool prerequisites. They do not
+yet produce FedLS adapters. The next scientific gate is the matched T1 ladder:
+pure FL, matched public-gold CE, execution-matched teacher-target CE, and the
+same target CE plus RKL from one shared T1 client/FedAvg initialization.
