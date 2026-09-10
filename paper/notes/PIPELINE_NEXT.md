@@ -16,10 +16,10 @@
 | P2.0e | Materialize/audit BIRD-original and semantic K5 split | CPU | complete |
 | P2.1 | Legacy-width BIRD baseline (`max_len=2560`) | complete | diagnostic only; input truncation found |
 | P2.1q | Token-retention and independent EX audit | CPU | complete `e9bde43`; scorer accepted, checkpoints rejected |
-| P2.1R | Full-context BIRD baseline (`max_len=7168`, fail closed) | GPU 0 | running: training complete, canonical evaluation active |
-| P2.2a | Evidence-aware Qwen-7B raw targets on BIRD train | GPU 1 | may run concurrently with P2.1R; generation only |
-| P2.1S | Rescore saved P2.1R SQL with official 30-second BIRD pair deadline | CPU | after all active processes exit and pull `2178d5a` |
-| P2.2b | BIRD gold audit, corrected target selection, teacher dev EX | CPU/GPU 1 | after P2.1R exits and server pulls `2178d5a` |
+| P2.1R | Full-context BIRD baseline (`max_len=7168`, fail closed) | GPU 0 | complete on server; publication pending |
+| P2.2a | Evidence-aware Qwen-7B raw targets on BIRD train | GPU 1 | partial checkpoint; resume through closure runner |
+| P2.1S | Rescore saved P2.1R SQL with official 30-second BIRD pair deadline | CPU | automated by closure runner after both GPU lanes |
+| P2.2b | BIRD gold audit, corrected target selection, teacher dev EX | CPU + GPU 0/1 | active through closure runner |
 | P2.2 | Current FedLS reference ladder in both directions | GPU | blocked by P2.2b |
 | P2.3 | Diagnose and improve KD/Federated method | adaptive | blocked by P2.2 |
 
@@ -28,31 +28,33 @@ prompts and complete evidence loss in 754 rows; its scores must not enter the
 paper's canonical table. Independent EX rescore changed only one centralized-E1
 row and found no disk-full recurrence, so evaluator repair is not required.
 
+## Current command: close P2.1R/P2.2 prerequisites
+
+Use `scripts/run_protocol_v2_teacher_closure.ps1`. Its `Full` phase does **not**
+rerun P2.1R. It validates the code and inputs, evaluates the Qwen-7B teacher on
+BIRD dev on GPU 0, resumes the existing row-level raw-target checkpoint on GPU
+1, and runs the teacher-independent gold audit on CPU. After both GPU lanes
+complete it automatically runs the corrected BIRD selector, builds the
+row-matched gold control, and rescores the six saved P2.1R prediction files
+with the official 30-second pair deadline. Child logs are written under
+`artifacts/protocol_v2/run_logs/p22_teacher_closure/`.
+
+Run only after yesterday's processes have exited. This is one physical line;
+rerunning it safely skips or resumes completed work:
+
+```powershell
+$Scope=@('fedicl_sql','experiments/eval_arms/run.py','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code is dirty; review before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_teacher_closure.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'P2.2 closure stopped; rerun this exact line to resume' }
+```
+
+The runner deliberately stops before FedLS training. Teacher-dev EX and the
+selected-pool size determine the matched-gold, SeqKD, and RKL commands, so that
+next ladder must be frozen only after these outputs are inspected.
+
 ## Concurrent P2.2 teacher lane
 
 While P2.1R evaluates on GPU 0, GPU 1 may resume only raw BIRD teacher
 generation. This invocation does not call the selector and resumes the existing
 row-level checkpoint.
-
-### Two-GPU overnight split after P2.1R
-
-If P2.1R has finished, stop any older teacher/gold-audit processes, pull
-`2178d5a`, then run the two independent lanes below. Start GPU 0 first and wait
-until its 7B weights finish loading before starting GPU 1, avoiding simultaneous
-host-memory loading peaks. GPU 0 measures teacher EX on BIRD dev; GPU 1 resumes
-raw BIRD-train target generation. Neither lane needs the selected teacher pool.
-
-```powershell
-$Required='2178d5a'; $Scope=@('fedicl_sql','experiments/eval_arms/run.py','scripts/build_teacher_targets.py','scripts/rescore_bird_predictions.py','tests/test_eval.py','tests/test_rescore_bird_predictions.py','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code is dirty; stop before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor $Required HEAD; if ($LASTEXITCODE -ne 0) { throw "Missing official BIRD evaluator $Required" }; $env:PYTHONUTF8='1'; uv run --extra dev python -m pytest -q tests/test_eval.py tests/test_filter_teacher_targets_exmatch.py tests/test_rescore_bird_predictions.py tests/test_data_protocol.py; if ($LASTEXITCODE -ne 0) { throw 'BIRD evaluator validation failed' }; Write-Host "Server ready at $((git rev-parse --short HEAD).Trim()); launch the two GPU lanes without further pull/edit"
-```
-
-GPU 0 — BIRD-dev teacher benchmark EX:
-
-```powershell
-$env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $D='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $E='artifacts/eval_resume/protocol_v2/p22_qwen7b_bird_dev_evidence_pair_t30_s0/eval_k0'; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $S --test-csv $D --dataset-profile bird_with_evidence --arms teacher_qwen7b --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'GPU-0 teacher BIRD-dev evaluation stopped; rerun this exact line to resume' }; $M=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File); if ($M.Count -ne 1) { throw "Expected one teacher-eval manifest, found $($M.Count)" }; $V=Get-Content -LiteralPath $M[0].FullName -Raw | ConvertFrom-Json; if ($V.status -ne 'completed' -or @($V.artifacts.predictions).Count -ne 1) { throw 'Teacher BIRD-dev evaluation manifest is incomplete' }; Write-Host 'GPU-0 lane complete: Qwen-7B teacher BIRD-dev EX uses the official 30-second pair timeout'
-```
-
-GPU 1 — resumable raw target generation:
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $B='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0'; $R="$B/raw/train.csv"; if (-not (Test-Path -LiteralPath $S)) { throw "Missing BIRD protocol-v2 train: $S" }; uv run python scripts/build_teacher_targets.py --source-csv $S --dataset-profile bird_with_evidence --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --student-model Qwen/Qwen2.5-1.5B-Instruct --teacher-4bit --batch-size 1 --max-new-tokens 256 --schema-style full --out $R --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Evidence-aware raw teacher generation stopped; rerun this exact line to resume' }; $RV=Get-Content -LiteralPath "${R}.provenance.json" -Raw | ConvertFrom-Json; if ((Import-Csv -LiteralPath $R).Count -ne 9428 -or $RV.dataset_profile -ne 'bird_with_evidence' -or $RV.evidence_mode -ne 'provided' -or $RV.max_new_tokens -ne 256) { throw 'Raw teacher-target contract mismatch' }; Write-Host 'P2.2a complete: 9,428 evidence-aware raw targets; no selection was run'
