@@ -36,13 +36,13 @@ an earlier result changes the method hypothesis.
   longest-row smoke and fresh immutable roots (`d21f777`).
 - [x] Pass P2.1R longest-eight-row context/VRAM smoke.
 
-- [ ] Rescore the saved BIRD base prediction at the official 30-second pair
-  timeout; the prior 15.97 EX is a 60-second diagnostic anchor.
+- [x] Rescore the saved BIRD base prediction and all corrected baselines at the
+  official 30-second pair timeout.
 - [x] P2.1R BIRD-original centralized SFT with evidence, continuous E1/E2,
   `max_len=7168`, no truncation.
 - [x] P2.1R BIRD-original pure FL with evidence, semantic K5 split, T1–T3,
   `max_len=7168`, no truncation.
-- [ ] Rescore corrected centralized E1/E2 and FL T1/T2/T3 through
+- [x] Rescore corrected centralized E1/E2 and FL T1/T2/T3 through
   `bird_official_set_pair_timeout30_v2`; no model regeneration is required.
 - [ ] Audit/re-evaluate Spider base, centralized, and pure FL under explicit
   profile; metadata-complete Spider v2 train/dev and K5 split are frozen in
@@ -53,10 +53,10 @@ an earlier result changes the method hypothesis.
 
 - [x] Split the two transfer directions into output-disjoint, caller-GPU
   runners and technically audit profile/evidence/evaluator/resume contracts.
-- [ ] Complete both public-teacher prerequisite lanes and freeze teacher EX,
+- [x] Complete both public-teacher prerequisite lanes and freeze teacher EX,
   selection coverage, and exact matched-pool identities.
-- [ ] BIRD public → Spider private/evaluation: matched public gold, teacher-target
-  CE, and CE+Hinton-forward-KL controls.
+- [ ] BIRD public → Spider private/evaluation: matched public gold and
+  teacher-target CE are complete; CE+Hinton-forward-KL remains.
 - [ ] Spider public → BIRD private/evaluation: same ladder with BIRD evidence on
   private/eval rows and explicit source identities.
 - [ ] Start with smoke, then T1; open T3 only for interpretable EX gain.

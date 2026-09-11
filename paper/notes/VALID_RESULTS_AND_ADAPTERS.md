@@ -26,33 +26,42 @@ Spider-only arm listed below.
 | Qwen2.5 1.5B | Spider | FedProx `mu=0.01` | 0 | T3 | 62.77 | 56.00 | 1,034 | negative optimizer ablation |
 | Gemma 2 2B | Spider | Base | 0 | — | 52.22 | 22.44 | 1,034 | second-family anchor |
 | Gemma 2 2B | Spider | Pure FedAvg | 0 | T1 | 57.16 | 49.52 | 1,034 | second-family FL baseline |
-| Qwen2.5 1.5B | BIRD-original dev, evidence | Base | 0 | — | pending 30s rescore | 2.09 | 1,534 | saved SQL valid; 15.97 was 60s diagnostic |
-| Qwen2.5-Coder 7B | BIRD-original dev, evidence | Teacher, zero-shot | 0 | P2.2 | 47.10 | 6.50 | 1,534 | public-teacher capability anchor |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Base | 0 | — | 15.97 | 2.09 | 1,534 | official 30-second pair rescore |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Centralized | 0 | E1 | 31.42 | 4.04 | 1,534 | full-context baseline |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Centralized | 0 | E2 | 34.94 | 4.04 | 1,534 | full-context baseline |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Pure FedAvg | 0 | T1 | 22.75 | 1.56 | 1,534 | full-context baseline |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Pure FedAvg | 0 | T2 | 28.36 | 2.67 | 1,534 | convergence |
+| Qwen2.5 1.5B | BIRD-original dev, evidence | Pure FedAvg | 0 | T3 | 31.10 | 3.26 | 1,534 | full-context baseline |
+| Qwen2.5-Coder 7B | BIRD-original dev, evidence | Teacher, zero-shot | 0 | P2.2 | 47.07 | 6.52 | 1,534 | public-teacher capability anchor |
+| Qwen2.5-Coder 7B | Spider | Teacher, zero-shot | 0 | P2.2 | 76.69 | 51.35 | 1,034 | public-teacher capability anchor |
+| Qwen2.5 1.5B | Spider private; BIRD public | Pure FedAvg | 0 | T1 | 56.96 | 50.48 | 1,034 | shared matched-ladder initialization |
+| Qwen2.5 1.5B | Spider private; matched BIRD gold | Public-gold CE | 0 | T1 | 56.09 | 20.70 | 1,034 | row-matched control |
+| Qwen2.5 1.5B | Spider private; matched BIRD teacher SQL | SeqKD | 0 | T1 | 57.64 | 25.24 | 1,034 | reference transfer arm |
 
-The saved BIRD base SQL is anchored by independent audit `e9bde43`, but its EX
-must be rescored under the official 30-second pair deadline. The archived
-P2.1 Centralized E1/E2 and FL T1–T3 scores are deliberately absent because
-their training prompts were truncated.
+The canonical BIRD values above come from the saved predictions rescored with
+`bird_official_set_pair_timeout30_v2`. The old truncated-context P2.1 lineage
+remains excluded; these rows use the corrected 7,168-token, evidence-preserving
+P2.1R adapters.
 
 ### Valid protocol-v2 teacher pool
 
 | Transfer direction | Public source | Raw targets | Gold-valid | Officially scored after quick execution | EX-matched | Coverage | Status |
 |---|---|---:|---:|---:|---:|---:|---|
 | BIRD public → Spider private/eval | BIRD-original with evidence | 9,428 | 9,034 | 7,823 | 5,319 | 56.42% | complete; matched teacher/gold controls ready |
+| Spider public → BIRD private/eval | Spider | 8,659 | 8,656 | 8,309 | 7,251 | 83.74% | complete; matched teacher/gold controls ready |
 
-The `67.99%` conditional match rate is `5,319/7,823`; the paper-facing pool
-coverage is `5,319/9,428 = 56.42%`. The teacher dev EX and train-pool selection
-measure different splits and must not be presented as the same statistic.
+The conditional match rates are `5,319/7,823 = 67.99%` and
+`7,251/8,309 = 87.27%`; paper-facing coverage always uses the full public
+source denominator. Teacher dev EX and train-pool selection measure different
+splits and must not be presented as the same statistic.
 
-## Currently running
+## Current execution state
 
-| GPU | Direction/task | Work included | Expected terminal evidence |
-|---:|---|---|---|
-| 0 | BIRD-public → Spider-private matched T1, seed 0 | one shared Spider-client FedAvg T1; Pure FL, matched BIRD-gold CE and BIRD teacher-target SeqKD; three-arm Spider evaluation | EX/EM and adapters for the three T1 arms; no soft-logit KD yet |
-| 1 | Spider-public → BIRD-private prerequisite lane, seed 0 | Spider teacher targets, gold audit, EX selection, matched-gold build, teacher Spider-dev evaluation, and official rescore of saved BIRD baselines | reverse-direction pool/teacher evidence plus BIRD Base/Centralized/FL rescore |
-
-Concurrent execution preserves accuracy validity, but its wall time and memory
-measurements are not eligible for the paper resource table.
+No GPU job from the prerequisite lanes remains active. Next are the
+Spider-public → BIRD-private matched T1 ladder and Hinton-FKL T1 for the
+BIRD-public → Spider-private direction. Concurrent historical execution
+preserves accuracy validity, but its wall time and memory measurements are not
+eligible for the paper resource table.
 
 ### Valid Spider out-of-domain results
 
@@ -79,13 +88,15 @@ is not listed, because later rounds inherit invalid public supervision.
 | Qwen `alpha=0.1`, T1 | `artifacts/federated/p13_alpha01_k5_e1_t1_shared_s0/round_1/fedavg_adapter` | Spider skew baseline |
 | Qwen `alpha=0.1`, T2–T3 | `artifacts/federated/p13_alpha01_k5_e1_t1_fl_s0/round_{2,3}/fedavg_adapter` | Spider skew baseline |
 | Gemma pure FL seed 0, T1 | `artifacts/federated/gemma2_2b_fedavg_only_noicl_k5_e1_t1_s0/round_1/fedavg_adapter` | Spider only |
-| Qwen BIRD centralized, continuous E1/E2 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/centralized_e2_s0/epochs/epoch_{1,2}` | BIRD-original with evidence; awaiting official EX publication |
-| Qwen BIRD pure FL, T1–T3 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/fedavg_k5_alpha05_e1_t3_s0/round_{1,2,3}/fedavg_adapter` | BIRD-original with evidence; awaiting official EX publication |
+| Qwen BIRD centralized, continuous E1/E2 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/centralized_e2_s0/epochs/epoch_{1,2}` | BIRD-original with evidence; official EX published |
+| Qwen BIRD pure FL, T1–T3 | `artifacts/protocol_v2/bird_original_ctx7168/qwen15b/fedavg_k5_alpha05_e1_t3_s0/round_{1,2,3}/fedavg_adapter` | BIRD-original with evidence; official EX published |
+| Protocol-v2 Spider-private shared FL T1 | `artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1/fedavg_adapter` | common initialization for the matched ladder |
+| Protocol-v2 Spider-private matched-gold CE T1 | `artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g` | 5,319-row BIRD public-gold control |
+| Protocol-v2 Spider-private SeqKD T1 | `artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g` | 5,319-row BIRD teacher-target arm |
 
-There is not yet a completed protocol-v2 SeqKD, Hinton-FKL, or FedLS adapter. The
-full-context BIRD centralized and pure-FL adapters are valid, but their official
-30-second EX rows remain pending publication. Base models are anchors, not
-adapters.
+The first protocol-v2 SeqKD adapter is complete. There is not yet a
+protocol-v2 Hinton-FKL adapter or a reverse-direction matched T1 adapter. Base
+models are anchors, not adapters.
 
 ## Baselines and ablations still required
 
@@ -94,13 +105,13 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | Order | Required comparison | Status / promotion gate |
 |---:|---|---|
 | 1 | BIRD full-context smoke on eight longest prompts | complete; zero-truncation/VRAM gate passed |
-| 2 | BIRD Centralized E1/E2 and pure FL T1/T2/T3 | training/evaluation complete; official 30-second rescore currently running in GPU-1 lane |
+| 2 | BIRD Centralized E1/E2 and pure FL T1/T2/T3 | complete and published with official 30-second rescore |
 | 3 | Spider Base / Centralized / pure FL under explicit `spider` profile | reuse audit first; rerun only if fingerprints cannot be reconciled |
-| 4 | Pure FL vs matched public-gold CE | running on GPU 0 for BIRD-public → Spider-private T1 |
-| 5 | Pure FL vs teacher-target CE (SeqKD) | running on GPU 0 on the same 5,319-row pool and shared FL initialization |
-| 6 | Teacher-target CE vs teacher-target CE + Hinton forward KL (`T=2`) | pending; primary soft-logit baseline using a new evidence-aware cache |
-| 7 | T1 vs recurring T2/T3 server transfer | run only if the matched T1 ladder improves EX |
-| 8 | Reverse direction: BIRD-private FL with Spider-public controls | prerequisite teacher/pool lane running on GPU 1; matched T1 not started |
+| 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
+| 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
+| 6 | Teacher-target CE vs teacher-target CE + Hinton forward KL (`T=2`) | next; primary soft-logit baseline using a new evidence-aware cache |
+| 7 | T1 vs recurring T2/T3 server transfer | closed for now: SeqKD net gain is only 7/1,034 rows |
+| 8 | Reverse direction: BIRD-private FL with Spider-public controls | prerequisites complete; matched T1 is next |
 | 9 | Final method on `alpha=0.1` and a second training seed | after method selection |
 | 10 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
 

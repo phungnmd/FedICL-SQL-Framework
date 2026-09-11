@@ -8,11 +8,12 @@
 
 | Order | Task | Status |
 |---|---|---|
-| P2.1R | BIRD-private full-context Base/Centralized/FL | computation complete; official rescore/publication pending |
-| P2.2a | BIRD-public teacher targets for Spider-private direction | partial row checkpoint; resume first |
-| P2.2b | Spider-public teacher targets for BIRD-private direction | ready |
-| P2.2c | Matched T1 ladder in both directions | blocked until both teacher pipelines are reviewed |
-| P2.3 | Select or improve KD/federated method | adaptive after P2.2c |
+| P2.1R | BIRD-private full-context Base/Centralized/FL | complete and published |
+| P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
+| P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
+| P2.2c | Matched T1 ladder in both directions | Spider-private complete; BIRD-private next |
+| P2.2d | Hinton-FKL T1 | next after cache/runner contract is pinned |
+| P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
 
 ## Direction contract
 
@@ -51,7 +52,7 @@ the selected-pool counts and teacher EX are the gate for the matched T1 ladder.
 Therefore `Full` means the complete public-teacher prerequisite lane, not the
 complete paper experiment matrix.
 
-## Server launch
+## Completed prerequisite runners
 
 Run this sync once while no experiment process is using the worktree:
 
@@ -59,33 +60,32 @@ Run this sync once while no experiment process is using the worktree:
 $Scope=@('fedicl_sql','experiments','scripts','tests','processed_data/protocol_v2','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty; review before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; Write-Host "Ready at $((git rev-parse --short HEAD).Trim())"
 ```
 
-Highest priority — resume the current BIRD-public target job on whichever GPU
-you choose (example: physical GPU 0):
+These exact reruns now verify or skip completed prerequisite outputs; they are
+not the next accuracy jobs:
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_spider_private.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'Spider-private direction stopped; rerun this exact line to resume' }
 ```
 
-Independent reverse direction on another free GPU (example: physical GPU 1):
+Reverse prerequisite verification:
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_bird_private.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private direction stopped; rerun this exact line to resume' }
 ```
 
-If only one GPU is free, run either command alone. Later, run the other command
-with the same or a different single GPU number. Do not run two instances of the
-same direction because they would write the same row checkpoint. On the shared
-server, stagger the two launches until the first 7B model has finished loading
-to reduce the transient host-RAM/page-file peak.
+Do not rerun either lane for new accuracy evidence. The next implementation
+task is to pin resume-safe commands for the reverse matched T1 ladder and the
+new Hinton-forward-KL cache/arm. No T2/T3 job is active.
 
 ## Completion gate
 
-After both scripts complete, record for each direction:
+The prerequisite gate is now closed:
 
-- public teacher dev EX;
-- generated, quick-executable, officially scored, and EX-matched row counts;
-- selected-pool coverage and matched-gold row count;
-- for BIRD-private, official Base/Centralized-E1/E2/FL-T1/T2/T3 EX.
+- teacher EX is 47.07 on BIRD dev and 76.69 on Spider;
+- BIRD-public coverage is 5,319/9,428 (56.42%);
+- Spider-public coverage is 7,251/8,659 (83.74%);
+- official BIRD Base/Centralized-E1/E2/FL-T1/T2/T3 EX is
+  15.97/31.42/34.94/22.75/28.36/31.10.
 
 Do not regenerate already accepted Spider-only results merely because SQLite
 is now opened read-only. Re-evaluate their saved adapters/predictions under the
@@ -105,3 +105,8 @@ the primary soft-logit baseline and remains an ablation until it adds EX over
 SeqKD. Other KD objectives remain deferred. Publication commands are generated after the
 completion artifacts are inspected and an exact compact allowlist is known;
 model adapters, trainer state, raw caches, and `artifacts/` are never staged.
+
+The first direction does not pass the T2/T3 gate yet: SeqKD is 57.64 EX versus
+56.96 for Pure FL, only seven net correct rows (140 corrections, 133
+regressions). Run the reverse matched T1 ladder and Hinton-FKL T1 before
+selecting the method.

@@ -201,3 +201,19 @@ new caches marked `kd_objective=hinton_forward_kl`; 362 tests pass. Existing
 RKL artifacts remain historical only and cannot resume into the new lineage.
 No further KD objective is opened until the corrected two-direction T1 ladder
 has been evaluated.
+
+## 2026-09-11 — protocol-v2 prerequisite closure and first matched T1
+
+Nested result commit `e2ca26e` publishes both dataset-correct teacher pools,
+teacher dev predictions, corrected BIRD baselines, and the first matched T1
+ladder. BIRD public→Spider private retains 5,319/9,428 targets (56.42%);
+Spider public→BIRD private retains 7,251/8,659 (83.74%). Teacher zero-shot EX
+is 47.07 on BIRD dev and 76.69 on Spider.
+
+The official BIRD 30-second pair rescore gives Base 15.97, Centralized E1/E2
+31.42/34.94, and Pure FL T1/T2/T3 22.75/28.36/31.10 EX. In the first matched
+transfer direction, Pure FL is 56.96, matched-gold CE 56.09, and SeqKD 57.64
+EX on Spider. Paired rows show SeqKD corrects 140 Pure-FL errors but regresses
+133 Pure-FL successes, a net gain of seven. This does not open T2/T3. Next are
+the reverse matched T1 ladder and Hinton-forward-KL T1; method selection remains
+open.

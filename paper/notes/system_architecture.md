@@ -80,6 +80,19 @@ must target a measured failure, use a matched compute/data control, and pass a
 predeclared EX gate before full runs. KD and federated mechanisms may both
 change; failed v1 branches are not automatically reopened.
 
+## Current protocol-v2 evidence gate
+
+Both public-teacher pipelines are frozen. BIRD→Spider selects 5,319/9,428
+execution-matched targets; Spider→BIRD selects 7,251/8,659. Qwen-Coder-7B
+zero-shot EX is 47.07 on evidence-aware BIRD dev and 76.69 on Spider.
+
+For BIRD-public→Spider-private T1, Pure FL, matched-gold CE, and SeqKD score
+56.96, 56.09, and 57.64 EX. SeqKD therefore adds only seven net correct rows
+over Pure FL (140 corrections, 133 regressions). This is directional evidence
+for target transfer, not yet a stable method gain. The architecture remains
+unfrozen until the reverse matched T1 ladder and Hinton-forward-KL T1 are
+measured; recurring T2/T3 is not opened from this result alone.
+
 ## Evaluation and lineage
 
 P2.1 BIRD-private results at `f99febd` are diagnostic only. P2.1q (`e9bde43`)
