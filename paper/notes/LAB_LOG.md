@@ -234,3 +234,11 @@ all 9,428 BIRD public rows under gold-prefix teacher forcing. This requires a
 new cache and lineage. GKD/on-policy KD, MiniLLM, and a newly implemented RKL
 lineage remain conditional follow-ups after these baselines and the reverse T1
 ladder are complete.
+
+The canonical BIRD-public cache is activated at
+`artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0`.
+It renders all 9,428 original BIRD training rows with evidence and gold SQL,
+stores full-vocabulary fp16 teacher logits (temperature is applied later by
+training, with canonical `T=2`), and is output-disjoint from
+the concurrently running reverse T1 ladder. It remains an uncommitted
+intermediate; the downstream training result will publish its fingerprints.

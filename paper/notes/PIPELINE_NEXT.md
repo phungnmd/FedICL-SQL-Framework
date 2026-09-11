@@ -12,7 +12,7 @@
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2c | Matched T1 ladder in both directions | Spider-private complete; BIRD-private next |
-| P2.2d | Canonical full-data Hinton-FKL T1 | next after gold-prefix cache/runner contract is pinned |
+| P2.2d | Canonical full-data Hinton-FKL T1 | 9,428-row gold-prefix cache active on GPU 1 |
 | P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
 
 ## Direction contract
@@ -82,8 +82,20 @@ $Roots=@('artifacts/protocol_v2/teacher_logit_cache/p22d_bird_to_spider_qwen7b_t
 P2.2d will instead compare full public-gold CE against full public-gold CE plus
 Hinton forward KL on all 9,428 BIRD training rows. Teacher logits are evaluated
 under teacher forcing on the gold-SQL prefix, with BIRD evidence in the prompt.
-This requires a new 9,428-row cache and a new output root; the command remains
-blocked until cache completion/resume metadata and disk preflight are pinned.
+This uses a new 9,428-row cache and a new output root. It is safe to run beside
+the GPU-0 reverse T1 ladder because it loads only the teacher on GPU 1 and
+writes to an output-disjoint artifact root. An interrupted invocation resumes
+from content-addressed shards; an already completed cache is verified without
+rewriting `meta.json`. The 250-GB preflight is a conservative full-vocabulary
+fp16 safety budget.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $C='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0'; if (-not (Test-Path -LiteralPath $P)) { throw "Missing full BIRD public pool: $P" }; if ((Import-Csv -LiteralPath $P).Count -ne 9428) { throw 'Canonical Hinton pool must contain all 9,428 BIRD training rows' }; $Drive=Get-PSDrive -Name ((Get-Item -LiteralPath '.').PSDrive.Name); if (-not (Test-Path -LiteralPath "$C/meta.json") -and $Drive.Free -lt 250GB) { throw "Canonical Hinton cache needs a 250-GB safety budget; free=$([math]::Round($Drive.Free/1GB,1)) GB" }; git merge-base --is-ancestor 3e85e77 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Current checkout does not contain the Hinton-FKL implementation' }; if (-not (Test-Path -LiteralPath "$C/meta.json")) { uv run python scripts/build_teacher_logit_cache.py --pool $P --dataset-profile bird_with_evidence --pool-size 0 --seed 0 --model Qwen/Qwen2.5-1.5B-Instruct --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --k-teacher 0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --max-len 7168 --out $C; if ($LASTEXITCODE -ne 0) { throw 'Canonical 9,428-row Hinton cache stopped; rerun this exact line to resume' } }; $M=Get-Content -LiteralPath "$C/meta.json" -Raw | ConvertFrom-Json; $N=@(Get-ChildItem -LiteralPath $C -Recurse -Filter '*.safetensors' -File).Count; if ($M.kd_objective -ne 'hinton_forward_kl' -or $M.dataset_profile -ne 'bird_with_evidence' -or $M.evidence_mode -ne 'provided' -or $M.n_examples -ne 9428 -or $M.pool_size -ne 0 -or $M.max_len -ne 7168 -or $N -le 0) { throw "Canonical Hinton cache verification failed: objective=$($M.kd_objective) profile=$($M.dataset_profile) evidence=$($M.evidence_mode) meta_n=$($M.n_examples) shards=$N" }; Write-Host "GPU-1 complete: canonical gold-prefix Hinton cache verified; examples=$($M.n_examples) unique_shards=$N"
+```
+
+The cache is an intermediate artifact and is never staged. Its pool hash,
+configuration and `meta.json` hash will be included in the later Hinton T1
+training result; that task receives its own publication command.
 
 After the GPU-0 process exits, inspect and publish the reverse T1 result. Do not
 run a publication command while another process uses the worktree. The reverse
