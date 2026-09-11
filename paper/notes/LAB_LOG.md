@@ -5,7 +5,8 @@
 - Active protocol: `v2`, dataset profiles explicit.
 - Primary metric: execution accuracy (EX).
 - Method status: open; FedAvg + verified-target SeqKD is the reference path,
-  with Hinton forward KL as the primary soft-logit baseline.
+  with canonical full-data Hinton forward KL as the primary token-level
+  soft-logit baseline.
 - P2.1q completed at `e9bde43`: scoring is stable, but P2.1 training
   checkpoints are diagnostic only because required BIRD context was truncated.
 - P2.1R full-context Base/Centralized/FL computation is complete; official
@@ -217,3 +218,18 @@ EX on Spider. Paired rows show SeqKD corrects 140 Pure-FL errors but regresses
 133 Pure-FL successes, a net gain of seven. This does not open T2/T3. Next are
 the reverse matched T1 ladder and Hinton-forward-KL T1; method selection remains
 open.
+
+## 2026-09-12 — separate SeqKD from canonical Hinton KD
+
+The planned 5,319-row `teacher-target CE + Hinton FKL` hybrid is removed from
+the active matrix. Its partially generated full-logit cache uses selected
+teacher-SQL prefixes and cannot support canonical Hinton KD. It is quarantined
+server-side under an exact retired root and must not be resumed.
+
+The two KD baselines are now intentionally separate: SeqKD trains on the 5,319
+execution-verified teacher sequences, while canonical Hinton KD compares full
+public-gold CE against full public-gold CE plus `T^2 KL(teacher || student)` on
+all 9,428 BIRD public rows under gold-prefix teacher forcing. This requires a
+new cache and lineage. GKD/on-policy KD, MiniLLM, and a newly implemented RKL
+lineage remain conditional follow-ups after these baselines and the reverse T1
+ladder are complete.

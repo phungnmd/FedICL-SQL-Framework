@@ -63,17 +63,21 @@ The first v2 rerun mirrors the previous workflow under corrected prompts:
 ```text
 private client LoRA CE
   -> sample-weighted factor-wise FedAvg
-  -> execution-verified public teacher-target CE
-  -> optional Hinton forward KL
+  -> one public-server update:
+       (a) execution-verified teacher-target CE (SeqKD), or
+       (b) full public-gold CE + Hinton forward KL on gold prefixes
   -> SLM deployment
 ```
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
-CE, teacher-target CE, and target-CE plus temperature-scaled
-`KL(p_teacher || p_student)`. EX is primary. Hinton FKL is the active
-soft-logit baseline, but it is not part of the final claimed method unless it
-adds reproducible EX over SeqKD under protocol v2. Reverse KL and KID are
-removed from the active implementation and retained only in the archive.
+CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
+`KL(p_teacher || p_student)` under teacher forcing on gold SQL. SeqKD is the
+sequence-level baseline; Hinton FKL is the token-level soft-logit baseline.
+They are separate arms, not a required hybrid. EX is primary. Neither becomes
+part of the final claimed method without reproducible protocol-v2 gain.
+Historical reverse KL and KID remain archived; GKD/on-policy KD, MiniLLM, or a
+fresh RKL lineage may be considered only after the standard baselines diagnose
+a concrete remaining failure.
 
 After the rerun, the method-improvement queue is adaptive. Candidate changes
 must target a measured failure, use a matched compute/data control, and pass a
@@ -90,7 +94,7 @@ For BIRD-public→Spider-private T1, Pure FL, matched-gold CE, and SeqKD score
 56.96, 56.09, and 57.64 EX. SeqKD therefore adds only seven net correct rows
 over Pure FL (140 corrections, 133 regressions). This is directional evidence
 for target transfer, not yet a stable method gain. The architecture remains
-unfrozen until the reverse matched T1 ladder and Hinton-forward-KL T1 are
+unfrozen until the reverse matched T1 ladder and full-data Hinton-forward-KL T1 are
 measured; recurring T2/T3 is not opened from this result alone.
 
 ## Evaluation and lineage

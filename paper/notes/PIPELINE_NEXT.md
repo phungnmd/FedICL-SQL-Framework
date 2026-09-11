@@ -12,7 +12,7 @@
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2c | Matched T1 ladder in both directions | Spider-private complete; BIRD-private next |
-| P2.2d | Hinton-FKL T1 | next after cache/runner contract is pinned |
+| P2.2d | Canonical full-data Hinton-FKL T1 | next after gold-prefix cache/runner contract is pinned |
 | P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
 
 ## Direction contract
@@ -65,22 +65,28 @@ BIRD client/FedAvg stage, then evaluates all three arms with the official BIRD
 $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/teacher_targets/qwen7b_to_qwen15b_s0/exmatch_spider_result_eq_v1/train.csv'; $G='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/teacher_targets/qwen7b_to_qwen15b_s0/exmatch_spider_result_eq_v1_gold/train.csv'; $T='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $D='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $B='artifacts/protocol_v2/p22_bird_private_t1'; $C="$B/shared_clients_s0/round_1"; $E='artifacts/eval_resume/protocol_v2/p22_bird_private_t1_ce_ladder_s0/eval_k0'; $Common=@('--split-dir',$S,'--n-clients','5','--local-epochs','1','--client-train-k','0','--client-dataset-profile','bird_with_evidence','--server-dataset-profile','spider','--model','Qwen/Qwen2.5-1.5B-Instruct','--lora-r','16','--lr','0.0002','--max-len','7168','--truncation-policy','error','--gradient-checkpointing','--batch-size','1','--grad-accum','16','--save-steps','200','--aggregation-protocol','plaintext','--seed','0'); uv run python experiments/federated/run.py round --arm fedavg --round 1 --client-out $C --out "$B/pure_fl_s0" --stage p22_bird_private_pure_fl_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private Pure-FL T1 stopped; rerun this exact line' }; $A0="$C/fedavg_adapter"; if (-not (Test-Path -LiteralPath "$A0/adapter_config.json")) { throw "Missing BIRD-private shared FedAvg adapter: $A0" }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --client-out $C --out "$B/matched_gold_ce_s0" --pool $G --pool-size 0 --distill-steps 0 --k-teacher 0 --stage p22_bird_private_matched_gold_ce_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private matched-gold T1 stopped; rerun this exact line' }; $AG="$B/matched_gold_ce_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AG/adapter_config.json")) { throw "Missing BIRD-private matched-gold adapter: $AG" }; uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --client-out $C --out "$B/seqkd_s0" --pool $P --pool-size 0 --distill-steps 0 --k-teacher 0 --stage p22_bird_private_seqkd_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private SeqKD T1 stopped; rerun this exact line' }; $AS="$B/seqkd_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AS/adapter_config.json")) { throw "Missing BIRD-private SeqKD adapter: $AS" }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $T --test-csv $D --dataset-profile bird_with_evidence --arms "pure_fl_t1=$A0" "matched_gold_ce_t1=$AG" "seqkd_t1=$AS" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private matched T1 evaluation stopped; rerun this exact line' }; $Head=(git rev-parse --short HEAD).Trim(); $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $F=$V.fingerprint | ConvertFrom-Json; $Arms=@($F.units.arm | Sort-Object -Unique); $Shas=@($F.units.git_sha | Sort-Object -Unique); $Missing=@($V.artifacts.predictions | Where-Object { -not (Test-Path -LiteralPath $_) }); $V.status -eq 'completed' -and ($Arms -join ',') -eq 'matched_gold_ce_t1,pure_fl_t1,seqkd_t1' -and ($Shas -join ',') -eq $Head -and @($V.artifacts.predictions).Count -eq 3 -and $Missing.Count -eq 0 } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one completed current-HEAD BIRD-private T1 manifest, found $($Done.Count)" }; Write-Host 'GPU-0 complete: reverse matched T1 trained and evaluated'
 ```
 
-GPU 1 builds the new evidence-aware Hinton-forward-KL cache for the completed
-BIRD-public -> Spider-private direction. Full-vocabulary fp16 logits are large;
-the command requires 140 GB free on the artifact drive before starting. This
-is an intermediate cache, so it remains under `artifacts/`; its fingerprint is
-published later inside the Hinton training result rather than as a standalone
-Git result.
+The former GPU-1 command that cached logits on the 5,319 execution-selected
+teacher SQL rows is retired. That cache would measure the hybrid
+`SeqKD + Hinton FKL`, not canonical Hinton KD. Do not resume it and do not use
+it to initialize P2.2d.
+
+Quarantine an accidentally started partial cache using its exact immutable
+root. This clears the active name without deleting recoverable data:
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2/train.csv'; $C='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_to_spider_qwen7b_to_qwen15b_hinton_fkl_t2_full_s0'; $Drive=Get-PSDrive -Name ((Get-Item -LiteralPath '.').PSDrive.Name); if ($Drive.Free -lt 140GB) { throw "Hinton cache needs a 140-GB safety budget; free=$([math]::Round($Drive.Free/1GB,1)) GB" }; git merge-base --is-ancestor 3e85e77 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Current checkout does not contain the Hinton-FKL implementation' }; uv run python scripts/build_teacher_logit_cache.py --pool $P --dataset-profile bird_with_evidence --pool-size 0 --seed 0 --model Qwen/Qwen2.5-1.5B-Instruct --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --k-teacher 0 --schema-style full --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --demo-style never_schema --max-len 7168 --out $C; if ($LASTEXITCODE -ne 0) { throw 'Hinton full-logit cache stopped; rerun this exact line to resume' }; $M=Get-Content -LiteralPath "$C/meta.json" -Raw | ConvertFrom-Json; $N=@(Get-ChildItem -LiteralPath $C -Recurse -Filter '*.safetensors' -File).Count; if ($M.kd_objective -ne 'hinton_forward_kl' -or $M.dataset_profile -ne 'bird_with_evidence' -or $M.n_examples -ne 5319 -or $N -ne 5319) { throw "Hinton cache verification failed: objective=$($M.kd_objective) profile=$($M.dataset_profile) meta_n=$($M.n_examples) shards=$N" }; Write-Host "GPU-1 complete: Hinton-FKL cache verified with $N shards"
+$C='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_to_spider_qwen7b_to_qwen15b_hinton_fkl_t2_full_s0'; $Q='artifacts/quarantine/protocol_v2/retired_p22d_selected5319_hinton_cache_20260912'; if (-not (Test-Path -LiteralPath $C)) { Write-Host "Nothing to retire: $C"; exit 0 }; if (Test-Path -LiteralPath $Q) { throw "Quarantine destination already exists: $Q" }; $Resolved=(Resolve-Path -LiteralPath $C).Path; $Expected=[IO.Path]::GetFullPath((Join-Path (Resolve-Path -LiteralPath '.').Path $C)); if (-not [string]::Equals($Resolved,$Expected,[StringComparison]::OrdinalIgnoreCase)) { throw "Refusing unexpected cache root: $Resolved" }; New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Q) | Out-Null; $Before=@(Get-ChildItem -LiteralPath $C -Recurse -File); $Bytes=($Before | Measure-Object -Property Length -Sum).Sum; Move-Item -LiteralPath $C -Destination $Q; if ((Test-Path -LiteralPath $C) -or -not (Test-Path -LiteralPath $Q)) { throw 'Partial-cache quarantine verification failed' }; Write-Host "Retired $($Before.Count) files ($([math]::Round($Bytes/1GB,2)) GB) to $Q"
 ```
 
-After both processes exit, inspect the reverse T1 result and cache size before
-starting Hinton student training. Do not run a publication command while the
-other process still uses the worktree. The reverse result publication allowlist
-is generated only from its three exact stage labels and completed eval
-manifest; the cache itself is never staged.
+P2.2d will instead compare full public-gold CE against full public-gold CE plus
+Hinton forward KL on all 9,428 BIRD training rows. Teacher logits are evaluated
+under teacher forcing on the gold-SQL prefix, with BIRD evidence in the prompt.
+This requires a new 9,428-row cache and a new output root; the command remains
+blocked until cache completion/resume metadata and disk preflight are pinned.
+
+After the GPU-0 process exits, inspect and publish the reverse T1 result. Do not
+run a publication command while another process uses the worktree. The reverse
+result publication allowlist is generated only from its three exact stage
+labels and completed eval manifest; caches are never staged.
 
 After both GPU commands have exited successfully, publish the reverse result:
 
@@ -110,8 +116,8 @@ $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; powershell -ExecutionPolicy 
 ```
 
 Do not rerun either lane for new accuracy evidence. The next implementation
-task is to pin resume-safe commands for the reverse matched T1 ladder and the
-new Hinton-forward-KL cache/arm. No T2/T3 job is active.
+task is to pin the full-public-gold CE and canonical 9,428-row Hinton-FKL
+cache/training commands. No T2/T3 job is active.
 
 ## Completion gate
 
@@ -133,16 +139,20 @@ Then freeze only the T1 comparison:
 Pure FL
   vs matched public-gold CE
   vs execution-matched teacher-target CE (SeqKD)
-  vs the same target CE + Hinton forward KL
+
+full public-gold CE (all public rows)
+  vs the same full-data CE + Hinton forward KL on gold prefixes
 ```
 
 Open recurring T2/T3 only when T1 shows an interpretable EX gain. Hinton FKL is
-the primary soft-logit baseline and remains an ablation until it adds EX over
-SeqKD. Other KD objectives remain deferred. Publication commands are generated after the
+the primary token-level soft-logit baseline; SeqKD remains the separate
+sequence-level baseline. Do not combine them in the canonical ladder. GKD
+(on-policy), MiniLLM, and a newly implemented RKL lineage remain conditional
+candidates after both standard baselines are measured. Publication commands are generated after the
 completion artifacts are inspected and an exact compact allowlist is known;
 model adapters, trainer state, raw caches, and `artifacts/` are never staged.
 
 The first direction does not pass the T2/T3 gate yet: SeqKD is 57.64 EX versus
 56.96 for Pure FL, only seven net correct rows (140 corrections, 133
-regressions). Run the reverse matched T1 ladder and Hinton-FKL T1 before
+regressions). Run the reverse matched T1 ladder and full-data Hinton-FKL T1 before
 selecting the method.

@@ -109,11 +109,16 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 3 | Spider Base / Centralized / pure FL under explicit `spider` profile | reuse audit first; rerun only if fingerprints cannot be reconciled |
 | 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
 | 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
-| 6 | Teacher-target CE vs teacher-target CE + Hinton forward KL (`T=2`) | next; primary soft-logit baseline using a new evidence-aware cache |
+| 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | next; canonical token-level KD baseline on all 9,428 BIRD public rows and gold prefixes |
 | 7 | T1 vs recurring T2/T3 server transfer | closed for now: SeqKD net gain is only 7/1,034 rows |
 | 8 | Reverse direction: BIRD-private FL with Spider-public controls | prerequisites complete; matched T1 is next |
 | 9 | Final method on `alpha=0.1` and a second training seed | after method selection |
 | 10 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
+
+SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
+`SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
+an adapter. GKD/on-policy KD, MiniLLM, and a fresh RKL lineage remain optional
+method-improvement candidates after row 6 is measured.
 
 Secure Sum equivalence and teacher-only resource measurements remain valid
 technical evidence. They are not accuracy arms and do not replace rows 1–10.
