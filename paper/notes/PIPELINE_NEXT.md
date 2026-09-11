@@ -70,11 +70,13 @@ teacher SQL rows is retired. That cache would measure the hybrid
 `SeqKD + Hinton FKL`, not canonical Hinton KD. Do not resume it and do not use
 it to initialize P2.2d.
 
-Quarantine an accidentally started partial cache using its exact immutable
-root. This clears the active name without deleting recoverable data:
+After its producer process has exited, permanently delete an accidentally
+started partial cache using only the two exact possible roots (active or
+previously quarantined). This operator-approved cleanup reclaims disk and
+cannot match another cache lineage:
 
 ```powershell
-$C='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_to_spider_qwen7b_to_qwen15b_hinton_fkl_t2_full_s0'; $Q='artifacts/quarantine/protocol_v2/retired_p22d_selected5319_hinton_cache_20260912'; if (-not (Test-Path -LiteralPath $C)) { Write-Host "Nothing to retire: $C"; exit 0 }; if (Test-Path -LiteralPath $Q) { throw "Quarantine destination already exists: $Q" }; $Resolved=(Resolve-Path -LiteralPath $C).Path; $Expected=[IO.Path]::GetFullPath((Join-Path (Resolve-Path -LiteralPath '.').Path $C)); if (-not [string]::Equals($Resolved,$Expected,[StringComparison]::OrdinalIgnoreCase)) { throw "Refusing unexpected cache root: $Resolved" }; New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Q) | Out-Null; $Before=@(Get-ChildItem -LiteralPath $C -Recurse -File); $Bytes=($Before | Measure-Object -Property Length -Sum).Sum; Move-Item -LiteralPath $C -Destination $Q; if ((Test-Path -LiteralPath $C) -or -not (Test-Path -LiteralPath $Q)) { throw 'Partial-cache quarantine verification failed' }; Write-Host "Retired $($Before.Count) files ($([math]::Round($Bytes/1GB,2)) GB) to $Q"
+$Roots=@('artifacts/protocol_v2/teacher_logit_cache/p22d_bird_to_spider_qwen7b_to_qwen15b_hinton_fkl_t2_full_s0','artifacts/quarantine/protocol_v2/retired_p22d_selected5319_hinton_cache_20260912'); $Repo=(Resolve-Path -LiteralPath '.').Path; $Allowed=[IO.Path]::GetFullPath((Join-Path $Repo 'artifacts'))+[IO.Path]::DirectorySeparatorChar; $Found=@($Roots | Where-Object { Test-Path -LiteralPath $_ }); if ($Found.Count -eq 0) { Write-Host 'No retired 5,319-row Hinton cache exists'; exit 0 }; $Files=0; $Bytes=0; foreach ($P in $Found) { $Resolved=(Resolve-Path -LiteralPath $P).Path; if (-not $Resolved.StartsWith($Allowed,[StringComparison]::OrdinalIgnoreCase)) { throw "Refusing path outside artifacts: $Resolved" }; $Items=@(Get-ChildItem -LiteralPath $P -Recurse -File); $Files+=$Items.Count; $Bytes+=($Items | Measure-Object -Property Length -Sum).Sum }; Write-Host "Deleting $Files files ($([math]::Round($Bytes/1GB,2)) GB) from exact retired roots"; foreach ($P in $Found) { Remove-Item -LiteralPath $P -Recurse -Force; if (Test-Path -LiteralPath $P) { throw "Deletion failed: $P" } }; Write-Host 'Retired 5,319-row Hinton cache deleted permanently'
 ```
 
 P2.2d will instead compare full public-gold CE against full public-gold CE plus

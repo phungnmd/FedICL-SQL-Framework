@@ -223,8 +223,9 @@ open.
 
 The planned 5,319-row `teacher-target CE + Hinton FKL` hybrid is removed from
 the active matrix. Its partially generated full-logit cache uses selected
-teacher-SQL prefixes and cannot support canonical Hinton KD. It is quarantined
-server-side under an exact retired root and must not be resumed.
+teacher-SQL prefixes and cannot support canonical Hinton KD. The operator
+approved permanent deletion of its exact active/quarantine roots to reclaim
+disk; it must not be resumed or regenerated.
 
 The two KD baselines are now intentionally separate: SeqKD trains on the 5,319
 execution-verified teacher sequences, while canonical Hinton KD compares full
