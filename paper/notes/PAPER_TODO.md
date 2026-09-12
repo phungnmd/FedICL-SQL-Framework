@@ -72,6 +72,18 @@ an earlier result changes the method hypothesis.
 Do not choose a mechanism in advance. Diagnose the v2 results, then rank only
 the relevant candidates:
 
+- [ ] **Highest-priority architecture gate:** audit/implement a terminal
+  private consolidation stage so the candidate deploys after FedAvg
+  (`A -> K -> A`) rather than after public KD (`A -> K`).
+- [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
+  `A`, `A -> K`, no-KD `A -> A`, and KD/re-anchored `A -> K -> A`.
+- [ ] Promote terminal FedAvg only if `A -> K -> A` improves Spider/variant EX
+  over both `A -> K` and matched-compute `A -> A`, while retaining useful BIRD
+  transfer. Account for its extra client round and adapter communication.
+- [ ] Test three private re-anchoring epochs only after the one-epoch gate;
+  stop if they overwrite the KD gain or increase client drift.
+- [ ] Defer recurrent `(A -> K)^T`, GKD, MiniLLM, and fresh RKL until the
+  endpoint gate identifies whether the primary weakness is KD or scheduling.
 - target construction/selection if teacher targets fail despite good teacher EX;
 - SeqKD (sequence level) versus canonical full-data Hinton forward KL (token
   level); do not confound this comparison with a combined SeqKD+Hinton arm;

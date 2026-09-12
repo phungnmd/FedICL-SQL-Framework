@@ -58,7 +58,8 @@ be a distinct learning-with-privileged-information method, not the default.
 
 ## Reference method, not frozen method
 
-The first v2 rerun mirrors the previous workflow under corrected prompts:
+The implemented v2 reference currently mirrors the previous workflow under
+corrected prompts and **ends at the public KD checkpoint**:
 
 ```text
 private client LoRA CE
@@ -68,6 +69,28 @@ private client LoRA CE
        (b) full public-gold CE + Hinton forward KL on gold prefixes
   -> SLM deployment
 ```
+
+Let `A` denote one private client-update plus FedAvg stage and `K` one public
+server KD stage. The current T1 endpoint is therefore `A -> K`; recurrent
+rounds follow `(A -> K)^T` and also end at `K`. This is an implementation fact,
+not a frozen architectural choice.
+
+The highest-priority endpoint candidate adds one private consolidation stage
+after KD and deploys the resulting aggregate:
+
+```text
+private clients/FedAvg (A)
+  -> public KD (K)
+  -> private client re-anchoring/FedAvg (A)
+  -> SLM deployment
+```
+
+Its T1 form is `A -> K -> A`. It tests whether the public BIRD KD gain can be
+retained while the final Spider-private update restores the deployment-domain
+input distribution. Because it adds private training and communication, it
+must be compared with the matched no-KD control `A -> A`, not only with `A`
+and `A -> K`. Start with one local epoch; a three-epoch consolidation is opened
+only if the one-epoch result helps without erasing public transfer.
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
 CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
@@ -79,7 +102,9 @@ Historical reverse KL and KID remain archived; GKD/on-policy KD, MiniLLM, or a
 fresh RKL lineage may be considered only after the standard baselines diagnose
 a concrete remaining failure.
 
-After the rerun, the method-improvement queue is adaptive. Candidate changes
+After the rerun, the method-improvement queue is adaptive. The first gate is
+now the terminal checkpoint comparison `A`, `A -> K`, `A -> A`, and
+`A -> K -> A`. Candidate changes
 must target a measured failure, use a matched compute/data control, and pass a
 predeclared EX gate before full runs. KD and federated mechanisms may both
 change; failed v1 branches are not automatically reopened.

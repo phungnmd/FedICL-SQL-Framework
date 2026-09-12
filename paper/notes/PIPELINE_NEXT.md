@@ -13,7 +13,9 @@
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | highest priority on GPU 1; cache complete |
 | P2.2c | Reverse matched T1 ladder | currently running on GPU 0; do not interrupt |
-| P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
+| P2.3a | Implement/audit terminal private FedAvg endpoint | next immediately after P2.2c–d |
+| P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
+| P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
 
 ## Direction contract
 
@@ -201,3 +203,29 @@ The first direction does not pass the T2/T3 gate yet: SeqKD is 57.64 EX versus
 56.96 for Pure FL, only seven net correct rows (140 corrections, 133
 regressions). Run the reverse matched T1 ladder and full-data Hinton-FKL T1 before
 selecting the method.
+
+## Next architecture gate — terminal FedAvg after KD
+
+Code audit confirms that the current reference executes client training,
+FedAvg, then public server KD and deploys `m_g`; recurring rounds likewise end
+after KD. Once the active T1 jobs finish, prioritize a candidate that sends the
+post-KD adapter back to clients for one additional local epoch, aggregates the
+result, and deploys that final FedAvg adapter.
+
+Use this matched ladder from shared immutable inputs and checkpoints:
+
+```text
+A          = one private/FedAvg stage (Pure FL T1)
+A -> K     = current Hinton T1 endpoint
+A -> A     = two private/FedAvg stages, no KD compute control
+A -> K -> A = Hinton T1 plus one terminal private/FedAvg consolidation
+```
+
+The promotion gate is primary Spider and Spider-variant EX above both `A -> K`
+and `A -> A`, with useful BIRD transfer retained. Record the extra client
+compute and communication. Do not open a three-epoch consolidation, recurrent
+T2/T3, GKD, MiniLLM, or RKL until this one-epoch endpoint comparison is known.
+No execution command is active for P2.3 yet: first implement immutable
+fingerprints, correct initialization from the post-KD adapter, a distinct
+output root, and final-FedAvg persistence. Do not pull or modify the server
+worktree while either current GPU process is alive.

@@ -256,3 +256,19 @@ then evaluates Centralized-E3, Pure-FL-T1, SeqKD-T1 and Hinton-T1 on Spider,
 Realistic, SYN, DK and BIRD. Existing teacher anchors (Spider 76.69 EX; BIRD
 47.07 EX) are reused, with new teacher evaluation only for the three Spider
 variants. GPU 0 continues the independent reverse matched T1 ladder unchanged.
+
+## 2026-09-13 — prioritize a terminal-FedAvg endpoint test
+
+An implementation audit corrected the assumed round endpoint. The current
+reference runs client LoRA training -> FedAvg -> public server KD and returns
+the post-KD `m_g`; repeated rounds also end after KD. It has not historically
+deployed a final FedAvg adapter after KD.
+
+The first method-improvement gate after the active T1 jobs is therefore a
+private re-anchoring endpoint: `A -> K -> A`, where `A` is client training plus
+FedAvg and `K` is public KD. The causal comparison must include `A`, current
+`A -> K`, matched-compute no-KD `A -> A`, and candidate `A -> K -> A`. One local
+epoch is tested first. Terminal FedAvg is promoted only if it beats both
+`A -> K` and `A -> A` on primary Spider/variant EX while retaining useful BIRD
+transfer; extra communication is reported. This scheduling test now precedes
+new KD objectives and recurrent T2/T3 expansion.
