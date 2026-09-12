@@ -249,3 +249,10 @@ sequences are duplicates. The downstream T1 comparison is now active on GPU 1:
 full-public-gold CE versus balanced Hinton FKL (`lambda_ft=lambda_kd=0.5`,
 `T=2`), sharing the accepted Spider-private FedAvg initialization. SeqKD stays
 a separate sequence-level reference arm.
+
+Execution priority is now the headline direction: Spider-private client CE ->
+FedAvg -> BIRD-public Hinton FKL -> T1. GPU 1 runs Hinton before full-gold CE,
+then evaluates Centralized-E3, Pure-FL-T1, SeqKD-T1 and Hinton-T1 on Spider,
+Realistic, SYN, DK and BIRD. Existing teacher anchors (Spider 76.69 EX; BIRD
+47.07 EX) are reused, with new teacher evaluation only for the three Spider
+variants. GPU 0 continues the independent reverse matched T1 ladder unchanged.

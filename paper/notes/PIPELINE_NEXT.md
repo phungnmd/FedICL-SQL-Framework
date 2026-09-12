@@ -11,8 +11,8 @@
 | P2.1R | BIRD-private full-context Base/Centralized/FL | complete and published |
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
-| P2.2c | Matched T1 ladder in both directions | Spider-private complete; BIRD-private next |
-| P2.2d | Canonical full-data Hinton-FKL T1 | cache complete (9,428 examples / 9,425 unique shards); training/eval active on GPU 1 |
+| P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | highest priority on GPU 1; cache complete |
+| P2.2c | Reverse matched T1 ladder | currently running on GPU 0; do not interrupt |
 | P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
 
 ## Direction contract
@@ -97,7 +97,23 @@ The cache is an intermediate artifact and is never staged. Its pool hash,
 configuration and `meta.json` hash will be included in the later Hinton T1
 training result; that task receives its own publication command.
 
-After cache verification, GPU 1 reuses the already completed Spider-private T1
+### GPU 1 priority — headline Hinton T1 and transfer evaluation
+
+Run Hinton before the full-gold-CE ablation. This reuses the completed
+Spider-private T1 clients/FedAvg adapter, trains only the balanced Hinton server
+update (`0.5 CE + 0.5 T^2 KL`, `T=2`), and compares Centralized-E3,
+Pure-FL-T1, SeqKD-T1 and Hinton-T1 on Spider, Realistic, SYN, DK and BIRD.
+Accepted teacher anchors on Spider and BIRD are reused; Qwen-Coder-7B is
+evaluated only on the three missing Spider variants. The command is
+output-disjoint from the GPU-0 reverse ladder and is exact-rerun safe.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $SD='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $BD='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $C='artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1'; $K='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0'; $B='artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1'; $AC='artifacts/baselines/central_3ep_standard_s0/adapter'; $A0="$C/fedavg_adapter"; $AS='artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g'; foreach ($X in @("$AC/adapter_config.json","$A0/adapter_config.json","$AS/adapter_config.json","$K/meta.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing headline prerequisite: $X" } }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 9428 -or $M.kd_objective -ne 'hinton_forward_kl' -or $M.pool_sha256 -ne (Get-FileHash -LiteralPath $P -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Canonical Hinton cache/pool contract mismatch' }; $Common=@('--split-dir',$S,'--n-clients','5','--local-epochs','1','--client-train-k','0','--client-dataset-profile','spider','--server-dataset-profile','bird_with_evidence','--model','Qwen/Qwen2.5-1.5B-Instruct','--lora-r','16','--lr','0.0002','--max-len','7168','--truncation-policy','error','--gradient-checkpointing','--batch-size','1','--grad-accum','16','--save-steps','200','--aggregation-protocol','plaintext','--pool',$P,'--pool-size','0','--distill-steps','0','--k-teacher','0','--schema-style','full','--retrieval','dail_select','--embedder','BAAI/bge-small-en-v1.5','--tau','0.85','--demo-style','never_schema','--seed','0'); uv run python experiments/federated/run.py round --arm fedkd --round 1 --client-out $C --out "$B/hinton_fkl_t2_alpha05_s0" --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache $K --lambda-ft 0.5 --lambda-kd 0.5 --kl-temperature 2 --stage p22d_spider_private_hinton_fkl_t2_alpha05_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'Headline Hinton-FKL T1 stopped; rerun this exact line' }; $AH="$B/hinton_fkl_t2_alpha05_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AH/adapter_config.json")) { throw "Missing Hinton adapter: $AH" }; $Sets=@(@{Name='spider';Train=$ST;Test=$SD;Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test=$BD;Profile='bird_with_evidence'}); foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p22d_headline_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "centralized_e3=$AC" "pure_fl_t1=$A0" "seqkd_t1=$AS" "hinton_fkl_t1=$AH" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Student headline evaluation failed: $($Set.Name); rerun this exact line" } }; $TeacherSets=@(@{Name='realistic';Test='processed_data/SPIDER_REALISTIC/test.csv'},@{Name='syn';Test='processed_data/SPIDER_SYN/test.csv'},@{Name='dk';Test='processed_data/SPIDER_DK/test.csv'}); foreach ($Set in $TeacherSets) { $E="artifacts/eval_resume/protocol_v2/p22d_teacher_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $ST --test-csv $Set.Test --dataset-profile spider --arms teacher_qwen7b --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Teacher variant evaluation failed: $($Set.Name); rerun this exact line" } }; Write-Host 'GPU-1 headline suite complete: Spider-private FedAvg to BIRD-public Hinton T1 compared across five evaluation sets; teacher variants complete'
+```
+
+### Deferred matched ablation — do not run before the headline suite
+
+After the headline suite, GPU 1 reuses the already completed Spider-private T1
 clients/FedAvg adapter and runs two full-public-data server updates: gold CE,
 then balanced Hinton KD (`0.5 CE + 0.5 T^2 KL`, `T=2`). It then evaluates these
 against Pure FL and the separate 5,319-row SeqKD arm on Spider. No client is
@@ -108,8 +124,9 @@ $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_
 ```
 
 Do not publish while GPU 0 is still using the worktree. After both processes
-exit, inspect exact result directories and generate the compact allowlist for
-the full-gold/Hinton result together with the reverse-ladder publication.
+exit, inspect exact result directories and generate compact allowlists for the
+headline and reverse-ladder results. Full-public-gold CE remains the next
+matched ablation, but it does not block the Hinton-first headline result.
 
 After the GPU-0 process exits, inspect and publish the reverse T1 result. Do not
 run a publication command while another process uses the worktree. The reverse

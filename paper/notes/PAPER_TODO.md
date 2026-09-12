@@ -55,9 +55,13 @@ an earlier result changes the method hypothesis.
   runners and technically audit profile/evidence/evaluator/resume contracts.
 - [x] Complete both public-teacher prerequisite lanes and freeze teacher EX,
   selection coverage, and exact matched-pool identities.
+- [ ] Highest priority: Spider-private clients -> FedAvg -> full-BIRD-public
+  Hinton T1; compare Centralized-E3, Pure-FL-T1, SeqKD-T1, Hinton-T1 and the
+  teacher across Spider, Realistic, SYN, DK and BIRD.
 - [ ] BIRD public → Spider private/evaluation: matched public gold and
   teacher-target CE are complete; canonical full-public-gold CE and
-  gold-prefix Hinton-forward-KL remain.
+  gold-prefix Hinton-forward-KL headline suite is active; full-gold CE follows
+  as the matched no-logit ablation.
 - [ ] Spider public → BIRD private/evaluation: same ladder with BIRD evidence on
   private/eval rows and explicit source identities.
 - [ ] Start with smoke, then T1; open T3 only for interpretable EX gain.
