@@ -12,7 +12,7 @@
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2c | Matched T1 ladder in both directions | Spider-private complete; BIRD-private next |
-| P2.2d | Canonical full-data Hinton-FKL T1 | 9,428-row gold-prefix cache active on GPU 1 |
+| P2.2d | Canonical full-data Hinton-FKL T1 | cache complete (9,428 examples / 9,425 unique shards); training/eval active on GPU 1 |
 | P2.3 | Select or improve KD/federated method | adaptive after P2.2c–d |
 
 ## Direction contract
@@ -96,6 +96,20 @@ $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $P='processed_data/protocol_
 The cache is an intermediate artifact and is never staged. Its pool hash,
 configuration and `meta.json` hash will be included in the later Hinton T1
 training result; that task receives its own publication command.
+
+After cache verification, GPU 1 reuses the already completed Spider-private T1
+clients/FedAvg adapter and runs two full-public-data server updates: gold CE,
+then balanced Hinton KD (`0.5 CE + 0.5 T^2 KL`, `T=2`). It then evaluates these
+against Pure FL and the separate 5,319-row SeqKD arm on Spider. No client is
+retrained, and all roots are disjoint from the GPU-0 reverse ladder.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $T='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $D='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv'; $C='artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1'; $K='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0'; $B='artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1'; $E='artifacts/eval_resume/protocol_v2/p22d_spider_private_fullgold_hinton_t1_s0/eval_k0'; $A0="$C/fedavg_adapter"; $AS='artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g'; foreach ($X in @("$A0/adapter_config.json","$AS/adapter_config.json","$K/meta.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing prerequisite: $X" } }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 9428 -or $M.kd_objective -ne 'hinton_forward_kl' -or $M.pool_sha256 -ne (Get-FileHash -LiteralPath $P -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Canonical Hinton cache/pool contract mismatch' }; $Common=@('--split-dir',$S,'--n-clients','5','--local-epochs','1','--client-train-k','0','--client-dataset-profile','spider','--server-dataset-profile','bird_with_evidence','--model','Qwen/Qwen2.5-1.5B-Instruct','--lora-r','16','--lr','0.0002','--max-len','7168','--truncation-policy','error','--gradient-checkpointing','--batch-size','1','--grad-accum','16','--save-steps','200','--aggregation-protocol','plaintext','--pool',$P,'--pool-size','0','--distill-steps','0','--k-teacher','0','--schema-style','full','--retrieval','dail_select','--embedder','BAAI/bge-small-en-v1.5','--tau','0.85','--demo-style','never_schema','--seed','0'); uv run python experiments/federated/run.py round --arm fedavg_pub --round 1 --client-out $C --out "$B/full_gold_ce_s0" --stage p22d_spider_private_full_gold_ce_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'Full-public-gold CE T1 stopped; rerun this exact line' }; $AG="$B/full_gold_ce_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AG/adapter_config.json")) { throw "Missing full-gold adapter: $AG" }; uv run python experiments/federated/run.py round --arm fedkd --round 1 --client-out $C --out "$B/hinton_fkl_t2_alpha05_s0" --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache $K --lambda-ft 0.5 --lambda-kd 0.5 --kl-temperature 2 --stage p22d_spider_private_hinton_fkl_t2_alpha05_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'Canonical Hinton-FKL T1 stopped; rerun this exact line' }; $AH="$B/hinton_fkl_t2_alpha05_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AH/adapter_config.json")) { throw "Missing Hinton adapter: $AH" }; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $T --test-csv $D --dataset-profile spider --arms "pure_fl_t1=$A0" "seqkd_t1=$AS" "full_gold_ce_t1=$AG" "hinton_fkl_t1=$AH" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw 'Canonical Hinton comparison evaluation stopped; rerun this exact line' }; Write-Host 'GPU-1 complete: full-gold CE and canonical Hinton T1 trained and evaluated on Spider'
+```
+
+Do not publish while GPU 0 is still using the worktree. After both processes
+exit, inspect exact result directories and generate the compact allowlist for
+the full-gold/Hinton result together with the reverse-ladder publication.
 
 After the GPU-0 process exits, inspect and publish the reverse T1 result. Do not
 run a publication command while another process uses the worktree. The reverse

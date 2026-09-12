@@ -242,3 +242,10 @@ stores full-vocabulary fp16 teacher logits (temperature is applied later by
 training, with canonical `T=2`), and is output-disjoint from
 the concurrently running reverse T1 ladder. It remains an uncommitted
 intermediate; the downstream training result will publish its fingerprints.
+
+The cache completed in 67,379.4 seconds (7.15 seconds/example): 9,428 examples
+map to 9,425 unique content-addressed shards because three rendered token
+sequences are duplicates. The downstream T1 comparison is now active on GPU 1:
+full-public-gold CE versus balanced Hinton FKL (`lambda_ft=lambda_kd=0.5`,
+`T=2`), sharing the accepted Spider-private FedAvg initialization. SeqKD stays
+a separate sequence-level reference arm.
