@@ -11,11 +11,30 @@
 | P2.1R | BIRD-private full-context Base/Centralized/FL | complete and published |
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
-| P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | highest priority on GPU 1; cache complete |
-| P2.2c | Reverse matched T1 ladder | currently running on GPU 0; do not interrupt |
-| P2.3a | Implement/audit terminal private FedAvg endpoint | next immediately after P2.2c–d |
+| P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | run complete; compact result publication/audit pending |
+| P2.2c | Reverse matched T1 ladder | run complete; compact result publication/audit pending |
+| P2.2e | Full-BIRD-public gold CE T1 control | next GPU job; required before attributing gain to logits |
+| P2.3a | Implement/audit terminal private FedAvg endpoint | promoted by the P2.2d domain-retention failure |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
+
+## Latest decision evidence (operator-verified manifests; publication pending)
+
+P2.2d completed on 2026-09-13. Hinton FKL versus Pure FL EX is 58.32 versus
+57.35 on Spider, 42.72 versus 54.92 on Realistic, 44.58 versus 49.32 on SYN,
+45.42 versus 45.23 on DK, and 36.70 versus 14.80 on BIRD. Relative to SeqKD,
+Hinton is +0.39/+2.02 points on Spider/BIRD but -3.93/-3.68/-0.19 on
+Realistic/SYN/DK. Across Spider, Realistic, SYN, and DK, Hinton averages 47.76
+EX versus 51.71 for Pure FL; on the three Spider robustness variants alone it
+loses 5.58 points.
+
+This is a public-domain adaptation/retention failure, not evidence that Hinton
+logits alone improve the federated method. Run full-public-gold CE next to
+separate public SFT from soft-logit value. In parallel, implement the terminal
+`A -> K -> A` endpoint, but do not launch it until the Hinton and full-gold CE
+artifacts have been audited. The current headline evaluation used batch size
+16, so its shared-arm values must not silently overwrite earlier batch-size-8
+rows before prediction/config reconciliation.
 
 ## Direction contract
 

@@ -272,3 +272,28 @@ epoch is tested first. Terminal FedAvg is promoted only if it beats both
 `A -> K` and `A -> A` on primary Spider/variant EX while retaining useful BIRD
 transfer; extra communication is reported. This scheduling test now precedes
 new KD objectives and recurrent T2/T3 expansion.
+
+## 2026-09-14 — Hinton T1 exposes public adaptation versus private retention
+
+The P2.2d headline suite completed. On a single shared batch-size-16 evaluation,
+Centralized-E3/Pure-FL-T1/SeqKD-T1/Hinton-T1 EX is
+67.31/57.35/57.93/58.32 on Spider, 55.91/54.92/46.65/42.72 on Realistic,
+54.06/49.32/48.26/44.58 on SYN, 53.27/45.23/45.61/45.42 on DK, and
+17.73/14.80/34.68/36.70 on BIRD. Teacher EX on the three newly measured Spider
+variants is 71.06 Realistic, 63.83 SYN, and 62.43 DK.
+
+Hinton improves over Pure FL by 0.97 points on Spider and 21.90 on BIRD, but
+regresses 12.20 on Realistic and 4.74 on SYN; DK changes by only +0.19. Its
+mean over Spider plus the three variants is 47.76 versus 51.71 for Pure FL.
+The result therefore supports a domain-retention diagnosis: the terminal BIRD
+public update learns BIRD but overwrites part of the Spider-private robustness.
+It does not isolate the value of teacher logits because the full-BIRD gold-CE
+control is not yet available.
+
+Next, run full-public-gold CE from the identical T1 FedAvg checkpoint and
+implement the one-epoch `A -> K -> A` terminal-FedAvg candidate with matched
+`A -> A`. Do not open seeds, recurrent T2/T3, or alternative KD losses yet.
+The completed manifests and paths were operator-verified, but compact result
+publication is still pending. Headline batch size 16 also explains why its
+shared-arm numbers must be reconciled rather than silently replacing the
+earlier batch-size-8 matched ladder.

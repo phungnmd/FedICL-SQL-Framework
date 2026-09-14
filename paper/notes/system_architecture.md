@@ -115,12 +115,20 @@ Both public-teacher pipelines are frozen. BIRD→Spider selects 5,319/9,428
 execution-matched targets; Spider→BIRD selects 7,251/8,659. Qwen-Coder-7B
 zero-shot EX is 47.07 on evidence-aware BIRD dev and 76.69 on Spider.
 
-For BIRD-public→Spider-private T1, Pure FL, matched-gold CE, and SeqKD score
-56.96, 56.09, and 57.64 EX. SeqKD therefore adds only seven net correct rows
-over Pure FL (140 corrections, 133 regressions). This is directional evidence
-for target transfer, not yet a stable method gain. The architecture remains
-unfrozen until the reverse matched T1 ladder and full-data Hinton-forward-KL T1 are
-measured; recurring T2/T3 is not opened from this result alone.
+For BIRD-public→Spider-private T1, the original matched batch-size-8 ladder gave
+56.96/56.09/57.64 EX for Pure FL/matched-gold CE/SeqKD. The later shared
+batch-size-16 headline evaluation gives 57.35 Pure FL, 57.93 SeqKD, and 58.32
+Hinton FKL on Spider. Hinton reaches 36.70 on BIRD versus 14.80 for Pure FL,
+but falls from 54.92 to 42.72 on Realistic and from 49.32 to 44.58 on SYN; DK
+is effectively flat (45.23 to 45.42). Thus the public update transfers strongly
+to BIRD but damages robustness to Spider distribution shifts.
+
+This observation promotes terminal private consolidation from a speculative
+candidate to the next scheduling hypothesis. It does not yet prove that soft
+teacher logits add value: full-BIRD-public gold CE remains the required
+no-logit control. Earlier and headline shared-arm values are retained as
+separate evaluation lineages until their batch-size-8/16 predictions and
+configs are reconciled. Recurring T2/T3 remains closed.
 
 ## Evaluation and lineage
 

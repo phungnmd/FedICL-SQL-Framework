@@ -55,9 +55,10 @@ an earlier result changes the method hypothesis.
   runners and technically audit profile/evidence/evaluator/resume contracts.
 - [x] Complete both public-teacher prerequisite lanes and freeze teacher EX,
   selection coverage, and exact matched-pool identities.
-- [ ] Highest priority: Spider-private clients -> FedAvg -> full-BIRD-public
+- [x] Spider-private clients -> FedAvg -> full-BIRD-public
   Hinton T1; compare Centralized-E3, Pure-FL-T1, SeqKD-T1, Hinton-T1 and the
-  teacher across Spider, Realistic, SYN, DK and BIRD.
+  teacher across Spider, Realistic, SYN, DK and BIRD. Run complete; compact
+  publication and batch-size-8/16 reconciliation remain pending.
 - [ ] BIRD public → Spider private/evaluation: matched public gold and
   teacher-target CE are complete; canonical full-public-gold CE and
   gold-prefix Hinton-forward-KL headline suite is active; full-gold CE follows
@@ -67,12 +68,19 @@ an earlier result changes the method hypothesis.
 - [ ] Start with smoke, then T1; open T3 only for interpretable EX gain.
 - [ ] Test at least one second training seed only after the architecture gate.
 
+P2.2d diagnoses strong public-domain adaptation but poor retention: Hinton is
+36.70 EX on BIRD (+21.90 over Spider-private Pure FL) and 58.32 on Spider
+(+0.97), but loses 12.20/4.74 points on Realistic/SYN and is essentially flat
+on DK. Full-public-gold CE is therefore the next causal control. The terminal
+FedAvg endpoint is the first method candidate after that control, before seeds
+or recurrent rounds.
+
 ## P2.3 — Select or improve the method
 
 Do not choose a mechanism in advance. Diagnose the v2 results, then rank only
 the relevant candidates:
 
-- [ ] **Highest-priority architecture gate:** audit/implement a terminal
+- [ ] **Highest-priority architecture gate (promoted by P2.2d):** audit/implement a terminal
   private consolidation stage so the candidate deploys after FedAvg
   (`A -> K -> A`) rather than after public KD (`A -> K`).
 - [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
