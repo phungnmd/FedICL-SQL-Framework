@@ -92,6 +92,9 @@ active files without a clear owner.
 
 `paper/notes/PIPELINE_NEXT.md` is the only active owner of paper experiment
 commands. Commands in archived runbooks are provenance, not the current queue.
+Keep this queue limited to active commands and their next decision gates.
+Move completed command blocks and superseded sequencing to a dated runbook
+under `paper/archive/completed_runbooks/`, leaving a link rather than copies.
 
 Every active experiment command must:
 

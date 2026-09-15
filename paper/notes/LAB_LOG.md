@@ -15,6 +15,14 @@
   the `run.py stage` CLI; GPU-server smoke first.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-16 — separate active queue from completed runbooks
+
+Moved completed P2.1R/P2.2 commands, direction/prerequisite notes, and prior
+decision gates to [the completed runbook](../archive/completed_runbooks/P2_1R_P2_2_COMPLETED_2026-09-16.md).
+PIPELINE_NEXT now contains only P2.3 launch, publication, and the next method
+decision. All five active PowerShell blocks and the archived command blocks
+are unchanged. No code, results, adapters, or server artifacts were modified.
+
 ## 2026-09-16 — server launch queue
 
 P2.3 now separates one-time Git sync from resumable GPU commands. Run the
