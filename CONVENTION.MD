@@ -189,6 +189,11 @@ and resume contract; an interrupted bundle must reuse completed work.
 Keep independent lanes output-disjoint and coordinate shared writers where
 needed. Stop at real decision gates, not after every CLI invocation. Keep
 publication separate until all concurrent jobs using the worktree have exited.
+Auto-generated result directories must include a unique publication ID and be
+created exclusively, not rely on timestamps alone. Include the configuration
+fingerprint hash where available; manifests/fingerprints, not the random ID,
+remain the authority for resume. Independent eval lanes do not need a shared
+queue when their result directories and resume roots are disjoint.
 
 Before running:
 

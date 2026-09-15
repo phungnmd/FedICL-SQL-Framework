@@ -92,8 +92,8 @@ the relevant candidates:
 - [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
   `A`, `A -> K`, no-KD `A -> A`, and KD/re-anchored `A -> K -> A`.
   GPU 0: `A>A`; GPU 1: `A>K[fkl]>A`. Each single-line lane automatically
-  continues to five-set evaluation. Training is parallel; eval writes are
-  mutex-serialized. Keep Git unchanged until both entire lanes exit, then
+  continues to five-set evaluation. Both train and eval are parallel after
+  syncing `362aced` (UUID result names); no mutex. Keep Git unchanged until both entire lanes exit, then
   publish smoke + full results together. No manual train-to-eval gate.
 - [ ] Promote terminal FedAvg only if `A -> K -> A` improves Spider/variant EX
   over both `A -> K` and matched-compute `A -> A`, while retaining useful BIRD

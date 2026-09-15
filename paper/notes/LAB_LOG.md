@@ -39,6 +39,22 @@ are ready for method selection (or on a real error). CONVENTION §6.1 now makes
 bundling already-decided steps the default; publication stays separate from
 concurrent computation.
 
+### Follow-up — remove eval serialization
+
+Nested `362aced` replaces timestamp-only auto-generated result IDs with
+timestamp + optional fingerprint hash + UUID, using exclusive directory
+creation with collision retries. Eval supplies its existing manifest
+fingerprint; explicit training/stage IDs and old result paths are unchanged.
+Removed the temporary mutex from both P2.3 commands: train and five-set eval
+can now run concurrently in output-disjoint lanes. No scientific recipe or
+scoring change. Finish smoke before syncing the new code; a passed smoke
+does not need retraining. Existing exact-fingerprint resume works as before;
+code-SHA changes are not silently ignored by eval checkpoints.
+
+Validation: 76 targeted tests passed, including 16 same-second concurrent
+publications, forced UUID-collision recovery, and completed-manifest skip for
+both old and new directory names. Ruff passed. No GPU run performed locally.
+
 ## 2026-09-10 — official BIRD timeout closure
 
 Source audit found that BIRD's original and Mini-Dev EX evaluators assign one

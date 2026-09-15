@@ -225,6 +225,10 @@ or unknown objectives rather than infer Hinton from `fedkd`. Version-2 stage
 contracts are written atomically; incomplete result publication can be
 repaired without retraining. Existing round recipes/results remain unchanged;
 pre-hardening version-1 stage roots are preserved but not silently migrated.
+Nested `362aced` gives auto-generated eval results fingerprint/UUID-based
+publication IDs with exclusive directory creation. Independent GPU lanes no
+longer serialize evaluation; their per-lane resume manifests remain distinct.
+This changes result naming only, not scoring or historical result validity.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 
