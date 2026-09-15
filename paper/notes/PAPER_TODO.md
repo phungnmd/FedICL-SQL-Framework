@@ -87,9 +87,12 @@ the relevant candidates:
   composable `run.py stage private|public` chains from committed parent rows
   (nested `810d8c4`, review hardening through `014b118`: parent hashes/Git
   guards, historical objective validation, and publication recovery).
-- [ ] Smoke `stage private` from the Hinton T1 row on the GPU server.
+- [ ] Sync `014b118` or a descendant once, smoke `stage private` from the
+  Hinton T1 row, and publish compact smoke evidence before full training.
 - [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
   `A`, `A -> K`, no-KD `A -> A`, and KD/re-anchored `A -> K -> A`.
+  GPU 0: `A>A`; GPU 1: `A>K[fkl]>A`. Both are student-only, disjoint-root
+  jobs. Keep Git unchanged until both exit; then five-set eval and publication.
 - [ ] Promote terminal FedAvg only if `A -> K -> A` improves Spider/variant EX
   over both `A -> K` and matched-compute `A -> A`, while retaining useful BIRD
   transfer. Account for its extra client round and adapter communication.

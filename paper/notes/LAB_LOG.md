@@ -15,6 +15,16 @@
   the `run.py stage` CLI; GPU-server smoke first.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-16 — server launch queue
+
+P2.3 now separates one-time Git sync from resumable GPU commands. Run the
+Hinton-parent two-step/client smoke, publish only its metrics/config, then
+launch student-only `A>A` on GPU 0 and `A>K[fkl]>A` on GPU 1. Each adds one
+private epoch/client and FedAvg; no teacher/cache generation. Keep smoke
+artifacts; removed the automatic cleanup command. After both jobs exit, run
+the shared five-set evaluation and publish its compact records. No P2.3 GPU
+completion or new accuracy result has been reported yet.
+
 ## 2026-09-10 — official BIRD timeout closure
 
 Source audit found that BIRD's original and Mini-Dev EX evaluators assign one
