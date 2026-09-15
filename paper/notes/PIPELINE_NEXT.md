@@ -13,7 +13,8 @@
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | run complete; compact result publication/audit pending |
 | P2.2c | Reverse matched T1 ladder | run complete; compact result publication/audit pending |
-| P2.2e | Full-BIRD-public gold CE T1 control | next GPU job; required before attributing gain to logits |
+| P2.2e | Full-BIRD-public gold CE T1 control | training complete; five-set evaluation next |
+| P2.2f | Full-gold CE five-set evaluation | active next GPU job; batch size 16 matched to headline |
 | P2.3a | Implement/audit terminal private FedAvg endpoint | promoted by the P2.2d domain-retention failure |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
@@ -35,6 +36,25 @@ separate public SFT from soft-logit value. In parallel, implement the terminal
 artifacts have been audited. The current headline evaluation used batch size
 16, so its shared-arm values must not silently overwrite earlier batch-size-8
 rows before prediction/config reconciliation.
+
+## Active next command — evaluate full-public-gold CE on five sets
+
+The P2.2e adapter is complete. Evaluate only that new arm because Pure FL,
+SeqKD, and Hinton predictions already exist from the batch-size-16 headline
+suite. The five deterministic resume roots keep each dataset independently
+resumable.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $B='artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1'; $AG="$B/full_gold_ce_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AG/adapter_config.json")) { throw "Missing full-gold CE adapter: $AG" }; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence'}); foreach ($Set in $Sets) { foreach ($P in @($Set.Train,$Set.Test)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing evaluation input: $P" } }; $E="artifacts/eval_resume/protocol_v2/p22f_fullgold_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "full_gold_ce_t1=$AG" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Full-gold CE evaluation failed: $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 1 -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) -and (Test-Path -LiteralPath $V.artifacts.predictions[0]) } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one completed full-gold manifest for $($Set.Name), found $($Done.Count)" } }; Write-Host 'P2.2f complete: full-gold CE evaluated on Spider, Realistic, SYN, DK, and BIRD'
+```
+
+After the run exits, publish the compact P2.2e training record and five P2.2f
+evaluation records. This allowlist never stages adapters, caches, checkpoints,
+or resume manifests under `artifacts/`.
+
+```powershell
+$Stage='p22d_spider_private_full_gold_ce_t1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Files=[System.Collections.Generic.List[string]]::new(); $Train=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Recurse -Filter 'config.json' -File | Where-Object { try { (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).stage -eq $Stage } catch { $false } }); if ($Train.Count -ne 1) { throw "Expected one training result for ${Stage}, found $($Train.Count)" }; $Files.Add($Train[0].FullName); $TM=Join-Path $Train[0].Directory.FullName 'metrics.json'; if (-not (Test-Path -LiteralPath $TM)) { throw "Missing training metrics: $TM" }; $Files.Add($TM); foreach ($Name in @('spider','realistic','syn','dk','bird')) { $D="artifacts/eval_resume/protocol_v2/p22f_fullgold_${Name}_s0/eval_k0/manifests"; $Done=@(Get-ChildItem -LiteralPath $D -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 1 -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) -and (Test-Path -LiteralPath $V.artifacts.predictions[0]) } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one completed manifest for ${Name}, found $($Done.Count)" }; $V=Get-Content -LiteralPath $Done[0].FullName -Raw | ConvertFrom-Json; $Files.Add([string]$V.artifacts.metrics); $Files.Add([string]$V.artifacts.config); $Files.Add([string]$V.artifacts.predictions[0]) }; $Sep=[IO.Path]::DirectorySeparatorChar; $Root=(Resolve-Path -LiteralPath '.').Path.TrimEnd($Sep)+$Sep; $Rel=@($Files | ForEach-Object { $F=(Resolve-Path -LiteralPath $_).Path; if (-not $F.ToLowerInvariant().StartsWith($Root.ToLowerInvariant())) { throw "Outside repository: $F" }; $F.Substring($Root.Length).Replace([string]$Sep,'/') } | Sort-Object -Unique); git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'git add failed' }; $Staged=@(git diff --cached --name-only | Sort-Object); if (@(Compare-Object $Rel $Staged).Count -ne 0) { git diff --cached --name-only; throw 'Staged allowlist mismatch' }; git commit -m 'results: publish full-gold CE transfer control'; if ($LASTEXITCODE -ne 0) { throw 'Result commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'Result push failed' }; git log -1 --oneline
+```
 
 ## Direction contract
 
