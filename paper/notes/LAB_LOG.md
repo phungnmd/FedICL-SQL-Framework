@@ -25,6 +25,20 @@ artifacts; removed the automatic cleanup command. After both jobs exit, run
 the shared five-set evaluation and publish its compact records. No P2.3 GPU
 completion or new accuracy result has been reported yet.
 
+### Follow-up — continuous GPU lanes
+
+User reports smoke running. Replaced manual train/eval handoffs with two
+single-line lanes: each trains its terminal private stage and evaluates all
+five sets. No server code change or mid-smoke pull is needed. Training is
+parallel; a shared Windows-session mutex serializes eval because the current
+evaluator names result directories at second resolution. Each lane/dataset
+has separate resume state; training roots and scientific settings are unchanged.
+Smoke publication is deferred to the single final publication command alongside
+the two full stages and ten single-arm eval records. Stop only after results
+are ready for method selection (or on a real error). CONVENTION §6.1 now makes
+bundling already-decided steps the default; publication stays separate from
+concurrent computation.
+
 ## 2026-09-10 — official BIRD timeout closure
 
 Source audit found that BIRD's original and Mini-Dev EX evaluators assign one

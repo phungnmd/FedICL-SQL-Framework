@@ -181,9 +181,14 @@ only for a separately labeled Secure Sum compatibility/overhead audit; do not
 mix it into an accuracy lineage or imply that historical plaintext results were
 cryptographically produced.
 
-Keep long-running blocks independently resumable. Prefer one command per
-scientific checkpoint (training seed, matched evaluation, transfer suite) over
-one all-or-nothing command spanning the entire experiment queue.
+Bundle consecutive, already-decided steps (for example train -> fixed eval
+suite -> completion checks) into one resumable command per GPU lane. Do not
+require manual relaunch between steps unless a result changes the next
+scientific decision. Each stage/dataset must retain its own immutable output
+and resume contract; an interrupted bundle must reuse completed work.
+Keep independent lanes output-disjoint and coordinate shared writers where
+needed. Stop at real decision gates, not after every CLI invocation. Keep
+publication separate until all concurrent jobs using the worktree have exited.
 
 Before running:
 
