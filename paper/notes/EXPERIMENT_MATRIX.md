@@ -2,11 +2,12 @@
 
 | Priority | Question | Minimum comparison | Status / gate |
 |---|---|---|---|
-| P0 | Is the BIRD setup dataset-correct? | full-context with-evidence baseline, fail-closed retention, raw-SQL EX | old P2.1 rejected; P2.1R ready |
-| P0 | Does FL preserve useful accuracy? | centralized vs matched pure FL within Spider and BIRD | pending P2.1R |
-| P0 | Does public LLM guidance add EX? | FL vs public-gold CE vs teacher-target CE vs CE+soft-KD | pending P2.2 |
-| P0 | Is the result direction-dependent? | BIRD→Spider and Spider→BIRD with explicit roles/profiles | pending P2.2 |
-| P1 | What is the final mechanism? | matched ablation selected after v2 failure analysis | adaptive P2.3 |
+| P0 | Is the BIRD setup dataset-correct? | full-context with-evidence baseline, fail-closed retention, raw-SQL EX | P2.1R accepted; original release explicitly identified |
+| P0 | Does FL preserve useful accuracy? | centralized vs matched pure FL within Spider and BIRD | published; state private-training budgets |
+| P0 | Does public LLM guidance add EX? | FL vs public-gold CE vs teacher-target CE vs CE+soft-KD | published; Hinton wins four sets against full-gold but loses FL robustness |
+| P0 | Is the result direction-dependent? | BIRD→Spider and Spider→BIRD with explicit roles/profiles | both CE/SeqKD ladders published; reverse SeqKD +1.57 pp; reverse Hinton untested |
+| P0 | Can a final private stage retain both domains? | `A→A` vs `A→K→A`, one additional local epoch | P2.3 next: implement, smoke, then two independent GPU arms |
+| P1 | Does the final stage still need teacher KD? | `A→gold CE→A` vs `A→K→A` | conditional after initial consolidation success |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |
 | P1 | Is it model-family specific? | Qwen primary; Gemma only after primary method stabilizes | conditional |

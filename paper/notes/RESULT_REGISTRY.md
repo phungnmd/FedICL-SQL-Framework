@@ -11,11 +11,16 @@ and missing controls is `VALID_RESULTS_AND_ADAPTERS.md`.
 | Stable ID | Status | Required lineage |
 |---|---|---|
 | `v2.bird.base` | accepted inference baseline: 15.97 EX | original BIRD dev, full prompt with evidence; `f99febd`, rescore `e9bde43` |
-| `v2.bird.central` | pending P2.1R rerun | old 31.62/35.07 EX are diagnostic only; train context truncated |
-| `v2.bird.fl` | pending P2.1R rerun | old 22.56/27.31/29.99 EX are diagnostic only; train context truncated |
-| `v2.spider.fl` | pending/reuse audit | Spider-only lineage independent of BIRD |
-| `v2.bird_to_spider.reference` | pending | corrected BIRD-public evidence policy |
-| `v2.spider_to_bird.reference` | pending | corrected BIRD-private/eval evidence policy |
+| `v2.bird.central` | accepted P2.1R: E1/E2 31.42/34.94 EX | full-context with evidence; `e2ca26e` |
+| `v2.bird.fl` | accepted P2.1R: T1/T2/T3 22.75/28.36/31.10 EX | full-context with evidence; `e2ca26e` |
+| `v2.spider.fl` | shared T1 accepted: 57.35 EX | `ec5b5e1`, batch size 16; earlier T1–T3 baselines retained separately |
+| `v2.bird_to_spider.reference` | accepted: five-set headline and full-gold control | `ec5b5e1`, `5e4f005`; batch size 16; Hinton/CE share 9,428 BIRD rows |
+| `v2.spider_to_bird.reference` | accepted: FL/gold/SeqKD 22.88/20.73/24.45 EX | `1b2c46a`; BIRD dev with evidence |
+
+Exact run directories and paired checks are in `paper/results/P22_TRANSFER_REVIEW.md`;
+retained adapter paths are in `VALID_RESULTS_AND_ADAPTERS.md`. Publication is
+complete. Earlier and current Spider shared-arm evaluations are separately
+identified by batch size and prediction lineage. Terminal FedAvg remains unimplemented.
 
 ## Protocol-v2 audits
 

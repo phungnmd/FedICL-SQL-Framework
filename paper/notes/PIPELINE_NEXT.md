@@ -11,15 +11,15 @@
 | P2.1R | BIRD-private full-context Base/Centralized/FL | complete and published |
 | P2.2a | BIRD-public teacher targets for Spider-private direction | complete: 5,319/9,428 selected |
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
-| P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | run complete; compact result publication/audit pending |
-| P2.2c | Reverse matched T1 ladder | run complete; compact result publication/audit pending |
-| P2.2e | Full-BIRD-public gold CE T1 control | training complete |
-| P2.2f | Full-gold CE five-set evaluation | complete; compact publication pending |
+| P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | published and checked: `ec5b5e1` |
+| P2.2c | Reverse matched T1 ladder | published and checked: `1b2c46a` |
+| P2.2e | Full-BIRD-public gold CE T1 control | published: `5e4f005` |
+| P2.2f | Full-gold CE five-set evaluation | published and checked: `5e4f005` |
 | P2.3a | Implement/audit terminal private FedAvg endpoint | next active task |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
 
-## Latest decision evidence (operator-verified manifests; publication pending)
+## Latest decision evidence (published artifacts checked 2026-09-15)
 
 P2.2d completed on 2026-09-13. Hinton FKL versus Pure FL EX is 58.32 versus
 57.35 on Spider, 42.72 versus 54.92 on Realistic, 44.58 versus 49.32 on SYN,
@@ -29,21 +29,21 @@ Realistic/SYN/DK. Across Spider, Realistic, SYN, and DK, Hinton averages 47.76
 EX versus 51.71 for Pure FL; on the three Spider robustness variants alone it
 loses 5.58 points.
 
-This is a public-domain adaptation/retention failure, not evidence that Hinton
-logits alone improve the federated method. Run full-public-gold CE next to
-separate public SFT from soft-logit value. In parallel, implement the terminal
-`A -> K -> A` endpoint, but do not launch it until the Hinton and full-gold CE
-artifacts have been audited. The current headline evaluation used batch size
-16, so its shared-arm values must not silently overwrite earlier batch-size-8
-rows before prediction/config reconciliation.
+Published full-gold CE EX is 55.03/47.05/43.91/40.93/32.14 on
+Spider/Realistic/SYN/DK/BIRD. Hinton deltas are +3.29/−4.33/+0.67/+4.49/+4.56
+points. Reverse FL/gold/SeqKD is 22.88/20.73/24.45 on BIRD dev. All five
+paired headline/control comparisons have identical input prompts and row
+identities. The Hinton recipe has useful evidence but needs private robustness
+recovery. Exact paired counts and source paths: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSFER_REVIEW.md).
 
-P2.2f now isolates the no-logit control. Full-gold CE EX is 55.0 Spider, 47.0
-Realistic, 43.9 SYN, 40.9 DK, and 32.1 BIRD. Hinton improves over that control
-by +3.32/+0.68/+4.52/+4.60 points on Spider/SYN/DK/BIRD, but loses 4.28 on
-Realistic. Thus forward-KL logits contribute beyond public gold CE, while both
-public-terminal updates still damage private-domain robustness relative to
-Pure FL. P2.3a is now the next method task: implement terminal private
-re-anchoring and compare `A -> K -> A` with matched `A -> A`.
+Next: implement/smoke terminal private consolidation, then run `A→A` and
+`A→K→A` independently on two GPUs (or sequentially on one). Both add one local
+epoch using the same split/hyperparameters; their parent adapters differ.
+No teacher/cache regeneration is required. Evaluate five sets at batch size
+16; if promising, add `A→gold CE→A` before claiming KD-specific final benefit.
+No launch command exists yet because the current round CLI requires same-root
+lineage. The prior full-gold/headline/reverse commands below are completed
+rerun records, not the next jobs. Their publication commits are already present.
 
 ## Completed command — evaluate full-public-gold CE on five sets
 
@@ -101,7 +101,7 @@ the selected-pool counts and teacher EX are the gate for the matched T1 ladder.
 Therefore `Full` means the complete public-teacher prerequisite lane, not the
 complete paper experiment matrix.
 
-## Active two-GPU launch
+## Completed two-GPU launch (retained for exact reruns)
 
 Run these in two independent PowerShell terminals. Both are exact-rerun safe;
 do not pull, checkout, commit, or edit the server worktree until both exit.
@@ -146,7 +146,7 @@ The cache is an intermediate artifact and is never staged. Its pool hash,
 configuration and `meta.json` hash will be included in the later Hinton T1
 training result; that task receives its own publication command.
 
-### GPU 1 priority — headline Hinton T1 and transfer evaluation
+### Completed headline Hinton T1 and transfer evaluation
 
 Run Hinton before the full-gold-CE ablation. This reuses the completed
 Spider-private T1 clients/FedAvg adapter, trains only the balanced Hinton server
@@ -160,7 +160,7 @@ output-disjoint from the GPU-0 reverse ladder and is exact-rerun safe.
 $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $SD='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $BD='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv'; $C='artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1'; $K='artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0'; $B='artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1'; $AC='artifacts/baselines/central_3ep_standard_s0/adapter'; $A0="$C/fedavg_adapter"; $AS='artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g'; foreach ($X in @("$AC/adapter_config.json","$A0/adapter_config.json","$AS/adapter_config.json","$K/meta.json")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing headline prerequisite: $X" } }; $M=Get-Content -LiteralPath "$K/meta.json" -Raw | ConvertFrom-Json; if ($M.n_examples -ne 9428 -or $M.kd_objective -ne 'hinton_forward_kl' -or $M.pool_sha256 -ne (Get-FileHash -LiteralPath $P -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Canonical Hinton cache/pool contract mismatch' }; $Common=@('--split-dir',$S,'--n-clients','5','--local-epochs','1','--client-train-k','0','--client-dataset-profile','spider','--server-dataset-profile','bird_with_evidence','--model','Qwen/Qwen2.5-1.5B-Instruct','--lora-r','16','--lr','0.0002','--max-len','7168','--truncation-policy','error','--gradient-checkpointing','--batch-size','1','--grad-accum','16','--save-steps','200','--aggregation-protocol','plaintext','--pool',$P,'--pool-size','0','--distill-steps','0','--k-teacher','0','--schema-style','full','--retrieval','dail_select','--embedder','BAAI/bge-small-en-v1.5','--tau','0.85','--demo-style','never_schema','--seed','0'); uv run python experiments/federated/run.py round --arm fedkd --round 1 --client-out $C --out "$B/hinton_fkl_t2_alpha05_s0" --teacher-model Qwen/Qwen2.5-Coder-7B-Instruct --teacher-4bit --teacher-logit-cache $K --lambda-ft 0.5 --lambda-kd 0.5 --kl-temperature 2 --stage p22d_spider_private_hinton_fkl_t2_alpha05_t1 @Common; if ($LASTEXITCODE -ne 0) { throw 'Headline Hinton-FKL T1 stopped; rerun this exact line' }; $AH="$B/hinton_fkl_t2_alpha05_s0/round_1/m_g"; if (-not (Test-Path -LiteralPath "$AH/adapter_config.json")) { throw "Missing Hinton adapter: $AH" }; $Sets=@(@{Name='spider';Train=$ST;Test=$SD;Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test=$BD;Profile='bird_with_evidence'}); foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p22d_headline_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "centralized_e3=$AC" "pure_fl_t1=$A0" "seqkd_t1=$AS" "hinton_fkl_t1=$AH" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Student headline evaluation failed: $($Set.Name); rerun this exact line" } }; $TeacherSets=@(@{Name='realistic';Test='processed_data/SPIDER_REALISTIC/test.csv'},@{Name='syn';Test='processed_data/SPIDER_SYN/test.csv'},@{Name='dk';Test='processed_data/SPIDER_DK/test.csv'}); foreach ($Set in $TeacherSets) { $E="artifacts/eval_resume/protocol_v2/p22d_teacher_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $ST --test-csv $Set.Test --dataset-profile spider --arms teacher_qwen7b --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --batch-size 1 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Teacher variant evaluation failed: $($Set.Name); rerun this exact line" } }; Write-Host 'GPU-1 headline suite complete: Spider-private FedAvg to BIRD-public Hinton T1 compared across five evaluation sets; teacher variants complete'
 ```
 
-### Deferred matched ablation — do not run before the headline suite
+### Completed matched ablation recipe (reuse only)
 
 After the headline suite, GPU 1 reuses the already completed Spider-private T1
 clients/FedAvg adapter and runs two full-public-data server updates: gold CE,
@@ -209,9 +209,9 @@ Reverse prerequisite verification:
 $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; powershell -ExecutionPolicy Bypass -File scripts/run_protocol_v2_bird_private.ps1 -Phase Full; if ($LASTEXITCODE -ne 0) { throw 'BIRD-private direction stopped; rerun this exact line to resume' }
 ```
 
-Do not rerun either lane for new accuracy evidence. The next implementation
-task is to pin the full-public-gold CE and canonical 9,428-row Hinton-FKL
-cache/training commands. No T2/T3 job is active.
+Both prerequisite lanes and their T1 experiments are published. The next
+implementation task is terminal private consolidation; no recurrent T2/T3
+job is active.
 
 ## Completion gate
 
@@ -246,16 +246,15 @@ candidates after both standard baselines are measured. Publication commands are 
 completion artifacts are inspected and an exact compact allowlist is known;
 model adapters, trainer state, raw caches, and `artifacts/` are never staged.
 
-The first direction does not pass the T2/T3 gate yet: SeqKD is 57.64 EX versus
-56.96 for Pure FL, only seven net correct rows (140 corrections, 133
-regressions). Run the reverse matched T1 ladder and full-data Hinton-FKL T1 before
-selecting the method.
+The published headline does not justify recurrent T2/T3: Hinton gains ten
+Spider answers over FL but loses 62 Realistic and 49 SYN answers. Test the
+terminal private stage next; both direction ladders are already available.
 
 ## Next architecture gate — terminal FedAvg after KD
 
 Code audit confirms that the current reference executes client training,
 FedAvg, then public server KD and deploys `m_g`; recurring rounds likewise end
-after KD. Once the active T1 jobs finish, prioritize a candidate that sends the
+after KD. The T1 jobs are complete; prioritize a candidate that sends the
 post-KD adapter back to clients for one additional local epoch, aggregates the
 result, and deploys that final FedAvg adapter.
 

@@ -57,11 +57,39 @@ splits and must not be presented as the same statistic.
 
 ## Current execution state
 
-No GPU job from the prerequisite lanes remains active. Next are the
-Spider-public → BIRD-private matched T1 ladder and Hinton-FKL T1 for the
-BIRD-public → Spider-private direction. Concurrent historical execution
+P2.2c–f are complete and published (`5e4f005`, `1b2c46a`, `ec5b5e1`).
+Counts, EX, paired row identities, and prompt parity have been checked locally.
+Next is implementation/smoke of terminal private consolidation, followed by
+`A→A` versus `A→K→A` with one additional client epoch. Concurrent historical execution
 preserves accuracy validity, but its wall time and memory measurements are not
 eligible for the paper resource table.
+
+### Published P2.2 headline and full-public-gold control
+
+All values are EX (%); all student evaluations below use batch size 16.
+Central E3 is Spider-trained. Full-gold CE/Hinton use all 9,428 BIRD public
+rows; SeqKD uses 5,319 execution-selected teacher sequences.
+
+| Evaluation | n | Central E3 | Pure FL T1 | SeqKD T1 | Full-gold CE T1 | Hinton T1 | Teacher 7B |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Spider | 1,034 | 67.31 | 57.35 | 57.93 | 55.03 | 58.32 | 76.69 |
+| Realistic | 508 | 55.91 | 54.92 | 46.65 | 47.05 | 42.72 | 71.06 |
+| SYN | 1,034 | 54.06 | 49.32 | 48.26 | 43.91 | 44.58 | 63.83 |
+| DK | 535 | 53.27 | 45.23 | 45.61 | 40.93 | 45.42 | 62.43 |
+| BIRD dev, evidence | 1,534 | 17.73 | 14.80 | 34.68 | 32.14 | 36.70 | 47.07 |
+
+Reverse BIRD-private/Spider-public ladder on BIRD dev:
+
+| Method | EX (%) | EM (%) | n |
+|---|---:|---:|---:|
+| Shared Pure FL T1 | 22.88 | 1.56 | 1,534 |
+| Matched public-gold CE | 20.73 | 3.78 | 1,534 |
+| SeqKD | 24.45 | 4.30 | 1,534 |
+
+Use the batch-size-16 headline rows for current comparisons. The older
+56.96/57.64 Spider ladder used batch size 8 and has different SQL predictions
+despite identical prompts; it remains a separate evaluation lineage. Full
+paired analysis and artifact map: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSFER_REVIEW.md).
 
 ### Valid Spider out-of-domain results
 
@@ -80,7 +108,7 @@ is not listed, because later rounds inherit invalid public supervision.
 
 | Stable role | Valid adapter path | Scope |
 |---|---|---|
-| Qwen centralized E3 | `artifacts/baselines/central_3ep_standard_s0/adapter` | Spider only |
+| Qwen centralized E3 | `artifacts/baselines/central_3ep_standard_s0/adapter` | Spider-trained; evaluated on five sets |
 | Qwen pure FL seed 0, T1–T3 | `artifacts/federated/fedavg_only_noicl_k5_e1_t3_s0/round_{1,2,3}/fedavg_adapter` | Spider only |
 | Qwen pure FL seed 1, T1–T3 | `artifacts/federated/fedavg_noicl_k5_e1_t1_s1/round_{1,2,3}/fedavg_adapter` | Spider only |
 | Qwen pure FL seed 2, T1 | `artifacts/federated/fedavg_noicl_k5_e1_t1_s2/round_1/fedavg_adapter` | Spider only |
@@ -93,10 +121,15 @@ is not listed, because later rounds inherit invalid public supervision.
 | Protocol-v2 Spider-private shared FL T1 | `artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1/fedavg_adapter` | common initialization for the matched ladder |
 | Protocol-v2 Spider-private matched-gold CE T1 | `artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g` | 5,319-row BIRD public-gold control |
 | Protocol-v2 Spider-private SeqKD T1 | `artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g` | 5,319-row BIRD teacher-target arm |
+| Protocol-v2 Spider-private full-gold CE T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/full_gold_ce_s0/round_1/m_g` | all 9,428 BIRD public rows with evidence |
+| Protocol-v2 Spider-private Hinton FKL T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/hinton_fkl_t2_alpha05_s0/round_1/m_g` | all 9,428 BIRD gold prefixes; temperature 2; candidate parent for consolidation |
+| Protocol-v2 BIRD-private shared FL T1 | `artifacts/protocol_v2/p22_bird_private_t1/shared_clients_s0/round_1/fedavg_adapter` | reverse ladder initialization |
+| Protocol-v2 BIRD-private matched-gold CE T1 | `artifacts/protocol_v2/p22_bird_private_t1/matched_gold_ce_s0/round_1/m_g` | selected Spider gold control |
+| Protocol-v2 BIRD-private SeqKD T1 | `artifacts/protocol_v2/p22_bird_private_t1/seqkd_s0/round_1/m_g` | selected Spider teacher sequences |
 
-The first protocol-v2 SeqKD adapter is complete. There is not yet a
-protocol-v2 Hinton-FKL adapter or a reverse-direction matched T1 adapter. Base
-models are anchors, not adapters.
+All listed P2.2 endpoints have published training/evaluation records. Weight
+files remain on the server; this inventory follows published paths and does
+not claim local rehashing of absent weights. Base models are anchors, not adapters.
 
 ## Baselines and ablations still required
 
@@ -109,10 +142,10 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 3 | Spider Base / Centralized / pure FL under explicit `spider` profile | reuse audit first; rerun only if fingerprints cannot be reconciled |
 | 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
 | 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
-| 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | next; canonical token-level KD baseline on all 9,428 BIRD public rows and gold prefixes |
+| 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | highest method gate after Hinton T1; tests deployment after KD versus terminal FedAvg with matched private compute |
 | 8 | T1 vs recurring T2/T3 server transfer | closed until the endpoint ladder selects a schedule |
-| 9 | Reverse direction: BIRD-private FL with Spider-public controls | prerequisites complete; matched T1 is next |
+| 9 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 10 | Final method on `alpha=0.1` and a second training seed | after method selection |
 | 11 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
 

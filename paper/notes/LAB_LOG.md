@@ -314,3 +314,30 @@ the model away from private Spider robustness. P2.3a terminal private
 re-anchoring (`A -> K -> A`) with matched `A -> A` is now the next experiment.
 The BIRD NLTK/hardness warnings affect only EM and hardness diagnostics, not EX.
 Compact training/evaluation publication remains pending.
+
+## 2026-09-15 — published P2.2 artifacts verified
+
+Result commits `5e4f005`, `1b2c46a`, and `ec5b5e1` publish full-gold control,
+reverse ladder, and Hinton headline. All student counts and EX were recomputed
+from CSVs. Paired row identities and full prompts match on every dataset.
+Exact full-gold EX is 55.03/47.05/43.91/40.93/32.14; this supersedes the rounded
+values and deltas in the preceding entry. Hinton-minus-gold is
++3.29/−4.33/+0.67/+4.49/+4.56 points on Spider/Realistic/SYN/DK/BIRD.
+
+Hinton corrects/loses 104/70 full-gold answers on Spider and 157/87 on BIRD;
+against Pure FL the Spider net is only +10. Realistic loses 62 net FL answers
+despite fewer execution errors. Reverse FL/gold/SeqKD is 22.88/20.73/24.45 EX;
+reverse SeqKD corrects 175 and loses 151 (net +24).
+
+The earlier batch-size-8 and headline batch-size-16 FL/SeqKD predictions
+differ in 86/58 rows with identical prompts. Batch size is a known difference,
+not a proven sole explanation. Prior statements that public KD 'confirms'
+forgetting or that batching 'explains' drift should be read as hypotheses.
+These single-seed results compare the combined Hinton objective with CE,
+including its changed CE weight. They do not isolate logits alone.
+
+Updated the main tables, valid adapter ledger, registry, architecture, TODO,
+and queue. Detailed artifact map and paired counts are in
+`paper/results/P22_TRANSFER_REVIEW.md`. Next is implement/smoke terminal
+private consolidation, then `A→A` and `A→K→A` at one local epoch; if useful,
+add `A→gold CE→A`. No new teacher cache is needed.

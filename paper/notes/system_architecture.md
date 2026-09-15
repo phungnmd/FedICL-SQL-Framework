@@ -126,13 +126,19 @@ to BIRD but damages robustness to Spider distribution shifts.
 This observation promotes terminal private consolidation from a speculative
 candidate to the next scheduling hypothesis. It does not yet prove that soft
 teacher logits solve retention. The completed no-logit full-BIRD-public gold CE
-control scores 55.0/47.0/43.9/40.9/32.1 on Spider/Realistic/SYN/DK/BIRD;
-Hinton is +3.32/-4.28/+0.68/+4.52/+4.60 points relative to it. Soft logits
-therefore add useful signal on four datasets, but neither public-terminal
-objective preserves the private-domain robustness of Pure FL. Earlier and
-headline shared-arm values are retained as separate evaluation lineages until
-their batch-size-8/16 predictions and configs are reconciled. The next gate is
-terminal private consolidation; recurring T2/T3 remains closed.
+control scores 55.03/47.05/43.91/40.93/32.14 on Spider/Realistic/SYN/DK/BIRD;
+Hinton is +3.29/−4.33/+0.67/+4.49/+4.56 points relative to it. This supports
+the combined Hinton recipe on four datasets, but neither public-terminal
+objective preserves FL robustness. Exact paired prompts match across arms.
+Earlier batch-size-8 and headline batch-size-16 predictions differ in 86/58
+rows for FL/SeqKD; preserve those evaluation lineages separately. The sole
+cause of that rerun drift has not been established.
+
+Reverse BIRD-private/Spider-public FL/gold/SeqKD reaches 22.88/20.73/24.45 EX.
+All three result commits are published and audited (`5e4f005`, `1b2c46a`,
+`ec5b5e1`); see `paper/results/P22_TRANSFER_REVIEW.md`. The next gate is
+terminal private consolidation; recurring T2/T3 remains closed. The exact
+mechanism of the robustness loss remains a hypothesis, not a proven prompt defect.
 
 ## Evaluation and lineage
 
