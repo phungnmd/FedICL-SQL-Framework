@@ -15,7 +15,7 @@
 | P2.2c | Reverse matched T1 ladder | published and checked: `1b2c46a` |
 | P2.2e | Full-BIRD-public gold CE T1 control | published: `5e4f005` |
 | P2.2f | Full-gold CE five-set evaluation | published and checked: `5e4f005` |
-| P2.3a | Implement/audit terminal private FedAvg endpoint | next active task |
+| P2.3a | Implement composable stage chains (`run.py stage`) | implemented at nested `810d8c4`; server smoke next |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
 
@@ -36,14 +36,72 @@ paired headline/control comparisons have identical input prompts and row
 identities. The Hinton recipe has useful evidence but needs private robustness
 recovery. Exact paired counts and source paths: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSFER_REVIEW.md).
 
-Next: implement/smoke terminal private consolidation, then run `A→A` and
-`A→K→A` independently on two GPUs (or sequentially on one). Both add one local
-epoch using the same split/hyperparameters; their parent adapters differ.
-No teacher/cache regeneration is required. Evaluate five sets at batch size
-16; if promising, add `A→gold CE→A` before claiming KD-specific final benefit.
-No launch command exists yet because the current round CLI requires same-root
-lineage. The prior full-gold/headline/reverse commands below are completed
-rerun records, not the next jobs. Their publication commits are already present.
+Next: the four commands under *Active P2.3 commands*, in order. `A→A` and
+`A→K→A` each add one local epoch with the same split/hyperparameters; only
+their parent adapters differ. No teacher/cache regeneration is required. If
+promising, add `A→gold CE→A` before claiming KD-specific final benefit. The
+prior full-gold/headline/reverse commands below are completed rerun records,
+not the next jobs.
+
+## Active P2.3 commands — terminal private consolidation
+
+The fixed `round` CLI cannot append a private stage after KD (same-root lineage,
+one arm per root). Nested `810d8c4` adds the `stage` CLI
+(`fedicl_sql/federated/stage_chain.py`), which runs one primitive stage from a
+committed parent result row. It derives the
+chain from that row (`federated` `fedavg` r1 = `A`, `fedkd` r1 = `A>K[fkl]`),
+hashes the parent adapter, and writes an immutable `<out>/stage.json` plus one
+`experiments/federated/results/federated_stage__<chain>__...` row. `round`,
+`run`, and every published setup/run ID are unchanged.
+
+**1. Sync and smoke (one GPU, minutes).** Run while no experiment process uses
+the worktree. The smoke caps each client at two steps from the Hinton T1 parent
+and checks the derived chain.
+
+```powershell
+$Scope=@('fedicl_sql','experiments','scripts','tests','processed_data/protocol_v2','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty; review before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 810d8c4 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Checkout does not contain stage-chain commit 810d8c4' }; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_smoke/a_k_a_steps2_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --client-max-steps 2 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_smoke_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'P2.3 smoke failed; inspect the error before any full run' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or $St.parent.run_id -ne 'federated__fedkd__s0__55c03ff12654__8a1e6694__r1' -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected smoke contract: chain=$($St.chain)" }; Write-Host "P2.3 smoke passed at $((git rev-parse --short HEAD).Trim()): chain=$($St.chain) stage_id=$($St.stage_id)"
+```
+
+After the smoke passes, remove its untracked scratch outputs. The row filter
+matches only the smoke label, so no real result can be selected:
+
+```powershell
+$Rows=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Directory -Filter 'federated_stage__*' | Where-Object { try { (Get-Content -LiteralPath (Join-Path $_.FullName 'config.json') -Raw | ConvertFrom-Json).stage -eq 'p23_smoke_a_k_a' } catch { $false } }); foreach ($Row in $Rows) { if (@(git ls-files -- $Row.FullName).Count -ne 0) { throw "Refusing to delete tracked row: $($Row.FullName)" } }; Write-Host "Removing $($Rows.Count) smoke row(s) and artifacts/protocol_v2/p23_smoke"; foreach ($Row in $Rows) { Remove-Item -LiteralPath $Row.FullName -Recurse -Force }; if (Test-Path -LiteralPath 'artifacts/protocol_v2/p23_smoke') { Remove-Item -LiteralPath 'artifacts/protocol_v2/p23_smoke' -Recurse -Force }; Write-Host 'P2.3 smoke outputs removed'
+```
+
+**2. Train both arms (two independent terminals).** Output-disjoint and
+exact-rerun safe; do not pull or commit until both exit.
+
+GPU 0, matched no-KD control `A>A` (parent: Pure FL T1):
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedavg__s0__935d572565cc__154540d3__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>A' -or $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>A contract: chain=$($St.chain)" }; Write-Host 'GPU-0 complete: A>A trained'
+```
+
+GPU 1, candidate `A>K[fkl]>A` (parent: Hinton T1):
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>K>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>K>A contract: chain=$($St.chain)" }; Write-Host 'GPU-1 complete: A>K[fkl]>A trained'
+```
+
+**3. Evaluate both new adapters on five sets (batch size 16).** Pure FL (`A`)
+and Hinton T1 (`A>K[fkl]`) predictions already exist in the published headline
+suite with the same evaluation recipe.
+
+```powershell
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $B='artifacts/protocol_v2/p23_spider_private_terminal'; $AA="$B/a_a_s0/fedavg_adapter"; $AKA="$B/a_k_a_s0/fedavg_adapter"; foreach ($X in @($AA,$AKA)) { if (-not (Test-Path -LiteralPath "$X/adapter_config.json")) { throw "Missing P2.3 adapter: $X" } }; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence'}); foreach ($Set in $Sets) { foreach ($P in @($Set.Train,$Set.Test)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing evaluation input: $P" } }; $E="artifacts/eval_resume/protocol_v2/p23_terminal_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "pure_fl_a_a=$AA" "hinton_a_k_a=$AKA" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "P2.3 evaluation failed: $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 2 -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) -and @($V.artifacts.predictions | Where-Object { -not (Test-Path -LiteralPath $_) }).Count -eq 0 } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one completed P2.3 manifest for $($Set.Name), found $($Done.Count)" } }; Write-Host 'P2.3b evaluation complete on Spider, Realistic, SYN, DK, and BIRD'
+```
+
+**4. Publish compact records.** Two stage rows plus five evaluation records;
+adapters, fingerprints, and `artifacts/` are never staged.
+
+```powershell
+$Stages=@('p23_spider_private_a_a','p23_spider_private_a_k_a'); if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Files=[System.Collections.Generic.List[string]]::new(); foreach ($Stage in $Stages) { $Hits=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Recurse -Filter 'config.json' -File | Where-Object { try { (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).stage -eq $Stage } catch { $false } }); if ($Hits.Count -ne 1) { throw "Expected one stage result for ${Stage}, found $($Hits.Count)" }; $Files.Add($Hits[0].FullName); $M=Join-Path $Hits[0].Directory.FullName 'metrics.json'; if (-not (Test-Path -LiteralPath $M)) { throw "Missing stage metrics: $M" }; $Files.Add($M) }; foreach ($Name in @('spider','realistic','syn','dk','bird')) { $D="artifacts/eval_resume/protocol_v2/p23_terminal_${Name}_s0/eval_k0/manifests"; $Done=@(Get-ChildItem -LiteralPath $D -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 2 -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one completed manifest for ${Name}, found $($Done.Count)" }; $V=Get-Content -LiteralPath $Done[0].FullName -Raw | ConvertFrom-Json; $Files.Add([string]$V.artifacts.metrics); $Files.Add([string]$V.artifacts.config); foreach ($P in @($V.artifacts.predictions)) { $Files.Add([string]$P) } }; $Sep=[IO.Path]::DirectorySeparatorChar; $Root=(Resolve-Path -LiteralPath '.').Path.TrimEnd($Sep)+$Sep; $Rel=@($Files | ForEach-Object { $F=(Resolve-Path -LiteralPath $_).Path; if (-not $F.ToLowerInvariant().StartsWith($Root.ToLowerInvariant())) { throw "Outside repository: $F" }; $F.Substring($Root.Length).Replace([string]$Sep,'/') } | Sort-Object -Unique); git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'git add failed' }; $Staged=@(git diff --cached --name-only | Sort-Object); if (@(Compare-Object $Rel $Staged).Count -ne 0) { git diff --cached --name-only; throw 'Staged allowlist mismatch' }; git commit -m 'results: publish P2.3 terminal private consolidation'; if ($LASTEXITCODE -ne 0) { throw 'Result commit failed' }; git push; if ($LASTEXITCODE -ne 0) { throw 'Result push failed' }; git log -1 --oneline
+```
+
+Promotion gate: `A>K[fkl]>A` must exceed both `A>K[fkl]` and `A>A` on Spider
+and the Spider variants while retaining useful BIRD transfer. Report the extra
+client compute and each stage row's `communication_bytes`.
 
 ## Completed command — evaluate full-public-gold CE on five sets
 
@@ -271,7 +329,6 @@ The promotion gate is primary Spider and Spider-variant EX above both `A -> K`
 and `A -> A`, with useful BIRD transfer retained. Record the extra client
 compute and communication. Do not open a three-epoch consolidation, recurrent
 T2/T3, GKD, MiniLLM, or RKL until this one-epoch endpoint comparison is known.
-No execution command is active for P2.3 yet: first implement immutable
-fingerprints, correct initialization from the post-KD adapter, a distinct
-output root, and final-FedAvg persistence. Do not pull or modify the server
-worktree while either current GPU process is alive.
+The nested `stage` CLI now provides immutable fingerprints, initialization
+from the post-KD adapter, a distinct output root, and final-FedAvg persistence;
+execute the commands under *Active P2.3 commands*.

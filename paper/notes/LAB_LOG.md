@@ -2,17 +2,17 @@
 
 ## Current state
 
-- Active protocol: `v2`, dataset profiles explicit.
+- Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
-- Method status: open; FedAvg + verified-target SeqKD is the reference path,
-  with canonical full-data Hinton forward KL as the primary token-level
-  soft-logit baseline.
-- P2.1q completed at `e9bde43`: scoring is stable, but P2.1 training
-  checkpoints are diagnostic only because required BIRD context was truncated.
-- P2.1R full-context Base/Centralized/FL computation is complete; official
-  30-second BIRD rescore/publication remains.
-- Next: close both public-teacher lanes, inspect teacher/pool quality, then run
-  the matched T1 causal ladder in both directions.
+- Method status: open. Reference = client LoRA -> FedAvg -> one public stage
+  (SeqKD, or full public-gold CE + Hinton forward KL); deployment ends at KD.
+- Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
+  Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
+  control (`5e4f005`).
+- Finding: the public stage lifts BIRD strongly and Spider slightly but loses
+  Spider-variant robustness (Realistic/SYN).
+- Next: P2.3 terminal private consolidation, `A>A` versus `A>K[fkl]>A`, via
+  the `run.py stage` CLI; GPU-server smoke first.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-10 — official BIRD timeout closure
@@ -341,3 +341,25 @@ and queue. Detailed artifact map and paired counts are in
 `paper/results/P22_TRANSFER_REVIEW.md`. Next is implement/smoke terminal
 private consolidation, then `A→A` and `A→K→A` at one local epoch; if useful,
 add `A→gold CE→A`. No new teacher cache is needed.
+
+## 2026-09-15 — composable stage chains for terminal consolidation
+
+The fixed `round` CLI could not append a private stage after KD: round `t` must
+start from round `t-1` inside the same output root, and each root is locked to
+one arm. Nested `810d8c4` adds `run.py stage private|public`
+(`fedicl_sql/federated/stage_chain.py`). A stage warm-starts from a committed
+parent result row, derives its chain from that row (`fedavg` r1 = `A`,
+`fedkd` r1 = `A>K[fkl]`), hashes the parent adapter at run time, and writes an
+immutable `stage.json` plus one `federated_stage__...` result row with client,
+aggregation, communication, and resource records. Changing the parent row,
+parent adapter bytes, or recipe for an existing stage root fails closed.
+
+`round`/`run` behavior and all published setup/run IDs are unchanged; after
+extracting shared recipe helpers, setup IDs were verified identical to the
+previous code for `fedavg`, `fedavg_pub`, `fedkd`, and `florana_kd`. A private
+stage reuses the round seed and deterministic client order, so `A>A` from Pure
+FL T1 is the Pure FL T2 recipe. Mocked-training tests: 373 passed. Adapters
+exist only on the GPU server, so the Mac check confirmed only CLI wiring and
+parsing of the real Windows-path Hinton row. Next: server smoke, then `A>A` and
+`A>K[fkl]>A` on two GPUs and the five-set batch-size-16 evaluation
+(`PIPELINE_NEXT.md`, *Active P2.3 commands*).

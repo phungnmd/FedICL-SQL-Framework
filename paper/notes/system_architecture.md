@@ -212,6 +212,13 @@ atomically, matched-gold provenance is dataset-neutral, and dataset/split
 contracts fail closed before model loading. Nested `8c72764` pins that reviewed
 base for server execution. Existing accepted results remain valid because the
 evaluator algorithms and their recorded identities did not change.
+Nested `810d8c4` adds composable stage chains (`run.py stage private|public`)
+because the round loop cannot append a private stage after KD. Each stage
+warm-starts from a committed parent result row, derives its chain (`A`,
+`K[ce]`, `K[fkl]`) from that row, binds the parent adapter hashes and recipe in
+an immutable `stage.json`, and writes one `federated_stage` result row. Round
+setup IDs are unchanged. This is the execution path for `A -> A` and
+`A -> K -> A`.
 The executable contract is documented in
 `fedicl-sql/docs/PROTOCOL_V2.md`.
 

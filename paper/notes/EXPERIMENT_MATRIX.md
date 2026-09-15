@@ -6,7 +6,7 @@
 | P0 | Does FL preserve useful accuracy? | centralized vs matched pure FL within Spider and BIRD | published; state private-training budgets |
 | P0 | Does public LLM guidance add EX? | FL vs public-gold CE vs teacher-target CE vs CE+soft-KD | published; Hinton wins four sets against full-gold but loses FL robustness |
 | P0 | Is the result direction-dependent? | BIRD→Spider and Spider→BIRD with explicit roles/profiles | both CE/SeqKD ladders published; reverse SeqKD +1.57 pp; reverse Hinton untested |
-| P0 | Can a final private stage retain both domains? | `A→A` vs `A→K→A`, one additional local epoch | P2.3 next: implement, smoke, then two independent GPU arms |
+| P0 | Can a final private stage retain both domains? | `A→A` vs `A→K→A`, one additional local epoch | P2.3: `stage` CLI implemented; server smoke, then two independent GPU arms |
 | P1 | Does the final stage still need teacher KD? | `A→gold CE→A` vs `A→K→A` | conditional after initial consolidation success |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |

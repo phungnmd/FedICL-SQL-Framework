@@ -8,8 +8,13 @@ and committed experiment evidence.
 ## Canonical project model
 
 FedLS-SQL trains a Qwen2.5-1.5B SLM with private client LoRA updates,
-sample-weighted factor-wise FedAvg, and server-side CE/reverse-KL distillation
-from a frozen Qwen2.5-Coder-7B teacher on a fixed 3,873-row public BIRD pool.
+sample-weighted factor-wise FedAvg, and server-side knowledge transfer from a
+frozen Qwen2.5-Coder-7B teacher on a public pool. Protocol v2 uses explicit
+dataset profiles (BIRD with evidence). The primary direction is Spider private
+clients with a BIRD public pool; BIRD private with a Spider public pool is the
+reverse check. The final method is not frozen: the current reference ends at
+one public stage (SeqKD, or full public-gold CE plus Hinton forward KL), and
+terminal private consolidation (`A>K[fkl]>A`) is the active candidate.
 Deployment uses only the SLM. Canonical runs use no ICL.
 
 ## Read first
@@ -31,9 +36,14 @@ current method specification.
 - `fedkd` is an internal arm name, not the paper name.
 - A pre-server adapter at T2/T3 inside a `fedkd` lineage is not pure FL because
   it inherits earlier KD.
-- The public method pool has 3,873 rows; larger pools are historical candidates.
+- A stage chain containing `K` (for example `A>K[fkl]>A`) is not pure FL; only
+  all-`A` chains are FL controls.
+- Protocol-v2 BIRD public pools: all 9,428 training rows for public-gold CE and
+  Hinton KD; 5,319 execution-selected teacher targets for SeqKD. The 3,873-row
+  pool is protocol-v1 history.
 - Privacy is structural data isolation, not formal differential privacy.
-- The implemented server objective is teacher-target CE plus reverse KL, not a
+- The implemented server objectives are teacher-target CE (SeqKD) and gold CE
+  plus Hinton forward KL (`T=2`). Reverse KL/KID are archived; there is no
   separate structural-distillation mechanism.
 
 ## Repository discipline
@@ -48,6 +58,8 @@ current method specification.
 
 ## Current priority
 
-Run the independent pure-FL T1-T3 branch, fill the final Centralized/FL/FedLS
-table, consolidate communication/resource metrics, then replicate the
-multi-round trajectory. ICL, FLoRA-NA, SC, and T4/T5 are not active work.
+Execute P2.3 from `paper/notes/PIPELINE_NEXT.md`: server smoke of the
+`run.py stage` CLI, then `A>A` versus `A>K[fkl]>A` with one additional local
+epoch and the five-set batch-size-16 evaluation. Recurrent T2/T3, extra seeds,
+reverse Hinton, and new KD objectives (GKD, MiniLLM, RKL) wait for that gate.
+ICL, FLoRA-NA, SC, and T4/T5 are not active work.

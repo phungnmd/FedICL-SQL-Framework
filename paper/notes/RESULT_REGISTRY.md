@@ -20,7 +20,9 @@ and missing controls is `VALID_RESULTS_AND_ADAPTERS.md`.
 Exact run directories and paired checks are in `paper/results/P22_TRANSFER_REVIEW.md`;
 retained adapter paths are in `VALID_RESULTS_AND_ADAPTERS.md`. Publication is
 complete. Earlier and current Spider shared-arm evaluations are separately
-identified by batch size and prediction lineage. Terminal FedAvg remains unimplemented.
+identified by batch size and prediction lineage. Terminal private consolidation
+is implemented (`run.py stage`, nested `810d8c4`) but has no result yet; its stage rows are
+registered only after publication.
 
 ## Protocol-v2 audits
 

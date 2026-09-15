@@ -59,8 +59,10 @@ splits and must not be presented as the same statistic.
 
 P2.2c–f are complete and published (`5e4f005`, `1b2c46a`, `ec5b5e1`).
 Counts, EX, paired row identities, and prompt parity have been checked locally.
-Next is implementation/smoke of terminal private consolidation, followed by
-`A→A` versus `A→K→A` with one additional client epoch. Concurrent historical execution
+Terminal private consolidation is implemented as the `run.py stage` CLI
+(nested `810d8c4`). Next
+is its GPU-server smoke, followed by `A→A` versus `A→K→A` with one additional
+client epoch (`PIPELINE_NEXT.md`, *Active P2.3 commands*). Concurrent historical execution
 preserves accuracy validity, but its wall time and memory measurements are not
 eligible for the paper resource table.
 
@@ -143,7 +145,7 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
 | 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
-| 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | highest method gate after Hinton T1; tests deployment after KD versus terminal FedAvg with matched private compute |
+| 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | highest method gate after Hinton T1; `stage` CLI implemented, server runs pending; tests deployment after KD versus terminal FedAvg with matched private compute |
 | 8 | T1 vs recurring T2/T3 server transfer | closed until the endpoint ladder selects a schedule |
 | 9 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 10 | Final method on `alpha=0.1` and a second training seed | after method selection |

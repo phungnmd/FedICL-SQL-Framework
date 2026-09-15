@@ -78,8 +78,9 @@ evaluation lineage. Do not attribute these rerun differences to training.
 
 ## Next decision
 
-1. Implement and smoke the terminal private update with explicit parent
-   adapter fingerprint and a new output root.
+1. Smoke the terminal private update on the GPU server. It is implemented as
+   `run.py stage private` with an explicit parent result row, parent adapter
+   hashes, and a new output root.
 2. Run two independent arms: `A→A` from shared Pure FL T1 and `A→K→A` from
    Hinton T1. Each adds one local epoch per client and one FedAvg; no new
    teacher cache is needed. This matches private compute, not total KD cost.
@@ -91,9 +92,10 @@ evaluation lineage. Do not attribute these rerun differences to training.
 This is exploratory method selection on development sets. Freeze the recipe
 before final robustness evaluation; do not present repeated dev-guided choices
 as independent held-out confirmation. One extra epoch is the first test;
-three epochs are conditional on its outcome. The current round CLI rejects
+three epochs are conditional on its outcome. Because the round CLI rejects
 round-1 initialization from a supplied adapter and requires same-root lineage
-for later rounds, so a documented implementation is needed before launch.
+for later rounds, both arms use the separate `stage` CLI; launch commands are in
+`paper/notes/PIPELINE_NEXT.md`.
 
 ## Artifact map
 
