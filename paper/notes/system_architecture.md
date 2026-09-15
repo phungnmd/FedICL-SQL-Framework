@@ -125,10 +125,14 @@ to BIRD but damages robustness to Spider distribution shifts.
 
 This observation promotes terminal private consolidation from a speculative
 candidate to the next scheduling hypothesis. It does not yet prove that soft
-teacher logits add value: full-BIRD-public gold CE remains the required
-no-logit control. Earlier and headline shared-arm values are retained as
-separate evaluation lineages until their batch-size-8/16 predictions and
-configs are reconciled. Recurring T2/T3 remains closed.
+teacher logits solve retention. The completed no-logit full-BIRD-public gold CE
+control scores 55.0/47.0/43.9/40.9/32.1 on Spider/Realistic/SYN/DK/BIRD;
+Hinton is +3.32/-4.28/+0.68/+4.52/+4.60 points relative to it. Soft logits
+therefore add useful signal on four datasets, but neither public-terminal
+objective preserves the private-domain robustness of Pure FL. Earlier and
+headline shared-arm values are retained as separate evaluation lineages until
+their batch-size-8/16 predictions and configs are reconciled. The next gate is
+terminal private consolidation; recurring T2/T3 remains closed.
 
 ## Evaluation and lineage
 

@@ -60,20 +60,21 @@ an earlier result changes the method hypothesis.
   teacher across Spider, Realistic, SYN, DK and BIRD. Run complete; compact
   publication and batch-size-8/16 reconciliation remain pending.
 - [ ] BIRD public → Spider private/evaluation: matched public gold and
-  teacher-target CE are complete; canonical full-public-gold CE and
-  gold-prefix Hinton-forward-KL headline suite is active; full-gold CE follows
-  as the matched no-logit ablation.
+  teacher-target CE, canonical full-public-gold CE, and gold-prefix
+  Hinton-forward-KL T1 are complete; compact publication remains.
 - [ ] Spider public → BIRD private/evaluation: same ladder with BIRD evidence on
   private/eval rows and explicit source identities.
 - [ ] Start with smoke, then T1; open T3 only for interpretable EX gain.
 - [ ] Test at least one second training seed only after the architecture gate.
 
-P2.2d diagnoses strong public-domain adaptation but poor retention: Hinton is
+P2.2d–f diagnose strong public-domain adaptation but poor retention: Hinton is
 36.70 EX on BIRD (+21.90 over Spider-private Pure FL) and 58.32 on Spider
 (+0.97), but loses 12.20/4.74 points on Realistic/SYN and is essentially flat
-on DK. Full-public-gold CE is therefore the next causal control. The terminal
-FedAvg endpoint is the first method candidate after that control, before seeds
-or recurrent rounds.
+on DK. Full-public-gold CE reaches 55.0/47.0/43.9/40.9/32.1 on
+Spider/Realistic/SYN/DK/BIRD. Hinton beats it on four sets, showing useful
+soft-logit signal, but both terminal public updates forget private-domain
+robustness. The terminal FedAvg endpoint is now the active method candidate,
+before seeds or recurrent rounds.
 
 ## P2.3 — Select or improve the method
 

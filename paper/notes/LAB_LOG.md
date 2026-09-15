@@ -297,3 +297,20 @@ The completed manifests and paths were operator-verified, but compact result
 publication is still pending. Headline batch size 16 also explains why its
 shared-arm numbers must be reconciled rather than silently replacing the
 earlier batch-size-8 matched ladder.
+
+## 2026-09-15 — full-gold CE isolates useful logits but not retention
+
+P2.2f evaluates the full-BIRD-public gold-CE adapter at the same batch size 16
+as the headline suite. EX is 55.0 Spider, 47.0 Realistic, 43.9 SYN, 40.9 DK,
+and 32.1 BIRD. Relative Hinton FKL deltas are +3.32, -4.28, +0.68, +4.52, and
++4.60 points respectively. Forward-KL teacher logits therefore provide signal
+beyond ordinary public gold CE on four of five datasets, most clearly on BIRD,
+DK, and Spider. They do not solve the Realistic regression.
+
+Against Pure FL, full-gold CE loses 2.35/7.92/5.42/4.33 points on
+Spider/Realistic/SYN/DK while gaining 17.30 on BIRD. Together with Hinton, this
+confirms that the main observed failure is the terminal public stage shifting
+the model away from private Spider robustness. P2.3a terminal private
+re-anchoring (`A -> K -> A`) with matched `A -> A` is now the next experiment.
+The BIRD NLTK/hardness warnings affect only EM and hardness diagnostics, not EX.
+Compact training/evaluation publication remains pending.

@@ -13,9 +13,9 @@
 | P2.2b | Spider-public teacher targets for BIRD-private direction | complete: 7,251/8,659 selected |
 | P2.2d | Spider-private/BIRD-public Hinton-FKL T1 headline suite | run complete; compact result publication/audit pending |
 | P2.2c | Reverse matched T1 ladder | run complete; compact result publication/audit pending |
-| P2.2e | Full-BIRD-public gold CE T1 control | training complete; five-set evaluation next |
-| P2.2f | Full-gold CE five-set evaluation | active next GPU job; batch size 16 matched to headline |
-| P2.3a | Implement/audit terminal private FedAvg endpoint | promoted by the P2.2d domain-retention failure |
+| P2.2e | Full-BIRD-public gold CE T1 control | training complete |
+| P2.2f | Full-gold CE five-set evaluation | complete; compact publication pending |
+| P2.3a | Implement/audit terminal private FedAvg endpoint | next active task |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
 
@@ -37,7 +37,15 @@ artifacts have been audited. The current headline evaluation used batch size
 16, so its shared-arm values must not silently overwrite earlier batch-size-8
 rows before prediction/config reconciliation.
 
-## Active next command — evaluate full-public-gold CE on five sets
+P2.2f now isolates the no-logit control. Full-gold CE EX is 55.0 Spider, 47.0
+Realistic, 43.9 SYN, 40.9 DK, and 32.1 BIRD. Hinton improves over that control
+by +3.32/+0.68/+4.52/+4.60 points on Spider/SYN/DK/BIRD, but loses 4.28 on
+Realistic. Thus forward-KL logits contribute beyond public gold CE, while both
+public-terminal updates still damage private-domain robustness relative to
+Pure FL. P2.3a is now the next method task: implement terminal private
+re-anchoring and compare `A -> K -> A` with matched `A -> A`.
+
+## Completed command — evaluate full-public-gold CE on five sets
 
 The P2.2e adapter is complete. Evaluate only that new arm because Pure FL,
 SeqKD, and Hinton predictions already exist from the batch-size-16 headline
