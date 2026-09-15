@@ -85,7 +85,8 @@ the relevant candidates:
   private consolidation stage so the candidate deploys after FedAvg
   (`A -> K -> A`) rather than after public KD (`A -> K`). Implemented as
   composable `run.py stage private|public` chains from committed parent rows
-  (nested `810d8c4`).
+  (nested `810d8c4`, review hardening through `014b118`: parent hashes/Git
+  guards, historical objective validation, and publication recovery).
 - [ ] Smoke `stage private` from the Hinton T1 row on the GPU server.
 - [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
   `A`, `A -> K`, no-KD `A -> A`, and KD/re-anchored `A -> K -> A`.

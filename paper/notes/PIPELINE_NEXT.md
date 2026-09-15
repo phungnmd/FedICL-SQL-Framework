@@ -15,7 +15,7 @@
 | P2.2c | Reverse matched T1 ladder | published and checked: `1b2c46a` |
 | P2.2e | Full-BIRD-public gold CE T1 control | published: `5e4f005` |
 | P2.2f | Full-gold CE five-set evaluation | published and checked: `5e4f005` |
-| P2.3a | Implement composable stage chains (`run.py stage`) | implemented at nested `810d8c4`; server smoke next |
+| P2.3a | Implement composable stage chains (`run.py stage`) | reviewed/hardened through nested `014b118`; server smoke next |
 | P2.3b | Compare `A`, `A→K`, `A→A`, `A→K→A` at T1 | highest method-selection experiment |
 | P2.3c | Select or improve KD/federated mechanism | only after the endpoint gate |
 
@@ -45,11 +45,20 @@ not the next jobs.
 
 ## Active P2.3 commands — terminal private consolidation
 
+Review fixes through nested `014b118`: parent metrics/config must be committed
+and unchanged, and their complete hashes enter the version-2 stage contract.
+Historical reverse-KL/unknown `fedkd` objectives are rejected, not relabeled.
+Interrupted result publication is recoverable without retraining. These fixes
+do not change the P2.2 parents, losses, cache, data, or P2.3 training recipe.
+If a pre-hardening version-1 `stage.json` already exists, preserve that root
+and review it before choosing a new output root; do not silently upgrade or
+delete it. Pull only after any running server jobs have exited.
+
 The fixed `round` CLI cannot append a private stage after KD (same-root lineage,
 one arm per root). Nested `810d8c4` adds the `stage` CLI
 (`fedicl_sql/federated/stage_chain.py`), which runs one primitive stage from a
 committed parent result row. It derives the
-chain from that row (`federated` `fedavg` r1 = `A`, `fedkd` r1 = `A>K[fkl]`),
+chain from that row (`federated` `fedavg` r1 = `A`, verified Hinton `fedkd` r1 = `A>K[fkl]`),
 hashes the parent adapter, and writes an immutable `<out>/stage.json` plus one
 `experiments/federated/results/federated_stage__<chain>__...` row. `round`,
 `run`, and every published setup/run ID are unchanged.
@@ -59,7 +68,7 @@ the worktree. The smoke caps each client at two steps from the Hinton T1 parent
 and checks the derived chain.
 
 ```powershell
-$Scope=@('fedicl_sql','experiments','scripts','tests','processed_data/protocol_v2','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty; review before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 810d8c4 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Checkout does not contain stage-chain commit 810d8c4' }; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_smoke/a_k_a_steps2_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --client-max-steps 2 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_smoke_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'P2.3 smoke failed; inspect the error before any full run' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or $St.parent.run_id -ne 'federated__fedkd__s0__55c03ff12654__8a1e6694__r1' -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected smoke contract: chain=$($St.chain)" }; Write-Host "P2.3 smoke passed at $((git rev-parse --short HEAD).Trim()): chain=$($St.chain) stage_id=$($St.stage_id)"
+$Scope=@('fedicl_sql','experiments','scripts','tests','processed_data/protocol_v2','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty; review before pull' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 014b118 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Checkout does not contain stage-chain commit 014b118' }; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_smoke/a_k_a_steps2_s0'; uv run python experiments/federated/run.py stage private --aggregation-protocol plaintext --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --client-max-steps 2 --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_smoke_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'P2.3 smoke failed; inspect the error before any full run' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.version -ne 2 -or $St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or $St.parent.run_id -ne 'federated__fedkd__s0__55c03ff12654__8a1e6694__r1' -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected smoke contract: chain=$($St.chain)" }; Write-Host "P2.3 smoke passed at $((git rev-parse --short HEAD).Trim()): chain=$($St.chain) stage_id=$($St.stage_id)"
 ```
 
 After the smoke passes, remove its untracked scratch outputs. The row filter
@@ -75,13 +84,13 @@ exact-rerun safe; do not pull or commit until both exit.
 GPU 0, matched no-KD control `A>A` (parent: Pure FL T1):
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedavg__s0__935d572565cc__154540d3__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>A' -or $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>A contract: chain=$($St.chain)" }; Write-Host 'GPU-0 complete: A>A trained'
+$env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedavg__s0__935d572565cc__154540d3__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0'; uv run python experiments/federated/run.py stage private --aggregation-protocol plaintext --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.version -ne 2 -or $St.chain -ne 'A>A' -or $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>A contract: chain=$($St.chain)" }; Write-Host 'GPU-0 complete: A>A trained'
 ```
 
 GPU 1, candidate `A>K[fkl]>A` (parent: Hinton T1):
 
 ```powershell
-$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0'; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>K>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>K>A contract: chain=$($St.chain)" }; Write-Host 'GPU-1 complete: A>K[fkl]>A trained'
+$env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $R='experiments/federated/results/federated__fedkd__s0__55c03ff12654__8a1e6694__r1'; $O='artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0'; uv run python experiments/federated/run.py stage private --aggregation-protocol plaintext --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p23_spider_private_a_k_a --out $O; if ($LASTEXITCODE -ne 0) { throw 'A>K>A stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.version -ne 2 -or $St.chain -ne 'A>K[fkl]>A' -or -not $St.contains_kd -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected A>K>A contract: chain=$($St.chain)" }; Write-Host 'GPU-1 complete: A>K[fkl]>A trained'
 ```
 
 **3. Evaluate both new adapters on five sets (batch size 16).** Pure FL (`A`)

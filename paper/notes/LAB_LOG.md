@@ -363,3 +363,22 @@ exist only on the GPU server, so the Mac check confirmed only CLI wiring and
 parsing of the real Windows-path Hinton row. Next: server smoke, then `A>A` and
 `A>K[fkl]>A` on two GPUs and the five-set batch-size-16 evaluation
 (`PIPELINE_NEXT.md`, *Active P2.3 commands*).
+
+## 2026-09-15 — stage-chain review fixes
+
+- `4961fb6`: validate result pairs on resume; recover incomplete publication
+  without retraining, retain interrupted bytes, and exclude resumed timing.
+- `ecfcd5a`: bind complete parent metrics/config SHA256 values; require both
+  files committed and unchanged. Infer Hinton only from recorded server
+  `kd_direction=fkl`; reject historical reverse-KL/unknown parents.
+- `014b118`: atomic version-2 stage contracts and explicit plaintext private
+  aggregation. Version-1 roots are not silently migrated; preserve and inspect
+  any already-created roots before selecting a new one.
+
+Validation: 86 targeted CPU/mock tests passed across stage chains, round loop,
+checkpoint/result recovery, dataset profiles, and federated splits. Tests use
+the real published P2.3 FL/Hinton parent rows, cover Git CRLF checkout and
+committed/uncommitted parent drift, and simulate interrupted publication.
+Ruff and private-stage CLI help passed. No GPU training was run locally.
+Scientific settings, existing round results/adapters, and teacher cache are
+unchanged. Next remains P2.3 server smoke, then matched `A>A` / `A>K[fkl]>A`.
