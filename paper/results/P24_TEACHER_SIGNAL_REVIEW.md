@@ -39,7 +39,13 @@ teacher logits.
 
 ## Decision
 
-Do not launch recurrent Hinton or `K2[fkl]` alone. First test whether the other
+Updated priority: P2.4c tests full-public CE versus Hinton at two planned
+epochs, before and after terminal A. This is a matched depth experiment:
+the one-epoch non-significant result does not demonstrate equivalence or rule
+out under-training. The SeqKD test described below is deferred until this
+depth comparison. Unmatched Hinton-only depth and recurrence remain deferred.
+
+Do not launch recurrent Hinton or `K2[fkl]` alone. A later test asks whether the other
 standard teacher channel survives terminal consolidation: append the same
 private `A` to the published 5,319-row SeqKD and matched-gold parents. This
 holds selected rows, private compute, aggregation, and evaluation fixed while

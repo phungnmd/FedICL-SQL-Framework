@@ -13,11 +13,20 @@
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
   reaching 66.63 Spider and 31.03 BIRD EX. However, it does not reliably beat
   `A>K[ce]>A`; the result is not soft-logit-specific.
-- Next: terminal SeqKD versus terminal 5,319-row matched-gold CE. Repeated-K
-  schedules remain deferred until a teacher channel passes this causal gate.
+- Next: P2.4c matched gold CE versus Hinton at two public epochs, evaluated
+  before and after identical one-epoch terminal A stages. Terminal SeqKD is
+  deferred. The one-epoch result does not rule out a KD-depth effect.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-16 — P2.4a does not isolate retained Hinton value
+
+Follow-up decision: test the under-training hypothesis first with matched
+two-epoch public CE/Hinton from the same FL parent. P2.4c uses fresh roots,
+the existing 9,428-row cache, and planned two-epoch schedules. Both public and
+terminal-private endpoints are evaluated. Phase-1 publication is required
+before terminal A because stage parents must be committed. Earlier advice
+to defer all Hinton depth experiments was too strong; non-significance at
+one epoch is not evidence of equivalence. SeqKD remains available afterward.
 
 Nested commit `ccb3e91` publishes `A>K[ce]>A` and five row-matched evaluations.
 CE/Hinton EX is 66.54/66.63 Spider, 57.28/57.09 Realistic, 54.45/55.32 SYN,

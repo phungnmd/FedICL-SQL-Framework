@@ -8,7 +8,8 @@
 | P0 | Is the result direction-dependent? | BIRD→Spider and Spider→BIRD with explicit roles/profiles | both CE/SeqKD ladders published; reverse SeqKD +1.57 pp; reverse Hinton untested |
 | P0 | Can a final private stage retain both domains? | `A→A` vs `A→K→A`, one additional local epoch | passed at seed 0: terminal Hinton wins all five absolute comparisons; Realistic paired delta remains uncertain |
 | P0 | Does the final stage retain Hinton soft-logit value? | `A→K[ce]→A` vs `A→K[fkl]→A` | complete: no reliable advantage on any set; four-set mean +0.05 pp |
-| P0 | Does sequence-level teacher signal survive the final stage? | selected-row matched gold `A→K[ce]→A` vs SeqKD `A→K[seq]→A` | active next causal control; same 5,319 rows and terminal private compute |
+| P0 | Was one public epoch insufficient? | full-public `A→K2[ce]` vs `A→K2[fkl]`, then identical terminal A | active P2.4c; same FL parent and 9,428 rows, two epochs planned from step zero |
+| P0 | Does sequence-level teacher signal survive the final stage? | selected-row matched gold `A→K[ce]→A` vs SeqKD `A→K[seq]→A` | deferred after matched K2; same 5,319 rows and terminal private compute |
 | P1 | Can repeated transfer move the Pareto frontier? | depth/recurrent schedule using the teacher channel that passes the causal gate | deferred; do not repeat Hinton unchanged |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |

@@ -7,6 +7,11 @@
 
 ## Research target
 
+Current queue update (2026-09-16): prioritize P2.4c, matched two-epoch
+full-public CE/Hinton, with evaluation before and after terminal A. This tests
+under-training and retention separately. Terminal SeqKD below is deferred;
+the one-epoch result does not establish CE/Hinton equivalence.
+
 FedLS-SQL studies whether server-side LLM-to-SLM collaboration can improve an
 SLM trained across private federated Text-to-SQL clients while retaining SLM
 deployment and adapter-only communication.

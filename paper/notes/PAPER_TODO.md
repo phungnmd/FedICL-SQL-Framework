@@ -103,16 +103,19 @@ the relevant candidates:
 - [x] Run full-public `A→K[ce]→A` against `A→K[fkl]→A`. Hinton changes the
   four-set Spider-family mean by only +0.05 point and has no significant
   paired advantage; do not attribute the endpoint to soft logits.
-- [ ] Run terminal SeqKD against terminal matched-gold CE on the same 5,319
-  selected rows. This is the next teacher-signal gate.
+- [ ] First run P2.4c: two public epochs of full-gold CE versus Hinton from
+  the same FL parent, evaluated both before and after terminal A. This tests
+  under-training versus loss of teacher signal during private consolidation.
+- [ ] Terminal SeqKD against matched gold on 5,319 selected rows is deferred
+  until the matched two-epoch depth result.
 - [ ] Only if a teacher channel passes its terminal causal gate, compare KD
   depth, extra private training, and recurrence with the corresponding matched
   no-teacher control.
 - [ ] Keep multi-local-epoch `A[e2/e3]` closed unless the one-epoch schedule
   screen identifies a specific under-training failure; non-IID client drift is
   the current stronger prior.
-- [ ] Keep `A→K→A→K→A`, `A→K2→A`, and their controls deferred until the
-  terminal SeqKD gate identifies a teacher-specific signal worth repeating.
+- [ ] Keep recurrent `A→K→A→K→A` deferred until the matched K2 comparison
+  identifies a useful effect; `A→K2→A` and its CE control are active P2.4c.
 - [ ] Defer GKD, MiniLLM, and fresh RKL until the schedule gate identifies a
   remaining KD-specific failure.
 - target construction/selection if teacher targets fail despite good teacher EX;

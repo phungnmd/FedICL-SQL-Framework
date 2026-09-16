@@ -50,8 +50,10 @@ matched full-public control reaches 66.54/57.28/54.45/51.21/29.53 EX for
 `A>K[ce]>A`. Hinton differs by +0.09/−0.19/+0.87/−0.56/+1.50 points, with no
 paired test below `p=.10`; its four-set Spider-family mean advantage is only
 +0.05 point. The endpoint gain therefore cannot currently be attributed to
-soft logits. The next gate is terminal SeqKD versus its 5,319-row matched-gold
-control; repeated Hinton schedules are deferred.
+soft logits. The next gate is matched two-epoch public CE/Hinton before and
+after terminal A (P2.4c), testing whether the one-epoch result reflects
+insufficient KD or loss of its signal during private consolidation. Terminal
+SeqKD and recurrent schedules are deferred.
 
 ## Independent retained evidence
 

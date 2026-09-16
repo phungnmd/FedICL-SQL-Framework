@@ -1,0 +1,70 @@
+# Deferred P2.4b queue — superseded by matched K2 test
+
+Not active. Preserved for later consideration.
+
+# FedLS-SQL — active protocol-v2 queue
+
+> Run from the `fedicl-sql/` repository root on the Windows experiment server.
+> Every PowerShell block is one physical line and owns all variables it uses.
+> Exact reruns resume/skip under immutable roots. Do not change Git while a GPU
+> command is running. Publication is a separate operator action.
+
+## Current decision
+
+P2.4a is complete at nested result commit `ccb3e91`. Full-public
+`A>K[fkl]>A` does not reliably beat `A>K[ce]>A`: the four-set Spider-family
+mean changes by only +0.05 point and no paired test has `p<.10`. Do not run
+Hinton K2 or recurrence unchanged.
+
+The next gate tests the other standard teacher channel. Both lanes use the
+same 5,319 execution-selected BIRD rows and append the same one-epoch terminal
+Spider-private/FedAvg stage:
+
+| GPU | Parent | Terminal endpoint | Purpose |
+|---:|---|---|---|
+| 0 | selected-row matched gold | `A>K[ce]>A` | no-teacher sequence control |
+| 1 | teacher-generated SQL | `A>K[seq]>A` | test whether SeqKD signal survives consolidation |
+
+The stage-chain metadata labels both public stages `K[ce]` because both are
+trained by sequence CE. Their immutable parent pool paths distinguish gold
+versus teacher-generated targets.
+
+## P2.4b — terminal SeqKD causal gate
+
+**Sync once before launching either GPU lane.**
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only; if ($LASTEXITCODE -ne 0) { throw 'Git pull failed' }; git merge-base --is-ancestor ccb3e91 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Expected nested result commit ccb3e91 or a descendant' }; if (@(git status --porcelain --untracked-files=no).Count -ne 0) { git status --short; throw 'Tracked worktree is dirty' }; git log -1 --oneline
+```
+
+**GPU 0 — matched selected-gold terminal control and five-set evaluation.**
+
+```powershell
+$ErrorActionPreference='Stop'; git merge-base --is-ancestor ccb3e91 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Pull ccb3e91 before P2.4b' }; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__4d679d6668dd__37fd379d__r1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2_gold/train.csv'; $O='artifacts/protocol_v2/p24_selected_terminal/matched_gold_s0'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence'}); foreach ($X in @("$R/metrics.json","$R/config.json",$S,$P)) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing matched-gold prerequisite: $X" } }; $RC=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; if ($RC.pool -ne $P -or $RC.pool_size -ne 0 -or $RC.server_dataset_profile -ne 'bird_with_evidence') { throw 'Matched-gold parent contract mismatch' }; $Scope=@('fedicl_sql','experiments','scripts','pyproject.toml','uv.lock',$R,$S,$P); foreach ($Set in $Sets) { $Scope+=@($Set.Train,$Set.Test) }; $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty' }; uv run python experiments/federated/run.py stage private --aggregation-protocol plaintext --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p24_selected_gold_terminal_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'Selected-gold terminal training stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[ce]>A' -or $St.recipe.local_epochs -ne 1 -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected selected-gold terminal contract: $($St.chain)" }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p24_selected_gold_terminal_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "selected_gold_terminal=$O/fedavg_adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "Selected-gold terminal eval failed: $($Set.Name); rerun this exact line" } }; Write-Host 'GPU-0 complete: selected-row matched-gold terminal endpoint evaluated on five sets'
+```
+
+**GPU 1 — SeqKD terminal endpoint and five-set evaluation.**
+
+```powershell
+$ErrorActionPreference='Stop'; git merge-base --is-ancestor ccb3e91 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Pull ccb3e91 before P2.4b' }; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__2b42f25abe82__9c5906d8__r1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2/train.csv'; $O='artifacts/protocol_v2/p24_selected_terminal/seqkd_s0'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence'}); foreach ($X in @("$R/metrics.json","$R/config.json",$S,$P)) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing SeqKD prerequisite: $X" } }; $RC=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; if ($RC.pool -ne $P -or $RC.pool_size -ne 0 -or $RC.server_dataset_profile -ne 'bird_with_evidence') { throw 'SeqKD parent contract mismatch' }; $Scope=@('fedicl_sql','experiments','scripts','pyproject.toml','uv.lock',$R,$S,$P); foreach ($Set in $Sets) { $Scope+=@($Set.Train,$Set.Test) }; $Dirty=@(git status --porcelain --untracked-files=no -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific scope is dirty' }; uv run python experiments/federated/run.py stage private --aggregation-protocol plaintext --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p24_seqkd_terminal_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'SeqKD terminal training stopped; rerun this exact line' }; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[ce]>A' -or $St.recipe.local_epochs -ne 1 -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "Unexpected SeqKD terminal contract: $($St.chain)" }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p24_seqkd_terminal_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "seqkd_terminal=$O/fedavg_adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "SeqKD terminal eval failed: $($Set.Name); rerun this exact line" } }; Write-Host 'GPU-1 complete: SeqKD terminal endpoint evaluated on five sets'
+```
+
+**Publish only after both GPU lanes finish.**
+
+```powershell
+$ErrorActionPreference='Stop'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty' }; $Specs=@(@{Label='p24_selected_gold_terminal_s0';Out='artifacts/protocol_v2/p24_selected_terminal/matched_gold_s0';Arm='selected_gold_terminal';Tag='p24_selected_gold_terminal'},@{Label='p24_seqkd_terminal_s0';Out='artifacts/protocol_v2/p24_selected_terminal/seqkd_s0';Arm='seqkd_terminal';Tag='p24_seqkd_terminal'}); $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider'},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider'},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider'},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider'},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence'}); $Files=[System.Collections.Generic.List[string]]::new(); foreach ($Spec in $Specs) { $St=Get-Content -LiteralPath "$($Spec.Out)/stage.json" -Raw | ConvertFrom-Json; if ($St.chain -ne 'A>K[ce]>A') { throw "Unexpected chain for $($Spec.Label): $($St.chain)" }; $Hits=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Directory -Filter 'federated_stage__*' | Where-Object { try { $M=Get-Content -LiteralPath (Join-Path $_.FullName 'metrics.json') -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath (Join-Path $_.FullName 'config.json') -Raw | ConvertFrom-Json; $M.stage_id -eq $St.stage_id -and $M.stage -eq $Spec.Label -and $C.out -eq $Spec.Out } catch { $false } }); if ($Hits.Count -ne 1) { throw "Expected one result for $($Spec.Label), found $($Hits.Count)" }; $Files.Add((Join-Path $Hits[0].FullName 'metrics.json')); $Files.Add((Join-Path $Hits[0].FullName 'config.json')); $A="$($Spec.Out)/fedavg_adapter"; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/$($Spec.Tag)_$($Set.Name)_s0/eval_k0"; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 1 -and @($C.arms).Count -eq 1 -and $C.arms[0] -eq "$($Spec.Arm)=$A" -and $C.centralized_train -eq $Set.Train -and $C.test_csv -eq $Set.Test -and $C.dataset_profile -eq $Set.Profile -and $C.resume_dir -eq $E } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one exact eval for $($Spec.Tag)/$($Set.Name), found $($Done.Count)" }; $V=Get-Content -LiteralPath $Done[0].FullName -Raw | ConvertFrom-Json; $Files.Add([string]$V.artifacts.metrics); $Files.Add([string]$V.artifacts.config); $Files.Add([string]$V.artifacts.predictions[0]) } }; $Sep=[IO.Path]::DirectorySeparatorChar; $Root=(Resolve-Path -LiteralPath '.').Path.TrimEnd($Sep)+$Sep; $Rel=@($Files | ForEach-Object { $F=(Resolve-Path -LiteralPath $_).Path; if (-not $F.ToLowerInvariant().StartsWith($Root.ToLowerInvariant())) { throw "Outside repository: $F" }; $F.Substring($Root.Length).Replace([string]$Sep,'/') } | Sort-Object -Unique); git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.4b staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.4b staged allowlist mismatch' }; git commit -m 'results: publish terminal sequence KD control'; if ($LASTEXITCODE -ne 0) { throw 'P2.4b commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'P2.4b push failed' }; git log -1 --oneline
+```
+
+## Promotion gate after P2.4b
+
+Compare SeqKD minus matched gold on the committed row-matched predictions.
+Promote sequence KD to a schedule/depth screen only if it gains at least
+`+1.0` BIRD EX point, improves the unweighted four-set Spider-family mean by
+at least `+0.5` point, and has no individual Spider-family regression worse
+than `−1.0` point. Report exact paired wins/losses and McNemar tests regardless
+of the gate.
+
+If the gate passes, design matched sequence-KD depth/recurrent arms before
+running them. If it fails, keep Hinton/SeqKD recurrence closed and move to a
+new KD mechanism with an explicit no-teacher control. `A[e2/e3]` remains
+closed; every private stage uses one local epoch.
