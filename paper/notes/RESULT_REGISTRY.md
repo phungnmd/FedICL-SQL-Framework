@@ -16,13 +16,15 @@ and missing controls is `VALID_RESULTS_AND_ADAPTERS.md`.
 | `v2.spider.fl` | shared T1 accepted: 57.35 EX | `ec5b5e1`, batch size 16; earlier T1–T3 baselines retained separately |
 | `v2.bird_to_spider.reference` | accepted: five-set headline and full-gold control | `ec5b5e1`, `5e4f005`; batch size 16; Hinton/CE share 9,428 BIRD rows |
 | `v2.spider_to_bird.reference` | accepted: FL/gold/SeqKD 22.88/20.73/24.45 EX | `1b2c46a`; BIRD dev with evidence |
+| `v2.bird_to_spider.terminal` | accepted seed-0 endpoint ladder: `A>A` and `A>K[fkl]>A` on five sets | nested `2a6e04c`; producer `362aced`; paired review in `P23_TERMINAL_CONSOLIDATION_REVIEW.md` |
 
 Exact run directories and paired checks are in `paper/results/P22_TRANSFER_REVIEW.md`;
 retained adapter paths are in `VALID_RESULTS_AND_ADAPTERS.md`. Publication is
 complete. Earlier and current Spider shared-arm evaluations are separately
-identified by batch size and prediction lineage. Terminal private consolidation
-is implemented (`run.py stage`, nested `810d8c4`) but has no result yet; its stage rows are
-registered only after publication.
+identified by batch size and prediction lineage. Terminal consolidation is
+published: `A>K[fkl]>A` reaches 66.63 Spider and 31.03 BIRD EX, while matched
+`A>A` reaches 62.57 and 16.49. This remains seed-0 method-selection evidence;
+the gold-CE terminal control and schedule selection are pending.
 
 ## Protocol-v2 audits
 

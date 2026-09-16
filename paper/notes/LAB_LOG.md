@@ -4,15 +4,16 @@
 
 - Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
-- Method status: open. Reference = client LoRA -> FedAvg -> one public stage
-  (SeqKD, or full public-gold CE + Hinton forward KL); deployment ends at KD.
+- Method status: open. Current candidate = Spider-private `A` -> BIRD-public
+  Hinton `K[fkl]` -> terminal Spider-private `A`; deployment ends after FedAvg.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
-  control (`5e4f005`).
-- Finding: the public stage lifts BIRD strongly and Spider slightly but loses
-  Spider-variant robustness (Realistic/SYN).
-- Next: P2.3 terminal private consolidation, `A>A` versus `A>K[fkl]>A`, via
-  the `run.py stage` CLI; GPU-server smoke first.
+  control (`5e4f005`), and P2.3 terminal endpoints (`2a6e04c`).
+- Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
+  reaching 66.63 Spider and 31.03 BIRD EX. It is promising but not yet
+  teacher-logit-specific or multi-seed evidence.
+- Next: `A>K[ce]>A` causal control, then compare terminal-local depth against
+  recurrent `A>K>A>K>A` with matched private-training controls.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-16 — separate active queue from completed runbooks
@@ -62,6 +63,30 @@ code-SHA changes are not silently ignored by eval checkpoints.
 Validation: 76 targeted tests passed, including 16 same-second concurrent
 publications, forced UUID-collision recovery, and completed-manifest skip for
 both old and new directory names. Ruff passed. No GPU run performed locally.
+
+## 2026-09-16 — P2.3 terminal consolidation passes the seed-0 gate
+
+Nested result commit `2a6e04c` publishes the smoke, `A>A`, `A>K[fkl]>A`, and
+ten five-set evaluation records. EX for `A>A` versus `A>K[fkl]>A` is
+62.57/66.63 Spider, 55.31/57.09 Realistic, 52.22/55.32 SYN, 47.10/50.65 DK,
+and 16.49/31.03 BIRD. Exact paired McNemar p-values for the terminal-Hinton
+advantage are 0.000359/0.3557/0.00808/0.01834/<1e-40. The Realistic delta is
+positive but not individually significant; all claims remain seed 0.
+
+The result is more than a terminal-A recovery effect because the final Hinton
+chain beats matched-private-compute `A>A` on every evaluation. Against teacher
+7B it closes 48.0/13.4/41.4/31.5/50.3 percent of the Pure-FL gap on
+Spider/Realistic/SYN/DK/BIRD. It does not establish teacher parity.
+
+Before recurrent expansion, run `A>K[ce]>A` from the published full-gold CE
+parent. If Hinton remains better, compare two different scheduling hypotheses:
+`A>K>A[e3]` means three local epochs inside one terminal client stage and one
+FedAvg, whereas `A>K>A>K>A` adds a second public KD stage and another private
+communication round. The recurrent candidate requires `A>K>A>A` as its direct
+same-private-compute control and `A>A>A` as the no-KD control. Evaluate the
+intermediate `A>K>A>K` endpoint to distinguish cumulative transfer from simple
+Spider/BIRD oscillation. Detailed evidence is in
+`paper/results/P23_TERMINAL_CONSOLIDATION_REVIEW.md`.
 
 ## 2026-09-10 — official BIRD timeout closure
 

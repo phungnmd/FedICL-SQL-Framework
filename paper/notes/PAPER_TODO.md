@@ -87,23 +87,28 @@ the relevant candidates:
   composable `run.py stage private|public` chains from committed parent rows
   (nested `810d8c4`, review hardening through `014b118`: parent hashes/Git
   guards, historical objective validation, and publication recovery).
-- [ ] Smoke `stage private` from the Hinton T1 row (running per user report
-  2026-09-16); retain its compact evidence for final publication.
-- [ ] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
+- [x] Smoke `stage private` from the Hinton T1 row and publish its compact
+  evidence (`2a6e04c`).
+- [x] Run the one-local-epoch matched endpoint ladder from the same T1 lineage:
   `A`, `A -> K`, no-KD `A -> A`, and KD/re-anchored `A -> K -> A`.
   GPU 0: `A>A`; GPU 1: `A>K[fkl]>A`. Each single-line lane automatically
   continues to five-set evaluation. Both train and eval are parallel after
   syncing `362aced` (UUID result names); no mutex. Keep Git unchanged until both entire lanes exit, then
   publish smoke + full results together. No manual train-to-eval gate.
-- [ ] Promote terminal FedAvg only if `A -> K -> A` improves Spider/variant EX
+- [x] Promote terminal FedAvg as the seed-0 candidate because `A -> K -> A` improves Spider/variant EX
   over both `A -> K` and matched-compute `A -> A`, while retaining useful BIRD
-  transfer. Account for its extra client round and adapter communication.
-- [ ] Test three private re-anchoring epochs only after the one-epoch gate;
-  stop if they overwrite the KD gain or increase client drift.
-- [ ] If consolidation helps, add `A→gold CE→A` to isolate the teacher's
-  contribution at the final endpoint; then freeze the recipe before confirmation.
-- [ ] Defer recurrent `(A -> K)^T`, GKD, MiniLLM, and fresh RKL until the
-  endpoint gate identifies whether the primary weakness is KD or scheduling.
+  transfer. Its terminal round adds 369,555,560 upload and 369,555,400
+  broadcast bytes; shared-server wall time is not paper-comparable.
+- [ ] Run `A→K[ce]→A` next to isolate the teacher-logit contribution at the
+  final endpoint.
+- [ ] If logits retain value, compare terminal depth `A→K→A[e3]` against its
+  matched no-KD control. This is one three-local-epoch client stage and one
+  FedAvg, not three federated rounds.
+- [ ] Test recurrent `A→K→A→K→A` against direct control `A→K→A→A` and pure-FL
+  `A→A→A`. Evaluate intermediate `A→K→A→K`; stop if the trajectory merely
+  oscillates between Spider and BIRD or fails to improve the final frontier.
+- [ ] Defer GKD, MiniLLM, and fresh RKL until the schedule gate identifies a
+  remaining KD-specific failure.
 - target construction/selection if teacher targets fail despite good teacher EX;
 - SeqKD (sequence level) versus canonical full-data Hinton forward KL (token
   level); do not confound this comparison with a combined SeqKD+Hinton arm;

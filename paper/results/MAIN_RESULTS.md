@@ -1,7 +1,8 @@
 # FedLS-SQL — protocol-v2 paper result tables
 
-Published P2.2 evidence checked 2026-09-15. Source paths, comparison limits,
-and paired counts: [P22_TRANSFER_REVIEW.md](P22_TRANSFER_REVIEW.md).
+Published P2.2/P2.3 evidence checked 2026-09-16. Source paths, comparison
+limits, and paired counts: [P22_TRANSFER_REVIEW.md](P22_TRANSFER_REVIEW.md)
+and [P23_TERMINAL_CONSOLIDATION_REVIEW.md](P23_TERMINAL_CONSOLIDATION_REVIEW.md).
 
 ## Main accuracy table
 
@@ -25,10 +26,28 @@ BIRD-private / Spider-public on BIRD dev: Pure FL T1 **22.88**, matched gold
 CE **20.73**, SeqKD **24.45** EX. Separately trained BIRD baselines:
 base 15.97, centralized E1/E2 31.42/34.94, pure FL T1/T2/T3 22.75/28.36/31.10.
 
+## Terminal private consolidation
+
+Seed-0 EX (%). `A>K>A` and `A>A` add the same one-client-epoch terminal
+private/FedAvg stage to their respective T1 parents.
+
+| Evaluation | `A` | `A>K[fkl]` | `A>A` | `A>K[fkl]>A` | Teacher 7B |
+|---|---:|---:|---:|---:|---:|
+| Spider | 57.35 | 58.32 | 62.57 | **66.63** | 76.69 |
+| Realistic | 54.92 | 42.72 | 55.31 | **57.09** | 71.06 |
+| SYN | 49.32 | 44.58 | 52.22 | **55.32** | 63.83 |
+| DK | 45.23 | 45.42 | 47.10 | **50.65** | 62.43 |
+| BIRD dev, evidence | 14.80 | **36.70** | 16.49 | **31.03** | 47.07 |
+
+The terminal Hinton chain beats matched-compute `A>A` on all five evaluations,
+with paired significance on Spider, SYN, DK, and BIRD. It closes
+13.4%–50.3% of the Pure-FL-to-teacher gap depending on the evaluation, but is
+not teacher-parity evidence. One seed is insufficient for a reliability claim.
+
 EX is primary. EM is reported only as a secondary SQL-form diagnostic. The
-final method remains under selection. Hinton improves on full-gold CE on four
-sets, but does not preserve FL robustness on Realistic/SYN. Next is terminal
-private consolidation `A→K→A` versus matched-private-budget `A→A`.
+method remains under selection until `A>K[ce]>A` isolates soft-logit value.
+After that control, compare stronger terminal-local consolidation with a true
+recurrent `A>K>A>K>A` schedule and matched private-training controls.
 
 ## Independent retained evidence
 

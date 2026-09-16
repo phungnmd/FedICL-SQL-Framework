@@ -75,7 +75,7 @@ server KD stage. The current T1 endpoint is therefore `A -> K`; recurrent
 rounds follow `(A -> K)^T` and also end at `K`. This is an implementation fact,
 not a frozen architectural choice.
 
-The highest-priority endpoint candidate adds one private consolidation stage
+The current seed-0 endpoint candidate adds one private consolidation stage
 after KD and deploys the resulting aggregate:
 
 ```text
@@ -89,8 +89,24 @@ Its T1 form is `A -> K -> A`. It tests whether the public BIRD KD gain can be
 retained while the final Spider-private update restores the deployment-domain
 input distribution. Because it adds private training and communication, it
 must be compared with the matched no-KD control `A -> A`, not only with `A`
-and `A -> K`. Start with one local epoch; a three-epoch consolidation is opened
-only if the one-epoch result helps without erasing public transfer.
+and `A -> K`. Seed-0 P2.3 passes this gate: `A>K[fkl]>A` beats `A>A` on all
+five evaluations. The remaining causal and schedule questions are open.
+
+Two follow-up schedules must not be conflated:
+
+```text
+terminal local depth: A -> K -> A[e3]
+recurrent transfer:   A -> K -> A -> K -> A
+```
+
+`A[e3]` means each client trains three local epochs before one FedAvg, matching
+the medical-style terminal consolidation pattern and adding no second public
+stage. Recurrent transfer adds a second public KD stage and another one-epoch
+private/FedAvg stage. Its direct control is `A>K>A>A`; `A>A>A` is the pure-FL
+control at the same number of private stages. The intermediate `A>K>A>K`
+checkpoint is evaluated to detect domain oscillation. Recurrence is promoted
+only if the final Pareto frontier improves beyond `A>K>A`, rather than BIRD
+rising at `K` and Spider merely returning at the following `A`.
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
 CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
@@ -102,9 +118,9 @@ Historical reverse KL and KID remain archived; GKD/on-policy KD, MiniLLM, or a
 fresh RKL lineage may be considered only after the standard baselines diagnose
 a concrete remaining failure.
 
-After the rerun, the method-improvement queue is adaptive. The first gate is
-now the terminal checkpoint comparison `A`, `A -> K`, `A -> A`, and
-`A -> K -> A`. Candidate changes
+After the rerun, the method-improvement queue is adaptive. The first gate was
+the terminal checkpoint comparison `A`, `A -> K`, `A -> A`, and
+`A -> K -> A`; it passed at seed 0. Candidate changes
 must target a measured failure, use a matched compute/data control, and pass a
 predeclared EX gate before full runs. KD and federated mechanisms may both
 change; failed v1 branches are not automatically reopened.
@@ -123,9 +139,11 @@ but falls from 54.92 to 42.72 on Realistic and from 49.32 to 44.58 on SYN; DK
 is effectively flat (45.23 to 45.42). Thus the public update transfers strongly
 to BIRD but damages robustness to Spider distribution shifts.
 
-This observation promotes terminal private consolidation from a speculative
-candidate to the next scheduling hypothesis. It does not yet prove that soft
-teacher logits solve retention. The completed no-logit full-BIRD-public gold CE
+This observation motivated terminal private consolidation. P2.3 now shows
+that `A>K[fkl]>A` reaches 66.63/57.09/55.32/50.65/31.03 on
+Spider/Realistic/SYN/DK/BIRD, versus 62.57/55.31/52.22/47.10/16.49 for
+matched `A>A`. It does not yet prove that soft teacher logits solve retention.
+The completed no-logit full-BIRD-public gold CE
 control scores 55.03/47.05/43.91/40.93/32.14 on Spider/Realistic/SYN/DK/BIRD;
 Hinton is +3.29/−4.33/+0.67/+4.49/+4.56 points relative to it. This supports
 the combined Hinton recipe on four datasets, but neither public-terminal
@@ -135,10 +153,11 @@ rows for FL/SeqKD; preserve those evaluation lineages separately. The sole
 cause of that rerun drift has not been established.
 
 Reverse BIRD-private/Spider-public FL/gold/SeqKD reaches 22.88/20.73/24.45 EX.
-All three result commits are published and audited (`5e4f005`, `1b2c46a`,
-`ec5b5e1`); see `paper/results/P22_TRANSFER_REVIEW.md`. The next gate is
-terminal private consolidation; recurring T2/T3 remains closed. The exact
-mechanism of the robustness loss remains a hypothesis, not a proven prompt defect.
+The reference and terminal result commits are published and audited
+(`5e4f005`, `1b2c46a`, `ec5b5e1`, `2a6e04c`); see the P2.2 and P2.3 reviews.
+The next gate is `A>K[ce]>A`, followed by a controlled terminal-depth versus
+recurrent-schedule screen. The exact mechanism of the robustness loss remains
+a hypothesis, not a proven prompt defect.
 
 ## Evaluation and lineage
 

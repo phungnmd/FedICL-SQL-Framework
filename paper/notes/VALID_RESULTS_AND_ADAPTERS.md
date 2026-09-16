@@ -57,14 +57,13 @@ splits and must not be presented as the same statistic.
 
 ## Current execution state
 
-P2.2c–f are complete and published (`5e4f005`, `1b2c46a`, `ec5b5e1`).
-Counts, EX, paired row identities, and prompt parity have been checked locally.
-Terminal private consolidation is implemented as the `run.py stage` CLI
-(nested `810d8c4`). Next
-is its GPU-server smoke, followed by `A→A` versus `A→K→A` with one additional
-client epoch (`PIPELINE_NEXT.md`, *Active P2.3 commands*). Concurrent historical execution
-preserves accuracy validity, but its wall time and memory measurements are not
-eligible for the paper resource table.
+P2.2c–f and P2.3 are complete and published (`5e4f005`, `1b2c46a`,
+`ec5b5e1`, `2a6e04c`). Counts, EX, paired row identities, prompt parity, and
+stage-parent hashes have been checked. `A>K[fkl]>A` passed the seed-0 endpoint
+gate against `A>A`; `A>K[ce]>A` is now required before attributing the final
+gain to teacher logits. Concurrent historical execution preserves accuracy
+validity, but its wall time and memory measurements are not eligible for the
+paper resource table.
 
 ### Published P2.2 headline and full-public-gold control
 
@@ -92,6 +91,21 @@ Use the batch-size-16 headline rows for current comparisons. The older
 56.96/57.64 Spider ladder used batch size 8 and has different SQL predictions
 despite identical prompts; it remains a separate evaluation lineage. Full
 paired analysis and artifact map: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSFER_REVIEW.md).
+
+### Published P2.3 terminal endpoint ladder
+
+| Evaluation | n | Pure FL `A` | Hinton `A>K` | `A>A` | `A>K>A` |
+|---|---:|---:|---:|---:|---:|
+| Spider | 1,034 | 57.35 | 58.32 | 62.57 | **66.63** |
+| Realistic | 508 | 54.92 | 42.72 | 55.31 | **57.09** |
+| SYN | 1,034 | 49.32 | 44.58 | 52.22 | **55.32** |
+| DK | 535 | 45.23 | 45.42 | 47.10 | **50.65** |
+| BIRD dev, evidence | 1,534 | 14.80 | 36.70 | 16.49 | **31.03** |
+
+The terminal Hinton endpoint is positive against `A>A` on every set. Exact
+paired McNemar p-values are 0.000359/0.3557/0.00808/0.01834/<1e-40 in table
+order. Full interpretation and teacher-gap accounting:
+[P23_TERMINAL_CONSOLIDATION_REVIEW.md](../results/P23_TERMINAL_CONSOLIDATION_REVIEW.md).
 
 ### Valid Spider out-of-domain results
 
@@ -125,6 +139,8 @@ is not listed, because later rounds inherit invalid public supervision.
 | Protocol-v2 Spider-private SeqKD T1 | `artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g` | 5,319-row BIRD teacher-target arm |
 | Protocol-v2 Spider-private full-gold CE T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/full_gold_ce_s0/round_1/m_g` | all 9,428 BIRD public rows with evidence |
 | Protocol-v2 Spider-private Hinton FKL T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/hinton_fkl_t2_alpha05_s0/round_1/m_g` | all 9,428 BIRD gold prefixes; temperature 2; candidate parent for consolidation |
+| Protocol-v2 Spider-private `A>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0/fedavg_adapter` | matched terminal-private control; published five-set endpoint |
+| Protocol-v2 Spider-private `A>K[fkl]>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0/fedavg_adapter` | current seed-0 method candidate; published five-set endpoint |
 | Protocol-v2 BIRD-private shared FL T1 | `artifacts/protocol_v2/p22_bird_private_t1/shared_clients_s0/round_1/fedavg_adapter` | reverse ladder initialization |
 | Protocol-v2 BIRD-private matched-gold CE T1 | `artifacts/protocol_v2/p22_bird_private_t1/matched_gold_ce_s0/round_1/m_g` | selected Spider gold control |
 | Protocol-v2 BIRD-private SeqKD T1 | `artifacts/protocol_v2/p22_bird_private_t1/seqkd_s0/round_1/m_g` | selected Spider teacher sequences |
@@ -145,11 +161,12 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
 | 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
-| 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | highest method gate after Hinton T1; `stage` CLI implemented, server runs pending; tests deployment after KD versus terminal FedAvg with matched private compute |
-| 8 | T1 vs recurring T2/T3 server transfer | closed until the endpoint ladder selects a schedule |
-| 9 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
-| 10 | Final method on `alpha=0.1` and a second training seed | after method selection |
-| 11 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
+| 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
+| 8 | `A→K[ce]→A` versus `A→K[fkl]→A` | active; required to isolate teacher-logit value after consolidation |
+| 9 | Terminal depth `A→K→A[e3]` versus recurrent `A→K→A→K→A` with matched private controls | conditional after row 8; track intermediate `...→K` to reject domain oscillation |
+| 10 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
+| 11 | Final method on `alpha=0.1` and a second training seed | after method selection |
+| 12 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
 
 SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
 `SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
