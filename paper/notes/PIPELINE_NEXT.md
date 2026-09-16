@@ -57,14 +57,14 @@ GKD trainer, and `scripts/run_p25_kd_comparison.py`. Local validation:
   published `A>K[ce]>A` stage still re-enters exactly. Old CE/Hinton
   checkpoint signatures are unchanged.
 
-No GPU run yet. Required nested commit: `924ee12`.
+No GPU run yet. Required nested commit: `0c2ed4c`.
 
 ### Step 0 — sync the server once
 
 Run only after both K2 Python processes have exited.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 924ee12 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Nested commit 924ee12 is missing from this checkout' }; uv run --extra dev pytest -q tests/test_gkd.py tests/test_p25_runner.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'P2.5 tests failed on the server' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 0c2ed4c HEAD; if ($LASTEXITCODE -ne 0) { throw 'Nested commit 0c2ed4c is missing from this checkout' }; uv run --extra dev pytest -q tests/test_gkd.py tests/test_p25_runner.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'P2.5 tests failed on the server' }; git log -1 --oneline
 ```
 
 ### Step 1 — run both lanes at the same time
