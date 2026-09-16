@@ -163,7 +163,7 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
 | 8 | `A→K[ce]→A` versus `A→K[fkl]→A` | active; required to isolate teacher-logit value after consolidation |
-| 9 | Terminal depth `A→K→A[e3]` versus recurrent `A→K→A→K→A` with matched private controls | conditional after row 8; track intermediate `...→K` to reject domain oscillation |
+| 9 | Equal-private-pass schedule screen: `A→K→A[e2]`, `A→K→A→A`, `A→K→A→K→A`, plus `A→A→A` | conditional after row 8; keep one local epoch per method-stage `A`; E2 isolates delayed aggregation; track intermediate `...→K` |
 | 10 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 11 | Final method on `alpha=0.1` and a second training seed | after method selection |
 | 12 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |

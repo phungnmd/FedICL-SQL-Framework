@@ -80,12 +80,15 @@ Spider/Realistic/SYN/DK/BIRD. It does not establish teacher parity.
 
 Before recurrent expansion, run `A>K[ce]>A` from the published full-gold CE
 parent. If Hinton remains better, compare two different scheduling hypotheses:
-`A>K>A[e3]` means three local epochs inside one terminal client stage and one
-FedAvg, whereas `A>K>A>K>A` adds a second public KD stage and another private
-communication round. The recurrent candidate requires `A>K>A>A` as its direct
+`A>K>A[e2]` means two local epochs inside one terminal client stage and one
+FedAvg; with the initial `A`, it matches the three private data passes in
+`A>K>A>K>A`. The recurrent candidate requires `A>K>A>A` as its direct
 same-private-compute control and `A>A>A` as the no-KD control. Evaluate the
 intermediate `A>K>A>K` endpoint to distinguish cumulative transfer from simple
-Spider/BIRD oscillation. Detailed evidence is in
+Spider/BIRD oscillation. The externally reported three-terminal-epoch schedule
+is deferred until E2 shows unsaturated gain without destructive drift. One
+local epoch remains the default for every method-stage `A`; E2 is an explicit
+aggregation-frequency ablation, not the proposed default. Detailed evidence is in
 `paper/results/P23_TERMINAL_CONSOLIDATION_REVIEW.md`.
 
 ## 2026-09-10 — official BIRD timeout closure

@@ -101,9 +101,16 @@ the relevant candidates:
   broadcast bytes; shared-server wall time is not paper-comparable.
 - [ ] Run `A→K[ce]→A` next to isolate the teacher-logit contribution at the
   final endpoint.
-- [ ] If logits retain value, compare terminal depth `A→K→A[e3]` against its
-  matched no-KD control. This is one three-local-epoch client stage and one
-  FedAvg, not three federated rounds.
+- [ ] If logits retain value, compare terminal depth `A→K→A[e2]`, aggregated
+  private rounds `A→K→A→A`, and recurrent `A→K→A→K→A`. These have the same
+  three private data passes but different aggregation/public-transfer schedules.
+- [ ] Keep one local epoch per `A` in the candidate method. Treat E2 as the
+  fixed-pass aggregation ablation; promote it only if it beats repeated
+  one-epoch aggregation without losing BIRD EX.
+- [ ] Open the external three-terminal-epoch `A→K→A[e3]` replication only if
+  E2 remains unsaturated without erasing BIRD; do not call it compute-matched
+  to the two-cycle schedule. If opened, add `A→K→A→A→A` as its four-pass
+  aggregation-frequency control.
 - [ ] Test recurrent `A→K→A→K→A` against direct control `A→K→A→A` and pure-FL
   `A→A→A`. Evaluate intermediate `A→K→A→K`; stop if the trajectory merely
   oscillates between Spider and BIRD or fails to improve the final frontier.

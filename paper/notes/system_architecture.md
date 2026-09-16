@@ -95,18 +95,31 @@ five evaluations. The remaining causal and schedule questions are open.
 Two follow-up schedules must not be conflated:
 
 ```text
-terminal local depth: A -> K -> A[e3]
+terminal local depth: A -> K -> A[e2]
 recurrent transfer:   A -> K -> A -> K -> A
 ```
 
-`A[e3]` means each client trains three local epochs before one FedAvg, matching
-the medical-style terminal consolidation pattern and adding no second public
-stage. Recurrent transfer adds a second public KD stage and another one-epoch
-private/FedAvg stage. Its direct control is `A>K>A>A`; `A>A>A` is the pure-FL
-control at the same number of private stages. The intermediate `A>K>A>K`
+`A[e2]` means each client trains two local epochs before one FedAvg. Including
+the initial `A`, it uses the same three private data passes as the two-cycle
+alternatives. `A>K>A>A` instead aggregates after each post-KD private pass;
+recurrent transfer replaces the second of those paths with a public KD stage
+before the final `A`. `A>A>A` is the pure-FL control at the same number of
+private stages. The intermediate `A>K>A>K`
 checkpoint is evaluated to detect domain oscillation. Recurrence is promoted
 only if the final Pareto frontier improves beyond `A>K>A`, rather than BIRD
 rising at `K` and Spider merely returning at the following `A`.
+
+The default candidate keeps one local epoch in every `A` stage. `A[e2]` is an
+aggregation-frequency ablation: it intentionally performs two local passes
+before aggregation. This is preferable to starting from E3 because it matches
+the three private passes of `A>K>A>A` and `A>K>A>K>A`. Under non-IID clients,
+E3 is expected to have more client drift and public-signal forgetting; it is
+not the primary method unless the controlled screen shows otherwise.
+
+A three-terminal-epoch `A>K>A[e3]` schedule, as used in the external medical
+workflow, is a conditional replication after E2. It is not compute-matched to
+two-cycle `A>K>A>K>A` and carries greater non-IID client-drift and public-signal
+forgetting risk.
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
 CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
