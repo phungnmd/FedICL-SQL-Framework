@@ -177,7 +177,7 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
 | 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
-| 9 | Full-public CE versus Hinton at two epochs, before and after A | active P2.4c; same FL parent and 9,428 rows; selected-row terminal SeqKD deferred |
+| 9 | SeqKD versus GKD before/after A | planned P2.5; GKD implementation/smoke pending; P2.4c cancelled for cost, server termination unconfirmed |
 | 10 | KD-depth/recurrent schedule | deferred until a teacher channel passes row 9; never run a teacher arm without its matched no-teacher control |
 | 11 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 12 | Final method on `alpha=0.1` and a second training seed | after method selection |

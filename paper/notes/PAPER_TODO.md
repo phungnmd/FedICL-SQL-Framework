@@ -3,6 +3,18 @@
 Executable commands belong only in `PIPELINE_NEXT.md`. Reorder later tasks when
 an earlier result changes the method hypothesis.
 
+## Current priority override — 2026-09-17
+
+- [ ] Confirm both P2.4c processes stopped; preserve partial checkpoints.
+- [ ] P2.5: implement/test frozen-teacher on-policy GKD and safe resume.
+- [ ] A5000 32–64-prompt smoke before estimating or opening a full GPU run.
+- [ ] Compare same-parent, same-public-prompt SeqKD/GKD at A-K and A-K-A;
+  verify reusable SeqKD and matched-gold control contracts.
+- [ ] Publish/analyze five-set EX, paired changes and compute cost.
+
+This supersedes K2-active and SeqKD-deferred entries below. `PIPELINE_NEXT.md`
+owns the active prerequisites; no GKD command is executable yet.
+
 ## P2.0 — Freeze the corrected experimental protocol
 
 - [x] Archive the protocol-v1 architecture, lab log, queue, registry, and main tables.
