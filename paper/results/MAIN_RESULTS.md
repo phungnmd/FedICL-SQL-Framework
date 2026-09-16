@@ -1,8 +1,9 @@
 # FedLS-SQL — protocol-v2 paper result tables
 
-Published P2.2/P2.3 evidence checked 2026-09-16. Source paths, comparison
+Published P2.2/P2.3/P2.4a evidence checked 2026-09-16. Source paths, comparison
 limits, and paired counts: [P22_TRANSFER_REVIEW.md](P22_TRANSFER_REVIEW.md)
-and [P23_TERMINAL_CONSOLIDATION_REVIEW.md](P23_TERMINAL_CONSOLIDATION_REVIEW.md).
+and [P23_TERMINAL_CONSOLIDATION_REVIEW.md](P23_TERMINAL_CONSOLIDATION_REVIEW.md),
+and [P24_TEACHER_SIGNAL_REVIEW.md](P24_TEACHER_SIGNAL_REVIEW.md).
 
 ## Main accuracy table
 
@@ -31,13 +32,13 @@ base 15.97, centralized E1/E2 31.42/34.94, pure FL T1/T2/T3 22.75/28.36/31.10.
 Seed-0 EX (%). `A>K>A` and `A>A` add the same one-client-epoch terminal
 private/FedAvg stage to their respective T1 parents.
 
-| Evaluation | `A` | `A>K[fkl]` | `A>A` | `A>K[fkl]>A` | Teacher 7B |
-|---|---:|---:|---:|---:|---:|
-| Spider | 57.35 | 58.32 | 62.57 | **66.63** | 76.69 |
-| Realistic | 54.92 | 42.72 | 55.31 | **57.09** | 71.06 |
-| SYN | 49.32 | 44.58 | 52.22 | **55.32** | 63.83 |
-| DK | 45.23 | 45.42 | 47.10 | **50.65** | 62.43 |
-| BIRD dev, evidence | 14.80 | **36.70** | 16.49 | **31.03** | 47.07 |
+| Evaluation | `A` | `A>K[fkl]` | `A>A` | `A>K[ce]>A` | `A>K[fkl]>A` | Teacher 7B |
+|---|---:|---:|---:|---:|---:|---:|
+| Spider | 57.35 | 58.32 | 62.57 | 66.54 | **66.63** | 76.69 |
+| Realistic | 54.92 | 42.72 | 55.31 | **57.28** | 57.09 | 71.06 |
+| SYN | 49.32 | 44.58 | 52.22 | 54.45 | **55.32** | 63.83 |
+| DK | 45.23 | 45.42 | 47.10 | **51.21** | 50.65 | 62.43 |
+| BIRD dev, evidence | 14.80 | **36.70** | 16.49 | 29.53 | **31.03** | 47.07 |
 
 The terminal Hinton chain beats matched-compute `A>A` on all five evaluations,
 with paired significance on Spider, SYN, DK, and BIRD. It closes
@@ -45,11 +46,12 @@ with paired significance on Spider, SYN, DK, and BIRD. It closes
 not teacher-parity evidence. One seed is insufficient for a reliability claim.
 
 EX is primary. EM is reported only as a secondary SQL-form diagnostic. The
-method remains under selection until `A>K[ce]>A` isolates soft-logit value.
-After that control, keep every private stage at one local epoch and compare
-two-epoch public KD (`A>K2>A`), an extra private/FedAvg stage (`A>K>A>A`), and
-recurrent `A>K>A>K>A`. A scheduling claim additionally requires matched
-`A>K2>A>A` exposure.
+matched full-public control reaches 66.54/57.28/54.45/51.21/29.53 EX for
+`A>K[ce]>A`. Hinton differs by +0.09/−0.19/+0.87/−0.56/+1.50 points, with no
+paired test below `p=.10`; its four-set Spider-family mean advantage is only
++0.05 point. The endpoint gain therefore cannot currently be attributed to
+soft logits. The next gate is terminal SeqKD versus its 5,319-row matched-gold
+control; repeated Hinton schedules are deferred.
 
 ## Independent retained evidence
 

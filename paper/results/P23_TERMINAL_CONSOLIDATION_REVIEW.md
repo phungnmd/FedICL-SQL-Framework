@@ -62,13 +62,14 @@ fraction closed.
 `A>A` and `A>K>A` add the same terminal private round: 369,555,560 client-upload
 bytes and 369,555,400 broadcast bytes. Concurrent shared-server wall time is
 not paper-comparable. Hinton still mixes public-gold CE with soft-logit KD, so
-the next causal control is `A>K[ce]>A`. Only after that control may the final
-gain be attributed specifically to teacher logits.
+the next causal control was `A>K[ce]>A`. P2.4a completed that control and found
+no reliable retained Hinton advantage; see
+[P24_TEACHER_SIGNAL_REVIEW.md](P24_TEACHER_SIGNAL_REVIEW.md).
 
-The next schedule question varies public KD depth while every private `A`
-remains one local epoch. `K2[fkl]` means two complete passes over the same
-9,428-row public pool, using the same cached teacher logits and a training
-horizon declared from step zero. It is not a step-capped continuation.
+The schedule hypotheses below are retained as conditional designs, not an
+active queue. They open only after a teacher-specific terminal effect is found.
+`K2` means two complete passes with a horizon declared from step zero; it is
+not a step-capped continuation.
 
 ### Schedule recommendation
 
@@ -80,14 +81,16 @@ horizon declared from step zero. It is not a step-capped continuation.
 | `A>A>A` | 3 | 0 | no-KD FL control | 1 |
 | `A>K2>A>A` | 3 | 2 | continuous-versus-alternating KD at matched A/K counts | conditional |
 
-The recommended method candidate keeps **one local epoch per `A` stage**. On
+Any promoted method keeps **one local epoch per `A` stage**. On
 the non-IID split, this limits client drift. `A>K2>A` is tested first because it
 adds teacher exposure without adding client communication. Recurrent
 `A>K>A>K>A` has the largest upside for closing the teacher gap, but it must beat
 both the extra-private `A>K>A>A` arm and the KD-depth `A>K2>A` arm. If it is
 promoted as a scheduling contribution, add `A>K2>A>A` to match its three A and
 two K passes exactly. Multi-local-epoch `A[e2/e3]` is no longer in the active
-method screen.
+method screen. Because P2.4a did not isolate soft-logit value, these Hinton
+schedules are currently deferred while terminal SeqKD is tested against its
+5,319-row matched-gold control.
 
 Evaluate the intermediate `A>K>A>K` checkpoint. If BIRD rises and Spider falls,
 then the final `A` merely reverses domain drift; a useful recurrent method must

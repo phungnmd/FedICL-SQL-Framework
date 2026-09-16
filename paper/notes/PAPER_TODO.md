@@ -73,8 +73,9 @@ P2.2d–f diagnose strong public-domain adaptation but poor retention: Hinton is
 on DK. Full-public-gold CE reaches 55.03/47.05/43.91/40.93/32.14 on
 Spider/Realistic/SYN/DK/BIRD. Hinton beats it on four sets, supporting the
 combined Hinton recipe, while both public updates reduce private robustness.
-The cause is not isolated. Terminal FedAvg is now the active method candidate,
-before seeds or recurrent rounds.
+P2.4a later shows that the terminal endpoint is not reliably
+soft-logit-specific. Terminal FedAvg remains the useful architectural finding;
+the KD channel is still under selection before seeds or recurrent rounds.
 
 ## P2.3 — Select or improve the method
 
@@ -99,18 +100,19 @@ the relevant candidates:
   over both `A -> K` and matched-compute `A -> A`, while retaining useful BIRD
   transfer. Its terminal round adds 369,555,560 upload and 369,555,400
   broadcast bytes; shared-server wall time is not paper-comparable.
-- [ ] Run `A→K[ce]→A` next to isolate the teacher-logit contribution at the
-  final endpoint.
-- [ ] If logits retain value, compare KD depth `A→K2→A`, extra private training
-  `A→K→A→A`, and recurrent `A→K→A→K→A`; keep one local epoch per `A`.
-- [ ] If recurrence is best, add `A→K2→A→A` before claiming that alternation,
-  rather than simply two K passes, caused the gain.
+- [x] Run full-public `A→K[ce]→A` against `A→K[fkl]→A`. Hinton changes the
+  four-set Spider-family mean by only +0.05 point and has no significant
+  paired advantage; do not attribute the endpoint to soft logits.
+- [ ] Run terminal SeqKD against terminal matched-gold CE on the same 5,319
+  selected rows. This is the next teacher-signal gate.
+- [ ] Only if a teacher channel passes its terminal causal gate, compare KD
+  depth, extra private training, and recurrence with the corresponding matched
+  no-teacher control.
 - [ ] Keep multi-local-epoch `A[e2/e3]` closed unless the one-epoch schedule
   screen identifies a specific under-training failure; non-IID client drift is
   the current stronger prior.
-- [ ] Test recurrent `A→K→A→K→A` against direct control `A→K→A→A` and pure-FL
-  `A→A→A`. Evaluate intermediate `A→K→A→K`; stop if the trajectory merely
-  oscillates between Spider and BIRD or fails to improve the final frontier.
+- [ ] Keep `A→K→A→K→A`, `A→K2→A`, and their controls deferred until the
+  terminal SeqKD gate identifies a teacher-specific signal worth repeating.
 - [ ] Defer GKD, MiniLLM, and fresh RKL until the schedule gate identifies a
   remaining KD-specific failure.
 - target construction/selection if teacher targets fail despite good teacher EX;

@@ -57,13 +57,13 @@ splits and must not be presented as the same statistic.
 
 ## Current execution state
 
-P2.2c–f and P2.3 are complete and published (`5e4f005`, `1b2c46a`,
-`ec5b5e1`, `2a6e04c`). Counts, EX, paired row identities, prompt parity, and
-stage-parent hashes have been checked. `A>K[fkl]>A` passed the seed-0 endpoint
-gate against `A>A`; `A>K[ce]>A` is now required before attributing the final
-gain to teacher logits. Concurrent historical execution preserves accuracy
-validity, but its wall time and memory measurements are not eligible for the
-paper resource table.
+P2.2c–f, P2.3, and P2.4a are complete and published (`5e4f005`, `1b2c46a`,
+`ec5b5e1`, `2a6e04c`, `ccb3e91`). Counts, EX, paired row identities, prompt
+parity, and stage-parent hashes have been checked. `A>K[fkl]>A` passed the
+endpoint gate against `A>A`, but did not reliably beat `A>K[ce]>A`; the gain
+cannot currently be assigned to soft logits. Concurrent historical execution
+preserves accuracy validity, but its wall time and memory measurements are not
+eligible for the paper resource table.
 
 ### Published P2.2 headline and full-public-gold control
 
@@ -107,6 +107,19 @@ paired McNemar p-values are 0.000359/0.3557/0.00808/0.01834/<1e-40 in table
 order. Full interpretation and teacher-gap accounting:
 [P23_TERMINAL_CONSOLIDATION_REVIEW.md](../results/P23_TERMINAL_CONSOLIDATION_REVIEW.md).
 
+### Published P2.4a full-public teacher-signal control
+
+| Evaluation | `A>K[ce]>A` EX | `A>K[fkl]>A` EX | Hinton − CE (pp) |
+|---|---:|---:|---:|
+| Spider | 66.54 | 66.63 | +0.09 |
+| Realistic | 57.28 | 57.09 | −0.19 |
+| SYN | 54.45 | 55.32 | +0.87 |
+| DK | 51.21 | 50.65 | −0.56 |
+| BIRD dev, evidence | 29.53 | 31.03 | +1.50 |
+
+No paired comparison is significant (`p=1.000/1.000/.439/.749/.102`). See
+[P24_TEACHER_SIGNAL_REVIEW.md](../results/P24_TEACHER_SIGNAL_REVIEW.md).
+
 ### Valid Spider out-of-domain results
 
 | Method | Stage | Realistic EX/EM | Syn EX/EM | DK EX/EM |
@@ -140,7 +153,8 @@ is not listed, because later rounds inherit invalid public supervision.
 | Protocol-v2 Spider-private full-gold CE T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/full_gold_ce_s0/round_1/m_g` | all 9,428 BIRD public rows with evidence |
 | Protocol-v2 Spider-private Hinton FKL T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/hinton_fkl_t2_alpha05_s0/round_1/m_g` | all 9,428 BIRD gold prefixes; temperature 2; candidate parent for consolidation |
 | Protocol-v2 Spider-private `A>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0/fedavg_adapter` | matched terminal-private control; published five-set endpoint |
-| Protocol-v2 Spider-private `A>K[fkl]>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0/fedavg_adapter` | current seed-0 method candidate; published five-set endpoint |
+| Protocol-v2 Spider-private `A>K[fkl]>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_k_a_s0/fedavg_adapter` | tested seed-0 endpoint; not proven teacher-specific |
+| Protocol-v2 Spider-private `A>K[ce]>A` | `artifacts/protocol_v2/p24_gold_ce_terminal/a_kce_a_e1_s0/fedavg_adapter` | full-9,428-row public-gold terminal control; published five-set endpoint |
 | Protocol-v2 BIRD-private shared FL T1 | `artifacts/protocol_v2/p22_bird_private_t1/shared_clients_s0/round_1/fedavg_adapter` | reverse ladder initialization |
 | Protocol-v2 BIRD-private matched-gold CE T1 | `artifacts/protocol_v2/p22_bird_private_t1/matched_gold_ce_s0/round_1/m_g` | selected Spider gold control |
 | Protocol-v2 BIRD-private SeqKD T1 | `artifacts/protocol_v2/p22_bird_private_t1/seqkd_s0/round_1/m_g` | selected Spider teacher sequences |
@@ -162,11 +176,12 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
-| 8 | `A→K[ce]→A` versus `A→K[fkl]→A` | active; required to isolate teacher-logit value after consolidation |
-| 9 | KD-depth/schedule screen: `A→K2→A`, `A→K→A→A`, `A→K→A→K→A`, plus `A→A→A` | conditional after row 8; one local epoch per `A`; add matched `A→K2→A→A` before a recurrence claim |
-| 10 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
-| 11 | Final method on `alpha=0.1` and a second training seed | after method selection |
-| 12 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
+| 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
+| 9 | Selected-row terminal matched gold versus terminal SeqKD | active next; same 5,319 rows, private stages, and evaluation |
+| 10 | KD-depth/recurrent schedule | deferred until a teacher channel passes row 9; never run a teacher arm without its matched no-teacher control |
+| 11 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
+| 12 | Final method on `alpha=0.1` and a second training seed | after method selection |
+| 13 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
 
 SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
 `SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or

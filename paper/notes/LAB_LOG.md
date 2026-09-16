@@ -8,14 +8,30 @@
   Hinton `K[fkl]` -> terminal Spider-private `A`; deployment ends after FedAvg.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
-  control (`5e4f005`), and P2.3 terminal endpoints (`2a6e04c`).
+  control (`5e4f005`), P2.3 terminal endpoints (`2a6e04c`), and terminal
+  full-public gold control (`ccb3e91`).
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
-  reaching 66.63 Spider and 31.03 BIRD EX. It is promising but not yet
-  teacher-logit-specific or multi-seed evidence.
-- Next: `A>K[ce]>A` causal control, then compare two-epoch public KD
-  (`A>K2>A`), an extra private stage (`A>K>A>A`), and recurrent
-  `A>K>A>K>A` with matched exposure controls.
+  reaching 66.63 Spider and 31.03 BIRD EX. However, it does not reliably beat
+  `A>K[ce]>A`; the result is not soft-logit-specific.
+- Next: terminal SeqKD versus terminal 5,319-row matched-gold CE. Repeated-K
+  schedules remain deferred until a teacher channel passes this causal gate.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-16 — P2.4a does not isolate retained Hinton value
+
+Nested commit `ccb3e91` publishes `A>K[ce]>A` and five row-matched evaluations.
+CE/Hinton EX is 66.54/66.63 Spider, 57.28/57.09 Realistic, 54.45/55.32 SYN,
+51.21/50.65 DK, and 29.53/31.03 BIRD. The Hinton-minus-CE deltas are
++0.09/−0.19/+0.87/−0.56/+1.50 points; exact paired McNemar p-values are
+1.000/1.000/.439/.749/.102. The four-set Spider-family means are 57.37 and
+57.42. Thus terminal consolidation is useful, but the current result does not
+show that soft logits cause the gain.
+
+Do not launch Hinton-only K2 or recurrence from this evidence. The next cheap
+causal test appends the identical terminal `A` to the published selected-row
+matched-gold and SeqKD parents. It holds the 5,319 rows and private compute
+fixed and changes only gold versus teacher-generated sequence targets. See
+`paper/results/P24_TEACHER_SIGNAL_REVIEW.md`.
 
 ## 2026-09-16 — separate active queue from completed runbooks
 
@@ -79,16 +95,12 @@ chain beats matched-private-compute `A>A` on every evaluation. Against teacher
 7B it closes 48.0/13.4/41.4/31.5/50.3 percent of the Pure-FL gap on
 Spider/Realistic/SYN/DK/BIRD. It does not establish teacher parity.
 
-Before recurrent expansion, run `A>K[ce]>A` from the published full-gold CE
-parent. If Hinton remains better, keep one local epoch per `A` and compare
-`A>K2>A` (extra teacher exposure without client communication), `A>K>A>A`
-(extra private/FedAvg only), `A>K>A>K>A` (both, alternated), and `A>A>A`
-(no-KD control). Evaluate intermediate `A>K>A>K` to detect Spider/BIRD
-oscillation. If recurrence wins, `A>K2>A>A` is required before attributing the
-gain to alternation at matched A/K counts. Explicit `--server-epochs` support
-and K2 lineage labels were added in nested commit `fca5eef`. Multi-local-epoch
-`A[e2/e3]` is removed from the active screen because non-IID client drift is the
-stronger prior. Detailed evidence is in
+The next gate at that point was `A>K[ce]>A`; P2.4a above has now resolved it
+without a reliable Hinton advantage. Explicit `--server-epochs` support and K2
+lineage labels remain available in nested commit `fca5eef`, but K2/recurrence
+is deferred while terminal SeqKD is tested. Multi-local-epoch `A[e2/e3]`
+remains outside the active screen because non-IID client drift is the stronger
+prior. Detailed P2.3 evidence is in
 `paper/results/P23_TERMINAL_CONSOLIDATION_REVIEW.md`.
 
 ## 2026-09-10 — official BIRD timeout closure

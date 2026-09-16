@@ -90,25 +90,23 @@ retained while the final Spider-private update restores the deployment-domain
 input distribution. Because it adds private training and communication, it
 must be compared with the matched no-KD control `A -> A`, not only with `A`
 and `A -> K`. Seed-0 P2.3 passes this gate: `A>K[fkl]>A` beats `A>A` on all
-five evaluations. The remaining causal and schedule questions are open.
+five evaluations. P2.4a then found no reliable advantage over the same chain
+with public-gold CE, so the benefit is not currently attributable to Hinton
+soft logits.
 
-The next method screen keeps one local epoch in every private stage and varies
-teacher exposure:
+The next causal screen keeps one local epoch in every private stage and tests
+the second standard teacher channel:
 
 ```text
-continuous KD depth: A -> K2 -> A
-extra private stage: A -> K -> A -> A
-recurrent transfer:  A -> K -> A -> K -> A
+matched selected gold: A -> K[ce, 5319 gold rows] -> A
+sequence KD:          A -> K[seq, same 5319 rows] -> A
 ```
 
-`K2` is one server stage whose two full public epochs are planned from step
-zero. It reuses the immutable teacher-logit cache and adds no client
-communication. `A>K>A>A` adds one private/FedAvg stage but no teacher exposure;
-`A>K>A>K>A` adds both. `A>A>A` is the no-KD control. The intermediate
-`A>K>A>K` checkpoint is evaluated to detect domain oscillation. Recurrence is
-promoted only if the final Pareto frontier improves beyond both `A>K2>A` and
-`A>K>A>A`. If scheduling itself is claimed, `A>K2>A>A` supplies an exact
-three-A/two-K continuous-depth control. Multi-local-epoch `A[e2/e3]` is
+The two parents are already published and differ in target SQL, not selected
+row identities. Their identical terminal `A` stages test whether a
+teacher-generated sequence signal survives private re-anchoring. Repeated KD
+depth and recurrence are deferred until either SeqKD or another KD objective
+passes a matched terminal causal gate. Multi-local-epoch `A[e2/e3]` remains
 deprioritized because the non-IID clients make local drift a more plausible
 effect than useful consolidation.
 
@@ -147,6 +145,7 @@ This observation motivated terminal private consolidation. P2.3 now shows
 that `A>K[fkl]>A` reaches 66.63/57.09/55.32/50.65/31.03 on
 Spider/Realistic/SYN/DK/BIRD, versus 62.57/55.31/52.22/47.10/16.49 for
 matched `A>A`. It does not yet prove that soft teacher logits solve retention.
+P2.4a resolves that question negatively for the current Hinton recipe.
 The completed no-logit full-BIRD-public gold CE
 control scores 55.03/47.05/43.91/40.93/32.14 on Spider/Realistic/SYN/DK/BIRD;
 Hinton is +3.29/−4.33/+0.67/+4.49/+4.56 points relative to it. This supports
@@ -159,9 +158,13 @@ cause of that rerun drift has not been established.
 Reverse BIRD-private/Spider-public FL/gold/SeqKD reaches 22.88/20.73/24.45 EX.
 The reference and terminal result commits are published and audited
 (`5e4f005`, `1b2c46a`, `ec5b5e1`, `2a6e04c`); see the P2.2 and P2.3 reviews.
-The next gate is `A>K[ce]>A`, followed by a controlled terminal-depth versus
-recurrent-schedule screen. The exact mechanism of the robustness loss remains
-a hypothesis, not a proven prompt defect.
+P2.4a (`ccb3e91`) gives `A>K[ce]>A` EX of
+66.54/57.28/54.45/51.21/29.53. Relative Hinton deltas are
++0.09/−0.19/+0.87/−0.56/+1.50 points and none is paired-significant. The next
+gate is terminal selected-row SeqKD versus matched gold; a controlled
+depth/recurrent screen opens only for a teacher channel that passes. The exact
+mechanism of the robustness loss remains a hypothesis, not a proven prompt
+defect.
 
 ## Evaluation and lineage
 
