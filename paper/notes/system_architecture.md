@@ -92,34 +92,25 @@ must be compared with the matched no-KD control `A -> A`, not only with `A`
 and `A -> K`. Seed-0 P2.3 passes this gate: `A>K[fkl]>A` beats `A>A` on all
 five evaluations. The remaining causal and schedule questions are open.
 
-Two follow-up schedules must not be conflated:
+The next method screen keeps one local epoch in every private stage and varies
+teacher exposure:
 
 ```text
-terminal local depth: A -> K -> A[e2]
-recurrent transfer:   A -> K -> A -> K -> A
+continuous KD depth: A -> K2 -> A
+extra private stage: A -> K -> A -> A
+recurrent transfer:  A -> K -> A -> K -> A
 ```
 
-`A[e2]` means each client trains two local epochs before one FedAvg. Including
-the initial `A`, it uses the same three private data passes as the two-cycle
-alternatives. `A>K>A>A` instead aggregates after each post-KD private pass;
-recurrent transfer replaces the second of those paths with a public KD stage
-before the final `A`. `A>A>A` is the pure-FL control at the same number of
-private stages. The intermediate `A>K>A>K`
-checkpoint is evaluated to detect domain oscillation. Recurrence is promoted
-only if the final Pareto frontier improves beyond `A>K>A`, rather than BIRD
-rising at `K` and Spider merely returning at the following `A`.
-
-The default candidate keeps one local epoch in every `A` stage. `A[e2]` is an
-aggregation-frequency ablation: it intentionally performs two local passes
-before aggregation. This is preferable to starting from E3 because it matches
-the three private passes of `A>K>A>A` and `A>K>A>K>A`. Under non-IID clients,
-E3 is expected to have more client drift and public-signal forgetting; it is
-not the primary method unless the controlled screen shows otherwise.
-
-A three-terminal-epoch `A>K>A[e3]` schedule, as used in the external medical
-workflow, is a conditional replication after E2. It is not compute-matched to
-two-cycle `A>K>A>K>A` and carries greater non-IID client-drift and public-signal
-forgetting risk.
+`K2` is one server stage whose two full public epochs are planned from step
+zero. It reuses the immutable teacher-logit cache and adds no client
+communication. `A>K>A>A` adds one private/FedAvg stage but no teacher exposure;
+`A>K>A>K>A` adds both. `A>A>A` is the no-KD control. The intermediate
+`A>K>A>K` checkpoint is evaluated to detect domain oscillation. Recurrence is
+promoted only if the final Pareto frontier improves beyond both `A>K2>A` and
+`A>K>A>A`. If scheduling itself is claimed, `A>K2>A>A` supplies an exact
+three-A/two-K continuous-depth control. Multi-local-epoch `A[e2/e3]` is
+deprioritized because the non-IID clients make local drift a more plausible
+effect than useful consolidation.
 
 Required matched controls are base SLM, centralized SFT, pure FL, public-gold
 CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled

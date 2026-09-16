@@ -65,39 +65,29 @@ not paper-comparable. Hinton still mixes public-gold CE with soft-logit KD, so
 the next causal control is `A>K[ce]>A`. Only after that control may the final
 gain be attributed specifically to teacher logits.
 
-The next schedule question separates:
-
-- `A>K>A[e2]`: one terminal client stage with two local epochs followed by
-  one FedAvg; together with the initial `A`, this matches the three private
-  data passes of the two-cycle alternatives;
-- `A>K>A>K>A`: a second public-transfer/private-consolidation cycle;
-- `A>K>A>A` and `A>A>A`: controls for extra private training without the
-  second public KD stage.
-
-The reported medical-style three-terminal-epoch schedule remains a later
-`A>K>A[e3]` replication. It is not the first screen because it has one more
-private pass than `A>K>A>K>A` and increases non-IID client-drift risk.
+The next schedule question varies public KD depth while every private `A`
+remains one local epoch. `K2[fkl]` means two complete passes over the same
+9,428-row public pool, using the same cached teacher logits and a training
+horizon declared from step zero. It is not a step-capped continuation.
 
 ### Schedule recommendation
 
-| Candidate | Total private passes | Post-K aggregations | Main diagnostic | Priority |
+| Candidate | Private passes | Public passes | Main diagnostic | Priority |
 |---|---:|---:|---|---:|
-| `A>K>A>K>A` | 3 | 2 | whether a second teacher transfer moves the final Pareto frontier | 1 |
-| `A>K>A>A` | 3 | 2 | same private compute without the second KD stage | 1 |
-| `A>K>A[e2]` | 3 | 1 | local depth versus frequent aggregation | 1 |
-| `A>A>A` | 3 | 2 | no-KD FL control | 1 |
-| `A>K>A[e3]` / `A>K>A>A>A` | 4 | 1 / 3 | external schedule replication and aggregation ablation | conditional |
+| `A>K2>A` | 2 | 2 | marginal value of more KD at unchanged client communication | 1 |
+| `A>K>A>A` | 3 | 1 | marginal value of another private/FedAvg stage | 1 |
+| `A>K>A>K>A` | 3 | 2 | whether alternating transfer moves the final Pareto frontier | 1 |
+| `A>A>A` | 3 | 0 | no-KD FL control | 1 |
+| `A>K2>A>A` | 3 | 2 | continuous-versus-alternating KD at matched A/K counts | conditional |
 
 The recommended method candidate keeps **one local epoch per `A` stage**. On
-the non-IID split, repeated one-epoch aggregation is less exposed to local
-client drift than three uninterrupted local epochs. The recurrent schedule has
-the largest upside for closing the teacher gap because it is the only
-three-pass candidate that injects new teacher information; it also has the
-largest risk of simply alternating between the BIRD and Spider optima. It must
-therefore beat `A>K>A>A`, not merely beat the current `A>K>A` endpoint on BIRD.
-`A>K>A[e2]` is the necessary low-communication control, not the proposed
-default. E3 is opened only if E2 is still improving and retains public-domain
-EX; if opened, compare it with `A>K>A>A>A` at the same four private passes.
+the non-IID split, this limits client drift. `A>K2>A` is tested first because it
+adds teacher exposure without adding client communication. Recurrent
+`A>K>A>K>A` has the largest upside for closing the teacher gap, but it must beat
+both the extra-private `A>K>A>A` arm and the KD-depth `A>K2>A` arm. If it is
+promoted as a scheduling contribution, add `A>K2>A>A` to match its three A and
+two K passes exactly. Multi-local-epoch `A[e2/e3]` is no longer in the active
+method screen.
 
 Evaluate the intermediate `A>K>A>K` checkpoint. If BIRD rises and Spider falls,
 then the final `A` merely reverses domain drift; a useful recurrent method must

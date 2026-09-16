@@ -12,8 +12,9 @@
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
   reaching 66.63 Spider and 31.03 BIRD EX. It is promising but not yet
   teacher-logit-specific or multi-seed evidence.
-- Next: `A>K[ce]>A` causal control, then compare terminal-local depth against
-  recurrent `A>K>A>K>A` with matched private-training controls.
+- Next: `A>K[ce]>A` causal control, then compare two-epoch public KD
+  (`A>K2>A`), an extra private stage (`A>K>A>A`), and recurrent
+  `A>K>A>K>A` with matched exposure controls.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
 ## 2026-09-16 — separate active queue from completed runbooks
@@ -79,16 +80,15 @@ chain beats matched-private-compute `A>A` on every evaluation. Against teacher
 Spider/Realistic/SYN/DK/BIRD. It does not establish teacher parity.
 
 Before recurrent expansion, run `A>K[ce]>A` from the published full-gold CE
-parent. If Hinton remains better, compare two different scheduling hypotheses:
-`A>K>A[e2]` means two local epochs inside one terminal client stage and one
-FedAvg; with the initial `A`, it matches the three private data passes in
-`A>K>A>K>A`. The recurrent candidate requires `A>K>A>A` as its direct
-same-private-compute control and `A>A>A` as the no-KD control. Evaluate the
-intermediate `A>K>A>K` endpoint to distinguish cumulative transfer from simple
-Spider/BIRD oscillation. The externally reported three-terminal-epoch schedule
-is deferred until E2 shows unsaturated gain without destructive drift. One
-local epoch remains the default for every method-stage `A`; E2 is an explicit
-aggregation-frequency ablation, not the proposed default. Detailed evidence is in
+parent. If Hinton remains better, keep one local epoch per `A` and compare
+`A>K2>A` (extra teacher exposure without client communication), `A>K>A>A`
+(extra private/FedAvg only), `A>K>A>K>A` (both, alternated), and `A>A>A`
+(no-KD control). Evaluate intermediate `A>K>A>K` to detect Spider/BIRD
+oscillation. If recurrence wins, `A>K2>A>A` is required before attributing the
+gain to alternation at matched A/K counts. Explicit `--server-epochs` support
+and K2 lineage labels were added in nested commit `fca5eef`. Multi-local-epoch
+`A[e2/e3]` is removed from the active screen because non-IID client drift is the
+stronger prior. Detailed evidence is in
 `paper/results/P23_TERMINAL_CONSOLIDATION_REVIEW.md`.
 
 ## 2026-09-10 — official BIRD timeout closure

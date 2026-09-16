@@ -46,8 +46,10 @@ not teacher-parity evidence. One seed is insufficient for a reliability claim.
 
 EX is primary. EM is reported only as a secondary SQL-form diagnostic. The
 method remains under selection until `A>K[ce]>A` isolates soft-logit value.
-After that control, compare stronger terminal-local consolidation with a true
-recurrent `A>K>A>K>A` schedule and matched private-training controls.
+After that control, keep every private stage at one local epoch and compare
+two-epoch public KD (`A>K2>A`), an extra private/FedAvg stage (`A>K>A>A`), and
+recurrent `A>K>A>K>A`. A scheduling claim additionally requires matched
+`A>K2>A>A` exposure.
 
 ## Independent retained evidence
 
