@@ -1,7 +1,7 @@
 # FedLS-SQL — KD method review
 
-> Status (2026-09-17): research review, not an active queue. `PIPELINE_NEXT.md`
-> is unchanged. Nothing below becomes part of the method until it is
+> Status (2026-09-17): research review; `PIPELINE_NEXT.md` owns the active
+> protocol-v2 SeqKD/KID gate. Nothing below becomes part of the method until it is
 > implemented, compared with its matched control, and recorded in `LAB_LOG.md`.
 
 ## 1. Implemented KD baselines
@@ -16,11 +16,14 @@ Protocol v2 implements two teacher channels. The teacher is Qwen2.5-Coder-7B
    using a cached full-vocabulary teacher. Canonical runs use
    `lambda_ft = lambda_kd = 0.5`; the trainer default is 1/1.
 
-Reverse KL, skew-RKL, and KID are archived in
+Reverse KL, skew-RKL, and the old protocol-v1 KID are archived in
 `../archive/method_reviews_2026-09/KD_METHOD_REVIEW_RKL.md`. The 5,319-row
-SeqKD+Hinton hybrid was retired on 2026-09-12. Protocol v1 closed these
-branches as negative: KID, LLM-anchored FedDF, global-error execution-guided
-SeqKD, and execution-verified preference KD.
+SeqKD+Hinton hybrid was retired on 2026-09-12. Those old negative results are
+not protocol-v2 evidence. A fresh protocol-v2 KID implementation is active as a
+bounded alternative to GKD: 20% one-pass student rewriting followed by clean
+gold CE and reverse KL against the frozen teacher on rewritten prefixes. GKD
+was closed before publication because autoregressive online rollout was too
+costly for the available hardware.
 
 ## 2. Evidence
 

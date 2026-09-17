@@ -13,18 +13,38 @@
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
   reaching 66.63 Spider and 31.03 BIRD EX. However, it does not reliably beat
   `A>K[ce]>A`; the result is not soft-logit-specific.
-- Next: P2.5 SeqKD versus GKD at A-K and A-K-A. P2.4c cancelled for cost;
-  server termination unconfirmed. GKD requires implementation and A5000 smoke.
+- Next: P2.5 SeqKD versus protocol-v2 KID at A-K and A-K-A. GKD and P2.4c
+  were cancelled before publication because their projected GPU cost was too high.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
-## 2026-09-17 — cancellation requested; SeqKD/GKD comparison planned
+## 2026-09-17 — GKD closed for cost; protocol-v2 KID activated
+
+The autoregressive on-policy GKD lane was stopped before publication: it was
+technically valid but too expensive for the available A5000 schedule. Its
+partial artifacts are diagnostic only and must not be resumed or cited.
+
+Protocol-v2 KID is now implemented as the bounded replacement. It uses the same
+5,319 BIRD public prompt identities as SeqKD, row-matched clean gold SQL,
+evidence-aware prompts, a frozen 4-bit Qwen2.5-Coder-7B teacher, 20% random
+masking, one-pass greedy student rewriting, clean-gold CE, and token-level
+`KL(p_student || p_teacher)` on rewritten prefixes at `T=1`. It does not use an
+autoregressive rollout or a teacher-logit cache. The implementation includes
+exact crash resume and immutable stage/result identities; the full nested test
+suite passes 461 tests. Active endpoints are `A>K` and `A>K>A` on five sets.
+
+SeqKD and KID share public prompts but not targets/objectives, so this is an
+end-to-end method comparison. If KID passes, a matched clean-RKL arm is required
+before attributing the gain specifically to imperfect-data rewriting.
+
+## 2026-09-17 — cancellation requested; SeqKD/GKD comparison planned (superseded)
 
 User requested stopping both K2 lanes and comparing SeqKD with on-policy GKD
 before/after identical terminal A. No remote server connection was available
 to verify termination. Keep partial checkpoints, not completed evidence. Archived
 K2 commands; proposed same-parent, same-5,319-prompt comparison with frozen teacher.
-GKD is not implemented yet; no new GPU run has been activated. Existing matched
-gold CE remains a control. This decision supersedes the older depth priority below.
+GKD was subsequently implemented, then closed before publication because its
+measured execution cost was impractical. Existing matched gold CE remains a
+control. The KID decision above supersedes this entry.
 
 ## 2026-09-16 — P2.4a does not isolate retained Hinton value
 

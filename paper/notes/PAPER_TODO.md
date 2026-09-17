@@ -5,15 +5,16 @@ an earlier result changes the method hypothesis.
 
 ## Current priority override — 2026-09-17
 
-- [ ] Confirm both P2.4c processes stopped; preserve partial checkpoints.
-- [ ] P2.5: implement/test frozen-teacher on-policy GKD and safe resume.
-- [ ] A5000 32–64-prompt smoke before estimating or opening a full GPU run.
-- [ ] Compare same-parent, same-public-prompt SeqKD/GKD at A-K and A-K-A;
-  verify reusable SeqKD and matched-gold control contracts.
+- [x] Close P2.4c and on-policy GKD before publication because projected GPU
+  cost is impractical; preserve partial artifacts as diagnostics only.
+- [x] Implement/test canonical protocol-v2 KID with exact safe resume.
+- [ ] Run the fresh 32-row A5000 KID smoke and enforce its budget gate.
+- [ ] Compare same-parent, same-public-prompt SeqKD/KID at A-K and A-K-A;
+  verify reusable SeqKD and row-matched clean-gold contracts.
 - [ ] Publish/analyze five-set EX, paired changes and compute cost.
 
 This supersedes K2-active and SeqKD-deferred entries below. `PIPELINE_NEXT.md`
-owns the active prerequisites; no GKD command is executable yet.
+owns the executable KID/SeqKD queue. No GKD result may enter the paper ledger.
 
 ## P2.0 — Freeze the corrected experimental protocol
 
@@ -128,13 +129,15 @@ the relevant candidates:
   the current stronger prior.
 - [ ] Keep recurrent `A→K→A→K→A` deferred until the matched K2 comparison
   identifies a useful effect; `A→K2→A` and its CE control are active P2.4c.
-- [ ] Defer GKD, MiniLLM, and fresh RKL until the schedule gate identifies a
+- [x] Close GKD for this paper because its online autoregressive rollout is too
+  costly on the available hardware.
+- [ ] Defer MiniLLM and fresh clean-RKL until the KID gate identifies a
   remaining KD-specific failure.
 - target construction/selection if teacher targets fail despite good teacher EX;
 - SeqKD (sequence level) versus canonical full-data Hinton forward KL (token
   level); do not confound this comparison with a combined SeqKD+Hinton arm;
-- GKD/on-policy KD, MiniLLM, or a fresh RKL implementation only if the two
-  standard KD baselines leave a measured failure worth targeting;
+- protocol-v2 KID is the active bounded method test; MiniLLM or a fresh clean-RKL
+  is conditional on its measured result;
 - FedAvg/local optimizer if client drift is the limiting factor;
 - evidence-aware or privileged-information transfer if the two directions
   expose an information-asymmetry gap;

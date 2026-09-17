@@ -177,7 +177,7 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
 | 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
-| 9 | SeqKD versus GKD before/after A | planned P2.5; GKD implementation/smoke pending; P2.4c cancelled for cost, server termination unconfirmed |
+| 9 | SeqKD versus protocol-v2 KID before/after A | active P2.5; implementation/tests complete, fresh KID smoke and GPU runs pending; GKD closed before publication for cost |
 | 10 | KD-depth/recurrent schedule | deferred until a teacher channel passes row 9; never run a teacher arm without its matched no-teacher control |
 | 11 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 12 | Final method on `alpha=0.1` and a second training seed | after method selection |
@@ -185,8 +185,9 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 
 SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
 `SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
-an adapter. GKD/on-policy KD, MiniLLM, and a fresh RKL lineage remain optional
-method-improvement candidates after row 6 is measured.
+an adapter. Protocol-v2 KID is the active bounded candidate. MiniLLM and a fresh
+clean-RKL lineage remain conditional method-improvement candidates after its
+gate; GKD is closed for this paper because of compute cost.
 
 Secure Sum equivalence and teacher-only resource measurements remain valid
 technical evidence. They are not accuracy arms and do not replace rows 1–10.

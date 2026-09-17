@@ -121,9 +121,12 @@ CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
 sequence-level baseline; Hinton FKL is the token-level soft-logit baseline.
 They are separate arms, not a required hybrid. EX is primary. Neither becomes
 part of the final claimed method without reproducible protocol-v2 gain.
-Historical reverse KL and KID remain archived; GKD/on-policy KD, MiniLLM, or a
-fresh RKL lineage may be considered only after the standard baselines diagnose
-a concrete remaining failure.
+Historical protocol-v1 reverse KL and KID remain archived. They do not count as
+protocol-v2 evidence. A fresh, provenance-isolated protocol-v2 KID lane is now
+the bounded method candidate after autoregressive GKD was closed for excessive
+compute cost. It uses one-pass student rewriting plus reverse KL and must pass
+the same five-set EX gate before entering the proposed method. MiniLLM and a
+clean-RKL isolation arm remain conditional follow-ups.
 
 After the rerun, the method-improvement queue is adaptive. The first gate was
 the terminal checkpoint comparison `A`, `A -> K`, `A -> A`, and
