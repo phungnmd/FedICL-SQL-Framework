@@ -58,7 +58,7 @@ The nested repo implements `stage public --server-method kid` and the updated
 - Method-specific fields are written only to their own result rows; published
   CE/Hinton/FL identities remain unchanged.
 
-Required nested commit: `e392f98`.
+Required nested commit: `a9b8621`.
 
 ### Step 0 — sync the server once
 
@@ -66,21 +66,25 @@ First stop the cancelled GKD process with Ctrl+C and wait for Python to exit.
 Do not pull while it is still running.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor e392f98 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Nested commit e392f98 is missing from this checkout' }; uv run --extra dev pytest -q tests/test_kid.py tests/test_p25_runner.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'P2.5 SeqKD/KID tests failed on the server' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor a9b8621 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Nested commit a9b8621 is missing from this checkout' }; uv run --extra dev pytest -q tests/test_kid.py tests/test_p25_runner.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'P2.5 SeqKD/KID tests failed on the server' }; git log -1 --oneline
 ```
 
 ### Step 1 — run both lanes at the same time
 
 GPU 0 — SeqKD: evaluate endpoint 1, train terminal A, evaluate endpoint 2.
 
+This does not retrain public SeqKD. It reuses the published 5,319-row SeqKD
+adapter, evaluates it under the P2.5 single-arm contract, then trains and
+evaluates only the previously missing terminal private A stage.
+
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase seqkd-flow; if ($LASTEXITCODE -ne 0) { throw 'SeqKD lane stopped; fix the reported cause, then rerun this exact line' }; Write-Host 'GPU-0 done: SeqKD endpoints 1 and 2 evaluated; wait for GPU 1 before publication'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase seqkd-flow; if ($LASTEXITCODE -ne 0) { throw 'SeqKD lane stopped; fix the reported cause, then rerun this exact line' }; Write-Host 'GPU-0 done: existing SeqKD public adapter evaluated and terminal A completed'
 ```
 
 GPU 1 — KID: fresh 32-row smoke, budget gate, full KID, evaluate endpoint 1.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase kid-public --max-estimated-hours 12; if ($LASTEXITCODE -ne 0) { throw 'KID lane stopped; if the budget gate stopped it, review the fresh smoke estimate before raising --max-estimated-hours' }; Write-Host 'GPU-1 done: KID endpoint 1 evaluated; wait for GPU 0 before publication'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase kid-public --max-estimated-hours 12; if ($LASTEXITCODE -ne 0) { throw 'KID lane stopped; if the budget gate stopped it, review the fresh smoke estimate before raising --max-estimated-hours' }; Write-Host 'GPU-1 done: KID endpoint 1 evaluated; publish KID public next'
 ```
 
 - **Smoke:** runs in a new KID-only root and prints seconds per example, setup
@@ -95,14 +99,15 @@ $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1
   interruption. A completed evaluation is reused when evaluation code is
   unchanged since it ran; publication commits do not force re-evaluation.
 
-### Step 2 — publish endpoint-1 results and SeqKD endpoint 2
+### Step 2a — publish KID endpoint 1 independently
 
-Run after both GPU lines print `done`. This publishes compact results only: the
-SeqKD endpoints, the KID smoke, KID endpoint 1, and their evaluations. It also
-commits and pushes. Terminal A for KID requires this committed parent.
+Run after `kid-public` is complete, even if `seqkd-flow` has not run. This
+publishes only the KID smoke, KID public training row, and its five evaluation
+sets. It takes only the KID lane lock and makes the committed KID parent
+available for terminal A.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-first; if ($LASTEXITCODE -ne 0) { throw 'Publication stopped; inspect git status and the message before retrying' }
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-kid-public; if ($LASTEXITCODE -ne 0) { throw 'KID public publication stopped; inspect git status and retry this exact line' }
 ```
 
 ### Step 3 — KID endpoint 2 on GPU 1
@@ -115,6 +120,17 @@ $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1
 
 ```powershell
 $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-final; if ($LASTEXITCODE -ne 0) { throw 'Publication stopped; inspect git status and the message before retrying' }
+```
+
+### Step 5 — publish the combined comparison after SeqKD finishes
+
+Run after `seqkd-flow` is complete. This publishes the existing SeqKD public
+row, the new single-arm SeqKD evaluations, terminal SeqKD row/evaluations, and
+verifies the already published KID public endpoint. Unchanged KID files are not
+committed twice.
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-first; if ($LASTEXITCODE -ne 0) { throw 'SeqKD comparison publication stopped; inspect git status and retry this exact line' }
 ```
 
 ### Decision after P2.5
