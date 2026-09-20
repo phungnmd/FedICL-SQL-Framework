@@ -1,149 +1,88 @@
 # FedLS-SQL — active protocol-v2 queue
 
-## P2.4c cancellation — 2026-09-17
+## P2.5 decision — complete
 
-User cancelled CE2/Hinton2 for cost, not because of a negative result. Server
-termination is unconfirmed: press Ctrl+C once in each K2 terminal and wait for
-both Python processes to exit. Preserve checkpoints and the original cache.
-[Old K2 commands](../archive/completed_runbooks/P24C_CANCELLED_2026-09-17.md)
-are historical only; do not launch terminal A or publish incomplete outputs.
+SeqKD and protocol-v2 KID are complete at both `A>K` and `A>K>A` endpoints.
+KID terminal is statistically indistinguishable from SeqKD terminal on all
+five evaluation sets while its public stage costs about 21.1 GPU-hours.
+KID, GKD, clean RKL/MiniLLM follow-ups, and deeper Hinton are closed for the
+current paper queue. The completed commands are preserved in
+[P25_SEQKD_KID_2026-09-20.md](../archive/completed_runbooks/P25_SEQKD_KID_2026-09-20.md).
 
-## P2.5 — SeqKD versus KID
+| Evaluation | SeqKD public | KID public | SeqKD terminal | KID terminal |
+|---|---:|---:|---:|---:|
+| Spider | 57.93 | 58.03 | 64.99 | 65.47 |
+| Realistic | 46.65 | 44.09 | 57.68 | 57.09 |
+| SYN | 48.26 | 46.23 | 54.55 | 54.16 |
+| DK | 45.61 | 44.30 | 50.28 | 50.28 |
+| BIRD dev, evidence | 34.68 | 35.40 | 28.42 | 28.94 |
 
-| Lane | GPU | Endpoint 1 | Endpoint 2 |
-|---|---|---|---|
-| SeqKD | 0 | A → SeqKD → eval | → A → eval |
-| KID | 1 | A → KID → eval | → A → eval |
+## P2.6 — matched selected-gold terminal gate
 
-### What is held fixed
+This is the next mandatory causal gate. It uses the already published
+one-epoch matched-gold parent on exactly the same 5,319 ordered BIRD prompts as
+SeqKD. GPU 0 appends the missing terminal Spider-private `A`; GPU 1 independently
+evaluates the existing public endpoint on all five sets. They only read the
+same committed parent/adapter and may run concurrently.
 
-- Parent: published Spider-private FL T1
-  (`federated__fedavg__s0__935d572565cc__154540d3__r1`).
-- Public prompts: the same 5,319 selected BIRD row identities, with evidence.
-- Models: Qwen2.5-1.5B student; frozen Qwen2.5-Coder-7B teacher (4-bit).
-- Training: LoRA r16, lr 2e-4, grad accum 16, max length 7,168, seed 0, one
-  public pass.
-- **SeqKD endpoint 1** reuses the published adapter
-  `federated__fedavg_pub__s0__2b42f25abe82__9c5906d8__r1` (CE on teacher SQL).
-  The runner verifies its parent, pool, and recipe, then evaluates it again
-  under a single-arm contract. The earlier headline evaluation of this adapter
-  (57.93/46.65/48.26/45.61/34.68) is a drift check.
-- **KID endpoint 1** uses the row-matched clean BIRD gold SQL for those prompts:
-  random-mask 20% of target tokens, one dropout-free student fill pass, splice
-  predictions into the clean SQL, then optimize clean-target CE plus reverse
-  `KL(student || teacher)` on rewritten prefixes at T=1. The teacher is online;
-  no autoregressive rollout or fixed logit cache is used.
-- **Endpoint 2** for both lanes is the same Spider-private A: 5 clients, one
-  local epoch, plaintext FedAvg.
-- **Evaluation**: Spider, Realistic, SYN, DK, BIRD; batch 16; greedy; k=0.
-- SeqKD and KID share prompts but not targets/objectives. Their comparison is
-  end-to-end; a clean-RKL arm is required later to isolate KID rewriting if KID
-  passes this gate.
-- Wall time from concurrent lanes is not paper-eligible.
-- Gap: matched-gold CE on these 5,319 rows has only a batch-8 Spider evaluation.
-  It is not a five-set or terminal control in this queue.
+Held fixed against P2.5 SeqKD: FL parent, 5,319 row identities, evidence-aware
+public prompts, one public pass, one terminal local epoch, optimizer/LoRA
+recipe, evaluation datasets, batch size 16, decoding and seed. The only public
+target difference is BIRD gold SQL versus execution-verified teacher SQL.
 
-### Implementation state
+Do **not** start SeqKD-2, retention KD, structured-rationale KD, or another KD
+objective before this gate is published and reviewed. A second public epoch
+must later be planned from the FL parent with a matched two-epoch gold control;
+it must not be presented as an extension equivalent to a two-epoch schedule
+planned from step zero.
 
-GKD was cancelled before publication because its autoregressive online rollout
-was too costly for the available server. Do not publish or resume GKD artifacts.
-The nested repo implements `stage public --server-method kid` and the updated
-`scripts/run_p25_kd_comparison.py`. Local validation:
+### Step 0 — sync and verify once
 
-- 461 tests pass.
-- A CPU end-to-end KID run checks mask/rewrite alignment, clean CE, rewritten
-  reverse KL, and optimizer behavior.
-- A resumed run after a simulated crash produces an adapter identical to an
-  uninterrupted run.
-- Method-specific fields are written only to their own result rows; published
-  CE/Hinton/FL identities remain unchanged.
-
-Required nested commit: `a9b8621`.
-
-### Step 0 — sync the server once
-
-First stop the cancelled GKD process with Ctrl+C and wait for Python to exit.
-Do not pull while it is still running.
+Run from the Windows server `fedicl-sql/` root. Required nested result commit:
+`5d861f8` or a descendant.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor a9b8621 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Nested commit a9b8621 is missing from this checkout' }; uv run --extra dev pytest -q tests/test_kid.py tests/test_p25_runner.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'P2.5 SeqKD/KID tests failed on the server' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 5d861f8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.5 result commit 5d861f8 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; git log -1 --oneline
 ```
 
-### Step 1 — run both lanes at the same time
+### Step 1 — run both lanes concurrently
 
-GPU 0 — SeqKD: evaluate endpoint 1, train terminal A, evaluate endpoint 2.
-
-This does not retrain public SeqKD. It reuses the published 5,319-row SeqKD
-adapter, evaluates it under the P2.5 single-arm contract, then trains and
-evaluates only the previously missing terminal private A stage.
+GPU 0 — append terminal private `A` to the existing selected-row gold-CE
+parent, then evaluate the terminal adapter on all five sets.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase seqkd-flow; if ($LASTEXITCODE -ne 0) { throw 'SeqKD lane stopped; fix the reported cause, then rerun this exact line' }; Write-Host 'GPU-0 done: existing SeqKD public adapter evaluated and terminal A completed'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__4d679d6668dd__37fd379d__r1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2_gold/train.csv'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $O='artifacts/protocol_v2/p26_matched_selected_gold_s0/terminal_a'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider';N=1034},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider';N=508},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider';N=1034},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider';N=535},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence';N=1534}); foreach ($X in @("$R/metrics.json","$R/config.json","$P")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P2.6 prerequisite: $X" } }; $C=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/metrics.json" -Raw | ConvertFrom-Json; if ($C.pool -ne $P -or $M.server_training.train_config.epochs -ne 1 -or $M.server_training.n_examples -ne 5319 -or $M.server_training.train_config.kd_direction -ne 'none') { throw 'Matched-gold parent contract mismatch' }; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --aggregation-protocol plaintext --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p26_matched_selected_gold_terminal_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P2.6 terminal matched-gold training stopped; rerun this exact line' }; $V=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($V.version -ne 2 -or $V.chain -ne 'A>K[ce]>A' -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "P2.6 terminal stage contract mismatch: $($V.chain)" }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_terminal_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "matched_gold_terminal=$O/fedavg_adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "P2.6 terminal evaluation failed for $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $Q=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $Q.status -eq 'completed' -and @($Q.artifacts.predictions).Count -eq 1 } catch { $false } }); if ($Done.Count -lt 1) { throw "No completed terminal manifest for $($Set.Name)" } }; Write-Host 'GPU-0 complete: selected-row matched-gold terminal endpoint trained and evaluated'
 ```
 
-GPU 1 — KID: fresh 32-row smoke, budget gate, full KID, evaluate endpoint 1.
+GPU 1 — evaluate the already published matched-gold public adapter. This lane
+does not retrain it.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase kid-public --max-estimated-hours 12; if ($LASTEXITCODE -ne 0) { throw 'KID lane stopped; if the budget gate stopped it, review the fresh smoke estimate before raising --max-estimated-hours' }; Write-Host 'GPU-1 done: KID endpoint 1 evaluated; publish KID public next'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__4d679d6668dd__37fd379d__r1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2_gold/train.csv'; $A='artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider';N=1034},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider';N=508},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider';N=1034},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider';N=535},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence';N=1534}); foreach ($X in @("$R/metrics.json","$R/config.json","$A/adapter_config.json","$P")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P2.6 prerequisite: $X" } }; $C=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/metrics.json" -Raw | ConvertFrom-Json; if ($C.pool -ne $P -or $M.server_training.train_config.epochs -ne 1 -or $M.server_training.n_examples -ne 5319 -or $M.server_training.train_config.kd_direction -ne 'none' -or ([string]$M.m_g).Replace('\','/') -ne $A) { throw 'Matched-gold public adapter contract mismatch' }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_public_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "matched_gold_public=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "P2.6 public evaluation failed for $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $Q=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $Q.status -eq 'completed' -and @($Q.artifacts.predictions).Count -eq 1 } catch { $false } }); if ($Done.Count -lt 1) { throw "No completed public manifest for $($Set.Name)" } }; Write-Host 'GPU-1 complete: selected-row matched-gold public endpoint evaluated on five sets'
 ```
 
-- **Smoke:** runs in a new KID-only root and prints seconds per example, setup
-  time, rewritten-token count, memory, loss, and a 5,319-row estimate. A resumed
-  smoke is not accepted for the budget estimate.
-- **Budget gate:** above 12 hours the lane stops before full training. For
-  reference, KID adds one student rewrite pass and online teacher scoring but
-  no autoregressive rollout. To continue after review, rerun the same line with
-  a larger `--max-estimated-hours`; the completed fresh smoke is reused. Once full KID
-  has started, the gate is not applied again.
-- **Resume:** both lines are resumable. Rerun the exact line after an
-  interruption. A completed evaluation is reused when evaluation code is
-  unchanged since it ran; publication commits do not force re-evaluation.
+Both commands are resumable by rerunning the exact same line. Do not pull,
+commit or publish while either lane is active.
 
-### Step 2a — publish KID endpoint 1 independently
+### Step 2 — publish after both lanes finish
 
-Run after `kid-public` is complete, even if `seqkd-flow` has not run. This
-publishes only the KID smoke, KID public training row, and its five evaluation
-sets. It takes only the KID lane lock and makes the committed KID parent
-available for terminal A.
+This command stages only the terminal federated row and the exact ten compact
+evaluation triplets. It never stages adapters, caches or resume artifacts.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-kid-public; if ($LASTEXITCODE -ne 0) { throw 'KID public publication stopped; inspect git status and retry this exact line' }
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $O='artifacts/protocol_v2/p26_matched_selected_gold_s0/terminal_a'; $A0='artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g'; $A1="$O/fedavg_adapter"; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.version -ne 2 -or $St.chain -ne 'A>K[ce]>A') { throw 'P2.6 terminal stage is missing or invalid' }; $Hits=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Directory -Filter 'federated_stage__*' | Where-Object { try { $M=Get-Content -LiteralPath (Join-Path $_.FullName 'metrics.json') -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath (Join-Path $_.FullName 'config.json') -Raw | ConvertFrom-Json; $M.stage_id -eq $St.stage_id -and $M.stage -eq 'p26_matched_selected_gold_terminal_s0' -and $C.out -eq $O } catch { $false } }); if ($Hits.Count -ne 1) { throw "Expected one P2.6 terminal result row, found $($Hits.Count)" }; $Files=[System.Collections.Generic.List[string]]::new(); $Files.Add((Join-Path $Hits[0].FullName 'metrics.json')); $Files.Add((Join-Path $Hits[0].FullName 'config.json')); foreach ($Lane in @(@{Name='public';Arm='matched_gold_public';Adapter=$A0},@{Name='terminal';Arm='matched_gold_terminal';Adapter=$A1})) { foreach ($Set in @('spider','realistic','syn','dk','bird')) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_$($Lane.Name)_${Set}_s0/eval_k0"; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 1 -and @($C.arms).Count -eq 1 -and $C.arms[0] -eq "$($Lane.Arm)=$($Lane.Adapter)" -and $C.resume_dir -eq $E -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) -and (Test-Path -LiteralPath $V.artifacts.predictions[0]) } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one exact P2.6 eval for $($Lane.Name)/${Set}, found $($Done.Count)" }; $V=Get-Content -LiteralPath $Done[0].FullName -Raw | ConvertFrom-Json; $Files.Add([string]$V.artifacts.metrics); $Files.Add([string]$V.artifacts.config); $Files.Add([string]$V.artifacts.predictions[0]) } }; $Sep=[IO.Path]::DirectorySeparatorChar; $Root=(Resolve-Path -LiteralPath '.').Path.TrimEnd($Sep)+$Sep; $Rel=@($Files | ForEach-Object { $F=(Resolve-Path -LiteralPath $_).Path; if (-not $F.ToLowerInvariant().StartsWith($Root.ToLowerInvariant())) { throw "Outside repository: $F" }; $F.Substring($Root.Length).Replace([string]$Sep,'/') } | Sort-Object -Unique); git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.6 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.6 staged allowlist mismatch' }; git commit -m 'results: publish P2.6 matched selected-gold endpoints'; if ($LASTEXITCODE -ne 0) { throw 'P2.6 commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'P2.6 push failed' }; git log -1 --oneline
 ```
 
-### Step 3 — KID endpoint 2 on GPU 1
+## Decision after P2.6
 
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase kid-terminal; if ($LASTEXITCODE -ne 0) { throw 'KID terminal lane stopped; rerun this exact line' }; Write-Host 'GPU-1 done: KID endpoint 2 evaluated; publish next'
-```
+Compare matched-gold versus SeqKD at both public and terminal endpoints using
+EX, paired wins/losses and exact McNemar tests on all five sets.
 
-### Step 4 — publish KID endpoint 2
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-final; if ($LASTEXITCODE -ne 0) { throw 'Publication stopped; inspect git status and the message before retrying' }
-```
-
-### Step 5 — publish the combined comparison after SeqKD finishes
-
-Run after `seqkd-flow` is complete. This publishes the existing SeqKD public
-row, the new single-arm SeqKD evaluations, terminal SeqKD row/evaluations, and
-verifies the already published KID public endpoint. Unchanged KID files are not
-committed twice.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p25_kd_comparison.py --phase publish-first; if ($LASTEXITCODE -ne 0) { throw 'SeqKD comparison publication stopped; inspect git status and retry this exact line' }
-```
-
-### Decision after P2.5
-
-Report the following, all seed 0:
-
-- KID − SeqKD at endpoint 1 and at endpoint 2 on all five sets.
-- Paired wins/losses with exact McNemar p-values.
-- Spider-family mean.
-- Retention: endpoint 2 − endpoint 1.
-- KID cost reported separately: seconds per example and rewritten-token count.
-- If KID passes, run matched clean RKL before attributing its gain to imperfect
-  rewriting. If it does not pass, keep SeqKD and close online KID.
-
-Do not relabel historical RKD/KID as protocol-v2 evidence. Depth, recurrence,
-and other KD variants stay deferred until this comparison is reviewed.
+- Promote SeqKD only if terminal BIRD improves by at least 1.0 point,
+  Spider-family mean improves by at least 0.5 point, and no individual Spider
+  evaluation regresses by more than 1.0 point.
+- If SeqKD passes, next implement a terminal knowledge-retention objective and
+  only then schedule matched SeqKD-2 versus gold-CE-2 from the common FL parent.
+- If SeqKD fails, do not spend GPU time on repeated flat offline KD. Run the
+  bounded structured-rationale quality/length screen before implementing a new
+  teacher objective.
