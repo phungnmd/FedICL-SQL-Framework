@@ -4,18 +4,45 @@
 
 - Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
-- Method status: open. Current candidate = Spider-private `A` -> BIRD-public
-  Hinton `K[fkl]` -> terminal Spider-private `A`; deployment ends after FedAvg.
+- Method status: open. Hinton and KID do not show a teacher-specific terminal
+  advantage. The active candidate is execution-verified SeqKD followed by one
+  terminal Spider-private `A`; deployment ends after FedAvg.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
   control (`5e4f005`), P2.3 terminal endpoints (`2a6e04c`), and terminal
-  full-public gold control (`ccb3e91`).
+  full-public gold control (`ccb3e91`), SeqKD endpoints and KID public
+  (`1e69ae3`), and KID terminal (`5d861f8`).
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
   reaching 66.63 Spider and 31.03 BIRD EX. However, it does not reliably beat
   `A>K[ce]>A`; the result is not soft-logit-specific.
-- Next: P2.5 SeqKD versus protocol-v2 KID at A-K and A-K-A. GKD and P2.4c
-  were cancelled before publication because their projected GPU cost was too high.
+- Finding: terminal SeqKD and KID are statistically indistinguishable on all
+  five sets. Their Spider-family means are 56.87 and 56.75; BIRD EX is 28.42
+  and 28.94. KID's public stage cost about 21.1 GPU-hours, so it is closed.
+- Next: P2.6 completes five-set public and terminal evaluation for matched
+  5,319-row gold CE. This isolates teacher-generated SQL from ordinary public
+  adaptation before any KD-depth or retention experiment.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-20 — P2.5 complete; KID closed; matched-gold gate activated
+
+P2.5 published both endpoints for SeqKD and protocol-v2 KID. Public EX for
+SeqKD/KID is 57.93/58.03 Spider, 46.65/44.09 Realistic, 48.26/46.23 SYN,
+45.61/44.30 DK, and 34.68/35.40 BIRD. After the identical terminal private
+stage it is 64.99/65.47, 57.68/57.09, 54.55/54.16, 50.28/50.28, and
+28.42/28.94. No terminal KID-minus-SeqKD difference is paired-significant.
+The terminal private stage repairs Spider-family robustness but reduces BIRD
+by 6.26 points after SeqKD and 6.45 after KID.
+
+KID therefore adds substantial compute without a measurable accuracy benefit
+and is no longer an active method candidate. GKD remains closed for compute;
+clean RKL/MiniLLM and deeper Hinton are not opened by this negative result.
+
+The next gate reuses the committed one-epoch matched-gold parent on the same
+5,319 BIRD row identities as SeqKD. One GPU evaluates its public endpoint and
+the other appends/evaluates the missing terminal `A`. Only after this paired
+teacher-target-versus-gold comparison may the project choose between terminal
+knowledge retention, matched SeqKD-2/gold-CE-2, or a structured-rationale
+screen.
 
 ## 2026-09-17 — GKD closed for cost; protocol-v2 KID activated
 

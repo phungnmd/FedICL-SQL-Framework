@@ -120,6 +120,21 @@ order. Full interpretation and teacher-gap accounting:
 No paired comparison is significant (`p=1.000/1.000/.439/.749/.102`). See
 [P24_TEACHER_SIGNAL_REVIEW.md](../results/P24_TEACHER_SIGNAL_REVIEW.md).
 
+### Published P2.5 SeqKD versus KID endpoints
+
+| Evaluation | SeqKD `A>K` | KID `A>K` | SeqKD `A>K>A` | KID `A>K>A` |
+|---|---:|---:|---:|---:|
+| Spider | 57.93 | 58.03 | 64.99 | 65.47 |
+| Realistic | 46.65 | 44.09 | 57.68 | 57.09 |
+| SYN | 48.26 | 46.23 | 54.55 | 54.16 |
+| DK | 45.61 | 44.30 | 50.28 | 50.28 |
+| BIRD dev, evidence | 34.68 | 35.40 | 28.42 | 28.94 |
+
+Terminal KID-minus-SeqKD deltas are +0.48/−0.59/−0.39/0.00/+0.52 points;
+none is paired-significant (`p=.644/.761/.731/1.000/.554`). KID public training
+took 75,883 seconds for 5,319 examples and is retained as a valid negative
+ablation, not an active method candidate.
+
 ### Valid Spider out-of-domain results
 
 | Method | Stage | Realistic EX/EM | Syn EX/EM | DK EX/EM |
@@ -150,6 +165,9 @@ is not listed, because later rounds inherit invalid public supervision.
 | Protocol-v2 Spider-private shared FL T1 | `artifacts/protocol_v2/p22_spider_private_t1/shared_clients_s0/round_1/fedavg_adapter` | common initialization for the matched ladder |
 | Protocol-v2 Spider-private matched-gold CE T1 | `artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g` | 5,319-row BIRD public-gold control |
 | Protocol-v2 Spider-private SeqKD T1 | `artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g` | 5,319-row BIRD teacher-target arm |
+| Protocol-v2 terminal SeqKD | `artifacts/protocol_v2/p25_seqkd_gkd_s0/seqkd_terminal/fedavg_adapter` | valid `A>K[seq]>A` endpoint; seed 0 |
+| Protocol-v2 KID public | `artifacts/protocol_v2/p25_seqkd_kid_s0/kid_public/m_g` | valid negative KID ablation; seed 0 |
+| Protocol-v2 terminal KID | `artifacts/protocol_v2/p25_seqkd_kid_s0/kid_terminal/fedavg_adapter` | valid negative `A>K[kid]>A` endpoint; seed 0 |
 | Protocol-v2 Spider-private full-gold CE T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/full_gold_ce_s0/round_1/m_g` | all 9,428 BIRD public rows with evidence |
 | Protocol-v2 Spider-private Hinton FKL T1 | `artifacts/protocol_v2/p22d_spider_private_fullgold_hinton_t1/hinton_fkl_t2_alpha05_s0/round_1/m_g` | all 9,428 BIRD gold prefixes; temperature 2; candidate parent for consolidation |
 | Protocol-v2 Spider-private `A>A` | `artifacts/protocol_v2/p23_spider_private_terminal/a_a_s0/fedavg_adapter` | matched terminal-private control; published five-set endpoint |
@@ -177,17 +195,19 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
 | 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
-| 9 | SeqKD versus protocol-v2 KID before/after A | active P2.5; implementation/tests complete, fresh KID smoke and GPU runs pending; GKD closed before publication for cost |
-| 10 | KD-depth/recurrent schedule | deferred until a teacher channel passes row 9; never run a teacher arm without its matched no-teacher control |
-| 11 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
-| 12 | Final method on `alpha=0.1` and a second training seed | after method selection |
-| 13 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
+| 9 | SeqKD versus protocol-v2 KID before/after A | complete; terminal endpoints are statistically tied, KID closed for cost |
+| 10 | Selected 5,319-row gold CE versus SeqKD before/after A | active P2.6; public gold parent exists, five-set public rescore and terminal A are queued on two GPUs |
+| 11 | KD-depth or terminal-retention schedule | deferred until row 10 establishes teacher-specific value; every teacher arm requires a matched no-teacher control |
+| 12 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
+| 13 | Final method on `alpha=0.1` and a second training seed | after method selection |
+| 14 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
 
 SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
 `SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
-an adapter. Protocol-v2 KID is the active bounded candidate. MiniLLM and a fresh
-clean-RKL lineage remain conditional method-improvement candidates after its
-gate; GKD is closed for this paper because of compute cost.
+an adapter. Protocol-v2 KID is a completed negative ablation. MiniLLM, clean
+RKL, deeper Hinton and GKD are closed for the current queue. The active causal
+gate is terminal SeqKD versus row-matched selected-gold CE; depth and retention
+remain conditional on that result.
 
 Secure Sum equivalence and teacher-only resource measurements remain valid
 technical evidence. They are not accuracy arms and do not replace rows 1–10.

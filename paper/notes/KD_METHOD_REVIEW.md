@@ -1,7 +1,7 @@
 # FedLS-SQL — KD method review
 
-> Status (2026-09-17): research review; `PIPELINE_NEXT.md` owns the active
-> protocol-v2 SeqKD/KID gate. Nothing below becomes part of the method until it is
+> Status (2026-09-20): research review; P2.5 closed KID and
+> `PIPELINE_NEXT.md` owns the active matched SeqKD/selected-gold gate. Nothing below becomes part of the method until it is
 > implemented, compared with its matched control, and recorded in `LAB_LOG.md`.
 
 ## 1. Implemented KD baselines
@@ -19,11 +19,12 @@ Protocol v2 implements two teacher channels. The teacher is Qwen2.5-Coder-7B
 Reverse KL, skew-RKL, and the old protocol-v1 KID are archived in
 `../archive/method_reviews_2026-09/KD_METHOD_REVIEW_RKL.md`. The 5,319-row
 SeqKD+Hinton hybrid was retired on 2026-09-12. Those old negative results are
-not protocol-v2 evidence. A fresh protocol-v2 KID implementation is active as a
-bounded alternative to GKD: 20% one-pass student rewriting followed by clean
-gold CE and reverse KL against the frozen teacher on rewritten prefixes. GKD
-was closed before publication because autoregressive online rollout was too
-costly for the available hardware.
+not protocol-v2 evidence. The fresh protocol-v2 KID implementation used 20%
+one-pass student rewriting followed by clean-gold CE and reverse KL against
+the frozen teacher on rewritten prefixes. It is now a completed negative
+ablation: terminal KID is statistically tied with terminal SeqKD on all five
+sets despite about 21.1 GPU-hours for its public stage. GKD was closed before
+publication because autoregressive online rollout was too costly.
 
 ## 2. Evidence
 
@@ -51,7 +52,16 @@ No terminal private stage.
 | Spider public → BIRD private, BIRD EX | 20.73 | 24.45 | +3.72 |
 
 SeqKD is the only teacher channel with a positive sign in both directions. Its
-terminal-stage test is deferred.
+terminal stage reaches 64.99/57.68/54.55/50.28/28.42 EX on
+Spider/Realistic/SYN/DK/BIRD. The matched selected-gold terminal control is the
+remaining causal gate before attributing this gain to teacher-generated SQL.
+
+### SeqKD versus KID
+
+At the terminal endpoint, KID minus SeqKD is
++0.48/−0.59/−0.39/0.00/+0.52 points on the same five sets. No difference is
+paired-significant. KID therefore does not justify its online teacher cost and
+does not open clean RKL or MiniLLM follow-ups.
 
 ### Reading
 
@@ -222,7 +232,8 @@ less.
 ## 8. Deprioritized
 
 - More offline Hinton depth or schedules: lowest transfer tier, with teacher
-  hacking risk.
+  hacking risk. SeqKD depth is also deferred until matched selected-gold CE
+  establishes teacher-specific value.
 - Offline top-K cache for forward KL: biased (Sparse Logit Sampling). If
   forward KL stays, use random-sampling KD.
 - Chain-of-thought distillation (Struct-SQL, FINER-SQL): high ceiling (FINER-SQL

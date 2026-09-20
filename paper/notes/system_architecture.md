@@ -7,10 +7,10 @@
 
 ## Research target
 
-Current queue update (2026-09-16): prioritize P2.4c, matched two-epoch
-full-public CE/Hinton, with evaluation before and after terminal A. This tests
-under-training and retention separately. Terminal SeqKD below is deferred;
-the one-epoch result does not establish CE/Hinton equivalence.
+Current queue update (2026-09-20): P2.5 completed SeqKD and KID before and
+after terminal private consolidation. KID is statistically tied with SeqKD but
+far more expensive. P2.6 now isolates teacher-generated SQL against matched
+gold SQL on the same 5,319 public prompts before any depth or retention change.
 
 FedLS-SQL studies whether server-side LLM-to-SLM collaboration can improve an
 SLM trained across private federated Text-to-SQL clients while retaining SLM
@@ -121,12 +121,19 @@ CE, teacher-target CE (SeqKD), and full-public-gold CE plus temperature-scaled
 sequence-level baseline; Hinton FKL is the token-level soft-logit baseline.
 They are separate arms, not a required hybrid. EX is primary. Neither becomes
 part of the final claimed method without reproducible protocol-v2 gain.
-Historical protocol-v1 reverse KL and KID remain archived. They do not count as
-protocol-v2 evidence. A fresh, provenance-isolated protocol-v2 KID lane is now
-the bounded method candidate after autoregressive GKD was closed for excessive
-compute cost. It uses one-pass student rewriting plus reverse KL and must pass
-the same five-set EX gate before entering the proposed method. MiniLLM and a
-clean-RKL isolation arm remain conditional follow-ups.
+Historical protocol-v1 reverse KL and KID remain archived. Protocol-v2 KID is
+a separate valid negative ablation: one-pass student rewriting plus reverse KL
+does not significantly improve on SeqKD at either endpoint and costs about
+21.1 GPU-hours for its public pass. It is closed together with GKD, clean RKL,
+MiniLLM and deeper Hinton for the current queue.
+
+The active method hypothesis is execution-verified SeqKD followed by terminal
+private consolidation. Its teacher-specific contribution is not yet proven:
+P2.6 first compares it against row-matched selected-gold CE. If that gate
+passes, the preferred method improvement is knowledge retention during the
+terminal client stage, using the post-K global SLM as a frozen local reference
+without placing the 7B teacher at clients or increasing communication. A
+matched two-epoch SeqKD/gold-CE screen remains secondary.
 
 After the rerun, the method-improvement queue is adaptive. The first gate was
 the terminal checkpoint comparison `A`, `A -> K`, `A -> A`, and
@@ -170,9 +177,11 @@ P2.4a (`ccb3e91`) gives `A>K[ce]>A` EX of
 66.54/57.28/54.45/51.21/29.53. Relative Hinton deltas are
 +0.09/−0.19/+0.87/−0.56/+1.50 points and none is paired-significant. The next
 gate is terminal selected-row SeqKD versus matched gold; a controlled
-depth/recurrent screen opens only for a teacher channel that passes. The exact
-mechanism of the robustness loss remains a hypothesis, not a proven prompt
-defect.
+depth/retention screen opens only for a teacher channel that passes. P2.5
+(`1e69ae3`, `5d861f8`) gives terminal SeqKD/KID EX of 64.99/65.47 Spider,
+57.68/57.09 Realistic, 54.55/54.16 SYN, 50.28/50.28 DK, and 28.42/28.94 BIRD;
+none of the paired differences is significant. The exact mechanism of the
+robustness loss remains a hypothesis, not a proven prompt defect.
 
 ## Evaluation and lineage
 
