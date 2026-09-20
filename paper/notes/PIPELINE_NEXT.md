@@ -42,7 +42,7 @@ Run from the Windows server `fedicl-sql/` root. Required nested result commit:
 `5d861f8` or a descendant.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 5d861f8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.5 result commit 5d861f8 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 5d861f8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.5 result commit 5d861f8 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; git log -1 --oneline
 ```
 
 ### Step 1 — run both lanes concurrently
