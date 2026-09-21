@@ -21,7 +21,7 @@ seed 0, optimizer/LoRA recipe and five evaluation sets. P2.7 is an experimental
 method gate, not yet a paper result.
 
 Required nested branch: `experiment/structured-rationale-kd`, containing commit
-`784706b` or a descendant. Push that branch from the development machine before
+`6b6ee6a` or a descendant. Push that branch from the development machine before
 running the server commands below.
 
 ## Step 0 — server sync and validation
@@ -29,7 +29,7 @@ running the server commands below.
 Run from the Windows server `fedicl-sql/` root. This does not switch `main`.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 784706b HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.7 validation commit 784706b is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run python -m pytest -q tests/test_rationale_sql_plan.py tests/test_rationale_targets.py tests/test_rationale_scripts.py tests/test_p27_rationale_runner.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.7 validation failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 6b6ee6a HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.7 validation commit 6b6ee6a is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run python -m pytest -q tests/test_rationale_sql_plan.py tests/test_rationale_targets.py tests/test_rationale_scripts.py tests/test_p27_rationale_runner.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.7 validation failed' }; git log -1 --oneline
 ```
 
 ## Step 1 — GPU 0 teacher-plan quality gate
