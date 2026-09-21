@@ -196,8 +196,8 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 | 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
 | 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
 | 9 | SeqKD versus protocol-v2 KID before/after A | complete; terminal endpoints are statistically tied, KID closed for cost |
-| 10 | Selected 5,319-row gold CE versus SeqKD before/after A | active P2.6; public gold parent exists, five-set public rescore and terminal A are queued on two GPUs |
-| 11 | KD-depth or terminal-retention schedule | deferred until row 10 establishes teacher-specific value; every teacher arm requires a matched no-teacher control |
+| 10 | Selected 5,319-row gold CE versus SeqKD before/after A | complete at `fb2329e`; terminal SeqKD minus gold is -0.10/-0.98/+1.65/+0.75/+0.91 EX on Spider/Realistic/SYN/DK/BIRD, so the promotion gate failed |
+| 11 | Structured-rationale teacher-value screen | active P2.7 on one deterministic 1,000-row subset: flat teacher SQL vs local AST plan vs teacher plan; full-pool work requires every registered gate |
 | 12 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
 | 13 | Final method on `alpha=0.1` and a second training seed | after method selection |
 | 14 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
@@ -205,9 +205,9 @@ Order is adaptive: do not start a lower row when its gate is unresolved.
 SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
 `SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
 an adapter. Protocol-v2 KID is a completed negative ablation. MiniLLM, clean
-RKL, deeper Hinton and GKD are closed for the current queue. The active causal
-gate is terminal SeqKD versus row-matched selected-gold CE; depth and retention
-remain conditional on that result.
+RKL, deeper Hinton and GKD are closed for the current queue. Flat SeqKD failed
+the terminal promotion gate; the active bounded gate asks whether validated
+teacher query structure adds value beyond the same teacher SQL.
 
 Secure Sum equivalence and teacher-only resource measurements remain valid
 technical evidence. They are not accuracy arms and do not replace rows 1–10.

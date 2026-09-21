@@ -4,24 +4,45 @@
 
 - Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
-- Method status: open. Hinton and KID do not show a teacher-specific terminal
-  advantage. The active candidate is execution-verified SeqKD followed by one
-  terminal Spider-private `A`; deployment ends after FedAvg.
+- Method status: open. Hinton, KID and flat SeqKD do not show a sufficiently
+  strong teacher-specific terminal advantage. P2.7 now tests whether explicit
+  teacher query structure adds value beyond the same teacher SQL.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
   control (`5e4f005`), P2.3 terminal endpoints (`2a6e04c`), and terminal
   full-public gold control (`ccb3e91`), SeqKD endpoints and KID public
-  (`1e69ae3`), and KID terminal (`5d861f8`).
+  (`1e69ae3`), KID terminal (`5d861f8`), and P2.6 matched selected-gold
+  endpoints (`fb2329e`).
 - Finding: `A>K[fkl]>A` beats matched `A>A` on all five sets at seed 0,
   reaching 66.63 Spider and 31.03 BIRD EX. However, it does not reliably beat
   `A>K[ce]>A`; the result is not soft-logit-specific.
 - Finding: terminal SeqKD and KID are statistically indistinguishable on all
   five sets. Their Spider-family means are 56.87 and 56.75; BIRD EX is 28.42
   and 28.94. KID's public stage cost about 21.1 GPU-hours, so it is closed.
-- Next: P2.6 completes five-set public and terminal evaluation for matched
-  5,319-row gold CE. This isolates teacher-generated SQL from ordinary public
-  adaptation before any KD-depth or retention experiment.
+- Finding: against matched selected-gold terminal CE, terminal SeqKD changes
+  Spider/Realistic/SYN/DK/BIRD EX by -0.10/-0.98/+1.65/+0.75/+0.91 points.
+  BIRD gain is below 1.0 and the Spider-family mean gain is only +0.33, so P2.6
+  does not justify scaling unchanged flat SeqKD.
+- Next: P2.7 is a bounded 1,000-row screen of flat teacher SQL, deterministic
+  local SQL plans, and teacher-generated query plans. Full-pool expansion is
+  forbidden unless all pre-registered gates pass.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-22 — P2.6 closed; bounded structured-rationale gate activated
+
+P2.6 published matched selected-gold public/terminal endpoints at `fb2329e`.
+At the terminal endpoint, matched gold reaches 65.09/58.66/52.90/49.53/27.51
+EX on Spider/Realistic/SYN/DK/BIRD, versus 64.99/57.68/54.55/50.28/28.42 for
+SeqKD. The comparison therefore does not meet the registered BIRD or
+Spider-family mean promotion thresholds. This closes scaling the same flat
+SeqKD recipe; it does not show that teacher-generated SQL has zero value.
+
+P2.7 isolates the remaining hypothesis: whether a validated teacher query plan
+adds useful large-to-small structure beyond the teacher SQL itself. The screen
+uses a deterministic 1,000-row subset and compares flat SeqKD, deterministic
+AST-plan supervision, and teacher-plan supervision under matched training and
+evaluation. It is experimental until the quality gate and five-set paired
+analysis complete.
 
 ## 2026-09-20 — P2.5 complete; KID closed; matched-gold gate activated
 

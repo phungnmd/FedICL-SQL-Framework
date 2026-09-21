@@ -1,88 +1,89 @@
 # FedLS-SQL — active protocol-v2 queue
 
-## P2.5 decision — complete
+## Current decision
 
-SeqKD and protocol-v2 KID are complete at both `A>K` and `A>K>A` endpoints.
-KID terminal is statistically indistinguishable from SeqKD terminal on all
-five evaluation sets while its public stage costs about 21.1 GPU-hours.
-KID, GKD, clean RKL/MiniLLM follow-ups, and deeper Hinton are closed for the
-current paper queue. The completed commands are preserved in
-[P25_SEQKD_KID_2026-09-20.md](../archive/completed_runbooks/P25_SEQKD_KID_2026-09-20.md).
+P2.6 is complete and published in nested commit `fb2329e`: flat SeqKD does not
+clear the matched selected-gold terminal gate strongly enough to justify
+scaling the same objective. Its completed runbook is archived at
+[P26_MATCHED_GOLD_2026-09-21.md](../archive/completed_runbooks/P26_MATCHED_GOLD_2026-09-21.md).
 
-| Evaluation | SeqKD public | KID public | SeqKD terminal | KID terminal |
-|---|---:|---:|---:|---:|
-| Spider | 57.93 | 58.03 | 64.99 | 65.47 |
-| Realistic | 46.65 | 44.09 | 57.68 | 57.09 |
-| SYN | 48.26 | 46.23 | 54.55 | 54.16 |
-| DK | 45.61 | 44.30 | 50.28 | 50.28 |
-| BIRD dev, evidence | 34.68 | 35.40 | 28.42 | 28.94 |
+The only active GPU gate is **P2.7**, a bounded structured-rationale screen on
+the same deterministic 1,000-row subset. It compares:
 
-## P2.6 — matched selected-gold terminal gate
+| Arm | Public target | Response format |
+|---|---|---|
+| `seqkd_flat_1000` | fixed teacher SQL | SQL only |
+| `qplan_local_1000` | deterministic SQL-AST plan + same teacher SQL | plan + SQL |
+| `qplan_teacher_1000` | teacher query plan + same teacher SQL | plan + SQL |
 
-This is the next mandatory causal gate. It uses the already published
-one-epoch matched-gold parent on exactly the same 5,319 ordered BIRD prompts as
-SeqKD. GPU 0 appends the missing terminal Spider-private `A`; GPU 1 independently
-evaluates the existing public endpoint on all five sets. They only read the
-same committed parent/adapter and may run concurrently.
+All three arms use the same Spider-private FedAvg T1 parent, one public epoch,
+seed 0, optimizer/LoRA recipe and five evaluation sets. P2.7 is an experimental
+method gate, not yet a paper result.
 
-Held fixed against P2.5 SeqKD: FL parent, 5,319 row identities, evidence-aware
-public prompts, one public pass, one terminal local epoch, optimizer/LoRA
-recipe, evaluation datasets, batch size 16, decoding and seed. The only public
-target difference is BIRD gold SQL versus execution-verified teacher SQL.
+Required nested branch: `experiment/structured-rationale-kd`, containing commit
+`784706b` or a descendant. Push that branch from the development machine before
+running the server commands below.
 
-Do **not** start SeqKD-2, retention KD, structured-rationale KD, or another KD
-objective before this gate is published and reviewed. A second public epoch
-must later be planned from the FL parent with a matched two-epoch gold control;
-it must not be presented as an extension equivalent to a two-epoch schedule
-planned from step zero.
+## Step 0 — server sync and validation
 
-### Step 0 — sync and verify once
-
-Run from the Windows server `fedicl-sql/` root. Required nested result commit:
-`5d861f8` or a descendant.
+Run from the Windows server `fedicl-sql/` root. This does not switch `main`.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed; inspect git status' }; git merge-base --is-ancestor 5d861f8 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.5 result commit 5d861f8 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 784706b HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.7 validation commit 784706b is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run python -m pytest -q tests/test_rationale_sql_plan.py tests/test_rationale_targets.py tests/test_rationale_scripts.py tests/test_p27_rationale_runner.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.7 validation failed' }; git log -1 --oneline
 ```
 
-### Step 1 — run both lanes concurrently
+## Step 1 — GPU 0 teacher-plan quality gate
 
-GPU 0 — append terminal private `A` to the existing selected-row gold-CE
-parent, then evaluate the terminal adapter on all five sets.
+This builds the frozen subset and the resumable teacher-plan sidecar. Stop if
+either first-attempt rate is below 99%; do not spend GPU time on the three arms.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__4d679d6668dd__37fd379d__r1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2_gold/train.csv'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; $O='artifacts/protocol_v2/p26_matched_selected_gold_s0/terminal_a'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider';N=1034},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider';N=508},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider';N=1034},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider';N=535},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence';N=1534}); foreach ($X in @("$R/metrics.json","$R/config.json","$P")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P2.6 prerequisite: $X" } }; $C=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/metrics.json" -Raw | ConvertFrom-Json; if ($C.pool -ne $P -or $M.server_training.train_config.epochs -ne 1 -or $M.server_training.n_examples -ne 5319 -or $M.server_training.train_config.kd_direction -ne 'none') { throw 'Matched-gold parent contract mismatch' }; uv run python experiments/federated/run.py stage private --parent-result $R --split-dir $S --n-clients 5 --local-epochs 1 --client-train-k 0 --client-dataset-profile spider --aggregation-protocol plaintext --model Qwen/Qwen2.5-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --stage p26_matched_selected_gold_terminal_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'P2.6 terminal matched-gold training stopped; rerun this exact line' }; $V=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($V.version -ne 2 -or $V.chain -ne 'A>K[ce]>A' -or -not (Test-Path -LiteralPath "$O/fedavg_adapter/adapter_config.json")) { throw "P2.6 terminal stage contract mismatch: $($V.chain)" }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_terminal_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "matched_gold_terminal=$O/fedavg_adapter" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "P2.6 terminal evaluation failed for $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $Q=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $Q.status -eq 'completed' -and @($Q.artifacts.predictions).Count -eq 1 } catch { $false } }); if ($Done.Count -lt 1) { throw "No completed terminal manifest for $($Set.Name)" } }; Write-Host 'GPU-0 complete: selected-row matched-gold terminal endpoint trained and evaluated'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p27_rationale_screen.py --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.7 subset preparation failed; rerun this exact line' }; uv run python scripts/run_p27_rationale_screen.py --phase generate-plans; if ($LASTEXITCODE -ne 0) { throw 'P2.7 teacher-plan generation failed; rerun this exact line' }; $P='processed_data/protocol_v2/rationale_kd/p27_bird_selected1000_s0/teacher_plans_qwen25_coder_7b.jsonl.provenance.json'; $V=Get-Content -LiteralPath $P -Raw | ConvertFrom-Json; if ($V.n_rows -ne 1000 -or $V.plan_source -ne 'teacher_qwen25_coder_7b_v1' -or -not $V.first_attempt_gate_passed -or $V.first_attempt_parse_rate -lt 0.99 -or $V.first_attempt_validation_rate -lt 0.99) { throw "P2.7 plan gate failed: rows=$($V.n_rows) source=$($V.plan_source) parse=$($V.first_attempt_parse_rate) validation=$($V.first_attempt_validation_rate)" }; Write-Host 'P2.7 teacher-plan gate passed; start both training lanes'
 ```
 
-GPU 1 — evaluate the already published matched-gold public adapter. This lane
-does not retrain it.
+## Step 2 — two concurrent GPU lanes
+
+Start these only after Step 1 passes. They write disjoint training/evaluation
+roots; the shared audit manifest is protected by an inter-process file lock.
+
+GPU 0 — teacher-generated query plans:
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $R='experiments/federated/results/federated__fedavg_pub__s0__4d679d6668dd__37fd379d__r1'; $P='processed_data/protocol_v2/BIRD/original_train9428_dev1534/teacher_targets/qwen7b_to_qwen15b_evidence_s0/exmatch_bird_pair_timeout30_v2_gold/train.csv'; $A='artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g'; $ST='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/train.csv'; $BT='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv'; $Sets=@(@{Name='spider';Train=$ST;Test='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv';Profile='spider';N=1034},@{Name='realistic';Train=$ST;Test='processed_data/SPIDER_REALISTIC/test.csv';Profile='spider';N=508},@{Name='syn';Train=$ST;Test='processed_data/SPIDER_SYN/test.csv';Profile='spider';N=1034},@{Name='dk';Train=$ST;Test='processed_data/SPIDER_DK/test.csv';Profile='spider';N=535},@{Name='bird';Train=$BT;Test='processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv';Profile='bird_with_evidence';N=1534}); foreach ($X in @("$R/metrics.json","$R/config.json","$A/adapter_config.json","$P")) { if (-not (Test-Path -LiteralPath $X)) { throw "Missing P2.6 prerequisite: $X" } }; $C=Get-Content -LiteralPath "$R/config.json" -Raw | ConvertFrom-Json; $M=Get-Content -LiteralPath "$R/metrics.json" -Raw | ConvertFrom-Json; if ($C.pool -ne $P -or $M.server_training.train_config.epochs -ne 1 -or $M.server_training.n_examples -ne 5319 -or $M.server_training.train_config.kd_direction -ne 'none' -or ([string]$M.m_g).Replace('\','/') -ne $A) { throw 'Matched-gold public adapter contract mismatch' }; foreach ($Set in $Sets) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_public_$($Set.Name)_s0/eval_k0"; uv run python experiments/eval_arms/run.py --pool-mode centralized --centralized-train $Set.Train --test-csv $Set.Test --dataset-profile $Set.Profile --arms "matched_gold_public=$A" --n-eval 0 --k 0 --schema-style full --demo-style never_schema --retrieval dail_select --embedder BAAI/bge-small-en-v1.5 --tau 0.85 --overlay none --model Qwen/Qwen2.5-1.5B-Instruct --batch-size 16 --seed 0 --resume-dir $E --skip-completed; if ($LASTEXITCODE -ne 0) { throw "P2.6 public evaluation failed for $($Set.Name); rerun this exact line" }; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $Q=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $Q.status -eq 'completed' -and @($Q.artifacts.predictions).Count -eq 1 } catch { $false } }); if ($Done.Count -lt 1) { throw "No completed public manifest for $($Set.Name)" } }; Write-Host 'GPU-1 complete: selected-row matched-gold public endpoint evaluated on five sets'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p27_rationale_screen.py --phase train-teacher; if ($LASTEXITCODE -ne 0) { throw 'P2.7 teacher-plan training failed; rerun this exact line' }; uv run python scripts/run_p27_rationale_screen.py --phase eval --arm teacher; if ($LASTEXITCODE -ne 0) { throw 'P2.7 teacher-plan evaluation failed; rerun this exact line' }; Write-Host 'GPU-0 complete: qplan_teacher_1000 trained and evaluated on five sets'
+```
+
+GPU 1 — flat SeqKD control, then deterministic local-plan control:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p27_rationale_screen.py --phase train-flat; if ($LASTEXITCODE -ne 0) { throw 'P2.7 flat-control training failed; rerun this exact line' }; uv run python scripts/run_p27_rationale_screen.py --phase eval --arm flat; if ($LASTEXITCODE -ne 0) { throw 'P2.7 flat-control evaluation failed; rerun this exact line' }; uv run python scripts/run_p27_rationale_screen.py --phase train-local; if ($LASTEXITCODE -ne 0) { throw 'P2.7 local-plan training failed; rerun this exact line' }; uv run python scripts/run_p27_rationale_screen.py --phase eval --arm local; if ($LASTEXITCODE -ne 0) { throw 'P2.7 local-plan evaluation failed; rerun this exact line' }; Write-Host 'GPU-1 complete: flat and qplan_local controls trained and evaluated on five sets'
 ```
 
 Both commands are resumable by rerunning the exact same line. Do not pull,
-commit or publish while either lane is active.
+checkout, edit scientific code, commit or publish while either lane is active.
 
-### Step 2 — publish after both lanes finish
+## Step 3 — CPU analysis and decision
 
-This command stages only the terminal federated row and the exact ten compact
-evaluation triplets. It never stages adapters, caches or resume artifacts.
+Run only after both GPU lanes complete.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $O='artifacts/protocol_v2/p26_matched_selected_gold_s0/terminal_a'; $A0='artifacts/protocol_v2/p22_spider_private_t1/matched_gold_ce_s0/round_1/m_g'; $A1="$O/fedavg_adapter"; $St=Get-Content -LiteralPath "$O/stage.json" -Raw | ConvertFrom-Json; if ($St.version -ne 2 -or $St.chain -ne 'A>K[ce]>A') { throw 'P2.6 terminal stage is missing or invalid' }; $Hits=@(Get-ChildItem -LiteralPath 'experiments/federated/results' -Directory -Filter 'federated_stage__*' | Where-Object { try { $M=Get-Content -LiteralPath (Join-Path $_.FullName 'metrics.json') -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath (Join-Path $_.FullName 'config.json') -Raw | ConvertFrom-Json; $M.stage_id -eq $St.stage_id -and $M.stage -eq 'p26_matched_selected_gold_terminal_s0' -and $C.out -eq $O } catch { $false } }); if ($Hits.Count -ne 1) { throw "Expected one P2.6 terminal result row, found $($Hits.Count)" }; $Files=[System.Collections.Generic.List[string]]::new(); $Files.Add((Join-Path $Hits[0].FullName 'metrics.json')); $Files.Add((Join-Path $Hits[0].FullName 'config.json')); foreach ($Lane in @(@{Name='public';Arm='matched_gold_public';Adapter=$A0},@{Name='terminal';Arm='matched_gold_terminal';Adapter=$A1})) { foreach ($Set in @('spider','realistic','syn','dk','bird')) { $E="artifacts/eval_resume/protocol_v2/p26_matched_gold_$($Lane.Name)_${Set}_s0/eval_k0"; $Done=@(Get-ChildItem -LiteralPath "$E/manifests" -Filter '*.json' -File | Where-Object { try { $V=Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json; $C=Get-Content -LiteralPath $V.artifacts.config -Raw | ConvertFrom-Json; $V.status -eq 'completed' -and @($V.artifacts.predictions).Count -eq 1 -and @($C.arms).Count -eq 1 -and $C.arms[0] -eq "$($Lane.Arm)=$($Lane.Adapter)" -and $C.resume_dir -eq $E -and (Test-Path -LiteralPath $V.artifacts.metrics) -and (Test-Path -LiteralPath $V.artifacts.config) -and (Test-Path -LiteralPath $V.artifacts.predictions[0]) } catch { $false } }); if ($Done.Count -ne 1) { throw "Expected one exact P2.6 eval for $($Lane.Name)/${Set}, found $($Done.Count)" }; $V=Get-Content -LiteralPath $Done[0].FullName -Raw | ConvertFrom-Json; $Files.Add([string]$V.artifacts.metrics); $Files.Add([string]$V.artifacts.config); $Files.Add([string]$V.artifacts.predictions[0]) } }; $Sep=[IO.Path]::DirectorySeparatorChar; $Root=(Resolve-Path -LiteralPath '.').Path.TrimEnd($Sep)+$Sep; $Rel=@($Files | ForEach-Object { $F=(Resolve-Path -LiteralPath $_).Path; if (-not $F.ToLowerInvariant().StartsWith($Root.ToLowerInvariant())) { throw "Outside repository: $F" }; $F.Substring($Root.Length).Replace([string]$Sep,'/') } | Sort-Object -Unique); git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.6 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.6 staged allowlist mismatch' }; git commit -m 'results: publish P2.6 matched selected-gold endpoints'; if ($LASTEXITCODE -ne 0) { throw 'P2.6 commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'P2.6 push failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p27_rationale_screen.py --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.7 paired analysis failed' }; $S=Get-Content -LiteralPath 'audits/protocol_v2/p27_rationale_screen_s0/summary.json' -Raw | ConvertFrom-Json; $S.sets.PSObject.Properties | ForEach-Object { $N=$_.Name; $A=$_.Value.arms; Write-Host "${N}: flat=$($A.flat.ex) local=$($A.local.ex) teacher=$($A.teacher.ex)" }; Write-Host "decision=$($S.decision) spider_family_mean_delta=$($S.spider_family_mean_delta_teacher_vs_flat)"; $S.gates | Format-List
 ```
 
-## Decision after P2.6
+## Step 4 — publish compact P2.7 evidence
 
-Compare matched-gold versus SeqKD at both public and terminal endpoints using
-EX, paired wins/losses and exact McNemar tests on all five sets.
+Run only after Step 3 succeeds and no GPU process is using this worktree. This
+stages only exact compact files resolved from the locked run manifest; adapters,
+resume roots and model caches remain outside Git.
 
-- Promote SeqKD only if terminal BIRD improves by at least 1.0 point,
-  Spider-family mean improves by at least 0.5 point, and no individual Spider
-  evaluation regresses by more than 1.0 point.
-- If SeqKD passes, next implement a terminal knowledge-retention objective and
-  only then schedule matched SeqKD-2 versus gold-CE-2 from the common FL parent.
-- If SeqKD fails, do not spend GPU time on repeated flat offline KD. Run the
-  bounded structured-rationale quality/length screen before implementing a new
-  teacher objective.
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Manifest='audits/protocol_v2/p27_rationale_screen_s0/run_manifest.json'; $Summary='audits/protocol_v2/p27_rationale_screen_s0/summary.json'; $SummaryMd='audits/protocol_v2/p27_rationale_screen_s0/summary.md'; foreach ($P in @($Manifest,$Summary,$SummaryMd)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing P2.7 audit file: $P" } }; $M=Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json; $S=Get-Content -LiteralPath $Summary -Raw | ConvertFrom-Json; if ($M.experiment -ne 'p27_rationale_screen' -or $S.experiment -ne 'p27_rationale_screen' -or @($M.stages.PSObject.Properties).Count -ne 3 -or @($M.evaluations.PSObject.Properties).Count -ne 3) { throw 'P2.7 manifest/summary is incomplete' }; $Files=[System.Collections.Generic.List[string]]::new(); foreach ($P in @('processed_data/protocol_v2/rationale_kd/p27_bird_selected1000_s0/train.csv','processed_data/protocol_v2/rationale_kd/p27_bird_selected1000_s0/train.csv.provenance.json','processed_data/protocol_v2/rationale_kd/p27_bird_selected1000_s0/teacher_plans_qwen25_coder_7b.jsonl','processed_data/protocol_v2/rationale_kd/p27_bird_selected1000_s0/teacher_plans_qwen25_coder_7b.jsonl.provenance.json',$Manifest,$Summary,$SummaryMd)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing allowlisted file: $P" }; $Files.Add($P) }; foreach ($Stage in $M.stages.PSObject.Properties.Value) { foreach ($Name in @('metrics.json','config.json')) { $P=Join-Path $Stage.result_dir $Name; if (-not (Test-Path -LiteralPath $P)) { throw "Missing stage result: $P" }; $Files.Add($P) } }; foreach ($Arm in $M.evaluations.PSObject.Properties.Value) { foreach ($Eval in $Arm.PSObject.Properties.Value) { foreach ($P in @($Eval.metrics,$Eval.config,$Eval.predictions)) { if (-not (Test-Path -LiteralPath $P)) { throw "Missing eval result: $P" }; $Files.Add([string]$P) } } }; $Rel=@($Files | ForEach-Object { ([string]$_).Replace('\','/') } | Sort-Object -Unique); if (@($Rel | Where-Object { $_ -like 'artifacts/*' }).Count -ne 0) { throw 'Artifact/resume path entered publication allowlist' }; git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.7 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@($Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { $Got | ForEach-Object { Write-Host "staged=$_" }; throw 'P2.7 staged allowlist mismatch' }; git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'P2.7 staged content check failed' }; git commit -m 'results: publish P2.7 structured rationale screen'; if ($LASTEXITCODE -ne 0) { throw 'P2.7 commit failed' }; git push origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'P2.7 push failed' }; git log -1 --oneline
+```
+
+## Decision after P2.7
+
+Promote to the full 5,319-row pool only if every pre-registered gate in the
+analysis summary passes: plan parse/validation quality, teacher-plan BIRD gain
+of at least 1.5 EX over flat SeqKD, positive gain over local plans, Spider-family
+mean gain of at least 0.5 EX, and no individual Spider-family regression worse
+than 1.0 EX. Otherwise close teacher-rationale KD for the current paper and do
+not spend GPU time on a full-pool or multi-seed extension.
