@@ -33,25 +33,28 @@ rows, mostly validator false positives. It is shelved; its server artifacts unde
 untouched and unpublished. All new roots use `p27_joint` / `p27_bird_joint1000`.
 
 Required nested branch: `experiment/structured-rationale-kd`, containing commit
-`fba5a88` or a descendant (already pushed).
+`e16ce47` or a descendant (already pushed).
 
 ## Step 0 — server sync and validation
 
 Run from the Windows server `fedicl-sql/` root. This does not switch `main`.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor fba5a88 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.7 shared-cache commit fba5a88 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_rationale_sql_plan.py tests/test_rationale_targets.py tests/test_rationale_scripts.py tests/test_p27_rationale_runner.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.7 validation failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/structured-rationale-kd; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor e16ce47 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.7 teacher-throughput commit e16ce47 is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_rationale_sql_plan.py tests/test_rationale_targets.py tests/test_rationale_scripts.py tests/test_p27_rationale_runner.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.7 validation failed' }; git log -1 --oneline
 ```
 
 ## Step 1 — GPU 0 joint teacher generation gate
 
 This builds the complexity-stratified candidate order, then runs resumable joint
 plan+SQL generation until 1,000 execution-correct rows are admitted (estimated
-8–10 GPU hours at about 50% admission). Stop if the parse rate is below 99% or a
+about 3 GPU hours at about 50% admission). Stop if the parse rate is below 99% or a
 complexity bucket runs out of candidates; do not spend GPU time on the three arms.
 The EX admission rate and plan diagnostics are reported, not gated.
-Generations go to a shared per-row cache
-(`processed_data/protocol_v2/rationale_kd/teacher_joint_cache_qwen25_coder_7b_s0/`).
+Teacher decoding uses the measured configuration — 4-bit, batch 8, 4 EX scoring
+threads — which the runner applies by default; see "Teacher generation throughput"
+in `docs/PROTOCOL_V2.md` before changing it. Generations go to a shared per-row
+cache keyed by that configuration
+(`processed_data/protocol_v2/rationale_kd/teacher_joint_cache_qwen25_coder_7b_s0_4bit_b8_w4/`).
 If P2.7 passes, a full-scale run uses candidates built with `--size 0` and the
 same cache, so it only generates the rows the screen never visited.
 
