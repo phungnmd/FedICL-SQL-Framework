@@ -5,8 +5,9 @@
 - Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
 - Method status: open. Hinton, KID and flat SeqKD do not show a sufficiently
-  strong teacher-specific terminal advantage. P2.7 now tests whether explicit
-  teacher query structure adds value beyond the same teacher SQL.
+  strong teacher-specific terminal advantage. P2.8 now compares structured
+  teacher transfer with source-gold training on the same admitted rows, before
+  and after an identical terminal private stage.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
   control (`5e4f005`), P2.3 terminal endpoints (`2a6e04c`), and terminal
@@ -23,10 +24,23 @@
   Spider/Realistic/SYN/DK/BIRD EX by -0.10/-0.98/+1.65/+0.75/+0.91 points.
   BIRD gain is below 1.0 and the Spider-family mean gain is only +0.33, so P2.6
   does not justify scaling unchanged flat SeqKD.
-- Next: P2.7 is a bounded 1,000-row screen of flat teacher SQL, deterministic
-  local SQL plans, and teacher-generated query plans. Full-pool expansion is
-  forbidden unless all pre-registered gates pass.
+- Next: the operator reports P2.7 joint generation finished. P2.8 first
+  verifies that artifact, then builds a 1,000-row matched source-gold control
+  and tests both public and terminal endpoints. The former flat/local-plan
+  comparison is retained as a secondary diagnostic. No full-pool expansion
+  precedes the terminal matched-gold decision.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-23 — matched-gold terminal gate supersedes public-only screen
+
+The operator reports P2.7 Step 1 completed on the server; local artifacts were
+not available for verification here. The current queue requires provenance
+checks before training. Its primary contrast is teacher plan+SQL versus source
+gold SQL on the exact 1,000 admitted BIRD rows, both from the same Spider-private
+parent and both followed by the same Spider-private A. Terminal EX is the
+decision; public EX is diagnostic. Final inference uses SQL-only prompts for
+both arms because the terminal A trains SQL-only targets. No new EX result is
+claimed. The old three-arm public-only queue was archived intact.
 
 ## 2026-09-23 — P2.7 engineering hardening (no new EX result)
 
@@ -37,8 +51,8 @@ compact publication. Teacher generation and P2.7 eval record output-token
 counts and stopping reasons to expose length-capped responses. P2.7 evaluation
 can overlap bounded CPU SQL scoring with GPU decoding; legacy eval defaults,
 fingerprints, and CSV columns remain unchanged. These are provenance and
-throughput changes, not evidence of a new KD gain. The P2.7 screen and its
-pre-registered gate remain the next scientific decision.
+throughput changes, not evidence of a new KD gain. The subsequent P2.8
+matched-gold terminal gate is now the next scientific decision.
 
 ## 2026-09-22 — P2.6 closed; bounded structured-rationale gate activated
 

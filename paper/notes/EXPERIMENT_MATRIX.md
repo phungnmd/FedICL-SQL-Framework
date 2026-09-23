@@ -10,7 +10,8 @@
 | P0 | Does the final stage retain Hinton soft-logit value? | `A→K[ce]→A` vs `A→K[fkl]→A` | complete: no reliable advantage on any set; four-set mean +0.05 pp |
 | P0 | Was one public epoch insufficient? | full-public `A→K2[ce]` vs `A→K2[fkl]`, then identical terminal A | closed for the current queue; repeated flat public training is not prioritized after the teacher-signal gates |
 | P0 | Does sequence-level teacher signal survive the final stage? | selected-row matched gold `A→K[ce]→A` vs SeqKD `A→K[seq]→A` | P2.6 complete and published at nested `fb2329e`; SeqKD did not clear the promotion gate strongly enough to scale unchanged |
-| P0 | Does explicit teacher query structure add value beyond teacher SQL? | same selected 1,000 rows: flat SeqKD vs local AST plan vs teacher query plan | active P2.7 bounded screen; full 5,319-row run only if every pre-registered gate passes |
+| P0 | Does structured teacher KD beat gold training and survive terminal A? | same 1,000 teacher-admitted rows: source-gold CE vs teacher plan+SQL, before and after identical A | active P2.8 causal gate; final EX decides, public EX is diagnostic |
+| P1 | Does teacher plan explain any confirmed gain beyond formatting? | same teacher SQL: flat SeqKD vs local AST plan vs teacher plan | former P2.7 public-only screen retained as a secondary diagnostic; not the method gate |
 | P1 | Can repeated transfer move the Pareto frontier? | depth/recurrent schedule using the teacher channel that passes the causal gate | deferred; do not repeat Hinton unchanged |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |
