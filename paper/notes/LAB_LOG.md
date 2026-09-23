@@ -28,6 +28,18 @@
   forbidden unless all pre-registered gates pass.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-23 — P2.7 engineering hardening (no new EX result)
+
+The joint teacher plan+SQL generator now journals raw outputs before scoring,
+rescoring cached output if source SQLite bytes change and preserving the
+original batch shape on resume. The run freezes its visited generations for
+compact publication. Teacher generation and P2.7 eval record output-token
+counts and stopping reasons to expose length-capped responses. P2.7 evaluation
+can overlap bounded CPU SQL scoring with GPU decoding; legacy eval defaults,
+fingerprints, and CSV columns remain unchanged. These are provenance and
+throughput changes, not evidence of a new KD gain. The P2.7 screen and its
+pre-registered gate remain the next scientific decision.
+
 ## 2026-09-22 — P2.6 closed; bounded structured-rationale gate activated
 
 P2.6 published matched selected-gold public/terminal endpoints at `fb2329e`.
