@@ -250,6 +250,62 @@ less.
 - HF generation throughput on the Windows server is unmeasured.
 - All evidence above is single-seed.
 
+## 10. Terminal retention (P2.9): literature and design check
+
+Researched 2026-09-25 before the P2.9 launch.
+
+**Problem.** Plain terminal A trains only on private Spider SQL. It moves the
+model toward the Spider optimum from any starting point. Two effects follow:
+the arms converge, and the BIRD knowledge transferred at K is partly lost.
+The goal of P2.9 is to keep the post-K behaviour while the clients learn
+Spider.
+
+**Nearest methods.** Every method in the table distils an earlier model into
+the model being trained, using only the current data:
+
+| Method | Client/local objective | Teacher | Reported setting |
+|---|---|---|---|
+| LwF (Li & Hoiem 2016) | CE(new task) + λ·KL(old ‖ new) on new-task inputs | model before fine-tuning | λ = 1, T = 2 |
+| FedGKD (Yao et al., IEEE TPDS 2023) | CE + γ/2·KL(global ‖ local) on local data | last global model (M = 1 recommended for NLP) | γ = 0.2 on DistilBERT, so the weight is 0.1 |
+| FedNTD (Lee et al., NeurIPS 2022) | CE + β·τ²·KL(global ‖ local) on non-true classes only | global model | β = 1, τ = 1 (official config) |
+| RL's Razor (2025) | analysis only | base model | forgetting follows the KL between the fine-tuned and base model on new-task data |
+| WiSE-FT (Wortsman et al., CVPR 2022) | no loss; weight interpolation after fine-tuning | pre-fine-tuning weights | α ≈ 0.5; +4–6 OOD points on ImageNet shifts without ID loss |
+
+**Check of the P2.9 design against these methods.**
+- Matches: forward KL(reference ‖ student); reference = frozen post-K global
+  model (FedGKD with M = 1); computed on private inputs only (LwF, FedGKD); T =
+  1 (FedNTD config). RL's Razor gives the rationale for limiting the KL on
+  new-task data.
+- Adapted to sequence models: the KL is averaged over SQL target positions
+  under teacher forcing, like the Hinton implementation.
+- λ: 1.0 matches LwF and FedNTD but is 10× FedGKD's NLP weight. P2.9 therefore
+  runs both 1.0 and 0.1.
+- Not tested yet: the FedNTD non-true variant, which removes the gold token so
+  that retention does not oppose CE. Add it only if λ = 0.1 still blocks the
+  Spider repair.
+
+**Competitors reviewers will expect.**
+- WiSE-FT, evaluation only, exact for LoRA via rank concatenation. It is in
+  P2.9.
+- FedProx (weight-space L2). The code exists. Its earlier Spider-only result
+  was negative, so it is not rerun here.
+
+**Claim boundary.** The loss is not new. The contribution is the placement: the
+retention teacher is the global model **after LLM-to-SLM public KD**, and the
+goal is to keep cross-domain transfer through private consolidation, not to
+reduce client drift. The paper must cite LwF, FedGKD, FedNTD, and WiSE-FT, and
+report the λ trade-off rather than one tuned value.
+
+Sources:
+- [FedGKD (arXiv 2107.00051)](https://arxiv.org/abs/2107.00051) and
+  [IEEE TPDS](https://ieeexplore.ieee.org/document/10252049/)
+- [FedNTD (arXiv 2106.03097)](https://arxiv.org/abs/2106.03097),
+  [NeurIPS 2022](https://papers.nips.cc/paper_files/paper/2022/hash/fadec8f2e65f181d777507d1df69b92f-Abstract-Conference.html),
+  [code](https://github.com/Lee-Gihun/FedNTD)
+- [RL's Razor](https://arxiv.org/abs/2509.04259)
+- [WiSE-FT](https://arxiv.org/abs/2109.01903)
+- [Self-Distillation Bridges Distribution Gap (SDFT, ACL 2024)](https://aclanthology.org/2024.acl-long.58/)
+
 ## Sources
 
 - [Sparse-to-Dense Reward Principle (MSR)](https://arxiv.org/abs/2605.12483)

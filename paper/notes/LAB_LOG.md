@@ -31,6 +31,23 @@
   P2.10 supersedes the deferred SQL-only P2.8 gate.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-25 — P2.9 aligned with the retention literature (no GPU run)
+
+A literature check (KD_METHOD_REVIEW §10) found that the P2.9 retention loss
+matches LwF, FedGKD, and FedNTD in KL direction, reference model, and data. The
+registered weight λ = 1.0 is 10× FedGKD's NLP weight. Nested commit `78a34bd`
+adds:
+- λ = 0.1 as a second retention variant;
+- WiSE-FT as a training-free competitor. It is an exact LoRA weight midpoint
+  of the post-K and plain terminal adapters, built by rank concatenation and
+  verified to about 1e-7.
+
+The analyzer applies the registered gates to every variant. It reports the
+best passing λ for P2.10 and falls back to WiSE-FT only when no retention
+variant passes. The λ = 1.0 stage and evaluation names are unchanged. The full
+nested suite passes (688 tests). The P2.9 lanes now take about 11 h each on two
+GPUs.
+
 ## 2026-09-24 — Struct-SQL QP-CoT lineage implemented (P2.10, no GPU run)
 
 Review of the P2.7/P2.8 rationale code found two departures from Struct-SQL.

@@ -25,36 +25,51 @@ builds on that terminal stage.
 
 ## What P2.9 trains
 
-Two new terminal stages. Everything else is reused from committed results.
+P2.9 compares three ways to keep the post-K knowledge during the terminal
+private stage. All three start from the same two committed public parents.
 
-| Arm | Parent (committed public row) | New stage | Loss at each client |
+| Variant | What the clients do | Source in the literature | New training |
 |---|---|---|---|
-| seqkd | SeqKD on 5,319 teacher SQL rows (`2b42f25`) | `A>K[ce]>A[ret]` | Spider CE + 1.0 · KL(post-K model ‖ student) |
-| gold | CE on the same rows with source gold SQL (`4d679d6`) | `A>K[ce]>A[ret]` | same |
+| `ret` | Spider CE + **1.0** · KL(post-K model ‖ student) | LwF (λ = 1), FedNTD (β = 1, τ = 1) | 2 terminal stages |
+| `ret0p1` | Spider CE + **0.1** · KL(post-K model ‖ student) | FedGKD for NLP (γ/2 = 0.1) | 2 terminal stages |
+| `wise0p5` | nothing new: average the post-K and plain-terminal adapters in weight space | WiSE-FT (Wortsman et al., CVPR 2022) | none, evaluation only |
+
+Each variant is run for both parents:
+
+| Arm | Parent (committed public row) | Plain terminal already published |
+|---|---|---|
+| seqkd | SeqKD on 5,319 teacher SQL rows (`2b42f25`) | P2.5 `A>K[ce]>A` |
+| gold | CE on the same rows with source gold SQL (`4d679d6`) | P2.6 `A>K[ce]>A` |
 
 - The terminal recipe matches P2.5/P2.6 exactly: 5 clients, 1 local epoch,
   FedAvg, same Spider split, same training flags. The only change is the
   retention term.
-- Retention reference = the frozen post-K global adapter. No teacher runs at
-  the clients, and communication is unchanged.
-- KL covers only SQL target tokens, at T = 1. The reference is a second frozen
-  1.5B copy, which adds about 3 GiB of VRAM.
+- Retention reference = the frozen post-K global adapter, which is the
+  "last-round global model" of FedGKD with M = 1. No teacher runs at the
+  clients, and communication is unchanged. KL covers only SQL target tokens, at
+  T = 1. The reference is a second frozen 1.5B copy, which adds about 3 GiB of
+  VRAM.
+- WiSE-FT is exact for LoRA. The update is (1 − α)·ΔW_postK + α·ΔW_terminal
+  with α = 0.5, built by concatenating LoRA factors (rank 32). It runs on CPU
+  in seconds.
 - A diagnostic also scores the pure-FL student's NLL on teacher SQL versus gold
   SQL for the same 5,319 BIRD prompts. It tests the "teacher SQL is closer to
   the student's distribution" explanation.
+- Why two λ values: FedGKD's weight is 10× smaller than LwF's. Running both
+  avoids a retune round and gives the Spider-cost versus edge-kept trade-off
+  for the paper.
 
-Required nested branch: `experiment/terminal-retention`, commit `70a5410` or a
+Required nested branch: `experiment/terminal-retention`, commit `78a34bd` or a
 descendant. It descends from the P2.8 commit, so P2.8 can resume from it later.
-Commit `70a5410` also adds an opt-in faster student CE path (`--lm-loss
-target_fp32`) and its benchmark. P2.9 does **not** use it. All P2.9 arms stay
-on the published `full_bf16` path so they remain row-comparable with P2.6.
+P2.9 stays on the published `full_bf16` student loss (`--lm-loss` is not set),
+so every arm remains row-comparable with P2.5/P2.6.
 
 ## Step 0 — sync and validate on the Windows server
 
 Run from the `fedicl-sql/` repository root. Do not pull while a GPU lane runs.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 70a5410 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.9 code commit is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_p29_retention_gate.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py tests/test_eval_arms_config.py tests/test_eval_arms_cli.py; if ($LASTEXITCODE -ne 0) { throw 'P2.9 validation failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 78a34bd HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.9 code commit is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_p29_retention_gate.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py tests/test_eval_arms_config.py tests/test_eval_arms_cli.py; if ($LASTEXITCODE -ne 0) { throw 'P2.9 validation failed' }; git log -1 --oneline
 ```
 
 ## Step 1 — GPU 0: smoke (a few minutes)
@@ -76,49 +91,62 @@ finite `retention_kl`. If VRAM is higher, stop and report the printed lines.
 Start both lanes after the smoke passes. Their training and evaluation roots
 are disjoint, and a file lock protects the shared manifest. After an
 interruption, rerun the exact lane command. Completed clients, stages, and
-evaluations are skipped. Each terminal stage took 1.6–2.5 h without retention.
-Expect about 30–50% more time with the reference forward pass, plus the
-five-set evaluation.
+evaluations are skipped.
+
+Each lane trains two terminal stages (about 2.5–3.5 h each with the reference
+forward pass), builds the WiSE-FT adapter (seconds), and evaluates three
+variants on five sets (about 1.4 h each). Expect about 11 h per lane.
 
 GPU 0 — SeqKD parent:
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p29_retention_gate.py --phase train --arm seqkd; if ($LASTEXITCODE -ne 0) { throw 'SeqKD A[ret] failed' }; uv run python scripts/run_p29_retention_gate.py --phase eval --arm seqkd; if ($LASTEXITCODE -ne 0) { throw 'SeqKD A[ret] evaluation failed' }; Write-Host 'GPU-0 complete: seqkd A[ret] trained and evaluated on five sets'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $R='scripts/run_p29_retention_gate.py'; foreach ($V in 'ret','ret0p1') { uv run python $R --phase train --arm seqkd --variant $V; if ($LASTEXITCODE -ne 0) { throw "SeqKD $V failed" }; uv run python $R --phase eval --arm seqkd --variant $V; if ($LASTEXITCODE -ne 0) { throw "SeqKD $V eval failed" } }; uv run python $R --phase wise --arm seqkd; if ($LASTEXITCODE -ne 0) { throw 'SeqKD WiSE-FT failed' }; uv run python $R --phase eval --arm seqkd --variant wise0p5; if ($LASTEXITCODE -ne 0) { throw 'SeqKD WiSE-FT eval failed' }; Write-Host 'GPU-0 complete: seqkd ret, ret0p1, wise0p5'
 ```
 
 GPU 1 — matched-gold parent, then the NLL diagnostic:
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p29_retention_gate.py --phase train --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Gold A[ret] failed' }; uv run python scripts/run_p29_retention_gate.py --phase eval --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Gold A[ret] evaluation failed' }; uv run python scripts/run_p29_retention_gate.py --phase nll; if ($LASTEXITCODE -ne 0) { throw 'Target NLL diagnostic failed' }; Write-Host 'GPU-1 complete: gold A[ret] evaluated; target NLL scored'
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $R='scripts/run_p29_retention_gate.py'; foreach ($V in 'ret','ret0p1') { uv run python $R --phase train --arm gold --variant $V; if ($LASTEXITCODE -ne 0) { throw "Gold $V failed" }; uv run python $R --phase eval --arm gold --variant $V; if ($LASTEXITCODE -ne 0) { throw "Gold $V eval failed" } }; uv run python $R --phase wise --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Gold WiSE-FT failed' }; uv run python $R --phase eval --arm gold --variant wise0p5; if ($LASTEXITCODE -ne 0) { throw 'Gold WiSE-FT eval failed' }; uv run python $R --phase nll; if ($LASTEXITCODE -ne 0) { throw 'Target NLL diagnostic failed' }; Write-Host 'GPU-1 complete: gold ret, ret0p1, wise0p5; target NLL scored'
 ```
 
 ## Step 3 — CPU: paired analysis and decision
 
-Run after both lanes finish. The analysis reports, for each of the five sets:
-SeqKD − gold at the public, plain-terminal, and retention-terminal endpoints;
-the effect of retention within each arm; EX; and the execution-error rate.
+Run after both lanes finish. For each of the five sets and each variant, the
+analysis reports:
+- SeqKD − gold, next to the public and plain-terminal baselines;
+- the effect of the variant within each arm;
+- EX and the execution-error rate.
 
 ```powershell
 $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p29_retention_gate.py --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.9 analysis failed' }; Get-Content audits/protocol_v2/p29_retention_terminal_s0/summary.md; Get-Content audits/protocol_v2/p29_retention_terminal_s0/target_nll_pure_fl_t1/summary.json
 ```
 
-Registered seed-0 gate for `A>K>A[ret]`, SeqKD − gold:
+Registered seed-0 gates, applied to every variant (SeqKD − gold after it):
 
 1. BIRD ≥ +1.5 EX. This keeps about half of the public-endpoint +3.00.
 2. Spider-family mean (Spider, Realistic, SYN, DK) ≥ +1.0 EX. The public
    endpoint gives +2.55; plain terminal A gives +0.33.
 3. No Spider-family set below −1.0 EX.
-4. Retention does not block the Spider repair: SeqKD `A[ret]` Spider EX is at
-   most 1.0 below SeqKD plain terminal (64.99).
+4. The variant does not block the Spider repair: SeqKD Spider EX is at most
+   1.0 below SeqKD plain terminal (64.99).
+
+Decision rule (printed as `decision`, `best_variant`, and
+`p210_retention_lambda`):
+- a retention variant passes all four gates → promote. If both pass, the
+  one with the larger BIRD + Spider-family gain wins, and its λ goes to P2.10;
+- otherwise, if only WiSE-FT passes → `promote_wise_ft_interpolation`;
+- otherwise, if a retention variant passes gates 1–3 but fails gate 4 →
+  retune λ;
+- otherwise → close the retention hypothesis.
 
 ## Step 4 — publish compact P2.9 evidence
 
 Run after Step 3 succeeds and no GPU process uses this worktree. This publishes
-two stage rows, ten evaluation triplets, the NLL audit, and the summary: 40
-files. Adapters, caches, and the smoke row are excluded.
+4 stage rows, 2 WiSE-FT records, 30 evaluation triplets, the NLL audit, and
+the summary: 106 files. Adapters, caches, and the smoke row are excluded.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Rel=@(uv run python scripts/list_p29_publication.py); if ($LASTEXITCODE -ne 0 -or $Rel.Count -ne 40) { throw "P2.9 publication allowlist invalid: files=$($Rel.Count)" }; git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.9 staged allowlist mismatch' }; if ($Got.Count -gt 0) { git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staged content check failed' }; git commit -m 'results: publish P2.9 terminal retention gate'; if ($LASTEXITCODE -ne 0) { throw 'P2.9 commit failed' }; git push origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'P2.9 push failed' } } else { Write-Host 'P2.9 evidence already committed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Rel=@(uv run python scripts/list_p29_publication.py); if ($LASTEXITCODE -ne 0 -or $Rel.Count -ne 106) { throw "P2.9 publication allowlist invalid: files=$($Rel.Count)" }; git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.9 staged allowlist mismatch' }; if ($Got.Count -gt 0) { git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staged content check failed' }; git commit -m 'results: publish P2.9 terminal retention gate'; if ($LASTEXITCODE -ne 0) { throw 'P2.9 commit failed' }; git push origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'P2.9 push failed' } } else { Write-Host 'P2.9 evidence already committed' }; git log -1 --oneline
 ```
 
 ## Step 5 (optional) — benchmark the faster student CE path
@@ -145,17 +173,18 @@ seed replicates.
 
 ## Decision after P2.9
 
-- **`promote_multiseed_then_structured`** (all four gates pass): the KD
-  generalization edge survives deployment. Next steps, in order:
-  1. Seeds 1–2 for the four terminal arms (seqkd/gold × plain/ret).
+- **`promote_multiseed_then_structured`**: a retention variant keeps the KD
+  edge without blocking the Spider repair. Next steps, in order:
+  1. Seeds 1–2 for the winning variant (seqkd/gold × plain/winning variant).
   2. An out-of-domain evaluation set that terminal A cannot repair
      (KaggleDBQA).
-  3. Run P2.10 below (Struct-SQL lineage) with `$L = 1.0` retention at the
-     terminal stage.
-- **`retention_blocks_spider_repair_retune_lambda`** (gates 1–3 pass, gate 4
-  fails): the retention term is too strong. Screen a lower λ (for example 0.3)
-  on the same two parents before anything else, then run P2.10 with that λ.
-- **`close_terminal_retention_hypothesis`**: retention does not keep the edge.
+  3. Run P2.10 below with `$L` = `p210_retention_lambda` (1.0 or 0.1).
+- **`promote_wise_ft_interpolation`**: only the training-free weight average
+  keeps the edge. Run P2.10 with `$L = 0`, then add a WiSE-FT step after its
+  terminal stage. That step is not implemented in the P2.10 runner yet.
+- **`retention_blocks_spider_repair_retune_lambda`**: retention keeps the edge
+  but costs Spider. Screen λ = 0.03 on the same two parents before P2.10.
+- **`close_terminal_retention_hypothesis`**: no variant keeps the edge.
   The flat-KD generalization claim then stands only at the public endpoint.
   Run P2.10 below with `$L = 0` (plain terminal A). P2.10 supersedes the
   deferred P2.8 gate, whose final endpoint is SQL-only. Reconsider the
@@ -163,8 +192,9 @@ seed replicates.
 
 Whatever the decision, the NLL diagnostic is reported as mechanism evidence.
 If teacher SQL has lower student NLL than gold SQL, that supports the
-distribution-gap explanation. If it does not, the edge needs another
-explanation, such as gold-label noise removed by the execution filter.
+distribution-gap explanation (compare SDFT, ACL 2024). If it does not, the edge
+needs another explanation, such as gold-label noise removed by the execution
+filter.
 
 ## P2.10 — Struct-SQL lineage (prepared; start only after P2.9 decides)
 
