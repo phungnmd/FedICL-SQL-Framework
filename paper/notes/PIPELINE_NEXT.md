@@ -43,15 +43,18 @@ Two new terminal stages. Everything else is reused from committed results.
   SQL for the same 5,319 BIRD prompts. It tests the "teacher SQL is closer to
   the student's distribution" explanation.
 
-Required nested branch: `experiment/terminal-retention`, commit `e72ad2d` or a
+Required nested branch: `experiment/terminal-retention`, commit `70a5410` or a
 descendant. It descends from the P2.8 commit, so P2.8 can resume from it later.
+Commit `70a5410` also adds an opt-in faster student CE path (`--lm-loss
+target_fp32`) and its benchmark. P2.9 does **not** use it. All P2.9 arms stay
+on the published `full_bf16` path so they remain row-comparable with P2.6.
 
 ## Step 0 — sync and validate on the Windows server
 
 Run from the `fedicl-sql/` repository root. Do not pull while a GPU lane runs.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor e72ad2d HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.9 code commit is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_p29_retention_gate.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py tests/test_eval_arms_config.py tests/test_eval_arms_cli.py; if ($LASTEXITCODE -ne 0) { throw 'P2.9 validation failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch fetch failed' }; git switch experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch switch failed' }; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Feature-branch pull failed' }; git merge-base --is-ancestor 70a5410 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.9 code commit is missing' }; $Scope=@('fedicl_sql','experiments','scripts','tests','pyproject.toml','uv.lock'); $Dirty=@(git status --porcelain --untracked-files=all -- $Scope | Where-Object { $Path=$_.Substring(3).Trim('"').Replace('\','/'); $Path -notmatch '^experiments/[^/]+/results/' }); if ($Dirty.Count -ne 0) { $Dirty | ForEach-Object { Write-Host $_ }; throw 'Scientific code scope is dirty' }; uv run --extra dev python -m pytest -q tests/test_p29_retention_gate.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py tests/test_eval_arms_config.py tests/test_eval_arms_cli.py; if ($LASTEXITCODE -ne 0) { throw 'P2.9 validation failed' }; git log -1 --oneline
 ```
 
 ## Step 1 — GPU 0: smoke (a few minutes)
@@ -118,6 +121,28 @@ files. Adapters, caches, and the smoke row are excluded.
 $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index is not empty; review staged files first' }; $Rel=@(uv run python scripts/list_p29_publication.py); if ($LASTEXITCODE -ne 0 -or $Rel.Count -ne 40) { throw "P2.9 publication allowlist invalid: files=$($Rel.Count)" }; git add -- $Rel; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staging failed' }; $Got=@(git diff --cached --name-only | Sort-Object); $Want=@(git diff HEAD --name-only -- $Rel | Sort-Object); if ($Got.Count -ne $Want.Count -or @(Compare-Object $Got $Want).Count -ne 0) { throw 'P2.9 staged allowlist mismatch' }; if ($Got.Count -gt 0) { git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'P2.9 staged content check failed' }; git commit -m 'results: publish P2.9 terminal retention gate'; if ($LASTEXITCODE -ne 0) { throw 'P2.9 commit failed' }; git push origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'P2.9 push failed' } } else { Write-Host 'P2.9 evidence already committed' }; git log -1 --oneline
 ```
 
+## Step 5 (optional) — benchmark the faster student CE path
+
+Run only when no other GPU job is active, because timing needs exclusive
+hardware. It trains nothing and writes one JSON report. It compares the current
+path (`full_bf16` with gradient checkpointing) against `target_fp32` with and
+without checkpointing. Rows: the 8 longest plus 24 random rows from the five
+Spider clients, warm-started from the SeqKD public adapter.
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.5/k5'; uv run python scripts/benchmark_student_loss.py --client-csv "$S/client_1_train.csv" "$S/client_2_train.csv" "$S/client_3_train.csv" "$S/client_4_train.csv" "$S/client_5_train.csv" --adapter artifacts/protocol_v2/p22_spider_private_t1/seqkd_s0/round_1/m_g --out audits/protocol_v2/student_loss_benchmark_s0.json; if ($LASTEXITCODE -ne 0) { throw 'Student loss benchmark failed' }
+```
+
+Report the three printed lines. The new path is worth adopting for the next
+full lineage only if all three hold:
+
+- `max_abs_loss_delta_vs_baseline` is small (below about 0.01);
+- the no-checkpointing variant stays below about 21500 MB peak reserved;
+- it is clearly faster per row.
+
+Adopt it only for a whole new comparison ladder, never inside P2.9 or its
+seed replicates.
+
 ## Decision after P2.9
 
 - **`promote_multiseed_then_structured`** (all four gates pass): the KD
@@ -127,6 +152,9 @@ $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if (@(git diff --cached --na
      (KaggleDBQA).
   3. Resume the structured-rationale work on top of `A[ret]`, with
      client-side AST plans so that training and inference formats match.
+     This is **not implemented yet**. Today only the public stage can train
+     plan+SQL (`K[qplan-*]`); every private `A` stage and the P2.8 final
+     evaluation are SQL-only.
 - **`retention_blocks_spider_repair_retune_lambda`** (gates 1–3 pass, gate 4
   fails): the retention term is too strong. Screen a lower λ (for example 0.3)
   on the same two parents before anything else.
