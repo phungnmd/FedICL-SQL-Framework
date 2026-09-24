@@ -292,3 +292,19 @@ $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p2
 
 After an interruption, rerun the same lane command. Completed stages and
 evaluations are skipped. A public stage resumes with its validation history.
+
+### Decision after P2.10
+
+The 1,000-row quota is a deliberate screen, matching the paper's curated set
+and the A5000 budget (about 2,400 teacher generations). If terminal
+`teacher − gold` passes the gate:
+
+1. Run independent seeds for `teacher` and `gold`.
+2. Run a full-pool extension for those two arms: every admitted ID-pool row,
+   with the same 150+150 validation rows. This tests whether more teacher data
+   adds more. It needs a small "all admitted rows" mode in
+   `build_rationale_candidates.py --algorithm struct_sql_v1`, which is not
+   implemented yet. The teacher cache reuses every P2.10 generation, so only
+   the missing rows are generated.
+
+If the gate fails, do not scale up. The screen already answers the question.
