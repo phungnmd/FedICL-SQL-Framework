@@ -7,7 +7,12 @@
 
 ## Research target
 
-Current queue update (2026-09-20): P2.5 completed SeqKD and KID before and
+Current queue update (2026-09-24): P2.6 public endpoints show row-matched
+SeqKD beating gold CE on all five sets, but plain terminal A erases the edge.
+P2.9 tests a terminal private stage with client KL toward the frozen post-K
+global SLM (`A[ret]`) before any structured-rationale work resumes.
+
+Earlier queue update (2026-09-20): P2.5 completed SeqKD and KID before and
 after terminal private consolidation. KID is statistically tied with SeqKD but
 far more expensive. P2.6 now isolates teacher-generated SQL against matched
 gold SQL on the same 5,319 public prompts before any depth or retention change.

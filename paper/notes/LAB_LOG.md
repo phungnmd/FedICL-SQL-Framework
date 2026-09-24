@@ -5,9 +5,9 @@
 - Active protocol: `v2`, dataset profiles explicit (BIRD with evidence).
 - Primary metric: execution accuracy (EX).
 - Method status: open. Hinton, KID and flat SeqKD do not show a sufficiently
-  strong teacher-specific terminal advantage. P2.8 now compares structured
-  teacher transfer with source-gold training on the same admitted rows, before
-  and after an identical terminal private stage.
+  strong teacher-specific terminal advantage. At the public endpoint, however,
+  row-matched SeqKD beats gold CE on all five sets (2026-09-24 re-analysis).
+  P2.9 tests whether client-side retention keeps that edge after terminal A.
 - Published: P2.1R BIRD baselines and both public-teacher lanes (`e2ca26e`),
   Hinton headline (`ec5b5e1`), reverse T1 ladder (`1b2c46a`), and full-gold
   control (`5e4f005`), P2.3 terminal endpoints (`2a6e04c`), and terminal
@@ -24,12 +24,41 @@
   Spider/Realistic/SYN/DK/BIRD EX by -0.10/-0.98/+1.65/+0.75/+0.91 points.
   BIRD gain is below 1.0 and the Spider-family mean gain is only +0.33, so P2.6
   does not justify scaling unchanged flat SeqKD.
-- Next: the operator reports P2.7 joint generation finished. P2.8 first
-  verifies that artifact, then builds a 1,000-row matched source-gold control
-  and tests both public and terminal endpoints. The former flat/local-plan
-  comparison is retained as a secondary diagnostic. No full-pool expansion
-  precedes the terminal matched-gold decision.
+- Next: P2.9 terminal-retention gate (`A>K>A[ret]`, SeqKD versus matched
+  gold) plus a target-NLL diagnostic, on nested branch
+  `experiment/terminal-retention` (`e72ad2d`). P2.8 is deferred, not closed.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-24 — P2.6 public edge re-analyzed; P2.9 retention gate queued
+
+CPU-only re-analysis of committed batch-16 predictions (no new training).
+Row-matched SeqKD minus selected-gold CE on the same 5,319 BIRD rows:
+
+| Endpoint | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| public `A>K` | +1.64 (p=.20) | +2.76 (.19) | +3.38 (.006) | +2.43 (.14) | +3.00 (.004) |
+| terminal `A>K>A` | −0.10 (1.0) | −0.98 (.57) | +1.64 (.07) | +0.75 (.63) | +0.91 (.25) |
+
+Values are EX deltas with exact McNemar p. At the public endpoint the SeqKD arm
+also has fewer non-executable predictions (share of each set, matched gold →
+SeqKD): Spider 19.5 → 14.1, Realistic 25.8 → 18.9, SYN 25.7 → 19.7, DK
+25.0 → 20.2, BIRD 28.6 → 26.6. Reading: training on BIRD through
+teacher-generated SQL transfers BIRD knowledge with less damage to Spider-style
+schema grounding than training on BIRD gold SQL. After terminal A, both arms'
+Spider-family error rates converge (16.3 versus 16.5 on Spider). BIRD
+non-executable predictions rise again, to 37.2 for SeqKD. The plain private
+stage therefore erases the edge.
+
+Decision (user, 2026-09-24): test whether the edge survives terminal A before
+more Struct-SQL work. Nested commit `e72ad2d` adds `A[ret]`. It is a private
+stage whose clients add `1.0 · KL(post-K global ‖ student)` on SQL target
+tokens. The reference is the stage's frozen warm-start adapter; there is no
+teacher at the clients and no extra communication. The commit also adds the
+P2.9 runner and analyzer, a target-NLL diagnostic (pure-FL student NLL on
+teacher versus gold SQL), and a publication allowlist. Existing `A` stage
+identities are unchanged, and the full nested suite passes (634 tests). No GPU
+was used locally. The P2.8 runbook moved intact to
+`archive/superseded_runbooks/P28_STRUCT_GOLD_GATE_DEFERRED_2026-09-24.md`.
 
 ## 2026-09-23 — matched-gold terminal gate supersedes public-only screen
 

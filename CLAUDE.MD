@@ -58,8 +58,9 @@ current method specification.
 
 ## Current priority
 
-Execute P2.3 from `paper/notes/PIPELINE_NEXT.md`: server smoke of the
-`run.py stage` CLI, then `A>A` versus `A>K[fkl]>A` with one additional local
-epoch and the five-set batch-size-16 evaluation. Recurrent T2/T3, extra seeds,
-reverse Hinton, and new KD objectives (GKD, MiniLLM, RKL) wait for that gate.
-ICL, FLoRA-NA, SC, and T4/T5 are not active work.
+Execute P2.9 from `paper/notes/PIPELINE_NEXT.md`: the terminal-retention gate
+(`A>K>A[ret]`, SeqKD versus matched gold on the same parents) plus the
+target-NLL diagnostic, on nested branch `experiment/terminal-retention`.
+P2.8 structured-rationale work is deferred until P2.9 decides. Extra seeds,
+recurrence, and new KD objectives wait for that gate. ICL, FLoRA-NA, SC, and
+T4/T5 are not active work.
