@@ -61,6 +61,8 @@ current method specification.
 Execute P2.9 from `paper/notes/PIPELINE_NEXT.md`: the terminal-retention gate
 (`A>K>A[ret]`, SeqKD versus matched gold on the same parents) plus the
 target-NLL diagnostic, on nested branch `experiment/terminal-retention`.
-P2.8 structured-rationale work is deferred until P2.9 decides. Extra seeds,
-recurrence, and new KD objectives wait for that gate. ICL, FLoRA-NA, SC, and
+P2.10 (Struct-SQL QP-CoT in every stage, runner `scripts/run_p210_struct_sql.py`)
+is implemented and runs after P2.9 fixes the terminal retention weight; it
+supersedes the SQL-only P2.8 gate. Extra seeds, recurrence, and new KD
+objectives wait for those gates. ICL, FLoRA-NA, SC, and
 T4/T5 are not active work.

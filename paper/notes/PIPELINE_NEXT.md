@@ -150,20 +150,145 @@ seed replicates.
   1. Seeds 1–2 for the four terminal arms (seqkd/gold × plain/ret).
   2. An out-of-domain evaluation set that terminal A cannot repair
      (KaggleDBQA).
-  3. Resume the structured-rationale work on top of `A[ret]`, with
-     client-side AST plans so that training and inference formats match.
-     This is **not implemented yet**. Today only the public stage can train
-     plan+SQL (`K[qplan-*]`); every private `A` stage and the P2.8 final
-     evaluation are SQL-only.
+  3. Run P2.10 below (Struct-SQL lineage) with `$L = 1.0` retention at the
+     terminal stage.
 - **`retention_blocks_spider_repair_retune_lambda`** (gates 1–3 pass, gate 4
   fails): the retention term is too strong. Screen a lower λ (for example 0.3)
-  on the same two parents before anything else.
+  on the same two parents before anything else, then run P2.10 with that λ.
 - **`close_terminal_retention_hypothesis`**: retention does not keep the edge.
   The flat-KD generalization claim then stands only at the public endpoint.
-  Resume P2.8 from the deferred runbook, and reconsider the
+  Run P2.10 below with `$L = 0` (plain terminal A). P2.10 supersedes the
+  deferred P2.8 gate, whose final endpoint is SQL-only. Reconsider the
   unlabeled-public-pool framing for the paper headline.
 
 Whatever the decision, the NLL diagnostic is reported as mechanism evidence.
 If teacher SQL has lower student NLL than gold SQL, that supports the
 distribution-gap explanation. If it does not, the edge needs another
 explanation, such as gold-label noise removed by the execution filter.
+
+## P2.10 — Struct-SQL lineage (prepared; start only after P2.9 decides)
+
+**What it tests.** Struct-SQL distils a teacher's query plan (QP-CoT) together
+with its SQL. P2.10 uses that format in **every** stage, so training and
+inference always match:
+
+```text
+A[qp]  FL round 1 from the base model; clients train a QP-CoT template of their own SQL
+K      public BIRD stage (1,000 rows), early stopping on ID+OOD validation loss
+A[qp]  terminal private stage (with retention if P2.9 says so)
+eval   the student writes the plan, then the SQL
+```
+
+| Arm | Public stage | Question it answers |
+|---|---|---|
+| `fl` | none | FL control in the same format |
+| `gold` | template plan + BIRD gold SQL | training without a teacher |
+| `tsql` | template plan + teacher SQL | value of the teacher's SQL |
+| `teacher` | teacher plan + teacher SQL | **Struct-SQL method** |
+
+Primary decision: terminal `teacher − gold`, same gate as before (BIRD ≥ +1.0,
+Spider-family mean ≥ +0.5, no Spider-family set below −1.0).
+
+**What matches the paper, and what does not.** Matches: the QP-CoT layout and
+student instruction, joint teacher plan+SQL generation, execution-only
+admission, 75/25 ID/OOD database split, stratified 1,000 training rows,
+150+150 validation rows, completion loss, lr 1e-4, effective batch 6, early
+stopping on the aggregated validation loss, and the same format at inference.
+Differs on purpose:
+- LoRA rank stays 16, because every FL stage exchanges the adapter.
+- The teacher prompt is zero-shot, not 2-shot.
+- The paper does not report its validation cadence. P2.10 evaluates twice per
+  epoch, with patience 2 and at most 4 epochs.
+- BIRD has too few subquery-only rows for the paper's 22.9% quota. The
+  shortfall moves to the next stratum and is recorded.
+
+**Estimated GPU budget (one A5000).** These estimates are based on measured
+SQL-only speeds. Re-estimate after the FL round.
+
+| Step | Work | Time |
+|---|---|---:|
+| Teacher generation | about 2,400 QP-CoT answers | 5–7 h |
+| FL `A[qp]` round 1 | 8,659 Spider rows | about 3 h |
+| Public stage, per arm (×3) | 1,000 BIRD rows, ≤4 epochs, 300 validation rows | 3.5–5.5 h |
+| Terminal `A[qp]`, per arm (×4) | 8,659 Spider rows | about 3 h (about 4 h with retention) |
+| Terminal evaluation, per arm (×4) | 5 sets, 4,645 prompts, plan+SQL output | 4–6 h |
+| Public evaluation, `teacher` and `gold` | Spider + BIRD | 2.5–3.5 h each |
+
+The total is about 65 GPU-hours, which is about 34 hours on two GPUs. Every
+stage uses the target-window fp32 loss (`--lm-loss target_fp32`) and gradient
+checkpointing.
+
+Required nested commit: `d66af7a` or a descendant on
+`experiment/terminal-retention`. Set `$L` from the P2.9 decision: `1.0`, the
+retuned λ, or `0`.
+
+### Step 0 — sync and validate
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor d66af7a HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.10 code commit is missing' }; uv run --extra dev python -m pytest -q tests/test_struct_sql_qp_cot.py tests/test_rationale_scripts.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py; if ($LASTEXITCODE -ne 0) { throw 'P2.10 validation failed' }; git log -1 --oneline
+```
+
+### Step 1 — CPU: candidates and client length audit
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'Candidate split failed' }; uv run python scripts/run_p210_struct_sql.py --phase audit --scope clients; if ($LASTEXITCODE -ne 0) { throw 'Client length audit failed' }
+```
+
+### Step 2 — two GPU lanes in parallel
+
+GPU 0 generates the teacher answers. GPU 1 trains the FL parent at the same
+time, because FL needs only the private clients.
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase generate; if ($LASTEXITCODE -ne 0) { throw 'Teacher generation failed' }; uv run python scripts/run_p210_struct_sql.py --phase pools; if ($LASTEXITCODE -ne 0) { throw 'Pool construction failed' }; uv run python scripts/run_p210_struct_sql.py --phase audit --scope pools; if ($LASTEXITCODE -ne 0) { throw 'Pool length audit failed' }
+```
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase train-fl; if ($LASTEXITCODE -ne 0) { throw 'FL A[qp] failed' }
+```
+
+### Step 3 — commit the FL parent row
+
+Later stages refuse uncommitted parents. Run this with no GPU job writing
+results.
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $Rel=@(uv run python scripts/list_p210_publication.py --rows fl); if ($LASTEXITCODE -ne 0) { throw 'FL row lookup failed' }; git add -- $Rel; git commit -m 'results: P2.10 FL A[qp] parent row'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin experiment/terminal-retention
+```
+
+### Step 4 — public stages (and the FL terminal) on two GPUs
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-public --arm $A; if ($LASTEXITCODE -ne 0) { throw "Public $A failed" } }
+```
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='1.0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm fl --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal fl failed' }; uv run python scripts/run_p210_struct_sql.py --phase train-public --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Public gold failed' }
+```
+
+Then commit the three public rows:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $Rel=@(uv run python scripts/list_p210_publication.py --rows public); if ($LASTEXITCODE -ne 0) { throw 'Public row lookup failed' }; git add -- $Rel; git commit -m 'results: P2.10 public stage rows'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin experiment/terminal-retention
+```
+
+### Step 5 — terminal stages and evaluation on two GPUs
+
+Use the same `$L` as in Step 4. The runner refuses a different value.
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $L='1.0'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm $A --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw "Terminal $A failed" }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm teacher --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval teacher failed' }
+```
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='1.0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm gold --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal gold failed' }; foreach ($A in 'gold','fl') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm gold --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval gold failed' }
+```
+
+### Step 6 — analysis and publication
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.10 analysis failed' }; Get-Content audits/protocol_v2/p210_struct_sql_s0/summary.md; $Rel=@(uv run python scripts/list_p210_publication.py); if ($LASTEXITCODE -ne 0) { throw 'P2.10 allowlist failed' }; git add -- $Rel; git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'Staged content check failed' }; git commit -m 'results: publish P2.10 Struct-SQL lineage'; git push origin experiment/terminal-retention
+```
+
+After an interruption, rerun the same lane command. Completed stages and
+evaluations are skipped. A public stage resumes with its validation history.

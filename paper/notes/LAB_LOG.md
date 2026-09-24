@@ -26,8 +26,47 @@
   does not justify scaling unchanged flat SeqKD.
 - Next: P2.9 terminal-retention gate (`A>K>A[ret]`, SeqKD versus matched
   gold) plus a target-NLL diagnostic, on nested branch
-  `experiment/terminal-retention` (`e72ad2d`). P2.8 is deferred, not closed.
+  `experiment/terminal-retention`. Then P2.10, the Struct-SQL QP-CoT lineage in
+  every stage (`d66af7a`), with the terminal retention weight set by P2.9.
+  P2.10 supersedes the deferred SQL-only P2.8 gate.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
+
+## 2026-09-24 — Struct-SQL QP-CoT lineage implemented (P2.10, no GPU run)
+
+Review of the P2.7/P2.8 rationale code found two departures from Struct-SQL.
+First, the plan format was a TABLES/COLUMNS/OPERATIONS list that restated SQL
+fragments, not the paper's QP-CoT. Second, private stages and the P2.8 final
+evaluation were SQL-only, so the format changed between stages. The AST plan
+also collapsed correlated aliases (3 BIRD rows), rewrote `SUBSTR` as
+`SUBSTRING` (150 BIRD rows), and crashed on ORDER BY after UNION.
+
+Nested commit `d66af7a` adds the Struct-SQL lineage without changing any
+existing recipe identity:
+- Response format `qp_cot_v1`: the paper's QP-CoT layout and student prompt,
+  strict parsing, and a zero-shot teacher prompt.
+- Deterministic private template `qp_ast_v1`: correlated aliases kept, SQLite
+  spelling kept.
+- Struct-SQL data construction: 75/25 ID/OOD databases, the paper's strata,
+  and 150+150 validation rows.
+- Per-split teacher generation.
+- Public stages `K[qp-ast]` and `K[qp-teacher]` with validation early stopping
+  that keeps the best adapter.
+- Private stage `A[qp]`.
+- Four-arm runner (`fl`, `gold`, `tsql`, `teacher`) with analysis and
+  publication allowlist.
+
+CPU audits:
+- Template: no failures on 20,655 Spider/BIRD train+dev rows. Target median is
+  247 tokens (Spider) and 297 (BIRD), comparable to the paper's 362.
+- Spider client sequences: at most 2,921 tokens, far below `max_len` 7168.
+- BIRD train has only 261 subquery-only rows, below the paper's 22.9% quota.
+  The shortfall moves downstream and is recorded.
+
+Deliberate deviations: LoRA r = 16 (federated communication), zero-shot teacher
+prompt, and a validation cadence chosen for the A5000 (not reported by the
+paper). The full nested suite passes (684 tests). The P2.10 runbook in
+`PIPELINE_NEXT.md` starts only after the P2.9 decision, which fixes the
+terminal retention weight.
 
 ## 2026-09-24 — P2.6 public edge re-analyzed; P2.9 retention gate queued
 
