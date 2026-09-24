@@ -14,6 +14,7 @@
 | P0 | Does structured teacher KD beat gold training and survive terminal A? | same 1,000 teacher-admitted rows: source-gold CE vs teacher plan+SQL, before and after identical A | superseded by P2.10 (its final endpoint is SQL-only); runbook archived in `archive/superseded_runbooks/P28_STRUCT_GOLD_GATE_DEFERRED_2026-09-24.md` |
 | P0 | Does Struct-SQL QP-CoT KD beat gold training when every stage uses the plan format? | same FL `A[qp]` parent and 1,000 admitted rows: template+gold vs template+teacher SQL vs teacher plan+SQL, each followed by identical `A[qp]`; FL control `A[qp]>A[qp]` | P2.10 implemented (`d66af7a`), runs after P2.9; terminal teacher−gold decides |
 | P1 | Does teacher plan explain any confirmed gain beyond formatting? | same teacher SQL: flat SeqKD vs local AST plan vs teacher plan | former P2.7 public-only screen retained as a secondary diagnostic; not the method gate |
+| P1 | Does a stronger frozen teacher help? | zero-shot (P2.10 baseline) vs Struct-SQL 2-shot teacher prompt; later a cross-fitted QLoRA teacher | deferred; only if P2.10 shows the teacher is the bottleneck (see PIPELINE_NEXT deferred teacher options) |
 | P1 | Can repeated transfer move the Pareto frontier? | depth/recurrent schedule using the teacher channel that passes the causal gate | deferred; do not repeat Hinton unchanged |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |

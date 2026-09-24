@@ -308,3 +308,30 @@ and the A5000 budget (about 2,400 teacher generations). If terminal
    the missing rows are generated.
 
 If the gate fails, do not scale up. The screen already answers the question.
+
+### Deferred teacher options (use only if the teacher is the bottleneck)
+
+P2.10 keeps the teacher frozen and zero-shot. This matches Struct-SQL, whose
+GPT-4o teacher is also frozen and only prompted. The two options below
+strengthen the teacher later. The zero-shot P2.10 run stays as the baseline row
+of the teacher-prompt ablation.
+
+1. **Few-shot teacher (first choice).** Use Struct-SQL's 2-shot QP-CoT prompt.
+   Take the demonstrations from BIRD train rows of OOD databases that are not
+   in the validation sets, with plans written by the `qp_ast_v1` template.
+   - The teacher stays frozen.
+   - The prompt is about 1.5k tokens longer, so generation takes about
+     20–30% more time.
+   - This is a new generation-cache identity. The zero-shot cache is kept.
+   - Ablation: zero-shot versus 2-shot teacher. Report admission rate, teacher
+     EX on the admitted pool, and terminal `teacher − gold`.
+   - Trigger: a low admission rate, a poor plan-format rate, or
+     `teacher − gold` failing while the student already matches teacher EX.
+2. **Trained teacher (later ablation).** QLoRA-tune the 7B teacher on public
+   BIRD rows with cross-fitting: train on one half and label the other, then
+   swap. A teacher trained on the same gold rows would copy gold, and the
+   teacher-versus-gold contrast would collapse. This option also fits the
+   unlabeled-public-pool framing. It is heavy on an A5000 because prompts reach
+   7k tokens.
+
+Not implemented yet; neither option runs before P2.10 reports.
