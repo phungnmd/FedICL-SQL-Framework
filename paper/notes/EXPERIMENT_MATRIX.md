@@ -15,6 +15,7 @@
 | P0 | Does Struct-SQL QP-CoT KD beat gold training when every stage uses the plan format? | same FL `A[qp]` parent and 1,000 admitted rows: template+gold vs template+teacher SQL vs teacher plan+SQL, each followed by identical `A[qp]`; FL control `A[qp]>A[qp]` | P2.10 implemented (`d66af7a`), runs after P2.9; terminal teacher−gold decides |
 | P1 | Does teacher plan explain any confirmed gain beyond formatting? | same teacher SQL: flat SeqKD vs local AST plan vs teacher plan | former P2.7 public-only screen retained as a secondary diagnostic; not the method gate |
 | P1 | Does a stronger frozen teacher help? | zero-shot (P2.10 baseline) vs Struct-SQL 2-shot teacher prompt; later a cross-fitted QLoRA teacher | deferred; only if P2.10 shows the teacher is the bottleneck (see PIPELINE_NEXT deferred teacher options) |
+| P0 | Where should LLM KD enter the federated pipeline? | R = 4 private rounds: sequential `A→K→A³`, K-first `K→A⁴`, merge `A⁴+λτ_K`, replay `A_mix⁴`, each SeqKD vs gold, against FL `A⁴` | planned; P2.9 D1 (task arithmetic) picks the first two designs |
 | P1 | Can repeated transfer move the Pareto frontier? | depth/recurrent schedule using the teacher channel that passes the causal gate | deferred; do not repeat Hinton unchanged |
 | P1 | Is it reliable? | at least two training seeds and paired EX/error analysis | after method gate |
 | P1 | Is it robust to heterogeneity? | one stronger non-IID split, same rows/budget | after method gate |

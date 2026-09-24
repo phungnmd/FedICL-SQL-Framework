@@ -31,6 +31,25 @@
   P2.10 supersedes the deferred SQL-only P2.8 gate.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-25 — KD/FL ordering diagnostic added to P2.9 (no GPU run)
+
+Concern raised: FL gets only 1–2 private rounds (T1/T2/T3 Spider EX
+57.35/62.19/64.31), so a KD benefit measured after one terminal round may not
+survive FL trained closer to convergence. With one terminal round, WiSE-FT at
+α = 0.5 mainly halves the Spider update, so it is a reviewer baseline only.
+
+Nested commit `419a878` adds D1, task arithmetic, as two training-free P2.9
+variants: θ_{A>A} + λ·(θ_{A>K} − θ_A) with λ = 0.5 and 1.0. `combine_lora`
+builds exact linear combinations of LoRA updates, and WiSE-FT reuses it. The
+analyzer applies the registered gates to D1 and reports an ordering signal.
+The signal is merge-first when the KD task vector is additive, and replay
+otherwise. The full nested suite passes (690 tests). P2.9 now takes about 14 h
+per GPU lane.
+
+An R = 4 ordering study is planned in `PIPELINE_NEXT.md`: Sequential,
+K-first, Merge, and Replay, each against FL `A⁴` with the same rounds. It is
+not implemented yet.
+
 ## 2026-09-25 — P2.9 aligned with the retention literature (no GPU run)
 
 A literature check (KD_METHOD_REVIEW §10) found that the P2.9 retention loss

@@ -306,6 +306,43 @@ Sources:
 - [WiSE-FT](https://arxiv.org/abs/2109.01903)
 - [Self-Distillation Bridges Distribution Gap (SDFT, ACL 2024)](https://aclanthology.org/2024.acl-long.58/)
 
+## 11. Ordering KD and FL (D1 and the ordering study)
+
+Researched 2026-09-25.
+
+**Diagnosis.** `A → K → A` learns two distributions one after the other. In
+continual learning, this is the setting most prone to forgetting. The usual
+ranking of remedies is:
+
+```text
+joint training (upper bound) > replay > regularization (LwF, EWC) > post-hoc merging
+```
+
+P2.9 retention sits in the regularization tier. Public BIRD data is not
+private, so separating K and A into phases is a design choice, not a privacy
+constraint.
+
+**Candidate orders.**
+
+| Order | Idea | Precedent | Main risk |
+|---|---|---|---|
+| `A → K → A` + retention | regularize the terminal stage | LwF, FedGKD | covers one round; K knowledge fades over more FL rounds |
+| `K → Aᴿ` | KD as the FL initialization | FedMD (public first, then private); [Nguyen et al., ICLR 2023](https://arxiv.org/abs/2206.15387): a pre-trained initialization reduces the harm of heterogeneity | K knowledge can fade over R rounds |
+| `(A → K)ᴿ` | server KD every round | FedCoLLM, FedDF | expensive (about 5 h per K on 5,319 rows); repeated public damage |
+| `A_mixᴿ` | replay public KD targets at clients | experience replay, a strong continual-learning baseline ([TRACE](https://arxiv.org/pdf/2310.06762), [scalable replay](https://arxiv.org/pdf/2505.12512)) | extra client compute on long BIRD prompts |
+| `Aᴿ + λ·τ_K` | KD as a task vector added to FL | [task arithmetic](https://www.emergentmind.com/topics/task-arithmetic-ta); LoRA merging against forgetting ([Merge before Forget](https://arxiv.org/pdf/2512.23017)) | interference between task vectors |
+
+**D1 (in P2.9, evaluation only).** θ_{A>A} + λ·(θ_{A>K} − θ_A) with
+λ ∈ {0.5, 1.0}, for SeqKD and matched gold. Every adapter already exists.
+LoRA combination is exact via rank concatenation. The answer selects the
+ordering study: an additive task vector favours Merge and K-first; interference
+favours Replay and Sequential with retention.
+
+**Claim boundary.** None of these orders is new on its own. A paper
+contribution would be the controlled comparison of where LLM-to-SLM KD should
+enter a federated Text-to-SQL pipeline, compute-matched against FL with the
+same rounds, with teacher targets compared to gold targets in each design.
+
 ## Sources
 
 - [Sparse-to-Dense Reward Principle (MSR)](https://arxiv.org/abs/2605.12483)
