@@ -31,6 +31,33 @@
   P2.10 supersedes the deferred SQL-only P2.8 gate.
 - Historical record: `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`.
 
+## 2026-09-26 — P2.9 retention at λ = 1.0 fails; P2.9 paused for P2.10
+
+Seed-0 predictions of `A>K>A[ret]` (λ = 1.0, T = 1) for both arms, read on the
+server before the other variants ran (not yet committed). EX, SeqKD / gold:
+
+| Endpoint | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| public `A>K` | 57.93 / 56.29 | 46.65 / 43.90 | 48.26 / 44.87 | 45.61 / 43.18 | 34.68 / 31.68 |
+| plain terminal | 64.99 / 65.09 | 57.68 / 58.66 | 54.55 / 52.90 | 50.28 / 49.53 | 28.42 / 27.51 |
+| `ret` | 61.61 / 60.74 | 50.79 / 50.20 | 49.90 / 49.42 | 46.92 / 45.79 | 30.31 / 28.88 |
+
+`ret` SeqKD − gold is +0.87/+0.59/+0.48/+1.12/+1.43 (exact McNemar p
+.368/.78/.696/.362/.117). Gates: BIRD ≥ 1.5 fails, Spider-family mean
+(+0.77) ≥ 1.0 fails, no set below −1.0 passes, SeqKD Spider cost (−3.38)
+≤ 1.0 fails. Retention buys +1.9 BIRD for −3.4 to −6.9 on every Spider-family
+set, and in both arms it lies below the straight line between the public and
+plain-terminal endpoints in (Spider, BIRD), so λ = 1.0 is dominated.
+
+Reading: the teacher-over-gold edge scales with proximity to the post-K model
+(Spider-family mean +2.55 public, +0.77 `ret`, +0.33 terminal). The SQL-only
+edge therefore looks like a gentler public update (less forgetting) rather than
+extra transferable knowledge. Decision: pause P2.9 and run P2.10 with a plain
+terminal stage, because the query plan is the one signal gold cannot supply.
+The four remaining P2.9 variants and the target-NLL diagnostic stay resumable.
+The NLL script was fixed first (nested `f210071`, `d8b4d5f`): it computed
+full-prompt logits, which filled the 24 GB card under WDDM.
+
 ## 2026-09-25 — KD/FL ordering diagnostic added to P2.9 (no GPU run)
 
 Concern raised: FL gets only 1–2 private rounds (T1/T2/T3 Spider EX

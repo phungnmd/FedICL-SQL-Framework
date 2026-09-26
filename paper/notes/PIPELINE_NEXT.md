@@ -1,13 +1,30 @@
 # FedLS-SQL — active protocol-v2 queue
 
-## Current decision
+## Current decision (2026-09-26)
 
-Run **P2.9, the terminal-retention gate**, before any more structured-rationale
-(Struct-SQL) work. The P2.8 matched-gold structured gate is deferred, not
-closed. Its full runbook is preserved in
+**Run P2.10 now, with a plain terminal stage (`$L = 0`).** P2.9 is paused
+after its first variant. Retention at λ = 1.0 (`ret`) failed three of four
+gates (SeqKD − gold, EX; SeqKD cost is `ret` minus plain terminal):
+
+| After `ret` | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| SeqKD − gold | +0.87 | +0.59 | +0.48 | +1.12 | +1.43 |
+| SeqKD cost vs plain terminal | −3.38 | −6.89 | −4.65 | −3.36 | +1.89 |
+
+The teacher edge shrinks as the model moves back toward Spider (Spider-family
+mean +2.55 public, +0.77 `ret`, +0.33 terminal), so the SQL-only edge looks
+like a gentler update rather than extra knowledge. Struct-SQL is the setting
+where the teacher supplies something gold cannot: the query plan. P2.10 tests
+that directly, so it goes first. The remaining P2.9 variants (`ret0p1`,
+`wise0p5`, `arith0p5`, `arith1p0`) and the target-NLL diagnostic stay
+resumable on the server and are deferred, not closed. Their adapters,
+predictions, and manifest entries must not be deleted.
+
+The P2.8 matched-gold structured gate is superseded by P2.10. Its runbook is
+preserved in
 [P28_STRUCT_GOLD_GATE_DEFERRED_2026-09-24.md](../archive/superseded_runbooks/P28_STRUCT_GOLD_GATE_DEFERRED_2026-09-24.md).
 
-Why P2.9 comes first: the committed P2.6 predictions, re-analyzed on
+Why P2.9 was queued first: the committed P2.6 predictions, re-analyzed on
 2026-09-24 (see `LAB_LOG.md`), show that SeqKD beats row-matched gold CE on
 all five sets at the **public** endpoint, with the largest gains on the
 out-of-domain sets:
@@ -23,7 +40,7 @@ a positive teacher-specific claim: KD transfers BIRD knowledge to Spider with
 less negative transfer than gold training. Any structured-rationale arm then
 builds on that terminal stage.
 
-## What P2.9 trains
+## What P2.9 trains (paused after `ret`)
 
 P2.9 compares several ways to keep the post-K knowledge in the deployed model.
 All of them start from the same committed adapters. It also runs one cheap
@@ -255,7 +272,7 @@ Implementation still needed before launch:
 - client-side public mixing for Replay;
 - a K stage that starts from the base model, for K-first.
 
-## P2.10 — Struct-SQL lineage (prepared; start only after P2.9 decides)
+## P2.10 — Struct-SQL lineage (active)
 
 **What it tests.** Struct-SQL distils a teacher's query plan (QP-CoT) together
 with its SQL. P2.10 uses that format in **every** stage, so training and
@@ -301,20 +318,23 @@ SQL-only speeds. Re-estimate after the FL round.
 | Public stage, per arm (×3) | 1,000 BIRD rows, ≤4 epochs, 300 validation rows | 3.5–5.5 h |
 | Terminal `A[qp]`, per arm (×4) | 8,659 Spider rows | about 3 h (about 4 h with retention) |
 | Terminal evaluation, per arm (×4) | 5 sets, 4,645 prompts, plan+SQL output | 4–6 h |
-| Public evaluation, `teacher` and `gold` | Spider + BIRD | 2.5–3.5 h each |
+| Public evaluation, `teacher`, `tsql`, `gold` | Spider + BIRD | 2.5–3.5 h each |
 
-The total is about 65 GPU-hours, which is about 34 hours on two GPUs. Every
+The total is about 68 GPU-hours, which is about 35 hours on two GPUs. The
+`tsql` public evaluation is included so that `teacher − tsql` (the value of
+the teacher's plan) is also read before the terminal stage. Every
 stage uses the target-window fp32 loss (`--lm-loss target_fp32`) and gradient
 checkpointing.
 
 Required nested commit: `d66af7a` or a descendant on
-`experiment/terminal-retention`. Set `$L` from the P2.9 decision: `1.0`, the
-retuned λ, or `0`.
+`experiment/terminal-retention`. `$L = 0` (plain terminal `A[qp]`), because
+P2.9 is paused. The runner locks `$L` at the first terminal stage, so every
+arm must use the same value.
 
 ### Step 0 — sync and validate
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor d66af7a HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.10 code commit is missing' }; uv run --extra dev python -m pytest -q tests/test_struct_sql_qp_cot.py tests/test_rationale_scripts.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py; if ($LASTEXITCODE -ne 0) { throw 'P2.10 validation failed' }; git log -1 --oneline
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git -C .. pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Paper repository pull failed' }; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor d66af7a HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.10 code commit is missing' }; uv run --extra dev python -m pytest -q tests/test_struct_sql_qp_cot.py tests/test_rationale_scripts.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py; if ($LASTEXITCODE -ne 0) { throw 'P2.10 validation failed' }; git log -1 --oneline
 ```
 
 ### Step 1 — CPU: candidates and client length audit
@@ -352,7 +372,7 @@ $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1
 ```
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='1.0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm fl --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal fl failed' }; uv run python scripts/run_p210_struct_sql.py --phase train-public --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Public gold failed' }
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm fl --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal fl failed' }; uv run python scripts/run_p210_struct_sql.py --phase train-public --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Public gold failed' }
 ```
 
 Then commit the three public rows:
@@ -366,11 +386,11 @@ $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $Rel=@(uv run python scripts
 Use the same `$L` as in Step 4. The runner refuses a different value.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $L='1.0'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm $A --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw "Terminal $A failed" }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm teacher --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval teacher failed' }
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $L='0'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm $A --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw "Terminal $A failed" }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint public; if ($LASTEXITCODE -ne 0) { throw "Public eval $A failed" } }
 ```
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='1.0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm gold --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal gold failed' }; foreach ($A in 'gold','fl') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm gold --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval gold failed' }
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm gold --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal gold failed' }; foreach ($A in 'gold','fl') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm gold --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval gold failed' }
 ```
 
 ### Step 6 — analysis and publication
