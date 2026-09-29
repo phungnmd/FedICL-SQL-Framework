@@ -58,10 +58,10 @@ current method specification.
 
 ## Current priority
 
-Execute P2.10 from `paper/notes/PIPELINE_NEXT.md`: Struct-SQL QP-CoT in every
-stage (runner `scripts/run_p210_struct_sql.py`) with a plain terminal stage
-(`$L = 0`), on nested branch `experiment/terminal-retention`. P2.9 is paused
-after retention at λ = 1.0 failed its gates; its remaining variants and the
-target-NLL diagnostic are deferred and resumable. Extra seeds, recurrence, and
-new KD objectives wait for the P2.10 gate. ICL, FLoRA-NA, SC, and T4/T5 are not
+Follow `paper/notes/PIPELINE_NEXT.md` (2026-09-30): finish P2.10 (Struct-SQL,
+including the QP-CoT FL parent on all five sets), then Direction A1, the
+training-free merge gate (`seqkd`/`gold`, `hinton`/`fullgold`) on nested branch
+`experiment/terminal-retention`. Direction A2 (interleaved `(A -> k)^R` on BIRD
+shards) and Direction B (in-domain Spider public split, unlabeled) are planned,
+not implemented. P2.9 retention is paused. ICL, FLoRA-NA, SC, and T4/T5 are not
 active work.
