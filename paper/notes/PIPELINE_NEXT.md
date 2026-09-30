@@ -9,22 +9,36 @@ Results and decisions go to `LAB_LOG.md` after a run finishes.
 What we know (details in `LAB_LOG.md`):
 
 - A public BIRD stage followed by one more FedAvg round beats FL alone on all
-  five sets, and gets close to centralized training.
-- Right after the public stage (`A>K`), Hinton and SeqKD beat plain gold
-  training. After the extra FedAvg round (`A>K>A`), they only tie gold.
-- Struct-SQL (P2.10) looks worse at the public endpoint. Its terminal numbers
-  are still running.
+  five sets at seed 0, with the same private-training budget. The public stage
+  adds compute; the centralized E3 reference has a different private budget.
+- Hinton's BIRD advantage over full-gold CE shrinks from +4.56 at `A>K` to
+  +1.50 at `A>K>A`; the terminal Spider-family mean difference is +0.05.
+  There is no reliable terminal teacher advantage yet. SeqKD shows a similar
+  narrowing against its selected-gold control.
+- Struct-SQL (P2.10) looks worse at the public endpoint. Terminal results and
+  SQL-marker rescoring still need to be consolidated; this file is not a live
+  GPU-status report.
 
-So the plan has three parts, in this order:
+**Fixed boundary (owner decision, 2026-09-30):** Spider private data stay at
+clients. BIRD public data, the frozen 7B teacher and teacher-logit caches stay
+at the server. Clients train the SLM and exchange adapters only. Public replay
+at clients, public-buffer downloads and client logit-cache transfers are
+excluded because of their storage, communication and compute cost.
+
+The next work, in order:
 
 1. **Finish P2.10** and check whether the QP-CoT format already hurts after the
    first FedAvg round, before any KD (commands below).
-2. **Direction A: keep BIRD as the public pool.** First test whether a
-   training-free weight merge keeps the teacher's edge after FedAvg (A1). If it
-   does, build the interleaved schedule (A2).
-3. **Direction B: an in-domain public pool.** Hold out part of Spider train as
-   unlabeled public questions, as FedMKT and FedCoLLM do. Planned, not
-   implemented.
+2. **A1: server-side merge screen.** Evaluate Hinton/full-gold first using
+   existing checkpoints. SeqKD/selected-gold are secondary comparisons.
+3. **A2: two-round server KD.** Plan `A>k1>A>k2`, with one total public K
+   budget, against `A>A>K` and matched gold controls. Implementation is still
+   required. A failed merge does not rule out this schedule.
+
+Changing the public dataset is deferred. Keep the teacher, student, client
+split and BIRD pool fixed during A1/A2. Interleaving is established prior art;
+the question is whether it preserves useful teacher transfer under this
+public/private distribution shift.
 
 Paused: P2.9 retention (`ret0p1` and the target-NLL diagnostic). The runbook is
 in the [paused P2.9 file](../archive/paused_runbooks/P29_TERMINAL_RETENTION_PAUSED_2026-09-26.md).
@@ -42,9 +56,12 @@ $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python scripts/show_p2
 
 ## 1. Finish P2.10 (Struct-SQL)
 
-Required nested commit: `e735779` or later. The two lanes running now finish
+Required nested commit: `e735779` or later. The last recorded lanes finish
 the terminal stages of `teacher` (GPU 0) and `gold` (GPU 1). The `tsql`
 terminal stage is optional and skipped: it is not in the gate.
+
+Confirm running jobs have exited before any Git sync or publication. Do not
+restart completed training merely to follow an archived runbook.
 
 **Does QP-CoT hurt before KD?** Struct-SQL uses only 1,000 public rows, so the
 FL parent itself must be checked. This evaluates the QP-CoT model after the
@@ -65,9 +82,21 @@ $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p2
 Report both scores: the strict parser (plan must have three sections) and the
 SQL-marker rescoring, which is how the Struct-SQL release scores EX.
 
+Keep P2.10's existing gate: terminal `teacher - gold` BIRD >= +1.0 point,
+Spider-family mean >= +0.5, and no Spider-family set below -1.0. Report the
+gate under both scoring rules; do not silently replace the original strict
+result with SQL-marker EX. If neither supports a useful terminal advantage,
+close this configuration as a negative result and continue to A1. If the two
+scores disagree, diagnose format failures before deciding. No larger teacher
+or full-pool expansion is queued. Without terminal `tsql`, do not attribute a
+terminal difference specifically to the teacher's plan.
+
+Original design, completed steps and deferred options are preserved in the
+[superseded P2.10 runbook](../archive/superseded_runbooks/P210_STRUCT_SQL_ORIGINAL_RUNBOOK_2026-09-30.md).
+
 ## 2. Direction A — BIRD public pool
 
-### A1. Merge gate (evaluation only, no training)
+### A1. Merge screen (evaluation only, no training)
 
 Question: does a weight merge keep the teacher's edge after FedAvg? Four arms,
 all from the same FL T1 parent and committed rows:
@@ -84,11 +113,26 @@ Three merges per arm, each built in seconds on CPU:
 - `wise0p5`: half the model after K plus half the model after the last FedAvg.
 - `arith0p5`, `arith1p0`: FL `A>A` plus λ × (model after K − FL T1), λ = 0.5, 1.0.
 
-The result to read is teacher minus gold for each merge
-(`show_p29_merges.py`). Promote a merge if the teacher arm beats its gold arm
-by at least 1.5 BIRD and at least 1.0 on the Spider-family mean, with no
-Spider-family set below −1.0, and Spider not more than 1.0 below the plain
-terminal.
+These are exact combinations of effective LoRA updates, not averages of the
+A/B factors. With r16 sources, `wise0p5` stores rank 32 and the arithmetic
+variants rank 48. Report adapter bytes/rank and deployment cost; compression
+back to r16 would be a separate experiment.
+
+Read teacher minus gold for the **same merge** (`show_p29_merges.py`), and each
+arm versus its own plain terminal. The prospective A1 screen is:
+
+- teacher minus gold: BIRD >= +1.5 points; Spider-family mean >= -0.5 and no
+  individual Spider-family set below -1.0;
+- merged teacher versus its own plain terminal: BIRD must improve,
+  Spider-family mean >= -0.5 and no individual Spider-family set below -1.0;
+- report the gold arm's absolute changes too, so a larger teacher gap caused
+  only by degrading gold is not treated as successful retention.
+
+This replaces the earlier requirement for >= +1.0 Spider-family teacher gain
+for future A1 selection. Preserve any earlier gate verdicts separately; do
+not relabel P2.9 or P2.10. These margins are screening choices, not proof of
+equivalence or significance. All fixed variants are reported; seed 0 is
+exploratory, not a final test used to tune and certify a winning merge.
 
 Run when the P2.10 lanes are done. About 1–1.5 h per merge per arm, so about
 7–9 h per lane. Required nested commit: `9ad7239` or later.
@@ -104,210 +148,94 @@ $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1
 Hinton and full gold go first, because Hinton has the largest edge after K
 (BIRD 36.70 versus 32.14).
 
-### A2. Interleaved schedule (planned, not implemented)
+Publication follow-up: `list_p29_publication.py` currently also requires the
+paused retention/NLL evidence. A merge-only, fingerprint-checked allowlist
+and its separate publication command are still needed; do not run paused
+training just to satisfy that resolver. The existing compute lanes above
+remain the A1 screen; do not claim merge evidence is published before that
+publication path is ready.
 
-Only if A1 shows the edge can survive. This follows FedDF, FedCoLLM and
-FedMKT, which distil in every round and end on the distilled model:
+If saved terminal client adapters are available, evaluate their BIRD
+retention on a fixed diagnostic set before and after aggregation. This can
+separate local adaptation from aggregation loss without retraining. Keep
+public inputs on the server, publish no private examples, and label this as a
+diagnostic; parameter-space aggregation error alone cannot explain EX loss.
+
+### A2. Two-round interleaving (planned, not implemented)
+
+A1 informs this experiment but is **not a pass/fail prerequisite**. Repeating
+server distillation has precedents in
+[FedCoLLM](https://arxiv.org/html/2411.11707v3) and
+[FedDF](https://proceedings.neurips.cc/paper/2020/file/18df51b97ccd68128e994804f3eccc87-Paper.pdf).
+Here the teacher stays frozen and all K computation stays on the server.
+
+Start with two A rounds, matching the existing private budget:
 
 ```text
-round r = 1..R (R = 3):   A (FedAvg on Spider)  ->  k (Hinton on BIRD shard r)
+interleaved:        A -> k1 -> A -> k2     Hinton and full-gold CE
+late public:        A -> A  -> K          Hinton and full-gold CE
+historical anchor:  A -> K  -> A          existing Hinton and full-gold CE
+private-only:       A -> A               existing FL control
 ```
 
-- BIRD is split into R disjoint shards, so the total public data and KD steps
-  equal the single K of `A>K>A`. Only the schedule changes.
-- The run ends on k. If Spider drops, a final merge (A1) is the fallback.
-- Controls: FL `A^R` and the same schedule with gold CE on the same shards.
-- About 25–30 GPU-hours for Hinton plus gold, plus `A^R`.
-- Needed code: a K stage on a row shard, and an R-round schedule runner.
+**Budget and lineage contract.**
 
-## 3. Direction B — in-domain public pool (planned, not implemented)
+- Keep the same five clients, split, one local epoch per A, LoRA r16,
+  aggregation, SQL-only format and evaluator. Two A rounds have the same
+  private exposure and adapter exchanges as `A>K>A`. Three rounds would
+  change both training and communication budgets, so are deferred.
+- `k1 + k2` uses the same 9,428 BIRD rows/gold prefixes and one total public
+  pass as K. Build one deterministic public batch stream, balance its two
+  disjoint shards by database/SQL structure where feasible, and split at
+  optimizer-step boundaries. The late-public K consumes the exact same ordered
+  concatenation `k1 || k2`; neither schedule resamples the public rows.
+  Fix padding, accumulation, loss normalization and truncation;
+  verify visited-row hashes, target-token exposure and exact update counts.
+  Reuse the fixed teacher-logit cache at the server only.
+- Retain Hinton's 0.5 CE + 0.5 T-squared forward KL, T=2, versus full-gold CE.
+  Both arms use identical public rows, ordering, stage boundaries and budgets.
+  This is labeled-public KD, not an unlabeled-public setting.
+- Use one planned public LR horizon and global K-step counter across k1/k2.
+  Freeze an explicit server optimizer-state policy before execution. The
+  `A>A>K` control must use the same policy at a virtual k1/k2 boundary, including
+  any reset of optimizer moments. Record private-stage optimizer resets too.
+  Historical runs remain anchors if their optimizer policy differs.
+- `A>A` matches private budget only. Hinton and CE also have different teacher
+  overhead. Report public updates/tokens, client/server time and offline cache
+  cost separately; do not claim total-compute equality.
 
-FedMKT and FedCoLLM take the public set from the same dataset as the private
-data. Here that means holding out part of Spider train (for example 20%) as
-public questions without SQL. The teacher labels them; gold SQL is kept only as
-an oracle row in the tables.
+**Read two different contrasts.** Hinton minus gold within each schedule tests
+the teacher; interleaved minus `A>A>K` within each objective tests the schedule.
+An improvement over the historical `A>K>A` alone does not distinguish
+interleaving from the effect of ending on K. Evaluate after the second A and
+after k2; Spider retention after the final K is the main risk.
 
-- No domain gap, so KD should not make the model forget Spider, and the run
-  can end on the KD stage.
-- Fits the unlabeled-public framing: the teacher is the only labeler.
-- Cost: the private data shrinks, so every baseline (FL, centralized, `A>A`)
-  must be rerun on the new split, about 2–3 GPU-days.
-- Keep BIRD as the second, harder setting (domain shift) in the paper.
+Use BIRD advantage with Spider-family noninferiority as the selection objective.
+Before new runs, freeze the primary contrast, margins and validation-selection
+rule. Use the A1 teacher/gold margins as the default screen; a schedule-benefit
+claim additionally needs an improvement over matched `A>A>K` without material
+Spider-family degradation. Report all five sets, paired uncertainty and per-seed
+results. Final confirmation needs a validation split separate from the reported
+evaluation and at least three matched seeds; any changed training split requires
+rerunning the corresponding parents/controls. Merge is a separately reported
+fallback if final K hurts Spider, not an unreported last-stage adjustment.
 
-Decide after A1.
+**Implementation required before activation:** shard/batch identities, resumable
+K-stage counters and optimizer policy, the two-round runner, intermediate/final
+evaluations, and a verified publication resolver with a separate publication
+command. No executable A2 commands are provided yet. Re-estimate the GPU budget
+for this two-round/four-new-arm design; the old three-round estimate does not
+apply. Expand rounds or model families only after this screen gives useful
+evidence.
+
+## 3. Deferred alternatives
+
+Spider-derived public data is not in the active queue. Same-dataset public data
+can be a valid control, but it does not guarantee no forgetting. FedMKT's
+[same-dataset split](https://arxiv.org/html/2406.02224v3#A4.SS2) uses supervised
+public training; it is not evidence that our current gold-prefix KD is
+unlabeled. Revisiting a Spider-public split would require new private baselines.
+Client public replay remains excluded, regardless of the A1/A2 outcome.
 
 Older finished runbooks: `paper/archive/completed_runbooks/` and
 `paper/archive/superseded_runbooks/`. They are history, not the queue.
-
-## P2.10 reference — Struct-SQL design and original runbook (steps 0–5 done)
-
-**What it tests.** Struct-SQL distils a teacher's query plan (QP-CoT) together
-with its SQL. P2.10 uses that format in **every** stage, so training and
-inference always match:
-
-```text
-A[qp]  FL round 1 from the base model; clients train a QP-CoT template of their own SQL
-K      public BIRD stage (1,000 rows), early stopping on ID+OOD validation loss
-A[qp]  terminal private stage (with retention if P2.9 says so)
-eval   the student writes the plan, then the SQL
-```
-
-| Arm | Public stage | Question it answers |
-|---|---|---|
-| `fl` | none | FL control in the same format |
-| `gold` | template plan + BIRD gold SQL | training without a teacher |
-| `tsql` | template plan + teacher SQL | value of the teacher's SQL |
-| `teacher` | teacher plan + teacher SQL | **Struct-SQL method** |
-
-Primary decision: terminal `teacher − gold`, same gate as before (BIRD ≥ +1.0,
-Spider-family mean ≥ +0.5, no Spider-family set below −1.0).
-
-**What matches the paper, and what does not.** Matches: the QP-CoT layout and
-student instruction, joint teacher plan+SQL generation, execution-only
-admission, 75/25 ID/OOD database split, stratified 1,000 training rows,
-150+150 validation rows, completion loss, lr 1e-4, effective batch 6, early
-stopping on the aggregated validation loss, and the same format at inference.
-Differs on purpose:
-- LoRA rank stays 16, because every FL stage exchanges the adapter.
-- The teacher prompt is zero-shot, not 2-shot.
-- The paper does not report its validation cadence. P2.10 evaluates twice per
-  epoch, with patience 2 and at most 4 epochs.
-- BIRD has too few subquery-only rows for the paper's 22.9% quota. The
-  shortfall moves to the next stratum and is recorded.
-
-**Estimated GPU budget (one A5000).** These estimates are based on measured
-SQL-only speeds. Re-estimate after the FL round.
-
-| Step | Work | Time |
-|---|---|---:|
-| Teacher generation | about 2,400 QP-CoT answers | 5–7 h |
-| FL `A[qp]` round 1 | 8,659 Spider rows | about 3 h |
-| Public stage, per arm (×3) | 1,000 BIRD rows, ≤4 epochs, 300 validation rows | 3.5–5.5 h |
-| Terminal `A[qp]`, per arm (×4) | 8,659 Spider rows | about 3 h (about 4 h with retention) |
-| Terminal evaluation, per arm (×4) | 5 sets, 4,645 prompts, plan+SQL output | 4–6 h |
-| Public evaluation, `teacher`, `tsql`, `gold` | Spider + BIRD | 2.5–3.5 h each |
-
-The total is about 68 GPU-hours, which is about 35 hours on two GPUs. The
-`tsql` public evaluation is included so that `teacher − tsql` (the value of
-the teacher's plan) is also read before the terminal stage. Every
-stage uses the target-window fp32 loss (`--lm-loss target_fp32`) and gradient
-checkpointing.
-
-Required nested commit: `d66af7a` or a descendant on
-`experiment/terminal-retention`. `$L = 0` (plain terminal `A[qp]`), because
-P2.9 is paused. The runner locks `$L` at the first terminal stage, so every
-arm must use the same value.
-
-### Step 0 — sync and validate
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor d66af7a HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required P2.10 code commit is missing' }; uv run --extra dev python -m pytest -q tests/test_struct_sql_qp_cot.py tests/test_rationale_scripts.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_training.py tests/test_eval.py; if ($LASTEXITCODE -ne 0) { throw 'P2.10 validation failed' }; git log -1 --oneline
-```
-
-### Step 1 — CPU: candidates and client length audit
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'Candidate split failed' }; uv run python scripts/run_p210_struct_sql.py --phase audit --scope clients; if ($LASTEXITCODE -ne 0) { throw 'Client length audit failed' }
-```
-
-### Step 2 — two GPU lanes in parallel
-
-GPU 0 generates the teacher answers. GPU 1 trains the FL parent at the same
-time, because FL needs only the private clients.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase generate; if ($LASTEXITCODE -ne 0) { throw 'Teacher generation failed' }; uv run python scripts/run_p210_struct_sql.py --phase pools; if ($LASTEXITCODE -ne 0) { throw 'Pool construction failed' }; uv run python scripts/run_p210_struct_sql.py --phase audit --scope pools; if ($LASTEXITCODE -ne 0) { throw 'Pool length audit failed' }
-```
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase train-fl; if ($LASTEXITCODE -ne 0) { throw 'FL A[qp] failed' }
-```
-
-### Step 3 — commit the FL parent row
-
-Later stages refuse uncommitted parents. Run this with no GPU job writing
-results.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $Rel=@(uv run python scripts/list_p210_publication.py --rows fl); if ($LASTEXITCODE -ne 0) { throw 'FL row lookup failed' }; git add -- $Rel; git commit -m 'results: P2.10 FL A[qp] parent row'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin experiment/terminal-retention
-```
-
-### Step 4 — public stages (and the FL terminal) on two GPUs
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-public --arm $A; if ($LASTEXITCODE -ne 0) { throw "Public $A failed" } }
-```
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm fl --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal fl failed' }; uv run python scripts/run_p210_struct_sql.py --phase train-public --arm gold; if ($LASTEXITCODE -ne 0) { throw 'Public gold failed' }
-```
-
-Then commit the three public rows:
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $Rel=@(uv run python scripts/list_p210_publication.py --rows public); if ($LASTEXITCODE -ne 0) { throw 'Public row lookup failed' }; git add -- $Rel; git commit -m 'results: P2.10 public stage rows'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin experiment/terminal-retention
-```
-
-### Step 5 — terminal stages and evaluation on two GPUs
-
-Use the same `$L` as in Step 4. The runner refuses a different value.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; $L='0'; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm $A --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw "Terminal $A failed" }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; foreach ($A in 'teacher','tsql') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint public; if ($LASTEXITCODE -ne 0) { throw "Public eval $A failed" } }
-```
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='1'; $env:PYTHONUTF8='1'; $L='0'; uv run python scripts/run_p210_struct_sql.py --phase train-terminal --arm gold --retention-lambda $L; if ($LASTEXITCODE -ne 0) { throw 'Terminal gold failed' }; foreach ($A in 'gold','fl') { uv run python scripts/run_p210_struct_sql.py --phase eval --arm $A --endpoint terminal; if ($LASTEXITCODE -ne 0) { throw "Eval $A failed" } }; uv run python scripts/run_p210_struct_sql.py --phase eval --arm gold --endpoint public; if ($LASTEXITCODE -ne 0) { throw 'Public eval gold failed' }
-```
-
-### Step 6 — analysis and publication
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run python scripts/run_p210_struct_sql.py --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.10 analysis failed' }; Get-Content audits/protocol_v2/p210_struct_sql_s0/summary.md; $Rel=@(uv run python scripts/list_p210_publication.py); if ($LASTEXITCODE -ne 0) { throw 'P2.10 allowlist failed' }; git add -- $Rel; git diff --cached --check; if ($LASTEXITCODE -ne 0) { throw 'Staged content check failed' }; git commit -m 'results: publish P2.10 Struct-SQL lineage'; git push origin experiment/terminal-retention
-```
-
-After an interruption, rerun the same lane command. Completed stages and
-evaluations are skipped. A public stage resumes with its validation history.
-
-### Decision after P2.10
-
-The 1,000-row quota is a deliberate screen, matching the paper's curated set
-and the A5000 budget (about 2,400 teacher generations). If terminal
-`teacher − gold` passes the gate:
-
-1. Run independent seeds for `teacher` and `gold`.
-2. Run a full-pool extension for those two arms: every admitted ID-pool row,
-   with the same 150+150 validation rows. This tests whether more teacher data
-   adds more. It needs a small "all admitted rows" mode in
-   `build_rationale_candidates.py --algorithm struct_sql_v1`, which is not
-   implemented yet. The teacher cache reuses every P2.10 generation, so only
-   the missing rows are generated.
-
-If the gate fails, do not scale up. The screen already answers the question.
-
-### Deferred teacher options (use only if the teacher is the bottleneck)
-
-P2.10 keeps the teacher frozen and zero-shot. This matches Struct-SQL, whose
-GPT-4o teacher is also frozen and only prompted. The two options below
-strengthen the teacher later. The zero-shot P2.10 run stays as the baseline row
-of the teacher-prompt ablation.
-
-1. **Few-shot teacher (first choice).** Use Struct-SQL's 2-shot QP-CoT prompt.
-   Take the demonstrations from BIRD train rows of OOD databases that are not
-   in the validation sets, with plans written by the `qp_ast_v1` template.
-   - The teacher stays frozen.
-   - The prompt is about 1.5k tokens longer, so generation takes about
-     20–30% more time.
-   - This is a new generation-cache identity. The zero-shot cache is kept.
-   - Ablation: zero-shot versus 2-shot teacher. Report admission rate, teacher
-     EX on the admitted pool, and terminal `teacher − gold`.
-   - Trigger: a low admission rate, a poor plan-format rate, or
-     `teacher − gold` failing while the student already matches teacher EX.
-2. **Trained teacher (later ablation).** QLoRA-tune the 7B teacher on public
-   BIRD rows with cross-fitting: train on one half and label the other, then
-   swap. A teacher trained on the same gold rows would copy gold, and the
-   teacher-versus-gold contrast would collapse. This option also fits the
-   unlabeled-public-pool framing. It is heavy on an A5000 because prompts reach
-   7k tokens.
-
-Not implemented yet; neither option runs before P2.10 reports.
