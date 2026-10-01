@@ -31,13 +31,13 @@ are pending. Schedule depth is deferred.
 | 6 | Is the gain from Hinton soft logits? | `A>K[ce]>A` vs `A>K[fkl]>A` | done (P2.4a): no reliable terminal advantage at seed 0 |
 | 7 | Is the gain from teacher SQL? | same 5,319 rows: `A>K[ce]>A` vs `A>K[seq]>A` | done (P2.6): edge at public endpoint, mostly gone after last A |
 | 8 | Can a retention loss keep the teacher edge? | `A>K>A[ret]`, SeqKD vs gold | paused (P2.9): λ = 1.0 failed |
-| 8a | Does a weight merge keep the teacher edge? | WiSE-FT and task arithmetic; Hinton vs full gold, SeqKD vs matched gold | A1 last reported running on 2026-10-01; collect existing results, not a prerequisite for P2.13 |
 | 9 | Does a teacher query plan beat gold? | Struct-SQL QP-CoT in every stage with template client plans (P2.10) | stopped: recipe underperformed; format/template mechanisms not isolated |
 | 9a | Does the teacher plan help on the SeqKD base? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD | P2.11 code ready but parked; P2.13 directly tests the stronger full-gold baseline |
-| 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | **selected next: P2.13**, runner ready for seed-0 screen; real-data/GPU validation pending |
+| 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | superseded before training by P2.14 (plan task too small; plans paired with gold SQL) |
+| 9c | Does the teacher plan as a separate task improve Struct-SQL KD? | 1,000 admitted rows: `A>K3[seq+plan]>A` vs `A>K3[ce]>A` on teacher SQL, SQL-only clients and inference | **selected next: P2.14**, runner ready; GPU run pending |
 | 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | P2.12 code ready but parked; masking does not freeze plan generation |
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
-| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence; does not require A1 merge success |
+| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence |
 | 12 | Does a teacher plan add value beyond format? | same-row AST plan versus teacher plan on the selected SQL base | conditional after P2.13 confirmation; old P2.7 is historical |
 | 13 | Is the result reliable? | paired EX and error analysis; P2.13 recipe/control confirmation on seeds 1 and 2 after seed 0 | after the method gate; fixed split, vary training RNG |
 | 14 | Is it robust to heterogeneity? | one stronger non-IID split, same rows and budget | after the method gate |

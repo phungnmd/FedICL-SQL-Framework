@@ -107,8 +107,6 @@ summary table.
 
 - P2.13 (full gold plus 1,000 plans at weight 0.5): superseded before training,
   see the [archived queue](../archive/superseded_runbooks/P213_FULLGOLD_PLAN_2026-10-02.md).
-- A1 merge gate: finished on the server, no merge passed its gate. Record it in
-  the lab log once the result commit is pushed.
 - A2 interleaving, P2.11, P2.12, A3. P2.10 stays stopped.
 
 Earlier queue versions:

@@ -133,8 +133,6 @@ The final method is **not frozen**.
   private SQL training on generated plans with masked plan loss and a template
   fallback. Masking does not freeze the shared model's plan generation.
   A3 consolidation depth and A2 interleaving are deferred schedule questions.
-  Collect the existing A1 weight-merge results separately; merge success is
-  not required before testing P2.13.
 - Stopped (P2.10): Struct-SQL QP-CoT in every stage with template client plans.
   The recipe underperformed; format and template mechanisms need separate
   evidence. Do not generalize this result to all CoT distillation.

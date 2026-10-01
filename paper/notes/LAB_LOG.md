@@ -22,8 +22,6 @@ Older detail:
   plus the teacher plan as a separate task (weight 0.8). Commands and reading
   rules are in `PIPELINE_NEXT.md`.
 - Superseded before training: P2.13 (full gold plus 1,000 plans at weight 0.5).
-- A1 merge gate: finished on the server, no merge passed. To be recorded here
-  with its result commit.
 - Parked: P2.11, P2.12, A2 interleaving, A3 depth. Stopped: P2.10. Paused: P2.9
   retention.
 
