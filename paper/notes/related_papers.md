@@ -103,3 +103,25 @@
 - **Key result**: SFT baseline 36% → CoT-SFT **54.5%**. Large models (Gemini 2.5) gain nothing; small models gain a lot.
 - **Why relevant**: Validates knowledge-transfer signal for SLM fine-tuning;
   related to the large-to-small collaboration motivation of FedLS-SQL.
+
+### Struct-SQL: KD with Structured Chain-of-Thought for Text-to-SQL
+- **arXiv**: 2512.17053 (v3, 11/03/2026) — Thaker & Bresler, Crater Labs; Canadian AI 2026
+- **Link**: https://arxiv.org/abs/2512.17053
+- **GitHub**: https://github.com/craterlabs/struct-sql-distillation
+- **Teacher/Student**: GPT-4o → Qwen3-4B-Instruct-2507 (ablation: Mistral-7B-Instruct-v3.0)
+- **Core idea**: SeqKD thuần (NLL trên chuỗi teacher, không logit, không KL).
+  Điểm mới nằm ở target: `Z_T = query_execution_plan ⊕ SQL` thay vì chỉ SQL.
+  Plan = QP-CoT prompt mượn từ CHASE-SQL, dùng làm tín hiệu distill chứ không phải prompt.
+- **Key result**: BIRD mini-dev EX — untuned 17.00, FN-Gold 34.30, ReasonSQL
+  (CoT tự do) 36.90, **Struct-SQL 45.00**. BIRD test chính thức 60.42, top ≤4B.
+  Gain chủ yếu từ giảm lỗi cú pháp (21.2%→16.8%), không phải lỗi ngữ nghĩa.
+- **⚠️ Prompt-training mismatch**: train CoT + eval QP-CoT = 29.20 (−7.7 pp).
+  ICL một mình không cài được cấu trúc vào SLM — phải train mới nội hóa.
+  Đây là rủi ro trực tiếp cho chuỗi `A>K>A` nếu stage K đổi format prompt.
+- **⚠️ Caveats**: chỉ đánh BIRD (không có bằng chứng robustness dưới dịch chuyển
+  phân phối); student nhỏ nhất là 4B, không phải 1.5B; thua ReasonSQL ở nhóm
+  Challenging (25.49 vs 27.45) và ở truy vấn JOIN; inference tốn 3.6x token.
+- **Why relevant**: ứng viên `K[seq_qp]` cho hàng đợi SeqKD; taxonomy lỗi
+  GEN/SYN/SEM dùng được ngay trên prediction đã lưu, không cần GPU.
+  Không phải bằng chứng cho/chống Hinton hay KID — paper không có logit KD nào.
+- **Full review**: `STRUCT_SQL_REVIEW.md`

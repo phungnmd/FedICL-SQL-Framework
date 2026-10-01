@@ -1,13 +1,14 @@
 # FedLS-SQL — related-work and novelty audit
 
-> Protocol-v2 note (2026-09-03): the literature comparison remains active, but
-> descriptions of the exact loss or aggregator are provisional until corrected
-> experiments select the final method.
-
-> Completed 2026-08-26 for P1.4b. This is the canonical claim-boundary audit,
-> not a complete bibliography. It prioritizes the work nearest to the method's
-> federated large/small-model loop, parameter-efficient communication, and
-> execution-aware NL-to-SQL supervision. Links point to primary paper pages.
+> What this file is: the limits on what the paper may call new. Written
+> 2026-08-26 (P1.4b); not a full bibliography. Links point to primary pages.
+>
+> Check before use: the text below describes a server stage **after every
+> round** ("recurring"). The current reference has one public stage, and the
+> candidate adds one private stage after it (`A>K>A`, see
+> `system_architecture.md`). Re-check this wording and the loss/aggregator
+> descriptions once the final method is chosen. The owner's newer notes are in
+> `related_papers.md` and `STRUCT_SQL_REVIEW.md`.
 
 ## Audit conclusion
 
@@ -29,11 +30,14 @@ The defensible positioning is narrower:
 > after each round, and only the SLM is deployed.
 
 This is a task-specific workflow and empirical contribution, not a claim that
-its individual optimization components are new. The recommended active title
-is:
+its individual optimization components are new. The paper title is final
+(2026-09-30):
 
-> **FedLS-SQL: Execution-Verified Large-to-Small Knowledge Transfer for
-> Federated NL-to-SQL**
+> **FedLS-SQL: A Novel Federated Large-Small Language Models Framework for
+> Natural Language to SQL**
+
+Because the title says "novel framework", the text must still ground novelty
+in the task-specific workflow above, not in the individual components.
 
 ## Nearest-work matrix
 
