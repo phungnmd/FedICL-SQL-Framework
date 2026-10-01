@@ -22,7 +22,7 @@ Two directions, run in parallel on the two GPUs:
 | Direction | Goal | Steps | Branch (nested) | Status |
 |---|---|---|---|---|
 | **1. Hinton KD that survives FL** | Keep the teacher's edge after more FedAvg rounds | A1 merge gate, then A2 interleaved schedule | `experiment/terminal-retention` | A1 **running** (GPU 1); A2 planned |
-| **2. Struct-SQL with a client fix** | Teacher plans help without template plans at the clients | P2.11 plan as an auxiliary task, then P2.12 latent client plan | `experiment/struct-aux-cot` | code in progress |
+| **2. Struct-SQL with a client fix** | Teacher plans help without template plans at the clients | P2.11 plan as an auxiliary task, then P2.12 latent client plan | `experiment/struct-aux-cot` | P2.11 ready (GPU 0); P2.12 code ready, runs after P2.11 |
 
 Not pursued: an in-domain public pool (holding out Spider as public data), and
 rerunning P2.10.
@@ -108,8 +108,23 @@ eval SQL only, batch 16, five sets
 - Same FL T1 parent and SeqKD recipe as the committed SeqKD row, so the only
   change is the added task.
 - Cost: about 6–8 GPU-hours per arm (K, commit, terminal A, two evaluations).
-- Runner `scripts/run_p211_aux_plan.py` (nested branch `experiment/struct-aux-cot`).
-  Commands are added here after the code is reviewed and pushed.
+- Runner `scripts/run_p211_aux_plan.py`, nested branch `experiment/struct-aux-cot`,
+  commit `4fc9c61` or later. Detailed phase notes: `docs/P211_P212_RUNBOOK.md`.
+- Loss mode `full_bf16`, the mode of the committed SeqKD rows, so the plan task
+  is the only difference against them.
+
+The server has one working copy. `experiment/struct-aux-cot` contains everything
+on `experiment/terminal-retention`, and the A1 code is unchanged on it, so the
+working copy switches branch while the A1 lane keeps running. GPU 0, both arms
+in order (`tplan`, then `aplan`), about 6–7 h per arm:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; function P([string[]]$A) { uv run python -m scripts.run_p211_aux_plan @A; if ($LASTEXITCODE -ne 0) { throw "P2.11 $($A -join ' ') failed" } }; function C($Rows, $Arm) { $f=@(uv run python -m scripts.list_p211_publication --rows $Rows --arm $Arm); if ($LASTEXITCODE -ne 0 -or $f.Count -eq 0) { throw "P2.11 $Arm $Rows allowlist failed" }; git add -- $f; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { git commit -m "results: P2.11 $Arm $Rows stage row" -- $f; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } } }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git switch experiment/struct-aux-cot; if ($LASTEXITCODE -ne 0) { throw 'Switch failed' }; git pull --ff-only origin experiment/struct-aux-cot; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 4fc9c61 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required commit 4fc9c61 missing' }; foreach ($A in 'tplan','aplan') { P @('--phase','smoke','--arm',$A,'--beta','0.5'); P @('--phase','train-public','--arm',$A,'--beta','0.5'); C 'public' $A; P @('--phase','eval','--arm',$A,'--endpoint','public'); P @('--phase','train-terminal','--arm',$A); C 'terminal' $A; P @('--phase','eval','--arm',$A,'--endpoint','terminal') }; P @('--phase','analyze'); Write-Host 'P2.11 complete'
+```
+
+Send the smoke output (peak reserved VRAM) and, after `tplan` public
+evaluation, the public EX. `tplan − seqkd` at the public endpoint is the early
+read.
 
 ## P2.12. Latent plan at the client, loss on SQL only
 
