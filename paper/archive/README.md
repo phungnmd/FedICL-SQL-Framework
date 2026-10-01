@@ -14,11 +14,19 @@ material and index entries only.
 | `method_reviews_2026-09/` | KD method reviews (RKL; OPD, retention, ordering) and the pre-cleanup architecture | `paper/notes/system_architecture.md` |
 | `paper_planning_2026-09/` | stale paper trackers and stubs | `paper/notes/EXPERIMENT_MATRIX.md`, `paper/drafts/fedls_sql_outline.md` |
 | `paused_runbooks/` | P2.9 terminal retention runbook, paused and resumable | `paper/notes/PIPELINE_NEXT.md` (paused section) |
-| `completed_runbooks/` | finished command blocks (P0.8a to P2.6) | — |
+| `completed_runbooks/` | finished command blocks and dated sequencing snapshots; each file states its actual status | `paper/notes/PIPELINE_NEXT.md` |
 | `superseded_runbooks/` | queued runbooks replaced before running (P2.7, P2.8) | — |
 | `closed_method_branches/` | failed method branches (P0.10 FedDF, P1.7a preference KD) | own `README.md` |
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
+
+## 2026-10-02 queue snapshot
+
+[Queue before the full-gold auxiliary-plan decision](completed_runbooks/PIPELINE_PRE_FULLGOLD_PLAN_2026-10-02.md)
+preserves the A1 merge commands, A2/A3 schedule proposals, P2.11 SeqKD-plan
+launch command, and P2.12/local-CoT proposals. It is historical sequencing,
+not evidence that those jobs completed. The active queue owns the replacement
+and all future launch decisions.
 
 ## Files moved in the 2026-09-29 cleanup
 
