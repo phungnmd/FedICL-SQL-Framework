@@ -17,6 +17,14 @@ the server, on public data only, to make the SLM better. Deploy only the SLM.
 Question: can this beat plain federated learning (FL) on accuracy, while
 keeping FL's privacy, communication, and deployment advantages?
 
+The main objective is the deployed SLM's Spider EX, approaching or exceeding
+the centralized Spider-only reference. That reference is not a ceiling and
+uses different data/compute. CoT is one candidate teaching signal; clients and
+inference may remain SQL-only. Measure both pipeline effectiveness over FL
+and the incremental teacher contribution over matched public-gold training.
+These are separate claims; a gold tie limits attribution, not the observed
+pipeline gain. See `RELATED_WORK_NOVELTY_MATRIX.md` for the claim ladder.
+
 ## 2. Parts
 
 | Part | Choice |
@@ -132,13 +140,20 @@ Research notes on KD options (on-policy KD, retention, KD/FL ordering):
 
 ## 6. Evaluation
 
-- EX (execution accuracy) is the main metric. EM is a secondary diagnostic.
+- Final-model Spider EX is the primary metric. Spider variants and BIRD EX
+  are secondary robustness/transfer measurements; EM is a diagnostic.
 - Five sets: Spider dev (1,034), Spider-Realistic (508), Spider-SYN (1,034),
   Spider-DK (535), BIRD dev with evidence (1,534). BIRD `test.csv` is dev.
 - Scorers: `spider_result_eq_v1` for Spider; `bird_official_set_pair_timeout30_v2`
   for BIRD (one 30-second budget for the prediction/gold pair).
 - Student evaluation batch size is 16. Greedy decoding, seed 0 unless stated.
 - Paired comparisons use exact McNemar tests on row-matched predictions.
+- Select schedules/checkpoints using a declared validation rule, not the best
+  reported Spider dev score across an expanding search. New private validation
+  rows stay at clients; only aggregate selection metrics may leave them.
+  Creating a new holdout changes the training protocol and requires matched
+  reruns; it cannot be retrofitted to old checkpoints. Existing dev-guided
+  screens are exploratory and need independent confirmation.
 - Dataset release, role, profile, evidence mode, schema mode, evaluator, and
   source hashes enter every fingerprint.
 
@@ -151,6 +166,12 @@ Research notes on KD options (on-policy KD, retention, KD/FL ordering):
   not new. Claim the task-specific workflow and its matched evidence. See
   `RELATED_WORK_NOVELTY_MATRIX.md`.
 - One seed supports method selection, not a reliability claim.
+- A KD-containing pipeline beating equal-private-round FL establishes its
+  effectiveness at that budget. It does not isolate teacher knowledge from
+  public data, selection, or extra compute. Teacher superiority requires a
+  matched gold contrast; CoT superiority additionally requires SQL-only and
+  auxiliary-task controls. A non-significant contrast is not an equivalence
+  result. Publication tier does not determine these evidence requirements.
 - Protocol-v1 results (BIRD evidence left out) are historical. They never fill
   a protocol-v2 table.
 - Still valid from before the reset: Spider-only centralized, FL, and FedProx

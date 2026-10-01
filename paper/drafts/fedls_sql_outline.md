@@ -12,8 +12,13 @@ The final title and method subtitle stay open until the method is chosen.
 - A federated LLM-to-SLM Text-to-SQL workflow with explicit public, private,
   and evaluation data roles.
 - A reproducible EX gain over pure FL with the same private budget.
+- Primary endpoint: final Spider EX. CoT is optional; distinguish higher final
+  accuracy from reaching a target accuracy in fewer private rounds.
 - Matched evidence that shows where the gain comes from: teacher targets, soft
   KD, federated optimization, or their mix.
+- Keep public-gold controls even if they tie KD. A pipeline-level contribution
+  and a teacher-specific contribution have different evidence requirements;
+  use the claim ladder in `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`.
 - Results in both directions (Spider ↔ BIRD) that show how far transfer goes.
 - Adapter communication, SLM-only deployment, and a clearly bounded privacy
   claim (structural isolation, not DP).
