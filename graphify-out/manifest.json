@@ -1,0 +1,1022 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1781847548.0325594,
+    "seen": 1790880485.719305,
+    "ast_hash": "a1a0e149995516f23d2a7728fe84b7ce",
+    "semantic_hash": "a1a0e149995516f23d2a7728fe84b7ce"
+  },
+  "AGENTS.md": {
+    "mtime": 1787235376.7941062,
+    "seen": 1790880485.719311,
+    "ast_hash": "51da8c88ea4bfb72a549619821e7caa4",
+    "semantic_hash": "51da8c88ea4bfb72a549619821e7caa4"
+  },
+  "CLAUDE.MD": {
+    "mtime": 1790859585.64954,
+    "seen": 1790880485.71934,
+    "ast_hash": "a6ac2363beb0c8b663c1bbdcb99884b3",
+    "semantic_hash": "a6ac2363beb0c8b663c1bbdcb99884b3"
+  },
+  "CONVENTION.MD": {
+    "mtime": 1790686773.5138266,
+    "seen": 1790880485.719341,
+    "ast_hash": "f9039dd8b45aa4cd99bbd41a40716df6",
+    "semantic_hash": "f9039dd8b45aa4cd99bbd41a40716df6"
+  },
+  "README.md": {
+    "mtime": 1790705629.345668,
+    "seen": 1790880485.719342,
+    "ast_hash": "8a2f716ebfd92a228ed4cf39dbb4086e",
+    "semantic_hash": "8a2f716ebfd92a228ed4cf39dbb4086e"
+  },
+  "paper/archive/README.md": {
+    "mtime": 1790686790.8672998,
+    "seen": 1790880485.7193432,
+    "ast_hash": "cc59d694de3fe91f6812015527546bac",
+    "semantic_hash": "cc59d694de3fe91f6812015527546bac"
+  },
+  "paper/archive/closed_method_branches/P017A_PREFERENCE_KD_2026-08-28.md": {
+    "mtime": 1787934187.9499664,
+    "seen": 1790880485.7193449,
+    "ast_hash": "ed91ec48bfaa87358b700afc94186b7d",
+    "semantic_hash": "ed91ec48bfaa87358b700afc94186b7d"
+  },
+  "paper/archive/closed_method_branches/PIPELINE_THROUGH_P010E_2026-08-25.md": {
+    "mtime": 1787596400.9015644,
+    "seen": 1790880485.7193458,
+    "ast_hash": "163b02594d3156ab6dc539a835b4bee9",
+    "semantic_hash": "163b02594d3156ab6dc539a835b4bee9"
+  },
+  "paper/archive/closed_method_branches/README.md": {
+    "mtime": 1787934187.9921563,
+    "seen": 1790880485.719347,
+    "ast_hash": "7f4c1093cf9b669f40d719ec4909e758",
+    "semantic_hash": "7f4c1093cf9b669f40d719ec4909e758"
+  },
+  "paper/archive/completed_runbooks/P0.8A_E_SEED1_TRAJECTORY_2026-08-26.md": {
+    "mtime": 1787746769.907878,
+    "seen": 1790880485.719348,
+    "ast_hash": "11f7dd0fc4682b33ddffa9f90a6a67e0",
+    "semantic_hash": "11f7dd0fc4682b33ddffa9f90a6a67e0"
+  },
+  "paper/archive/completed_runbooks/P0.8A_SEED1_T3_2026-08-26.md": {
+    "mtime": 1787731532.607126,
+    "seen": 1790880485.719349,
+    "ast_hash": "a434ca667308b883fa2ff99ce9b656d2",
+    "semantic_hash": "a434ca667308b883fa2ff99ce9b656d2"
+  },
+  "paper/archive/completed_runbooks/P1.4A_COMMUNICATION_2026-08-26.md": {
+    "mtime": 1787737121.144133,
+    "seen": 1790880485.71935,
+    "ast_hash": "94e8c972a6599a38106bcdee410199e5",
+    "semantic_hash": "94e8c972a6599a38106bcdee410199e5"
+  },
+  "paper/archive/completed_runbooks/P1_1B_RESOURCE_BENCHMARK_2026-08-28.md": {
+    "mtime": 1787933865.1161582,
+    "seen": 1790880485.719351,
+    "ast_hash": "c423b1490f1110e25e0cb528b283fe5c",
+    "semantic_hash": "c423b1490f1110e25e0cb528b283fe5c"
+  },
+  "paper/archive/completed_runbooks/P1_5D_FEDPROX_TRAJECTORY_2026-08-30.md": {
+    "mtime": 1788082932.0904968,
+    "seen": 1790880485.719352,
+    "ast_hash": "7ede98761f9087d9953f457781f3e520",
+    "semantic_hash": "7ede98761f9087d9953f457781f3e520"
+  },
+  "paper/archive/completed_runbooks/P1_8A_SECURE_SUM_COMPATIBILITY_2026-08-29.md": {
+    "mtime": 1787945847.713259,
+    "seen": 1790880485.7193532,
+    "ast_hash": "d72dfe1aba6d8c7472f1c0c629017e78",
+    "semantic_hash": "d72dfe1aba6d8c7472f1c0c629017e78"
+  },
+  "paper/archive/completed_runbooks/P24C_CANCELLED_2026-09-17.md": {
+    "mtime": 1789589629.8295276,
+    "seen": 1790880485.7193542,
+    "ast_hash": "020c4887bd68cd98eff53efef7ce57d3",
+    "semantic_hash": "020c4887bd68cd98eff53efef7ce57d3"
+  },
+  "paper/archive/completed_runbooks/P24_SELECTED_TERMINAL_DEFERRED_2026-09-16.md": {
+    "mtime": 1789563802.1040654,
+    "seen": 1790880485.7193549,
+    "ast_hash": "295d7e0b0169c465bc934bdbf2cd38ef",
+    "semantic_hash": "295d7e0b0169c465bc934bdbf2cd38ef"
+  },
+  "paper/archive/completed_runbooks/P25_GKD_CANCELLED_2026-09-17.md": {
+    "mtime": 1789617397.1690903,
+    "seen": 1790880485.7193558,
+    "ast_hash": "2c133631aaa386797505c3f29b3f8d4b",
+    "semantic_hash": "2c133631aaa386797505c3f29b3f8d4b"
+  },
+  "paper/archive/completed_runbooks/P25_SEQKD_KID_2026-09-20.md": {
+    "mtime": 1789917202.9767168,
+    "seen": 1790880485.719357,
+    "ast_hash": "4b340b55b4753dbec3c5a23e2403dab1",
+    "semantic_hash": "4b340b55b4753dbec3c5a23e2403dab1"
+  },
+  "paper/archive/completed_runbooks/P26_MATCHED_GOLD_2026-09-21.md": {
+    "mtime": 1789923440.834124,
+    "seen": 1790880485.719358,
+    "ast_hash": "7421e7527f5952c16cb18764f95fedd3",
+    "semantic_hash": "7421e7527f5952c16cb18764f95fedd3"
+  },
+  "paper/archive/completed_runbooks/P2_1R_P2_2_COMPLETED_2026-09-16.md": {
+    "mtime": 1789512963.63917,
+    "seen": 1790880485.719359,
+    "ast_hash": "52ab70540f6d9ef2d4203581e051ae49",
+    "semantic_hash": "52ab70540f6d9ef2d4203581e051ae49"
+  },
+  "paper/archive/completed_runbooks/P2_3_TERMINAL_CONSOLIDATION_2026-09-16.md": {
+    "mtime": 1789529016.3382201,
+    "seen": 1790880485.71936,
+    "ast_hash": "bd9425f82f3bf26c0bfde0aa73676c0d",
+    "semantic_hash": "bd9425f82f3bf26c0bfde0aa73676c0d"
+  },
+  "paper/archive/lab_log_2026-09/LAB_LOG_2026-09-03_to_2026-09-26.md": {
+    "mtime": 1790686541.6938605,
+    "seen": 1790880485.719361,
+    "ast_hash": "5afc0c1e7fa02023b4ececf3c9a991bb",
+    "semantic_hash": "5afc0c1e7fa02023b4ececf3c9a991bb"
+  },
+  "paper/archive/method_reviews_2026-09/KD_METHOD_REVIEW.md": {
+    "mtime": 1790275651.3621416,
+    "seen": 1790880485.719362,
+    "ast_hash": "fb0806ce708fde3f19879c490047f30e",
+    "semantic_hash": "fb0806ce708fde3f19879c490047f30e"
+  },
+  "paper/archive/method_reviews_2026-09/KD_METHOD_REVIEW_RKL.md": {
+    "mtime": 1788452204.1894417,
+    "seen": 1790880485.719363,
+    "ast_hash": "c61a59ecd16453d98799b42b90263ec5",
+    "semantic_hash": "c61a59ecd16453d98799b42b90263ec5"
+  },
+  "paper/archive/method_reviews_2026-09/system_architecture_2026-09-24.md": {
+    "mtime": 1790686519.088924,
+    "seen": 1790880485.7193642,
+    "ast_hash": "3be1d82d4a32f1f260915197acf5c288",
+    "semantic_hash": "3be1d82d4a32f1f260915197acf5c288"
+  },
+  "paper/archive/paper_planning_2026-09/FEDLS_SQL_METHOD.md": {
+    "mtime": 1788452145.220144,
+    "seen": 1790880485.7193651,
+    "ast_hash": "0924e16966bda716b8605cc71ce13d83",
+    "semantic_hash": "0924e16966bda716b8605cc71ce13d83"
+  },
+  "paper/archive/paper_planning_2026-09/MANUSCRIPT_SKELETON.md": {
+    "mtime": 1788452145.1252615,
+    "seen": 1790880485.7193658,
+    "ast_hash": "869d3c251ce2c973cd80f2447aac9291",
+    "semantic_hash": "869d3c251ce2c973cd80f2447aac9291"
+  },
+  "paper/archive/paper_planning_2026-09/PAPER_EVIDENCE_PLAN.md": {
+    "mtime": 1788452145.0322988,
+    "seen": 1790880485.719367,
+    "ast_hash": "141dd6afe95c914ddb49de75c0476a20",
+    "semantic_hash": "141dd6afe95c914ddb49de75c0476a20"
+  },
+  "paper/archive/paper_planning_2026-09/PAPER_NEXT_TASKS.md": {
+    "mtime": 1789075698.766262,
+    "seen": 1790880485.719368,
+    "ast_hash": "2f3887e27b705d738054b5dca0344a6d",
+    "semantic_hash": "2f3887e27b705d738054b5dca0344a6d"
+  },
+  "paper/archive/paper_planning_2026-09/PAPER_OUTLINE_TARGET.md": {
+    "mtime": 1788452145.1745403,
+    "seen": 1790880485.719369,
+    "ast_hash": "9071972eee8548522cd6e1da3471045b",
+    "semantic_hash": "9071972eee8548522cd6e1da3471045b"
+  },
+  "paper/archive/paper_planning_2026-09/PAPER_TODO.md": {
+    "mtime": 1789617514.7141447,
+    "seen": 1790880485.719369,
+    "ast_hash": "740fa556a984cb2bfcecbca64576ec5b",
+    "semantic_hash": "740fa556a984cb2bfcecbca64576ec5b"
+  },
+  "paper/archive/paused_runbooks/P29_TERMINAL_RETENTION_PAUSED_2026-09-26.md": {
+    "mtime": 1790686530.1456516,
+    "seen": 1790880485.71937,
+    "ast_hash": "214a71e1d4f04031bd768c4b3f391172",
+    "semantic_hash": "214a71e1d4f04031bd768c4b3f391172"
+  },
+  "paper/archive/pre_fedls_2026-08/README.md": {
+    "mtime": 1787189875.6720855,
+    "seen": 1790880485.719372,
+    "ast_hash": "2d19c43619f4d79c4ede550ae3a3325f",
+    "semantic_hash": "2d19c43619f4d79c4ede550ae3a3325f"
+  },
+  "paper/archive/pre_fedls_2026-08/exploratory_methods/federated_methods_research.md": {
+    "mtime": 1787189875.6725616,
+    "seen": 1790880485.719373,
+    "ast_hash": "1ce852948ea4446394fafd490da95e75",
+    "semantic_hash": "1ce852948ea4446394fafd490da95e75"
+  },
+  "paper/archive/pre_fedls_2026-08/exploratory_methods/kid_and_related_kd_research.md": {
+    "mtime": 1787189875.6729035,
+    "seen": 1790880485.7193742,
+    "ast_hash": "9ea99fa822ea3e5ec97f20c4121648cc",
+    "semantic_hash": "9ea99fa822ea3e5ec97f20c4121648cc"
+  },
+  "paper/archive/pre_fedls_2026-08/icl/PIPELINE_ICL.md": {
+    "mtime": 1787189875.6740317,
+    "seen": 1790880485.7193751,
+    "ast_hash": "6c02fbcea8690b88ff0fd15c254b8fa0",
+    "semantic_hash": "6c02fbcea8690b88ff0fd15c254b8fa0"
+  },
+  "paper/archive/pre_fedls_2026-08/icl/icl_eval_report.md": {
+    "mtime": 1787189875.6747816,
+    "seen": 1790880485.7193758,
+    "ast_hash": "320ae3faf82413345cb24e92a9cf2fb5",
+    "semantic_hash": "320ae3faf82413345cb24e92a9cf2fb5"
+  },
+  "paper/archive/pre_fedls_2026-08/icl/icl_vs_noicl_pipeline_summary.md": {
+    "mtime": 1787189875.6758301,
+    "seen": 1790880485.7193758,
+    "ast_hash": "fa925ee2cc824909f5c4ecfa7f356faa",
+    "semantic_hash": "fa925ee2cc824909f5c4ecfa7f356faa"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md": {
+    "mtime": 1787189875.676632,
+    "seen": 1790880485.7193768,
+    "ast_hash": "f795eb1694206ae1d419f71856459599",
+    "semantic_hash": "f795eb1694206ae1d419f71856459599"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_reports/bird_kd_effect_report.md": {
+    "mtime": 1787189875.6786904,
+    "seen": 1790880485.719378,
+    "ast_hash": "51e833f5abd94e5b0d919456503ddae0",
+    "semantic_hash": "51e833f5abd94e5b0d919456503ddae0"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_reports/non_icl_full_pipeline_ablation_report.md": {
+    "mtime": 1787189875.6793525,
+    "seen": 1790880485.719379,
+    "ast_hash": "062be09978894635037db8d8ca5c31e2",
+    "semantic_hash": "062be09978894635037db8d8ca5c31e2"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_reports/progress_report_vi.md": {
+    "mtime": 1787189875.679545,
+    "seen": 1790880485.71938,
+    "ast_hash": "8a7357e033b793de6ea90ee2d06fbbcb",
+    "semantic_hash": "8a7357e033b793de6ea90ee2d06fbbcb"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_BLOCK_K_completed_2026-08-20.md": {
+    "mtime": 1787189875.6799703,
+    "seen": 1790880485.719382,
+    "ast_hash": "816f91b74f5aa9d787ecf795d0aaca75",
+    "semantic_hash": "816f91b74f5aa9d787ecf795d0aaca75"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_NEXT_pre_fedls.md": {
+    "mtime": 1787189875.6805475,
+    "seen": 1790880485.719383,
+    "ast_hash": "331aa4cbae31a55e4008e5434a72760e",
+    "semantic_hash": "331aa4cbae31a55e4008e5434a72760e"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_runbooks/PIPELINE_NO_ICL.md": {
+    "mtime": 1787189875.6808083,
+    "seen": 1790880485.719384,
+    "ast_hash": "70f4832955be550706d3449e5865b0cd",
+    "semantic_hash": "70f4832955be550706d3449e5865b0cd"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/email_final_pipeline_comparison_draft.html": {
+    "mtime": 1787189875.6829317,
+    "seen": 1790880485.7193851,
+    "ast_hash": "aa7739ff18b042eedad949111c6fc98a",
+    "semantic_hash": "aa7739ff18b042eedad949111c6fc98a"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/email_final_pipeline_comparison_draft.md": {
+    "mtime": 1787189875.683117,
+    "seen": 1790880485.719386,
+    "ast_hash": "03b27d4d53b797f9f4454fe614a44ee0",
+    "semantic_hash": "03b27d4d53b797f9f4454fe614a44ee0"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/email_icl_vs_noicl.html": {
+    "mtime": 1787189875.68354,
+    "seen": 1790880485.7193868,
+    "ast_hash": "a0db546b60b8c4bcf517b323a18cf929",
+    "semantic_hash": "a0db546b60b8c4bcf517b323a18cf929"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/email_icl_vs_noicl.md": {
+    "mtime": 1787189875.6839914,
+    "seen": 1790880485.719388,
+    "ast_hash": "ad4fca61bdce02660b7579f79a06bec0",
+    "semantic_hash": "ad4fca61bdce02660b7579f79a06bec0"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/Suggest.MD": {
+    "mtime": 1787189875.6843772,
+    "seen": 1790880485.719389,
+    "ast_hash": "a7cd6551c9305ff89932adc288a90365",
+    "semantic_hash": "a7cd6551c9305ff89932adc288a90365"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/fedicl_sql_outline.md": {
+    "mtime": 1787189875.6846611,
+    "seen": 1790880485.71939,
+    "ast_hash": "a73255379b31403472be1b831d8e72bc",
+    "semantic_hash": "a73255379b31403472be1b831d8e72bc"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/fig1_architecture.md": {
+    "mtime": 1787189875.6858668,
+    "seen": 1790880485.7193909,
+    "ast_hash": "6a8e6784bc5cdc6799e81785ca7bf870",
+    "semantic_hash": "6a8e6784bc5cdc6799e81785ca7bf870"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/figures/fig_architecture_interactive.html": {
+    "mtime": 1787189875.686057,
+    "seen": 1790880485.719392,
+    "ast_hash": "dc992852deee84b8acbde12978ed80b4",
+    "semantic_hash": "dc992852deee84b8acbde12978ed80b4"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/promising_research_directions.md": {
+    "mtime": 1787189875.6911352,
+    "seen": 1790880485.719393,
+    "ast_hash": "f647a9f8dfd948499cbd13db46e1f84e",
+    "semantic_hash": "f647a9f8dfd948499cbd13db46e1f84e"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/EXPERIMENT_MATRIX_v1.md": {
+    "mtime": 1788452105.9861312,
+    "seen": 1790880485.719394,
+    "ast_hash": "8a0f924b85b338a7ff19a3339dbee9ee",
+    "semantic_hash": "8a0f924b85b338a7ff19a3339dbee9ee"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/FEDLS_SQL_METHOD_v1.md": {
+    "mtime": 1788452106.5384116,
+    "seen": 1790880485.719394,
+    "ast_hash": "7ac69100317104b838feb15ecc4929ed",
+    "semantic_hash": "7ac69100317104b838feb15ecc4929ed"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md": {
+    "mtime": 1788446945.9905887,
+    "seen": 1790880485.7193952,
+    "ast_hash": "e5f538de82c5251f03b0395985b19007",
+    "semantic_hash": "e5f538de82c5251f03b0395985b19007"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/MAIN_RESULTS_v1.md": {
+    "mtime": 1788446946.1981206,
+    "seen": 1790880485.719396,
+    "ast_hash": "e646e52c73cf63ec4c871a6906be2813",
+    "semantic_hash": "e646e52c73cf63ec4c871a6906be2813"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/MANUSCRIPT_SKELETON_v1.md": {
+    "mtime": 1788452106.320472,
+    "seen": 1790880485.719397,
+    "ast_hash": "a1ae6378b5f5bfac4a7e79a3b26b9063",
+    "semantic_hash": "a1ae6378b5f5bfac4a7e79a3b26b9063"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/PAPER_EVIDENCE_PLAN_v1.md": {
+    "mtime": 1788452106.098507,
+    "seen": 1790880485.7193978,
+    "ast_hash": "373676dc31d3f0be9abb16da81ae2a5a",
+    "semantic_hash": "373676dc31d3f0be9abb16da81ae2a5a"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/PAPER_NEXT_TASKS_v1.md": {
+    "mtime": 1788452106.2104838,
+    "seen": 1790880485.719399,
+    "ast_hash": "6ad302bccfb247db1f7badc890d0042b",
+    "semantic_hash": "6ad302bccfb247db1f7badc890d0042b"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/PAPER_OUTLINE_TARGET_v1.md": {
+    "mtime": 1788452106.429493,
+    "seen": 1790880485.7194,
+    "ast_hash": "5324bdf89976e959cff259d0ef7247ba",
+    "semantic_hash": "5324bdf89976e959cff259d0ef7247ba"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/PAPER_TODO_v1.md": {
+    "mtime": 1788446946.4107203,
+    "seen": 1790880485.7194,
+    "ast_hash": "df2ccc299b6607debaa3fa8982ba6740",
+    "semantic_hash": "df2ccc299b6607debaa3fa8982ba6740"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/PIPELINE_NEXT_v1.md": {
+    "mtime": 1788446946.3080516,
+    "seen": 1790880485.719401,
+    "ast_hash": "c99f84923ab07ff994a54eec0bf1ab9a",
+    "semantic_hash": "c99f84923ab07ff994a54eec0bf1ab9a"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/README.md": {
+    "mtime": 1788447139.6035807,
+    "seen": 1790880485.719402,
+    "ast_hash": "6e83341860f59944cb5a20deeba8b4d2",
+    "semantic_hash": "6e83341860f59944cb5a20deeba8b4d2"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/RESULT_REGISTRY_v1.md": {
+    "mtime": 1788446946.093173,
+    "seen": 1790880485.719403,
+    "ast_hash": "af82f49b145967de17b57c363aa4ce23",
+    "semantic_hash": "af82f49b145967de17b57c363aa4ce23"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/fedls_sql_outline_v1.md": {
+    "mtime": 1788452106.6497269,
+    "seen": 1790880485.719404,
+    "ast_hash": "67772a233c576d004b7ef9a0cc19e902",
+    "semantic_hash": "67772a233c576d004b7ef9a0cc19e902"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/system_architecture_v1.md": {
+    "mtime": 1788446945.8901055,
+    "seen": 1790880485.7194052,
+    "ast_hash": "7d66a98517a3c935e112fa00fc7e3f80",
+    "semantic_hash": "7d66a98517a3c935e112fa00fc7e3f80"
+  },
+  "paper/archive/results_reviews_2026-09/BIRD_BASELINE_AUDIT.md": {
+    "mtime": 1788659123.4076989,
+    "seen": 1790880485.7194061,
+    "ast_hash": "ac64f310854a09bbae04f8f9a39e7f8e",
+    "semantic_hash": "ac64f310854a09bbae04f8f9a39e7f8e"
+  },
+  "paper/archive/results_reviews_2026-09/P22_TRANSFER_REVIEW.md": {
+    "mtime": 1789472787.1926115,
+    "seen": 1790880485.719407,
+    "ast_hash": "1657500398bd878c2b6892c1371949d9",
+    "semantic_hash": "1657500398bd878c2b6892c1371949d9"
+  },
+  "paper/archive/results_reviews_2026-09/P23_TERMINAL_CONSOLIDATION_REVIEW.md": {
+    "mtime": 1789561568.506479,
+    "seen": 1790880485.719407,
+    "ast_hash": "0554a80aef8d7aab7dbcf62593174df1",
+    "semantic_hash": "0554a80aef8d7aab7dbcf62593174df1"
+  },
+  "paper/archive/results_reviews_2026-09/P24_TEACHER_SIGNAL_REVIEW.md": {
+    "mtime": 1789563832.8803463,
+    "seen": 1790880485.719408,
+    "ast_hash": "91b5a7b0615a087b821540a3196c4181",
+    "semantic_hash": "91b5a7b0615a087b821540a3196c4181"
+  },
+  "paper/archive/results_reviews_2026-09/VALID_RESULTS_AND_ADAPTERS.md": {
+    "mtime": 1790686541.6966803,
+    "seen": 1790880485.719409,
+    "ast_hash": "bba46cc050597333b49d569f75f708c5",
+    "semantic_hash": "bba46cc050597333b49d569f75f708c5"
+  },
+  "paper/archive/superseded_runbooks/P210_STRUCT_SQL_ORIGINAL_RUNBOOK_2026-09-30.md": {
+    "mtime": 1790730194.777803,
+    "seen": 1790880485.71941,
+    "ast_hash": "5c89bb344988c9f60bec2da4aa186563",
+    "semantic_hash": "5c89bb344988c9f60bec2da4aa186563"
+  },
+  "paper/archive/superseded_runbooks/P27_THREE_ARM_SCREEN_2026-09-23.md": {
+    "mtime": 1790145166.2629247,
+    "seen": 1790880485.719411,
+    "ast_hash": "2fcf305f534ed3dfcf68840949609910",
+    "semantic_hash": "2fcf305f534ed3dfcf68840949609910"
+  },
+  "paper/archive/superseded_runbooks/P28_STRUCT_GOLD_GATE_DEFERRED_2026-09-24.md": {
+    "mtime": 1790219258.2816463,
+    "seen": 1790880485.7194118,
+    "ast_hash": "e6438b9e51278ad38a85d164a30e84bc",
+    "semantic_hash": "e6438b9e51278ad38a85d164a30e84bc"
+  },
+  "paper/drafts/fedls_sql_outline.md": {
+    "mtime": 1790880184.184555,
+    "seen": 1790880485.719424,
+    "ast_hash": "4ee1e0e62ad21daf8824f4f5d44bd295",
+    "semantic_hash": "4ee1e0e62ad21daf8824f4f5d44bd295"
+  },
+  "paper/drafts/figures/README.md": {
+    "mtime": 1790686743.3796263,
+    "seen": 1790880485.719425,
+    "ast_hash": "4ff0e77cf81e89a15c86d00f425f7fbc",
+    "semantic_hash": "4ff0e77cf81e89a15c86d00f425f7fbc"
+  },
+  "paper/notes/EXPERIMENT_MATRIX.md": {
+    "mtime": 1790880366.309419,
+    "seen": 1790880485.7194262,
+    "ast_hash": "59b2ba15c82e6bdbe3e34834fb922b6f",
+    "semantic_hash": "59b2ba15c82e6bdbe3e34834fb922b6f"
+  },
+  "paper/notes/ICL_NEGATIVE_RESULT.md": {
+    "mtime": 1787189875.6924832,
+    "seen": 1790880485.719427,
+    "ast_hash": "b58972462d1f96238134c6be541780aa",
+    "semantic_hash": "b58972462d1f96238134c6be541780aa"
+  },
+  "paper/notes/LAB_LOG.md": {
+    "mtime": 1790880366.4424882,
+    "seen": 1790880485.719428,
+    "ast_hash": "07dcffbfc9f1ff55bb6c1acc737a210e",
+    "semantic_hash": "07dcffbfc9f1ff55bb6c1acc737a210e"
+  },
+  "paper/notes/PIPELINE_NEXT.md": {
+    "mtime": 1790880426.0943265,
+    "seen": 1790880485.719429,
+    "ast_hash": "8a82f8e8802be5d7852703f7dbfdf318",
+    "semantic_hash": "8a82f8e8802be5d7852703f7dbfdf318"
+  },
+  "paper/notes/RELATED_WORK_NOVELTY_MATRIX.md": {
+    "mtime": 1790880199.1512198,
+    "seen": 1790880485.71943,
+    "ast_hash": "10c46946c119ee2f88ff0d436cddc7ce",
+    "semantic_hash": "10c46946c119ee2f88ff0d436cddc7ce"
+  },
+  "paper/notes/RESULT_REGISTRY.md": {
+    "mtime": 1790686658.8987849,
+    "seen": 1790880485.719431,
+    "ast_hash": "d87cecc1608049dfc6f17f6f5fb32960",
+    "semantic_hash": "d87cecc1608049dfc6f17f6f5fb32960"
+  },
+  "paper/notes/related_papers.md": {
+    "mtime": 1789684121.2953212,
+    "seen": 1790880485.7194319,
+    "ast_hash": "7c36bb18b24659365ae932f054b52afe",
+    "semantic_hash": "7c36bb18b24659365ae932f054b52afe"
+  },
+  "paper/notes/system_architecture.md": {
+    "mtime": 1790880426.151242,
+    "seen": 1790880485.719434,
+    "ast_hash": "7b4e1658eb999f65b47479709522a345",
+    "semantic_hash": "7b4e1658eb999f65b47479709522a345"
+  },
+  "paper/references/md/Natural Language to SQL/1-Spider- A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task.md": {
+    "mtime": 1780849821.109776,
+    "seen": 1790880485.719435,
+    "ast_hash": "7cbaa0d6e4bac301d26d919bd0fff066",
+    "semantic_hash": "7cbaa0d6e4bac301d26d919bd0fff066"
+  },
+  "paper/references/md/Natural Language to SQL/10-2023-Text-to-sql empowered by large language models- A benchmark evaluation.md": {
+    "mtime": 1780849823.0597286,
+    "seen": 1790880485.719436,
+    "ast_hash": "11a21156758a6976dd2eb5abd6c57407",
+    "semantic_hash": "11a21156758a6976dd2eb5abd6c57407"
+  },
+  "paper/references/md/Natural Language to SQL/11-2023-Resdsql- Decoupling schema linking and skeleton parsing for text-to-sql.md": {
+    "mtime": 1780849824.3655298,
+    "seen": 1790880485.7194371,
+    "ast_hash": "1a6dd677d8aaa0d4365634ced6aadd2e",
+    "semantic_hash": "1a6dd677d8aaa0d4365634ced6aadd2e"
+  },
+  "paper/references/md/Natural Language to SQL/12-2023-qlora-efficient-finetuning-of-quantized-llms.md": {
+    "mtime": 1780849826.5846932,
+    "seen": 1790880485.719438,
+    "ast_hash": "2967eb5cd7baddf5c2a6087dbca13b19",
+    "semantic_hash": "2967eb5cd7baddf5c2a6087dbca13b19"
+  },
+  "paper/references/md/Natural Language to SQL/13-2023-C-Pack- Packaged Resources To Advance General Chinese Embedding.md": {
+    "mtime": 1780849827.8759909,
+    "seen": 1790880485.719439,
+    "ast_hash": "189ce7c58dd804d17f0e6c91bc7c485c",
+    "semantic_hash": "189ce7c58dd804d17f0e6c91bc7c485c"
+  },
+  "paper/references/md/Natural Language to SQL/15-2024-CodeS- Towards Building Open-source Language Models for Text-to-SQL.md": {
+    "mtime": 1783657035.0514717,
+    "seen": 1790880485.71944,
+    "ast_hash": "a2397052f19130f7eb87f105f395bc4b",
+    "semantic_hash": "a2397052f19130f7eb87f105f395bc4b"
+  },
+  "paper/references/md/Natural Language to SQL/2-2023-Sciencebenchmark- A complex real-world benchmark for evaluating natural language to sql systems.md": {
+    "mtime": 1780849831.2756612,
+    "seen": 1790880485.719441,
+    "ast_hash": "a0664265912f74fa2124f2bfb5dab6ba",
+    "semantic_hash": "a0664265912f74fa2124f2bfb5dab6ba"
+  },
+  "paper/references/md/Natural Language to SQL/2022-[100 randomly sampled]-Towards robustness of text-to-SQL models against natural and realistic adversarial table perturbation.md": {
+    "mtime": 1780849832.556699,
+    "seen": 1790880485.719441,
+    "ast_hash": "36dc24c50c88b76a4b4ee530fb92ce69",
+    "semantic_hash": "36dc24c50c88b76a4b4ee530fb92ce69"
+  },
+  "paper/references/md/Natural Language to SQL/2023-Pre-train, prompt, and predict- A systematic survey of prompting methods in natural language processing.md": {
+    "mtime": 1780849840.183177,
+    "seen": 1790880485.719442,
+    "ast_hash": "d7cfc9ae8852d7644f0c8c812e738fe9",
+    "semantic_hash": "d7cfc9ae8852d7644f0c8c812e738fe9"
+  },
+  "paper/references/md/Natural Language to SQL/2023-[100 randomly sampled]-SQL-PaLM- Improved large language model adaptation for.md": {
+    "mtime": 1780849835.9373116,
+    "seen": 1790880485.7194428,
+    "ast_hash": "1807b30b6efb656e8fe41d1a2ceaced8",
+    "semantic_hash": "1807b30b6efb656e8fe41d1a2ceaced8"
+  },
+  "paper/references/md/Natural Language to SQL/3-2020-Exploring the limits of transfer learning with a unified text-to-text transformer.md": {
+    "mtime": 1780849845.2318153,
+    "seen": 1790880485.719444,
+    "ast_hash": "ddc3e0db2c25e0a6528dbb8d3bd956f9",
+    "semantic_hash": "ddc3e0db2c25e0a6528dbb8d3bd956f9"
+  },
+  "paper/references/md/Natural Language to SQL/4-2021-SmBoP- Semi-autoregressive bottom-up semantic parsing.md": {
+    "mtime": 1780849846.4086924,
+    "seen": 1790880485.719445,
+    "ast_hash": "3c46cd0c4535efc7002177ef055a4af6",
+    "semantic_hash": "3c46cd0c4535efc7002177ef055a4af6"
+  },
+  "paper/references/md/Natural Language to SQL/5-2023-A survey of large language models.md": {
+    "mtime": 1780849859.6561856,
+    "seen": 1790880485.719446,
+    "ast_hash": "d70de487fc620323f50e9df72038b02c",
+    "semantic_hash": "d70de487fc620323f50e9df72038b02c"
+  },
+  "paper/references/md/Natural Language to SQL/6-2024-OpenAI- GPT-4 Technical Report.md": {
+    "mtime": 1780849865.7149734,
+    "seen": 1790880485.7194471,
+    "ast_hash": "a27dd2c22ec53446d991ae6134f91fbd",
+    "semantic_hash": "a27dd2c22ec53446d991ae6134f91fbd"
+  },
+  "paper/references/md/Natural Language to SQL/7-2024-Phi-4 technical report.md": {
+    "mtime": 1780849867.6511247,
+    "seen": 1790880485.719448,
+    "ast_hash": "e047a584dc2a64b3b645b039222fdd8a",
+    "semantic_hash": "e047a584dc2a64b3b645b039222fdd8a"
+  },
+  "paper/references/md/Natural Language to SQL/8-2020-Language models are few-shot learners.md": {
+    "mtime": 1780849869.451148,
+    "seen": 1790880485.719449,
+    "ast_hash": "d9148be55b4a5deb4c22baae10dca4c1",
+    "semantic_hash": "d9148be55b4a5deb4c22baae10dca4c1"
+  },
+  "paper/references/md/Natural Language to SQL/9-2023-din-sql-decomposed-in-context-learning-of-text-to-sql-with-self-correction.md": {
+    "mtime": 1780849870.5989447,
+    "seen": 1790880485.71945,
+    "ast_hash": "0e8c03a8d2ba1248fb7ff32475628952",
+    "semantic_hash": "0e8c03a8d2ba1248fb7ff32475628952"
+  },
+  "paper/references/md/Natural Language to SQL/Prompt Engineering and In-Context Learning- A Comprehensive Survey of Techniques, Applications, and Future Directions.md": {
+    "mtime": 1780849872.524577,
+    "seen": 1790880485.719451,
+    "ast_hash": "9b19265770db9f53839093cfeb7ffec5",
+    "semantic_hash": "9b19265770db9f53839093cfeb7ffec5"
+  },
+  "paper/references/md/[10]-2024-Learning-from-Imperfect-Data-KID-Efficient-KD-for-Text-to-SQL.md": {
+    "mtime": 1782811775.6622505,
+    "seen": 1790880485.719452,
+    "ast_hash": "207eb1a208a74a46fc318cf367f561c8",
+    "semantic_hash": "207eb1a208a74a46fc318cf367f561c8"
+  },
+  "paper/references/md/[1]-A-Federated-Learning-Approach-using-Pre-trained-BART-Models-for-Text-Classification-and-Generation-Tasks.md": {
+    "mtime": 1780849777.451779,
+    "seen": 1790880485.7194529,
+    "ast_hash": "0c0363123aa9b7ac06ca37ae84bc02de",
+    "semantic_hash": "0c0363123aa9b7ac06ca37ae84bc02de"
+  },
+  "paper/references/md/[2]-2025-L\u00ea \u0110o\u00e0n Kim Khanh]Kh\u00f3a lu\u1eadn t\u1ed1t nghi\u1ec7p.md": {
+    "mtime": 1780849781.9202895,
+    "seen": 1790880485.719455,
+    "ast_hash": "ab36d642ebe8a8e5f70d18f4a03d0447",
+    "semantic_hash": "ab36d642ebe8a8e5f70d18f4a03d0447"
+  },
+  "paper/references/md/[3]-2024-A survey on in-context learning.md": {
+    "mtime": 1780849783.7808843,
+    "seen": 1790880485.719456,
+    "ast_hash": "ff183340d8fc8c32ebac192e79286903",
+    "semantic_hash": "ff183340d8fc8c32ebac192e79286903"
+  },
+  "paper/references/md/[6]-2025-Implicit Federated In-context Learning For Task-Specific LLM Fine-Tuning.md": {
+    "mtime": 1780849788.228613,
+    "seen": 1790880485.719457,
+    "ast_hash": "00c8941416d03cc2f9b0d3ad9b020a79",
+    "semantic_hash": "00c8941416d03cc2f9b0d3ad9b020a79"
+  },
+  "paper/references/md/[7]-2024-Fedmkt- Federated mutual knowledge transfer for large and small language models.md": {
+    "mtime": 1780849789.2478452,
+    "seen": 1790880485.719457,
+    "ast_hash": "d437e74199a05aeda8e4f9c8d1a54cdd",
+    "semantic_hash": "d437e74199a05aeda8e4f9c8d1a54cdd"
+  },
+  "paper/references/md/[9]-DAIL-SQL.md": {
+    "mtime": 1782240313.5474226,
+    "seen": 1790880485.719458,
+    "ast_hash": "11a21156758a6976dd2eb5abd6c57407",
+    "semantic_hash": "11a21156758a6976dd2eb5abd6c57407"
+  },
+  "paper/results/MAIN_RESULTS.md": {
+    "mtime": 1790686753.9042344,
+    "seen": 1790880485.719459,
+    "ast_hash": "3902b22f5b9c8d119ccc3a5835435eb4",
+    "semantic_hash": "3902b22f5b9c8d119ccc3a5835435eb4"
+  },
+  "paper/results/README.md": {
+    "mtime": 1787239571.0279899,
+    "seen": 1790880485.71946,
+    "ast_hash": "d0e95a57e1936c228bfb2e6581ee409d",
+    "semantic_hash": "d0e95a57e1936c228bfb2e6581ee409d"
+  },
+  "paper/templates/iajit_template.md": {
+    "mtime": 1780844686.2349322,
+    "seen": 1790880485.7194612,
+    "ast_hash": "b2ae5525861633cece1078f8baaba72a",
+    "semantic_hash": "b2ae5525861633cece1078f8baaba72a"
+  },
+  "paper/2-[outline]-FedLS-SQL_A Novel Federated L-SLMs Framework for NL2SQL-Aug19.pdf": {
+    "mtime": 1787189875.671192,
+    "seen": 1790880485.719462,
+    "ast_hash": "d22ec8736f90fd58f9040524a949bfe2",
+    "semantic_hash": "d22ec8736f90fd58f9040524a949bfe2"
+  },
+  "paper/archive/pre_fedls_2026-08/exploratory_methods/KD_PLAN.md": {
+    "mtime": 1787189875.6723485,
+    "seen": 1790880485.7194629,
+    "ast_hash": "86247e7138a1e5bfedba93985fd73bcd",
+    "semantic_hash": "86247e7138a1e5bfedba93985fd73bcd"
+  },
+  "paper/archive/pre_fedls_2026-08/exploratory_methods/kd_methods_survey.md": {
+    "mtime": 1787189875.6727607,
+    "seen": 1790880485.7194638,
+    "ast_hash": "a1a0346e24cc767f56a0019a97800d2e",
+    "semantic_hash": "a1a0346e24cc767f56a0019a97800d2e"
+  },
+  "paper/archive/pre_fedls_2026-08/icl/dail_vs_codes_prompt_methods.md": {
+    "mtime": 1787189875.674433,
+    "seen": 1790880485.719465,
+    "ast_hash": "61c5ddcdad23e143edafab38fe27df3c",
+    "semantic_hash": "61c5ddcdad23e143edafab38fe27df3c"
+  },
+  "paper/archive/pre_fedls_2026-08/icl/icl_methods_survey.md": {
+    "mtime": 1787189875.6753376,
+    "seen": 1790880485.719466,
+    "ast_hash": "e4e6b8df79a747b4665b0cc55588f450",
+    "semantic_hash": "e4e6b8df79a747b4665b0cc55588f450"
+  },
+  "paper/archive/pre_fedls_2026-08/legacy_reports/Tong_hop_ket_qua_thuc_nghiem.pdf": {
+    "mtime": 1787189875.678074,
+    "seen": 1790880485.719466,
+    "ast_hash": "3917477f9d1f8a4652a9378841f77ef0",
+    "semantic_hash": "3917477f9d1f8a4652a9378841f77ef0"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/fed_ickd_v2_proposal.md": {
+    "mtime": 1787189875.6845572,
+    "seen": 1790880485.719467,
+    "ast_hash": "1c6b8e45ae18b721658de57babc11c28",
+    "semantic_hash": "1c6b8e45ae18b721658de57babc11c28"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/fedicl_sql_outline.pdf": {
+    "mtime": 1787189875.685474,
+    "seen": 1790880485.719468,
+    "ast_hash": "ae6ad2c9bef18552c3106217b176cffe",
+    "semantic_hash": "ae6ad2c9bef18552c3106217b176cffe"
+  },
+  "paper/notes/STRUCT_SQL_REVIEW.md": {
+    "mtime": 1789684188.9033532,
+    "seen": 1790880485.719469,
+    "ast_hash": "7e442fe3f4e8f44ec2ed87f5b31be96e",
+    "semantic_hash": "7e442fe3f4e8f44ec2ed87f5b31be96e"
+  },
+  "paper/references/md/Natural Language to SQL/14-2017-Billion-scale similarity search with GPUs.md": {
+    "mtime": 1780849829.2388854,
+    "seen": 1790880485.71947,
+    "ast_hash": "58fa44eb1bdd3ec60057d964dd2f0d8b",
+    "semantic_hash": "58fa44eb1bdd3ec60057d964dd2f0d8b"
+  },
+  "paper/references/md/Natural Language to SQL/[1]-2025-Interactive Text-to-SQL via Expected Information Gain for Disambiguation.md": {
+    "mtime": 1780849820.119994,
+    "seen": 1790880485.7194712,
+    "ast_hash": "0ea7877b53e6b3639079b693f8161848",
+    "semantic_hash": "0ea7877b53e6b3639079b693f8161848"
+  },
+  "paper/references/md/[11]-2025-Struct-SQL-KD-with-Structured-Chain-of-Thought-for-Text-to-SQL.md": {
+    "mtime": 1782813474.2557042,
+    "seen": 1790880485.7194722,
+    "ast_hash": "238da32cbbcff74457c77eb2c251f074",
+    "semantic_hash": "238da32cbbcff74457c77eb2c251f074"
+  },
+  "paper/references/md/[4]-2026-Light-SQL-A SLM Based Approach Using ICL for Natural Language to SQL.md": {
+    "mtime": 1780849784.8788402,
+    "seen": 1790880485.719473,
+    "ast_hash": "19df70b5b757c3f301e80daa6aec62d3",
+    "semantic_hash": "19df70b5b757c3f301e80daa6aec62d3"
+  },
+  "paper/references/md/[5]-2025-Federated in-context learning_Iterative refinement for improved answer quality.md": {
+    "mtime": 1780849787.0138428,
+    "seen": 1790880485.7194738,
+    "ast_hash": "c9904f1ecae5e08a1165451ce395ebd5",
+    "semantic_hash": "c9904f1ecae5e08a1165451ce395ebd5"
+  },
+  "paper/references/md/[8]-2024-Fedcollm A parameter-efficient federated co-tuning framework for large and small language models.md": {
+    "mtime": 1780849790.2996664,
+    "seen": 1790880485.719475,
+    "ast_hash": "749feaf28e13df37d7c8f090b55ab1fd",
+    "semantic_hash": "749feaf28e13df37d7c8f090b55ab1fd"
+  },
+  "paper/references/pdf/DAIL-SQL.PDF": {
+    "mtime": 1782142864.5458245,
+    "seen": 1790880485.719476,
+    "ast_hash": "f1a78a6a3dcd91352dfa6f1be6e6b9c4",
+    "semantic_hash": "f1a78a6a3dcd91352dfa6f1be6e6b9c4"
+  },
+  "paper/references/pdf/Natural Language to SQL/1-Spider- A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task.pdf": {
+    "mtime": 1764490738.0,
+    "seen": 1790880485.719476,
+    "ast_hash": "df9907cbcb049e0127a3939e45354d88",
+    "semantic_hash": "df9907cbcb049e0127a3939e45354d88"
+  },
+  "paper/references/pdf/Natural Language to SQL/10-2023-Text-to-sql empowered by large language models- A benchmark evaluation.pdf": {
+    "mtime": 1765116884.0,
+    "seen": 1790880485.719477,
+    "ast_hash": "744b3e4cd42d32bd0514dd39a863f612",
+    "semantic_hash": "744b3e4cd42d32bd0514dd39a863f612"
+  },
+  "paper/references/pdf/Natural Language to SQL/11-2023-Resdsql- Decoupling schema linking and skeleton parsing for text-to-sql.pdf": {
+    "mtime": 1764494604.0,
+    "seen": 1790880485.7194781,
+    "ast_hash": "2c99c70a74bdfdc9dd1315a2480485ab",
+    "semantic_hash": "2c99c70a74bdfdc9dd1315a2480485ab"
+  },
+  "paper/references/pdf/Natural Language to SQL/12-2023-qlora-efficient-finetuning-of-quantized-llms.pdf": {
+    "mtime": 1764495038.0,
+    "seen": 1790880485.719479,
+    "ast_hash": "86cb5c7660db2b1ad07c70840f955cb9",
+    "semantic_hash": "86cb5c7660db2b1ad07c70840f955cb9"
+  },
+  "paper/references/pdf/Natural Language to SQL/13-2023-C-Pack- Packaged Resources To Advance General Chinese Embedding.pdf": {
+    "mtime": 1764495162.0,
+    "seen": 1790880485.71948,
+    "ast_hash": "08f8cac9c8f13cb9ba88a9eb7fac8974",
+    "semantic_hash": "08f8cac9c8f13cb9ba88a9eb7fac8974"
+  },
+  "paper/references/pdf/Natural Language to SQL/14-2017-Billion-scale similarity search with GPUs.pdf": {
+    "mtime": 1764495230.0,
+    "seen": 1790880485.719481,
+    "ast_hash": "60fc07f5751094efd95054f34c635f4a",
+    "semantic_hash": "60fc07f5751094efd95054f34c635f4a"
+  },
+  "paper/references/pdf/Natural Language to SQL/15-2024-CodeS- Towards Building Open-source Language Models for Text-to-SQL.pdf": {
+    "mtime": 1783657024.8180537,
+    "seen": 1790880485.7194822,
+    "ast_hash": "b57e5360036d2f301349a36f3f08170d",
+    "semantic_hash": "b57e5360036d2f301349a36f3f08170d"
+  },
+  "paper/references/pdf/Natural Language to SQL/2-2023-Sciencebenchmark- A complex real-world benchmark for evaluating natural language to sql systems.pdf": {
+    "mtime": 1764667578.0,
+    "seen": 1790880485.719483,
+    "ast_hash": "4ca2887870e00ff33a85b2adfd5533ec",
+    "semantic_hash": "4ca2887870e00ff33a85b2adfd5533ec"
+  },
+  "paper/references/pdf/Natural Language to SQL/2022-[100 randomly sampled]-Towards robustness of text-to-SQL models against natural and realistic adversarial table perturbation.pdf": {
+    "mtime": 1764943148.0,
+    "seen": 1790880485.7194839,
+    "ast_hash": "31f6888a347c8d813d12c066881d198c",
+    "semantic_hash": "31f6888a347c8d813d12c066881d198c"
+  },
+  "paper/references/pdf/Natural Language to SQL/2023-Pre-train, prompt, and predict- A systematic survey of prompting methods in natural language processing.pdf": {
+    "mtime": 1765096458.0,
+    "seen": 1790880485.7194839,
+    "ast_hash": "96a395dc6866edf6aa4632775659ebe8",
+    "semantic_hash": "96a395dc6866edf6aa4632775659ebe8"
+  },
+  "paper/references/pdf/Natural Language to SQL/2023-[100 randomly sampled]-SQL-PaLM- Improved large language model adaptation for.pdf": {
+    "mtime": 1764943464.0,
+    "seen": 1790880485.719485,
+    "ast_hash": "119054344c94992ca7b4c6c1e37a01d6",
+    "semantic_hash": "119054344c94992ca7b4c6c1e37a01d6"
+  },
+  "paper/references/pdf/Natural Language to SQL/3-2020-Exploring the limits of transfer learning with a unified text-to-text transformer.pdf": {
+    "mtime": 1764493328.0,
+    "seen": 1790880485.719486,
+    "ast_hash": "7b089f0f71facfb34064756c6aea667b",
+    "semantic_hash": "7b089f0f71facfb34064756c6aea667b"
+  },
+  "paper/references/pdf/Natural Language to SQL/4-2021-SmBoP- Semi-autoregressive bottom-up semantic parsing.pdf": {
+    "mtime": 1764493458.0,
+    "seen": 1790880485.719487,
+    "ast_hash": "346fe6e08a92460185213c0420a38ca9",
+    "semantic_hash": "346fe6e08a92460185213c0420a38ca9"
+  },
+  "paper/references/pdf/Natural Language to SQL/5-2023-A survey of large language models.pdf": {
+    "mtime": 1764493620.0,
+    "seen": 1790880485.719488,
+    "ast_hash": "947fe5f63ef9489d36660fe28a60d182",
+    "semantic_hash": "947fe5f63ef9489d36660fe28a60d182"
+  },
+  "paper/references/pdf/Natural Language to SQL/6-2024-OpenAI- GPT-4 Technical Report.pdf": {
+    "mtime": 1764493724.0,
+    "seen": 1790880485.719489,
+    "ast_hash": "7ec20a103da6a4028800e4f7fec698b7",
+    "semantic_hash": "7ec20a103da6a4028800e4f7fec698b7"
+  },
+  "paper/references/pdf/Natural Language to SQL/7-2024-Phi-4 technical report.pdf": {
+    "mtime": 1764493814.0,
+    "seen": 1790880485.71949,
+    "ast_hash": "dc170fe2fb8915f14c67051e298e38a7",
+    "semantic_hash": "dc170fe2fb8915f14c67051e298e38a7"
+  },
+  "paper/references/pdf/Natural Language to SQL/8-2020-Language models are few-shot learners.pdf": {
+    "mtime": 1764493972.0,
+    "seen": 1790880485.719491,
+    "ast_hash": "f6167ae5b07df2ca4f4e1e23ee75d4e6",
+    "semantic_hash": "f6167ae5b07df2ca4f4e1e23ee75d4e6"
+  },
+  "paper/references/pdf/Natural Language to SQL/9-2023-din-sql-decomposed-in-context-learning-of-text-to-sql-with-self-correction.pdf": {
+    "mtime": 1764667584.0,
+    "seen": 1790880485.7194922,
+    "ast_hash": "a53ee5af2d140167511a7dd3d18c4714",
+    "semantic_hash": "a53ee5af2d140167511a7dd3d18c4714"
+  },
+  "paper/references/pdf/Natural Language to SQL/Prompt Engineering and In-Context Learning- A Comprehensive Survey of Techniques, Applications, and Future Directions.pdf": {
+    "mtime": 1764509346.0,
+    "seen": 1790880485.7194932,
+    "ast_hash": "f874cce2c454221f71ddc3b743b9d8e8",
+    "semantic_hash": "f874cce2c454221f71ddc3b743b9d8e8"
+  },
+  "paper/references/pdf/Natural Language to SQL/[1]-2025-Interactive Text-to-SQL via Expected Information Gain for Disambiguation.pdf": {
+    "mtime": 1764560250.0,
+    "seen": 1790880485.7194932,
+    "ast_hash": "9ccc67aee2336e98087e7a0e45fe67d3",
+    "semantic_hash": "9ccc67aee2336e98087e7a0e45fe67d3"
+  },
+  "paper/references/pdf/Natural Language to SQL/notes/[1-formal definition]-2025-Interactive Text-to-SQL via Expected Information Gain for Disambiguation.pdf": {
+    "mtime": 1764560250.0,
+    "seen": 1790880485.7194939,
+    "ast_hash": "9ccc67aee2336e98087e7a0e45fe67d3",
+    "semantic_hash": "9ccc67aee2336e98087e7a0e45fe67d3"
+  },
+  "paper/references/pdf/Natural Language to SQL/notes/[10-Fine-Tuning for Text-to-SQL]-2023-Text-to-sql empowered by large language models- A benchmark evaluation.pdf": {
+    "mtime": 1779418980.0,
+    "seen": 1790880485.7194948,
+    "ast_hash": "4d2ea1e9b1ee9e18fd8bae7e8770895a",
+    "semantic_hash": "4d2ea1e9b1ee9e18fd8bae7e8770895a"
+  },
+  "paper/references/pdf/Natural Language to SQL/notes/[11- Text-to-SQL instance solved by PLM]-2023-Resdsql- Decoupling schema linking and skeleton parsing for text-to-sql.pdf": {
+    "mtime": 1764494604.0,
+    "seen": 1790880485.719496,
+    "ast_hash": "2c99c70a74bdfdc9dd1315a2480485ab",
+    "semantic_hash": "2c99c70a74bdfdc9dd1315a2480485ab"
+  },
+  "paper/references/pdf/Natural Language to SQL/notes/[2-databases ]2023-Sciencebenchmark- A complex real-world benchmark for evaluating natural language to sql systems.pdf": {
+    "mtime": 1764560372.0,
+    "seen": 1790880485.719497,
+    "ast_hash": "dccd25725e6319ee2dae9639102606df",
+    "semantic_hash": "dccd25725e6319ee2dae9639102606df"
+  },
+  "paper/references/pdf/[10]-2024-Learning-from-Imperfect-Data-KID-Efficient-KD-for-Text-to-SQL.pdf": {
+    "mtime": 1782811773.610002,
+    "seen": 1790880485.719498,
+    "ast_hash": "23d2e9cd1adb86a36e5084c3b7f1b73a",
+    "semantic_hash": "23d2e9cd1adb86a36e5084c3b7f1b73a"
+  },
+  "paper/references/pdf/[11]-2025-Struct-SQL-KD-with-Structured-Chain-of-Thought-for-Text-to-SQL.pdf": {
+    "mtime": 1782813471.4219432,
+    "seen": 1790880485.719499,
+    "ast_hash": "c65edbf2dffd852604a4c034065b2a4e",
+    "semantic_hash": "c65edbf2dffd852604a4c034065b2a4e"
+  },
+  "paper/references/pdf/[1]-A-Federated-Learning-Approach-using-Pre-trained-BART-Models-for-Text-Classification-and-Generation-Tasks.pdf": {
+    "mtime": 1766457486.0,
+    "seen": 1790880485.7195,
+    "ast_hash": "5158f8479dfbd861aa2fa9c878b64203",
+    "semantic_hash": "5158f8479dfbd861aa2fa9c878b64203"
+  },
+  "paper/references/pdf/[2]-2025-L\u00ea \u0110o\u00e0n Kim Khanh]Kh\u00f3a lu\u1eadn t\u1ed1t nghi\u1ec7p.pdf": {
+    "mtime": 1766457492.0,
+    "seen": 1790880485.719509,
+    "ast_hash": "f2d517662edf892703bd383a606cae46",
+    "semantic_hash": "f2d517662edf892703bd383a606cae46"
+  },
+  "paper/references/pdf/[3]-2024-A survey on in-context learning.pdf": {
+    "mtime": 1776389294.0,
+    "seen": 1790880485.71951,
+    "ast_hash": "34a8c6820d8e3b2a815cbc0611e1de8d",
+    "semantic_hash": "34a8c6820d8e3b2a815cbc0611e1de8d"
+  },
+  "paper/references/pdf/[4]-2026-Light-SQL-A SLM Based Approach Using ICL for Natural Language to SQL.pdf": {
+    "mtime": 1779699922.0,
+    "seen": 1790880485.719511,
+    "ast_hash": "c737c6717eb4af86b33527280ad4b4b0",
+    "semantic_hash": "c737c6717eb4af86b33527280ad4b4b0"
+  },
+  "paper/references/pdf/[5]-2025-Federated in-context learning_Iterative refinement for improved answer quality.pdf": {
+    "mtime": 1780731930.0,
+    "seen": 1790880485.719512,
+    "ast_hash": "3296edac2901f0c25603737d365a3e20",
+    "semantic_hash": "3296edac2901f0c25603737d365a3e20"
+  },
+  "paper/references/pdf/[6]-2025-Implicit Federated In-context Learning For Task-Specific LLM Fine-Tuning.pdf": {
+    "mtime": 1780732030.0,
+    "seen": 1790880485.7195132,
+    "ast_hash": "c2018b37fbb437889839e79fffff43ca",
+    "semantic_hash": "c2018b37fbb437889839e79fffff43ca"
+  },
+  "paper/references/pdf/[7]-2024-Fedmkt- Federated mutual knowledge transfer for large and small language models.pdf": {
+    "mtime": 1760338628.0,
+    "seen": 1790880485.7195141,
+    "ast_hash": "a317811779b82004bb41b543650430ab",
+    "semantic_hash": "a317811779b82004bb41b543650430ab"
+  },
+  "paper/references/pdf/[8]-2024-Fedcollm A parameter-efficient federated co-tuning framework for large and small language models.pdf": {
+    "mtime": 1758976374.0,
+    "seen": 1790880485.7195148,
+    "ast_hash": "4e1aaf4d38f94dae99405432e357ad95",
+    "semantic_hash": "4e1aaf4d38f94dae99405432e357ad95"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/Screenshot 2026-08-19 at 10.10.03.png": {
+    "mtime": 1787189875.681327,
+    "seen": 1790880485.7195158,
+    "ast_hash": "d8f8ff2ba1f32abb6bd3a6ed1e523dda",
+    "semantic_hash": "d8f8ff2ba1f32abb6bd3a6ed1e523dda"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/Screenshot 2026-08-19 at 10.10.21.png": {
+    "mtime": 1787189875.6818457,
+    "seen": 1790880485.719517,
+    "ast_hash": "4c728056b424dd5dc3b38624edceb305",
+    "semantic_hash": "4c728056b424dd5dc3b38624edceb305"
+  },
+  "paper/archive/pre_fedls_2026-08/old_emails/Screenshot 2026-08-19 at 10.10.37.png": {
+    "mtime": 1787189875.6823645,
+    "seen": 1790880485.719517,
+    "ast_hash": "8f339539077fc6109c393be26e313bc5",
+    "semantic_hash": "8f339539077fc6109c393be26e313bc5"
+  },
+  "paper/archive/pre_fedls_2026-08/old_outlines/figures/fig_architecture_source.png": {
+    "mtime": 1787189875.6909168,
+    "seen": 1790880485.719518,
+    "ast_hash": "0c327765a0b2567dd4854fc2b46992c0",
+    "semantic_hash": "0c327765a0b2567dd4854fc2b46992c0"
+  },
+  "paper/archive/protocol_v1_no_bird_evidence/fedls_sql_architecture_v1.svg": {
+    "mtime": 1788452106.757884,
+    "seen": 1790880485.719519,
+    "ast_hash": "7c019c06b1a2a6328bf3151e9857541d",
+    "semantic_hash": "7c019c06b1a2a6328bf3151e9857541d"
+  }
+}
