@@ -17,23 +17,23 @@ What we know (details in `LAB_LOG.md`):
   plans teach it to invent JOINs. **P2.10 is stopped. Do not rerun it.** Its
   committed public rows are reused by P2.12 below.
 
-Three tracks now, two of them in parallel:
+Two directions, run in parallel on the two GPUs:
 
-| Track | Question | Branch (nested) | Status |
-|---|---|---|---|
-| **A1 merge gate** | Does a weight merge keep the teacher's edge after FedAvg? | `experiment/terminal-retention` | **running** (GPU 1) |
-| **P2.11 plan as an auxiliary task** | Does learning the teacher's plan as a side task help, with SQL-only clients and SQL-only inference? | `experiment/struct-aux-cot` | code in progress |
-| **P2.12 latent plan at the client** | Can clients keep the plan format without plan labels, so the last round stops overwriting the teacher's plans? | `experiment/struct-aux-cot` | code in progress, after P2.11 |
+| Direction | Goal | Steps | Branch (nested) | Status |
+|---|---|---|---|---|
+| **1. Hinton KD that survives FL** | Keep the teacher's edge after more FedAvg rounds | A1 merge gate, then A2 interleaved schedule | `experiment/terminal-retention` | A1 **running** (GPU 1); A2 planned |
+| **2. Struct-SQL with a client fix** | Teacher plans help without template plans at the clients | P2.11 plan as an auxiliary task, then P2.12 latent client plan | `experiment/struct-aux-cot` | code in progress |
 
-Later, depending on A1: A2 (interleaved `(A -> k)^R` on BIRD shards) and
-Direction B (in-domain Spider public split, unlabeled). Both are described at
-the end of this section and are not implemented.
+Not pursued: an in-domain public pool (holding out Spider as public data), and
+rerunning P2.10.
 
 Read-only views (CPU, any time, from the branch that produced the results):
 
 ```powershell
 $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python scripts/show_p29_merges.py
 ```
+
+# Direction 1: Hinton KD that survives FL
 
 ## A1. Merge gate (running)
 
@@ -60,10 +60,33 @@ The command running on GPU 1 (nested commit `9ad7239` or later):
 $G='1'; $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES=$G; $env:PYTHONUTF8='1'; $R='scripts/run_p29_retention_gate.py'; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 9ad7239 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required commit 9ad7239 missing' }; foreach ($P in @(@('hinton','fullgold'), @('seqkd','gold'))) { foreach ($V in 'arith0p5','wise0p5','arith1p0') { foreach ($A in $P) { uv run python $R --phase merge --arm $A --variant $V; if ($LASTEXITCODE -ne 0) { throw "$A $V merge failed" }; uv run python $R --phase eval --arm $A --variant $V; if ($LASTEXITCODE -ne 0) { throw "$A $V eval failed" } }; uv run python scripts/show_p29_merges.py } }; Write-Host 'A1 merge gate complete'
 ```
 
+## A2. Interleaved schedule (planned, not implemented)
+
+Run only if A1 shows the edge can survive. It follows FedDF, FedCoLLM and
+FedMKT, which distil in every round and end on the distilled model:
+
+```text
+round r = 1..R (R = 3):   A (FedAvg on Spider)  ->  k (Hinton on BIRD shard r)
+```
+
+- BIRD is split into R disjoint shards, so the total public data and KD steps
+  equal the single K of `A>K>A`. Only the schedule changes.
+- More FedAvg rounds than today's two, since FL is not saturated (T1/T2/T3
+  Spider 57.35/62.57/64.31; centralized needs three epochs).
+- The run ends on k. If Spider drops, a final merge from A1 is the fallback.
+- Controls: FL `A^R`, and the same schedule with gold CE on the same shards.
+- About 25–30 GPU-hours for Hinton plus gold, plus `A^R`.
+- Needed code: a K stage on a row shard, and an R-round schedule runner.
+
+# Direction 2: Struct-SQL with a client fix
+
+Private Spider data has only gold SQL. P2.10 gave the clients template plans
+written by code, and that hurt. Both steps below avoid plan labels at the
+clients.
+
 ## P2.11. Plan as an auxiliary task (Distilling Step-by-Step)
 
-Private data has only gold SQL. P2.11 keeps every client and the deployed model
-SQL-only. The teacher's plan enters only as a second training task inside K,
+P2.11 keeps every client and the deployed model SQL-only. The teacher's plan enters only as a second training task inside K,
 following Distilling Step-by-Step (Hsieh et al., Findings of ACL 2023):
 
 ```text
@@ -107,20 +130,6 @@ eval    plan then SQL, five sets; strict and SQL-marker EX
   about 2 h.
 - Runs after P2.11. Runner `scripts/run_p212_latent_plan.py`; commands follow
   after review.
-
-## Later (not implemented)
-
-**A2. Interleaved schedule**, only if A1 shows the edge can survive:
-`round r = 1..R (R = 3): A (FedAvg on Spider) -> k (Hinton on BIRD shard r)`.
-BIRD is split into R disjoint shards, so total public data and KD steps equal
-the single K of `A>K>A`. Controls: FL `A^R` and the same schedule with gold CE.
-About 25–30 GPU-hours. Follows FedDF, FedCoLLM and FedMKT, which distil every
-round.
-
-**Direction B. In-domain public pool.** Hold out about 20% of Spider train as
-public questions without SQL; the teacher labels them; gold stays an oracle
-row. No domain gap, so the run can end on KD. Every baseline must be rerun on
-the new split (about 2–3 GPU-days). BIRD stays as the harder second setting.
 
 Older finished runbooks: `paper/archive/completed_runbooks/` and
 `paper/archive/superseded_runbooks/`. They are history, not the queue.

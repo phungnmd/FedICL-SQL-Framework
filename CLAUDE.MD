@@ -58,9 +58,14 @@ current method specification.
 
 ## Current priority
 
-Follow `paper/notes/PIPELINE_NEXT.md` (2026-10-01). Running: A1 merge gate on
-nested branch `experiment/terminal-retention`. In development on nested branch
-`experiment/struct-aux-cot`: P2.11 (teacher plan as an auxiliary task inside K,
-SQL-only clients and inference), then P2.12 (latent plan at the client, loss on
-SQL only). P2.10 is stopped. A2 and Direction B are planned, not implemented.
-ICL, FLoRA-NA, SC, and T4/T5 are not active work.
+Follow `paper/notes/PIPELINE_NEXT.md` (2026-10-01). Two directions:
+
+1. Hinton KD that survives FL: A1 merge gate (running, nested branch
+   `experiment/terminal-retention`), then A2 interleaved `(A -> k)^R` on BIRD
+   shards (planned).
+2. Struct-SQL with a client fix (nested branch `experiment/struct-aux-cot`):
+   P2.11 teacher plan as an auxiliary task inside K with SQL-only clients and
+   inference, then P2.12 latent client plan with loss on SQL only.
+
+P2.10 is stopped. An in-domain public pool is not pursued. ICL, FLoRA-NA, SC,
+and T4/T5 are not active work.
