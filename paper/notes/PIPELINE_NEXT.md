@@ -150,7 +150,7 @@ The owner reports both GPUs idle; live availability was not independently
 checked here. Do the one-time checkout/preparation before opening either lane.
 Do not switch, pull, edit, or commit in this worktree while either lane runs.
 
-Implementation: `experiment/fullgold-plan`, required commit `b7706f8af783d7fad663d2747a406435691151c6`.
+Implementation: `experiment/fullgold-plan`, required commit `165a20e878db289a8d4fb6388b67109ad31e5377`.
 Preparation needs the existing SQL-only FL T1 adapter, full BIRD gold, P2.10
 train plans/provenance/candidates, private splits, all five eval inputs and raw
 databases. It checks scoped cleanliness, original-gold joins, admission/hashes,
@@ -159,8 +159,27 @@ and all target lengths at 7,168. It generates no new teacher targets.
 One-time checkout and preparation (CPU tokenizer audit):
 
 ```powershell
-$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='b7706f8af783d7fad663d2747a406435691151c6'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p213_fullgold_plan --phase prepare; if($LASTEXITCODE -ne 0){throw 'P2.13 preparation failed'}
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='165a20e878db289a8d4fb6388b67109ad31e5377'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; git fetch origin experiment/struct-aux-cot; if($LASTEXITCODE -ne 0){throw 'P2.10 source fetch failed'}; uv run python -m scripts.restore_p213_inputs; if($LASTEXITCODE -ne 0){throw 'P2.10 input restore failed'}; uv run python -m scripts.run_p213_fullgold_plan --phase prepare; if($LASTEXITCODE -ne 0){throw 'P2.13 preparation failed'}
 ```
+
+The input restore step reads exactly five existing public artifacts from
+P2.10 commit `9c3476eeee3df155e75cd581b5ff7ebd4d9df5b3` on
+`experiment/struct-aux-cot`. That result commit was absent from the P2.13
+branch. CSV record-newline restoration is accepted only if the original
+provenance SHA256 matches; a plain Git checkout of the CSV does not preserve
+that hash. Existing files are never overwritten. No new teacher generation,
+branch merge, or input publication occurs.
+
+If the earlier preparation failed with missing `p210_struct_sql_s0/train.csv`,
+run this recovery command before either GPU lane starts (already on
+`experiment/fullgold-plan`):
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; git fetch origin experiment/struct-aux-cot; if($LASTEXITCODE -ne 0){throw 'source fetch failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.restore_p213_inputs; if($LASTEXITCODE -ne 0){throw 'restore failed'}; uv run python -m scripts.run_p213_fullgold_plan --phase prepare; if($LASTEXITCODE -ne 0){throw 'prepare failed'}
+```
+
+Do not rerun restore after a preparation manifest exists. Prepared runs resume
+using their lane commands, with input and code identities unchanged.
 
 Before training, inspect the generated
 `artifacts/protocol_v2/p213_fullgold_plan_s0/plan_review_sample.json` (50 plans,

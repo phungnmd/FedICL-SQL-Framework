@@ -73,6 +73,21 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
 
+## 2026-10-02 - Fix missing P2.10 inputs in P2.13 bootstrap
+
+- Server preparation failed before training: P2.13 branched before the P2.10
+  artifact commit `9c3476e`, so the assumed plan files were missing.
+- Fix `165a20e` adds a separate five-file restore from that pinned Git snapshot.
+  Git normalized CSV record terminators; restoring the original CSV encoding
+  reproduces its provenance hash exactly. All payloads are checked before
+  writes; existing mismatched files are preserved and rejected.
+- Verified the actual snapshot in a temporary directory: 1,000 original-gold
+  joins, 1,000 sidecar records, 50 stratified sample IDs. Full pytest: 781 passed,
+  including three regressions observed failing before implementation.
+- Bootstrap and recovery commands updated. No GPU run, new target generation,
+  EX result, or Windows-runtime validation. This fixes artifact provisioning;
+  full server preparation still validates the local raw databases and parent.
+
 ## 2026-10-02 - Deliver P2.13 two-GPU runner (no GPU run)
 
 - Code lives on nested branch `experiment/fullgold-plan`, implementation
