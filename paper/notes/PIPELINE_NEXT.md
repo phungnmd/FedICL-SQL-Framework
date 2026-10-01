@@ -1,267 +1,163 @@
-# FedLS-SQL — run queue
+# FedLS-SQL run queue
 
-This is the only file with commands to run. Each command is one line of
-PowerShell. Run it from the `fedicl-sql/` root on the Windows GPU server.
-Results and decisions go to `LAB_LOG.md` after a run finishes.
+This file owns the next experiment and its launch commands. Results belong in
+[LAB_LOG.md](LAB_LOG.md). All future commands must follow
+[CONVENTION.MD section 6.1](../../CONVENTION.MD).
 
-## Now (2026-10-02)
+## Decision (2026-10-02): full-gold plus auxiliary teacher plans
 
-Primary objective: highest final-model Spider EX from public teacher
-adaptation plus private FL. CoT is optional. Track pipeline gain over matched
-FL separately from teacher gain over matched public gold; see the claim
-ladder in `RELATED_WORK_NOVELTY_MATRIX.md`. BIRD and Spider variants are
-secondary diagnostics, not substitutes for the primary objective.
+Run one three-arm screen at fixed `A>K>A`, named **P2.13**. The primary metric
+is final Spider EX. Keep both private stages and inference SQL-only; teacher
+plans are a separate supervised task inside the public server stage only.
 
-Current method gate (owner clarification): keep `A>K>A` fixed and test whether
-teacher CoT raises final Spider EX above `A>K[fullgold]>A` and the Hinton
-reference. A reproducible positive terminal difference is the target; no
-additional private rounds or BIRD-gain threshold is required. Prioritize the
-plan-supervision question now. A2/A3 remain secondary schedule hypotheses.
+This tests whether teacher reasoning improves the strongest gold recipe,
+beyond extra SQL exposure. Use 1,000 existing admitted plans first. Do not
+start by generating plans for all BIRD rows, changing the teacher, adding
+private rounds, or generating private plans.
 
-What we know (details in `LAB_LOG.md`):
+**Status: design selected; runner not implemented, no launch command active.**
+The existing P2.11 runner uses 5,319 teacher SQL rows and cannot launch this
+recipe. The next engineering task is a separate P2.13 runner with the controls
+below, followed by smoke verification and explicit run/publication commands.
+This documentation change does not start, stop, or inspect GPU jobs.
 
-- A public BIRD stage followed by one more FedAvg round beats FL alone on all
-  five sets and gets close to centralized training.
-- Right after the public stage (`A>K`), Hinton and SeqKD beat plain gold
-  training on Spider. After the extra FedAvg round (`A>K>A`), the matched
-  comparisons show no reliable teacher-specific advantage at seed 0.
-- P2.10 (QP-CoT everywhere, template client plans) underperformed and is
-  stopped. Template-induced JOIN errors and inference-format cost are working
-  explanations, not isolated causal findings. Strict and SQL-marker EX must
-  be distinguished. **Do not rerun P2.10.** Its committed public rows remain
-  inputs for the optional P2.12 screen.
+## 1. The three arms
 
-Two research directions. GPU status below was last reported on 2026-10-01;
-the 2026-10-02 documentation review did not inspect or start server jobs.
+All arms start from the same normal SQL-only FL T1 adapter, never the P2.10
+QP-CoT parent. Each then runs K once and the same terminal FedAvg round
+(5 clients, 1 local epoch, plaintext aggregation).
 
-| Direction | Goal | Steps | Branch (nested) | Status |
-|---|---|---|---|---|
-| **1. Public adaptation and FL convergence** | Raise final Spider EX and measure teacher contribution | A1 existing merge screen; A3/A2 secondary to the fixed-AKA CoT gate | `experiment/terminal-retention` | A1 last reported running (GPU 1); A3/A2 deferred |
-| **2. Teacher plans without private plan labels** | Improve SQL prediction through public reasoning supervision | P2.11 auxiliary plan first; P2.12 conditional | `experiment/struct-aux-cot` | P2.11 ready (GPU 0); P2.12 code ready, lower priority |
+| Arm | Base SQL task in K | Added task in K | What it answers |
+|---|---|---|---|
+| `G` / `fullgold` | All 9,428 BIRD gold SQL rows, weight 1 | None | Strong public-gold baseline |
+| `E` / `extra_sql` | Same 9,428 gold SQL rows, weight 1 | Gold SQL again on the 1,000 plan row IDs, weight 0.5 | Effect of added selected-row exposure and updates |
+| `T` / `teacher_plan` | Same 9,428 gold SQL rows, weight 1 | Teacher plan on those exact 1,000 row IDs, weight 0.5 | Added teacher-plan supervision |
 
-Not pursued: an in-domain public pool (holding out Spider as public data), and
-rerunning P2.10.
-
-Read-only views (CPU, any time, from the branch that produced the results):
-
-```powershell
-$env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python scripts/show_p29_merges.py
-```
-
-# Direction 1: Public adaptation and FL convergence
-
-## A1. Merge gate (last reported running)
-
-Evaluation only, no training. Four arms from the same FL T1 parent:
-
-| Arm | Public stage | Rows | Control for |
-|---|---|---:|---|
-| `hinton` | gold CE + Hinton forward KL | 9,428 | — |
-| `fullgold` | gold CE | 9,428 | `hinton` |
-| `seqkd` | SeqKD (teacher SQL) | 5,319 | — |
-| `gold` | gold CE on the same rows | 5,319 | `seqkd` |
-
-Merges per arm (seconds on CPU): `arith0p5`, `arith1p0` = FL `A>A` plus
-λ × (model after K − FL T1); `wise0p5` = half the model after K plus half the
-model after the last FedAvg.
-
-The existing A1 teacher-retention gate, for teacher minus gold on the same
-merge: BIRD ≥ +1.5, Spider-family mean ≥ +1.0, no Spider-family set below −1.0,
-and Spider not more than 1.0 below the plain terminal.
-
-Keep that gate as the original diagnostic and report its outcome unchanged.
-It is not the new method-selection objective. Also report absolute Spider EX,
-gain over the plain terminal and matched FL, and teacher-minus-gold on Spider.
-Do not prefer a lower-Spider endpoint solely because it retains a larger
-teacher edge or more BIRD accuracy. Neither A3 nor A2 logically requires this
-merge gate to pass.
-
-The command last reported running on GPU 1 (nested commit `9ad7239` or later):
-
-```powershell
-$G='1'; $ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES=$G; $env:PYTHONUTF8='1'; $R='scripts/run_p29_retention_gate.py'; git pull --ff-only origin experiment/terminal-retention; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 9ad7239 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required commit 9ad7239 missing' }; foreach ($P in @(@('hinton','fullgold'), @('seqkd','gold'))) { foreach ($V in 'arith0p5','wise0p5','arith1p0') { foreach ($A in $P) { uv run python $R --phase merge --arm $A --variant $V; if ($LASTEXITCODE -ne 0) { throw "$A $V merge failed" }; uv run python $R --phase eval --arm $A --variant $V; if ($LASTEXITCODE -ne 0) { throw "$A $V eval failed" } }; uv run python scripts/show_p29_merges.py } }; Write-Host 'A1 merge gate complete'
-```
-
-## A2. Interleaved schedule (planned, not implemented)
-
-Consider after the simpler A3 depth screen. Interleaving is a separate
-hypothesis; failure of a post-hoc merge does not reject it. Example only:
+The extra SQL targets in E must come from the original full-gold pool, joined
+by stable row ID, not from the teacher SQL stored with the plan sidecar.
 
 ```text
-round r = 1..R (R = 3):   A (FedAvg on Spider)  ->  k (Hinton on BIRD shard r)
+A: private question + schema -> gold SQL
+K: SQL instruction  + public question + schema + evidence -> gold SQL
+   PLAN instruction + the same public input              -> teacher plan (T only)
+A: private question + schema -> gold SQL
+Inference: SQL instruction + question + schema -> SQL
 ```
 
-- Hold total A rounds, public rows/exposure, update budget, and optimizer/LR
-  policy fixed against a one-K schedule. Three A rounds versus the historical
-  two-round `A>K>A` changes the private budget as well as the schedule.
-- Controls: FL `A^R`, the gold version of each schedule, and a one-K placement
-  at the same R. Record shard order, optimizer resets, and LR horizons.
-- Ending on k is a candidate, not a requirement. Choose deployment endpoint
-  by the declared Spider validation rule; account for any added final A in
-  every control. Existing evidence favors private consolidation after K.
-- The old 25–30 GPU-hour estimate covers only Hinton plus gold interleaving;
-  controls, new endpoints, and the selected R need a revised cost estimate.
-- Needed code: a K stage on a row shard, and an R-round schedule runner.
+PLAN is a target, not an input to the SQL task. Both tasks update the same
+student adapter. Task separation follows
+[Distilling Step-by-Step](https://aclanthology.org/2023.findings-acl.507/);
+plan representation is inspired by
+[Struct-SQL](https://arxiv.org/html/2512.17053v3). Their combination in
+BIRD-to-Spider FL is the hypothesis being tested.
 
-## A3. Consolidation depth after one K (deferred, no command activated)
+## 2. Freeze the seed-0 screen before training
 
-The current priority is teacher CoT at fixed `A>K>A`. This depth question is
-retained for later and is not a prerequisite for success of that method gate.
+- Student: Qwen2.5-1.5B-Instruct; existing Qwen2.5-Coder-7B-Instruct plans.
+  Reuse the normal SQL-only FL T1 adapter after verifying its bytes/lineage.
+- Base pool: the full 9,428-row BIRD train pool with evidence. Plan subset:
+  the existing 1,000 P2.10 admitted rows and teacher-plan sidecar. Verify
+  unique IDs, membership in the base pool, input/evidence identity, teacher
+  provenance, admission results, and hashes before accepting the subset.
+- Audit 50 fixed, seed-0 sampled plans across SQL-complexity strata before
+  training. Check joins, predicates, aggregation, and agreement with the
+  accompanying teacher SQL. Execution-correct SQL alone does not establish
+  a correct plan. Record findings; repair/re-admit defective targets before
+  freezing hashes, and never silently change rows between arms.
+- K: one pass through each arm's examples; LR 2e-4, LoRA r16, batch 1,
+  accumulation 16, max length 7,168, gradient checkpointing, `full_bf16`.
+  Preserve the recorded full-gold schema/prompt and optimizer/LR recipe.
+  Use the same loss implementation in all three arms and fail on truncation.
+- G has 9,428 examples; E and T have 10,428. Fix auxiliary token weight
+  `beta=0.5` for both E and T. Normalize weighted CE by active-token count,
+  not the sum of weights that would cancel beta in an auxiliary-only batch.
+  This is one mixed pass, not equal sampling of the SQL and PLAN tasks.
+- E/T share the exact ordered base/auxiliary row slots, seed, batch boundaries,
+  accumulation, update count, optimizer reset, warm-up, and LR horizon.
+  Only the auxiliary instruction/target changes. G has its own shorter
+  one-pass horizon; E controls this extra-training difference.
+- Match base SQL target exposure across G/E/T. Record supervised token counts,
+  sequence lengths, updates, and GPU time. E/T have matched rows and updates,
+  not equal token FLOPs or an isolated proof of reasoning faithfulness.
+- Terminal A uses the full-gold terminal private recipe with SQL-only prompts,
+  identical client split/order, local epochs, optimizer/LR, LoRA, and aggregation
+  across all arms. No retention loss, template plans, or client public replay.
+  Public data, teacher targets, and caches remain server-side.
 
-Test the family `A>K>A^m`, not a fixed `A>K>A>A>A`. The private MedQA example
-reported by the owner is motivation only, not a source, replication target,
-or evidence for Spider. The question is whether K supplies a useful starting
-point that benefits from more task-specific private training.
+Beta 0.5 and 1,000 plans are fixed screening choices, not established optima.
+Do not sweep them against Spider dev before completing the three-arm screen.
 
-| Arm at depth m | Purpose |
+## 3. Execution order and evaluation
+
+1. Implement/register P2.13; validate pool joins, weights, matched E/T row
+   schedules, fingerprints, resume/completion guards, and publication allowlists.
+   Smoke all three arms, including SQL-only evaluation and terminal training.
+2. Run **G, then T, then E** at seed 0. Complete K and terminal A for every arm.
+   Save raw predictions and score both endpoints on the fixed five-set suite,
+   using the existing protocol-v2 SQL-only evaluator at batch 16. Do not stop
+   an arm solely because post-K Spider EX is low; terminal EX decides.
+3. Analyze all three terminal checkpoints together. Use the fixed end of K
+   and end of A, not independently selected best checkpoints. Pair predictions
+   by query ID. Predeclare T-G (practical gain) and T-E (added-plan contrast);
+   report EX deltas, wins/losses, paired 95% confidence intervals, and exact
+   McNemar results for both. Public-endpoint deltas diagnose transfer/retention.
+
+Default: run a fresh G through the same implementation. Reuse the committed G
+only if an explicit audit establishes identical scientific settings, parent
+bytes, loss normalization, ordered examples, optimizer/LR horizon, terminal
+recipe, and evaluation contract. Otherwise the old row is a reference only.
+
+Historical seed-0 terminal references are fullgold 66.54 and Hinton 66.63
+Spider EX; see the evidence ledger in [LAB_LOG.md](LAB_LOG.md). Do not treat
+these as compute-matched to the added task or as substitutes for E.
+
+## 4. Decide from terminal Spider EX
+
+| Outcome | Interpretation and next action |
 |---|---|
-| `A^(m+1)` | Pure FL with the same number of private rounds |
-| `A>K[gold]>A^m` | Public-data adaptation control |
-| `A>K[KD]>A^m` | Public teacher pipeline |
+| T > G and T > E | Positive teacher-plan screen; compare with Hinton, then confirm the unchanged recipe on seeds 1 and 2 before increasing plan coverage |
+| T > G but T <= E | Better pipeline score, but extra selected-row SQL training explains as much or more; no teacher-specific win yet |
+| T > E but T <= G | Plans outperform the extra-SQL control, but have not improved the strong gold baseline |
+| T <= both G and E | No gain from this recipe; inspect the frozen plan audit, loss balance, truncation, and public-to-terminal change before any new variant |
 
-- Start with the SQL-only Hinton/full-gold pair on the same 9,428 BIRD rows
-  and its pure-FL control. Their committed m=1 endpoints already exist.
-  Reuse them only with verified adapter bytes and matching continuation
-  contracts; append fresh immutable A stages without repeating K. Never use
-  a KD-derived adapter as the pure-FL parent.
-- Freeze a small maximum m and a common validation/plateau rule before a new
-  run. Evaluate matched checkpoints along the trajectory, including m=0 and
-  m=1 where available. A larger m may help, saturate, or hurt; it is not a
-  presumed improvement. Historical dev-guided screens remain exploratory.
-- Match clients, splits, local epochs, private optimizer/reset/LR policy,
-  seed, LoRA, prompts, aggregation, and evaluator across all arms. Equal A
-  count matches private exposure, not total compute. Report public-stage cost
-  and compare with additional private training at similar compute if claiming
-  overall efficiency.
-- Track Spider EX, KD-minus-FL, gold-minus-FL, and KD-minus-gold at every
-  matched depth, with paired wins/losses. Preserve all checkpoint results;
-  do not independently cherry-pick each arm's best test score. Distinguish
-  higher final EX from reaching the same EX in fewer private rounds.
-- If P2.11 is competitive, apply the same depth protocol to its SQL-only
-  client lineage, retaining SeqKD and template/extra-exposure controls. Do
-  not combine a new schedule, plan format, and teacher in one comparison.
-- If all arms plateau together, extra A does not rescue a teacher-specific
-  claim. If KD loses an advantage only after A, investigate placement or
-  interleaving next. If KD beats matched FL but ties gold, retain the pipeline
-  finding and its attribution limit.
-- Isolate placement later as `A^r>K>A^(R-r)` at fixed total R and K budget;
-  do not run a full depth-by-placement-by-objective sweep before a signal.
-- Before activation: verify continuation and checkpoint selection in the
-  runner, freeze the horizon/validation contract, and add separate run and
-  publication commands. No new result or GPU execution is implied here.
+The desired outcome also exceeds the Hinton reference. A positive difference
+is a screening signal, not automatically reliable: one Spider query is about
+0.097 percentage points. Small or uncertain gains need seed confirmation,
+not a claim of success or immediate generation of all BIRD plans. Report the
+uncertainty rather than treating a non-significant result as equivalence.
 
-# Direction 2: Struct-SQL with a client fix
+For seeds 1 and 2, keep the recipe and split fixed and vary training RNG;
+construct/reuse that seed's common initial A, then compare G/E/T from it.
+Report per-seed and aggregate differences. A general multi-seed superiority
+claim over Hinton additionally needs Hinton on the same seed/parent contracts.
+Spider dev guides this screen, so report its exploratory status; do not call
+those queries an untouched final test. BIRD/Spider variants are diagnostics,
+not additional promotion thresholds. No extra A round is required.
 
-Private Spider data has only gold SQL. P2.10's template-plan recipe
-underperformed. P2.11 keeps clients SQL-only; P2.12 masks direct plan loss but
-still conditions SQL training on generated or fallback template plans.
+Only after confirmation: consider greater plan coverage or a same-row AST
+plan ablation to separate teacher content from generic structured supervision.
+A null result at 1,000 plans does not reject every CoT method, but does not
+justify a blind full-pool expansion either.
 
-## P2.11. Plan as an auxiliary task (Distilling Step-by-Step)
+## 5. Launch readiness and parked work
 
-P2.11 keeps every client and the deployed model SQL-only. The teacher's plan enters only as a second training task inside K,
-following Distilling Step-by-Step (Hsieh et al., Findings of ACL 2023):
+P2.13 needs new experiment IDs, immutable seed/arm-specific output roots,
+independent evaluation resume roots, and a manifest recording the frozen
+recipe and pool hashes. Reuse training utilities where suitable; do not
+relabel P2.11 artifacts or change its defaults to mean fullgold.
 
-```text
-A    clients: [SQL] question -> gold SQL                        (unchanged)
-K    server:  [SQL]  question -> teacher SQL     (5,319 SeqKD rows, weight 1)
-              [PLAN] question -> teacher plan    (P2.10 admitted rows, weight beta = 0.5)
-A    clients: as before
-eval SQL only, batch 16, five sets
-```
+Add PowerShell run and separate publication commands here only after runner
+verification, following CONVENTION.MD 6.1. Keep publication outside running
+jobs; resolve the current requirement for committed intermediate parents
+without mutating a worktree while another job uses it. Check live GPU/worktree
+availability at launch. No cost estimate from the smaller P2.11 pool applies
+without measurement.
 
-| Arm | Plan task target | Compared with |
-|---|---|---|
-| `tplan` | teacher QP-CoT plan | committed `A>K[seq]` and `A>K[seq]>A` |
-| `aplan` | template plan of the same rows (control) | `tplan` |
+Parked: P2.11 SeqKD-plus-plan, P2.12/local STaR-style plans, A2 interleaving,
+and A3 extra private rounds. P2.10 remains stopped. A1 was last reported
+running on 2026-10-01, status not checked here; collect its existing results
+when available, but do not make it a prerequisite for P2.13 or relaunch it
+from this queue.
 
-- `tplan − seqkd` screens the whole added training task: it also adds 1,000
-  examples, steps, and a longer LR trajectory, so it does not isolate plans.
-- `tplan − aplan` compares teacher versus template targets on identical rows
-  and step counts; target lengths/compute can differ. A harmful template is
-  not enough evidence that teacher reasoning beats no-plan training.
-- If promising, add SQL-only exposure on those same 1,000 rows, matching the
-  base SQL stream and update/LR budget; report token and compute differences.
-- Keep the same FL T1 parent and SQL recipe. Check absolute terminal Spider
-  EX against the stronger full-gold/Hinton endpoints as practical references,
-  not as equal-data causal controls for P2.11.
-- Cost: about 6–8 GPU-hours per arm (K, commit, terminal A, two evaluations).
-- Runner `scripts/run_p211_aux_plan.py`, nested branch `experiment/struct-aux-cot`,
-  commit `4fc9c61` or later. Detailed phase notes: `docs/P211_P212_RUNBOOK.md`.
-- Loss mode `full_bf16`, the mode of the committed SeqKD rows, so the plan task
-  is the only difference against them.
-
-`experiment/struct-aux-cot` contains the A1 code. Before the branch-changing
-launch command below, wait for jobs using that worktree to exit, or use a
-separate worktree with disjoint outputs, as required by `CONVENTION.MD` 6.1.
-GPU 0, both arms in order (`tplan`, then `aplan`), about 6–7 h per arm:
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_VISIBLE_DEVICES='0'; $env:PYTHONUTF8='1'; function P([string[]]$A) { uv run python -m scripts.run_p211_aux_plan @A; if ($LASTEXITCODE -ne 0) { throw "P2.11 $($A -join ' ') failed" } }; function C($Rows, $Arm) { $f=@(uv run python -m scripts.list_p211_publication --rows $Rows --arm $Arm); if ($LASTEXITCODE -ne 0 -or $f.Count -eq 0) { throw "P2.11 $Arm $Rows allowlist failed" }; git add -- $f; git diff --cached --quiet; if ($LASTEXITCODE -ne 0) { git commit -m "results: P2.11 $Arm $Rows stage row" -- $f; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } } }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git switch experiment/struct-aux-cot; if ($LASTEXITCODE -ne 0) { throw 'Switch failed' }; git pull --ff-only origin experiment/struct-aux-cot; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; git merge-base --is-ancestor 4fc9c61 HEAD; if ($LASTEXITCODE -ne 0) { throw 'Required commit 4fc9c61 missing' }; foreach ($A in 'tplan','aplan') { P @('--phase','smoke','--arm',$A,'--beta','0.5'); P @('--phase','train-public','--arm',$A,'--beta','0.5'); C 'public' $A; P @('--phase','eval','--arm',$A,'--endpoint','public'); P @('--phase','train-terminal','--arm',$A); C 'terminal' $A; P @('--phase','eval','--arm',$A,'--endpoint','terminal') }; P @('--phase','analyze'); Write-Host 'P2.11 complete'
-```
-
-Send the smoke output (peak reserved VRAM) and, after `tplan` public
-evaluation, the public EX. `tplan − seqkd` at the public endpoint is the early
-read.
-
-### Direct full-gold plus plan contrast (proposal, not the P2.11 runner)
-
-P2.11 currently adds plans to the 5,319-row SeqKD recipe. That is a useful
-screen, but the strongest gold reference uses 9,428 rows. For a direct test
-against it, keep the full-gold SQL task and add a separate teacher-plan task
-on the public rows with admitted plans: `L = L_gold_SQL + beta * L_teacher_plan`.
-Use the normal SQL-only A parent, SQL-only terminal A, and SQL-only inference.
-This transfers teacher reasoning without requiring private plan labels or
-replacing correct public SQL with teacher SQL.
-
-Compare full-gold, full-gold plus teacher plans, and (if the signal is positive)
-full-gold plus template plans / extra SQL exposure on the same plan rows.
-Keep the base SQL stream fixed; control update/LR budgets and report token
-costs. Historical full-gold/Hinton endpoints are performance references, not
-automatically compute-matched controls for the added task. This variant needs
-a separately registered recipe; do not relabel or silently change P2.11.
-
-The task separation follows [Distilling Step-by-Step](https://aclanthology.org/2023.findings-acl.507/);
-the plan representation is inspired by [Struct-SQL](https://arxiv.org/html/2512.17053v3).
-Their combination with BIRD-to-Spider FL is our hypothesis, not a result
-established by either paper.
-
-## P2.12. Latent plan at the client, loss on SQL only
-
-Keeps the Struct-SQL format end to end without plan labels on private data:
-
-```text
-parent  A[qp] > K[qp-teacher]   (committed P2.10 public rows: teacher and gold)
-A       each client writes its own plan with the current global model,
-        then trains on plan + gold SQL with zero loss on the plan tokens
-eval    plan then SQL, five sets; strict and SQL-marker EX
-```
-
-- Masking plan labels removes direct plan CE, not updates to shared parameters.
-  SQL gradients can still change the ability to generate plans; preservation
-  of teacher style is a hypothesis, not a guarantee.
-- The implemented policy is self-correct plan, then gold-hinted
-  rationalization, then AST-template fallback. Audit these proportions and
-  plan quality before a full screen. Execution-correct SQL does not validate
-  each reasoning step or its structural agreement with the gold SQL target.
-- This only changes the final private stage; it inherits the P2.10 parent.
-  Inference still needs a generated CoT. Use strict and SQL-marker EX and
-  matching public-parent/plain-terminal controls.
-- Cost: plan generation about 2–3 h per arm, the round about 1.9 h, evaluation
-  about 2 h.
-- Lower priority than the auxiliary-plan test at fixed `A>K>A`. Runner
-  `scripts/run_p212_latent_plan.py` is ready; activation depends on the plan
-  audit and evidence, not an automatic step after P2.11.
-
-An alternative with stronger precedent for explicit CoT is local
-[STaR-SQL-style bootstrapping](https://aclanthology.org/2025.acl-long.1187.pdf):
-start from normal SQL-only A, teach plans in public K, then let the post-K
-student generate plan+SQL privately, retry failed rows with local gold SQL as
-a hint, and supervise accepted rationale+SQL targets. This is not the current
-P2.12 masked-plan objective. Private rows stay local; no server teacher access
-is needed. The paper demonstrates centralized 8B training, not 1.5B FL, so
-plan quality, row coverage, and plan/SQL agreement need a local gate. Any
-SQL-only fallback for rejected rows must have a separately declared prompt
-and task contract. Do not revive the template-plan initial A from P2.10.
-
-Older finished runbooks: `paper/archive/completed_runbooks/` and
-`paper/archive/superseded_runbooks/`. They are history, not the queue.
+The previous commands and proposal details are preserved in the
+[dated queue archive](../archive/completed_runbooks/PIPELINE_PRE_FULLGOLD_PLAN_2026-10-02.md).

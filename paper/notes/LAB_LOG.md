@@ -17,13 +17,13 @@ Older detail:
   by one more private stage (`A>K>A`).
 - Main objective: final Spider EX. Separate pipeline effectiveness over FL,
   private-round efficiency, and teacher-specific improvement over gold.
-- Direction 1: A1 last reported running on 2026-10-01, not checked live in this
-  review. A3 depth and A2 interleaving deferred behind the fixed-AKA CoT gate.
-- Direction 2: P2.11 auxiliary-plan screen ready; P2.12 code ready but conditional
-  and lower priority. Commands and decision gates belong to `PIPELINE_NEXT.md`.
+- Selected next: P2.13 full-gold plus auxiliary teacher plans, with fullgold
+  and same-row extra-SQL controls from the first screen. Design selected,
+  runner not implemented; commands and decision gates belong to `PIPELINE_NEXT.md`.
 - Current success target: teacher CoT exceeds full-gold and Hinton terminal
-  Spider EX at `A>K>A`. Full-gold plus auxiliary teacher plans is a proposed
-  direct contrast; it is not the implemented SeqKD-based P2.11 recipe.
+  Spider EX at `A>K>A`, with the extra-SQL control testing teacher attribution.
+- Parked: P2.11 SeqKD-plan, P2.12 private plans, A3 depth, A2 interleaving.
+  A1 was last reported running on 2026-10-01, not checked live in this review.
 - Stopped: P2.10 (QP-CoT everywhere with template client plans). Paused: P2.9
   retention.
 
@@ -71,6 +71,21 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-02 - Select the full-gold auxiliary-plan screen (no GPU run)
+
+- Chose P2.13 to answer the owner's direct full-gold comparison. It adds an
+  auxiliary teacher-plan task on public data while preserving SQL-only
+  private stages and inference. The current P2.11 runner uses a different,
+  smaller teacher-SQL base; its artifacts and defaults are not repurposed.
+- Require the same-row extra-SQL control immediately, so a gain over plain
+  gold is not automatically credited to reasoning supervision. Data/weight,
+  schedule, evaluation, and confirmation rules are owned by the active queue.
+- Preserved the complete prior queue and commands in the
+  [dated archive](../archive/completed_runbooks/PIPELINE_PRE_FULLGOLD_PLAN_2026-10-02.md).
+  Removed competing launch paths from the current queue and aligned method/RQ
+  statuses. This was a documentation decision: no new training result, code
+  implementation, target generation, or live server-status check.
 
 ## 2026-10-02 - Research objective and continuation hypotheses (no GPU run)
 

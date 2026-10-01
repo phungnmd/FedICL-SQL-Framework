@@ -11,7 +11,10 @@ cell here. CoT is optional supervision, not a required output or contribution.
 Current priority: teacher CoT that beats full BIRD-gold and Hinton on terminal
 Spider EX at the fixed `A>K>A` schedule. The broader pipeline claim remains
 valid, but it is not the stopping criterion for this stronger-method search.
-Schedule depth is secondary; no AKAAA experiment is required for this gate.
+Selected next screen: P2.13, fullgold versus fullgold plus extra SQL versus
+fullgold plus teacher plans. The extra-exposure control is required from the
+first screen. The recipe and execution order live in `PIPELINE_NEXT.md`;
+the runner is not yet implemented. Schedule depth is deferred.
 
 ## 1. Research questions
 
@@ -26,15 +29,15 @@ Schedule depth is secondary; no AKAAA experiment is required for this gate.
 | 6 | Is the gain from Hinton soft logits? | `A>K[ce]>A` vs `A>K[fkl]>A` | done (P2.4a): no reliable terminal advantage at seed 0 |
 | 7 | Is the gain from teacher SQL? | same 5,319 rows: `A>K[ce]>A` vs `A>K[seq]>A` | done (P2.6): edge at public endpoint, mostly gone after last A |
 | 8 | Can a retention loss keep the teacher edge? | `A>K>A[ret]`, SeqKD vs gold | paused (P2.9): λ = 1.0 failed |
-| 8a | Does a weight merge keep the teacher edge? | WiSE-FT and task arithmetic; Hinton vs full gold, SeqKD vs matched gold | **active (A1, Direction 1)** |
+| 8a | Does a weight merge keep the teacher edge? | WiSE-FT and task arithmetic; Hinton vs full gold, SeqKD vs matched gold | A1 last reported running on 2026-10-01; collect existing results, not a prerequisite for P2.13 |
 | 9 | Does a teacher query plan beat gold? | Struct-SQL QP-CoT in every stage with template client plans (P2.10) | stopped: recipe underperformed; format/template mechanisms not isolated |
-| 9a | Does the teacher plan help as an auxiliary task? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD; add matched SQL exposure if promising | **ready (P2.11, Direction 2)**; old SeqKD contrast is not compute-matched |
-| 9a-g | Can teacher plans improve the strong full-gold baseline directly? | `A>K[fullgold+plan]>A` vs full-gold, with template/extra-SQL exposure controls | proposed, not implemented; distinct from the existing SeqKD-based P2.11 recipe |
-| 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | **code ready (P2.12)**, conditional and lower priority; masking does not freeze plan generation |
-| 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; only if Direction 2 shows the teacher is the bottleneck |
+| 9a | Does the teacher plan help on the SeqKD base? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD | P2.11 code ready but parked; P2.13 directly tests the stronger full-gold baseline |
+| 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | **selected next: P2.13**, design frozen for seed-0 screen; runner not implemented |
+| 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | P2.12 code ready but parked; masking does not freeze plan generation |
+| 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
 | 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence; does not require A1 merge success |
-| 12 | Does a teacher plan add value beyond format? | flat SeqKD vs local AST plan vs teacher plan | secondary diagnostic (old P2.7) |
-| 13 | Is the result reliable? | at least 2 training seeds, paired EX and error analysis | after the method gate |
+| 12 | Does a teacher plan add value beyond format? | same-row AST plan versus teacher plan on the selected SQL base | conditional after P2.13 confirmation; old P2.7 is historical |
+| 13 | Is the result reliable? | paired EX and error analysis; P2.13 recipe/control confirmation on seeds 1 and 2 after seed 0 | after the method gate; fixed split, vary training RNG |
 | 14 | Is it robust to heterogeneity? | one stronger non-IID split, same rows and budget | after the method gate |
 | 15 | Is it model-family specific? | Qwen first; Gemma only after the method is stable | conditional |
 | 16 | What efficiency and privacy claims hold? | adapter bytes, final SLM vs teacher inference, structural boundary | teacher timing kept; final-adapter benchmark pending |
@@ -42,8 +45,8 @@ Schedule depth is secondary; no AKAAA experiment is required for this gate.
 Closed with a negative result: KID (ties SeqKD, too costly), GKD (too costly),
 the SeqKD + Hinton hybrid, repeated Hinton depth (P2.4c cancelled).
 Superseded: the SQL-only structured gate P2.8 (replaced by P2.10; runbook in
-`paper/archive/superseded_runbooks/`). Stopped: P2.10, replaced by P2.11 and
-P2.12. Not pursued: an in-domain public pool.
+`paper/archive/superseded_runbooks/`). Stopped: P2.10. P2.11/P2.12 are now
+parked behind P2.13. Not pursued: an in-domain public pool.
 
 ## 2. Evidence plan
 
@@ -52,9 +55,9 @@ P2.12. Not pursued: an in-domain public pool.
 3. Rerun the reference method in both directions. **Done.**
 4. Attribute any EX gain with matched public-gold, SeqKD, and soft-KD controls.
    **Done so far: no teacher-specific gain after the last private stage.**
-5. Improve the teaching signal at fixed `A>K>A`. **Priority: auxiliary teacher
-   plans; direct full-gold-plus-plan contrast proposed. Explicit local CoT is
-   conditional; extra private rounds and interleaving are secondary.**
+5. Improve the teaching signal at fixed `A>K>A`. **Selected: P2.13 full-gold
+   auxiliary teacher plans, with fullgold and same-row extra-SQL controls in
+   the first screen. Private stages and inference remain SQL-only.**
 6. Confirm the chosen method on more seeds, one harder split, and maybe a
    second model family.
 7. Add communication, resource, and privacy-boundary evidence.
