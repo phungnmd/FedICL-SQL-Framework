@@ -11,15 +11,16 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, documentation review)
+## Where we are (2026-10-02, runner delivery)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
 - Main objective: final Spider EX. Separate pipeline effectiveness over FL,
   private-round efficiency, and teacher-specific improvement over gold.
 - Selected next: P2.13 full-gold plus auxiliary teacher plans, with fullgold
-  and same-row extra-SQL controls from the first screen. Design selected,
-  runner not implemented; commands and decision gates belong to `PIPELINE_NEXT.md`.
+  and same-row extra-SQL controls from the first screen. Runner implemented
+  and CPU-tested; commands and decision gates belong to `PIPELINE_NEXT.md`.
+  Server preparation, 50-plan semantic review and GPU smokes remain pending.
 - Current success target: teacher CoT exceeds full-gold and Hinton terminal
   Spider EX at `A>K>A`, with the extra-SQL control testing teacher attribution.
 - Parked: P2.11 SeqKD-plan, P2.12 private plans, A3 depth, A2 interleaving.
@@ -71,6 +72,25 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-02 - Deliver P2.13 two-GPU runner (no GPU run)
+
+- Code lives on nested branch `experiment/fullgold-plan`, implementation
+  `b7706f8af783d7fad663d2747a406435691151c6`. GPU 0 runs T; GPU 1 runs G then E. Each arm
+  bundles its own smoke, K, five-set eval, terminal A, and five-set eval.
+- E uses original gold SQL on the plan IDs; T adds plan targets separately.
+  Both keep the 9,428 gold base and weight-0.5 auxiliary slots. Private A and
+  inference remain SQL-only. No new teacher generation is required.
+- Intermediate stage receipts avoid Git mutation during concurrent jobs.
+  Manifest locks, immutable inputs/code identity and per-lane locks protect
+  resume; publication resolves only complete compact evidence after both lanes.
+- Local full pytest: 778 passed. New regression tests were observed
+  failing before implementation. CLI help/dry-run and changed-file checks pass.
+  Review fixes cover missing completion metadata after a crash and ensuring
+  public smokes actually include an auxiliary example.
+- No server data/adapter validation, semantic target review, Windows execution,
+  GPU training or EX measurement occurred locally. Timings from concurrent
+  lanes are operational and cannot establish exclusive-hardware resource cost.
 
 ## 2026-10-02 - Select the full-gold auxiliary-plan screen (no GPU run)
 

@@ -14,7 +14,7 @@ valid, but it is not the stopping criterion for this stronger-method search.
 Selected next screen: P2.13, fullgold versus fullgold plus extra SQL versus
 fullgold plus teacher plans. The extra-exposure control is required from the
 first screen. The recipe and execution order live in `PIPELINE_NEXT.md`;
-the runner is not yet implemented. Schedule depth is deferred.
+the runner is implemented with two GPU lanes; server smokes are pending. Schedule depth is deferred.
 
 ## 1. Research questions
 
@@ -32,7 +32,7 @@ the runner is not yet implemented. Schedule depth is deferred.
 | 8a | Does a weight merge keep the teacher edge? | WiSE-FT and task arithmetic; Hinton vs full gold, SeqKD vs matched gold | A1 last reported running on 2026-10-01; collect existing results, not a prerequisite for P2.13 |
 | 9 | Does a teacher query plan beat gold? | Struct-SQL QP-CoT in every stage with template client plans (P2.10) | stopped: recipe underperformed; format/template mechanisms not isolated |
 | 9a | Does the teacher plan help on the SeqKD base? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD | P2.11 code ready but parked; P2.13 directly tests the stronger full-gold baseline |
-| 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | **selected next: P2.13**, design frozen for seed-0 screen; runner not implemented |
+| 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | **selected next: P2.13**, runner ready for seed-0 screen; real-data/GPU validation pending |
 | 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | P2.12 code ready but parked; masking does not freeze plan generation |
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
 | 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence; does not require A1 merge success |

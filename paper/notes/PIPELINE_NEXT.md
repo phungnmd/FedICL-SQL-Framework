@@ -15,11 +15,10 @@ beyond extra SQL exposure. Use 1,000 existing admitted plans first. Do not
 start by generating plans for all BIRD rows, changing the teacher, adding
 private rounds, or generating private plans.
 
-**Status: design selected; runner not implemented, no launch command active.**
-The existing P2.11 runner uses 5,319 teacher SQL rows and cannot launch this
-recipe. The next engineering task is a separate P2.13 runner with the controls
-below, followed by smoke verification and explicit run/publication commands.
-This documentation change does not start, stop, or inspect GPU jobs.
+**Status: P2.13 implemented on `experiment/fullgold-plan`; CPU verification
+complete, server preparation and GPU smokes pending.** The existing P2.11
+runner retains its 5,319-row teacher-SQL recipe. No GPU job has been launched
+from this development machine. Active commands are in section 5.
 
 ## 1. The three arms
 
@@ -62,8 +61,11 @@ BIRD-to-Spider FL is the hypothesis being tested.
 - Audit 50 fixed, seed-0 sampled plans across SQL-complexity strata before
   training. Check joins, predicates, aggregation, and agreement with the
   accompanying teacher SQL. Execution-correct SQL alone does not establish
-  a correct plan. Record findings; repair/re-admit defective targets before
-  freezing hashes, and never silently change rows between arms.
+  a correct plan. Preparation exports the fixed stratified sample and pins
+  its hash; the operator must review it before launching the lanes and record
+  findings in the lab log. The runner does not assert a human review occurred.
+  If targets are defective, stop before training and create a new admitted
+  pool/run identity; never edit the frozen P2.10 pool or silently change rows.
 - K: one pass through each arm's examples; LR 2e-4, LoRA r16, batch 1,
   accumulation 16, max length 7,168, gradient checkpointing, `full_bf16`.
   Preserve the recorded full-gold schema/prompt and optimizer/LR recipe.
@@ -89,10 +91,12 @@ Do not sweep them against Spider dev before completing the three-arm screen.
 
 ## 3. Execution order and evaluation
 
-1. Implement/register P2.13; validate pool joins, weights, matched E/T row
-   schedules, fingerprints, resume/completion guards, and publication allowlists.
-   Smoke all three arms, including SQL-only evaluation and terminal training.
-2. Run **G, then T, then E** at seed 0. Complete K and terminal A for every arm.
+1. Run one shared CPU preparation and review the exported 50-plan sample.
+   Each lane then smokes its own arms: 16 public microsteps (including an
+   auxiliary example for E/T), 4 microsteps per terminal client, and a 2-row
+   SQL-only BIRD eval. Smoke roots are separate from full-run roots.
+2. Run **GPU 0: T; GPU 1: G then E** at seed 0. This supersedes serial G/T/E
+   ordering without changing their recipes. Complete K and terminal A for every arm.
    Save raw predictions and score both endpoints on the fixed five-set suite,
    using the existing protocol-v2 SQL-only evaluator at batch 16. Do not stop
    an arm solely because post-K Spider EX is low; terminal EX decides.
@@ -139,19 +143,72 @@ plan ablation to separate teacher content from generic structured supervision.
 A null result at 1,000 plans does not reject every CoT method, but does not
 justify a blind full-pool expansion either.
 
-## 5. Launch readiness and parked work
+## 5. Active two-GPU commands
 
-P2.13 needs new experiment IDs, immutable seed/arm-specific output roots,
-independent evaluation resume roots, and a manifest recording the frozen
-recipe and pool hashes. Reuse training utilities where suitable; do not
-relabel P2.11 artifacts or change its defaults to mean fullgold.
+Run from the **`fedicl-sql/` repository root on the GPU server**, in PowerShell.
+The owner reports both GPUs idle; live availability was not independently
+checked here. Do the one-time checkout/preparation before opening either lane.
+Do not switch, pull, edit, or commit in this worktree while either lane runs.
 
-Add PowerShell run and separate publication commands here only after runner
-verification, following CONVENTION.MD 6.1. Keep publication outside running
-jobs; resolve the current requirement for committed intermediate parents
-without mutating a worktree while another job uses it. Check live GPU/worktree
-availability at launch. No cost estimate from the smaller P2.11 pool applies
-without measurement.
+Implementation: `experiment/fullgold-plan`, required commit `b7706f8af783d7fad663d2747a406435691151c6`.
+Preparation needs the existing SQL-only FL T1 adapter, full BIRD gold, P2.10
+train plans/provenance/candidates, private splits, all five eval inputs and raw
+databases. It checks scoped cleanliness, original-gold joins, admission/hashes,
+and all target lengths at 7,168. It generates no new teacher targets.
+
+One-time checkout and preparation (CPU tokenizer audit):
+
+```powershell
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='b7706f8af783d7fad663d2747a406435691151c6'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p213_fullgold_plan --phase prepare; if($LASTEXITCODE -ne 0){throw 'P2.13 preparation failed'}
+```
+
+Before training, inspect the generated
+`artifacts/protocol_v2/p213_fullgold_plan_s0/plan_review_sample.json` (50 plans,
+stratified by SQL complexity). Record the audit; do not label the exported
+sample itself as a completed semantic review. Confirm physical GPU indices
+with `nvidia-smi`. These smokes exercise the auxiliary task but do not establish
+worst-case sequence VRAM feasibility.
+
+Terminal 1, physical GPU 0, teacher-plan T:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES='0'; uv run python -m scripts.run_p213_fullgold_plan --phase run --lane teacher; if($LASTEXITCODE -ne 0){throw 'P2.13 teacher lane failed'}
+```
+
+Terminal 2, physical GPU 1, fullgold G followed by extra-SQL E:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p213_fullgold_plan --phase run --lane controls; if($LASTEXITCODE -ne 0){throw 'P2.13 controls lane failed'}
+```
+
+Separate publication command, **only after both lanes exit successfully**.
+It verifies all 30 full evaluations, writes paired contrasts, resolves an
+explicit compact-file allowlist, checks staged paths, then commits and pushes:
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p213_fullgold_plan --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.13 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p213_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'publication allowlist failed'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.13 full-gold plan screen'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+```
+
+Resume an interrupted lane with its exact command. Completed stages/evals are
+reused; partial training resumes from its own checkpoint. Each lane has a
+duplicate-executor lock; shared manifest updates are locked. Intermediate
+parents use immutable receipts binding stage/config/metrics/adapter bytes, so
+no commit is needed between K and A. The original parent remains committed.
+Fingerprints changing is an error, never a reason to bypass the guard.
+
+Outputs: `artifacts/protocol_v2/p213_fullgold_plan_s0/<arm>_<endpoint>`;
+audit/summary: `audits/protocol_v2/p213_fullgold_plan_s0/`; per-arm/endpoint/set
+eval resume roots under `artifacts/eval_resume/protocol_v2/p213_*_s0/eval_k0`.
+Publication excludes public targets, raw data, adapters, caches and lock files.
+If push alone fails after a successful commit, retry only the push.
+Concurrent lanes share host resources: their timings are operational, not an
+exclusive-hardware resource comparison. No P2.11 runtime estimate is assumed.
+
+Local validation: full pytest and focused CLI/dry-run checks passed. Windows
+PowerShell execution, real-data preparation, semantic review and GPU smokes
+remain server-side checks; no EX result or training-speed claim is made here.
+
+## 6. Parked work
 
 Parked: P2.11 SeqKD-plus-plan, P2.12/local STaR-style plans, A2 interleaving,
 and A3 extra private rounds. P2.10 remains stopped. A1 was last reported

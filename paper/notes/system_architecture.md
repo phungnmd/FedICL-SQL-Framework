@@ -124,8 +124,9 @@ The final method is **not frozen**.
   public-gold SQL training at fixed `A>K>A`. Compare with fullgold and
   fullgold plus extra SQL on the same plan rows from the first screen.
   Both private stages and inference stay SQL-only; no private plan labels
-  are needed. The recipe is in `PIPELINE_NEXT.md`; its runner is not yet
-  implemented and the benefit is unproven.
+  are needed. The recipe and two-GPU commands are in `PIPELINE_NEXT.md`;
+  its runner is implemented and CPU-tested. GPU validation and EX benefit
+  remain unproven.
 - Parked alternatives: P2.11 uses the smaller SeqKD SQL base; P2.12 conditions
   private SQL training on generated plans with masked plan loss and a template
   fallback. Masking does not freeze the shared model's plan generation.
