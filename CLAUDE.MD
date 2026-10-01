@@ -58,14 +58,11 @@ current method specification.
 
 ## Current priority
 
-Follow `paper/notes/PIPELINE_NEXT.md` (2026-10-01). Two directions:
+Follow `paper/notes/PIPELINE_NEXT.md` (2026-10-02). Active step: P2.14 on the
+nested branch `experiment/fullgold-plan`, Struct-SQL admitted rows trained with
+Distilling Step-by-Step (teacher plan as a separate task; clients and inference
+SQL-only). The goal is chain-of-thought KD that beats Hinton and full gold.
 
-1. Hinton KD that survives FL: A1 merge gate (running, nested branch
-   `experiment/terminal-retention`), then A2 interleaved `(A -> k)^R` on BIRD
-   shards (planned).
-2. Struct-SQL with a client fix (nested branch `experiment/struct-aux-cot`):
-   P2.11 teacher plan as an auxiliary task inside K with SQL-only clients and
-   inference, then P2.12 latent client plan with loss on SQL only.
-
-P2.10 is stopped. An in-domain public pool is not pursued. ICL, FLoRA-NA, SC,
-and T4/T5 are not active work.
+P2.13 is superseded, P2.10 is stopped, and A1 finished without a passing merge.
+A2, P2.11, P2.12, an in-domain public pool, ICL, FLoRA-NA, SC, and T4/T5 are
+not active work.
