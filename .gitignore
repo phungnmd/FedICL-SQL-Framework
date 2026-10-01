@@ -13,3 +13,7 @@ note.txt
 PRIVATE.txt
 *.key
 .env
+
+# local code index
+.codegraph/
+codegraph.json
