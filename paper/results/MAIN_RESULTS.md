@@ -1,9 +1,11 @@
 # FedLS-SQL — protocol-v2 paper result tables
 
-Published P2.2/P2.3/P2.4a evidence checked 2026-09-16. Source paths, comparison
-limits, and paired counts: [P22_TRANSFER_REVIEW.md](P22_TRANSFER_REVIEW.md)
-and [P23_TERMINAL_CONSOLIDATION_REVIEW.md](P23_TERMINAL_CONSOLIDATION_REVIEW.md),
-and [P24_TEACHER_SIGNAL_REVIEW.md](P24_TEACHER_SIGNAL_REVIEW.md).
+Published P2.2/P2.3/P2.4a evidence checked 2026-09-16. Run IDs, adapter
+paths, and evaluation directories: `../notes/RESULT_REGISTRY.md`. Paired counts
+and comparison limits are in the archived reviews:
+[P22_TRANSFER_REVIEW.md](../archive/results_reviews_2026-09/P22_TRANSFER_REVIEW.md),
+[P23_TERMINAL_CONSOLIDATION_REVIEW.md](../archive/results_reviews_2026-09/P23_TERMINAL_CONSOLIDATION_REVIEW.md),
+and [P24_TEACHER_SIGNAL_REVIEW.md](../archive/results_reviews_2026-09/P24_TEACHER_SIGNAL_REVIEW.md).
 
 ## Main accuracy table
 
@@ -50,10 +52,9 @@ matched full-public control reaches 66.54/57.28/54.45/51.21/29.53 EX for
 `A>K[ce]>A`. Hinton differs by +0.09/−0.19/+0.87/−0.56/+1.50 points, with no
 paired test below `p=.10`; its four-set Spider-family mean advantage is only
 +0.05 point. The endpoint gain therefore cannot currently be attributed to
-soft logits. The next gate is matched two-epoch public CE/Hinton before and
-after terminal A (P2.4c), testing whether the one-epoch result reflects
-insufficient KD or loss of its signal during private consolidation. Terminal
-SeqKD and recurrent schedules are deferred.
+soft logits. Later gates (P2.5 SeqKD/KID, P2.6 selected gold, P2.9 retention)
+are recorded in `../notes/LAB_LOG.md`; none is in this table yet because the
+method is not chosen.
 
 ## Independent retained evidence
 

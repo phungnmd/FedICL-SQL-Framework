@@ -90,7 +90,7 @@ Reverse BIRD-private/Spider-public ladder on BIRD dev:
 Use the batch-size-16 headline rows for current comparisons. The older
 56.96/57.64 Spider ladder used batch size 8 and has different SQL predictions
 despite identical prompts; it remains a separate evaluation lineage. Full
-paired analysis and artifact map: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSFER_REVIEW.md).
+paired analysis and artifact map: [P22_TRANSFER_REVIEW.md](P22_TRANSFER_REVIEW.md).
 
 ### Published P2.3 terminal endpoint ladder
 
@@ -105,7 +105,7 @@ paired analysis and artifact map: [P22_TRANSFER_REVIEW.md](../results/P22_TRANSF
 The terminal Hinton endpoint is positive against `A>A` on every set. Exact
 paired McNemar p-values are 0.000359/0.3557/0.00808/0.01834/<1e-40 in table
 order. Full interpretation and teacher-gap accounting:
-[P23_TERMINAL_CONSOLIDATION_REVIEW.md](../results/P23_TERMINAL_CONSOLIDATION_REVIEW.md).
+[P23_TERMINAL_CONSOLIDATION_REVIEW.md](P23_TERMINAL_CONSOLIDATION_REVIEW.md).
 
 ### Published P2.4a full-public teacher-signal control
 
@@ -118,7 +118,7 @@ order. Full interpretation and teacher-gap accounting:
 | BIRD dev, evidence | 29.53 | 31.03 | +1.50 |
 
 No paired comparison is significant (`p=1.000/1.000/.439/.749/.102`). See
-[P24_TEACHER_SIGNAL_REVIEW.md](../results/P24_TEACHER_SIGNAL_REVIEW.md).
+[P24_TEACHER_SIGNAL_REVIEW.md](P24_TEACHER_SIGNAL_REVIEW.md).
 
 ### Published P2.5 SeqKD versus KID endpoints
 
