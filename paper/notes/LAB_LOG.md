@@ -11,16 +11,16 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-01)
+## Where we are (2026-10-02, documentation review)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
-- Main open question: the teacher beats gold right after the public stage, but
-  only ties it after the last private stage. Can that edge be kept?
-- Direction 1, Hinton KD that survives FL: A1 merge gate running; A2
-  interleaved schedule planned.
-- Direction 2, Struct-SQL with a client fix: P2.11 (plan as an auxiliary task)
-  and P2.12 (latent client plan) in development.
+- Main objective: final Spider EX. Separate pipeline effectiveness over FL,
+  private-round efficiency, and teacher-specific improvement over gold.
+- Direction 1: A1 last reported running on 2026-10-01, not checked live in this
+  review. A3 consolidation depth planned; A2 interleaving remains an alternative.
+- Direction 2: P2.11 auxiliary-plan screen ready; P2.12 code ready but conditional
+  and lower priority. Commands and decision gates belong to `PIPELINE_NEXT.md`.
 - Stopped: P2.10 (QP-CoT everywhere with template client plans). Paused: P2.9
   retention.
 
@@ -68,6 +68,21 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-02 - Research objective and continuation hypotheses (no GPU run)
+
+- Owner clarified that the paper should establish useful public KD for
+  federated Spider EX. CoT and a fixed `A>K>A>A>A` schedule are not requirements.
+- The private MedQA example is an informal motivation only. No paper/repo was
+  provided or audited; no result from it is treated as evidence for this task.
+- Added A3: study consolidation depth after one public stage with matched FL
+  and gold trajectories. Depth and stopping rule remain to be frozen; no new
+  command, code, result, or GPU run was activated.
+- Clarified the pipeline-versus-teacher claim ladder and centralized-reference
+  limits. A gold tie restricts attribution without erasing a pipeline gain.
+- Corrected P2.11 exposure-control wording and P2.12's unsupported claim that
+  masking plan CE guarantees preserving plan generation. Kept the original
+  A1 gate as a historical diagnostic alongside the new Spider-first objective.
 
 ## 2026-09-26 — P2.9 retention at λ = 1.0 fails; P2.9 paused
 

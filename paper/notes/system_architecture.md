@@ -113,16 +113,19 @@ The final method is **not frozen**.
   plus Hinton forward KL.
 - Candidate: terminal private consolidation, `A>K[fkl]>A`. It beats `A>A` on
   all five sets at seed 0, but it does not reliably beat `A>K[ce]>A`. So the
-  gain is not yet due to the teacher.
-- Direction 1 (active): keep the Hinton edge through FL. A1 tests a
-  training-free weight merge of the post-K and post-FL adapters; A2 (planned)
-  interleaves FedAvg rounds with small Hinton steps on BIRD shards.
-- Direction 2 (in development): use teacher query plans without plan labels at
-  the clients. P2.11 learns the teacher plan as an auxiliary task inside K,
-  with SQL-only clients and SQL-only inference. P2.12 lets clients write their
-  own plans with loss on SQL only.
+  gain is not yet attributable specifically to the teacher.
+- Direction 1: public adaptation and FL convergence. A1 screens post-K/post-FL
+  weight merges. A3 (planned) studies `A>K>A^m` against equal-private-round FL
+  and matched gold, with m selected by a declared validation rule. A2
+  interleaving is a later alternative at matched budgets, not conditional on
+  merge success. No fixed number of post-K private rounds is assumed.
+- Direction 2: P2.11 uses teacher plans as an auxiliary server task, keeping
+  clients and inference SQL-only. P2.12 is a lower-priority, conditional
+  self-plan context experiment. Masked plan loss does not freeze the shared
+  model's plan generation, and its fallback still uses template plans.
 - Stopped (P2.10): Struct-SQL QP-CoT in every stage with template client plans.
-  The plan format at inference and the template plans hurt the 1.5B student.
+  The recipe underperformed; format and template mechanisms need separate
+  evidence. Do not generalize this result to all CoT distillation.
 - Paused (P2.9): a retention loss in the last private stage, toward the frozen
   post-K model.
 
