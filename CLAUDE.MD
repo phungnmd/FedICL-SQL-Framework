@@ -63,6 +63,6 @@ nested branch `experiment/fullgold-plan`, Struct-SQL admitted rows trained with
 Distilling Step-by-Step (teacher plan as a separate task; clients and inference
 SQL-only). The goal is chain-of-thought KD that beats Hinton and full gold.
 
-P2.13 is superseded and P2.10 is stopped.
+P2.13 is superseded, P2.10 is stopped, and the A1 merge gate failed.
 A2, P2.11, P2.12, an in-domain public pool, ICL, FLoRA-NA, SC, and T4/T5 are
 not active work.

@@ -22,6 +22,7 @@ Older detail:
   plus the teacher plan as a separate task (weight 0.8). Commands and reading
   rules are in `PIPELINE_NEXT.md`.
 - Superseded before training: P2.13 (full gold plus 1,000 plans at weight 0.5).
+- A1 merge gate: failed, closed. No merge passed (entry below; results not committed).
 - Parked: P2.11, P2.12, A2 interleaving, A3 depth. Stopped: P2.10. Paused: P2.9
   retention.
 
@@ -98,6 +99,34 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 - Operational estimate, extrapolated from existing stage/eval timings:
   T about 6-8 hours, sequential G/E about 12-16 hours on the other GPU. It is
   not a paper resource measurement or a guaranteed runtime/RAM ceiling.
+
+## 2026-10-02 - A1 merge gate fails; closed
+
+- Training-free merges from the same FL T1 parent, evaluated SQL-only at batch
+  16 on five sets: `wise0p5` (half the model after K, half the plain terminal)
+  and task arithmetic `arith0p5`/`arith1p0` (FL `A>A` plus lambda times the K
+  update). Source: server run output reported by the owner on 2026-10-02. The
+  results are not committed; there is no result SHA, so they stay out of the
+  paper.
+- EX (Spider, Realistic, SYN, DK, BIRD); delta = teacher minus gold on the same
+  merge (exact McNemar p):
+
+| Merge | Teacher arm EX | Delta |
+|---|---|---|
+| SeqKD `wise0p5` | 63.64 / 52.76 / 51.45 / 49.72 / 33.25 | +1.84 (.07) / +1.38 (.4) / +1.16 (.31) / +1.87 (.17) / +1.37 (.16) |
+| SeqKD `arith0p5` | 63.93 / 52.36 / 50.48 / 49.91 / 28.62 | +0.39 (.7) / +1.18 (.42) / +0.87 (.34) / +0.93 (.46) / +1.43 (.088) |
+| SeqKD `arith1p0` | 57.54 / 43.11 / 46.23 / 45.05 / 34.42 | +2.03 (.089) / +1.38 (.51) / +2.80 (.019) / +1.50 (.4) / +1.96 (.057) |
+| Hinton `wise0p5` | 63.15 / 52.95 / 51.84 / 50.84 / 36.57 | −0.77 (.5) / −1.97 (.22) / −0.58 (.62) / +1.87 (.13) / +4.43 (5.3e-6) |
+| Hinton `arith0p5` | 62.38 / 50.20 / 48.16 / 48.97 / 31.03 | −0.39 (.74) / +0.00 (1) / −1.16 (.27) / +0.00 (1) / +2.80 (.00075) |
+| Hinton `arith1p0` | 56.67 / 40.75 / 42.94 / 43.18 / 36.57 | +0.97 (.47) / −4.72 (.013) / −1.26 (.34) / +1.12 (.52) / +4.04 (.00011) |
+
+- Gate (BIRD ≥ +1.5, Spider-family mean ≥ +1.0, no Spider-family set below
+  −1.0, teacher Spider within 1.0 of its plain terminal): **no merge passes**.
+  Closest is SeqKD `wise0p5` (BIRD +1.37, Spider −1.35 below 64.99).
+- Every merge lowers Spider below the plain terminal (66.63 Hinton, 64.99
+  SeqKD). The teacher's Spider-family edge appears only together with that
+  Spider loss; Hinton keeps a strong BIRD edge but no Spider-family edge.
+- Decision: A1 closed, no merge enters the method.
 
 ## 2026-10-02 - Replace P2.13 with the P2.14 plan-task screen (no GPU run)
 
