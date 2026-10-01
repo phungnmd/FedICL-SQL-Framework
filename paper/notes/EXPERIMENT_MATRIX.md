@@ -14,7 +14,9 @@ valid, but it is not the stopping criterion for this stronger-method search.
 Selected next screen: P2.13, fullgold versus fullgold plus extra SQL versus
 fullgold plus teacher plans. The extra-exposure control is required from the
 first screen. The recipe and execution order live in `PIPELINE_NEXT.md`;
-the runner is implemented with two GPU lanes; server smokes are pending. Schedule depth is deferred.
+the runner is implemented with two GPU lanes and the A5000 target_fp32 profile
+for all G/E/T K/A stages. Fresh G is required; new preparation and live probes
+are pending. Schedule depth is deferred.
 
 ## 1. Research questions
 

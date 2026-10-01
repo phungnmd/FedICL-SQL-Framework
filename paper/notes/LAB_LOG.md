@@ -11,7 +11,7 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, runner delivery)
+## Where we are (2026-10-02, A5000 amendment)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
@@ -20,7 +20,8 @@ Older detail:
 - Selected next: P2.13 full-gold plus auxiliary teacher plans, with fullgold
   and same-row extra-SQL controls from the first screen. Runner implemented
   and CPU-tested; commands and decision gates belong to `PIPELINE_NEXT.md`.
-  Server preparation, 50-plan semantic review and GPU smokes remain pending.
+  The owner completed the old preparation without starting GPU lanes. New
+  target_fp32 preparation, semantic review and live probes/smokes remain pending.
 - Current success target: teacher CoT exceeds full-gold and Hinton terminal
   Spider EX at `A>K>A`, with the extra-SQL control testing teacher attribution.
 - Parked: P2.11 SeqKD-plan, P2.12 private plans, A3 depth, A2 interleaving.
@@ -72,6 +73,35 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-02 - Amend P2.13 memory profile before GPU launch
+
+- The owner confirmed preparation had finished and no GPU lane had started,
+  then authorized the memory fix. Code commit `c38fb43` is on nested
+  `experiment/fullgold-plan`, branched from `experiment/struct-aux-cot` at
+  `3649595`; no cleanup/refactor branch is merged.
+- All G/E/T K and terminal A stages now use target_fp32, retaining train batch
+  1, accumulation 16, gradient checkpointing and max_len 7168/error. New
+  p213_tfp32 roots preserve the earlier full_bf16 preparation. Fresh G is
+  mandatory; historical fullgold/Hinton scores remain numerical references.
+- Runner sets the Windows allocator and a 0.88 PyTorch CUDA memory fraction,
+  with fixed eval batch 16 and no OOM halving. Preparation releases each arm's
+  tokenized examples before constructing the next arm.
+- Before each arm, isolated frozen longest-sequence/target/auxiliary probes
+  run 32 microsteps and two AdamW updates, then enforce measured reserved
+  memory <=21.5 GiB. Hash-bound compact reports retain process RSS. Probe
+  adapters/targets remain server-side and do not feed the scientific runs.
+- Motivation verified from existing artifacts: historical full-gold public K
+  reserved 71,439.5 MB and process RSS 49,631.1 MB; recent private target_fp32
+  stages reserved 7,912.6-10,003.4 MB and RSS 4,866.2-4,988.6 MB. Values use
+  decimal MB. Private measurements do not prove this public-plan workload fits.
+- Local verification: regression failures observed before implementation,
+  795 full-suite tests passed, changed-file Ruff and CLI/dry-run passed.
+  Review caught the need to probe with resident AdamW moments; corrected and
+  reviewed again. Windows/A5000 live feasibility and EX remain unmeasured.
+- Operational estimate, extrapolated from existing stage/eval timings:
+  T about 6-8 hours, sequential G/E about 12-16 hours on the other GPU. It is
+  not a paper resource measurement or a guaranteed runtime/RAM ceiling.
 
 ## 2026-10-02 - Fix missing P2.10 inputs in P2.13 bootstrap
 
