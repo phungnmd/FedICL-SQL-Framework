@@ -58,10 +58,9 @@ current method specification.
 
 ## Current priority
 
-Follow `paper/notes/PIPELINE_NEXT.md` (2026-09-30): finish P2.10 (Struct-SQL,
-including the QP-CoT FL parent on all five sets), then Direction A1, the
-training-free merge gate (`seqkd`/`gold`, `hinton`/`fullgold`) on nested branch
-`experiment/terminal-retention`. Direction A2 (interleaved `(A -> k)^R` on BIRD
-shards) and Direction B (in-domain Spider public split, unlabeled) are planned,
-not implemented. P2.9 retention is paused. ICL, FLoRA-NA, SC, and T4/T5 are not
-active work.
+Follow `paper/notes/PIPELINE_NEXT.md` (2026-10-01). Running: A1 merge gate on
+nested branch `experiment/terminal-retention`. In development on nested branch
+`experiment/struct-aux-cot`: P2.11 (teacher plan as an auxiliary task inside K,
+SQL-only clients and inference), then P2.12 (latent plan at the client, loss on
+SQL only). P2.10 is stopped. A2 and Direction B are planned, not implemented.
+ICL, FLoRA-NA, SC, and T4/T5 are not active work.
