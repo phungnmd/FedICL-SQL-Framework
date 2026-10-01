@@ -1,35 +1,36 @@
 # FedLS-SQL
 
-Research repository for the paper *FedLS-SQL: Execution-Verified
-Large-to-Small Knowledge Transfer for Federated NL-to-SQL*.
+Research repository for the paper *FedLS-SQL: A Novel Federated Large-Small
+Language Models Framework for Natural Language to SQL*.
 
-FedLS-SQL studies private client-side adaptation of a lightweight SLM and
-server-side collaboration with a frozen LLM. The deployed model is the SLM.
-The exact KD and federated mechanism is currently open while protocol v2
-re-establishes dataset-correct Spider and BIRD-with-evidence baselines.
+FedLS-SQL trains a small model (Qwen2.5-1.5B) on private Text-to-SQL data
+held by federated clients, and uses a frozen large model (Qwen2.5-Coder-7B) on
+the server, on public data only, to improve it. Only the small model is
+deployed. The final method is not chosen yet.
 
-The current research question is:
+The research question is:
 
 > Can large-to-small language model collaboration overcome the accuracy
 > limitations of lightweight federated NL-to-SQL models while retaining the
 > privacy, communication-efficiency, and resource advantages of federated
 > learning?
 
-This remains the advisor-level scientific target. The operational evidence
-contract and limits for “overcome”, privacy, resources, and large-model FL are
-defined in `paper/notes/PAPER_EVIDENCE_PLAN.md`.
+Start here (in this order):
 
-- Canonical architecture and terminology: `paper/notes/system_architecture.md`
-- Active experiment queue: `paper/notes/PIPELINE_NEXT.md`
-- Ordered adaptive paper TODO: `paper/notes/PAPER_TODO.md`
-- Related-work and claim-boundary audit: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`
-- Evidence-mapped manuscript skeleton: `paper/notes/MANUSCRIPT_SKELETON.md`
-- RQ-to-evidence map: `paper/notes/EXPERIMENT_MATRIX.md`
-- Canonical paper result tables: `paper/results/MAIN_RESULTS.md`
-- Checkpoint/evaluation artifact map: `paper/notes/RESULT_REGISTRY.md`
-- Complete research history: `paper/notes/LAB_LOG.md`
-- Protocol-v1 no-BIRD-evidence archive: `paper/archive/protocol_v1_no_bird_evidence/`
-- Superseded FedICL/ICL material: `paper/archive/pre_fedls_2026-08/`
+1. `paper/notes/system_architecture.md` — the method and what we may claim.
+2. `paper/notes/LAB_LOG.md` — current evidence, newest first.
+3. `paper/notes/PIPELINE_NEXT.md` — the only list of commands to run.
+4. `paper/notes/RESULT_REGISTRY.md` — where every number and adapter came from.
+5. `paper/notes/EXPERIMENT_MATRIX.md` — research questions, evidence plan, and
+   the paper-closure checklist.
+
+Other active files:
+
+- Paper result tables: `paper/results/MAIN_RESULTS.md`
+- Manuscript outline: `paper/drafts/fedls_sql_outline.md`
+- Novelty and claim limits: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`
+- ICL negative result: `paper/notes/ICL_NEGATIVE_RESULT.md`
+- Archive index (old logs, reviews, runbooks): `paper/archive/README.md`
 - Code: `fedicl-sql/`
 
 **Two-repo layout (intentional):** this outer repo contains private paper

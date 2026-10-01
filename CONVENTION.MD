@@ -37,13 +37,13 @@ archive directory with a README explaining their replacement.
 | What is the method? | `paper/notes/system_architecture.md` |
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
-| What paper work remains and in what order? | `paper/notes/PAPER_TODO.md` |
+| What paper work remains and in what order? | `paper/notes/EXPERIMENT_MATRIX.md` (paper-closure checklist) |
 | Which metric appears in the paper? | `paper/results/MAIN_RESULTS.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
 | Which RQ still lacks evidence? | `paper/notes/EXPERIMENT_MATRIX.md` |
 | What novelty/claim boundary is defensible? | `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md` |
-| How is the manuscript mapped to evidence? | `paper/notes/MANUSCRIPT_SKELETON.md` |
-| What happened historically? | `paper/archive/` and Git history |
+| How is the manuscript mapped to evidence? | `paper/drafts/fedls_sql_outline.md` |
+| What happened historically? | `paper/archive/README.md` and Git history |
 
 Do not duplicate commands, result tables, or current decisions across multiple
 active files without a clear owner.
