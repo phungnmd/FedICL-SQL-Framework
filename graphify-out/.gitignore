@@ -8,7 +8,10 @@ cache/
 .graphify_cached.json
 .graphify_detect.json
 .graphify_extract.json
+.graphify_incremental.json
+.graphify_old*.json
 .graphify_semantic.json
 .graphify_semantic_new.json
 .graphify_uncached.txt
+.graphify_update_hashes.json
 .needs_update

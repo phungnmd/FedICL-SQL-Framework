@@ -474,10 +474,10 @@
     "semantic_hash": "4ff0e77cf81e89a15c86d00f425f7fbc"
   },
   "paper/notes/EXPERIMENT_MATRIX.md": {
-    "mtime": 1790880366.309419,
-    "seen": 1790880485.7194262,
-    "ast_hash": "59b2ba15c82e6bdbe3e34834fb922b6f",
-    "semantic_hash": "59b2ba15c82e6bdbe3e34834fb922b6f"
+    "mtime": 1790880634.2980726,
+    "seen": 1790880818.002718,
+    "ast_hash": "95ba12769840d787d6ae3da9ea085c87",
+    "semantic_hash": "95ba12769840d787d6ae3da9ea085c87"
   },
   "paper/notes/ICL_NEGATIVE_RESULT.md": {
     "mtime": 1787189875.6924832,
@@ -486,16 +486,16 @@
     "semantic_hash": "b58972462d1f96238134c6be541780aa"
   },
   "paper/notes/LAB_LOG.md": {
-    "mtime": 1790880366.4424882,
-    "seen": 1790880485.719428,
-    "ast_hash": "07dcffbfc9f1ff55bb6c1acc737a210e",
-    "semantic_hash": "07dcffbfc9f1ff55bb6c1acc737a210e"
+    "mtime": 1790880634.4194863,
+    "seen": 1790880818.002719,
+    "ast_hash": "80a73a7a68fc4c6a45afa28ac9c8a992",
+    "semantic_hash": "80a73a7a68fc4c6a45afa28ac9c8a992"
   },
   "paper/notes/PIPELINE_NEXT.md": {
-    "mtime": 1790880426.0943265,
-    "seen": 1790880485.719429,
-    "ast_hash": "8a82f8e8802be5d7852703f7dbfdf318",
-    "semantic_hash": "8a82f8e8802be5d7852703f7dbfdf318"
+    "mtime": 1790880634.2250159,
+    "seen": 1790880818.00272,
+    "ast_hash": "2db3ad6079f13f951deb6a2e92703853",
+    "semantic_hash": "2db3ad6079f13f951deb6a2e92703853"
   },
   "paper/notes/RELATED_WORK_NOVELTY_MATRIX.md": {
     "mtime": 1790880199.1512198,
@@ -516,10 +516,10 @@
     "semantic_hash": "7c36bb18b24659365ae932f054b52afe"
   },
   "paper/notes/system_architecture.md": {
-    "mtime": 1790880426.151242,
-    "seen": 1790880485.719434,
-    "ast_hash": "7b4e1658eb999f65b47479709522a345",
-    "semantic_hash": "7b4e1658eb999f65b47479709522a345"
+    "mtime": 1790880634.3571842,
+    "seen": 1790880818.00272,
+    "ast_hash": "6cb8418ef195f2a93ce4c8dfbab11afc",
+    "semantic_hash": "6cb8418ef195f2a93ce4c8dfbab11afc"
   },
   "paper/references/md/Natural Language to SQL/1-Spider- A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task.md": {
     "mtime": 1780849821.109776,
