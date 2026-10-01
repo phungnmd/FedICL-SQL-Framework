@@ -15,7 +15,7 @@ material and index entries only.
 | `paper_planning_2026-09/` | stale paper trackers and stubs | `paper/notes/EXPERIMENT_MATRIX.md`, `paper/drafts/fedls_sql_outline.md` |
 | `paused_runbooks/` | P2.9 terminal retention runbook, paused and resumable | `paper/notes/PIPELINE_NEXT.md` (paused section) |
 | `completed_runbooks/` | finished command blocks and dated sequencing snapshots; each file states its actual status | `paper/notes/PIPELINE_NEXT.md` |
-| `superseded_runbooks/` | queued runbooks replaced before running (P2.7, P2.8) | — |
+| `superseded_runbooks/` | queued runbooks replaced before running (P2.7, P2.8, P2.13) | — |
 | `closed_method_branches/` | failed method branches (P0.10 FedDF, P1.7a preference KD) | own `README.md` |
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |

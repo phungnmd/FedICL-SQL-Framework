@@ -11,22 +11,20 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, A5000 amendment)
+## Where we are (2026-10-02, P2.14 delivered)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
-- Main objective: final Spider EX. Separate pipeline effectiveness over FL,
-  private-round efficiency, and teacher-specific improvement over gold.
-- Selected next: P2.13 full-gold plus auxiliary teacher plans, with fullgold
-  and same-row extra-SQL controls from the first screen. Runner implemented
-  and CPU-tested; commands and decision gates belong to `PIPELINE_NEXT.md`.
-  The owner completed the old preparation without starting GPU lanes. New
-  target_fp32 preparation, semantic review and live probes/smokes remain pending.
-- Current success target: teacher CoT exceeds full-gold and Hinton terminal
-  Spider EX at `A>K>A`, with the extra-SQL control testing teacher attribution.
-- Parked: P2.11 SeqKD-plan, P2.12 private plans, A3 depth, A2 interleaving.
-  A1 was last reported running on 2026-10-01, not checked live in this review.
-- Stopped: P2.10 (QP-CoT everywhere with template client plans). Paused: P2.9
+- Main objective: final Spider EX. The KD direction is chain-of-thought KD that
+  beats Hinton and full gold, with SQL-only clients and SQL-only inference.
+- Selected next: P2.14, Struct-SQL data trained with Distilling Step-by-Step.
+  Two arms on the 1,000 admitted P2.10 rows: SeqKD on teacher SQL, and the same
+  plus the teacher plan as a separate task (weight 0.8). Commands and reading
+  rules are in `PIPELINE_NEXT.md`.
+- Superseded before training: P2.13 (full gold plus 1,000 plans at weight 0.5).
+- A1 merge gate: finished on the server, no merge passed. To be recorded here
+  with its result commit.
+- Parked: P2.11, P2.12, A2 interleaving, A3 depth. Stopped: P2.10. Paused: P2.9
   retention.
 
 ## Evidence ledger — Spider private, BIRD public
@@ -102,6 +100,23 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 - Operational estimate, extrapolated from existing stage/eval timings:
   T about 6-8 hours, sequential G/E about 12-16 hours on the other GPU. It is
   not a paper resource measurement or a guaranteed runtime/RAM ceiling.
+
+## 2026-10-02 - Replace P2.13 with the P2.14 plan-task screen (no GPU run)
+
+- P2.13 stopped in its first memory probe: `torch.cuda.set_per_process_memory_fraction`
+  rejects an unindexed `cuda` device (fixed in nested `722f6e8`). No training ran.
+- Design review: P2.13 gave the plan task about 5% of the K gradient (1,000 of
+  9,428 rows, weight 0.5, batch 1 with per-example token-mean loss) and paired
+  teacher plans with gold SQL. Neither Struct-SQL nor Distilling Step-by-Step
+  does this. Struct-SQL trains the teacher SQL of admitted rows; Distilling
+  Step-by-Step gives every training row a rationale from the same teacher.
+- P2.14 follows both on the existing 1,000 admitted rows: `seq` (teacher SQL)
+  versus `dss` (teacher SQL plus teacher plan as a separate task, weight 0.8 as
+  in PARSQL), 3 public epochs, one SQL-only FedAvg round, five-set evaluation.
+- Nested commits: `91c4a5a` (multi-epoch auxiliary stages), `4de1025` (shared
+  memory probe and allowlist; also removes a public-stage flag the CLI rejects,
+  which would have stopped the P2.13 smoke), `5713ca8` (P2.14 runner). 807 tests
+  pass; every P2.13/P2.14 stage command parses through the real CLI.
 
 ## 2026-10-02 - Fix missing P2.10 inputs in P2.13 bootstrap
 
