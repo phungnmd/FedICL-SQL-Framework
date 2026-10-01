@@ -8,6 +8,11 @@ Final-model Spider EX is primary. Spider variants and BIRD EX measure
 robustness and transfer; EM is secondary. Protocol-v1 results never fill a
 cell here. CoT is optional supervision, not a required output or contribution.
 
+Current priority: teacher CoT that beats full BIRD-gold and Hinton on terminal
+Spider EX at the fixed `A>K>A` schedule. The broader pipeline claim remains
+valid, but it is not the stopping criterion for this stronger-method search.
+Schedule depth is secondary; no AKAAA experiment is required for this gate.
+
 ## 1. Research questions
 
 | # | Question | Comparison | Status |
@@ -17,13 +22,14 @@ cell here. CoT is optional supervision, not a required output or contribution.
 | 3 | Does a public teacher stage add EX? | FL vs public-gold CE vs SeqKD vs gold CE + Hinton | done (P2.2); public stage helps BIRD, hurts Spider variants |
 | 4 | Does it depend on the direction? | BIRD→Spider and Spider→BIRD | done for FL/gold/SeqKD; reverse Hinton not run |
 | 5 | Does a last private stage keep both domains? | `A>A` vs `A>K>A` | done (P2.3): yes at seed 0 |
-| 5a | How much private consolidation is useful after K? | `A>K[KD]>A^m` vs `A>K[gold]>A^m` vs `A^(m+1)` at matched depths | planned (A3); m and stopping rule to be frozen, no fixed AKAAA recipe |
+| 5a | How much private consolidation is useful after K? | `A>K[KD]>A^m` vs `A>K[gold]>A^m` vs `A^(m+1)` at matched depths | deferred (A3), after fixed-AKA CoT gate; no fixed AKAAA recipe |
 | 6 | Is the gain from Hinton soft logits? | `A>K[ce]>A` vs `A>K[fkl]>A` | done (P2.4a): no reliable terminal advantage at seed 0 |
 | 7 | Is the gain from teacher SQL? | same 5,319 rows: `A>K[ce]>A` vs `A>K[seq]>A` | done (P2.6): edge at public endpoint, mostly gone after last A |
 | 8 | Can a retention loss keep the teacher edge? | `A>K>A[ret]`, SeqKD vs gold | paused (P2.9): λ = 1.0 failed |
 | 8a | Does a weight merge keep the teacher edge? | WiSE-FT and task arithmetic; Hinton vs full gold, SeqKD vs matched gold | **active (A1, Direction 1)** |
 | 9 | Does a teacher query plan beat gold? | Struct-SQL QP-CoT in every stage with template client plans (P2.10) | stopped: recipe underperformed; format/template mechanisms not isolated |
 | 9a | Does the teacher plan help as an auxiliary task? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD; add matched SQL exposure if promising | **ready (P2.11, Direction 2)**; old SeqKD contrast is not compute-matched |
+| 9a-g | Can teacher plans improve the strong full-gold baseline directly? | `A>K[fullgold+plan]>A` vs full-gold, with template/extra-SQL exposure controls | proposed, not implemented; distinct from the existing SeqKD-based P2.11 recipe |
 | 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | **code ready (P2.12)**, conditional and lower priority; masking does not freeze plan generation |
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; only if Direction 2 shows the teacher is the bottleneck |
 | 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence; does not require A1 merge success |
@@ -46,9 +52,9 @@ P2.12. Not pursued: an in-domain public pool.
 3. Rerun the reference method in both directions. **Done.**
 4. Attribute any EX gain with matched public-gold, SeqKD, and soft-KD controls.
    **Done so far: no teacher-specific gain after the last private stage.**
-5. Improve only the part the results show is limiting. **In progress: public
-   adaptation/consolidation depth and the P2.11 auxiliary-plan screen; P2.12
-   and interleaving are conditional alternatives.**
+5. Improve the teaching signal at fixed `A>K>A`. **Priority: auxiliary teacher
+   plans; direct full-gold-plus-plan contrast proposed. Explicit local CoT is
+   conditional; extra private rounds and interleaving are secondary.**
 6. Confirm the chosen method on more seeds, one harder split, and maybe a
    second model family.
 7. Add communication, resource, and privacy-boundary evidence.

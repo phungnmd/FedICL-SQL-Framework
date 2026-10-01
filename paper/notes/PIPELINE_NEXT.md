@@ -12,6 +12,12 @@ FL separately from teacher gain over matched public gold; see the claim
 ladder in `RELATED_WORK_NOVELTY_MATRIX.md`. BIRD and Spider variants are
 secondary diagnostics, not substitutes for the primary objective.
 
+Current method gate (owner clarification): keep `A>K>A` fixed and test whether
+teacher CoT raises final Spider EX above `A>K[fullgold]>A` and the Hinton
+reference. A reproducible positive terminal difference is the target; no
+additional private rounds or BIRD-gain threshold is required. Prioritize the
+plan-supervision question now. A2/A3 remain secondary schedule hypotheses.
+
 What we know (details in `LAB_LOG.md`):
 
 - A public BIRD stage followed by one more FedAvg round beats FL alone on all
@@ -30,7 +36,7 @@ the 2026-10-02 documentation review did not inspect or start server jobs.
 
 | Direction | Goal | Steps | Branch (nested) | Status |
 |---|---|---|---|---|
-| **1. Public adaptation and FL convergence** | Raise final Spider EX and measure teacher contribution | A1 existing merge screen; A3 consolidation-depth screen; A2 interleaving if justified | `experiment/terminal-retention` | A1 last reported running (GPU 1); A3/A2 planned |
+| **1. Public adaptation and FL convergence** | Raise final Spider EX and measure teacher contribution | A1 existing merge screen; A3/A2 secondary to the fixed-AKA CoT gate | `experiment/terminal-retention` | A1 last reported running (GPU 1); A3/A2 deferred |
 | **2. Teacher plans without private plan labels** | Improve SQL prediction through public reasoning supervision | P2.11 auxiliary plan first; P2.12 conditional | `experiment/struct-aux-cot` | P2.11 ready (GPU 0); P2.12 code ready, lower priority |
 
 Not pursued: an in-domain public pool (holding out Spider as public data), and
@@ -97,7 +103,10 @@ round r = 1..R (R = 3):   A (FedAvg on Spider)  ->  k (Hinton on BIRD shard r)
   controls, new endpoints, and the selected R need a revised cost estimate.
 - Needed code: a K stage on a row shard, and an R-round schedule runner.
 
-## A3. Consolidation depth after one K (planned, no command activated)
+## A3. Consolidation depth after one K (deferred, no command activated)
+
+The current priority is teacher CoT at fixed `A>K>A`. This depth question is
+retained for later and is not a prerequisite for success of that method gate.
 
 Test the family `A>K>A^m`, not a fixed `A>K>A>A>A`. The private MedQA example
 reported by the owner is motivation only, not a source, replication target,
@@ -194,6 +203,28 @@ Send the smoke output (peak reserved VRAM) and, after `tplan` public
 evaluation, the public EX. `tplan − seqkd` at the public endpoint is the early
 read.
 
+### Direct full-gold plus plan contrast (proposal, not the P2.11 runner)
+
+P2.11 currently adds plans to the 5,319-row SeqKD recipe. That is a useful
+screen, but the strongest gold reference uses 9,428 rows. For a direct test
+against it, keep the full-gold SQL task and add a separate teacher-plan task
+on the public rows with admitted plans: `L = L_gold_SQL + beta * L_teacher_plan`.
+Use the normal SQL-only A parent, SQL-only terminal A, and SQL-only inference.
+This transfers teacher reasoning without requiring private plan labels or
+replacing correct public SQL with teacher SQL.
+
+Compare full-gold, full-gold plus teacher plans, and (if the signal is positive)
+full-gold plus template plans / extra SQL exposure on the same plan rows.
+Keep the base SQL stream fixed; control update/LR budgets and report token
+costs. Historical full-gold/Hinton endpoints are performance references, not
+automatically compute-matched controls for the added task. This variant needs
+a separately registered recipe; do not relabel or silently change P2.11.
+
+The task separation follows [Distilling Step-by-Step](https://aclanthology.org/2023.findings-acl.507/);
+the plan representation is inspired by [Struct-SQL](https://arxiv.org/html/2512.17053v3).
+Their combination with BIRD-to-Spider FL is our hypothesis, not a result
+established by either paper.
+
 ## P2.12. Latent plan at the client, loss on SQL only
 
 Keeps the Struct-SQL format end to end without plan labels on private data:
@@ -217,9 +248,20 @@ eval    plan then SQL, five sets; strict and SQL-marker EX
   matching public-parent/plain-terminal controls.
 - Cost: plan generation about 2–3 h per arm, the round about 1.9 h, evaluation
   about 2 h.
-- Lower priority than P2.11 and the simple depth screen. Runner
+- Lower priority than the auxiliary-plan test at fixed `A>K>A`. Runner
   `scripts/run_p212_latent_plan.py` is ready; activation depends on the plan
   audit and evidence, not an automatic step after P2.11.
+
+An alternative with stronger precedent for explicit CoT is local
+[STaR-SQL-style bootstrapping](https://aclanthology.org/2025.acl-long.1187.pdf):
+start from normal SQL-only A, teach plans in public K, then let the post-K
+student generate plan+SQL privately, retry failed rows with local gold SQL as
+a hint, and supervise accepted rationale+SQL targets. This is not the current
+P2.12 masked-plan objective. Private rows stay local; no server teacher access
+is needed. The paper demonstrates centralized 8B training, not 1.5B FL, so
+plan quality, row coverage, and plan/SQL agreement need a local gate. Any
+SQL-only fallback for rejected rows must have a separately declared prompt
+and task contract. Do not revive the template-plan initial A from P2.10.
 
 Older finished runbooks: `paper/archive/completed_runbooks/` and
 `paper/archive/superseded_runbooks/`. They are history, not the queue.

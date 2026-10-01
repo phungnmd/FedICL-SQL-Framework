@@ -25,6 +25,12 @@ and the incremental teacher contribution over matched public-gold training.
 These are separate claims; a gold tie limits attribution, not the observed
 pipeline gain. See `RELATED_WORK_NOVELTY_MATRIX.md` for the claim ladder.
 
+The owner's current stronger-method target is teacher CoT that improves
+terminal Spider EX over both full BIRD-gold and Hinton while keeping `A>K>A`
+fixed. Prioritize resolving missing private rationale labels via auxiliary
+public supervision or validated local rationale generation. More private
+rounds are a secondary investigation, not a requirement for this target.
+
 ## 2. Parts
 
 | Part | Choice |

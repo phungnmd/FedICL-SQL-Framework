@@ -18,9 +18,12 @@ Older detail:
 - Main objective: final Spider EX. Separate pipeline effectiveness over FL,
   private-round efficiency, and teacher-specific improvement over gold.
 - Direction 1: A1 last reported running on 2026-10-01, not checked live in this
-  review. A3 consolidation depth planned; A2 interleaving remains an alternative.
+  review. A3 depth and A2 interleaving deferred behind the fixed-AKA CoT gate.
 - Direction 2: P2.11 auxiliary-plan screen ready; P2.12 code ready but conditional
   and lower priority. Commands and decision gates belong to `PIPELINE_NEXT.md`.
+- Current success target: teacher CoT exceeds full-gold and Hinton terminal
+  Spider EX at `A>K>A`. Full-gold plus auxiliary teacher plans is a proposed
+  direct contrast; it is not the implemented SeqKD-based P2.11 recipe.
 - Stopped: P2.10 (QP-CoT everywhere with template client plans). Paused: P2.9
   retention.
 
@@ -71,6 +74,11 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 
 ## 2026-10-02 - Research objective and continuation hypotheses (no GPU run)
 
+- Subsequent owner clarification prioritizes a stronger teacher-CoT method
+  over full BIRD-gold/Hinton at fixed `A>K>A`. Depth experiments are secondary.
+  Added paper-grounded auxiliary-task and local STaR-SQL-style options, with
+  explicit separation of existing runners, proposed variants, and unproven
+  transfer to 1.5B federated Spider. No GPU run or code change followed.
 - Owner clarified that the paper should establish useful public KD for
   federated Spider EX. CoT and a fixed `A>K>A>A>A` schedule are not requirements.
 - The private MedQA example is an informal motivation only. No paper/repo was
