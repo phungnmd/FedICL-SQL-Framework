@@ -11,13 +11,15 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, P2.14 delivered)
+## Where we are (2026-10-02, P2.14 seed 0 done)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
 - Main objective: final Spider EX. The KD direction is chain-of-thought KD that
   beats Hinton and full gold, with SQL-only clients and SQL-only inference.
-- Selected next: P2.14, Struct-SQL data trained with Distilling Step-by-Step.
+- P2.14 done (seed 0): the plan task gives Spider +1.84 at the terminal endpoint
+  (entry below). Next step pending the owner's choice.
+- P2.14 design: Struct-SQL data trained with Distilling Step-by-Step.
   Two arms on the 1,000 admitted P2.10 rows: SeqKD on teacher SQL, and the same
   plus the teacher plan as a separate task (weight 0.8). Commands and reading
   rules are in `PIPELINE_NEXT.md`.
@@ -48,6 +50,10 @@ server stage. Evaluation batch size 16. Exact paths and run IDs:
 | `A>K[seq]>A` | 64.99 | 57.68 | 54.55 | 50.28 | 28.42 | `1e69ae3` |
 | `A>K[ce]>A` selected gold | 65.09 | 58.66 | 52.90 | 49.53 | 27.51 | `fb2329e` |
 | `A>K[kid]>A` | 65.47 | 57.09 | 54.16 | 50.28 | 28.94 | `5d861f8` |
+| `A>K3[ce]` P2.14 `seq`, 1,000 Struct-SQL rows, teacher SQL | 53.77 | 41.14 | 41.30 | 41.50 | 26.47 | `e622e1f` |
+| `A>K3[seq+plan]` P2.14 `dss`, same rows + teacher plan task | 54.06 | 39.96 | 40.33 | 42.43 | 28.55 | `e622e1f` |
+| `A>K3[ce]>A` P2.14 `seq` | 61.51 | 54.13 | 51.45 | 48.79 | 24.45 | `e622e1f` |
+| `A>K3[seq+plan]>A` P2.14 `dss` | 63.35 | 56.30 | 50.97 | 48.97 | 24.05 | `e622e1f` |
 | `A>K[seq]>A[ret]`, λ = 1.0 | 61.61 | 50.79 | 49.90 | 46.92 | 30.31 | not committed (server) |
 | `A>K[ce]>A[ret]` selected gold, λ = 1.0 | 60.74 | 50.20 | 49.42 | 45.79 | 28.88 | not committed (server) |
 
@@ -99,6 +105,30 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 - Operational estimate, extrapolated from existing stage/eval timings:
   T about 6-8 hours, sequential G/E about 12-16 hours on the other GPU. It is
   not a paper resource measurement or a guaranteed runtime/RAM ceiling.
+
+## 2026-10-02 - P2.14: the plan task helps Spider after FedAvg (seed 0)
+
+- Run: nested `experiment/fullgold-plan`, code `5713ca8`, results `e622e1f`.
+  1,000 Struct-SQL admitted rows, 3 public epochs, one SQL-only FedAvg round,
+  five-set SQL-only evaluation at batch 16, seed 0.
+- `dss - seq` (EX points, wins/losses, exact McNemar p):
+
+| Endpoint | Spider | Realistic | SYN | DK | BIRD |
+|---|---|---|---|---|---|
+| after K | +0.29 (55/52, .85) | −1.18 (33/39, .56) | −0.97 (50/60, .39) | +0.93 (27/22, .57) | **+2.09** (97/65, .015) |
+| after A | **+1.84** (46/27, .034) | +2.17 (26/15, .12) | −0.48 (40/45, .66) | +0.19 (15/14, 1.0) | −0.39 (56/62, .65) |
+
+- Reading: right after K the plan task helps BIRD, the domain of the plans. After
+  the private round the BIRD gain is gone (the usual pattern), but a Spider gain
+  appears (+1.84; Spider-family mean +0.93). This is the first KD variant whose
+  Spider edge grows after FedAvg instead of shrinking.
+- Limits: one seed and ten contrasts (the Spider p = .034 does not survive a
+  Bonferroni correction); `dss` makes twice the updates of `seq` (plan
+  examples); both arms are weak in absolute terms (`seq` 61.51 is below FL
+  `A>A` 62.57; Hinton and full gold reach about 66.6), because 1,000 rows over
+  3 epochs pull the model further from Spider than the large pools.
+- Resources: K reserved 20.2/20.4 GB, RSS 4.1 GB, 0.84-0.89 s/step; terminal A
+  12.6 GB, about 1.6 h. Recorded in `docs/A5000_RUN_CONFIG.md`.
 
 ## 2026-10-02 - A1 merge gate fails; closed
 

@@ -6,6 +6,9 @@ This file owns the next experiment and its launch commands. Results belong in
 
 ## Decision (2026-10-02): P2.14, does the plan task make KD better?
 
+**Status: done at seed 0 (results `e622e1f`, lab log 2026-10-02). Terminal
+Spider +1.84 for `dss`; the next step is pending.**
+
 Goal of this step: one positive number for KD with chain-of-thought. Nothing
 else is compared yet.
 
