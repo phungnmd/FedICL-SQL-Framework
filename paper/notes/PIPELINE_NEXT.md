@@ -47,7 +47,7 @@ Same method as P2.14, all parts from published work:
 
 Run from the **`fedicl-sql/` root on the GPU server**, PowerShell. Code: nested
 branch `experiment/fullgold-plan`, commit
-`0c5b0a27af8f46f1702d09279c97e79e91cc4792`. Do not switch, pull, edit or commit
+`b0d38082954679b13bb81a626ad20c9adf08488a`. Do not switch, pull, edit or commit
 in this working copy while any lane runs. Lanes write separate files and locks,
 so the two terminals can run at the same time.
 
@@ -59,7 +59,7 @@ pull and continue with the new commands.
    all 9,428 rows, and prepare the `gold` arm.
 
 ```powershell
-$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='0c5b0a27af8f46f1702d09279c97e79e91cc4792'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='b0d38082954679b13bb81a626ad20c9adf08488a'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
 ```
 
 2. Terminal 1, GPU 0: teacher generation (about 13-14 h; about 6,500 rows are

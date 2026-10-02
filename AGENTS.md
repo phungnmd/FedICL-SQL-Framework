@@ -112,8 +112,12 @@ under `paper/archive/`. Never use it as the current method specification.
 - Two RTX A5000 24 GB cards under WDDM. WDDM never raises CUDA OOM; it pages
   VRAM to host RAM and the job silently slows down. Keep peak reserved VRAM
   under about 21.5 GiB and the process's shared GPU memory near zero.
-- Student training uses `--lm-loss target_fp32` and `logits_to_keep`. The old
-  `full_bf16` loss on BIRD at 7,168 tokens paged about 71 GB and took 16.4 h.
+- Student training uses `--lm-loss target_fp32` and `logits_to_keep`. It is the
+  standard causal-LM loss (Hugging Face upcasts logits to fp32) over the
+  response window only. The CLI requires `--lm-loss` explicitly. `full_bf16` is
+  legacy: only for the KD trainers and for reproducing committed rows; on BIRD
+  at 7,168 tokens it paged about 71 GB and took 16.4 h. State the loss mode
+  whenever runs with different modes are compared.
 - Required settings are enforced inside the runners (memory cap 0.88, allocator,
   long-example probe, evaluation batch 16). Prefer enforcement in code over
   documentation.
