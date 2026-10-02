@@ -146,6 +146,12 @@ under `paper/archive/`. Never use it as the current method specification.
   deleting it. Keep reference PDFs private, outside the releasable inner repo.
 - Make small, logical commits with conventional messages. Commit messages never
   mention AI tools. Never change the Git author identity or configuration.
+- Work in the owner's checkouts (`/Users/edric/Learning/FedICL-SQL` and its
+  `fedicl-sql/`), on the branch named in the active queue, so the owner's
+  editor shows every change. Do not create a Git worktree, least of all in a
+  temporary directory. If one is unavoidable, tell the owner its path and
+  branch, and remove it (`git worktree remove`) when the work is pushed.
+  Before editing, check `git worktree list` and the current branch.
 
 ## Writing for the owner
 
