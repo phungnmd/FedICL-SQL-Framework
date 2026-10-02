@@ -51,9 +51,12 @@ under `paper/archive/`. Never use it as the current method specification.
   over all 9,428 BIRD train rows (teacher plan and SQL written together, kept
   only when the SQL is execution-correct; Thaker and Bresler, arXiv 2512.17053)
   trained with Distilling Step-by-Step (plan as a separate task; Hsieh et al.,
-  Findings ACL 2023), plan weight 0.8 (PARSQL, Findings ACL 2025). Arms `gold`,
-  `seq`, `dss`, one public epoch, then one SQL-only FedAvg round; more private
-  rounds come later. Clients and inference stay SQL-only.
+  Findings ACL 2023), plan weight 0.8 (PARSQL, Findings ACL 2025). Arms `gold`
+  and `dss`, one public epoch, then SQL-only FedAvg rounds (`A>K>A`, then
+  `A>K>A>A` and `A>K>A>A>A`). Hinton is the committed `A>K[fkl]>A` row, extended
+  with the same extra rounds. Clients and inference stay SQL-only.
+- The question is only whether `dss` beats gold and Hinton. Where the gain comes
+  from (teacher SQL or plan) is not needed.
 - Done: P2.14 (1,000 rows, 3 epochs): the plan task gave Spider +1.84 after
   FedAvg at seed 0 (nested results `e622e1f`), the first KD variant whose
   Spider edge appears after FedAvg instead of disappearing.

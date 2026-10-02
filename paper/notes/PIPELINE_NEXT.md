@@ -25,75 +25,78 @@ Same method as P2.14, all parts from published work:
 
 | Arm | Public stage K, 1 epoch | Then |
 |---|---|---|
-| `gold` | `[SQL]` question -> gold SQL, all 9,428 rows | one SQL-only FedAvg round |
-| `seq` | `[SQL]` question -> teacher SQL, admitted rows | one SQL-only FedAvg round |
-| `dss` | `seq` plus `[PLAN]` question -> teacher plan | one SQL-only FedAvg round |
+| `gold` | `[SQL]` question -> gold SQL, all 9,428 rows | SQL-only FedAvg rounds |
+| `dss` | `[SQL]` question -> teacher SQL plus `[PLAN]` question -> teacher plan, admitted rows | SQL-only FedAvg rounds |
 
-- All arms start from the committed SQL-only FL T1 adapter and use the same
-  recipe (LR 2e-4, batch 1 x accumulation 16, `target_fp32`, max length 7,424
-  with truncation as an error). `gold` is retrained here so it matches the other
-  two exactly; the old full-gold row used `full_bf16`.
-- Endpoints now: after K (`A>K`) and after one more round (`A>K>A`). More private
-  rounds (`A>K>A>A`) come in a later step from these results.
-- Numbers to read: `dss - seq` (does the plan task still help at full size) and
-  `dss - gold` (the paper criterion), at both endpoints, Spider first.
-- Hinton cannot be retrained with `target_fp32` (the KD trainer supports only
-  `full_bf16`, which pages on this card). Its old `A>K>A` row (66.63) is printed
-  for reference; it ties full gold (66.54).
+- The question: does `dss` beat `gold` and Hinton at `A>K>A`? Where the gain
+  comes from (teacher SQL or plan) is not needed, so there is no `seq` arm.
+- All arms start from the committed SQL-only FL T1 adapter with the same recipe
+  (LR 2e-4, batch 1 x accumulation 16, `target_fp32`, max length 7,424 with
+  truncation as an error). `gold` is retrained so it matches `dss` exactly.
+- **Hinton** is the committed `A>K[fkl]>A` row (66.63, same FL T1 parent, same
+  terminal round, seed 0). The KD trainer only supports `full_bf16`, so it is not
+  retrained. The analysis pairs `dss` and `gold` with its committed predictions
+  (exact McNemar). It also pairs the new `gold` with the old full-gold row
+  (66.54, `full_bf16`): if they are close, the change of loss mode does not
+  matter and the Hinton comparison is fair.
+- **More rounds** for the comparison at equal depth: `A>K>A>A` and
+  `A>K>A>A>A` for `gold` and Hinton on the GPU that would otherwise wait, and
+  for `dss` after its first round. All added rounds use `target_fp32`.
 
 ## Commands
 
 Run from the **`fedicl-sql/` root on the GPU server**, PowerShell. Code: nested
 branch `experiment/fullgold-plan`, commit
-`2d2fbbfb091710d7a6f94390c5249fad398c45c1`. Do not switch, pull, edit or commit
+`a81d0e3a5708e1d3446fe24019ad1b35e9d5f632`. Do not switch, pull, edit or commit
 in this working copy while any lane runs. Lanes write separate files and locks,
 so the two terminals can run at the same time.
+
+If step 1 already ran on the older commit, the prepared `gold` arm stays valid
+(code changes no longer invalidate it). Let a running `gold` lane finish, then
+pull and continue with the new commands.
 
 1. One time, CPU (a few minutes): update the code, build the candidate list of
    all 9,428 rows, and prepare the `gold` arm.
 
 ```powershell
-$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='2d2fbbfb091710d7a6f94390c5249fad398c45c1'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='a81d0e3a5708e1d3446fe24019ad1b35e9d5f632'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
 ```
 
 2. Terminal 1, GPU 0: teacher generation (about 13-14 h; about 6,500 rows are
-   new, the rest come from the P2.10 cache), then preparation of `seq` and
-   `dss`, then the `dss` lane (about 5-6 h). The generation is resumable: rerun
-   the same command after an interruption.
+   new, the rest come from the P2.10 cache), preparation of `dss`, the `dss`
+   lane (about 5-6 h), then two more rounds for `dss` (about 6 h). Generation
+   resumes if the same command is rerun.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase generate; if($LASTEXITCODE -ne 0){throw 'P2.15 generation failed'}; foreach ($A in 'seq','dss') { uv run python -m $R --phase prepare --arm $A; if($LASTEXITCODE -ne 0){throw "P2.15 $A preparation failed"} }; uv run python -m $R --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss lane failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase generate; if($LASTEXITCODE -ne 0){throw 'P2.15 generation failed'}; uv run python -m $R --phase prepare --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss preparation failed'}; uv run python -m $R --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss lane failed'}; uv run python -m $R --phase extend --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss depth failed'}
 ```
 
-3. Terminal 2, GPU 1: the `gold` lane now (about 6 h).
+3. Terminal 2, GPU 1: the `gold` lane (about 6 h), then two more rounds for
+   Hinton and for `gold` (about 6 h each).
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p215_struct_full --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold lane failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold lane failed'}; foreach ($A in 'hinton','gold') { uv run python -m $R --phase extend --arm $A; if($LASTEXITCODE -ne 0){throw "P2.15 $A depth failed"} }
 ```
 
-4. Terminal 2, GPU 1, after the `gold` lane has finished **and** terminal 1 has
-   printed the `seq` preparation: the `seq` lane (about 4-5 h). Started too early
-   it stops with "seq is not prepared" and can simply be rerun.
+Each training lane first runs its memory probe on its longest examples (stops
+above 21.5 GiB reserved), a short smoke, then K, evaluation, the private round,
+and evaluation. Each depth round is followed by the five-set evaluation. Check
+with `nvidia-smi` that each lane is on the intended GPU. Time estimates use
+P2.14 speeds (about 0.87 s per example step, about 1.6 h per private round,
+about 1.4-1.8 h of evaluation) and P2.10 teacher speed (about 7.5 s per row).
+
+4. Publication. It can run once `gold` and `dss` have finished `A>K>A`, and
+   again after the depth rounds; each run commits only new or changed files. It
+   writes `audits/protocol_v2/p215_struct_full_s0/summary.md` (also printed),
+   with the Spider table per depth and all paired contrasts. The first run also
+   commits the public teacher pool (BIRD train rows only, as P2.10 did).
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p215_struct_full --phase run --arm seq; if($LASTEXITCODE -ne 0){throw 'P2.15 seq lane failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
 ```
 
-Each lane first runs its memory probe on its longest examples (stops above
-21.5 GiB reserved), a short smoke, then K, evaluation, the private round, and
-evaluation. Check with `nvidia-smi` that each lane is on the intended GPU.
-Time estimates use the P2.14 speeds (about 0.87 s per example step, about 1.6 h
-per private round, about 1.8 h of evaluation per lane) and P2.10 teacher speed
-(about 7.5 s per row); they are not P2.15 measurements.
-
-5. Publication, **only after all three lanes exit successfully**. It writes the
-   paired table (`audits/protocol_v2/p215_struct_full_s0/summary.md`, also
-   printed) and commits the compact results plus the public teacher pool
-   (BIRD train rows only, as P2.10 did):
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'publication allowlist failed'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
-```
+Run the publication only while no lane is running, because a lane would write
+to the manifest during the commit.
 
 Send back: the generation summary line (admitted rows, acceptance and parse
 rates), each memory probe line, and the summary table.

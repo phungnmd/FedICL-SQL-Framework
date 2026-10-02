@@ -20,8 +20,9 @@ Older detail:
 - P2.14 done (seed 0): the plan task gives Spider +1.84 at the terminal endpoint
   (entry below).
 - Selected next: P2.15, the same method on all 9,428 BIRD train rows (about
-  4,150 admitted), one public epoch, arms `gold`, `seq`, `dss`, endpoints `A>K`
-  and `A>K>A`. Commands in `PIPELINE_NEXT.md`; nested code `2d2fbbf`.
+  4,150 admitted), one public epoch, arms `gold` and `dss`, compared with gold
+  and the committed Hinton row at `A>K>A`, then at `A>K>A>A` and `A>K>A>A>A`.
+  Commands in `PIPELINE_NEXT.md`; nested code `a81d0e3`.
 - P2.14 design: Struct-SQL data trained with Distilling Step-by-Step.
   Two arms on the 1,000 admitted P2.10 rows: SeqKD on teacher SQL, and the same
   plus the teacher plan as a separate task (weight 0.8). Commands and reading
