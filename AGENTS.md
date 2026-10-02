@@ -47,12 +47,16 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Current state (2026-10-02)
 
-- Active: P2.14 on nested branch `experiment/fullgold-plan`. Struct-SQL data
-  (teacher plan and SQL written together, kept only when the SQL is
-  execution-correct; Thaker and Bresler, arXiv 2512.17053) trained with
-  Distilling Step-by-Step (plan as a separate task; Hsieh et al., Findings ACL
-  2023), plan weight 0.8 (PARSQL, Findings ACL 2025). Clients and inference stay
-  SQL-only. One contrast: `dss - seq` on the 1,000 admitted rows.
+- Active: P2.15 on nested branch `experiment/fullgold-plan`. Struct-SQL data
+  over all 9,428 BIRD train rows (teacher plan and SQL written together, kept
+  only when the SQL is execution-correct; Thaker and Bresler, arXiv 2512.17053)
+  trained with Distilling Step-by-Step (plan as a separate task; Hsieh et al.,
+  Findings ACL 2023), plan weight 0.8 (PARSQL, Findings ACL 2025). Arms `gold`,
+  `seq`, `dss`, one public epoch, then one SQL-only FedAvg round; more private
+  rounds come later. Clients and inference stay SQL-only.
+- Done: P2.14 (1,000 rows, 3 epochs): the plan task gave Spider +1.84 after
+  FedAvg at seed 0 (nested results `e622e1f`), the first KD variant whose
+  Spider edge appears after FedAvg instead of disappearing.
 - Why clients stay SQL-only: in P2.10, template plans at the clients made the
   FedAvg model weak before any KD (QP T1 Spider 41.9 versus SQL-only 57.35).
 - Closed: P2.13 (superseded before training), P2.10 (stopped), A1 weight-merge

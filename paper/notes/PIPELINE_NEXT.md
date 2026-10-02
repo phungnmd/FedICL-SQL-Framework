@@ -4,112 +4,106 @@ This file owns the next experiment and its launch commands. Results belong in
 [LAB_LOG.md](LAB_LOG.md). All commands follow
 [CONVENTION.MD section 6.1](../../CONVENTION.MD).
 
-## Decision (2026-10-02): P2.14, does the plan task make KD better?
+## Decision (2026-10-02): P2.15, the plan task on full data
 
-**Status: done at seed 0 (results `e622e1f`, lab log 2026-10-02). Terminal
-Spider +1.84 for `dss`; the next step is pending.**
+P2.14 (1,000 rows) gave the first positive KD-with-CoT number: the plan task
+added +1.84 Spider EX after FedAvg. P2.15 runs the same method on every BIRD
+train row the teacher can solve, and adds a fresh full-gold baseline.
 
-Goal of this step: one positive number for KD with chain-of-thought. Nothing
-else is compared yet.
+Same method as P2.14, all parts from published work:
 
-The method combines two published pieces:
+- **Data (Struct-SQL,** [Thaker and Bresler](https://arxiv.org/abs/2512.17053)**):**
+  the frozen teacher writes a QP-CoT plan and the SQL together, from question,
+  schema and evidence only. A row is kept only if that SQL returns the gold
+  result. Now over all 9,428 BIRD train rows. P2.10 kept 44% of its rows, so
+  expect about 4,150 rows.
+- **Training (Distilling Step-by-Step,**
+  [Hsieh et al.](https://aclanthology.org/2023.findings-acl.507/)**):** the plan
+  is a separate `[PLAN]` task, weight 0.8 as in
+  [PARSQL](https://aclanthology.org/2025.findings-acl.37/). Clients and the
+  deployed model stay SQL-only.
 
-- **Data from Struct-SQL** ([Thaker and Bresler](https://arxiv.org/abs/2512.17053)):
-  the frozen teacher writes a QP-CoT plan and the SQL together, from the
-  question, schema and evidence only. A row is kept only if that SQL returns the
-  gold result. The student learns the teacher's SQL, not the gold SQL.
-- **Training from Distilling Step-by-Step**
-  ([Hsieh et al., Findings ACL 2023](https://aclanthology.org/2023.findings-acl.507/)):
-  the plan is a second task with its own instruction. It is never put in front
-  of the SQL. So the private clients and the deployed model stay SQL-only, which
-  avoids the P2.10 failure (template plans at the clients made the FedAvg model
-  weak before any KD: QP T1 Spider 41.9 versus SQL-only 57.35).
-
-We reuse the 1,000 rows that P2.10 already admitted (the same size as the
-Struct-SQL paper). No new teacher generation.
-
-| Arm | Public stage K (3 epochs, 1,000 rows) | Then |
+| Arm | Public stage K, 1 epoch | Then |
 |---|---|---|
-| `seq` | `[SQL]` question -> teacher SQL (plain SeqKD) | one SQL-only FedAvg round |
-| `dss` | same, plus `[PLAN]` question -> teacher plan, weight 0.8 | one SQL-only FedAvg round |
+| `gold` | `[SQL]` question -> gold SQL, all 9,428 rows | one SQL-only FedAvg round |
+| `seq` | `[SQL]` question -> teacher SQL, admitted rows | one SQL-only FedAvg round |
+| `dss` | `seq` plus `[PLAN]` question -> teacher plan | one SQL-only FedAvg round |
 
-- Plan weight 0.8 is the text-to-SQL value from
-  [PARSQL](https://aclanthology.org/2025.findings-acl.37/) (Findings ACL 2025),
-  which also trains an explanation task next to the SQL task on small models.
-- Same start for both: the committed SQL-only FL T1 adapter. Same recipe as the
-  full-gold row (LR 2e-4, batch 1 x accumulation 16, max length 7,168,
-  `target_fp32`). Same terminal round and five-set SQL-only evaluation.
-- The only number to read: `dss - seq`, after K and after the terminal round.
-- Known limit: `dss` sees each row twice per epoch (SQL and plan), so it makes
-  twice as many updates as `seq`. Add that control only if `dss` wins.
-
-How to read it:
-
-| Result | Next step |
-|---|---|
-| `dss > seq` after the terminal round (Spider-family or BIRD, about +1 or more) | Add the update-count control, then generate plans for all 9,428 BIRD rows and compare with Hinton and full gold |
-| `dss > seq` after K only | The plan helps but does not survive FedAvg; combine with the schedule work (A2) |
-| `dss <= seq` at both endpoints | The plan task does not help at this size; stop before generating more plans |
-
-Seed 0 only. One Spider question is about 0.1 point, so small differences are a
-signal to check, not a result.
+- All arms start from the committed SQL-only FL T1 adapter and use the same
+  recipe (LR 2e-4, batch 1 x accumulation 16, `target_fp32`, max length 7,424
+  with truncation as an error). `gold` is retrained here so it matches the other
+  two exactly; the old full-gold row used `full_bf16`.
+- Endpoints now: after K (`A>K`) and after one more round (`A>K>A`). More private
+  rounds (`A>K>A>A`) come in a later step from these results.
+- Numbers to read: `dss - seq` (does the plan task still help at full size) and
+  `dss - gold` (the paper criterion), at both endpoints, Spider first.
+- Hinton cannot be retrained with `target_fp32` (the KD trainer supports only
+  `full_bf16`, which pages on this card). Its old `A>K>A` row (66.63) is printed
+  for reference; it ties full gold (66.54).
 
 ## Commands
 
-Run from the **`fedicl-sql/` root on the GPU server**, PowerShell. The P2.10
-input files restored for P2.13 are reused as they are. Do not switch, pull,
-edit or commit in this working copy while a lane runs.
+Run from the **`fedicl-sql/` root on the GPU server**, PowerShell. Code: nested
+branch `experiment/fullgold-plan`, commit
+`2d2fbbfb091710d7a6f94390c5249fad398c45c1`. Do not switch, pull, edit or commit
+in this working copy while any lane runs. Lanes write separate files and locks,
+so the two terminals can run at the same time.
 
-Implementation: nested branch `experiment/fullgold-plan`, commit
-`5713ca8eafda1222f78b7bcb9872053b2f11f72b`.
-
-1. Preparation (CPU, a few minutes): checks the 1,000 rows against the BIRD
-   source and the teacher provenance, tokenizes both arms, and picks the longest
-   examples for the memory probe.
+1. One time, CPU (a few minutes): update the code, build the candidate list of
+   all 9,428 rows, and prepare the `gold` arm.
 
 ```powershell
-$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='5713ca8eafda1222f78b7bcb9872053b2f11f72b'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p214_struct_dss --phase prepare; if($LASTEXITCODE -ne 0){throw 'P2.14 preparation failed'}
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='2d2fbbfb091710d7a6f94390c5249fad398c45c1'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
 ```
 
-2. Two lanes, one per GPU, started after preparation. Each lane runs a memory
-   probe on its longest examples (stops if reserved VRAM exceeds 21.5 GiB), a
-   short smoke, then K, evaluation, the terminal round, and evaluation. Check
-   with `nvidia-smi` that lane `dss` is on GPU 0.
-
-Terminal 1, GPU 0, `dss` (about 6 hours):
+2. Terminal 1, GPU 0: teacher generation (about 13-14 h; about 6,500 rows are
+   new, the rest come from the P2.10 cache), then preparation of `seq` and
+   `dss`, then the `dss` lane (about 5-6 h). The generation is resumable: rerun
+   the same command after an interruption.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run python -m scripts.run_p214_struct_dss --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.14 dss lane failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase generate; if($LASTEXITCODE -ne 0){throw 'P2.15 generation failed'}; foreach ($A in 'seq','dss') { uv run python -m $R --phase prepare --arm $A; if($LASTEXITCODE -ne 0){throw "P2.15 $A preparation failed"} }; uv run python -m $R --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss lane failed'}
 ```
 
-Terminal 2, GPU 1, `seq` (about 5 hours):
+3. Terminal 2, GPU 1: the `gold` lane now (about 6 h).
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p214_struct_dss --phase run --arm seq; if($LASTEXITCODE -ne 0){throw 'P2.14 seq lane failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p215_struct_full --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold lane failed'}
 ```
 
-The time estimates come from P2.10 `target_fp32` training (about 1.25 s per
-example step: 3,000 steps for `seq`, 6,000 for `dss`), about 1.6-2 h per terminal
-round and about 1.8 h of evaluation. They are not P2.14 measurements.
-
-3. Publication, **only after both lanes exit successfully**. It writes the paired
-   `dss - seq` table (`audits/protocol_v2/p214_struct_dss_s0/summary.md`, also
-   printed), commits only compact files, and pushes:
+4. Terminal 2, GPU 1, after the `gold` lane has finished **and** terminal 1 has
+   printed the `seq` preparation: the `seq` lane (about 4-5 h). Started too early
+   it stops with "seq is not prepared" and can simply be rerun.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p214_struct_dss --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.14 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p214_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'publication allowlist failed'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.14 Struct-SQL plan-task screen'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p215_struct_full --phase run --arm seq; if($LASTEXITCODE -ne 0){throw 'P2.15 seq lane failed'}
 ```
 
-To resume an interrupted lane, rerun its exact command. Finished stages and
-evaluations are reused; changed inputs or code stop the run instead.
+Each lane first runs its memory probe on its longest examples (stops above
+21.5 GiB reserved), a short smoke, then K, evaluation, the private round, and
+evaluation. Check with `nvidia-smi` that each lane is on the intended GPU.
+Time estimates use the P2.14 speeds (about 0.87 s per example step, about 1.6 h
+per private round, about 1.8 h of evaluation per lane) and P2.10 teacher speed
+(about 7.5 s per row); they are not P2.15 measurements.
 
-Send back: the memory probe line of each lane (reserved MB, RSS), and the
-summary table.
+5. Publication, **only after all three lanes exit successfully**. It writes the
+   paired table (`audits/protocol_v2/p215_struct_full_s0/summary.md`, also
+   printed) and commits the compact results plus the public teacher pool
+   (BIRD train rows only, as P2.10 did):
+
+```powershell
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'publication allowlist failed'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+```
+
+Send back: the generation summary line (admitted rows, acceptance and parse
+rates), each memory probe line, and the summary table.
 
 ## Parked
 
-- P2.13 (full gold plus 1,000 plans at weight 0.5): superseded before training,
-  see the [archived queue](../archive/superseded_runbooks/P213_FULLGOLD_PLAN_2026-10-02.md).
+- P2.14 (1,000-row screen): done, see the
+  [archived queue](../archive/completed_runbooks/P214_STRUCT_DSS_2026-10-02.md).
+- P2.13: superseded before training
+  ([archived queue](../archive/superseded_runbooks/P213_FULLGOLD_PLAN_2026-10-02.md)).
 - A1 merge gate: failed, closed (lab log 2026-10-02; results not committed).
 - A2 interleaving, P2.11, P2.12, A3. P2.10 stays stopped.
 

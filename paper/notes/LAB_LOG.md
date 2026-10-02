@@ -11,14 +11,17 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, P2.14 seed 0 done)
+## Where we are (2026-10-02, P2.15 delivered)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by one more private stage (`A>K>A`).
 - Main objective: final Spider EX. The KD direction is chain-of-thought KD that
   beats Hinton and full gold, with SQL-only clients and SQL-only inference.
 - P2.14 done (seed 0): the plan task gives Spider +1.84 at the terminal endpoint
-  (entry below). Next step pending the owner's choice.
+  (entry below).
+- Selected next: P2.15, the same method on all 9,428 BIRD train rows (about
+  4,150 admitted), one public epoch, arms `gold`, `seq`, `dss`, endpoints `A>K`
+  and `A>K>A`. Commands in `PIPELINE_NEXT.md`; nested code `2d2fbbf`.
 - P2.14 design: Struct-SQL data trained with Distilling Step-by-Step.
   Two arms on the 1,000 admitted P2.10 rows: SeqKD on teacher SQL, and the same
   plus the teacher plan as a separate task (weight 0.8). Commands and reading
