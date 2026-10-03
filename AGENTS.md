@@ -57,6 +57,10 @@ under `paper/archive/`. Never use it as the current method specification.
   with the same extra rounds. Clients and inference stay SQL-only.
 - The question is only whether `dss` beats gold and Hinton. Where the gain comes
   from (teacher SQL or plan) is not needed.
+- Optional arm `goldplan` (added 2026-10-03): gold SQL on all 9,428 rows plus
+  the teacher plan task on the 4,109 admitted rows (the labeled setting of
+  Distilling Step-by-Step). It removes the row loss of `dss`, which learns SQL
+  only on the rows the teacher solved, and `goldplan - gold` isolates the plan.
 - Done: P2.14 (1,000 rows, 3 epochs): the plan task gave Spider +1.84 after
   FedAvg at seed 0 (nested results `e622e1f`), the first KD variant whose
   Spider edge appears after FedAvg instead of disappearing.
