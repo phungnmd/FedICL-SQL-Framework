@@ -57,10 +57,12 @@ under `paper/archive/`. Never use it as the current method specification.
   with the same extra rounds. Clients and inference stay SQL-only.
 - The question is only whether `dss` beats gold and Hinton. Where the gain comes
   from (teacher SQL or plan) is not needed.
-- Optional arm `goldplan` (added 2026-10-03): gold SQL on all 9,428 rows plus
-  the teacher plan task on the 4,109 admitted rows (the labeled setting of
-  Distilling Step-by-Step). It removes the row loss of `dss`, which learns SQL
-  only on the rows the teacher solved, and `goldplan - gold` isolates the plan.
+- `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task) and `dss`
+  both lose to full gold on Spider at `A>K>A` (64.89 vs 65.86, nested
+  `8bf615b`, `4e8aa80`). The plan-task direction is closed.
+- P2.16 FL (nested `7e30ba9`): the BIRD public stage beats FL `A>A`, `A>A>A`,
+  `A>A>A>A` by about 3.3 Spider points (p < .011) for gold and Hinton alike;
+  every chain saturates near 68 (FL near 65).
 - Done: P2.14 (1,000 rows, 3 epochs): the plan task gave Spider +1.84 after
   FedAvg at seed 0 (nested results `e622e1f`), the first KD variant whose
   Spider edge appears after FedAvg instead of disappearing.

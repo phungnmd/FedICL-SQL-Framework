@@ -11,7 +11,7 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-03, P2.16 FL recorded, goldplan unpublished)
+## Where we are (2026-10-03, P2.16 FL and goldplan recorded)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by more private stages (`A>K>A...`).
@@ -24,9 +24,9 @@ Older detail:
 - P2.16 FL recorded (nested `7e30ba9`, entry below): the BIRD public stage
   beats pure FL by about 3.3 Spider points at 2, 3 and 4 private passes (all
   p < .011), for gold and Hinton alike. Centralized E1-E4 still running.
-- `goldplan` finished `A>K>A` on the server (Spider 64.9 reported in chat, -0.97
-  vs gold) but is not published yet. With it, every tested plan-task form fails
-  to beat gold.
+- `goldplan` recorded (nested `8bf615b`): Spider 64.89 at `A>K>A`, -0.97 vs
+  gold (p = .31). The plan-task direction is closed: no tested form (P2.10,
+  P2.14, `dss`, `goldplan`) beats full gold on Spider.
 - Not run: `dss` depth rounds (stopped on purpose after `A>K>A`), `seq`.
 - Superseded before training: P2.13. Closed: A1 merge gate, P2.10. Paused: P2.9.
 
@@ -60,6 +60,8 @@ server stage. Evaluation batch size 16. Exact paths and run IDs:
 | `A>K[seq+plan]` P2.15 `dss`, 4,109 Struct-SQL rows + plan task | 56.09 | 43.50 | 45.07 | 41.87 | 33.05 | `4e8aa80` |
 | `A>K[ce]>A` P2.15 `gold` | 65.86 | 57.68 | 53.48 | 51.21 | 29.53 | `4e8aa80` |
 | `A>K[seq+plan]>A` P2.15 `dss` | 64.89 | 56.89 | 52.71 | 50.09 | 25.62 | `4e8aa80` |
+| `A>K[gold+plan]` P2.15 `goldplan`, gold SQL 9,428 rows + plan task 4,109 | 51.74 | 43.70 | 39.07 | 41.68 | 33.77 | `8bf615b` |
+| `A>K[gold+plan]>A` P2.15 `goldplan` | 64.89 | 59.06 | 52.22 | 50.09 | 30.77 | `8bf615b` |
 | `A>K[ce]>A>A` P2.15 `gold` | 67.89 | 60.83 | 56.38 | 50.84 | 30.05 | `4e8aa80` |
 | `A>K[fkl]>A>A` Hinton | 67.60 | 56.89 | 55.61 | 52.90 | 30.90 | `4e8aa80` |
 | `A>K[ce]>A>A>A` P2.15 `gold` | 68.09 | 58.46 | 55.32 | 53.08 | 29.20 | `4e8aa80` |
@@ -88,6 +90,20 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-03 - P2.15 goldplan: the plan task does not help full gold (seed 0)
+
+- Run: nested `experiment/fullgold-plan`, code `47aedc3`, results `8bf615b`.
+  Gold SQL on all 9,428 rows plus the teacher plan task on the 4,109 admitted
+  rows (Distilling Step-by-Step, labeled setting, weight 0.8).
+- `goldplan - gold` at `A>K`: Spider -3.00 (p = .008), SYN -5.61 (p < 1e-4),
+  BIRD +2.48 (p = .005). At `A>K>A`: Spider -0.97 (35/45, p = .31), Realistic
+  +1.38, SYN -1.26, DK -1.12, BIRD +1.24 (p = .14); all p > .1.
+- `goldplan - Hinton` at `A>K>A`: Spider -1.74 (p = .11), SYN -3.09 (p = .006).
+- Reading: with the SQL rows held equal, the plan task costs Spider right after
+  K and leaves nothing after the private round. The P2.14 gain (+1.84 over
+  teacher-SQL `seq` on 1,000 rows) did not carry to full gold.
+- Decision: close the plan-task direction; no depth rounds for `goldplan`.
 
 ## 2026-10-03 - P2.16 FL: the public stage beats FL at equal depth (seed 0)
 
