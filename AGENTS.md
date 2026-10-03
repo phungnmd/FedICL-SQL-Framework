@@ -70,6 +70,9 @@ under `paper/archive/`. Never use it as the current method specification.
   gate (failed; results not committed). Paused: P2.9 retention.
 - Known pattern: every KD variant so far (Hinton, SeqKD, KID) beats gold right
   after K, and the edge on Spider disappears after the next private round.
+- P2.16 (queued 2026-10-03): equal-depth controls for P2.15, FL `A>A>A`,
+  `A>A>A>A` and centralized E1-E4 from one 4-epoch run, all `target_fp32`.
+  Needed for any "matches centralized" or "helps FL at equal depth" claim.
 - Not active: A2 interleaving, P2.11, P2.12, A3 depth, an in-domain public pool,
   an unlabeled-pool reframing, ICL, FLoRA-NA, SC, T4/T5.
 

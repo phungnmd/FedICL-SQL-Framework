@@ -136,6 +136,41 @@ commits newer than the running `dss` lane.
 Send back: the generation summary line (admitted rows, acceptance and parse
 rates), each memory probe line, and the summary table.
 
+## P2.16: equal-depth controls (GPU 1, runs next to `goldplan`)
+
+P2.15 compares K chains at 2, 3 and 4 private Spider passes. A claim that the
+public stage helps FL, or reaches centralized training, needs controls at the
+same number of passes:
+
+| Passes | K chain (P2.15) | FL control | Centralized |
+|---|---|---|---|
+| 2 | `A>K>A` | `A>A` (committed) | E2 |
+| 3 | `A>K>A>A` | `A>A>A` (new) | E3 |
+| 4 | `A>K>A>A>A` | `A>A>A>A` (new) | E4 |
+
+- FL rounds grow from the committed `A>A` row with the P2.15 private recipe.
+- Centralized: one continuous 4-epoch Spider run (`target_fp32`, private-client
+  recipe), adapter saved after each epoch, so E1-E4 come from one schedule.
+- Time: FL about 4.5 h, centralized about 9.5 h (7.6 h training plus four
+  five-set evaluations). Memory as a private client round (about 12.6 GB).
+
+Launch on GPU 1 (code `9f9aa6b`). The `goldplan` lane may keep running on GPU 0:
+the command pulls only after checking that every incoming change is a new P2.16
+file, Markdown, `experiments/client_train/run.py`, or the baseline PowerShell
+script, none of which the running lane imports.
+
+```powershell
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; $changed=@(git diff --name-only HEAD origin/experiment/fullgold-plan); if($LASTEXITCODE -ne 0){throw 'diff failed'}; $allowed='^(scripts/run_p216_equal_depth\.py|scripts/list_p216_publication\.py|tests/test_p216_equal_depth\.py|experiments/client_train/run\.py|scripts/run_protocol_v2_baselines\.ps1|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if($bad.Count -ne 0){throw "pull would change files the running lane uses: $bad"}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; git merge-base --is-ancestor 9f9aa6b6c118c083b6a8629a6961d34e45d35577 HEAD; if($LASTEXITCODE -ne 0){throw 'P2.16 code is missing'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $R='scripts.run_p216_equal_depth'; uv run python -m $R --phase fl; if($LASTEXITCODE -ne 0){throw 'P2.16 FL depth failed'}; uv run python -m $R --phase central; if($LASTEXITCODE -ne 0){throw 'P2.16 centralized run failed'}
+```
+
+Publication, only when no lane runs in this working copy (P2.15 and P2.16 lanes
+included). It can run more than once; each run commits only new or changed
+files.
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p216_equal_depth --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.16 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p216_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.16 equal-depth FL and centralized controls'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+```
+
 ## Parked
 
 - P2.14 (1,000-row screen): done, see the
