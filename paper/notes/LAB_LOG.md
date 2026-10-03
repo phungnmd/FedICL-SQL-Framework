@@ -11,18 +11,22 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-03, P2.15 recorded, goldplan running)
+## Where we are (2026-10-03, P2.16 FL recorded, goldplan unpublished)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
   by more private stages (`A>K>A...`).
 - Main objective: final Spider EX. The KD direction is chain-of-thought KD that
   beats full gold (and does not lose to Hinton), with SQL-only clients and
   SQL-only inference.
-- P2.15 recorded (nested `4e8aa80`, entry below): `dss` on full data does not
-  beat gold at `A>K>A` (Spider 64.89 vs 65.86) and loses BIRD (−3.91, p < 1e-4).
-  Gold and Hinton tie on Spider at every depth and saturate near 68.
-- Running: `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task on
-  the 4,109 admitted rows), nested `47aedc3`. It is the last plan-task test.
+- P2.15 recorded (nested `4e8aa80`): `dss` on full data does not beat gold at
+  `A>K>A` (Spider 64.89 vs 65.86) and loses BIRD (-3.91, p < 1e-4). Gold and
+  Hinton tie on Spider at every depth and saturate near 68.
+- P2.16 FL recorded (nested `7e30ba9`, entry below): the BIRD public stage
+  beats pure FL by about 3.3 Spider points at 2, 3 and 4 private passes (all
+  p < .011), for gold and Hinton alike. Centralized E1-E4 still running.
+- `goldplan` finished `A>K>A` on the server (Spider 64.9 reported in chat, -0.97
+  vs gold) but is not published yet. With it, every tested plan-task form fails
+  to beat gold.
 - Not run: `dss` depth rounds (stopped on purpose after `A>K>A`), `seq`.
 - Superseded before training: P2.13. Closed: A1 merge gate, P2.10. Paused: P2.9.
 
@@ -60,6 +64,8 @@ server stage. Evaluation batch size 16. Exact paths and run IDs:
 | `A>K[fkl]>A>A` Hinton | 67.60 | 56.89 | 55.61 | 52.90 | 30.90 | `4e8aa80` |
 | `A>K[ce]>A>A>A` P2.15 `gold` | 68.09 | 58.46 | 55.32 | 53.08 | 29.20 | `4e8aa80` |
 | `A>K[fkl]>A>A>A` Hinton | 67.79 | 59.06 | 55.03 | 53.46 | 31.81 | `4e8aa80` |
+| FL control `A>A>A` | 64.22 | 57.28 | 52.32 | 47.85 | 17.60 | `7e30ba9` |
+| FL control `A>A>A>A` | 64.80 | 56.30 | 52.03 | 50.09 | 17.67 | `7e30ba9` |
 | `A>K[seq]>A[ret]`, λ = 1.0 | 61.61 | 50.79 | 49.90 | 46.92 | 30.31 | not committed (server) |
 | `A>K[ce]>A[ret]` selected gold, λ = 1.0 | 60.74 | 50.20 | 49.42 | 45.79 | 28.88 | not committed (server) |
 
@@ -82,6 +88,31 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-03 - P2.16 FL: the public stage beats FL at equal depth (seed 0)
+
+- Run: nested `experiment/fullgold-plan`, code `9f9aa6b`, results `7e30ba9`.
+  FL `A>A>A` and `A>A>A>A` grown from the committed `A>A` row with the P2.15
+  private recipe (`target_fp32`). Centralized E1-E4 not finished.
+- Spider EX by number of private Spider passes:
+
+| Passes | FL | gold K | Hinton K |
+|---:|---:|---:|---:|
+| 2 | 62.57 | 65.86 | 66.63 |
+| 3 | 64.22 | 67.89 | 67.60 |
+| 4 | 64.80 | 68.09 | 67.79 |
+
+- `gold - FL` Spider: +3.29 (p = .004), +3.68 (p = .0007), +3.29 (p = .003).
+  `Hinton - FL`: +4.06, +3.38, +3.00 (p <= .011). BIRD: +11.5 to +14.5 at
+  every depth (p < 1e-27). DK positive at every depth (p < .05).
+- Reading: one BIRD public stage gives a stable offset of about 3.3 Spider
+  points that neither grows nor fades over two more private passes. FL itself
+  saturates near 65; the public-stage chains saturate near 68. The effect
+  behaves like extra labeled data; on Spider the teacher's soft labels add
+  nothing over gold at any depth, and keep about 1-2.6 more BIRD points.
+- Claim this supports now: "a public server stage helps federated text-to-SQL
+  at the same number of private passes". The centralized comparison waits for
+  E1-E4.
 
 ## 2026-10-03 - P2.15: the plan task on full data does not beat gold (seed 0)
 
