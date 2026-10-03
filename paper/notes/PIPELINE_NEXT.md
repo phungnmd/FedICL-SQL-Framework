@@ -171,6 +171,49 @@ files.
 $ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p216_equal_depth --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.16 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p216_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.16 equal-depth FL and centralized controls'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
 ```
 
+## P2.17: a second public stage (`A>K>A>K`, `A>K>A>K>A`)
+
+Why: every KD variant beats full gold right after K (Hinton `A>K` Spider +3.29,
+p = .012), and the next private round removes the edge. Protocol v1 ended its
+chain on K (`A>K>A>K>A>K`, Spider 69.54). P2.17 adds a second K to the finished
+`A>K>A` rows and one more private round:
+
+| Arm | New stages | Compared with (same private passes) |
+|---|---|---|
+| `gold` | `K[ce]` (P2.15 gold recipe), then `A` | gold `A>K>A` 65.86, `A>K>A>A` 67.89 |
+| `hinton` | `K[fkl]` (committed recipe and logit cache, now `target_fp32`), then `A` | Hinton `A>K>A` 66.63, `A>K>A>A` 67.60 |
+
+- Decision rule: Hinton minus gold at `A>K>A>K>A` at least +1 Spider point;
+  otherwise close interleaving. `A>K>A>K` (endpoint after K) is read the same
+  way against its references.
+- Hinton KD now runs with `target_fp32` (nested `0af4455`). The lane first runs
+  an isolated memory probe on the longest BIRD prompt and target and stops above
+  21.5 GiB. Report the printed `reserved=` value.
+- Time, estimated: Hinton about 7 h (K about 4 h, A 1.6 h, two five-set
+  evaluations), gold about 6 h.
+
+Hinton on GPU 0 now (code `7096718`). P2.16 centralized may keep running on
+GPU 1: the pull is checked first, and the files it changes are not imported by
+the running centralized training or its evaluations.
+
+```powershell
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; $changed=@(git diff --name-only HEAD origin/experiment/fullgold-plan); if($LASTEXITCODE -ne 0){throw 'diff failed'}; $allowed='^(scripts/run_p217_interleave\.py|scripts/list_p217_publication\.py|tests/.+\.py|fedicl_sql/training/lora_trainer\.py|fedicl_sql/federated/round_loop\.py|experiments/federated/run\.py|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if($bad.Count -ne 0){throw "pull would change files the running lane uses: $bad"}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; git merge-base --is-ancestor 709671823a00a1f96edf84e6be7e81132718f2ac HEAD; if($LASTEXITCODE -ne 0){throw 'P2.17 code is missing'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run python -m scripts.run_p217_interleave --phase run --arm hinton; if($LASTEXITCODE -ne 0){throw 'P2.17 hinton lane failed'}
+```
+
+Gold on whichever GPU frees first (GPU 1 after P2.16 centralized, or GPU 0
+after the Hinton lane). Change `CUDA_VISIBLE_DEVICES` to that GPU.
+
+```powershell
+$ErrorActionPreference='Stop'; git merge-base --is-ancestor 709671823a00a1f96edf84e6be7e81132718f2ac HEAD; if($LASTEXITCODE -ne 0){throw 'P2.17 code is missing; run the Hinton command first'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p217_interleave --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.17 gold lane failed'}
+```
+
+Publication, only when no lane runs in this working copy. It can run more than
+once; each run commits only new or changed files.
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p217_interleave --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.17 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p217_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; $big=@($paths | Where-Object { (Get-Item -LiteralPath $_).Length -gt 95MB }); if($big.Count -ne 0){throw "files above 95 MB: $big"}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.17 interleaved public stages'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+```
+
 ## Parked
 
 - P2.14 (1,000-row screen): done, see the

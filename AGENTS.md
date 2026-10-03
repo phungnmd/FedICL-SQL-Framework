@@ -72,6 +72,10 @@ under `paper/archive/`. Never use it as the current method specification.
   gate (failed; results not committed). Paused: P2.9 retention.
 - Known pattern: every KD variant so far (Hinton, SeqKD, KID) beats gold right
   after K, and the edge on Spider disappears after the next private round.
+- P2.17 (queued 2026-10-04, nested `7096718`): a second public stage on the
+  finished `A>K>A` rows of gold and Hinton (`A>K>A>K`, `A>K>A>K>A`). Hinton KD
+  now runs with `target_fp32`. Rule: Hinton minus gold at `A>K>A>K>A` at least
+  +1 Spider point, otherwise close interleaving.
 - P2.16 (queued 2026-10-03): equal-depth controls for P2.15, FL `A>A>A`,
   `A>A>A>A` and centralized E1-E4 from one 4-epoch run, all `target_fp32`.
   Needed for any "matches centralized" or "helps FL at equal depth" claim.
@@ -123,8 +127,9 @@ under `paper/archive/`. Never use it as the current method specification.
   under about 21.5 GiB and the process's shared GPU memory near zero.
 - Student training uses `--lm-loss target_fp32` and `logits_to_keep`. It is the
   standard causal-LM loss (Hugging Face upcasts logits to fp32) over the
-  response window only. The CLI requires `--lm-loss` explicitly. `full_bf16` is
-  legacy: only for the KD trainers and for reproducing committed rows; on BIRD
+  response window only. The CLI requires `--lm-loss` explicitly. Hinton KD
+  supports it since P2.17. `full_bf16` is legacy: only for the GKD and KID
+  trainers and for reproducing committed rows; on BIRD
   at 7,168 tokens it paged about 71 GB and took 16.4 h. State the loss mode
   whenever runs with different modes are compared.
 - Required settings are enforced inside the runners (memory cap 0.88, allocator,
