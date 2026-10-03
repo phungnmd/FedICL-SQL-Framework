@@ -112,7 +112,7 @@ $ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-pla
    (about 6 h).
 
 ```powershell
-$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='47aedc36668bb848e327580a161e79b2d700d44a'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase prepare --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan preparation failed'}; uv run python -m $R --phase run --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan lane failed'}
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; git merge-base --is-ancestor 47aedc36668bb848e327580a161e79b2d700d44a HEAD; if($LASTEXITCODE -ne 0){throw 'goldplan code is missing'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase prepare --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan preparation failed'}; uv run python -m $R --phase run --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan lane failed'}
 ```
 
 5. Publication. It can run once `gold` and `dss` have finished `A>K>A`, and
@@ -122,8 +122,12 @@ $ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-pla
    commits the public teacher pool (BIRD train rows only, as P2.10 did).
 
 ```powershell
-$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; $big=@($paths | Where-Object { (Get-Item -LiteralPath $_).Length -gt 95MB }); if($big.Count -ne 0){throw "files above 95 MB: $big"}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
 ```
+
+The `goldplan` command checks that its code is an ancestor of `HEAD`, not equal
+to it, so it still runs after a publication commit. The publication stops on
+any file above 95 MB (GitHub rejects files above 100 MB).
 
 Run the publication only while no lane is running, because a lane would write
 to the manifest during the commit. It pulls first, because the branch has code
