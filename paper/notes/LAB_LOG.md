@@ -11,26 +11,20 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-02, P2.15 delivered)
+## Where we are (2026-10-03, P2.15 recorded, goldplan running)
 
 - Method: not frozen. Best tested endpoint so far is a public stage followed
-  by one more private stage (`A>K>A`).
+  by more private stages (`A>K>A...`).
 - Main objective: final Spider EX. The KD direction is chain-of-thought KD that
-  beats Hinton and full gold, with SQL-only clients and SQL-only inference.
-- P2.14 done (seed 0): the plan task gives Spider +1.84 at the terminal endpoint
-  (entry below).
-- Selected next: P2.15, the same method on all 9,428 BIRD train rows (about
-  4,150 admitted), one public epoch, arms `gold` and `dss`, compared with gold
-  and the committed Hinton row at `A>K>A`, then at `A>K>A>A` and `A>K>A>A>A`.
-  Commands in `PIPELINE_NEXT.md`; nested code `b0d3808`.
-- P2.14 design: Struct-SQL data trained with Distilling Step-by-Step.
-  Two arms on the 1,000 admitted P2.10 rows: SeqKD on teacher SQL, and the same
-  plus the teacher plan as a separate task (weight 0.8). Commands and reading
-  rules are in `PIPELINE_NEXT.md`.
-- Superseded before training: P2.13 (full gold plus 1,000 plans at weight 0.5).
-- A1 merge gate: failed, closed. No merge passed (entry below; results not committed).
-- Parked: P2.11, P2.12, A2 interleaving, A3 depth. Stopped: P2.10. Paused: P2.9
-  retention.
+  beats full gold (and does not lose to Hinton), with SQL-only clients and
+  SQL-only inference.
+- P2.15 recorded (nested `4e8aa80`, entry below): `dss` on full data does not
+  beat gold at `A>K>A` (Spider 64.89 vs 65.86) and loses BIRD (−3.91, p < 1e-4).
+  Gold and Hinton tie on Spider at every depth and saturate near 68.
+- Running: `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task on
+  the 4,109 admitted rows), nested `47aedc3`. It is the last plan-task test.
+- Not run: `dss` depth rounds (stopped on purpose after `A>K>A`), `seq`.
+- Superseded before training: P2.13. Closed: A1 merge gate, P2.10. Paused: P2.9.
 
 ## Evidence ledger — Spider private, BIRD public
 
@@ -58,6 +52,14 @@ server stage. Evaluation batch size 16. Exact paths and run IDs:
 | `A>K3[seq+plan]` P2.14 `dss`, same rows + teacher plan task | 54.06 | 39.96 | 40.33 | 42.43 | 28.55 | `e622e1f` |
 | `A>K3[ce]>A` P2.14 `seq` | 61.51 | 54.13 | 51.45 | 48.79 | 24.45 | `e622e1f` |
 | `A>K3[seq+plan]>A` P2.14 `dss` | 63.35 | 56.30 | 50.97 | 48.97 | 24.05 | `e622e1f` |
+| `A>K[ce]` P2.15 `gold`, 9,428 rows, `target_fp32` | 54.74 | 44.88 | 44.68 | 41.50 | 31.29 | `4e8aa80` |
+| `A>K[seq+plan]` P2.15 `dss`, 4,109 Struct-SQL rows + plan task | 56.09 | 43.50 | 45.07 | 41.87 | 33.05 | `4e8aa80` |
+| `A>K[ce]>A` P2.15 `gold` | 65.86 | 57.68 | 53.48 | 51.21 | 29.53 | `4e8aa80` |
+| `A>K[seq+plan]>A` P2.15 `dss` | 64.89 | 56.89 | 52.71 | 50.09 | 25.62 | `4e8aa80` |
+| `A>K[ce]>A>A` P2.15 `gold` | 67.89 | 60.83 | 56.38 | 50.84 | 30.05 | `4e8aa80` |
+| `A>K[fkl]>A>A` Hinton | 67.60 | 56.89 | 55.61 | 52.90 | 30.90 | `4e8aa80` |
+| `A>K[ce]>A>A>A` P2.15 `gold` | 68.09 | 58.46 | 55.32 | 53.08 | 29.20 | `4e8aa80` |
+| `A>K[fkl]>A>A>A` Hinton | 67.79 | 59.06 | 55.03 | 53.46 | 31.81 | `4e8aa80` |
 | `A>K[seq]>A[ret]`, λ = 1.0 | 61.61 | 50.79 | 49.90 | 46.92 | 30.31 | not committed (server) |
 | `A>K[ce]>A[ret]` selected gold, λ = 1.0 | 60.74 | 50.20 | 49.42 | 45.79 | 28.88 | not committed (server) |
 
@@ -80,6 +82,46 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-03 - P2.15: the plan task on full data does not beat gold (seed 0)
+
+- Run: nested `experiment/fullgold-plan`, code `de57c27` (`dss`) and
+  `b0d3808` (`gold`, depth), results `4e8aa80`. Teacher pool: 9,428 rows
+  visited, parse 81.45%, 4,109 admitted (43.58%), 105 length-limited; longest
+  `dss` example 7,579 tokens (max_len 8,448 for teacher arms). Depth rounds use
+  `target_fp32`; Hinton depth grows from the committed `full_bf16` `A>K[fkl]>A`.
+- Spider EX by endpoint (wins/losses, exact McNemar p in `summary.md`):
+
+| Endpoint | gold | dss | Hinton |
+|---|---:|---:|---:|
+| `A>K` | 54.74 | 56.09 | 58.32 (old) |
+| `A>K>A` | 65.86 | 64.89 | 66.63 |
+| `A>K>A>A` | 67.89 | - | 67.60 |
+| `A>K>A>A>A` | 68.09 | - | 67.79 |
+
+- `dss - gold` at `A>K>A`: Spider −0.97 (51/61, p = .40), BIRD −3.91 (69/129,
+  p = 2.4e-5). Right after K, `dss` led on BIRD (+1.76, p = .11) and Spider
+  (+1.35, p = .34); the private round removed both and left BIRD below gold.
+  BIRD execution errors at `A>K>A`: `dss` 44.1%, gold 35.6%.
+- Loss-mode check: new gold (`target_fp32`) vs old full gold (`full_bf16`) at
+  `A>K>A`: Spider −0.68 (11/18, p = .26), BIRD identical. Pairing with the
+  committed Hinton row is fair.
+- Gold vs Hinton: Spider −0.77/+0.29/+0.29 at the three depths (all p > .5).
+  Hinton keeps BIRD better at every depth (−1.50, −0.85, −2.61; p = .006 at
+  `A>K>A>A>A`). Gold `A>K>A` vs FL `A>A`: Spider +3.29 (83/49, p = .004).
+- Reading: every arm that learns SQL on a subset (SeqKD 5,319, selected gold
+  5,319, `dss` 4,109) lands near 65.0 at `A>K>A`; full gold lands at 65.9-66.5.
+  The number of SQL rows decides, and the plan task recovers only a small part
+  (roughly +0.5 by this comparison, against +1.84 over `seq` in P2.14). Spider
+  saturates near 68 after three private passes for gold and Hinton alike,
+  matching the centralized curve (62.19, 67.02, 67.60 in the legacy log).
+- Decision: stop `dss` depth; run `goldplan`, which keeps gold SQL on all 9,428
+  rows and adds only the teacher plan task (labeled setting of Distilling
+  Step-by-Step). `goldplan - gold` isolates the plan. If it is near zero, close
+  the plan-task direction. Missing controls for an equal-depth claim: protocol-v2
+  FL `A>A>A`, `A>A>A>A` and centralized E1-E4 with epoch checkpoints.
+- Resources: K reserved 20.3 GB (`gold`) and 20.4 GB (`dss`), RSS about 4.5 GB;
+  private rounds 12.6 GB, about 1.6 h. Recorded in `docs/A5000_RUN_CONFIG.md`.
 
 ## 2026-10-02 - Amend P2.13 memory profile before GPU launch
 
