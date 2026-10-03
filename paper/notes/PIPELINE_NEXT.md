@@ -47,7 +47,7 @@ Same method as P2.14, all parts from published work:
 
 Run from the **`fedicl-sql/` root on the GPU server**, PowerShell. Code: nested
 branch `experiment/fullgold-plan`, commit
-`b0d38082954679b13bb81a626ad20c9adf08488a`. Do not switch, pull, edit or commit
+`de57c27849d312d3146fe032fbfd20f2c03e8f2d`. Do not switch, pull, edit or commit
 in this working copy while any lane runs. Lanes write separate files and locks,
 so the two terminals can run at the same time.
 
@@ -59,7 +59,7 @@ pull and continue with the new commands.
    all 9,428 rows, and prepare the `gold` arm.
 
 ```powershell
-$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='b0d38082954679b13bb81a626ad20c9adf08488a'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
+$ErrorActionPreference='Stop'; git fetch origin; if($LASTEXITCODE -ne 0){throw 'fetch failed'}; git switch experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'switch failed'}; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='de57c27849d312d3146fe032fbfd20f2c03e8f2d'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase candidates; if($LASTEXITCODE -ne 0){throw 'P2.15 candidates failed'}; uv run python -m scripts.run_p215_struct_full --phase prepare --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.15 gold preparation failed'}
 ```
 
 2. Terminal 1, GPU 0: teacher generation (about 13-14 h; about 6,500 rows are
@@ -84,6 +84,15 @@ and evaluation. Each depth round is followed by the five-set evaluation. Check
 with `nvidia-smi` that each lane is on the intended GPU. Time estimates use
 P2.14 speeds (about 0.87 s per example step, about 1.6 h per private round,
 about 1.4-1.8 h of evaluation) and P2.10 teacher speed (about 7.5 s per row).
+
+   If `prepare --arm dss` stopped with `training sequence exceeds max_len`
+   (fixed in the commit above: teacher arms now allow 8,448 tokens, gold keeps
+   7,424), update the code and resume GPU 0 from preparation. Generation is
+   finished and is not rerun.
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='de57c27849d312d3146fe032fbfd20f2c03e8f2d'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase prepare --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss preparation failed'}; uv run python -m $R --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss lane failed'}; uv run python -m $R --phase extend --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss depth failed'}
+```
 
 4. Publication. It can run once `gold` and `dss` have finished `A>K>A`, and
    again after the depth rounds; each run commits only new or changed files. It
