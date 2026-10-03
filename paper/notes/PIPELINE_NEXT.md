@@ -27,12 +27,21 @@ Same method as P2.14, all parts from published work:
 |---|---|---|
 | `gold` | `[SQL]` question -> gold SQL, all 9,428 rows | SQL-only FedAvg rounds |
 | `dss` | `[SQL]` question -> teacher SQL plus `[PLAN]` question -> teacher plan, admitted rows | SQL-only FedAvg rounds |
+| `goldplan` (added 2026-10-03) | `[SQL]` question -> gold SQL, all 9,428 rows, plus `[PLAN]` question -> teacher plan, 4,109 admitted rows | SQL-only FedAvg rounds |
 
 - The question: does `dss` beat `gold` and Hinton at `A>K>A`? Where the gain
   comes from (teacher SQL or plan) is not needed, so there is no `seq` arm.
+- **Why `goldplan`:** `dss` learns SQL only on the 4,109 rows the teacher
+  solved (mostly easier ones) and loses the other 5,319; Hinton and `gold` use
+  all 9,428. `goldplan` keeps gold SQL on every row and adds only the teacher
+  plan task. This is the labeled setting of Distilling Step-by-Step (human
+  labels for the label task, LLM rationales only). `goldplan - gold` measures
+  exactly what the teacher plan adds.
 - All arms start from the committed SQL-only FL T1 adapter with the same recipe
-  (LR 2e-4, batch 1 x accumulation 16, `target_fp32`, max length 7,424 with
-  truncation as an error). `gold` is retrained so it matches `dss` exactly.
+  (LR 2e-4, batch 1 x accumulation 16, `target_fp32`, truncation as an error).
+  Maximum length: 7,424 for `gold`, 8,448 for the arms with teacher plans (one
+  plan row needs 7,579 tokens; with truncation as an error, a higher limit
+  changes no example). `gold` is retrained so it matches `dss` exactly.
 - **Hinton** is the committed `A>K[fkl]>A` row (66.63, same FL T1 parent, same
   terminal round, seed 0). The KD trainer only supports `full_bf16`, so it is not
   retrained. The analysis pairs `dss` and `gold` with its committed predictions
@@ -94,18 +103,31 @@ about 1.4-1.8 h of evaluation) and P2.10 teacher speed (about 7.5 s per row).
 $ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='de57c27849d312d3146fe032fbfd20f2c03e8f2d'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase prepare --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss preparation failed'}; uv run python -m $R --phase run --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss lane failed'}; uv run python -m $R --phase extend --arm dss; if($LASTEXITCODE -ne 0){throw 'P2.15 dss depth failed'}
 ```
 
-4. Publication. It can run once `gold` and `dss` have finished `A>K>A`, and
+4. `goldplan` (about 8 h: K has about 13,500 examples, about 3.3 h). Run it
+   on the first free GPU, only while no other P2.15 lane runs in this working
+   copy, because the command pulls new code. If `dss` at `A>K>A` is not above
+   `gold`, stop GPU 0 during `extend dss` (Ctrl+C; `A>K>A` is already
+   recorded) and start this on GPU 0. Otherwise run it after `extend dss`.
+   Add `--phase extend --arm goldplan` afterwards for the two depth rounds
+   (about 6 h).
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $required='47aedc36668bb848e327580a161e79b2d700d44a'; $head=(git rev-parse HEAD).Trim(); if($LASTEXITCODE -ne 0 -or $head -ne $required){throw 'unexpected implementation commit'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p215_struct_full'; uv run python -m $R --phase prepare --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan preparation failed'}; uv run python -m $R --phase run --arm goldplan; if($LASTEXITCODE -ne 0){throw 'P2.15 goldplan lane failed'}
+```
+
+5. Publication. It can run once `gold` and `dss` have finished `A>K>A`, and
    again after the depth rounds; each run commits only new or changed files. It
    writes `audits/protocol_v2/p215_struct_full_s0/summary.md` (also printed),
    with the Spider table per depth and all paired contrasts. The first run also
    commits the public teacher pool (BIRD train rows only, as P2.10 did).
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; uv run python -m scripts.run_p215_struct_full --phase analyze; if($LASTEXITCODE -ne 0){throw 'P2.15 analysis failed'}; $staged=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or $staged.Count -ne 0){throw 'index must be empty'}; $paths=@(uv run python -m scripts.list_p215_publication); if($LASTEXITCODE -ne 0 -or $paths.Count -eq 0){throw 'nothing new to publish'}; git add -- $paths; if($LASTEXITCODE -ne 0){throw 'git add failed'}; $actual=@(git diff --cached --name-only); if($LASTEXITCODE -ne 0 -or @(Compare-Object ($paths | Sort-Object) ($actual | Sort-Object)).Count -ne 0){throw 'staged paths differ from allowlist'}; git commit -m 'results: record P2.15 full-data Struct-SQL plan-task run'; if($LASTEXITCODE -ne 0){throw 'commit failed'}; git push origin HEAD:experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'push failed'}
 ```
 
 Run the publication only while no lane is running, because a lane would write
-to the manifest during the commit.
+to the manifest during the commit. It pulls first, because the branch has code
+commits newer than the running `dss` lane.
 
 Send back: the generation summary line (admitted rows, acceptance and parse
 rates), each memory probe line, and the summary table.
