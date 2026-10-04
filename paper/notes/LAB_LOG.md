@@ -118,13 +118,17 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
   private round recovers both, and Hinton ends 2 points higher. This is the
   first chain where the teacher's edge survives the final private round. It
   reproduces the protocol-v1 number (69.54) under protocol v2, with evidence.
+- Paired with the committed centralized Spider-only E3 (`ec5b5e1`, batch 16),
+  Hinton `a3` minus E3: Spider +2.22 (96/73, p = .090), Realistic +3.54
+  (p = .089), SYN +3.87 (p = .006), DK +1.12 (p = .61), BIRD +18.45. Gold `a3`
+  minus E3: Spider +0.19 (p = .94). Gold stays at the centralized plateau;
+  Hinton is above it on all five sets, not yet significant on Spider.
 - Caveats: one seed, Spider p = .033; Hinton mixes loss modes across its two K
-  stages (the gold chain does not). Spider 69.54 is above centralized E3 67.31
-  (legacy), not yet tested paired; P2.16 E3/E4 are still missing.
+  stages (the gold chain does not). P2.16 E3/E4 are still missing.
 - Resources: second K 20.3 GB for both arms (Hinton 3.3 h, gold 2.7 h); Hinton
   probe 19.8 GB. Recorded in `docs/A5000_RUN_CONFIG.md`.
-- Next: more seeds for the `A>K>A>K>A` contrast, the centralized E3 paired
-  comparison, and possibly a third K.
+- Decision: run a third K first (step 2, nested `eb6eaaf`), then replicate the
+  better chain with more seeds.
 
 ## 2026-10-03 - P2.15 goldplan: the plan task does not help full gold (seed 0)
 

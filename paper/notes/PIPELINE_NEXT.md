@@ -207,6 +207,28 @@ after the Hinton lane). Change `CUDA_VISIBLE_DEVICES` to that GPU.
 $ErrorActionPreference='Stop'; git merge-base --is-ancestor 709671823a00a1f96edf84e6be7e81132718f2ac HEAD; if($LASTEXITCODE -ne 0){throw 'P2.17 code is missing; run the Hinton command first'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p217_interleave --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.17 gold lane failed'}
 ```
 
+### Step 2 (2026-10-04): a third K (`A>K>A>K>A>K>A`)
+
+Result of step 1 (nested `bd4fdcb`): Hinton 69.54 vs gold 67.50 at
+`A>K>A>K>A` (+2.03, p = .033); gold gains nothing from the second K. Step 2
+asks whether a third K keeps raising Hinton. The same run command continues
+each arm from its recorded `A>K>A>K>A` (code `eb6eaaf`): `k3` = `>K`, `a4` = `>A`,
+four private passes, compared with `A>K>A>A>A` (gold 68.09, Hinton 67.79).
+Rule: Hinton `a4` at least +1 Spider over Hinton `a3` (69.54) to prefer the
+longer chain for the seed replication; otherwise replicate `A>K>A>K>A`.
+Time, estimated: Hinton about 6 h, gold about 5.5 h. No lane may run in this
+working copy when GPU 0 pulls.
+
+GPU 0 first (it pulls), then GPU 1.
+
+```powershell
+$ErrorActionPreference='Stop'; git pull --ff-only origin experiment/fullgold-plan; if($LASTEXITCODE -ne 0){throw 'pull failed'}; git merge-base --is-ancestor eb6eaaf55aa4b3c281e005dd99d8f676a927c62b HEAD; if($LASTEXITCODE -ne 0){throw 'P2.17 step 2 code is missing'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run python -m scripts.run_p217_interleave --phase run --arm hinton; if($LASTEXITCODE -ne 0){throw 'P2.17 hinton lane failed'}
+```
+
+```powershell
+$ErrorActionPreference='Stop'; git merge-base --is-ancestor eb6eaaf55aa4b3c281e005dd99d8f676a927c62b HEAD; if($LASTEXITCODE -ne 0){throw 'P2.17 step 2 code is missing; run the GPU 0 command first'}; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run python -m scripts.run_p217_interleave --phase run --arm gold; if($LASTEXITCODE -ne 0){throw 'P2.17 gold lane failed'}
+```
+
 Publication, only when no lane runs in this working copy. It can run more than
 once; each run commits only new or changed files.
 
