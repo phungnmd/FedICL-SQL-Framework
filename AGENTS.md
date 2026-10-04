@@ -72,10 +72,10 @@ under `paper/archive/`. Never use it as the current method specification.
   gate (failed; results not committed). Paused: P2.9 retention.
 - Known pattern: every KD variant so far (Hinton, SeqKD, KID) beats gold right
   after K, and the edge on Spider disappears after the next private round.
-- P2.17 (queued 2026-10-04, nested `7096718`): a second public stage on the
-  finished `A>K>A` rows of gold and Hinton (`A>K>A>K`, `A>K>A>K>A`). Hinton KD
-  now runs with `target_fp32`. Rule: Hinton minus gold at `A>K>A>K>A` at least
-  +1 Spider point, otherwise close interleaving.
+- P2.17 done (nested `bd4fdcb`): with a second public stage, Hinton beats gold
+  at `A>K>A>K>A` on all five sets (Spider 69.54 vs 67.50, +2.03, p = .033; seed
+  0). First teacher result that survives the final private round. Hinton KD
+  now runs with `target_fp32`. Needs more seeds before any claim.
 - P2.16 (queued 2026-10-03): equal-depth controls for P2.15, FL `A>A>A`,
   `A>A>A>A` and centralized E1-E4 from one 4-epoch run, all `target_fp32`.
   Needed for any "matches centralized" or "helps FL at equal depth" claim.

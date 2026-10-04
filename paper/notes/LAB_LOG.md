@@ -11,24 +11,20 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-03, P2.16 FL and goldplan recorded)
+## Where we are (2026-10-04, P2.17 recorded)
 
-- Method: not frozen. Best tested endpoint so far is a public stage followed
-  by more private stages (`A>K>A...`).
-- Main objective: final Spider EX. The KD direction is chain-of-thought KD that
-  beats full gold (and does not lose to Hinton), with SQL-only clients and
-  SQL-only inference.
-- P2.15 recorded (nested `4e8aa80`): `dss` on full data does not beat gold at
-  `A>K>A` (Spider 64.89 vs 65.86) and loses BIRD (-3.91, p < 1e-4). Gold and
-  Hinton tie on Spider at every depth and saturate near 68.
-- P2.16 FL recorded (nested `7e30ba9`, entry below): the BIRD public stage
-  beats pure FL by about 3.3 Spider points at 2, 3 and 4 private passes (all
-  p < .011), for gold and Hinton alike. Centralized E1-E4 still running.
-- `goldplan` recorded (nested `8bf615b`): Spider 64.89 at `A>K>A`, -0.97 vs
-  gold (p = .31). The plan-task direction is closed: no tested form (P2.10,
-  P2.14, `dss`, `goldplan`) beats full gold on Spider.
-- Not run: `dss` depth rounds (stopped on purpose after `A>K>A`), `seq`.
-- Superseded before training: P2.13. Closed: A1 merge gate, P2.10. Paused: P2.9.
+- Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
+  second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
+- Main objective: final Spider EX. A teacher method must beat full BIRD gold at
+  the same chain and number of private passes, with SQL-only clients and
+  inference.
+- P2.17 (entry below): with two public stages, Hinton beats gold on all five
+  sets at `A>K>A>K>A` (Spider +2.03, p = .033; DK +3.74, p = .002; BIRD +4.56,
+  p < 1e-5). It passes the pre-registered +1 point rule. Seed 0 only.
+- P2.16 FL recorded (`7e30ba9`): the public stage beats FL at 2-4 private
+  passes. Centralized E1-E4 are not in the published manifest yet.
+- Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
+  gate. Paused: P2.9.
 
 ## Evidence ledger — Spider private, BIRD public
 
@@ -68,6 +64,10 @@ server stage. Evaluation batch size 16. Exact paths and run IDs:
 | `A>K[fkl]>A>A>A` Hinton | 67.79 | 59.06 | 55.03 | 53.46 | 31.81 | `4e8aa80` |
 | FL control `A>A>A` | 64.22 | 57.28 | 52.32 | 47.85 | 17.60 | `7e30ba9` |
 | FL control `A>A>A>A` | 64.80 | 56.30 | 52.03 | 50.09 | 17.67 | `7e30ba9` |
+| `A>K[ce]>A>K[ce]` P2.17 gold | 58.03 | 50.00 | 46.62 | 43.74 | 33.57 | `bd4fdcb` |
+| `A>K[fkl]>A>K[fkl]` P2.17 Hinton | 62.67 | 49.21 | 50.58 | 49.16 | 39.31 | `bd4fdcb` |
+| `A>K[ce]>A>K[ce]>A` P2.17 gold | 67.50 | 58.07 | 55.42 | 50.65 | 31.62 | `bd4fdcb` |
+| `A>K[fkl]>A>K[fkl]>A` P2.17 Hinton | **69.54** | 59.45 | 57.93 | 54.39 | 36.18 | `bd4fdcb` |
 | `A>K[seq]>A[ret]`, λ = 1.0 | 61.61 | 50.79 | 49.90 | 46.92 | 30.31 | not committed (server) |
 | `A>K[ce]>A[ret]` selected gold, λ = 1.0 | 60.74 | 50.20 | 49.42 | 45.79 | 28.88 | not committed (server) |
 
@@ -90,6 +90,41 @@ BIRD-only baselines (BIRD private, no KD): base 15.97, centralized E1/E2
 5. Keeping that gap with a retention loss (λ = 1.0) failed its gates.
 6. The reverse direction agrees in sign: SeqKD beats FL, selected gold does
    not.
+
+## 2026-10-04 - P2.17: a second public stage lets Hinton beat gold (seed 0)
+
+- Run: nested `experiment/fullgold-plan`, code `7096718`, results `bd4fdcb`. A
+  second K on the finished `A>K>A` rows, then one private round. Gold: P2.15
+  recipe (`target_fp32`). Hinton: committed recipe and logit cache; the first K
+  is the committed `full_bf16` row, the second K and every private round use
+  `target_fp32` (fkl gained the target-window loss in `0af4455`).
+- Five-set EX at `A>K>A>K>A` (three private passes):
+
+| Set | gold | Hinton | Hinton - gold | p |
+|---|---:|---:|---:|---:|
+| Spider | 67.50 | 69.54 | +2.03 (55/34) | .033 |
+| Realistic | 58.07 | 59.45 | +1.38 | .42 |
+| SYN | 55.42 | 57.93 | +2.51 | .021 |
+| DK | 50.65 | 54.39 | +3.74 | .002 |
+| BIRD | 31.62 | 36.18 | +4.56 | < 1e-5 |
+
+- Against the P2.15 chains with the same three private passes (`A>K>A>A`):
+  Hinton interleaved vs Hinton +1.93 (p = .035), vs gold 67.89 +1.64 (p = .10).
+  Gold gains nothing from the second K (-0.39, p = .75).
+- After the second K (`A>K>A>K`, two passes): Hinton 62.67 vs gold 58.03
+  (+4.64, p < 1e-4), both far below `A>K>A` (65.86/66.63). Ending on K is not
+  useful; the private round after it is.
+- Reading: the second K costs gold 7.8 Spider points and Hinton 4.0; the
+  private round recovers both, and Hinton ends 2 points higher. This is the
+  first chain where the teacher's edge survives the final private round. It
+  reproduces the protocol-v1 number (69.54) under protocol v2, with evidence.
+- Caveats: one seed, Spider p = .033; Hinton mixes loss modes across its two K
+  stages (the gold chain does not). Spider 69.54 is above centralized E3 67.31
+  (legacy), not yet tested paired; P2.16 E3/E4 are still missing.
+- Resources: second K 20.3 GB for both arms (Hinton 3.3 h, gold 2.7 h); Hinton
+  probe 19.8 GB. Recorded in `docs/A5000_RUN_CONFIG.md`.
+- Next: more seeds for the `A>K>A>K>A` contrast, the centralized E3 paired
+  comparison, and possibly a third K.
 
 ## 2026-10-03 - P2.15 goldplan: the plan task does not help full gold (seed 0)
 
