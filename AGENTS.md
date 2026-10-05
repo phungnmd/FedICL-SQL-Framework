@@ -45,18 +45,16 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
 under `paper/archive/`. Never use it as the current method specification.
 
-## Current state (2026-10-02)
+## Current state (2026-10-05)
 
-- Active: P2.15 on nested branch `experiment/fullgold-plan`. Struct-SQL data
-  over all 9,428 BIRD train rows (teacher plan and SQL written together, kept
-  only when the SQL is execution-correct; Thaker and Bresler, arXiv 2512.17053)
-  trained with Distilling Step-by-Step (plan as a separate task; Hsieh et al.,
-  Findings ACL 2023), plan weight 0.8 (PARSQL, Findings ACL 2025). Arms `gold`
-  and `dss`, one public epoch, then SQL-only FedAvg rounds (`A>K>A`, then
-  `A>K>A>A` and `A>K>A>A>A`). Hinton is the committed `A>K[fkl]>A` row, extended
-  with the same extra rounds. Clients and inference stay SQL-only.
-- The question is only whether `dss` beats gold and Hinton. Where the gain comes
-  from (teacher SQL or plan) is not needed.
+- Both owner checkouts now use `main`. Nested `main` integrates the experiment
+  branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
+- Next: prepare a fresh `Qwen/Qwen2.5-Coder-0.5B-Instruct` student screen with
+  the existing frozen 7B teacher. All new student stages use `target_fp32`.
+  The runner and GPU smoke are not ready yet; `PIPELINE_NEXT.md` owns the next
+  steps. The existing 1.5B runs remain references, not initialization adapters.
+- P2.15's full-data plan-task direction is closed. Clients and inference stay
+  SQL-only.
 - `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task) and `dss`
   both lose to full gold on Spider at `A>K>A` (64.89 vs 65.86, nested
   `8bf615b`, `4e8aa80`). The plan-task direction is closed.
@@ -69,16 +67,16 @@ under `paper/archive/`. Never use it as the current method specification.
 - Why clients stay SQL-only: in P2.10, template plans at the clients made the
   FedAvg model weak before any KD (QP T1 Spider 41.9 versus SQL-only 57.35).
 - Closed: P2.13 (superseded before training), P2.10 (stopped), A1 weight-merge
-  gate (failed; results not committed). Paused: P2.9 retention.
-- Known pattern: every KD variant so far (Hinton, SeqKD, KID) beats gold right
-  after K, and the edge on Spider disappears after the next private round.
+  gate (failed; historical evidence merged from `9c3476e`). Paused: P2.9 retention.
+- Earlier one-K pattern: Hinton, SeqKD, and KID beat gold right after K,
+  then lose their Spider edge after the next private round. P2.17 is the
+  two-K exception below.
 - P2.17 done (nested `bd4fdcb`): with a second public stage, Hinton beats gold
   at `A>K>A>K>A` on all five sets (Spider 69.54 vs 67.50, +2.03, p = .033; seed
   0). First teacher result that survives the final private round. Hinton KD
   now runs with `target_fp32`. Needs more seeds before any claim.
-- P2.16 (queued 2026-10-03): equal-depth controls for P2.15, FL `A>A>A`,
-  `A>A>A>A` and centralized E1-E4 from one 4-epoch run, all `target_fp32`.
-  Needed for any "matches centralized" or "helps FL at equal depth" claim.
+- P2.16 centralized E1-E4 are not yet in the published manifest. Do not
+  treat the archived launch command as evidence that those rows completed.
 - Not active: A2 interleaving, P2.11, P2.12, A3 depth, an in-domain public pool,
   an unlabeled-pool reframing, ICL, FLoRA-NA, SC, T4/T5.
 

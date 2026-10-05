@@ -11,8 +11,10 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-04, P2.17 recorded)
+## Where we are (2026-10-05, Git consolidated)
 
+- Next: prepare a fresh Coder-0.5B student screen from `main`, with the same
+  frozen 7B teacher. No 0.5B training or GPU smoke has run yet.
 - Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
   second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
 - Main objective: final Spider EX. A teacher method must beat full BIRD gold at
@@ -25,6 +27,18 @@ Older detail:
   passes. Centralized E1-E4 are not in the published manifest yet.
 - Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
   gate. Paused: P2.9.
+
+## 2026-10-05: implementation branches integrated into main
+
+- Nested `main`: full-gold/interleaving history fast-forwarded; historical
+  P2.9/P2.10 evidence merged (`343efed`), then cleanup merged (`dec9fc2`).
+- Merge fixes preserve Hinton `target_fp32`, current runner imports,
+  publication helpers, stage receipts, and historical identity values.
+- Validation: 833 tests passed before cleanup; 688 passed after removal and
+  archival of inactive paths, including two new Hinton integration tests.
+  CPU checks only, no GPU run or server checkout change.
+- The previous 1.5B queue is archived. New direction and preparation gates
+  are in `PIPELINE_NEXT.md`; no smaller-student launch command exists yet.
 
 ## Evidence ledger — Spider private, BIRD public
 

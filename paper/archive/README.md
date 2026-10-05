@@ -15,10 +15,17 @@ material and index entries only.
 | `paper_planning_2026-09/` | stale paper trackers and stubs | `paper/notes/EXPERIMENT_MATRIX.md`, `paper/drafts/fedls_sql_outline.md` |
 | `paused_runbooks/` | P2.9 terminal retention runbook, paused and resumable | `paper/notes/PIPELINE_NEXT.md` (paused section) |
 | `completed_runbooks/` | finished command blocks and dated sequencing snapshots; each file states its actual status | `paper/notes/PIPELINE_NEXT.md` |
-| `superseded_runbooks/` | queued runbooks replaced before running (P2.7, P2.8, P2.13) | — |
+| `superseded_runbooks/` | superseded queues, including partially completed sequences | — |
 | `closed_method_branches/` | failed method branches (P0.10 FedDF, P1.7a preference KD) | own `README.md` |
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
+
+## 2026-10-05 queue snapshot
+
+[1.5B queue before the smaller-student direction](superseded_runbooks/PIPELINE_1P5B_PRE_0P5B_2026-10-05.md)
+preserves the P2.15-P2.17 launch and publication commands. P2.17's third public
+stage and P2.16 centralized epochs are not marked completed by this archive.
+The active queue now prepares a fresh 0.5B screen from consolidated `main`.
 
 ## 2026-10-02 queue snapshot
 
