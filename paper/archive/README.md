@@ -22,12 +22,14 @@ material and index entries only.
 
 ## 2026-10-06 0.5B launch layouts
 
+- [Counter-based queue](superseded_runbooks/PIPELINE_0P5B_COUNTER_GUARD_2026-10-06.md): automatic counters removed at owner request after a monitoring failure stopped FL.
 - [Original manual waves](superseded_runbooks/PIPELINE_0P5B_MANUAL_LANES_2026-10-06.md): 9 command blocks.
 - [Single-controller wrapper](superseded_runbooks/PIPELINE_0P5B_SINGLE_WRAPPER_2026-10-06.md): superseded after the owner clarified the required terminal layout.
 
 The active queue uses one sequential command per GPU terminal, waits for the
 fresh A1 publication, then continues both public schedules. Publication remains
-separate. Training code, recipes and completed probe identities are unchanged.
+separate. Training recipes are unchanged; the active queue includes a checked
+one-time identity update for the counter-removal patch.
 
 ## 2026-10-05 queue snapshot
 

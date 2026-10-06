@@ -51,8 +51,10 @@ under `paper/archive/`. Never use it as the current method specification.
   branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
 - Next: prepare a fresh `Qwen/Qwen2.5-Coder-0.5B-Instruct` student screen with
   the existing frozen 7B teacher. All new student stages use `target_fp32`.
-  The P2.18 runner, cache audit and paging guard are implemented; Windows GPU
-  smoke and the full server cache audit remain pending. `PIPELINE_NEXT.md` owns
+  The P2.18 runner and cache audit are implemented; the owner reports GPU
+  probes/cache audit passed, with reports not yet published. Automatic Windows
+  shared-memory counters were removed after a counter failure stopped FL.
+  Shared memory is checked manually; do not add automatic polling or gates. `PIPELINE_NEXT.md` owns
   the gates and commands. Compare gold/Hinton AKAKA and AKKAA against FL AAA
   and continuous centralized E3. KK is one K with 2 continuous epochs; share
   only initial A1, not AK. Existing 1.5B runs are references, not adapters.

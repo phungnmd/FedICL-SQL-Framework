@@ -1,3 +1,4 @@
+<!-- Superseded: automatic shared-memory counters removed at owner request. -->
 # FedLS-SQL run queue
 
 This file owns runnable experiment commands. Results belong in
@@ -10,10 +11,8 @@ The earlier 1.5B queue remains in the
 Owner reports on 2026-10-06: CPU preparation, full teacher-cache audit and all
 three server GPU probes passed. Gold initially stopped on a Windows counter
 error, then gold/Hinton passed after the counter recovered. Compact reports
-are not published yet; no 0.5B terminal result is claimed. FL later stopped
-when Get-Counter returned exit code 1 during otherwise normal training. The owner
-requested complete removal of automatic counters. Apply step 0 below to the
-existing server, then resume step 3. Steps 1-2 remain for fresh reproduction. Server lane status is
+are not published yet; no 0.5B training result is claimed. Steps 1-2 remain for
+reproduction; proceed to step 3 for the current prepared server. Server lane status is
 unverified: synchronize `main` only when all old lanes are idle and unpublished
 results are preserved. Never pull, edit, commit, or push this checkout while a
 lane is running. Both baseline training/evaluation subprocesses must exit and both terminals
@@ -54,42 +53,11 @@ The 1.5B P2.17 reference was about 18.9 GiB reserved for K; the older
 `full_bf16` BIRD path paged about 66.5 GiB to host RAM and took 16.4 h. These are
 historical measurements, not 0.5B estimates. Keep batch 1 until the new smoke
 and actual throughput show headroom. Allocator cap .88 and reserved <=21.5 GiB
-are enforced. Shared GPU memory is checked manually by the owner if needed.
-There is no automatic counter polling, background warning monitor, or shared-memory
-training/publication gate. Child exit status controls runtime success.
-
-## 0. Existing server: remove counters and preserve prepared work
-
-Code fix: nested `e15cc77`, compatibility helper `4b5eb8f`, published on
-`origin/fix/p218-remove-counter`. Nested `origin/main` is deliberately untouched
-while the current server cohort may still publish. The
-[counter-based queue](../archive/superseded_runbooks/PIPELINE_0P5B_COUNTER_GUARD_2026-10-06.md)
-is superseded.
-
-Wait for GPU 1 to finish its baseline and reach the publication wait, or stop its
-terminal with Ctrl+C to update immediately. GPU 0 has already exited on the
-counter failure. Before updating, both training/evaluation processes must be
-stopped; stop any waiting wrappers too, then restart the two lane commands in
-step 3 afterward. Do not publish baselines before this update. Leave adapters,
-`_ckpt`, `resume_latest`, manifests, and all untracked results in place.
-
-Run once from the server repository on `main`, only when both lanes are idle:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; uv run --no-sync python -c "from scripts.run_p218_student_schedule import idle_lanes; locks=idle_lanes(); locks.close()"; if ($LASTEXITCODE -ne 0) { throw 'A lane is still running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/fix/p218-remove-counter; if ($LASTEXITCODE -ne 0) { throw 'Update failed' }; uv run --no-sync python -m scripts.migrate_p218_counter_removal --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Prepared identity migration failed' }
-```
-
-The helper accepts only the exact counter-removal files, unchanged training
-code/data/commands and successful existing probe reports. It preserves original
-identities and measurements, then updates their compatibility identity. It does
-not rerun probes, rebuild the teacher cache, or modify adapters/checkpoints.
-A mismatch stops the migration without bypassing provenance checks. New clean
-runs skip this one-time migration and use steps 1-2 normally.
-
-Restart each terminal with its existing step-3 command. Finished clients and
-rounds are reused; interrupted training resumes from its saved checkpoint.
-Unsaved microsteps are recomputed. The server's later baseline publication push
-will also integrate the counter-removal commits into `origin/main`.
+are enforced. Windows per-process shared GPU memory is sampled; two consecutive
+samples above 512 MiB stop the owned process tree. This is a conservative policy,
+not a measured hardware boundary. Missing counter support fails closed. The
+first CUDA allocation may follow long CPU preparation; successful completion
+still requires an owned-PID GPU sample. Do not bypass a failed memory gate.
 
 ## 1. CPU preparation and reuse the existing teacher cache
 
@@ -131,7 +99,7 @@ Record measured reserved/allocated VRAM, process RSS, shared memory and timing i
 `docs/A5000_RUN_CONFIG.md` after both GPUs are idle. Do not call CPU tests a GPU
 pass. Add measurements after this run cohort so changing code does not invalidate
 prepared identity mid-run. Probes run on GPU 0; GPU 1 runs the same A5000 recipe
-with shared GPU memory checked manually if needed.
+with continuous per-process shared-memory monitoring.
 
 ## 3. One sequential command per GPU terminal
 
@@ -148,8 +116,8 @@ The remaining workflow has **two GPU commands and two publication commands**.
 
 Run the two commands below in separate terminals from `fedicl-sql/` on `main`.
 Both GPUs must be free before launch. If earlier lanes are already running, let
-them exit first. Keep both terminals open. For the interrupted `acbc641` cohort, apply step 0 first; no re-prepare,
-cache rebuild or repeated GPU probe is needed after the verified migration.
+them exit first. Keep both terminals open. The code remains nested `acbc641`;
+no pull, re-prepare or repeated probe is needed for this runbook-only change.
 Completed work resumes under the same recipe and output roots.
 
 Unlike P2.15, which began from an already committed A1, this screen trains A1

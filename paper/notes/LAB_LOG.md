@@ -13,9 +13,9 @@ Older detail:
 
 ## Where we are (2026-10-06, 0.5B implementation)
 
-- Next: run the server cache audit and isolated GPU probes for the implemented
-  Coder-0.5B screen. No 0.5B training or GPU smoke has run locally. The same
-  frozen 7B teacher remains; commands and gates are in `PIPELINE_NEXT.md`.
+- Next: update the interrupted Coder-0.5B cohort to remove automatic counters,
+  then resume the two lanes. The owner reports cache audit and probes passed;
+  terminal results are not yet published. The frozen 7B teacher is unchanged.
 - Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
   second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
 - Main objective: final Spider EX. A teacher method must beat full BIRD gold at
@@ -28,6 +28,23 @@ Older detail:
   passes. Centralized E1-E4 are not in the published manifest yet.
 - Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
   gate. Paused: P2.9.
+
+## 2026-10-06: remove automatic shared-memory counters
+
+- Owner report, not committed server evidence: prepare, cache audit and all
+  three probes passed. FL later stopped at client progress 757/2377 because
+  Get-Counter exited 1; this does not establish paging or a training failure.
+- Per owner direction, remove all automatic counter polling and shared-memory
+  gates, including warning-only monitors. The owner checks manually as needed.
+  Recipes, allocator cap, reserved-VRAM probe budget and checkpoint paths stay
+  unchanged. Child exit status remains authoritative.
+- Nested `e15cc77` removes monitoring; `4b5eb8f` adds the checked one-time
+  prepared/probe identity migration. Original identities and measurements are
+  retained. Published to `fix/p218-remove-counter`, leaving remote `main`
+  unchanged until the running cohort can safely update/publish.
+- Validation: 720 CPU tests passed; reconstructed legacy identity matches
+  `acbc641` across 142 tracked code files. No Windows GPU execution of this patch
+  has been performed. Update and resume commands are in `PIPELINE_NEXT.md`.
 
 ## 2026-10-06: 0.5B runner, cache reuse audit and memory guard
 
