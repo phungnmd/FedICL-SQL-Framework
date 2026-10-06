@@ -41,7 +41,9 @@ Older detail:
 - Nested `e15cc77` removes monitoring; `4b5eb8f` adds the checked one-time
   prepared/probe identity migration. Original identities and measurements are
   retained. Published to `fix/p218-remove-counter`, leaving remote `main`
-  unchanged until the running cohort can safely update/publish.
+  unchanged until the running cohort can safely update/publish. The owner then
+  confirmed the server stopped and requested integration; `main` now includes
+  `4b5eb8f`. The active queue uses `git pull --ff-only origin main`.
 - Validation: 720 CPU tests passed; reconstructed legacy identity matches
   `acbc641` across 142 tracked code files. No Windows GPU execution of this patch
   has been performed. Update and resume commands are in `PIPELINE_NEXT.md`.
