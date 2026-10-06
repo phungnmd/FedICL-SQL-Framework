@@ -44,8 +44,13 @@ Older detail:
 - Windows per-process paging guard and separate fresh GPU probes are implemented.
   Their acceptance thresholds are policy, not measured 0.5B memory figures.
 - Code commits: nested `1ba8121` (runner), `12876b7` (cache/epoch wiring),
-  `5109a0b` (paging guard). Final integration validation is recorded below once
-  complete. No GPU result, performance gain or method advantage is claimed.
+  `5109a0b` (paging guard), `acbc641` (Windows paths, runtime evidence and
+  completed-stage recovery). Validation: 729 tests passed in 34.25 s using
+  `UV_CACHE_DIR=/private/tmp/fedicl-uv-cache uv run --no-sync pytest -q`; CLI
+  help/dry-run and `git diff --check` passed. All 9 PowerShell blocks pass
+  structural checks; PowerShell/Windows execution was unavailable locally.
+  Review findings were fixed with regression tests. No GPU result, performance
+  gain or method advantage is claimed.
 
 ## 2026-10-05: implementation branches integrated into main
 
