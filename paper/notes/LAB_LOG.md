@@ -14,7 +14,8 @@ Older detail:
 ## Where we are (2026-10-06, 0.5B implementation)
 
 - Next: update the interrupted Coder-0.5B cohort to remove automatic counters,
-  then resume the two lanes. The owner reports cache audit and probes passed;
+  then resume the two lanes through one final publication. The owner reports
+  cache audit and probes passed;
   terminal results are not yet published. The frozen 7B teacher is unchanged.
 - Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
   second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
@@ -28,6 +29,24 @@ Older detail:
   passes. Centralized E1-E4 are not in the published manifest yet.
 - Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
   gate. Paused: P2.9.
+
+## 2026-10-06: run both GPU lanes, publish once
+
+- Owner will stop both commands and requested removal of the baseline
+  publication wait. GPU 0 resumes FL AAA, then gold AKAKA/AKKAA; GPU 1 resumes
+  central E3, then Hinton AKAKA/AKKAA. Both retain all existing endpoint evals.
+- Nested `b7ede63`: initial A1 uses a local receipt pinned to its completed FL
+  round entry, result bytes, completion metadata and adapter bytes. A public
+  arm waits only for that local A1, not AAA/central eval or Git publication.
+  Round manifests now write atomically for the concurrent reader. Final
+  publication includes the A1 receipt and validates all six completed arms.
+- Nested `97df679`: reuse prepare/probes from `acbc641` or `4b5eb8f` only after
+  exact workflow-code and unchanged input/recipe checks. Original identities
+  and measurements remain in the reports. No automatic GPU counters return.
+- Validation: 729 CPU tests passed. Historical code fingerprints reconstructed
+  exactly across 142/143 files. Native PowerShell mocked two-lane execution
+  and one final publication passed, including central/gold failure paths.
+  No new Windows/CUDA result is claimed; active commands are in PIPELINE_NEXT.
 
 ## 2026-10-06: remove automatic shared-memory counters
 

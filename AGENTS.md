@@ -101,6 +101,11 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Experiment commands
 
+- P2.18 runs both GPU queues through completion, then publishes once. Initial
+  A1 may be uncommitted: require its validated local round receipt, not a Git
+  publication. Public arms wait only for local A1, never a baseline commit.
+
+
 - `paper/notes/PIPELINE_NEXT.md` is the only owner of runnable commands. Move
   finished or superseded command blocks to a dated file under
   `paper/archive/completed_runbooks/` or `superseded_runbooks/` and link it.

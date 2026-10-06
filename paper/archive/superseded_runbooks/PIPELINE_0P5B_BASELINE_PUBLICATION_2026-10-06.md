@@ -1,3 +1,4 @@
+<!-- Superseded: owner requested one final publication after both GPU lanes. -->
 # FedLS-SQL run queue
 
 This file owns runnable experiment commands. Results belong in
@@ -16,8 +17,9 @@ requested complete removal of automatic counters. Apply step 0 below to the
 existing server, then resume step 3. Steps 1-2 remain for fresh reproduction. Server lane status is
 unverified: synchronize `main` only when all old lanes are idle and unpublished
 results are preserved. Never pull, edit, commit, or push this checkout while a
-lane is running. Both GPU lane commands must exit before the single final publication.
-There is no intermediate baseline commit/push.
+lane is running. Both baseline training/evaluation subprocesses must exit and both terminals
+reach their publication wait before the baseline commit; both public lane
+commands must exit before final publication.
 
 Fresh student: `Qwen/Qwen2.5-Coder-0.5B-Instruct`; frozen teacher:
 `Qwen/Qwen2.5-Coder-7B-Instruct`. Do not initialize from a 1.5B adapter. Changing
@@ -57,14 +59,18 @@ are enforced. Shared GPU memory is checked manually by the owner if needed.
 There is no automatic counter polling, background warning monitor, or shared-memory
 training/publication gate. Child exit status controls runtime success.
 
-## 0. Existing server: update the workflow and preserve prepared work
+## 0. Existing server: remove counters and preserve prepared work
 
-The owner requested complete removal of automatic counters and one publication
-at the end. The implementation is on `main` (`b7ede63`, `97df679`); the
-[baseline-publication queue](../archive/superseded_runbooks/PIPELINE_0P5B_BASELINE_PUBLICATION_2026-10-06.md)
-is superseded. After stopping both old lane commands, pull and apply the checked
-identity update below. Existing preparations from `acbc641` or `4b5eb8f` are
-supported. Leave adapters, `_ckpt`, `resume_latest`, manifests and results intact.
+Code fix: nested `e15cc77`, compatibility helper `4b5eb8f`, integrated into
+`origin/main` at the owner's request after the server stopped. The
+[counter-based queue](../archive/superseded_runbooks/PIPELINE_0P5B_COUNTER_GUARD_2026-10-06.md)
+is superseded.
+
+The owner has confirmed both server lanes are stopped. Pull `main`, apply the
+checked identity update, then restart the two unchanged lane commands in step 3.
+Leave adapters, `_ckpt`, `resume_latest`, manifests and untracked results in place.
+The earlier [branch-specific update](../archive/superseded_runbooks/P218_COUNTER_REMOVAL_BRANCH_UPDATE_2026-10-06.md)
+is superseded; no branch switch is needed.
 
 Run once from the server repository on `main`, only when both lanes are idle:
 
@@ -72,9 +78,8 @@ Run once from the server repository on `main`, only when both lanes are idle:
 $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.migrate_p218_counter_removal --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Prepared identity migration failed' }
 ```
 
-The helper accepts only the pinned workflow changes (counter removal, local A1
-receipts and atomic manifest publication), unchanged training/data/commands and
-successful existing probe reports. It preserves original
+The helper accepts only the exact counter-removal files, unchanged training
+code/data/commands and successful existing probe reports. It preserves original
 identities and measurements, then updates their compatibility identity. It does
 not rerun probes, rebuild the teacher cache, or modify adapters/checkpoints.
 A mismatch stops the migration without bypassing provenance checks. New clean
@@ -82,7 +87,8 @@ runs skip this one-time migration and use steps 1-2 normally.
 
 Restart each terminal with its existing step-3 command. Finished clients and
 rounds are reused; interrupted training resumes from its saved checkpoint.
-Unsaved microsteps are recomputed. Publish once after both full GPU lanes finish.
+Unsaved microsteps are recomputed. The baseline publication command remains
+separate and runs after both terminals reach the publication wait.
 
 ## 1. CPU preparation and reuse the existing teacher cache
 
@@ -128,37 +134,59 @@ with shared GPU memory checked manually if needed.
 
 ## 3. One sequential command per GPU terminal
 
-Use one visible PowerShell terminal per GPU. The remaining workflow has
-**two sequential GPU commands and one final publication command**.
+Owner clarification, 2026-10-06: follow the older P2.15 lane layout, with one
+visible terminal per GPU and separate publication commands. The single-controller
+wrapper is [superseded](../archive/superseded_runbooks/PIPELINE_0P5B_SINGLE_WRAPPER_2026-10-06.md).
+Preparation, cache audit and probes are already reported successful by the owner.
+The remaining workflow has **two GPU commands and two publication commands**.
 
 | Terminal | Sequential work |
 |---|---|
-| GPU 0 | FL AAA + eval, gold AKAKA + eval, gold AKKAA + eval |
-| GPU 1 | Centralized E3 + epoch eval, Hinton AKAKA + eval, Hinton AKKAA + eval |
+| GPU 0 | FL AAA + eval, wait for baseline publication, gold AKAKA, gold AKKAA |
+| GPU 1 | Centralized E3 + epoch eval, wait for baseline publication, Hinton AKAKA, Hinton AKKAA |
 
-Run the commands below on `main` after step 0 for an existing cohort. They
-resume the same artifacts and recipe. No Git operation runs inside either lane.
-A public arm only needs the initial local FL A1. If GPU 1 gets there before A1,
-the runner waits for A1, then continues automatically. It does not wait for FL
-AAA, centralized evaluation, or publication. A1 completion is checked against
-the FL round manifest, exact recipe, completion metadata and adapter hashes,
-then sealed in a shared receipt. Later FL rounds do not invalidate that receipt.
-Any change to the pinned A1 fails validation instead of silently changing the
-parent. The receipt is included in the single final publication.
+Run the two commands below in separate terminals from `fedicl-sql/` on `main`.
+Both GPUs must be free before launch. If earlier lanes are already running, let
+them exit first. Keep both terminals open. For the interrupted `acbc641` cohort, apply step 0 first; no re-prepare,
+cache rebuild or repeated GPU probe is needed after the verified migration.
+Completed work resumes under the same recipe and output roots.
+
+Unlike P2.15, which began from an already committed A1, this screen trains A1
+fresh. Each GPU command therefore waits after its baseline subprocess exits.
+When **both terminals print `Baseline complete. Waiting...`**, run the baseline
+publication command below from a separate CPU terminal. The wait holds no model
+or GPU lane lock. It checks the remote-tracking `origin/main` tree every 30 s;
+only the successful publication push releases the public schedules. Each public
+runner also validates baseline completion and its committed parent before work.
+If a baseline fails, its terminal stops and the sibling remains waiting; fix the
+failure and resume the failed lane before attempting publication. Do not bypass
+this wait or commit while a GPU training/evaluation subprocess is still active.
 
 GPU 0:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase fl --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 fl failed' }; foreach ($arm in @('gold_akaka','gold_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 0 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase fl --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 fl failed' }; Write-Host 'Baseline complete. Waiting for baseline publication on origin/main...'; while ($true) { $ready=@(git ls-tree --name-only origin/main -- 'audits/protocol_v2/p218_student_schedule_s0/run_manifest.json'); if ($LASTEXITCODE -ne 0) { throw 'Publication check failed' }; if ($ready.Count -gt 0) { break }; Start-Sleep -Seconds 30 }; foreach ($arm in @('gold_akaka','gold_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 0 lane complete' }
 ```
 
 GPU 1:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase central --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 central failed' }; foreach ($arm in @('hinton_akaka','hinton_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 1 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase central --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 central failed' }; Write-Host 'Baseline complete. Waiting for baseline publication on origin/main...'; while ($true) { $ready=@(git ls-tree --name-only origin/main -- 'audits/protocol_v2/p218_student_schedule_s0/run_manifest.json'); if ($LASTEXITCODE -ne 0) { throw 'Publication check failed' }; if ($ready.Count -gt 0) { break }; Start-Sleep -Seconds 30 }; foreach ($arm in @('hinton_akaka','hinton_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 1 lane complete' }
 ```
 
-## 4. Publish the complete screen once
+## 4. Publish baselines, then publish the final screen
+
+Run the first command only once both GPU terminals reach their baseline wait.
+It validates exact result/evaluation contracts, requires an empty index, stages
+only changed allowlisted compact files, verifies the staged set, commits and
+pushes. It checks/stages paths one at a time to avoid the Windows command-length
+limit. It never stages adapters, weights, optimizer state or cache shards.
+Once the push succeeds, both GPU commands automatically continue their two
+public arms; no GPU command needs to be pasted again.
+
+```powershell
+& { $ErrorActionPreference='Stop'; function Check-Index { $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' } }; function Publish($scope) { Check-Index; uv run --no-sync python -m scripts.run_p218_student_schedule --phase analyze --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $all=@(uv run --no-sync python -c "from scripts import list_p218_publication as p; p.runner.set_seed(0); lock=p.runner.idle_lanes(); print(chr(10).join(p.collect_paths('$scope'))); lock.close()"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; $files=@(foreach ($file in $all) { $status=@(git status --porcelain --untracked-files=all -- $file); if ($LASTEXITCODE -ne 0) { throw 'File status failed' }; if ($status.Count -gt 0) { $file } }); if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m "results: record P2.18 0.5B $scope"; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; }; Publish 'baselines' }
+```
 
 Run final publication only after **both GPU lane commands exit successfully**.
 Publication stays separate from training, exactly as in the older runbooks.
@@ -169,13 +197,11 @@ staged files after a staging/commit failure without inspecting them.
 & { $ErrorActionPreference='Stop'; function Check-Index { $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' } }; function Publish($scope) { Check-Index; uv run --no-sync python -m scripts.run_p218_student_schedule --phase analyze --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $all=@(uv run --no-sync python -c "from scripts import list_p218_publication as p; p.runner.set_seed(0); lock=p.runner.idle_lanes(); print(chr(10).join(p.collect_paths('$scope'))); lock.close()"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; $files=@(foreach ($file in $all) { $status=@(git status --porcelain --untracked-files=all -- $file); if ($LASTEXITCODE -ne 0) { throw 'File status failed' }; if ($status.Count -gt 0) { $file } }); if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m "results: record P2.18 0.5B $scope"; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; }; Publish 'full' }
 ```
 
-Validation: 729 CPU tests passed. They exercise local uncommitted A1 reuse,
-hash/receipt tampering, concurrent manifest reads, and stage execution before
-baseline publication. Exact command blocks parse on PowerShell 7.4.6. Two
-independent native PowerShell processes with mocked training/Git verified full
-sequential lanes followed by one publication, and early stopping on central or
-gold-arm failure. All task-owned workers exited. Windows/CUDA execution of the
-updated workflow is not yet measured.
+Validation: both exact GPU commands and both publication commands parsed on
+PowerShell 7.4.6. Two independent native PowerShell processes with mock GPU/Git
+commands verified: concurrent baselines, no public work before publication,
+per-GPU sequential arm order, separate final publication, and worker cleanup.
+This validates the terminal workflow on macOS, not a Windows/CUDA run.
 
 Decision: compare final Spider EX, Hinton versus gold within each schedule,
 AKAKA versus AKKAA within each objective, then the FL and centralized controls.
