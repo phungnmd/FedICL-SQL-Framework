@@ -11,10 +11,11 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-05, Git consolidated)
+## Where we are (2026-10-06, 0.5B implementation)
 
-- Next: prepare a fresh Coder-0.5B student screen from `main`, with the same
-  frozen 7B teacher. No 0.5B training or GPU smoke has run yet.
+- Next: run the server cache audit and isolated GPU probes for the implemented
+  Coder-0.5B screen. No 0.5B training or GPU smoke has run locally. The same
+  frozen 7B teacher remains; commands and gates are in `PIPELINE_NEXT.md`.
 - Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
   second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
 - Main objective: final Spider EX. A teacher method must beat full BIRD gold at
@@ -27,6 +28,24 @@ Older detail:
   passes. Centralized E1-E4 are not in the published manifest yet.
 - Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
   gate. Paused: P2.9.
+
+## 2026-10-06: 0.5B runner, cache reuse audit and memory guard
+
+- New P2.18 screen: FL AAA, continuous centralized E3, gold/Hinton AKAKA and
+  AKKAA. KK means one public stage with two continuous epochs and epoch
+  snapshots. Only initial A1 is shared; the public LR horizons differ.
+- Preserve SQL-only P2.15/P2.17 recipes, `target_fp32`, batch 1/accumulation 16,
+  fixed evaluation batch 16 and execution timeouts. No old student adapter
+  initializes the fresh Coder-0.5B model.
+- Cross-student cache reuse now requires full rendered-row and tensor audit,
+  with runtime tokenizer/vocab/digest checks; original cache metadata stays
+  unchanged. Local tokenizer mapping checks passed; the actual cache and BIRD
+  databases are server-only, so full cache coverage is still unverified.
+- Windows per-process paging guard and separate fresh GPU probes are implemented.
+  Their acceptance thresholds are policy, not measured 0.5B memory figures.
+- Code commits: nested `1ba8121` (runner), `12876b7` (cache/epoch wiring),
+  `5109a0b` (paging guard). Final integration validation is recorded below once
+  complete. No GPU result, performance gain or method advantage is claimed.
 
 ## 2026-10-05: implementation branches integrated into main
 

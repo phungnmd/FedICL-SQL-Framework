@@ -45,14 +45,17 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
 under `paper/archive/`. Never use it as the current method specification.
 
-## Current state (2026-10-05)
+## Current state (2026-10-06)
 
 - Both owner checkouts now use `main`. Nested `main` integrates the experiment
   branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
 - Next: prepare a fresh `Qwen/Qwen2.5-Coder-0.5B-Instruct` student screen with
   the existing frozen 7B teacher. All new student stages use `target_fp32`.
-  The runner and GPU smoke are not ready yet; `PIPELINE_NEXT.md` owns the next
-  steps. The existing 1.5B runs remain references, not initialization adapters.
+  The P2.18 runner, cache audit and paging guard are implemented; Windows GPU
+  smoke and the full server cache audit remain pending. `PIPELINE_NEXT.md` owns
+  the gates and commands. Compare gold/Hinton AKAKA and AKKAA against FL AAA
+  and continuous centralized E3. KK is one K with 2 continuous epochs; share
+  only initial A1, not AK. Existing 1.5B runs are references, not adapters.
 - P2.15's full-data plan-task direction is closed. Clients and inference stay
   SQL-only.
 - `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task) and `dss`
