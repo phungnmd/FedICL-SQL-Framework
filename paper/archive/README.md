@@ -20,6 +20,13 @@ material and index entries only.
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
 
+## 2026-10-06 manual 0.5B launch layout
+
+[Manual baseline/public lanes](superseded_runbooks/PIPELINE_0P5B_MANUAL_LANES_2026-10-06.md)
+preserve the original 9 command blocks. The active queue bundles the same six
+arms and two publication barriers into one invocation at the owner's request.
+This change does not alter training code or declare any training result complete.
+
 ## 2026-10-05 queue snapshot
 
 [1.5B queue before the smaller-student direction](superseded_runbooks/PIPELINE_1P5B_PRE_0P5B_2026-10-05.md)
