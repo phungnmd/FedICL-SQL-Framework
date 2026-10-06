@@ -13,8 +13,8 @@ Older detail:
 
 ## Where we are (2026-10-06, 0.5B implementation)
 
-- Next: update the interrupted Coder-0.5B cohort to remove automatic counters,
-  then resume the two lanes through one final publication. The owner reports
+- Next: apply the SQL-only default validator fix to the interrupted Coder-0.5B
+  cohort, then resume the two lanes through one final publication. The owner reports
   cache audit and probes passed;
   terminal results are not yet published. The frozen 7B teacher is unchanged.
 - Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
@@ -29,6 +29,22 @@ Older detail:
   passes. Centralized E1-E4 are not in the published manifest yet.
 - Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
   gate. Paused: P2.9.
+
+## 2026-10-06: recover completed FL after SQL-default validation error
+
+- Owner log, not committed evidence: FL round 3 completed, then FL evaluation
+  and the central-to-Hinton handoff failed on `client_response_format`.
+  The central E3 excerpt reports EX 13.6 / EM 2.5 without a dataset label;
+  it is not registered as a benchmark result.
+- Nested `eaf4116`: accept the serializer's omitted `sql_only` default without
+  modifying result configs; explicit non-SQL values remain rejected. Training,
+  paths and checkpoint bytes are unchanged. Checked migration also accepts
+  preparation from `97df679`, preserving successful probes and existing work.
+- Validation: four regression cases failed on the original validator and pass
+  after the fix; full suite 733 passed. Reconstructed historical code digests
+  match `acbc641`, `4b5eb8f` and `97df679`. No new Windows/GPU run performed.
+- Recovery: step 0 in PIPELINE_NEXT, then both existing step-3 lane commands.
+  Reuse completed FL/central training and recorded evals; publish once at the end.
 
 ## 2026-10-06: run both GPU lanes, publish once
 

@@ -19,6 +19,13 @@ results are preserved. Never pull, edit, commit, or push this checkout while a
 lane is running. Both GPU lane commands must exit before the single final publication.
 There is no intermediate baseline commit/push.
 
+Latest owner log: FL round 3 completed, then FL evaluation and the Hinton
+handoff both stopped on `client_response_format`. The serializer omits the
+default `sql_only`; the validator incorrectly required an explicit key.
+Nested `eaf4116` fixes this validation and preserves prepared identities. Apply
+step 0 and rerun both step-3 commands. Completed FL/central training and recorded
+evaluations are reused. Do not edit result configs or delete checkpoints.
+
 Fresh student: `Qwen/Qwen2.5-Coder-0.5B-Instruct`; frozen teacher:
 `Qwen/Qwen2.5-Coder-7B-Instruct`. Do not initialize from a 1.5B adapter. Changing
 size and code specialization together does not isolate a model-size effect.
@@ -63,7 +70,7 @@ The owner requested complete removal of automatic counters and one publication
 at the end. The implementation is on `main` (`b7ede63`, `97df679`); the
 [baseline-publication queue](../archive/superseded_runbooks/PIPELINE_0P5B_BASELINE_PUBLICATION_2026-10-06.md)
 is superseded. After stopping both old lane commands, pull and apply the checked
-identity update below. Existing preparations from `acbc641` or `4b5eb8f` are
+identity update below. Existing preparations from `acbc641`, `4b5eb8f` or `97df679` are
 supported. Leave adapters, `_ckpt`, `resume_latest`, manifests and results intact.
 
 Run once from the server repository on `main`, only when both lanes are idle:
@@ -73,7 +80,7 @@ $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { thr
 ```
 
 The helper accepts only the pinned workflow changes (counter removal, local A1
-receipts and atomic manifest publication), unchanged training/data/commands and
+receipts, atomic manifest publication and the omitted SQL-default validation fix), unchanged training/data/commands and
 successful existing probe reports. It preserves original
 identities and measurements, then updates their compatibility identity. It does
 not rerun probes, rebuild the teacher cache, or modify adapters/checkpoints.
@@ -114,7 +121,7 @@ Run each probe as a separate process so it exits and releases CUDA memory before
 training. Each uses fresh temporary outputs and 32 longest-sequence/longest-target
 steps, including two AdamW updates. Gold and Hinton probe their actual losses;
 Hinton uses the audited cache. Reports bind recipe, code content and input hashes.
-The process guard also remains active during actual training and evaluation.
+No Windows shared-memory counter is polled during probes, training or evaluation.
 
 ```powershell
 $ErrorActionPreference='Stop'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($kind in @('private','gold','hinton')) { uv run python -m scripts.run_p218_student_schedule --phase probe --probe $kind --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${kind} probe failed" }; if (!(Test-Path "audits/protocol_v2/p218_student_schedule_s0/memory_${kind}.json")) { throw "Missing ${kind} probe report" } }
