@@ -20,12 +20,14 @@ material and index entries only.
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
 
-## 2026-10-06 manual 0.5B launch layout
+## 2026-10-06 0.5B launch layouts
 
-[Manual baseline/public lanes](superseded_runbooks/PIPELINE_0P5B_MANUAL_LANES_2026-10-06.md)
-preserve the original 9 command blocks. The active queue bundles the same six
-arms and two publication barriers into one invocation at the owner's request.
-This change does not alter training code or declare any training result complete.
+- [Original manual waves](superseded_runbooks/PIPELINE_0P5B_MANUAL_LANES_2026-10-06.md): 9 command blocks.
+- [Single-controller wrapper](superseded_runbooks/PIPELINE_0P5B_SINGLE_WRAPPER_2026-10-06.md): superseded after the owner clarified the required terminal layout.
+
+The active queue uses one sequential command per GPU terminal, waits for the
+fresh A1 publication, then continues both public schedules. Publication remains
+separate. Training code, recipes and completed probe identities are unchanged.
 
 ## 2026-10-05 queue snapshot
 
