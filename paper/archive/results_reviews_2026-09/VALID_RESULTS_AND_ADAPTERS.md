@@ -1,12 +1,20 @@
-# FedLS-SQL — valid results, adapters, and missing controls
+# FedLS-SQL - valid results, adapters, and missing controls
 
-This is the compact active evidence ledger. A row is retained only when its
-accuracy lineage does not consume BIRD prompts/targets that omitted evidence or
-the truncated-context P2.1 trained adapters. EX is primary; EM is secondary.
-Archived mixed result directories may still contain an individually valid
-Spider-only arm listed below.
+Archived evidence inventory, refreshed 2026-10-06 against committed results.
+This file preserves historical evaluation lineages and adds the P2.14-P2.17
+results below; it is not an executable queue. Current decisions and commands
+belong to [PIPELINE_NEXT.md](../../notes/PIPELINE_NEXT.md), result interpretation
+to [LAB_LOG.md](../../notes/LAB_LOG.md), and canonical historical labels to
+[RESULT_REGISTRY.md](../../notes/RESULT_REGISTRY.md). The latter has not yet
+incorporated the P2.14-P2.17 inventory; use the linked manifests below for those
+paths and run IDs.
 
-## Valid evaluation results already available
+EX is primary; EM is secondary. Exclude any lineage that consumed BIRD data
+without evidence or the truncated-context P2.1 adapters. Retained Spider-only
+baselines never consumed those invalid public updates. Historical batch-8
+results stay separate from the batch-16 comparisons.
+
+## Historical evaluation results retained
 
 | Model | Dataset/setup | Method | Seed | Stage | EX (%) | EM (%) | n | Use |
 |---|---|---|---:|---|---:|---:|---:|---|
@@ -55,13 +63,14 @@ The conditional match rates are `5,319/7,823 = 67.99%` and
 source denominator. Teacher dev EX and train-pool selection measure different
 splits and must not be presented as the same statistic.
 
-## Current execution state
+## Published P2.2-P2.6 evidence (historical)
 
 P2.2c–f, P2.3, and P2.4a are complete and published (`5e4f005`, `1b2c46a`,
 `ec5b5e1`, `2a6e04c`, `ccb3e91`). Counts, EX, paired row identities, prompt
 parity, and stage-parent hashes have been checked. `A>K[fkl]>A` passed the
 endpoint gate against `A>A`, but did not reliably beat `A>K[ce]>A`; the gain
-cannot currently be assigned to soft logits. Concurrent historical execution
+in that one-K comparison cannot be assigned to soft logits. The two-K P2.17
+comparison is recorded separately below. Concurrent historical execution
 preserves accuracy validity, but its wall time and memory measurements are not
 eligible for the paper resource table.
 
@@ -147,7 +156,9 @@ ablation, not an active method candidate.
 ## Valid adapter inventory
 
 These paths refer to the experiment server; adapters are gitignored. Only the
-listed stages may be reused. A `round_N/fedavg_adapter` inside an old FedLS root
+listed stages have retained evidence; reuse still requires the original model
+and lineage contract plus server-side file validation. No listed 1.5B adapter
+may initialize the proposed 0.5B student. A `round_N/fedavg_adapter` inside an old FedLS root
 is not listed, because later rounds inherit invalid public supervision.
 
 | Stable role | Valid adapter path | Scope |
@@ -181,38 +192,35 @@ All listed P2.2 endpoints have published training/evaluation records. Weight
 files remain on the server; this inventory follows published paths and does
 not claim local rehashing of absent weights. Base models are anchors, not adapters.
 
-## Baselines and ablations still required
+## Current preparation and unresolved evidence (2026-10-06)
 
-Order is adaptive: do not start a lower row when its gate is unresolved.
+- Both owner repositories use `main`. The next preparation is a fresh
+  `Qwen/Qwen2.5-Coder-0.5B-Instruct` screen with the same frozen 7B teacher:
+  centralized Spider E3, pure FL `A>A>A`, full gold and Hinton `A>K>A>K>A`.
+  The runner, GPU smoke, and launch commands are pending. No 0.5B result or
+  adapter is registered. All new student stages must use `target_fp32`.
+- Start from the fresh 0.5B base, with new output identities. Validate
+  student/teacher token alignment and the full cache contract before reusing
+  logits. Size and code specialization change together, so this screen cannot
+  isolate a size effect.
+- P2.16 centralized E1-E4 and a third public stage for P2.17 have no completed
+  rows in the published manifests checked here. The older centralized E3
+  reference (67.31 Spider EX) is a separate retained artifact.
+- Final method selection, additional training seeds, stronger non-IID
+  confirmation, and final-student resource measurements remain open. A paired
+  question test at seed 0 does not establish an across-seed method advantage.
+- Plan-task work is closed after P2.14/P2.15; P2.10 client plans and the A1
+  merge gate are closed, P2.13 was superseded, and P2.9 retention is paused.
+  P2.11/P2.12 and the old P2.7 screen are not active launch instructions.
+- KID remains a published negative ablation. Partial GKD and the retired
+  SeqKD-plus-Hinton hybrid are not completed evidence or reusable adapters.
+- Server lane status and adapter bytes have not been checked live. Do not
+  infer idle GPUs or available weights from this inventory.
 
-| Order | Required comparison | Status / promotion gate |
-|---:|---|---|
-| 1 | BIRD full-context smoke on eight longest prompts | complete; zero-truncation/VRAM gate passed |
-| 2 | BIRD Centralized E1/E2 and pure FL T1/T2/T3 | complete and published with official 30-second rescore |
-| 3 | Spider Base / Centralized / pure FL under explicit `spider` profile | reuse audit first; rerun only if fingerprints cannot be reconciled |
-| 4 | Pure FL vs matched public-gold CE | complete for BIRD-public → Spider-private: 56.96 vs 56.09 EX |
-| 5 | Pure FL vs teacher-target CE (SeqKD) | complete for BIRD-public → Spider-private: 56.96 vs 57.64 EX |
-| 6 | Full public-gold CE vs full public-gold CE + Hinton forward KL (`T=2`) | complete on five sets; Hinton wins four, loses Realistic |
-| 7 | Endpoint ladder `A`, `A→K`, `A→A`, `A→K→A` | complete at seed 0; terminal Hinton wins all five absolute comparisons against `A→A` |
-| 8 | Full-public `A→K[ce]→A` versus `A→K[fkl]→A` | complete: no significant Hinton advantage; four-set mean delta +0.05 pp |
-| 9 | SeqKD versus protocol-v2 KID before/after A | complete; terminal endpoints are statistically tied, KID closed for cost |
-| 10 | Selected 5,319-row gold CE versus SeqKD before/after A | complete at `fb2329e`; terminal SeqKD minus gold is -0.10/-0.98/+1.65/+0.75/+0.91 EX on Spider/Realistic/SYN/DK/BIRD, so the promotion gate failed |
-| 11 | Structured-rationale teacher-value screen | active P2.7 on one deterministic 1,000-row subset: flat teacher SQL vs local AST plan vs teacher plan; full-pool work requires every registered gate |
-| 12 | Reverse direction: BIRD-private FL with Spider-public controls | complete: FL 22.88, gold 20.73, SeqKD 24.45 EX; reverse Hinton deferred |
-| 13 | Final method on `alpha=0.1` and a second training seed | after method selection |
-| 14 | Second model family and final-adapter resource benchmark | conditional paper-closure evidence |
-
-SeqKD and Hinton KD are separate standard baselines. The retired 5,319-row
-`SeqKD + Hinton` hybrid and its partial cache are not valid pending evidence or
-an adapter. Protocol-v2 KID is a completed negative ablation. MiniLLM, clean
-RKL, deeper Hinton and GKD are closed for the current queue. Flat SeqKD failed
-the terminal promotion gate; the active bounded gate asks whether validated
-teacher query structure adds value beyond the same teacher SQL.
-
-Secure Sum equivalence and teacher-only resource measurements remain valid
-technical evidence. They are not accuracy arms and do not replace rows 1–10.
-The later read-only SQLite guard is operational safety only: it does not change
-Spider/BIRD EX semantics or invalidate any accepted row in this ledger.
+Secure Sum compatibility, adapter-byte accounting, and teacher-only resource
+measurements are separate technical evidence. They do not establish DP or
+replace final-adapter accuracy and resource measurements. Historical concurrent
+run timings are not controlled paper resource benchmarks.
 
 ## Excluded lineage
 
