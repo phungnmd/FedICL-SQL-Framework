@@ -53,11 +53,11 @@ under `paper/archive/`. Never use it as the current method specification.
   59.38, FL AAA 57.54, gold/Hinton AKAKA 60.15/62.57, gold/Hinton AKKAA
   61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
   Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
-  Active follow-up P2.19 is Hinton-only, seed 0: fresh K2AAA and
-  continuations AKAKAKA / AK2AAA, Spider EX at seven new endpoints.
-  Never push nested code while P2.19 runs: its identity hashes all tracked
-  code, so a pull blocks the resume. Next is P2.20 (gold K2AAA, FedProx AAA);
-  the schedule rule is in LAB_LOG (2026-10-07).
+  Active follow-up P2.20, seed 0: fresh Hinton K2AAA, gold K2AAA and FedProx
+  AAA complete the equal-exposure placement grid. P2.19 was cancelled before
+  any result. Never push nested code while P2.20 runs: its identity hashes all
+  tracked code, so a pull blocks the resume. The schedule rule is in LAB_LOG
+  (2026-10-07); centralized Hinton S follows the decision.
   Replication across seeds remains deferred by owner choice.
   All stages use `target_fp32`; cache audit/probes and predictions are public.
   Shared memory stays manual, do not add automatic polling or gates.

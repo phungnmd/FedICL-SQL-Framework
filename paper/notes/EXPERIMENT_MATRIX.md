@@ -11,9 +11,9 @@ cell here. CoT is optional supervision, not a required output or contribution.
 Current evidence: P2.18 Coder-0.5B six-arm screen is published (`45a8bdc`).
 Hinton AKAKA beats matched gold on terminal Spider by 2.42 points at seed 0
 (nominal exact p=.0199); Hinton AKKAA has highest observed Spider EX (63.15),
-but the schedules are not separated (p=.581). The owner selected P2.19 next:
-Hinton-only K2AAA plus AKAKAKA/AK2AAA continuations, Spider EX, seed 0.
-Implementation is ready; server probes and runs are pending. Multi-seed
+but the schedules are not separated (p=.581). P2.19 was cancelled before any
+result. P2.20 next: Hinton and gold K2AAA plus FedProx AAA, seed 0, completing
+the equal-exposure placement grid; server probes and runs are pending. Multi-seed
 replication remains deferred. Full-data auxiliary plan tasks are closed after P2.15.
 
 ## 1. Research questions
@@ -37,7 +37,7 @@ replication remains deferred. Full-data auxiliary plan tasks are closed after P2
 | 9d | Does the plan task hold on all BIRD rows and beat full gold? | all admitted rows, one epoch: `dss` vs retrained `gold` vs committed Hinton, `A>K>A`, then `A>K>A>A` and `A>K>A>A>A` | closed (P2.15): goldplan/dss lose to full gold; P2.16 depth supports a public-stage effect |
 | 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | P2.12 code ready but parked; masking does not freeze plan generation |
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
-| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | P2.17/P2.18 published; P2.19 K2AAA placement and finite-depth follow-up implemented, GPU pending; optimizer/horizon and public exposure boundaries apply |
+| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | P2.17/P2.18 published; P2.20 K2AAA gold/Hinton grid cells implemented, GPU pending; optimizer/horizon boundaries apply |
 | 12 | Does a teacher plan add value beyond format? | same-row AST plan versus teacher plan on the selected SQL base | conditional after P2.13 confirmation; old P2.7 is historical |
 | 13 | Is the result reliable? | paired EX and error analysis; matched P2.18 gold/Hinton replication on seeds 1 and 2 | after the method gate; fixed split, vary training RNG |
 | 14 | Is it robust to heterogeneity? | one stronger non-IID split, same rows and budget | after the method gate |
