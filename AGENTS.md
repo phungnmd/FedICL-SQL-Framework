@@ -54,7 +54,8 @@ under `paper/archive/`. Never use it as the current method specification.
   61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
   Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
   Active follow-up P2.20, seed 0: fresh Hinton K2AAA, gold K2AAA and FedProx
-  AAA complete the equal-exposure placement grid. P2.19 was cancelled before
+  AAA complete the equal-exposure placement grid; Hinton K2 is adopted from
+  the finished P2.19 K2 stage, not retrained. P2.19 was otherwise cancelled before
   any result. Never push nested code while P2.20 runs: its identity hashes all
   tracked code, so a pull blocks the resume. The schedule rule is in LAB_LOG
   (2026-10-07); centralized Hinton S follows the decision.

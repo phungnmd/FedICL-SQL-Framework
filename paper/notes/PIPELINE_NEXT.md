@@ -33,25 +33,29 @@ CE/KL .5/.5 at T=2, all 9,428 BIRD rows with evidence, k5 alpha 0.5 split.
 Evaluation follows P2.18: Spider and BIRD after every stage, all five sets at
 the final stage. Analysis reuses the published P2.18 predictions.
 
-Measured P2.18 single-GPU times, evaluation excluded: K2 Hinton 5.2 h, K2 gold
-4.5 h, one A round about 1.3 h. GPU 0 is about 9 h of training; GPU 1 is
-about 12.5 h.
+**Hinton K2 is reused, not retrained.** The P2.19 Hinton K2 stage was almost
+finished when P2.19 was cancelled. Its command is identical to the P2.20 Hinton
+K2 except for the stage label and output folder, and the training code did not
+change between nested `785863a` and P2.20. P2.20 adopts that completed stage
+and its runtime report. It never retrains it.
 
-### 0. Delete the cancelled P2.19 state, both GPUs idle
+Measured P2.18 single-GPU times, evaluation excluded: K2 gold 4.5 h, one A
+round about 1.3 h. GPU 0 (Hinton A1-A3, then FedProx) is about 7.8 h of
+training; GPU 1 (gold K2AAA) about 8.4 h.
 
-P2.19 has nothing published and P2.20 writes to new paths, so this is cleanup,
-not a requirement. First list what would be deleted:
+### 0. Let the P2.19 Hinton K2 finish, then stop P2.19
+
+Do not pull yet. If the P2.19 GPU 1 lane (AKAKAKA/AK2AAA) is still running,
+stop it now with Ctrl+C. On GPU 0, wait until the K2 training finishes and the
+log moves on to its Spider evaluation or to A1, then stop it with Ctrl+C. Check
+that the K2 stage is complete; the last line must say `passed`:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $targets=@(@('audits/protocol_v2/p219_schedule_extension_s0','artifacts/protocol_v2/p219_schedule_extension_s0') | Where-Object { Test-Path $_ }); $targets+=@(Get-ChildItem artifacts/eval_resume/protocol_v2 -Directory -Filter 'p219_*' -ErrorAction SilentlyContinue | ForEach-Object FullName); $targets+=@(Get-ChildItem experiments/federated/results,experiments/eval_arms/results -Directory -ErrorAction SilentlyContinue | Where-Object { (Test-Path (Join-Path $_.FullName 'config.json')) -and (Select-String -Path (Join-Path $_.FullName 'config.json') -Pattern 'p219_' -SimpleMatch -Quiet) } | ForEach-Object FullName); $targets }
+& { $ErrorActionPreference='Stop'; Get-ChildItem audits/protocol_v2/p219_schedule_extension_s0 -Filter 'runtime_k2aaa_k2_train_*.json' | Sort-Object Name | ForEach-Object { $_.Name + ' ' + (Get-Content $_.FullName -Raw | ConvertFrom-Json).status } }
 ```
 
-Check that every listed path belongs to P2.19. Then delete them. This cannot
-be undone. The command refuses any path that Git tracks:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $targets=@(@('audits/protocol_v2/p219_schedule_extension_s0','artifacts/protocol_v2/p219_schedule_extension_s0') | Where-Object { Test-Path $_ }); $targets+=@(Get-ChildItem artifacts/eval_resume/protocol_v2 -Directory -Filter 'p219_*' -ErrorAction SilentlyContinue | ForEach-Object FullName); $targets+=@(Get-ChildItem experiments/federated/results,experiments/eval_arms/results -Directory -ErrorAction SilentlyContinue | Where-Object { (Test-Path (Join-Path $_.FullName 'config.json')) -and (Select-String -Path (Join-Path $_.FullName 'config.json') -Pattern 'p219_' -SimpleMatch -Quiet) } | ForEach-Object FullName); foreach ($t in $targets) { $tracked=@(git ls-files -- $t); if ($LASTEXITCODE -ne 0 -or $tracked.Count -ne 0) { throw "Tracked path, not deleting: $t" } }; foreach ($t in $targets) { Remove-Item -Recurse -Force -LiteralPath $t }; Write-Host "Deleted $($targets.Count) P2.19 paths" }
-```
+Do not delete any P2.19 files until P2.20 is published: P2.20 uses the K2
+adapter, result row and runtime report. The rest of the P2.19 state is inert.
 
 ### 1. Pull and prepare once, both GPUs idle
 
@@ -62,14 +66,15 @@ bytes match; teacher logits are not regenerated.
 $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p220_placement_grid --phase prepare --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 preparation failed' }
 ```
 
-### 2. Three short probes, before either lane
+### 2. Two short probes, before either lane
 
 32-step longest-example probes, one process each. Each must pass reserved
-<=21.5 GiB. The FedProx probe also covers the plain private stages. Passed
-probes are reused on restart. Check shared GPU memory manually.
+<=21.5 GiB. The FedProx probe also covers the plain private stages; no Hinton
+probe is needed because the Hinton K2 is adopted. Passed probes are reused on
+restart. Check shared GPU memory manually.
 
 ```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($kind in @('fedprox','gold','hinton')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase probe --probe $kind --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${kind} probe failed" } }
+$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($kind in @('fedprox','gold')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase probe --probe $kind --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${kind} probe failed" } }
 ```
 
 ### 3. Run these two terminals concurrently
@@ -77,13 +82,13 @@ $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_
 GPU 0:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm hinton_k2aaa --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 Hinton K2AAA failed' }; Write-Host 'GPU 0 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('hinton_k2aaa','fedprox_aaa')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${arm} failed" } }; Write-Host 'GPU 0 lane complete' }
 ```
 
 GPU 1:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($arm in @('gold_k2aaa','fedprox_aaa')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${arm} failed" } }; Write-Host 'GPU 1 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm gold_k2aaa --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 gold K2AAA failed' }; Write-Host 'GPU 1 lane complete' }
 ```
 
 On interruption, rerun the identical lane command: completed stages and
@@ -101,8 +106,9 @@ summary identity, then stages only the compact allowlisted files.
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p220_placement_grid --phase analyze --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p220_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.20 placement grid'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
-Implementation: nested `af13bd2` (runner, publication, tests) and the FedProx
-probe kind in the commit before it. Verification: 747 CPU tests pass, including
+Implementation: nested `af13bd2` and `484e9b0` (P2.19 K2 adoption), plus the
+FedProx probe kind. Verification: 749 CPU tests pass; the adopted command was
+checked equal to the P2.19 command at `785863a`. Tests also cover
 CLI parsing of every stage, recipe equality with P2.18 except FedProx `mu`,
 base-start provenance, resume without retraining, probe drift and publication
 exclusions. Windows/CUDA probes and EX results remain to be measured.
@@ -110,4 +116,5 @@ exclusions. Windows/CUDA probes and EX results remain to be measured.
 ## After P2.20
 
 Apply the LAB_LOG schedule rule, then implement centralized Hinton S (same
-data and order, no FedAvg). Not queued yet.
+data and order, no FedAvg). Not queued yet. Only after publication may the
+P2.19 server folders be deleted.

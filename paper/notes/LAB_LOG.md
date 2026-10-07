@@ -35,6 +35,11 @@ Older detail:
 - P2.20 (nested `af13bd2`): fresh Hinton K2AAA, gold K2AAA and FedProx AAA
   (`mu=0.01`, the v1 value), P2.18 recipe and evaluation sets. New probe kind
   `fedprox` covers the plain private stages. 747 CPU tests pass; GPU unrun.
+- The P2.19 Hinton K2 was at microstep 18,164/18,856 when the owner asked to
+  reuse it. Nested `484e9b0`: P2.20 adopts that finished stage (command equal
+  to the P2.20 Hinton K2 except stage label/output; training code unchanged
+  since `785863a`) with its P2.19 runtime report, so it is never retrained.
+  The stage was interrupted once and resumed from its checkpoint.
 - Phase 1 goal: a 3x2 placement grid at equal exposure (3 Spider passes,
   2 BIRD epochs): {K2AAA, AK2AA, AKAKA} x {gold, Hinton}. P2.18 holds four
   cells; P2.20 adds Hinton and gold K2AAA, plus FedProx AAA.
