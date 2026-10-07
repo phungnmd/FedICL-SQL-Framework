@@ -53,7 +53,9 @@ under `paper/archive/`. Never use it as the current method specification.
   59.38, FL AAA 57.54, gold/Hinton AKAKA 60.15/62.57, gold/Hinton AKKAA
   61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
   Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
-  Next recommendation is matched-seed replication, not yet queued.
+  Active follow-up P2.19 is Hinton-only, seed 0: fresh K2AAA and
+  continuations AKAKAKA / AK2AAA, Spider EX at seven new endpoints.
+  Replication across seeds remains deferred by owner choice.
   All stages use `target_fp32`; cache audit/probes and predictions are public.
   Shared memory stays manual, do not add automatic polling or gates.
   KK is one continuous two-epoch K; share only initial A1. Existing 1.5B

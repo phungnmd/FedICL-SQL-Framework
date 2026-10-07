@@ -17,12 +17,39 @@ Older detail:
   has the highest terminal Spider EX (63.15); Hinton AKAKA beats matched gold
   by 2.42 points (p=.0199). The two Hinton schedules are not separated (p=.581).
 - Hinton AKAKA is the stronger current teacher-versus-gold confirmation target;
-  Hinton AKKAA remains the best observed Spider candidate. Replication on seeds
-  1 and 2 is recommended, not yet queued. No schedule or method is frozen.
+  Hinton AKKAA remains the best observed Spider candidate. The owner selected
+  Hinton-only placement/depth checks next (P2.19); seed replication is deferred.
+  No schedule or method is frozen.
 - Existing 1.5B reference: P2.17 Hinton Spider 69.54 vs gold 67.50 (`bd4fdcb`).
   Moving to Coder-0.5B changes specialization and size together.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-07: P2.19 Hinton-only follow-up implemented, not run
+
+- Owner requested KKAAA versus existing AKAKA/AK2AA, and extensions AKAKAKA
+  and AK2AAA to check whether Spider EX still improves. Explicitly Hinton only.
+- Nested `099dd48`: public stages may explicitly start `--from-base`; chain
+  begins K2 without inventing an initial A. Private stages still require a
+  parent; parent and base are mutually exclusive. Existing stage contracts
+  remain unchanged. Nested `785863a`: P2.19 runner and compact publication.
+- K2AAA trains K2 then three A rounds from scratch (3 Spider / 2 BIRD epochs).
+  AKAKAKA reuses P2.18 Hinton AKAKA then runs K3/A4 (total 4/3). AK2AAA reuses
+  P2.18 Hinton AK2AA then A4 (total 4/2). P2.18 evidence remains immutable.
+- Same 0.5B model, Hinton cache/CE-KL recipe, loss, batch/accumulation, private
+  split and evaluation settings. Spider-only eval after each new stage; seven
+  evaluations. Exact paired analysis reuses published parent predictions and
+  records exposure/scheduler caveats. No claim of an absolute maximum EX.
+- New CPU preparation checks source-manifest hash, source adapter receipts and
+  exact input hashes before reusing token counts/cache audit. Fresh private and
+  Hinton long-example probes required for P2.19; no automatic Windows counters.
+- GPU 0: K2AAA. GPU 1: AKAKAKA then AK2AAA. One publication after both finish.
+  Resume skips completed training/evals; failed child/runtime receipts stop.
+- Validation: 745 CPU tests passed; dry-run emits exactly seven stages and one
+  base start. All five PowerShell blocks parse in native PowerShell 7.4.6;
+  mocked concurrent lanes and final publication passed, including failures in
+  either lane and skipping the next arm on error. All owned workers exited.
+  Full server preparation, CUDA probes and EX results remain unrun locally.
 
 ## 2026-10-07: P2.18 six-arm 0.5B screen complete
 
