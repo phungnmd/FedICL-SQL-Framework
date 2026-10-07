@@ -23,6 +23,26 @@ Full originals:
 Protocol-v1 registry:
 `paper/archive/protocol_v1_no_bird_evidence/RESULT_REGISTRY_v1.md`.
 
+## P2.18 Coder-0.5B, seed 0 (2026-10-07)
+
+Result commit: nested `45a8bdc`; producer `eaf4116` (central evaluations also
+include `97df679`). All stages use `target_fp32`, SQL-only and no ICL.
+[Manifest](../../fedicl-sql/audits/protocol_v2/p218_student_schedule_s0/run_manifest.json)
+pins each config, metrics file, dataset, prediction and checkpoint fingerprint.
+[Summary](../../fedicl-sql/audits/protocol_v2/p218_student_schedule_s0/summary.md)
+contains the five-set scores and exact paired contrasts.
+
+| Stable ID | Spider EX | Result row | Adapter (server only) |
+|---|---:|---|---|
+| `v2.p218.central` | 59.38 | `experiments/client_train/results/p218_central_e3_s0` | `artifacts/protocol_v2/p218_student_schedule_s0/central_e3/epochs/epoch_3` |
+| `v2.p218.fl` | 57.54 | `experiments/federated/results/federated__fedavg__s0__a4bb1c160e32__dfe72d43__r3` | `artifacts/protocol_v2/p218_student_schedule_s0/fl_aaa/round_3/fedavg_adapter` |
+| `v2.p218.gold_akaka` | 60.15 | `experiments/federated/results/federated_stage__A-Kce-A-Kce-A__s0__e3132770fad3__3e2c8d49` | `artifacts/protocol_v2/p218_student_schedule_s0/gold_akaka_a3/fedavg_adapter` |
+| `v2.p218.hinton_akaka` | 62.57 | `experiments/federated/results/federated_stage__A-Kfkl-A-Kfkl-A__s0__959f69d778f1__90e0c626` | `artifacts/protocol_v2/p218_student_schedule_s0/hinton_akaka_a3/fedavg_adapter` |
+| `v2.p218.gold_akkaa` | 61.80 | `experiments/federated/results/federated_stage__A-K2ce-A-A__s0__97672ccb5d15__70d74199` | `artifacts/protocol_v2/p218_student_schedule_s0/gold_akkaa_a3/fedavg_adapter` |
+| `v2.p218.hinton_akkaa` | 63.15 | `experiments/federated/results/federated_stage__A-K2fkl-A-A__s0__7f3f76f13bb6__c708a696` | `artifacts/protocol_v2/p218_student_schedule_s0/hinton_akkaa_a3/fedavg_adapter` |
+
+Intermediate endpoints and A1 receipts remain registered through the same manifest.
+
 ## 1. Protocol-v2 result IDs
 
 | Stable ID | Result | Result commit / trail |

@@ -11,24 +11,95 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-06, 0.5B implementation)
+## Where we are (2026-10-07, P2.18 published)
 
-- Next: apply the SQL-only default validator fix to the interrupted Coder-0.5B
-  cohort, then resume the two lanes through one final publication. The owner reports
-  cache audit and probes passed;
-  terminal results are not yet published. The frozen 7B teacher is unchanged.
-- Method: not frozen. Best endpoint so far: `A>K[fkl]>A>K[fkl]>A` (Hinton with a
-  second public stage), Spider 69.54, nested `bd4fdcb`, seed 0.
-- Main objective: final Spider EX. A teacher method must beat full BIRD gold at
-  the same chain and number of private passes, with SQL-only clients and
-  inference.
-- P2.17 (entry below): with two public stages, Hinton beats gold on all five
-  sets at `A>K>A>K>A` (Spider +2.03, p = .033; DK +3.74, p = .002; BIRD +4.56,
-  p < 1e-5). It passes the pre-registered +1 point rule. Seed 0 only.
-- P2.16 FL recorded (`7e30ba9`): the public stage beats FL at 2-4 private
-  passes. Centralized E1-E4 are not in the published manifest yet.
-- Closed: the plan-task direction (P2.10, P2.14, `dss`, `goldplan`), A1 merge
-  gate. Paused: P2.9.
+- P2.18 six-arm Coder-0.5B screen is complete, nested `45a8bdc`. Hinton AKKAA
+  has the highest terminal Spider EX (63.15); Hinton AKAKA beats matched gold
+  by 2.42 points (p=.0199). The two Hinton schedules are not separated (p=.581).
+- Hinton AKAKA is the stronger current teacher-versus-gold confirmation target;
+  Hinton AKKAA remains the best observed Spider candidate. Replication on seeds
+  1 and 2 is recommended, not yet queued. No schedule or method is frozen.
+- Existing 1.5B reference: P2.17 Hinton Spider 69.54 vs gold 67.50 (`bd4fdcb`).
+  Moving to Coder-0.5B changes specialization and size together.
+- Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
+  P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-07: P2.18 six-arm 0.5B screen complete
+
+Evidence: nested `45a8bdc`; [summary](../../fedicl-sql/audits/protocol_v2/p218_student_schedule_s0/summary.md)
+and [manifest](../../fedicl-sql/audits/protocol_v2/p218_student_schedule_s0/run_manifest.json).
+Student `Qwen/Qwen2.5-Coder-0.5B-Instruct`, frozen `Qwen/Qwen2.5-Coder-7B-Instruct`
+teacher; seed 0, `target_fp32` throughout, SQL-only, no ICL. EX (%):
+
+| Arm | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| Centralized E3 | 59.38 | 45.87 | 43.42 | 44.30 | 13.62 |
+| FL AAA | 57.54 | 47.24 | 41.49 | 42.80 | 14.34 |
+| Gold AKAKA | 60.15 | 50.98 | 48.16 | 46.54 | 25.75 |
+| Hinton AKAKA | 62.57 | 52.17 | 50.48 | 47.85 | 28.88 |
+| Gold AKKAA | 61.80 | 52.17 | 48.65 | 46.17 | 26.60 |
+| Hinton AKKAA | 63.15 | 51.77 | 49.71 | 47.48 | 27.77 |
+
+Paired terminal Spider contrasts (1,034 identical questions/prompts; exact
+McNemar, nominal p-values without multiplicity correction):
+
+| Contrast | Delta points | Wins / losses | p |
+|---|---:|---:|---:|
+| Hinton AKAKA - gold AKAKA | +2.42 | 66 / 41 | .0199 |
+| Hinton AKKAA - gold AKKAA | +1.35 | 56 / 42 | .1888 |
+| Hinton AKKAA - Hinton AKAKA | +0.58 | 44 / 38 | .5811 |
+| Gold AKKAA - gold AKAKA | +1.64 | 56 / 39 | .1002 |
+| Hinton AKAKA - central E3 | +3.19 | 119 / 86 | .0252 |
+| Hinton AKKAA - central E3 | +3.77 | 107 / 68 | .00394 |
+| Hinton AKAKA - FL AAA | +5.03 | 99 / 47 | .0000202 |
+| Hinton AKKAA - FL AAA | +5.61 | 105 / 47 | .00000290 |
+
+Interpretation:
+
+- Public BIRD training helps: gold already gains +2.61/+4.26 Spider over FL
+  AAA. Hinton AKAKA additionally beats matched gold on all five sets, with
+  nominal p<.05 on Spider, SYN (+2.32) and BIRD (+3.13). This is teacher
+  evidence at seed 0, not a generalization guarantee or CoT result.
+- Hinton AKKAA leads Spider by six questions, while Hinton AKAKA is numerically
+  higher on the four other sets. No within-objective schedule contrast reaches
+  p<.05 on any set. A significant Hinton-gold contrast in one schedule and a
+  non-significant contrast in the other does not establish an interaction.
+- All arms get three Spider passes; public arms additionally get two epochs
+  over 9,428 BIRD rows. Central E3 is a private-exposure reference, not equal
+  total data/compute. Hinton also incurs teacher-cache computation.
+- AKKAA is one continuous K2; AKAKA restarts optimizer/scheduler for each K.
+  Thus a schedule comparison includes optimizer/horizon changes, not placement
+  alone. Further matched seeds are needed before choosing a schedule.
+
+Spider trajectories (A1 shared by public arms = 53.38):
+
+| Arm | Ordered endpoints | Spider EX |
+|---|---|---|
+| Central | E1, E2, E3 | 58.03, 60.35, 59.38 |
+| FL | A1, A2, A3 | 53.38, 55.51, 57.54 |
+| Gold AKAKA | K1, A2, K2, A3 | 46.42, 59.77, 48.36, 60.15 |
+| Hinton AKAKA | K1, A2, K2, A3 | 50.58, 60.74, 53.09, 62.57 |
+| Gold AKKAA | K2, A2, A3 | 48.07, 58.99, 61.80 |
+| Hinton AKKAA | K2, A2, A3 | 52.42, 60.54, 63.15 |
+
+K raises BIRD and lowers Spider; private A recovers Spider. Hinton preserves
+more Spider at both K endpoints than gold, and its advantage remains after A3.
+Central E2 exceeds E3; keep the planned E3 reference rather than selecting an
+epoch retrospectively. The earlier central EX=13.6 log was BIRD, not Spider.
+
+Verification: all 58 config/metrics/prediction triplets and 74 successful
+runtime reports match manifest hashes; 20 endpoint recipes and 15 receipt
+result hashes checked; all 65 terminal contrasts independently recomputed from
+aligned row IDs, database/question/gold/prompt bytes. Summary matches manifest.
+Adapter hashes are recorded, but weights are server-only and were not rehashed
+locally; SQL was not re-executed. Cache audit passes all 9,428 rows.
+
+Published probes reserve 3.84/16.42/16.11 GiB (private/gold/Hinton), with
+0.0801 GiB peak shared memory during probes. Full public stages reserve about
+20.2 GiB, below 21.5 GiB. No continuous shared-memory evidence exists after
+counter removal, so do not claim zero paging throughout. Central and FL have
+resumed timings; concurrent lanes are not a controlled speed benchmark.
+Measurements are in `fedicl-sql/docs/A5000_RUN_CONFIG.md`.
 
 ## 2026-10-06: recover completed FL after SQL-default validation error
 

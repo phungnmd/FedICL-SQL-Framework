@@ -20,6 +20,10 @@ material and index entries only.
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
 
+## 2026-10-07 completed screen
+
+- [P2.18 six-arm 0.5B queue](completed_runbooks/PIPELINE_P218_0P5B_2026-10-07.md): all arms/evaluations published in nested `45a8bdc`; no GPU job remains queued.
+
 ## 2026-10-06 0.5B launch layouts
 
 - [Baseline-publication queue](superseded_runbooks/PIPELINE_0P5B_BASELINE_PUBLICATION_2026-10-06.md): replaced by local A1 receipts and one final publication.

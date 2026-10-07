@@ -1,192 +1,26 @@
 # FedLS-SQL run queue
 
-This file owns runnable experiment commands. Results belong in
-[LAB_LOG.md](LAB_LOG.md). Run every command from the Windows `fedicl-sql/` root.
-The earlier 1.5B queue remains in the
-[dated archive](../archive/superseded_runbooks/PIPELINE_1P5B_PRE_0P5B_2026-10-05.md).
+This file owns executable work. Results and interpretation are in
+[LAB_LOG.md](LAB_LOG.md); artifact identities are in [RESULT_REGISTRY.md](RESULT_REGISTRY.md).
 
-## 0.5B screen, 2026-10-06
+## 2026-10-07: P2.18 complete, no GPU jobs queued
 
-Owner reports on 2026-10-06: CPU preparation, full teacher-cache audit and all
-three server GPU probes passed. Gold initially stopped on a Windows counter
-error, then gold/Hinton passed after the counter recovered. Compact reports
-are not published yet; no 0.5B terminal result is claimed. FL later stopped
-when Get-Counter returned exit code 1 during otherwise normal training. The owner
-requested complete removal of automatic counters. Apply step 0 below to the
-existing server, then resume step 3. Steps 1-2 remain for fresh reproduction. Server lane status is
-unverified: synchronize `main` only when all old lanes are idle and unpublished
-results are preserved. Never pull, edit, commit, or push this checkout while a
-lane is running. Both GPU lane commands must exit before the single final publication.
-There is no intermediate baseline commit/push.
+All six Coder-0.5B arms and 58 endpoint evaluations are published in nested
+`45a8bdc`: central E3, FL AAA, gold/Hinton AKAKA and AKKAA. The completed
+[launch and recovery commands](../archive/completed_runbooks/PIPELINE_P218_0P5B_2026-10-07.md)
+are archived. Do not rerun preparation or delete existing checkpoints.
 
-Latest owner log: FL round 3 completed, then FL evaluation and the Hinton
-handoff both stopped on `client_response_format`. The serializer omits the
-default `sql_only`; the validator incorrectly required an explicit key.
-Nested `eaf4116` fixes this validation and preserves prepared identities. Apply
-step 0 and rerun both step-3 commands. Completed FL/central training and recorded
-evaluations are reused. Do not edit result configs or delete checkpoints.
+Spider EX: Hinton AKKAA 63.15, Hinton AKAKA 62.57, gold AKKAA 61.80,
+gold AKAKA 60.15, central E3 59.38, FL AAA 57.54. Hinton AKAKA-minus-gold
+is +2.42 (nominal exact p=.0199); the two Hinton schedules are not separated
+(p=.581). Seed 0 only.
 
-Fresh student: `Qwen/Qwen2.5-Coder-0.5B-Instruct`; frozen teacher:
-`Qwen/Qwen2.5-Coder-7B-Instruct`. Do not initialize from a 1.5B adapter. Changing
-size and code specialization together does not isolate a model-size effect.
+Recommended next decision: replicate matched gold/Hinton AKAKA on seeds 1 and
+2 to test the teacher effect; include both AKKAA arms if choosing the schedule
+is the priority. This is a proposal, not a launch authorization or ready queue.
+Each new seed needs fresh adapters and its own preparation/probe identities;
+teacher-cache reuse still requires the existing exact contract.
 
-| Arm | Schedule | Spider passes | BIRD epochs |
-|---|---|---:|---:|
-| Centralized | one continuous E3 run, keep E1/E2/E3 | 3 | 0 |
-| FL | A > A > A | 3 | 0 |
-| Gold AKAKA | A > K[ce] > A > K[ce] > A | 3 | 2 |
-| Hinton AKAKA | A > K[fkl] > A > K[fkl] > A | 3 | 2 |
-| Gold AKKAA | A > K2[ce] > A > A | 3 | 2 |
-| Hinton AKKAA | A > K2[fkl] > A > A | 3 | 2 |
-
-**KK means one K with 2 continuous epochs**, one optimizer and a cosine horizon
-planned for both epochs from the start. Keep epoch adapters and `resume_latest`.
-Only initial A1 is shared. The first K epoch cannot be shared with AKAKA because
-its LR horizon differs. The schedule comparison therefore includes the effect
-of the continuous versus restarted public LR schedule.
-
-The runner preserves the recent training recipe: seed 0; BF16 student weights,
-`target_fp32`, response-window logits, batch 1, accumulation 16, AdamW LR 2e-4,
-cosine/warmup .03, LoRA r16/alpha32/dropout .05 on attention and MLP, non-reentrant
-gradient checkpointing. Each A uses 5 Spider clients, the existing alpha .5
-split, one local epoch and sample-weighted factor-wise plaintext FedAvg. Clients
-and inference stay SQL-only, no ICL. Every K uses all 9,428 BIRD rows with
-evidence. Gold uses CE only; Hinton uses CE/KL .5/.5 and temperature 2. Max length
-is 7,168 for private/Hinton, 7,424 for gold, with overflow rejected. Evaluation
-uses batch 16 without fallback, unchanged Spider 60 s/BIRD 30 s execution budgets,
-Spider/BIRD at intermediate endpoints and all five sets at final endpoints.
-
-The 1.5B P2.17 reference was about 18.9 GiB reserved for K; the older
-`full_bf16` BIRD path paged about 66.5 GiB to host RAM and took 16.4 h. These are
-historical measurements, not 0.5B estimates. Keep batch 1 until the new smoke
-and actual throughput show headroom. Allocator cap .88 and reserved <=21.5 GiB
-are enforced. Shared GPU memory is checked manually by the owner if needed.
-There is no automatic counter polling, background warning monitor, or shared-memory
-training/publication gate. Child exit status controls runtime success.
-
-## 0. Existing server: update the workflow and preserve prepared work
-
-The owner requested complete removal of automatic counters and one publication
-at the end. The implementation is on `main` (`b7ede63`, `97df679`); the
-[baseline-publication queue](../archive/superseded_runbooks/PIPELINE_0P5B_BASELINE_PUBLICATION_2026-10-06.md)
-is superseded. After stopping both old lane commands, pull and apply the checked
-identity update below. Existing preparations from `acbc641`, `4b5eb8f` or `97df679` are
-supported. Leave adapters, `_ckpt`, `resume_latest`, manifests and results intact.
-
-Run once from the server repository on `main`, only when both lanes are idle:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.migrate_p218_counter_removal --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Prepared identity migration failed' }
-```
-
-The helper accepts only the pinned workflow changes (counter removal, local A1
-receipts, atomic manifest publication and the omitted SQL-default validation fix), unchanged training/data/commands and
-successful existing probe reports. It preserves original
-identities and measurements, then updates their compatibility identity. It does
-not rerun probes, rebuild the teacher cache, or modify adapters/checkpoints.
-A mismatch stops the migration without bypassing provenance checks. New clean
-runs skip this one-time migration and use steps 1-2 normally.
-
-Restart each terminal with its existing step-3 command. Finished clients and
-rounds are reused; interrupted training resumes from its saved checkpoint.
-Unsaved microsteps are recomputed. Publish once after both full GPU lanes finish.
-
-## 1. CPU preparation and reuse the existing teacher cache
-
-The directory containing `qwen15b` holds **7B teacher logits rendered for the
-old student tokenizer**, not 1.5B weights. Reuse is allowed only after checking
-source/target rendered IDs, labels and prompt boundaries for all rows, complete
-token-ID mappings, pool/profile/evidence metadata, shard shapes/dtypes/finiteness
-and tensor digests. Audit is read-only, loads tokenizer/config files, and does
-not regenerate logits or load teacher weights. The report is separate from the
-original cache metadata. Training rechecks tokenizer/vocab identity and tensor
-bytes and rejects misses. Full cache I/O can take time; run the audit once.
-
-The local tokenizer comparison matched all 151,665 token mappings; padded output
-vocabularies are 151,936 (student) and 152,064 (teacher). This preliminary check
-does not establish server cache coverage. If audit fails, retain the cache and
-inspect the mismatch before any Hinton run. The current screen uses seed 0.
-
-```powershell
-$ErrorActionPreference='Stop'; uv run python -m scripts.run_p218_student_schedule --phase prepare --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 preparation failed' }; if (!(Test-Path 'audits/protocol_v2/p218_student_schedule_s0/run_manifest.json')) { throw 'Preparation manifest missing' }
-```
-
-```powershell
-$ErrorActionPreference='Stop'; uv run python -m scripts.audit_teacher_logit_cache --cache-dir artifacts/protocol_v2/teacher_logit_cache/p22d_bird_gold9428_qwen7b_to_qwen15b_raw_logits_s0 --model Qwen/Qwen2.5-Coder-0.5B-Instruct --pool processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/train.csv --dataset-profile bird_with_evidence --max-len 7168 --seed 0 --out audits/protocol_v2/p218_student_schedule_s0/cache_audit.json; if ($LASTEXITCODE -ne 0) { throw 'Teacher cache reuse audit failed' }; if (!(Test-Path 'audits/protocol_v2/p218_student_schedule_s0/cache_audit.json')) { throw 'Cache audit missing' }
-```
-
-## 2. Isolated GPU probes, no training lane yet
-
-Run each probe as a separate process so it exits and releases CUDA memory before
-training. Each uses fresh temporary outputs and 32 longest-sequence/longest-target
-steps, including two AdamW updates. Gold and Hinton probe their actual losses;
-Hinton uses the audited cache. Reports bind recipe, code content and input hashes.
-No Windows shared-memory counter is polled during probes, training or evaluation.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($kind in @('private','gold','hinton')) { uv run python -m scripts.run_p218_student_schedule --phase probe --probe $kind --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${kind} probe failed" }; if (!(Test-Path "audits/protocol_v2/p218_student_schedule_s0/memory_${kind}.json")) { throw "Missing ${kind} probe report" } }
-```
-
-Record measured reserved/allocated VRAM, process RSS, shared memory and timing in
-`docs/A5000_RUN_CONFIG.md` after both GPUs are idle. Do not call CPU tests a GPU
-pass. Add measurements after this run cohort so changing code does not invalidate
-prepared identity mid-run. Probes run on GPU 0; GPU 1 runs the same A5000 recipe
-with shared GPU memory checked manually if needed.
-
-## 3. One sequential command per GPU terminal
-
-Use one visible PowerShell terminal per GPU. The remaining workflow has
-**two sequential GPU commands and one final publication command**.
-
-| Terminal | Sequential work |
-|---|---|
-| GPU 0 | FL AAA + eval, gold AKAKA + eval, gold AKKAA + eval |
-| GPU 1 | Centralized E3 + epoch eval, Hinton AKAKA + eval, Hinton AKKAA + eval |
-
-Run the commands below on `main` after step 0 for an existing cohort. They
-resume the same artifacts and recipe. No Git operation runs inside either lane.
-A public arm only needs the initial local FL A1. If GPU 1 gets there before A1,
-the runner waits for A1, then continues automatically. It does not wait for FL
-AAA, centralized evaluation, or publication. A1 completion is checked against
-the FL round manifest, exact recipe, completion metadata and adapter hashes,
-then sealed in a shared receipt. Later FL rounds do not invalidate that receipt.
-Any change to the pinned A1 fails validation instead of silently changing the
-parent. The receipt is included in the single final publication.
-
-GPU 0:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase fl --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 fl failed' }; foreach ($arm in @('gold_akaka','gold_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 0 lane complete' }
-```
-
-GPU 1:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $R='scripts.run_p218_student_schedule'; uv run --no-sync python -m $R --phase central --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.18 central failed' }; foreach ($arm in @('hinton_akaka','hinton_akkaa')) { uv run --no-sync python -m $R --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.18 ${arm} failed" } }; Write-Host 'GPU 1 lane complete' }
-```
-
-## 4. Publish the complete screen once
-
-Run final publication only after **both GPU lane commands exit successfully**.
-Publication stays separate from training, exactly as in the older runbooks.
-A push failure can be retried with the same publication command. Do not discard
-staged files after a staging/commit failure without inspecting them.
-
-```powershell
-& { $ErrorActionPreference='Stop'; function Check-Index { $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' } }; function Publish($scope) { Check-Index; uv run --no-sync python -m scripts.run_p218_student_schedule --phase analyze --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $all=@(uv run --no-sync python -c "from scripts import list_p218_publication as p; p.runner.set_seed(0); lock=p.runner.idle_lanes(); print(chr(10).join(p.collect_paths('$scope'))); lock.close()"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; $files=@(foreach ($file in $all) { $status=@(git status --porcelain --untracked-files=all -- $file); if ($LASTEXITCODE -ne 0) { throw 'File status failed' }; if ($status.Count -gt 0) { $file } }); if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m "results: record P2.18 0.5B $scope"; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; }; Publish 'full' }
-```
-
-Validation: 729 CPU tests passed. They exercise local uncommitted A1 reuse,
-hash/receipt tampering, concurrent manifest reads, and stage execution before
-baseline publication. Exact command blocks parse on PowerShell 7.4.6. Two
-independent native PowerShell processes with mocked training/Git verified full
-sequential lanes followed by one publication, and early stopping on central or
-gold-arm failure. All task-owned workers exited. Windows/CUDA execution of the
-updated workflow is not yet measured.
-
-Decision: compare final Spider EX, Hinton versus gold within each schedule,
-AKAKA versus AKKAA within each objective, then the FL and centralized controls.
-The summary includes paired exact McNemar tests. Centralized/FL match private
-passes but have no BIRD exposure. Seed 0 is a screen; replicate a promising
-contrast before making a general claim. Keep 1.5B results as historical
-references, not evidence of a causal size-only comparison.
+Keep SQL-only, `target_fp32`, the existing training/eval recipe and manual
+shared-memory checks. No automatic Windows counters. New launch commands will
+be added here once the next run scope is selected.

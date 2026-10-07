@@ -45,19 +45,19 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
 under `paper/archive/`. Never use it as the current method specification.
 
-## Current state (2026-10-06)
+## Current state (2026-10-07)
 
 - Both owner checkouts now use `main`. Nested `main` integrates the experiment
   branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
-- Next: prepare a fresh `Qwen/Qwen2.5-Coder-0.5B-Instruct` student screen with
-  the existing frozen 7B teacher. All new student stages use `target_fp32`.
-  The P2.18 runner and cache audit are implemented; the owner reports GPU
-  probes/cache audit passed, with reports not yet published. Automatic Windows
-  shared-memory counters were removed after a counter failure stopped FL.
-  Shared memory is checked manually; do not add automatic polling or gates. `PIPELINE_NEXT.md` owns
-  the gates and commands. Compare gold/Hinton AKAKA and AKKAA against FL AAA
-  and continuous centralized E3. KK is one K with 2 continuous epochs; share
-  only initial A1, not AK. Existing 1.5B runs are references, not adapters.
+- P2.18 Coder-0.5B six-arm screen is complete (`45a8bdc`): central E3
+  59.38, FL AAA 57.54, gold/Hinton AKAKA 60.15/62.57, gold/Hinton AKKAA
+  61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
+  Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
+  Next recommendation is matched-seed replication, not yet queued.
+  All stages use `target_fp32`; cache audit/probes and predictions are public.
+  Shared memory stays manual, do not add automatic polling or gates.
+  KK is one continuous two-epoch K; share only initial A1. Existing 1.5B
+  runs are references, not adapters. `PIPELINE_NEXT.md` owns future commands.
 - P2.15's full-data plan-task direction is closed. Clients and inference stay
   SQL-only.
 - `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task) and `dss`

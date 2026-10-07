@@ -8,15 +8,11 @@ Final-model Spider EX is primary. Spider variants and BIRD EX measure
 robustness and transfer; EM is secondary. Protocol-v1 results never fill a
 cell here. CoT is optional supervision, not a required output or contribution.
 
-Current priority: teacher CoT that beats full BIRD-gold and Hinton on terminal
-Spider EX at the fixed `A>K>A` schedule. The broader pipeline claim remains
-valid, but it is not the stopping criterion for this stronger-method search.
-Selected next screen: P2.13, fullgold versus fullgold plus extra SQL versus
-fullgold plus teacher plans. The extra-exposure control is required from the
-first screen. The recipe and execution order live in `PIPELINE_NEXT.md`;
-the runner is implemented with two GPU lanes and the A5000 target_fp32 profile
-for all G/E/T K/A stages. Fresh G is required; new preparation and live probes
-are pending. Schedule depth is deferred.
+Current evidence: P2.18 Coder-0.5B six-arm screen is published (`45a8bdc`).
+Hinton AKAKA beats matched gold on terminal Spider by 2.42 points at seed 0
+(nominal exact p=.0199); Hinton AKKAA has highest observed Spider EX (63.15),
+but the schedules are not separated (p=.581). Recommend matched-seed replication;
+no GPU jobs are queued. Full-data auxiliary plan tasks are closed after P2.15.
 
 ## 1. Research questions
 
@@ -36,12 +32,12 @@ are pending. Schedule depth is deferred.
 | 9a | Does the teacher plan help on the SeqKD base? | `A>K[seq+plan]>A`, teacher vs template plan, vs SeqKD | P2.11 code ready but parked; P2.13 directly tests the stronger full-gold baseline |
 | 9a-g | Can teacher plans improve the strong full-gold baseline beyond extra training? | `A>K[fullgold+plan]>A` vs fullgold and fullgold plus extra SQL on the same plan rows | superseded before training by P2.14 (plan task too small; plans paired with gold SQL) |
 | 9c | Does the teacher plan as a separate task improve Struct-SQL KD? | 1,000 admitted rows: `A>K3[seq+plan]>A` vs `A>K3[ce]>A` on teacher SQL, SQL-only clients and inference | done at seed 0 (P2.14, `e622e1f`): terminal Spider +1.84 for the plan task |
-| 9d | Does the plan task hold on all BIRD rows and beat full gold? | all admitted rows, one epoch: `dss` vs retrained `gold` vs committed Hinton, `A>K>A`, then `A>K>A>A` and `A>K>A>A>A` | **selected next: P2.15**, runner ready; GPU run pending |
+| 9d | Does the plan task hold on all BIRD rows and beat full gold? | all admitted rows, one epoch: `dss` vs retrained `gold` vs committed Hinton, `A>K>A`, then `A>K>A>A` and `A>K>A>A>A` | closed (P2.15): goldplan/dss lose to full gold; P2.16 depth supports a public-stage effect |
 | 9b | Does a self-generated plan context improve terminal SQL? | `A[qp]>K[qp-teacher]>A[qp-latent]`, SQL-only loss; matched parent/plain-terminal controls | P2.12 code ready but parked; masking does not freeze plan generation |
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
-| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | planned (A2), after depth evidence |
+| 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | P2.17/P2.18 published; P2.18 AKAKA vs continuous-K2 AKKAA inconclusive; optimizer/horizon also differs |
 | 12 | Does a teacher plan add value beyond format? | same-row AST plan versus teacher plan on the selected SQL base | conditional after P2.13 confirmation; old P2.7 is historical |
-| 13 | Is the result reliable? | paired EX and error analysis; P2.13 recipe/control confirmation on seeds 1 and 2 after seed 0 | after the method gate; fixed split, vary training RNG |
+| 13 | Is the result reliable? | paired EX and error analysis; matched P2.18 gold/Hinton replication on seeds 1 and 2 | after the method gate; fixed split, vary training RNG |
 | 14 | Is it robust to heterogeneity? | one stronger non-IID split, same rows and budget | after the method gate |
 | 15 | Is it model-family specific? | Qwen first; Gemma only after the method is stable | conditional |
 | 16 | What efficiency and privacy claims hold? | adapter bytes, final SLM vs teacher inference, structural boundary | teacher timing kept; final-adapter benchmark pending |
