@@ -17,13 +17,34 @@ Older detail:
   has the highest terminal Spider EX (63.15); Hinton AKAKA beats matched gold
   by 2.42 points (p=.0199). The two Hinton schedules are not separated (p=.581).
 - Hinton AKAKA is the stronger current teacher-versus-gold confirmation target;
-  Hinton AKKAA remains the best observed Spider candidate. The owner selected
-  Hinton-only placement/depth checks next (P2.19); seed replication is deferred.
+  Hinton AKKAA remains the best observed Spider candidate. P2.19 (Hinton
+  K2AAA plus depth extensions) was stopped and resumes unchanged; the schedule
+  decision rule is fixed in the entry below. Seed replication is deferred.
   No schedule or method is frozen.
 - Existing 1.5B reference: P2.17 Hinton Spider 69.54 vs gold 67.50 (`bd4fdcb`).
   Moving to Coder-0.5B changes specialization and size together.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-07: P2.19 stopped and resumed unchanged; schedule rule fixed
+
+- The owner stopped both P2.19 lanes after reviewing P2.18. They resume with
+  the identical commands, without pulling: the recorded P2.19 identity contains
+  a content hash of all tracked code, so a code pull would block the resume.
+  AKAKAKA/AK2AAA run only because GPU 1 is otherwise idle; they are
+  supplementary depth evidence, not part of the method decision.
+- Phase 1 goal: a 3x2 placement grid at equal exposure (3 Spider passes,
+  2 BIRD epochs): {K2AAA, AK2AA, AKAKA} x {gold, Hinton}. P2.18 holds four
+  cells; P2.19 adds Hinton K2AAA; P2.20 adds gold K2AAA and FedProx AAA.
+- Schedule rule, fixed before P2.19 results are read: S = AKAKA by default
+  (the only schedule with Hinton > gold at p<.05 on both 1.5B and 0.5B).
+  Switch S to K2AAA or AK2AA only if Hinton there beats Hinton AKAKA by at
+  least 1 Spider point with exact McNemar p<.05. If gold K2AAA >= Hinton S,
+  stop and reassess the claim before Phase 2. If S != AKAKA, the 1.5B P2.17
+  table becomes secondary evidence.
+- Phase 2 (after S): centralized Hinton S on the same data and order, then
+  alpha 0.1 non-IID (FL, gold S, Hinton S), then a second model family whose
+  student and teacher share a tokenizer (Hinton KD needs one vocabulary).
 
 ## 2026-10-07: P2.19 Hinton-only follow-up implemented, not run
 

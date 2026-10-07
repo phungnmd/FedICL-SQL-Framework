@@ -55,6 +55,9 @@ under `paper/archive/`. Never use it as the current method specification.
   Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
   Active follow-up P2.19 is Hinton-only, seed 0: fresh K2AAA and
   continuations AKAKAKA / AK2AAA, Spider EX at seven new endpoints.
+  Never push nested code while P2.19 runs: its identity hashes all tracked
+  code, so a pull blocks the resume. Next is P2.20 (gold K2AAA, FedProx AAA);
+  the schedule rule is in LAB_LOG (2026-10-07).
   Replication across seeds remains deferred by owner choice.
   All stages use `target_fp32`; cache audit/probes and predictions are public.
   Shared memory stays manual, do not add automatic polling or gates.

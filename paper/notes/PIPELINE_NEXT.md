@@ -32,6 +32,27 @@ stages reset optimizer/scheduler. A higher best observed EX is not proof of a
 maximum; a flat/lower next point at seed 0 is not proof of convergence. Testing
 on these sets guides exploration, not an unbiased final model-selection claim.
 
+### Resume after the 2026-10-07 stop
+
+The owner stopped both lanes. Resume them **unchanged**: do not pull and
+do not edit code on the server. P2.19 binds its recorded preparation and probes
+to a content hash of every tracked file under `fedicl_sql/`, `scripts/` and
+`experiments/` (via the P2.18 `identity()`), so any code pull before P2.19
+finishes makes `verify_ready` fail and blocks the resume. AKAKAKA/AK2AAA are
+no longer needed for the method decision, but GPU 1 would otherwise sit idle
+for the whole K2AAA run, so it finishes them as supplementary depth evidence.
+
+Steps 1 and 2 already passed; skip them. Run the two step 3 commands exactly as
+written, in two terminals. Completed stages and evaluations are skipped, and an
+interrupted stage continues from its last saved checkpoint (every 200 optimizer
+steps). If either command throws, stop and report the first error line. Then
+publish once with step 4. The nested `main` receives no new commits until that
+publication is pushed.
+
+Next after publication (P2.20, not implemented yet): gold K2AAA and FedProx
+AAA (`mu=0.01`, the v1 value), then centralized Hinton on the selected
+schedule. The schedule rule is fixed in LAB_LOG before P2.19 results are read.
+
 ### 1. Pull and prepare once, both GPUs idle
 
 No P2.18 identity migration or preparation rerun. The new runner pins the
