@@ -26,6 +26,27 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.20 Hinton K2AAA terminal Spider, not committed
+
+- Owner report from the server log: `p220_hinton_k2aaa_a3` Spider EX 63.9,
+  EM 58.6. Not committed; gold K2AAA and FedProx AAA still pending.
+- Hinton by schedule, Spider: AKAKA 62.57, AK2AA 63.15, K2AAA 63.9 (about 14
+  and 8 questions above). At P2.18-like discordance (90-130 pairs), a 14-question
+  gain gives exact McNemar p of about .17-.25, so the schedule rule will most
+  likely keep S = AKAKA. Confirm with the published paired analysis.
+- Observed ordering matches the number of private rounds after the last K
+  (1, 2, 3). This is the K-forgetting/A-recovery pattern from P2.18, but
+  schedules also differ in optimizer restarts, so it is a hypothesis.
+- Interpretation of gold K2AAA, fixed before it is read:
+  Hinton - gold >= 2 points with p<.05: the teacher effect survives three
+  private rounds after a single public warm-start (strongest Q3 story).
+  |Hinton - gold| < 1: the teacher effect depends on placement; it appears
+  only when K is late, consistent with the earlier one-K washout.
+  Gold range across the three schedules much wider than Hinton's (62.57-63.9):
+  report that the teacher reduces schedule sensitivity.
+- Also read the K2AAA BIRD/Realistic/SYN/DK scores: three private rounds after
+  K may trade BIRD retention for Spider (schedule as a Pareto trade-off).
+
 ## 2026-10-07: P2.19 cancelled, P2.20 placement grid; schedule rule fixed
 
 - The owner stopped P2.19 shortly after launch, before any stage result, and
