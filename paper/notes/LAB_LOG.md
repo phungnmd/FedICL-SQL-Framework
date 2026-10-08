@@ -31,6 +31,27 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: method v1 fixed; P2.24 v2 screen queued, rule fixed before results
+
+- Method v1 (owner decision): server Hinton KD on public BIRD + client FedNTD
+  (beta 1, tau 3) in the private rounds; SQL-only clients; only adapters move,
+  teacher outputs never leave the server. Evidence: P2.18-P2.23.
+- v2 adds server retention: in each Hinton K stage, `mu * T^2 KL_not-true(
+  received post-FedAvg adapter || student)` on BIRD inputs (FedNTD loss,
+  Lee et al. 2022; LwF placement, Li and Hoiem 2016; server distillation of
+  client knowledge on proxy data as in FedDF, Lin et al. 2020). mu 1, T 3.
+  Motivation: K costs Spider -7.7 (Hinton) and -11.4 (gold) points; client NTD
+  showed that a not-true KL on one domain's inputs preserves the other domain.
+- P2.24 screen (nested `f2e02be`): from published P2.18 Hinton AKAKA A2, K with
+  server retention, then the P2.21 client-NTD round. Seed 0.
+- Rule: "promising" if (a) at K, Spider minus P2.18 Hinton K2 (53.09) is at
+  least +2.0 points with exact McNemar p<.05 and the BIRD Wald lower bound is
+  above -2.0; and (b) the final Spider minus P2.21 Hinton+NTD (63.44) is at
+  least +1.0 with the BIRD lower bound above -2.0. Promising: replicate with
+  seed 1 before adopting v2. Otherwise keep v1. Also reported: final vs P2.18
+  Hinton A3.
+- Prior estimate (not evidence): (a) about 75%, (b) about 40-50%.
+
 ## 2026-10-08: P2.23 gold + NTD: NTD is generic; teacher helps Spider, NTD helps BIRD
 
 Evidence: nested `748665c`. Last round of AKAKA, seed 0, 2 x 2 (objective x NTD):

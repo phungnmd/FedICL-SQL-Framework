@@ -7,80 +7,48 @@ are historical. P2.19 was cancelled before any result; its
 [queue](../archive/superseded_runbooks/PIPELINE_P219_SCHEDULE_EXTENSION_2026-10-07.md)
 is history. Keep all P2.18 adapters, receipts, cache and results.
 
-## P2.22: seed-1 replication of the NTD last round (priority)
+## P2.24 (GPU 0): two-sided retention screen (v2), seed 0
 
-Question: is the P2.21 NTD effect (Spider +0.87, BIRD +1.17, neither
-significant) real or noise? Two private rounds from the published P2.18 Hinton
-AKAKA K2 adapter, both with `--seed 1`: `plain` (the P2.18 Hinton A3 command)
-and `ntd` (the P2.21 command). Nothing else changes. Evaluation: Spider and
-BIRD only (the co-primary endpoints). The passed P2.21 NTD memory probe covers
-both arms, so no new probe. Decision rule: LAB_LOG 2026-10-08 (P2.22). P2.21
-commands are [archived](../archive/completed_runbooks/PIPELINE_P221_NTD_QUICK_2026-10-08.md).
+v1 = Hinton K + client FedNTD (adopted). v2 adds server retention: during the
+Hinton K stage the SLM also keeps the not-true distribution of the adapter it
+received from FedAvg, on BIRD inputs (FedNTD loss, Learning without Forgetting
+placement), so K forgets less Spider. From the published P2.18 Hinton AKAKA
+A2: K (`K[fkl,ntd]`, one epoch, beta 1, tau 3), then the P2.21 client-NTD round.
+Spider and BIRD after each. Rule: LAB_LOG 2026-10-08 (P2.24). Code: nested
+`f2e02be`. Time: probe 10 min, K about 3.3 h, A about 1.7 h, evaluations
+about 1.2 h; about 6.3 h.
 
-Time: about 1.3 h (plain) and 1.7 h (NTD) of training, plus about 0.6 h of
-evaluation each; about 2.5 h on two GPUs. Code: nested `c540fce`.
+GPU 1 meanwhile resumes FedProx AAA (P2.20); P2.20 step 4 publishes the grid
+once it finishes. P2.22/P2.23 commands are
+[archived](../archive/completed_runbooks/PIPELINE_P222_P223_NTD_2026-10-08.md).
 
-1. If FedProx is running, stop it with Ctrl+C; it resumes later from its
-   checkpoint with the same P2.20 command.
-2. Pull and prepare, both GPUs idle:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p222_ntd_seed1 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.22 preparation failed' }
-```
-
-3. Two terminals concurrently.
-
-GPU 0:
+1. Stop FedProx if it is running (Ctrl+C), so both GPUs are idle. Pull and
+   prepare:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run --no-sync python -m scripts.run_p222_ntd_seed1 --phase run --arm plain; if ($LASTEXITCODE -ne 0) { throw 'P2.22 plain failed' }; Write-Host 'GPU 0 lane complete' }
+$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p224_server_ntd --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.24 preparation failed' }
 ```
 
-GPU 1:
+2. GPU 0: the `hinton_ntd` memory probe (must pass reserved <=21.5 GiB; check
+   shared GPU memory manually), then both stages and evaluations:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p222_ntd_seed1 --phase run --arm ntd; if ($LASTEXITCODE -ne 0) { throw 'P2.22 ntd failed' }; Write-Host 'GPU 1 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($phase in @('probe','run')) { uv run --no-sync python -m scripts.run_p224_server_ntd --phase $phase; if ($LASTEXITCODE -ne 0) { throw "P2.24 $phase failed" } }; Write-Host 'GPU 0 lane complete' }
 ```
 
-On interruption, rerun the same lane command; finished training and
-evaluations are skipped.
-
-4. Publish once both terminals finish:
+3. GPU 1, at the same time:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p222_ntd_seed1 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p222_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.22 NTD seed-1 replication'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm fedprox_aaa --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 FedProx AAA failed' }; Write-Host 'GPU 1 lane complete' }
 ```
 
-## P2.23: gold + NTD last round (runs beside P2.22), seed 0
-
-Question: is NTD's gain specific to teacher KD? One private round from the
-published P2.18 gold AKAKA K2 adapter with the P2.21 NTD flags. Gives the
-matched gold control for Hinton + NTD and the NTD effect for gold versus
-Hinton. Spider and BIRD. Reuses the P2.21 NTD probe. Code: nested `a739ceb`.
-About 1.7 h training plus 0.6 h evaluation. Rule: LAB_LOG 2026-10-08 (P2.23).
-
-1. Now, while P2.22 runs (CPU only). The pull is refused unless every incoming
-   file is a new P2.23 file or Markdown, which the running lanes never import:
+4. Publish P2.24 when GPU 0 finishes. It first pulls, but only if every incoming
+   file is a result, an audit file or Markdown (for example a FedProx publication),
+   so it is safe while GPU 1 runs:
 
 ```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p223_gold_ntd\.py|scripts/list_p223_publication\.py|tests/test_p223_gold_ntd\.py|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lanes use: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.23 preparation failed' }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after both lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p224_server_ntd --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p224_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.24 two-sided retention screen'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
-
-2. When the P2.22 GPU 0 lane (`plain`) prints `GPU 0 lane complete`, in that
-   terminal:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.23 gold NTD failed' }; Write-Host 'P2.23 lane complete' }
-```
-
-3. Publish after it finishes (P2.22 may still be running; this touches only
-   P2.23 files):
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p223_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.23 gold plus NTD control'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
-
-After P2.22 and P2.23: resume FedProx (`--arm fedprox_aaa`), then P2.20 step 4.
 
 ## P2.20: placement grid and FedProx baseline, seed 0
 

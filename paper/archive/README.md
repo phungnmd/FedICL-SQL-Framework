@@ -20,6 +20,10 @@ material and index entries only.
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
 
+## 2026-10-08 completed NTD replication
+
+- [P2.22 and P2.23 NTD runs](completed_runbooks/PIPELINE_P222_P223_NTD_2026-10-08.md): published in nested `544753f`, `748665c`.
+
 ## 2026-10-08 completed quick test
 
 - [P2.21 NTD quick test](completed_runbooks/PIPELINE_P221_NTD_QUICK_2026-10-08.md): published in nested `30a86ae`.
