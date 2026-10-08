@@ -11,7 +11,12 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-07, P2.18 published)
+## Where we are (2026-10-08)
+
+- Paper criterion changed (entry below): Spider EX and BIRD EX are
+  co-primary; success is BIRD gain plus Spider non-inferiority. P2.21 (FedNTD
+  client retention) and gold K2AAA A3 are judged by it; neither was read
+  before the change.
 
 - P2.18 six-arm Coder-0.5B screen is complete, nested `45a8bdc`. Hinton AKKAA
   has the highest terminal Spider EX (63.15); Hinton AKAKA beats matched gold
@@ -25,6 +30,35 @@ Older detail:
   Moving to Coder-0.5B changes specialization and size together.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-08: paper criterion changed to private plus public domain
+
+- Owner decision, before any P2.21 result or gold K2AAA A3 was read. The
+  paper claims one federated SLM that is accurate on both the clients'
+  domain and the public domain, instead of Spider alone.
+- Evidence behind the change (seed 0, vs FL AAA): the public stage adds
+  2.6-6.4 Spider points but 11.4-14.5 BIRD points; Hinton AKAKA beats gold
+  AKAKA on all five sets; after K2AAA the Hinton edge over gold fades on
+  Spider (+3.29, +0.87, +0.19) but stays on BIRD (+2.48 at A2, p=.007).
+  Private rounds erase public knowledge, so retention is the open problem.
+- Criterion (also in AGENTS.md): against a comparator at the same schedule and
+  private rounds, BIRD gain with exact McNemar p<.05 and Spider
+  non-inferiority, 95% Wald lower bound of the paired difference
+  `(b - c)/n +- 1.96 sqrt(b + c - (b - c)^2/n)/n` above -2.0 points. Both
+  must hold. Comparators: FL, matched gold, the method without its new part.
+- It equals the H1 rule below, so P2.21 is judged the same way. Possible method
+  if H1 passes: server Hinton KD injects public knowledge; client FedNTD
+  (Lee et al., NeurIPS 2022) preserves it through private rounds.
+- Unchanged: the 2026-10-07 schedule rule (S = AKAKA unless K2AAA wins by
+  p<.05) was fixed and applied on Spider; Hinton K2AAA was read under it, so
+  it is not re-decided. AKAKA is also ahead on BIRD (28.88 vs 27.71).
+- The gold red-flag check now uses the new criterion: Hinton AKAKA against
+  gold K2AAA A3, BIRD gain p<.05 and Spider non-inferiority.
+- New required reference: centralized Spider+BIRD (no FedAvg), the ceiling for
+  both endpoints. Label-smoothing gold control moves down in priority.
+- Provenance: gold K2AAA A3 and FedProx AAA resume on code after nested
+  `8d598d0` (trainer gained the `ntd` mode; default path with retention 0 is
+  unchanged). Each result row records its `git_sha`.
 
 ## 2026-10-08: H1 (FedNTD retention) quick test queued, rule fixed before results
 

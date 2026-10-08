@@ -136,9 +136,10 @@ GPU 1:
 
 On interruption, rerun the identical lane command: completed stages and
 evaluations are skipped, and unfinished training continues from its last
-checkpoint. Do not pull, edit or switch on the server while either lane runs.
-The recorded identity hashes all tracked code, so a pull would block the
-resume. The only commit allowed during the run is step 3b.
+checkpoint. Do not pull, edit or switch on the server while either lane runs:
+a pull would change the code under a running arm. Resume itself no longer
+depends on the code hash (nested `6307096`). The only commit allowed during
+the run is step 3b.
 
 ### 3b. Optional: publish every finished stage while lanes run
 
@@ -174,6 +175,7 @@ exclusions. Windows/CUDA probes and EX results remain to be measured.
 
 ## After P2.20
 
-Apply the LAB_LOG schedule rule, then implement centralized Hinton S (same
-data and order, no FedAvg). Not queued yet. Only after publication may the
-P2.19 server folders be deleted.
+Apply the LAB_LOG schedule rule. Next to implement, regardless of the P2.21
+outcome: centralized Spider+BIRD training (same data and order as the selected
+schedule, no FedAvg), the ceiling for both co-primary endpoints. Not queued
+yet. Only after publication may the P2.19 server folders be deleted.

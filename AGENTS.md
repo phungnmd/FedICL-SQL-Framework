@@ -22,13 +22,20 @@ dataset profiles (BIRD with evidence). Main direction: Spider private clients,
 BIRD public pool; BIRD private with a Spider public pool is the reverse check.
 Deployment uses only the SLM. Canonical runs use no ICL.
 
-- Main metric: final Spider EX (private data). Target: the federated SLM
-  approaches centralized training at the same number of Spider epochs
-  (centralized plus BIRD gold is a higher ceiling).
-- Success criterion: a chain-of-thought KD method whose final
-  `A>K>A...` Spider EX beats `A>K[full BIRD gold]>A...` and Hinton at the same
-  number of private rounds. Current references at `A>K>A`, seed 0: Hinton
-  66.63, full gold 66.54, centralized Spider-only 67.31.
+- Main metrics (owner decision 2026-10-08, fixed before any P2.21 or gold
+  K2AAA A3 result was read): two co-primary endpoints of the deployed SLM,
+  final Spider EX (private domain) and final BIRD EX (public domain). Claim
+  shape: one federated SLM that serves both the clients' domain and the
+  public domain. Spider-Realistic/SYN/DK measure robustness; EM is a
+  diagnostic. Report a Spider-vs-BIRD plot for every arm.
+- Success criterion: against a comparator at the same schedule and number of
+  private rounds, (1) BIRD EX gain with exact McNemar p<.05 and (2) Spider
+  non-inferiority, meaning the lower bound of the 95% Wald interval for the
+  paired Spider EX difference is above -2.0 points. Both must hold
+  (intersection-union test, no correction between the two). Comparators: FL
+  (pipeline claim), matched public gold (teacher claim), the method without
+  its new component (component claim). Centralized Spider+BIRD training is
+  the reference ceiling for both domains.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
 
@@ -56,9 +63,10 @@ under `paper/archive/`. Never use it as the current method specification.
   Active follow-up P2.20, seed 0: fresh Hinton K2AAA, gold K2AAA and FedProx
   AAA complete the equal-exposure placement grid; Hinton K2 is adopted from
   the finished P2.19 K2 stage, not retrained. P2.19 was otherwise cancelled before
-  any result. Never push nested code while P2.20 runs: its identity hashes all
-  tracked code, so a pull blocks the resume. The schedule rule is in LAB_LOG
-  (2026-10-07); centralized Hinton S follows the decision.
+  any result. P2.20 resume no longer depends on the code hash (nested
+  `6307096`); still never pull on the server while a lane runs. The schedule
+  rule is in LAB_LOG (2026-10-07). P2.21 tests FedNTD client retention; its
+  decision rule is the success criterion above.
   Replication across seeds remains deferred by owner choice.
   All stages use `target_fp32`; cache audit/probes and predictions are public.
   Shared memory stays manual, do not add automatic polling or gates.

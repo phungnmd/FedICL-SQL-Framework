@@ -4,8 +4,9 @@ What this file is: each research question, the comparison that answers it,
 and its status. It also holds the paper-closure checklist. Numbers are in
 `LAB_LOG.md`; commands are in `PIPELINE_NEXT.md`.
 
-Final-model Spider EX is primary. Spider variants and BIRD EX measure
-robustness and transfer; EM is secondary. Protocol-v1 results never fill a
+Final-model Spider EX (private domain) and BIRD EX (public domain) are
+co-primary since 2026-10-08; the success criterion is in `AGENTS.md`. Spider
+variants measure robustness; EM is secondary. Protocol-v1 results never fill a
 cell here. CoT is optional supervision, not a required output or contribution.
 
 Current evidence: P2.18 Coder-0.5B six-arm screen is published (`45a8bdc`).
