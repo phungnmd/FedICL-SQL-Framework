@@ -54,6 +54,11 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Current state (2026-10-07)
 
+- Method v1 (fixed 2026-10-08): server Hinton KD on public BIRD + client
+  FedNTD (beta 1, tau 3) in private rounds; teacher outputs never leave the
+  server, only adapters move. NTD adds about +1.9 BIRD (two seeds) with Spider
+  unchanged, for gold and Hinton alike; the teacher's lasting gain is on Spider.
+  P2.24 screens v2 (server-side NTD in K); FedProx AAA runs beside it.
 - Both owner checkouts now use `main`. Nested `main` integrates the experiment
   branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
 - P2.18 Coder-0.5B six-arm screen is complete (`45a8bdc`): central E3
