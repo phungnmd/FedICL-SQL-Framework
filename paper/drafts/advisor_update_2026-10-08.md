@@ -12,6 +12,7 @@
 | gold_akaka | 60.15 | 54.64 | 50.98 | 48.16 | 46.54 | 25.75 |
 | hinton_akaka | 62.57 | 57.54 | 52.17 | **50.48** | **47.85** | 28.88 |
 | hinton_akaka_ntd | 63.44 | 58.03 | 52.17 | 50.00 | 46.92 | **30.05** |
+| gold_akaka_ntd | 59.96 | | | | | 28.62 |
 | gold_akkaa | 61.80 | 55.90 | 52.17 | 48.65 | 46.17 | 26.60 |
 | hinton_akkaa | 63.15 | 56.96 | 51.77 | 49.71 | 47.48 | 27.77 |
 | gold_k2aaa | 61.90 | 57.35 | **52.76** | 49.23 | 45.05 | 27.25 |
@@ -54,6 +55,15 @@ Dòng đầu là phép thử chính, quy tắc chốt trước: cần BIRD tăng
 
 Lặp lại với seed 1 cho round cuối (cùng parent K2): plain 62.09 / 28.42, NTD 62.19 / 31.03 (Spider / BIRD). Gộp hai seed, NTD so với không NTD: BIRD +1.89 (p=.004, CI [+0.59, +3.19]), Spider +0.48 (CI [−1.22, +2.18]). Theo quy tắc chốt trước, NTD được giữ: tăng BIRD, không làm giảm Spider.
 
+Gold cũng dùng NTD (round cuối, seed 0), để xem tác dụng của teacher và của NTD tách nhau thế nào:
+
+| Spider / BIRD | không NTD | có NTD |
+|---|---|---|
+| gold_akaka | 60.15 / 25.75 | 59.96 / 28.62 |
+| hinton_akaka | 62.57 / 28.88 | 63.44 / 30.05 |
+
+Hinton+NTD so với gold+NTD: Spider +3.48 (p=.002), BIRD +1.43 (p=.15). NTD với gold: BIRD +2.87 (p<.001), Spider −0.19.
+
 ### 5. Nhận xét
 
 - Pha public (BIRD) luôn có lợi: mọi arm có `k` hơn fl_aaa từ +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD.
@@ -62,4 +72,5 @@ Lặp lại với seed 1 cho round cuối (cùng parent K2): plain 62.09 / 28.42
 - Chưa schedule nào tách được khỏi schedule khác (mọi p > .1).
 - FedNTD ở round cuối tăng BIRD khoảng 1.9 điểm (gộp 2 seed, p=.004) và không đổi Spider. Mức tăng Spider ở seed 0 không lặp lại.
 - Nhiễu của một round private: khoảng 0.5 đến 1.3 điểm Spider, nên chênh lệch khoảng 1 điểm giữa các schedule nằm trong nhiễu.
-- Mọi kết quả từ một seed.
+- Teacher giúp Spider (dữ liệu private), NTD giúp BIRD (dữ liệu public); hai tác dụng gần như cộng độc lập. hinton_akaka_ntd tốt nhất trên cả hai.
+- Ngoài phép lặp seed của NTD, mọi kết quả từ seed 0.

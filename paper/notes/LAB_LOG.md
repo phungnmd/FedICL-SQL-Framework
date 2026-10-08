@@ -31,6 +31,40 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.23 gold + NTD: NTD is generic; teacher helps Spider, NTD helps BIRD
+
+Evidence: nested `748665c`. Last round of AKAKA, seed 0, 2 x 2 (objective x NTD):
+
+| Spider / BIRD | no NTD | NTD |
+|---|---|---|
+| gold | 60.15 / 25.75 | 59.96 / 28.62 |
+| Hinton | 62.57 / 28.88 | 63.44 / 30.05 (seed 1: 62.19 / 31.03) |
+
+| Contrast | Spider | BIRD |
+|---|---|---|
+| Hinton+NTD - gold+NTD (primary) | +3.48 (83/47, p=.0020, CI [+1.33, +5.63]) | +1.43 (117/95, p=.149) |
+| gold+NTD - gold | -0.19 (p=.92) | +2.87 (98/54, p=.00045) |
+| Hinton+NTD - Hinton (seed 0; pooled 2 seeds) | +0.87 (+0.48) | +1.17 (+1.89, p=.004) |
+| NTD effect, Hinton minus gold | +1.06 (p=.36) | -1.69 (p=.10) |
+
+- Rule outcome: teacher claim with NTD fails the co-primary criterion (BIRD
+  p=.149), although Spider is strongly positive. NTD direction: not larger
+  for Hinton. The dark-knowledge reading is not supported.
+- NTD is a generic FL retention component: BIRD +2 to +3 points for both gold
+  and Hinton, Spider unchanged. Replicated (Hinton two seeds, gold one).
+- Consistent pattern across P2.18-P2.23: the teacher's lasting effect is on
+  the private task (Spider: +1.35 to +3.48 over gold at every schedule, with
+  and without NTD), and NTD's effect is on the public domain. NTD closes most
+  of the BIRD gap between gold and Hinton (gold+NTD 28.62 vs Hinton 28.88).
+- Hinton+NTD is the best AKAKA cell on both endpoints (Spider p=.002 over
+  gold+NTD; BIRD +1.4, ns). Interaction is near zero: the two components act
+  on different endpoints.
+- Under the co-primary criterion fixed on 2026-10-08, the teacher component
+  does not pass; under a Spider-only reading it passes at every schedule.
+  Changing the criterion now would be after reading the results: any new
+  criterion applies only to runs not yet read, and the paper reports the
+  original one.
+
 ## 2026-10-08: P2.22 NTD seed-1 replication, decision: adopt NTD
 
 Evidence: nested `544753f` (summary, manifest, predictions). Last private round
