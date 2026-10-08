@@ -31,6 +31,25 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.20 published (FedProx); P2.25 full-chain v1 queued, rule fixed
+
+- P2.20 complete, nested `1c17030`. FedProx AAA (mu 0.01): Spider 56.09,
+  Realistic 45.08, SYN 41.78, DK 42.80, BIRD 13.69; below FedAvg AAA on Spider
+  (-1.45, 18/33, p=.049), BIRD -0.65 (p=.28). Hinton AKAKA beats FedProx by
+  +6.48 Spider and +15.19 BIRD. FedProx is not a stronger FL baseline here.
+- P2.25 design (nested `48aca0e`): v1 on the full AKAKA chain for gold and
+  Hinton, from the published P2.18 K1 rows: A2 with client NTD, K2 (P2.18
+  recipe), A3 with client NTD. Seed 0. References: P2.18 gold/Hinton AKAKA A3.
+- Rule (role-based, fixed before any P2.25 result; applies to P2.25 and later
+  runs only, earlier runs keep their own rules):
+  NTD component, per objective: v1 minus the P2.18 AKAKA of the same objective,
+  BIRD gain with exact McNemar p<.05 and Spider Wald lower bound above -2.0.
+  The Hinton contrast is the primary one; gold is reported.
+  Teacher component with NTD: Hinton v1 minus gold v1, Spider gain with exact
+  p<.05 and BIRD Wald lower bound above -2.0.
+  Method claim: both pass. Also reported: NTD effect Hinton minus gold
+  (directional) and the Spider/BIRD trajectory.
+
 ## 2026-10-08: method v1 fixed; P2.24 v2 screen queued, rule fixed before results
 
 - Method v1 (owner decision): server Hinton KD on public BIRD + client FedNTD

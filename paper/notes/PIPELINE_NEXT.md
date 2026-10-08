@@ -50,6 +50,45 @@ $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { thr
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after both lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p224_server_ntd --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p224_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.24 two-sided retention screen'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
+## P2.25: method v1 on the full AKAKA chain, seed 0
+
+v1 = server Hinton KD + client FedNTD. From the published P2.18 AKAKA K1 row of
+each objective: A2 with client NTD, K2 with the P2.18 recipe, A3 with client
+NTD (A1 is the shared plain round: nothing public to keep yet). With P2.18
+gold/Hinton AKAKA this is a 2 x 2 (objective x NTD) on the full chain. Spider
+and BIRD after each stage, all five sets at A3. Reuses the P2.18 gold/Hinton
+and P2.21 NTD probes. Rule: LAB_LOG 2026-10-08 (P2.25). Code: nested `48aca0e`.
+Time per arm: A about 1.7 h, K about 2.3-2.5 h, evaluations about 1.8 h; about
+8 h per arm.
+
+1. Now, while P2.24 runs on GPU 0 (CPU only). The pull is refused unless every
+   incoming file is a new P2.25 file, a result, an audit file or Markdown:
+
+```powershell
+$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p225_full_chain_v1\.py|scripts/list_p225_publication\.py|tests/test_p225_full_chain_v1\.py|experiments/(federated|eval_arms)/results/.+|audits/.+|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.25 preparation failed' }
+```
+
+2. GPU 1 now: Hinton.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($arm in @('hinton')) { uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.25 $arm failed" } }; Write-Host 'GPU 1 lane complete' }
+```
+
+3. GPU 0 after P2.24 prints `GPU 0 lane complete` and is published: gold.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('gold')) { uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.25 $arm failed" } }; Write-Host 'GPU 0 lane complete' }
+```
+
+4. Publish when both arms finish (pulls result-only commits first):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after all lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p225_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.25 full-chain method v1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+P2.20 is complete and published (nested `1c17030`): the P2.19 server folders may
+now be deleted.
+
 ## P2.20: placement grid and FedProx baseline, seed 0
 
 Goal: decide the schedule S with the rule fixed in LAB_LOG (2026-10-07). All
