@@ -1,38 +1,43 @@
 ## FedLS-SQL: tiến độ 08/10/2026
 
-**Setup:** student Qwen2.5-Coder-0.5B, teacher Qwen2.5-Coder-7B (frozen). Private: Spider, 5 clients non-IID. Public: BIRD train. Seed 0.
-**Ký hiệu:** `a` = 1 round FL trên Spider; `k` = 1 epoch server trên BIRD; `k2` = 2 epoch. `gold` = CE; `hinton` = CE + KL teacher. Mọi arm có 3 lượt Spider; arm có `k` có thêm 2 epoch BIRD.
+**Setup:** student Qwen2.5-Coder-0.5B, teacher Qwen2.5-Coder-7B (frozen). Private: Spider, 5 clients non-IID. Public: BIRD train.
 
-### 1. Kết quả (EX %, riêng Spider EM là exact match)
 
-| Arm | Spider EX | Spider EM | Realistic | Syn | DK | BIRD |
-|---|---:|---:|---:|---:|---:|---:|
-| centralized_e3 | 59.38 | 58.12 | 45.87 | 43.42 | 44.30 | 13.62 |
-| fl_aaa | 57.54 | 52.03 | 47.24 | 41.49 | 42.80 | 14.34 |
-| gold_akaka | 60.15 | 54.64 | 50.98 | 48.16 | 46.54 | 25.75 |
-| hinton_akaka | 62.57 | 57.54 | 52.17 | **50.48** | **47.85** | **28.88** |
-| gold_akkaa | 61.80 | 55.90 | 52.17 | 48.65 | 46.17 | 26.60 |
-| hinton_akkaa | 63.15 | 56.96 | 51.77 | 49.71 | 47.48 | 27.77 |
-| gold_k2aaa | 61.90 | 57.35 | **52.76** | 49.23 | 45.05 | 27.25 |
-| hinton_k2aaa | **63.93** | **58.61** | 51.97 | 48.26 | 46.92 | 27.71 |
 
-### 2. Hinton so với gold, cùng schedule (điểm EX)
+### 1. Kết quả chính
+Em thử kết hợp federated và KD theo các thứ tự khác nhau:
+- `a`: 1 round train trên các client với Spider private, rồi FedAvg
+- `k`: 1 epoch KD trên server với BIRD làm public proxy dataset (`k2` = 2 epoch liên tiếp)
 
-| Schedule | Spider | BIRD |
-|---|---:|---:|
-| akaka | +2.42 (p=.020) | +3.13 (p<.001) |
-| akkaa | +1.35 (p=.19) | +1.17 (p=.19) |
-| k2aaa | +2.03 (p=.048) | +0.46 (p=.67) |
+| Arm            | Spider EX | Spider EM | Realistic |       Syn |        DK |      BIRD |
+| -------------- | --------: | --------: | --------: | --------: | --------: | --------: |
+| centralized_e3 |     59.38 |     58.12 |     45.87 |     43.42 |     44.30 |     13.62 |
+| fl_aaa         |     57.54 |     52.03 |     47.24 |     41.49 |     42.80 |     14.34 |
+| gold_akaka     |     60.15 |     54.64 |     50.98 |     48.16 |     46.54 |     25.75 |
+| hinton_akaka   |     62.57 |     57.54 |     52.17 | **50.48** | **47.85** | **28.88** |
+| gold_akkaa     |     61.80 |     55.90 |     52.17 |     48.65 |     46.17 |     26.60 |
+| hinton_akkaa   |     63.15 |     56.96 |     51.77 |     49.71 |     47.48 |     27.77 |
+| gold_k2aaa     |     61.90 |     57.35 | **52.76** |     49.23 |     45.05 |     27.25 |
+| hinton_k2aaa   | **63.93** | **58.61** |     51.97 |     48.26 |     46.92 |     27.71 |
 
-Paired trên cùng câu hỏi, exact McNemar.
+### 2. Hinton so với gold, cùng schedule
+Em chạy cùng setup nhưng server chỉ train CE trên gold SQL của BIRD (không dùng teacher), để đo hiệu quả của KD. Bảng là EX của Hinton trừ gold (điểm).
+
+| Schedule | Spider |  BIRD |
+| -------- | -----: | ----: |
+| akaka    |  +2.42 | +3.13 |
+| akkaa    |  +1.35 | +1.17 |
+| k2aaa    |  +2.03 | +0.46 |
 
 ### 3. Nhận xét
 
-- Pha public luôn có lợi: mọi arm có `k` hơn fl_aaa +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD.
-- Teacher hơn gold trên Spider ở cả ba schedule; trên BIRD chỉ rõ ở akaka (`k` gần cuối).
-- Chưa schedule nào tách được khỏi schedule khác (mọi p > .1).
+- Pha public luôn có lợi: mọi arm có `k` hơn fl_aaa +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD, và đều vượt cả centralized_e3 (chỉ train Spider). Em đang làm rõ phần gain này có bao nhiêu là do model được train thêm trên BIRD.
+- Hinton KD hơn gold CE trên Spider ở cả ba schedule; trên BIRD chỉ rõ ở akaka (`k` gần cuối). Trong các phương pháp KD em đã thử, Hinton KD tốt nhất so với chỉ train trên gold.
+- Về thứ tự schedule, chưa có thứ tự nào tốt hơn hẳn.
+- Đánh giá sau mỗi `a` và `k` cho thấy: với FedAvg và KD thuần, mỗi round FedAvg làm model quên một phần kiến thức BIRD, mỗi round KD làm quên một phần kiến thức Spider.
 
 ### 4. Đang làm
 
-- Thêm FedNTD (Lee et al., NeurIPS 2022) vào training của client: giữ kiến thức public trong các round private, không cần gửi output của teacher xuống client. Kết quả ban đầu ở round cuối khả quan; đang mở rộng ra toàn chuỗi.
+- Thêm FedNTD (Lee et al., NeurIPS 2022) vào training của client: giữ kiến thức public qua các round private, không cần gửi output của teacher xuống client. Kết quả ban đầu ở round cuối khả quan, em đang áp dụng cho toàn bộ chuỗi.
+- Distill hai chiều: thêm retention tương tự ở server, trong lúc KD trên BIRD thì model vẫn giữ phân phối của model nhận từ FedAvg (theo Learning without Forgetting, Li & Hoiem 2016), để giảm việc quên Spider sau mỗi `k`. Khi đó client giữ kiến thức public, server giữ kiến thức private, và chỉ truyền adapter.
 - Baseline còn thiếu: FedProx, và centralized Spider+BIRD làm mức trần.
