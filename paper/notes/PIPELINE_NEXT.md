@@ -13,7 +13,7 @@ The ceiling for both endpoints: one adapter from the base model on all 8,659
 Spider and 9,428 BIRD training rows together (no federation, no privacy),
 P2.18 recipe, 3 epochs. E3 is the reference. Spider and BIRD at E1 and E2, all
 five sets at E3. Reading fixed in LAB_LOG 2026-10-08 (P2.26). Code: nested
-`1e4c4fe`. Reuses the P2.18 gold memory probe (same longest BIRD rows, same
+`53458fa`. Reuses the P2.18 gold memory probe (same longest BIRD rows, same
 7,424-token limit). Time: about 3.7 h per epoch (Spider 1.4 h + BIRD 2.3 h),
 11 h training plus about 1.8 h evaluation, about 13 h. It resumes from its
 last checkpoint if rerun with the same command.
