@@ -26,6 +26,20 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: independent review of all results
+
+- [Review](independent_review_2026-10-08/REVIEW.md) by an outside-role Opus agent
+  that read only a numbers-only [fact sheet](independent_review_2026-10-08/FACTS.md)
+  and the raw P2.14-P2.18 paired summaries.
+- Verdict: not a method paper as is (AKAKA-Hinton is close to the SLM side of
+  FedCoLLM); enough for a Q3 empirical study with more controls. Robust: public
+  stage beats FL at equal private passes on both students. Not proven: Hinton
+  over gold (seed 0, multiplicity). Drop the "beats centralized" claim.
+- Suggested additions: seeds (deferred by owner), central + BIRD, gold plus
+  label-smoothing control, compute-matched FL (6 rounds), reverse direction.
+  New prior work to cite: FedCoT (Findings EMNLP 2025), FL for semantic
+  parsing (ACL 2023), Server Learning (Mai et al.).
+
 ## 2026-10-08: P2.20 Hinton K2AAA terminal Spider, not committed
 
 - Owner report from the server log: `p220_hinton_k2aaa_a3` Spider EX 63.9,
