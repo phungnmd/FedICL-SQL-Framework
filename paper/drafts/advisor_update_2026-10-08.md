@@ -13,9 +13,9 @@
 | hinton_akaka | 62.57 | 57.54 | **52.17** | **50.48** | **47.85** | **28.88** |
 | gold_akkaa | 61.80 | 55.90 | **52.17** | 48.65 | 46.17 | 26.60 |
 | hinton_akkaa | 63.15 | 56.96 | 51.77 | 49.71 | 47.48 | 27.77 |
-| hinton_k2aaa* | **63.9** | **58.6** | | | | |
+| hinton_k2aaa | **63.93** | **58.61** | 51.97 | 48.26 | 46.92 | 27.71 |
 
-Realistic, Syn, DK, BIRD: EX. \* Chưa publish. Đang chạy: gold_k2aaa, fedprox_aaa.
+Realistic, Syn, DK, BIRD: EX. Đang chạy: gold_k2aaa (đã xong a2: Spider 61.61), fedprox_aaa.
 
 ### 2. EX so với fl_aaa (điểm)
 
@@ -26,4 +26,4 @@ Realistic, Syn, DK, BIRD: EX. \* Chưa publish. Đang chạy: gold_k2aaa, fedpro
 | hinton_akaka | +5.03 | **+4.93** | **+8.99** | **+5.05** | **+14.54** |
 | gold_akkaa | +4.26 | **+4.93** | +7.16 | +3.37 | +12.26 |
 | hinton_akkaa | +5.61 | +4.53 | +8.22 | +4.68 | +13.43 |
-| hinton_k2aaa* | **+6.36** | | | | |
+| hinton_k2aaa | **+6.39** | +4.73 | +6.77 | +4.12 | +13.37 |
