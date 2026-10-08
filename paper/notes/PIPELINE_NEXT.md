@@ -51,7 +51,36 @@ evaluations are skipped.
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p222_ntd_seed1 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p222_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.22 NTD seed-1 replication'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
-After P2.22: resume FedProx (`--arm fedprox_aaa`), then P2.20 step 4.
+## P2.23: gold + NTD last round (runs beside P2.22), seed 0
+
+Question: is NTD's gain specific to teacher KD? One private round from the
+published P2.18 gold AKAKA K2 adapter with the P2.21 NTD flags. Gives the
+matched gold control for Hinton + NTD and the NTD effect for gold versus
+Hinton. Spider and BIRD. Reuses the P2.21 NTD probe. Code: nested `a739ceb`.
+About 1.7 h training plus 0.6 h evaluation. Rule: LAB_LOG 2026-10-08 (P2.23).
+
+1. Now, while P2.22 runs (CPU only). The pull is refused unless every incoming
+   file is a new P2.23 file or Markdown, which the running lanes never import:
+
+```powershell
+$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p223_gold_ntd\.py|scripts/list_p223_publication\.py|tests/test_p223_gold_ntd\.py|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lanes use: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.23 preparation failed' }
+```
+
+2. When the P2.22 GPU 0 lane (`plain`) prints `GPU 0 lane complete`, in that
+   terminal:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.23 gold NTD failed' }; Write-Host 'P2.23 lane complete' }
+```
+
+3. Publish after it finishes (P2.22 may still be running; this touches only
+   P2.23 files):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p223_gold_ntd --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p223_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.23 gold plus NTD control'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+After P2.22 and P2.23: resume FedProx (`--arm fedprox_aaa`), then P2.20 step 4.
 
 ## P2.20: placement grid and FedProx baseline, seed 0
 

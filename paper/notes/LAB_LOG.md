@@ -31,6 +31,28 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.23 gold + NTD queued, rule fixed before results
+
+- NTD is self-distillation toward the received global adapter, not KD from
+  the 7B teacher, and works the same after a gold K. Hypothesis: NTD keeps the
+  not-true distribution, which Hinton KD fills with teacher dark knowledge and
+  gold CE does not, so NTD should help Hinton more than gold.
+- Design: one private round with the P2.21 NTD flags from the published P2.18
+  gold AKAKA K2 adapter, seed 0 (nested `a739ceb`). Spider and BIRD.
+- Primary (teacher claim for the NTD pipeline): P2.21 Hinton+NTD minus gold+NTD
+  under the co-primary criterion (BIRD exact McNemar p<.05 and Spider Wald
+  lower bound above -2.0). Pass means the teacher still adds value once both
+  pipelines use NTD.
+- Secondary, directional only at one seed: NTD effect for Hinton minus NTD
+  effect for gold, per question (difference in differences). "Larger for
+  Hinton" if the BIRD value is above 0 and the Spider value above -1.0. Its
+  standard error is about 1.4 points, so no significance is expected; it is
+  evidence for the dark-knowledge reading only together with P2.22.
+- Reading: NTD becomes the method component if P2.22 adopts NTD; the
+  dark-knowledge framing ("NTD keeps the teacher's knowledge") additionally
+  needs "larger for Hinton" here. If gold gains as much as Hinton, NTD is a
+  generic FL retention component and the paper says so.
+
 ## 2026-10-08: P2.22 NTD seed-1 replication queued, rule fixed before results
 
 - Design: from the published P2.18 Hinton AKAKA K2 adapter, two last private
