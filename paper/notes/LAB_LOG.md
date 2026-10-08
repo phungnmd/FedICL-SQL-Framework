@@ -31,6 +31,36 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.21 FedNTD quick test, H1 does not pass
+
+Evidence: nested `30a86ae` (summary, manifest, predictions). Last private round
+of Hinton AKAKA with FedNTD (beta 1, tau 3) from the published K2 adapter.
+EX: Spider 63.44 (EM 58.03), Realistic 52.17, SYN 50.00, DK 46.92, BIRD 30.05.
+
+| NTD minus | Spider | BIRD |
+|---|---|---|
+| Hinton AKAKA A3 (H1 control) | +0.87 (51/42, p=.41, CI [-0.96, +2.70]) | +1.17 (76/58, p=.14, CI [-0.30, +2.65]) |
+| gold K2AAA A3 (not pre-specified) | +1.55 (p=.19, CI [-0.64, +3.74]) | +2.80 (145/102, p=.0074) |
+| Hinton K2AAA A3 (not pre-specified) | -0.48 (p=.70, CI [-2.48, +1.51]) | +2.35 (132/96, p=.020) |
+
+Realistic +0.00, SYN -0.48, DK -0.93 against the control (all p>.45).
+
+- H1 rule: Spider non-inferior (lower bound -0.96 > -2.0), BIRD gain not
+  significant (p=.14). The rule says close H1; NTD is not adopted on this test.
+- NTD did not hurt Spider, unlike P2.9 full-vocabulary retention (lambda 1),
+  which is consistent with dropping the gold token from the KL.
+- Secondary, not pre-specified: Hinton AKAKA + NTD would pass the co-primary
+  criterion against gold K2AAA (BIRD p=.007, Spider lower bound -0.64), where
+  Hinton AKAKA alone failed (BIRD p=.106). The crossing comes from two small
+  positive steps (+1.63 from schedule/teacher, +1.17 from NTD), so it is
+  fragile at one seed. It also has no gold+NTD control, so it says nothing
+  about the teacher.
+- Pareto (Spider, BIRD): NTD (63.44, 30.05) has the highest BIRD of all arms
+  and is within 0.48 Spider of Hinton K2AAA (63.93, 27.71).
+- Alternative reading: NTD's +0.9/+1.2 is noise around zero (both CIs include
+  0); the 30.05 BIRD is then Hinton AKAKA plus noise. A second seed of the
+  control and NTD (two one-round stages, about 4 h) separates the readings.
+
 ## 2026-10-08: P2.20 gold K2AAA complete; grid of six cells done
 
 Evidence: nested `c65207e` (step 3b; manifest and summary come with step 4
