@@ -31,13 +31,14 @@ Em chạy cùng setup nhưng server chỉ train CE trên gold SQL của BIRD (kh
 
 ### 3. Nhận xét
 
-- Pha public luôn có lợi: mọi arm có `k` hơn fl_aaa +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD, và đều vượt cả centralized_e3 (chỉ train Spider). Em đang làm rõ phần gain này có bao nhiêu là do model được train thêm trên BIRD.
+- Pha public luôn có lợi: mọi arm có public (gold ce hoặc kd) hơn fl_aaa +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD, và đều vượt cả centralized_e3 (chỉ train Spider). Em đang làm rõ phần vượt centralized này có bao nhiêu là do model được train thêm trên BIRD.
 - Hinton KD hơn gold CE trên Spider ở cả ba schedule; trên BIRD chỉ rõ ở akaka (`k` gần cuối). Trong các phương pháp KD em đã thử, Hinton KD tốt nhất so với chỉ train trên gold.
 - Về thứ tự schedule, chưa có thứ tự nào tốt hơn hẳn.
 - Đánh giá sau mỗi `a` và `k` cho thấy: với FedAvg và KD thuần, mỗi round FedAvg làm model quên một phần kiến thức BIRD, mỗi round KD làm quên một phần kiến thức Spider.
+- Các kết quả hiện tại là có gain nhưng phương pháp chưa cho thấy cơ chế rõ của việc kết hợp giữa federated private và KD qua public dataset.
 
 ### 4. Đang làm
 
-- Thêm FedNTD (Lee et al., NeurIPS 2022) vào training của client: giữ kiến thức public qua các round private, không cần gửi output của teacher xuống client. Kết quả ban đầu ở round cuối khả quan, em đang áp dụng cho toàn bộ chuỗi.
-- Distill hai chiều: thêm retention tương tự ở server, trong lúc KD trên BIRD thì model vẫn giữ phân phối của model nhận từ FedAvg (theo Learning without Forgetting, Li & Hoiem 2016), để giảm việc quên Spider sau mỗi `k`. Khi đó client giữ kiến thức public, server giữ kiến thức private, và chỉ truyền adapter.
+- Thêm [FedNTD](https://arxiv.org/abs/2106.03097) vào training của client: giữ kiến thức public qua các round private, không cần gửi output của teacher xuống client. Kết quả ban đầu ở round cuối khả quan, em đang áp dụng chạy lại cho toàn bộ pipeline.
+- Distill hai chiều: thêm retention tương tự ở server, trong lúc KD trên BIRD thì model vẫn giữ phân phối của model nhận từ FedAvg (theo [Learning without Forgetting](https://arxiv.org/abs/1606.09282)), để giảm việc quên Spider sau mỗi `k`. Khi đó client giữ kiến thức public, server giữ kiến thức private, và chỉ truyền adapter.
 - Baseline còn thiếu: FedProx, và centralized Spider+BIRD làm mức trần.
