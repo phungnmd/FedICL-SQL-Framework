@@ -31,6 +31,42 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.20 gold K2AAA complete; grid of six cells done
+
+Evidence: nested `c65207e` (step 3b; manifest and summary come with step 4
+after FedProx). Contrasts recomputed locally from committed predictions.
+
+Gold K2AAA A3: Spider 61.90 (EM 57.35), Realistic 52.76, SYN 49.23, DK 45.05,
+BIRD 27.25. Spider trajectory K2/A1/A2/A3: 47.00, 59.38, 61.61, 61.90.
+
+| Hinton - gold, same schedule | Spider | BIRD | Co-primary (BIRD p<.05, Spider LB > -2) |
+|---|---|---|---|
+| AKAKA | +2.42 (66/41, p=.020, CI [+0.46, +4.38]) | +3.13 (p=.0004) | pass |
+| AK2AA | +1.35 (p=.19) | +1.17 (p=.19) | fail (BIRD) |
+| K2AAA | +2.03 (62/41, p=.048, CI [+0.11, +3.95]) | +0.46 (p=.67) | fail (BIRD) |
+
+- Red-flag check (criterion fixed before this result was read): Hinton AKAKA
+  vs gold K2AAA, Spider +0.68 (CI [-1.53, +2.88], non-inferior), BIRD +1.63
+  (p=.106). Fails the BIRD condition: the selected method does not beat a
+  plain gold warm-start on the co-primary criterion. Under the old Spider-only
+  check it also would not trigger (61.90 < 62.57). Reassess the claim before
+  Phase 2, as the rule requires.
+- Correction to the decay reading (entries below): the K2AAA Hinton - gold
+  Spider edge went +3.29, +0.87, +0.19 and then +2.03 at A3. It is not a
+  monotone decay; the A2 value was within noise (18-question swing in one
+  round). The teacher Spider edge is positive at all three schedules (+1.35 to
+  +2.42, two with p<.05; also +2.03 at 1.5B P2.17). The BIRD edge is large only
+  at AKAKA (K last). The "Spider fades, BIRD persists" motivation in the
+  criterion entry does not hold at A3; the opposite pattern fits better.
+- Alternative reading: the teacher's lasting effect is on the private task
+  (Spider), and its public-domain effect needs a late K. Under the co-primary
+  criterion only AKAKA passes the teacher claim; under Spider alone AKAKA and
+  K2AAA pass. The criterion stays as fixed; both readings are reported.
+- Placement, gold: K2AAA 61.90 vs AKAKA 60.15 (+1.74, p=.11) vs AK2AA 61.80.
+  Hinton: K2AAA 63.93, AK2AA 63.15, AKAKA 62.57. No schedule contrast p<.1.
+  Pareto (Spider, BIRD): Hinton K2AAA (63.93, 27.71) is at least as good as
+  every gold arm on both; Hinton AKAKA (62.57, 28.88) has the highest BIRD.
+
 ## 2026-10-08: paper criterion changed to private plus public domain
 
 - Owner decision, before any P2.21 result or gold K2AAA A3 was read. The

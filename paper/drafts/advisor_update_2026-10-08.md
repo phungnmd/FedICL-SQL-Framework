@@ -10,12 +10,13 @@
 | centralized_e3 | 59.38 | 58.12 | 45.87 | 43.42 | 44.30 | 13.62 |
 | fl_aaa | 57.54 | 52.03 | 47.24 | 41.49 | 42.80 | 14.34 |
 | gold_akaka | 60.15 | 54.64 | 50.98 | 48.16 | 46.54 | 25.75 |
-| hinton_akaka | 62.57 | 57.54 | **52.17** | **50.48** | **47.85** | **28.88** |
-| gold_akkaa | 61.80 | 55.90 | **52.17** | 48.65 | 46.17 | 26.60 |
+| hinton_akaka | 62.57 | 57.54 | 52.17 | **50.48** | **47.85** | **28.88** |
+| gold_akkaa | 61.80 | 55.90 | 52.17 | 48.65 | 46.17 | 26.60 |
 | hinton_akkaa | 63.15 | 56.96 | 51.77 | 49.71 | 47.48 | 27.77 |
+| gold_k2aaa | 61.90 | 57.35 | **52.76** | 49.23 | 45.05 | 27.25 |
 | hinton_k2aaa | **63.93** | **58.61** | 51.97 | 48.26 | 46.92 | 27.71 |
 
-Realistic, Syn, DK, BIRD: EX. Đang chạy: gold_k2aaa (đã xong a2: Spider 61.61), fedprox_aaa.
+Realistic, Syn, DK, BIRD: EX. Mọi arm có 3 lượt Spider; arm có `k` có thêm 2 epoch BIRD. Chưa xong: fedprox_aaa.
 
 ### 2. EX so với fl_aaa (điểm)
 
@@ -23,7 +24,25 @@ Realistic, Syn, DK, BIRD: EX. Đang chạy: gold_k2aaa (đã xong a2: Spider 61.
 |---|---:|---:|---:|---:|---:|
 | centralized_e3 | +1.84 | −1.37 | +1.93 | +1.50 | −0.72 |
 | gold_akaka | +2.61 | +3.74 | +6.67 | +3.74 | +11.41 |
-| hinton_akaka | +5.03 | **+4.93** | **+8.99** | **+5.05** | **+14.54** |
-| gold_akkaa | +4.26 | **+4.93** | +7.16 | +3.37 | +12.26 |
+| hinton_akaka | +5.03 | +4.93 | **+8.99** | **+5.05** | **+14.54** |
+| gold_akkaa | +4.26 | +4.93 | +7.16 | +3.37 | +12.26 |
 | hinton_akkaa | +5.61 | +4.53 | +8.22 | +4.68 | +13.43 |
+| gold_k2aaa | +4.36 | **+5.52** | +7.74 | +2.25 | +12.91 |
 | hinton_k2aaa | **+6.39** | +4.73 | +6.77 | +4.12 | +13.37 |
+
+### 3. Hinton so với gold, cùng schedule (điểm EX)
+
+| Schedule | Spider | BIRD |
+|---|---:|---:|
+| akaka | +2.42 (p=.020) | +3.13 (p<.001) |
+| akkaa | +1.35 (p=.19) | +1.17 (p=.19) |
+| k2aaa | +2.03 (p=.048) | +0.46 (p=.67) |
+
+Paired trên cùng câu hỏi, exact McNemar, p chưa hiệu chỉnh nhiều phép so sánh. Seed 0.
+
+### 4. Nhận xét
+
+- Pha public (BIRD) luôn có lợi: mọi arm có `k` hơn fl_aaa từ +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD.
+- Teacher hơn gold trên Spider ở cả ba schedule (+1.35 đến +2.42; p<.05 ở akaka và k2aaa). Trên BIRD, lợi thế chỉ rõ ở akaka, nơi `k` nằm gần cuối.
+- Hinton k2aaa không thua gold ở schedule nào trên cả Spider lẫn BIRD. Hai đầu Pareto là hinton_k2aaa (Spider cao nhất) và hinton_akaka (BIRD cao nhất).
+- Chưa schedule nào tách được khỏi schedule khác (mọi p > .1). Kết quả từ một seed.
