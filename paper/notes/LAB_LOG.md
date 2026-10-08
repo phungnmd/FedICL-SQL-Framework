@@ -31,6 +31,30 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-09: P2.25 Hinton arm: NTD in A2 adds nothing; only the round after the last K matters
+
+Evidence: nested `84e4c9c` (Hinton arm only; gold arm running, no P2.25
+decision yet). Seed 0, final A3:
+
+| Arm | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| P2.25 Hinton v1 (NTD in A2 and A3) | 63.44 | 53.15 | 50.00 | 47.10 | 30.12 |
+| P2.21 Hinton, NTD in A3 only | 63.44 | 52.17 | 50.00 | 46.92 | 30.05 |
+| P2.18 Hinton AKAKA, no NTD | 62.57 | 52.17 | 50.48 | 47.85 | 28.88 |
+| P2.18 gold AKAKA, no NTD | 60.15 | 50.98 | 48.16 | 46.54 | 25.75 |
+| P2.20 Hinton K2AAA, no NTD | 63.93 | 51.97 | 48.26 | 46.92 | 27.71 |
+
+- v1 vs NTD-in-A3-only: Spider 20/20 discordant, BIRD 24/23; the two models
+  are almost the same. NTD in A2 kept BIRD at A2 (26.60 vs 25.75), but K2
+  resets BIRD to 35.53 in both lineages, so only the private round after the
+  last K decides final BIRD.
+- v1 vs Hinton AKAKA without NTD: Spider +0.87 (p=.44), BIRD +1.24 (p=.14,
+  Wald [-0.33, 2.81]). The pre-registered `ntd_hinton` test will fail at seed
+  0 alone; the two-seed pooled NTD effect (+1.89, p=.004, P2.22) is unchanged.
+- v1 vs gold AKAKA without NTD: Spider +3.29 (p=.006), BIRD +4.37 (p<.001),
+  both endpoints pass the co-primary criterion (pipeline vs public gold).
+- v1 vs Hinton K2AAA: Spider -0.48 (p=.72), BIRD +2.41 (p=.015).
+
 ## 2026-10-08: P2.26 centralized Spider+BIRD reference queued, reading fixed before results
 
 Code: nested `1e4c4fe`. One adapter from the base Coder-0.5B on the union of
