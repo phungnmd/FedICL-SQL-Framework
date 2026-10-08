@@ -22,7 +22,7 @@ Em chạy cùng setup nhưng server chỉ train CE trên gold SQL của BIRD (kh
 
 | Schedule | Spider |  BIRD |
 | -------- | -----: | ----: |
-| akaka    |  +2.42 | +3.13 |
+| akaka    | **+2.42** | **+3.13** |
 | akkaa    |  +1.35 | +1.17 |
 | k2aaa    |  +2.03 | +0.46 |
 
