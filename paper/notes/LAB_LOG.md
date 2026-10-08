@@ -31,6 +31,27 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.26 centralized Spider+BIRD reference queued, reading fixed before results
+
+Code: nested `1e4c4fe`. One adapter from the base Coder-0.5B on the union of
+the Spider train (8,659) and BIRD train with evidence (9,428) files, the P2.18
+recipe (`target_fp32`, LoRA r16, LR 2e-4, batch 1 x 16, max-len 7,424), 3
+epochs over the shuffled union. It sees the same rows as the federated arms
+with no privacy constraint.
+
+Reading, fixed before any P2.26 result:
+
+- E3 is the reference (3 Spider passes, like FL and the AKAKA chains). E1 and
+  E2 are diagnostics; no epoch is picked after the fact.
+- For each arm, arm minus central_mix at E3, per endpoint (Spider, BIRD):
+  `above` if the gain is positive with exact McNemar p<.05; otherwise
+  `non-inferior` if the Wald 95% lower bound is above -2.0; otherwise `below`.
+- Paper wording follows the method v1 arm (P2.25 Hinton A3): both endpoints
+  `above` or `non-inferior` means "matches the centralized reference"; any
+  `below` is reported as the federated gap with its size.
+- Central_mix sees BIRD 3 times, the AKAKA chains 2 times; the comparison
+  favours the reference, which is stated with the result.
+
 ## 2026-10-08: P2.24 v2 screen: keep v1; forgetting is asymmetric
 
 Evidence: nested `5609a15`.

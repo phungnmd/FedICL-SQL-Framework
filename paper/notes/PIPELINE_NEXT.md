@@ -7,48 +7,42 @@ are historical. P2.19 was cancelled before any result; its
 [queue](../archive/superseded_runbooks/PIPELINE_P219_SCHEDULE_EXTENSION_2026-10-07.md)
 is history. Keep all P2.18 adapters, receipts, cache and results.
 
-## P2.24 (GPU 0): two-sided retention screen (v2), seed 0
+## P2.26: centralized Spider+BIRD reference, seed 0
 
-v1 = Hinton K + client FedNTD (adopted). v2 adds server retention: during the
-Hinton K stage the SLM also keeps the not-true distribution of the adapter it
-received from FedAvg, on BIRD inputs (FedNTD loss, Learning without Forgetting
-placement), so K forgets less Spider. From the published P2.18 Hinton AKAKA
-A2: K (`K[fkl,ntd]`, one epoch, beta 1, tau 3), then the P2.21 client-NTD round.
-Spider and BIRD after each. Rule: LAB_LOG 2026-10-08 (P2.24). Code: nested
-`f2e02be`. Time: probe 10 min, K about 3.3 h, A about 1.7 h, evaluations
-about 1.2 h; about 6.3 h.
+The ceiling for both endpoints: one adapter from the base model on all 8,659
+Spider and 9,428 BIRD training rows together (no federation, no privacy),
+P2.18 recipe, 3 epochs. E3 is the reference. Spider and BIRD at E1 and E2, all
+five sets at E3. Reading fixed in LAB_LOG 2026-10-08 (P2.26). Code: nested
+`1e4c4fe`. Reuses the P2.18 gold memory probe (same longest BIRD rows, same
+7,424-token limit). Time: about 3.7 h per epoch (Spider 1.4 h + BIRD 2.3 h),
+11 h training plus about 1.8 h evaluation, about 13 h. It resumes from its
+last checkpoint if rerun with the same command.
 
-GPU 1 meanwhile resumes FedProx AAA (P2.20); P2.20 step 4 publishes the grid
-once it finishes. P2.22/P2.23 commands are
-[archived](../archive/completed_runbooks/PIPELINE_P222_P223_NTD_2026-10-08.md).
+P2.24 commands are [archived](../archive/completed_runbooks/PIPELINE_P224_SERVER_NTD_2026-10-08.md).
 
-1. Stop FedProx if it is running (Ctrl+C), so both GPUs are idle. Pull and
-   prepare:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p224_server_ntd --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.24 preparation failed' }
-```
-
-2. GPU 0: the `hinton_ntd` memory probe (must pass reserved <=21.5 GiB; check
-   shared GPU memory manually), then both stages and evaluations:
+1. Pull and prepare (CPU only, safe while P2.25 runs). The pull is refused
+   unless every incoming file is a new P2.26 file, the union CSV, a result, an
+   audit file or Markdown:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($phase in @('probe','run')) { uv run --no-sync python -m scripts.run_p224_server_ntd --phase $phase; if ($LASTEXITCODE -ne 0) { throw "P2.24 $phase failed" } }; Write-Host 'GPU 0 lane complete' }
+$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p226_central_mix\.py|scripts/list_p226_publication\.py|tests/test_p226_central_mix\.py|processed_data/protocol_v2/SPIDER_BIRD/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p226_central_mix --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.26 preparation failed' }
 ```
 
-3. GPU 1, at the same time:
+2. On the free GPU. Set `$gpu` to the idle card (`'0'` or `'1'`):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm fedprox_aaa --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 FedProx AAA failed' }; Write-Host 'GPU 1 lane complete' }
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p226_central_mix --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.26 failed' }; Write-Host "GPU $gpu lane complete" }
 ```
 
-4. Publish P2.24 when GPU 0 finishes. It first pulls, but only if every incoming
-   file is a result, an audit file or Markdown (for example a FedProx publication),
-   so it is safe while GPU 1 runs:
+3. Publish when it finishes (pulls result-only commits first, so it is safe
+   while P2.25 runs):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after both lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p224_server_ntd --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p224_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.24 two-sided retention screen'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after all lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p226_central_mix --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p226_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.26 centralized Spider+BIRD reference'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
+
+If P2.25 analyzes after P2.26, rerun step 3: the analysis adds the P2.25
+method v1 rows once their final evaluations exist.
 
 ## P2.25: method v1 on the full AKAKA chain, seed 0
 
