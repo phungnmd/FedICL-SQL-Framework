@@ -40,6 +40,41 @@ Older detail:
   New prior work to cite: FedCoT (Findings EMNLP 2025), FL for semantic
   parsing (ACL 2023), Server Learning (Mai et al.).
 
+## 2026-10-08: P2.20 partial publication, Hinton K2AAA complete, gold to A2
+
+Evidence: nested `afa687f` (mid-run step 3b): stage rows, receipts and
+predictions; `run_manifest.json` and summary come with the final publication.
+Contrasts recomputed locally from the committed predictions and the P2.18
+manifest predictions (exact McNemar, nominal p, 1,034 Spider questions).
+
+| Endpoint | Hinton K2AAA Spider / BIRD | Gold K2AAA Spider / BIRD | Hinton - gold Spider | Hinton - gold BIRD |
+|---|---|---|---|---|
+| K2 | 50.29 / 35.14 | 47.00 / 31.94 | +3.29 (100/66, p=.010) | +3.19 (p=.0016) |
+| A1 | 60.25 / 27.90 | 59.38 / 26.27 | +0.87 (p=.40) | +1.63 (p=.065) |
+| A2 | 61.80 / 28.16 | 61.61 / 25.68 | +0.19 (p=.91) | +2.48 (p=.0071) |
+| A3 | 63.93 / 27.71 | pending | | |
+
+Hinton K2AAA A3, all sets: Spider 63.93, Realistic 51.97, SYN 48.26, DK 46.92,
+BIRD 27.71. Against P2.18 Spider: Hinton AKAKA +1.35 (58/44, p=.198), Hinton
+AK2AA +0.77 (p=.396), gold AKAKA +3.77 (p=.0009), gold AK2AA +2.13 (p=.039),
+FL AAA +6.38, central E3 +4.55. On SYN it is below Hinton AKAKA, -2.22
+(40/63, p=.030); Realistic, DK and BIRD are not separated from the Hinton
+schedules.
+
+- Schedule rule: K2AAA beats Hinton AKAKA by 1.35 points but p=.198 > .05, so
+  S stays AKAKA. Pending only the gold red-flag check below.
+- The Hinton Spider edge over gold decays with each private round after K:
+  +3.29, +0.87, +0.19. The BIRD edge persists (+2.48 at A2, p=.007). This
+  repeats the earlier one-K washout on Spider, now as a measured curve; the
+  teacher's lasting effect at K2AAA is public-domain retention, not Spider.
+- Red-flag check is now live: gold K2AAA A2 is already 61.61 with two private
+  passes (Hinton AKAKA final 62.57 with three). If gold K2AAA A3 >= 62.57, a
+  plain gold warm-start matches the selected method on Spider and the claim
+  must be reassessed before Phase 2.
+- Late K (AKAKA) keeps more SYN robustness than early K (K2AAA); early K gives
+  the highest observed Spider. Treat this as a Spider vs robustness trade-off
+  hypothesis until all six grid cells are final.
+
 ## 2026-10-08: P2.20 Hinton K2AAA terminal Spider, not committed
 
 - Owner report from the server log: `p220_hinton_k2aaa_a3` Spider EX 63.9,
