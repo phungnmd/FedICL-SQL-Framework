@@ -26,6 +26,26 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: H1 (FedNTD retention) quick test queued, rule fixed before results
+
+- Motivation: forgetting runs both ways. K pulls Spider to a floor; A erases
+  teacher knowledge (1.5B one-K: Hinton - gold +3.3 after K, +0.09 after A;
+  0.5B Hinton BIRD 35.53 after K2, 28.88 after A3). P2.9 retention used the
+  full-vocabulary KL including the gold token, which opposes CE; FedNTD drops
+  the gold token (Lee et al., NeurIPS 2022; official defaults beta 1, tau 3).
+- Code: nested `8d598d0` (`--client-retention-mode ntd`; default identities
+  unchanged), `eedd5c3` (P2.21 runner), `6307096` (P2.20 resume without the
+  repository code hash). 758 CPU tests pass. GPU unrun.
+- P2.21: last private round of Hinton AKAKA with NTD, from the published K2
+  adapter. Control: P2.18 Hinton AKAKA A3 (62.57 Spider, 28.88 BIRD).
+- Decision rule (exact paired tests on the 5 sets, NTD minus control):
+  pass if BIRD gain has p<.05 and the Spider 95% CI lower bound of the
+  paired EX difference is above -2.0 points (non-inferiority). Pass: run NTD
+  in every A of AKAKA and K2AAA, with gold controls. BIRD not up: close H1.
+  BIRD up but Spider fails non-inferiority: one smaller beta (0.3), then stop.
+- Prior estimate (not evidence): Spider within 1 point about 70%; Pareto pass
+  about 35-45%; Spider gain of 2 points with p<.05 about 10-15%.
+
 ## 2026-10-08: independent review of all results
 
 - [Review](independent_review_2026-10-08/REVIEW.md) by an outside-role Opus agent
