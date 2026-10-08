@@ -93,9 +93,24 @@ GPU 1:
 
 On interruption, rerun the identical lane command: completed stages and
 evaluations are skipped, and unfinished training continues from its last
-checkpoint. Do not pull, edit, switch, commit or push on the server while
-either lane runs. The recorded identity hashes all tracked code, so a pull
-would block the resume.
+checkpoint. Do not pull, edit or switch on the server while either lane runs.
+The recorded identity hashes all tracked code, so a pull would block the
+resume. The only commit allowed during the run is step 3b.
+
+### 3b. Optional: publish the finished Hinton K2AAA arm while lanes run
+
+Run only after all four Hinton K2AAA stages and their evaluations are done
+(GPU 0 has moved on to FedProx). It validates the arm with the runner's own
+checks, then commits only its compact files: stage rows, receipts, evaluation
+configs, metrics and predictions, runtime reports and the two passed probes.
+It does not commit `run_manifest.json` or a summary, because the lanes still
+write them. It is safe during the run: run identity excludes result files and
+Git SHAs, nothing is pulled, and step 4 skips files already committed. It
+adds no code, so it uses an inline Python check.
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $files=@(uv run --no-sync python -c "from pathlib import Path; from scripts import run_p220_placement_grid as r, list_p220_publication as p, list_p215_publication as q, plan_experiment as s, run_p27_rationale_screen as t; m=r.read_manifest(); a='hinton_k2aaa'; E=r.ENDPOINTS[a]; A={e: r.endpoint_adapter(a, e) for e in E}; assert all(set(m.get('evaluations', {}).get(a, {}).get(e, {})) == set(r.eval_sets(a, e)) for e in E), 'Hinton K2AAA evaluations incomplete'; [s.validate_recorded(v, r.eval_contract(a, e, n, A[e]), t.SETS[n][3]) for e in E for n, v in m['evaluations'][a][e].items()]; R=[v for j, x in m['runtime'].items() if j.startswith(a + '_') for v in x.values()]; [r.old.verify_runtime(v) for v in R]; assert all(any(j.startswith(a + '_' + e + '_train') for j in m['runtime']) for e in E), 'missing training runtime'; [r.verify_probe(k) for k in r.PROBES]; P=[Path(m['stages'][a][e]) / f for e in E for f in ('config.json', 'metrics.json')] + [r.receipt_path(a, e) for e in E] + [v[f] for e in E for v in m['evaluations'][a][e].values() for f in ('config', 'metrics', 'predictions')] + [v['path'] for v in R] + [r.AUDIT / ('memory_' + k + '.json') for k in r.PROBES]; print('\n'.join(q.unpublished(sorted({p.safe_file(x) for x in P}))))"); if ($LASTEXITCODE -ne 0) { throw 'Hinton K2AAA validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.20 Hinton K2AAA arm'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
 
 ### 4. Publish once, after both terminals finish successfully
 

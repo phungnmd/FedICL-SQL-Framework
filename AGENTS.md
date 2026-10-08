@@ -124,7 +124,9 @@ under `paper/archive/`. Never use it as the current method specification.
 - Every run has a separate publication command: empty index check, explicit
   allowlist of compact files, staged-set check, commit, then push.
 - Do not pull, switch, edit, or commit in the server working copy while a lane
-  runs. Do not push new commits to a nested branch whose running lane will push
+  runs. Exception: a runbook step that commits only finished, validated result
+  files of a completed arm (never code, run manifests or summaries) and is
+  skipped by the final publication. Run identities exclude results and Git SHAs. Do not push new commits to a nested branch whose running lane will push
   its own result commit later; that push would be rejected.
 - For `experiments/client_train/run.py` with `--epochs` greater than 1: pass
   `--save-epoch-checkpoints`; adapter-only snapshots go to
