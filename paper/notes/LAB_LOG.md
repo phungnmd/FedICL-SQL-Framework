@@ -31,6 +31,25 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.22 NTD seed-1 replication queued, rule fixed before results
+
+- Design: from the published P2.18 Hinton AKAKA K2 adapter, two last private
+  rounds with `--seed 1`: plain (P2.18 A3 command) and NTD (P2.21 command).
+  Only the round seed changes; the parent K2 stays the seed-0 adapter, so this
+  measures the noise of that round, not of the whole pipeline. Spider and BIRD
+  evaluation. Code: nested `c540fce`.
+- Analysis: per seed, exact McNemar and Wald 95% CI of NTD minus plain (seed 0
+  uses P2.18 A3 and P2.21 NTD). Pooled: for each question, the mean over the
+  two seeds of (NTD EX - plain EX); mean, 95% CI and two-sided p by normal
+  approximation over questions (clusters repeated questions).
+- Decision: adopt NTD if pooled BIRD gain is positive with p<.05, pooled
+  Spider 95% lower bound is above -2.0 points, and the seed-1 BIRD difference
+  alone is positive. Otherwise do not adopt NTD; the method stays Hinton AKAKA
+  without client retention (schedule study), and the two-sided retention idea
+  is not started on the strength of P2.21.
+- Also reported, no decision attached: plain seed 1 minus plain seed 0 (noise
+  of one private round).
+
 ## 2026-10-08: P2.21 FedNTD quick test, H1 does not pass
 
 Evidence: nested `30a86ae` (summary, manifest, predictions). Last private round

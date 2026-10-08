@@ -20,6 +20,10 @@ material and index entries only.
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
 
+## 2026-10-08 completed quick test
+
+- [P2.21 NTD quick test](completed_runbooks/PIPELINE_P221_NTD_QUICK_2026-10-08.md): published in nested `30a86ae`.
+
 ## 2026-10-07 cancelled follow-up
 
 - [P2.19 Hinton placement/depth queue](superseded_runbooks/PIPELINE_P219_SCHEDULE_EXTENSION_2026-10-07.md): cancelled before any result; replaced by the P2.20 placement grid.
