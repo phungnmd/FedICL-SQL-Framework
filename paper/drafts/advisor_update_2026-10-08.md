@@ -52,11 +52,14 @@ Paired trên cùng câu hỏi, exact McNemar, p chưa hiệu chỉnh nhiều ph�
 
 Dòng đầu là phép thử chính, quy tắc chốt trước: cần BIRD tăng với p<.05 và Spider không giảm quá 2 điểm. BIRD chưa đạt nên phép thử chính không qua. Hai dòng sau là so sánh thêm, không chốt trước.
 
+Lặp lại với seed 1 cho round cuối (cùng parent K2): plain 62.09 / 28.42, NTD 62.19 / 31.03 (Spider / BIRD). Gộp hai seed, NTD so với không NTD: BIRD +1.89 (p=.004, CI [+0.59, +3.19]), Spider +0.48 (CI [−1.22, +2.18]). Theo quy tắc chốt trước, NTD được giữ: tăng BIRD, không làm giảm Spider.
+
 ### 5. Nhận xét
 
 - Pha public (BIRD) luôn có lợi: mọi arm có `k` hơn fl_aaa từ +2.6 đến +6.4 điểm Spider và +11.4 đến +14.5 điểm BIRD.
 - Teacher hơn gold trên Spider ở cả ba schedule (+1.35 đến +2.42; p<.05 ở akaka và k2aaa). Trên BIRD, lợi thế chỉ rõ ở akaka, nơi `k` nằm gần cuối.
 - Hinton k2aaa không thua gold ở schedule nào trên cả Spider lẫn BIRD. Hai đầu Pareto là hinton_k2aaa (Spider cao nhất) và hinton_akaka (BIRD cao nhất).
 - Chưa schedule nào tách được khỏi schedule khác (mọi p > .1).
-- FedNTD tăng nhẹ cả Spider lẫn BIRD so với cùng parent, nhưng chưa có ý nghĩa thống kê. hinton_akaka_ntd có BIRD cao nhất (30.05) và Spider chỉ kém hinton_k2aaa 0.48 điểm.
+- FedNTD ở round cuối tăng BIRD khoảng 1.9 điểm (gộp 2 seed, p=.004) và không đổi Spider. Mức tăng Spider ở seed 0 không lặp lại.
+- Nhiễu của một round private: khoảng 0.5 đến 1.3 điểm Spider, nên chênh lệch khoảng 1 điểm giữa các schedule nằm trong nhiễu.
 - Mọi kết quả từ một seed.

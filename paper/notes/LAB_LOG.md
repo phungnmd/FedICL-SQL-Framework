@@ -31,6 +31,28 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.22 NTD seed-1 replication, decision: adopt NTD
+
+Evidence: nested `544753f` (summary, manifest, predictions). Last private round
+of Hinton AKAKA from the published seed-0 K2 adapter, round seed 1.
+
+| | Plain s0 / s1 | NTD s0 / s1 | NTD - plain s0 | NTD - plain s1 | Pooled |
+|---|---|---|---|---|---|
+| Spider | 62.57 / 62.09 | 63.44 / 62.19 | +0.87 (p=.41) | +0.10 (p=1.0) | +0.48, CI [-1.22, +2.18], p=.58 |
+| BIRD | 28.88 / 28.42 | 30.05 / 31.03 | +1.17 (p=.14) | +2.61 (91/51, p=.0010) | +1.89, CI [+0.59, +3.19], p=.0044 |
+
+- Rule (fixed before the result): pooled BIRD p<.05 and positive, pooled
+  Spider lower bound above -2.0, seed-1 BIRD positive. All three hold: NTD is
+  adopted as the client-side component.
+- NTD's effect is on the public domain: BIRD +1.9 points pooled, Spider
+  unchanged (+0.5, within noise). The P2.21 Spider gain did not replicate.
+- Round noise (plain s1 - s0): Spider -0.48, BIRD -0.46; NTD s1 - s0 Spider
+  -1.25. One private round moves Spider by about 0.5-1.3 points, so schedule
+  differences of about 1 point are within noise.
+- Limits: the parent K2 is fixed (seed 0), so this is the noise of the last
+  round only; NTD has been tested only in the last round of AKAKA; pooled p is
+  a normal approximation over questions. Teacher specificity awaits P2.23.
+
 ## 2026-10-08: P2.23 gold + NTD queued, rule fixed before results
 
 - NTD is self-distillation toward the received global adapter, not KD from
