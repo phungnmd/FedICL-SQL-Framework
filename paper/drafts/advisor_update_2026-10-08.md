@@ -13,6 +13,7 @@ Em thử kết hợp federated và KD theo các thứ tự khác nhau:
 | -------------- | --------: | --------: | --------: | --------: | --------: | --------: |
 | centralized_e3 |     59.38 |     58.12 |     45.87 |     43.42 |     44.30 |     13.62 |
 | fl_aaa         |     57.54 |     52.03 |     47.24 |     41.49 |     42.80 |     14.34 |
+| fedprox_aaa    |     56.09 |     50.77 |     45.08 |     41.78 |     42.80 |     13.69 |
 | hinton_akaka   |     62.57 |     57.54 | **52.17** | **50.48** | **47.85** | **28.88** |
 | hinton_akkaa   |     63.15 |     56.96 |     51.77 |     49.71 |     47.48 |     27.77 |
 | hinton_k2aaa   | **63.93** | **58.61** |     51.97 |     48.26 |     46.92 |     27.71 |
@@ -37,5 +38,6 @@ Em chạy cùng setup nhưng server chỉ train CE trên gold SQL của BIRD (kh
 ### 4. Đang làm
 
 - Thêm [FedNTD](https://arxiv.org/abs/2106.03097) vào training của client: giữ kiến thức public qua các round private, không cần gửi output của teacher xuống client. Kết quả ban đầu ở round cuối khả quan, em đang áp dụng chạy lại cho toàn bộ pipeline.
-- Distill hai chiều: thêm retention tương tự ở server, trong lúc KD trên BIRD thì model vẫn giữ phân phối của model nhận từ FedAvg (theo [Learning without Forgetting](https://arxiv.org/abs/1606.09282)), để giảm việc quên Spider sau mỗi `k`. Khi đó client giữ kiến thức public, server giữ kiến thức private, và chỉ truyền adapter.
-- Baseline còn thiếu: FedProx, và centralized Spider+BIRD làm mức trần.
+- Distill hai chiều: thêm retention tương tự ở server, trong lúc KD trên BIRD thì model vẫn giữ phân phối của model nhận từ FedAvg (theo [Learning without Forgetting](https://arxiv.org/abs/1606.09282)), để giảm việc quên Spider sau mỗi `k`. Thử ở đoạn cuối của akaka (seed 0): sau `k`, Spider giữ thêm được +2.7 điểm nhưng BIRD giảm 2.0 điểm; sau round `a` cuối, cả hai chênh lệch về khoảng 0 (Spider 63.64 so với 63.44, BIRD 29.86 so với 30.05). Spider bị quên ở `k` được round `a` sau đó khôi phục, còn BIRD bị quên ở `a` thì không, nên giữ kiến thức chỉ cần làm ở client.
+- FedProx (mu = 0.01) đã xong: thấp hơn FedAvg một chút (Spider −1.45, p=.049), không phải baseline FL mạnh hơn trong setup này.
+- Baseline còn thiếu: centralized Spider+BIRD làm mức trần.

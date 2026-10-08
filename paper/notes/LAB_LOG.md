@@ -31,6 +31,25 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-08: P2.24 v2 screen: keep v1; forgetting is asymmetric
+
+Evidence: nested `5609a15`.
+
+| Endpoint (Spider / BIRD) | v1 | v2 (server NTD in K) | v2 - v1 |
+|---|---|---|---|
+| K | 53.09 / 35.53 | 55.80 / 33.57 | Spider +2.71 (67/39, p=.0084); BIRD -1.96 (58/88, p=.016, CI [-3.50, -0.41]) |
+| Final (after A3 with client NTD) | 63.44 / 30.05 | 63.64 / 29.86 | Spider +0.19 (p=.90); BIRD -0.20 (p=.86) |
+
+- Rule: (a) fails on the BIRD condition (lower bound -3.50 < -2.0); (b) fails
+  (+0.19 < 1.0). Screen: keep v1. Server retention is not part of the method.
+- Mechanism: server NTD keeps about 35% of the Spider lost in K (55.80 instead
+  of 53.09, from 60.74) but slows BIRD learning in K. The final A3 erases both
+  differences: the final model is set by the last private round.
+- Asymmetric forgetting (P2.21-P2.24): private knowledge lost in K is
+  recovered by the next private round; public knowledge lost in a private
+  round is not revisited. Retention pays off only on the client side (client
+  NTD: BIRD +1.9 pooled, Spider unchanged). v2 is the ablation for this choice.
+
 ## 2026-10-08: P2.20 published (FedProx); P2.25 full-chain v1 queued, rule fixed
 
 - P2.20 complete, nested `1c17030`. FedProx AAA (mu 0.01): Spider 56.09,
