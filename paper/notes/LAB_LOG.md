@@ -31,6 +31,41 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-10: P2.25 decision and P2.26 centralized reference
+
+Evidence: nested `d826269` (P2.25), `849f0dd` (P2.26). Seed 0, final models.
+
+| Arm | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| central_mix E3 (Spider+BIRD, no privacy) | 62.96 | 50.20 | 48.45 | 48.04 | 33.12 |
+| Hinton v1 (Hinton K + client NTD) | 63.44 | 53.15 | 50.00 | 47.10 | 30.12 |
+| gold v1 (gold K + client NTD) | 59.67 | 48.43 | 47.00 | 45.23 | 28.36 |
+| Hinton AKAKA (no NTD) | 62.57 | 52.17 | 50.48 | 47.85 | 28.88 |
+| central Spider only | 59.38 | 45.87 | 43.42 | 44.30 | 13.62 |
+| FL AAA | 57.54 | 47.24 | 41.49 | 42.80 | 14.34 |
+
+P2.25 decision (role-based rule, LAB_LOG 2026-10-08):
+
+- `teacher_with_ntd`: pass. Hinton v1 - gold v1: Spider +3.77 (p=.001,
+  Wald [1.55, 5.99]), BIRD +1.76 (p=.073, lower -0.09). Robustness also favours
+  the teacher: Realistic +4.72 (p=.005), SYN +3.00 (p=.007), DK +1.87 (p=.22).
+- `ntd_hinton`: fail. BIRD +1.24 (p=.14).
+- `ntd_gold`: fail on Spider non-inferiority only. BIRD +2.61 (p=.002), Spider
+  -0.48 with Wald lower -2.43.
+- The two-seed pooled NTD BIRD effect (+1.89, p=.004, P2.22) stays the NTD
+  evidence; at seed 0 alone it does not reach p<.05 for Hinton.
+
+P2.26 reading (fixed 2026-10-08), arm minus central_mix at E3:
+
+- Hinton v1: Spider +0.48 (p=.77, Wald [-2.07, 3.03]); BIRD -3.00 (p=.010).
+  Both are `below` by the rule: Spider misses the -2.0 non-inferiority margin
+  by 0.07 at one seed; BIRD is a real gap.
+- Gold v1: Spider -3.29 (p=.018), BIRD -4.76 (p<.001). The teacher closes the
+  Spider gap to the centralized reference and narrows the BIRD gap.
+- Exposure (stated, not used for the decision): central_mix sees BIRD 3 times,
+  the AKAKA chains twice. Central E2 (2 passes of each) is 63.25 / 31.81.
+- Central training: 13.5 h, peak reserved 20.2 GiB, 1.12 examples/s.
+
 ## 2026-10-09: P2.25 Hinton arm: NTD in A2 adds nothing; only the round after the last K matters
 
 Evidence: nested `84e4c9c` (Hinton arm only; gold arm running, no P2.25
