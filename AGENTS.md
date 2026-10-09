@@ -6,9 +6,10 @@ durable rule, run configuration, and lesson here, not only in `CLAUDE.md` or in
 an agent's private memory.
 
 The nested `fedicl-sql/` directory is a separate Git repository (code and
-committed experiment evidence) with its own `fedicl-sql/AGENTS.md`. An agent
-started inside `fedicl-sql/` does not read this file, so code and GPU rules must
-also live there. The GPU server holds only `fedicl-sql/`.
+committed experiment evidence) with its own `fedicl-sql/AGENTS.md`. Codex
+started inside `fedicl-sql/`, and any agent on the GPU server (which holds only
+`fedicl-sql/`), does not read this file, so code and GPU rules must also live
+there. Claude Code started locally inside `fedicl-sql/` loads both files.
 
 ## What the project is
 
@@ -52,26 +53,24 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
 under `paper/archive/`. Never use it as the current method specification.
 
-## Current state (2026-10-07)
+## Current state (2026-10-09)
 
 - Method v1 (fixed 2026-10-08): server Hinton KD on public BIRD + client
   FedNTD (beta 1, tau 3) in private rounds; teacher outputs never leave the
   server, only adapters move. NTD adds about +1.9 BIRD (two seeds) with Spider
   unchanged, for gold and Hinton alike; the teacher's lasting gain is on Spider.
-  P2.24 screens v2 (server-side NTD in K); FedProx AAA runs beside it.
-- Both owner checkouts now use `main`. Nested `main` integrates the experiment
+  P2.24 (server-side NTD in K) kept v1. FedProx AAA is not a stronger FL
+  baseline (P2.20, nested `1c17030`).
+- Active: P2.25 (v1 on the full AKAKA chain; Hinton arm in nested `84e4c9c`,
+  gold arm running) and P2.26 (centralized Spider+BIRD reference). P2.20 to
+  P2.24 are complete; their results are in LAB_LOG.
+- Both owner checkouts use `main`. Nested `main` integrates the experiment
   branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
 - P2.18 Coder-0.5B six-arm screen is complete (`45a8bdc`): central E3
   59.38, FL AAA 57.54, gold/Hinton AKAKA 60.15/62.57, gold/Hinton AKKAA
   61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
   Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
-  Active follow-up P2.20, seed 0: fresh Hinton K2AAA, gold K2AAA and FedProx
-  AAA complete the equal-exposure placement grid; Hinton K2 is adopted from
-  the finished P2.19 K2 stage, not retrained. P2.19 was otherwise cancelled before
-  any result. P2.20 resume no longer depends on the code hash (nested
-  `6307096`); still never pull on the server while a lane runs. The schedule
-  rule is in LAB_LOG (2026-10-07). P2.21 tests FedNTD client retention; its
-  decision rule is the success criterion above.
+  The schedule rule is in LAB_LOG (2026-10-07).
   Replication across seeds remains deferred by owner choice.
   All stages use `target_fp32`; cache audit/probes and predictions are public.
   Shared memory stays manual, do not add automatic polling or gates.
