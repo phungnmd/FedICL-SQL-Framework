@@ -31,6 +31,30 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-10: P2.27 partial: base, FL and gold v1 complete, Hinton v1 to A2
+
+Evidence: nested `767d1e5` (mid-run publication; no decision yet, the rule
+needs `fedntd` and Hinton v1 A3). Seed 0, Coder-1.5B, alpha 0.1.
+
+| Arm / stage | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| base | 59.19 | 46.26 | 45.94 | 47.66 | 21.32 |
+| FL A1 / A2 | 65.57 / 68.28 | | | | 22.62 / 24.38 |
+| FL A3 | 67.60 | 59.65 | 53.68 | 53.27 | 25.68 |
+| gold v1 K1 / A2 / K2 | 58.70 / 66.34 / 60.54 | | | | 40.35 / 41.59 / 39.77 |
+| gold v1 A3 | 67.89 | 59.06 | 55.61 | 52.90 | 41.40 |
+| Hinton v1 K1 / A2 | 62.19 / 68.47 | | | | 42.18 / 41.66 |
+
+- Teacher on Spider, as at 0.5B: Hinton - gold at K1 +3.48 (p=.0016), at A2
+  +2.13 (p=.043); BIRD equal at A2 (+0.07).
+- Gold v1 A3 - FL A3: Spider +0.29 (p=.87, Wald [-1.99, 2.57]), BIRD +15.71
+  (p<.001). At matched private rounds Hinton v1 A2 - FL A2 is Spider +0.19
+  (p=.94), BIRD +17.28.
+- BIRD no longer drops in the private round after K (gold 40.35 -> 41.59,
+  Hinton 42.18 -> 41.66; 0.5B lost 4-7 points). Size and client NTD are
+  confounded: P2.27 has no plain A after K.
+- FL peaks at A2 (A3 - A2 Spider -0.68, p=.47).
+
 ## 2026-10-10: P2.27 Coder-1.5B on the alpha 0.1 split queued, rule fixed before results
 
 Owner decision: switch the student to Qwen2.5-Coder-1.5B-Instruct and the
