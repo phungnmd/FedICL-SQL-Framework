@@ -1,222 +1,67 @@
 # FedLS-SQL run queue
 
 This is the only active command queue. Run from the Windows `fedicl-sql/`
-root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.18 completed in `45a8bdc`;
-its [old commands](../archive/completed_runbooks/PIPELINE_P218_0P5B_2026-10-07.md)
-are historical. P2.19 was cancelled before any result; its
-[queue](../archive/superseded_runbooks/PIPELINE_P219_SCHEDULE_EXTENSION_2026-10-07.md)
-is history. Keep all P2.18 adapters, receipts, cache and results.
+root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
+complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
+are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-## P2.26: centralized Spider+BIRD reference, seed 0
+## P2.27: Coder-1.5B on the alpha 0.1 split, seed 0
 
-The ceiling for both endpoints: one adapter from the base model on all 8,659
-Spider and 9,428 BIRD training rows together (no federation, no privacy),
-P2.18 recipe, 3 epochs. E3 is the reference. Spider and BIRD at E1 and E2, all
-five sets at E3. Reading fixed in LAB_LOG 2026-10-08 (P2.26). Code: nested
-`53458fa`. Reuses the P2.18 gold memory probe (same longest BIRD rows, same
-7,424-token limit). Time: about 3.7 h per epoch (Spider 1.4 h + BIRD 2.3 h),
-11 h training plus about 1.8 h evaluation, about 13 h. It resumes from its
-last checkpoint if rerun with the same command.
+New student and a harder split (owner decision 2026-10-10): fresh
+Qwen2.5-Coder-1.5B-Instruct, P2.18 recipe, 5 clients from the k5 alpha 0.1
+domain-cluster split (nested `02dabf4`). Each client spans 6-8 of 20 domain
+clusters (alpha 0.5: 9-13). Rule: LAB_LOG 2026-10-10 (P2.27). Code: nested
+`80bae67`. No memory probes (owner decision: same size as 1.5B-Instruct).
 
-P2.24 commands are [archived](../archive/completed_runbooks/PIPELINE_P224_SERVER_NTD_2026-10-08.md).
-
-1. Pull and prepare (CPU only, safe while P2.25 runs). The pull is refused
-   unless every incoming file is a new P2.26 file, the union CSV, a result, an
-   audit file or Markdown:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p226_central_mix\.py|scripts/list_p226_publication\.py|tests/test_p226_central_mix\.py|processed_data/protocol_v2/SPIDER_BIRD/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p226_central_mix --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.26 preparation failed' }
-```
-
-2. On the free GPU. Set `$gpu` to the idle card (`'0'` or `'1'`):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p226_central_mix --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.26 failed' }; Write-Host "GPU $gpu lane complete" }
-```
-
-3. Publish when it finishes (pulls result-only commits first, so it is safe
-   while P2.25 runs):
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after all lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p226_central_mix --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p226_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.26 centralized Spider+BIRD reference'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
-
-If P2.25 analyzes after P2.26, rerun step 3: the analysis adds the P2.25
-method v1 rows once their final evaluations exist.
-
-## P2.25: method v1 on the full AKAKA chain, seed 0
-
-v1 = server Hinton KD + client FedNTD. From the published P2.18 AKAKA K1 row of
-each objective: A2 with client NTD, K2 with the P2.18 recipe, A3 with client
-NTD (A1 is the shared plain round: nothing public to keep yet). With P2.18
-gold/Hinton AKAKA this is a 2 x 2 (objective x NTD) on the full chain. Spider
-and BIRD after each stage, all five sets at A3. Reuses the P2.18 gold/Hinton
-and P2.21 NTD probes. Rule: LAB_LOG 2026-10-08 (P2.25). Code: nested `48aca0e`.
-Time per arm: A about 1.7 h, K about 2.3-2.5 h, evaluations about 1.8 h; about
-8 h per arm.
-
-1. Now, while P2.24 runs on GPU 0 (CPU only). The pull is refused unless every
-   incoming file is a new P2.25 file, a result, an audit file or Markdown:
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $changed=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $allowed='^(scripts/run_p225_full_chain_v1\.py|scripts/list_p225_publication\.py|tests/test_p225_full_chain_v1\.py|experiments/(federated|eval_arms)/results/.+|audits/.+|.+\.md)$'; $bad=@($changed | Where-Object { $_ -notmatch $allowed }); if ($bad.Count -ne 0) { throw "Pull would change files the running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.25 preparation failed' }
-```
-
-2. GPU 1 now: Hinton.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($arm in @('hinton')) { uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.25 $arm failed" } }; Write-Host 'GPU 1 lane complete' }
-```
-
-3. GPU 0 after P2.24 prints `GPU 0 lane complete` and is published: gold.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('gold')) { uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.25 $arm failed" } }; Write-Host 'GPU 0 lane complete' }
-```
-
-3b. Any time a P2.25 arm finishes while the other still runs: commit only the
-   finished stages' result rows, evaluations, receipts and runtime reports (no
-   manifest or summary). Step 4 later skips these files:
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p226_central_mix\.py|scripts/list_p226_publication\.py|tests/test_p226_central_mix\.py|processed_data/protocol_v2/SPIDER_BIRD/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; $files=@(uv run --no-sync python -c "from pathlib import Path; from scripts import run_p225_full_chain_v1 as r, list_p225_publication as p, list_p215_publication as q, plan_experiment as s, run_p27_rationale_screen as t; m=r.read_manifest(); D=[(a, e) for a in r.ARMS for e in r.ENDPOINTS if m.get('stages', {}).get(a, {}).get(e)]; A={(a, e): r.endpoint_adapter(a, e) for a, e in D}; V=[(a, e, n, v) for a, e in D for n, v in m.get('evaluations', {}).get(a, {}).get(e, {}).items()]; [s.validate_recorded(v, r.eval_contract(a, e, n, A[a, e]), t.SETS[n][3]) for a, e, n, v in V]; R=[v for x in m.get('runtime', {}).values() for v in x.values()]; [r.old.verify_runtime(v) for v in R]; P=[Path(m['stages'][a][e]) / f for a, e in D for f in ('config.json', 'metrics.json')] + [r.receipt_path(a, e) for a, e in D] + [v[f] for a, e, n, v in V for f in ('config', 'metrics', 'predictions')] + [v['path'] for v in R]; [print(x) for x in q.unpublished(sorted({p.safe_file(x) for x in P}))]"); if ($LASTEXITCODE -ne 0) { throw 'Finished-stage validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record finished P2.25 stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } } else { Write-Host 'Nothing new to publish' } }
-```
-
-4. Publish when both arms finish (pulls result-only commits first):
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms)/results/|audits/|.+\.md$)' }); if ($bad.Count -ne 0) { throw "Incoming code changes; publish after all lanes finish: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p225_full_chain_v1 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p225_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.25 full-chain method v1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
-
-P2.20 is complete and published (nested `1c17030`): the P2.19 server folders may
-now be deleted.
-
-## P2.20: placement grid and FedProx baseline, seed 0
-
-Goal: decide the schedule S with the rule fixed in LAB_LOG (2026-10-07). All
-three arms start from the base model. With P2.18 they complete this grid, every
-cell at 3 Spider passes and 2 BIRD epochs:
-
-| Schedule | Gold | Hinton |
+| Arm | Stages | Role |
 |---|---|---|
-| AKAKA (interleaved) | P2.18 60.15 | P2.18 62.57 |
-| AK2AA (one K block in the middle) | P2.18 61.80 | P2.18 63.15 |
-| K2AAA (public warm-start, then FL) | **P2.20** | **P2.20** |
+| `base` | none | untrained Coder-1.5B, all five sets |
+| `fl` | A, A, A | FL baseline; its A1 is the shared start of every federated arm |
+| `fedntd` | A, A[ntd], A[ntd] | published non-IID FL baseline; method without server KD |
+| `gold_v1` | A, K[ce], A[ntd], K[ce], A[ntd] | matched public gold |
+| `hinton_v1` | A, K[fkl], A[ntd], K[fkl], A[ntd] | method v1 |
+| `central` | Spider E1-E3 | centralized Spider reference (heterogeneity penalty) |
 
-| New arm | Stages | Role |
-|---|---|---|
-| `hinton_k2aaa` | K2[fkl], A1, A2, A3 | placement, schedule rule |
-| `gold_k2aaa` | K2[ce], A1, A2, A3 | public warm-start baseline (Nguyen et al., ICLR 2023) |
-| `fedprox_aaa` | A1, A2, A3 with FedProx `mu=0.01` | second FL baseline (v1 value) |
+Spider and BIRD after every stage; all five sets at the final stage. Time,
+from the 1.5B-Instruct measurements (A round about 1.6 h, gold K 2.7 h,
+Hinton K 3.3 h; NTD rounds and 1.5B evaluation not measured yet): about 25 h
+per lane, then about 10 h for `central`.
 
-K2 is **one continuous two-epoch optimizer/cosine horizon**. A is one
-five-client, one-local-epoch, sample-weighted factor-wise FedAvg round.
-Everything else is the P2.18 recipe: Qwen2.5-Coder-0.5B, frozen Coder-7B cache,
-SQL-only, `target_fp32`, batch 1/accumulation 16, LR 2e-4, LoRA r16, Hinton
-CE/KL .5/.5 at T=2, all 9,428 BIRD rows with evidence, k5 alpha 0.5 split.
-Evaluation follows P2.18: Spider and BIRD after every stage, all five sets at
-the final stage. Analysis reuses the published P2.18 predictions.
-
-**Hinton K2 is reused, not retrained.** The P2.19 Hinton K2 stage was almost
-finished when P2.19 was cancelled. Its command is identical to the P2.20 Hinton
-K2 except for the stage label and output folder, and the training code did not
-change between nested `785863a` and P2.20. P2.20 adopts that completed stage
-and its runtime report. It never retrains it.
-
-Measured P2.18 single-GPU times, evaluation excluded: K2 gold 4.5 h, one A
-round about 1.3 h. GPU 0 (Hinton A1-A3, then FedProx) is about 7.8 h of
-training; GPU 1 (gold K2AAA) about 8.4 h.
-
-### 0. Let the P2.19 Hinton K2 finish, then stop P2.19
-
-Do not pull yet. If the P2.19 GPU 1 lane (AKAKAKA/AK2AAA) is still running,
-stop it now with Ctrl+C. On GPU 0, wait until the K2 training finishes and the
-log moves on to its Spider evaluation or to A1, then stop it with Ctrl+C. Check
-that the K2 stage is complete; the last line must say `passed`:
+1. Pull and prepare, both GPUs idle (CPU only: length audit of the three
+   training pools and the cross-student teacher-cache audit, which the Hinton
+   trainer requires for a new student; teacher logits are not regenerated):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; Get-ChildItem audits/protocol_v2/p219_schedule_extension_s0 -Filter 'runtime_k2aaa_k2_train_*.json' | Sort-Object Name | ForEach-Object { $_.Name + ' ' + (Get-Content $_.FullName -Raw | ConvertFrom-Json).status } }
+$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.27 preparation failed' }
 ```
 
-Do not delete any P2.19 files until P2.20 is published: P2.20 uses the K2
-adapter, result row and runtime report. The rest of the P2.19 state is inert.
-
-### 1. Pull and prepare once, both GPUs idle
-
-CPU only. Reuses the P2.18 token audit and teacher-cache audit when all input
-bytes match; teacher logits are not regenerated.
-
-```powershell
-$ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p220_placement_grid --phase prepare --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 preparation failed' }
-```
-
-### 2. Two short probes, before either lane
-
-32-step longest-example probes, one process each. Each must pass reserved
-<=21.5 GiB. The FedProx probe also covers the plain private stages; no Hinton
-probe is needed because the Hinton K2 is adopted. Passed probes are reused on
-restart. Check shared GPU memory manually.
-
-```powershell
-$ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($kind in @('fedprox','gold')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase probe --probe $kind --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${kind} probe failed" } }
-```
-
-### 3. Run these two terminals concurrently
+2. Two terminals concurrently. GPU 1 runs `base` first; `gold_v1` and
+   `fedntd` then wait for the local FL A1 from GPU 0 (no Git step needed).
 
 GPU 0:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('hinton_k2aaa','fedprox_aaa')) { uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm $arm --seed 0; if ($LASTEXITCODE -ne 0) { throw "P2.20 ${arm} failed" } }; Write-Host 'GPU 0 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('fl','hinton_v1')) { uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.27 $arm failed" } }; Write-Host 'GPU 0 lane complete' }
 ```
 
 GPU 1:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p220_placement_grid --phase run --arm gold_k2aaa --seed 0; if ($LASTEXITCODE -ne 0) { throw 'P2.20 gold K2AAA failed' }; Write-Host 'GPU 1 lane complete' }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($arm in @('base','gold_v1','fedntd')) { uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.27 $arm failed" } }; Write-Host 'GPU 1 lane complete' }
 ```
 
-On interruption, rerun the identical lane command: completed stages and
-evaluations are skipped, and unfinished training continues from its last
-checkpoint. Do not pull, edit or switch on the server while either lane runs:
-a pull would change the code under a running arm. Resume itself no longer
-depends on the code hash (nested `6307096`). The only commit allowed during
-the run is step 3b.
-
-### 3b. Optional: publish every finished stage while lanes run
-
-Can be repeated at any time during the run. It publishes each stage whose
-training is complete in any arm, plus every evaluation already recorded for
-it, after the runner's own checks: stage rows, receipts, evaluation configs,
-metrics and predictions, passed runtime reports and the two passed probes.
-Running stages and unfinished evaluations are skipped; a later repeat picks
-them up. It never commits `run_manifest.json` or a summary, because the lanes
-still write them. It is safe during the run: run identity excludes result
-files and Git SHAs, nothing is pulled, no code is added (inline Python check),
-and step 4 skips files already committed.
+3. `central` on the first GPU that finishes. Set `$gpu` to that card:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $files=@(uv run --no-sync python -c "from pathlib import Path; from scripts import run_p220_placement_grid as r, list_p220_publication as p, list_p215_publication as q, plan_experiment as s, run_p27_rationale_screen as t; m=r.read_manifest(); D=[(a, e) for a in r.ARMS for e in r.ENDPOINTS[a] if m.get('stages', {}).get(a, {}).get(e)]; A={(a, e): r.endpoint_adapter(a, e) for a, e in D}; V=[(a, e, n, v) for a, e in D for n, v in m.get('evaluations', {}).get(a, {}).get(e, {}).items()]; [s.validate_recorded(v, r.eval_contract(a, e, n, A[a, e]), t.SETS[n][3]) for a, e, n, v in V]; R=[v for x in m.get('runtime', {}).values() for v in x.values()]; [r.old.verify_runtime(v) for v in R]; [r.verify_probe(k) for k in r.PROBES]; P=[Path(m['stages'][a][e]) / f for a, e in D for f in ('config.json', 'metrics.json')] + [r.receipt_path(a, e) for a, e in D if a in r.KD_ARMS] + [v[f] for a, e, n, v in V for f in ('config', 'metrics', 'predictions')] + [v['path'] for v in R] + [r.AUDIT / ('memory_' + k + '.json') for k in r.PROBES]; [print(x) for x in q.unpublished(sorted({p.safe_file(x) for x in P}))]"); if ($LASTEXITCODE -ne 0) { throw 'Finished-stage validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record finished P2.20 stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } } else { Write-Host 'Nothing new to publish' } }
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase run --arm central; if ($LASTEXITCODE -ne 0) { throw 'P2.27 central failed' }; Write-Host "GPU $gpu central complete" }
 ```
 
-### 4. Publish once, after both terminals finish successfully
+On interruption, rerun the identical command: completed stages and
+evaluations are skipped, unfinished training resumes from its last
+checkpoint. Do not pull, edit or switch on the server while a lane runs.
 
-Validates all stages, evaluations, probes, runtime reports, receipts and the
-summary identity, then stages only the compact allowlisted files.
+4. Publish once, after all three commands finish:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p220_placement_grid --phase analyze --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p220_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.20 placement grid'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p227_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.27 Coder-1.5B alpha 0.1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
-
-Implementation: nested `af13bd2` and `484e9b0` (P2.19 K2 adoption), plus the
-FedProx probe kind. Verification: 749 CPU tests pass; the adopted command was
-checked equal to the P2.19 command at `785863a`. Tests also cover
-CLI parsing of every stage, recipe equality with P2.18 except FedProx `mu`,
-base-start provenance, resume without retraining, probe drift and publication
-exclusions. Windows/CUDA probes and EX results remain to be measured.
-
-## After P2.20
-
-Apply the LAB_LOG schedule rule. Next to implement, regardless of the P2.21
-outcome: centralized Spider+BIRD training (same data and order as the selected
-schedule, no FedAvg), the ceiling for both co-primary endpoints. Not queued
-yet. Only after publication may the P2.19 server folders be deleted.
