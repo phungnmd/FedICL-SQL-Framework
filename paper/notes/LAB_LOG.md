@@ -31,6 +31,37 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-10: P2.27 Coder-1.5B on the alpha 0.1 split queued, rule fixed before results
+
+Owner decision: switch the student to Qwen2.5-Coder-1.5B-Instruct and the
+clients to the k5 alpha 0.1 split, for a stronger federated story. Code:
+nested `80bae67`; split: nested `02dabf4`. No memory probes (owner decision).
+
+Why alpha 0.1: at alpha 0.5 the FL penalty was small (0.5B: central 59.38 vs
+FL 57.54, 1.84 points), and each client spanned 9-13 of 20 domain clusters
+with mild SQL-construct skew. At alpha 0.1 each client spans 6-8 clusters,
+10 of 20 clusters belong to one client (alpha 0.5: 3), client sizes
+1,097-2,061. Construct skew stays moderate (JOIN 30-66%, nested 10-27%).
+
+Arms (seed 0): `base`, `fl` (AAA), `fedntd` (A, A[ntd], A[ntd]), `gold_v1`
+and `hinton_v1` (A, K, A[ntd], K, A[ntd]), `central` (Spider E3). FedNTD
+(Lee et al., NeurIPS 2022) is the published non-IID FL baseline, so `fedntd`
+is also the method without server KD.
+
+Rule, fixed before any P2.27 result, final models, exact McNemar and Wald 95%:
+
+- `teacher` (role-based, as P2.25): `hinton_v1` - `gold_v1` passes if Spider
+  gain with p<.05 and BIRD Wald lower bound > -2.0.
+- `server_kd` (co-primary criterion, component claim): `hinton_v1` - `fedntd`
+  passes if BIRD gain with p<.05 and Spider Wald lower bound > -2.0.
+- `server_kd_spider_gain` (secondary, the federated claim): `hinton_v1` -
+  `fedntd` Spider gain with p<.05, i.e. server KD improves the private domain
+  beyond the best FL baseline under strong heterogeneity.
+- Descriptive only: FL penalty (`central` - `fl` Spider), `base` row,
+  per-stage trajectories, rounds to reach the final FL Spider.
+- Not testable by P2.27 alone: whether the KD gain grows with heterogeneity.
+  That needs Coder-1.5B at alpha 0.5; the 0.5B alpha 0.5 rows differ in model.
+
 ## 2026-10-10: P2.25 decision and P2.26 centralized reference
 
 Evidence: nested `d826269` (P2.25), `849f0dd` (P2.26). Seed 0, final models.
