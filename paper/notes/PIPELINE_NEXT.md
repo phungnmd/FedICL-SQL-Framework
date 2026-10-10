@@ -24,8 +24,9 @@ clusters (alpha 0.5: 9-13). Rule: LAB_LOG 2026-10-10 (P2.27). Code: nested
 
 Spider and BIRD after every stage; all five sets at the final stage. Time,
 from the 1.5B-Instruct measurements (A round about 1.6 h, gold K 2.7 h,
-Hinton K 3.3 h; NTD rounds and 1.5B evaluation not measured yet): about 25 h
-per lane, then about 10 h for `central`.
+Hinton K 3.3 h, about 10 min per evaluated set) and the 0.5B NTD overhead
+(about +30%, so A[ntd] about 2.1 h; not measured at 1.5B): GPU 0 about 19 h,
+GPU 1 about 18 h, then `central` about 6.5 h; about 25 h wall clock.
 
 1. Pull and prepare, both GPUs idle (CPU only: Spider length audit and the
    cross-student teacher-cache audit, which the Hinton trainer requires for a
