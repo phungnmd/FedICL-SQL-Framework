@@ -11,7 +11,7 @@ New student and a harder split (owner decision 2026-10-10): fresh
 Qwen2.5-Coder-1.5B-Instruct, P2.18 recipe, 5 clients from the k5 alpha 0.1
 domain-cluster split (nested `02dabf4`). Each client spans 6-8 of 20 domain
 clusters (alpha 0.5: 9-13). Rule: LAB_LOG 2026-10-10 (P2.27). Code: nested
-`80bae67`. No memory probes (owner decision: same size as 1.5B-Instruct).
+`80bae67`, `3582656`. No memory probes (owner decision: same size as 1.5B-Instruct).
 
 | Arm | Stages | Role |
 |---|---|---|
@@ -27,9 +27,10 @@ from the 1.5B-Instruct measurements (A round about 1.6 h, gold K 2.7 h,
 Hinton K 3.3 h; NTD rounds and 1.5B evaluation not measured yet): about 25 h
 per lane, then about 10 h for `central`.
 
-1. Pull and prepare, both GPUs idle (CPU only: length audit of the three
-   training pools and the cross-student teacher-cache audit, which the Hinton
-   trainer requires for a new student; teacher logits are not regenerated):
+1. Pull and prepare, both GPUs idle (CPU only: Spider length audit and the
+   cross-student teacher-cache audit, which the Hinton trainer requires for a
+   new student and which also checks every BIRD row fits; teacher logits are
+   not regenerated):
 
 ```powershell
 $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.27 preparation failed' }
