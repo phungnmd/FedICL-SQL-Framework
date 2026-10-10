@@ -11,7 +11,7 @@ New student and a harder split (owner decision 2026-10-10): fresh
 Qwen2.5-Coder-1.5B-Instruct, P2.18 recipe, 5 clients from the k5 alpha 0.1
 domain-cluster split (nested `02dabf4`). Each client spans 6-8 of 20 domain
 clusters (alpha 0.5: 9-13). Rule: LAB_LOG 2026-10-10 (P2.27). Code: nested
-`80bae67`, `3582656`. No memory probes (owner decision: same size as 1.5B-Instruct).
+`80bae67`, `3582656`, `c93dce3`. No memory probes (owner decision: same size as 1.5B-Instruct).
 
 | Arm | Stages | Role |
 |---|---|---|
@@ -61,6 +61,17 @@ GPU 1:
 On interruption, rerun the identical command: completed stages and
 evaluations are skipped, unfinished training resumes from its last
 checkpoint. Do not pull, edit or switch on the server while a lane runs.
+
+3b. Any time while lanes run, repeatable: publish every finished stage and
+   evaluation so far (stage rows, receipts, evaluation config/metrics/
+   predictions, runtime reports, cache audit; never the run manifest or
+   summary). The pull is refused unless every incoming file is the
+   publication helper, its test, a result, an audit file or Markdown, so it
+   never changes code a running lane uses:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/list_p227_publication\.py|tests/test_p227_coder15b_alpha01\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; $files=@(uv run --no-sync python -m scripts.list_p227_publication --partial); if ($LASTEXITCODE -ne 0) { throw 'Finished-stage validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record finished P2.27 stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } } else { Write-Host 'Nothing new to publish' } }
+```
 
 4. Publish once, after all three commands finish:
 
