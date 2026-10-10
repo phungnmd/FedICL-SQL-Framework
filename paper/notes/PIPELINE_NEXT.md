@@ -78,3 +78,52 @@ checkpoint. Do not pull, edit or switch on the server while a lane runs.
 ```powershell
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p227_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.27 Coder-1.5B alpha 0.1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
+
+## P2.28: pass@k headroom on client training questions, seed 0
+
+Diagnostic, no training: gate G3 for client execution-verified self-training
+(STaR; rejection-sampling fine-tuning). From the P2.27 adapters a client
+receives before the last private round (FL A2, gold v1 K2, Hinton v1 K2),
+1,000 fixed Spider training questions (200 per alpha 0.1 client): one greedy
+SQL (P2.27 evaluation decode) and 8 samples at T 0.7, all scored with
+`spider_result_eq_v1`. pass@k: Chen et al. (2021) unbiased estimator. G3,
+fixed before the run: pass@8 minus greedy EX >= 5 points and >= 20% of
+questions with a correct sample that differs from gold. Code:
+`scripts/run_p228_passk_headroom.py` (new file, imports P2.27 only to resolve
+adapters). Output: `audits/protocol_v2/p228_passk_headroom_s0/`. Time, not
+measured: about 1.5 h per parent (greedy as one evaluation, then 500 calls of
+16 sampled sequences).
+
+Queue: P2.27 `central` keeps the first free GPU. P2.28 runs on the second
+free GPU, after the Hinton lane has recorded K2 (all three parents exist then).
+
+1. Pull while P2.27 lanes run. Allowed incoming files: the two P2.28 files,
+   results, audits, Markdown:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p228_passk_headroom\.py|tests/test_p228_passk_headroom\.py|scripts/list_p227_publication\.py|tests/test_p227_coder15b_alpha01\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync pytest -q tests/test_p228_passk_headroom.py; if ($LASTEXITCODE -ne 0) { throw 'P2.28 tests failed' } }
+```
+
+2. Smoke on the free GPU (set `$gpu`): the 16 longest-schema questions from
+   FL A2 into `smoke/`; report the last `peak_reserved` line (budget 21.5 GiB)
+   and the time:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p228_passk_headroom --parents fl:a2 --smoke 16; if ($LASTEXITCODE -ne 0) { throw 'P2.28 smoke failed' }; Write-Host "GPU $gpu P2.28 smoke complete" }
+```
+
+3. Full run, same GPU. Rerun the identical command after an interruption;
+   finished questions are skipped and samples are seeded per question:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p228_passk_headroom --parents fl:a2 gold_v1:k2 hinton_v1:k2; if ($LASTEXITCODE -ne 0) { throw 'P2.28 failed' }; Write-Host "GPU $gpu P2.28 complete" }
+```
+
+4. Publish (summary plus per-question decodes, about 1.5 MB per parent):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/list_p227_publication\.py|tests/test_p227_coder15b_alpha01\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; $dir='audits/protocol_v2/p228_passk_headroom_s0'; $files=@("$dir/summary.json","$dir/fl_a2.jsonl","$dir/gold_v1_k2.jsonl","$dir/hinton_v1_k2.jsonl"); foreach ($file in $files) { if (-not (Test-Path $file)) { throw "Missing $file" }; git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if (@(Compare-Object ($files | Sort-Object) ($actual | Sort-Object)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.28 pass@k headroom'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+Decision: G3 pass on any parent: client self-training quick test (A>A>A[M1]
+vs A>A>A from FL A2). G3 fail on all three: close M1 at this size.
