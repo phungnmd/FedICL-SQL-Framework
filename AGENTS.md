@@ -58,11 +58,11 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Current state (2026-10-11)
 
-- Paper direction A (owner decision 2026-10-11): an empirical-method paper on
-  method v1, confirmed on three seeds, plus bounded screens. Plan:
-  `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R7 in LAB_LOG
-  2026-10-11. Method v2 (client ExST) cannot become the main method (churn
-  rule R2 not supported); it is an optional analysis screen.
+- Paper direction A, final (owner decision 2026-10-11): a framework paper on
+  method v1, confirmed on three seeds; no new method. Plan:
+  `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R9 in LAB_LOG
+  2026-10-11. ExST (S1) and execution-gated KD (S2) are dropped. A second
+  method study found no candidate above about 5% for the owner criterion.
 - Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
   Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher
   outputs never leave the server; only adapters move. P2.29 decides whether
@@ -78,9 +78,12 @@ under `paper/archive/`. Never use it as the current method specification.
 - P2.28 (nested `238ee10`): pass@8 minus greedy is 13-18 points on client
   training questions, but it needs eight samples and a gold oracle, and half
   of the rescues are 1 or 2 hits out of 8.
-- Queue: P2.29 (`h_plain`), then seeds 1 and 2 (P2.31), alpha 0.5 at 1.5B
-  (P2.32), `central_mix` at 1.5B (P2.33). Screens S2 (P2.34) and S1 (P2.30)
-  run only if GPU time remains.
+- Queue: P2.29 (`h_plain`, running), then seeds 1 and 2 (P2.31, rules R7
+  and R8), alpha 0.5 at 1.5B (P2.32), `central_mix` at 1.5B (P2.33).
+- Split audit: the k5 alpha 0.1 split is mild cross-silo heterogeneity. The
+  FL penalty shows at matched passes (0.5B: +4.6/+4.8 at E1-A1/E2-A2, on JOIN
+  and extra-hard questions) and mostly vanishes at E3 because central
+  overfits. Its likely cause is fewer effective optimizer steps, not drift.
 - Earlier evidence that still stands: Hinton - gold Spider +2.03 (P2.17,
   1.5B-Instruct, p=.033), +2.42 (P2.18, Coder-0.5B, p=.020), +3.77 (P2.25,
   0.5B v1, p=.001). These share test sets: cite them as a consistent
@@ -174,6 +177,10 @@ under `paper/archive/`. Never use it as the current method specification.
   too strict changes only for later runs, never retroactively (P2.27 lesson).
 - pass@k on training questions is a ceiling with a gold oracle, not a
   forecast of dev EX (P2.28 lesson).
+- Compare central and FL at matched data passes, not only at the final
+  checkpoint; a central run past its peak hides the FL penalty (rule R9).
+- A subgroup found post hoc on one seed is a hypothesis; confirm it only on
+  seeds that did not generate it (rule R8).
 - Resume and cache identities never contain a Git SHA or timestamp.
 
 ## Repository discipline

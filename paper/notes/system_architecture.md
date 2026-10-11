@@ -121,10 +121,10 @@ three seeds is pending (P2.31).
 - Open: whether to keep client NTD. P2.29 (`h_plain`) decides by rule R1; if
   NTD is dropped, the method is Hinton AKAKA and its matched control is gold
   AKAKA.
-- Bounded screens, not the method: ExST (client execution-verified
-  self-training; S1, rules R4/R5; proposal in
-  `paper/drafts/method_v2_proposal_2026-10-11.md`) and execution-gated Hinton
-  KD (S2, rule R6, no published source).
+- Not part of the method (dropped 2026-10-11, direction A final): ExST
+  (client execution-verified self-training, S1) and execution-gated Hinton KD
+  (S2). Method study round 2 (LAB_LOG 2026-10-11) found no new component with
+  a useful chance of success.
 - Stopped (P2.10): Struct-SQL QP-CoT in every stage with template client plans.
   The recipe underperformed; format and template mechanisms need separate
   evidence. Do not generalize this result to all CoT distillation.

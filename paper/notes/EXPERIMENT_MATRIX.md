@@ -12,9 +12,10 @@ cell here. CoT is optional supervision, not a required output or contribution.
 Current evidence (2026-10-11): P2.27 Coder-1.5B, alpha 0.1, seed 0 (nested
 `5604e61`). Hinton v1 - FedNTD: BIRD +18.97 (p<.001), Spider Wald lower -0.89
 (`server_kd` pass); Hinton v1 - gold v1: Spider +1.35 (p=.23, `teacher` fail),
-DK +4.67 (p<.001). Paper direction A and rules R1-R7 are in LAB_LOG
-2026-10-11; the plan is `paper/drafts/paper_direction_2026-10-11.md`. Seeds 1
-and 2 (P2.31) are now required, no longer deferred. Full-data auxiliary plan
+DK +4.67 (p<.001). Paper direction A (final 2026-10-11: framework paper, no
+new method) and rules R1-R9 are in LAB_LOG 2026-10-11; the plan is
+`paper/drafts/paper_direction_2026-10-11.md`. Seeds 1 and 2 (P2.31) are now
+required, no longer deferred. Full-data auxiliary plan
 tasks are closed after P2.15.
 
 ## 1. Research questions
@@ -46,11 +47,12 @@ tasks are closed after P2.15.
 | 16 | What efficiency and privacy claims hold? | adapter bytes, final SLM vs teacher inference, structural boundary | teacher timing kept; final-adapter benchmark pending |
 | 17 | Does client NTD still help at 1.5B? | `h_plain` (Hinton K2, plain A3) vs Hinton v1 A3 (R1) | P2.29; FedNTD - FL at 1.5B: BIRD -1.37 (p=.044) |
 | 18 | Do private rounds erase teacher-specific knowledge, or repair gold's K-stage forgetting? | churn on P2.27 predictions (R2) | done (A1): no teacher-specific erasure; supports the repair reading |
-| 19 | How large is the FL penalty at alpha 0.1? | P2.27 `central` E3 vs FL A3 (R3) | `central` running |
-| 20 | Does execution-verified self-training (ExST) beat extra gold steps? | from FL A2: A3[ExST] vs `fl_dup` (R4); promotion only via R5 | screen S1 (P2.30), analysis only: A1 rules out promotion (R5); P2.28 G3 passed |
-| 21 | Does gating logit KD by teacher execution help? | Hinton v1 to A2 with K1 gated on 5,319 teacher-correct rows (R6) | screen S2 (P2.34), optional |
+| 19 | How large is the FL penalty at alpha 0.1? | P2.27 `central` E3 vs FL A3 (R3); E1-A1, E2-A2, E3-A3 overall and JOIN (R9) | `central` running; at 0.5B alpha 0.5 the penalty is +4.6/+4.8 at matched passes, +1.8 at E3 |
+| 20 | Does execution-verified self-training (ExST) beat extra gold steps? | from FL A2: A3[ExST] vs `fl_dup` (R4); promotion only via R5 | dropped 2026-10-11 (direction A final); A1 ruled out promotion (R5) |
+| 21 | Does gating logit KD by teacher execution help? | Hinton v1 to A2 with K1 gated on 5,319 teacher-correct rows (R6) | dropped 2026-10-11 (direction A final) |
 | 22 | What is the centralized ceiling at 1.5B? | `central_mix` (Spider+BIRD) at Coder-1.5B | P2.33 |
 | 23 | Is EX inflated by false positives? | test-suite EX (Zhong et al. 2020) on Spider predictions | CPU analysis A2 |
+| 24 | Is the teacher's Spider gain on multi-table JOIN questions? | Hinton - matched gold on the gold-JOIN subset, seeds 1-2 pooled (R8) | seed 0 exploratory (+5.1, p=.014); confirmatory test after P2.31 |
 
 Closed with a negative result: KID (ties SeqKD, too costly), GKD (too costly),
 the SeqKD + Hinton hybrid, repeated Hinton depth (P2.4c cancelled).
