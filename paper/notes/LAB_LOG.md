@@ -29,6 +29,34 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-11: exploratory: the teacher's gain is on multi-table JOIN questions
+
+Post hoc subgroup analysis (not a fixed rule), on committed predictions only.
+Split: gold SQL contains `JOIN` (Spider dev 408 of 1,034; BIRD dev 1,140 of
+1,534). Hinton minus matched gold at the final model, exact McNemar:
+
+| Run | Spider JOIN | Spider no-JOIN | DK JOIN |
+|---|---|---|---|
+| P2.17 1.5B-Instruct AKAKA | +4.7 (p=.007) | +0.3 | +5.7 (p=.004) |
+| P2.18 0.5B AKAKA | +6.1 (p=.001) | 0.0 | +4.4 (p=.041) |
+| P2.18 0.5B AKKAA | +4.7 (p=.020) | -0.8 | +3.1 |
+| P2.20 0.5B K2AAA | +5.1 (p=.008) | 0.0 | +1.3 |
+| P2.25 0.5B v1 | +8.6 (p<.001) | +0.6 | +4.8 (p=.043) |
+| P2.27 Coder-1.5B v1 | +5.1 (p=.014) | -1.1 | +7.5 (p=.003) |
+
+- The split was chosen after looking at P2.27; the other five runs were then
+  checked with the same split. All six use the same Spider dev questions and
+  the same teacher, so they are six setups, not six independent samples.
+- P2.27 versus FL on JOIN: Hinton +8.1 (Spider), +9.6 (DK), +8.3 (SYN), +10.0
+  (Realistic), all p<=.001; gold +2.2 to +4.8, none p<.05. On no-JOIN
+  questions the public stage costs 1-5 points for both arms.
+- Errors the teacher fixes (gold arm wrong, Hinton arm right, JOIN, all six
+  runs): mostly SQLite "no such column" (88) and wrong table set; i.e.
+  multi-table schema linking.
+- Reading: the overall Spider gap (+1.35 at P2.27) averages a stable +5 to +9
+  JOIN gain with a zero or slightly negative no-JOIN effect. Not yet a claim:
+  needs a rule fixed before seeds 1-2 are read (owner decision pending).
+
 ## 2026-10-11: P2.28 published; descriptive audit of the headroom
 
 Evidence: nested `238ee10` (summary and per-question JSONL). The summary
