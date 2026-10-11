@@ -13,7 +13,7 @@ Current evidence (2026-10-11): P2.27 Coder-1.5B, alpha 0.1, seed 0 (nested
 `5604e61`). Hinton v1 - FedNTD: BIRD +18.97 (p<.001), Spider Wald lower -0.89
 (`server_kd` pass); Hinton v1 - gold v1: Spider +1.35 (p=.23, `teacher` fail),
 DK +4.67 (p<.001). Paper direction A (final 2026-10-11: framework paper, no
-new method) and rules R1-R9 are in LAB_LOG 2026-10-11; the plan is
+new method) and rules R1-R11 are in LAB_LOG 2026-10-11; the plan is
 `paper/drafts/paper_direction_2026-10-11.md`. Seeds 1 and 2 (P2.31) are now
 required, no longer deferred. Full-data auxiliary plan
 tasks are closed after P2.15.
@@ -53,6 +53,8 @@ tasks are closed after P2.15.
 | 22 | What is the centralized ceiling at 1.5B? | `central_mix` (Spider+BIRD) at Coder-1.5B | P2.33 |
 | 23 | Is EX inflated by false positives? | test-suite EX (Zhong et al. 2020) on Spider predictions | CPU analysis A2 |
 | 24 | Is the teacher's Spider gain on multi-table JOIN questions? | Hinton - matched gold on the gold-JOIN subset, seeds 1-2 pooled (R8) | seed 0 exploratory (+5.1, p=.014); confirmatory test after P2.31 |
+| 25 | Does the method beat a K-first (GPT-FL style) baseline at matched budget? | method vs `hinton_k2aaa`, seeds 0-2, Spider test and BIRD dev (R11) | P2.35; at 0.5B no schedule contrast p<.1 |
+| 26 | Do the claims hold on an untouched Spider set? | R7 claims on Spider test (2,147 rows, R10) | builder in nested `1fe4fb1`; evaluated with P2.31 |
 
 Closed with a negative result: KID (ties SeqKD, too costly), GKD (too costly),
 the SeqKD + Hinton hybrid, repeated Hinton depth (P2.4c cancelled).

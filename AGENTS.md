@@ -28,7 +28,9 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 
 - Main metrics (owner decision 2026-10-08, fixed before any P2.21 or gold
   K2AAA A3 result was read): two co-primary endpoints of the deployed SLM,
-  final Spider EX (private domain) and final BIRD EX (public domain). Claim
+  final Spider EX (private domain) and final BIRD EX (public domain). Since
+  rule R10 (2026-10-11) the Spider endpoint of confirmatory claims is Spider
+  test (2,147 rows); Spider dev and its derived sets are validation. Claim
   shape: one federated SLM that serves both the clients' domain and the
   public domain. Spider-Realistic/SYN/DK measure robustness; EM is a
   diagnostic. Report a Spider-vs-BIRD plot for every arm.
@@ -61,7 +63,10 @@ under `paper/archive/`. Never use it as the current method specification.
 - Paper direction A, final (owner decision 2026-10-11): a framework paper on
   method v1, confirmed on three seeds; no new method. Plan:
   `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R9 in LAB_LOG
-  2026-10-11. ExST (S1) and execution-gated KD (S2) are dropped. A second
+  2026-10-11. ExST (S1) and execution-gated KD (S2) are dropped. R10 makes
+  Spider test the confirmatory Spider set; R11 adds the K-first (GPT-FL
+  style) baseline `hinton_k2aaa` (P2.35), since AKAKA was never shown better
+  than K-first. A second
   method study found no candidate above about 5% for the owner criterion.
 - Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
   Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher

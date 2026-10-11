@@ -5,7 +5,7 @@ seed. Không thêm method mới. Screen S1 (ExST) và S2 (execution-gated KD) b�
 v2 ([method_v2_proposal_2026-10-11.md](method_v2_proposal_2026-10-11.md)) chỉ còn là lịch sử.
 
 Luật đọc kết quả ở file này là bản tóm tắt. Bản gốc, cố định trước khi có kết quả, nằm trong
-[LAB_LOG](../notes/LAB_LOG.md) mục 2026-10-11 (R1-R9). Lệnh chạy nằm trong
+[LAB_LOG](../notes/LAB_LOG.md) mục 2026-10-11 (R1-R11). Lệnh chạy nằm trong
 [PIPELINE_NEXT](../notes/PIPELINE_NEXT.md).
 
 ## 1. Paper nói gì
@@ -28,7 +28,7 @@ thành phần (FedAvg LoRA, server KD) đều đã có; xem
 
 | | Đóng góp | Bằng chứng đến 11/10 (seed 0) | Còn thiếu |
 |---|---|---|---|
-| C1 | Một SLM phục vụ cả hai miền (claim framework) | Hinton v1 − FedNTD: BIRD +18.97 (p<.001), Spider Wald lower −0.89; pass luật `server_kd`. So với FL: BIRD +17.6, Spider +1.65 | Gộp 3 seed (R7) |
+| C1 | Một SLM phục vụ cả hai miền (claim framework), so với FL và baseline K-first (R11) | Hinton v1 − FedNTD: BIRD +18.97 (p<.001), Spider Wald lower −0.89; pass luật `server_kd`. So với FL: BIRD +17.6, Spider +1.65 | Gộp 3 seed (R7) |
 | C2 | Teacher hơn public gold | P2.27: BIRD +1.89 (p=.076), Spider +1.35 (ns), DK +4.67 (p<.001). Spider cùng chiều ở P2.17, P2.18, P2.25 (+2.03, +2.42, +3.77) | Gộp 3 seed (R7); tiêu chí cần BIRD p<.05 và Spider non-inferior, nên BIRD là điểm quyết định |
 | C3 | Cơ chế: Hinton KD làm miền private bị quên ít hơn gold CE trong stage K | Sau K: Spider +3.48 (K1, p=.002), +3.00 (K2, p=.013); churn A1 ủng hộ | Seed 1, 2 |
 | C4 | Phân tích: heterogeneity, scale, loại SQL, chi phí | α=0.1, 0.5B và 1.5B; audit split (mục 3) | α=0.5 ở 1.5B, `central`, `central_mix`, R8, R9, bảng chi phí |
@@ -83,14 +83,20 @@ Luật P2.27 (cố định 10/10): `server_kd` pass; `teacher` fail (Spider +1.3
 | P2.29 | `h_plain`: từ Hinton v1 K2, một A3 plain | đang chạy GPU1 | R1 |
 | P2.27 publish | `central` xong thì publish, đọc R3 và R9 | không GPU | R3, R9 |
 | P2.31 | Seed 1, 2 cho FL, FedNTD, gold, Hinton (NTD theo R1), central | khoảng 2 × 25 h wall clock trên 2 GPU | R7, R8 |
+| P2.35 | Baseline K-first kiểu GPT-FL: `hinton_k2aaa` (K hai epoch từ base, rồi 3 round FedAvg), seed 0-2 | khoảng 12 h mỗi seed | R11 |
+| Spider test | Eval Spider test (2,147 câu) cho model cuối của các arm R7/R11 và `central`, seed 0-2 | khoảng 0.5 h mỗi arm mỗi seed | R10 |
 | P2.32 | α=0.5 ở 1.5B: FL, gold, Hinton, central, seed 0 | khoảng 20 h | mô tả |
 | P2.33 | `central_mix` (Spider+BIRD) ở 1.5B làm ceiling | khoảng 7-10 h | tham chiếu |
 | A2 | Test-suite EX cho Spider (Zhong et al., EMNLP 2020) | CPU | mô tả |
 | A3 | Lỗi theo loại SQL, độ khó BIRD | CPU | mô tả |
 | A4 | Bảng chi phí: bytes truyền mỗi round, compute client, GPU-h server, so với không FL | CPU | mô tả |
 
-Thứ tự GPU: P2.29 và `central` đang chạy; sau đó P2.31 trên cả hai GPU, rồi P2.32 và P2.33.
-Tổng khoảng 110 GPU-h, khoảng 1 tuần trên 2 GPU.
+Thứ tự GPU: P2.29 và `central` đang chạy; sau đó P2.31 trên cả hai GPU, rồi P2.35, P2.32 và
+P2.33. Tổng khoảng 155 GPU-h, khoảng 1.5 tuần trên 2 GPU.
+
+**Tập xác nhận (R10):** Spider dev và các bộ sinh từ dev (Realistic, SYN, DK) đã dùng để chọn mọi
+thiết kế, nên chỉ là validation. Claim cuối về Spider đọc trên Spider test (2,147 câu, 40 DB riêng,
+public từ 02/2024, OmniSQL cũng dùng). BIRD vẫn là BIRD dev vì BIRD test bị ẩn.
 
 Tùy chọn cuối, nếu còn GPU: execution voting lúc deploy (P2.28 cho +7 trên câu train). Chỉ là
 phần bổ sung lúc inference, không phải đóng góp chính.
@@ -117,6 +123,8 @@ phần bổ sung lúc inference, không phải đóng góp chính.
 - **R8 không ủng hộ JOIN:** bỏ phân tích JOIN khỏi claim, chỉ giữ như mô tả seed 0.
 - **Reviewer nói train trên BIRD thì BIRD tăng:** đúng, gold public cũng cho +15.7. Vì vậy C1
   luôn đi cùng gold control và `central_mix`; phần riêng của teacher là C2/C3.
+- **Lịch xen kẽ AKAKA chưa từng được chứng minh tốt hơn K-first** (grid 0.5B, không cặp nào
+  p<.1). R11 kiểm tra ở 1.5B; nếu không qua, AKAKA chỉ là lựa chọn thiết kế.
 - **Reviewer nói phần federated là phụ:** trả lời bằng R9 (penalty ở cùng số pass) và nói rõ
   setting cross-silo; không claim synergy với federation.
 - **Chỉ có họ Qwen:** ghi là limitation.
@@ -125,7 +133,8 @@ phần bổ sung lúc inference, không phải đóng góp chính.
 
 1. Đợi P2.29 xong: đọc R1, cố định method.
 2. Sau `central`: publish P2.27, đọc R3 và R9.
-3. Viết runner P2.31 theo kết quả R1, đưa lệnh vào PIPELINE_NEXT.
+3. Viết runner P2.31 (có eval Spider test) theo kết quả R1, eval Spider test cho seed 0, và runner
+   P2.35; đưa lệnh vào PIPELINE_NEXT.
 4. A2, A3, A4 (CPU) bất cứ lúc nào.
 5. Sau P2.31: đọc R7 và R8, viết bảng chính của paper.
 
@@ -135,5 +144,7 @@ Nguồn:
 [Nguyen et al., ICLR 2023](https://arxiv.org/abs/2210.08090),
 [test-suite accuracy](https://aclanthology.org/2020.emnlp-main.29/),
 [OmniSQL / SynSQL-2.5M](https://arxiv.org/abs/2503.02240),
+[GPT-FL](https://arxiv.org/abs/2306.02210),
+[Spider (test set release)](https://yale-lily.github.io/spider),
 [PubSwap](https://arxiv.org/abs/2604.12160),
 [FedMOA](https://arxiv.org/abs/2602.00453).
