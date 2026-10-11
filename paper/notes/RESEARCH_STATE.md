@@ -60,7 +60,9 @@ chỉ là giả thuyết.
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
-ICL, self-consistency, public pool cùng miền. P2.16 centralized E1-E4 chưa
+ICL, self-consistency, public pool cùng miền, public pool không có
+gold SQL (owner quyết định 2026-10-11 sau P2.36: không mở hướng teacher thay
+nhãn). P2.16 centralized E1-E4 chưa
 từng được publish, không trích dẫn.
 
 ## 4. Chưa biết (câu hỏi cho giai đoạn E, Coder-1.5B, seed 0)
