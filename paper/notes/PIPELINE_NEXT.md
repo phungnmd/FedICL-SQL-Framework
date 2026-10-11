@@ -144,7 +144,7 @@ section 4, LAB_LOG 2026-10-11.
 | ID | Run | GPU | Rule |
 |---|---|---|---|
 | P2.29 | `h_plain`: Hinton v1 K2, one plain A3, five sets | GPU 1, first | R1 |
-| P2.30 | S1 ExST screen from FL A2: A3[ExST] vs `fl_dup` | first free GPU after `central` | R4, R5 |
+| P2.30 | S1 ExST screen from FL A2: A3[ExST] vs `fl_dup`; analysis only after A1 | last, only if GPU time remains | R4 |
 | P2.31 | Seeds 1 and 2: FL, FedNTD, gold, Hinton (NTD per R1), central | both GPUs, after P2.29 | R7 |
 | P2.32 | alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central, seed 0 | after P2.31 | descriptive |
 | P2.33 | `central_mix` at Coder-1.5B | when a GPU is free | reference |

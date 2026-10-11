@@ -33,8 +33,13 @@ hướng hiệu ứng nhất quán.
 
 Câu chuyện C3 là cách đọc lại các số mà proposal v2 gọi là "round private làm mòn teacher":
 khoảng cách Hinton − gold lớn ngay sau K vì gold CE làm Spider rơi nhiều hơn (K2: 60.54 so với
-63.54), rồi round private đưa cả hai về trần khoảng 68-69. Phân tích churn (mục 4, A1) kiểm tra
-cách đọc nào đúng.
+63.54), rồi round private đưa cả hai về trần khoảng 68-69.
+
+Phân tích churn A1 (đã chạy 11/10, luật R2) ủng hộ cách đọc này:
+- Trên BIRD, Hinton mất 26.1% số câu chỉ mình nó đúng ở K2; gold mất 31.9% số câu chỉ gold đúng.
+  Không có xóa riêng phần của teacher (p=.38).
+- Trên Spider, Hinton giữ tốt hơn (mất 15.7% so với 27.6%). Khoảng cách thu hẹp chủ yếu vì gold
+  bắt kịp: gold A3 đúng 60.7% số câu Spider mà trước đó chỉ Hinton đúng.
 
 ## 2. Method
 
@@ -74,7 +79,7 @@ dự báo cho dev.
 | ID | Việc | Chi phí ước tính | Phụ thuộc |
 |---|---|---|---|
 | P2.28 publish | summary + 3 JSONL | không GPU | ngay |
-| A1 | Churn trên predictions P2.27 (luật R2) | CPU, vài phút | sau khi LAB_LOG ghi R2 |
+| A1 | Churn trên predictions P2.27 (luật R2) | CPU | **xong**: R2 không được ủng hộ |
 | P2.29 | `h_plain`: từ Hinton v1 K2, một round A3 plain, eval 5 bộ (luật R1) | khoảng 2-3 h, 1 GPU | runner mới, nhỏ |
 | P2.31 | Seed 1, 2 cho FL, FedNTD, gold, Hinton (theo kết quả R1), central | khoảng 2 × 25 h wall clock trên 2 GPU | P2.29 |
 | P2.32 | α=0.5 ở 1.5B: FL, gold, Hinton, central, seed 0 | khoảng 20 h | P2.29 |
@@ -96,13 +101,17 @@ của chúng tôi. Struct-SQL lọc target teacher theo execution, nhưng là Se
 
 1. GPU0: `central` P2.27 đang chạy; xong thì chạy bước publish P2.27.
 2. GPU1 (đang rảnh): P2.29 khi runner xong.
-3. Sau P2.29: GPU0 và GPU1 chạy P2.31. S1 chen vào khi một GPU rảnh. Sau đó P2.32 và P2.33.
+3. Sau P2.29: GPU0 và GPU1 chạy P2.31, rồi P2.32 và P2.33. S2 chen vào khi một GPU rảnh. S1
+   chạy cuối nếu còn GPU.
 
-Tổng khoảng 150 GPU-h, khoảng 1-1.5 tuần trên 2 GPU.
+Tổng khoảng 130 GPU-h không tính S1, khoảng 1-1.5 tuần trên 2 GPU.
 
 ## 5. Khi nào ExST thành method chính
 
-Cần đủ ba cổng (luật R5):
+**Kết quả 11/10: cổng 1 không qua** (A1, mục 1), nên theo R5 ExST không thể thành method chính.
+S1 vẫn có thể chạy như phân tích, nhưng xếp sau P2.31-P2.33; bỏ S1 cũng hợp lý nếu thiếu GPU.
+
+Ba cổng (luật R5):
 
 1. **Churn (R2) ủng hộ "round private xóa phần riêng của teacher".**
 2. **`central` cho thấy FL thua central ít nhất 3.0 điểm Spider ở α=0.1 (R3)**, tức còn chỗ cho
@@ -133,11 +142,11 @@ Lý do không làm ExST là hướng chính ngay:
 ## 7. Việc cần làm
 
 1. Publish P2.28.
-2. Chạy A1 (churn) sau khi LAB_LOG đã ghi R2.
-3. Viết runner P2.29 (`h_plain`) và đưa lệnh vào PIPELINE_NEXT.
-4. Viết runner seed cho P2.31 theo kết quả R1.
-5. Viết trainer ExST cho S1; đo thời gian sample thật từ log P2.28 trước khi lên lịch.
-6. Sau khi `central` xong: publish P2.27, đọc R3.
+2. Viết runner P2.29 (`h_plain`) và đưa lệnh vào PIPELINE_NEXT.
+3. Viết runner seed cho P2.31 theo kết quả R1.
+4. Sau khi `central` xong: publish P2.27, đọc R3.
+5. A2, A3 (CPU) bất cứ lúc nào.
+6. Chỉ khi còn GPU: trainer ExST cho S1; đo thời gian sample thật từ log P2.28 trước khi lên lịch.
 
 Nguồn mới cho mục 1 và 5:
 [PubSwap](https://arxiv.org/abs/2604.12160),

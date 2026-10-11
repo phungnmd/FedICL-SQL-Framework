@@ -21,10 +21,32 @@ Older detail:
 - P2.27 is complete except `central` (running on GPU 0). By its fixed rule:
   `server_kd` pass, `teacher` fail, `server_kd_spider_gain` fail.
 - P2.28 ran (G3 pass); publication pending.
+- A1 churn: no teacher-specific erasure (R2 not supported), so ExST cannot be
+  promoted (R5); it stays an optional analysis screen.
 - Next: P2.29 (`h_plain`, decides whether v1 keeps client NTD), then seeds 1
   and 2 (P2.31). Co-primary criterion (2026-10-08) unchanged.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: A1 churn (rule R2): no teacher-specific erasure
+
+Evidence: P2.27 predictions in nested `5604e61` and `767d1e5`, row-matched by
+`row_id`; CPU only, run after R2 was committed (paper `6b1e1c8`). T = rows
+Hinton K2 right and gold K2 wrong; T' = the reverse.
+
+| Set | T | Hinton A3 loses on T | T' | gold A3 loses on T' | Difference | Fisher p |
+|---|---:|---:|---:|---:|---:|---:|
+| BIRD dev | 161 | 42 (26.1%) | 91 | 29 (31.9%) | -5.8 | .38 |
+| Spider dev | 89 | 14 (15.7%) | 58 | 16 (27.6%) | -11.9 | .096 |
+
+- R2: **not supported** on BIRD (the judged set): Hinton keeps its
+  teacher-only rows at least as well as gold keeps its gold-only rows. The
+  narrowing Hinton - gold gap after A3 is symmetric churn plus gold catching
+  up (gold A3 is right on 26.7% of BIRD T and 60.7% of Spider T), not erasure.
+- This supports the other reading: gold CE forgets the private domain more
+  during K and the private round repairs it (claim C3 in the direction plan).
+- By R5, ExST cannot become the main method. S1 (P2.30) may still run as an
+  analysis screen; it now ranks below P2.31-P2.33.
 
 ## 2026-10-11: P2.27 decision, P2.28 G3, paper direction A and rules fixed before results
 
