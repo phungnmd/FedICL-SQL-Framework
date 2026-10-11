@@ -26,19 +26,19 @@ and the incremental teacher contribution over matched public-gold training.
 These are separate claims; a gold tie limits attribution, not the observed
 pipeline gain. See `RELATED_WORK_NOVELTY_MATRIX.md` for the claim ladder.
 
-The owner's current stronger-method target is teacher CoT that improves
-terminal Spider EX over both full BIRD-gold and Hinton while keeping `A>K>A`
-fixed. Prioritize resolving missing private rationale labels via auxiliary
-public supervision or validated local rationale generation. More private
-rounds are a secondary investigation, not a requirement for this target.
+Paper direction (owner decision 2026-10-11): direction A, an
+empirical-method paper on method v1 confirmed on three seeds, with bounded
+screens (ExST, execution-gated KD) under rules fixed in LAB_LOG 2026-10-11.
+Plan: `paper/drafts/paper_direction_2026-10-11.md`. The earlier teacher-CoT
+target is closed (P2.15).
 
 ## 2. Parts
 
 | Part | Choice |
 |---|---|
-| Student (SLM) | Qwen2.5-1.5B-Instruct with LoRA r = 16. Deployed alone. |
+| Student (SLM) | Qwen2.5-Coder-1.5B-Instruct with LoRA r = 16 since P2.27 (earlier: Qwen2.5-1.5B-Instruct, Coder-0.5B). Deployed alone. |
 | Teacher | Qwen2.5-Coder-7B, frozen, 4-bit, zero-shot, server only. |
-| Clients | 5 clients, semantic non-IID split (`k5`, `alpha_0.5`). Private data never leaves a client. |
+| Clients | 5 clients, domain-cluster non-IID split `k5`, `alpha_0.1` since P2.27 (6-8 of 20 clusters per client); `alpha_0.5` is the heterogeneity contrast. Private data never leaves a client. |
 | Aggregation | Sample-weighted, factor-wise FedAvg of LoRA factors. Plaintext. |
 | Communication | LoRA adapters only. |
 | ICL | None. Train, teacher, and evaluation all use k = 0. See `ICL_NEGATIVE_RESULT.md`. |
@@ -114,31 +114,22 @@ Rules that keep comparisons honest:
 
 ## 5. Method status
 
-The final method is **not frozen**.
+Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server Hinton
+KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Confirmation on
+three seeds is pending (P2.31).
 
-- Reference: one public stage, `A>K`, with SeqKD, or with full public-gold CE
-  plus Hinton forward KL.
-- Candidate: terminal private consolidation, `A>K[fkl]>A`. It beats `A>A` on
-  all five sets at seed 0, but it does not reliably beat `A>K[ce]>A`. So the
-  gain is not yet attributable specifically to the teacher.
-- Selected next design: P2.13 adds an auxiliary teacher-plan task to full
-  public-gold SQL training at fixed `A>K>A`. Compare with fullgold and
-  fullgold plus extra SQL on the same plan rows from the first screen.
-  Both private stages and inference stay SQL-only; no private plan labels
-  are needed. The recipe and two-GPU commands are in `PIPELINE_NEXT.md`;
-  its runner is implemented and CPU-tested. The A5000 amendment uses
-  target_fp32 for all three arms at K and terminal A with fresh output roots
-  and isolated long-example memory probes. GPU validation and EX benefit
-  remain unproven.
-- Parked alternatives: P2.11 uses the smaller SeqKD SQL base; P2.12 conditions
-  private SQL training on generated plans with masked plan loss and a template
-  fallback. Masking does not freeze the shared model's plan generation.
-  A3 consolidation depth and A2 interleaving are deferred schedule questions.
+- Open: whether to keep client NTD. P2.29 (`h_plain`) decides by rule R1; if
+  NTD is dropped, the method is Hinton AKAKA and its matched control is gold
+  AKAKA.
+- Bounded screens, not the method: ExST (client execution-verified
+  self-training; S1, rules R4/R5; proposal in
+  `paper/drafts/method_v2_proposal_2026-10-11.md`) and execution-gated Hinton
+  KD (S2, rule R6, no published source).
 - Stopped (P2.10): Struct-SQL QP-CoT in every stage with template client plans.
   The recipe underperformed; format and template mechanisms need separate
   evidence. Do not generalize this result to all CoT distillation.
-- Paused (P2.9): a retention loss in the last private stage, toward the frozen
-  post-K model.
+- Closed: plan-task directions (P2.13-P2.15), P2.11, P2.12, P2.9 retention
+  loss, weight merge (A1).
 
 Implemented server objectives: SeqKD, and gold CE plus Hinton forward KL
 (T = 2). Reverse KL and v1 KID are archived. Protocol-v2 KID ran and was closed

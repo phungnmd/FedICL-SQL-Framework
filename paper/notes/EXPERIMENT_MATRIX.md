@@ -9,13 +9,13 @@ co-primary since 2026-10-08; the success criterion is in `AGENTS.md`. Spider
 variants measure robustness; EM is secondary. Protocol-v1 results never fill a
 cell here. CoT is optional supervision, not a required output or contribution.
 
-Current evidence: P2.18 Coder-0.5B six-arm screen is published (`45a8bdc`).
-Hinton AKAKA beats matched gold on terminal Spider by 2.42 points at seed 0
-(nominal exact p=.0199); Hinton AKKAA has highest observed Spider EX (63.15),
-but the schedules are not separated (p=.581). P2.19 was cancelled before any
-result. P2.20 next: Hinton and gold K2AAA plus FedProx AAA, seed 0, completing
-the equal-exposure placement grid; server probes and runs are pending. Multi-seed
-replication remains deferred. Full-data auxiliary plan tasks are closed after P2.15.
+Current evidence (2026-10-11): P2.27 Coder-1.5B, alpha 0.1, seed 0 (nested
+`5604e61`). Hinton v1 - FedNTD: BIRD +18.97 (p<.001), Spider Wald lower -0.89
+(`server_kd` pass); Hinton v1 - gold v1: Spider +1.35 (p=.23, `teacher` fail),
+DK +4.67 (p<.001). Paper direction A and rules R1-R7 are in LAB_LOG
+2026-10-11; the plan is `paper/drafts/paper_direction_2026-10-11.md`. Seeds 1
+and 2 (P2.31) are now required, no longer deferred. Full-data auxiliary plan
+tasks are closed after P2.15.
 
 ## 1. Research questions
 
@@ -40,10 +40,17 @@ replication remains deferred. Full-data auxiliary plan tasks are closed after P2
 | 10 | Does a stronger teacher help? | zero-shot vs 2-shot teacher; later a cross-fitted QLoRA teacher | deferred; investigate only with evidence that teacher target quality is the bottleneck |
 | 11 | Where should KD enter FL? | interleaved vs one-K placement at equal R/public budget, plus FL and each gold schedule | P2.17/P2.18 published; P2.20 K2AAA gold/Hinton grid cells implemented, GPU pending; optimizer/horizon boundaries apply |
 | 12 | Does a teacher plan add value beyond format? | same-row AST plan versus teacher plan on the selected SQL base | conditional after P2.13 confirmation; old P2.7 is historical |
-| 13 | Is the result reliable? | paired EX and error analysis; matched P2.18 gold/Hinton replication on seeds 1 and 2 | after the method gate; fixed split, vary training RNG |
-| 14 | Is it robust to heterogeneity? | one stronger non-IID split, same rows and budget | after the method gate |
-| 15 | Is it model-family specific? | Qwen first; Gemma only after the method is stable | conditional |
+| 13 | Is the result reliable? | P2.27 arms on seeds 1 and 2, pooled paired test (R7) | P2.31, after P2.29; fixed split, vary training RNG |
+| 14 | Is it robust to heterogeneity? | alpha 0.1 (P2.27) vs alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central | alpha 0.1 done at seed 0; alpha 0.5 is P2.32 |
+| 15 | Is it model-family specific? | Qwen first; another family only if compute remains | limitation unless reviewers ask |
 | 16 | What efficiency and privacy claims hold? | adapter bytes, final SLM vs teacher inference, structural boundary | teacher timing kept; final-adapter benchmark pending |
+| 17 | Does client NTD still help at 1.5B? | `h_plain` (Hinton K2, plain A3) vs Hinton v1 A3 (R1) | P2.29; FedNTD - FL at 1.5B: BIRD -1.37 (p=.044) |
+| 18 | Do private rounds erase teacher-specific knowledge, or repair gold's K-stage forgetting? | churn on P2.27 predictions (R2) | CPU analysis A1 |
+| 19 | How large is the FL penalty at alpha 0.1? | P2.27 `central` E3 vs FL A3 (R3) | `central` running |
+| 20 | Does execution-verified self-training (ExST) beat extra gold steps? | from FL A2: A3[ExST] vs `fl_dup` (R4); promotion only via R5 | screen S1 (P2.30); P2.28 G3 passed |
+| 21 | Does gating logit KD by teacher execution help? | Hinton v1 to A2 with K1 gated on 5,319 teacher-correct rows (R6) | screen S2 (P2.34), optional |
+| 22 | What is the centralized ceiling at 1.5B? | `central_mix` (Spider+BIRD) at Coder-1.5B | P2.33 |
+| 23 | Is EX inflated by false positives? | test-suite EX (Zhong et al. 2020) on Spider predictions | CPU analysis A2 |
 
 Closed with a negative result: KID (ties SeqKD, too costly), GKD (too costly),
 the SeqKD + Hinton hybrid, repeated Hinton depth (P2.4c cancelled).
@@ -85,9 +92,11 @@ or a data/compute-matched comparator to FL with additional BIRD training.
 Open items from the former `PAPER_TODO.md` (archived in
 `paper/archive/paper_planning_2026-09/`):
 
-- [ ] Choose the final method from evidence, not from old names.
-- [ ] Second training seed for the chosen method and its matched control.
-- [ ] One stronger non-IID split (for example `alpha=0.1`).
+- [ ] Choose the final method from evidence, not from old names: v1 with or
+      without client NTD (R1); ExST only via R5.
+- [ ] Seeds 1 and 2 for the method and every comparator (P2.31).
+- [x] One stronger non-IID split: `alpha=0.1` (P2.27). The alpha 0.5
+      contrast at 1.5B is P2.32.
 - [ ] Matched convergence curves through the chosen private-round horizon for
       the method, public-gold control, and pure FL; freeze the horizon and
       validation selection rule before the confirmation runs.

@@ -5,6 +5,12 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
+State 2026-10-11: P2.27 lanes and P2.28 steps 1-3 are done (P2.28 ran on GPU 0);
+P2.27 `central` is running on GPU 0; GPU 1 is idle. Pending now: P2.28 step 4
+(publish; safe while `central` runs), then P2.27 step 4 after `central`.
+Paper direction and rules R1-R7: LAB_LOG 2026-10-11 and
+[paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md).
+
 ## P2.27: Coder-1.5B on the alpha 0.1 split, seed 0
 
 New student and a harder split (owner decision 2026-10-10): fresh
@@ -127,3 +133,19 @@ free GPU, after the Hinton lane has recorded K2 (all three parents exist then).
 
 Decision: G3 pass on any parent: client self-training quick test (A>A>A[M1]
 vs A>A>A from FL A2). G3 fail on all three: close M1 at this size.
+Outcome: G3 passed on all three parents (LAB_LOG 2026-10-11); the quick test
+is screen S1 (P2.30) below, with the `fl_dup` compute control added.
+
+## Next, code not yet written (no commands until runners exist)
+
+Order and rules: [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md)
+section 4, LAB_LOG 2026-10-11.
+
+| ID | Run | GPU | Rule |
+|---|---|---|---|
+| P2.29 | `h_plain`: Hinton v1 K2, one plain A3, five sets | GPU 1, first | R1 |
+| P2.30 | S1 ExST screen from FL A2: A3[ExST] vs `fl_dup` | first free GPU after `central` | R4, R5 |
+| P2.31 | Seeds 1 and 2: FL, FedNTD, gold, Hinton (NTD per R1), central | both GPUs, after P2.29 | R7 |
+| P2.32 | alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central, seed 0 | after P2.31 | descriptive |
+| P2.33 | `central_mix` at Coder-1.5B | when a GPU is free | reference |
+| P2.34 | S2 execution-gated K1, Hinton v1 schedule to A2 (optional) | when a GPU is free | R6 |
