@@ -16,9 +16,12 @@ there. Claude Code started locally inside `fedicl-sql/` loads both files.
 Paper: *FedLS-SQL: A Novel Federated Large-Small Language Models Framework for
 Natural Language to SQL*, aimed at a Q3 journal. It needs a positive headline.
 
-FedLS-SQL trains a Qwen2.5-1.5B SLM with private client LoRA updates,
+FedLS-SQL trains a small SLM with private client LoRA updates,
 sample-weighted factor-wise FedAvg, and server-side knowledge transfer from a
-frozen Qwen2.5-Coder-7B teacher on a public pool. Protocol v2 uses explicit
+frozen Qwen2.5-Coder-7B teacher on a public pool. Since P2.27 the student is
+Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5 alpha 0.1
+domain-cluster split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha
+0.5). Protocol v2 uses explicit
 dataset profiles (BIRD with evidence). Main direction: Spider private clients,
 BIRD public pool; BIRD private with a Spider public pool is the reverse check.
 Deployment uses only the SLM. Canonical runs use no ICL.
@@ -53,55 +56,43 @@ Deployment uses only the SLM. Canonical runs use no ICL.
 Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
 under `paper/archive/`. Never use it as the current method specification.
 
-## Current state (2026-10-09)
+## Current state (2026-10-11)
 
-- Method v1 (fixed 2026-10-08): server Hinton KD on public BIRD + client
-  FedNTD (beta 1, tau 3) in private rounds; teacher outputs never leave the
-  server, only adapters move. NTD adds about +1.9 BIRD (two seeds) with Spider
-  unchanged, for gold and Hinton alike; the teacher's lasting gain is on Spider.
-  P2.24 (server-side NTD in K) kept v1. FedProx AAA is not a stronger FL
-  baseline (P2.20, nested `1c17030`).
-- Active: P2.25 (v1 on the full AKAKA chain; Hinton arm in nested `84e4c9c`,
-  gold arm running) and P2.26 (centralized Spider+BIRD reference). P2.20 to
-  P2.24 are complete; their results are in LAB_LOG.
-- Both owner checkouts use `main`. Nested `main` integrates the experiment
-  branches and `chore/cleanup`; old run IDs and committed evidence are preserved.
-- P2.18 Coder-0.5B six-arm screen is complete (`45a8bdc`): central E3
-  59.38, FL AAA 57.54, gold/Hinton AKAKA 60.15/62.57, gold/Hinton AKKAA
-  61.80/63.15 Spider EX. Hinton AKAKA beats matched gold by 2.42 (p=.0199);
-  Hinton schedule difference is inconclusive (p=.581). Seed 0 only.
-  The schedule rule is in LAB_LOG (2026-10-07).
-  Replication across seeds remains deferred by owner choice.
-  All stages use `target_fp32`; cache audit/probes and predictions are public.
-  Shared memory stays manual, do not add automatic polling or gates.
-  KK is one continuous two-epoch K; share only initial A1. Existing 1.5B
-  runs are references, not adapters. `PIPELINE_NEXT.md` owns future commands.
-- P2.15's full-data plan-task direction is closed. Clients and inference stay
-  SQL-only.
-- `goldplan` (gold SQL on all 9,428 rows plus the teacher plan task) and `dss`
-  both lose to full gold on Spider at `A>K>A` (64.89 vs 65.86, nested
-  `8bf615b`, `4e8aa80`). The plan-task direction is closed.
-- P2.16 FL (nested `7e30ba9`): the BIRD public stage beats FL `A>A`, `A>A>A`,
-  `A>A>A>A` by about 3.3 Spider points (p < .011) for gold and Hinton alike;
-  every chain saturates near 68 (FL near 65).
-- Done: P2.14 (1,000 rows, 3 epochs): the plan task gave Spider +1.84 after
-  FedAvg at seed 0 (nested results `e622e1f`), the first KD variant whose
-  Spider edge appears after FedAvg instead of disappearing.
-- Why clients stay SQL-only: in P2.10, template plans at the clients made the
-  FedAvg model weak before any KD (QP T1 Spider 41.9 versus SQL-only 57.35).
-- Closed: P2.13 (superseded before training), P2.10 (stopped), A1 weight-merge
-  gate (failed; historical evidence merged from `9c3476e`). Paused: P2.9 retention.
-- Earlier one-K pattern: Hinton, SeqKD, and KID beat gold right after K,
-  then lose their Spider edge after the next private round. P2.17 is the
-  two-K exception below.
-- P2.17 done (nested `bd4fdcb`): with a second public stage, Hinton beats gold
-  at `A>K>A>K>A` on all five sets (Spider 69.54 vs 67.50, +2.03, p = .033; seed
-  0). First teacher result that survives the final private round. Hinton KD
-  now runs with `target_fp32`. Needs more seeds before any claim.
-- P2.16 centralized E1-E4 are not yet in the published manifest. Do not
-  treat the archived launch command as evidence that those rows completed.
-- Not active: A2 interleaving, P2.11, P2.12, A3 depth, an in-domain public pool,
-  an unlabeled-pool reframing, ICL, FLoRA-NA, SC, T4/T5.
+- Paper direction A (owner decision 2026-10-11): an empirical-method paper on
+  method v1, confirmed on three seeds, plus bounded screens. Plan:
+  `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R7 in LAB_LOG
+  2026-10-11. Method v2 (client ExST) cannot become the main method (churn
+  rule R2 not supported); it is an optional analysis screen.
+- Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
+  Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher
+  outputs never leave the server; only adapters move. P2.29 decides whether
+  client NTD stays (rule R1).
+- P2.27, seed 0 (nested `5604e61`): Hinton v1 - FedNTD BIRD +18.97, Spider
+  Wald lower -0.89 (`server_kd` pass); Hinton v1 - gold v1 Spider +1.35,
+  p=.23 (`teacher` fail), DK +4.67 (p<.001). FedNTD does not help at 1.5B
+  (BIRD -1.37 versus FL). `central` is still running.
+- Teacher mechanism (claim C3): Hinton KD forgets the private domain less
+  than gold CE during K (Spider +3.48 at K1, +3.00 at K2); the next private
+  round repairs gold, so the final gap narrows. Churn analysis A1 and the
+  P2.28 audit support this reading.
+- P2.28 (nested `238ee10`): pass@8 minus greedy is 13-18 points on client
+  training questions, but it needs eight samples and a gold oracle, and half
+  of the rescues are 1 or 2 hits out of 8.
+- Queue: P2.29 (`h_plain`), then seeds 1 and 2 (P2.31), alpha 0.5 at 1.5B
+  (P2.32), `central_mix` at 1.5B (P2.33). Screens S2 (P2.34) and S1 (P2.30)
+  run only if GPU time remains.
+- Earlier evidence that still stands: Hinton - gold Spider +2.03 (P2.17,
+  1.5B-Instruct, p=.033), +2.42 (P2.18, Coder-0.5B, p=.020), +3.77 (P2.25,
+  0.5B v1, p=.001). These share test sets: cite them as a consistent
+  direction, not as pooled evidence. FedProx AAA is not a stronger FL
+  baseline (P2.20). Earlier 0.5B and 1.5B-Instruct adapters are references,
+  never parents of new runs.
+- Clients and inference stay SQL-only: in P2.10, template plans at the
+  clients weakened the FedAvg model before any KD.
+- Closed: plan-task directions (P2.10-P2.15), A1 weight merge, P2.9 retention
+  loss, KID, GKD, ICL, FLoRA-NA, SC, an in-domain public pool. P2.16
+  centralized E1-E4 were never published; do not cite them.
+- Both owner checkouts use `main`.
 
 ## Non-negotiable distinctions
 
@@ -119,11 +110,6 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Experiment commands
 
-- P2.18 runs both GPU queues through completion, then publishes once. Initial
-  A1 may be uncommitted: require its validated local round receipt, not a Git
-  publication. Public arms wait only for local A1, never a baseline commit.
-
-
 - `paper/notes/PIPELINE_NEXT.md` is the only owner of runnable commands. Move
   finished or superseded command blocks to a dated file under
   `paper/archive/completed_runbooks/` or `superseded_runbooks/` and link it.
@@ -138,8 +124,14 @@ under `paper/archive/`. Never use it as the current method specification.
 - Do not pull, switch, edit, or commit in the server working copy while a lane
   runs. Exception: a runbook step that commits only finished, validated result
   files of a completed arm (never code, run manifests or summaries) and is
-  skipped by the final publication. Run identities exclude results and Git SHAs. Do not push new commits to a nested branch whose running lane will push
-  its own result commit later; that push would be rejected.
+  skipped by the final publication. A second exception: a launch step whose
+  pull allowlist admits only new files the running lane never imports.
+- Do not push new nested commits while a running lane will later push its own
+  result commit without pulling first; that push would be rejected. Pushing
+  is safe when the next server command pulls them (a launch or publication
+  step with an allowlisted pull).
+- A new arm that needs both GPUs' outputs waits only for the local validated
+  receipt of its parent, never for a Git publication.
 - For `experiments/client_train/run.py` with `--epochs` greater than 1: pass
   `--save-epoch-checkpoints`; adapter-only snapshots go to
   `<out>/epochs/epoch_N`; the only resumable optimizer state is
@@ -176,7 +168,12 @@ under `paper/archive/`. Never use it as the current method specification.
   logged as "not committed" and stays out of the paper.
 - Screens are seed 0 with paired questions and exact McNemar tests. One Spider
   question is about 0.1 point; small differences need more seeds before any
-  claim.
+  claim. Paper claims use the pooled three-seed test (rule R7).
+- Every decision rule is written in LAB_LOG and committed before the results
+  it judges are read. Record the outcome under the original rule; a rule found
+  too strict changes only for later runs, never retroactively (P2.27 lesson).
+- pass@k on training questions is a ceiling with a gold oracle, not a
+  forecast of dev EX (P2.28 lesson).
 - Resume and cache identities never contain a Git SHA or timestamp.
 
 ## Repository discipline
