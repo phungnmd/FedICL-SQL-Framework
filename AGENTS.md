@@ -89,6 +89,13 @@ current plan.
   exact commands in chat as well.
 - Every run has a separate publication command: empty index check, explicit
   allowlist of compact files, staged-set check, commit, then push.
+- The server checkout has `core.autocrlf=true`: every file it pulled is CRLF
+  on disk (including `processed_data` inputs whose hashes are in run
+  identities), while files it wrote are LF. Publication fetches and
+  fast-forwards (`git merge --ff-only origin/main`) before committing and
+  never rebases a local result commit: a rebase rewrites the replayed files
+  as CRLF and breaks the byte hashes in receipts and manifests (P2.36
+  lesson). Never renormalize line endings on the server during a phase.
 - Do not pull, switch, edit, or commit in the server working copy while a lane
   runs. Exception: a runbook step that commits only finished, validated result
   files of a completed arm (never code, run manifests or summaries) and is

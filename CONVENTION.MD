@@ -122,6 +122,10 @@ only after the run's completion checks pass and must:
   telemetry scratch data, or an entire result parent directory by wildcard;
 - resolve timestamped output directories through the task's config,
   fingerprint, or exact printed path, never by an unchecked “newest folder”;
+- fetch and fast-forward (`git merge --ff-only origin/main`) before staging,
+  never rebase the result commit afterwards (on a `core.autocrlf=true`
+  checkout a rebase rewrites the replayed files as CRLF and breaks their
+  recorded SHA256);
 - verify the staged path set before committing, use a task-specific commit
   message, fail after a non-zero commit, and run `git push` only after the
   commit succeeds;
