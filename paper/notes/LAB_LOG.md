@@ -32,6 +32,40 @@ Older detail:
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
 
+## 2026-10-11: direction B (private domain first); rule R12 fixed before results
+
+Owner decision, after P2.29 and before any seed 1-2 result, any Spider test
+evaluation, `central`, or a gold arm with a plain last round at Coder-1.5B.
+
+Why: the result that holds across all three students is a Spider gain of
+Hinton KD over FL when the last private round is plain (0.5B +5.0, 1.5B-
+Instruct about +4.5, Coder-1.5B `h_plain` +4.16, p=.0002), plus a Spider edge
+over matched gold (+2.42, p=.020; +2.03, p=.033). The BIRD gain over FL is
+large but expected (public gold gives +15.7). The 2026-10-08 co-primary
+criterion was motivated by "Spider fades, BIRD persists", which the
+2026-10-08 P2.20 entry already found does not hold at the final model; at
+Coder-1.5B, last-round NTD removes most of the Spider gain (P2.29). Seed 0
+dev results generated this hypothesis; the confirmation uses unread data
+(seeds 1-2, Spider test for all seeds).
+
+- **Design.** Per objective (Hinton, gold), one shared chain
+  `A>K>A[ntd]>K`, then two last-round branches: plain A (the method branch,
+  Spider point) and A[ntd] (v1, BIRD point). Method = Hinton chain with a
+  plain last round (`h_plain`).
+- **R12, claims (seeds 0-2 pooled, R7 test).** Each comparison passes if
+  Spider test improves with p<.05 (exact conditional test on summed
+  discordant pairs) and the pooled BIRD dev Wald 95% lower bound is above
+  -2.0. Three separate hypotheses, no multiplicity correction (stated):
+  P = method vs FL `A>A>A` (pipeline); T = method vs `g_plain` (gold chain,
+  plain last round; teacher); D = method vs `hinton_k2aaa` (R11, K-first at
+  matched budget). R11's comparison now uses this criterion.
+- **Reported, no claim:** the NTD branch for both objectives (v1 Hinton vs
+  gold v1 under the old co-primary criterion, as R7 defined it), the
+  Spider-BIRD plot of every arm, the Spider dev family, R8, R9.
+- Earlier rule outcomes stand as recorded (P2.27 `teacher` fail, R1 keep
+  NTD). FedNTD `A>A[ntd]>A[ntd]` is no longer a claim comparator; it may be
+  dropped from seeds 1-2.
+
 ## 2026-10-11: P2.29 h_plain: keep NTD (R1); the last round sets a Spider-BIRD trade-off
 
 Evidence: nested `b4a52db`; contrasts recomputed locally from the published
