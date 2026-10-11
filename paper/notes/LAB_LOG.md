@@ -20,13 +20,38 @@ Older detail:
   [`paper_direction_2026-10-11.md`](../drafts/paper_direction_2026-10-11.md).
 - P2.27 is complete except `central` (running on GPU 0). By its fixed rule:
   `server_kd` pass, `teacher` fail, `server_kd_spider_gain` fail.
-- P2.28 ran (G3 pass); publication pending.
+- P2.28 published (nested `238ee10`, G3 pass); its headroom needs eight
+  samples and a gold oracle (audit entry below).
 - A1 churn: no teacher-specific erasure (R2 not supported), so ExST cannot be
   promoted (R5); it stays an optional analysis screen.
 - Next: P2.29 (`h_plain`, decides whether v1 keeps client NTD), then seeds 1
   and 2 (P2.31). Co-primary criterion (2026-10-08) unchanged.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: P2.28 published; descriptive audit of the headroom
+
+Evidence: nested `238ee10` (summary and per-question JSONL). The summary
+matches the server-local numbers below. Descriptive only; no rule depends on
+it.
+
+| Parent | Greedy | pass@1 (T 0.7) | pass@8 | Rescued | Rescues with 1-2 of 8 hits | Variant (strong norm.) | Non-gold correct SQL per question |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| FL A2 | 77.0 | 71.0 | 90.0 | 132 | 52% | 55.4% | 1.32 |
+| gold v1 K2 | 66.9 | 61.1 | 84.7 | 180 | 51% | 63.9% | 1.81 |
+| Hinton v1 K2 | 71.9 | 67.2 | 85.6 | 137 | 50% | 61.6% | 1.67 |
+
+- One sample at T 0.7 is 5-6 points below greedy; the headroom exists only
+  with eight samples and a gold oracle.
+- Half of the rescued questions are hit by 1 or 2 of 8 samples. 22-31% of
+  rescues have an empty or all-zero gold result (26% of all rows), where a
+  wrong SQL can match by chance.
+- Strong normalization (aliases, `count(...)`, quotes, spacing) lowers
+  variant by 10-16 points; G3 still passes.
+- K-stage forgetting is shallow: from FL A2 to gold K2, greedy falls 10.1
+  points but pass@8 only 5.3; for Hinton K2, 5.1 and 4.4. The private
+  domain is still reachable by sampling after K, consistent with the repair
+  reading in A1.
 
 ## 2026-10-11: A1 churn (rule R2): no teacher-specific erasure
 
@@ -77,8 +102,8 @@ P2.27 decision by the rule fixed 2026-10-10:
   knowledge, or gold CE forgets Spider more during K and the private round
   repairs both to the same ceiling. Rule R2 below decides.
 
-P2.28 (G3, fixed before the run): **pass**. From the server-local summary,
-publication pending: greedy / pass@8 / headroom / variant = FL A2
+P2.28 (G3, fixed before the run): **pass**. From the server-local summary
+(later published in nested `238ee10`): greedy / pass@8 / headroom / variant = FL A2
 77.0 / 90.0 / 13.0 / 65.3; gold v1 K2 66.9 / 84.7 / 17.8 / 76.8; Hinton v1 K2
 71.9 / 85.6 / 13.7 / 77.4. Measured on training questions the adapters have
 seen, so it is a ceiling, not a dev forecast.
