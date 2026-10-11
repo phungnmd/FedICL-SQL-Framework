@@ -10,15 +10,22 @@ material and index entries only.
 | Folder | What it holds | Replaced by |
 |---|---|---|
 | `lab_log_2026-09/` | full lab log, 2026-09-03 to 2026-09-26 (protocol v2, P2.0–P2.10 setup) | `paper/notes/LAB_LOG.md` |
-| `results_reviews_2026-09/` | closed P2.1–P2.4 reviews and the old valid-results/adapter ledger | `paper/notes/RESULT_REGISTRY.md`, `paper/results/MAIN_RESULTS.md` |
+| `lab_log_2026-10/` | lab log entries 2026-09-24 to 2026-10-09 (Coder-0.5B, 1.5B-Instruct, P2.2–P2.26) | `paper/notes/LAB_LOG.md` |
+| `directions_2026-10/` | paper directions A and B, method v2 proposal, manuscript outline, experiment matrix, stale result tables, closed review notes | `paper/notes/RESEARCH_STATE.md` |
+| `results_reviews_2026-09/` | closed P2.1–P2.4 reviews and the old valid-results/adapter ledger | `paper/notes/RESULT_REGISTRY.md` |
 | `method_reviews_2026-09/` | KD method reviews (RKL; OPD, retention, ordering) and the pre-cleanup architecture | `paper/notes/system_architecture.md` |
-| `paper_planning_2026-09/` | stale paper trackers and stubs | `paper/notes/EXPERIMENT_MATRIX.md`, `paper/drafts/fedls_sql_outline.md` |
+| `paper_planning_2026-09/` | stale paper trackers and stubs | `paper/notes/RESEARCH_STATE.md` |
 | `paused_runbooks/` | P2.9 terminal retention runbook, paused and resumable | `paper/notes/PIPELINE_NEXT.md` (paused section) |
 | `completed_runbooks/` | finished command blocks and dated sequencing snapshots; each file states its actual status | `paper/notes/PIPELINE_NEXT.md` |
 | `superseded_runbooks/` | superseded queues, including partially completed sequences | — |
 | `closed_method_branches/` | failed method branches (P0.10 FedDF, P1.7a preference KD) | own `README.md` |
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
+
+## 2026-10-11 docs reset
+
+- [Directions and plans before the reset](directions_2026-10/README.md): replaced by `paper/notes/RESEARCH_STATE.md`.
+- [Lab log 2026-09-24 to 2026-10-09](lab_log_2026-10/LAB_LOG_2026-09-24_to_2026-10-09.md).
 
 ## 2026-10-11 completed P2.29
 
