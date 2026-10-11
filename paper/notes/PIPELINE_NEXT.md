@@ -5,8 +5,8 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-State 2026-10-11: P2.27, P2.28 and P2.29 are published; GPU 1 runs P2.36;
-GPU 0 is free for P2.37. P2.37 (phase
+State 2026-10-12: P2.27, P2.28, P2.29 and P2.36 are published; both GPUs
+run P2.37 arms. P2.37 (phase
 E, exploration at seed 0) runs one arm at a time in priority order; findings and open
 questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
@@ -26,45 +26,11 @@ Published in nested `238ee10` (G3 pass; LAB_LOG 2026-10-11). Commands:
 Published in nested `b4a52db` (R1: keep NTD; LAB_LOG 2026-10-11). Commands:
 [PIPELINE_P229_2026-10-11.md](../archive/completed_runbooks/PIPELINE_P229_2026-10-11.md).
 
-## P2.36: gold chain with a plain last round (`g_plain`), seed 0
+## P2.36: complete
 
-Matched gold control of `h_plain` (P2.29): P2.27 gold v1 K2 plus one private
-round without NTD (the P2.27 gold v1 A3 command minus the NTD flags), five dev
-sets. Seed 0 dev contrasts are descriptive (phase E). Code: nested
-`9001629`. Time: one A round (about 1.6 h) plus five evaluations (about 1 h).
-Same memory path as P2.29.
-
-1. Pull while `central` runs on GPU 0. Allowed incoming files: the P2.36
-   files, the Spider test builder and CSV, results, audits, Markdown:
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test|run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p236_g_plain|p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; uv run --no-sync pytest -q tests/test_p236_g_plain.py tests/test_p229_h_plain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.36 tests failed' } }
-```
-
-2. Run on GPU 1. Rerun the identical command after an interruption:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p236_g_plain --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.36 failed' }; Write-Host 'GPU 1 P2.36 complete' }
-```
-
-3. Restore the P2.29 result files to their committed LF bytes (once; CPU,
-   safe while P2.37 runs: it reads P2.29 only in its analysis). The P2.29
-   publication rebased its result commit, and `core.autocrlf=true` rewrote
-   those files as CRLF, so their SHA256 no longer matches the receipt and
-   manifest. This rewrites only the files of nested `b4a52db` and then checks
-   P2.29 in full:
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $env:PYTHONUTF8='1'; uv run --no-sync python -c "import subprocess as s; fs=s.run(['git','show','--name-only','--format=','b4a52db'],capture_output=True,text=True,check=True).stdout.split(); [open(f,'wb').write(s.run(['git','cat-file','blob','HEAD:'+f],capture_output=True,check=True).stdout) for f in fs]; print('restored',len(fs))"; if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes after restore' }; uv run --no-sync python -c "from scripts import run_p229_h_plain as p; p.verify_complete(); print('P2.29 verified')"; if ($LASTEXITCODE -ne 0) { throw 'P2.29 verification failed' } }
-```
-
-4. Analyze and publish (safe while another lane runs). It fast-forwards to
-   the allowed incoming files before committing and never rebases the result
-   commit, so the new files keep the bytes their hashes were taken from:
-
-```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test|run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p236_g_plain|p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p236_g_plain --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p236_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.36 g_plain'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p236_g_plain_s0/summary.md }
-```
+Published in nested `31a568e` (LAB_LOG 2026-10-12). Commands, including the
+P2.29 LF restore:
+[PIPELINE_P236_2026-10-12.md](../archive/completed_runbooks/PIPELINE_P236_2026-10-12.md).
 
 ## P2.37: phase E baselines, Coder-1.5B, seed 0
 
@@ -73,8 +39,7 @@ Dev sets only; never Spider test. Measured P2.27 stage times on this server:
 plain A about 1.6 h alone (2.7 h with both GPUs busy), gold K about 2.7 h,
 Hinton K about 3.6-4.5 h, about 20-30 min per evaluated set.
 
-Run one arm at a time, in priority order, on whichever GPU frees first
-(GPU 1 only after P2.36 step 4). Arms are independent; the order only decides
+Run one arm at a time, in priority order, on whichever GPU frees first. Arms are independent; the order only decides
 which answers arrive first.
 
 | Priority | Arm | What it answers | Estimate |

@@ -49,13 +49,13 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-11)
+## Current state (2026-10-12)
 
 - Phase E. Candidate arms and open questions: `RESEARCH_STATE.md` section 4.
   The arm list is fixed in LAB_LOG before the first run.
-- Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1), P2.28,
-  P2.29 (`h_plain`). P2.27 `central` finished, publication pending. P2.36
-  (`g_plain`) on GPU 1.
+- Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
+  `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`). P2.37 (phase E
+  arms) runs one arm at a time on both GPUs.
 - Suspended: R12 (`h_plain` as method, claims P/T/D) and R11. In force: R8,
   R9, R10, R13. Recorded outcomes under earlier rules stand.
 - Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of

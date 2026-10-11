@@ -34,6 +34,7 @@ material and index entries only.
 ## 2026-10-11 completed P2.29
 
 - [P2.29 h_plain](completed_runbooks/PIPELINE_P229_2026-10-11.md): published in nested `b4a52db` (R1: keep NTD).
+- [P2.36 g_plain](completed_runbooks/PIPELINE_P236_2026-10-12.md): published in nested `31a568e`; includes the one-off P2.29 LF restore.
 
 ## 2026-10-08 completed NTD replication
 

@@ -13,14 +13,46 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-11)
+## Where we are (2026-10-12)
 
 - Phase E (exploration): complete the Coder-1.5B baselines at seed 0 on the
   dev sets, then fix the paper story in a dated entry before any seed 1-2 run
   or Spider test evaluation. Findings, open questions and rules in force:
   [`RESEARCH_STATE.md`](RESEARCH_STATE.md).
-- P2.27 (`5767704`), P2.28 and P2.29 published. P2.36 (`g_plain`) on GPU 1;
-  P2.37 (phase E) queued on both GPUs.
+- P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
+  (phase E) runs one arm at a time on both GPUs.
+
+## 2026-10-12: P2.36 `g_plain` published; teacher edge on Spider gone with a plain last round
+
+Evidence: nested `31a568e` (`audits/protocol_v2/p236_g_plain_s0/summary.md`).
+`g_plain` = P2.27 gold v1 K2 plus one plain private round, the gold control
+of `h_plain`. Seed 0 dev, descriptive (phase E, no decision rule).
+
+| Contrast | Spider | Realistic | SYN | DK | BIRD |
+|---|---|---|---|---|---|
+| `g_plain` (EX) | 71.37 | 61.02 | 56.09 | 54.39 | 40.35 |
+| `g_plain` - gold v1 A3 (plain vs NTD last round) | +3.48 (69/33, p<.001) | +1.97 (p=.26) | +0.48 (p=.69) | +1.50 (p=.30) | -1.04 (p=.21) |
+| `h_plain` - `g_plain` (teacher - gold, plain) | +0.39 (50/46, p=.76) | +1.97 (p=.25) | +2.90 (76/46, p=.008) | +1.68 (p=.21) | -0.39 (p=.73) |
+| Hinton v1 - gold v1 (teacher - gold, NTD; P2.27) | +1.35 (p=.23) | +1.77 (p=.36) | +0.77 (p=.58) | +4.67 (p<.001) | +1.89 (p=.076) |
+| `g_plain` - FL A3 | +3.77 (90/51, p=.001) | +1.38 (p=.46) | +2.42 (p=.068) | +1.12 (p=.52) | +14.67 (p<.001) |
+| `g_plain` - central E3 | +0.00 (97/97) | -0.59 (p=.84) | +0.10 (p=1) | -4.11 (30/52, p=.020) | +14.60 (p<.001) |
+
+The last two rows were computed locally from the published predictions with
+the P2.27 paired test (not in the P2.36 summary).
+
+- Teacher - gold on Spider dev is +0.39 with a plain last round, against
+  +1.35 with NTD. At Coder-1.5B the Spider edge of soft labels does not
+  survive a plain private round (consistent with F4: the round repairs what
+  gold K forgets; gold gains +3.48 from it, Hinton +2.51).
+- On the three robustness sets teacher - gold is positive in all six cells
+  (two chains), but which set reaches p<.05 changes (DK with NTD, SYN plain)
+  and both chains share A1 and K1. Exploratory: a hypothesis for seeds that
+  did not generate it (R8), not a finding.
+- Gold labels alone take the pipeline to central on Spider dev (71.37 both)
+  and add 14.6 BIRD points; the pipeline has more passes than central E3, so
+  this is not a matched-pass comparison (R9). DK stays 4.1 below central.
+- Open for the teacher (Q2): the K-first pair (`hinton_k2aaa`, `gold_k2aaa`)
+  and the interleaved plain pair in P2.37.
 
 ## 2026-10-11: P2.27 `central` published; R3 and R9
 
