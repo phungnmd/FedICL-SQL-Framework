@@ -2,7 +2,8 @@
 
 What this file is: for every number we may use, where it came from. One row
 per trained artifact or evaluation. Numbers only; their meaning is in
-`LAB_LOG.md`, and paper tables are in `paper/results/MAIN_RESULTS.md`.
+`LAB_LOG.md`. Paper tables are rebuilt once the story is fixed (old tables:
+`paper/archive/directions_2026-10/`).
 
 Rules:
 

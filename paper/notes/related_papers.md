@@ -124,4 +124,4 @@
 - **Why relevant**: ứng viên `K[seq_qp]` cho hàng đợi SeqKD; taxonomy lỗi
   GEN/SYN/SEM dùng được ngay trên prediction đã lưu, không cần GPU.
   Không phải bằng chứng cho/chống Hinton hay KID — paper không có logit KD nào.
-- **Full review**: `STRUCT_SQL_REVIEW.md`
+- **Full review**: `paper/archive/directions_2026-10/STRUCT_SQL_REVIEW.md`

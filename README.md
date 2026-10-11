@@ -1,36 +1,27 @@
 # FedLS-SQL
 
-Research repository for the paper *FedLS-SQL: A Novel Federated Large-Small
-Language Models Framework for Natural Language to SQL*.
+Research repository for the paper *FedLS-SQL* (working title; subtitle open).
 
-FedLS-SQL trains a small model (Qwen2.5-1.5B) on private Text-to-SQL data
-held by federated clients, and uses a frozen large model (Qwen2.5-Coder-7B) on
-the server, on public data only, to improve it. Only the small model is
-deployed. The final method is not chosen yet.
-
-The research question is:
-
-> Can large-to-small language model collaboration overcome the accuracy
-> limitations of lightweight federated NL-to-SQL models while retaining the
-> privacy, communication-efficiency, and resource advantages of federated
-> learning?
+FedLS-SQL trains a small model (Qwen2.5-Coder-1.5B-Instruct) on private
+Text-to-SQL data held by federated clients, and uses a frozen large model
+(Qwen2.5-Coder-7B) on the server, on public data only, to improve it. Only
+the small model is deployed. No method or paper story is fixed yet; the
+project is in an exploration phase.
 
 Start here (in this order):
 
-1. `paper/notes/system_architecture.md` — the method and what we may claim.
-2. `paper/notes/LAB_LOG.md` — current evidence, newest first.
-3. `paper/notes/PIPELINE_NEXT.md` — the only list of commands to run.
-4. `paper/notes/RESULT_REGISTRY.md` — where every number and adapter came from.
-5. `paper/notes/EXPERIMENT_MATRIX.md` — research questions, evidence plan, and
-   the paper-closure checklist.
+1. `paper/notes/RESEARCH_STATE.md`: the question, what we know, what is open,
+   and the current phase.
+2. `paper/notes/LAB_LOG.md`: evidence and decisions, newest first.
+3. `paper/notes/PIPELINE_NEXT.md`: the only list of commands to run.
+4. `paper/notes/system_architecture.md`: setup, data rules, claim limits.
+5. `paper/notes/RESULT_REGISTRY.md`: where every number and adapter came from.
 
 Other active files:
 
-- Paper result tables: `paper/results/MAIN_RESULTS.md`
-- Manuscript outline: `paper/drafts/fedls_sql_outline.md`
-- Novelty and claim limits: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`
-- ICL negative result: `paper/notes/ICL_NEGATIVE_RESULT.md`
-- Archive index (old logs, reviews, runbooks): `paper/archive/README.md`
+- Related work and claim limits: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`,
+  `paper/notes/related_papers.md`
+- Archive index (old logs, directions, reviews, runbooks): `paper/archive/README.md`
 - Code: `fedicl-sql/`
 
 **Two-repo layout (intentional):** this outer repo contains private paper

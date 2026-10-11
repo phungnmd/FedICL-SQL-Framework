@@ -13,101 +13,53 @@ there. Claude Code started locally inside `fedicl-sql/` loads both files.
 
 ## What the project is
 
-Paper: *FedLS-SQL: A Novel Federated Large-Small Language Models Framework for
-Natural Language to SQL*, aimed at a Q3 journal. It needs a positive headline.
+Paper: *FedLS-SQL* (working title; subtitle open), aimed at a Q3 journal.
 
-FedLS-SQL trains a small SLM with private client LoRA updates,
-sample-weighted factor-wise FedAvg, and server-side knowledge transfer from a
-frozen Qwen2.5-Coder-7B teacher on a public pool. Since P2.27 the student is
-Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5 alpha 0.1
-domain-cluster split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha
-0.5). Protocol v2 uses explicit
-dataset profiles (BIRD with evidence). Main direction: Spider private clients,
-BIRD public pool; BIRD private with a Spider public pool is the reverse check.
-Deployment uses only the SLM. Canonical runs use no ICL.
+Clients hold private Text-to-SQL data (Spider, domain-cluster split) and train
+a small SLM with LoRA and sample-weighted factor-wise FedAvg. The server holds
+a frozen Qwen2.5-Coder-7B teacher and a public pool from another domain
+(BIRD with evidence). Only adapters move; only the SLM is deployed. Since
+P2.27 the student is Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5
+alpha 0.1 split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha 0.5).
+Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 
-- Main metrics (owner decision 2026-10-08, fixed before any P2.21 or gold
-  K2AAA A3 result was read): two co-primary endpoints of the deployed SLM,
-  final Spider EX (private domain) and final BIRD EX (public domain). Since
-  rule R10 (2026-10-11) the Spider endpoint of confirmatory claims is Spider
-  test (2,147 rows); Spider dev and its derived sets are validation. Claim
-  shape: one federated SLM that serves both the clients' domain and the
-  public domain. Spider-Realistic/SYN/DK measure robustness; EM is a
-  diagnostic. Report a Spider-vs-BIRD plot for every arm.
-- Success criterion: against a comparator at the same schedule and number of
-  private rounds, (1) BIRD EX gain with exact McNemar p<.05 and (2) Spider
-  non-inferiority, meaning the lower bound of the 95% Wald interval for the
-  paired Spider EX difference is above -2.0 points. Both must hold
-  (intersection-union test, no correction between the two). Comparators: FL
-  (pipeline claim), matched public gold (teacher claim), the method without
-  its new component (component claim). Centralized Spider+BIRD training is
-  the reference ceiling for both domains.
+- No method or paper story is fixed. Phase E (exploration, seed 0, dev sets)
+  completes the Coder-1.5B baselines; the story, endpoints and success
+  criterion are then fixed in a dated LAB_LOG entry before seeds 1-2 or Spider
+  test. Every arm reports Spider EX (private domain) and BIRD EX (public
+  domain); Spider-Realistic/SYN/DK measure robustness; EM is a diagnostic.
+- Spider test (2,147 rows) is only for confirmation (R10). Spider dev, its
+  variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
 
 ## Read first
 
-1. `paper/notes/PIPELINE_NEXT.md`: the only active executable queue.
-2. `paper/notes/LAB_LOG.md`: compact evidence ledger and decisions.
-3. `paper/notes/system_architecture.md`: method and claim boundaries.
-4. `paper/notes/RESULT_REGISTRY.md`: canonical labels and checkpoints.
-5. `paper/notes/EXPERIMENT_MATRIX.md`: research question to evidence status.
+1. `paper/notes/RESEARCH_STATE.md`: question, findings with their strength,
+   open questions, current phase, rules in force.
+2. `paper/notes/PIPELINE_NEXT.md`: the only active executable queue.
+3. `paper/notes/LAB_LOG.md`: evidence ledger and decisions (from 2026-10-10;
+   older entries are archived).
+4. `paper/notes/system_architecture.md`: setup, data rules, claim limits.
+5. `paper/notes/RESULT_REGISTRY.md`: canonical labels and checkpoints.
 6. `CONVENTION.MD`: repository layout, command contract (section 6.1), result
    retention, statistics, Git discipline.
 
-Archived material (FedICL, ICL, FLoRA-NA, early PoC, superseded runbooks) lives
-under `paper/archive/`. Never use it as the current method specification.
+Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
+PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
+current plan.
 
 ## Current state (2026-10-11)
 
-- Paper direction B (owner decision 2026-10-11, rule R12): private domain
-  first. Method = Hinton chain `A>K>A[ntd]>K` with a plain last round
-  (`h_plain`); claims on Spider test pooled over seeds 0-2 against FL (P),
-  matched gold `g_plain` (T) and K-first `hinton_k2aaa` (D), each with BIRD
-  dev non-inferiority. The NTD last round (v1) is reported as the BIRD
-  operating point. Earlier direction A: a framework paper on method v1. Plan:
-  `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R9 in LAB_LOG
-  2026-10-11. ExST (S1) and execution-gated KD (S2) are dropped. R10 makes
-  Spider test the confirmatory Spider set; R11 adds the K-first (GPT-FL
-  style) baseline `hinton_k2aaa` (P2.35), since AKAKA was never shown better
-  than K-first. A second
-  method study found no candidate above about 5% for the owner criterion.
-  R13 (2026-10-11) replaces the pooled test with a question-clustered test,
-  fixes three seeds (power for T about 0.6-0.7 at the seed-0 effect), fixes
-  the wording for each outcome and requires a selection chronology.
-- Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
-  Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher
-  outputs never leave the server; only adapters move. P2.29 kept client NTD
-  (rule R1); at 1.5B it trades Spider for BIRD (plain last round: Spider
-  +2.51, BIRD -3.32).
-- P2.27, seed 0 (nested `5604e61`): Hinton v1 - FedNTD BIRD +18.97, Spider
-  Wald lower -0.89 (`server_kd` pass); Hinton v1 - gold v1 Spider +1.35,
-  p=.23 (`teacher` fail), DK +4.67 (p<.001). FedNTD does not help at 1.5B
-  (BIRD -1.37 versus FL). `central` is still running.
-- Teacher mechanism (claim C3): Hinton KD forgets the private domain less
-  than gold CE during K (Spider +3.48 at K1, +3.00 at K2); the next private
-  round repairs gold, so the final gap narrows. Churn analysis A1 and the
-  P2.28 audit support this reading.
-- P2.28 (nested `238ee10`): pass@8 minus greedy is 13-18 points on client
-  training questions, but it needs eight samples and a gold oracle, and half
-  of the rescues are 1 or 2 hits out of 8.
-- Queue: seeds 1 and 2 (P2.31, rules R7
-  and R8), alpha 0.5 at 1.5B (P2.32), `central_mix` at 1.5B (P2.33).
-- Split audit: the k5 alpha 0.1 split is mild cross-silo heterogeneity. The
-  FL penalty shows at matched passes (0.5B: +4.6/+4.8 at E1-A1/E2-A2, on JOIN
-  and extra-hard questions) and mostly vanishes at E3 because central
-  overfits. Its likely cause is fewer effective optimizer steps, not drift.
-- Earlier evidence that still stands: Hinton - gold Spider +2.03 (P2.17,
-  1.5B-Instruct, p=.033), +2.42 (P2.18, Coder-0.5B, p=.020), +3.77 (P2.25,
-  0.5B v1, p=.001). These share test sets: cite them as a consistent
-  direction, not as pooled evidence. FedProx AAA is not a stronger FL
-  baseline (P2.20). Earlier 0.5B and 1.5B-Instruct adapters are references,
-  never parents of new runs.
-- Clients and inference stay SQL-only: in P2.10, template plans at the
-  clients weakened the FedAvg model before any KD.
-- Closed: plan-task directions (P2.10-P2.15), A1 weight merge, P2.9 retention
-  loss, KID, GKD, ICL, FLoRA-NA, SC, an in-domain public pool. P2.16
-  centralized E1-E4 were never published; do not cite them.
+- Phase E. Candidate arms and open questions: `RESEARCH_STATE.md` section 4.
+  The arm list is fixed in LAB_LOG before the first run.
+- Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1), P2.28,
+  P2.29 (`h_plain`). P2.27 `central` finished, publication pending. P2.36
+  (`g_plain`) on GPU 1.
+- Suspended: R12 (`h_plain` as method, claims P/T/D) and R11. In force: R8,
+  R9, R10, R13. Recorded outcomes under earlier rules stand.
+- Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of
+  new runs. P2.16 centralized E1-E4 were never published; do not cite them.
 - Both owner checkouts use `main`.
 
 ## Non-negotiable distinctions

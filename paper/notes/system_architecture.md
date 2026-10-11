@@ -13,24 +13,9 @@ The executable contract is `fedicl-sql/docs/PROTOCOL_V2.md`.
 Train a small model (the SLM) on private Text-to-SQL data held by several
 clients, without moving that data. Use a large frozen model (the teacher) on
 the server, on public data only, to make the SLM better. Deploy only the SLM.
-
-Question: can this beat plain federated learning (FL) on accuracy, while
-keeping FL's privacy, communication, and deployment advantages?
-
-The objective (since 2026-10-08) is one deployed SLM that is accurate on both
-the clients' private domain (Spider EX) and the public domain (BIRD EX),
-measured as two co-primary endpoints. Centralized Spider+BIRD training is the
-reference ceiling for both; centralized Spider-only uses different data. CoT is one candidate teaching signal; clients and
-inference may remain SQL-only. Measure both pipeline effectiveness over FL
-and the incremental teacher contribution over matched public-gold training.
-These are separate claims; a gold tie limits attribution, not the observed
-pipeline gain. See `RELATED_WORK_NOVELTY_MATRIX.md` for the claim ladder.
-
-Paper direction (owner decision 2026-10-11): direction A, an
-empirical-method paper on method v1 confirmed on three seeds, with bounded
-screens (ExST, execution-gated KD) under rules fixed in LAB_LOG 2026-10-11.
-Plan: `paper/drafts/paper_direction_2026-10-11.md`. The earlier teacher-CoT
-target is closed (P2.15).
+The research question, findings and open questions are in
+[`RESEARCH_STATE.md`](RESEARCH_STATE.md). No method or paper story is fixed;
+this file holds only the setup, the data rules and the claim limits.
 
 ## 2. Parts
 
@@ -41,7 +26,7 @@ target is closed (P2.15).
 | Clients | 5 clients, domain-cluster non-IID split `k5`, `alpha_0.1` since P2.27 (6-8 of 20 clusters per client); `alpha_0.5` is the heterogeneity contrast. Private data never leaves a client. |
 | Aggregation | Sample-weighted, factor-wise FedAvg of LoRA factors. Plaintext. |
 | Communication | LoRA adapters only. |
-| ICL | None. Train, teacher, and evaluation all use k = 0. See `ICL_NEGATIVE_RESULT.md`. |
+| ICL | None. Train, teacher, and evaluation all use k = 0 ([negative result](../archive/directions_2026-10/ICL_NEGATIVE_RESULT.md)). |
 
 Names: the paper name is **FedLS-SQL**. The code package stays `fedicl_sql`.
 `fedkd` is an internal arm name, not the paper name. Old run IDs and artifact
@@ -112,50 +97,31 @@ Rules that keep comparisons honest:
 - A KD chain must be compared with an FL chain that has the same number of
   private stages.
 
-## 5. Method status
+## 5. Implemented components
 
-Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server Hinton
-KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Confirmation on
-three seeds is pending (P2.31).
-
-- Client NTD stays in A2 (P2.29, rule R1, nested `b4a52db`). At Coder-1.5B
-  it trades Spider for BIRD in the last round (plain round: Spider +2.51,
-  BIRD -3.32). Since direction B (rule R12) the method's last round is plain
-  (`h_plain`); the NTD last round (v1) is the reported BIRD operating point.
-- Not part of the method (dropped 2026-10-11, direction A final): ExST
-  (client execution-verified self-training, S1) and execution-gated Hinton KD
-  (S2). Method study round 2 (LAB_LOG 2026-10-11) found no new component with
-  a useful chance of success.
-- Stopped (P2.10): Struct-SQL QP-CoT in every stage with template client plans.
-  The recipe underperformed; format and template mechanisms need separate
-  evidence. Do not generalize this result to all CoT distillation.
-- Closed: plan-task directions (P2.13-P2.15), P2.11, P2.12, P2.9 retention
-  loss, weight merge (A1).
-
-Implemented server objectives: SeqKD, and gold CE plus Hinton forward KL
-(T = 2). Reverse KL and v1 KID are archived. Protocol-v2 KID ran and was closed
-as a negative ablation. GKD, clean RKL, MiniLLM, and deeper Hinton are closed
-for this paper. There is no separate structural-distillation mechanism.
-
-Required matched controls for any claim: base SLM, centralized SFT, pure FL,
-public-gold CE, SeqKD, and gold CE + Hinton FKL.
-
-Research notes on KD options (on-policy KD, retention, KD/FL ordering):
-[`KD_METHOD_REVIEW.md`](../archive/method_reviews_2026-09/KD_METHOD_REVIEW.md)
-(archived; not the method).
+- Server objectives: SeqKD (CE on execution-selected teacher SQL), gold CE,
+  and gold CE plus Hinton forward KL (T = 2).
+- Client options: plain FedAvg rounds, FedNTD (not-true distillation, beta 1,
+  tau 3), FedProx.
+- Earlier chains (for example v1 `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]` and
+  `h_plain`) are results, not a fixed method.
+- Closed for this paper: Struct-SQL plans and other plan or CoT tasks
+  (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD, reverse
+  KL, MiniLLM, deeper Hinton, ExST and execution-gated KD (never run).
 
 ## 6. Evaluation
 
-- Final-model Spider EX and BIRD EX are co-primary. Success: BIRD gain with
-  exact McNemar p<.05 and Spider non-inferiority (95% Wald lower bound of the
-  paired difference above -2.0 points), both against the same comparator.
-  Spider variants measure robustness; EM is a diagnostic.
+- Report final-model Spider EX and BIRD EX for every arm. The primary
+  endpoint and success criterion are fixed with the paper story, in LAB_LOG,
+  before confirmation runs. Spider variants measure robustness; EM is a
+  diagnostic. Spider test (2,147 rows) is the confirmation set (R10).
 - Five sets: Spider dev (1,034), Spider-Realistic (508), Spider-SYN (1,034),
   Spider-DK (535), BIRD dev with evidence (1,534). BIRD `test.csv` is dev.
 - Scorers: `spider_result_eq_v1` for Spider; `bird_official_set_pair_timeout30_v2`
   for BIRD (one 30-second budget for the prediction/gold pair).
 - Student evaluation batch size is 16. Greedy decoding, seed 0 unless stated.
-- Paired comparisons use exact McNemar tests on row-matched predictions.
+- Single-seed paired comparisons use exact McNemar tests on row-matched
+  predictions; pooled seeds use the question-clustered test (R13).
 - Select schedules/checkpoints using a declared validation rule, not the best
   reported Spider dev score across an expanding search. New private validation
   rows stay at clients; only aggregate selection metrics may leave them.

@@ -19,8 +19,8 @@ notes must not be moved into the releasable code repository.
 
 ```text
 paper/
-├── drafts/       current manuscript outline/drafts
-├── notes/        active architecture, lab log, queue, matrices, registries
+├── drafts/       manuscript drafts (rebuilt once the story is fixed)
+├── notes/        research state, setup, lab log, queue, registry, related work
 ├── references/   private source library
 ├── templates/    venue/manuscript templates
 └── archive/      superseded material, retained for history
@@ -34,16 +34,16 @@ archive directory with a README explaining their replacement.
 
 | Question | Source |
 |---|---|
-| What is the method? | `paper/notes/system_architecture.md` |
+| What are we asking, what do we know, which phase are we in? | `paper/notes/RESEARCH_STATE.md` |
+| What is the setup and what may we claim? | `paper/notes/system_architecture.md` |
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
-| What paper work remains and in what order? | `paper/notes/EXPERIMENT_MATRIX.md` (paper-closure checklist) |
-| Which metric appears in the paper? | `paper/results/MAIN_RESULTS.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
-| Which RQ still lacks evidence? | `paper/notes/EXPERIMENT_MATRIX.md` |
 | What novelty/claim boundary is defensible? | `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md` |
-| How is the manuscript mapped to evidence? | `paper/drafts/fedls_sql_outline.md` |
 | What happened historically? | `paper/archive/README.md` and Git history |
+
+Paper result tables and the manuscript outline are rebuilt once the paper
+story is fixed in LAB_LOG.
 
 Do not duplicate commands, result tables, or current decisions across multiple
 active files without a clear owner.
@@ -200,7 +200,7 @@ queue when their result directories and resume roots are disjoint.
 
 Before running:
 
-1. identify the RQ and missing comparison in `EXPERIMENT_MATRIX.md`;
+1. identify the open question and missing comparison in `RESEARCH_STATE.md`;
 2. define a unique output directory and seed;
 3. freeze all dataset/model/retrieval/training flags;
 4. confirm the comparison changes only the intended factor.
@@ -211,9 +211,9 @@ During and after running:
 2. commit metrics, config, predictions, and manifests where defined;
 3. record the producing Git SHA;
 4. update `RESULT_REGISTRY.md` only after validation;
-5. update the affected canonical table in `paper/results/MAIN_RESULTS.md`;
-6. update `LAB_LOG.md` with the result and its claim limit;
-7. move superseded eval runs out of the active scanner into a dated archive.
+5. update `LAB_LOG.md` with the result and its claim limit, and
+   `RESEARCH_STATE.md` when a finding or open question changes;
+6. move superseded eval runs out of the active scanner into a dated archive.
 
 ### 6.2 Paper resource-measurement contract
 
