@@ -72,6 +72,9 @@ under `paper/archive/`. Never use it as the current method specification.
   style) baseline `hinton_k2aaa` (P2.35), since AKAKA was never shown better
   than K-first. A second
   method study found no candidate above about 5% for the owner criterion.
+  R13 (2026-10-11) replaces the pooled test with a question-clustered test,
+  fixes three seeds (power for T about 0.6-0.7 at the seed-0 effect), fixes
+  the wording for each outcome and requires a selection chronology.
 - Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
   Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher
   outputs never leave the server; only adapters move. P2.29 kept client NTD
@@ -191,6 +194,17 @@ under `paper/archive/`. Never use it as the current method specification.
   checkpoint; a central run past its peak hides the FL penalty (rule R9).
 - A subgroup found post hoc on one seed is a hypothesis; confirm it only on
   seeds that did not generate it (rule R8).
+- Pool seeds with a question-clustered test (per-question mean over seeds,
+  test across questions). Summing discordant pairs over seeds treats
+  correlated question-seed pairs as independent and gives p values that are
+  too small (rule R13). Fix the number of seeds from a power check before any
+  confirmation result; never add seeds because p missed .05.
+- Fix the paper wording for each possible outcome before the confirmation
+  results are read, and claim only what a comparator isolates. A component
+  kept from an earlier version without evidence in the current setting is
+  labeled inherited and is not claimed.
+- Keep a record of how the method was selected (rule dates, data seen,
+  number of checkpoints evaluated on dev); the paper reports it (R13).
 - Resume and cache identities never contain a Git SHA or timestamp.
 
 ## Repository discipline

@@ -1,30 +1,38 @@
 # Hướng paper FedLS-SQL từ 11/10/2026
 
 Hướng đã chốt (owner, 11/10/2026, sau P2.29): **hướng B, miền private là chính**. Paper framework,
-xác nhận bằng 3 seed trên Spider test. Luật: R12 trong [LAB_LOG](../notes/LAB_LOG.md) (cùng R7-R11).
+xác nhận bằng 3 seed trên Spider test. Luật: R12 trong [LAB_LOG](../notes/LAB_LOG.md) (cùng R7-R11),
+sửa bởi R13 (question-clustered test, 3 seed, câu chữ theo từng kết quả, công khai quá trình chọn).
+Đây là paper thực nghiệm có controls, không dựa vào một loss mới. Tên đang cân nhắc: "FedLS-SQL:
+Cross-Domain Teacher Distillation for Federated Text-to-SQL" (owner chốt sau seed 1-2).
 Hướng A (co-primary, v1 có NTD làm method) được thay; kết quả theo luật cũ vẫn giữ nguyên trong LAB_LOG.
 Lệnh chạy nằm trong [PIPELINE_NEXT](../notes/PIPELINE_NEXT.md).
 
 ## 1. Paper nói gì
 
 Teacher LLM frozen ở server, distill trên public pool **khác miền** (BIRD), làm SLM federated tốt hơn
-**trên chính miền private của client** (Spider), ngoài việc phục vụ thêm miền public. FL một mình
-thiếu ở câu multi-table JOIN (so cùng số pass, 0.5B: thua central 10-12 điểm JOIN); teacher bù đúng
-nhóm này (+5 đến +9 JOIN so với gold). Chỉ LoRA adapter rời client; teacher chỉ ở server; chỉ SLM
-được deploy.
+**trên chính miền private của client** (Spider), ngoài việc phục vụ thêm miền public. Chỉ LoRA
+adapter rời client; teacher chỉ ở server; chỉ SLM được deploy. Method không đặc thù cho FL (chạy
+được khi train tập trung); FL là ràng buộc triển khai, không claim synergy với federation.
 
 Tính mới nằm ở thiết kế và phát hiện, không ở một loss mới:
 
 - LLM chỉ ở server, client chỉ chạy SLM, chỉ adapter đi qua lại; public pool khác miền.
-- Phát hiện: KD từ teacher trên miền public cải thiện miền private, vượt gold cùng chuỗi.
-- Cơ chế: KD làm miền private bị quên ít hơn gold CE trong stage K; gain nằm ở câu JOIN.
+- Phát hiện cần xác nhận: KD từ teacher trên miền public cải thiện miền private, vượt gold cùng chuỗi.
+- Cơ chế (seed 0): KD làm miền private bị quên ít hơn gold CE trong stage K. Gain ở câu JOIN là
+  exploratory, chỉ thành claim qua R8.
 - Round private cuối là núm chỉnh Spider-BIRD (plain hay NTD); báo cả đường trade-off.
 
-| | Claim (R12, gộp seed 0-2, Spider test + BIRD dev) | Seed 0, dev (sinh giả thuyết) | Ước lượng |
+| | Claim (R12/R13, gộp seed 0-2, Spider test + BIRD dev) | Seed 0, dev (tín hiệu exploratory) | Power (R13) |
 |---|---|---|---|
-| P | Method (`h_plain`) hơn FL `A>A>A` | Spider +4.16 (p=.0002), BIRD +14.28 | khoảng 90% |
-| T | Method hơn gold cùng chuỗi (`g_plain`) | chờ P2.36; trước đó: +2.42 (0.5B), +2.03 (1.5B-Instruct), đều p<.05 | 65-75% |
-| D | Method hơn K-first kiểu GPT-FL cùng budget (R11) | chưa chạy; 0.5B: không cặp lịch nào p<.1 | 30-40% |
+| P | Method (`h_plain`) hơn FL `A>A>A` | Spider +4.16 (p=.0002), BIRD +14.28 | 0.90-1.00, kể cả khi hiệu ứng còn một nửa |
+| T | Method hơn gold cùng chuỗi (`g_plain`) | chờ P2.36; trước đó: +2.42 (0.5B), +2.03 (1.5B-Instruct), đều p<.05 | 0.58-0.72 nếu hiệu ứng như pilot (+1.35); 0.19-0.25 nếu còn một nửa |
+| D | So sánh recipe với K-first kiểu GPT-FL cùng budget (R11); không cô lập placement | chưa chạy; 0.5B: K-first hơi cao hơn ở Spider, không cặp nào p<.1 | không có pilot ở 1.5B; thấp |
+
+Power tính bằng xấp xỉ normal, pilot là hiệu ứng seed 0 đã dùng để chọn (nhiều khả năng lạc quan);
+nested `007989f`. Lên 5 seed chỉ thêm 4-8 điểm power vì các seed tương quan theo câu hỏi, nên giữ 3
+seed. T fail là khả năng thật ngay cả khi hiệu ứng có thật.
+`g_plain` - FL được báo kèm (định trước, không claim).
 
 Báo kèm, không claim: nhánh NTD (v1) của cả Hinton lẫn gold, Spider-BIRD plot mọi arm, bộ Spider dev,
 R8 (JOIN), R9 (penalty FL theo số pass), `central`, `central_mix`.
@@ -87,8 +95,13 @@ Luật P2.27 (cố định 10/10): `server_kd` pass; `teacher` fail (Spider +1.3
 | A3 | Lỗi theo loại SQL, độ khó BIRD | CPU | mô tả |
 | A4 | Bảng chi phí: bytes truyền mỗi round, compute client, GPU-h server, so với không FL | CPU | mô tả |
 
-Thứ tự GPU: `central` (GPU0) và P2.36 (GPU1); sau đó P2.31 trên cả hai GPU, rồi P2.35, P2.32 và
-P2.33. Tổng khoảng 155 GPU-h, khoảng 1.5 tuần trên 2 GPU.
+Thứ tự GPU: `central` (GPU0) và P2.36 (GPU1); sau đó P2.31 trên cả hai GPU, rồi P2.35, P2.33 và
+P2.32. Tổng khoảng 155 GPU-h, khoảng 1.5 tuần trên 2 GPU.
+
+Ưu tiên khi thiếu GPU: bắt buộc là P2.36, P2.31 (FL, hai chuỗi), P2.35, Spider test và P2.33
+(`central_mix`, 1 seed). Cắt trước: P2.32, rồi `central` ở seed 1-2 (central ở cùng số pass giữ ở
+seed 0). `central_mix` là reference ceiling, không đo riêng FL penalty (khác objective, thứ tự và
+lượng data thấy được).
 
 **Tập xác nhận (R10):** Spider dev và các bộ sinh từ dev (Realistic, SYN, DK) đã dùng để chọn mọi
 thiết kế, nên chỉ là validation. Claim cuối về Spider đọc trên Spider test (2,147 câu, 40 DB riêng,
@@ -114,15 +127,22 @@ phần bổ sung lúc inference, không phải đóng góp chính.
 
 - **Gain Spider của method so với FL chỉ do thêm bước train** (2 epoch K): claim T (gold cùng
   chuỗi) và D (K-first cùng budget) tách phần teacher và phần lịch khỏi phần compute.
-- **T không đạt khi gộp 3 seed:** paper đứng trên P (gain miền private so với FL) cộng DK và cơ chế
-  C3; chữ "Novel" khi đó yếu hơn, đổi tên là quyết định của owner.
+- **T không đạt khi gộp 3 seed:** dùng câu đã chốt trong R13 cho đúng nguyên nhân (Spider chưa đủ
+  bằng chứng, BIRD không đạt non-inferiority, hay gold cao hơn). Không dùng JOIN hay một cải tiến
+  nhỏ khác để thay. Gain trên seed 0 dev là tín hiệu exploratory, không phải dự báo cho Spider test.
+- **Method được chọn sau khi xem dữ liệu:** `h_plain` chọn trên seed 0 dev, sau 118 checkpoint
+  đã eval trên Spider dev; BIRD dev cũng đã dùng trong phát triển. Paper có bảng chronology và nói
+  rõ "chọn trên dev seed 0, xác nhận trên Spider test và seed mới" (R13).
 - **BIRD của method thấp hơn nhánh NTD** (39.96 so với 43.29 ở seed 0): paper báo cả hai nhánh như
   hai điểm làm việc, không giấu nhánh NTD.
 - **R8 không ủng hộ JOIN:** bỏ phân tích JOIN khỏi claim, chỉ giữ như mô tả seed 0.
 - **Reviewer nói train trên BIRD thì BIRD tăng:** đúng, gold public cũng cho +15.7; vì vậy B đặt
   claim chính vào Spider, BIRD chỉ cần không tệ hơn đối chứng.
 - **Lịch xen kẽ AKAKA chưa từng được chứng minh tốt hơn K-first** (grid 0.5B, không cặp nào
-  p<.1). R11 kiểm tra ở 1.5B; nếu không qua, AKAKA chỉ là lựa chọn thiết kế.
+  p<.1; AKAKA là lịch mặc định theo luật 07/10). D so sánh hai recipe (còn khác NTD ở A2 và cấu
+  trúc stage); nếu không qua, báo kết quả và bỏ claim lịch xen kẽ tốt hơn.
+- **NTD ở A2:** thiết lập kế thừa từ v1, không claim; ở 0.5B chưa thấy lợi ích (P2.25), chưa test ở
+  1.5B.
 - **Reviewer nói phần federated là phụ:** trả lời bằng R9 (penalty ở cùng số pass) và nói rõ
   setting cross-silo; không claim synergy với federation.
 - **Chỉ có họ Qwen:** ghi là limitation.
@@ -130,8 +150,9 @@ phần bổ sung lúc inference, không phải đóng góp chính.
 ## 7. Việc cần làm
 
 1. P2.36 (`g_plain`) trên GPU1; sau `central`: publish P2.27, đọc R3 và R9.
-2. Viết runner P2.31 (chuỗi chung, rẽ 2 nhánh cuối, có eval Spider test), eval Spider test cho seed 0,
-   và runner P2.35; đưa lệnh vào PIPELINE_NEXT.
+2. Viết runner P2.31 (chuỗi chung, rẽ 2 nhánh cuối, có eval Spider test, phân tích bằng
+   question-clustered test của R13), eval Spider test cho seed 0, và runner P2.35; đưa lệnh vào
+   PIPELINE_NEXT.
 3. A2, A3, A4 (CPU) bất cứ lúc nào.
 4. Sau P2.31 và P2.35: đọc R12 và R8, viết bảng chính của paper.
 

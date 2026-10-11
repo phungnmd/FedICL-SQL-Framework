@@ -10,7 +10,7 @@ State 2026-10-11: P2.27 lanes and P2.28 are done and published; P2.27
 P2.36. Direction B (rule R12) is fixed. Next: P2.27 step 4 after `central`,
 then P2.31. Direction A is final (framework paper,
 no new method); screens S1 and S2 are dropped.
-Paper direction and rules R1-R12: LAB_LOG 2026-10-11 and
+Paper direction and rules R1-R13: LAB_LOG 2026-10-11 and
 [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md).
 
 ## P2.27: Coder-1.5B on the alpha 0.1 split, seed 0
@@ -134,8 +134,8 @@ section 4, LAB_LOG 2026-10-11.
 
 | ID | Run | GPU | Rule |
 |---|---|---|---|
-| P2.31 | Seeds 1 and 2: FL, gold and Hinton chains `A>K>A[ntd]>K` with both last-round branches (plain, NTD), central; Spider test on final adapters of seeds 0-2 | both GPUs, after P2.36 | R12, R8, R10 |
-| P2.35 | K-first baseline `hinton_k2aaa` (two-epoch Hinton K from base, then 3 plain A), seeds 0-2, five sets plus Spider test | after P2.31 | R11, R12 |
+| P2.31 | Seeds 1 and 2: FL, gold and Hinton chains `A>K>A[ntd]>K` with both last-round branches (plain, NTD), central; Spider test on final adapters of seeds 0-2; pooled analysis with the question-clustered test | both GPUs, after P2.36 | R12, R13, R8, R10 |
+| P2.35 | K-first baseline `hinton_k2aaa` (two-epoch Hinton K from base, then 3 plain A), seeds 0-2, five sets plus Spider test | after P2.31 | R11, R12, R13 |
 | P2.32 | alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central, seed 0 | after P2.31 | descriptive |
 | P2.33 | `central_mix` at Coder-1.5B | when a GPU is free | reference |
 
