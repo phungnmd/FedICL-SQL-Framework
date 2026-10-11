@@ -22,6 +22,31 @@ Older detail:
 - P2.27 complete; `central` finished on the server, publication pending.
   P2.28 and P2.29 published. P2.36 (`g_plain`) on GPU 1.
 
+## 2026-10-11: phase E arm list (P2.37), fixed before any run
+
+Coder-1.5B, alpha 0.1, seed 0, P2.27 recipe and evaluation; Spider dev, its
+variants and BIRD dev only. Code: nested `9a38777`
+(`scripts/run_p237_phase_e.py`). No arm is added after results are read.
+
+| Arm | Stages | Question (RESEARCH_STATE) |
+|---|---|---|
+| `hinton_k2aaa`, `gold_k2aaa` | K2 from base (two continuous epochs), then A, A, A plain | Q2, Q3: K-first, teacher vs gold |
+| `hinton_akaka_plain`, `gold_akaka_plain` | P2.27 K1 of the same objective, then A, K, A, all plain | Q2, Q3: interleaved without NTD; with `h_plain`/`g_plain` it isolates NTD in A2 |
+| `local_c1`..`local_c5` | each client alone, 3 epochs on its own split | Q1: value of federation |
+| `central_mix` | P2.26 Spider+BIRD union, 3 epochs, centralized | Q4: reference with all data in one place |
+
+Already available: base, FL, FedNTD, gold v1, Hinton v1, `central` (P2.27),
+`h_plain` (P2.29), `g_plain` (P2.36).
+
+- Read descriptively (exact McNemar and Wald per set, both domains):
+  teacher - gold at each schedule; K-first - interleaved per objective;
+  interleaved plain - `h_plain`/`g_plain` (NTD in A2); each arm - FL;
+  `central` and `central_mix` - FL; FL - best local client; trajectories
+  after every stage. No decision rule: phase E informs the story entry.
+- Not in phase E: SeqKD (P2.6: its edge at the public endpoint was gone
+  after the last private round), alpha 0.5 (Q6), AK2AA (between K-first and
+  interleaved at 0.5B, weakest teacher edge).
+
 ## 2026-10-11: docs reset; exploration phase E before a paper story
 
 Owner decision. The plan had fixed a method and a story too early (direction

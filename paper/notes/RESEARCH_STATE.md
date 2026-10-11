@@ -71,11 +71,11 @@ từng được publish, không trích dẫn.
 | Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? | cặp Hinton/gold cho từng lịch |
 | Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | Hinton và gold K2AAA; Hinton và gold AKAKA plain (không NTD); `h_plain` và `g_plain` (có/đang chạy) |
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | `central_mix` (Spider + BIRD gold) |
-| Q5 | Teacher SQL (SeqKD) có khác soft label không? | SeqKD, tùy chọn |
+| Q5 | Teacher SQL (SeqKD) có khác soft label không? | không trong giai đoạn E (P2.6: edge mất sau round private cuối) |
 | Q6 | Kết quả có giữ khi heterogeneity khác không? | alpha 0.5, để sau |
 
-Danh sách arm của giai đoạn E được chốt trong LAB_LOG trước khi chạy, và
-không thêm arm sau khi thấy kết quả.
+Danh sách arm của giai đoạn E đã chốt (P2.37, LAB_LOG 2026-10-11) trước khi
+chạy; không thêm arm sau khi thấy kết quả.
 
 ## 5. Giai đoạn và luật đang áp dụng
 

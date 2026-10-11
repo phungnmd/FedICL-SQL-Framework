@@ -6,8 +6,9 @@ complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-11: P2.27 lanes, P2.28 and P2.29 are published; P2.27
-`central` finished (publish with step 4); GPU 1 runs P2.36. Phase E
-(exploration at seed 0) follows; findings and open questions are in
+`central` finished (publish with step 4); GPU 1 runs P2.36. P2.37 (phase
+E, exploration at seed 0) follows on each GPU as it frees; findings and open
+questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## P2.27: Coder-1.5B on the alpha 0.1 split, seed 0
@@ -79,10 +80,11 @@ checkpoint. Do not pull, edit or switch on the server while a lane runs.
 ```
 
 4. Publish once, after all three commands finish. It rebases onto incoming
-   P2.36 or data files before pushing (a lane on the other GPU may push first):
+   P2.36, P2.37 or data files before pushing (none of them is imported by a
+   running lane):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p227_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.27 Coder-1.5B alpha 0.1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test)\.py|tests/test_p236_g_plain\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p227_coder15b_alpha01 --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p227_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -gt 0) { foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.27 Coder-1.5B alpha 0.1'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' } }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test|run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p236_g_plain|p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
 ## P2.28: complete
@@ -107,7 +109,7 @@ Same memory path as P2.29.
    files, the Spider test builder and CSV, results, audits, Markdown:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test)\.py|tests/test_p236_g_plain\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; uv run --no-sync pytest -q tests/test_p236_g_plain.py tests/test_p229_h_plain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.36 tests failed' } }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test|run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p236_g_plain|p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; uv run --no-sync pytest -q tests/test_p236_g_plain.py tests/test_p229_h_plain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.36 tests failed' } }
 ```
 
 2. Run on GPU 1. Rerun the identical command after an interruption:
@@ -116,19 +118,64 @@ Same memory path as P2.29.
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p236_g_plain --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.36 failed' }; Write-Host 'GPU 1 P2.36 complete' }
 ```
 
-3. Analyze and publish (safe while `central` runs; rebases onto allowed
-   incoming files before pushing):
+3. Analyze and publish (safe while another lane runs; rebases onto allowed
+   incoming files, including the new P2.37 files, before pushing):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p236_g_plain --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p236_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.36 g_plain'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test)\.py|tests/test_p236_g_plain\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p236_g_plain_s0/summary.md }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p236_g_plain --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p236_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.36 g_plain'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p236_g_plain|list_p236_publication|build_processed_spider_test|run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p236_g_plain|p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|processed_data/SPIDER_TEST/.+|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p236_g_plain_s0/summary.md }
 ```
 
-## Next: phase E, code not yet written (no commands until runners exist)
+## P2.37: phase E baselines, Coder-1.5B, seed 0
 
-Candidate arms (Coder-1.5B, seed 0, dev sets only; the final list is fixed in
-LAB_LOG before the first run): Hinton and gold K2AAA, Hinton and gold AKAKA
-plain (no NTD), local-only clients, `central_mix`, optionally SeqKD. See
-[RESEARCH_STATE.md](RESEARCH_STATE.md) section 4.
+Arm list and readings: LAB_LOG 2026-10-11 (phase E). Code: nested `9a38777`.
+Dev sets only; never Spider test. Measured P2.27 stage times on this server:
+plain A about 1.6 h alone (2.7 h with both GPUs busy), gold K about 2.7 h,
+Hinton K about 3.6-4.5 h, about 20-30 min per evaluated set.
+
+| Lane | Arms, in order | Estimate |
+|---|---|---|
+| GPU 0, after P2.27 step 4 | `hinton_k2aaa`, `gold_akaka_plain`, `local` (5 clients) | about 35 h |
+| GPU 1, after P2.36 step 3 | `gold_k2aaa`, `hinton_akaka_plain`, `central_mix` | about 39 h |
+
+Memory: Hinton and gold K, plain A and Spider-only client training are the
+P2.27 paths. `central_mix` is the first Coder-1.5B client training on BIRD
+rows (7,424 tokens): check the process's shared GPU memory in its first 15
+minutes; its peak reserved VRAM is in the result metrics.
+
+1. Prepare (CPU, safe while P2.36 runs; pulls only new files that no running
+   lane imports, then runs the P2.37 tests):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run_p237_phase_e|list_p237_publication|audit_test_suite_ex|audit_power_clustered)\.py|tests/test_(p237_phase_e|audit_test_suite_ex|audit_power_clustered)\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; uv run --no-sync pytest -q tests/test_p237_phase_e.py; if ($LASTEXITCODE -ne 0) { throw 'P2.37 tests failed' }; uv run --no-sync python -m scripts.run_p237_phase_e --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.37 preparation failed' } }
+```
+
+2. Lanes. Start each when its GPU is free; rerun the identical command after an
+   interruption (finished stages and evaluations are skipped, training resumes
+   from its last checkpoint).
+
+GPU 0:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($arm in @('hinton_k2aaa','gold_akaka_plain','local')) { uv run --no-sync python -m scripts.run_p237_phase_e --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.37 $arm failed" } }; Write-Host 'GPU 0 P2.37 lane complete' }
+```
+
+GPU 1:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($arm in @('gold_k2aaa','hinton_akaka_plain','central_mix')) { uv run --no-sync python -m scripts.run_p237_phase_e --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.37 $arm failed" } }; Write-Host 'GPU 1 P2.37 lane complete' }
+```
+
+3. Analyze and publish, after both lanes finish (needs P2.36 published):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p237_phase_e --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p237_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.37 phase E baselines'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming code: $bad" }; git rebase origin/main; if ($LASTEXITCODE -ne 0) { throw 'Rebase failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p237_phase_e_s0/summary.md }
+```
+
+## Next
+
+After P2.37: read the phase E table, then fix the paper story in a dated
+LAB_LOG entry (claims, comparators, test, wording per outcome) before seeds
+1-2 or Spider test.
 
 On hold until the paper story is fixed: P2.31 (seeds 1 and 2), P2.35 (K-first
 over seeds 0-2), Spider test evaluations, P2.32 (alpha 0.5).
