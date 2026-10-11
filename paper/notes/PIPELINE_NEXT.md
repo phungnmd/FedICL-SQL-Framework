@@ -6,9 +6,10 @@ complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-11: P2.27 lanes and P2.28 are done and published; P2.27
-`central` is running on GPU 0; GPU 1 is idle. Next: P2.29 on GPU 1 (below);
-P2.27 step 4 after `central`.
-Paper direction and rules R1-R7: LAB_LOG 2026-10-11 and
+`central` is running on GPU 0; P2.29 runs on GPU 1. Next: P2.27 step 4 after
+`central`, P2.29 step 3, then P2.31. Direction A is final (framework paper,
+no new method); screens S1 and S2 are dropped.
+Paper direction and rules R1-R9: LAB_LOG 2026-10-11 and
 [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md).
 
 ## P2.27: Coder-1.5B on the alpha 0.1 split, seed 0
@@ -124,8 +125,9 @@ section 4, LAB_LOG 2026-10-11.
 
 | ID | Run | GPU | Rule |
 |---|---|---|---|
-| P2.30 | S1 ExST screen from FL A2: A3[ExST] vs `fl_dup`; analysis only after A1 | last, only if GPU time remains | R4 |
-| P2.31 | Seeds 1 and 2: FL, FedNTD, gold, Hinton (NTD per R1), central | both GPUs, after P2.29 | R7 |
+| P2.31 | Seeds 1 and 2: FL, FedNTD, gold, Hinton (NTD per R1), central | both GPUs, after P2.29 | R7, R8 |
 | P2.32 | alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central, seed 0 | after P2.31 | descriptive |
 | P2.33 | `central_mix` at Coder-1.5B | when a GPU is free | reference |
-| P2.34 | S2 execution-gated K1, Hinton v1 schedule to A2 (optional) | when a GPU is free | R6 |
+
+Dropped 2026-10-11 (owner decision, direction A final): P2.30 (S1 ExST
+screen, R4) and P2.34 (S2 execution-gated K1, R6). No runners exist for them.
