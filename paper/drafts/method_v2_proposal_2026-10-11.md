@@ -1,8 +1,8 @@
 # Đề xuất phương pháp FedLS-SQL v2: round private on-policy được execution kiểm chứng
 
-> **Trạng thái 11/10/2026: không còn là hướng chính.** Owner chọn hướng A
-> ([paper_direction_2026-10-11.md](paper_direction_2026-10-11.md)). ExST chỉ chạy như screen S1
-> (luật R4) và chỉ thành method chính khi qua luật R5 trong LAB_LOG 2026-10-11. Hai điểm dưới đây
+> **Trạng thái 11/10/2026: đóng.** Owner chốt hướng A
+> ([paper_direction_2026-10-11.md](paper_direction_2026-10-11.md)). Churn A1 không ủng hộ R2 nên
+> ExST không thể thành method chính (R5), và screen S1 đã bỏ khỏi hàng đợi. Hai điểm dưới đây
 > đã được thay: quyết định "đi theo v2" ở mục 1, và việc viết lại luật P2.27 ở mục 2.2 (theo luật
 > gốc, `teacher` fail, `server_kd` pass). Phần còn lại giữ làm tài liệu tham khảo cho thiết kế ExST.
 
