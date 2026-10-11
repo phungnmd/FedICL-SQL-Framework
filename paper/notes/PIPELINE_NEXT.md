@@ -6,8 +6,8 @@ complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-11: P2.27 lanes and P2.28 are done and published; P2.27
-`central` is running on GPU 0; GPU 1 is idle. Pending: P2.27 step 4 after
-`central`.
+`central` is running on GPU 0; GPU 1 is idle. Next: P2.29 on GPU 1 (below);
+P2.27 step 4 after `central`.
 Paper direction and rules R1-R7: LAB_LOG 2026-10-11 and
 [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md).
 
@@ -90,6 +90,33 @@ checkpoint. Do not pull, edit or switch on the server while a lane runs.
 Published in nested `238ee10` (G3 pass; LAB_LOG 2026-10-11). Commands:
 [PIPELINE_P228_2026-10-11.md](../archive/completed_runbooks/PIPELINE_P228_2026-10-11.md).
 
+## P2.29: plain last round from Hinton v1 K2 (rule R1), seed 0
+
+Does v1 still need client NTD at 1.5B? `h_plain` = P2.27 Hinton v1 K2 plus one
+private round without NTD (the P2.27 Hinton A3 command minus the NTD flags),
+all five sets, compared with P2.27 Hinton v1 A3. Rule R1, LAB_LOG 2026-10-11.
+Code: nested `88eb6ad`. Time: one A round (about 1.6 h) plus five evaluations
+(about 1 h). Same memory path as the P2.27 FL rounds; no probe.
+
+1. Pull while `central` runs on GPU 0. Allowed incoming files: the three P2.29
+   files, results, audits, Markdown:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p229_h_plain\.py|scripts/list_p229_publication\.py|tests/test_p229_h_plain\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git pull --ff-only origin main; if ($LASTEXITCODE -ne 0) { throw 'Pull failed' }; uv run --no-sync pytest -q tests/test_p229_h_plain.py; if ($LASTEXITCODE -ne 0) { throw 'P2.29 tests failed' } }
+```
+
+2. Run on GPU 1. Rerun the identical command after an interruption:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p229_h_plain --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.29 failed' }; Write-Host 'GPU 1 P2.29 complete' }
+```
+
+3. Analyze and publish (safe while `central` runs; stages only P2.29 files):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -m scripts.run_p229_h_plain --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p229_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.29 h_plain'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p229_h_plain_s0/summary.md }
+```
+
 ## Next, code not yet written (no commands until runners exist)
 
 Order and rules: [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md)
@@ -97,7 +124,6 @@ section 4, LAB_LOG 2026-10-11.
 
 | ID | Run | GPU | Rule |
 |---|---|---|---|
-| P2.29 | `h_plain`: Hinton v1 K2, one plain A3, five sets | GPU 1, first | R1 |
 | P2.30 | S1 ExST screen from FL A2: A3[ExST] vs `fl_dup`; analysis only after A1 | last, only if GPU time remains | R4 |
 | P2.31 | Seeds 1 and 2: FL, FedNTD, gold, Hinton (NTD per R1), central | both GPUs, after P2.29 | R7 |
 | P2.32 | alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central, seed 0 | after P2.31 | descriptive |
