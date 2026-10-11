@@ -53,7 +53,7 @@ chỉ là giả thuyết.
 | F6 | NTD ở round giữa (A2) không có tác dụng, vì K2 sau đó đưa BIRD về cùng mức | 0.5B P2.25: hai model cuối gần như trùng (Spider 20/20 discordant) | 1 seed, chưa thử ở 1.5B |
 | F7 | FedNTD và FedProx không phải FL baseline mạnh hơn FedAvg ở setting này | Coder-1.5B FedNTD - FL BIRD -1.37; 0.5B FedProx (P2.20) | 1 seed |
 | F8 | Vị trí K: K càng sớm Spider càng cao, K càng muộn BIRD càng cao; edge BIRD của teacher chỉ rõ khi K muộn | 0.5B alpha 0.5, cùng budget: Spider K2AAA 63.93 / AK2AA 63.15 / AKAKA 62.57 (Hinton), cùng thứ tự với gold; không cặp nào p<.1; teacher - gold BIRD chỉ có ý nghĩa ở AKAKA (+3.13) | thăm dò, chưa thử ở 1.5B |
-| F9 | FL thua central khi so cùng số lần đi qua dữ liệu | 0.5B alpha 0.5: +4.6 / +4.8 / +1.8 (E1-E3, central overfit ở E3). Coder-1.5B alpha 0.1, log server chưa commit: +1.9 / +2.9 / +3.8, không overfit | 0.5B: 1 seed; 1.5B: chưa commit |
+| F9 | FL thua central khi so cùng số lần đi qua dữ liệu; ở Coder-1.5B khoảng cách tăng theo số pass | Coder-1.5B alpha 0.1: +1.93 / +2.90 / +3.77 (E1-E3, p=.13/.028/.003), FL đạt đỉnh ở A2 rồi giảm; khoảng cách JOIN xuất hiện trước. 0.5B alpha 0.5: +4.6 / +4.8 / +1.8 (central overfit ở E3). BIRD không có khoảng cách | 1 seed mỗi model |
 | F10 | EX phóng đại khoảng 5-7 điểm đều ở mọi arm; mọi contrast giữ dấu dưới test-suite EX | Coder-1.5B seed 0, Spider dev | 1 seed |
 | F11 | Gain của `h_plain` so với FL nằm ở câu JOIN; round NTD cuối giữ lỗi over-join | JOIN +9.07 (p<.001), no-JOIN +0.96; over-join 87 (FL), 84 (v1), 57 (`h_plain`) | thăm dò (R8 kiểm trên seed mới) |
 | F12 | Sample nhiều lần có headroom lớn trên câu train | pass@8 - greedy 13-18 điểm, cần oracle gold | 1 seed, chỉ là trần |
@@ -67,7 +67,7 @@ từng được publish, không trích dẫn.
 
 | # | Câu hỏi | Cần arm |
 |---|---|---|
-| Q1 | Federation có cần không, mất bao nhiêu so với train tập trung? | local-only (mỗi client tự train), FL (có), central (có, chờ publish) |
+| Q1 | Federation có cần không (local-only so với FL), và vì sao FL thua central 3.8 điểm ở Coder-1.5B? | local-only (P2.37), FL và central (có) |
 | Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? | cặp Hinton/gold cho từng lịch |
 | Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | Hinton và gold K2AAA; Hinton và gold AKAKA plain (không NTD); `h_plain` và `g_plain` (có/đang chạy) |
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | `central_mix` (Spider + BIRD gold) |

@@ -19,13 +19,41 @@ Older detail:
   dev sets, then fix the paper story in a dated entry before any seed 1-2 run
   or Spider test evaluation. Findings, open questions and rules in force:
   [`RESEARCH_STATE.md`](RESEARCH_STATE.md).
-- P2.27 complete; `central` finished on the server, publication pending.
-  P2.28 and P2.29 published. P2.36 (`g_plain`) on GPU 1.
+- P2.27 (`5767704`), P2.28 and P2.29 published. P2.36 (`g_plain`) on GPU 1;
+  P2.37 (phase E) queued on both GPUs.
+
+## 2026-10-11: P2.27 `central` published; R3 and R9
+
+Evidence: nested `5767704` (final P2.27 manifest and summary). Central Spider
+E1-E3 on the same 8,659 rows, one continuous 3-epoch cosine run; E1 and E2
+are snapshots inside that schedule. Central minus FL at matched passes:
+
+| Passes | Spider all | Spider JOIN (408) | Spider no-JOIN (626) | BIRD |
+|---|---|---|---|---|
+| 1 (E1 - A1) | +1.93 (90/70, p=.13) | +5.39 (p=.032) | -0.32 (p=.90) | +0.65 (p=.55) |
+| 2 (E2 - A2) | +2.90 (102/72, p=.028) | +4.17 (p=.12) | +2.08 (p=.14) | +0.33 (p=.78) |
+| 3 (E3 - A3) | +3.77 (104/65, p=.003) | +4.41 (p=.079) | +3.35 (p=.020) | +0.07 (p=1) |
+
+Central E3: Spider 71.37, Realistic 61.61, SYN 56.00, DK 58.50, BIRD 25.75.
+
+- R3 (rule written before this result): central E3 - FL A3 = +3.77 >= 3.0,
+  so by the rule's wording client drift is "a target worth a method". R5
+  still fails (R2 did not support erasure), so ExST stays dropped. The rule
+  measures the size of the FL penalty, not its cause.
+- R9 (descriptive): unlike 0.5B alpha 0.5 (+4.6/+4.8/+1.8, central
+  overfit at E3), the Coder-1.5B penalty grows with passes. FL peaks at A2
+  (68.28) and drops at A3 (67.60) while central keeps rising. The JOIN gap
+  appears first (pass 1); the no-JOIN gap opens later. BIRD shows no penalty.
+- Earlier split-audit reading ("the penalty mostly vanishes at E3; likely
+  fewer effective steps, not drift") was 0.5B-specific; at Coder-1.5B the
+  cause is open (Q1 in RESEARCH_STATE).
+- Descriptive, not a claim: Hinton v1 - central Spider -2.13 (p=.11), BIRD
+  +17.54; `h_plain` (71.76) is level with central E3 on Spider.
 
 ## 2026-10-11: phase E arm list (P2.37), fixed before any run
 
 Coder-1.5B, alpha 0.1, seed 0, P2.27 recipe and evaluation; Spider dev, its
-variants and BIRD dev only. Code: nested `9a38777`
+variants and BIRD dev only. Code: nested `ed6fa57`
 (`scripts/run_p237_phase_e.py`). No arm is added after results are read.
 
 | Arm | Stages | Question (RESEARCH_STATE) |
@@ -75,9 +103,8 @@ although P2.25 showed it has no effect.
 
 Owner decision, written before any seed 1-2 result, any Spider test
 evaluation, and before P2.36 (`g_plain`) is read. Evidence for the power
-numbers: nested `007989f` (`scripts/audit_power_clustered.py`,
-`audits/protocol_v2/power_clustered/`; local commit, pushed after the
-running lanes publish).
+numbers: nested `4386775` (`scripts/audit_power_clustered.py`,
+`audits/protocol_v2/power_clustered/`).
 
 Why: the R7 test (exact conditional test on summed discordant pairs) treats
 each question-seed pair as independent. The same question is correlated
@@ -157,9 +184,8 @@ used the clustered test; P2.27 and P2.29 are single-seed).
 
 ## 2026-10-11: A2 test-suite EX on seed 0 Spider dev (descriptive)
 
-Evidence: nested `081a684` (`scripts/audit_test_suite_ex.py`,
-`audits/protocol_v2/test_suite_ex_s0/`; local commit, pushed after the
-running lanes publish). CPU only, on published predictions. A prediction is
+Evidence: nested `19274e9` (`scripts/audit_test_suite_ex.py`,
+`audits/protocol_v2/test_suite_ex_s0/`). CPU only, on published predictions. A prediction is
 test-suite correct when it matches gold (same comparison as EX, 60 s per
 query) on the original database and on all 695 official test-suite databases
 of the 20 dev db_ids (Zhong et al., EMNLP 2020); no value plugging.
