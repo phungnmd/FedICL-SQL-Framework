@@ -12,8 +12,8 @@ cell here. CoT is optional supervision, not a required output or contribution.
 Current evidence (2026-10-11): P2.27 Coder-1.5B, alpha 0.1, seed 0 (nested
 `5604e61`). Hinton v1 - FedNTD: BIRD +18.97 (p<.001), Spider Wald lower -0.89
 (`server_kd` pass); Hinton v1 - gold v1: Spider +1.35 (p=.23, `teacher` fail),
-DK +4.67 (p<.001). Paper direction A (final 2026-10-11: framework paper, no
-new method) and rules R1-R11 are in LAB_LOG 2026-10-11; the plan is
+DK +4.67 (p<.001). Paper direction B (2026-10-11, rule R12: private domain
+first, method `h_plain`) and rules R1-R12 are in LAB_LOG 2026-10-11; the plan is
 `paper/drafts/paper_direction_2026-10-11.md`. Seeds 1 and 2 (P2.31) are now
 required, no longer deferred. Full-data auxiliary plan
 tasks are closed after P2.15.

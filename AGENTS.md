@@ -60,8 +60,12 @@ under `paper/archive/`. Never use it as the current method specification.
 
 ## Current state (2026-10-11)
 
-- Paper direction A, final (owner decision 2026-10-11): a framework paper on
-  method v1, confirmed on three seeds; no new method. Plan:
+- Paper direction B (owner decision 2026-10-11, rule R12): private domain
+  first. Method = Hinton chain `A>K>A[ntd]>K` with a plain last round
+  (`h_plain`); claims on Spider test pooled over seeds 0-2 against FL (P),
+  matched gold `g_plain` (T) and K-first `hinton_k2aaa` (D), each with BIRD
+  dev non-inferiority. The NTD last round (v1) is reported as the BIRD
+  operating point. Earlier direction A: a framework paper on method v1. Plan:
   `paper/drafts/paper_direction_2026-10-11.md`; rules R1-R9 in LAB_LOG
   2026-10-11. ExST (S1) and execution-gated KD (S2) are dropped. R10 makes
   Spider test the confirmatory Spider set; R11 adds the K-first (GPT-FL

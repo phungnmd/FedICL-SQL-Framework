@@ -118,9 +118,10 @@ Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server Hinton
 KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Confirmation on
 three seeds is pending (P2.31).
 
-- Client NTD stays (P2.29, rule R1, nested `b4a52db`). At Coder-1.5B it
-  trades Spider for BIRD in the last round (plain round: Spider +2.51, BIRD
-  -3.32); report both operating points.
+- Client NTD stays in A2 (P2.29, rule R1, nested `b4a52db`). At Coder-1.5B
+  it trades Spider for BIRD in the last round (plain round: Spider +2.51,
+  BIRD -3.32). Since direction B (rule R12) the method's last round is plain
+  (`h_plain`); the NTD last round (v1) is the reported BIRD operating point.
 - Not part of the method (dropped 2026-10-11, direction A final): ExST
   (client execution-verified self-training, S1) and execution-gated Hinton KD
   (S2). Method study round 2 (LAB_LOG 2026-10-11) found no new component with
