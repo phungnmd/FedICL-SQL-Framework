@@ -11,25 +11,97 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-08)
+## Where we are (2026-10-11)
 
-- Paper criterion changed (entry below): Spider EX and BIRD EX are
-  co-primary; success is BIRD gain plus Spider non-inferiority. P2.21 (FedNTD
-  client retention) and gold K2AAA A3 are judged by it; neither was read
-  before the change.
-
-- P2.18 six-arm Coder-0.5B screen is complete, nested `45a8bdc`. Hinton AKKAA
-  has the highest terminal Spider EX (63.15); Hinton AKAKA beats matched gold
-  by 2.42 points (p=.0199). The two Hinton schedules are not separated (p=.581).
-- Hinton AKAKA is the stronger current teacher-versus-gold confirmation target;
-  Hinton AKKAA remains the best observed Spider candidate. P2.19 was
-  cancelled before any result; P2.20 (Hinton/gold K2AAA, FedProx AAA) is next.
-  The schedule decision rule is fixed in the entry below. Seeds deferred.
-  No schedule or method is frozen.
-- Existing 1.5B reference: P2.17 Hinton Spider 69.54 vs gold 67.50 (`bd4fdcb`).
-  Moving to Coder-0.5B changes specialization and size together.
+- Paper direction A (owner decision 2026-10-11, entry below): an
+  empirical-method paper on method v1 (server Hinton KD, AKAKA, Coder-1.5B,
+  alpha 0.1), confirmed on three seeds, plus a bounded ExST screen and small
+  screens with fixed stop rules. Plan:
+  [`paper_direction_2026-10-11.md`](../drafts/paper_direction_2026-10-11.md).
+- P2.27 is complete except `central` (running on GPU 0). By its fixed rule:
+  `server_kd` pass, `teacher` fail, `server_kd_spider_gain` fail.
+- P2.28 ran (G3 pass); publication pending.
+- Next: P2.29 (`h_plain`, decides whether v1 keeps client NTD), then seeds 1
+  and 2 (P2.31). Co-primary criterion (2026-10-08) unchanged.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: P2.27 decision, P2.28 G3, paper direction A and rules fixed before results
+
+Evidence: nested `5604e61` (fedntd and Hinton v1 to A3). Every number below
+was recomputed from the published predictions (exact McNemar, Wald 95%).
+`central` is still running and has not been read.
+
+| Arm, A3 | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| FL | 67.60 | 59.65 | 53.68 | 53.27 | 25.68 |
+| FedNTD | 67.79 | 57.09 | 53.38 | 51.96 | 24.32 |
+| gold v1 | 67.89 | 59.06 | 55.61 | 52.90 | 41.40 |
+| Hinton v1 | 69.25 | 60.83 | 56.38 | 57.57 | 43.29 |
+
+P2.27 decision by the rule fixed 2026-10-10:
+
+- `teacher` (Hinton v1 - gold v1): **fail**. Spider +1.35 (p=.23, Wald
+  [-0.70, 3.41]); BIRD +1.89 (p=.076). DK +4.67 (p<.001) is outside the rule.
+- `server_kd` (Hinton v1 - FedNTD): **pass**. BIRD +18.97 (p<.001); Spider
+  +1.45, Wald lower -0.89. Robustness: DK +5.61 (p<.001), SYN +3.00 (p=.019),
+  Realistic +3.74 (p=.037).
+- `server_kd_spider_gain`: **fail** (p=.26).
+- FedNTD - FL: Spider +0.19 (p=.91), BIRD -1.37 (p=.044), Realistic -2.56
+  (p=.047). FedNTD does not help at 1.5B.
+- Hinton - gold by stage: Spider +3.48 (K1, p=.002), +2.13 (A2, p=.043),
+  +3.00 (K2, p=.013), +1.35 (A3); BIRD +1.83, +0.07, +4.56 (p<.001), +1.89.
+  Two readings, not yet separated: private rounds erase teacher-specific
+  knowledge, or gold CE forgets Spider more during K and the private round
+  repairs both to the same ceiling. Rule R2 below decides.
+
+P2.28 (G3, fixed before the run): **pass**. From the server-local summary,
+publication pending: greedy / pass@8 / headroom / variant = FL A2
+77.0 / 90.0 / 13.0 / 65.3; gold v1 K2 66.9 / 84.7 / 17.8 / 76.8; Hinton v1 K2
+71.9 / 85.6 / 13.7 / 77.4. Measured on training questions the adapters have
+seen, so it is a ceiling, not a dev forecast.
+
+Owner decision: paper direction A. Method v2 (ExST,
+`paper/drafts/method_v2_proposal_2026-10-11.md`) is not the main direction;
+it becomes the main method only through rule R5. Literature check
+(2026-10): no federated Text-to-SQL work with a server LLM teacher found;
+PubSwap (arXiv 2604.12160) and FedMOA (arXiv 2602.00453) already cover
+federated verifiable-reward training with LoRA for math, medical and code.
+
+Rules, fixed 2026-10-11 before any of the results they judge (P2.29, the
+churn analysis, `central`, S1, S2, seeds 1 and 2):
+
+- **R1, NTD (P2.29).** `h_plain` (Hinton v1 K2, one plain A3) - Hinton v1 A3,
+  seed 0: if both the Spider and the BIRD Wald lower bounds are above -2.0,
+  drop client NTD (the method becomes Hinton AKAKA, matched gold becomes gold
+  AKAKA); otherwise keep v1.
+- **R2, churn (CPU, P2.27 predictions).** T = rows Hinton K2 right and gold
+  K2 wrong; T' = rows gold K2 right and Hinton K2 wrong. "Private rounds erase
+  teacher-specific knowledge" is supported on a set if Hinton's A3 loss rate on
+  T minus gold's A3 loss rate on T' is at least 10 points with Fisher exact
+  p<.05. Judged on BIRD dev; Spider dev reported.
+- **R3, FL penalty (`central`).** Central E3 - FL A3 Spider >= 3.0 points
+  makes client drift a target worth a method; below that, drift is analysis
+  only.
+- **R4, ExST screen (S1, P2.30).** From FL A2: A3[ExST] (k=8, T=0.7, top-p
+  1.0, m=4, gold kept, FedAvg weights from original client sizes) versus
+  A3 on gold repeated to the same number of steps (`fl_dup`). Pass: Spider
+  difference >= +1.0 point and BIRD Wald lower bound > -2.0. One
+  configuration, no tuning on reported sets. Fail closes ExST.
+- **R5, promotion.** ExST becomes the main method only if R2 supports
+  erasure, R3 >= 3.0 and R4 passes. Otherwise direction A stands and ExST
+  enters the paper as analysis.
+- **R6, execution-gated KD (S2, P2.34).** Same schedule as Hinton v1 to A2,
+  K1 distils teacher logits only on the 5,319 teacher-correct rows and uses
+  gold CE on the rest. Pass at A2 versus Hinton v1 A2: Spider >= +1.0 and BIRD
+  Wald lower bound > -2.0. Fail closes it. No published source gates logit KD
+  by execution; state it as our choice.
+- **R7, confirmation (seeds 0-2, fixed split, training RNG varies).** For
+  each claim, stack the paired per-question outcomes of three seeds: exact
+  conditional test on the summed discordant pairs, CI from a bootstrap that
+  resamples questions. C1 (method versus FedNTD and versus FL) and the teacher
+  claim (method versus matched gold) use the co-primary criterion of
+  2026-10-08 with these pooled tests. Single-seed tests are descriptive.
 
 ## 2026-10-10: P2.27 partial: base, FL and gold v1 complete, Hinton v1 to A2
 
