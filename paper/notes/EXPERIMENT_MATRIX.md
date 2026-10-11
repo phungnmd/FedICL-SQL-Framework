@@ -51,7 +51,7 @@ tasks are closed after P2.15.
 | 20 | Does execution-verified self-training (ExST) beat extra gold steps? | from FL A2: A3[ExST] vs `fl_dup` (R4); promotion only via R5 | dropped 2026-10-11 (direction A final); A1 ruled out promotion (R5) |
 | 21 | Does gating logit KD by teacher execution help? | Hinton v1 to A2 with K1 gated on 5,319 teacher-correct rows (R6) | dropped 2026-10-11 (direction A final) |
 | 22 | What is the centralized ceiling at 1.5B? | `central_mix` (Spider+BIRD) at Coder-1.5B | P2.33 |
-| 23 | Is EX inflated by false positives? | test-suite EX (Zhong et al. 2020) on Spider predictions | CPU analysis A2 |
+| 23 | Is EX inflated by false positives? | test-suite EX (Zhong et al. 2020) on Spider dev predictions | seed 0 done (nested `081a684`): EX overstates all arms by 5-7 points; every contrast keeps sign and size; rerun for seeds 1-2 |
 | 24 | Is the teacher's Spider gain on multi-table JOIN questions? | Hinton - matched gold on the gold-JOIN subset, seeds 1-2 pooled (R8) | seed 0 exploratory (+5.1, p=.014); confirmatory test after P2.31 |
 | 25 | Does the method beat a K-first (GPT-FL style) baseline at matched budget? | method vs `hinton_k2aaa`, seeds 0-2, Spider test and BIRD dev (R11) | P2.35; at 0.5B no schedule contrast p<.1 |
 | 26 | Do the claims hold on an untouched Spider set? | R7 claims on Spider test (2,147 rows, R10) | builder in nested `1fe4fb1`; evaluated with P2.31 |

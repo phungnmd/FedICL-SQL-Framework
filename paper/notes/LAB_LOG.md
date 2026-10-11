@@ -20,9 +20,41 @@ Older detail:
 - P2.27 complete except `central` (running on GPU 0). P2.28 and P2.29
   published (nested `238ee10`, `b4a52db`). P2.36 (`g_plain`) queued on GPU 1.
 - Next: P2.31 (seeds 1 and 2, both last-round branches), P2.35 (K-first),
-  Spider test on all final adapters, test-suite EX (A2, CPU), P2.32, P2.33.
+  Spider test on all final adapters, P2.32, P2.33. A2 (test-suite EX) done
+  for seed 0.
 - Closed: plan-task directions, A1 weight merge, P2.9 retention, ExST (S1),
   execution-gated KD (S2). P2.16 centralized E1-E4 have no published evidence.
+
+## 2026-10-11: A2 test-suite EX on seed 0 Spider dev (descriptive)
+
+Evidence: nested `081a684` (`scripts/audit_test_suite_ex.py`,
+`audits/protocol_v2/test_suite_ex_s0/`; local commit, pushed after the
+running lanes publish). CPU only, on published predictions. A prediction is
+test-suite correct when it matches gold (same comparison as EX, 60 s per
+query) on the original database and on all 695 official test-suite databases
+of the 20 dev db_ids (Zhong et al., EMNLP 2020); no value plugging.
+
+| Arm, seed 0 | EX | TS-EX | EX-only rows |
+|---|---:|---:|---:|
+| FL A3 | 67.60 | 62.19 | 56 |
+| FedNTD A3 | 67.79 | 60.93 | 71 |
+| gold v1 A3 | 67.89 | 61.32 | 68 |
+| Hinton v1 A3 | 69.25 | 62.77 | 67 |
+| h_plain | 71.76 | 66.05 | 59 |
+
+| Contrast | EX all | TS-EX all | TS-EX JOIN | TS-EX no-JOIN |
+|---|---|---|---|---|
+| h_plain - FL A3 | +4.16 (p<.001) | +3.87 (91/51, p<.001) | +9.31 (p<.001) | +0.32 (p=.90) |
+| h_plain - Hinton v1 A3 | +2.51 (p=.005) | +3.29 (p<.001) | +2.45 (p=.24) | +3.83 (p<.001) |
+| Hinton v1 - gold v1 | +1.35 (p=.23) | +1.45 (p=.22) | +5.64 (p=.009) | -1.28 (p=.36) |
+| Hinton v1 - FL A3 | +1.64 (p=.20) | +0.58 (p=.70) | +6.86 (p=.003) | -3.51 (p=.018) |
+
+- EX overstates every arm by 5-7 points, about equally; the method has the
+  fewest EX-only rows after FL. No seed-0 conclusion depends on false
+  positives: every contrast keeps its sign and size under test-suite EX, and
+  the JOIN/no-JOIN pattern of the previous entry holds.
+- Paper: report test-suite EX next to EX for Spider dev. Spider test has no
+  official test suite; its claims stay on EX (R10, R12).
 
 ## 2026-10-11: where the plain last round gains; R12 reporting additions
 

@@ -83,7 +83,7 @@ Luật P2.27 (cố định 10/10): `server_kd` pass; `teacher` fail (Spider +1.3
 | Spider test | Eval Spider test (2,147 câu) cho model cuối của mọi arm R12 (cả hai nhánh), `hinton_k2aaa` và `central`, seed 0-2 | khoảng 0.5 h mỗi arm mỗi seed | R10 |
 | P2.32 | α=0.5 ở 1.5B: FL, gold, Hinton, central, seed 0 | khoảng 20 h | mô tả |
 | P2.33 | `central_mix` (Spider+BIRD) ở 1.5B làm ceiling | khoảng 7-10 h | tham chiếu |
-| A2 | Test-suite EX cho Spider (Zhong et al., EMNLP 2020) | CPU | mô tả |
+| A2 | Test-suite EX cho Spider dev (Zhong et al., EMNLP 2020) | **seed 0 xong**: mọi contrast giữ dấu và độ lớn; chạy lại khi có seed 1-2 | mô tả |
 | A3 | Lỗi theo loại SQL, độ khó BIRD | CPU | mô tả |
 | A4 | Bảng chi phí: bytes truyền mỗi round, compute client, GPU-h server, so với không FL | CPU | mô tả |
 
