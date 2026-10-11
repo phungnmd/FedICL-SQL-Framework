@@ -32,6 +32,17 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
+- Fixed by the owner, not open for proposals: compute is the two RTX A5000
+  cards; the teacher is Qwen2.5-Coder-7B (4-bit) and the student
+  Qwen2.5-Coder-1.5B-Instruct. Larger teachers or students (14B, 32B, more
+  GPUs) are out of scope even when they would technically fit in memory.
+- The paper's goal is a federated framework in which the server LLM teacher
+  contributes measurably, for a Q3 journal. A story that reduces the teacher
+  to an ablation (for example "public data at the server closes the FL
+  penalty, the teacher adds nothing") does not meet that goal and is not
+  strong enough for Q3 on its own. Do not offer it as the default fallback;
+  look for directions that keep a real teacher contribution within the fixed
+  constraints, and say plainly if none is supported.
 
 ## Read first
 
