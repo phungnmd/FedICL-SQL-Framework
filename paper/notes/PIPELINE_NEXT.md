@@ -69,8 +69,8 @@ which answers arrive first.
 |---:|---|---|---|
 | 1 | `hinton_k2aaa` | K-first schedule (Q3), Hinton | about 20 h |
 | 2 | `gold_k2aaa` | its gold pair: teacher vs gold under K-first (Q2) | about 17 h |
-| 3 | `hinton_akaka_plain` | interleaved without NTD; vs `h_plain` isolates NTD in A2 | about 13 h |
-| 4 | `gold_akaka_plain` | its gold pair | about 12 h |
+| 3 | `hinton_akaka_plain` | `h_plain` with NTD removed (A>K>A>K>A); if it matches `h_plain`, NTD leaves the method | about 13 h |
+| 4 | `gold_akaka_plain` | its gold pair (`g_plain` without NTD) | about 12 h |
 | 5 | `central_mix` | ceiling with all data in one place (Q4); frames the claims, does not choose them | about 10 h |
 | 6 | `local` (5 clients) | federation vs local-only (Q1); outcome predictable, reviewers expect it | about 8 h |
 
