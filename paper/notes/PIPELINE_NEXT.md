@@ -6,8 +6,8 @@ complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-11: P2.27 lanes and P2.28 are done and published; P2.27
-`central` is running on GPU 0; P2.29 runs on GPU 1. Next: P2.27 step 4 after
-`central`, P2.29 step 3, then P2.31. Direction A is final (framework paper,
+`central` is running on GPU 0; P2.29 is published (keep NTD); GPU 1 is idle.
+Next: P2.27 step 4 after `central`, then P2.31. Direction A is final (framework paper,
 no new method); screens S1 and S2 are dropped.
 Paper direction and rules R1-R11: LAB_LOG 2026-10-11 and
 [paper_direction_2026-10-11.md](../drafts/paper_direction_2026-10-11.md).

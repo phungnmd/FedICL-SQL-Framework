@@ -70,8 +70,9 @@ under `paper/archive/`. Never use it as the current method specification.
   method study found no candidate above about 5% for the owner criterion.
 - Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server
   Hinton KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Teacher
-  outputs never leave the server; only adapters move. P2.29 decides whether
-  client NTD stays (rule R1).
+  outputs never leave the server; only adapters move. P2.29 kept client NTD
+  (rule R1); at 1.5B it trades Spider for BIRD (plain last round: Spider
+  +2.51, BIRD -3.32).
 - P2.27, seed 0 (nested `5604e61`): Hinton v1 - FedNTD BIRD +18.97, Spider
   Wald lower -0.89 (`server_kd` pass); Hinton v1 - gold v1 Spider +1.35,
   p=.23 (`teacher` fail), DK +4.67 (p<.001). FedNTD does not help at 1.5B
@@ -83,7 +84,7 @@ under `paper/archive/`. Never use it as the current method specification.
 - P2.28 (nested `238ee10`): pass@8 minus greedy is 13-18 points on client
   training questions, but it needs eight samples and a gold oracle, and half
   of the rescues are 1 or 2 hits out of 8.
-- Queue: P2.29 (`h_plain`, running), then seeds 1 and 2 (P2.31, rules R7
+- Queue: seeds 1 and 2 (P2.31, rules R7
   and R8), alpha 0.5 at 1.5B (P2.32), `central_mix` at 1.5B (P2.33).
 - Split audit: the k5 alpha 0.1 split is mild cross-silo heterogeneity. The
   FL penalty shows at matched passes (0.5B: +4.6/+4.8 at E1-A1/E2-A2, on JOIN

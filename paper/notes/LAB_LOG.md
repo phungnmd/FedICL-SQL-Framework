@@ -23,13 +23,43 @@ Older detail:
 - P2.28 published (nested `238ee10`, G3 pass); its headroom needs eight
   samples and a gold oracle (audit entry below).
 - A1 churn: no teacher-specific erasure (R2 not supported).
-- Next: P2.29 (`h_plain`, rule R1, running on GPU 1), then seeds 1 and 2
+- P2.29 published (nested `b4a52db`): R1 keeps NTD; method v1 is final.
+- Next: seeds 1 and 2
   (P2.31), the K-first baseline (P2.35), alpha 0.5 at 1.5B (P2.32),
   `central_mix` (P2.33). Rules R8-R11 were added before any of their
   results. Co-primary criterion (2026-10-08) unchanged; since R10 its Spider
   endpoint for R7 claims is Spider test.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: P2.29 h_plain: keep NTD (R1); the last round sets a Spider-BIRD trade-off
+
+Evidence: nested `b4a52db`; contrasts recomputed locally from the published
+predictions. `h_plain` = P2.27 Hinton v1 K2 plus one plain private round.
+
+| h_plain minus | Spider | DK | BIRD |
+|---|---|---|---|
+| Hinton v1 A3 (R1) | +2.51 (53/27, p=.0049, Wald [0.83, 4.20]) | -1.50 (p=.18) | -3.32 (55/106, p<.001, Wald [-4.94, -1.71]) |
+| FL A3 | +4.16 (85/42, p=.0002) | +2.80 (p=.082) | +14.28 (p<.001) |
+| gold v1 A3 | +3.87 (76/36, p=.0002) | +3.18 (p=.021) | -1.43 (p=.19) |
+
+Also Realistic +2.17 (p=.15) and SYN +2.61 (p=.007) against Hinton v1 A3.
+
+- R1: **keep NTD**. The BIRD lower bound (-4.94) is below -2.0. The method
+  stays v1; P2.31 runs the P2.27 arms.
+- At Coder-1.5B, client NTD in the last round trades Spider for BIRD: -2.5
+  Spider, +3.3 BIRD. At 0.5B it cost no Spider (P2.22: +0.48 pooled). The
+  plain round adapts more to the private domain; NTD holds the post-K
+  distribution, which carries BIRD.
+- Descriptive only (not under any rule; the matched gold arm has NTD, so the
+  rows against gold v1 and FL are not matched comparisons): h_plain is the
+  best Spider model so far (71.76) and beats FL on Spider by 4.16.
+- Reading for the paper: the last private round chooses the operating point
+  on the Spider-BIRD frontier; neither h_plain (71.76, 39.96) nor v1 (69.25,
+  43.29) dominates. Report both points on the Spider-BIRD plot.
+- Process lesson: the publication push was rejected because a docs commit
+  had been pushed to the nested remote after the server's last pull. Fixed by
+  an allowlisted fetch and rebase on the server.
 
 ## 2026-10-11: Spider test as the confirmatory set, K-first baseline; rules R10-R11
 

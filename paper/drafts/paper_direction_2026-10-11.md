@@ -45,9 +45,9 @@ FedLS-SQL = các round private FedAvg LoRA ở client, xen kẽ stage K ở serv
 (0.5 CE + 0.5 forward KL, T=2) từ teacher Coder-7B frozen trên 9,428 câu BIRD train. Schedule
 AKAKA. Student Qwen2.5-Coder-1.5B-Instruct, 5 client theo split domain-cluster α=0.1.
 
-Có giữ FedNTD ở round private hay không do P2.29 quyết (luật R1). Ở 1.5B, FedNTD so với FL
-không giúp Spider (+0.19) và làm BIRD giảm (−1.37, p=.044). Nếu bỏ NTD, method là Hinton AKAKA và
-FedNTD chỉ còn là baseline.
+FedNTD ở round private được giữ (P2.29, luật R1). Ở 1.5B, NTD trong round cuối đổi Spider lấy
+BIRD: round plain cho Spider +2.51 (p=.005) nhưng BIRD −3.32 (p<.001). Round private cuối chọn điểm
+làm việc trên đường Spider-BIRD; paper báo cả hai điểm (v1 69.25/43.29, plain 71.76/39.96).
 
 ## 3. Bằng chứng nền (đã kiểm lại từ predictions đã publish)
 
@@ -80,7 +80,7 @@ Luật P2.27 (cố định 10/10): `server_kd` pass; `teacher` fail (Spider +1.3
 
 | ID | Việc | Chi phí ước tính | Luật |
 |---|---|---|---|
-| P2.29 | `h_plain`: từ Hinton v1 K2, một A3 plain | đang chạy GPU1 | R1 |
+| P2.29 | `h_plain`: từ Hinton v1 K2, một A3 plain | **xong**: giữ NTD | R1 |
 | P2.27 publish | `central` xong thì publish, đọc R3 và R9 | không GPU | R3, R9 |
 | P2.31 | Seed 1, 2 cho FL, FedNTD, gold, Hinton (NTD theo R1), central | khoảng 2 × 25 h wall clock trên 2 GPU | R7, R8 |
 | P2.35 | Baseline K-first kiểu GPT-FL: `hinton_k2aaa` (K hai epoch từ base, rồi 3 round FedAvg), seed 0-2 | khoảng 12 h mỗi seed | R11 |

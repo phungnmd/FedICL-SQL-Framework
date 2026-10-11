@@ -118,9 +118,9 @@ Method v1 (fixed 2026-10-08): `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]`, server Hinton
 KD on all 9,428 BIRD rows, client FedNTD (beta 1, tau 3). Confirmation on
 three seeds is pending (P2.31).
 
-- Open: whether to keep client NTD. P2.29 (`h_plain`) decides by rule R1; if
-  NTD is dropped, the method is Hinton AKAKA and its matched control is gold
-  AKAKA.
+- Client NTD stays (P2.29, rule R1, nested `b4a52db`). At Coder-1.5B it
+  trades Spider for BIRD in the last round (plain round: Spider +2.51, BIRD
+  -3.32); report both operating points.
 - Not part of the method (dropped 2026-10-11, direction A final): ExST
   (client execution-verified self-training, S1) and execution-gated Hinton KD
   (S2). Method study round 2 (LAB_LOG 2026-10-11) found no new component with

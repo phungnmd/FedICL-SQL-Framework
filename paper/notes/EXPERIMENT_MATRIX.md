@@ -45,7 +45,7 @@ tasks are closed after P2.15.
 | 14 | Is it robust to heterogeneity? | alpha 0.1 (P2.27) vs alpha 0.5 at Coder-1.5B: FL, gold, Hinton, central | alpha 0.1 done at seed 0; alpha 0.5 is P2.32 |
 | 15 | Is it model-family specific? | Qwen first; another family only if compute remains | limitation unless reviewers ask |
 | 16 | What efficiency and privacy claims hold? | adapter bytes, final SLM vs teacher inference, structural boundary | teacher timing kept; final-adapter benchmark pending |
-| 17 | Does client NTD still help at 1.5B? | `h_plain` (Hinton K2, plain A3) vs Hinton v1 A3 (R1) | P2.29; FedNTD - FL at 1.5B: BIRD -1.37 (p=.044) |
+| 17 | Does client NTD still help at 1.5B? | `h_plain` (Hinton K2, plain A3) vs Hinton v1 A3 (R1) | done (nested `b4a52db`): keep NTD; plain last round Spider +2.51 (p=.005), BIRD -3.32 (p<.001) |
 | 18 | Do private rounds erase teacher-specific knowledge, or repair gold's K-stage forgetting? | churn on P2.27 predictions (R2) | done (A1): no teacher-specific erasure; supports the repair reading |
 | 19 | How large is the FL penalty at alpha 0.1? | P2.27 `central` E3 vs FL A3 (R3); E1-A1, E2-A2, E3-A3 overall and JOIN (R9) | `central` running; at 0.5B alpha 0.5 the penalty is +4.6/+4.8 at matched passes, +1.8 at E3 |
 | 20 | Does execution-verified self-training (ExST) beat extra gold steps? | from FL A2: A3[ExST] vs `fl_dup` (R4); promotion only via R5 | dropped 2026-10-11 (direction A final); A1 ruled out promotion (R5) |
