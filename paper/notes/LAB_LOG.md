@@ -13,24 +13,51 @@ Older detail:
 
 ## Where we are (2026-10-11)
 
-- Paper direction A, final (owner decision 2026-10-11, entry below): a
-  framework paper on method v1 (server Hinton KD, AKAKA, Coder-1.5B, alpha
-  0.1), confirmed on three seeds. No new method; screens S1 (ExST) and S2
-  (execution-gated KD) are dropped from the queue. Plan:
-  [`paper_direction_2026-10-11.md`](../drafts/paper_direction_2026-10-11.md).
-- P2.27 is complete except `central` (running on GPU 0). By its fixed rule:
-  `server_kd` pass, `teacher` fail, `server_kd_spider_gain` fail.
-- P2.28 published (nested `238ee10`, G3 pass); its headroom needs eight
-  samples and a gold oracle (audit entry below).
-- A1 churn: no teacher-specific erasure (R2 not supported).
-- P2.29 published (nested `b4a52db`): R1 keeps NTD; method v1 is final.
-- Next: seeds 1 and 2
-  (P2.31), the K-first baseline (P2.35), alpha 0.5 at 1.5B (P2.32),
-  `central_mix` (P2.33). Rules R8-R11 were added before any of their
-  results. Co-primary criterion (2026-10-08) unchanged; since R10 its Spider
-  endpoint for R7 claims is Spider test.
-- Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
-  P2.16 centralized E1-E4 still have no published manifest evidence.
+- Paper direction B (owner decision 2026-10-11, rule R12): private domain
+  first. Method `h_plain` (Hinton chain, plain last round); claims on Spider
+  test pooled over seeds 0-2 against FL (P), `g_plain` (T) and K-first (D).
+  Plan: [`paper_direction_2026-10-11.md`](../drafts/paper_direction_2026-10-11.md).
+- P2.27 complete except `central` (running on GPU 0). P2.28 and P2.29
+  published (nested `238ee10`, `b4a52db`). P2.36 (`g_plain`) queued on GPU 1.
+- Next: P2.31 (seeds 1 and 2, both last-round branches), P2.35 (K-first),
+  Spider test on all final adapters, test-suite EX (A2, CPU), P2.32, P2.33.
+- Closed: plan-task directions, A1 weight merge, P2.9 retention, ExST (S1),
+  execution-gated KD (S2). P2.16 centralized E1-E4 have no published evidence.
+
+## 2026-10-11: where the plain last round gains; R12 reporting additions
+
+Descriptive, seed 0, Spider dev, recomputed from published predictions
+(P2.27 nested `5604e61`, P2.29 `b4a52db`). Subsets by `\bjoin\b` in the
+gold SQL (408 JOIN, 626 no-JOIN). "Over-join" = predicted SQL has JOIN where
+gold has none.
+
+| Contrast | JOIN | no-JOIN |
+|---|---|---|
+| h_plain - Hinton v1 A3 (NTD last round) | +0.98 (23/19, p=.64) | +3.51 (30/8, p<.001) |
+| h_plain - FL A3 | +9.07 (53/16, p<.001) | +0.96 (32/26, p=.51) |
+
+- Over-joins on the 626 no-JOIN questions: FL A3 87, Hinton v1 A3 84,
+  h_plain 57. Of the 30 no-JOIN questions h_plain wins over v1, v1
+  over-joined in 16.
+- Reading (hypothesis for seeds 1-2): the method's gain over FL is on JOIN
+  questions; the NTD last round keeps the post-K over-joining, which costs
+  no-JOIN questions, and a plain last round removes it. This corrects an
+  earlier note: the table-set proxy (P2.27 Hinton vs gold, JOIN 322 vs 315 of
+  408, p=.39) checks tables only, not column linking, join keys or scope, so
+  it does not rule out a schema-linking gain.
+- Thresholds of R12 are unchanged. Added reporting, fixed before any seed
+  1-2 or Spider test result: (a) every R12 contrast also per seed; (b) a
+  question-level sensitivity check: per question, mean over seeds of
+  (method EX - comparator EX), mean and 95% CI by question bootstrap and a
+  one-sample t-test over questions; (c) the JOIN/no-JOIN split and over-join
+  counts above for each R12 contrast. None of these changes a decision.
+- Independent review of three optional screens (curriculum ordering in the
+  last round, TAID-style target interpolation in K2, execution preferences):
+  not run. Curriculum is the only candidate kept, after P2.35, with a rule
+  written before any run; TAID (VRAM risk, K-stage gains fade after A,
+  P2.24) and DPO (SENSE prior art, ACL 2025 counter-evidence) are parked.
+  Measured stage times are higher than earlier estimates: Hinton K2 about
+  4.5 h, plain A3 about 2.4 h.
 
 ## 2026-10-11: direction B (private domain first); rule R12 fixed before results
 
