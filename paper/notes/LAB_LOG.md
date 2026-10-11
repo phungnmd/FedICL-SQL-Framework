@@ -13,21 +13,77 @@ Older detail:
 
 ## Where we are (2026-10-11)
 
-- Paper direction A (owner decision 2026-10-11, entry below): an
-  empirical-method paper on method v1 (server Hinton KD, AKAKA, Coder-1.5B,
-  alpha 0.1), confirmed on three seeds, plus a bounded ExST screen and small
-  screens with fixed stop rules. Plan:
+- Paper direction A, final (owner decision 2026-10-11, entry below): a
+  framework paper on method v1 (server Hinton KD, AKAKA, Coder-1.5B, alpha
+  0.1), confirmed on three seeds. No new method; screens S1 (ExST) and S2
+  (execution-gated KD) are dropped from the queue. Plan:
   [`paper_direction_2026-10-11.md`](../drafts/paper_direction_2026-10-11.md).
 - P2.27 is complete except `central` (running on GPU 0). By its fixed rule:
   `server_kd` pass, `teacher` fail, `server_kd_spider_gain` fail.
 - P2.28 published (nested `238ee10`, G3 pass); its headroom needs eight
   samples and a gold oracle (audit entry below).
-- A1 churn: no teacher-specific erasure (R2 not supported), so ExST cannot be
-  promoted (R5); it stays an optional analysis screen.
-- Next: P2.29 (`h_plain`, decides whether v1 keeps client NTD), then seeds 1
-  and 2 (P2.31). Co-primary criterion (2026-10-08) unchanged.
+- A1 churn: no teacher-specific erasure (R2 not supported).
+- Next: P2.29 (`h_plain`, rule R1, running on GPU 1), then seeds 1 and 2
+  (P2.31), alpha 0.5 at 1.5B (P2.32), `central_mix` (P2.33). Rules R8-R9 were
+  added before any of their results. Co-primary criterion (2026-10-08)
+  unchanged.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: method study round 2, split audit, direction A final, rules R8-R9
+
+Written before any P2.29, P2.27 `central`, or seed 1-2 result was read
+(nested origin head `6fae58a`; none of those results published).
+
+Split audit (CPU, split files and P2.18 predictions):
+
+- The k5 alpha 0.1 split skews domains (cluster mix 0.58-0.70 total
+  variation from the global mix) but is mild for FL: 5 clients, full
+  participation, 1 local epoch, client sizes within 1.9x. With identifiers
+  and values masked, each client's training SQL covers the SQL pattern of
+  65.9-77.9% of Spider dev questions (full train 85.0%, random 5-way split
+  75.7-78.8%). Federated Semantic Parsing (ACL 2023), one dataset per
+  client, reports FedAvg 16-30 points below centralized training.
+- At matched data passes the FL penalty is real (0.5B, alpha 0.5): central
+  minus FL Spider +4.64 (E1-A1, p=.001), +4.84 (E2-A2, p=.001), +1.84 (E3-A3,
+  p=.166; central peaked at E2). It sits on JOIN questions (E2-A2: 41.2 vs
+  31.1) and extra-hard ones; no-JOIN is about equal. Likely cause: fewer
+  effective optimizer steps per pass (FedAvg rounds of 69-129 local steps
+  versus about 541 per central epoch), not client drift; FedNTD (+0.19) and
+  FedProx do not help.
+
+Method study (two independent reviewers, two rounds, CPU only): no new
+method with a useful chance of meeting the owner criterion. Best surviving
+candidate: K on BIRD plus public synthetic SQL rows (SynSQL-2.5M) chosen by
+the federated student's excess loss, with base-model and random selectors as
+controls; estimated 18% central screen pass, about 5% for the full
+criterion (FL carry-over plus a significant selector effect on three seeds),
+about 53 GPU-h. Private-aware KL weighting, schema-perturbation KD, dual
+adapters and LwF-style K objectives were rejected (retention effects shrink
+to about 7% after the next private round, P2.24).
+
+Owner decision: direction A is final. The paper is a framework paper: claim
+C1 (one SLM for both domains) already passes at seed 0; the teacher claim
+rests on the pooled three-seed BIRD test (R7); C3 is the K-stage forgetting
+mechanism. S1 (P2.30) and S2 (P2.34) leave the queue; R4-R6 stay recorded
+but will not be applied. Another reading kept open: the 1.5B student may
+already sit near the ceiling of this teacher and pool (Hinton - FL Spider
++1.65, ns).
+
+Rules fixed now:
+
+- **R8, JOIN subgroup (confirmatory, seeds 1 and 2 only).** Subset = Spider
+  dev questions whose gold SQL contains the token `JOIN` (case-insensitive;
+  408 of 1,034). Stack the paired outcomes of Hinton (method per R1) minus
+  matched gold at the final model over seeds 1 and 2 (seed 0 generated the
+  hypothesis and is excluded): exact conditional test on the summed
+  discordant pairs. Supported if the difference is positive with p<.05. The
+  no-JOIN subset and DK JOIN are reported with the same test, descriptive.
+- **R9, FL penalty at matched passes (descriptive).** For P2.27 `central`,
+  report Spider and BIRD central minus FL at E1-A1, E2-A2, E3-A3 with exact
+  McNemar, overall and split by R8's JOIN subset. No decision depends on it;
+  R3 (E3 - A3 >= 3.0) is unchanged. In the paper, the FL penalty is shown at
+  matched passes, not only at the final checkpoint.
 
 ## 2026-10-11: exploratory: the teacher's gain is on multi-table JOIN questions
 
@@ -50,12 +106,18 @@ Split: gold SQL contains `JOIN` (Spider dev 408 of 1,034; BIRD dev 1,140 of
 - P2.27 versus FL on JOIN: Hinton +8.1 (Spider), +9.6 (DK), +8.3 (SYN), +10.0
   (Realistic), all p<=.001; gold +2.2 to +4.8, none p<.05. On no-JOIN
   questions the public stage costs 1-5 points for both arms.
-- Errors the teacher fixes (gold arm wrong, Hinton arm right, JOIN, all six
-  runs): mostly SQLite "no such column" (88) and wrong table set; i.e.
-  multi-table schema linking.
+- Correction (same day, independent re-check of P2.27 predictions): the
+  teacher does not fix schema linking on net. On Spider JOIN questions at
+  A3, Hinton and gold pick the correct table set at the same rate (78.9 vs
+  77.2, discordant 28/21, p=.39; regex proxy) and the same SQL skeleton
+  (p=.47); "no such column" counts are 61 vs 61 (K2: 102 vs 106). The gain is
+  in queries that execute but return a wrong result (Hinton 106, gold 130).
+  The earlier "88 no such column fixes" counted one direction only. The JOIN
+  concentration is shown for the final model on Spider-family sets, not on
+  BIRD dev and not at the K stages.
 - Reading: the overall Spider gap (+1.35 at P2.27) averages a stable +5 to +9
-  JOIN gain with a zero or slightly negative no-JOIN effect. Not yet a claim:
-  needs a rule fixed before seeds 1-2 are read (owner decision pending).
+  JOIN gain with a zero or slightly negative no-JOIN effect. Not a claim:
+  rule R8 (entry above) tests it on seeds 1 and 2.
 
 ## 2026-10-11: P2.28 published; descriptive audit of the headroom
 
