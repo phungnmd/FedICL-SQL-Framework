@@ -24,11 +24,48 @@ Older detail:
   samples and a gold oracle (audit entry below).
 - A1 churn: no teacher-specific erasure (R2 not supported).
 - Next: P2.29 (`h_plain`, rule R1, running on GPU 1), then seeds 1 and 2
-  (P2.31), alpha 0.5 at 1.5B (P2.32), `central_mix` (P2.33). Rules R8-R9 were
-  added before any of their results. Co-primary criterion (2026-10-08)
-  unchanged.
+  (P2.31), the K-first baseline (P2.35), alpha 0.5 at 1.5B (P2.32),
+  `central_mix` (P2.33). Rules R8-R11 were added before any of their
+  results. Co-primary criterion (2026-10-08) unchanged; since R10 its Spider
+  endpoint for R7 claims is Spider test.
 - Closed: full-data plan-task direction, P2.10 and A1 weight merge. P2.9 paused.
   P2.16 centralized E1-E4 still have no published manifest evidence.
+
+## 2026-10-11: Spider test as the confirmatory set, K-first baseline; rules R10-R11
+
+Owner decision. Written before any model was evaluated on Spider test and
+before any P2.29, `central` or seed 1-2 result was read.
+
+Why: Spider dev and its derived sets (Realistic, SYN, DK; same 20 DBs) chose
+every design decision across 30+ arms, so they act as a validation family
+and their numbers are optimistic. The schedule grid (P2.18/P2.20, 0.5B) never
+showed AKAKA better than K-first (Hinton K2AAA 63.93 vs AKAKA 62.57 Spider, no
+contrast p<.1); AKAKA was kept by the 2026-10-07 default rule, and no
+schedule contrast exists at Coder-1.5B. No published baseline from prior art
+has been run.
+
+- **R10, Spider test (confirmatory).** The official Spider 1.0 test set
+  (2,147 questions, 40 DBs disjoint from train and dev; public since
+  2024-02, CC BY-SA 4.0; precedent: OmniSQL, VLDB 2025, reports dev and test)
+  becomes the Spider endpoint of every R7 claim (C1, teacher, R11), pooled
+  over seeds 0-2. BIRD dev stays the BIRD endpoint (BIRD test is hidden).
+  Spider test is evaluated only on final adapters of arms named in R7 and
+  R11 and on `central`; it never selects a configuration, epoch, schedule or
+  arm. Spider dev, Realistic, SYN and DK are reported as the validation
+  family. R8 is unchanged (dev); the JOIN split on test is descriptive.
+  Limitation to state: public sets may appear in pretraining data of the
+  teacher and the student.
+- **R11, K-first baseline (GPT-FL style; Zhang et al., arXiv 2306.02210:
+  server-side training on non-private data, then standard FL).** Arm
+  `hinton_k2aaa` at Coder-1.5B, alpha 0.1: one continuous two-epoch Hinton K
+  on the 9,428 BIRD rows from the base model (P2.27 K recipe), then three
+  plain FedAvg rounds; seeds 0-2. Same budget as the method (two K epochs,
+  three private rounds). Comparison: method (per R1) minus `hinton_k2aaa`,
+  co-primary criterion with R7 pooled tests on Spider test and BIRD dev.
+  Pass: the paper may claim the method beats K-first at matched budget.
+  Fail: AKAKA is presented as a design choice and K-first as an equivalent
+  alternative; reported either way. If R1 keeps NTD, the contrast is method
+  versus baseline, not the schedule alone.
 
 ## 2026-10-11: method study round 2, split audit, direction A final, rules R8-R9
 
