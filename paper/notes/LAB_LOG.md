@@ -24,6 +24,92 @@ Older detail:
   for seed 0.
 - Closed: plan-task directions, A1 weight merge, P2.9 retention, ExST (S1),
   execution-gated KD (S2). P2.16 centralized E1-E4 have no published evidence.
+- Pooled claims use the question-clustered test with three seeds, and the
+  fallback wording is fixed (amendment R13 below).
+
+## 2026-10-11: R13, amendment to R7 and R12: clustered test, seed count, fallback wording, disclosure
+
+Owner decision, written before any seed 1-2 result, any Spider test
+evaluation, and before P2.36 (`g_plain`) is read. Evidence for the power
+numbers: nested `007989f` (`scripts/audit_power_clustered.py`,
+`audits/protocol_v2/power_clustered/`; local commit, pushed after the
+running lanes publish).
+
+Why: the R7 test (exact conditional test on summed discordant pairs) treats
+each question-seed pair as independent. The same question is correlated
+across seeds: in P2.22 the per-question paired difference correlates 0.60
+(Spider dev) and 0.51 (BIRD) between seeds 0 and 1. The summed test then
+gives p values that are too small; copying one seed's 66/52 three times turns
+p=.23 into p=.029 with no new information. The pooled Wald interval for BIRD
+has the same flaw. Recorded outcomes keep their original test (P2.22 already
+used the clustered test; P2.27 and P2.29 are single-seed).
+
+1. **Test.** For every pooled claim (R7, R12, R11 via R12): per question, the
+   mean over seeds of (method EX - comparator EX). Spider passes if the mean
+   is positive and the two-sided p of the normal test across questions is
+   below .05; BIRD passes if the lower bound of the same clustered 95% CI is
+   above -2.0. Implementation: `run_p222_ntd_seed1.pooled`. Inference is over
+   questions, conditional on the training seeds used; between-seed variance
+   is reported descriptively (per-seed deltas and whether their signs agree).
+   The R12 question-bootstrap check stays as a sensitivity analysis.
+2. **Seeds: three (0, 1, 2).** Power of the clustered test (normal
+   approximation; pilots are selected seed-0 dev effects, so likely
+   optimistic):
+
+   | Claim T (Spider test) | rho 0.60 (P2.22) | rho 0.30 |
+   |---|---:|---:|
+   | 3 seeds, pilot effect +1.35 | 0.58 | 0.72 |
+   | 3 seeds, half effect +0.68 | 0.19 | 0.25 |
+   | 5 seeds, pilot effect | 0.62 | 0.80 |
+   | 5 seeds, half effect | 0.20 | 0.29 |
+
+   T's BIRD non-inferiority holds with probability 0.94-1.00 at the pilot
+   BIRD effect (+1.89) and 0.66-0.83 if the true BIRD effect is zero. P has
+   power 0.90-1.00 even at half its seed-0 effect. Because seeds are
+   correlated, five seeds add 4-8 points of power for about 67% more compute;
+   seeds are not the lever. A failed T is therefore likely even if the effect
+   is real, and the paper says so. P2.22's rho comes from reseeding only the
+   last round, so full-chain seeds likely correlate less (the rho 0.30
+   column).
+3. **Stopping rule.** No seed is added, replaced or dropped after any
+   confirmation result is read. A run that fails technically is rerun with
+   the same seed and command.
+4. **Wording fixed by outcome.** The paper uses the line for the outcome
+   that occurs:
+   - P and T pass: teacher supervision adds to public cross-domain training.
+   - P passes, T fails on Spider: "Public cross-domain training improves
+     federated Text-to-SQL; the added benefit of teacher supervision over
+     public gold was not confirmed under the pre-specified criterion." The
+     estimate and CI are reported; no claim of equivalence or of no effect.
+   - T's Spider estimate is negative: report that matched gold scored higher.
+   - T passes Spider but fails BIRD non-inferiority: T fails (both parts are
+     required); report the Spider gain with its BIRD cost.
+   - P fails: no positive pipeline claim; the owner re-plans the paper.
+   - In no case does a JOIN subgroup or another component replace a failed
+     claim; JOIN becomes a claim only through R8.
+   - Pre-specified secondary contrast, reported without a claim:
+     `g_plain` - FL with the same test, so the paper can say whether public
+     gold alone helps.
+5. **D is a recipe comparison.** `h_plain` and `hinton_k2aaa` differ in K
+   placement, NTD in A2 and stage structure, so D compares two recipes at a
+   matched budget and does not isolate placement. Its criterion is unchanged.
+6. **Selection disclosure (paper).**
+   - The paper has a short chronology:
+     - 2026-10-07: AKAKA is the default schedule unless K2AAA wins at p<.05.
+     - 2026-10-08: co-primary Spider and BIRD criterion; method v1 fixed.
+     - 2026-10-11:
+       - R10 (Spider test) and R11 (K-first);
+       - `h_plain` selected on seed 0 Spider dev after P2.29;
+       - direction B (R12);
+       - this amendment.
+   - It states that 118 checkpoints were evaluated on protocol-v2 Spider dev
+     during development. That count covers all students, bases and
+     intermediate stages in `experiments/*/results`; 15 are Coder-1.5B (P2.27:
+     14, P2.29: 1). Archived evaluations are not counted.
+   - It states that BIRD dev was also used in development and is not a
+     holdout.
+   - Outcomes under the 2026-10-08 criterion are reported as recorded.
+   - Seed 0 dev effects are described as exploratory signals, not forecasts.
 
 ## 2026-10-11: A2 test-suite EX on seed 0 Spider dev (descriptive)
 
@@ -114,7 +200,7 @@ dev results generated this hypothesis; the confirmation uses unread data
 - **R12, claims (seeds 0-2 pooled, R7 test).** Each comparison passes if
   Spider test improves with p<.05 (exact conditional test on summed
   discordant pairs) and the pooled BIRD dev Wald 95% lower bound is above
-  -2.0. Three separate hypotheses, no multiplicity correction (stated):
+  -2.0. (Test replaced by the question-clustered test, R13.) Three separate hypotheses, no multiplicity correction (stated):
   P = method vs FL `A>A>A` (pipeline); T = method vs `g_plain` (gold chain,
   plain last round; teacher); D = method vs `hinton_k2aaa` (R11, K-first at
   matched budget). R11's comparison now uses this criterion.
@@ -396,7 +482,7 @@ churn analysis, `central`, S1, S2, seeds 1 and 2):
 - **R7, confirmation (seeds 0-2, fixed split, training RNG varies).** For
   each claim, stack the paired per-question outcomes of three seeds: exact
   conditional test on the summed discordant pairs, CI from a bootstrap that
-  resamples questions. C1 (method versus FedNTD and versus FL) and the teacher
+  resamples questions. (Replaced by the question-clustered test, R13.) C1 (method versus FedNTD and versus FL) and the teacher
   claim (method versus matched gold) use the co-primary criterion of
   2026-10-08 with these pooled tests. Single-seed tests are descriptive.
 
