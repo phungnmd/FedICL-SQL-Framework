@@ -22,6 +22,38 @@ Older detail:
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
   (phase E) runs one arm at a time on both GPUs.
 
+## 2026-10-13: working direction beyond K2AAA; P2.39 frozen-A pilot queued
+
+Owner decision: K2AAA alone is too simple to be the paper's contribution; it
+becomes the strongest simple baseline the method must beat. Working direction
+(not fixed; the story is fixed only before confirmation):
+
+- Server: a stronger KD objective at K for the 7B to 1.5B gap, TAID (Shing et
+  al., ICLR 2025), reusing the P2.27 logit cache. Code after P2.38.
+- Clients: freeze LoRA A after K2 and train and send only B, FFA-LoRA (Sun et
+  al., ICLR 2024). Here A is the one learned at K2 (with or without the
+  teacher), not a random A. Upload is about half (P2.39 records exact bytes).
+- P2.38 (virtual teacher) runs first. Remaining P2.37 arms: `central_mix` and
+  `local` after P2.38 and P2.39; the `akaka_plain` pair is deferred, needed
+  only if the paper claims the K-first schedule.
+
+Why frozen A: the private rounds erode what K2 learned (Hinton BIRD 43.61 at
+K2, 36.77 at A1; gold 43.48 to 40.74), and the Spider questions behind the
+teacher edge change between K2 and A3 (entry below).
+
+P2.39 (code: nested `fe5ed88`, `7e8e3ba`): `hinton_k2_fa` and `gold_k2_fa`
+repeat the private rounds of the P2.37 K-first arms from the same K2 adapters
+with `--client-freeze-lora-a` as the only change. Pilot: one round of
+`hinton_k2_fa`. How to read the pilot (written before it runs; exploration):
+
+- Against `hinton_k2aaa` A1 (Spider 71.57, BIRD 36.77). BIRD clearly higher
+  (one BIRD question is about 0.065 point; about 2 points is resolvable) with
+  Spider within about 1 point: continue to A3 and run `gold_k2_fa`.
+- Spider clearly lower (B alone underfits the private data): try RoLoRA
+  (Chen et al., 2024, alternating A and B) instead.
+- Both flat: frozen A brings only the communication saving; keep it only if
+  the paper wants that claim.
+
 ## 2026-10-13: P2.37 K-first pair; P2.38 virtual-teacher control queued
 
 Evidence: nested `5cfd646` (`hinton_k2aaa`), `dcac509` (`gold_k2aaa`). Seed 0,

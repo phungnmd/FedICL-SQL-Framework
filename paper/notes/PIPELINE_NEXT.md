@@ -7,7 +7,9 @@ are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-13: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
 `hinton_k2aaa` and `gold_k2aaa` are published. P2.38 (virtual-teacher control)
-runs next, before the remaining P2.37 arms. Findings and open questions are in
+and the P2.39 frozen-A pilot run next. Of the remaining P2.37 arms,
+`central_mix` and `local` run after them; the `akaka_plain` pair is deferred
+(needed only if the paper claims the K-first schedule). Findings and open questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## P2.27: complete
@@ -31,47 +33,67 @@ Published in nested `31a568e` (LAB_LOG 2026-10-12). Commands, including the
 P2.29 LF restore:
 [PIPELINE_P236_2026-10-12.md](../archive/completed_runbooks/PIPELINE_P236_2026-10-12.md).
 
-## P2.38: virtual-teacher control for Hinton K2AAA (run first)
+## P2.38 and P2.39: virtual-teacher control and frozen-A pilot (run first)
 
-Question and reading guide: LAB_LOG 2026-10-13. Code: nested `4a8225c`,
-`94ed37b`. One arm, `virtual_k2aaa`: every `hinton_k2aaa` command, with the 7B
-teacher replaced by a fixed target (probability `a` on the gold token, the rest
-spread evenly over the vocabulary). Prepare measures `a` from the P2.27 teacher
-logit cache (CPU, about 10-20 min). Dev sets only. About 20 h on one GPU, like
-`hinton_k2aaa`.
+Questions and how to read them: LAB_LOG 2026-10-13. Code: nested `4a8225c`,
+`94ed37b` (P2.38), `fe5ed88`, `7e8e3ba` (P2.39). Dev sets only.
+
+- P2.38 `virtual_k2aaa`: every `hinton_k2aaa` command, with the 7B teacher
+  replaced by a fixed target (probability `a` on the gold token, the rest
+  spread evenly over the vocabulary). Prepare measures `a` from the P2.27
+  teacher logit cache (CPU, about 10-20 min). About 20 h on one GPU.
+- P2.39 `hinton_k2_fa`, `gold_k2_fa`: the private rounds of `hinton_k2aaa` and
+  `gold_k2aaa`, from the same published K2 adapters, with LoRA A frozen
+  (clients train and send only B). Pilot: one round of `hinton_k2_fa` with
+  Spider and BIRD (about 4 h with the other GPU busy), against `hinton_k2aaa`
+  A1 (Spider 71.57, BIRD 36.77). A full arm takes about 11 h.
 
 Order: step 1 pulls code that P2.37 lanes import, so it runs only when no
-P2.37 lane is running (the command checks). When a running P2.37 arm finishes,
-do not start another P2.37 arm; wait until the other GPU is free too, run
-step 1, start step 2 on one GPU and the next P2.37 arm on the other. A P2.37
-lane that finished before step 1 is published with P2.37 step 2b after step 1
-(step 2b refuses unmerged code).
+P2.37 lane is running (the command checks). A P2.37 lane that finished before
+step 1 is published with P2.37 step 2b after step 1 (step 2b refuses unmerged
+code).
 
-Memory: K2 is the measured Hinton K path (19.9 GiB peak reserved) with the
-cached teacher tensor replaced by a generated tensor of the same size; no new
-probe. Check the process's shared GPU memory in the first 15 minutes of K2.
+Memory: P2.38 K2 is the measured Hinton K path (19.9 GiB peak reserved) with
+the cached teacher tensor replaced by a generated tensor of the same size.
+P2.39 rounds are the plain A path (about 14.2 GiB) with fewer trainable
+tensors. No new probe; check the process's shared GPU memory in the first 15
+minutes of each.
 
-1. Pull, test and prepare (CPU; no P2.37 lane may be running):
+1. Pull, test, prepare both (CPU; no P2.37 lane may be running):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; r.idle_lanes().close()"; if ($LASTEXITCODE -ne 0) { throw 'A P2.37 lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_virtual_teacher.py tests/test_p238_virtual_teacher.py tests/test_p237_phase_e.py tests/test_server_retention.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p238_virtual_teacher --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.38 preparation failed' } }
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; r.idle_lanes().close()"; if ($LASTEXITCODE -ne 0) { throw 'A P2.37 lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_virtual_teacher.py tests/test_p238_virtual_teacher.py tests/test_frozen_lora_a.py tests/test_p237_phase_e.py tests/test_server_retention.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p238_virtual_teacher --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.38 preparation failed' }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.39 preparation failed' }; Write-Host 'P2.38 and P2.39 prepared' }
 ```
 
    It prints the teacher statistics (`gold_prob` is `a`). Send them in chat.
 
-2. Run on one GPU; rerun the identical command after an interruption. Spider
-   and BIRD are evaluated after K2 and each private round, all five sets after
-   A3:
+2. GPU 0, P2.38; rerun the identical command after an interruption. Spider
+   and BIRD after K2 and each private round, all five sets after A3:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p238_virtual_teacher --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.38 virtual_k2aaa failed' }; Write-Host "GPU $gpu P2.38 virtual_k2aaa complete" }
 ```
 
-3. Analyze and publish (safe while P2.37 lanes run; compares against the
-   published `hinton_k2aaa` and `gold_k2aaa` at every endpoint):
+3. GPU 1, P2.39 pilot (one round), then print the comparison with
+   `hinton_k2aaa` A1. Send the printed table in chat:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='hinton_k2_fa'; $until='a1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p239_frozen_a --phase run --arm $arm --until $until; if ($LASTEXITCODE -ne 0) { throw "P2.39 $arm failed" }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.39 analysis failed' } }
+```
+
+   If the pilot continues: the same command with `$until='a3'` (round 1 is
+   skipped), then with `$arm='gold_k2_fa'`.
+
+4. P2.38 analyze and publish (safe while other lanes run):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p238_virtual_teacher --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p238_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.38 virtual-teacher control'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p238_virtual_teacher_s0/summary.md }
+```
+
+5. P2.39 publish, after both arms reach A3:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p239_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.39 frozen-A rounds'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p239_frozen_a_s0/summary.md }
 ```
 
 ## P2.37: phase E baselines, Coder-1.5B, seed 0
