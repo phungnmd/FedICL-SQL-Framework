@@ -22,6 +22,72 @@ Older detail:
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
   (phase E) runs one arm at a time on both GPUs.
 
+## 2026-10-13: P2.37 K-first pair; P2.38 virtual-teacher control queued
+
+Evidence: nested `5cfd646` (`hinton_k2aaa`), `dcac509` (`gold_k2aaa`). Seed 0,
+dev sets, exploratory. Both arms train two server epochs on the 9,428 BIRD rows
+from the base model (K2), then three plain private rounds.
+
+| Arm / stage | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` K2 / A1 / A2 | 62.28 / 71.57 / 71.86 | | | | 43.61 / 36.77 / 38.66 |
+| `hinton_k2aaa` A3 | 72.53 | 61.81 | 56.38 | 58.32 | 38.53 |
+| `gold_k2aaa` K2 / A1 / A2 | 59.09 / 70.12 / 69.83 | | | | 43.48 / 40.74 / 39.90 |
+| `gold_k2aaa` A3 | 70.41 | 61.22 | 56.38 | 52.34 | 40.03 |
+
+- Hinton - gold, Spider: K2 +3.19 (95/62, p=.010), A1 +1.45 (p=.14), A2
+  +2.03 (p=.038), A3 +2.13 (52/30, p=.020, Wald [+0.42, +3.84]). At A3: DK
+  +5.98 (36/4, p<.001), Realistic +0.59, SYN 0.00, BIRD -1.50 (p=.12). BIRD at
+  A1 -3.98 (p<.001): the first private round erodes BIRD more after Hinton.
+- `hinton_k2aaa` A3 against references: FL Spider +4.93, DK +5.05, BIRD
+  +12.84; `central` Spider +1.16, DK -0.19. `gold_k2aaa` A3 against `central`:
+  DK -6.17 (p<.001); against `g_plain`: Spider -0.97 (p=.34).
+- Reading: under K-first the teacher edge is made in K2 and about two thirds
+  of it survives three private rounds on Spider; on DK it is large. One seed;
+  DK as a subgroup is a hypothesis until other seeds confirm it (R8).
+
+Open alternative reading. The Hinton K loss is 0.5 gold CE + 0.5 T^2 KL to the
+teacher at T=2. Any soft target regularizes, and Yuan et al. (CVPR 2020,
+"Revisiting Knowledge Distillation via Label Smoothing Regularization") get
+much of the KD gain from a hand-made "virtual teacher". The edge could come
+from the softening, not from what the 7B knows. Two controls are not used:
+
+- Gold CE weighted 0.5: AdamW updates do not change when the whole loss is
+  scaled, so it equals `gold_k2aaa`.
+- KL toward the base model (anchoring): gold K2 already keeps Spider at the
+  base level (59.09 vs base 59.19), while Hinton K2 is 3.1 points above it;
+  less forgetting cannot explain a gain above base. Lower priority.
+
+P2.38 (code: nested `4a8225c`, `94ed37b`): `virtual_k2aaa` repeats every
+`hinton_k2aaa` command with the teacher replaced by the Tf-KD_reg virtual
+teacher of Yuan et al.: probability `a` on the gold token, the rest spread
+evenly over the vocabulary, same T=2 and 0.5/0.5 weights, no teacher model or
+cache. `a` is the real teacher's mean gold-token probability at T=2 on the same
+rows (read from the P2.27 cache at prepare time, weighted as the loss weights
+rows), so both arms move the same probability mass off the gold token and
+differ only in where it goes. Prepare also records the teacher's mass on its
+top 10 non-gold tokens and its entropy. Owner decision 2026-10-13: run it
+before the remaining P2.37 arms.
+
+How to read P2.38 (written before any P2.38 result; exploration, no pass/fail):
+
+- Main contrasts at every endpoint: `hinton_k2aaa - virtual_k2aaa` (teacher
+  knowledge beyond the softening) and `virtual_k2aaa - gold_k2aaa` (softening
+  alone).
+- Virtual near gold, Hinton - virtual near Hinton - gold (A3: Spider about +2,
+  DK about +6): the edge comes from where the teacher puts its mass. The
+  teacher contribution holds at seed 0.
+- Virtual near Hinton: the softening explains the edge; the teacher claim in
+  its current form does not hold and the direction goes back to the owner.
+- Both contrasts positive: report the split between the two.
+- Virtual clearly below gold: the even spread over about 152k tokens may be a
+  harsher regularizer than the teacher's own target. Compare Hinton with the
+  better of gold and virtual, and say so; read it with the top-10 mass from
+  prepare.
+- Precision at one seed: one Spider question is about 0.1 point, one DK
+  question about 0.19 point; Spider differences under about 2 points are not
+  resolved.
+
 ## 2026-10-12: P2.36 `g_plain` published; teacher edge on Spider gone with a plain last round
 
 Evidence: nested `31a568e` (`audits/protocol_v2/p236_g_plain_s0/summary.md`).
