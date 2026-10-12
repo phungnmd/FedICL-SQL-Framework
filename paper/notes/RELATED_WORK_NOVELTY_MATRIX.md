@@ -3,6 +3,10 @@
 > What this file is: the limits on what the paper may call new. Written
 > 2026-08-26 (P1.4b); not a full bibliography. Links point to primary pages.
 >
+> It limits claim wording, not the choice of direction. Overlap with a
+> mechanism published for another task or domain is not a reason to drop a
+> direction (`AGENTS.md`, novelty bar for Q3, owner 2026-10-12).
+>
 > Claim framing updated 2026-10-02. The tested reference has one public stage;
 > placement and subsequent private-round depth remain research variables.
 > Recurring KD describes related work or a candidate schedule, not a frozen

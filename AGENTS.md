@@ -42,6 +42,15 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   strong enough for Q3 on its own. Do not offer it as the default fallback;
   look for directions that keep a real teacher contribution within the fixed
   constraints, and say plainly if none is supported.
+- Novelty bar for Q3 (owner, 2026-10-12): applying a published mechanism to
+  federated Text-to-SQL with a task-specific adaptation (execution checks,
+  schema handling, the private/public split, the FL schedule) is enough
+  novelty for this venue. Do not drop or down-rank a direction because a
+  similar mechanism exists in another task or domain (for example FedCoT,
+  FDKT, GKD, STaR). Cite the closest work, state what differs, and judge the
+  direction on whether its evidence can hold. Only the wording stays limited:
+  no "first" claims and no hiding the closest prior work
+  (`paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`).
 
 ## Read first
 
