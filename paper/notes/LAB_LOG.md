@@ -42,9 +42,14 @@ from the base model (K2), then three plain private rounds.
 - `hinton_k2aaa` A3 against references: FL Spider +4.93, DK +5.05, BIRD
   +12.84; `central` Spider +1.16, DK -0.19. `gold_k2aaa` A3 against `central`:
   DK -6.17 (p<.001); against `g_plain`: Spider -0.97 (p=.34).
-- Reading: under K-first the teacher edge is made in K2 and about two thirds
-  of it survives three private rounds on Spider; on DK it is large. One seed;
-  DK as a subgroup is a hypothesis until other seeds confirm it (R8).
+- Reading: under K-first the teacher edge is made in K2 and the net Spider
+  gap at A3 is about two thirds of the K2 gap; on DK it is large. The
+  questions behind the gap change: of the 95 questions only Hinton solved at
+  K2, 8 are still Hinton-only at A3 and 76 are solved by both; only 8 of the
+  52 Hinton-only questions at A3 were Hinton-only at K2. So the two-thirds
+  ratio describes the net gap, not retained knowledge, and does not predict
+  how much of a larger K gain would survive. One seed; DK as a subgroup is a
+  hypothesis until other seeds confirm it (R8).
 
 Open alternative reading. The Hinton K loss is 0.5 gold CE + 0.5 T^2 KL to the
 teacher at T=2. Any soft target regularizes, and Yuan et al. (CVPR 2020,
@@ -69,21 +74,31 @@ differ only in where it goes. Prepare also records the teacher's mass on its
 top 10 non-gold tokens and its entropy. Owner decision 2026-10-13: run it
 before the remaining P2.37 arms.
 
-How to read P2.38 (written before any P2.38 result; exploration, no pass/fail):
+How to read P2.38 (written before any P2.38 result; exploration, no pass/fail;
+amended the same day, still before any result, after a second review):
 
 - Main contrasts at every endpoint: `hinton_k2aaa - virtual_k2aaa` (teacher
   knowledge beyond the softening) and `virtual_k2aaa - gold_k2aaa` (softening
   alone).
+- One seed gives a direction, not a verdict. A non-significant difference
+  does not show two arms are equal; seed 0 only decides whether this control
+  joins the confirmation set.
 - Virtual near gold, Hinton - virtual near Hinton - gold (A3: Spider about +2,
-  DK about +6): the edge comes from where the teacher puts its mass. The
-  teacher contribution holds at seed 0.
-- Virtual near Hinton: the softening explains the edge; the teacher claim in
-  its current form does not hold and the direction goes back to the owner.
+  DK about +6): supports that the edge comes from where the teacher puts its
+  mass, not from the softening.
+- Virtual near Hinton: weakens the case that the 7B teacher is needed in this
+  recipe; the owner decides whether to confirm it over seeds and how the story
+  changes. It says nothing about other KD forms (TAID and others need their
+  own comparison).
 - Both contrasts positive: report the split between the two.
 - Virtual clearly below gold: the even spread over about 152k tokens may be a
   harsher regularizer than the teacher's own target. Compare Hinton with the
-  better of gold and virtual, and say so; read it with the top-10 mass from
-  prepare.
+  better of gold and virtual, say so, and read it with the top-10 mass from
+  prepare. The next control is then standard label smoothing on gold CE
+  (epsilon 0.1; Szegedy et al., CVPR 2016).
+- If prepare gives a low `a` (the virtual target then moves much mass), the
+  owner may add that epsilon 0.1 arm before the run; `a` is a teacher
+  statistic, not a result.
 - Precision at one seed: one Spider question is about 0.1 point, one DK
   question about 0.19 point; Spider differences under about 2 points are not
   resolved.
