@@ -74,6 +74,16 @@ minutes; its peak reserved VRAM is in the result metrics.
 & { $ErrorActionPreference='Stop'; $gpu='0'; $arm='hinton_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p237_phase_e --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.37 $arm failed" }; Write-Host "GPU $gpu P2.37 $arm complete" }
 ```
 
+2b. Publish one finished lane (safe while other lanes run). Set `$lane` to
+   the finished arm (`local` for the five local clients). It commits only
+   stage rows, receipts and evaluation files of that lane; the run manifest,
+   runtime reports and summary wait for step 3, which skips files already
+   committed. If the push is rejected, stop and report; never rebase.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $lane='hinton_k2aaa'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/list_p237_arm_publication\.py|tests/test_list_p237_arm_publication\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_list_p237_arm_publication.py; if ($LASTEXITCODE -ne 0) { throw 'Lister tests failed' }; $files=@(uv run --no-sync python -m scripts.list_p237_arm_publication $lane); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m "results: record P2.37 $lane"; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Write-Host "Published P2.37 $lane ($($files.Count) files)" }
+```
+
 3. Analyze and publish, after all six arms finish (needs P2.36 published):
 
 ```powershell
