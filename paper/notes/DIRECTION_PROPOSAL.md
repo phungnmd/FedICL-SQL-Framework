@@ -24,8 +24,8 @@ và **15% cho một manuscript framework Q3 có evidence và contribution đủ 
 |---|---:|
 | Pilot chạy đúng, ổn định trên hai A5000, không paging | 80–90% |
 | Sau đủ ba private rounds, Spider tăng ít nhất 1 điểm phần trăm so với Hinton K2AAA, lợi ích tái lập trên các seed xác nhận | 20–35% |
-| Toàn pipeline có lợi ích teacher-specific tái lập so với gold K2 và cùng private self-KD | 15–30% |
-| Đồng thời có gain, đóng góp teacher, phân tích federation và khác biệt đủ rõ với prior art để viết manuscript framework Q3 đáng tin | 10–20% |
+| H-P hơn G-P trên Spider ở confirmation, effect dương và paired 95% CI loại 0, với cùng private self-KD | 15–30% |
+| Đồng thời đạt terminal gain ở hàng 2, teacher effect ở hàng 3, phân tích federation và khác biệt đủ rõ với prior art để viết manuscript framework Q3 đáng tin | 10–20% |
 
 Giả định: giữ model, dữ liệu và hai GPU hiện tại; một pilot, tối đa một sửa đổi
 cơ chế có lý do từ diagnostic, rồi mới quyết định đầu tư confirmation. Các
@@ -73,7 +73,7 @@ và metadata primary tới ngày trên; không tuyên bố bao phủ toàn bộ 
 | Prior gần | Điều đã có | Hệ quả cho đề xuất |
 |---|---|---|
 | [OPSD, ICML 2026, bản v3][opsd] | Self-teacher xem privileged solution, chấm student rollouts; dùng clipped forward KL. Qwen3-1.7B có kết quả dương. | Cơ chế local được kế thừa. Training có CoT solutions, evaluation math có thinking và nhiều samples; không phải bằng chứng SQL-only 1.5B. |
-| [SDFT, ICML 2026][sdft] | Demonstration-conditioned self-teacher cho continual learning. | Có cơ sở cho adaptation/retention; thí nghiệm 3B có thể thua SFT. Paper báo khoảng 4 lần wall-time SFT, không được gọi self-KD là miễn phí. |
+| [SDFT, ICML 2026][sdft] | Demonstration-conditioned self-teacher cho continual learning. | Qwen2.5-3B thua SFT trong thí nghiệm Science Q&A của paper. Paper báo khoảng 4 lần wall-time SFT; cả hai kết quả chưa phải dự báo cho SQL. |
 | [FedSDR, ICML 2026][fedsdr] | Client rewrite đáp án bằng local model; dual LoRA học distilled/raw data, chỉ aggregate một nhánh. | Private-label self-distillation và adapter-only FL đã có; khác đề xuất ở offline sequence targets và thiết kế hai nhánh. |
 | [SPEAR, preprint, v2 2026-09-27][spear] | Có federated OPSD baseline trên Qwen2.5-1.5B, LoRA r16. | Không thể claim lần đầu đưa OPSD vào FL. Collapse trong feedback setting không trực tiếp bác bỏ gold-SQL conditioning của ta. |
 | [SERL-SQL, preprint, v4 2026-10-08][serl] | Self-teacher dùng execution hindsight để reweight GRPO trên SQL trajectories. | SQL self-distillation có privileged feedback cũng đã có. Khác direct KL với gold SQL; không có bằng chứng cho setup 1.5B/hai A5000 của ta. |
@@ -112,7 +112,7 @@ Client i: nhận global adapter θt
     x = private question + private schema
     y* = private gold SQL
 
-    student(x) sinh một SQL rollout ŷ
+    student hiện tại sinh một SQL rollout ŷ cho mỗi row trong microbatch
     tutor(x, reference=y*) chấm đúng các prefix của ŷ
     student học gold CE và distillation trên ŷ
 
@@ -122,6 +122,9 @@ Gửi adapter θi → sample-weighted FedAvg → θ(t+1)
 Tutor là **bản sao SLM 1.5B**, không phải teacher 7B. Nó không tự sinh một
 bộ rationale để SFT trong phiên bản này. Đầu mỗi round, tutor được thay bằng
 snapshot global mới; việc refresh theo round là lựa chọn của đề xuất.
+Rollout được sinh mới từ student hiện tại ngay trước update của minibatch;
+không sinh một lần cho cả round rồi gọi đó là on-policy. Token cache chỉ
+phục vụ scoring và update tương ứng, không thay việc refresh rollout.
 
 Với response prefix giống nhau:
 
@@ -148,8 +151,11 @@ Cấu hình screen **đề xuất**, không phải default của paper: `λ=0.1`
 SQL/row với sampling temperature 1 và top-p 1, cap 256 new tokens.
 Giữ LoRA r16, optimizer/LR/batch/accumulation như A baseline; một optimizer
 update sau khi cộng gradient CE và KD. `τ` không phải ratio clipping.
-Phải ghi fraction bị clip, norm gradient và độ dài thực tế; các giá trị này
-chưa được tune hoặc đo. Prompt tutor nêu đây là SQL tham chiếu của câu đang
+Trong probe, đo `||λg_KD|| / ||g_CE||` và gradient cosine giữa hai objectives
+trên cùng minibatch để phân biệt tín hiệu yếu với xung đột CE. Báo fraction
+vocabulary contributions bị clip, fraction response positions có clipping
+và độ dài thực tế. Các giá trị này chưa được tune hoặc đo.
+Prompt tutor nêu đây là SQL tham chiếu của câu đang
 train; student và evaluation không nhận phần tham chiếu đó.
 
 CE và KD là hai forward/backward microsteps với hai sequences khác nhau.
@@ -227,7 +233,10 @@ pass/fail rules đã retired. Chưa có lệnh chạy mới trong proposal.
 4. **Chẩn đoán federation rồi mới confirmation:** so local checkpoints,
    FedAvg và matched centralized H/G × C/P; thêm alpha 0.5 nếu claim liên
    quan heterogeneity. Không gọi aggregation loss hay client drift chỉ từ
-   việc FL thấp hơn central. Xác nhận cuối tuân theo mục 9.
+   việc FL thấp hơn central. Trước claim framework mới, cần một comparator
+   federated self-distillation gần như FedSDR trên cùng student/budget,
+   ghi rõ mọi adaptation; matrix trên chỉ tách cơ chế, chưa thay thế được
+   related-method baseline. Xác nhận cuối tuân theo mục 9.
 
 **Lý do dừng hoặc thu hẹp:** không chạy được dưới memory cap; gold-context
 không tạo lợi ích downstream hơn H-N; gain chỉ có sau A1 rồi mất ở AAA;
@@ -253,10 +262,13 @@ P2.37 đã đo, không phải dự báo:
 Nguồn: [metrics K2](../../fedicl-sql/experiments/federated/results/federated_stage__K2fkl__s0__132e798a5be2__8393f0f9/metrics.json)
 và result directories trong receipts A1–A3 ở mục 2. Chưa cộng evaluation;
 đây là một run dưới tải thực tế, không phải tốc độ ổn định của phần cứng.
+K2 dùng teacher-logit cache đã có. Các số này loại trừ chi phí tạo cache
+7B ban đầu; paper resource table phải báo riêng chi phí một lần và cách
+phân bổ qua các runs dùng chung cache.
 
 Kịch bản lập ngân sách, **chưa đo**: nếu local self-KD tốn 2–4 lần A hiện
 tại, ba private rounds tốn khoảng 13–26 GPU-h. Từ base, cộng K2 thành
-khoảng **20–34 GPU-h/arm**, chưa eval và debug. Hai arm local mới ở bước 2
+khoảng **20–34 GPU-h/arm**, dùng lại public cache, chưa eval và debug. Hai arm local mới ở bước 2
 khoảng 9–19 GPU-h theo A1 hiện tại; smoke sẽ thay thế dự báo này.
 Không chia GPU-hours cho hai để hứa wall-time, vì các round phụ thuộc nhau
 và hai card cùng bận đã từng chậm hơn.
