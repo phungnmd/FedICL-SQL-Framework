@@ -22,6 +22,71 @@ Older detail:
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
   (phase E) runs one arm at a time on both GPUs.
 
+## 2026-10-13: frozen A dropped; P2.41 Hinton T=1 and P2.42 central from K2 queued
+
+Owner decision: the frozen-A line stops at the P2.39 pilot (entry below) and
+RoLoRA is not queued. The pilot's A1 is still published (P2.39 step 5).
+
+Two arms added, both written before any of their results (exploration, seed
+0, dev sets). They are pulled with P2.40; P2.41 runs next to P2.40 on the
+other GPU.
+
+P2.41 (code: nested `9849a46`): `hinton_t1_k2aaa` repeats every
+`hinton_k2aaa` command with `--kl-temperature 1` at K2 (the T^2 factor of the
+KD term is then 1). Same teacher cache, same 0.5 gold CE + 0.5 KD, same
+rounds.
+
+- Why: TAID minus Hinton (P2.40) changes the target and the temperature
+  together. TAID minus Hinton T=1 changes only the target. Hinton T=1 minus
+  Hinton T=2 shows how much of the teacher effect needs the softened tail: at
+  T=2 the teacher keeps 0.728 on the gold token and about 80% of its off-gold
+  mass is outside its top 10 tokens (P2.38 prepare); at T=1 the target is
+  sharper.
+- TAID - Hinton T=1 clearly positive (Spider about 2 points or more at K2 or
+  A3, DK, or less BIRD erosion after K2): supports TAID's interpolated target
+  as the server objective; TAID - Hinton T=2 then says whether it also beats
+  the published recipe.
+- Hinton T=1 clearly below Hinton T=2: the softened tail carries part of the
+  effect. Read with P2.38: if Hinton is also clearly above virtual, the tail's
+  content matters, and a KD target that keeps the teacher's tail at lower
+  cost (sparse or sampled KD, Anshumann et al., ACL 2025) is the next
+  server-side candidate.
+- All three near each other: temperature and interpolation do not change the
+  teacher effect at this scale; the gain is not in the KD form.
+- Teacher contribution of each arm = arm minus `gold_k2aaa`, read as in the
+  P2.38 and P2.40 guides. The P2.41 summary holds every contrast; its analysis
+  needs the finished P2.40 run.
+
+P2.42 (code: nested `129c8ee`): `central_k2` repeats the P2.27 `central`
+command (all 8,659 Spider train rows pooled, three epochs on one cosine
+schedule, epoch snapshots) from the published `hinton_k2aaa` K2 adapter.
+Epoch N sees the private data N times, as round aN does (one local epoch per
+round), so eN is read against aN (R9).
+
+- Why: it measures the FL penalty after K2, which decides whether a
+  federated-side method has room.
+- Main contrast: `central_k2` eN - `hinton_k2aaa` aN, Spider and BIRD at each
+  pass, all five sets at pass 3. Reference, recomputed in the summary: the
+  P2.27 penalty from the base model (central - FL: Spider +1.93, +2.90,
+  +3.77; BIRD about 0).
+- Penalty after K2 about as large as from base (Spider about 2 points or more
+  at pass 2-3): the private rounds limit what K2 gives; a client-side method
+  that keeps the K2 knowledge during FedAvg has room (candidate: FedDAT, Chen
+  et al., AAAI 2024; it would need its own entry).
+- Penalty after K2 within about 1 point: little room on the FL side; method
+  effort stays on the server objective.
+- BIRD: if `central_k2` E1 also falls from 43.61 (K2) by a similar amount as
+  `hinton_k2aaa` A1 (36.77), the erosion comes from Spider training itself,
+  not from aggregation, and an FL-side method will not stop it.
+- `central_k2` - P2.27 `central` at each pass: whether the K2 start helps
+  pooled training as it helps FL (for reference, `hinton_k2aaa` A3 is 1.16
+  Spider points above central E3 from the base model).
+- A comparator, not an upper bound: Spider only, the same schedule, and E3
+  may be past its peak.
+
+Cost: P2.41 about 20 h on one GPU; P2.42 about 7-8 h of training plus nine
+evaluations (about 3-4 h).
+
 ## 2026-10-13: P2.39 frozen-A pilot: Spider lower, BIRD erosion not stopped
 
 Evidence: on the server, not committed yet; published with P2.39 step 5 after
