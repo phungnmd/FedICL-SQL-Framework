@@ -22,6 +22,47 @@ Older detail:
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
   (phase E) runs one arm at a time on both GPUs.
 
+## 2026-10-13: P2.40 TAID at K2 queued
+
+Code: nested `c5d9735` (TAID in the Hinton public stage), `02c30d3` (runner).
+Written before any P2.40 result; exploration, seed 0, dev sets.
+
+`taid_k2aaa` repeats every `hinton_k2aaa` command; only the K2 soft target
+changes, to TAID (Shing et al., ICLR 2025; official SakanaAI/TAID code): the
+target is softmax((1-t) * detached student logits + t * teacher logits), the
+loss is forward KL to it, `t` goes from 0.4 to 1 with alpha 5e-4 and beta 0.99,
+and there is no temperature (T=1).
+
+Choices that are ours, not the paper's:
+
+- Loss 0.5 gold CE + 0.5 TAID KL, as in the Hinton reference; the paper
+  trains on the KD loss alone.
+- `t` moves once per optimizer update (16 accumulated rows), on the mean TAID
+  loss of that update, as in the paper's algorithm (one step per batch). The
+  official code calls the update on every forward call, which with gradient
+  accumulation would move `t` up to 16 times per update.
+- With 1,180 K2 updates, `t` follows the linear floor exactly: the adaptive
+  step, alpha * sigmoid(momentum) * (1 - t), is at most 3e-4, below the
+  floor's increment 0.6 / 1,180 = 5.1e-4. P2.40 therefore tests TAID's
+  interpolated target on a linear schedule; the adaptive part is inactive at
+  the published alpha. The K2 metrics record `t` after every update.
+
+How to read it (comparators: published `hinton_k2aaa` and `gold_k2aaa`, and
+P2.38 `virtual_k2aaa` once published):
+
+- TAID minus Hinton changes the target and the temperature (1 against 2). It
+  compares the two published objectives and does not isolate the
+  interpolation; if TAID is ahead, a Hinton arm at T=1 separates the two.
+- Main look: the teacher contribution, arm minus `gold_k2aaa`, at K2 and A3 on
+  Spider, DK and BIRD, against Hinton's (Spider K2 +3.19, A3 +2.13; DK A3
+  +5.98; BIRD A1 -3.98, A3 -1.50), and whether BIRD erodes less after K2
+  (Hinton 43.61 at K2, 36.77 at A1).
+- One seed: a Spider question is about 0.1 point and Spider differences under
+  about 2 points are not resolved; a non-significant difference is not
+  equivalence. A choice made from this result goes to the confirmation runs.
+- Cost: K2 about 7-8 h, three rounds and evaluations about 12 h, on one GPU.
+  Step 1 pulls code every lane imports, so it runs only when no lane runs.
+
 ## 2026-10-13: working direction beyond K2AAA; P2.39 frozen-A pilot queued
 
 Owner decision: K2AAA alone is too simple to be the paper's contribution; it

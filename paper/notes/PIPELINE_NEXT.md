@@ -7,7 +7,8 @@ are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-13: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
 `hinton_k2aaa` and `gold_k2aaa` are published. P2.38 (virtual-teacher control)
-and the P2.39 frozen-A pilot run next. Of the remaining P2.37 arms,
+and the P2.39 frozen-A pilot run next, then P2.40 (TAID at K2) when a GPU is
+free and no lane runs. Of the remaining P2.37 arms,
 `central_mix` and `local` run after them; the `akaka_plain` pair is deferred
 (needed only if the paper claims the K-first schedule). Findings and open questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
@@ -94,6 +95,50 @@ minutes of each.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p239_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.39 frozen-A rounds'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p239_frozen_a_s0/summary.md }
+```
+
+## P2.40: TAID at K2 (after P2.38 and the P2.39 pilot)
+
+Question and how to read it: LAB_LOG 2026-10-13 (P2.40 entry). Code: nested
+`c5d9735`, `02c30d3`. Dev sets only.
+
+- `taid_k2aaa`: every `hinton_k2aaa` command, except that the K2 soft target
+  is TAID (Shing et al., ICLR 2025): it starts as a mix of the student's own
+  distribution (60%) and the teacher's (40%) in logit space and moves to the
+  pure teacher by the end of K2. T=1 as published; same teacher logit cache,
+  same 0.5 gold CE + 0.5 KD weights, same three private rounds. About 20 h on
+  one GPU.
+- With 1,180 K2 updates the schedule is the linear path from 0.4 to 1 (the
+  adaptive part of TAID cannot overtake it at the published step size); the
+  K2 metrics record `t` after every update.
+
+Order: step 1 pulls training code that every running lane imports, so it runs
+only when no P2.37, P2.38 or P2.39 lane runs on either GPU (the command checks
+both GPU locks). It also brings any fix not yet pulled, such as the P2.39
+frozen-A aggregation fix `e5c7fd6`.
+
+Memory: the Hinton K path (19.9 GiB peak reserved) plus one float32 target
+tensor per row, a few hundred MB. No new probe; check the process's shared GPU
+memory in the first 15 minutes of K2 and send the K2 peak from the log.
+
+1. Pull, test, prepare (CPU; no lane may be running):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; uv run --no-sync python -c "from contextlib import ExitStack; from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; s=ExitStack(); [s.enter_context(exclusive_lock(r.AUDIT / f'gpu_{d}.lock')) for d in '01']; s.close()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_taid.py tests/test_p240_taid.py tests/test_trainer_epoch_resume.py tests/test_frozen_lora_a.py tests/test_p237_phase_e.py tests/test_server_retention.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p240_taid --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.40 preparation failed' }; Write-Host 'P2.40 prepared' }
+```
+
+2. One free GPU (set `$gpu`); rerun the identical command after an
+   interruption. Spider and BIRD after K2 and each private round, all five
+   sets after A3:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p240_taid --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.40 taid_k2aaa failed' }; Write-Host "GPU $gpu P2.40 taid_k2aaa complete" }
+```
+
+3. Analyze and publish (safe while other lanes run):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p240_taid --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p240_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.40 TAID K2AAA'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p240_taid_s0/summary.md }
 ```
 
 ## P2.37: phase E baselines, Coder-1.5B, seed 0
