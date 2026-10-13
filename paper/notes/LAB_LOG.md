@@ -22,6 +22,42 @@ Older detail:
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
   (phase E) runs one arm at a time on both GPUs.
 
+## 2026-10-13: P2.39 frozen-A pilot: Spider lower, BIRD erosion not stopped
+
+Evidence: on the server, not committed yet; published with P2.39 step 5 after
+the P2.40 pull (nested `e0d1f55` lets the lister publish A1 alone). Seed 0,
+dev sets, exploratory. One private round from the published Hinton K2 adapter
+with LoRA A frozen (`hinton_k2_fa` A1), against the same round with A trained
+(`hinton_k2aaa` A1).
+
+| Arm, A1 | Spider | BIRD |
+|---|---:|---:|
+| `hinton_k2_fa` (A frozen) | 70.02 | 37.61 |
+| `hinton_k2aaa` (A trained) | 71.57 | 36.77 |
+
+- Spider -1.55 (9/25, p=.009, Wald [-2.65, -0.45]); BIRD +0.85 (50/37,
+  p=.20).
+- Communication per round: client upload 206.4 MB (B only) against 369.6 MB
+  for full adapters, -44%. B is 56% of this adapter because the MLP gate and
+  up projections have wide outputs. Broadcast has the same ratio.
+- Pre-written reading: Spider clearly lower, so the guide's next step is
+  RoLoRA.
+- Reading against the mechanism: BIRD falls from 43.61 at K2 to 37.61 with A
+  frozen and to 36.77 with A trained, so about 88% of the first-round erosion
+  (6.00 of 6.84 points) goes through B alone. The hypothesis behind frozen A
+  (the K2 knowledge sits in A) is not supported. RoLoRA alternates A and B to
+  fix how the two factors are aggregated; it does not target this erosion, so
+  here it would only carry the communication saving.
+- Alternative reading: B-only training may need a larger learning rate
+  (FFA-LoRA tunes it). That could recover Spider, but moving B more would not
+  reduce the erosion, and each retuned variant adds dev selection.
+- Known trade-off from earlier arms: client retention toward the K model
+  keeps BIRD but costs Spider (`hinton_v1` with A[ntd]: Spider 69.25, BIRD
+  43.29; `h_plain`: 71.76, 39.96).
+- Recommendation, for the owner to decide: stop the frozen-A line at the
+  pilot and do not queue RoLoRA. Meanwhile GPU 1 runs P2.37 `central_mix`
+  (no new code).
+
 ## 2026-10-13: P2.40 TAID at K2 queued
 
 Code: nested `c5d9735` (TAID in the Hinton public stage), `02c30d3` (runner).

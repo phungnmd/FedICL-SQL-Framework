@@ -7,10 +7,11 @@ are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-13: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
 `hinton_k2aaa` and `gold_k2aaa` are published. P2.38 (virtual-teacher control)
-and the P2.39 frozen-A pilot run next, then P2.40 (TAID at K2) when a GPU is
-free and no lane runs. Of the remaining P2.37 arms,
-`central_mix` and `local` run after them; the `akaka_plain` pair is deferred
-(needed only if the paper claims the K-first schedule). Findings and open questions are in
+runs on GPU 0. The P2.39 frozen-A pilot is done (LAB_LOG 2026-10-13, not
+continued unless the owner decides); GPU 1 runs P2.37 `central_mix`, then
+`local`. P2.40 (TAID at K2) starts when no lane runs on either GPU. The
+`akaka_plain` pair is deferred (needed only if the paper claims the K-first
+schedule). Findings and open questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## P2.27: complete
@@ -82,8 +83,11 @@ minutes of each.
 & { $ErrorActionPreference='Stop'; $gpu='1'; $arm='hinton_k2_fa'; $until='a1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p239_frozen_a --phase run --arm $arm --until $until; if ($LASTEXITCODE -ne 0) { throw "P2.39 $arm failed" }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.39 analysis failed' } }
 ```
 
-   If the pilot continues: the same command with `$until='a3'` (round 1 is
-   skipped), then with `$arm='gold_k2_fa'`.
+   Done 2026-10-13: Spider -1.55, BIRD +0.85 (LAB_LOG). It continues only
+   if the owner decides: the same command with `$until='a3'` (round 1 is
+   skipped), then with `$arm='gold_k2_fa'`. Next on GPU 1: P2.37 step 2
+   with `$gpu='1'` and `$arm='central_mix'`, then `$arm='local'`; publish
+   each with P2.37 step 2b after P2.40 step 1 has pulled the code.
 
 4. P2.38 analyze and publish (safe while other lanes run):
 
@@ -91,7 +95,9 @@ minutes of each.
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p238_virtual_teacher --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p238_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.38 virtual-teacher control'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p238_virtual_teacher_s0/summary.md }
 ```
 
-5. P2.39 publish, after both arms reach A3:
+5. P2.39 publish (publishes every evaluated endpoint, so the pilot's A1
+   alone), after P2.40 step 1 has pulled the code (before that, the
+   incoming-code check refuses):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p239_frozen_a --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p239_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record P2.39 frozen-A rounds'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p239_frozen_a_s0/summary.md }
