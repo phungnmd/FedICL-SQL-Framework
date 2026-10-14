@@ -29,7 +29,9 @@ RoLoRA is not queued. The pilot's A1 is still published (P2.39 step 5).
 
 Two arms added, both written before any of their results (exploration, seed
 0, dev sets). They are pulled with P2.40; P2.41 runs next to P2.40 on the
-other GPU.
+other GPU. Amended 2026-10-14, before any P2.41 or P2.42 result, after a
+review: the P2.41 readings claimed more isolation than the arm gives, and the
+"about 2 points" marks below set priority for the next step, not pass/fail.
 
 P2.41 (code: nested `9849a46`): `hinton_t1_k2aaa` repeats every
 `hinton_k2aaa` command with `--kl-temperature 1` at K2 (the T^2 factor of the
@@ -38,21 +40,22 @@ rounds.
 
 - Why: TAID minus Hinton (P2.40) changes the target and the temperature
   together. TAID minus Hinton T=1 changes only the target. Hinton T=1 minus
-  Hinton T=2 shows how much of the teacher effect needs the softened tail: at
-  T=2 the teacher keeps 0.728 on the gold token and about 80% of its off-gold
-  mass is outside its top 10 tokens (P2.38 prepare); at T=1 the target is
-  sharper.
+  Hinton T=2 tests the temperature recipe: T changes the teacher's and the
+  student's distributions and the gradient together, so it does not isolate
+  the tail. At T=2 the teacher keeps 0.728 on the gold token and about 80% of
+  its off-gold mass is outside its top 10 tokens (P2.38 prepare); at T=1 the
+  target is sharper.
 - TAID - Hinton T=1 clearly positive (Spider about 2 points or more at K2 or
   A3, DK, or less BIRD erosion after K2): supports TAID's interpolated target
   as the server objective; TAID - Hinton T=2 then says whether it also beats
   the published recipe.
-- Hinton T=1 clearly below Hinton T=2: the softened tail carries part of the
-  effect. Read with P2.38: if Hinton is also clearly above virtual, the tail's
-  content matters, and a KD target that keeps the teacher's tail at lower
-  cost (sparse or sampled KD, Anshumann et al., ACL 2025) is the next
-  server-side candidate.
-- All three near each other: temperature and interpolation do not change the
-  teacher effect at this scale; the gain is not in the KD form.
+- Hinton T=1 clearly below Hinton T=2: the temperature recipe matters, which
+  suggests without showing that the softened tail carries part of the effect.
+  Sampled KD (Anshumann et al., ACL 2025) keeps an unbiased sample of the
+  teacher's tail and would test it directly; it is mainly an efficiency
+  method, so it enters only as that test.
+- All three near each other: neutral. Temperature and TAID's interpolation do
+  not change the teacher effect at this scale; other KD forms stay open.
 - Teacher contribution of each arm = arm minus `gold_k2aaa`, read as in the
   P2.38 and P2.40 guides. The P2.41 summary holds every contrast; its analysis
   needs the finished P2.40 run.
