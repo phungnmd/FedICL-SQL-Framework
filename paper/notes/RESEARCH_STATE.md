@@ -75,30 +75,47 @@ từng được publish, không trích dẫn.
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | `central_mix` (Spider + BIRD gold) |
 | Q5 | Teacher SQL (SeqKD) có khác soft label không? | không trong giai đoạn E (P2.6: edge mất sau round private cuối) |
 | Q6 | Kết quả có giữ khi heterogeneity khác không? | alpha 0.5, để sau |
+| Q7 | Setup hiện tại có client drift thật không, hay FL thua central vì lý do khác? | audit trên adapter client của P2.27 FL (chưa lên lịch) |
+| Q8 | Nếu teacher dạy CoT ở server và client tự sinh CoT có kiểm chứng trên dữ liệu private, lợi thế teacher có sống tới model cuối không? | pilot P0-P2 rồi `cot_fed`, `cot_template`, `cot_noteacher` trong [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md); cần owner mở lại hướng CoT |
 
-Danh sách arm của giai đoạn E đã chốt (P2.37, LAB_LOG 2026-10-11) trước khi
-chạy; không thêm arm sau khi thấy kết quả.
+Danh sách arm P2.37 giữ làm baseline. Từ 2026-10-12 được thêm arm sau khi
+xem kết quả (luật 1, mục 5).
 
 ## 5. Giai đoạn và luật đang áp dụng
 
-1. **E, thăm dò** (hiện tại): hoàn thiện bảng baseline Coder-1.5B ở seed 0,
-   chỉ trên Spider dev và BIRD dev.
-2. **Chốt câu chuyện:** một entry có ngày trong LAB_LOG nêu claim, arm, phép
-   kiểm và câu chữ cho từng kết quả, trước khi chạy seed 1-2 hay eval Spider
-   test.
-3. **C, xác nhận:** seed 0-2, Spider test cho claim Spider.
+Giai đoạn hiện tại: **thăm dò**, seed 0, chỉ trên dev (Spider dev, các biến
+thể, BIRD dev). Hướng đề xuất tiếp theo, chưa chốt:
+[DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
 
-Luật còn hiệu lực (chi tiết trong LAB_LOG 2026-10-11):
+Ba luật (owner, LAB_LOG 2026-10-12):
 
-- R10: Spider test chỉ dùng để xác nhận; không dùng để chọn cấu hình.
-- R13: gộp seed bằng question-clustered test; mặc định 3 seed (power đã
-  tính); không thêm seed sau khi đọc kết quả.
-- R8: phân tích JOIN chỉ thành claim khi giữ trên seed không sinh ra nó.
+1. **Thăm dò tự do.** Được đọc mọi kết quả dev ở seed 0 và dùng nó để chọn
+   arm, setting, schedule hay hướng tiếp theo; được thêm arm sau khi xem kết
+   quả; không cần viết luật pass/fail trước một run thăm dò. Mọi run và mọi
+   lựa chọn ghi vào LAB_LOG.
+2. **Chốt rồi mới xác nhận.** Trước khi chạy seed 1-2 hay eval Spider test,
+   một entry có ngày trong LAB_LOG chốt method, cấu hình, comparator, phép
+   kiểm và claim. Claim trong paper chỉ lấy từ các run xác nhận này, không
+   lấy từ số dev đã dùng để chọn. Không sửa entry đó sau khi đọc kết quả xác
+   nhận. Đi kèm luật này:
+   - R10: Spider test chỉ dùng để xác nhận.
+   - R13: gộp seed bằng question-clustered test, 3 seed, không thêm seed sau
+     khi đọc kết quả.
+   - R8: subgroup tìm ra sau (ví dụ JOIN) chỉ là giả thuyết, kiểm trên seed
+     không sinh ra nó.
+3. **Công khai.** Paper ghi đã thử gì trên dev (arm, setting, số checkpoint
+   đã eval) và nói rõ số dev là thăm dò.
+
+Vì sao giữ luật 2: mỗi so sánh trên Spider dev có khoảng 140 câu lệch nhau,
+nên chọn cái tốt nhất trong 10 biến thể không có tác dụng thật vẫn thấy
+khoảng +1.7 điểm, và khoảng 40% lần tìm như vậy cho ra một p<.05.
+
+Thực hành báo cáo (không phải luật chọn):
+
 - R9: so central và FL ở cùng số pass, không chỉ checkpoint cuối.
 - Chỉ claim điều có comparator tách riêng; thành phần giữ lại mà không có
   bằng chứng ở setting hiện tại thì ghi là thừa kế, không claim.
-- Paper công khai quá trình chọn (ngày các rule, dữ liệu đã xem, số
-  checkpoint đã eval trên dev).
 
-Tạm treo: R12 (method `h_plain` và claim P/T/D) và R11, cho tới khi câu
-chuyện được chốt lại. Kết quả đã ghi theo các rule cũ giữ nguyên.
+Đã bỏ (2026-10-12): luật pass/fail viết trước cho từng thí nghiệm (R1-R6,
+R11, R12) và danh sách arm cố định của giai đoạn E. Kết quả đã ghi theo các
+luật đó giữ nguyên làm lịch sử.

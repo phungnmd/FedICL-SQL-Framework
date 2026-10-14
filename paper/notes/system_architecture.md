@@ -122,12 +122,14 @@ Rules that keep comparisons honest:
 - Student evaluation batch size is 16. Greedy decoding, seed 0 unless stated.
 - Single-seed paired comparisons use exact McNemar tests on row-matched
   predictions; pooled seeds use the question-clustered test (R13).
-- Select schedules/checkpoints using a declared validation rule, not the best
-  reported Spider dev score across an expanding search. New private validation
-  rows stay at clients; only aggregate selection metrics may leave them.
-  Creating a new holdout changes the training protocol and requires matched
-  reruns; it cannot be retrofitted to old checkpoints. Existing dev-guided
-  screens are exploratory and need independent confirmation.
+- Schedules, settings and checkpoints may be chosen on the dev sets during
+  exploration. The chosen configuration is then frozen and confirmed on seeds
+  1-2 and Spider test; only those confirmation numbers support paper claims,
+  and dev numbers are reported as exploratory (rules in
+  `RESEARCH_STATE.md` section 5). New private validation rows stay at clients;
+  only aggregate selection metrics may leave them. Creating a new holdout
+  changes the training protocol and requires matched reruns; it cannot be
+  retrofitted to old checkpoints.
 - Dataset release, role, profile, evidence mode, schema mode, evaluator, and
   source hashes enter every fingerprint.
 

@@ -23,11 +23,11 @@ P2.27 the student is Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5
 alpha 0.1 split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha 0.5).
 Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 
-- No method or paper story is fixed. Phase E (exploration, seed 0, dev sets)
-  completes the Coder-1.5B baselines; the story, endpoints and success
-  criterion are then fixed in a dated LAB_LOG entry before seeds 1-2 or Spider
-  test. Every arm reports Spider EX (private domain) and BIRD EX (public
-  domain); Spider-Realistic/SYN/DK measure robustness; EM is a diagnostic.
+- No method or paper story is fixed. Exploration (seed 0, dev sets) is open;
+  the story, endpoints and success criterion are fixed in a dated LAB_LOG
+  entry before seeds 1-2 or Spider test (evidence rules below). Every arm
+  reports Spider EX (private domain) and BIRD EX (public domain);
+  Spider-Realistic/SYN/DK measure robustness; EM is a diagnostic.
 - Spider test (2,147 rows) is only for confirmation (R10). Spider dev, its
   variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any
@@ -35,6 +35,8 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
   memory and run time; a 14B or 32B teacher does not (owner, 2026-10-12).
   Within the budget, model, method and schedule choices stay open.
+- The teacher runs only at the server, on public data; running it at the
+  clients is ruled out (owner, 2026-10-12).
 - The paper's goal is a federated framework in which the server LLM teacher
   contributes measurably, for a Q3 journal. A story that reduces the teacher
   to an ablation (for example "public data at the server closes the FL
@@ -83,13 +85,15 @@ current plan.
 
 ## Current state (2026-10-12)
 
-- Phase E. Candidate arms and open questions: `RESEARCH_STATE.md` section 4.
-  The arm list is fixed in LAB_LOG before the first run.
+- Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
+  questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
+  `paper/notes/DIRECTION_PROPOSAL.md`.
 - Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
   `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`). P2.37 (phase E
-  arms) runs one arm at a time on both GPUs.
-- Suspended: R12 (`h_plain` as method, claims P/T/D) and R11. In force: R8,
-  R9, R10, R13. Recorded outcomes under earlier rules stand.
+  baselines) runs one arm at a time on both GPUs.
+- Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
+  the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
+  (reporting). Outcomes recorded under retired rules stand as history.
 - Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of
   new runs. P2.16 centralized E1-E4 were never published; do not cite them.
 - Both owner checkouts use `main`.
@@ -173,12 +177,25 @@ current plan.
 - Never copy a result into the paper without a checkpoint, config, dataset,
   seed, prediction file, and Git SHA trail. A result reported only in chat is
   logged as "not committed" and stays out of the paper.
+- Three rules govern selection (owner, 2026-10-12):
+  1. Exploration is open. On seed 0 and the dev sets, any result may be read
+     and used to choose the next arm, setting, schedule or direction; arms may
+     be added after reading results; no pass/fail rule is written before an
+     exploratory run. Log every run and every choice in LAB_LOG.
+  2. Freeze, then confirm. Before any seed 1-2 run or Spider test
+     evaluation, a dated LAB_LOG entry fixes the method, configuration,
+     comparators, test and claims. Paper claims come only from these
+     confirmation runs, never from the dev numbers that chose them. Nothing
+     in that entry changes after a confirmation result is read.
+  3. Disclose. The paper states what was tried on dev (arms, settings,
+     number of checkpoints evaluated) and calls dev numbers exploratory.
+  What rule 2 protects: with about 140 discordant questions per Spider dev
+  contrast, the best of ten variants with no true effect still shows about
+  +1.7 points, and roughly 40% of such searches yield one p<.05.
 - Screens are seed 0 with paired questions and exact McNemar tests. One Spider
   question is about 0.1 point; small differences need more seeds before any
-  claim. Paper claims use the pooled three-seed test (rule R7).
-- Every decision rule is written in LAB_LOG and committed before the results
-  it judges are read. Record the outcome under the original rule; a rule found
-  too strict changes only for later runs, never retroactively (P2.27 lesson).
+  claim. Paper claims use the three-seed confirmation with the
+  question-clustered test (R13).
 - pass@k on training questions is a ceiling with a gold oracle, not a
   forecast of dev EX (P2.28 lesson).
 - Compare central and FL at matched data passes, not only at the final

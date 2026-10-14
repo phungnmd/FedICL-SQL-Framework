@@ -15,12 +15,13 @@ Older detail:
 
 ## Where we are (2026-10-12)
 
-- Phase E (exploration): complete the Coder-1.5B baselines at seed 0 on the
-  dev sets, then fix the paper story in a dated entry before any seed 1-2 run
-  or Spider test evaluation. Findings, open questions and rules in force:
-  [`RESEARCH_STATE.md`](RESEARCH_STATE.md).
+- Exploration at seed 0 on the dev sets under the simplified rules (entry
+  below); the paper story is fixed in a dated entry before any seed 1-2 run or
+  Spider test evaluation. Findings, open questions and rules:
+  [`RESEARCH_STATE.md`](RESEARCH_STATE.md). Direction proposal, not fixed:
+  [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
 - P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
-  (phase E) runs one arm at a time on both GPUs.
+  (phase E baselines) runs one arm at a time on both GPUs.
 
 ## 2026-10-13: frozen A dropped; P2.41 Hinton T=1 and P2.42 central from K2 queued
 
@@ -279,6 +280,43 @@ amended the same day, still before any result, after a second review):
 - Precision at one seed: one Spider question is about 0.1 point, one DK
   question about 0.19 point; Spider differences under about 2 points are not
   resolved.
+
+## 2026-10-12: rules simplified (owner decision)
+
+Why: the old rules wrote a pass/fail criterion before every exploratory run
+and fixed the phase E arm list. That slowed exploration (37 phases, story
+still open) and blocked plain diagnostics, such as checking whether client
+drift exists before testing a method against it. What those rules protect is
+narrower: the same dev numbers must not both choose a configuration and serve
+as its evidence. With about 140 discordant questions per Spider dev contrast
+(standard error about 1.1 points), the best of ten variants with no true
+effect still shows about +1.7 points, and roughly 40% of such searches yield
+one p<.05 (independent contrasts assumed; shared data lowers it somewhat).
+
+New rules (also in both `AGENTS.md` files and `RESEARCH_STATE.md` section 5):
+
+1. Exploration is open: on seed 0 and the dev sets, any result may choose the
+   next arm, setting, schedule or direction; arms may be added after reading
+   results; no pass/fail rule is needed first. Every run and choice is logged
+   here.
+2. Freeze, then confirm: a dated entry fixes method, configuration,
+   comparators, test and claims before any seed 1-2 run or Spider test
+   evaluation. Paper claims come only from those confirmation runs. Kept with
+   this rule: R10, R13, R8.
+3. Disclose: the paper states what was tried on dev and calls dev numbers
+   exploratory.
+
+- Retired: R1-R6, R11, R12 and the fixed phase E arm list. Outcomes recorded
+  under them stand as history. R9 stays as a reporting practice.
+- P2.37 keeps running as baselines; new arms may be added.
+- Owner constraint, same day: the teacher runs only at the server, on public
+  data. A first proposal with client-side teacher KD was rejected.
+- A second proposal (shared teacher replay: server-computed teacher soft
+  labels on a shared BIRD subset, replayed inside private rounds) was also
+  rejected.
+- Direction proposal (teacher teaches short CoT at the server on BIRD; clients
+  self-generate and execution-check CoT for their private rows; pilot with
+  stop criteria first): [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
 
 ## 2026-10-12: P2.36 `g_plain` published; teacher edge on Spider gone with a plain last round
 
