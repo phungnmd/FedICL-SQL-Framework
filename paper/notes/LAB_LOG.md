@@ -13,15 +13,19 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-12)
+## Where we are (2026-10-14)
 
 - Exploration at seed 0 on the dev sets under the simplified rules (entry
-  below); the paper story is fixed in a dated entry before any seed 1-2 run or
-  Spider test evaluation. Findings, open questions and rules:
+  2026-10-12); the paper story is fixed in a dated entry before any seed 1-2
+  run or Spider test evaluation. Findings, open questions and rules,
+  including the Q3 floor and aim (owner, 2026-10-14):
   [`RESEARCH_STATE.md`](RESEARCH_STATE.md). Direction proposal, not fixed:
   [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
-- P2.27 (`5767704`), P2.28, P2.29 and P2.36 (`31a568e`) published. P2.37
-  (phase E baselines) runs one arm at a time on both GPUs.
+- Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`), P2.37
+  `hinton_k2aaa` (`5cfd646`) and `gold_k2aaa` (`dcac509`).
+- Running: P2.38 on GPU 0; P2.37 `central_mix`, then `local`, on GPU 1.
+  Queued: P2.40, P2.41, P2.42 (one pull when both GPUs are idle). Dropped:
+  P2.39 frozen A.
 
 ## 2026-10-13: frozen A dropped; P2.41 Hinton T=1 and P2.42 central from K2 queued
 

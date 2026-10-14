@@ -9,7 +9,7 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-12.
+Cập nhật: 2026-10-14.
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -47,7 +47,7 @@ chỉ là giả thuyết.
 |---|---|---|---|
 | F1 | Thêm stage K trên BIRD làm SLM federated tốt hơn trên cả hai miền | Coder-1.5B `h_plain` - FL: Spider +4.16 (p=.0002), BIRD +14.28; tương tự ở 0.5B (+5.0) và 1.5B-Instruct (khoảng +4.5) | vững (3 model, mỗi model 1 seed) |
 | F2 | Gain BIRD đến từ chính public data; với round private cuối plain, gold đủ để đưa Spider lên mức central | Coder-1.5B `g_plain` - FL: Spider +3.77 (p=.001), BIRD +14.67; `g_plain` = central E3 trên Spider (71.37), DK thấp hơn 4.1 (p=.02). Gold v1 (NTD cuối) - FL: Spider +0.29. 0.5B gold AKAKA - FL: Spider +2.6 | 1 seed |
-| F3 | Soft label của teacher hơn gold cùng chuỗi trên Spider, nhưng ở Coder-1.5B edge này mất khi round cuối là plain | +2.42 (0.5B, p=.020), +2.03 (1.5B-Instruct, p=.033), +2.03 (0.5B K2AAA, p=.048); Coder-1.5B: v1 +1.35 (p=.23), plain +0.39 (p=.76). Biến thể Spider dương ở cả 6 ô (2 chuỗi), nhưng set có p<.05 đổi (DK với NTD, SYN plain) | yếu ở Coder-1.5B; phần robustness là thăm dò (R8) |
+| F3 | Soft label của teacher hơn gold cùng chuỗi trên Spider, nhưng ở Coder-1.5B với chuỗi AKAKA edge này mất khi round cuối là plain (lịch K-first: F13) | +2.42 (0.5B, p=.020), +2.03 (1.5B-Instruct, p=.033), +2.03 (0.5B K2AAA, p=.048); Coder-1.5B: v1 +1.35 (p=.23), plain +0.39 (p=.76). Biến thể Spider dương ở cả 6 ô (2 chuỗi), nhưng set có p<.05 đổi (DK với NTD, SYN plain) | yếu ở Coder-1.5B; phần robustness là thăm dò (R8) |
 | F4 | Trong stage K, Hinton làm quên Spider ít hơn gold | Coder-1.5B: Spider +3.48 sau K1, +3.00 sau K2; 0.5B K2AAA: +3.29 sau K2 | 1 seed mỗi model |
 | F5 | Round private cuối quyết định điểm cân bằng Spider-BIRD | Coder-1.5B plain so với NTD: Hinton Spider +2.51, BIRD -3.32; gold Spider +3.48 (p<.001), BIRD -1.04 (p=.21); 0.5B: NTD không tốn Spider, BIRD +1.89 (2 seed, p=.004) | 1-2 seed |
 | F6 | NTD ở round giữa (A2) không có tác dụng, vì K2 sau đó đưa BIRD về cùng mức | 0.5B P2.25: hai model cuối gần như trùng (Spider 20/20 discordant) | 1 seed, chưa thử ở 1.5B |
@@ -57,26 +57,34 @@ chỉ là giả thuyết.
 | F10 | EX phóng đại khoảng 5-7 điểm đều ở mọi arm; mọi contrast giữ dấu dưới test-suite EX | Coder-1.5B seed 0, Spider dev | 1 seed |
 | F11 | Gain của `h_plain` so với FL nằm ở câu JOIN; round NTD cuối giữ lỗi over-join | JOIN +9.07 (p<.001), no-JOIN +0.96; over-join 87 (FL), 84 (v1), 57 (`h_plain`) | thăm dò (R8 kiểm trên seed mới) |
 | F12 | Sample nhiều lần có headroom lớn trên câu train | pass@8 - greedy 13-18 điểm, cần oracle gold | 1 seed, chỉ là trần |
+| F13 | Với lịch K-first (K2AAA, round plain), teacher hơn gold trên Spider ở model cuối; edge tạo ra ở K2 và còn khoảng 2/3 (net) ở A3 | Coder-1.5B `hinton_k2aaa` - `gold_k2aaa`: Spider K2 +3.19 (p=.010), A3 +2.13 (p=.020); DK A3 +5.98 (p<.001); BIRD A1 -3.98, A3 -1.50. Các câu tạo edge đổi nhiều giữa K2 và A3 | 1 seed; DK là thăm dò (R8) |
+| F14 | Rounds private bào mòn BIRD đã học ở K2, chủ yếu qua LoRA B | Hinton BIRD 43.61 (K2) xuống 36.77 (A1); với A đóng băng vẫn xuống 37.61, tức khoảng 88% đi qua B (P2.39 pilot) | 1 seed |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
 ICL, self-consistency, public pool cùng miền, public pool không có
 gold SQL (owner quyết định 2026-10-11 sau P2.36: không mở hướng teacher thay
-nhãn). P2.16 centralized E1-E4 chưa
+nhãn), shared teacher replay và teacher ở client (owner 2026-10-12), freeze
+LoRA A ở client (P2.39 pilot: Spider -1.55, BIRD không giữ được; owner
+2026-10-13). Ở protocol v1 đã đóng: FedDF và aggregation chính xác (FLoRA,
+không có headroom). P2.16 centralized E1-E4 chưa
 từng được publish, không trích dẫn.
 
-## 4. Chưa biết (câu hỏi cho giai đoạn E, Coder-1.5B, seed 0)
+## 4. Chưa biết (Coder-1.5B, seed 0)
 
 | # | Câu hỏi | Cần arm |
 |---|---|---|
 | Q1 | Federation có cần không (local-only so với FL), và vì sao FL thua central 3.8 điểm ở Coder-1.5B? | local-only (P2.37), FL và central (có) |
-| Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? Chuỗi plain: không trên Spider (P2.36) | cặp Hinton/gold K2AAA và AKAKA plain (P2.37) |
-| Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | Hinton và gold K2AAA; Hinton và gold AKAKA plain (không NTD); `h_plain` và `g_plain` (có) |
+| Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? K2AAA: có (F13); AKA plain: không trên Spider (P2.36) | cặp AKAKA plain (P2.37, hoãn) |
+| Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | AKAKA plain (hoãn; chỉ cần nếu paper claim lịch K-first) |
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | `central_mix` (Spider + BIRD gold) |
 | Q5 | Teacher SQL (SeqKD) có khác soft label không? | không trong giai đoạn E (P2.6: edge mất sau round private cuối) |
 | Q6 | Kết quả có giữ khi heterogeneity khác không? | alpha 0.5, để sau |
 | Q7 | Setup hiện tại có client drift thật không, hay FL thua central vì lý do khác? | audit trên adapter client của P2.27 FL (chưa lên lịch) |
 | Q8 | Nếu teacher dạy CoT ở server và client tự sinh CoT có kiểm chứng trên dữ liệu private, lợi thế teacher có sống tới model cuối không? | pilot P0-P2 rồi `cot_fed`, `cot_template`, `cot_noteacher` trong [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md); cần owner mở lại hướng CoT |
+| Q9 | Edge của teacher có phải chỉ do softening (label smoothing) không? | P2.38 `virtual_k2aaa` (đang chạy; K2 và A2 đã thấy, chưa commit) |
+| Q10 | KD target khác (TAID, T=1) có làm teacher đóng góp nhiều hơn Hinton T=2 không? | P2.40 TAID, P2.41 Hinton T=1 (xếp hàng) |
+| Q11 | Sau K2, FL còn thua train tập trung bao nhiêu (chỗ cho method phía client như FedDAT)? | P2.42 `central_k2` (xếp hàng) |
 
 Danh sách arm P2.37 giữ làm baseline. Từ 2026-10-12 được thêm arm sau khi
 xem kết quả (luật 1, mục 5).
@@ -119,3 +127,14 @@ Thực hành báo cáo (không phải luật chọn):
 Đã bỏ (2026-10-12): luật pass/fail viết trước cho từng thí nghiệm (R1-R6,
 R11, R12) và danh sách arm cố định của giai đoạn E. Kết quả đã ghi theo các
 luật đó giữ nguyên làm lịch sử.
+
+Mức paper (owner, 2026-10-14): **floor** là paper ứng dụng Q3 chuẩn:
+framework chạy trọn; mỗi thành phần là cơ chế đã công bố có adaptation cho
+federated Text-to-SQL; đóng góp của teacher đo so với gold bootstrap cùng
+lịch ở endpoint cuối và xác nhận qua 3 seed; các thành phần chỉ cần cộng
+thêm lợi ích, không bắt buộc synergy; báo đủ control và quá trình thăm dò.
+**Aim** trên Q3 khi có bằng chứng, ví dụ method phía client làm khoảng
+teacher-gold lớn hơn. Không bỏ, hạ hay hoãn một hướng đạt floor chỉ vì nó
+chưa đạt aim; fallback được đánh giá theo floor. Câu chuyện dưới floor
+(teacher chỉ là ablation) vẫn bị loại. K2AAA đơn thuần là baseline mạnh
+nhất mà method phải vượt (owner 2026-10-13).

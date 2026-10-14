@@ -1,7 +1,14 @@
 # Proposal: K-first bootstrap, shortlist KD và private adaptation
 
 Ngày đánh giá: **2026-10-12**. Dự án: **FedLS-SQL**.
-Trạng thái: **đề xuất nghiên cứu, chưa chọn làm method, chưa triển khai hay chạy GPU**.
+Trạng thái: **đề xuất nghiên cứu, chưa chọn làm method**.
+
+Cập nhật 2026-10-14 (chi tiết trong LAB_LOG): freeze LoRA A đã chạy pilot
+(P2.39) và bị dừng: Spider -1.55, khoảng 88% phần BIRD bị bào mòn đi qua B;
+RoLoRA không xếp hàng. TAID là P2.40, có control Hinton T=1 (P2.41). FedDAT
+là pilot có điều kiện, đọc sau P2.42 (central từ Hinton K2). OPSD ưu tiên
+thấp. Các tỷ lệ bên dưới là ước lượng ngày 2026-10-12, chưa cập nhật theo
+kết quả.
 File này tổng hợp **4 nhóm nghiên cứu, 5 phương án thử**, gồm hướng privileged
 OPSD của bản trước. Không thay [run queue](PIPELINE_NEXT.md), không chốt method
 và không tự cấp phép chạy experiment.

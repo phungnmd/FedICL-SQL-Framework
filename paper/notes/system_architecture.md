@@ -100,9 +100,14 @@ Rules that keep comparisons honest:
 ## 5. Implemented components
 
 - Server objectives: SeqKD (CE on execution-selected teacher SQL), gold CE,
-  and gold CE plus Hinton forward KL (T = 2).
+  and gold CE plus Hinton forward KL (T = 2 by default; P2.41 uses T = 1).
+  Variants of the KD target: the virtual-teacher control (Yuan et al., CVPR
+  2020: probability `a` on the gold token, the rest uniform, no teacher) and
+  TAID (Shing et al., ICLR 2025: target interpolated from the detached student
+  to the teacher).
 - Client options: plain FedAvg rounds, FedNTD (not-true distillation, beta 1,
-  tau 3), FedProx.
+  tau 3), FedProx, frozen LoRA A with B-only upload (FFA-LoRA; dropped after
+  the P2.39 pilot).
 - Earlier chains (for example v1 `A>K[fkl]>A[ntd]>K[fkl]>A[ntd]` and
   `h_plain`) are results, not a fixed method.
 - Closed for this paper: Struct-SQL plans and other plan or CoT tasks

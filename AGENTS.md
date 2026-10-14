@@ -83,14 +83,21 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-12)
+## Current state (2026-10-14)
 
 - Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
   questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
   `paper/notes/DIRECTION_PROPOSAL.md`.
+- Owner decision 2026-10-13: K2AAA alone is too simple to be the
+  contribution; it is the strongest simple baseline a method must beat.
 - Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
-  `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`). P2.37 (phase E
-  baselines) runs one arm at a time on both GPUs.
+  `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`), P2.37
+  `hinton_k2aaa` and `gold_k2aaa`.
+- Running: P2.38 virtual-teacher control on GPU 0; P2.37 `central_mix`, then
+  `local`, on GPU 1. Queued behind one pull when both GPUs are idle: P2.40
+  TAID, P2.41 Hinton T=1, P2.42 central from the Hinton K2 adapter.
+  Dropped after its pilot: P2.39 frozen LoRA A (owner, 2026-10-13). Deferred:
+  the P2.37 `akaka_plain` pair.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.
@@ -110,7 +117,10 @@ current plan.
   Struct-SQL admitted rows for P2.14. The 3,873-row pool is protocol-v1 history.
 - Privacy is structural data isolation, not formal differential privacy.
 - Implemented server objectives: teacher-target CE (SeqKD), gold CE plus Hinton
-  forward KL (`T=2`), and an auxiliary plan task next to SQL CE.
+  forward KL (`T=2` by default), the virtual-teacher control of Yuan et al.
+  (CVPR 2020) in place of the teacher, TAID (Shing et al., ICLR 2025) as the
+  KD target, and an auxiliary plan task next to SQL CE. Client option: frozen
+  LoRA A (FFA-LoRA, Sun et al., ICLR 2024; dropped after the P2.39 pilot).
 
 ## Experiment commands
 
