@@ -51,6 +51,19 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   direction on whether its evidence can hold. Only the wording stays limited:
   no "first" claims and no hiding the closest prior work
   (`paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`).
+- Floor and aim (owner, 2026-10-14). Q3 is an applied venue. The floor is a
+  standard Q3 applied paper: the federated framework works end to end; each
+  component is a published mechanism with a task-specific adaptation; the
+  teacher contribution is measured against the matched gold bootstrap at the
+  final endpoint and confirmed over the three seeds; components may simply add
+  up (no synergy required); controls and dev exploration are reported. The
+  aim is above Q3 when a direction within the constraints can reach it, for
+  example a mechanism whose gain depends on the federated structure (a client
+  method that enlarges the teacher contribution) or a confirmed account of
+  where the teacher's knowledge goes during FL. Pursue the aim only with
+  evidence. Never drop, down-rank or delay a direction that reaches the floor
+  because it misses the aim, and judge any fallback against the floor. A
+  story below the floor (teacher as an ablation) stays ruled out.
 
 ## Read first
 
