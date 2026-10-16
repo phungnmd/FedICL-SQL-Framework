@@ -15,6 +15,25 @@ When no lane runs on either GPU, one pull brings P2.40 (TAID at K2), P2.41
 schedule). Findings and open questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
+## Status check (read-only, any time, for example after a server restart)
+
+Prints, for P2.37 `central_mix`/`local` and P2.38-P2.42: which stages are
+trained, which evaluations are missing, whether they are published, any
+stage interrupted mid-training, and whether a GPU lane is running. It runs the
+status script from origin, so it works before the server pulls new code, and
+changes nothing:
+
+```powershell
+& { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/status_k2aaa_lanes.py | uv run --no-sync python -; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+After a restart no lane runs, so the P2.40 step 1 pull is allowed. Since the
+P2.38 launch the shared code changed only by the TAID option (off unless
+`--kd-taid-t-start` is set) and the frozen-A aggregation fix, so a lane
+resumed after that pull trains exactly as before. Rerun an unfinished lane
+with its identical run command; it skips finished stages and resumes an
+interrupted one from its checkpoint.
+
 ## P2.27: complete
 
 Published in nested `5767704` (R3 and R9 in LAB_LOG 2026-10-11). Commands:
