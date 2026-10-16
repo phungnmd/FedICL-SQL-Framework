@@ -9,6 +9,31 @@ RoLoRA không xếp hàng. TAID là P2.40, có control Hinton T=1 (P2.41). FedDA
 là pilot có điều kiện, đọc sau P2.42 (central từ Hinton K2). OPSD ưu tiên
 thấp. Các tỷ lệ bên dưới là ước lượng ngày 2026-10-12, chưa cập nhật theo
 kết quả.
+Cập nhật 2026-10-16 (LAB_LOG 2026-10-16):
+
+- **Metric chính là Spider EX** (owner, cố định cho mọi giai đoạn). BIRD là
+  metric phụ, chỉ tính khi Spider không thấp hơn. "Gain hữu ích" bên dưới đã
+  tính theo Spider; trade-off BIRD chỉ để báo cáo.
+- P2.38: edge Spider của teacher không phải do softening (Hinton - virtual
+  A3 +2.03, p=.031); `central_mix` ngang `hinton_k2aaa` trên Spider (+0.68,
+  n.s.). P2.40 TAID và P2.42 chạy tiếp; P2.41 chỉ khi TAID hơn Hinton.
+- Đã đánh giá hướng **FedCoLLM + SQL-aware selective KD** (owner hỏi):
+  - Không lấy phần FedCoLLM (Fan et al., arXiv 2411.11707, KD hai chiều và
+    LoRA-tune LLM mỗi round). Với K2AAA, lúc K chạy SLM chưa có private
+    knowledge để truyền ngược; lợi ích chính của FedCoLLM là ở LLM, còn paper
+    chỉ đo SLM trên Spider; teacher đổi mỗi round làm logit cache 157 GB mất
+    hiệu lực, ước lượng khoảng 1 ngày mỗi round (chưa smoke). Bỏ khác biệt
+    "teacher frozen" với FedCoLLM và kéo FedCoLLM gốc thành baseline bắt
+    buộc. FedMKT (COLING 2025) đã có selective mutual KD, cần cite nếu dùng.
+  - Lấy phần selective KD làm ứng viên objective ở K, cạnh TAID: nhắm vào
+    phần đóng góp riêng của teacher trên Spider (F15); teacher ở T=2 chỉ đặt
+    0.057 trên top-10 token không phải gold, phần lớn 0.272 còn lại ở long
+    tail; teacher đúng execution trên 5,319/9,428 row. Dùng lại cache, cost
+    bằng một arm Hinton K2AAA. Nguồn: Wang et al., ACL 2021 (selective KD,
+    token level); chọn theo execution là adaptation (gần Struct-SQL); trọng
+    số theo loại token SQL chưa có nguồn công bố. Rủi ro: Q5 (SeqKD chọn theo
+    execution không hơn soft label). Chưa xếp hàng, chờ owner và P2.40.
+
 File này tổng hợp **4 nhóm nghiên cứu, 5 phương án thử**, gồm hướng privileged
 OPSD của bản trước. Không thay [run queue](PIPELINE_NEXT.md), không chốt method
 và không tự cấp phép chạy experiment.

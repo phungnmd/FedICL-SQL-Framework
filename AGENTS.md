@@ -24,10 +24,15 @@ alpha 0.1 split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha 0.5).
 Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 
 - No method or paper story is fixed. Exploration (seed 0, dev sets) is open;
-  the story, endpoints and success criterion are fixed in a dated LAB_LOG
-  entry before seeds 1-2 or Spider test (evidence rules below). Every arm
-  reports Spider EX (private domain) and BIRD EX (public domain);
-  Spider-Realistic/SYN/DK measure robustness; EM is a diagnostic.
+  the story and success criterion are fixed in a dated LAB_LOG entry before
+  seeds 1-2 or Spider test (evidence rules below).
+- Primary metric (owner, 2026-10-16), fixed for every phase: Spider EX, the
+  clients' private domain (Spider dev in exploration, Spider test at
+  confirmation). BIRD EX (public domain) is secondary: rank options by Spider
+  first; a BIRD gain counts only when Spider EX is not lower, and between
+  options whose Spider EX does not differ the higher BIRD wins. Never trade
+  Spider for BIRD. Every arm still reports both; Spider-Realistic/SYN/DK
+  measure robustness; EM is a diagnostic.
 - Spider test (2,147 rows) is only for confirmation (R10). Spider dev, its
   variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any

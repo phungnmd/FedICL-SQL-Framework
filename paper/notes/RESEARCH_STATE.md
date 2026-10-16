@@ -9,7 +9,7 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-14.
+Cập nhật: 2026-10-16.
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -21,8 +21,12 @@ frozen (teacher) và một public dataset khác miền (BIRD). Chỉ deploy SLM.
 > phần lợi ích nào thực sự đến từ teacher, từ public data, hay từ cách sắp
 > xếp các stage?
 
-Luôn báo cả hai miền: Spider (miền private của client) và BIRD (miền public).
-Miền nào là endpoint chính được chọn cùng câu chuyện, sau giai đoạn E.
+**Metric chính (owner, 2026-10-16), cố định cho mọi giai đoạn: Spider EX**,
+miền private của client (Spider dev khi thăm dò, Spider test khi xác nhận).
+BIRD EX (miền public) là metric phụ: xếp hạng theo Spider trước; gain BIRD
+chỉ tính là lợi khi Spider không thấp hơn, và giữa các phương án có Spider
+không khác nhau thì BIRD cao hơn là tốt hơn. Không đổi Spider lấy BIRD. Vẫn
+luôn báo cả hai miền.
 
 ## 2. Setup cố định
 
@@ -59,6 +63,8 @@ chỉ là giả thuyết.
 | F12 | Sample nhiều lần có headroom lớn trên câu train | pass@8 - greedy 13-18 điểm, cần oracle gold | 1 seed, chỉ là trần |
 | F13 | Với lịch K-first (K2AAA, round plain), teacher hơn gold trên Spider ở model cuối; edge tạo ra ở K2 và còn khoảng 2/3 (net) ở A3 | Coder-1.5B `hinton_k2aaa` - `gold_k2aaa`: Spider K2 +3.19 (p=.010), A3 +2.13 (p=.020); DK A3 +5.98 (p<.001); BIRD A1 -3.98, A3 -1.50. Các câu tạo edge đổi nhiều giữa K2 và A3 | 1 seed; DK là thăm dò (R8) |
 | F14 | Rounds private bào mòn BIRD đã học ở K2, chủ yếu qua LoRA B | Hinton BIRD 43.61 (K2) xuống 36.77 (A1); với A đóng băng vẫn xuống 37.61, tức khoảng 88% đi qua B (P2.39 pilot) | 1 seed |
+| F15 | Edge Spider của teacher trong K2AAA không phải do softening; ở DK một phần là softening | P2.38 virtual teacher (`a`=0.728): Hinton - virtual Spider K2 +6.09 (p<.001), A3 +2.03 (p=.031); virtual - gold Spider A3 +0.10, K2 -2.90; DK A3: virtual - gold +3.36, Hinton - virtual +2.62 (p=.049). Phần BIRD mất thêm sau Hinton K2 cũng do teacher (Hinton - virtual A1 -2.28) | 1 seed |
+| F16 | Có teacher, K2AAA ngang train tập trung Spider+BIRD trên Spider và DK | `central_mix` E3 - `hinton_k2aaa` A3: Spider +0.68 (p=.60), DK +0.37; so với `gold_k2aaa`: Spider +2.80 (p=.016), DK +6.36 (p<.001); BIRD +5.15 so với Hinton | 1 seed |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
@@ -77,12 +83,12 @@ từng được publish, không trích dẫn.
 | Q1 | Federation có cần không (local-only so với FL), và vì sao FL thua central 3.8 điểm ở Coder-1.5B? | local-only (P2.37), FL và central (có) |
 | Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? K2AAA: có (F13); AKA plain: không trên Spider (P2.36) | cặp AKAKA plain (P2.37, hoãn) |
 | Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | AKAKA plain (hoãn; chỉ cần nếu paper claim lịch K-first) |
-| Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | `central_mix` (Spider + BIRD gold) |
+| Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | đã có: `central_mix` (F16); không có teacher nên chỉ là mốc pooled data, không phải trần cho method có teacher |
 | Q5 | Teacher SQL (SeqKD) có khác soft label không? | không trong giai đoạn E (P2.6: edge mất sau round private cuối) |
 | Q6 | Kết quả có giữ khi heterogeneity khác không? | alpha 0.5, để sau |
 | Q7 | Setup hiện tại có client drift thật không, hay FL thua central vì lý do khác? | audit trên adapter client của P2.27 FL (chưa lên lịch) |
 | Q8 | Nếu teacher dạy CoT ở server và client tự sinh CoT có kiểm chứng trên dữ liệu private, lợi thế teacher có sống tới model cuối không? | pilot P0-P2 rồi `cot_fed`, `cot_template`, `cot_noteacher` trong [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md); cần owner mở lại hướng CoT |
-| Q9 | Edge của teacher có phải chỉ do softening (label smoothing) không? | P2.38 `virtual_k2aaa` (đang chạy; K2 và A2 đã thấy, chưa commit) |
+| Q9 | Edge của teacher có phải chỉ do softening (label smoothing) không? | đã có: không trên Spider, một phần trên DK (F15). Còn mở: LS epsilon 0.1 và self-distillation (teacher-specific chưa chắc là 7B-specific) |
 | Q10 | KD target khác (TAID, T=1) có làm teacher đóng góp nhiều hơn Hinton T=2 không? | P2.40 TAID, P2.41 Hinton T=1 (xếp hàng) |
 | Q11 | Sau K2, FL còn thua train tập trung bao nhiêu (chỗ cho method phía client như FedDAT)? | P2.42 `central_k2` (xếp hàng) |
 

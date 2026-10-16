@@ -24,8 +24,36 @@ Older detail:
 - Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`), P2.37
   `hinton_k2aaa` (`5cfd646`), `gold_k2aaa` (`dcac509`) and `central_mix`
   (`5b01fc1`), P2.39 pilot (`4acba5b`), P2.38 (`d326854`).
+- Primary metric: Spider EX; BIRD secondary (owner, 2026-10-16).
 - Next on the GPUs: P2.40 (TAID) and P2.42 (central from K2); P2.41 waits for
   P2.40. P2.37 `local` not started. Dropped: P2.39 frozen A.
+
+## 2026-10-16: Spider is the primary metric (owner decision)
+
+Owner decision, fixed for every phase from now on: **Spider EX**, the
+clients' private domain, is the primary metric (Spider dev in exploration,
+Spider test at confirmation). BIRD EX, the public domain, is secondary: rank
+options by Spider first; a BIRD gain counts only when Spider EX is not lower,
+and between options whose Spider EX does not differ the higher BIRD wins.
+Never trade Spider for BIRD. Both are still reported for every arm. Written
+into both `AGENTS.md` files, `RESEARCH_STATE.md`, `system_architecture.md` and
+`DIRECTION_PROPOSAL.md`.
+
+Effect on today's readings (below): the BIRD erosion after K2 (F14, and the
+teacher-specific part in P2.38) is a secondary result to report, not the
+main weakness to fix; the target is the teacher's Spider contribution
+(Hinton - virtual A3 +2.03, Hinton - gold +2.13), with `central_mix` level
+with `hinton_k2aaa` on Spider (+0.68, n.s.).
+
+Direction evaluated the same day at the owner's request: "FedCoLLM +
+SQL-aware selective KD". Verdict (details in `DIRECTION_PROPOSAL.md`): do not
+adopt the FedCoLLM part (two-way KD and LLM LoRA update each round), which
+needs K after private rounds, mainly helps the LLM rather than the deployed
+SLM, invalidates the teacher logit cache (about one day per round,
+estimated) and makes FedCoLLM a required baseline. Keep selective KD as a
+candidate K-stage objective next to TAID (Wang et al., ACL 2021; execution
+selection is our adaptation; SQL token-type weighting has no published
+source). Not queued; owner decides after P2.40.
 
 ## 2026-10-16: P2.38 virtual teacher published; the Spider edge is teacher-specific, part of DK is smoothing
 

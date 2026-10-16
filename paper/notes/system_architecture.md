@@ -116,9 +116,11 @@ Rules that keep comparisons honest:
 
 ## 6. Evaluation
 
-- Report final-model Spider EX and BIRD EX for every arm. The primary
-  endpoint and success criterion are fixed with the paper story, in LAB_LOG,
-  before confirmation runs. Spider variants measure robustness; EM is a
+- Report final-model Spider EX and BIRD EX for every arm. Primary metric
+  (owner, 2026-10-16): Spider EX, the clients' private domain. BIRD EX is
+  secondary: it counts only when Spider EX is not lower and breaks ties
+  between options whose Spider EX does not differ. The success criterion is
+  fixed with the paper story, in LAB_LOG, before confirmation runs. Spider variants measure robustness; EM is a
   diagnostic. Spider test (2,147 rows) is the confirmation set (R10).
 - Five sets: Spider dev (1,034), Spider-Realistic (508), Spider-SYN (1,034),
   Spider-DK (535), BIRD dev with evidence (1,534). BIRD `test.csv` is dev.
