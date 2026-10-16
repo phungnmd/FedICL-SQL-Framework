@@ -55,6 +55,49 @@ candidate K-stage objective next to TAID (Wang et al., ACL 2021; execution
 selection is our adaptation; SQL token-type weighting has no published
 source). Not queued; owner decides after P2.40.
 
+## 2026-10-16: P2.42 central from the Hinton K2 adapter; FL penalty after K2 about 2 Spider points, BIRD loss is not from federation
+
+Evidence: nested `c40e090` (`audits/protocol_v2/p242_central_from_k2_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. `central_k2`: the P2.27 central
+Spider run (all Spider train rows in one place, three epochs) started from
+the `hinton_k2aaa` K2 adapter. Pass N = epoch eN against round aN (rule R9).
+
+| Arm / pass | 1 Spider / BIRD | 2 Spider / BIRD | 3 Spider | 3 DK | 3 BIRD |
+|---|---:|---:|---:|---:|---:|
+| `central_k2` | 68.76 / 33.90 | 73.31 / 32.59 | 74.66 | 58.50 | 34.03 |
+| `hinton_k2aaa` | 71.57 / 36.77 | 71.86 / 38.66 | 72.53 | 58.32 | 38.53 |
+| P2.27 `central` | 67.50 / 23.27 | 71.18 / 24.71 | 71.37 | 58.50 | 25.75 |
+| P2.27 `fl` | 65.57 / 22.62 | 68.28 / 24.38 | 67.60 | 53.27 | 25.68 |
+
+- FL penalty on Spider, central minus FL from the same start: from the Hinton
+  K2 adapter pass 1 -2.80 (FL ahead, p=.016), pass 2 +1.45, pass 3 +2.13
+  (74/52, p=.061); from the base model (P2.27) +1.93, +2.90, +3.77 (p=.003).
+  DK at pass 3: +0.19 after K2, +5.23 from base.
+- BIRD: centralized Spider training after K2 loses more BIRD than FL does
+  (pass 3 -4.50, p<.001; 34.03 against 38.53).
+- `central_k2` E3 against `central_mix` E3: Spider +1.45 (p=.21), DK -0.19,
+  BIRD -9.65. Against `gold_k2aaa` A3: Spider +4.26 (p<.001), DK +6.17.
+- `central_k2` - P2.27 `central` at E3: Spider +3.29 (p=.004), BIRD +8.28.
+
+Reading (Spider is the primary metric, owner 2026-10-16):
+
+- After the teacher K2, the FL penalty on Spider is about 2 points at pass 3
+  (p=.061) and none on DK; from the base model it is 3.77 and 5.23. One seed,
+  and the difference between the two penalties is not tested; it is a
+  direction that K2 narrows the FL gap, not a result.
+- `central_k2` is still rising at E3, so the pass-3 penalty is not hidden by a
+  central run past its peak.
+- The BIRD erosion after K2 comes from training on Spider, not from
+  federation: FedAvg rounds keep more BIRD than pooled Spider training. With
+  BIRD secondary, a BIRD-retention arm is not a priority; the earlier note
+  (central_mix entry) that BIRD retention is the largest gap is superseded.
+- `central_k2` - P2.27 `central` (+3.29 Spider) shows that the Hinton K2 start
+  helps centralized training too, but it does not isolate the teacher: there
+  is no gold-K2 central arm.
+- For the aim: the remaining Spider gap that a client-side method could close
+  is about 2 points, near the one-seed resolution. A client method is worth
+  queueing only if it targets that gap and can be read at three seeds.
+
 ## 2026-10-16: P2.38 virtual teacher published; the Spider edge is teacher-specific, part of DK is smoothing
 
 Evidence: nested `d326854` (`audits/protocol_v2/p238_virtual_teacher_s0/summary.md`).
