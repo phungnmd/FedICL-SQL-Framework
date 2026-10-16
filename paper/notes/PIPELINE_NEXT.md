@@ -5,15 +5,12 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-State 2026-10-13: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
-`hinton_k2aaa` and `gold_k2aaa` are published. P2.38 (virtual-teacher control)
-runs on GPU 0. The P2.39 frozen-A pilot is done and the line is dropped
-(owner, LAB_LOG 2026-10-13); GPU 1 runs P2.37 `central_mix`, then `local`.
-When no lane runs on either GPU, one pull brings P2.40 (TAID at K2), P2.41
-(Hinton T=1) and P2.42 (central from the K2 adapter). The
-`akaka_plain` pair is deferred (needed only if the paper claims the K-first
-schedule). Findings and open questions are in
-[RESEARCH_STATE.md](RESEARCH_STATE.md).
+State 2026-10-16: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
+`hinton_k2aaa`, `gold_k2aaa` and `central_mix` and the P2.39 pilot are
+published. P2.38 finished on the server; publish it (P2.38 step 4) and read it
+before starting any GPU lane. P2.40-P2.42 are pulled and prepared (P2.40 step
+1 done). P2.37 `local` is not started; the `akaka_plain` pair is deferred.
+Findings and open questions are in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)
 

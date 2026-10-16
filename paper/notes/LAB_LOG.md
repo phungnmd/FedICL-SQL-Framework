@@ -13,7 +13,7 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-14)
+## Where we are (2026-10-16)
 
 - Exploration at seed 0 on the dev sets under the simplified rules (entry
   2026-10-12); the paper story is fixed in a dated entry before any seed 1-2
@@ -22,10 +22,57 @@ Older detail:
   [`RESEARCH_STATE.md`](RESEARCH_STATE.md). Direction proposal, not fixed:
   [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
 - Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`), P2.37
-  `hinton_k2aaa` (`5cfd646`) and `gold_k2aaa` (`dcac509`).
-- Running: P2.38 on GPU 0; P2.37 `central_mix`, then `local`, on GPU 1.
-  Queued: P2.40, P2.41, P2.42 (one pull when both GPUs are idle). Dropped:
-  P2.39 frozen A.
+  `hinton_k2aaa` (`5cfd646`), `gold_k2aaa` (`dcac509`) and `central_mix`
+  (`5b01fc1`), P2.39 pilot (`4acba5b`).
+- No lane runs (server restart 2026-10-16). P2.38 finished on the server;
+  its publication is pending. P2.40-P2.42 are pulled and prepared; GPU lanes
+  start after P2.38 is read. P2.37 `local` not started. Dropped: P2.39 frozen A.
+
+## 2026-10-16: P2.37 `central_mix` published; teacher K2AAA level with it on Spider and DK, not on BIRD
+
+Evidence: nested `5b01fc1` (`central_mix`), `4acba5b` (P2.39 pilot A1, as
+logged 2026-10-13; B-only client upload 206.4 MB against a 369.6 MB full
+adapter payload per round). Seed 0, dev sets, exploratory, exact McNemar.
+`central_mix`: all Spider train rows and the 9,428 BIRD rows in one place,
+gold CE, three epochs; no privacy and no teacher.
+
+| Arm / stage | Spider | Realistic | SYN | DK | BIRD |
+|---|---:|---:|---:|---:|---:|
+| `central_mix` E1 / E2 | 68.28 / 71.66 | | | | 39.57 / 44.20 |
+| `central_mix` E3 | 73.21 | 62.99 | 58.90 | 58.69 | 43.68 |
+| `hinton_k2aaa` A3 | 72.53 | 61.81 | 56.38 | 58.32 | 38.53 |
+| `gold_k2aaa` A3 | 70.41 | 61.22 | 56.38 | 52.34 | 40.03 |
+| P2.27 `central` E3 (Spider only) | 71.37 | 61.61 | 56.00 | 58.50 | 25.75 |
+
+- `central_mix` E3 - `hinton_k2aaa` A3: Spider +0.68 (67/60, p=.60), DK
+  +0.37 (p=.90), Realistic +1.18 (p=.58), SYN +2.51 (92/66, p=.046), BIRD
+  +5.15 (202/123, p<.001).
+- `central_mix` E3 - `gold_k2aaa` A3: Spider +2.80 (83/54, p=.016), DK +6.36
+  (53/19, p<.001), BIRD +3.65 (p=.002).
+- Matched passes over the private data, `central_mix` minus `hinton_k2aaa`:
+  E1-A1 Spider -3.29 (p=.007), E2-A2 -0.19, E3-A3 +0.68; BIRD +2.80, +5.54,
+  +5.15.
+- `central_mix` - `central` E3: Spider +1.84 (p=.14), BIRD +17.93.
+
+Reading (one seed):
+
+- Private domain: `hinton_k2aaa` is level with pooled training on Spider and
+  DK (under one point, unresolved), while `gold_k2aaa`, with the same public
+  data and no teacher, stays below (Spider -2.80, DK -6.36). Within K2AAA,
+  the gap to pooled training on Spider and DK closes only in the teacher
+  arm. Whether that is teacher knowledge or soft-target smoothing is the
+  P2.38 question.
+- Public domain: the remaining gap is BIRD (+5.15). K2 reaches 43.61, the
+  same as `central_mix` E3 (43.68); the private rounds then lose it (36.77 at
+  A1, 38.53 at A3). The measured FL loss in this setup is forgetting of the
+  public domain after K2.
+- Other readings: Spider parity is within the one-seed noise (about 2
+  points), so "level" is not "equal". `central_mix` has no teacher, so it is
+  a pooled-data reference, not a ceiling for a teacher method.
+- For the queue: P2.40 changes the K2 target and so aims at the teacher
+  effect on Spider and DK, where this seed shows little gap left to
+  `central_mix`; BIRD retention after K2 has the largest measured gap and no
+  queued arm targets it. P2.40 and P2.41 start only after P2.38 is read.
 
 ## 2026-10-13: frozen A dropped; P2.41 Hinton T=1 and P2.42 central from K2 queued
 
