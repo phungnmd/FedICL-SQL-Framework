@@ -13,20 +13,19 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-16)
+## Where we are (2026-10-17)
 
 - Exploration at seed 0 on the dev sets under the simplified rules (entry
   2026-10-12); the paper story is fixed in a dated entry before any seed 1-2
-  run or Spider test evaluation. Findings, open questions and rules,
-  including the Q3 floor and aim (owner, 2026-10-14):
-  [`RESEARCH_STATE.md`](RESEARCH_STATE.md). Direction proposal, not fixed:
-  [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
-- Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`), P2.37
-  `hinton_k2aaa` (`5cfd646`), `gold_k2aaa` (`dcac509`) and `central_mix`
-  (`5b01fc1`), P2.39 pilot (`4acba5b`), P2.38 (`d326854`).
-- Primary metric: Spider EX; BIRD secondary (owner, 2026-10-16).
-- Next on the GPUs: P2.40 (TAID) and P2.42 (central from K2); P2.41 waits for
-  P2.40. P2.37 `local` not started. Dropped: P2.39 frozen A.
+  run or Spider test evaluation. Primary metric Spider EX (owner,
+  2026-10-16). Findings, open questions and rules, including the Q3 floor
+  and aim: [`RESEARCH_STATE.md`](RESEARCH_STATE.md).
+- Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`); P2.37
+  `hinton_k2aaa`, `gold_k2aaa`, `central_mix` (`5b01fc1`), `local`
+  (`3e0dc0b`); P2.38 (`d326854`), P2.39 pilot (`4acba5b`), P2.40
+  (`640d534`), P2.42 (`c40e090`).
+- No lane runs. P2.41 not run (its condition failed, entry below). Deferred:
+  the P2.37 `akaka_plain` pair. Next step is the owner's choice (entry below).
 
 ## 2026-10-16: Spider is the primary metric (owner decision)
 
@@ -54,6 +53,51 @@ estimated) and makes FedCoLLM a required baseline. Keep selective KD as a
 candidate K-stage objective next to TAID (Wang et al., ACL 2021; execution
 selection is our adaptation; SQL token-type weighting has no published
 source). Not queued; owner decides after P2.40.
+
+## 2026-10-17: P2.40 TAID below Hinton on Spider at A3; P2.37 `local` published
+
+Evidence: nested `640d534` (`audits/protocol_v2/p240_taid_s0/summary.md`),
+`3e0dc0b` (`local`). Seed 0, dev sets, exploratory, exact McNemar. TAID ran
+1,179 K2 updates with `t` from 0.4 to 1.0 (linear, as expected).
+
+| Arm | K2 Spider / BIRD | A1 Spider / BIRD | A3 Spider | A3 DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|
+| `taid_k2aaa` | 62.19 / 44.85 | 71.57 / 39.96 | 70.70 | 54.21 | 39.57 |
+| `hinton_k2aaa` | 62.28 / 43.61 | 71.57 / 36.77 | 72.53 | 58.32 | 38.53 |
+| `gold_k2aaa` | 59.09 / 43.48 | 70.12 / 40.74 | 70.41 | 52.34 | 40.03 |
+
+- TAID - Hinton: Spider K2 -0.10, A1 0.00, A2 -0.58, A3 -1.84 (33/52,
+  p=.050); A3 DK -4.11 (11/33, p=.001), Realistic +0.39, SYN +0.77; BIRD A1
+  +3.19 (125/76, p<.001), A3 +1.04 (p=.29).
+- TAID - gold at A3: Spider +0.29 (p=.80), DK +1.87 (p=.12), BIRD -0.46.
+- `local` (each client alone, 3 epochs) Spider / BIRD: c1 67.02 / 23.99, c2
+  64.99 / 21.32, c3 64.60 / 21.64, c4 65.38 / 24.12, c5 65.47 / 23.73; mean
+  Spider 65.49. P2.27 FL A3 - best local (c1): Spider +0.58 (p=.69), BIRD
+  +1.69 (p=.069). `hinton_k2aaa` A3 - best local: Spider +5.51 (p<.001).
+
+Reading (Spider primary; the P2.41 condition was written before P2.40,
+entry 2026-10-16):
+
+- By the metric rule Hinton is ahead of TAID at A3 (Spider -1.84, DK -4.11).
+  TAID kept the Spider edge over gold through A1 and took the BIRD loss of
+  Hinton away at A1, but both effects faded by A3, where TAID sits at the
+  gold level. The P2.41 condition (P2.40 ahead of Hinton) fails, so P2.41
+  is not run.
+- Other readings: TAID differs from Hinton in target and temperature (T=1 vs
+  2); the A3 loss may come from T=1 rather than from the interpolation.
+  Untested, and testing it no longer serves the choice of method.
+- Plain FL is barely above the best single client on Spider (+0.58, n.s.) at
+  this split; the K-first pipeline is what lifts the clients (+5.51).
+- Teacher - gold on Spider at the final endpoint, all seed 0, across the
+  recipes tried: Hinton v1 (NTD rounds) +1.35, `h_plain` +0.39,
+  `hinton_k2aaa` +2.13 (p=.020), `taid_k2aaa` +0.29. Only one recipe
+  reaches p<.05, and it is the best of four. With the selection effect noted
+  in the 2026-10-12 rules (best of several null variants shows about +1.7),
+  the +2.13 is a candidate, not a finding, until seeds 1-2 confirm it.
+- Open for the owner: freeze `hinton_k2aaa` against `gold_k2aaa` (with
+  `virtual_k2aaa` as the smoothing control) and confirm over seeds 1-2, which
+  tests whether the floor holds at all, or keep exploring for a method above
+  K2AAA first. Either way, the next teacher claim depends on the seed check.
 
 ## 2026-10-16: P2.42 central from the Hinton K2 adapter; FL penalty after K2 about 2 Spider points, BIRD loss is not from federation
 

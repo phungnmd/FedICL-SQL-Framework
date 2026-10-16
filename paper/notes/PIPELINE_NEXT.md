@@ -5,12 +5,13 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-State 2026-10-16: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
-`hinton_k2aaa`, `gold_k2aaa` and `central_mix` and the P2.39 pilot are
-published, and so is P2.38 (`d326854`). P2.40-P2.42 are pulled and prepared
-(P2.40 step 1 done). Next: P2.40 on GPU 0 and P2.42 on GPU 1; P2.41 only if
-P2.40 is ahead of Hinton (LAB_LOG 2026-10-16). P2.37 `local` is not started; the `akaka_plain` pair is deferred.
-Findings and open questions are in [RESEARCH_STATE.md](RESEARCH_STATE.md).
+State 2026-10-17: P2.27, P2.28, P2.29, P2.36 published; P2.37
+`hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
+pilot, P2.40 and P2.42 are published. No lane runs. P2.41 is not run (its
+condition failed, LAB_LOG 2026-10-17). The `akaka_plain` pair is deferred, so
+P2.37 step 3 (final summary, needs all six arms) waits. Next step: owner's
+choice in LAB_LOG 2026-10-17. Findings and open questions are in
+[RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)
 
