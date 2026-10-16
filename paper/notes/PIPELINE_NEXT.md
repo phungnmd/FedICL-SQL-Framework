@@ -7,9 +7,9 @@ are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
 State 2026-10-16: P2.27, P2.28, P2.29 and P2.36 are published; P2.37
 `hinton_k2aaa`, `gold_k2aaa` and `central_mix` and the P2.39 pilot are
-published. P2.38 finished on the server; publish it (P2.38 step 4) and read it
-before starting any GPU lane. P2.40-P2.42 are pulled and prepared (P2.40 step
-1 done). P2.37 `local` is not started; the `akaka_plain` pair is deferred.
+published, and so is P2.38 (`d326854`). P2.40-P2.42 are pulled and prepared
+(P2.40 step 1 done). Next: P2.40 on GPU 0 and P2.42 on GPU 1; P2.41 only if
+P2.40 is ahead of Hinton (LAB_LOG 2026-10-16). P2.37 `local` is not started; the `akaka_plain` pair is deferred.
 Findings and open questions are in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)

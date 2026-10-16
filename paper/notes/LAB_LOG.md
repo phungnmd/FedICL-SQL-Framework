@@ -23,10 +23,63 @@ Older detail:
   [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md).
 - Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`), P2.37
   `hinton_k2aaa` (`5cfd646`), `gold_k2aaa` (`dcac509`) and `central_mix`
-  (`5b01fc1`), P2.39 pilot (`4acba5b`).
-- No lane runs (server restart 2026-10-16). P2.38 finished on the server;
-  its publication is pending. P2.40-P2.42 are pulled and prepared; GPU lanes
-  start after P2.38 is read. P2.37 `local` not started. Dropped: P2.39 frozen A.
+  (`5b01fc1`), P2.39 pilot (`4acba5b`), P2.38 (`d326854`).
+- Next on the GPUs: P2.40 (TAID) and P2.42 (central from K2); P2.41 waits for
+  P2.40. P2.37 `local` not started. Dropped: P2.39 frozen A.
+
+## 2026-10-16: P2.38 virtual teacher published; the Spider edge is teacher-specific, part of DK is smoothing
+
+Evidence: nested `d326854` (`audits/protocol_v2/p238_virtual_teacher_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. Teacher at T=2 on the 9,428 BIRD
+rows (prepare): gold-token probability `a` = 0.728, mass on its top 10
+non-gold tokens 0.057, entropy 2.96 nats. `virtual_k2aaa` puts 0.728 on gold
+and spreads 0.272 evenly over the vocabulary.
+
+| Arm | K2 Spider / BIRD | A1 Spider / BIRD | A3 Spider | A3 DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` | 62.28 / 43.61 | 71.57 / 36.77 | 72.53 | 58.32 | 38.53 |
+| `virtual_k2aaa` | 56.19 / 44.07 | 67.99 / 39.05 | 70.50 | 55.70 | 39.83 |
+| `gold_k2aaa` | 59.09 / 43.48 | 70.12 / 40.74 | 70.41 | 52.34 | 40.03 |
+
+- Hinton - virtual: Spider K2 +6.09 (109/46, p<.001), A1 +3.58 (p<.001), A2
+  +1.74 (p=.073), A3 +2.03 (54/33, p=.031); A3 DK +2.62 (29/15, p=.049),
+  Realistic +0.98, SYN +1.35 (both n.s.); BIRD A1 -2.28 (p=.013), A3 -1.30
+  (p=.19).
+- Virtual - gold: Spider K2 -2.90 (p=.014), A1 -2.13 (p=.020), A3 +0.10
+  (38/37); A3 DK +3.36 (34/16, p=.015); BIRD A3 -0.20.
+
+Reading, against the guide written before the run (entry 2026-10-13):
+
+- Spider: virtual is at or below gold at every endpoint, and Hinton - virtual
+  (A3 +2.03) matches Hinton - gold (+2.13). This is the guide's "edge comes
+  from where the teacher puts its mass" case. At K2 and A1 virtual is clearly
+  below gold, so the guide's rule applies: compare Hinton with the better of
+  the two, which is gold there (K2 +3.19); the reading does not change.
+- DK: both contrasts positive. Of the +5.98 Hinton - gold at A3, smoothing
+  accounts for +3.36 and the teacher for +2.62 (p=.049).
+- BIRD: the extra erosion after Hinton K2 is teacher-specific: virtual tracks
+  gold on BIRD (A1 39.05 vs 40.74, A3 39.83 vs 40.03) while Hinton drops to
+  36.77 at A1 (-2.28 against virtual).
+- Other readings: the uniform spread over about 152k tokens is a harsher
+  smoother than label smoothing with epsilon 0.1 (Spider K2 -2.90 against
+  gold), so the standard LS control stays open; at A3 it would sit between
+  gold and virtual, both about 2 points under Hinton on Spider, so it is not
+  expected to change the Spider reading. "Teacher-specific" is not yet
+  "7B-specific": a smaller teacher's (or the student's own) distribution
+  could give part of it, untested. One seed; p values near .05 are
+  directions, not claims.
+- Together with `central_mix` (entry below): with the teacher, K2AAA is level
+  with pooled training on Spider and DK, and the Spider part of that is not
+  explained by smoothing. The open weakness is BIRD retention after the
+  teacher stage.
+
+Next (exploration choice, owner to confirm by running): P2.40 TAID on one
+GPU, since the teacher-specific signal is what a stronger KD objective would
+raise; P2.42 central from the Hinton K2 adapter on the other, since its BIRD
+trajectory shows whether the BIRD erosion comes from federated averaging or
+from Spider-only training after K2. P2.41 (Hinton T=1) runs only if P2.40 is
+ahead of Hinton. LS epsilon 0.1 and a self-distillation control are
+candidates for the confirmation set, not queued.
 
 ## 2026-10-16: P2.37 `central_mix` published; teacher K2AAA level with it on Spider and DK, not on BIRD
 
