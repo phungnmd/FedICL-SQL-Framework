@@ -9,13 +9,13 @@ State 2026-10-17: P2.27, P2.28, P2.29, P2.36 published; P2.37
 `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
 pilot, P2.40 and P2.42 are published. No lane runs. P2.41 is not run (its
 condition failed, LAB_LOG 2026-10-17). The `akaka_plain` pair is deferred, so
-P2.37 step 3 (final summary, needs all six arms) waits. Next step: owner's
-choice in LAB_LOG 2026-10-17. Findings and open questions are in
+P2.37 step 3 (final summary, needs all six arms) waits. Next: P2.43 reverse
+roles, early signal first (below). Findings and open questions are in
 [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)
 
-Prints, for P2.37 `central_mix`/`local` and P2.38-P2.42: which stages are
+Prints, for P2.37 `central_mix`/`local` and P2.38-P2.43: which stages are
 trained, which evaluations are missing, whether they are published, any
 stage interrupted mid-training, and whether a GPU lane is running. It runs the
 status script from origin, so it works before the server pulls new code, and
@@ -31,6 +31,78 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.43: reverse roles (BIRD private, Spider public), early signal first
+
+Question, metric and how to read the early signal: LAB_LOG 2026-10-17 (the
+entry fixing BIRD EX as the primary metric here). Code: nested `dbd7a34`,
+`68f04bc`; split `7694f3f`. Dev sets only, seed 0.
+
+- `gold_k2aaa_rev`, `hinton_k2aaa_rev`: from the base model, two server epochs
+  on all 8,659 Spider train rows (gold CE, or Hinton T=2 with a new Spider
+  teacher logit cache), then three plain FedAvg rounds on the BIRD
+  `alpha_0.1/k5` clients. The P2.37 K2AAA recipe with the data swapped.
+- `fl_bird`: three plain rounds on the BIRD clients from the base model.
+- `central_bird`: all BIRD train rows in one place, three epochs.
+- Evaluation: Spider and BIRD after each stage or epoch, all five sets at the
+  last one.
+
+Early signal: GPU 1 runs `gold_k2aaa_rev` to A1 (no cache needed, about 3-4 h
+K2 plus 3 h A1 plus evaluations), then `fl_bird`. GPU 0 builds the Spider
+cache (first build, send its time), then runs `hinton_k2aaa_rev` to A1. Send
+the step 3 table after each K2 and A1 evaluation.
+
+Memory: Spider K2 prompts are under 3,000 tokens, below every BIRD K row;
+BIRD rounds and central BIRD use the P2.17 BIRD lengths (19.8 GB). Check each
+process's shared GPU memory in its first 15 minutes and send the peak
+reserved VRAM of the cache build, K2 and A1 from the logs.
+
+1. Pull, test, prepare (CPU; no lane may run on either GPU). Also prints the
+   free disk space; the cache needs about 100 GB and the runner refuses to
+   start under 130 GB:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; uv run --no-sync python -c "from contextlib import ExitStack; from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; s=ExitStack(); [s.enter_context(exclusive_lock(r.AUDIT / f'gpu_{d}.lock')) for d in '01']; s.close()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p243_reverse_roles.py tests/test_p237_phase_e.py tests/test_status_k2aaa_lanes.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.43 preparation failed' }; $free=[math]::Round((Get-PSDrive (Get-Location).Drive.Name).Free / 1GB); Write-Host "P2.43 prepared; free disk $free GB" }
+```
+
+2. Run; rerun the identical command after an interruption (finished stages
+   are skipped, an interrupted one resumes).
+
+   GPU 0, Spider cache then `hinton_k2aaa_rev` to A1:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.43 Spider teacher cache failed' }; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase run --arm hinton_k2aaa_rev --until a1; if ($LASTEXITCODE -ne 0) { throw 'P2.43 hinton_k2aaa_rev failed' }; Write-Host "GPU $gpu P2.43 hinton_k2aaa_rev through A1 complete" }
+```
+
+   GPU 1, `gold_k2aaa_rev` to A1, then `fl_bird`:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase run --arm gold_k2aaa_rev --until a1; if ($LASTEXITCODE -ne 0) { throw 'P2.43 gold_k2aaa_rev failed' }; Write-Host "GPU $gpu P2.43 gold_k2aaa_rev through A1 complete"; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase run --arm fl_bird; if ($LASTEXITCODE -ne 0) { throw 'P2.43 fl_bird failed' }; Write-Host "GPU $gpu P2.43 fl_bird complete" }
+```
+
+3. Read the early signal (CPU, read-only for the lanes, safe while they run;
+   it rewrites only the summary files):
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.43 analysis failed' }; Get-Content audits/protocol_v2/p243_reverse_roles_s0/summary.md }
+```
+
+4. After the early signal is read (owner's choice, LAB_LOG): continue a chain
+   to A3 with the step 2 run command without `--until a1`, and run
+   `central_bird` on a free GPU:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $arm='central_bird'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p243_reverse_roles --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.43 $arm failed" }; Write-Host "GPU $gpu P2.43 $arm complete" }
+```
+
+   (`$arm` can be `hinton_k2aaa_rev` or `gold_k2aaa_rev` to finish a chain.)
+
+5. Publish every evaluated endpoint (only when no P2.43 lane runs; the lister
+   checks all P2.43 lane locks). Repeat after later endpoints:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p243_reverse_roles'; $n='243'; $msg='results: record P2.43 reverse roles endpoints'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
 
 ## P2.27: complete
 
