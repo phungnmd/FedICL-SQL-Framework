@@ -32,7 +32,10 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   first; a BIRD gain counts only when Spider EX is not lower, and between
   options whose Spider EX does not differ the higher BIRD wins. Never trade
   Spider for BIRD. Every arm still reports both; Spider-Realistic/SYN/DK
-  measure robustness; EM is a diagnostic.
+  measure robustness; EM is a diagnostic. In the reverse-roles setting
+  (P2.43: BIRD at the clients, Spider at the server) the primary metric is
+  BIRD EX, the private domain, with Spider secondary under the same rule
+  (owner, 2026-10-17).
 - Spider test (2,147 rows) is only for confirmation (R10). Spider dev, its
   variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any
@@ -88,7 +91,7 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-14)
+## Current state (2026-10-17)
 
 - Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
   questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
@@ -97,12 +100,12 @@ current plan.
   contribution; it is the strongest simple baseline a method must beat.
 - Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
   `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`), P2.37
-  `hinton_k2aaa` and `gold_k2aaa`.
-- Running: P2.38 virtual-teacher control on GPU 0; P2.37 `central_mix`, then
-  `local`, on GPU 1. Queued behind one pull when both GPUs are idle: P2.40
-  TAID, P2.41 Hinton T=1, P2.42 central from the Hinton K2 adapter.
-  Dropped after its pilot: P2.39 frozen LoRA A (owner, 2026-10-13). Deferred:
-  the P2.37 `akaka_plain` pair.
+  `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`; P2.38, the P2.39
+  pilot, P2.40, P2.42. P2.41 not run (its condition failed). Deferred: the
+  P2.37 `akaka_plain` pair.
+- Next direction (owner, 2026-10-17): reverse roles, BIRD private and Spider
+  public. P2.43 is built; its early signal (K2 and A1 of the Hinton and gold
+  chains) is queued in `PIPELINE_NEXT.md`.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.

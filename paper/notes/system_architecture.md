@@ -119,7 +119,9 @@ Rules that keep comparisons honest:
 - Report final-model Spider EX and BIRD EX for every arm. Primary metric
   (owner, 2026-10-16): Spider EX, the clients' private domain. BIRD EX is
   secondary: it counts only when Spider EX is not lower and breaks ties
-  between options whose Spider EX does not differ. The success criterion is
+  between options whose Spider EX does not differ. In the reverse-roles
+  setting (P2.43, BIRD private) BIRD EX is primary and Spider secondary under
+  the same rule (owner, 2026-10-17). The success criterion is
   fixed with the paper story, in LAB_LOG, before confirmation runs. Spider variants measure robustness; EM is a
   diagnostic. Spider test (2,147 rows) is the confirmation set (R10).
 - Five sets: Spider dev (1,034), Spider-Realistic (508), Spider-SYN (1,034),

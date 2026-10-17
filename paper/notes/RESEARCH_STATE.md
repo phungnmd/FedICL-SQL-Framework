@@ -26,7 +26,9 @@ miền private của client (Spider dev khi thăm dò, Spider test khi xác nh�
 BIRD EX (miền public) là metric phụ: xếp hạng theo Spider trước; gain BIRD
 chỉ tính là lợi khi Spider không thấp hơn, và giữa các phương án có Spider
 không khác nhau thì BIRD cao hơn là tốt hơn. Không đổi Spider lấy BIRD. Vẫn
-luôn báo cả hai miền.
+luôn báo cả hai miền. Trong setting đảo vai (P2.43: BIRD private, Spider
+public) metric chính là BIRD EX, miền private, Spider là metric phụ theo
+cùng luật (owner, 2026-10-17).
 
 ## 2. Setup cố định
 
@@ -94,7 +96,7 @@ từng được publish, không trích dẫn.
 | Q9 | Edge của teacher có phải chỉ do softening (label smoothing) không? | đã có: không trên Spider, một phần trên DK (F15). Còn mở: LS epsilon 0.1 và self-distillation (teacher-specific chưa chắc là 7B-specific) |
 | Q10 | KD target khác có làm teacher đóng góp nhiều hơn Hinton T=2 không? | TAID: không (F18). P2.41 Hinton T=1 không chạy (điều kiện không đạt) |
 | Q11 | Sau K2, FL còn thua train tập trung bao nhiêu? | đã có: khoảng 2 điểm Spider (F17), sát độ phân giải 1 seed |
-| Q12 | Đảo vai (BIRD private, Spider public): teacher có đóng góp rõ hơn không? | hướng ưu tiên (owner 2026-10-17); pilot P2.43 chưa có code, LAB_LOG 2026-10-17 |
+| Q12 | Đảo vai (BIRD private, Spider public): teacher có đóng góp rõ hơn không? | hướng ưu tiên (owner 2026-10-17); P2.43 đã có code, đang chạy early signal (K2 và A1), metric chính là BIRD EX, LAB_LOG 2026-10-17 |
 | Q13 | Edge Spider +2.13 của `hinton_k2aaa` có giữ ở seed 1-2 không? Đây là recipe tốt nhất trong 4 recipe teacher đã thử | xác nhận sau khi chốt (luật 2) |
 
 Danh sách arm P2.37 giữ làm baseline. Từ 2026-10-12 được thêm arm sau khi

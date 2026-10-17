@@ -24,9 +24,75 @@ Older detail:
   `hinton_k2aaa`, `gold_k2aaa`, `central_mix` (`5b01fc1`), `local`
   (`3e0dc0b`); P2.38 (`d326854`), P2.39 pilot (`4acba5b`), P2.40
   (`640d534`), P2.42 (`c40e090`).
-- No lane runs. P2.41 not run (its condition failed, entry below). Deferred:
-  the P2.37 `akaka_plain` pair. Next direction (owner): reverse roles, pilot
-  P2.43 (entry below), not built yet.
+- P2.41 not run (its condition failed, entry below). Deferred: the P2.37
+  `akaka_plain` pair. Next direction (owner): reverse roles. P2.43 is built
+  (nested `68f04bc`); its early-signal runs are queued (entry below).
+
+## 2026-10-17: reverse roles: BIRD EX is the primary metric there; P2.43 built with an early-signal stop
+
+Written before any P2.43 result exists.
+
+Owner decisions (2026-10-17):
+
+1. In the reverse setting (BIRD at the clients, Spider at the server) the
+   primary metric is EX on the private domain, BIRD dev with evidence.
+   Spider EX is secondary under the rule of 2026-10-16 with the roles
+   swapped: a Spider gain counts only when BIRD EX is not lower, and breaks
+   ties between options whose BIRD EX does not differ. Never trade BIRD for
+   Spider. The main direction keeps Spider as primary.
+2. The P2.43 pilot is approved: `fl_bird`, `gold_k2aaa_rev`,
+   `hinton_k2aaa_rev`, plus `central_bird` (all BIRD train rows in one place,
+   three epochs, the FL-penalty reference).
+3. An early signal comes first, before the full chains.
+
+Open point the metric decision creates: BIRD has no public test set; our
+BIRD `test.csv` is BIRD dev, which exploration uses. A confirmation set for
+the reverse setting (for example a DB-disjoint part of BIRD train held out
+before seeds 1-2) must be fixed in the freeze entry. Spider test stays the
+confirmation set of the main direction.
+
+Build (nested `7694f3f`, `dbd7a34`, `ffc169b`, `68f04bc`):
+
+- Split: `BIRD/original_train9428_dev1534/federated_noniid/alpha_0.1/k5`,
+  built from the BIRD DB groups, seed 0; clients of 2,761, 1,449, 3,929, 817
+  and 472 rows; audit passed
+  (`audits/protocol_v2/p243_reverse_roles_s0/bird_split_audit.json`).
+- `scripts/run_p243_reverse_roles.py`. The chain arms are the P2.37
+  `hinton_k2aaa` and `gold_k2aaa` commands with only the data, the cache and
+  the outputs swapped (Spider pool, Spider profile, BIRD split; tested flag by
+  flag). `fl_bird` and `central_bird` are the P2.27 FL and central commands on
+  BIRD. Max length 7,168 everywhere (Spider prompts are under 3,000 tokens;
+  all 9,428 BIRD rows fit 7,168 in P2.17). A new Spider teacher logit cache
+  (`--phase cache`; the runner needs 130 GB free). `--until k2|a1` stops a
+  chain; a later run continues from the last recorded stage.
+
+Early signal (seed 0, dev, descriptive):
+
+- GPU 1: `gold_k2aaa_rev` to A1 (needs no cache), then `fl_bird`.
+- GPU 0: the Spider cache, then `hinton_k2aaa_rev` to A1.
+- Read as soon as each endpoint is evaluated (`--phase analyze` is safe while
+  lanes run): `hinton_k2aaa_rev - gold_k2aaa_rev` on BIRD at K2 (teacher
+  knowledge moved from Spider to BIRD before any BIRD training) and at A1
+  (after one private round, the primary metric). References: P2.27 `base`
+  BIRD 21.32 / Spider 59.19; in the main direction Hinton - gold at K2 on the
+  domain the server did not train on was +3.19 (Spider).
+
+How to read it (exploration; no pass/fail rule):
+
+- Scale: one BIRD dev question is 0.065 points; with about 150-200
+  discordant questions a paired contrast has a Wald 95% half-width near 1.7
+  points.
+- A clear Hinton - gold gain on BIRD at A1 (about +2 or more, p<.05) is a
+  reason to run both chains to A3 and `central_bird`; it is not a result. In
+  the main direction A1 gains faded by A3 (TAID BIRD A1 +3.19, A3 +1.04).
+- Near zero at both K2 and A1: the teacher's Spider knowledge does not reach
+  BIRD at this stage; report before spending A2-A3 (about 6-7 GPU-h per
+  chain). Continuing is the owner's choice.
+- Other reading of a K2 gain: soft targets can help through output smoothing
+  alone. The P2.38 virtual-teacher control separates that and can be repeated
+  here if the gain holds.
+- Selection: the reverse adds two recipes to the seed-0 search (note of
+  2026-10-17); any teacher edge here needs seeds 1-2 before a claim.
 
 ## 2026-10-16: Spider is the primary metric (owner decision)
 
