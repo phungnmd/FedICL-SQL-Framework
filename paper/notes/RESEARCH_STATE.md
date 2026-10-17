@@ -9,7 +9,7 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-16.
+Cập nhật: 2026-10-17.
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -65,6 +65,9 @@ chỉ là giả thuyết.
 | F14 | Rounds private bào mòn BIRD đã học ở K2, chủ yếu qua LoRA B | Hinton BIRD 43.61 (K2) xuống 36.77 (A1); với A đóng băng vẫn xuống 37.61, tức khoảng 88% đi qua B (P2.39 pilot) | 1 seed |
 | F15 | Edge Spider của teacher trong K2AAA không phải do softening; ở DK một phần là softening | P2.38 virtual teacher (`a`=0.728): Hinton - virtual Spider K2 +6.09 (p<.001), A3 +2.03 (p=.031); virtual - gold Spider A3 +0.10, K2 -2.90; DK A3: virtual - gold +3.36, Hinton - virtual +2.62 (p=.049). Phần BIRD mất thêm sau Hinton K2 cũng do teacher (Hinton - virtual A1 -2.28) | 1 seed |
 | F16 | Có teacher, K2AAA ngang train tập trung Spider+BIRD trên Spider và DK | `central_mix` E3 - `hinton_k2aaa` A3: Spider +0.68 (p=.60), DK +0.37; so với `gold_k2aaa`: Spider +2.80 (p=.016), DK +6.36 (p<.001); BIRD +5.15 so với Hinton | 1 seed |
+| F17 | Sau Hinton K2, FL chỉ thua central Spider khoảng 2 điểm; BIRD mất sau K2 là do train Spider, không do FL | P2.42 `central_k2` - `hinton_k2aaa`: Spider pass 3 +2.13 (p=.061), DK +0.19; từ base (P2.27) +3.77 (p=.003). BIRD: central mất nhiều hơn FL (-4.50, p<.001) | 1 seed |
+| F18 | TAID ở K2 không hơn Hinton T=2 ở model cuối | P2.40 TAID - Hinton A3: Spider -1.84 (p=.050), DK -4.11 (p=.001), BIRD +1.04 (n.s.); ở A1 BIRD +3.19 (p<.001) rồi mất. TAID - gold A3 Spider +0.29 | 1 seed |
+| F19 | FL thuần gần như không hơn client tốt nhất train một mình trên Spider | P2.37 `local`: Spider 64.60-67.02 (trung bình 65.49); FL A3 - client tốt nhất +0.58 (p=.69); `hinton_k2aaa` A3 - client tốt nhất +5.51 (p<.001) | 1 seed |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
@@ -80,7 +83,7 @@ từng được publish, không trích dẫn.
 
 | # | Câu hỏi | Cần arm |
 |---|---|---|
-| Q1 | Federation có cần không (local-only so với FL), và vì sao FL thua central 3.8 điểm ở Coder-1.5B? | local-only (P2.37), FL và central (có) |
+| Q1 | Vì sao FL thuần thua central 3.8 điểm và gần như không hơn client tốt nhất (F19)? | audit client drift (Q7) |
 | Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? K2AAA: có (F13); AKA plain: không trên Spider (P2.36) | cặp AKAKA plain (P2.37, hoãn) |
 | Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | AKAKA plain (hoãn; chỉ cần nếu paper claim lịch K-first) |
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | đã có: `central_mix` (F16); không có teacher nên chỉ là mốc pooled data, không phải trần cho method có teacher |
@@ -89,8 +92,10 @@ từng được publish, không trích dẫn.
 | Q7 | Setup hiện tại có client drift thật không, hay FL thua central vì lý do khác? | audit trên adapter client của P2.27 FL (chưa lên lịch) |
 | Q8 | Nếu teacher dạy CoT ở server và client tự sinh CoT có kiểm chứng trên dữ liệu private, lợi thế teacher có sống tới model cuối không? | pilot P0-P2 rồi `cot_fed`, `cot_template`, `cot_noteacher` trong [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md); cần owner mở lại hướng CoT |
 | Q9 | Edge của teacher có phải chỉ do softening (label smoothing) không? | đã có: không trên Spider, một phần trên DK (F15). Còn mở: LS epsilon 0.1 và self-distillation (teacher-specific chưa chắc là 7B-specific) |
-| Q10 | KD target khác (TAID, T=1) có làm teacher đóng góp nhiều hơn Hinton T=2 không? | P2.40 TAID, P2.41 Hinton T=1 (xếp hàng) |
-| Q11 | Sau K2, FL còn thua train tập trung bao nhiêu (chỗ cho method phía client như FedDAT)? | P2.42 `central_k2` (xếp hàng) |
+| Q10 | KD target khác có làm teacher đóng góp nhiều hơn Hinton T=2 không? | TAID: không (F18). P2.41 Hinton T=1 không chạy (điều kiện không đạt) |
+| Q11 | Sau K2, FL còn thua train tập trung bao nhiêu? | đã có: khoảng 2 điểm Spider (F17), sát độ phân giải 1 seed |
+| Q12 | Đảo vai (BIRD private, Spider public): teacher có đóng góp rõ hơn không? | hướng ưu tiên (owner 2026-10-17); pilot P2.43 chưa có code, LAB_LOG 2026-10-17 |
+| Q13 | Edge Spider +2.13 của `hinton_k2aaa` có giữ ở seed 1-2 không? Đây là recipe tốt nhất trong 4 recipe teacher đã thử | xác nhận sau khi chốt (luật 2) |
 
 Danh sách arm P2.37 giữ làm baseline. Từ 2026-10-12 được thêm arm sau khi
 xem kết quả (luật 1, mục 5).

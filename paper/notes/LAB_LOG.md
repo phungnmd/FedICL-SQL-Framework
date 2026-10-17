@@ -25,7 +25,8 @@ Older detail:
   (`3e0dc0b`); P2.38 (`d326854`), P2.39 pilot (`4acba5b`), P2.40
   (`640d534`), P2.42 (`c40e090`).
 - No lane runs. P2.41 not run (its condition failed, entry below). Deferred:
-  the P2.37 `akaka_plain` pair. Next step is the owner's choice (entry below).
+  the P2.37 `akaka_plain` pair. Next direction (owner): reverse roles, pilot
+  P2.43 (entry below), not built yet.
 
 ## 2026-10-16: Spider is the primary metric (owner decision)
 
@@ -53,6 +54,42 @@ estimated) and makes FedCoLLM a required baseline. Keep selective KD as a
 candidate K-stage objective next to TAID (Wang et al., ACL 2021; execution
 selection is our adaptation; SQL token-type weighting has no published
 source). Not queued; owner decides after P2.40.
+
+## 2026-10-17: owner direction: reverse roles (BIRD private, Spider public) before other directions; compared with FedDAT
+
+Owner decision: the next direction is the reverse setting, with BIRD (with
+evidence) at the clients and Spider at the server, before FedDAT or any other
+client method. Evaluation against FedDAT, from the evidence so far:
+
+| | Reverse roles | FedDAT in the current direction |
+|---|---|---|
+| What it changes | The setting: where the private and public data sit | One client method inside K2AAA |
+| Room on the metric it targets | FL penalty on BIRD private is large in the one earlier run (Qwen2.5-1.5B-Instruct, alpha 0.5: central E1/E2 31.42/34.94 against FL T1/T2 22.75/28.36) | About 2 Spider points left after Hinton K2 (F17, p=.061), near one-seed resolution |
+| Teacher signal behind it | In the current direction the teacher edge appears on the domain the server did not train on (Hinton - gold at K2: Spider +3.19, BIRD +0.13); the reverse tests the same transfer the other way | Its mechanism keeps global knowledge during FedAvg; P2.42 shows the BIRD loss is not from federation, so most of that target is the secondary metric |
+| Code | Mostly present: dataset profiles, stage chain, Spider SeqKD targets (7,251 rows), cache builder; new: a Spider teacher logit cache and a runner | New trainer: three adapter states, mutual KD, 3 forward + 2 backward per step; no SQL evidence |
+| Cost per arm | About 13-15 GPU-h (K2 on Spider about 3-4 h, BIRD rounds about 3 h each) plus a one-time Spider cache (estimated 100 GB disk, a few GPU-h) | About 2.5 times a plain round per private round, plus implementation |
+| Main risk | Spider-to-BIRD transfer may be weak: BIRD needs evidence and value grounding Spider never shows. Earlier reverse T1 (one round): SeqKD 24.45, FL 22.88, gold 20.73 | Small headroom; a gain may come from extra compute rather than the method |
+
+Reading: the reverse setting has more measured room and reuses most of the
+code; FedDAT stays a candidate client method for whichever setting is chosen.
+Two points stay open and are the owner's:
+
+- Metric: the primary metric (owner, 2026-10-16) is Spider EX as the clients'
+  private domain. In the reverse setting the private domain is BIRD. Which
+  metric is primary there must be fixed in a dated entry before any reverse
+  result is read.
+- The reverse adds recipes to the seed-0 search, so the selection note of
+  2026-10-17 (best of several recipes) applies to it as well; its teacher
+  edge also needs seeds 1-2 before any claim.
+
+Proposed pilot (P2.43, not built yet): fresh Coder-1.5B, BIRD clients on a
+new `alpha_0.1/k5` split built from the BIRD DB groups (a trial build gives
+clients of 2,761, 1,449, 3,929, 817 and 472 rows), Spider public with all
+8,659 rows. Arms: `fl_bird` (AAA), `gold_k2aaa_rev` (gold CE K2 on Spider,
+then AAA on BIRD), `hinton_k2aaa_rev` (Hinton T=2 K2 with a Spider teacher
+logit cache, then AAA). Evaluation: BIRD dev and Spider dev after each stage,
+all five sets at A3. Main contrast: `hinton_k2aaa_rev - gold_k2aaa_rev` at A3
+on BIRD.
 
 ## 2026-10-17: P2.40 TAID below Hinton on Spider at A3; P2.37 `local` published
 
