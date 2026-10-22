@@ -5,13 +5,14 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-State 2026-10-17: P2.27, P2.28, P2.29, P2.36 published; P2.37
+State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
 `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
-pilot, P2.40 and P2.42 are published. No lane runs. P2.41 is not run (its
-condition failed, LAB_LOG 2026-10-17). The `akaka_plain` pair is deferred, so
-P2.37 step 3 (final summary, needs all six arms) waits. Next: P2.43 reverse
-roles, early signal first (below). Findings and open questions are in
-[RESEARCH_STATE.md](RESEARCH_STATE.md).
+pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
+published. Running: P2.43 both chains to A3 (GPU 0 `hinton_k2aaa_rev`, GPU 1
+`gold_k2aaa_rev` then `fl_bird`). Next: P2.44 self-teacher on GPU 0 when its
+P2.43 lane finishes, then P2.43 `central_bird`. No seed 1-2 or Spider test run
+until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
+in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)
 
@@ -31,6 +32,44 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.44: self-teacher control (base Coder-1.5B as the K2 teacher)
+
+Question and the readings fixed before the run: LAB_LOG 2026-10-23. Code:
+nested `e3a3e22`, `1f0bee7`. Dev sets only, seed 0.
+
+`self_k2aaa` repeats every P2.37 `hinton_k2aaa` command; only the K2 teacher
+changes, from the 4-bit 7B to the base Coder-1.5B (fp16) through a new BIRD
+logit cache. Comparators: the published `hinton_k2aaa`, `gold_k2aaa` and
+P2.38 `virtual_k2aaa`.
+
+Cost: cache build about 1-3 h and about 155 GB of disk (the runner refuses to
+start under 200 GB free), then the chain about 13-15 h. Send the peak
+reserved VRAM of the cache build and K2 from the logs, and check the shared
+GPU memory in the first 15 minutes.
+
+1. Pull and prepare (CPU). Safe while the P2.43 lanes run: it admits only the
+   three new P2.44 files, the status script and Markdown, none of which a
+   running lane imports. Prints the free disk:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-status HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^A\s+(scripts/run_p244_self_teacher\.py|scripts/list_p244_publication\.py|tests/test_p244_self_teacher\.py)$' -and $_ -notmatch '^[AM]\s+(scripts/status_k2aaa_lanes\.py|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming change a running lane may import: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p244_self_teacher.py tests/test_status_k2aaa_lanes.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p244_self_teacher --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.44 preparation failed' }; $free=[math]::Round((Get-PSDrive (Get-Location).Drive.Name).Free / 1GB); Write-Host "P2.44 prepared; free disk $free GB" }
+```
+
+2. GPU 0, after its P2.43 lane prints "complete" (the P2.37 GPU lock refuses
+   a busy card): cache, then the chain. Rerun the identical command after an
+   interruption; finished work is skipped.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p244_self_teacher --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.44 self-teacher cache failed' }; uv run --no-sync python -m scripts.run_p244_self_teacher --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.44 self_k2aaa failed' }; Write-Host "GPU $gpu P2.44 self_k2aaa complete" }
+```
+
+3. Analyze and publish, when no P2.43 or P2.44 lane runs (the check for
+   tracked changes fails while a P2.43 lane updates its manifest):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p244_self_teacher'; $n='244'; $msg='results: record P2.44 self-teacher control'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
 
 ## P2.43: reverse roles (BIRD private, Spider public), early signal first
 
