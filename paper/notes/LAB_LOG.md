@@ -28,6 +28,32 @@ Older detail:
   `akaka_plain` pair. Next direction (owner): reverse roles. P2.43 is built
   (nested `68f04bc`); its early-signal runs are queued (entry below).
 
+## 2026-10-22: P2.43 `hinton_k2aaa_rev` K2 and A1 published; gold comparator not run yet
+
+Evidence: nested `91a9ea5` (`audits/protocol_v2/p243_reverse_roles_s0/summary.md`).
+Seed 0, dev sets, exploratory. The GPU 1 lane (`gold_k2aaa_rev` to A1, then
+`fl_bird`) trained nothing (cause not known yet), so there is no contrast.
+
+| Endpoint | BIRD (private) | Spider (public) |
+|---|---:|---:|
+| P2.27 `base` | 21.32 | 59.19 |
+| `hinton_k2aaa_rev` K2 | 28.75 | 70.50 |
+| `hinton_k2aaa_rev` A1 | 37.16 | 64.60 |
+
+Flips on BIRD dev (lost / gained): base to K2 91/205, K2 to A1 99/228. On
+Spider: base to K2 53/170, K2 to A1 111/50.
+
+Reading:
+
+- Two Spider epochs at the server raise BIRD by 7.43 points before any BIRD
+  data; one BIRD round adds 8.41. Whether the teacher causes any of the K2
+  transfer is unknown until `gold_k2aaa_rev` K2. In the main direction the
+  transfer to the domain the server did not train on came from the teacher
+  (Hinton K2 Spider 62.28, gold K2 59.09, base 59.19).
+- The first private round loses 99 BIRD questions that K2 had right (6.5%),
+  more than the main-direction analogue (47-57 Spider questions, 4.5-5.5%).
+- Spider (secondary) drops 5.90 after one BIRD round.
+
 ## 2026-10-17: reverse roles: BIRD EX is the primary metric there; P2.43 built with an early-signal stop
 
 Written before any P2.43 result exists.
