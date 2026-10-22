@@ -13,7 +13,7 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-17)
+## Where we are (2026-10-23)
 
 - Exploration at seed 0 on the dev sets under the simplified rules (entry
   2026-10-12); the paper story is fixed in a dated entry before any seed 1-2
@@ -23,10 +23,78 @@ Older detail:
 - Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`); P2.37
   `hinton_k2aaa`, `gold_k2aaa`, `central_mix` (`5b01fc1`), `local`
   (`3e0dc0b`); P2.38 (`d326854`), P2.39 pilot (`4acba5b`), P2.40
-  (`640d534`), P2.42 (`c40e090`).
-- P2.41 not run (its condition failed, entry below). Deferred: the P2.37
-  `akaka_plain` pair. Next direction (owner): reverse roles. P2.43 is built
-  (nested `68f04bc`); its early-signal runs are queued (entry below).
+  (`640d534`), P2.42 (`c40e090`); P2.43 `hinton_k2aaa_rev` K2 and A1
+  (`91a9ea5`).
+- P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
+  pair. Running: P2.43 both chains to A3. Built and queued: P2.44
+  self-teacher (nested `e3a3e22`). Plan and readings: entry 2026-10-23.
+
+## 2026-10-23: independent reviews; plan to submission at Q3; P2.44 self-teacher built, readings fixed before the run
+
+Three rounds of review by an agent without repository access, from
+self-contained briefs (no new runs). What changed in our reading:
+
+- The K2AAA teacher contrast at Coder-1.5B (+2.13 Spider, p=.020) is not a
+  best-of-four pick: K2AAA entered the arm list from the 0.5B grid (P2.20,
+  Hinton - gold +2.03, p=.048) before any 1.5B number. Pooled over the seven
+  high-dose teacher - gold contrasts (mean +1.67), with a shared-question
+  discount, the reviewer puts the true effect at about +1.4 (plausible +0.5
+  to +2.3) and three-seed Spider test power at about 0.6 (about 0.7 one-sided).
+- "Hinton K2 is above base while gold K2 equals base" does not rule out
+  anchoring: a KL toward the base model can keep what gold CE learns on BIRD
+  while removing what it forgets on Spider, and so land above base. The 0.5B
+  half of that argument was a misreading (47.00 is gold K2, not base; the 0.5B
+  base EX is not in the log). The virtual teacher (P2.38, Hinton - virtual
+  +2.03 Spider, p=.031) rules out generic smoothing, not anchoring. So the
+  self-teacher control is needed.
+- Claims to drop or reword: BIRD +12.84 over FL is expected (FL never sees
+  BIRD); the Spider +4.93 over FL splits into public gold +2.81 (`gold_k2aaa`
+  - FL) and teacher +2.13; the fair centralized reference is `central_mix`
+  (0.68 above Hinton), not "level with central Spider"; among the robustness
+  sets only DK moves (Hinton - gold at A3: Realistic +0.59, SYN 0.00, DK
+  +5.98).
+- The reviewer's estimate of acceptance at a Q3 journal within one or two
+  submissions: about 75-80% if the teacher contrast confirms, 40-50% if it
+  does not, about 50% if the self-teacher matches Hinton; about 60-65%
+  overall. Main expected objection: limited novelty (KD then FedAvg, close to
+  FedCoLLM and FedMKT). Answer planned: the decomposition public gold /
+  virtual / self / 7B teacher, not a new method.
+
+Owner decisions (2026-10-23):
+
+- Judge the plan by acceptance at a Q3 journal; for this assessment the floor
+  text and the "K2AAA alone is too simple" decision (2026-10-13) are set
+  aside.
+- P2.45 (teacher-path KD: teacher SQL as the target on the 5,319
+  execution-verified rows, Kim and Rush 2016) is not run: its likely outcome is
+  a tie with Hinton, which adds a component with no measured gain.
+- No seed 1-2 or Spider test run until every seed 0 control is in and the
+  method is fixed in a freeze entry.
+- Seed 0 queue, in order: P2.43 both chains to A3 plus `fl_bird` and
+  `central_bird`; P2.44 self-teacher; a KL-to-base diagnostic on the K2
+  adapters (script not written yet); then, if time allows, Coder-0.5B on the
+  `alpha_0.1` split (FL, gold, Hinton K2AAA) and a 3B teacher.
+
+P2.44 (`scripts/run_p244_self_teacher.py`, nested `e3a3e22`): `self_k2aaa`
+repeats `hinton_k2aaa` with the base Coder-1.5B (fp16, no adapter) as the K2
+teacher through its own BIRD logit cache; LoRA starts at zero, so the KL is a
+pull back toward the start, as in LwF (Li and Hoiem, ECCV 2016). Readings
+fixed before the run (exploration, no pass/fail rule; one contrast at seed 0
+has an SE of about 1.15 points, so only large gaps are read):
+
+- K2 (mechanism): if the edge is anchoring, `self_k2aaa` K2 has BIRD below
+  gold K2 (43.48) and Spider at or above gold K2 (59.09). The base model's
+  soft target puts less mass on BIRD gold tokens than the 7B does (7B mean
+  0.73), so it pulls against gold CE more. Hinton K2: BIRD 43.61, Spider 62.28.
+- A3 (what the paper would say): self - gold and Hinton - self on Spider,
+  plus the paired recovery: of the questions Hinton gets right and gold gets
+  wrong at A3, the share the self-teacher also gets right, next to the same
+  share on the questions gold wins over Hinton. Self close to Hinton (high
+  first share, low second) means the edge is mostly anchoring; self close to
+  gold (the reverse) means it comes from the 7B.
+- Whatever the result, the reviewer's proposal is to take the self-teacher
+  into the three-seed confirmation, tested after Hinton - gold in a fixed
+  sequence. That is decided in the freeze entry, not here.
 
 ## 2026-10-22: P2.43 `hinton_k2aaa_rev` K2 and A1 published; gold comparator not run yet
 

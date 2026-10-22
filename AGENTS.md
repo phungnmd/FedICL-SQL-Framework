@@ -91,7 +91,7 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-17)
+## Current state (2026-10-23)
 
 - Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
   questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
@@ -104,8 +104,12 @@ current plan.
   pilot, P2.40, P2.42. P2.41 not run (its condition failed). Deferred: the
   P2.37 `akaka_plain` pair.
 - Next direction (owner, 2026-10-17): reverse roles, BIRD private and Spider
-  public. P2.43 is built; its early signal (K2 and A1 of the Hinton and gold
-  chains) is queued in `PIPELINE_NEXT.md`.
+  public. P2.43 is built; its Hinton K2 and A1 are published and both chains
+  run to A3.
+- 2026-10-23 (LAB_LOG): plan judged by acceptance at a Q3 journal; P2.45
+  not run; P2.44 self-teacher control built and queued; no seed 1-2 or
+  Spider test run until every seed 0 control is in and a freeze entry fixes
+  the method.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.
