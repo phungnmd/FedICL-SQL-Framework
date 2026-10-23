@@ -27,9 +27,60 @@ Older detail:
   (`91a9ea5`).
 - P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
   pair. P2.43 `hinton_k2aaa_rev` A3 and `gold_k2aaa_rev` K2/A1 evaluated,
-  not committed yet. Running: GPU 0 P2.44 self-teacher K2 (nested `e3a3e22`);
-  GPU 1 `gold_k2aaa_rev` A2, then `fl_bird`. Plan and readings:
-  entry 2026-10-23.
+  not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
+  committed yet). Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`;
+  next on GPU 0: P2.43 `central_bird`. Plan and readings: entry 2026-10-23.
+
+## 2026-10-24: P2.44 self-teacher: the Spider edge comes from the 7B, not from anchoring
+
+Evidence: P2.44 summary from the server (`--phase analyze`), not committed
+yet; publication waits until no P2.43 lane runs. Seed 0, dev sets,
+exploratory, exact McNemar. `self_k2aaa` = `hinton_k2aaa` with the base
+Coder-1.5B as the K2 teacher. Readings were fixed on 2026-10-23.
+
+| Arm | K2 Spider / BIRD | A1 Spider / BIRD | A3 Spider | A3 DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` | 62.28 / 43.61 | 71.57 / 36.77 | 72.53 | 58.32 | 38.53 |
+| `gold_k2aaa` | 59.09 / 43.48 | 70.12 / 40.74 | 70.41 | 52.34 | 40.03 |
+| `virtual_k2aaa` | 56.19 / 44.07 | 67.99 / 39.05 | 70.50 | 55.70 | 39.83 |
+| `self_k2aaa` | 58.03 / 28.94 | 68.47 / 32.01 | 70.21 | 52.71 | 32.27 |
+
+- Hinton - self, Spider: K2 +4.26 (114/70, p=.0015), A1 +3.09 (p=.0016),
+  A2 +1.74 (p=.073), A3 +2.32 (62/38, p=.021); A3 DK +5.61 (45/15,
+  p<.001), Realistic +0.79, SYN +1.55; BIRD A3 +6.26 (p<.001).
+- Self - gold, Spider: K2 -1.06 (p=.50), A3 -0.19 (45/47, p=.92); DK +0.37;
+  BIRD K2 -14.54, A3 -7.76 (both p<.001).
+- Paired recovery at A3, Spider: of the 52 questions Hinton wins over gold,
+  self is right on 24 (46%); of the 30 gold wins, on 17 (57%). At K2: 58/95
+  (61%) and 23/62 (37%).
+
+Reading (against the readings fixed 2026-10-23):
+
+- K2 (mechanism): the anchoring prediction holds for BIRD (self K2 28.94,
+  far below gold 43.48: the base-model target pulls hard against gold CE)
+  but fails for Spider (58.03, not at or above gold 59.09). The Spider edge
+  of Hinton K2 (+3.19 over gold) is not reproduced by pulling toward the
+  base model.
+- A3 (paper endpoint): self is level with gold (-0.19) and Hinton is above
+  self (+2.32, p=.021). The recovery shares go the "from the 7B" way (low
+  first share, higher second). Three teacher-free references now sit at the
+  gold level on Spider A3: gold 70.41, virtual 70.50, self 70.21; Hinton is
+  72.53. On DK the same holds (52.34 / 55.70 / 52.71 vs 58.32).
+- The KD headroom audit (2026-10-23) could not detect a teacher signature on
+  Spider at A3; with 52/30 discordant questions that test had little power,
+  and P2.44 is the direct test.
+- Other reading still open: the self-teacher is a stronger anchor than the
+  7B (it puts less mass on gold tokens, which is why BIRD collapses), so
+  P2.44 rules out "anchoring of this strength", not a milder pull toward the
+  base model at the 7B's gold mass (0.728). A matched-strength control (base
+  logits mixed with the gold one-hot to the same mean gold mass, from the
+  existing P2.44 cache) would close it at the cost of one chain. Owner's
+  choice.
+- Status for the floor: the teacher contribution at the final endpoint is
+  about +2 Spider against each of three controls (gold, smoothing, self);
+  seed 0 only, and the +2.13 against gold is still the selected recipe
+  (reviewer's shrunk estimate about +1.4). The confirmation over seeds
+  decides.
 
 ## 2026-10-23: direction review (Codex) and per-question KD headroom audit
 

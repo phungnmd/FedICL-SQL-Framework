@@ -70,6 +70,7 @@ chỉ là giả thuyết.
 | F17 | Sau Hinton K2, FL chỉ thua central Spider khoảng 2 điểm; BIRD mất sau K2 là do train Spider, không do FL | P2.42 `central_k2` - `hinton_k2aaa`: Spider pass 3 +2.13 (p=.061), DK +0.19; từ base (P2.27) +3.77 (p=.003). BIRD: central mất nhiều hơn FL (-4.50, p<.001) | 1 seed |
 | F18 | TAID ở K2 không hơn Hinton T=2 ở model cuối | P2.40 TAID - Hinton A3: Spider -1.84 (p=.050), DK -4.11 (p=.001), BIRD +1.04 (n.s.); ở A1 BIRD +3.19 (p<.001) rồi mất. TAID - gold A3 Spider +0.29 | 1 seed |
 | F19 | FL thuần gần như không hơn client tốt nhất train một mình trên Spider | P2.37 `local`: Spider 64.60-67.02 (trung bình 65.49); FL A3 - client tốt nhất +0.58 (p=.69); `hinton_k2aaa` A3 - client tốt nhất +5.51 (p<.001) | 1 seed |
+| F20 | Edge Spider của teacher ở K2AAA không phải do kéo về base model (anchoring), ở mức kéo của self-teacher | P2.44 `self_k2aaa` (base 1.5B làm teacher): Hinton - self Spider K2 +4.26 (p=.0015), A3 +2.32 (p=.021), DK A3 +5.61; self - gold A3 Spider -0.19; self làm sập BIRD (K2 28.94). Một anchor yếu hơn (cùng gold mass 0.728) chưa được kiểm tra | 1 seed, chưa commit |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
