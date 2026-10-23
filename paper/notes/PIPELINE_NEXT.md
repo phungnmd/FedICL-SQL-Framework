@@ -8,9 +8,9 @@ are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
 `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
 pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
-published. Running: P2.43 both chains to A3 (GPU 0 `hinton_k2aaa_rev`, GPU 1
-`gold_k2aaa_rev` then `fl_bird`). Next: P2.44 self-teacher on GPU 0 when its
-P2.43 lane finishes, then P2.43 `central_bird`. No seed 1-2 or Spider test run
+published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
+Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next: P2.44
+self-teacher on GPU 0, then P2.43 `central_bird`. No seed 1-2 or Spider test run
 until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
 in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 

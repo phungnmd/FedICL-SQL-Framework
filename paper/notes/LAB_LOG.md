@@ -26,8 +26,48 @@ Older detail:
   (`640d534`), P2.42 (`c40e090`); P2.43 `hinton_k2aaa_rev` K2 and A1
   (`91a9ea5`).
 - P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
-  pair. Running: P2.43 both chains to A3. Built and queued: P2.44
-  self-teacher (nested `e3a3e22`). Plan and readings: entry 2026-10-23.
+  pair. P2.43 `hinton_k2aaa_rev` A3 and `gold_k2aaa_rev` K2/A1 evaluated,
+  not committed yet. Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`.
+  Next on GPU 0: P2.44 self-teacher (nested `e3a3e22`). Plan and readings:
+  entry 2026-10-23.
+
+## 2026-10-23: P2.43 reverse roles: teacher ahead of gold on BIRD at K2 and A1 (not committed)
+
+Source: server `--phase analyze` summary sent in chat; nested result commit
+pending (publication waits until no P2.43 lane runs). Not committed: stays
+out of the paper until published. Seed 0, dev sets, exploratory, exact
+McNemar. BIRD is the private (primary) domain here.
+
+| Endpoint | Hinton BIRD | gold BIRD | Hinton Spider | gold Spider |
+|---|---:|---:|---:|---:|
+| P2.27 `base` | 21.32 | 21.32 | 59.19 | 59.19 |
+| K2 | 28.75 | 25.16 | 70.50 | 72.92 |
+| A1 | 37.16 | 34.68 | 64.60 | 64.99 |
+| A2 | 40.35 | - | 65.47 | - |
+| A3 | 41.33 | - | 64.89 | - |
+
+Hinton A3 robustness: Realistic 56.10, SYN 54.16, DK 54.39.
+
+Hinton - gold: K2 BIRD +3.59 (145/90, p<.001), Spider -2.42 (51/76,
+p=.033); A1 BIRD +2.48 (102/64, p=.004), Spider -0.39 (p=.76).
+
+Reading:
+
+- The early-signal condition of 2026-10-17 (about +2 or more on BIRD at A1,
+  p<.05) is met; both chains already run to A3, so nothing changes in the
+  queue.
+- The direction mirrors the main setting: on the domain the server did not
+  train on, Hinton K2 is ahead of gold K2 (+3.59 BIRD here, +3.19 Spider in
+  P2.37), and gold fits the server domain better (Spider -2.42 here; in
+  P2.37 Hinton was ahead on BIRD by only +0.13 at K2).
+- Here gold K2 already lifts the unseen domain above base (BIRD +3.84), and
+  Hinton adds the same again. Other reading: anchoring is still not ruled
+  out; P2.44 tests it only in the main direction, and a reverse self-teacher
+  would need its own Spider cache from the base model.
+- Gold loses more Spider in the first BIRD round (-7.93 vs -5.90), as in F4.
+- In the main direction A1 edges faded by A3. The primary contrast is
+  Hinton - gold BIRD at A3, then the FL penalty against `central_bird`
+  and the gain over `fl_bird`; none is in yet.
 
 ## 2026-10-23: independent reviews; plan to submission at Q3; P2.44 self-teacher built, readings fixed before the run
 
