@@ -31,6 +31,79 @@ Older detail:
   Next on GPU 0: P2.44 self-teacher (nested `e3a3e22`). Plan and readings:
   entry 2026-10-23.
 
+## 2026-10-23: direction review (Codex) and per-question KD headroom audit
+
+Codex research review (read-only, from a self-contained brief; report not
+committed). Its main conclusion matches ours: no new loss or client tweak has
+an expected effect near the seed-0 MDE (about 3.2 points at 80% power with
+about 140 discordant questions), so controls and confirmation decide more
+than another component. Our review of its eight directions:
+
+- Kept: finish P2.43; a segmented central control that resets AdamW and the
+  cosine schedule per segment like FL (separates optimizer resets from
+  federation in the FL penalty); central from gold K2 if the paper claims
+  the teacher reduces the FL penalty; FedAdam (Reddi et al., ICLR 2021) as
+  a stronger FL baseline; a DB-disjoint BIRD holdout as the reverse
+  confirmation set.
+- Rejected: more frequent sync at the same passes (6 x 0.5 epoch). The
+  2026-10-11 diagnosis puts the FL penalty on few optimizer steps per pass
+  (69-129 local steps vs about 541 per central epoch) with fresh AdamW and
+  warmup per round; halving local epochs doubles the resets.
+- Rejected for the teacher story: LoRA+ (moves gold and Hinton alike);
+  selective KD, DKD, AdaKD (each refits soft labels on gold; expected 0 to
+  +1, below the MDE, and each adds to the seed-0 search); FedDAT (25-35 GPU-h
+  for 0 to +1.5; dual adapters rejected 2026-10-11).
+- Low priority: Pure-KD (Zhu et al., NAACL Industry 2025: teacher prompt 23%
+  of the student's, student +1.9 TS, fine-tuned teacher). A gold-pruned
+  schema is oracle input, so the target moves toward gold and loses the
+  schema alternatives the soft label carries.
+- Correction to our diagnosis 1: the marginal EX gap is not the KD ceiling.
+- Manuscript note: Hinton uses all 9,428 rows on gold prefixes; execution
+  selection belongs to SeqKD only.
+
+KD headroom audit (CPU, published seed-0 predictions; nested `1384045`,
+`audits/protocol_v2/kd_headroom_s0/summary.md`; local commit, pushed after
+the P2.43 and P2.44 publications because their pull allowlists reject a new
+script). Teacher-only = teacher right, student wrong.
+
+| Spider dev | EX | Teacher-only | Student-only | Neither |
+|---|---:|---:|---:|---:|
+| base | 59.19 | 223 | 42 | 199 |
+| FL A3 | 67.60 | 149 | 55 | 186 |
+| `gold_k2aaa` A3 | 70.41 | 128 | 63 | 178 |
+| `hinton_k2aaa` A3 | 72.53 | 112 | 69 | 172 |
+| `central_mix` E3 | 73.21 | 108 | 72 | 169 |
+
+Share of each side's wins on which the teacher is right (Hinton - gold):
+
+| Set, endpoint | Hinton wins | Gold wins | Fisher p |
+|---|---:|---:|---:|
+| Spider K2 | 86/95 (90.5%) | 48/62 (77.4%) | .036 |
+| Spider A3 | 37/52 (71.2%) | 21/30 (70.0%) | 1.0 |
+| BIRD K2 | 88/128 (68.8%) | 58/126 (46.0%) | <.001 |
+| BIRD A3 | 63/89 (70.8%) | 61/112 (54.5%) | .020 |
+
+Reading (exploratory, one seed):
+
+- Headroom per question is larger than the marginal gap: the teacher answers
+  112 Spider dev questions (10.8 points) that Hinton A3 misses. Gold data
+  removes most of the base model's teacher-only set (223 to 128); Hinton
+  removes 16 more.
+- On BIRD, where KD runs, Hinton's wins sit on teacher-correct questions at
+  K2 and still at A3. On Spider the same signature is present at K2 and gone
+  at A3: Hinton's A3 wins are no more teacher-specific than gold's (both
+  below the 76.7% base rate), matching F13 (8 of 52 A3 edge questions were
+  K2 edge questions).
+- So the Spider A3 edge looks like a general effect of the Hinton K2 start,
+  not the teacher's answers carried through the private rounds. This fits
+  the anchoring reading P2.44 tests and does not decide it: dark knowledge
+  can also help on questions the teacher itself misses.
+- Diagnosis 1 restated: the bottleneck is the channel (soft labels on
+  another domain's gold, then private rounds), not a small teacher lead.
+- Follow-up: rerun the audit on P2.43 (BIRD private) once `gold_k2aaa_rev`
+  A3 is published, to see whether the signature survives private rounds when
+  the private domain is the harder one.
+
 ## 2026-10-23: P2.43 reverse roles: teacher ahead of gold on BIRD at K2 and A1 (not committed)
 
 Source: server `--phase analyze` summary sent in chat; nested result commit
