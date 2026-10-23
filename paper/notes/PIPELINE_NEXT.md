@@ -9,9 +9,9 @@ State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
 `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
 pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
 published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
-Running (status 2026-10-23, server at nested `1f0bee7`): GPU 0 P2.44
-`self_k2aaa` K2 (cache built); GPU 1 `gold_k2aaa_rev` A2. Then `fl_bird`;
-then P2.43 `central_bird`. Local nested commit
+P2.44 `self_k2aaa` complete on GPU 0 (2026-10-24, not published). Running:
+GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next on GPU 0: P2.43
+`central_bird`. Publish P2.43 and P2.44 when no lane runs. Local nested commit
 `1384045` (KD headroom audit, a new script) is not pushed: the P2.44 step 1
 and publication pull allowlists reject it. Push it after the last P2.43 and
 P2.44 publications. No seed 1-2 or Spider test run
@@ -66,6 +66,14 @@ GPU memory in the first 15 minutes.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p244_self_teacher --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.44 self-teacher cache failed' }; uv run --no-sync python -m scripts.run_p244_self_teacher --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.44 self_k2aaa failed' }; Write-Host "GPU $gpu P2.44 self_k2aaa complete" }
+```
+
+2b. Read the result (CPU, safe while P2.43 lanes run; it reads the P2.44
+   manifest and the published comparators and rewrites only the P2.44
+   summary files):
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p244_self_teacher --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.44 analysis failed' }; Get-Content audits/protocol_v2/p244_self_teacher_s0/summary.md }
 ```
 
 3. Analyze and publish, when no P2.43 or P2.44 lane runs (the check for
