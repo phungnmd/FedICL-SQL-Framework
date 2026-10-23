@@ -9,8 +9,9 @@ State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
 `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
 pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
 published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
-Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next: P2.44
-self-teacher on GPU 0, then P2.43 `central_bird`. Local nested commit
+Running (status 2026-10-23, server at nested `1f0bee7`): GPU 0 P2.44
+`self_k2aaa` K2 (cache built); GPU 1 `gold_k2aaa_rev` A2. Then `fl_bird`;
+then P2.43 `central_bird`. Local nested commit
 `1384045` (KD headroom audit, a new script) is not pushed: the P2.44 step 1
 and publication pull allowlists reject it. Push it after the last P2.43 and
 P2.44 publications. No seed 1-2 or Spider test run

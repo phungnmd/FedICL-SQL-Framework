@@ -27,8 +27,8 @@ Older detail:
   (`91a9ea5`).
 - P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
   pair. P2.43 `hinton_k2aaa_rev` A3 and `gold_k2aaa_rev` K2/A1 evaluated,
-  not committed yet. Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`.
-  Next on GPU 0: P2.44 self-teacher (nested `e3a3e22`). Plan and readings:
+  not committed yet. Running: GPU 0 P2.44 self-teacher K2 (nested `e3a3e22`);
+  GPU 1 `gold_k2aaa_rev` A2, then `fl_bird`. Plan and readings:
   entry 2026-10-23.
 
 ## 2026-10-23: direction review (Codex) and per-question KD headroom audit
