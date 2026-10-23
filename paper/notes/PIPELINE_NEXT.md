@@ -10,7 +10,10 @@ State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
 pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
 published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
 Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next: P2.44
-self-teacher on GPU 0, then P2.43 `central_bird`. No seed 1-2 or Spider test run
+self-teacher on GPU 0, then P2.43 `central_bird`. Local nested commit
+`1384045` (KD headroom audit, a new script) is not pushed: the P2.44 step 1
+and publication pull allowlists reject it. Push it after the last P2.43 and
+P2.44 publications. No seed 1-2 or Spider test run
 until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
 in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
