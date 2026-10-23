@@ -90,14 +90,15 @@ Reading (exploratory, one seed):
   removes most of the base model's teacher-only set (223 to 128); Hinton
   removes 16 more.
 - On BIRD, where KD runs, Hinton's wins sit on teacher-correct questions at
-  K2 and still at A3. On Spider the same signature is present at K2 and gone
-  at A3: Hinton's A3 wins are no more teacher-specific than gold's (both
-  below the 76.7% base rate), matching F13 (8 of 52 A3 edge questions were
+  K2 and still at A3. On Spider the signature is present at K2 and not
+  detected at A3: 71.2% vs 70.0%, but with 52 and 30 questions the
+  difference has a 95% CI of about -19 to +22 points, so a K2-sized gap (+13)
+  is not excluded. F13 points the same way (8 of 52 A3 edge questions were
   K2 edge questions).
-- So the Spider A3 edge looks like a general effect of the Hinton K2 start,
-  not the teacher's answers carried through the private rounds. This fits
-  the anchoring reading P2.44 tests and does not decide it: dark knowledge
-  can also help on questions the teacher itself misses.
+- The Spider A3 edge may be a general effect of the Hinton K2 start rather
+  than the teacher's answers carried through the private rounds; this audit
+  cannot tell. It neither confirms nor rules out the anchoring reading P2.44
+  tests: dark knowledge can also help on questions the teacher misses.
 - Diagnosis 1 restated: the bottleneck is the channel (soft labels on
   another domain's gold, then private rounds), not a small teacher lead.
 - Follow-up: rerun the audit on P2.43 (BIRD private) once `gold_k2aaa_rev`
