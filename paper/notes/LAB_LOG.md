@@ -30,7 +30,52 @@ Older detail:
   not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
-  P2.46 and P2.41 deferred; P2.47 client replay built and queued (entries 2026-10-24).
+  P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
+
+## 2026-10-24: P2.47 client replay: teacher replay keeps Spider and lifts BIRD to 45.24; candidate method holds
+
+Evidence: nested `80d1091` (`audits/protocol_v2/p247_client_replay_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. Readings were fixed in the
+entry below before the run.
+
+| Arm (from Hinton K2) | A1 Spider / BIRD | A2 Spider / BIRD | A3 Spider | Realistic | SYN | DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` (no replay) | 71.57 / 36.77 | 71.86 / 38.66 | 72.53 | 61.81 | 56.38 | 58.32 | 38.53 |
+| `mixgold_k2aaa` | 70.41 / 39.11 | 71.95 / 40.29 | 73.21 | 62.20 | 58.51 | 57.01 | 40.74 |
+| `mixkd_k2aaa` | 69.83 / 42.24 | 72.15 / 44.07 | **73.98** | 61.81 | 58.03 | 57.01 | **45.24** |
+| `gold_k2aaa` (reference) | 70.12 / 40.74 | 69.83 / 39.90 | 70.41 | 61.22 | 56.38 | 52.34 | 40.03 |
+| `central_mix` (pooled, no privacy) | | | 73.21 | 62.99 | 58.90 | 58.69 | 43.68 |
+
+Against the fixed readings:
+
+1. Teacher inside FL, `mixkd - mixgold` A3 Spider +0.77 (22/14, p=.24): no
+   reading at seed 0. On BIRD the teacher replay is ahead in every round:
+   +3.13, +3.78, +4.50 (113/44, p<.001). Spider is not lower, so the BIRD
+   gain counts under the primary-metric rule.
+2. Replay itself, `mixgold - hinton_k2aaa` A3 Spider +0.68 (p=.49): no
+   reading; BIRD +2.22 (p=.031).
+3. Candidate method, `mixkd - hinton_k2aaa` A3 Spider +1.45 (44/29, p=.10),
+   BIRD +6.71 (p<.001): **holds** (Spider +1 or more, BIRD not lower).
+   DK -1.31 (p=.28), Realistic 0.00, SYN +1.64.
+
+- `mixkd_k2aaa` is above `central_mix` on Spider (+0.77) and BIRD (+1.56)
+  while keeping data at the clients; its BIRD (45.24) is 1.8 below the 7B
+  teacher (47.07).
+- Against the gold pipeline without replay, `mixkd - gold_k2aaa`: Spider
+  +3.58 (67/30, p<.001), DK +4.67, BIRD +5.22. This mixes the teacher at K2,
+  replay, and the teacher in replay; the matched comparator is gold K2 plus
+  gold replay, not run yet.
+- Replay rounds start lower on Spider at A1 (-1.16 and -1.74 against
+  `hinton_k2aaa`) and pass it by A3: the replay rows cost private progress
+  early and the extra steps catch up.
+- Other reading: replay adds optimizer steps (20% more rows per round), so
+  part of `mix* - hinton_k2aaa` is compute; `mixkd - mixgold` has equal
+  compute and isolates the teacher.
+
+Next (per the entry below): the matched no-teacher pipeline, gold K2 plus
+gold replay. Proposed with it, to make a 2x2 (K2 objective x replay
+objective): gold K2 plus teacher replay. Teacher contribution at K2 and in
+replay then each have a matched contrast at A3.
 
 ## 2026-10-24: teacher off-gold mass by SQL token role: KD already leans to SQL structure; token-role KD dropped
 
