@@ -31,6 +31,64 @@ Older detail:
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
   P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
+  P2.48 compact replay and server learning built, readings fixed (entry 2026-10-25).
+
+## 2026-10-25: P2.48 compact replay targets and server learning built; readings fixed before the run
+
+Owner decision (2026-10-25): run two directions next, one per GPU, before
+the matched gold K2 plus gold replay pipeline proposed in the P2.47 entry.
+Code: nested `227e433`, `e90e75a`. Seed 0, dev sets, exploratory.
+
+- `mixkd50_k2aaa` (cost of `mixkd_k2aaa`). Same rounds, rows and seeds as
+  P2.47 `mixkd_k2aaa`; the replay KL at T=2 sees only the teacher's top-50
+  tokens per position plus one tail bucket `r = 1 - sum(top-50)`, and the
+  student is coarsened over the same partition. The server then ships the
+  2,000-row subset once as about 16.6 KB per row (50 ids, 50 fp16
+  probabilities, `r`, per target token), about 33 MB per client instead of
+  the full 16.7 MB per row. At T=2 about 20% of the teacher mass lies
+  beyond the top 50 tokens (17% beyond the top 1,000; entry 2026-10-24); the
+  renormalized cut of P2.46 drops it, the tail bucket keeps it as one number. Source: the residual tail bucket of RG-OPD
+  (Akhondzadeh et al., arXiv 2607.04037, App. A.2), there reverse KL on the
+  student's top-k; here forward KL on the teacher's top-k from a cache. The
+  cut KL never exceeds the full KL (data processing), and equals it when the
+  teacher puts no mass outside its top-k (unit test).
+- `fsl_k2asasa` (teacher kept at the server). Server learning, FSL (Mai,
+  La, Zhang, IEEE TAI 2024; arXiv 2210.02614): after FedAvg the server takes
+  small steps on its own data at a decaying step size. From the published
+  `hinton_k2aaa` A1 adapter: S > A > S > A. S is one Hinton pass (0.5 CE +
+  0.5 T^2 KL, T=2, cached 7B logits) over 1,731 BIRD rows, the public volume
+  of one replay round (sum of round(0.2 n_i)), sampled per stage from the same
+  2,000-row subset; lr gamma * 2e-4, gamma 0.5 after A1 and 0.25 after A2.
+  A is the plain P2.37 round. Deviations from FSL, disclosed: no server
+  step after the last round (the endpoint stays a client average, like every
+  other arm), and the server data is the teacher-labeled public pool.
+  Why this is not AKAKA: each AKAKA K was a full 9,428-row epoch at full lr
+  with its own schedule and cost about 5 Spider points; S is 18% of an epoch
+  at half and a quarter of the lr. Public rows over the chain: 3,462 for
+  `fsl` against 5,193 for `mixkd`.
+
+Readings, fixed before any P2.48 result (A3 unless stated; a Spider dev
+question is about 0.1 point, a BIRD dev question about 0.07):
+
+1. Compact targets keep quality: `mixkd50 - mixkd_k2aaa` within 1.0 point
+   on Spider and within 1.5 on BIRD. Spider more than 1.0 lower, or BIRD more
+   than 1.5 lower, means the cut loses quality; then a larger k (200) is the
+   next test. This is a tolerance at one seed, not an equivalence test.
+2. Server learning keeps the teacher in FL without shipping targets:
+   `fsl - hinton_k2aaa` Spider not lower and BIRD higher. Spider more than
+   1.0 lower means even small decayed server steps pull the student off the
+   private domain (the AKAKA failure persists at small scale).
+3. Choice between the two placements: rank by Spider, then BIRD, under the
+   primary-metric rule. If `fsl` is within 1.0 Spider of `mixkd_k2aaa` and
+   not lower on BIRD, server learning is preferred (clients receive only the
+   adapter); otherwise client replay stays the candidate.
+4. Any reading of `fsl` speaks for a small, decaying server step after K2,
+   not for AKAKA as run in P2.37: AKAKA beating K2AAA is not tested here.
+
+Limits: `fsl - hinton_k2aaa` mixes server learning with teacher KD (a gold
+CE server step would isolate the teacher); both arms add compute against
+`hinton_k2aaa`. The teacher contrast at matched compute stays `mixkd -
+mixgold` (P2.47).
 
 ## 2026-10-24: P2.47 client replay: teacher replay keeps Spider and lifts BIRD to 45.24; candidate method holds
 

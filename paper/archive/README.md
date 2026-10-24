@@ -27,6 +27,10 @@ material and index entries only.
 - [Directions and plans before the reset](directions_2026-10/README.md): replaced by `paper/notes/RESEARCH_STATE.md`.
 - [Lab log 2026-09-24 to 2026-10-09](lab_log_2026-10/LAB_LOG_2026-09-24_to_2026-10-09.md).
 
+## 2026-10-25 completed P2.47
+
+- [P2.47 client replay](completed_runbooks/PIPELINE_P247_2026-10-25.md): published in nested `80d1091`.
+
 ## 2026-10-11 completed P2.27
 
 - [P2.27 Coder-1.5B alpha 0.1](completed_runbooks/PIPELINE_P227_2026-10-11.md): published in nested `5604e61`, `5767704`.
