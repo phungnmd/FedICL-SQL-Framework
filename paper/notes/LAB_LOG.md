@@ -31,6 +31,44 @@ Older detail:
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
 
+## 2026-10-24: what the surviving teacher edge is: closer to the centralized level, not knowledge the private data lacks
+
+Analysis of published seed-0 dev predictions (P2.27 `central` E3, FL A3,
+base; P2.37 `hinton_k2aaa`/`gold_k2aaa` A3 and `central_mix` E3; P2.42
+`central_k2` E3); computed ad hoc, script not committed. Exploratory.
+
+| Spider / DK EX | base | FL A3 | gold K2AAA | Hinton K2AAA | central (Spider only) | `central_mix` | `central_k2` |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Spider | 59.19 | 67.60 | 70.41 | 72.53 | 71.37 | 73.21 | 74.66 |
+| DK | 47.66 | 53.27 | 52.34 | 58.32 | 58.50 | 58.69 | 58.50 |
+
+- Centralized Spider alone (no teacher, no BIRD) reaches the DK level of
+  Hinton K2AAA (58.50 vs 58.32). The DK edge (+5.98 over gold) is therefore
+  not domain knowledge that Spider train lacks; it closes most of the DK gap
+  between the federated gold chain and centralized training. The chat
+  suggestion of 2026-10-24 ("the surviving edge is what private data cannot
+  teach") is withdrawn.
+- FL-penalty questions (central E3 right, FL A3 wrong): Spider 104, Hinton
+  right on 57, gold on 51; DK 58, Hinton 32, gold 22. On DK, 10 of the net
+  32 Hinton-over-gold questions sit there.
+- Share of each side's wins on which a reference is right (Hinton wins /
+  gold wins, Spider): central 62% / 53% (p=.49), `central_mix` 65% / 60%
+  (p=.64), `central_k2` 69% / 50% (p=.10), FL 38% / 43%. No signature
+  reaches p<.05 with 52/30 discordant questions.
+- Pooled gold without privacy (`central_mix`) is level with or above
+  Hinton K2AAA on Spider (+0.68, n.s.) and DK (+0.37). The teacher adds
+  nothing beyond what pooled gold data reaches; under the federated
+  constraint it brings the chain close to that level, where the gold
+  bootstrap does not (Spider 70.41, DK 52.34).
+
+Reading: the 7B attribution (P2.44: gold, virtual and self all at the gold
+level) is unchanged; what changes is the description of the gain: it
+reduces the federated shortfall against centralized training. Open test
+of whether the teacher's help depends on federation: centralized Spider
+from the gold K2 adapter (`central_gold_k2`, not run) against `central_k2`.
+Near 74.66 means the K2 start matters only under FL; near 71-72 means the
+teacher start helps centralized training too.
+
 ## 2026-10-24: P2.43 reverse roles at A3: teacher edge on BIRD fades to +1.11 (n.s.); both chains beat FL
 
 Evidence: P2.43 summary from the server (`--phase analyze`), not committed
