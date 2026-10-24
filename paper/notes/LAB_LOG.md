@@ -32,6 +32,37 @@ Older detail:
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
   P2.46 and P2.41 deferred; P2.47 client replay built and queued (entries 2026-10-24).
 
+## 2026-10-24: teacher off-gold mass by SQL token role: KD already leans to SQL structure; token-role KD dropped
+
+CPU audit of the P2.27 BIRD teacher cache (`scripts/audit_teacher_token_roles.py`,
+nested `9e68cfb`): 1,000 rows sampled with seed 0, 54,543 target tokens, all
+parsed by sqlglot. Off-gold mass = 1 - p_teacher(gold), the part of the Hinton
+target that differs from gold CE. Output on the server, not committed yet.
+
+| T=2 | Token share | Mean off-gold mass | Share of off-gold mass | Teacher argmax not gold |
+|---|---:|---:|---:|---:|
+| keyword or function | 0.213 | 0.350 | 0.279 | 0.070 |
+| operator or punctuation | 0.169 | 0.313 | 0.198 | 0.063 |
+| schema identifier | 0.407 | 0.225 | 0.344 | 0.052 |
+| literal value | 0.156 | 0.202 | 0.118 | 0.020 |
+| other (end token) | 0.055 | 0.294 | 0.061 | 0.021 |
+
+- Structure tokens (keyword, operator) are 38% of target tokens and carry 48%
+  of the off-gold mass; schema and values are 56% of tokens and carry 46%.
+  Per token the teacher departs from gold most on keywords. At T=1 the order
+  is the same, with all off-gold masses 3-4 times smaller.
+- Reading fixed before the run (2026-10-24, chat): schema and values well
+  above half of the off-gold mass would support token-role KD; structure
+  tokens taking most of it would not. The result is the second case: Hinton
+  KD already puts more of its signal per token on SQL structure, so
+  reweighting toward structure changes little. Token-role KD (direction 1) is
+  dropped. Next build: FSL-style server KD after each FedAvg round with a
+  decreasing weight (Mai et al., IEEE TAI 2024), after P2.47.
+- Other reading: off-gold mass measures how far the target is from gold, not
+  which part of it transfers; schema-token alternatives (46% of the signal)
+  may still be the part that does not transfer. The audit cannot separate
+  this; only a K2 run with role weights could, at about 6 GPU-h.
+
 ## 2026-10-24: owner reopens shared replay; P2.47 client replay built, readings fixed before the run
 
 Owner decision (2026-10-24): reopen shared teacher replay (rejected
