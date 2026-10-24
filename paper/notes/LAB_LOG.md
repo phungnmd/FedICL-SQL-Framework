@@ -28,8 +28,42 @@ Older detail:
 - P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
   pair. P2.43 `hinton_k2aaa_rev` A3 and `gold_k2aaa_rev` K2/A1 evaluated,
   not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
-  committed yet). Running: GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`;
-  next on GPU 0: P2.43 `central_bird`. Plan and readings: entry 2026-10-23.
+  committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
+  committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
+
+## 2026-10-24: P2.43 reverse roles at A3: teacher edge on BIRD fades to +1.11 (n.s.); both chains beat FL
+
+Evidence: P2.43 summary from the server (`--phase analyze`), not committed
+yet; publication waits for `central_bird`. Seed 0, dev sets, exploratory,
+exact McNemar. Private BIRD is the primary metric here (entry 2026-10-17).
+
+| Arm | K2 | A1 | A2 | A3 BIRD | A3 Spider | A3 DK |
+|---|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa_rev` (BIRD) | 28.75 | 37.16 | 40.35 | 41.33 | 64.89 | 54.39 |
+| `gold_k2aaa_rev` (BIRD) | 25.16 | 34.68 | 38.59 | 40.22 | 64.70 | 52.34 |
+| `fl_bird` (BIRD) | | 32.53 | 37.74 | 39.18 | 60.44 | 47.85 |
+
+- Hinton - gold, BIRD: K2 +3.59 (p<.001), A1 +2.48 (p=.004), A2 +1.76
+  (p=.040), A3 +1.11 (93/76, p=.22, CI [-0.55, +2.77]). Spider A3 +0.19;
+  SYN +2.03 (p=.078), DK +2.06 (p=.22).
+- Against FL, BIRD A3: Hinton +2.15 (104/71, p=.015), gold +1.04 (p=.28).
+  Spider A3: Hinton +4.45, gold +4.26 (both p<.001).
+
+Reading:
+
+- The early-signal gain shrank every round: about 70% of the K2 edge is gone
+  at A3, more than in the main direction (+3.19 at K2 to +2.13 at A3, about
+  one third gone). BIRD clients hold 9,428 rows and FL alone still rises at
+  A3 (32.53, 37.74, 39.18), so the private rounds may wash out any start.
+- In the reverse the public gold alone does not beat FL on BIRD at A3
+  (+1.04, n.s.); the chain with the teacher does (+2.15, p=.015). The
+  teacher - gold contrast that would carry a claim is +1.11 and not
+  significant at seed 0.
+- Reverse is consistent in sign with the main direction but adds no second
+  significant teacher contrast. Anchoring was not tested in the reverse (no
+  reverse self-teacher). Whether the reverse enters the confirmation (it
+  needs its own BIRD holdout, entry 2026-10-17) is the owner's choice in the
+  freeze entry; `central_bird` (running) gives its FL penalty reference.
 
 ## 2026-10-24: P2.44 self-teacher: the Spider edge comes from the 7B, not from anchoring
 
