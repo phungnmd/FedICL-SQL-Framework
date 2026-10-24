@@ -30,7 +30,55 @@ Older detail:
   not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
-  P2.46 top-k teacher built, queued for when no lane runs (entry 2026-10-24).
+  P2.46 and P2.41 deferred; P2.47 client replay built and queued (entries 2026-10-24).
+
+## 2026-10-24: owner reopens shared replay; P2.47 client replay built, readings fixed before the run
+
+Owner decision (2026-10-24): reopen shared teacher replay (rejected
+2026-10-12) and run it before the compression tests. P2.46 and P2.41 are
+deferred: they only matter if replay helps, to show its targets are cheap
+to send.
+
+Why now: in both role directions the teacher edge is created at K2 and
+shrinks in the private rounds, and the public domain is forgotten there
+(forward Hinton K2 -> A3: Spider edge +3.19 -> +2.13, BIRD 43.61 -> 38.53;
+reverse: BIRD edge +3.59 -> +1.11). `central_mix`, which trains both domains
+at once, keeps both (73.21 / 43.68).
+
+P2.47 (nested `e95a153`, `26b007a`), seed 0, dev sets. Both arms repeat the
+three plain private rounds of P2.37 `hinton_k2aaa` from its published K2
+adapter. In every round each client also trains on 20% of its private row
+count (about 1,730 BIRD rows per round in total), drawn per round and client
+from one fixed 2,000-row seeded subset of the BIRD train pool.
+
+- `mixgold_k2aaa`: replay rows on gold CE (shared public data, Zhao et al.,
+  2018, "Federated Learning with Non-IID Data").
+- `mixkd_k2aaa`: replay rows on 0.5 gold CE + 0.5 T^2 KL to the cached 7B
+  logits at T=2, the K2 objective (public-data distillation at the clients,
+  FedMD, Li and Wang, 2019). The teacher runs only at the server; clients
+  receive public rows and the teacher's outputs on them. The full cached
+  target is used (about 16 MB per row in a real deployment); P2.46/P2.41 say
+  later whether a cheap target keeps the effect.
+- FedAvg weights stay the private row counts. Private rows train exactly as
+  in `hinton_k2aaa`.
+
+Readings, fixed now (Spider primary; seed-0 MDE about 3.2, so these are
+directions; one Spider question is about 0.1 point):
+
+1. Teacher inside FL, `mixkd - mixgold` at A3 Spider: +2 or more reads as a
+   teacher contribution during FL; between -1 and +2, no reading at seed 0;
+   -1 or less, teacher replay costs Spider.
+2. Replay itself, `mixgold - hinton_k2aaa` at A3 Spider: +1 or more helps,
+   -1 or less costs Spider. More optimizer steps per round come with the
+   replay rows, so this contrast is replay plus compute.
+3. Candidate method: `mixkd - hinton_k2aaa` at A3 Spider +1 or more with
+   BIRD not lower. BIRD gains count only when Spider is not lower.
+4. References: `central_mix` 73.21 / 43.68 (pooled, no privacy), gold K2AAA
+   70.41 / 40.03.
+
+If reading 1 or 3 holds, the matched no-teacher pipeline (gold K2 plus gold
+replay) is the next arm, since the paper's teacher contribution is measured
+against the matched gold pipeline.
 
 ## 2026-10-24: teacher mass kept by top-k: at T=2 about 20% sits beyond the top 1,000 tokens
 

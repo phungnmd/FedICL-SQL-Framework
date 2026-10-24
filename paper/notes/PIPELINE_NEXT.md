@@ -5,19 +5,13 @@ root on `main`. Results: [LAB_LOG.md](LAB_LOG.md). P2.20, P2.25 and P2.26 are
 complete; their [commands](../archive/completed_runbooks/PIPELINE_P220_P225_P226_2026-10-10.md)
 are history. Keep all P2.18-P2.26 adapters, receipts, caches and results.
 
-State 2026-10-23: P2.27, P2.28, P2.29, P2.36 published; P2.37
-`hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`, and P2.38, the P2.39
-pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
-published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
-P2.44 `self_k2aaa` complete on GPU 0 (2026-10-24, not published). Running:
-GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next on GPU 0: P2.43
-`central_bird`. Owner decision 2026-10-24: stop `central_bird` (Ctrl+C; it
-resumes from its last 200-step checkpoint, and the new code leaves its
-identity unchanged), then P2.46 step 1 (it pulls the new code, including
-nested `1384045`, which the P2.43 and P2.44 publication pulls would reject),
-P2.43 step 5 and P2.44 step 3, the two P2.46 K2 lanes, and after them
-`central_bird` again with the identical P2.43 step 4 command. No seed 1-2 or Spider test run
-until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
+State 2026-10-24: P2.27-P2.29, P2.36, P2.37 (`hinton_k2aaa`, `gold_k2aaa`,
+`central_mix`, `local`), P2.38, the P2.39 pilot, P2.40, P2.42, P2.43 (both
+chains to A3, `fl_bird`) and P2.44 are published. P2.43 `central_bird` is
+paused (Ctrl+C; it resumes from its last 200-step checkpoint with the
+identical command). Owner decision 2026-10-24: run P2.47 client replay next
+on both GPUs; P2.46 and P2.41 are deferred (LAB_LOG). No seed 1-2 or Spider
+test run until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
 in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
 ## Status check (read-only, any time, for example after a server restart)
@@ -39,7 +33,58 @@ resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
 
-## P2.46: top-k teacher logits at K2 (cost of shipping teacher outputs)
+## P2.47: public replay at the clients after Hinton K2 (run next)
+
+Question and the readings fixed before the run: LAB_LOG 2026-10-24. Code:
+nested `e95a153`, `26b007a`. Dev sets only, seed 0.
+
+Both arms repeat the three plain private rounds of `hinton_k2aaa` from its
+published K2 adapter. Each round, each client also trains on 20% of its
+private row count in BIRD rows (a fixed 2,000-row subset): `mixgold_k2aaa`
+on gold CE, `mixkd_k2aaa` on 0.5 CE + 0.5 KL to the cached 7B logits (T=2).
+About 9-10 h per arm with evaluations, one arm per GPU.
+
+Memory: rounds now contain BIRD rows, so peak reserved should reach the
+Hinton K level (19.9 GiB), not the plain round (14.2 GiB). Check the shared
+GPU memory in the first 15 minutes and send the client peak reserved VRAM
+from the log. The first `mixkd_k2aaa` client log must print `replay teacher
+cache: ...`; a "miss the teacher cache" error means the replay rows render
+differently from the K2 cache: stop and send the log.
+
+1. Pull, test, prepare (CPU). Only when no lane runs on either GPU (stop a
+   running P2.46 or P2.41 lane with Ctrl+C first; both resume later):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from contextlib import ExitStack; from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; s=ExitStack(); [s.enter_context(exclusive_lock(r.AUDIT / f'gpu_{d}.lock')) for d in '01']; s.close()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_client_replay.py tests/test_p247_client_replay.py tests/test_p237_phase_e.py tests/test_stage_chain.py tests/test_round_loop.py tests/test_status_k2aaa_lanes.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p247_client_replay --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.47 preparation failed' }; Write-Host 'P2.47 prepared' }
+```
+
+2. Run, one arm per GPU. Rerun the identical command after an interruption;
+   finished clients and stages are skipped.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $arm='mixgold_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p247_client_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.47 $arm failed" }; Write-Host "GPU $gpu P2.47 $arm complete" }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='mixkd_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p247_client_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.47 $arm failed" }; Write-Host "GPU $gpu P2.47 $arm complete" }
+```
+
+3. Read the result after any evaluated round (CPU, safe while the lanes run;
+   it rewrites only the P2.47 summary files). Send the table:
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p247_client_replay --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.47 analysis failed' } }
+```
+
+4. Publish every evaluated endpoint, when no P2.47 lane runs:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p247_client_replay'; $n='247'; $msg='results: record P2.47 client replay'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
+
+5. Then resume P2.43 `central_bird` on a free GPU (P2.43 step 4 command).
+
+## P2.46: top-k teacher logits at K2 (deferred, owner 2026-10-24)
 
 Question and the readings fixed before the run: LAB_LOG 2026-10-24. Code:
 nested `14fa97d`, `4a9553c`. Dev sets only, seed 0.
