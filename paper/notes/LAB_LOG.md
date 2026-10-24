@@ -31,6 +31,39 @@ Older detail:
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
 
+## 2026-10-24: Spider error types at K2 and A3: BIRD training fixes executability, the teacher adds semantic correctness
+
+Analysis of published seed-0 Spider dev predictions (P2.27 base, P2.37 K2
+and A3, P2.38 K2); computed ad hoc, script not committed. Exploratory, post
+hoc (R8 applies to any subgroup).
+
+| Spider dev (%) | EX | Execution error | Executes, wrong result |
+|---|---:|---:|---:|
+| base | 59.19 | 24.47 | 16.34 |
+| gold K2 | 59.09 | 11.12 | 29.79 |
+| virtual K2 | 56.19 | 11.32 | 32.50 |
+| Hinton K2 | 62.28 | 11.22 | 26.50 |
+| gold K2AAA A3 | 70.41 | 8.80 | 20.79 |
+| Hinton K2AAA A3 | 72.53 | 8.61 | 18.86 |
+
+- Two BIRD epochs with any objective halve Spider execution errors (24.5 to
+  about 11): public training teaches executable SQL on unseen schemas, and
+  gold CE gets that much without the teacher.
+- Gold and virtual turn the fixed errors into executable but wrong queries;
+  Hinton has 3.3 points fewer of them at K2 and 1.9 fewer at A3, where
+  execution errors are level. The surviving edge is semantic correctness on
+  the unseen domain.
+- Hinton - gold at K2 is spread over hardness levels (easy +3.2, medium
+  +3.1, extra +9.0, hard -2.3) and over JOIN (+2.5) and no-JOIN (+3.7); at
+  A3 it sits more on JOIN (+3.7, p=.058) and hard (+4.0) questions.
+- Owner reading (2026-10-24): server KD teaches general SQL competence on
+  the public domain; the BIRD-specific part is not kept, but the general
+  part transfers to the private domain and survives FL. Consistent with the
+  table, with the reverse K2 result (BIRD +3.59 while Spider in-domain is
+  -2.42) and with Hinton losing more BIRD than gold during the private
+  rounds. Related published mechanism: KD as pre-training with better
+  transferability (He et al., CVPR 2022, to check before citing).
+
 ## 2026-10-24: what the surviving teacher edge is: closer to the centralized level, not knowledge the private data lacks
 
 Analysis of published seed-0 dev predictions (P2.27 `central` E3, FL A3,
