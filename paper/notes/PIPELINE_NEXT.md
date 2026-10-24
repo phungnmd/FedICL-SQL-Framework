@@ -52,6 +52,16 @@ arm, one per GPU. No new cache, no new disk. Memory: expected a few hundred
 MB above the Hinton K row (19.9 GiB); check the shared GPU memory in the first
 15 minutes and send the K2 peak reserved VRAM from the log.
 
+0. CPU check first (owner, 2026-10-24): how much teacher mass the top-k cut
+   keeps, read from the P2.27 cache for 1,000 sampled rows (nested
+   `4a2f8c1`). Runs from origin without a pull, safe while any lane runs;
+   writes only `audits/protocol_v2/teacher_topk_mass_s0/`. Send the table.
+   If top-200 keeps nearly all the mass at T=2, the K2 runs below add little.
+
+```powershell
+& { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/audit_teacher_topk_mass.py | uv run --no-sync python - --rows 1000; if ($LASTEXITCODE -ne 0) { throw 'Top-k mass audit failed' } }
+```
+
 1. Pull, test, prepare (CPU). Only when no lane runs on either GPU (the
    command checks the GPU locks): the pull changes code every K2AAA lane
    imports.
@@ -84,7 +94,7 @@ MB above the Hinton K row (19.9 GiB); check the shared GPU memory in the first
 4. Publish every evaluated endpoint, when no P2.46 lane runs:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $exp='p246_teacher_topk'; $n='246'; $msg='results: record P2.46 top-k teacher K2'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+& { $ErrorActionPreference='Stop'; $exp='p246_teacher_topk'; $n='246'; $msg='results: record P2.46 top-k teacher K2'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/audit_teacher_topk_mass\.py|tests/test_audit_teacher_topk_mass\.py)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
 ```
 
 ## P2.44: self-teacher control (base Coder-1.5B as the K2 teacher)
