@@ -30,6 +30,49 @@ Older detail:
   not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
+  P2.46 top-k teacher built, queued for when no lane runs (entry 2026-10-24).
+
+## 2026-10-24: P2.46 top-k teacher logits at K2 built; readings fixed before the run
+
+Question: does Hinton K2 keep its edge over gold K2 when the teacher target
+is cut to its top-k tokens per position? It decides whether shipping teacher
+outputs to the clients is cheap enough to matter. Shared teacher replay (the
+server sends teacher soft labels on a public subset, clients replay them in
+private rounds) was rejected on 2026-10-12; this run only measures its
+communication cost. Reopening it stays the owner's decision.
+
+- Cost of shipping the full target: 152,064 fp16 logits per token (about
+  304 KB), 53.3 target tokens per BIRD gold SQL on average, so about 16 MB
+  per row. Top-k as fp16 value plus int32 index: about 16 KB per row at
+  k=50 and 64 KB at k=200 (32 MB and 128 MB for 2,000 rows, sent once).
+- Risk: the edge may live in the tail. At T=2 about 80% of the off-gold
+  teacher mass lies outside the top 10 (P2.38 prepare), and the virtual
+  teacher, which keeps the gold token and a uniform tail, is 2.9 Spider
+  points below gold at K2 and 2.0 below Hinton at A3 (P2.38).
+- Arms (nested `14fa97d`, `4a9553c`): `top50_k2aaa`, `top200_k2aaa`. Every
+  P2.37 `hinton_k2aaa` command, adding only `--kd-teacher-topk` at K2: the
+  same P2.27 teacher cache, cut on load to the top-k logits, renormalized
+  over them at T=2, same 0.5 gold CE + 0.5 KD. The trainer logs the mean
+  teacher mass at T=2 that the cut keeps. Run to K2 first (`--until k2`),
+  one arm per GPU, about 5-6 h each.
+- Comparators: published P2.37 K2, Hinton 62.28 Spider / 43.61 BIRD, gold
+  59.09 / 43.48 (Hinton - gold +3.19 Spider).
+
+Readings, fixed now, for each arm's K2 Spider EX (seed 0, descriptive; one
+Spider question is about 0.1 point and the seed-0 MDE is about 3.2, so these
+are directions, not tests):
+
+1. Kept: at least 61.28 (within 1 point of full Hinton) and at least 2
+   points above gold K2. Top-k is enough at that k; client replay costs
+   kilobytes per row. Next: the owner decides whether to reopen replay.
+2. Lost: at most 60.09 (within 1 point of gold K2). The edge needs the
+   tail; replay at this k is not worth building.
+3. Between: no reading at seed 0. If top-200 reads "kept" and top-50 does
+   not, k=200 is the replay setting.
+
+BIRD K2 EX is reported for both and read under the primary-metric rule.
+A1-A3 are run only if an arm reads "kept" and the owner wants the full
+chain.
 
 ## 2026-10-24: Spider error types at K2 and A3: BIRD training fixes executability, the teacher adds semantic correctness
 
