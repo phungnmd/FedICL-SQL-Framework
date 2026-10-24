@@ -11,10 +11,12 @@ pilot, P2.40 and P2.42 are published; P2.43 `hinton_k2aaa_rev` K2 and A1 are
 published. P2.43 `hinton_k2aaa_rev` reached A3 (evaluated, not published).
 P2.44 `self_k2aaa` complete on GPU 0 (2026-10-24, not published). Running:
 GPU 1 `gold_k2aaa_rev` to A3, then `fl_bird`. Next on GPU 0: P2.43
-`central_bird`. When it prints "complete" (no lane runs): P2.46 step 1 first
-(it pulls the new code, including nested `1384045`, which the P2.43 and P2.44
-publication pulls would reject), then P2.43 step 5 and P2.44 step 3, then the
-P2.46 lanes. No seed 1-2 or Spider test run
+`central_bird`. Owner decision 2026-10-24: stop `central_bird` (Ctrl+C; it
+resumes from its last 200-step checkpoint, and the new code leaves its
+identity unchanged), then P2.46 step 1 (it pulls the new code, including
+nested `1384045`, which the P2.43 and P2.44 publication pulls would reject),
+P2.43 step 5 and P2.44 step 3, the two P2.46 K2 lanes, and after them
+`central_bird` again with the identical P2.43 step 4 command. No seed 1-2 or Spider test run
 until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
 in [RESEARCH_STATE.md](RESEARCH_STATE.md).
 
