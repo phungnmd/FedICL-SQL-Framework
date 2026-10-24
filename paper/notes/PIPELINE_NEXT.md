@@ -11,10 +11,9 @@ chains to A3, `fl_bird`) and P2.44 are published. P2.43 `central_bird` is
 paused (Ctrl+C; it resumes from its last 200-step checkpoint with the
 identical command). Owner decision 2026-10-24: run P2.47 client replay next
 on both GPUs; P2.46 and P2.41 are deferred (LAB_LOG). Update 2026-10-24: the
-server is running P2.46 `top50_k2aaa`; P2.47 starts when no lane runs (its
-step 1 pull also unblocks the P2.46 publication, whose pull check rejects the
-P2.47 code). CPU check while it runs, from origin without a pull: teacher
-off-gold mass by SQL token role (nested `9e68cfb`):
+server runs P2.47; P2.46 is skipped for now. CPU check while it runs, from
+origin without a pull: teacher off-gold mass by SQL token role (nested
+`9e68cfb`):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/audit_teacher_token_roles.py | uv run --no-sync python - --rows 1000; if ($LASTEXITCODE -ne 0) { throw 'Token-role audit failed' } }
