@@ -56,7 +56,12 @@ MB above the Hinton K row (19.9 GiB); check the shared GPU memory in the first
    keeps, read from the P2.27 cache for 1,000 sampled rows (nested
    `4a2f8c1`). Runs from origin without a pull, safe while any lane runs;
    writes only `audits/protocol_v2/teacher_topk_mass_s0/`. Send the table.
-   If top-200 keeps nearly all the mass at T=2, the K2 runs below add little.
+   Done 2026-10-24 (LAB_LOG). Commit its output (safe while a lane runs; it
+   admits only result files, Markdown and the two audit files):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $dir='audits/protocol_v2/teacher_topk_mass_s0'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/audit_teacher_topk_mass\.py|tests/test_audit_teacher_topk_mass\.py)$' }); if ($bad.Count -ne 0) { throw "Incoming code a running lane may use: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@("$dir/summary.json", "$dir/summary.md"); foreach ($file in $files) { if (-not (Test-Path $file)) { throw "Missing $file" }; git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if (@(Compare-Object ($files | Sort-Object) ($actual | Sort-Object)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record the teacher top-k kept-mass audit'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
 
 ```powershell
 & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/audit_teacher_topk_mass.py | uv run --no-sync python - --rows 1000; if ($LASTEXITCODE -ne 0) { throw 'Top-k mass audit failed' } }
@@ -80,8 +85,13 @@ MB above the Hinton K row (19.9 GiB); check the shared GPU memory in the first
 & { $ErrorActionPreference='Stop'; $gpu='0'; $arm='top50_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p246_teacher_topk --phase run --arm $arm --until k2; if ($LASTEXITCODE -ne 0) { throw "P2.46 $arm failed" }; Write-Host "GPU $gpu P2.46 $arm K2 complete" }
 ```
 
+   GPU 1 runs P2.41 `hinton_t1_k2aaa` instead of `top200_k2aaa` (LAB_LOG
+   2026-10-24 top-k mass audit: top-200 is nearly the top-50 target; at T=1
+   the top 10 tokens are the whole target). P2.41 runs the full chain
+   (about 13-15 h); its K2 is read from the status check or its manifest.
+
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='top200_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p246_teacher_topk --phase run --arm $arm --until k2; if ($LASTEXITCODE -ne 0) { throw "P2.46 $arm failed" }; Write-Host "GPU $gpu P2.46 $arm K2 complete" }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p241_hinton_t1 --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.41 preparation failed' }; uv run --no-sync python -m scripts.run_p241_hinton_t1 --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.41 hinton_t1_k2aaa failed' }; Write-Host "GPU $gpu P2.41 hinton_t1_k2aaa complete" }
 ```
 
 3. Read the result (CPU, safe while the other arm runs; it rewrites only the

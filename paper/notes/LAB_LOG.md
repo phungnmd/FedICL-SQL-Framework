@@ -32,6 +32,46 @@ Older detail:
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
   P2.46 top-k teacher built, queued for when no lane runs (entry 2026-10-24).
 
+## 2026-10-24: teacher mass kept by top-k: at T=2 about 20% sits beyond the top 1,000 tokens
+
+CPU audit of the P2.27 BIRD teacher cache (`scripts/audit_teacher_topk_mass.py`,
+nested `4a2f8c1`): 1,000 of 9,425 rows sampled with seed 0, 55,357 KD
+positions, student vocabulary. Output `audits/protocol_v2/teacher_topk_mass_s0/`
+on the server, not committed yet. Descriptive.
+
+| Mean kept mass | top-1 | top-10 | top-50 | top-200 | top-1000 |
+|---|---:|---:|---:|---:|---:|
+| T=1 | 0.967 | 0.9997 | 0.9999 | 1.000 | 1.000 |
+| T=2 | 0.747 | 0.791 | 0.801 | 0.811 | 0.825 |
+
+KL(top-k target || full target) at T=2: 0.262 (k=50), 0.246 (k=200), 0.221
+(k=1000); at T=1 it is 0.0003 at k=10. The 5th percentile of kept mass at
+T=2 is 0.39 (k=50).
+
+- At T=1 the teacher is sharp: the top 10 tokens hold all its mass, so top-10
+  KD at T=1 is the full Hinton T=1 target (about 3 KB per BIRD row to ship).
+- At T=2 about 17.5% of the mass lies beyond the top 1,000 tokens, spread over
+  about 151k tokens the teacher gives almost no probability at T=1. The
+  published Hinton K2 target is therefore about 75% gold, 5% ranked
+  alternatives and 20% far tail; the P2.38 virtual teacher is 73% gold and
+  27% uniform.
+- Top-50 and top-200 at T=2 are nearly the same target (kept mass 0.80 and
+  0.81). Running both measures k twice. P2.46 top-50 renormalizes to about
+  93% gold; it tests whether the far tail matters.
+- Plan change (exploration choice, owner to confirm by running): GPU 0 runs
+  P2.46 `top50_k2aaa` to K2; GPU 1 runs P2.41 `hinton_t1_k2aaa` (built and
+  prepared since 2026-10-13, not run) instead of `top200_k2aaa`. Hinton T=1
+  equals cheap top-10 replay, so it reads both the temperature question and
+  the replay cost. If both lose the edge, the next candidate is top-k plus
+  the remaining mass spread evenly (one extra number per token), or the
+  sampled tail of Sparse Logit Sampling (Anshumann et al., ACL 2025, to
+  verify before citing).
+
+Readings for Hinton T=1 at K2, fixed now, same thresholds as P2.46: kept at
+61.28 or more Spider (and at least 2 above gold K2 59.09); lost at 60.09 or
+less; between, no reading at seed 0. My estimate before the runs: 35-45%
+that either arm reads "kept", since both targets put 93-97% on gold.
+
 ## 2026-10-24: P2.46 top-k teacher logits at K2 built; readings fixed before the run
 
 Question: does Hinton K2 keep its edge over gold K2 when the teacher target
