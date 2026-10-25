@@ -12,8 +12,8 @@ CPU audits (top-k mass, token roles) are published (`4b1b4f0`). P2.43
 `central_bird` is paused (Ctrl+C; it resumes from its last 200-step
 checkpoint with the identical command). P2.48 is published (`8b79530`,
 [runbook](../archive/completed_runbooks/PIPELINE_P248_2026-10-25.md)).
-Both GPUs are free; the next arms wait for the owner's choice (LAB_LOG
-2026-10-25). P2.46 and P2.41 stay deferred.
+Owner decision 2026-10-25: run P2.49 next on both GPUs. P2.46 and P2.41
+stay deferred.
 
 No seed 1-2 or Spider
 test run until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
@@ -37,6 +37,53 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.49: replay after gold K2, the matched no-teacher pipeline (run next)
+
+Question and the readings fixed before the run: LAB_LOG 2026-10-25. Code:
+nested `e41ddfb`. Dev sets only, seed 0.
+
+Both arms start from the published `gold_k2aaa` K2 adapter (no teacher) and
+run three replay rounds like P2.47/P2.48:
+
+- GPU 0, `gmixgold_k2aaa`: replay rows on gold CE. No teacher anywhere.
+- GPU 1, `gmixkd50_k2aaa`: replay rows on the top-50 plus tail teacher target.
+
+About 9-10 h per arm with evaluations. Memory as P2.48 replay rounds (19.8
+GiB peak reserved); check the shared GPU memory in the first 15 minutes. The
+first `gmixkd50_k2aaa` client log must print `replay teacher cache: ...
+top-k=50`.
+
+1. Pull, test, prepare (CPU), only when no lane runs:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from contextlib import ExitStack; from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; s=ExitStack(); [s.enter_context(exclusive_lock(r.AUDIT / f'gpu_{d}.lock')) for d in '01']; s.close()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running; wait until none runs' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_client_replay.py tests/test_p249_gold_k2_replay.py tests/test_p248_replay_compact_fsl.py tests/test_p247_client_replay.py tests/test_p237_phase_e.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p249_gold_k2_replay --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.49 preparation failed' }; Write-Host 'P2.49 prepared' }
+```
+
+2. Run, one arm per GPU. Rerun the identical command after an interruption.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $arm='gmixgold_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p249_gold_k2_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.49 $arm failed" }; Write-Host "GPU $gpu P2.49 $arm complete" }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='gmixkd50_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p249_gold_k2_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.49 $arm failed" }; Write-Host "GPU $gpu P2.49 $arm complete" }
+```
+
+3. Read the result after any evaluated round (CPU, safe while the lanes run).
+   Send the table:
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p249_gold_k2_replay --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.49 analysis failed' }; Get-Content audits/protocol_v2/p249_gold_k2_replay_s0/summary.md }
+```
+
+4. Publish every evaluated endpoint, when no P2.49 lane runs:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p249_gold_k2_replay'; $n='249'; $msg='results: record P2.49 replay after gold K2'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/audit_teacher_(topk_mass|token_roles)\.py|tests/test_audit_teacher_(topk_mass|token_roles)\.py)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
+
+5. Then resume P2.43 `central_bird` on a free GPU (P2.43 step 4 command).
 
 ## P2.46: top-k teacher logits at K2 (deferred, owner 2026-10-24)
 

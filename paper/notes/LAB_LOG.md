@@ -32,6 +32,49 @@ Older detail:
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
   P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
   P2.48 compact replay and server learning published (nested `8b79530`, entry 2026-10-25).
+  P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
+
+## 2026-10-25: P2.49 gold K2 plus replay built (matched no-teacher pipeline); readings fixed before the run
+
+Owner decision (2026-10-25): run the matched pipeline proposed in the P2.48
+entry on both GPUs. Code: nested `e41ddfb`. Seed 0, dev sets, exploratory.
+
+Both arms repeat the P2.47/P2.48 replay rounds (20% of each client's private
+rows from the fixed 2,000-row BIRD subset, same seeds) from the published
+P2.37 `gold_k2aaa` K2 adapter instead of the Hinton one:
+
+- `gmixgold_k2aaa`: replay on gold CE. No teacher anywhere; the matched
+  comparator of the candidate `mixkd50_k2aaa`.
+- `gmixkd50_k2aaa`: replay on 0.5 CE + 0.5 KL to the top-50 plus tail
+  teacher target (as `mixkd50_k2aaa`). Teacher in replay only.
+
+With P2.47 `mixgold_k2aaa` (teacher at K2 only) and P2.48 `mixkd50_k2aaa`
+(both) this is a 2x2: K2 objective (gold, Hinton) x replay objective (gold,
+teacher). References at A3: `mixkd50_k2aaa` 74.08 / 44.78, `mixgold_k2aaa`
+73.21 / 40.74, `gold_k2aaa` 70.41 / 40.03 (Spider / BIRD).
+
+Readings, fixed before any P2.49 result (A3, primary metric Spider, BIRD
+counts only when Spider is not lower):
+
+1. Whole teacher contribution, `mixkd50_k2aaa - gmixgold_k2aaa`:
+   - Spider +1.0 or more and BIRD not lower: the teacher contributes to the
+     candidate at seed 0; it goes to the freeze entry and the three-seed
+     confirmation.
+   - Spider within 1.0 and BIRD +1.5 or more: the teacher contributes on the
+     public domain only; a Spider claim is not supported.
+   - Spider more than 1.0 lower: the teacher pipeline is not supported over
+     the matched pipeline without a teacher.
+2. Where it comes from, descriptive, no threshold: teacher in replay
+   (`gmixkd50 - gmixgold`, `mixkd50 - mixgold`) and teacher at K2
+   (`mixkd50 - gmixkd50`, `mixgold - gmixgold`). Parts may simply add up;
+   no synergy is required (floor, AGENTS.md).
+3. Alternative reading fixed now: if `gmixgold_k2aaa` reaches Spider within
+   1.0 of `mixkd50_k2aaa`, the Spider gain over `gold_k2aaa` comes from
+   public replay itself, not from the teacher.
+
+After P2.49 the seed-0 set of controls for this method is complete; the
+next step is a freeze entry (method, comparators, test, number of seeds
+from a power check), which is the owner's decision.
 
 ## 2026-10-25: P2.48: compact replay targets match full ones; server learning keeps Spider but loses the BIRD gain each private round
 
