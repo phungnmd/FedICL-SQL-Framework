@@ -33,6 +33,43 @@ Older detail:
   P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
   P2.48 compact replay and server learning published (nested `8b79530`, entry 2026-10-25).
   P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
+  P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
+
+## 2026-10-25: P2.50 same replay rows trained at the server; readings fixed before the run
+
+Owner decision (2026-10-25): confirm the method as early as possible. The
+one open alternative that could change the method is spending the replay
+rows on more server KD instead of mixing them into the client rounds.
+P2.49 `gmixkd50_k2aaa` (decomposition only) is stopped to free GPU 1 and
+resumes later from its checkpoint; P2.49 `gmixgold_k2aaa` keeps GPU 0.
+Code: nested `d177c4e`. Seed 0, dev sets, exploratory.
+
+Both arms start from the published `hinton_k2aaa` K2 adapter and train
+Hinton KD (0.5 CE + 0.5 T^2 KL, T=2, full cached 7B logits, lr 2e-4, one
+pass) at the server on exactly the rows the `mixkd_k2aaa` clients replayed
+(the same multiset, 1,731 per round, 5,193 in all); private rounds are plain.
+Rows, targets, lr and optimizer steps on public rows match `mixkd_k2aaa`;
+only the placement differs.
+
+- `k2plus_aaa`: K2 > S(all 5,193 rows) > A > A > A. Longer server KD before
+  FL; the baseline a reviewer asks first. Runs first (GPU 1).
+- `fslm_k2sasasa`: K2 > S1 > A > S2 > A > S3 > A, each S on its round's rows.
+  FSL matched in data and step size (P2.48 `fsl` used fewer rows and a
+  smaller lr). Runs after P2.49 `gmixgold_k2aaa` frees GPU 0.
+
+Readings, fixed before any P2.50 result (A3 against the candidate
+`mixkd50_k2aaa`, 74.08 / 44.78; `mixkd_k2aaa` 73.98 / 45.24 is reported as
+the exact match):
+
+1. Arm Spider more than 1.0 above `mixkd50_k2aaa`: the method changes to
+   that placement (no client replay) and the freeze is built around it.
+2. Spider within 1.0: the higher BIRD wins (primary-metric rule).
+3. Spider more than 1.0 below: mixing the replay into the client rounds
+   beats spending the same rows and steps on server KD.
+
+Prediction recorded, not a criterion: A3 BIRD about 40-41 for both arms,
+since every run so far loses public-domain gains in the following private
+rounds (K2 to A3, `central_k2`, P2.48 `fsl`).
 
 ## 2026-10-25: P2.49 gold K2 plus replay built (matched no-teacher pipeline); readings fixed before the run
 

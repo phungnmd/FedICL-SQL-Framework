@@ -12,8 +12,10 @@ CPU audits (top-k mass, token roles) are published (`4b1b4f0`). P2.43
 `central_bird` is paused (Ctrl+C; it resumes from its last 200-step
 checkpoint with the identical command). P2.48 is published (`8b79530`,
 [runbook](../archive/completed_runbooks/PIPELINE_P248_2026-10-25.md)).
-Owner decision 2026-10-25: run P2.49 next on both GPUs. P2.46 and P2.41
-stay deferred.
+Running: GPU 0 P2.49 `gmixgold_k2aaa`. Owner decision 2026-10-25: P2.49
+`gmixkd50_k2aaa` stopped (resumes later with its identical command); GPU 1
+runs P2.50 `k2plus_aaa`, then GPU 0 runs P2.50 `fslm_k2sasasa` after
+`gmixgold_k2aaa`. P2.46 and P2.41 stay deferred.
 
 No seed 1-2 or Spider
 test run until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
@@ -37,6 +39,60 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.50: the replay rows trained at the server (GPU 1 now, GPU 0 later)
+
+Question and the readings fixed before the run: LAB_LOG 2026-10-25. Code:
+nested `d177c4e`. Dev sets only, seed 0.
+
+Both arms train, at the server, exactly the BIRD rows the `mixkd_k2aaa`
+clients replayed (Hinton KD, lr 2e-4), then plain rounds:
+
+- `k2plus_aaa` (GPU 1, now): K2 > S(5,193 rows, about 1.7 h) > A > A > A.
+  About 10-11 h with evaluations.
+- `fslm_k2sasasa` (GPU 0, after P2.49 `gmixgold_k2aaa`): K2 > S1 > A > S2 > A
+  > S3 > A, 1,731 rows per S. About 11-12 h.
+
+Pull while GPU 0 runs P2.49: the pull changes shared code
+(`round_loop.py`, `stage_chain.py`, `run.py`), an exception to the no-pull
+rule. Checked before the push: for every P2.49 and P2.47 private stage
+command the persisted config, setup recipe, client fingerprint and trainer
+identity are byte-identical before and after the change, and the new options
+are off unless `--server-replay-rounds` is set. The step admits only these
+files and refuses any other incoming code.
+
+Memory: S stages match the Hinton K row (19.9 GiB); plain rounds 14.5 GiB.
+The first S log must show the public stage on 5,193 rows.
+
+1. Pull, test, prepare (CPU). GPU 1 must be idle; GPU 0 may run P2.49:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 1 lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/federated/(round_loop|stage_chain)\.py|experiments/federated/run\.py|scripts/(run|list)_p250_[a-z_]+\.py|tests/test_(p250_server_replay_rows|client_replay)\.py|docs/.+|AGENTS\.md|.+\.md|audits/.+|experiments/(federated|eval_arms|client_train)/results/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_client_replay.py tests/test_p250_server_replay_rows.py tests/test_p249_gold_k2_replay.py tests/test_p248_replay_compact_fsl.py tests/test_p247_client_replay.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p250_server_replay_rows --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.50 preparation failed' }; Write-Host 'P2.50 prepared' }
+```
+
+2. Run `k2plus_aaa` on GPU 1:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='k2plus_aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p250_server_replay_rows --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.50 $arm failed" }; Write-Host "GPU $gpu P2.50 $arm complete" }
+```
+
+3. After P2.49 `gmixgold_k2aaa` completes on GPU 0, run `fslm_k2sasasa` there:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $arm='fslm_k2sasasa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p250_server_replay_rows --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.50 $arm failed" }; Write-Host "GPU $gpu P2.50 $arm complete" }
+```
+
+4. Read the result after any evaluated stage (CPU, safe while lanes run):
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p250_server_replay_rows --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'P2.50 analysis failed' }; Get-Content audits/protocol_v2/p250_server_replay_rows_s0/summary.md }
+```
+
+5. Publish every evaluated endpoint when no P2.50 lane runs:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p250_server_replay_rows'; $n='250'; $msg='results: record P2.50 server training on the replay rows'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/audit_teacher_(topk_mass|token_roles)\.py|tests/test_audit_teacher_(topk_mass|token_roles)\.py)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
 
 ## P2.49: replay after gold K2, the matched no-teacher pipeline (run next)
 
