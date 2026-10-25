@@ -214,11 +214,28 @@ current plan.
      comparators, test and claims. Paper claims come only from these
      confirmation runs, never from the dev numbers that chose them. Nothing
      in that entry changes after a confirmation result is read.
-  3. Disclose. The paper states what was tried on dev (arms, settings,
-     number of checkpoints evaluated) and calls dev numbers exploratory.
+  3. Disclose briefly (narrowed by the owner, 2026-10-26). The paper calls
+     dev numbers exploratory and states how many variants and checkpoints
+     were evaluated on dev; it does not report exploratory arms one by one.
   What rule 2 protects: with about 140 discordant questions per Spider dev
   contrast, the best of ten variants with no true effect still shows about
   +1.7 points, and roughly 40% of such searches yield one p<.05.
+- Lean exploration, strongest story (owner, 2026-10-26):
+  - Run a control during exploration only when its result could change the
+    method or it is a baseline reviewers will certainly ask for. Skip
+    controls whose outcome would not change what we do next. Do not write
+    readings or criteria before exploratory runs; log what ran and what was
+    chosen, and read the results freely.
+  - The paper carries the strongest supported story. Choose the claims from
+    what the evidence supports best; the main text and appendix hold only
+    results that serve those claims. A weak or neutral result (for example a
+    small margin over a baseline) stays out of the paper, as long as the
+    paper makes no claim that this result tests. Drop the claim rather than
+    hide the result that tests it.
+  - Hard limits that stay: no claim that an omitted result contradicts; the
+    comparators and claims fixed in the freeze entry are reported with every
+    confirmation result, favourable or not; every number in the paper keeps
+    its evidence trail.
 - Screens are seed 0 with paired questions and exact McNemar tests. One Spider
   question is about 0.1 point; small differences need more seeds before any
   claim. Paper claims use the three-seed confirmation with the

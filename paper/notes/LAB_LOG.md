@@ -35,6 +35,20 @@ Older detail:
   P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
   P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
 
+## 2026-10-26: owner rule: lean exploration, strongest story; P2.48-P2.50 readings are notes
+
+Owner decision (2026-10-26), now in AGENTS.md (evidence rules): during
+exploration run only controls that could change the method or that reviewers
+will certainly ask for, with no criteria fixed before the run; the paper
+carries the strongest supported story and leaves out weak or neutral results
+that test no claim it makes; rule 3 (disclose) is narrowed to stating that
+dev numbers are exploratory and how many variants and checkpoints were
+evaluated. Fixed criteria remain only in the freeze entry before seeds 1-2
+and Spider test. The "readings fixed before the run" in the P2.48, P2.49 and
+P2.50 entries were written against the 2026-10-12 rule 1 (no pass/fail rule
+before an exploratory run); they stay as notes of what was expected, not as
+criteria.
+
 ## 2026-10-25: P2.50 same replay rows trained at the server; readings fixed before the run
 
 Owner decision (2026-10-25): confirm the method as early as possible. The
