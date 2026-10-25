@@ -111,9 +111,10 @@ current plan.
   Spider test run until every seed 0 control is in and a freeze entry fixes
   the method.
 - 2026-10-25: P2.47 client replay published (`mixkd_k2aaa` A3 Spider
-  73.98, BIRD 45.24, the current candidate). P2.48 queued on both GPUs:
-  compact top-50 plus tail replay targets, and FSL-style small server steps
-  between plain rounds (LAB_LOG 2026-10-25).
+  73.98, BIRD 45.24). P2.48 published (nested `8b79530`): top-50 plus tail
+  replay targets match the full ones (`mixkd50_k2aaa` A3 Spider 74.08, BIRD
+  44.78, the current candidate); FSL-style server steps keep Spider but each
+  private round gives back most of their BIRD gain (LAB_LOG 2026-10-25).
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.

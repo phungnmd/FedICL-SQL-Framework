@@ -31,7 +31,58 @@ Older detail:
   committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
   committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
   P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
-  P2.48 compact replay and server learning built, readings fixed (entry 2026-10-25).
+  P2.48 compact replay and server learning published (nested `8b79530`, entry 2026-10-25).
+
+## 2026-10-25: P2.48: compact replay targets match full ones; server learning keeps Spider but loses the BIRD gain each private round
+
+Evidence: nested `8b79530` (`audits/protocol_v2/p248_replay_compact_fsl_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. Readings were fixed in the
+entry below before the run.
+
+| Arm (from Hinton K2) | A1 Spider / BIRD | A2 Spider / BIRD | A3 Spider | Realistic | SYN | DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` (no replay) | 71.57 / 36.77 | 71.86 / 38.66 | 72.53 | 61.81 | 56.38 | 58.32 | 38.53 |
+| `mixkd_k2aaa` (P2.47, full targets) | 69.83 / 42.24 | 72.15 / 44.07 | 73.98 | 61.81 | 58.03 | 57.01 | 45.24 |
+| `mixkd50_k2aaa` (top-50 + tail) | 69.73 / 41.92 | 72.82 / 43.74 | **74.08** | 63.58 | 58.70 | 57.20 | 44.78 |
+| `fsl_k2asasa` (A1 of `hinton_k2aaa`, then S>A>S>A) | | 72.05 / 39.77 | 73.21 | 62.40 | 58.90 | 58.50 | 40.29 |
+
+`fsl_k2asasa` by stage, Spider / BIRD: A1 71.57 / 36.77, S1 65.57 / 45.18,
+A2 72.05 / 39.77, S2 68.28 / 43.68, A3 73.21 / 40.29.
+
+Against the fixed readings:
+
+1. Compact targets keep quality: **holds**. `mixkd50 - mixkd_k2aaa` at A3
+   Spider +0.10 (11/10, p=1), BIRD -0.46 (29/36, p=.46); within 0.7 Spider
+   and 0.5 BIRD at every round. Realistic +1.77 (p=.049) is one of nine
+   contrasts and not read. The teacher replay signal survives a cut from
+   16.7 MB to about 16.6 KB per row (about 33 MB per client, sent once).
+2. Server learning: **holds** as fixed. `fsl - hinton_k2aaa` A3 Spider +0.68
+   (p=.47), BIRD +1.76 (95/68, p=.041), SYN +2.51 (p=.002).
+3. Placement: client replay stays the candidate. `fsl - mixkd_k2aaa` A3
+   Spider -0.77 (p=.40) is within 1.0, but BIRD -4.95 (67/143, p<.001).
+4. As fixed, this says nothing about AKAKA against K2AAA.
+
+- Where the server step goes: each S raises BIRD (+8.4 at S1, +3.9 at S2)
+  and costs Spider (-6.0, -3.8, even at 18% of an epoch and half the lr);
+  the next private round recovers Spider and gives back most of the BIRD
+  gain (-5.4, -3.4). Alternating public and private steps forgets the
+  public signal; mixing it into the client objective (replay) keeps it.
+  This is the AKAKA pattern at a small scale. Hypothesis from one seed.
+- Other reading: `fsl` saw fewer public rows (3,462 against 5,193), so part
+  of the BIRD gap could be volume. S1 alone reached 45.18 BIRD, above the
+  `mixkd` A3, so volume did not limit what the server step learned; the loss
+  happens in the following round.
+- `fsl - gold_k2aaa` A3 DK +6.17 (41/8): the K2 teacher edge on DK holds
+  under server steps; it is inherited from the Hinton K2 parent.
+- Measured: replay rounds peak 20,227 MB reserved (19.8 GiB), 2.1-3.3 h
+  per round; S steps 20,317 MB, 0.58 h each; plain rounds 14,527 MB.
+
+Candidate method after P2.48: Hinton K2, then private rounds with
+compact teacher replay (`mixkd50_k2aaa`): Spider 74.08, BIRD 44.78 at A3,
+communication 33 MB per client once plus the adapters. Still missing for
+the Q3 floor: the matched pipeline without any teacher (gold K2 plus gold
+replay) and gold K2 plus teacher replay, both available from the published
+P2.37 `gold_k2aaa` K2 adapter.
 
 ## 2026-10-25: P2.48 compact replay targets and server learning built; readings fixed before the run
 
