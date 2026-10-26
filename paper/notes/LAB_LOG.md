@@ -37,6 +37,23 @@ Older detail:
   P2.49 `gmixgold_k2aaa` published (nested `db2cc09`, entry 2026-10-26); `gmixkd50_k2aaa` and P2.50 `fslm_k2sasasa` dropped.
   P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26).
   P2.51 execution-filtered replay built, client drift audit done (nested `4e4641e`, entry 2026-10-26); freeze after P2.51.
+  P2.52 reverse-roles replay built (nested `1838b63`, entry 2026-10-26); the freeze does not wait for it.
+
+## 2026-10-26: P2.52 client replay in the reverse roles built
+
+Owner decision (2026-10-26): GPU 1 is idle, so check whether the method also
+works in the reverse roles (P2.43: BIRD at the clients, Spider at the server,
+primary metric BIRD EX). Exploratory; the freeze does not wait for it. If
+BIRD gains, the freeze may add a reverse-roles claim; if not, the paper
+claims the main setting only.
+
+P2.52 (nested `1838b63`): `mixkd50_k2aaa_rev` repeats the three P2.43
+`hinton_k2aaa_rev` private rounds from its published Hinton K2 adapter; each
+client also replays 20% of its private row count from a fixed 2,000-row
+seeded subset of the 8,659 Spider training rows, on 0.5 CE + 0.5 KL to the
+P2.43 Spider teacher cache (top-50 plus tail, T=2). Comparators: P2.43
+`hinton_k2aaa_rev` (A3 BIRD 41.33, Spider 64.89), `gold_k2aaa_rev` and
+`fl_bird`. Seed 0, dev sets.
 
 ## 2026-10-26: P2.51 execution-filtered replay built; client drift audit shows no teacher effect on client agreement
 

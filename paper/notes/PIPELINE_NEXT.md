@@ -15,8 +15,8 @@ checkpoint with the identical command). P2.48 is published (`8b79530`,
 P2.49 (`db2cc09`) and P2.50 (`015429c`) are published
 ([runbook](../archive/completed_runbooks/PIPELINE_P249_P250_2026-10-26.md));
 `gmixkd50_k2aaa` and `fslm_k2sasasa` were dropped (owner, 2026-10-26).
-Running next: P2.51 execution-filtered replay on GPU 0 (owner, 2026-10-26);
-GPU 1 idle. After P2.51: the freeze entry (method, comparators, seeds,
+Running next: P2.51 execution-filtered replay on GPU 0 and P2.52
+reverse-roles replay on GPU 1 (owner, 2026-10-26). After P2.51: the freeze entry (method, comparators, seeds,
 claims) before any seed 1-2 or Spider test run. P2.46 and P2.41 stay
 deferred.
 
@@ -67,6 +67,33 @@ new `--client-replay-row-filter` option, off unless set).
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $exp='p251_exec_filtered_replay'; $n='251'; $msg='results: record P2.51 execution-filtered replay'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/run_p251_exec_filtered_replay\.py)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
+
+## P2.52: client replay in the reverse roles (GPU 1)
+
+`mixkd50_k2aaa_rev` = the P2.43 `hinton_k2aaa_rev` rounds (BIRD clients)
+plus the method's top-50 replay from 2,000 Spider training rows with the
+P2.43 Spider teacher cache. Primary metric BIRD EX. About 13-15 h. Step 1
+may run while P2.51 trains on GPU 0: its pull admits only the new P2.52
+files and documentation, which the P2.51 lane never imports. If it reports
+shared code as incoming, run P2.51 step 1 first.
+
+1. Pull, test, prepare (CPU). GPU 1 must be idle:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 1 lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run|list)_p252_[a-z_]+\.py|tests/test_p252_reverse_replay\.py|docs/.+|AGENTS\.md|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files (run P2.51 step 1 first?): $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p252_reverse_replay.py tests/test_p243_reverse_roles.py tests/test_client_replay.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p252_reverse_replay --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.52 preparation failed' }; Write-Host 'P2.52 prepared' }
+```
+
+2. Run on GPU 1 (rerun the same command to resume):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $arm='mixkd50_k2aaa_rev'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p252_reverse_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.52 $arm failed" }; Write-Host "GPU $gpu P2.52 $arm complete" }
+```
+
+3. Publish when the lane has stopped and P2.51 is not mid-publication:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p252_reverse_replay'; $n='252'; $msg='results: record P2.52 reverse-roles replay'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/run_p252_reverse_replay\.py)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
 ```
 
 ## P2.46: top-k teacher logits at K2 (deferred, owner 2026-10-24)
