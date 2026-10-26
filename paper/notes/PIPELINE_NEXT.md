@@ -15,14 +15,9 @@ checkpoint with the identical command). P2.48 is published (`8b79530`,
 P2.49 (`db2cc09`) and P2.50 (`015429c`) are published
 ([runbook](../archive/completed_runbooks/PIPELINE_P249_P250_2026-10-26.md));
 `gmixkd50_k2aaa` and `fslm_k2sasasa` were dropped (owner, 2026-10-26).
-Running next: P2.51 execution-filtered replay on GPU 0 and P2.52
-reverse-roles replay on GPU 1 (owner, 2026-10-26). After P2.51: the freeze entry (method, comparators, seeds,
-claims) before any seed 1-2 or Spider test run. P2.46 and P2.41 stay
-deferred.
-
-No seed 1-2 or Spider
-test run until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
-in [RESEARCH_STATE.md](RESEARCH_STATE.md).
+P2.51 finished (publish after P2.52). The freeze is approved (LAB_LOG
+2026-10-26 FREEZE); the active work is the P2.53 confirmation below. P2.46
+and P2.41 stay deferred.
 
 ## Status check (read-only, any time, for example after a server restart)
 
@@ -42,6 +37,58 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.53: confirmation, seeds 0-2 (both GPUs)
+
+The frozen method and its four comparators (LAB_LOG 2026-10-26 FREEZE),
+seeds 1 and 2 trained new, seed 0 reusing the published adapters. Every
+final adapter is evaluated on Spider test (2,147) and the five dev sets.
+Measured 1.5B times: Hinton K2 5.2 h, gold K2 4.5 h, one Hinton K 2.6 h,
+plain round 1.2-1.4 h, replay round 2.1-3.3 h; about 28 h per lane below.
+
+1. Pull, test, prepare all three seeds (CPU). GPU 0 must be idle; P2.52
+   may keep running on GPU 1 (the pull admits only the new P2.53 files,
+   which its lane never imports):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 0 lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(run|list)_p253_[a-z_]+\.py|tests/test_p253_confirmation\.py|docs/.+|AGENTS\.md|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p253_confirmation.py tests/test_p250_server_replay_rows.py tests/test_p249_gold_k2_replay.py tests/test_p248_replay_compact_fsl.py tests/test_p237_phase_e.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; foreach ($seed in 0,1,2) { uv run --no-sync python -m scripts.run_p253_confirmation --phase prepare --seed $seed; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed preparation failed" } }; Write-Host 'P2.53 prepared' }
+```
+
+2. Seed 1, GPU 0 (Hinton K2 and its three arms; rerun to resume):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $seed='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','hinton_k2aaa','k2plus_aaa')) { uv run --no-sync python -m scripts.run_p253_confirmation --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.53 seed $seed $arm complete" } }
+```
+
+3. Seed 1, GPU 1, after P2.52 finished and P2.51 and P2.52 are published
+   (gold K2, its arm, FedCoLLM-style):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; foreach ($arm in @('gold_k2','gmixgold_k2aaa','fedcollm_style')) { uv run --no-sync python -m scripts.run_p253_confirmation --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.53 seed $seed $arm complete" } }
+```
+
+4. Seed 2: steps 2 and 3 with `$seed='2'`, each on the GPU that frees
+   first.
+
+5. Seed 0 (P2.37 `hinton_akaka_plain` A2-A3, the FedCoLLM-style last K,
+   Spider test on every arm), on whichever GPU is free (set `$gpu`):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p237_phase_e --phase run --arm hinton_akaka_plain; if ($LASTEXITCODE -ne 0) { throw 'P2.37 hinton_akaka_plain failed' }; foreach ($arm in @('fedcollm_style','mixkd50_k2aaa','hinton_k2aaa','k2plus_aaa','gmixgold_k2aaa')) { uv run --no-sync python -m scripts.run_p253_confirmation --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.53 seed $seed $arm complete" } }
+```
+
+6. Publish one seed once both of its lanes have stopped (set `$seed`;
+   lanes of other seeds may keep running):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $seed='1'; $msg="results: record P2.53 confirmation seed $seed"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m scripts.list_p253_publication --seed $seed); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+7. After all three seeds are published: the frozen test and its summary.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $msg='results: record the P2.53 confirmation test'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p253_confirmation --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p253_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p253_confirmation/summary.md }
+```
 
 ## P2.51: execution-filtered client replay (GPU 0)
 

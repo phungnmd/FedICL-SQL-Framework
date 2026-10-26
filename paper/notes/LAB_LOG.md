@@ -41,11 +41,28 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
-## 2026-10-26: FREEZE (draft, awaiting owner approval): method, comparators, seeds, claims
+## 2026-10-26: P2.53 confirmation runner built
 
-Status: draft. It becomes binding when the owner approves it and this line
-is changed to "approved <date>". No seed 1-2 run, Spider test evaluation or
-FedCoLLM-style result is read before that.
+Owner approved the freeze (2026-10-26). P2.53 (nested `23e97c0`,
+`scripts/run_p253_confirmation.py --seed N`) runs the frozen comparison:
+the seed-0 recipes of `hinton_k2aaa`/`gold_k2aaa` K2 (P2.37),
+`mixkd50_k2aaa` (P2.48), `gmixgold_k2aaa` (P2.49), `k2plus_aaa` (P2.50)
+and the FedCoLLM-style A > K > A > K > A > K, with only `--seed` changed.
+At each seed `k2plus_aaa` trains exactly the rows the method replays at
+that seed. Seed 0 reuses the published adapters and dev evaluations; its
+FedCoLLM-style arm is the P2.37 `hinton_akaka_plain` chain plus one K.
+Every final adapter is evaluated on Spider test and the five dev sets; no
+intermediate endpoint is evaluated at seeds 1-2.
+
+Implementation of the frozen test, fixed before any confirmation result:
+the Holm family holds five p values, BIRD dev for C2, C3 and C4 and both
+C5 branches (Spider test and BIRD dev), which is stricter than one p per
+claim. Runbook: PIPELINE_NEXT P2.53.
+
+## 2026-10-26: FREEZE: method, comparators, seeds, claims
+
+Status: approved 2026-10-26 by the owner. Binding: nothing below changes
+after a seed 1-2, Spider test or FedCoLLM-style result is read.
 
 Selection record (R13): seed 0, Spider dev, BIRD dev and the three Spider
 variants; 17 federated configurations of the 1.5B student evaluated per round

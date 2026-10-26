@@ -91,7 +91,7 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-23)
+## Current state (2026-10-26)
 
 - Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
   questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
@@ -115,6 +115,9 @@ current plan.
   replay targets match the full ones (`mixkd50_k2aaa` A3 Spider 74.08, BIRD
   44.78, the current candidate); FSL-style server steps keep Spider but each
   private round gives back most of their BIRD gain (LAB_LOG 2026-10-25).
+- 2026-10-26: freeze approved (LAB_LOG FREEZE): method `mixkd50_k2aaa`;
+  comparators `gmixgold_k2aaa`, `hinton_k2aaa`, `k2plus_aaa`,
+  FedCoLLM-style; Spider test primary, three seeds. P2.53 runs it.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.
