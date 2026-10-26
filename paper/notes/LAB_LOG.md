@@ -38,6 +38,30 @@ Older detail:
   P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26).
   P2.51 execution-filtered replay built, client drift audit done (nested `4e4641e`, entry 2026-10-26); freeze after P2.51.
   P2.52 reverse-roles replay built (nested `1838b63`, entry 2026-10-26); the freeze does not wait for it.
+  P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
+
+## 2026-10-26: P2.51: execution-filtered replay does not help; the unfiltered method stays
+
+Evidence: P2.51 analysis on the server (`audits/protocol_v2/p251_exec_filtered_replay_s0/summary.md`),
+not committed yet; it is published after the P2.52 lane stops. Seed 0, dev
+sets, exploratory, exact McNemar.
+
+| Arm | A1 Spider / BIRD | A2 Spider / BIRD | A3 Spider | Realistic | SYN | DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `mixkd50_k2aaa` | 69.73 / 41.92 | 72.82 / 43.74 | 74.08 | 63.58 | 58.70 | 57.20 | 44.78 |
+| `xmixkd50_k2aaa` (filtered) | 70.21 / 42.11 | 72.92 / 43.94 | 73.02 | 62.40 | 59.09 | 58.50 | 44.26 |
+
+- Filtered minus unfiltered at A3: Spider -1.06 (10/21, p=.071), BIRD -0.52
+  (p=.40); level at A1 and A2. Restricting the replay KL to teacher-correct
+  rows gives no gain; the 0.5 gold CE on every replay row seems enough to
+  offset the teacher's wrong targets. Method unchanged: `mixkd50_k2aaa`.
+- Against the matched pipeline without teacher, the filtered variant gives
+  Spider +1.45 (p=.15) and BIRD +3.00 (p=.003), against +2.51 and +3.52 for
+  the selected method. Two near-identical variants differ by about 1 Spider
+  point in their teacher margin, so the seed-0 margin of the selected method
+  is likely optimistic; the confirmation power check should use the
+  half-effect scenario (Spider power 0.63 at three seeds), not the seed-0
+  effect.
 
 ## 2026-10-26: P2.52 client replay in the reverse roles built
 
