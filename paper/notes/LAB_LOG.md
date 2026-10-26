@@ -34,6 +34,37 @@ Older detail:
   P2.48 compact replay and server learning published (nested `8b79530`, entry 2026-10-25).
   P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
   P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
+  P2.49 `gmixgold_k2aaa` published (nested `db2cc09`, entry 2026-10-26); `gmixkd50_k2aaa` and P2.50 `fslm_k2sasasa` dropped.
+
+## 2026-10-26: P2.49: against the matched pipeline without a teacher, the candidate gains +2.51 Spider and +3.52 BIRD
+
+Evidence: nested `db2cc09` (`audits/protocol_v2/p249_gold_k2_replay_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. `gmixgold_k2aaa` = gold K2
+plus the same three replay rounds on gold CE (no teacher anywhere).
+
+| Arm | K2 objective | Replay objective | A1 Spider / BIRD | A2 Spider / BIRD | A3 Spider | Realistic | SYN | DK | A3 BIRD |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `gold_k2aaa` | gold | none | 70.12 / 40.74 | 69.83 / 39.90 | 70.41 | 61.22 | 56.38 | 52.34 | 40.03 |
+| `gmixgold_k2aaa` | gold | gold | 69.73 / 42.44 | 70.41 / 42.44 | 71.57 | 62.01 | 55.13 | 53.83 | 41.26 |
+| `mixgold_k2aaa` | Hinton | gold | 70.41 / 39.11 | 71.95 / 40.29 | 73.21 | 62.20 | 58.51 | 57.01 | 40.74 |
+| `mixkd50_k2aaa` | Hinton | teacher top-50 | 69.73 / 41.92 | 72.82 / 43.74 | **74.08** | 63.58 | 58.70 | 57.20 | **44.78** |
+
+- Whole teacher contribution, `mixkd50 - gmixgold` at A3: Spider +2.51
+  (59/33, p=.009), SYN +3.58 (p<.001), DK +3.36 (p=.010), Realistic +1.57
+  (p=.39), BIRD +3.52 (149/95, p<.001). At A1 the two are level (Spider
+  45/45); the gap opens at A2 (+2.42, p=.009).
+- The two placements of the teacher add up and split by domain: at K2
+  (`mixgold - gmixgold`) Spider +1.64 (p=.068), DK +3.18, BIRD -0.52; in the
+  replay (`mixkd50 - mixgold`) Spider +0.87 (p=.18), BIRD +4.04 (p<.001).
+  1.64 + 0.87 = 2.51.
+- Replay without a teacher (`gmixgold - gold_k2aaa`) at A3: Spider +1.16
+  (p=.22), BIRD +1.24 (p=.23). The Spider gain of the method comes from the
+  teacher, not from replaying public data.
+- Reading noted before the run (now a note under the 2026-10-26 rule): the
+  first case holds (Spider +1.0 or more, BIRD not lower).
+
+This is the seed-0 teacher contribution against the matched gold pipeline
+that the Q3 floor asks for; it must hold in the three-seed confirmation.
 
 ## 2026-10-26: owner rule: lean exploration, strongest story; P2.48-P2.50 readings are notes
 
