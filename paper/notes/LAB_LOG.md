@@ -39,6 +39,95 @@ Older detail:
   P2.51 execution-filtered replay built, client drift audit done (nested `4e4641e`, entry 2026-10-26); freeze after P2.51.
   P2.52 reverse-roles replay built (nested `1838b63`, entry 2026-10-26); the freeze does not wait for it.
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
+  Freeze entry drafted (2026-10-26), awaiting owner approval.
+
+## 2026-10-26: FREEZE (draft, awaiting owner approval): method, comparators, seeds, claims
+
+Status: draft. It becomes binding when the owner approves it and this line
+is changed to "approved <date>". No seed 1-2 run, Spider test evaluation or
+FedCoLLM-style result is read before that.
+
+Selection record (R13): seed 0, Spider dev, BIRD dev and the three Spider
+variants; 18 federated configurations of the 1.5B student evaluated per round
+(Spider and BIRD dev) and at the final round (all five sets), from P2.27 to
+P2.51; rules of 2026-10-12 and 2026-10-26.
+
+### Method (fixed)
+
+`mixkd50_k2aaa`, exactly the P2.48 recipe: server warm-start 2 epochs over
+the 9,428 BIRD rows with 0.5 gold CE + 0.5 T^2 KL (T=2) to the frozen
+Qwen2.5-Coder-7B; 3 FedAvg rounds (1 local epoch, lr 2e-4, LoRA r16) on the
+Spider `alpha_0.1/k5` split; every client replays 20% of its private row
+count from a fixed seeded 2,000-row BIRD subset on 0.5 gold CE + 0.5 KL to
+the teacher's top-50 tokens plus tail (T=2). Student
+Qwen2.5-Coder-1.5B-Instruct. Only `--seed` changes between seeds (LoRA
+init, data order, replay subset and samples); the client split stays fixed.
+
+### Main setting: comparators (all seeds 0, 1, 2)
+
+- `gmixgold_k2aaa`: matched pipeline without teacher (gold warm-start, gold
+  replay).
+- `hinton_k2aaa`: server KD warm-start + FedAvg.
+- `k2plus_aaa`: the same replay rows trained at the server.
+- `hinton_akaka_plain` (FedCoLLM-style, Fan et al., arXiv 2411.11707, SLM
+  side with a frozen teacher): A > K > A > K > A, server Hinton KD on the full
+  BIRD pool after rounds 1 and 2. Its seed 0 has not been run; it counts as a
+  confirmation seed because it played no part in selection.
+- Reference rows without claims: FedAvg, base model, teacher zero-shot.
+
+Seed 0 adapters of the method and the first three comparators are reused;
+seeds 1 and 2 are trained new. Every arm is evaluated at A3 on Spider test
+(2,147, primary), Spider dev, Realistic, SYN, DK and BIRD dev.
+
+### Test
+
+Pooled over 3 seeds with the question-clustered test (R13): per-question
+mean of the paired EX difference, normal test across questions, two-sided,
+95% CI. Non-inferiority margin 2.0 EX points (lower 95% bound > -2.0).
+Secondary claims C2-C5 use Holm correction at family alpha .05. Number of
+seeds fixed at 3 (power check: 5 seeds add little because the cross-seed
+correlation is about 0.6).
+
+### Claims and wording per outcome
+
+- C1 (primary): method > `gmixgold_k2aaa` on Spider test EX.
+  Significant and positive: "The server teacher raises private-domain EX by
+  X points over the matched pipeline without a teacher." Otherwise: "Spider
+  test EX differs by X (95% CI [a, b]); the difference is not significant",
+  with no teacher-contribution claim on Spider.
+- C2: method > `gmixgold_k2aaa` on BIRD dev EX with Spider test
+  non-inferior. Holds: "the teacher also raises public-domain EX by X".
+- C3: method > `hinton_k2aaa` on BIRD dev EX with Spider test
+  non-inferior. Holds: "replaying teacher targets at the clients keeps the
+  public-domain gain that plain FedAvg rounds lose".
+- C4: method > `k2plus_aaa` on BIRD dev EX with Spider test non-inferior.
+  Holds: "the same rows, teacher and steps help only when mixed into the
+  client rounds, not when spent on more server KD".
+- C5: method against `hinton_akaka_plain`. Spider test significantly higher:
+  "outperforms the FedCoLLM-style schedule"; Spider non-inferior and BIRD
+  significantly higher: "matches it on the private domain and exceeds it on
+  the public domain"; otherwise the numbers are reported without a claim.
+- Ranking (descriptive): the pooled Spider test EX of every arm is reported;
+  "highest of the evaluated federated configurations" is written only if the
+  method's point estimate is the highest.
+- Any claim that fails is reported with its numbers; no other claim is
+  added after the results are read.
+
+### Extension settings (pre-registered, no tuning, seeds 0, 1, 2)
+
+Arms in each: the method, the matched pipeline without teacher, the server
+KD warm-start + FedAvg, all with the main recipe.
+
+- E1 non-IID alpha 0.5: Spider `alpha_0.5/k5` split. Primary Spider test.
+- E2 student Qwen2.5-Coder-0.5B-Instruct on `alpha_0.1/k5` (the BIRD
+  teacher cache reused under the cross-student audit). Primary Spider test.
+- E3 reverse roles (BIRD private, Spider public, P2.43 data). Primary BIRD
+  dev EX (BIRD has no public test set; no setting was tuned on it in this
+  direction). P2.52 seed 0 (`mixkd50_k2aaa_rev`) counts; its A1 was read
+  before this entry, but E3 is included whatever its outcome.
+- Claims per setting: the C1 and C3 tests on that setting's primary metric,
+  each reported with its numbers; wording "consistent with the main
+  setting" only where both directions match and C1 is significant.
 
 ## 2026-10-26: P2.51: execution-filtered replay does not help; the unfiltered method stays
 
