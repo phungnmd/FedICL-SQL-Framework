@@ -15,8 +15,10 @@ checkpoint with the identical command). P2.48 is published (`8b79530`,
 P2.49 (`db2cc09`) and P2.50 (`015429c`) are published
 ([runbook](../archive/completed_runbooks/PIPELINE_P249_P250_2026-10-26.md));
 `gmixkd50_k2aaa` and `fslm_k2sasasa` were dropped (owner, 2026-10-26).
-Both GPUs idle. Next: the freeze entry (method, comparators, seeds, claims)
-before any seed 1-2 or Spider test run. P2.46 and P2.41 stay deferred.
+Running next: P2.51 execution-filtered replay on GPU 0 (owner, 2026-10-26);
+GPU 1 idle. After P2.51: the freeze entry (method, comparators, seeds,
+claims) before any seed 1-2 or Spider test run. P2.46 and P2.41 stay
+deferred.
 
 No seed 1-2 or Spider
 test run until the method is fixed (LAB_LOG 2026-10-23). Findings and open questions are
@@ -41,7 +43,33 @@ resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
 
-## P2.50: the replay rows gits at K2 (deferred, owner 2026-10-24)
+## P2.51: execution-filtered client replay (GPU 0)
+
+`xmixkd50_k2aaa` = P2.48 `mixkd50_k2aaa` with the replay pool restricted to
+the 5,319 BIRD rows whose teacher SQL executes to the gold result; about 9 h
+for three rounds. No lane runs, so step 1 pulls the shared code change (a
+new `--client-replay-row-filter` option, off unless set).
+
+1. Pull, test, prepare (CPU). Both GPUs must be idle:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__(); exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/federated/(round_loop|stage_chain)\.py|experiments/federated/run\.py|scripts/(run|list)_p251_[a-z_]+\.py|scripts/audit_client_drift\.py|tests/test_(p251_exec_filtered_replay|client_replay)\.py|docs/.+|AGENTS\.md|.+\.md|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_client_replay.py tests/test_p251_exec_filtered_replay.py tests/test_p250_server_replay_rows.py tests/test_p249_gold_k2_replay.py tests/test_p248_replay_compact_fsl.py tests/test_p247_client_replay.py tests/test_stage_chain.py tests/test_round_loop.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p251_exec_filtered_replay --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.51 preparation failed' }; Write-Host 'P2.51 prepared' }
+```
+
+2. Run on GPU 0 (A1, A2, A3 with their evaluations; rerun the same command
+   to resume):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $arm='xmixkd50_k2aaa'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p251_exec_filtered_replay --phase run --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.51 $arm failed" }; Write-Host "GPU $gpu P2.51 $arm complete" }
+```
+
+3. Publish every evaluated endpoint when the lane has stopped:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p251_exec_filtered_replay'; $n='251'; $msg='results: record P2.51 execution-filtered replay'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only HEAD); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $dirty=@($dirty | Where-Object { $_ -notlike "audits/protocol_v2/${exp}_s0/*" }); if ($dirty.Count -ne 0) { throw "Tracked changes need review: $dirty" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md|scripts/run_p251_exec_filtered_replay\.py)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m "scripts.run_$exp" --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m "scripts.list_p${n}_publication"); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "audits/protocol_v2/${exp}_s0/summary.md" }
+```
+
+## P2.46: top-k teacher logits at K2 (deferred, owner 2026-10-24)
 
 Question and the readings fixed before the run: LAB_LOG 2026-10-24. Code:
 nested `14fa97d`, `4a9553c`. Dev sets only, seed 0.

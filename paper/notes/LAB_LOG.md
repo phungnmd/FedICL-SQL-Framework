@@ -35,7 +35,46 @@ Older detail:
   P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
   P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
   P2.49 `gmixgold_k2aaa` published (nested `db2cc09`, entry 2026-10-26); `gmixkd50_k2aaa` and P2.50 `fslm_k2sasasa` dropped.
-  P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26). Both GPUs idle; next: the freeze entry.
+  P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26).
+  P2.51 execution-filtered replay built, client drift audit done (nested `4e4641e`, entry 2026-10-26); freeze after P2.51.
+
+## 2026-10-26: P2.51 execution-filtered replay built; client drift audit shows no teacher effect on client agreement
+
+Owner decision (2026-10-26): before the freeze, try one change that could
+alter the method, and the CPU drift audit; no A4 extension. In the freeze the
+method is claimed as the best configuration so far, including against
+`k2plus_aaa`.
+
+P2.51 (nested `7892d0d`, shared option `ab62ce6`): `xmixkd50_k2aaa` repeats
+`mixkd50_k2aaa` from the same Hinton K2 adapter, except that the replay pool
+is first restricted to the 5,319 BIRD training rows whose teacher SQL
+executes to the gold result (the SeqKD exmatch file, matched by
+`source_row_id`); the 2,000-row seeded subset is drawn from them. Ratio,
+0.5 CE + 0.5 top-50 tail KL and T=2 are unchanged, so the teacher's KL no
+longer acts on rows where its SQL is wrong. Grounding: selection by
+correctness (STaR, Zelikman et al., 2022; RFT, Yuan et al., 2023), here by
+SQL execution as in the SeqKD pool. Seed 0, dev sets, exploratory.
+
+Client drift audit (nested `30c45e0`, `audits/protocol_v2/client_drift_s0/`),
+from the published per-round `delta_stats` (factor-space cosine of the client
+LoRA updates) and FedAvg weights:
+
+| Arm | A1 cosine / dispersion | A2 | A3 |
+|---|---|---|---|
+| `hinton_k2aaa` | 0.388 / 0.490 | 0.036 / 0.761 | 0.004 / 0.787 |
+| `gmixgold_k2aaa` | 0.385 / 0.490 | 0.049 / 0.750 | 0.014 / 0.777 |
+| `mixgold_k2aaa` | 0.337 / 0.529 | 0.051 / 0.748 | 0.021 / 0.770 |
+| `mixkd50_k2aaa` | 0.314 / 0.547 | 0.056 / 0.744 | 0.018 / 0.774 |
+| `k2plus_aaa` | 0.371 / 0.504 | 0.037 / 0.761 | 0.001 / 0.789 |
+
+- Replay of any kind makes later client updates slightly more aligned
+  (A3 dispersion 0.770-0.777 against 0.787-0.789 without replay), as
+  shared public data predicts (Zhao et al., 2018). The teacher adds nothing
+  on this measure: `mixkd50` and `mixgold` are level at every round.
+- The teacher's effect therefore does not run through client agreement; the
+  account of where its knowledge goes stays the one in the evaluations
+  (server-side BIRD gains are lost in the next private round; replayed at
+  the clients they stay). The drift audit is not a paper claim.
 
 ## 2026-10-26: P2.50: the same replay rows trained at the server keep Spider but lose the BIRD gain
 
