@@ -35,6 +35,40 @@ Older detail:
   P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
   P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
   P2.49 `gmixgold_k2aaa` published (nested `db2cc09`, entry 2026-10-26); `gmixkd50_k2aaa` and P2.50 `fslm_k2sasasa` dropped.
+  P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26). Both GPUs idle; next: the freeze entry.
+
+## 2026-10-26: P2.50: the same replay rows trained at the server keep Spider but lose the BIRD gain
+
+Evidence: nested `015429c` (`audits/protocol_v2/p250_server_replay_rows_s0/summary.md`).
+Seed 0, dev sets, exploratory, exact McNemar. `k2plus_aaa` = Hinton K2, one
+more Hinton stage at the server on the 5,193 rows the `mixkd_k2aaa` clients
+replayed, then three plain rounds. `fslm_k2sasasa` was not run (owner,
+2026-10-26).
+
+| Arm | S Spider / BIRD | A1 Spider / BIRD | A2 Spider / BIRD | A3 Spider | Realistic | SYN | DK | A3 BIRD |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa` | | 71.57 / 36.77 | 71.86 / 38.66 | 72.53 | 61.81 | 56.38 | 58.32 | 38.53 |
+| `k2plus_aaa` | 61.99 / 42.96 | 71.28 / 37.87 | 72.63 / 38.66 | 73.21 | 62.01 | 58.80 | 57.57 | 37.81 |
+| `mixkd50_k2aaa` | | 69.73 / 41.92 | 72.82 / 43.74 | 74.08 | 63.58 | 58.70 | 57.20 | 44.78 |
+
+- Placement, `mixkd50 - k2plus` at A3: Spider +0.87 (42/33, p=.36),
+  Realistic +1.57, SYN -0.10, DK -0.37 (all n.s.), BIRD +6.98 (185/78,
+  p<1e-10). The full-target `mixkd_k2aaa` gives the same picture (Spider
+  +0.77, BIRD +7.43).
+- The extra server stage lifts BIRD to 42.96 at S; the first private round
+  takes it back to 37.87 and A3 ends at 37.81, level with `hinton_k2aaa`
+  (-0.72, p=.36). Spider +0.68 over `hinton_k2aaa` (p=.40); SYN +2.42
+  (p=.007) is a post hoc subgroup on one seed.
+- Under the primary-metric rule (Spider level, higher BIRD wins)
+  `mixkd50_k2aaa` stays the candidate. The noted prediction (A3 BIRD about
+  40-41) was too high: the BIRD gain of server KD on these rows is lost
+  completely.
+- Alternative reading: on Spider the placement makes no measurable
+  difference at seed 0; the replay's measured value is keeping the
+  public-domain skill, and the method's Spider margin over the matched
+  no-teacher pipeline (+2.51, P2.49) comes mostly from the teacher at K2.
+
+GPU: S 20,277 MB, 2.17 h for 5,193 rows; A rounds 14,527 MB.
 
 ## 2026-10-26: P2.49: against the matched pipeline without a teacher, the candidate gains +2.51 Spider and +3.52 BIRD
 
