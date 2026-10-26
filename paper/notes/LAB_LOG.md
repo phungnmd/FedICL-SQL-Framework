@@ -41,6 +41,33 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-27: P2.52 reverse-roles replay: no private-domain gain
+
+Evidence: nested `90fc918`, `audits/protocol_v2/p252_reverse_replay_s0/summary.md`.
+Seed 0, dev sets, exact McNemar. Reverse roles: BIRD private (primary),
+Spider public.
+
+| Arm (A3) | BIRD | Spider | Realistic | SYN | DK |
+|---|---:|---:|---:|---:|---:|
+| `mixkd50_k2aaa_rev` | 39.63 | 71.18 | 62.40 | 58.32 | 57.01 |
+| `hinton_k2aaa_rev` | 41.33 | 64.89 | 56.10 | 54.16 | 54.39 |
+| `gold_k2aaa_rev` | 40.22 | 64.70 | 56.10 | 52.13 | 52.34 |
+| `fl_bird` | 39.18 | 60.44 | 51.77 | 50.87 | 47.85 |
+
+- Against `hinton_k2aaa_rev`, BIRD -1.04 / -2.02 / -1.69 at A1-A3
+  (A3 76/102, p=.061, CI [-3.40, 0.01]); Spider +6.29 at A3 (p<.001).
+  Against `gold_k2aaa_rev` BIRD -0.59 (p=.57); against `fl_bird` +0.46
+  (p=.68).
+- The replay keeps the public domain in both directions (main setting BIRD
+  +6.26, here Spider +6.29 over the same chain without replay); the
+  private-domain gain of the main setting (Spider +1.55, p=.068) does not
+  carry over: here the private domain is level or slightly lower.
+- Losses spread over all BIRD difficulty levels; execution errors 16.2% vs
+  14.5% (wrong-table columns, extra joins). Post hoc, one seed: a
+  hypothesis, not a finding.
+- E3 stays as frozen (seed 0 counts, no tuning); seeds 1-2 decide its
+  wording.
+
 ## 2026-10-26: P2.53 confirmation runner built
 
 Owner approved the freeze (2026-10-26). P2.53 (nested `23e97c0`,
