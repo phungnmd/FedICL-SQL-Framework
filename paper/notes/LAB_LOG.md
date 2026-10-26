@@ -48,7 +48,7 @@ is changed to "approved <date>". No seed 1-2 run, Spider test evaluation or
 FedCoLLM-style result is read before that.
 
 Selection record (R13): seed 0, Spider dev, BIRD dev and the three Spider
-variants; 18 federated configurations of the 1.5B student evaluated per round
+variants; 17 federated configurations of the 1.5B student evaluated per round
 (Spider and BIRD dev) and at the final round (all five sets), from P2.27 to
 P2.51; rules of 2026-10-12 and 2026-10-26.
 
