@@ -69,10 +69,17 @@ init, data order, replay subset and samples); the client split stays fixed.
   replay).
 - `hinton_k2aaa`: server KD warm-start + FedAvg.
 - `k2plus_aaa`: the same replay rows trained at the server.
-- `hinton_akaka_plain` (FedCoLLM-style, Fan et al., arXiv 2411.11707, SLM
-  side with a frozen teacher): A > K > A > K > A, server Hinton KD on the full
-  BIRD pool after rounds 1 and 2. Its seed 0 has not been run; it counts as a
-  confirmation seed because it played no part in selection.
+- FedCoLLM-style (Fan et al., arXiv 2411.11707): A > K > A > K > A > K,
+  server KD after every round including the last, as in its Algorithm 1;
+  each K is one epoch over the BIRD pool with gold CE + KL to the teacher
+  (FedCoLLM: CE + lambda KL; here 0.5/0.5, lambda = 1 up to scale, as in our
+  server KD). FedCoLLM also tunes the LLM with LoRA (mutual KD); here the
+  teacher stays frozen (one-way), because updating the 7B at the server
+  invalidates the logit cache and does not fit the compute budget; the paper
+  states this difference. Its first five stages are the P2.37
+  `hinton_akaka_plain` chain; the final model is the one after the last K.
+  Its seed 0 has not been run; it counts as a confirmation seed because it
+  played no part in selection.
 - Reference rows without claims: FedAvg, base model, teacher zero-shot.
 
 Seed 0 adapters of the method and the first three comparators are reused;
@@ -103,7 +110,7 @@ correlation is about 0.6).
 - C4: method > `k2plus_aaa` on BIRD dev EX with Spider test non-inferior.
   Holds: "the same rows, teacher and steps help only when mixed into the
   client rounds, not when spent on more server KD".
-- C5: method against `hinton_akaka_plain`. Spider test significantly higher:
+- C5: method against the FedCoLLM-style arm. Spider test significantly higher:
   "outperforms the FedCoLLM-style schedule"; Spider non-inferior and BIRD
   significantly higher: "matches it on the private domain and exceeds it on
   the public domain"; otherwise the numbers are reported without a claim.
