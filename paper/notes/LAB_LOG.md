@@ -41,6 +41,30 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-27: P2.54 SynSQL-2.5M as the public pool built
+
+Owner decision (2026-10-27): no limitation story for the role swap; find a
+public dataset that suits Spider clients and try SynSQL-2.5M (Li et al.,
+OmniSQL, arXiv 2503.02240, Apache-2.0), without its external knowledge,
+since a public pool closer to Spider may help Spider more.
+
+Pool (nested `5b47a89`, `processed_data/protocol_v2/SYNSQL/pool_tok508k`):
+SynSQL samples ranked by sha256 of their index at the pinned revision; kept
+when they have no external knowledge, no database or question shared with
+Spider or BIRD, a new question, executable gold SQL and a sequence under
+7,168 tokens; stopped at the BIRD pool's 508,285 SQL target tokens (so the
+teacher cache and KD signal have the BIRD size, about 155 GB instead of 440
+GB for 9,428 SynSQL rows). Result: 3,336 rows over 3,027 databases; Simple
+341, Moderate 997, Complex 1,134, Highly Complex 864. The SynSQL databases
+hold about two rows per table (21% of tables empty), so no EX is measured
+on SynSQL; BIRD dev is an unseen domain in this setting.
+
+P2.54 (`scripts/run_p254_synsql_public.py --seed N`): the P2.53 recipes of
+`hinton_k2`, `gold_k2`, `mixkd50_k2aaa`, `hinton_k2aaa` and
+`gmixgold_k2aaa`, with only the public pool, its profile (`synsql`, no
+evidence) and the teacher cache swapped. Final adapters on Spider test and
+the five dev sets. Seed 0 first; seeds 1-2 after it.
+
 ## 2026-10-27: owner: rules are guidance; E3 leaves the confirmation
 
 Owner decision (2026-10-27): the selection and reporting rules are guidance,

@@ -120,6 +120,9 @@ current plan.
   FedCoLLM-style; Spider test primary, three seeds. P2.53 runs it.
   2026-10-27: E3 (reverse roles) left the confirmation (P2.52: BIRD -1.69
   vs `hinton_k2aaa_rev`, p=.061); exploratory only.
+- 2026-10-27: second setting is SynSQL-2.5M as the public pool (P2.54,
+  3,336 rows without external knowledge, BIRD-size token budget), not a
+  limitation story (owner).
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.
