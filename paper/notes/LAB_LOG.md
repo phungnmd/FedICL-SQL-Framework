@@ -41,6 +41,33 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-28: P2.54 K2 on SynSQL: Spider +3.8 over the BIRD pool, no teacher gap at K2
+
+Evidence: server logs, not committed yet (published with P2.54 seed 0).
+Seed 0, dev sets. K2 adapters now get Spider and BIRD dev, A1/A2 Spider dev
+(nested `6fb58cc`, `4b745b7`); the lane runs method and `gmixgold_k2aaa`
+round by round.
+
+| K2 | Spider dev | BIRD dev |
+|---|---:|---:|
+| P2.54 Hinton (SynSQL) | 66.05 | 28.6 |
+| P2.54 gold CE (SynSQL) | 66.2 | 27.2 |
+| P2.37 Hinton (BIRD) | 62.28 | 43.61 |
+| P2.37 gold CE (BIRD) | 59.09 | 43.48 |
+| base | 59.19 | 21.32 |
+
+- SynSQL pool vs BIRD pool at K2: Spider +3.8 (Hinton), +7.1 (gold CE).
+  BIRD dev is an unseen domain here and stays far below the BIRD-pool K2.
+- Hinton minus gold at K2: Spider about -0.1 (BIRD pool: +3.19), BIRD
+  +1.4. McNemar pending the published predictions.
+- Pool overlap check (scratch scripts, to be committed): no SynSQL row at
+  question 3-gram or SQL 4-gram Jaccard >= 0.8 against Spider dev+test
+  (2 rows >= 0.5 each); BIRD train has 34 and 26 rows >= 0.5 and one SQL
+  at 1.0 (its `Country`/`CountryLanguage` schema mirrors Spider `world_1`).
+- In the BIRD-pool setting the K2 gap did not carry to A1 (69.73 both) and
+  the teacher margin came back at A2/A3 (+2.41, +2.51) through replay KD;
+  the SynSQL teacher reading waits for the A2/A3 pairs.
+
 ## 2026-10-27: P2.54 SynSQL-2.5M as the public pool built
 
 Owner decision (2026-10-27): no limitation story for the role swap; find a
