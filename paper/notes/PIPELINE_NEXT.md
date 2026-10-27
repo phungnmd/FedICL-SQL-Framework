@@ -74,6 +74,21 @@ replay rounds 2-3 h each; about 25 h for the seed-0 lane below.
    `gmixgold_k2aaa` 69.73/70.41/71.57, `hinton_k2aaa` A3 72.53. P2.54
    Hinton K2: Spider dev 66.1.
 
+2c. Status at any time (read-only, safe while lanes run): dev EX per stage
+   so far, the paired contrasts with exact McNemar, and the same cells with
+   the BIRD pool; empty cells are not evaluated yet. The first time, pull
+   the new status script (the pull admits only it, its test and Markdown):
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/status_p254\.py|tests/test_p254_synsql_public\.py|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.status_p254 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+   Afterwards:
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.status_p254 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
 3. Publish the seed once its lane has stopped (P2.53 lanes may keep
    running):
 
