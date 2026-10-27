@@ -53,7 +53,7 @@ replay rounds 2-3 h each; about 25 h for the seed-0 lane below.
    matched pipeline, and `hinton_k2aaa` last (rerun to resume):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p254_synsql_public --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.54 cache failed' }; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','gold_k2','gmixgold_k2aaa','hinton_k2aaa')) { uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.254 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.254 seed $seed $arm complete" } }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p254_synsql_public --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.54 cache failed' }; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','gold_k2','gmixgold_k2aaa','hinton_k2aaa')) { uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.54 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.54 seed $seed $arm complete" } }
 ```
 
 3. Publish the seed once its lane has stopped (P2.53 lanes may keep
