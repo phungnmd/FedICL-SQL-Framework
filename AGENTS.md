@@ -118,6 +118,8 @@ current plan.
 - 2026-10-26: freeze approved (LAB_LOG FREEZE): method `mixkd50_k2aaa`;
   comparators `gmixgold_k2aaa`, `hinton_k2aaa`, `k2plus_aaa`,
   FedCoLLM-style; Spider test primary, three seeds. P2.53 runs it.
+  2026-10-27: E3 (reverse roles) left the confirmation (P2.52: BIRD -1.69
+  vs `hinton_k2aaa_rev`, p=.061); exploratory only.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.
@@ -223,6 +225,11 @@ current plan.
   What rule 2 protects: with about 140 discordant questions per Spider dev
   contrast, the best of ten variants with no true effect still shows about
   +1.7 points, and roughly 40% of such searches yield one p<.05.
+- Rules are guidance (owner, 2026-10-27): the selection and reporting
+  rules in this file are guidance, not gates. Choose what makes the paper
+  strongest for a Q3 journal; when a rule and that goal conflict, say so in
+  one line with the trade-off and follow the goal unless the owner says
+  otherwise. Every number in the paper still keeps its evidence trail.
 - Lean exploration, strongest story (owner, 2026-10-26):
   - Run a control during exploration only when its result could change the
     method or it is a baseline reviewers will certainly ask for. Skip

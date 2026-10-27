@@ -41,6 +41,19 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-27: owner: rules are guidance; E3 leaves the confirmation
+
+Owner decision (2026-10-27): the selection and reporting rules are guidance,
+not gates; choose what makes the paper strongest for a Q3 journal. E3
+(reverse roles) is removed from the frozen confirmation after the P2.52 A3
+result was read; it gets no seeds 1-2 and becomes exploratory. Its seed-0
+result may appear in the paper as a boundary condition (public-domain
+retention in both directions, private-domain gain only with BIRD public) or
+stay out, decided at writing; if it stays out, the paper makes no claim
+about swapped roles. The main setting (C1-C5, seeds 0-2, Spider test) and
+E1, E2 are unchanged. One reverse variant (replay ratio 0.1) is an option
+for a free GPU after the main seeds, not queued.
+
 ## 2026-10-27: P2.52 reverse-roles replay: no private-domain gain
 
 Evidence: nested `90fc918`, `audits/protocol_v2/p252_reverse_replay_s0/summary.md`.
@@ -172,10 +185,9 @@ KD warm-start + FedAvg, all with the main recipe.
 - E1 non-IID alpha 0.5: Spider `alpha_0.5/k5` split. Primary Spider test.
 - E2 student Qwen2.5-Coder-0.5B-Instruct on `alpha_0.1/k5` (the BIRD
   teacher cache reused under the cross-student audit). Primary Spider test.
-- E3 reverse roles (BIRD private, Spider public, P2.43 data). Primary BIRD
-  dev EX (BIRD has no public test set; no setting was tuned on it in this
-  direction). P2.52 seed 0 (`mixkd50_k2aaa_rev`) counts; its A1 was read
-  before this entry, but E3 is included whatever its outcome.
+- E3 reverse roles: removed from the confirmation by the owner on
+  2026-10-27, after the P2.52 A3 result (entry of that date). It stays
+  exploratory; no seeds 1-2.
 - Claims per setting: the C1 and C3 tests on that setting's primary metric,
   each reported with its numbers; wording "consistent with the main
   setting" only where both directions match and C1 is significant.
