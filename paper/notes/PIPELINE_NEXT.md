@@ -49,26 +49,30 @@ replay rounds 2-3 h each; about 25 h for the seed-0 lane below.
 
 1. Pull, test, prepare: P2.53 step 1 (it covers P2.54).
 
-2. GPU 1: the teacher cache, then the Hinton K2 and method, the gold K2 and
-   matched pipeline, and `hinton_k2aaa` last (rerun to resume):
+2. GPU 1: the teacher cache, then the method and its matched no-teacher
+   pipeline round by round, `hinton_k2aaa` last (rerun to resume). Every
+   K2 gets Spider and BIRD dev, every A1/A2 Spider dev, every A3 the five
+   dev sets and then Spider test, so each pair can be read as soon as both
+   sides of a round are done:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p254_synsql_public --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.54 cache failed' }; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','gold_k2','gmixgold_k2aaa','hinton_k2aaa')) { uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.54 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.54 seed $seed $arm complete" } }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p254_synsql_public --phase cache; if ($LASTEXITCODE -ne 0) { throw 'P2.54 cache failed' }; foreach ($step in @('hinton_k2:k2','mixkd50_k2aaa:a1','gold_k2:k2','gmixgold_k2aaa:a1','mixkd50_k2aaa:a2','gmixgold_k2aaa:a2','mixkd50_k2aaa:a3','gmixgold_k2aaa:a3','hinton_k2aaa:a3')) { $arm, $until = $step.Split(':'); uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm --until $until; if ($LASTEXITCODE -ne 0) { throw "P2.54 seed $seed $arm $until failed" }; Write-Host "GPU $gpu P2.54 seed $seed $arm $until complete" } }
 ```
 
-2b. K2 read on the dev sets (nested change: every K2 adapter now gets
-   Spider dev and BIRD dev, like P2.37 K2). Stop the step 2 lane with
-   Ctrl+C and wait for the prompt (the current round resumes from its last
-   checkpoint). The GPU 0 lane keeps running: the pull admits only P2.54
-   files. This evaluates the finished Hinton K2, prints its EX, then
-   resumes the lane (the gold K2 is evaluated when it finishes):
+2b. Switch a running seed-0 lane to this order (nested change: the A1/A2
+   Spider dev reads and `--until`). Stop the step 2 lane with Ctrl+C and wait
+   for the prompt (the current round resumes from its last checkpoint). The
+   GPU 0 lane keeps running: the pull admits only P2.54 files.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 1 lane still running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p254_synsql_public.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm hinton_k2; if ($LASTEXITCODE -ne 0) { throw 'P2.54 K2 eval failed' }; uv run --no-sync python -c "from scripts import run_p254_synsql_public as r; r.configure(0); e=r.read_manifest()['evaluations']['hinton_k2']['k2']; print('hinton_k2 K2 EX', {k: round(r.shared.stats(r.shared.load_predictions(v['predictions'], r.N_ROWS[k], v['predictions_sha256']))['ex'], 2) for k, v in e.items()})"; if ($LASTEXITCODE -ne 0) { throw 'Print failed' }; foreach ($arm in @('mixkd50_k2aaa','gold_k2','gmixgold_k2aaa','hinton_k2aaa')) { uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.54 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.54 seed $seed $arm complete" } }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 1 lane still running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p254_synsql_public.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; foreach ($step in @('hinton_k2:k2','mixkd50_k2aaa:a1','gold_k2:k2','gmixgold_k2aaa:a1','mixkd50_k2aaa:a2','gmixgold_k2aaa:a2','mixkd50_k2aaa:a3','gmixgold_k2aaa:a3','hinton_k2aaa:a3')) { $arm, $until = $step.Split(':'); uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm $arm --until $until; if ($LASTEXITCODE -ne 0) { throw "P2.54 seed $seed $arm $until failed" }; Write-Host "GPU $gpu P2.54 seed $seed $arm $until complete" } }
 ```
 
-   Reference K2 on the BIRD pool (P2.37, seed 0): Hinton Spider 62.28 /
-   BIRD 43.61, gold 59.09 / 43.48; base 59.19 / 21.32.
+   Reference on the BIRD pool (P2.37/P2.48/P2.49, seed 0, Spider dev):
+   Hinton K2 62.28 (BIRD 43.61), gold K2 59.09 (43.48), base 59.19
+   (21.32). `mixkd50_k2aaa` A1/A2/A3 69.73/72.82/74.08,
+   `gmixgold_k2aaa` 69.73/70.41/71.57, `hinton_k2aaa` A3 72.53. P2.54
+   Hinton K2: Spider dev 66.1.
 
 3. Publish the seed once its lane has stopped (P2.53 lanes may keep
    running):
