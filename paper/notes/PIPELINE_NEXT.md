@@ -118,6 +118,15 @@ plain round 1.2-1.4 h, replay round 2.1-3.3 h; about 28 h per lane below.
 & { $ErrorActionPreference='Stop'; $gpu='0'; $seed='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','hinton_k2aaa','k2plus_aaa')) { uv run --no-sync python -m scripts.run_p253_confirmation --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.53 seed $seed $arm complete" } }
 ```
 
+2b. Resume after the runtime-report fix (nested: `..._eval_spider` runtime
+   reports no longer pick up `..._eval_spider_test`; the first A3 Spider dev
+   eval stopped on it, its predictions are kept and reused). Pulls only the
+   P2.53 runner and its test, then reruns step 2:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $seed='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'GPU 0 lane still running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p253_confirmation\.py|tests/test_p253_confirmation\.py|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p253_confirmation.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; foreach ($arm in @('hinton_k2','mixkd50_k2aaa','hinton_k2aaa','k2plus_aaa')) { uv run --no-sync python -m scripts.run_p253_confirmation --phase run --seed $seed --arm $arm; if ($LASTEXITCODE -ne 0) { throw "P2.53 seed $seed $arm failed" }; Write-Host "GPU $gpu P2.53 seed $seed $arm complete" } }
+```
+
 3. Seed 1, GPU 1, after P2.52 finished and P2.51 and P2.52 are published
    (gold K2, its arm, FedCoLLM-style):
 
