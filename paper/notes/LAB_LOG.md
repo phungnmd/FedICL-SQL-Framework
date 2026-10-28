@@ -41,14 +41,32 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-28: FREEZE addendum: seeds 1-2 sensitivity analysis
+
+Owner approved 2026-10-28, before the P2.53 seed-0 Spider test evaluation
+(PIPELINE_NEXT P2.53 step 1b) and before any P2.53 Spider test result was
+read. Added to the frozen test of the 2026-10-26 FREEZE entry; nothing
+else in that entry changes.
+
+- Sensitivity analysis: the C1-C5 contrasts repeated on seeds 1 and 2
+  only, with the same sets and the same question-clustered test over those
+  two seeds, reported next to the pooled three-seed result. Seed 0 is the
+  seed on which the method was selected on dev. Which claims hold and
+  their wording stay decided by the pooled test.
+- Not adopted: per-seed deltas in the summary; a Spider test evaluation
+  of the FedCoLLM-style A3.
+- Implementation: added to `run_p253_confirmation --phase analyze` before
+  P2.53 step 7, when no lane imports the runner.
+
 ## 2026-10-28: P2.54 A1-A3 on SynSQL: teacher margin +0.77 at A3; teacher-gold audit
 
 Evidence: server logs and `audits/protocol_v2/teacher_gold_agreement_s0/`
 on the server, not committed yet (published with P2.54 seed 0). The owner
 stopped the lane during the `gmixgold_k2aaa` A3 dev evaluations, after
-Spider dev; `hinton_k2aaa` was not run. The lane printed a running Spider
-test EX for `mixkd50_k2aaa` A3 before the stop; it was not used for any
-choice.
+Spider dev; `hinton_k2aaa` was not run. Its remaining A3 dev sets were
+evaluated afterwards without training (owner, 2026-10-28). The lane printed
+a running Spider test EX for `mixkd50_k2aaa` A3 before the stop; it was
+not used for any choice.
 
 | Spider dev | A1 | A2 | A3 | A3, BIRD pool |
 |---|---:|---:|---:|---:|
@@ -56,8 +74,18 @@ choice.
 | `gmixgold_k2aaa` | 68.38 | 69.73 | 69.92 | 71.57 |
 | Teacher margin | +0.10 (28/27, p=1) | +1.16 (37/25, p=.16) | +0.77 | +2.51 |
 
-`mixkd50_k2aaa` A3, other dev sets: Realistic 61.22, SYN 54.84, DK 54.95,
-BIRD 29.82.
+| A3, method minus `gmixgold_k2aaa` | Method | Matched | Delta | Wins/Losses | p |
+|---|---:|---:|---:|---:|---:|
+| Spider | 70.70 | 69.92 | +0.77 | 46/38 | .445 |
+| BIRD (unseen domain here) | 29.79 | 28.81 | +0.98 | 75/60 | .228 |
+| Realistic | 61.22 | 61.02 | +0.20 | 20/19 | 1 |
+| SYN | 54.84 | 53.09 | +1.74 | 65/47 | .108 |
+| DK | 54.95 | 54.58 | +0.37 | 21/19 | .875 |
+
+The method is ahead on all five dev sets by about a third of the BIRD-pool
+margins (Spider +2.51, BIRD +3.52); none is significant. Realistic, SYN
+and DK rewrite the Spider dev questions, so the five signs are not
+independent.
 
 Teacher-gold audit (`scripts/audit_teacher_gold_agreement.py`, nested
 `e6bb498`): 1,000 sampled rows per pool, cached 7B logits at T=1 on the
@@ -75,12 +103,15 @@ gold prefix, SQL target tokens only.
   +0.77 at A3. These data do not separate a teacher that is wrong where
   the SynSQL generators were right from teacher knowledge that does not
   reach Spider.
-- A row-matched SynSQL pool (9,428 rows, about 440 GB of cache) is not
-  indicated: at the same target-token budget the BIRD pool gave a K2
-  margin of +3.19 and SynSQL gave none.
-- Proposed, owner decision pending: no seeds 1-2 for P2.54; SynSQL leaves
-  the confirmation; the paper scopes the teacher claim to the BIRD public
-  pool.
+- The audit is confounded by SQL length (about 152 target tokens per
+  SynSQL row, 55 per BIRD row) and difficulty mix, and is measured at T=1
+  while KD uses T=2; it carries little weight for the decision.
+- Pool and row count are confounded: at the same target-token budget the
+  SynSQL pool has 3,336 rows and the BIRD pool 9,428. A K2 pair on a
+  3,336-row BIRD subset (about 4 GPU-h) would separate them; not run.
+- Owner (2026-10-28): no further P2.54 training; seed 0 is published for
+  reference, with the `gmixgold_k2aaa` A3 Spider test added; whether the
+  paper reports it is decided later.
 
 ## 2026-10-28: P2.54 K2 on SynSQL: Spider +3.8 over the BIRD pool, no teacher gap at K2
 
