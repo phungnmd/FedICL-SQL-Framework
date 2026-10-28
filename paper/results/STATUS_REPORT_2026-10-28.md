@@ -41,15 +41,24 @@ Communication: adapter 73.9 MB (fp32) mỗi client mỗi chiều mỗi round.
 | Arm | Spider dev | Spider test | Method minus (test) | p |
 |---|---:|---:|---:|---:|
 | FedAvg | 67.60 | 71.50 | +1.68 | .029 |
+| FedNTD | 67.79 | 69.68 | +3.49 | <.001 |
 | Server gold CE warm-start + FedAvg | 70.41 | 73.03 | +0.14 | .89 |
 | Matched pipeline không teacher (gold warm-start, gold replay) | 71.57 | 72.61 | +0.56 | .43 |
 | Server KD warm-start + FedAvg | 72.53 | 73.50 | -0.33 | .62 |
 | Cùng các câu replay nhưng train ở server | 73.21 | 73.87 | -0.70 | .27 |
 | **Method** | **74.08** | 73.17 | | |
+| *Tham chiếu* | | | | |
+| Base (zero-shot) | 59.19 | 57.94 | +15.23 | <.001 |
+| Train một mình, client tốt nhất trên test (trung bình 5 client) | 64.60 (65.49) | 70.28 (67.27) | +2.89 | <.001 |
+| Centralized Spider | 71.37 | 71.08 | +2.10 | .009 |
+| Centralized Spider + BIRD (không privacy) | 73.21 | 73.78 | -0.61 | .46 |
 
 Exact McNemar trên cùng câu hỏi. Từ dev sang test, FedAvg tăng 3.90; các
 arm có warm-start tăng 0.66-2.62; method giảm 0.91 (method được chọn trong
-17 cấu hình trên dev).
+17 cấu hình trên dev). Method ngang train tập trung Spider + BIRD không
+privacy và hơn train tập trung chỉ Spider. Khoảng cách FL so với
+centralized trên dev (+3.77) không thấy trên test (71.08 so với 71.50).
+Các dòng tham chiếu chưa publish vào repo code.
 
 **Development sets (Spider dev / BIRD dev):**
 
@@ -101,7 +110,9 @@ non-inferiority margin 2.0 điểm.
 
 - **Vững:** framework hơn FedAvg trên Spider test (+1.68), chủ yếu nhờ
   public data ở server (gold warm-start - FedAvg +1.53). Teacher giữ BIRD
-  qua các round (+3.5 đến +7, p<.001 ở mọi so sánh).
+  qua các round (+3.5 đến +7, p<.001 ở mọi so sánh). Trên Spider test
+  method ngang train tập trung Spider + BIRD không privacy (-0.61, p=.46)
+  và hơn train tập trung chỉ Spider (+2.10, p=.009).
 - **Yếu:** phần riêng của teacher trên Spider test khoảng 0.5 điểm (C1, C6),
   chưa có ý nghĩa thống kê. Teacher chỉ thấy BIRD, và student đã gần mức
   teacher trên Spider (74.08 so với 76.69 dev).
@@ -134,8 +145,8 @@ non-inferiority margin 2.0 điểm.
 ## 8. Đang chạy và tiếp theo
 
 - GPU 0: confirmation seed 1 (method và các comparator).
-- GPU 1: các dòng tham chiếu seed 0 trên Spider test (còn FedNTD và 5
-  client local), sau đó FedCoLLM-style seed 1.
+- GPU 1: các dòng tham chiếu seed 0 trên Spider test đã xong (chờ
+  publish); tiếp theo FedCoLLM-style seed 1.
 - Tiếp theo: seed 2, FedCoLLM-style, FedAvg và gold warm-start ở seed 1-2,
   rồi kiểm định 3 seed.
 - SynSQL seed 0 đã publish. Số Spider test seed 0 của P2.53, các dòng

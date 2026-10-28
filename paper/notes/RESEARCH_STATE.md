@@ -83,6 +83,7 @@ chỉ là giả thuyết.
 | F26 | Đổi public pool sang SynSQL: method vẫn hơn FedAvg trên 5/5 tập dev và trên Spider test; teacher cùng chiều nhưng nhỏ | P2.54 A3 (nested `76496b4`), paired: method - FedAvg Spider +3.09 (67/35, p=.002), BIRD +4.11 (124/61, p<.001), Realistic +1.57, SYN +1.16, DK +1.68 (p=.27-.35); Spider test 72.99 so với 71.50 (+1.49, chưa paired). Method - `gmixgold` +0.77, +0.98, +0.20, +1.74, +0.37, không cặp nào significant. Dưới BIRD pool trên dev (Spider -3.38, p=.001; BIRD -14.99), ngang trên Spider test (72.99 so với 73.17) | 1 seed, robustness theo pool |
 | F27 | Đảo vai: replay giữ public domain (Spider) nhưng không giúp private (BIRD) | P2.52: Spider +6.29 (p<.001), BIRD -1.69 (p=.061) | 1 seed, appendix |
 | F28 | Trên Spider test, mọi arm K2 nằm trong 72.6-73.9, FedAvg 71.50; phần teacher trên Spider khoảng 0.5 | seed 0: method - FedAvg +1.68 (p=.029), `gold_k2aaa` - FedAvg +1.53, method - `gold_k2aaa` +0.14, `hinton_k2aaa` - `gold_k2aaa` +0.47; dev sang test FedAvg +3.90, nhóm K2 +0.66 đến +2.62 | 1 seed, Spider test |
+| F29 | Trên Spider test, method ngang train tập trung Spider + BIRD (không privacy) và hơn train tập trung chỉ Spider; FL penalty của dev không còn trên test | seed 0: method - `central_mix` -0.61 (p=.46), - `central` +2.10 (p=.009), - FedNTD +3.49, - local tốt nhất +2.89 (local trung bình 67.27); `central` 71.08, FedAvg 71.50 (dev: 71.37 so với 67.60) | 1 seed, Spider test; chưa commit (publish 1c) |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
@@ -98,7 +99,7 @@ từng được publish, không trích dẫn.
 
 | # | Câu hỏi | Cần arm |
 |---|---|---|
-| Q1 | Vì sao FL thuần thua central 3.8 điểm và gần như không hơn client tốt nhất (F19)? | audit client drift (Q7) |
+| Q1 | Vì sao FL thuần thua central 3.8 điểm trên dev và gần như không hơn client tốt nhất (F19)? Trên Spider test seed 0 khoảng cách này không còn (F29) | audit client drift (Q7) |
 | Q2 | Teacher có hơn gold ở Coder-1.5B không, và có phụ thuộc lịch không? K2AAA: có (F13); AKA plain: không trên Spider (P2.36) | cặp AKAKA plain (P2.37, hoãn) |
 | Q3 | Đặt K ở đâu: đầu (K2AAA), xen kẽ (AKAKA), hay chuỗi hiện có? | AKAKA plain (hoãn; chỉ cần nếu paper claim lịch K-first) |
 | Q4 | Trần khi có đủ dữ liệu ở một chỗ là bao nhiêu? | đã có: `central_mix` (F16); không có teacher nên chỉ là mốc pooled data, không phải trần cho method có teacher |

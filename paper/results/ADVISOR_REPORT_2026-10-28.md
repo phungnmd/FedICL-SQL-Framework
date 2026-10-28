@@ -21,15 +21,17 @@ giữ được BIRD. Không có replay thì phần BIRD học từ teacher mất
 
 | Arm                                       | Spider dev |  BIRD dev | Spider test |
 | ----------------------------------------- | ---------: | --------: | ----------: |
-| Base 1.5B (zero-shot)                     |      59.19 |     21.32 |             |
+| Base 1.5B (zero-shot)                     |      59.19 |     21.32 |       57.94 |
+| Train một mình (trung bình 5 client)      |      65.49 |     22.96 |       67.27 |
 | FedAvg                                    |      67.60 |     25.68 |       71.50 |
+| FedNTD                                    |      67.79 |     24.32 |       69.68 |
 | Server gold CE warm-start + FedAvg        |      70.41 |     40.03 |       73.03 |
 | Pipeline giống method nhưng không teacher |      71.57 |     41.26 |       72.61 |
 | Server KD warm-start + FedAvg             |      72.53 |     38.53 |       73.50 |
 | Cùng các câu replay nhưng train ở server  |      73.21 |     37.81 |       73.87 |
 | **Method**                                |  **74.08** | **44.78** |       73.17 |
-| Centralized Spider                        |      71.37 |     25.75 |             |
-| Centralized Spider + BIRD (không privacy) |      73.21 |     43.68 |             |
+| Centralized Spider                        |      71.37 |     25.75 |       71.08 |
+| Centralized Spider + BIRD (không privacy) |      73.21 |     43.68 |       73.78 |
 | Teacher 7B (zero-shot)                    |      76.69 |     47.07 |             |
 
 So sánh paired (exact McNemar):
@@ -39,6 +41,9 @@ So sánh paired (exact McNemar):
   +3.52 (p<.001).
 - Method - server KD warm-start + FedAvg: Spider test -0.33 (p=.62), BIRD
   dev +6.26 (p<.001).
+- Method - centralized Spider: Spider test +2.10 (p=.009).
+- Method - centralized Spider + BIRD (không privacy): Spider test -0.61
+  (p=.46).
 
 ## Robustness theo public pool (SynSQL-2.5M, seed 0)
 

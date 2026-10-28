@@ -20,11 +20,42 @@ Older detail:
   open questions: [`RESEARCH_STATE.md`](RESEARCH_STATE.md); commands:
   [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
 - Seed 0 Spider test is in for the method, its three trained comparators,
-  FedAvg and `gold_k2aaa` (entry below). P2.53 seed 1 runs on GPU 0; the
-  remaining reference rows (step 1c) run on GPU 1.
+  FedAvg and `gold_k2aaa` (entry below), and for the step 1c reference
+  rows (publication pending). P2.53 seed 1 runs on GPU 0; GPU 1 is free
+  for FedCoLLM-style seed 1.
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-28: P2.53 step 1c reference rows on Spider test
+
+Evidence: `run_p253_reference_test --phase status` on the server, not
+committed yet (the step 1c publication follows). Spider test, 2,147
+questions, seed 0, same evaluator as the method, exact McNemar against the
+method (73.17). Spider dev from the published P2.27 and P2.37 predictions.
+
+| Arm | Spider dev | Spider test | Method minus (test) | Wins/Losses | p |
+|---|---:|---:|---:|---:|---:|
+| `central_mix` E3 (Spider + BIRD pooled, no privacy) | 73.21 | 73.78 | -0.61 | 125/138 | .46 |
+| `central` E3 (Spider pooled) | 71.37 | 71.08 | +2.10 | 165/120 | .009 |
+| FedAvg (`fl`) A3 | 67.60 | 71.50 | +1.68 | 146/110 | .029 |
+| FedNTD A3 | 67.79 | 69.68 | +3.49 | 177/102 | <.001 |
+| `local_c1` E3 | 67.02 | 67.63 | +5.54 | 236/117 | <.001 |
+| `local_c2` E3 | 64.99 | 65.07 | +8.10 | 283/109 | <.001 |
+| `local_c3` E3 | 64.60 | 70.28 | +2.89 | 196/134 | <.001 |
+| `local_c4` E3 | 65.38 | 66.93 | +6.24 | 245/111 | <.001 |
+| `local_c5` E3 | 65.47 | 66.42 | +6.75 | 223/78 | <.001 |
+| base | 59.19 | 57.94 | +15.23 | 424/97 | <.001 |
+
+- The method is level with pooled Spider + BIRD training without privacy
+  (-0.61, p=.46) and above pooled Spider-only training (+2.10, p=.009),
+  FedNTD and every local client (mean 67.27, best `local_c3` 70.28).
+- The FL penalty seen on dev (`central` - FedAvg +3.77 at E3/A3, F9) does
+  not appear on test: `central` 71.08, FedAvg 71.50 (unpaired). FedAvg
+  rises 3.90 from dev to test, `central` falls 0.29.
+- `local_c3` rises 5.68 from dev to test, the other clients 0.08-1.55;
+  its domain cluster probably matches more Spider test databases (not
+  checked).
 
 ## 2026-10-28: P2.54 seed 0 published; SynSQL as the robustness setting
 
