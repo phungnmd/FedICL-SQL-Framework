@@ -48,10 +48,10 @@ interrupted one from its checkpoint.
 
 State 2026-10-28: the seed-0 lane was stopped (Ctrl+C) during the
 `gmixgold_k2aaa` A3 dev evaluations, after its Spider dev (69.92; method
-70.70); `hinton_k2aaa` not run. Owner: no further P2.54 training; finish
-the `gmixgold_k2aaa` A3 dev sets and Spider test (step 5; the seed-0
-Spider test pair is read, exploratory), then publish seed 0 (step 3).
-Seeds 1-2 are not queued.
+70.70); `hinton_k2aaa` not run. Owner: no further P2.54 training; the
+`gmixgold_k2aaa` A3 dev sets are done. Step 5 (its Spider test) is
+deferred until a reviewer asks (owner, 2026-10-28); publish seed 0 now
+(step 3). P2.54 is the paper's robustness setting at seed 0.
 
 4. CPU audit, safe while both GPU lanes run (reads both teacher caches,
    about 1,000 sampled rows each; writes only
@@ -120,7 +120,7 @@ replay rounds 2-3 h each; about 25 h for the seed-0 lane below.
 & { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.status_p254 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
 
-3. Publish seed 0 after step 5 (P2.53 lanes may keep running): every
+3. Publish seed 0 (step 5 deferred; P2.53 lanes may keep running): every
    recorded stage and evaluation, the cache audit and the step 4 audit;
    prints the status table at the end.
 
@@ -167,7 +167,9 @@ plain round 1.2-1.4 h, replay round 2.1-3.3 h; about 28 h per lane below.
 & { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p253_reference_test.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p253_reference_test --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.53 reference rows failed' }; uv run --no-sync python -m scripts.run_p253_reference_test --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
 
-   Publish them (the lane may keep running):
+   Publish them once the 1c lane has finished: a publication mid-run
+   tracks the reference manifest that the lane still rewrites, and the next
+   publication's clean-tree check would then stop:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m scripts.run_p253_reference_test --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m 'results: record the P2.53 seed-0 reference rows on Spider test'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
