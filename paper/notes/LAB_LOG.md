@@ -25,7 +25,29 @@ Older detail:
   for FedCoLLM-style seed 1.
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
+- E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-29: owner: E2 (Coder-0.5B student) back in the queue
+
+Owner decision: E2, dropped on 2026-10-28 before any run, is queued again,
+after the P2.53 queue (step 7 included); not urgent. Definition, arms,
+tests and wording as pre-registered in the FREEZE entry (2026-10-26,
+extension settings): student Qwen2.5-Coder-0.5B-Instruct on
+`alpha_0.1/k5`, the BIRD teacher cache reused after the cross-student
+audit, seeds 0-2, arms the method, `gmixgold_k2aaa` and `hinton_k2aaa`
+with the main recipe, C1 and C3 tests on Spider test. FedAvg at 0.5B is
+added as a descriptive reference row.
+
+- Earlier 0.5B evidence (P2.20, `alpha_0.5`, Spider dev, seed 0, no
+  replay): Hinton K2AAA - gold K2AAA Spider +2.03 (62/41, p=.048), BIRD
+  +0.46; the same size as Coder-1.5B on dev (`hinton_k2aaa` -
+  `gold_k2aaa` +2.12), which fell to +0.47 on Spider test.
+- Cost: 0.5B trains at about the 1.5B speed here (A5000_RUN_CONFIG, P2.18:
+  Hinton K2 5.23 h, gold K2 4.48 h, A rounds 1.2-1.4 h; long BIRD
+  prompts, batch 1). About 30 GPU-h per seed for the three arms plus about
+  4 GPU-h for FedAvg; about 100 GPU-h in all.
+- Code not built; a new runner on the P2.53 pattern.
 
 ## 2026-10-28: P2.53 seed 1, first Spider test pair
 

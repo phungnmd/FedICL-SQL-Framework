@@ -163,6 +163,8 @@ non-inferiority margin 2.0 điểm.
 - Còn lại: 6b (FedAvg, gold warm-start seed 1-2), 6c (dev ở A1/A2 seed
   1-2), 6d (teacher zero-shot Spider test), rồi kiểm định 3 seed. Khoảng 45
   h mỗi GPU.
+- Sau đó: E2, student Qwen2.5-Coder-0.5B, 3 seed (method, pipeline không
+  teacher, server KD + FedAvg, FedAvg), khoảng 100 GPU-h.
 - SynSQL seed 0 và các dòng tham chiếu đã publish. Số Spider test seed 0
   của P2.53 và execution-filtered replay còn trên GPU server, chưa
   publish vào repo code.

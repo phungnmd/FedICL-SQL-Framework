@@ -140,16 +140,18 @@ như một bảng robustness: method - FedAvg theo hai public pool.
 
 Theo thứ tự; lệnh trong [PIPELINE_NEXT](PIPELINE_NEXT.md):
 
-1. Phần còn lại của reference rows seed 0 (P2.53 step 1c: `central_mix`,
-   `central`, base, FedNTD, `local`), cho bảng chính. FedAvg và
-   `gold_k2aaa` đã xong; evaluator giống nhau ở mọi dòng.
+1. Xong: reference rows seed 0 trên Spider test (P2.53 step 1c, nested
+   `0704737`).
 2. Seed 1-2 cho các arm đã chốt và FedCoLLM-style (khoảng 80 GPU-h).
 3. FedAvg và `gold_k2aaa` seed 1-2 (khoảng 8 GPU-h mỗi arm), cần thêm code.
 4. Eval dev ở A1, A2 cho 4 arm ở seed 1-2 (khoảng 5 GPU-h); teacher
    zero-shot trên Spider test (khoảng 1 GPU-h, smoke VRAM trước).
 5. Analyze 3 seed (C1-C7, sensitivity).
 
-Không chạy: E2 (student 0.5B, bỏ); E1 (alpha 0.5) và replay ratio để dành
+Sau bước 5: E2, student Qwen2.5-Coder-0.5B, 3 seed (method, pipeline không
+teacher, server KD + FedAvg, FedAvg; khoảng 100 GPU-h; owner 2026-10-29).
+
+Không chạy: E1 (alpha 0.5) và replay ratio để dành
 cho revision; seed của SynSQL và reverse roles; mọi thăm dò mới trên dev.
 
 ## 8. Venue

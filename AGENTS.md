@@ -134,8 +134,9 @@ current plan.
 - 2026-10-28: seed-0 Spider test: method 73.17, `gmixgold_k2aaa` 72.61,
   `hinton_k2aaa` 73.50, `k2plus_aaa` 73.87 (LAB_LOG). FREEZE addendum 2:
   FedAvg and `gold_k2aaa` join seeds 1-2, claims C6 (`hinton_k2aaa` >
-  `gold_k2aaa`) and C7 (method > FedAvg) on Spider test. E2 dropped; E1 and
-  replay-ratio sensitivity wait for a revision.
+  `gold_k2aaa`) and C7 (method > FedAvg) on Spider test. E1 and
+  replay-ratio sensitivity wait for a revision. 2026-10-29: E2 (0.5B
+  student, three seeds) queued again after P2.53 (owner).
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.

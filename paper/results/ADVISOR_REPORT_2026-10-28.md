@@ -100,8 +100,9 @@ dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang t
 Xác nhận trên 3 seed với Spider test. Seed 1: method và pipeline không
 teacher đã xong; server KD warm-start + FedAvg, train ở server và
 FedCoLLM-style đang chạy. Sau đó: seed 2, FedAvg và gold warm-start ở seed
-1-2, teacher zero-shot trên Spider test; khoảng 2 ngày GPU. Paper sẽ chỉ
-lấy claim từ kết quả 3 seed này.
+1-2, teacher zero-shot trên Spider test; khoảng 2 ngày GPU. Tiếp theo là
+student 0.5B (3 seed, thêm khoảng 2 ngày). Paper sẽ chỉ lấy claim từ kết
+quả 3 seed này.
 
 ## Em xin ý kiến thầy
 

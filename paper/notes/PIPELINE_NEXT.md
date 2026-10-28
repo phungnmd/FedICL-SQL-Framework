@@ -22,7 +22,8 @@ and P2.41 stay deferred.
 State 2026-10-28: paper direction fixed by the owner
 ([DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md)); FREEZE addendum 2 adds FedAvg
 and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 steps 1b and 1c done
-(1c published, nested `0704737`). E2 dropped; E1 waits for a revision.
+(1c published, nested `0704737`). E2 (0.5B student) is queued after step 7
+(LAB_LOG 2026-10-29); E1 waits for a revision.
 P2.54 seed 0 is published (nested `76496b4`), the robustness setting;
 no seeds 1-2.
 
@@ -178,6 +179,12 @@ only while no lane imports `run_p253_confirmation`, or in a new runner):
 ```powershell
 & { $ErrorActionPreference='Stop'; $msg='results: record the P2.53 confirmation test'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p253_confirmation --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p253_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p253_confirmation/summary.md }
 ```
+
+8. After step 7: E2, student Qwen2.5-Coder-0.5B-Instruct (LAB_LOG
+   2026-10-29): the method, `gmixgold_k2aaa`, `hinton_k2aaa` and FedAvg,
+   seeds 0-2, Spider test and the five dev sets; about 100 GPU-h. Code
+   not built yet (new runner on the P2.53 pattern, cross-student teacher
+   cache audit first).
 
 ## P2.51: execution-filtered client replay (GPU 0)
 
