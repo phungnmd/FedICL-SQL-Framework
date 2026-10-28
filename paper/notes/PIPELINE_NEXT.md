@@ -21,8 +21,8 @@ and P2.41 stay deferred.
 
 State 2026-10-28: paper direction fixed by the owner
 ([DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md)); FREEZE addendum 2 adds FedAvg
-and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 step 1b done; step 1c
-runs on GPU 1 (FedNTD and the five `local` clients left). E2 dropped; E1 waits for a revision.
+and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 steps 1b and 1c done
+(1c published, nested `0704737`). E2 dropped; E1 waits for a revision.
 P2.54 seed 0 is published (nested `76496b4`), the robustness setting;
 no seeds 1-2.
 

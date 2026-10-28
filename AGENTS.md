@@ -130,7 +130,7 @@ current plan.
   limitation story (owner). 2026-10-28: it is the robustness setting of
   the paper (does the method still work with another public pool), seed 0;
   published (nested `76496b4`): method minus FedAvg Spider dev +3.09
-  (p=.002), BIRD +4.11 (p<.001), Spider test 72.99 vs 71.50.
+  (p=.002), BIRD +4.11 (p<.001), Spider test 72.99 vs 71.50 (p=.028).
 - 2026-10-28: seed-0 Spider test: method 73.17, `gmixgold_k2aaa` 72.61,
   `hinton_k2aaa` 73.50, `k2plus_aaa` 73.87 (LAB_LOG). FREEZE addendum 2:
   FedAvg and `gold_k2aaa` join seeds 1-2, claims C6 (`hinton_k2aaa` >

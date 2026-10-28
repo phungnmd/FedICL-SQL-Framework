@@ -21,7 +21,7 @@ Older detail:
   [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
 - Seed 0 Spider test is in for the method, its three trained comparators,
   FedAvg and `gold_k2aaa` (entry below), and for the step 1c reference
-  rows (publication pending). P2.53 seed 1 runs on GPU 0; GPU 1 is free
+  rows (nested `0704737`). P2.53 seed 1 runs on GPU 0; GPU 1 is free
   for FedCoLLM-style seed 1.
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
@@ -29,8 +29,7 @@ Older detail:
 
 ## 2026-10-28: P2.53 step 1c reference rows on Spider test
 
-Evidence: `run_p253_reference_test --phase status` on the server, not
-committed yet (the step 1c publication follows). Spider test, 2,147
+Evidence: nested `0704737` (`p253ref_*` predictions). Spider test, 2,147
 questions, seed 0, same evaluator as the method, exact McNemar against the
 method (73.17). Spider dev from the published P2.27 and P2.37 predictions.
 
@@ -51,8 +50,12 @@ method (73.17). Spider dev from the published P2.27 and P2.37 predictions.
   (-0.61, p=.46) and above pooled Spider-only training (+2.10, p=.009),
   FedNTD and every local client (mean 67.27, best `local_c3` 70.28).
 - The FL penalty seen on dev (`central` - FedAvg +3.77 at E3/A3, F9) does
-  not appear on test: `central` 71.08, FedAvg 71.50 (unpaired). FedAvg
-  rises 3.90 from dev to test, `central` falls 0.29.
+  not appear on test: `central` - FedAvg -0.42 (158/167, p=.66). FedAvg
+  rises 3.90 from dev to test, `central` falls 0.29. Public data at the
+  server still lifts FedAvg on test: `gold_k2aaa` - FedAvg +1.54
+  (141/108, p=.042).
+- `central` and `central_mix` exist at seed 0 only (not in seeds 1-2), so
+  they are reference rows, not three-seed claims.
 - `local_c3` rises 5.68 from dev to test, the other clients 0.08-1.55;
   its domain cluster probably matches more Spider test databases (not
   checked).
@@ -72,13 +75,14 @@ files: P2.54 `mixkd50_k2aaa` A3, P2.27 `fl_a3` (FedAvg) and P2.48
 | Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 | -2.36 (28/40, .18) |
 | SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 | -3.87 (49/89, <.001) |
 | DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 | -2.24 (21/33, .13) |
-| Spider test | 72.99 | 71.50 | +1.49 (unpaired) | 73.17 | -0.18 (unpaired) |
+| Spider test | 72.99 | 71.50 | +1.49 (116/84, .028) | 73.17 | -0.18 (unpaired) |
 
 - With SynSQL as the public pool the method still beats FedAvg on all five
-  dev sets (significant on Spider and BIRD) and on Spider test. The
-  FedAvg and BIRD-pool Spider test predictions are not in the repository
-  yet (step 1c and P2.53 seed 0 publications), so the test column is
-  unpaired.
+  dev sets (significant on Spider and BIRD) and on Spider test. On test
+  it is also above `central` (+1.91, 176/135, p=.023) and level with
+  `central_mix` (-0.79, 137/154, p=.35). The BIRD-pool method's Spider
+  test predictions arrive with the P2.53 seed 0 publication, so that
+  cell is unpaired.
 - The SynSQL pool is below the BIRD pool on every dev set and level on
   Spider test. Dev to test: SynSQL method +2.29, BIRD-pool method -0.91
   (the BIRD-pool method was selected on Spider dev).

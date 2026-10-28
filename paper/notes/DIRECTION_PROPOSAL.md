@@ -96,7 +96,7 @@ reverse roles (giới hạn); loại lỗi; GPU-h.
 (P2.54, seed 0, cùng recipe; nested `76496b4`). Method hơn FedAvg trên cả
 5 tập dev, paired: Spider +3.09 (p=.002), BIRD +4.11 (p<.001), Realistic
 +1.57, SYN +1.16, DK +1.68 (ba tập sau chưa significant); Spider test 72.99
-so với 71.50 (+1.49). Teacher (method - pipeline không teacher) cùng chiều
+so với 71.50 (+1.49, p=.028). Teacher (method - pipeline không teacher) cùng chiều
 trên 5/5 tập dev (+0.2 đến +1.7), không tập nào significant. Đưa vào paper
 như một bảng robustness: method - FedAvg theo hai public pool.
 

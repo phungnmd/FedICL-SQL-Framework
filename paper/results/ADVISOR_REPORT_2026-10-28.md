@@ -57,10 +57,10 @@ Cùng method, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M
 | Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 |
 | SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 |
 | DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 |
-| Spider test | 72.99 | 71.50 | +1.49 (chưa paired) | 73.17 |
+| Spider test | 72.99 | 71.50 | +1.49 (116/84, .028) | 73.17 |
 
-Method vẫn hơn FedAvg trên mọi tập, significant trên Spider dev và BIRD
-dev; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang trên Spider test.
+Method vẫn hơn FedAvg trên mọi tập, significant trên Spider dev, BIRD
+dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang trên Spider test.
 
 ## Vấn đề
 

@@ -57,8 +57,7 @@ Exact McNemar trên cùng câu hỏi. Từ dev sang test, FedAvg tăng 3.90; cá
 arm có warm-start tăng 0.66-2.62; method giảm 0.91 (method được chọn trong
 17 cấu hình trên dev). Method ngang train tập trung Spider + BIRD không
 privacy và hơn train tập trung chỉ Spider. Khoảng cách FL so với
-centralized trên dev (+3.77) không thấy trên test (71.08 so với 71.50).
-Các dòng tham chiếu chưa publish vào repo code.
+centralized trên dev (+3.77) không thấy trên test (-0.42, p=.66).
 
 **Development sets (Spider dev / BIRD dev):**
 
@@ -118,7 +117,7 @@ non-inferiority margin 2.0 điểm.
   teacher trên Spider (74.08 so với 76.69 dev).
 - **Robustness theo pool:** đổi public pool sang SynSQL, method vẫn hơn
   FedAvg trên 5/5 tập dev (Spider +3.09, p=.002) và trên Spider test
-  (+1.49).
+  (+1.49, p=.028).
 - **Sát biên:** C4 (Spider test -0.70 so với margin -2.0).
 
 ## 7. Setting phụ (seed 0, thăm dò)
@@ -135,9 +134,10 @@ non-inferiority margin 2.0 điểm.
 | Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 |
 | SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 |
 | DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 |
-| Spider test | 72.99 | 71.50 | +1.49 (chưa paired) | 73.17 |
+| Spider test | 72.99 | 71.50 | +1.49 (116/84, .028) | 73.17 |
 
-  Method hơn FedAvg trên mọi tập, significant trên Spider dev và BIRD dev.
+  Method hơn FedAvg trên mọi tập, significant trên Spider dev, BIRD dev và
+  Spider test.
   Thấp hơn BIRD pool trên dev, ngang trên Spider test. Teacher (method -
   matched pipeline) cùng chiều 5/5 tập dev (+0.2 đến +1.7), không có ý
   nghĩa thống kê.
@@ -145,10 +145,10 @@ non-inferiority margin 2.0 điểm.
 ## 8. Đang chạy và tiếp theo
 
 - GPU 0: confirmation seed 1 (method và các comparator).
-- GPU 1: các dòng tham chiếu seed 0 trên Spider test đã xong (chờ
-  publish); tiếp theo FedCoLLM-style seed 1.
+- GPU 1: các dòng tham chiếu seed 0 trên Spider test đã xong và publish;
+  tiếp theo FedCoLLM-style seed 1.
 - Tiếp theo: seed 2, FedCoLLM-style, FedAvg và gold warm-start ở seed 1-2,
   rồi kiểm định 3 seed.
-- SynSQL seed 0 đã publish. Số Spider test seed 0 của P2.53, các dòng
-  tham chiếu và execution-filtered replay còn trên GPU server, chưa
+- SynSQL seed 0 và các dòng tham chiếu đã publish. Số Spider test seed 0
+  của P2.53 và execution-filtered replay còn trên GPU server, chưa
   publish vào repo code.
