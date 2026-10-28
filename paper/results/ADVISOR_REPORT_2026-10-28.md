@@ -40,6 +40,23 @@ So sánh paired (exact McNemar):
 - Method - server KD warm-start + FedAvg: Spider test -0.33 (p=.62), BIRD
   dev +6.26 (p<.001).
 
+## Robustness theo public pool (SynSQL-2.5M, seed 0)
+
+Cùng method, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M
+(cùng số token SQL):
+
+| Tập | Method (SynSQL pool) | FedAvg | Method - FedAvg (W/L, p) | Method (BIRD pool) |
+|---|---:|---:|---:|---:|
+| Spider dev | 70.70 | 67.60 | +3.09 (67/35, .002) | 74.08 |
+| BIRD dev | 29.79 | 25.68 | +4.11 (124/61, <.001) | 44.78 |
+| Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 |
+| SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 |
+| DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 |
+| Spider test | 72.99 | 71.50 | +1.49 (chưa paired) | 73.17 |
+
+Method vẫn hơn FedAvg trên mọi tập, significant trên Spider dev và BIRD
+dev; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang trên Spider test.
+
 ## Vấn đề
 
 1. **Lợi thế trên Spider co lại ở test.** Trên dev method hơn FedAvg +6.48,
@@ -55,9 +72,10 @@ So sánh paired (exact McNemar):
    +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không giảm. Nhưng BIRD
    là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
    metric phụ.
-4. **Setting phụ chưa ủng hộ thêm.** Đảo vai (BIRD private, Spider public)
-   và đổi public pool sang SynSQL-2.5M đều không cho đóng góp teacher có ý
-   nghĩa trên miền private.
+4. **Setting phụ chưa làm rõ thêm phần của teacher.** Với SynSQL, phần
+   riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ (+0.2 đến +1.7),
+   chưa significant. Đảo vai (BIRD private, Spider public) thì replay không
+   giúp miền private (BIRD -1.69, p=.061), em để ngoài phần xác nhận.
 
 ## Đang chạy
 

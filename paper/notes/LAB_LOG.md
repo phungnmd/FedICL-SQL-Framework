@@ -21,8 +21,43 @@ Older detail:
   [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
 - Seed 0 Spider test is in for the method, its three trained comparators,
   FedAvg and `gold_k2aaa` (entry below). P2.53 seed 1 runs on GPU 0; the
-  remaining reference rows (step 1c) are next on GPU 1.
+  remaining reference rows (step 1c) run on GPU 1.
+- P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
+  setting (entry below).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-28: P2.54 seed 0 published; SynSQL as the robustness setting
+
+Evidence: nested `76496b4` (`audits/protocol_v2/p254_synsql_public_s0/`,
+the teacher-gold audit summary, every stage and evaluation recorded so far).
+The paired tests below were computed locally from the published prediction
+files: P2.54 `mixkd50_k2aaa` A3, P2.27 `fl_a3` (FedAvg) and P2.48
+`mixkd50_k2aaa` A3 (BIRD pool), matched by row id and gold SQL.
+
+| Set | Method, SynSQL pool | FedAvg | Method - FedAvg (W/L, p) | Method, BIRD pool | SynSQL - BIRD pool (W/L, p) |
+|---|---:|---:|---:|---:|---:|
+| Spider dev | 70.70 | 67.60 | +3.09 (67/35, .002) | 74.08 | -3.38 (40/75, .001) |
+| BIRD dev | 29.79 | 25.68 | +4.11 (124/61, <.001) | 44.78 | -14.99 (66/296, <.001) |
+| Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 | -2.36 (28/40, .18) |
+| SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 | -3.87 (49/89, <.001) |
+| DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 | -2.24 (21/33, .13) |
+| Spider test | 72.99 | 71.50 | +1.49 (unpaired) | 73.17 | -0.18 (unpaired) |
+
+- With SynSQL as the public pool the method still beats FedAvg on all five
+  dev sets (significant on Spider and BIRD) and on Spider test. The
+  FedAvg and BIRD-pool Spider test predictions are not in the repository
+  yet (step 1c and P2.53 seed 0 publications), so the test column is
+  unpaired.
+- The SynSQL pool is below the BIRD pool on every dev set and level on
+  Spider test. Dev to test: SynSQL method +2.29, BIRD-pool method -0.91
+  (the BIRD-pool method was selected on Spider dev).
+- Teacher margin inside SynSQL (method minus `gmixgold_k2aaa`, entry
+  below): positive on 5/5 dev sets, none significant.
+- Decision: the paper reports P2.54 seed 0 as its robustness table
+  (method minus FedAvg with two public pools). `hinton_k2aaa` is not run
+  and the `gmixgold_k2aaa` A3 Spider test stays deferred until a reviewer
+  asks (owner, 2026-10-28). The P2.54 runbook is archived
+  (`paper/archive/completed_runbooks/PIPELINE_P254_2026-10-28.md`).
 
 ## 2026-10-28: owner rule: a claim stays when most of its results support it
 

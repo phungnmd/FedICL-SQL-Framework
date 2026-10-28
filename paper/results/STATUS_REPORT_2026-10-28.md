@@ -105,24 +105,39 @@ non-inferiority margin 2.0 điểm.
 - **Yếu:** phần riêng của teacher trên Spider test khoảng 0.5 điểm (C1, C6),
   chưa có ý nghĩa thống kê. Teacher chỉ thấy BIRD, và student đã gần mức
   teacher trên Spider (74.08 so với 76.69 dev).
+- **Robustness theo pool:** đổi public pool sang SynSQL, method vẫn hơn
+  FedAvg trên 5/5 tập dev (Spider +3.09, p=.002) và trên Spider test
+  (+1.49).
 - **Sát biên:** C4 (Spider test -0.70 so với margin -2.0).
 
 ## 7. Setting phụ (seed 0, thăm dò)
 
 - **Đảo vai** (BIRD private, Spider public): replay giữ Spider (+6.29,
   p<.001) nhưng BIRD private -1.69 (p=.061). Không vào confirmation.
-- **Robustness theo public pool: SynSQL-2.5M** thay BIRD (cùng recipe).
-  Method hơn FedAvg trên cả 5 tập dev (Spider +3.10, Realistic +1.57, SYN
-  +1.16, DK +1.68, BIRD +4.11; chưa paired test). Teacher (method - matched
-  pipeline) cùng chiều 5/5 tập (+0.2 đến +1.7), không có ý nghĩa thống kê.
-  Yếu hơn BIRD pool trên mọi tập.
+- **Robustness theo public pool: SynSQL-2.5M** thay BIRD (3,336 câu, cùng
+  số token SQL với BIRD pool, cùng recipe; nested `76496b4`):
+
+| Tập | Method (SynSQL pool) | FedAvg | Method - FedAvg (W/L, p) | Method (BIRD pool) |
+|---|---:|---:|---:|---:|
+| Spider dev | 70.70 | 67.60 | +3.09 (67/35, .002) | 74.08 |
+| BIRD dev | 29.79 | 25.68 | +4.11 (124/61, <.001) | 44.78 |
+| Realistic | 61.22 | 59.65 | +1.57 (32/24, .35) | 63.58 |
+| SYN | 54.84 | 53.68 | +1.16 (70/58, .33) | 58.70 |
+| DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 |
+| Spider test | 72.99 | 71.50 | +1.49 (chưa paired) | 73.17 |
+
+  Method hơn FedAvg trên mọi tập, significant trên Spider dev và BIRD dev.
+  Thấp hơn BIRD pool trên dev, ngang trên Spider test. Teacher (method -
+  matched pipeline) cùng chiều 5/5 tập dev (+0.2 đến +1.7), không có ý
+  nghĩa thống kê.
 
 ## 8. Đang chạy và tiếp theo
 
 - GPU 0: confirmation seed 1 (method và các comparator).
-- GPU 1: các dòng tham chiếu seed 0 trên Spider test (centralized, base,
-  FedNTD, local).
+- GPU 1: các dòng tham chiếu seed 0 trên Spider test (còn FedNTD và 5
+  client local), sau đó FedCoLLM-style seed 1.
 - Tiếp theo: seed 2, FedCoLLM-style, FedAvg và gold warm-start ở seed 1-2,
   rồi kiểm định 3 seed.
-- Số Spider test seed 0, SynSQL và execution-filtered replay đang nằm trên
-  GPU server, chưa publish vào repo code.
+- SynSQL seed 0 đã publish. Số Spider test seed 0 của P2.53, các dòng
+  tham chiếu và execution-filtered replay còn trên GPU server, chưa
+  publish vào repo code.

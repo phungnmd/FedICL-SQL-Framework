@@ -93,10 +93,12 @@ self-teacher; top-50 so với full target; replay lọc theo execution (âm);
 reverse roles (giới hạn); loại lỗi; GPU-h.
 
 **Robustness theo public pool (owner, 2026-10-28):** SynSQL-2.5M thay BIRD
-(P2.54, seed 0, cùng recipe). Method hơn FedAvg trên cả 5 tập dev (+1.2 đến
-+4.1); teacher (method - pipeline không teacher) cùng chiều trên 5/5 tập,
-không tập nào có ý nghĩa. Paired test so với FedAvg làm sau khi publish
-seed 0.
+(P2.54, seed 0, cùng recipe; nested `76496b4`). Method hơn FedAvg trên cả
+5 tập dev, paired: Spider +3.09 (p=.002), BIRD +4.11 (p<.001), Realistic
++1.57, SYN +1.16, DK +1.68 (ba tập sau chưa significant); Spider test 72.99
+so với 71.50 (+1.49). Teacher (method - pipeline không teacher) cùng chiều
+trên 5/5 tập dev (+0.2 đến +1.7), không tập nào significant. Đưa vào paper
+như một bảng robustness: method - FedAvg theo hai public pool.
 
 ## 5. Baseline
 

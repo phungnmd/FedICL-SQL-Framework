@@ -31,6 +31,7 @@ material and index entries only.
 
 - [P2.48 compact replay and server learning](completed_runbooks/PIPELINE_P248_2026-10-25.md): published in nested `8b79530`.
 - [P2.49 and P2.50 gold K2 replay and server replay rows](completed_runbooks/PIPELINE_P249_P250_2026-10-26.md): published in nested `db2cc09` and `015429c`.
+- [P2.54 SynSQL-2.5M public pool, seed 0](completed_runbooks/PIPELINE_P254_2026-10-28.md): published in nested `76496b4`.
 - [P2.47 client replay](completed_runbooks/PIPELINE_P247_2026-10-25.md): published in nested `80d1091`.
 
 ## 2026-10-11 completed P2.27
