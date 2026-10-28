@@ -41,6 +41,47 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-28: P2.54 A1-A3 on SynSQL: teacher margin +0.77 at A3; teacher-gold audit
+
+Evidence: server logs and `audits/protocol_v2/teacher_gold_agreement_s0/`
+on the server, not committed yet (published with P2.54 seed 0). The owner
+stopped the lane during the `gmixgold_k2aaa` A3 dev evaluations, after
+Spider dev; `hinton_k2aaa` was not run. The lane printed a running Spider
+test EX for `mixkd50_k2aaa` A3 before the stop; it was not used for any
+choice.
+
+| Spider dev | A1 | A2 | A3 | A3, BIRD pool |
+|---|---:|---:|---:|---:|
+| `mixkd50_k2aaa` | 68.47 | 70.89 | 70.70 | 74.08 |
+| `gmixgold_k2aaa` | 68.38 | 69.73 | 69.92 | 71.57 |
+| Teacher margin | +0.10 (28/27, p=1) | +1.16 (37/25, p=.16) | +0.77 | +2.51 |
+
+`mixkd50_k2aaa` A3, other dev sets: Realistic 61.22, SYN 54.84, DK 54.95,
+BIRD 29.82.
+
+Teacher-gold audit (`scripts/audit_teacher_gold_agreement.py`, nested
+`e6bb498`): 1,000 sampled rows per pool, cached 7B logits at T=1 on the
+gold prefix, SQL target tokens only.
+
+| Pool | Target tokens | Top-1 is gold | Mean p(gold) | p(gold) < 0.5 | Gold NLL | Entropy |
+|---|---:|---:|---:|---:|---:|---:|
+| BIRD | 54,543 | 94.84% | 93.76% | 5.6% | 0.178 | 0.089 |
+| SynSQL | 151,664 | 92.24% | 91.03% | 8.4% | 0.289 | 0.130 |
+
+- The teacher departs from SynSQL gold more than from BIRD gold (top-1
+  misses 7.8% vs 5.2% of target tokens). SynSQL gold does not already
+  match the teacher: its soft labels carry more non-gold mass than on
+  BIRD, yet the teacher margin is zero at K2 (Spider -0.19, 69/71) and
+  +0.77 at A3. These data do not separate a teacher that is wrong where
+  the SynSQL generators were right from teacher knowledge that does not
+  reach Spider.
+- A row-matched SynSQL pool (9,428 rows, about 440 GB of cache) is not
+  indicated: at the same target-token budget the BIRD pool gave a K2
+  margin of +3.19 and SynSQL gave none.
+- Proposed, owner decision pending: no seeds 1-2 for P2.54; SynSQL leaves
+  the confirmation; the paper scopes the teacher claim to the BIRD public
+  pool.
+
 ## 2026-10-28: P2.54 K2 on SynSQL: Spider +3.8 over the BIRD pool, no teacher gap at K2
 
 Evidence: server logs, not committed yet (published with P2.54 seed 0).
