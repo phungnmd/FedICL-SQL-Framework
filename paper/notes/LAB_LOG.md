@@ -107,6 +107,10 @@ read-only, web search). Owner decision 2026-10-28: follow it.
   low-resource client sweep (5-25% of each client's rows, K2 reused) and
   KaggleDBQA as an untouched held-out set. Owner (2026-10-28): not taken
   up for now; no new runs beyond the queued confirmation.
+- Owner (2026-10-28): SynSQL-2.5M (P2.54) is the paper's robustness
+  setting for the public pool, at seed 0: the method beats FedAvg on all
+  five dev sets (+1.16 to +4.11) and the teacher contrast keeps its sign on
+  all five (+0.20 to +1.74, none significant).
 
 ## 2026-10-28: FREEZE addendum 2: FedAvg and `gold_k2aaa` join seeds 1-2; claims C6, C7
 

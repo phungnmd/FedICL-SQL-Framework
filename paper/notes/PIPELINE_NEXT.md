@@ -23,7 +23,7 @@ State 2026-10-28: paper direction fixed by the owner
 ([DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md)); FREEZE addendum 2 adds FedAvg
 and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 step 1b done; step 1c
 running for `fl` and `gold_k2aaa`. E2 dropped; E1 waits for a revision.
-P2.54 stays a seed-0 reference (steps 3 and 5 only, no seeds 1-2).
+P2.54 is the robustness setting at seed 0 (steps 3 and 5; no seeds 1-2 for now).
 
 ## Status check (read-only, any time, for example after a server restart)
 

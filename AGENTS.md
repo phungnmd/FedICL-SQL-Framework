@@ -127,8 +127,8 @@ current plan.
   vs `hinton_k2aaa_rev`, p=.061); exploratory only.
 - 2026-10-27: second setting is SynSQL-2.5M as the public pool (P2.54,
   3,336 rows without external knowledge, BIRD-size token budget), not a
-  limitation story (owner). 2026-10-28: kept out of the paper; seed 0 is a
-  reference only (no EX on SynSQL, so it cannot test retention).
+  limitation story (owner). 2026-10-28: it is the robustness setting of
+  the paper (does the method still work with another public pool), seed 0.
 - 2026-10-28: seed-0 Spider test: method 73.17, `gmixgold_k2aaa` 72.61,
   `hinton_k2aaa` 73.50, `k2plus_aaa` 73.87 (LAB_LOG). FREEZE addendum 2:
   FedAvg and `gold_k2aaa` join seeds 1-2, claims C6 (`hinton_k2aaa` >

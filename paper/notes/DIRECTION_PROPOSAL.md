@@ -92,8 +92,11 @@ seed 1-2; selection record (17 cấu hình, số dev); virtual teacher và
 self-teacher; top-50 so với full target; replay lọc theo execution (âm);
 reverse roles (giới hạn); loại lỗi; GPU-h.
 
-**Ngoài paper:** SynSQL (P2.54) giữ số seed 0 làm tham khảo; không có EX
-trên SynSQL nên không kiểm được claim retention.
+**Robustness theo public pool (owner, 2026-10-28):** SynSQL-2.5M thay BIRD
+(P2.54, seed 0, cùng recipe). Method hơn FedAvg trên cả 5 tập dev (+1.2 đến
++4.1); teacher (method - pipeline không teacher) cùng chiều trên 5/5 tập,
+không tập nào có ý nghĩa. Paired test so với FedAvg làm sau khi publish
+seed 0.
 
 ## 5. Baseline
 

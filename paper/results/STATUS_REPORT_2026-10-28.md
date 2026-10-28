@@ -111,8 +111,11 @@ non-inferiority margin 2.0 điểm.
 
 - **Đảo vai** (BIRD private, Spider public): replay giữ Spider (+6.29,
   p<.001) nhưng BIRD private -1.69 (p=.061). Không vào confirmation.
-- **Public pool SynSQL-2.5M** thay BIRD: method - matched Spider dev +0.77,
-  BIRD +0.98, không có ý nghĩa thống kê. Chỉ để tham khảo.
+- **Robustness theo public pool: SynSQL-2.5M** thay BIRD (cùng recipe).
+  Method hơn FedAvg trên cả 5 tập dev (Spider +3.10, Realistic +1.57, SYN
+  +1.16, DK +1.68, BIRD +4.11; chưa paired test). Teacher (method - matched
+  pipeline) cùng chiều 5/5 tập (+0.2 đến +1.7), không có ý nghĩa thống kê.
+  Yếu hơn BIRD pool trên mọi tập.
 
 ## 8. Đang chạy và tiếp theo
 
