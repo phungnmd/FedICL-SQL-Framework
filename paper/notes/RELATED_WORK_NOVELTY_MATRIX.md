@@ -7,6 +7,11 @@
 > mechanism published for another task or domain is not a reason to drop a
 > direction (`AGENTS.md`, novelty bar for Q3, owner 2026-10-12).
 >
+> Updated 2026-10-28 for the frozen method (server Hinton KD, then FedAvg
+> rounds with client replay of compressed teacher targets): replay prior
+> work, motivation sources and the new wording below. The method does not
+> use execution-filtered teacher targets (P2.51 showed no gain).
+>
 > Claim framing updated 2026-10-02. The tested reference has one public stage;
 > placement and subsequent private-round depth remain research variables.
 > Recurring KD describes related work or a candidate schedule, not a frozen
@@ -23,24 +28,20 @@ Text-to-SQL supervision by execution correctness. Therefore neither FL+LoRA,
 LLM-to-SLM transfer, recurring server distillation, nor execution-filtered SQL
 distillation is independently new.
 
-The defensible positioning is narrower:
+The defensible positioning is narrower (2026-10-28):
 
-> FedLS-SQL studies an execution-oriented workflow for **federated
-> cross-schema NL-to-SQL** in which private clients train and communicate only
-> SLM LoRA adapters, a frozen server-only LLM supplies SQL targets selected on
-> a public corpus by result-equivalent execution, the aggregated SLM receives
-> server-side public adaptation, and only the SLM is deployed. The schedule
-> and choice of SQL, logits, or auxiliary plan supervision are evaluated.
+> In federated cross-schema NL-to-SQL, a frozen server-only LLM distills into
+> the shared SLM on a public corpus before the private rounds; the public-domain
+> gain is lost during FedAvg rounds, and clients keep it by replaying a small
+> public subset with compressed, precomputed teacher targets (top-50 tokens
+> plus tail). Clients send only LoRA adapters; only the SLM is deployed.
 
 This is a task-specific workflow and empirical contribution, not a claim that
-its individual optimization components are new. The paper title is final
-(2026-09-30):
+its individual optimization components are new. Working title (2026-10-28;
+the 2026-09-30 title with "A Novel ... Framework" is withdrawn):
 
-> **FedLS-SQL: A Novel Federated Large-Small Language Models Framework for
-> Natural Language to SQL**
-
-Because the title says "novel framework", the text must still ground novelty
-in the task-specific workflow above, not in the individual components.
+> **Keeping the Teacher's Knowledge: Server-Side LLM Distillation with
+> Client-Side Logit Replay for Federated Text-to-SQL**
 
 ## Evidence and claim levels (2026-10-02)
 
@@ -83,10 +84,16 @@ of the cited method.
 | [KID](https://aclanthology.org/2024.findings-emnlp.403/) (Findings EMNLP 2024) | Centralized Text-to-SQL KD | Large autoregressive teacher → smaller student; imperfect inputs simulate inference errors | Centralized benchmark training; no FL private/public split | EX is an evaluation endpoint, not the defining teacher-target acceptance rule | Teacher distributions/constructed imperfect training data | Autoregressive Text-to-SQL student | Student | Establishes efficient specialized KD for Text-to-SQL. FedLS-SQL's distinction is the federated boundary and server-only transfer, not KD for SQL itself. |
 | [Pure-KD Text2Sql](https://aclanthology.org/2025.naacl-industry.5/) (NAACL Industry 2025) | Centralized Text-to-SQL | Stronger pure-prompt teacher → impure-prompt student | Centralized Spider fine-tuning | Reports task accuracy; no generated-target EX acceptance gate | Teacher output distribution under a shorter/purer prompt | Fine-tuned Text-to-SQL model | Student | Establishes Text-to-SQL teacher/student transfer and compact prompting without federation. |
 | [Struct-SQL](https://arxiv.org/abs/2512.17053) (arXiv v3, 2026) | Centralized Text-to-SQL structured-CoT KD | GPT-4o → Qwen SLM using query-plan CoT plus SQL | Centralized BIRD construction; no client/server privacy boundary | **Yes:** teacher samples are admitted only when SQL is syntactically valid and execution-correct | Teacher query plan and final SQL; QLoRA student training | Qwen3 4B QLoRA student | Student generates a plan and SQL | Establishes execution-filtered teacher SQL and SLM-only Text-to-SQL deployment. FedLS-SQL differs by federated LoRA aggregation, frozen server refinement, schedule evaluation, and matched FL/public-gold controls. |
+| [FedMD](https://arxiv.org/abs/1910.03581) (NeurIPS 2019 workshop) | Heterogeneous federated classification | Client consensus scores on public data → each client | Private data local; shared public dataset | No | Class scores on public data | Heterogeneous client models | Client models | Closest replay pattern: each round clients distill on public data, then train on private data. Its soft targets are the clients' consensus; ours are a frozen server-only LLM's, computed once, on SQL generation. |
+| [Zhao et al.](https://arxiv.org/abs/1806.00582) (2018) | Non-IID federated classification | No teacher | A small globally shared public set is mixed into client training | No | Model updates | Shared model | Global model | Public data sharing against non-IID drift. `gmixgold_k2aaa` (gold warm-start plus gold public replay) is this baseline in our setting. |
+| [Wang et al.](https://arxiv.org/abs/2305.12132) (Findings NAACL 2024) | Private cross-device FL with a public LLM | Public LLM helps the client model before FL (pretraining on LLM-selected or LLM-generated public data) | Private data local; public data at the server | No | Model updates | Small LM | Small LM | Server-side LLM transfer before FL, close to our K2; no client replay and no study of what the FL rounds forget. |
+| [Zhang et al.](https://arxiv.org/abs/2509.01750) (Globecom 2025) | Federated LLM fine-tuning, Banking77 | Server GPT2-large and clients distill shared logits each round on a 2,000-sample public set; the server model is updated | Private data local; shared public set | No | Top-k logits, LoRA projections | LLM/SLM with LoRA | Server and client models | Client-side distillation of server logits on public data every round, with adaptive top-k for communication. Our teacher is frozen, its targets are computed once, the task is SQL generation, and the purpose is retention across private rounds. |
+| [DER](https://arxiv.org/abs/2004.07211) (NeurIPS 2020) | Continual learning | Past model's own logits stored in a buffer | Not federated | No | Not federated | Single model | Single model | Source mechanism for logit replay against forgetting; we replay a frozen external teacher's logits, inside FL client rounds. |
+| [FedNTD](https://arxiv.org/abs/2106.03097) (NeurIPS 2022), [Flashback](https://arxiv.org/abs/2402.05558) (arXiv 2024) | Federated classification | Global model distills into local training (FedNTD: not-true classes; Flashback: dynamic distillation) | Private data local | No | Model updates | Shared model | Global model | Forgetting of global knowledge during FL is established; they keep the global model's knowledge, we keep a server teacher's public-domain knowledge. FedNTD is our appendix baseline. |
 | [PubSwap](https://arxiv.org/abs/2604.12160) (arXiv 2026) | Federated RLVR for math and medical reasoning | No teacher; clients exchange response-level signals on a small public set | Private data local; small shared public set | Verifiable reward (answer correctness) | LoRA updates plus public-set responses | LoRA LLM | Global model | Prior art for ExST: verified on-policy targets used against client drift in FL. FedLS-SQL's ExST verifies by SQL execution on local databases and sits next to a server teacher. |
 | [FedMOA](https://arxiv.org/abs/2602.00453) (arXiv 2026) | Federated GRPO, math and code | No teacher | Private data local | Verifiable rewards | Model updates with accuracy-aware aggregation | LLM | Personalized/global models | Federated RL with verifiable reward is prior art; do not claim it for ExST. |
 | [AdaFD](https://arxiv.org/abs/2508.20557) (arXiv 2025) | Federated distillation, multi-domain non-IID text | Client ensemble distillation | Private data local | No | Model outputs | Homogeneous or heterogeneous | Global model | Frames non-IID as input-domain shift, as the alpha domain-cluster split does; cite for the heterogeneity framing. |
-| **FedLS-SQL (this work)** | Federated cross-schema NL-to-SQL | Frozen server LLM → aggregated global SLM at tested public stages; SeqKD and gold CE + Hinton are separate objectives, with auxiliary plans under study | Private client NL-SQL rows never enter the server pool; server transfer uses a public corpus | **Yes:** quick execution followed by official result-equivalent EX-to-gold filtering | Client SLM LoRA adapters only; no private prompt/schema upload to teacher in the canonical protocol | Shared 1.5B/2B SLM with LoRA | Refined SLM only; teacher absent from clients and inference | Claim the complete task-specific workflow and its evidence, not a new generic FL/KD/PEFT primitive. |
+| **FedLS-SQL (this work)** | Federated cross-schema NL-to-SQL | Frozen server LLM → shared SLM: Hinton KD (gold CE + KL) on the public corpus before FL, then teacher top-50 targets replayed by clients in every private round | Private client NL-SQL rows never leave the clients; the public corpus and teacher targets go to the clients | No (EX is the evaluation metric; execution filtering was tested and dropped) | Client to server: LoRA adapters only; server to client: aggregated adapter, plus once a 2,000-row public subset with compressed teacher targets | Shared 1.5B SLM with LoRA | SLM only; teacher absent from clients and inference | Claim the task-specific workflow, the forgetting finding and its controls, not a new generic FL/KD/PEFT primitive. |
 
 ## Contribution-to-prior-work mapping
 
@@ -95,8 +102,9 @@ of the cited method.
 | Federated NL-to-SQL setting | Federated Semantic Parsing | Apply and evaluate an asymmetric server-teacher/SLM workflow in a fixed cross-schema federated setting. | “First federated NL-to-SQL/semantic-parsing system.” |
 | Adapter-only client training and communication | FedPETuning; FedCoLLM | Quantify the exact LoRA payload used by FedLS-SQL. | “Novel federated LoRA” or privacy from LoRA alone. |
 | Optional masked aggregation compatibility | [Bonawitz et al.](https://eprint.iacr.org/2017/281.pdf); [FedProx](https://proceedings.mlsys.org/paper/2020/file/1f5fe83998a09396ebe6477d9475ba0c-Paper.pdf) | Report the separate real-adapter numerical and overhead audit as evidence that the weighted LoRA sum admits a Secure Sum wrapper. | “All experiments used cryptographic Secure Aggregation,” end-to-end MPC, or DP. |
-| Server LLM-to-SLM refinement and its schedule | FedCoLLM; FedMKT; FedDF | Freeze the teacher and refine only the aggregated SLM on task-verified public supervision. | “First federated LLM-SLM collaboration” or “first server-side federated KD.” |
-| Execution-verified teacher SQL | Struct-SQL; KID; Pure-KD | Integrate result-equivalent teacher-target selection into the private-client/public-server FL loop and validate it against equal-row gold CE. | “First execution-aware Text-to-SQL distillation.” |
+| Server LLM-to-SLM distillation before FL | FedCoLLM; FedMKT; Wang et al. 2024; FedDF | A frozen server-only teacher distills into the shared SLM on public data; measured against the same schedule with gold CE. | “First federated LLM-SLM collaboration” or “first server-side federated KD.” |
+| Forgetting of the server stage during FedAvg rounds | FedNTD; Flashback | Measure, per round, how much of the server KD gain on the public domain the private rounds remove. | “First to observe forgetting in FL.” |
+| Client-side replay of teacher targets | FedMD; Zhang et al. 2025; DER; Zhao et al. 2018 | Replay a small public subset with precomputed, compressed targets of a frozen server-only LLM inside client rounds; compare with gold replay, server-side training on the same rows, and no replay. | “Novel replay” or “first logit replay in FL.” |
 | SLM-only deployment | Struct-SQL; FedCoT | Show that the trained global SLM operates without the LLM at clients or inference. | A measured resource advantage until P1.1b or equivalent evidence is closed. |
 | Empirical mechanism evidence | KID; Struct-SQL; FedCoLLM | Report matched target/gold/Hinton-FKL controls, repeated rounds, final seeds, paired EX transitions, and exact communication. | General superiority across teachers, families, federated optimizers, or arbitrary non-IID settings. |
 
@@ -104,17 +112,32 @@ of the cited method.
 
 Use this contribution sentence:
 
-> We present FedLS-SQL, an execution-oriented federated NL-to-SQL workflow
-> that combines private client-side SLM LoRA adaptation with server-only
-> refinement from a frozen LLM on execution-verified public SQL, and studies
-> its effect on subsequent federated training.
+> We present FedLS-SQL, a federated NL-to-SQL workflow in which a frozen
+> server-only LLM distills into the shared SLM on public data, show that the
+> FedAvg rounds remove most of the public-domain gain, and keep it by having
+> clients replay a small public subset with compressed, precomputed teacher
+> targets.
 
 Use this distinction sentence at the end of Related Work:
 
-> Unlike prior federated LLM-SLM co-tuning, FedLS-SQL does not update or deploy
-> the server LLM; unlike centralized Text-to-SQL distillation, it inserts
-> result-verified teacher supervision after aggregation while client data and
-> communication remain confined to SLM LoRA updates.
+> Unlike federated LLM-SLM co-tuning (FedCoLLM, FedMKT), FedLS-SQL neither
+> updates nor deploys the server LLM; unlike federated distillation on public
+> data (FedMD; Zhang et al., 2025), the client targets come from a frozen
+> server-only LLM, are computed once, and serve to keep the server stage's
+> knowledge across private rounds of SQL generation.
+
+Motivation for measuring the public domain at all (cite, do not invent):
+generalization beyond the participating clients (participation gap, Yuan et
+al., ICLR 2022, https://arxiv.org/abs/2110.14216); loss of general ability in
+fine-tuning (Lin et al., 2023, https://arxiv.org/abs/2309.06256; SDFT, ACL
+2024, https://aclanthology.org/2024.acl-long.58/) and in federated
+fine-tuning (FedBE, Huo et al., 2025, https://arxiv.org/abs/2506.05977);
+cross-domain evaluation as the definition of the task (Spider, EMNLP 2018).
+State that BIRD dev shares the style of the server pool, so the result is
+retention of the server's domain, not open-domain generalization.
+
+Privacy related work: MaskSQL (NeurIPS 2025 workshop,
+https://arxiv.org/abs/2509.23459) for privacy in LLM-based Text-to-SQL.
 
 Do not use “first”, “novel framework”, “privacy-preserving” without a qualifier,
 or “execution verification is novel”. Describe headline privacy as
@@ -126,7 +149,12 @@ compatibility/overhead audit.
 - This audit covers the closest named method families and current literature
   found through 2026-08-26, plus a 2026-10-11 check: no federated Text-to-SQL
   work with a server LLM teacher was found; PubSwap, FedMOA and AdaFD were
-  added. It is not a systematic-review claim.
+  added. A 2026-10-28 check (arXiv, ACL Anthology, web; Google Scholar not
+  reachable) found no federated Text-to-SQL work from 2024-2026 and no paper
+  with the exact pattern of one server KD stage followed by client replay of a
+  frozen server teacher's precomputed targets; FedMD, Zhao et al. 2018, Wang
+  et al. 2024, Zhang et al. 2025, DER, FedNTD and Flashback were added. It is
+  not a systematic-review claim.
 - FedCoLLM is an arXiv preprint whose current v3 overlaps the architecture more
   closely than its older abstract alone suggests; it must be discussed, not
   hidden behind publication status.
