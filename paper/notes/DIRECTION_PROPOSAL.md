@@ -17,11 +17,12 @@ Bản proposal trước (2026-10-12) ở
    (top-50 token + tail) vào round private. Kết quả: BIRD giữ được (hơn
    `hinton_k2aaa` +6.25, hơn `k2plus_aaa` +6.98 trên dev), Spider không
    giảm.
-4. Teacher đóng góp đo được ở hai chỗ: ở K2 cho Spider (C6, đang chờ số),
-   và trong replay cho BIRD (C2: hơn pipeline cùng dữ liệu nhưng không
-   teacher +3.52; hơn replay gold +4.04).
-5. Framework đạt mức train tập trung có pooled data (`central_mix`) và hơn
-   FedAvg rõ (C7).
+4. Teacher đóng góp đo được ở BIRD (C2: hơn pipeline cùng dữ liệu nhưng
+   không teacher +3.52; hơn replay gold +4.04). Trên Spider test seed 0,
+   phần của teacher chỉ khoảng 0.5 điểm (C1 +0.56, C6 +0.47): teacher chỉ
+   thấy BIRD, nên kiến thức riêng cho Spider đến student rất ít.
+5. Framework hơn FedAvg trên Spider test (C7, seed 0 +1.68, p=.029), phần
+   lớn nhờ public data ở server (`gold_k2aaa` - FedAvg +1.53).
 
 ## 2. Title và contribution
 
@@ -52,11 +53,11 @@ LAB_LOG.
 | C3 | method > `hinton_k2aaa` | như C2 | BIRD +6.25, Spider test -0.33 | khoảng 95% |
 | C4 | method > `k2plus_aaa` | như C2 | BIRD +6.98, Spider test -0.70 | khoảng 80% |
 | C5 | method so với FedCoLLM-style | Spider test, BIRD dev | chưa chạy | |
-| C6 | `hinton_k2aaa` > `gold_k2aaa` | Spider test | dev +2.12; test đang chạy | 55-70% |
-| C7 | method > FedAvg | Spider test | dev +6.48; test đang chạy | gần chắc |
+| C6 | `hinton_k2aaa` > `gold_k2aaa` | Spider test | dev +2.12; test +0.47 | thấp sau seed 0 |
+| C7 | method > FedAvg | Spider test | dev +6.48; test +1.68 (p=.029) | cao sau seed 0 |
 
-- C6 là claim chính về teacher trên Spider trong text; C1 vẫn báo đúng như
-  đã chốt. Paper ghi C6, C7 được thêm sau khi đã thấy Spider test seed 0
+- C6 và C1 báo đúng như đã chốt; nếu cả hai không significant, paper không
+  claim teacher trên Spider, và teacher được trình bày qua BIRD (C2). Paper ghi C6, C7 được thêm sau khi đã thấy Spider test seed 0
   của 4 arm.
 - Nếu C4 không đạt non-inferiority mà BIRD vẫn +7: viết thành trade-off
   ("train các row đó ở server cho Spider test cao hơn X nhưng mất Y
@@ -134,8 +135,9 @@ trên SynSQL nên không kiểm được claim retention.
 
 Theo thứ tự; lệnh trong [PIPELINE_NEXT](PIPELINE_NEXT.md):
 
-1. Spider test seed 0 của FedAvg và `gold_k2aaa` (đang chạy, GPU 1). Nếu
-   method - FedAvg dưới +2: kiểm evaluator trước khi chạy tiếp.
+1. Phần còn lại của reference rows seed 0 (P2.53 step 1c: `central_mix`,
+   `central`, base, FedNTD, `local`), cho bảng chính. FedAvg và
+   `gold_k2aaa` đã xong; evaluator giống nhau ở mọi dòng.
 2. Seed 1-2 cho các arm đã chốt và FedCoLLM-style (khoảng 80 GPU-h).
 3. FedAvg và `gold_k2aaa` seed 1-2 (khoảng 8 GPU-h mỗi arm), cần thêm code.
 4. Eval dev ở A1, A2 cho 4 arm ở seed 1-2 (khoảng 5 GPU-h); teacher

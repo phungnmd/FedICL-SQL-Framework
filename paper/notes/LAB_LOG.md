@@ -19,9 +19,9 @@ Older detail:
   Paper story: [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md); findings and
   open questions: [`RESEARCH_STATE.md`](RESEARCH_STATE.md); commands:
   [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
-- Seed 0 Spider test is in for the method and its three trained
-  comparators (entry below); the FedAvg and `gold_k2aaa` rows are running
-  (P2.53 step 1c, GPU 1). Seeds 1-2 of P2.53 are next.
+- Seed 0 Spider test is in for the method, its three trained comparators,
+  FedAvg and `gold_k2aaa` (entry below). P2.53 seed 1 runs on GPU 0; the
+  remaining reference rows (step 1c) are next on GPU 1.
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
 ## 2026-10-28: P2.53 seed-0 Spider test; paper direction after an outside review
@@ -36,6 +36,11 @@ against the method.
 | `gmixgold_k2aaa` | 71.57 | 72.61 | +0.56 | 103/91 | .43 |
 | `hinton_k2aaa` | 72.53 | 73.50 | -0.33 | 70/77 | .62 |
 | `k2plus_aaa` | 73.21 | 73.87 | -0.70 | 72/87 | .27 |
+| FedAvg (`fl`, P2.27) | 67.60 | 71.50 | +1.68 | 146/110 | .029 |
+| `gold_k2aaa` (P2.37) | 70.41 | 73.03 | +0.14 | 109/106 | .89 |
+
+The last two rows came from P2.53 step 1c (`run_p253_reference_test`), read
+after FREEZE addendum 2 was committed (paper `5def5b1`).
 
 - From dev to test the method falls 0.91 while the three comparators rise
   0.66-1.04. The method was the best of 17 configurations on dev, so most
@@ -43,6 +48,17 @@ against the method.
 - On seed 0, C1 (teacher on Spider through the whole pipeline) is far from
   significant; the BIRD side of C2-C4 is untouched by this result (BIRD
   test does not exist; BIRD dev margins +3.52, +6.25, +6.98).
+- FedAvg rises 3.90 from dev to test, the K2 family 0.66-2.62: every K2
+  recipe was developed on Spider dev, FedAvg was not. On test the six K2
+  arms sit within 72.61-73.87 and FedAvg 1.1-2.4 below them. The teacher's
+  Spider share is about half a point in both contrasts (C1 +0.56; C6,
+  `hinton_k2aaa` - `gold_k2aaa`, +0.47 unpaired); public data at the server
+  gives most of the gap to FedAvg (`gold_k2aaa` - FedAvg +1.53).
+- The evaluator is the same contract for every row (asserted by
+  `tests/test_p253_reference_test.py`), so the gap is not an evaluator
+  artifact. The teacher zero-shot reached 76.69 Spider dev (protocol v2,
+  2026-10), 2.6 above the method: little Spider headroom reaches the
+  student through BIRD-only distillation.
 
 Outside review (owner asked for an impartial PhD-level adviser; two rounds,
 read-only, web search). Owner decision 2026-10-28: follow it.

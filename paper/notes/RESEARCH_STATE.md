@@ -81,6 +81,7 @@ chỉ là giả thuyết.
 | F24 | So với pipeline cùng dữ liệu không teacher, method hơn rõ trên BIRD, trên Spider test không | method - `gmixgold_k2aaa`: dev Spider +2.51 (p=.009), BIRD +3.52 (p<.001); Spider test +0.56 (103/91, p=.43) | 1 seed |
 | F25 | Lợi thế dev của method phần lớn do chọn lọc | method là cấu hình tốt nhất trong 17 trên dev; dev sang test: method -0.91, 3 comparator +0.66 đến +1.04 | 1 seed |
 | F26 | Đổi public pool sang SynSQL, teacher không tạo khác biệt rõ | P2.54 A3 method - `gmixgold`: Spider dev +0.77, BIRD +0.98, không cặp nào significant | 1 seed, ngoài paper |
+| F28 | Trên Spider test, mọi arm K2 nằm trong 72.6-73.9, FedAvg 71.50; phần teacher trên Spider khoảng 0.5 | seed 0: method - FedAvg +1.68 (p=.029), `gold_k2aaa` - FedAvg +1.53, method - `gold_k2aaa` +0.14, `hinton_k2aaa` - `gold_k2aaa` +0.47; dev sang test FedAvg +3.90, nhóm K2 +0.66 đến +2.62 | 1 seed, Spider test |
 | F27 | Đảo vai: replay giữ public domain (Spider) nhưng không giúp private (BIRD) | P2.52: Spider +6.29 (p<.001), BIRD -1.69 (p=.061) | 1 seed, appendix |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
