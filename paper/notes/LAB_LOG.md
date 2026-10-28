@@ -41,6 +41,46 @@ Older detail:
   P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
   Freeze entry drafted (2026-10-26), awaiting owner approval.
 
+## 2026-10-28: FREEZE addendum 2: FedAvg and `gold_k2aaa` join seeds 1-2; claims C6, C7
+
+Owner approved 2026-10-28, after the P2.53 seed-0 Spider test of the four
+frozen arms was read (method 73.17, `gmixgold_k2aaa` 72.61,
+`hinton_k2aaa` 73.50, `k2plus_aaa` 73.87) and before any Spider test
+result of FedAvg or `gold_k2aaa` was read (PIPELINE_NEXT P2.53 step 1c
+running on GPU 1). This departs from the FREEZE line "no other claim is
+added after the results are read"; the paper states when C6 and C7 were
+added and what had been seen. C1-C5, their test and their Holm family do
+not change.
+
+Reason: C1 mixes two changes (K2 objective and replay objective), and
+seed 0 shows the replay works on BIRD, not Spider. The K2 contrast
+without replay isolates the teacher on the private domain; FedAvg is the
+baseline every comparable paper reports.
+
+- Comparators added for seeds 1 and 2; seed 0 uses the P2.53 reference
+  rows on Spider test and the published seed-0 dev evaluations:
+  - FedAvg: 3 plain FedAvg rounds from the base model (P2.27 `fl`
+    recipe), only `--seed` changed. Before this entry it was a reference
+    row without a claim.
+  - `gold_k2aaa`: the P2.53 `gold_k2` adapter of that seed plus the 3
+    plain P2.37 rounds, only `--seed` changed.
+  Both evaluated at A3 on Spider test and the five dev sets.
+- C6: `hinton_k2aaa` > `gold_k2aaa` on Spider test EX. Significant and
+  positive: "Distilling the 7B teacher at the server raises
+  private-domain EX by X points over the same schedule with gold CE at
+  the server." Otherwise: the difference and 95% CI are reported, with no
+  teacher-contribution claim on Spider.
+- C7: method > FedAvg on Spider test EX. Significant and positive: "The
+  framework raises private-domain EX by X points over FedAvg." Otherwise:
+  the difference and 95% CI are reported without a claim.
+- Test: the frozen pooled question-clustered test over seeds 0-2,
+  two-sided, 95% CI. C6 and C7 form their own Holm family at alpha .05,
+  separate from C2-C5. BIRD dev EX is reported for both contrasts without
+  a claim. The seeds 1-2 sensitivity analysis covers C6 and C7.
+- Implementation: the two arms for seeds 1-2 and the C6, C7 analysis
+  (reading the seed-0 rows from `audits/protocol_v2/p253_reference_test_s0`)
+  are added when no lane imports `run_p253_confirmation`.
+
 ## 2026-10-28: FREEZE addendum: seeds 1-2 sensitivity analysis
 
 Owner approved 2026-10-28, before the P2.53 seed-0 Spider test evaluation
