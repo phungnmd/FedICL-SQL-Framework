@@ -18,14 +18,16 @@ Paper: *FedLS-SQL* (working title; subtitle open), aimed at a Q3 journal.
 Clients hold private Text-to-SQL data (Spider, domain-cluster split) and train
 a small SLM with LoRA and sample-weighted factor-wise FedAvg. The server holds
 a frozen Qwen2.5-Coder-7B teacher and a public pool from another domain
-(BIRD with evidence). Only adapters move; only the SLM is deployed. Since
+(BIRD with evidence). Clients send only LoRA adapters; the server sends the
+aggregated adapter and, for the frozen method, once a public subset with
+compressed teacher targets for client replay; only the SLM is deployed. Since
 P2.27 the student is Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5
 alpha 0.1 split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha 0.5).
 Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 
-- No method or paper story is fixed. Exploration (seed 0, dev sets) is open;
-  the story and success criterion are fixed in a dated LAB_LOG entry before
-  seeds 1-2 or Spider test (evidence rules below).
+- Method and claims are fixed in LAB_LOG (FREEZE 2026-10-26 and its two
+  2026-10-28 addenda); the paper direction is
+  `paper/notes/DIRECTION_PROPOSAL.md` (owner, 2026-10-28).
 - Primary metric (owner, 2026-10-16), fixed for every phase: Spider EX, the
   clients' private domain (Spider dev in exploration, Spider test at
   confirmation). BIRD EX (public domain) is secondary: rank options by Spider
@@ -91,11 +93,14 @@ Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
 PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
 current plan.
 
-## Current state (2026-10-26)
+## Current state (2026-10-28)
 
-- Exploration under the simplified rules (LAB_LOG 2026-10-12). Open
-  questions: `RESEARCH_STATE.md` section 4. Direction proposal (not fixed):
-  `paper/notes/DIRECTION_PROPOSAL.md`.
+- Confirmation phase (P2.53, three seeds, Spider test). Paper direction
+  (owner, 2026-10-28, after an outside review): the server teacher's
+  public-domain gain is lost in the FedAvg rounds and client replay of
+  compressed teacher targets keeps it, Spider non-inferior; teacher on
+  Spider tested by C6. `paper/notes/DIRECTION_PROPOSAL.md`. Open questions:
+  `RESEARCH_STATE.md` section 4.
 - Owner decision 2026-10-13: K2AAA alone is too simple to be the
   contribution; it is the strongest simple baseline a method must beat.
 - Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
@@ -122,7 +127,13 @@ current plan.
   vs `hinton_k2aaa_rev`, p=.061); exploratory only.
 - 2026-10-27: second setting is SynSQL-2.5M as the public pool (P2.54,
   3,336 rows without external knowledge, BIRD-size token budget), not a
-  limitation story (owner).
+  limitation story (owner). 2026-10-28: kept out of the paper; seed 0 is a
+  reference only (no EX on SynSQL, so it cannot test retention).
+- 2026-10-28: seed-0 Spider test: method 73.17, `gmixgold_k2aaa` 72.61,
+  `hinton_k2aaa` 73.50, `k2plus_aaa` 73.87 (LAB_LOG). FREEZE addendum 2:
+  FedAvg and `gold_k2aaa` join seeds 1-2, claims C6 (`hinton_k2aaa` >
+  `gold_k2aaa`) and C7 (method > FedAvg) on Spider test. E2 dropped; E1 and
+  replay-ratio sensitivity wait for a revision.
 - Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
   the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
   (reporting). Outcomes recorded under retired rules stand as history.

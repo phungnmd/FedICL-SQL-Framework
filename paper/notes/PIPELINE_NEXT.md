@@ -19,6 +19,12 @@ P2.51 finished (publish after P2.52). The freeze is approved (LAB_LOG
 2026-10-26 FREEZE); the active work is the P2.53 confirmation below. P2.46
 and P2.41 stay deferred.
 
+State 2026-10-28: paper direction fixed by the owner
+([DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md)); FREEZE addendum 2 adds FedAvg
+and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 step 1b done; step 1c
+running for `fl` and `gold_k2aaa`. E2 dropped; E1 waits for a revision.
+P2.54 stays a seed-0 reference (steps 3 and 5 only, no seeds 1-2).
+
 ## Status check (read-only, any time, for example after a server restart)
 
 Prints, for P2.37 `central_mix`/`local` and P2.38-P2.43: which stages are
@@ -201,9 +207,24 @@ plain round 1.2-1.4 h, replay round 2.1-3.3 h; about 28 h per lane below.
 & { $ErrorActionPreference='Stop'; $seed='1'; $msg="results: record P2.53 confirmation seed $seed"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m scripts.list_p253_publication --seed $seed); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
+Added 2026-10-28 (LAB_LOG addendum 2 and the direction entry); code not
+built yet, commands follow once it is (the new arms need runner changes, made
+only while no lane imports `run_p253_confirmation`, or in a new runner):
+
+- 6b. FedAvg (3 plain rounds from the base model) and `gold_k2aaa` (the
+  seed's `gold_k2` plus 3 plain rounds), seeds 1 and 2, each evaluated at A3
+  on Spider test and the five dev sets. About 8 GPU-h per arm for both seeds.
+- 6c. Spider dev and BIRD dev at A1 and A2 of `mixkd50_k2aaa`,
+  `hinton_k2aaa`, `k2plus_aaa`, `gmixgold_k2aaa`, seeds 1 and 2 (the
+  forgetting figure; about 5 GPU-h).
+- 6d. Teacher Qwen2.5-Coder-7B zero-shot on Spider test, after a VRAM smoke
+  (about 1 GPU-h).
+
 7. After all three seeds are published: the frozen test and its summary.
-   Before this step, add the seeds 1-2 sensitivity analysis to
-   `--phase analyze` (LAB_LOG FREEZE addendum 2026-10-28).
+   Before this step, add to `--phase analyze` the seeds 1-2 sensitivity
+   analysis (addendum 1) and C6, C7 with their own Holm family, reading the
+   seed-0 FedAvg and `gold_k2aaa` rows from the P2.53 reference manifest
+   (addendum 2).
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $msg='results: record the P2.53 confirmation test'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Incoming code changes a running lane uses: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync python -m scripts.run_p253_confirmation --phase analyze; if ($LASTEXITCODE -ne 0) { throw 'Analysis failed' }; $files=@(uv run --no-sync python -m scripts.list_p253_publication); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content audits/protocol_v2/p253_confirmation/summary.md }
@@ -669,9 +690,5 @@ minutes; its peak reserved VRAM is in the result metrics.
 
 ## Next
 
-After P2.37: read the phase E table, then fix the paper story in a dated
-LAB_LOG entry (claims, comparators, test, wording per outcome) before seeds
-1-2 or Spider test.
-
-On hold until the paper story is fixed: P2.31 (seeds 1 and 2), P2.35 (K-first
-over seeds 0-2), Spider test evaluations, P2.32 (alpha 0.5).
+The P2.53 confirmation at the top of this file. Not queued: P2.31, P2.35,
+P2.32 (alpha 0.5, now E1, waits for a revision).

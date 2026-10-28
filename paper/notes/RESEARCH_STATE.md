@@ -1,15 +1,16 @@
 # FedLS-SQL: trạng thái nghiên cứu
 
 File này trả lời bốn câu: ta đang hỏi gì, đã biết gì (kèm mức chắc chắn), còn
-chưa biết gì, và đang ở giai đoạn nào. Không chứa method hay câu chuyện paper
-đã chốt: câu chuyện sẽ được chọn từ kết quả của giai đoạn E. Số liệu và bằng
+chưa biết gì, và đang ở giai đoạn nào. Method và claim đã chốt nằm trong
+LAB_LOG (FREEZE 2026-10-26 và hai addendum 2026-10-28); câu chuyện paper:
+[DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md). Số liệu và bằng
 chứng: [LAB_LOG](LAB_LOG.md) (từ 2026-10-10) và
 [log cũ](../archive/lab_log_2026-10/LAB_LOG_2026-09-24_to_2026-10-09.md).
 Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy:
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-17.
+Cập nhật: 2026-10-28.
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -35,13 +36,16 @@ cùng luật (owner, 2026-10-17).
 - Student Qwen2.5-Coder-1.5B-Instruct, LoRA r16. Teacher Qwen2.5-Coder-7B,
   4-bit, frozen, chỉ ở server.
 - 5 client, split domain-cluster Dirichlet alpha 0.1 (`k5`). FedAvg theo số
-  mẫu. Chỉ adapter di chuyển. Không ICL, client và inference chỉ sinh SQL.
+  mẫu. Client chỉ gửi adapter; server gửi adapter đã gộp và, với method,
+  một lần public row kèm target nén của teacher để replay. Không ICL, client
+  và inference chỉ sinh SQL.
 - Stage: `A` = một round private (1 epoch mỗi client rồi FedAvg); `K` = một
   epoch server trên 9,428 câu BIRD train; `K2` = hai epoch liên tục.
   `K[ce]` = gold CE, `K[fkl]` = Hinton (0.5 CE + 0.5 KL, T=2). `A[ntd]` =
   FedNTD ở client (beta 1, tau 3).
 - Eval: Spider dev (1,034) và các bản Realistic, SYN, DK; BIRD dev (1,534).
-  Spider test (2,147) chỉ dùng để xác nhận (R10), chưa eval lần nào.
+  Spider test (2,147) chỉ dùng để xác nhận (R10); seed 0 đã eval cho method
+  và các comparator (LAB_LOG 2026-10-28).
 
 ## 3. Những gì đã biết
 
@@ -71,6 +75,13 @@ chỉ là giả thuyết.
 | F18 | TAID ở K2 không hơn Hinton T=2 ở model cuối | P2.40 TAID - Hinton A3: Spider -1.84 (p=.050), DK -4.11 (p=.001), BIRD +1.04 (n.s.); ở A1 BIRD +3.19 (p<.001) rồi mất. TAID - gold A3 Spider +0.29 | 1 seed |
 | F19 | FL thuần gần như không hơn client tốt nhất train một mình trên Spider | P2.37 `local`: Spider 64.60-67.02 (trung bình 65.49); FL A3 - client tốt nhất +0.58 (p=.69); `hinton_k2aaa` A3 - client tốt nhất +5.51 (p<.001) | 1 seed |
 | F20 | Edge Spider của teacher ở K2AAA không phải do kéo về base model (anchoring), ở mức kéo của self-teacher | P2.44 `self_k2aaa` (base 1.5B làm teacher): Hinton - self Spider K2 +4.26 (p=.0015), A3 +2.32 (p=.021), DK A3 +5.61; self - gold A3 Spider -0.19; self làm sập BIRD (K2 28.94). Một anchor yếu hơn (cùng gold mass 0.728) chưa được kiểm tra | 1 seed, chưa commit |
+| F21 | Client replay với target của teacher giữ BIRD qua các round FedAvg, không làm giảm Spider | `mixkd50_k2aaa` - `hinton_k2aaa` A3: BIRD dev +6.25, Spider dev +1.55, Spider test -0.33 (p=.62) | 1 seed |
+| F22 | Replay chỉ giữ BIRD khi có target của teacher | `mixkd50` - `mixgold` (replay gold) BIRD +4.04 (p<.001); `gmixgold` - `gold_k2aaa` BIRD +1.24 (p=.23) | 1 seed |
+| F23 | Cùng các row đó train thêm ở server thì BIRD mất ngay ở round đầu | `k2plus_aaa` BIRD 42.96 sau stage server, 37.87 sau A1; method - `k2plus_aaa` BIRD +6.98 (p<1e-10), Spider test -0.70 (p=.27) | 1 seed |
+| F24 | So với pipeline cùng dữ liệu không teacher, method hơn rõ trên BIRD, trên Spider test không | method - `gmixgold_k2aaa`: dev Spider +2.51 (p=.009), BIRD +3.52 (p<.001); Spider test +0.56 (103/91, p=.43) | 1 seed |
+| F25 | Lợi thế dev của method phần lớn do chọn lọc | method là cấu hình tốt nhất trong 17 trên dev; dev sang test: method -0.91, 3 comparator +0.66 đến +1.04 | 1 seed |
+| F26 | Đổi public pool sang SynSQL, teacher không tạo khác biệt rõ | P2.54 A3 method - `gmixgold`: Spider dev +0.77, BIRD +0.98, không cặp nào significant | 1 seed, ngoài paper |
+| F27 | Đảo vai: replay giữ public domain (Spider) nhưng không giúp private (BIRD) | P2.52: Spider +6.29 (p<.001), BIRD -1.69 (p=.061) | 1 seed, appendix |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,
@@ -98,16 +109,22 @@ từng được publish, không trích dẫn.
 | Q10 | KD target khác có làm teacher đóng góp nhiều hơn Hinton T=2 không? | TAID: không (F18). P2.41 Hinton T=1 không chạy (điều kiện không đạt) |
 | Q11 | Sau K2, FL còn thua train tập trung bao nhiêu? | đã có: khoảng 2 điểm Spider (F17), sát độ phân giải 1 seed |
 | Q12 | Đảo vai (BIRD private, Spider public): teacher có đóng góp rõ hơn không? | hướng ưu tiên (owner 2026-10-17); P2.43 đã có code, đang chạy early signal (K2 và A1), metric chính là BIRD EX, LAB_LOG 2026-10-17 |
-| Q13 | Edge Spider +2.13 của `hinton_k2aaa` có giữ ở seed 1-2 không? Đây là recipe tốt nhất trong 4 recipe teacher đã thử | xác nhận sau khi chốt (luật 2) |
+| Q13 | Teacher ở K2 có nâng Spider test không (`hinton_k2aaa` - `gold_k2aaa`, dev +2.12)? | C6, 3 seed (addendum 2 ngày 2026-10-28) |
+| Q14 | Forgetting và retention (F14, F21-F23) có lặp lại qua 3 seed không? | eval dev ở A1, A2 seed 1-2; C2-C4 |
 
 Danh sách arm P2.37 giữ làm baseline. Từ 2026-10-12 được thêm arm sau khi
 xem kết quả (luật 1, mục 5).
 
 ## 5. Giai đoạn và luật đang áp dụng
 
-Giai đoạn hiện tại: **thăm dò**, seed 0, chỉ trên dev (Spider dev, các biến
-thể, BIRD dev). Hướng đề xuất tiếp theo, chưa chốt:
-[DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
+Giai đoạn hiện tại: **xác nhận** (P2.53, 3 seed, Spider test). Hướng paper
+(owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md). Không mở
+thăm dò mới trên dev.
+
+Từ 2026-10-27 các luật dưới đây là hướng dẫn, không phải cổng: chọn cái làm
+paper mạnh nhất. Giữ nguyên integrity floor (AGENTS.md): không trình bày số
+Spider test là held-out khi đã chọn gì đó dựa trên nó mà paper không nói; không
+claim điều mà kết quả đang có mâu thuẫn; mọi số có evidence trail.
 
 Ba luật (owner, LAB_LOG 2026-10-12):
 

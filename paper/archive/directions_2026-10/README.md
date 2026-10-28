@@ -16,3 +16,4 @@ story before the Coder-1.5B baselines were complete. Current state:
 | `STRUCT_SQL_REVIEW.md` | review of Struct-SQL plan distillation (closed branch) |
 | `ICL_NEGATIVE_RESULT.md` | ICL negative result (still valid evidence; no ICL in any run) |
 | `independent_review_2026-10-08/` | outside-role review of all results on 2026-10-08 |
+| `direction_proposal_2026-10-12.md` | shortlist after the reset (FedDAT, freeze factor, RoLoRA, TAID, privileged OPSD); replaced on 2026-10-28 by the paper direction in `paper/notes/DIRECTION_PROPOSAL.md` |

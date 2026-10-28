@@ -13,33 +13,68 @@ Older detail:
   `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
-## Where we are (2026-10-23)
+## Where we are (2026-10-28)
 
-- Exploration at seed 0 on the dev sets under the simplified rules (entry
-  2026-10-12); the paper story is fixed in a dated entry before any seed 1-2
-  run or Spider test evaluation. Primary metric Spider EX (owner,
-  2026-10-16). Findings, open questions and rules, including the Q3 floor
-  and aim: [`RESEARCH_STATE.md`](RESEARCH_STATE.md).
-- Published: P2.27 (`5767704`), P2.28, P2.29, P2.36 (`31a568e`); P2.37
-  `hinton_k2aaa`, `gold_k2aaa`, `central_mix` (`5b01fc1`), `local`
-  (`3e0dc0b`); P2.38 (`d326854`), P2.39 pilot (`4acba5b`), P2.40
-  (`640d534`), P2.42 (`c40e090`); P2.43 `hinton_k2aaa_rev` K2 and A1
-  (`91a9ea5`).
-- P2.41 not run (its condition failed). Deferred: the P2.37 `akaka_plain`
-  pair. P2.43 `hinton_k2aaa_rev` A3 and `gold_k2aaa_rev` K2/A1 evaluated,
-  not committed yet. P2.44 `self_k2aaa` complete (entry 2026-10-24, not
-  committed yet). P2.43 both chains to A3 and `fl_bird` complete (entry 2026-10-24, not
-  committed yet); running: GPU 0 P2.43 `central_bird`; GPU 1 idle. Plan and readings: entry 2026-10-23.
-  P2.46 and P2.41 deferred; P2.47 client replay published (`80d1091`, entry 2026-10-24).
-  P2.48 compact replay and server learning published (nested `8b79530`, entry 2026-10-25).
-  P2.49 matched no-teacher pipeline built, readings fixed (entry 2026-10-25).
-  P2.49 `gmixkd50_k2aaa` stopped by the owner to free GPU 1; P2.50 placement controls built (entry 2026-10-25).
-  P2.49 `gmixgold_k2aaa` published (nested `db2cc09`, entry 2026-10-26); `gmixkd50_k2aaa` and P2.50 `fslm_k2sasasa` dropped.
-  P2.50 `k2plus_aaa` published (nested `015429c`, entry 2026-10-26).
-  P2.51 execution-filtered replay built, client drift audit done (nested `4e4641e`, entry 2026-10-26); freeze after P2.51.
-  P2.52 reverse-roles replay built (nested `1838b63`, entry 2026-10-26); the freeze does not wait for it.
-  P2.51 complete (analyzed on the server, not committed yet; entry 2026-10-26): the row filter does not help; `mixkd50_k2aaa` stays.
-  Freeze entry drafted (2026-10-26), awaiting owner approval.
+- Confirmation phase (FREEZE 2026-10-26 plus the two 2026-10-28 addenda).
+  Paper story: [`DIRECTION_PROPOSAL.md`](DIRECTION_PROPOSAL.md); findings and
+  open questions: [`RESEARCH_STATE.md`](RESEARCH_STATE.md); commands:
+  [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
+- Seed 0 Spider test is in for the method and its three trained
+  comparators (entry below); the FedAvg and `gold_k2aaa` rows are running
+  (P2.53 step 1c, GPU 1). Seeds 1-2 of P2.53 are next.
+- Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-28: P2.53 seed-0 Spider test; paper direction after an outside review
+
+Evidence: P2.53 step 1b on the server (`scripts/status_p253.py --seed 0`),
+not committed yet. Spider test, 2,147 questions, seed 0, exact McNemar
+against the method.
+
+| Arm | Spider dev A3 | Spider test A3 | Method minus (test) | Wins/Losses | p |
+|---|---:|---:|---:|---:|---:|
+| `mixkd50_k2aaa` (method) | 74.08 | 73.17 | | | |
+| `gmixgold_k2aaa` | 71.57 | 72.61 | +0.56 | 103/91 | .43 |
+| `hinton_k2aaa` | 72.53 | 73.50 | -0.33 | 70/77 | .62 |
+| `k2plus_aaa` | 73.21 | 73.87 | -0.70 | 72/87 | .27 |
+
+- From dev to test the method falls 0.91 while the three comparators rise
+  0.66-1.04. The method was the best of 17 configurations on dev, so most
+  of its +2.51 dev margin over `gmixgold_k2aaa` was selection.
+- On seed 0, C1 (teacher on Spider through the whole pipeline) is far from
+  significant; the BIRD side of C2-C4 is untouched by this result (BIRD
+  test does not exist; BIRD dev margins +3.52, +6.25, +6.98).
+
+Outside review (owner asked for an impartial PhD-level adviser; two rounds,
+read-only, web search). Owner decision 2026-10-28: follow it.
+
+- Story: the server teacher (K2) lifts the shared model, the gain on the
+  public domain is lost in the FedAvg rounds (BIRD 43.61 at K2, 36.77 after
+  A1), and client replay of compressed teacher targets keeps it with Spider
+  non-inferior. Teacher on Spider is tested by C6 (`hinton_k2aaa` vs
+  `gold_k2aaa`, addendum 2), reported with C1 as frozen.
+- Baselines: must have base, teacher zero-shot, `local`, FedAvg,
+  `central_mix`, FedCoLLM-style, `gmixgold_k2aaa` (named "public data
+  sharing", Zhao et al. 2018), `hinton_k2aaa`; nice to have `k2plus_aaa`,
+  `gold_k2aaa`, FedNTD (appendix). Not run: FedProx/SCAFFOLD/FedOPT, a
+  FedMKT reimplementation, TAID or SeqKD rows, a larger teacher.
+- Extension settings of the FREEZE: E2 (0.5B student) dropped before any
+  run. E1 (alpha 0.5) moves to revision; if it runs, it is reported.
+  Replay-ratio sensitivity: revision only.
+- Added cheap evaluations: Spider dev and BIRD dev at A1 and A2 of the
+  method, `hinton_k2aaa`, `k2plus_aaa` and `gmixgold_k2aaa` on seeds 1-2
+  (the forgetting curve over three seeds, descriptive); the teacher
+  zero-shot on Spider test (after a VRAM smoke).
+- Communication (for the paper table): LoRA r16 on the seven projections
+  is 18,464,768 parameters, 73.9 MB fp32 per client per direction per
+  round (369.6 MB for five clients); replay targets about 16.6 KB per row,
+  about 33 MB per client for the 2,000-row subset, sent once.
+- Adviser estimates before seeds 1-2 (subjective): C3 about 95%, C4 about
+  80% (the -0.70 Spider test gap sits about 0.4 inside the 2.0 margin), C2
+  75-80%, C6 55-70%, C1 about 25%, C7 near certain.
+- Venues to check on SJR/JCR at submission: Data & Knowledge Engineering,
+  International Journal of Data Science and Analytics, Neural Processing
+  Letters, Distributed and Parallel Databases; Journal of Intelligent
+  Information Systems as a stretch.
 
 ## 2026-10-28: FREEZE addendum 2: FedAvg and `gold_k2aaa` join seeds 1-2; claims C6, C7
 
