@@ -1,23 +1,40 @@
 # FedLS-SQL: báo cáo tiến độ (29/10/2026)
 
-Em xin gửi thầy tình hình research hiện tại của dự án
-## Method hiện tại
+Em xin gửi thầy tình hình research hiện tại của dự án.
 
-Sau nhiều cấu hình federated đã thử với student Qwen2.5-Coder-1.5B, em chọn
-`mixkd50_k2aaa`:
+## 1. Tóm tắt
+
+- **Method:** server distill teacher 7B trên BIRD vào student 1.5B, rồi 3
+  round FedAvg trên Spider; mỗi round client replay một ít câu BIRD với
+  target top-50 của teacher do server gửi một lần.
+- **Framework (Spider test, seed 0):** hơn FedAvg +1.68 (p=.029), hơn train
+  tập trung chỉ Spider +2.10 (p=.009), ngang train tập trung Spider + BIRD
+  không privacy (-0.61, p=.46).
+- **Teacher:** giữ được kiến thức miền public qua các round FL; BIRD dev hơn
+  mọi cấu hình không replay target teacher +3.5 đến +7 điểm (p<.001). Trên
+  Spider (miền private) phần riêng của teacher nhỏ: +0.56 (seed 0), +1.16
+  (seed 1, p=.065).
+- **Đang làm:** xác nhận trên 3 seed với Spider test; paper chỉ lấy claim từ
+  kết quả 3 seed.
+
+## 2. Method hiện tại
+
+Sau nhiều cấu hình federated đã thử với student Qwen2.5-Coder-1.5B (mục 6),
+em chọn `mixkd50_k2aaa`:
 
 1. **Server warm-start:** distill teacher Qwen2.5-Coder-7B (frozen) trên BIRD
    public, 0.5 gold CE + 0.5 KL (Hinton KD, T=2), 2 epoch.
 2. **3 round FedAvg trên Spider với client replay:** mỗi round, client trộn
    thêm câu BIRD (20% số câu private) với target top-50 token của teacher do
-   server gửi một lần (khoảng 33 MB mỗi client). Teacher không chạy ở client.
+   server gửi một lần (khoảng 33 MB mỗi client). Teacher không chạy ở client;
+   client chỉ gửi LoRA adapter (73.9 MB fp32 mỗi round).
 
 Lý do chọn: trên dev, method cao nhất trên Spider trong các cấu hình
-federated và ngang train tập trung Spider + BIRD (không privacy), đồng thời
-giữ được BIRD. Không có replay thì phần BIRD học từ teacher mất ngay ở round
-đầu (43.61 xuống 36.77); có replay thì BIRD giữ và tăng (41.92 rồi 44.78).
+federated và giữ được BIRD. Không có replay thì phần BIRD học từ teacher mất
+ngay ở round đầu (43.61 xuống 36.77); có replay thì BIRD giữ và tăng (41.92
+rồi 44.78).
 
-## Số EX hiện tại (seed 0)
+## 3. Số EX hiện tại (seed 0)
 
 | Arm                                       | Spider dev |  BIRD dev | Spider test |
 | ----------------------------------------- | ---------: | --------: | ----------: |
@@ -36,16 +53,19 @@ giữ được BIRD. Không có replay thì phần BIRD học từ teacher mất
 
 So sánh paired (exact McNemar):
 
-- Method - FedAvg: Spider test +1.68 (p=.029), BIRD dev +19.10 (p<.001).
-- Method - pipeline không teacher: Spider test +0.56 (p=.43), BIRD dev
-  +3.52 (p<.001).
-- Method - server KD warm-start + FedAvg: Spider test -0.33 (p=.62), BIRD
-  dev +6.26 (p<.001).
-- Method - centralized Spider: Spider test +2.10 (p=.009).
-- Method - centralized Spider + BIRD (không privacy): Spider test -0.61
-  (p=.46).
+- **Framework:** method - FedAvg: Spider test +1.68 (p=.029), BIRD dev
+  +19.10 (p<.001). Method - centralized Spider: Spider test +2.10 (p=.009).
+  Method - centralized Spider + BIRD: Spider test -0.61 (p=.46).
+- **Phần teacher**, so với các cấu hình cùng data nhưng không có target
+  teacher trong các round:
 
-## Seed 1 (đang chạy)
+| Method minus | Spider test | BIRD dev |
+|---|---:|---:|
+| Pipeline giống method nhưng không teacher | +0.56 (p=.43) | +3.52 (p<.001) |
+| Server KD warm-start + FedAvg (không replay) | -0.33 (p=.62) | +6.26 (p<.001) |
+| Cùng các câu replay nhưng train ở server | -0.70 (p=.27) | +6.98 (p<.001) |
+
+## 4. Seed 1 (đang chạy)
 
 | Spider test | Seed 0 | Seed 1 |
 |---|---:|---:|
@@ -56,7 +76,7 @@ So sánh paired (exact McNemar):
 Phần riêng của teacher trên Spider test cùng chiều ở cả hai seed. Các
 comparator còn lại của seed 1 đang chạy.
 
-## Robustness theo public pool (SynSQL-2.5M, seed 0)
+## 5. Robustness theo public pool (SynSQL-2.5M, seed 0)
 
 Cùng method, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M
 (cùng số token SQL):
@@ -70,10 +90,47 @@ Cùng method, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M
 | DK | 54.95 | 53.27 | +1.68 (31/22, .27) | 57.20 |
 | Spider test | 72.99 | 71.50 | +1.49 (116/84, .028) | 73.17 |
 
-Method vẫn hơn FedAvg trên mọi tập, significant trên Spider dev, BIRD
-dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang trên Spider test.
+Method vẫn hơn FedAvg trên mọi tập, significant trên Spider dev, BIRD dev
+và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang trên
+Spider test.
 
-## Vấn đề
+## 6. Các cách đã thử nhưng không hiệu quả
+
+Số là dev, seed 0, exact McNemar. "Coder-1.5B" là student hiện tại;
+"1.5B-Instruct" (Qwen2.5-1.5B-Instruct) và "0.5B" (Qwen2.5-Coder-0.5B) là
+student ở giai đoạn trước.
+
+| Hướng | Đã thử | Kết quả chính | Kết luận |
+|---|---|---|---|
+| **Lịch server và FL** | | | |
+| Vị trí stage K | K2AAA, AK2AA, AKAKA cùng budget (0.5B) | Spider 63.93 / 63.15 / 62.57, không cặp nào p<.1; K muộn giữ BIRD hơn | Chọn K2 ở đầu |
+| KD xen kẽ các round (AKAKA) | Coder-1.5B, round cuối plain | Teacher - gold Spider +0.39 (p=.76) | Edge của teacher mất ở round cuối; giữ làm baseline FedCoLLM-style |
+| Server học lại giữa các round (FSL-style, S>A>S>A) | Coder-1.5B | BIRD lên ở bước server (45.18) rồi mất ở round sau (39.77); so với client replay BIRD -4.95 (p<.001) | Không giữ được BIRD |
+| Train thêm các câu replay ở server rồi FedAvg | Coder-1.5B | BIRD 42.96 sau server, 37.87 sau round 1 | Không giữ được BIRD; giữ làm comparator |
+| **Thuật toán FL và chống quên** | | | |
+| FedNTD (Lee et al., NeurIPS 2022) | Coder-1.5B | Spider test 69.68 so với FedAvg 71.50; BIRD dev -1.37 | Không hơn FedAvg |
+| FedProx | 0.5B | Không hơn FedAvg | Bỏ |
+| NTD ở round private | 0.5B, Coder-1.5B | Round giữa: không tác dụng; round cuối: đổi Spider lấy BIRD (Spider -2.51, BIRD +3.32 so với round plain) | Bỏ |
+| Retention loss ở client (λ=1.0) | 1.5B-Instruct | BIRD +1.9 nhưng các tập Spider -3.4 đến -6.9 | Bỏ |
+| Đóng băng LoRA A ở client (FFA-LoRA, Sun et al., ICLR 2024) | Coder-1.5B | Spider -1.55; BIRD vẫn rơi (37.61), khoảng 88% phần quên đi qua LoRA B | Bỏ |
+| Merge trọng số không train (WiSE-FT, task arithmetic) | 1.5B-Instruct | Không qua ngưỡng đặt trước | Bỏ |
+| **Cách distill ở server** | | | |
+| SeqKD (CE trên SQL teacher sinh) | 1.5B-Instruct | Hơn gold ở server, mất gần hết sau round private cuối | Đổi sang Hinton KD |
+| KID, GKD (on-policy KD) | 1.5B-Instruct | KID ngang SeqKD, tốn khoảng 21 GPU-h; GKD dừng vì chi phí | Bỏ |
+| TAID (Shing et al., ICLR 2025) thay Hinton KD | Coder-1.5B | Spider -1.84 (p=.050), DK -4.11 (p=.001) so với Hinton | Bỏ |
+| Plan task, CoT của teacher (Distilling Step-by-Step, Struct-SQL) | 1.5B-Instruct | Plan + gold so với gold: Spider -0.97 (n.s.); plan thay SQL: BIRD -3.91 | Bỏ |
+| **Biến thể replay** | | | |
+| Replay chỉ với gold, không target teacher | Coder-1.5B | BIRD -4.04 (p<.001) so với replay target teacher | Target teacher là cần |
+| Replay chỉ các câu teacher đúng (lọc theo execution) | Coder-1.5B | Spider -1.06 (p=.071), BIRD -0.52 | Giữ replay không lọc |
+| **Khác** | | | |
+| ICL (hướng FedICL ban đầu) | giai đoạn đầu | Train với demo: -2.90 (p=.008); demo lúc inference: -3.87 (p=.003); tốn 2.35 lần thời gian train | Bỏ, không dùng ICL |
+
+Control đã chạy (không phải method): thay teacher bằng virtual teacher
+(Yuan et al., CVPR 2020) hoặc bằng chính base 1.5B. Edge Spider của teacher
+ở warm-start không đến từ việc làm mềm label hay kéo model về base (Hinton -
+virtual +6.09, Hinton - self +4.26 ở warm-start).
+
+## 7. Vấn đề
 
 1. **Lợi thế trên Spider co lại ở test.** Trên dev method hơn FedAvg +6.48,
    trên test chỉ còn +1.68. Các arm có server warm-start đều nằm trong
@@ -95,16 +152,17 @@ dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang t
    chưa significant. Đảo vai (BIRD private, Spider public) thì replay không
    giúp miền private (BIRD -1.69, p=.061), em để ngoài phần xác nhận.
 
-## Đang chạy
+## 8. Kế hoạch
 
-Xác nhận trên 3 seed với Spider test. Seed 1: method và pipeline không
-teacher đã xong; server KD warm-start + FedAvg, train ở server và
-FedCoLLM-style đang chạy. Sau đó: seed 2, FedAvg và gold warm-start ở seed
-1-2, teacher zero-shot trên Spider test; khoảng 2 ngày GPU. Tiếp theo là
-student 0.5B (3 seed, thêm khoảng 2 ngày). Paper sẽ chỉ lấy claim từ kết
-quả 3 seed này.
+1. Hết seed 1 và seed 2 cho method và các comparator; FedCoLLM-style ở cả 3
+   seed; FedAvg và gold warm-start ở seed 1-2; teacher zero-shot trên Spider
+   test (khoảng 2 ngày GPU).
+2. Kiểm định gộp 3 seed (question-clustered test).
+3. Student 0.5B, 3 seed: method, pipeline không teacher, server KD +
+   FedAvg, FedAvg (thêm khoảng 2 ngày GPU).
+4. Viết bản thảo song song.
 
-## Em xin ý kiến thầy
+## 9. Em xin ý kiến thầy
 
 1. Với kết quả như trên, câu chuyện "framework hơn FedAvg, teacher giữ kiến
    thức public domain qua các round FL mà không giảm miền private" có đủ cho
