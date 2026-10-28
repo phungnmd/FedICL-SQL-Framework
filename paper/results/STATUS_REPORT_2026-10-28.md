@@ -1,4 +1,4 @@
-# FedLS-SQL: tình hình paper (2026-10-28)
+# FedLS-SQL: tình hình paper (2026-10-29)
 
 Mục tiêu: paper ứng dụng, journal Q3 (Data & Knowledge Engineering,
 International Journal of Data Science and Analytics, Neural Processing
@@ -59,6 +59,17 @@ arm có warm-start tăng 0.66-2.62; method giảm 0.91 (method được chọn t
 privacy và hơn train tập trung chỉ Spider. Khoảng cách FL so với
 centralized trên dev (+3.77) không thấy trên test (-0.42, p=.66).
 
+**Seed 1 (đang chạy, chưa publish):**
+
+| Spider test | Seed 0 | Seed 1 |
+|---|---:|---:|
+| Method | 73.17 | 74.57 |
+| Pipeline giống method nhưng không teacher | 72.61 | 73.40 |
+| Method - pipeline không teacher (W/L, p) | +0.56 (103/91, .43) | +1.16 (97/72, .065) |
+
+Pipeline không teacher seed 1 trên dev: Spider 71.5, BIRD 42.0, Realistic
+60.6, SYN 59.0, DK 55.5 (seed 0: 71.57, 41.26, 62.01, 55.13, 53.83).
+
 **Development sets (Spider dev / BIRD dev):**
 
 | Arm | Spider | BIRD |
@@ -90,31 +101,32 @@ matched pipeline không teacher +3.52 (<.001); so với replay gold +4.04
 (<.001); so với server KD warm-start + FedAvg +6.26 (<.001); so với train
 cùng câu ở server +6.98 (<.001).
 
-## 5. Claim đã chốt và trạng thái sau seed 0
+## 5. Claim đã chốt và trạng thái hiện tại
 
 Kiểm trên 3 seed gộp (question-clustered test), Spider test là metric chính;
 non-inferiority margin 2.0 điểm.
 
-| Claim | Nội dung | Seed 0 |
-|---|---|---|
-| C1 | Method > matched pipeline không teacher, Spider test | +0.56 (p=.43); seed 1: +1.16 (p=.065) |
-| C2 | Method > matched pipeline, BIRD, Spider không kém | BIRD +3.52, Spider test +0.56 |
-| C3 | Method > server KD warm-start + FedAvg, BIRD, Spider không kém | BIRD +6.26, Spider test -0.33 |
-| C4 | Method > train cùng câu ở server, BIRD, Spider không kém | BIRD +6.98, Spider test -0.70 |
-| C5 | Method so với FedCoLLM-style | chưa chạy |
-| C6 | Server KD > server gold CE warm-start, Spider test | +0.47 (chưa test paired) |
-| C7 | Method > FedAvg, Spider test | +1.68 (p=.029) |
+| Claim | Nội dung | Seed 0 | Seed 1 |
+|---|---|---|---|
+| C1 | Method > matched pipeline không teacher, Spider test | +0.56 (p=.43) | +1.16 (p=.065) |
+| C2 | Method > matched pipeline, BIRD, Spider không kém | BIRD +3.52, Spider test +0.56 | Spider test +1.16; BIRD chờ publish |
+| C3 | Method > server KD warm-start + FedAvg, BIRD, Spider không kém | BIRD +6.26, Spider test -0.33 | đang chạy |
+| C4 | Method > train cùng câu ở server, BIRD, Spider không kém | BIRD +6.98, Spider test -0.70 | đang chạy |
+| C5 | Method so với FedCoLLM-style | chưa chạy (bước 5) | đang chạy |
+| C6 | Server KD > server gold CE warm-start, Spider test | +0.47 (chưa test paired) | chờ 6b |
+| C7 | Method > FedAvg, Spider test | +1.68 (p=.029) | chờ 6b |
 
 ## 6. Đánh giá hiện tại
 
 - **Vững:** framework hơn FedAvg trên Spider test (+1.68), chủ yếu nhờ
-  public data ở server (gold warm-start - FedAvg +1.53). Teacher giữ BIRD
+  public data ở server (gold warm-start - FedAvg +1.54, p=.042). Teacher giữ BIRD
   qua các round (+3.5 đến +7, p<.001 ở mọi so sánh). Trên Spider test
   method ngang train tập trung Spider + BIRD không privacy (-0.61, p=.46)
   và hơn train tập trung chỉ Spider (+2.10, p=.009).
-- **Yếu:** phần riêng của teacher trên Spider test khoảng 0.5 điểm (C1, C6),
-  chưa có ý nghĩa thống kê. Teacher chỉ thấy BIRD, và student đã gần mức
-  teacher trên Spider (74.08 so với 76.69 dev).
+- **Yếu nhưng đang lên:** phần riêng của teacher trên Spider test: C1
+  +0.56 (seed 0) và +1.16 (seed 1, p=.065), cùng chiều; C6 +0.47 (seed 0).
+  Chỗ trống trên Spider test hẹp: `central_mix` - `gold_k2aaa` chỉ +0.75
+  (p=.37) trên test, so với +2.80 (p=.016) trên dev.
 - **Robustness theo pool:** đổi public pool sang SynSQL, method vẫn hơn
   FedAvg trên 5/5 tập dev (Spider +3.09, p=.002) và trên Spider test
   (+1.49, p=.028).
@@ -144,11 +156,13 @@ non-inferiority margin 2.0 điểm.
 
 ## 8. Đang chạy và tiếp theo
 
-- GPU 0: confirmation seed 1 (method và các comparator).
-- GPU 1: các dòng tham chiếu seed 0 trên Spider test đã xong và publish;
-  tiếp theo FedCoLLM-style seed 1.
-- Tiếp theo: seed 2, FedCoLLM-style, FedAvg và gold warm-start ở seed 1-2,
-  rồi kiểm định 3 seed.
+- GPU 0: seed 1, method và pipeline không teacher xong; đang chạy
+  `hinton_k2aaa`, rồi `k2plus_aaa` (khoảng 10 h); sau đó seed 2.
+- GPU 1: FedCoLLM-style seed 1 (khoảng 12 h); sau đó FedCoLLM-style seed 0
+  và seed 2.
+- Còn lại: 6b (FedAvg, gold warm-start seed 1-2), 6c (dev ở A1/A2 seed
+  1-2), 6d (teacher zero-shot Spider test), rồi kiểm định 3 seed. Khoảng 45
+  h mỗi GPU.
 - SynSQL seed 0 và các dòng tham chiếu đã publish. Số Spider test seed 0
   của P2.53 và execution-filtered replay còn trên GPU server, chưa
   publish vào repo code.

@@ -1,4 +1,4 @@
-# FedLS-SQL: báo cáo tiến độ (28/10/2026)
+# FedLS-SQL: báo cáo tiến độ (29/10/2026)
 
 Em xin gửi thầy tình hình research hiện tại của dự án
 ## Method hiện tại
@@ -45,6 +45,17 @@ So sánh paired (exact McNemar):
 - Method - centralized Spider + BIRD (không privacy): Spider test -0.61
   (p=.46).
 
+## Seed 1 (đang chạy)
+
+| Spider test | Seed 0 | Seed 1 |
+|---|---:|---:|
+| Method | 73.17 | 74.57 |
+| Pipeline giống method nhưng không teacher | 72.61 | 73.40 |
+| Method - pipeline không teacher (W/L, p) | +0.56 (103/91, .43) | +1.16 (97/72, .065) |
+
+Phần riêng của teacher trên Spider test cùng chiều ở cả hai seed. Các
+comparator còn lại của seed 1 đang chạy.
+
 ## Robustness theo public pool (SynSQL-2.5M, seed 0)
 
 Cùng method, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M
@@ -68,11 +79,13 @@ dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang t
    trên test chỉ còn +1.68. Các arm có server warm-start đều nằm trong
    72.6-73.9 trên test, chênh nhau trong mức nhiễu của một seed. Một phần là
    do method được chọn trên chính Spider dev.
-2. **Teacher đóng góp ít trên Spider (miền private).** Phần lớn mức tăng so
-   với FedAvg đến từ public data ở server (gold warm-start - FedAvg +1.53);
-   phần riêng của teacher trên Spider test khoảng 0.5 điểm, chưa có ý nghĩa
-   thống kê. Em nghĩ nguyên nhân là teacher chỉ thấy BIRD, và student đã gần
-   mức teacher trên Spider (74.08 so với 76.69 dev).
+2. **Teacher đóng góp nhỏ trên Spider (miền private).** Phần lớn mức tăng
+   so với FedAvg đến từ public data ở server (gold warm-start - FedAvg
+   +1.54, p=.042). Phần riêng của teacher trên Spider test là +0.56 (seed 0)
+   và +1.16 (seed 1, p=.065), cùng chiều nhưng từng seed chưa significant.
+   Chỗ trống trên Spider test hẹp: train tập trung Spider + BIRD không
+   privacy (73.78) chỉ hơn pipeline FL không teacher (gold warm-start,
+   73.03) +0.75 (p=.37), trong khi trên dev khoảng này là +2.80 (p=.016).
 3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Teacher giữ BIRD hơn
    +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không giảm. Nhưng BIRD
    là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
@@ -84,9 +97,11 @@ dev và Spider test; với SynSQL thấp hơn BIRD pool trên dev nhưng ngang t
 
 ## Đang chạy
 
-Xác nhận trên 3 seed với Spider test (method, các comparator ở trên,
-FedCoLLM-style, FedAvg), đang ở seed 1. Paper sẽ chỉ lấy claim từ kết quả 3
-seed này.
+Xác nhận trên 3 seed với Spider test. Seed 1: method và pipeline không
+teacher đã xong; server KD warm-start + FedAvg, train ở server và
+FedCoLLM-style đang chạy. Sau đó: seed 2, FedAvg và gold warm-start ở seed
+1-2, teacher zero-shot trên Spider test; khoảng 2 ngày GPU. Paper sẽ chỉ
+lấy claim từ kết quả 3 seed này.
 
 ## Em xin ý kiến thầy
 
