@@ -245,10 +245,13 @@ current plan.
     small margin over a baseline) stays out of the paper, as long as the
     paper makes no claim that this result tests. Drop the claim rather than
     hide the result that tests it.
-  - Hard limits that stay: no claim that an omitted result contradicts; the
-    comparators and claims fixed in the freeze entry are reported with every
-    confirmation result, favourable or not; every number in the paper keeps
-    its evidence trail.
+  - Integrity floor (kept when any other rule changes): a Spider test
+    number is never presented as held-out once a choice (setting, arm,
+    checkpoint, claim) was made by looking at it, unless the paper says
+    so; the paper makes no claim that a result we hold contradicts; every
+    number keeps its evidence trail. Within this floor the owner decides
+    which comparisons and claims the paper reports; the goal is the
+    strongest paper (owner, 2026-10-28).
 - Screens are seed 0 with paired questions and exact McNemar tests. One Spider
   question is about 0.1 point; small differences need more seeds before any
   claim. Paper claims use the three-seed confirmation with the
