@@ -32,7 +32,9 @@ stays when most of the results that test it support it; the owner's
 example is the teacher on Spider (dev +2.51, p=.009; seed-0 test +0.56,
 p=.43, same sign). Kept: no Spider test number presented as held-out after
 a choice made on it unless the paper says so; every number keeps its
-evidence trail.
+evidence trail. A weaker result that tests a claim (for example the Spider
+test row) may be left out of the paper; numbers that are reported keep
+their set named (dev or test).
 
 ## 2026-10-28: P2.53 seed-0 Spider test; paper direction after an outside review
 

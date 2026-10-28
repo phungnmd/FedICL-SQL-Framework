@@ -1,11 +1,9 @@
 # FedLS-SQL: báo cáo tiến độ (28/10/2026)
 
-Em gửi thầy tình hình hiện tại của dự án: method em chọn, số EX và các vấn đề
-còn gặp.
-
+Em xin gửi thầy tình hình research hiện tại của dự án
 ## Method hiện tại
 
-Sau 17 cấu hình federated đã thử với student Qwen2.5-Coder-1.5B, em chọn
+Sau nhiều cấu hình federated đã thử với student Qwen2.5-Coder-1.5B, em chọn
 `mixkd50_k2aaa`:
 
 1. **Server warm-start:** distill teacher Qwen2.5-Coder-7B (frozen) trên BIRD
@@ -21,18 +19,18 @@ giữ được BIRD. Không có replay thì phần BIRD học từ teacher mất
 
 ## Số EX hiện tại (seed 0)
 
-| Arm | Spider dev | BIRD dev | Spider test |
-|---|---:|---:|---:|
-| Base 1.5B (zero-shot) | 59.19 | 21.32 | |
-| FedAvg | 67.60 | 25.68 | 71.50 |
-| Server gold CE warm-start + FedAvg | 70.41 | 40.03 | 73.03 |
-| Pipeline giống method nhưng không teacher | 71.57 | 41.26 | 72.61 |
-| Server KD warm-start + FedAvg | 72.53 | 38.53 | 73.50 |
-| Cùng các câu replay nhưng train ở server | 73.21 | 37.81 | 73.87 |
-| **Method** | **74.08** | **44.78** | 73.17 |
-| Centralized Spider | 71.37 | 25.75 | |
-| Centralized Spider + BIRD (không privacy) | 73.21 | 43.68 | |
-| Teacher 7B (zero-shot) | 76.69 | 47.07 | |
+| Arm                                       | Spider dev |  BIRD dev | Spider test |
+| ----------------------------------------- | ---------: | --------: | ----------: |
+| Base 1.5B (zero-shot)                     |      59.19 |     21.32 |             |
+| FedAvg                                    |      67.60 |     25.68 |       71.50 |
+| Server gold CE warm-start + FedAvg        |      70.41 |     40.03 |       73.03 |
+| Pipeline giống method nhưng không teacher |      71.57 |     41.26 |       72.61 |
+| Server KD warm-start + FedAvg             |      72.53 |     38.53 |       73.50 |
+| Cùng các câu replay nhưng train ở server  |      73.21 |     37.81 |       73.87 |
+| **Method**                                |  **74.08** | **44.78** |       73.17 |
+| Centralized Spider                        |      71.37 |     25.75 |             |
+| Centralized Spider + BIRD (không privacy) |      73.21 |     43.68 |             |
+| Teacher 7B (zero-shot)                    |      76.69 |     47.07 |             |
 
 So sánh paired (exact McNemar):
 
