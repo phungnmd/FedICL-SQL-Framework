@@ -24,6 +24,16 @@ Older detail:
   remaining reference rows (step 1c) are next on GPU 1.
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-28: owner rule: a claim stays when most of its results support it
+
+Owner decision, now in AGENTS.md (evidence rules): the rule "the paper
+makes no claim that a result we hold contradicts" is dropped. A claim
+stays when most of the results that test it support it; the owner's
+example is the teacher on Spider (dev +2.51, p=.009; seed-0 test +0.56,
+p=.43, same sign). Kept: no Spider test number presented as held-out after
+a choice made on it unless the paper says so; every number keeps its
+evidence trail.
+
 ## 2026-10-28: P2.53 seed-0 Spider test; paper direction after an outside review
 
 Evidence: P2.53 step 1b on the server (`scripts/status_p253.py --seed 0`),

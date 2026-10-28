@@ -250,19 +250,17 @@ current plan.
     controls whose outcome would not change what we do next. Do not write
     readings or criteria before exploratory runs; log what ran and what was
     chosen, and read the results freely.
-  - The paper carries the strongest supported story. Choose the claims from
-    what the evidence supports best; the main text and appendix hold only
-    results that serve those claims. A weak or neutral result (for example a
-    small margin over a baseline) stays out of the paper, as long as the
-    paper makes no claim that this result tests. Drop the claim rather than
-    hide the result that tests it.
-  - Integrity floor (kept when any other rule changes): a Spider test
-    number is never presented as held-out once a choice (setting, arm,
-    checkpoint, claim) was made by looking at it, unless the paper says
-    so; the paper makes no claim that a result we hold contradicts; every
-    number keeps its evidence trail. Within this floor the owner decides
-    which comparisons and claims the paper reports; the goal is the
-    strongest paper (owner, 2026-10-28).
+  - The paper carries the strongest story the evidence supports. A claim
+    stays when most of the results that test it support it (for example a
+    teacher gain on Spider dev with a smaller gain of the same sign on
+    Spider test); the main text and appendix hold only results that serve
+    the claims (owner, 2026-10-28, replacing "no claim that a result we
+    hold contradicts").
+  - Kept: a Spider test number is never presented as held-out once a
+    choice (setting, arm, checkpoint, claim) was made by looking at it,
+    unless the paper says so; every number keeps its evidence trail. The
+    owner decides which comparisons and claims the paper reports; the goal
+    is the strongest paper.
 - Screens are seed 0 with paired questions and exact McNemar tests. One Spider
   question is about 0.1 point; small differences need more seeds before any
   claim. Paper claims use the three-seed confirmation with the

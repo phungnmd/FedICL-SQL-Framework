@@ -123,9 +123,9 @@ Giai đoạn hiện tại: **xác nhận** (P2.53, 3 seed, Spider test). Hướn
 thăm dò mới trên dev.
 
 Từ 2026-10-27 các luật dưới đây là hướng dẫn, không phải cổng: chọn cái làm
-paper mạnh nhất. Giữ nguyên integrity floor (AGENTS.md): không trình bày số
-Spider test là held-out khi đã chọn gì đó dựa trên nó mà paper không nói; không
-claim điều mà kết quả đang có mâu thuẫn; mọi số có evidence trail.
+paper mạnh nhất. Claim được giữ khi đa số kết quả kiểm nó ủng hộ (owner,
+2026-10-28). Vẫn giữ: không trình bày số Spider test là held-out khi đã chọn
+gì đó dựa trên nó mà paper không nói; mọi số có evidence trail.
 
 Ba luật (owner, LAB_LOG 2026-10-12):
 
