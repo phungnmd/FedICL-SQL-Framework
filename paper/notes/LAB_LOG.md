@@ -27,6 +27,25 @@ Older detail:
   setting (entry below).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-28: P2.53 seed 1, first Spider test pair
+
+Evidence: `scripts.status_p253 --seed 1` and the lane log on the server,
+not committed yet (the seed 1 publication follows the lane). Spider test,
+2,147 questions, exact McNemar against the method.
+
+| Arm, seed 1 | Spider test | Spider dev | BIRD dev | Realistic | SYN | DK |
+|---|---:|---:|---:|---:|---:|---:|
+| `mixkd50_k2aaa` (method) | 74.57 | | | | | |
+| `gmixgold_k2aaa` | 73.40 | 71.5 | 42.0 | 60.6 | 59.0 | 55.5 |
+
+- C1 contrast at seed 1: +1.16 (97/72, p=.065); seed 0 +0.56 (103/91,
+  p=.43). Same sign on both seeds. The frozen claim uses the pooled
+  three-seed question-clustered test after seed 2.
+- `gmixgold_k2aaa` seed 1 is close to seed 0 (Spider test +0.79, Spider
+  dev -0.07, BIRD dev +0.74); the method moves +1.40 from seed 0.
+- The method's seed 1 dev evaluations are in the lane log; recorded with
+  the seed 1 publication.
+
 ## 2026-10-28: P2.53 step 1c reference rows on Spider test
 
 Evidence: nested `0704737` (`p253ref_*` predictions). Spider test, 2,147

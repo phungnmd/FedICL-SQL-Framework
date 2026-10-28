@@ -97,7 +97,7 @@ non-inferiority margin 2.0 điểm.
 
 | Claim | Nội dung | Seed 0 |
 |---|---|---|
-| C1 | Method > matched pipeline không teacher, Spider test | +0.56 (p=.43) |
+| C1 | Method > matched pipeline không teacher, Spider test | +0.56 (p=.43); seed 1: +1.16 (p=.065) |
 | C2 | Method > matched pipeline, BIRD, Spider không kém | BIRD +3.52, Spider test +0.56 |
 | C3 | Method > server KD warm-start + FedAvg, BIRD, Spider không kém | BIRD +6.26, Spider test -0.33 |
 | C4 | Method > train cùng câu ở server, BIRD, Spider không kém | BIRD +6.98, Spider test -0.70 |
