@@ -58,34 +58,36 @@ Nhận xét:
   nhất phía Spider. Tuy vậy chỉ khoảng 1/3 số câu thắng là đúng loại domain
   knowledge, phần còn lại là lỗi schema của arm gold; cần chờ thêm seed 1-2.
 
-## 3. Seed 1 (đang chạy)
+## 3. Seed 1
 
-| Arm                 | Seed | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
-| ------------------- | ---: | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
-| `method`            |    0 |          74.08 |        44.78 |       73.17 |     *63.58* | *58.70* | *57.20* |
-| `method`            |    1 |          73.21 |        43.68 |       74.57 |     *62.99* | *60.06* | *57.38* |
-| `method_no_teacher` |    0 |          71.57 |        41.26 |       72.61 |     *62.01* | *55.13* | *53.83* |
-| `method_no_teacher` |    1 |          71.47 |        42.05 |       73.40 |     *60.63* | *58.99* | *55.51* |
-| `method_no_replay`  |    0 |          72.53 |        38.53 |       73.50 |     *61.81* | *56.38* | *58.32* |
-| `method_no_replay`  |    1 |          72.82 |        36.77 |       74.10 |     *61.81* | *58.12* | *58.13* |
+| Arm                       | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |       *SYN* |        *DK* |
+| ------------------------- | -------------: | -----------: | ----------: | ----------: | ----------: | ----------: |
+| `method_no_teacher`       |          71.47 |        42.05 |       73.40 |     *60.63* |     *58.99* |     *55.51* |
+| `method_no_replay`        |          72.82 |        36.77 |       74.10 |     *61.81* |     *58.12* | ***58.13*** |
+| `method_replay_at_server` |          72.05 |        36.77 |       73.40 | ***63.19*** |     *57.16* |     *56.64* |
+| **`method`**              |      **73.21** |    **43.68** |   **74.57** |     *62.99* | ***60.06*** |     *57.38* |
 
-`method` trừ từng arm:
+`method` trừ từng arm, seed 0 và seed 1:
 
-| Method trừ          | Seed | Spider test | Spider dev | BIRD dev |
-| ------------------- | ---: | ----------: | ---------: | -------: |
-| `method_no_teacher` |    0 |       +0.56 |      +2.51 |    +3.52 |
-| `method_no_teacher` |    1 |       +1.16 |      +1.74 |    +1.63 |
-| `method_no_replay`  |    0 |       -0.33 |      +1.55 |    +6.26 |
-| `method_no_replay`  |    1 |       +0.47 |      +0.39 |    +6.91 |
+| Method trừ                | Seed | Spider test | Spider dev | BIRD dev |
+| ------------------------- | ---: | ----------: | ---------: | -------: |
+| `method_no_teacher`       |    0 |       +0.56 |      +2.51 |    +3.52 |
+| `method_no_teacher`       |    1 |       +1.16 |      +1.74 |    +1.63 |
+| `method_no_replay`        |    0 |       -0.33 |      +1.55 |    +6.26 |
+| `method_no_replay`        |    1 |       +0.47 |      +0.39 |    +6.91 |
+| `method_replay_at_server` |    0 |       -0.70 |      +0.87 |    +6.97 |
+| `method_replay_at_server` |    1 |       +1.16 |      +1.16 |    +6.91 |
 
 Nhận xét:
 
 - **Teacher** (`method` - `method_no_teacher`): dương trên cả 6 tập ở cả
   hai seed, nhưng trên Spider test chưa thể hiện rõ.
-- **Replay** (`method` - `method_no_replay`): BIRD dev hơn +6.26 và +6.91,
-  Spider test không giảm (-0.33 và +0.47).
-- `method` seed 1 đạt 74.57 trên Spider test, cao nhất trong các student
-  đến nay.
+- **Replay** (`method` so với `method_no_replay` và
+  `method_replay_at_server`): BIRD dev hơn khoảng 7 điểm ở cả hai seed.
+  Trên Spider dev `method` cũng hơn cả hai ở cả hai seed, còn trên Spider
+  test thì lúc thấp hơn, lúc cao hơn một chút, tức là không giảm.
+- Ở seed 1, `method` cao nhất trên Spider test (74.57, cao nhất trong các
+  student đến nay), Spider dev và BIRD dev.
 
 ## 4. Đổi public dataset sang SynSQL-2.5M (seed 0)
 
@@ -119,11 +121,12 @@ tập, nhưng phần hơn `method_no_teacher` nhỏ.
    cho student.
 3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Teacher giữ BIRD
    cao hơn rõ ở mọi so sánh mà Spider không giảm. Ở seed 1, phần hơn
-   `method_no_replay` vẫn lớn (khoảng 7 điểm), còn phần hơn
-   `method_no_teacher` nhỏ lại (từ 3.5 xuống 1.6 điểm). BIRD là metric phụ
-   của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ. Nếu
-   sau 3 seed phần hơn `method_no_teacher` vẫn không rõ, điều chắc nhất còn
-   lại là replay so với không replay, và reviewer sẽ hỏi lợi đến từ target
+   `method_no_replay` và `method_replay_at_server` vẫn lớn (khoảng 7 điểm),
+   còn phần hơn `method_no_teacher` nhỏ lại (từ 3.5 xuống 1.6 điểm). BIRD
+   là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
+   metric phụ. Nếu sau 3 seed phần hơn `method_no_teacher` vẫn không rõ,
+   điều chắc nhất còn lại là replay so với không replay, và reviewer sẽ hỏi
+   lợi đến từ target
    của teacher hay chỉ từ việc replay public data.
 4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
    teacher.** Phần riêng của teacher vẫn cùng chiều trên cả 6 tập nhưng nhỏ,
@@ -140,9 +143,8 @@ tập, nhưng phần hơn `method_no_teacher` nhỏ.
 
 ## 6. Kế hoạch
 
-1. Hết seed 1 và seed 2 cho method và các comparator; FedCoLLM-style ở cả 3
-   seed; `FedAvg` và `method_no_teacher_no_replay` ở seed 1-2 (khoảng 2 ngày
-   GPU).
+1. Seed 2 cho method và các comparator; FedCoLLM-style ở cả 3 seed;
+   `FedAvg` và `method_no_teacher_no_replay` ở seed 1-2 (khoảng 2 ngày GPU).
 2. Kiểm định gộp 3 seed (question-clustered test).
 3. Student 0.5B, 3 seed: `method`, `method_no_teacher`, `method_no_replay`,
    `FedAvg` (thêm khoảng 2 ngày GPU).

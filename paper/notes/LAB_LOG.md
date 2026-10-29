@@ -129,21 +129,23 @@ added as a descriptive reference row.
 
 ## 2026-10-28: P2.53 seed 1, first Spider test pair
 
-Evidence: `scripts.status_p253 --seed 1` and the lane log on the server,
-not committed yet (the seed 1 publication follows the lane). Spider test,
-2,147 questions, exact McNemar against the method. Updated 2026-10-29 with
-the dev sets and `hinton_k2aaa`.
+Evidence: nested `2e863d3` (the finished seed 1 arms, published while
+FedCoLLM-style runs; the seed 1 run manifest follows with step 6). Spider
+test, 2,147 questions, exact McNemar against the method. Updated 2026-10-29
+with the dev sets, `hinton_k2aaa` and `k2plus_aaa`.
 
 | Arm, seed 1 | Spider test | Spider dev | BIRD dev | Realistic | SYN | DK |
 |---|---:|---:|---:|---:|---:|---:|
 | `mixkd50_k2aaa` (method) | 74.57 | 73.21 | 43.68 | 62.99 | 60.06 | 57.38 |
 | `gmixgold_k2aaa` | 73.40 | 71.47 | 42.05 | 60.63 | 58.99 | 55.51 |
 | `hinton_k2aaa` | 74.10 | 72.82 | 36.77 | 61.81 | 58.12 | 58.13 |
+| `k2plus_aaa` | 73.40 | 72.05 | 36.77 | 63.19 | 57.16 | 56.64 |
 
 | Method minus, seed 1 | Spider test | Spider dev | BIRD dev |
 |---|---|---|---|
 | `gmixgold_k2aaa` (C1, C2) | +1.16 (97/72, p=.065) | +1.74 (55/37, p=.076) | +1.63 (130/105, p=.12) |
 | `hinton_k2aaa` (C3) | +0.47 (80/70, p=.46) | +0.39 (38/34, p=.72) | +6.91 (183/77, p<1e-10) |
+| `k2plus_aaa` (C4) | +1.16 (97/72, p=.065) | +1.16 (51/39, p=.25) | +6.91 (180/74, p<1e-10) |
 
 - C1 at seed 0 was +0.56 (103/91, p=.43): same sign on both seeds. C2
   (BIRD) fell from +3.52 at seed 0 to +1.63; C3 holds (+6.26, +6.91) with
@@ -153,13 +155,16 @@ the dev sets and `hinton_k2aaa`.
 - `gmixgold_k2aaa` seed 1 is close to seed 0 (Spider test +0.79, Spider
   dev -0.10, BIRD dev +0.79); the method moves +1.40 on Spider test and
   -0.87 on Spider dev, the dev set it was selected on at seed 0.
-- `k2plus_aaa` seed 1 A3 Spider test about 73.4, Spider dev about 72.1
-  (lane log 2026-10-29, EX printed to one decimal; other dev sets
-  pending): method minus it about +1.2 on test (seed 0: -0.70) and about
-  +1.1 on dev (seed 0: +0.87).
+- C4 (`k2plus_aaa`): Spider test -0.70 at seed 0, +1.16 at seed 1; BIRD
+  +6.97 and +6.91. Realistic -0.20, SYN +2.90 (p=.008), DK +0.75 at seed 1.
+  The seed 1 `k2plus_aaa` and `gmixgold_k2aaa` Spider test tallies are
+  both 1,576 correct and both 97/72 against the method, from distinct
+  predictions (1,086 of 2,147 identical SQL strings); a coincidence.
 - On Spider test replay does not move the primary metric: method minus
   `hinton_k2aaa` -0.33 and +0.47; two-seed means method 73.87,
-  `hinton_k2aaa` 73.80, `k2plus_aaa` about 73.6, `gmixgold_k2aaa` 73.01.
+  `hinton_k2aaa` 73.80, `k2plus_aaa` 73.64, `gmixgold_k2aaa` 73.01. On
+  Spider dev the method is ahead of both replay controls at both seeds
+  (+1.55/+0.39, +0.87/+1.16).
   Replay's effect is on BIRD (+6.26, +6.91), as the FREEZE claims C3
   (BIRD gain, Spider non-inferior) state.
 - Seed 1 still missing: FedCoLLM-style (running), FedAvg and `gold_k2aaa`
