@@ -28,13 +28,16 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 - Method and claims are fixed in LAB_LOG (FREEZE 2026-10-26 and its two
   2026-10-28 addenda); the paper direction is
   `paper/notes/DIRECTION_PROPOSAL.md` (owner, 2026-10-28).
-- Metrics (owner, 2026-10-16; loosened 2026-10-29): Spider EX, the
-  clients' private domain, is the default primary metric and BIRD EX (public
-  domain) the secondary one; every arm reports both, with
-  Spider-Realistic/SYN/DK for robustness and EM as a diagnostic. Which
-  metric carries the story is chosen for the strongest paper (owner
-  decides). Spider test (2,147 rows) is the final test set; Spider dev, its
-  variants and BIRD dev are development sets.
+- Metrics (owner, 2026-10-16; loosened 2026-10-29; evaluation scope
+  2026-10-30): Spider EX on Spider dev and Spider test (2,147 rows) is the
+  primary metric, the clients' private domain; EM is a diagnostic. A new
+  arm is evaluated on Spider dev and Spider test only. The full set (BIRD
+  dev, the public domain and secondary metric, and Spider-Realistic/SYN/DK
+  for robustness) runs only for arms that are finalized for the paper or
+  when the owner asks. Which metric carries the story is chosen for the
+  strongest paper (owner decides). Spider dev, its variants and BIRD dev are
+  development sets; a Spider test number used to choose anything is not
+  called held-out.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
