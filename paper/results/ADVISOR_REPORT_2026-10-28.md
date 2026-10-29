@@ -49,14 +49,18 @@ Nhận xét:
   hình federated. Trên Spider test, `method` hơn `FedAvg` khoảng 1.7 điểm và
   gần `central_spider_bird` dù không gộp dữ liệu; các arm có server
   warm-start ở đây đều ngang nhau.
-- **Teacher:** kiến thức BIRD học từ teacher ở warm-start mất ngay ở round
-  đầu nếu không replay. Có replay target của teacher, `method` giữ được và
-  còn tăng BIRD qua các round, cao hơn rõ các arm không giữ target teacher,
-  trong khi Spider không giảm.
-- **Spider-DK:** teacher ở warm-start hơn gold khoảng 6 điểm
-  (`method_no_replay` so với `method_no_teacher_no_replay`), khoảng cách lớn
-  nhất phía Spider. Tuy vậy chỉ khoảng 1/3 số câu thắng là đúng loại domain
-  knowledge, phần còn lại là lỗi schema của arm gold; cần chờ thêm seed 1-2.
+- **Teacher và replay trên BIRD:** ở warm-start, BIRD tăng gần như nhau dù
+  có hay không có teacher, nên phần này đến từ dữ liệu BIRD. Không replay,
+  các round FedAvg kéo BIRD xuống (`method_no_replay` từ 43.61 còn 38.53).
+  Có replay target của teacher, `method` giữ và còn tăng BIRD qua các round,
+  hơn replay gold (`method_no_teacher`) khoảng 3.5 điểm và hơn hai arm không
+  replay khoảng 6-7 điểm, trong khi Spider không giảm rõ.
+- **Spider-DK** (535 câu viết lại từ Spider dev, cần domain knowledge không
+  có trong schema, ví dụ "name" là first name + last name): arm có teacher ở
+  warm-start (`method_no_replay`) hơn arm chỉ train gold
+  (`method_no_teacher_no_replay`) khoảng 6 điểm, khoảng cách lớn nhất phía
+  Spider. Khoảng 1/3 số câu thắng đúng loại domain knowledge, phần còn lại
+  là lỗi thường của arm gold (sai bảng, bịa cột).
 
 ## 3. Seed 1
 
@@ -69,7 +73,7 @@ Nhận xét:
 
 `method` trừ từng arm, seed 0 và seed 1:
 
-| Method trừ                | Seed | Spider test | Spider dev | BIRD dev |
+| Method vs                 | Seed | Spider test | Spider dev | BIRD dev |
 | ------------------------- | ---: | ----------: | ---------: | -------: |
 | `method_no_teacher`       |    0 |       +0.56 |      +2.51 |    +3.52 |
 | `method_no_teacher`       |    1 |       +1.16 |      +1.74 |    +1.63 |
@@ -119,7 +123,7 @@ tập, nhưng phần hơn `method_no_teacher` nhỏ.
    tập trung trên cả 2 dataset). Teacher 7B zero-shot cao hơn
    `central_spider_bird`, nhưng cũng không vượt trội nhiều để truyền thêm
    cho student.
-3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Teacher giữ BIRD
+3. **Đóng góp rõ của teacher nằm ở BIRD EX (miền public).** Teacher giữ BIRD
    cao hơn rõ ở mọi so sánh mà Spider không giảm. Ở seed 1, phần hơn
    `method_no_replay` và `method_replay_at_server` vẫn lớn (khoảng 7 điểm),
    còn phần hơn `method_no_teacher` nhỏ lại (từ 3.5 xuống 1.6 điểm). BIRD
@@ -130,15 +134,12 @@ tập, nhưng phần hơn `method_no_teacher` nhỏ.
 4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
    teacher.** Phần riêng của teacher vẫn cùng chiều trên cả 6 tập nhưng nhỏ,
    khoảng 1 điểm trên Spider test.
-5. **Khó tăng thêm phần teacher trên Spider trong setup hiện tại.** Không
+5. **Khó tăng thêm phần teacher đóng góp trên Spider EX trong setup hiện tại.** Không
    phải do FL: trên Spider test, `FedAvg` đã ngang `central_spider` và
-   `method` ngang `central_spider_bird`. Nguyên nhân chính nằm ở setup dữ
+   `method` ngang `central_spider_bird`. Nguyên nhân có thể nằm ở setup dữ
    liệu: client đã có đủ gold Spider, còn teacher chỉ truyền kiến thức qua
    BIRD, nơi teacher gần như trùng với gold (top-1 trùng khoảng 95% token),
-   nên tín hiệu thêm so với gold mỏng. Phần teacher hơn gold trên Spider sau
-   warm-start cũng co lại dần qua các round private. Đổi sang SynSQL, gần
-   Spider hơn, không làm phần teacher lớn hơn, còn teacher lớn hơn 7B thì
-   vượt quá 2 GPU.
+   nên tín hiệu thêm so với gold mỏng. EX của teacher 7b trên các pool không vượt được centralized nhiều.
 
 ## 6. Kế hoạch
 
