@@ -19,21 +19,6 @@ private (Spider) và public (BIRD), trong các cấu hình federated ở bảng 
 
 ## 2. Số EX hiện tại (seed 0)
 
-Tên arm:
-
-| Arm | Nghĩa |
-| --- | --- |
-| `base` | Qwen2.5-Coder-1.5B zero-shot |
-| `single_client` | mỗi client tự train trên dữ liệu của mình, không FL (trung bình 5 client) |
-| `FedAvg`, `FedNTD` | 3 round FL trên Spider, không có server stage |
-| `gold_warmstart` | server warm-start bằng gold CE trên BIRD, rồi 3 round FedAvg |
-| `kd_warmstart` | server warm-start bằng Hinton KD từ teacher, rồi 3 round FedAvg (không replay) |
-| `method_no_teacher` | giống `method` nhưng không có teacher: gold warm-start, replay câu BIRD với gold |
-| `server_replay` | `kd_warmstart`, các câu replay của `method` được train ở server thay vì ở client |
-| `central_spider` | gộp Spider của 5 client, train tập trung |
-| `central_spider_bird` | gộp Spider và BIRD, train tập trung (không privacy) |
-| `teacher_7b` | Qwen2.5-Coder-7B zero-shot |
-
 | Arm | **Spider dev** | **BIRD dev** | Spider test | *Realistic* | *SYN* | *DK* |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `base` | 59.19 | 21.32 | 57.94 | *46.26* | *45.94* | *47.66* |
@@ -49,11 +34,6 @@ Tên arm:
 | `central_spider` | 71.37 | 25.75 | 71.08 | *61.61* | *56.00* | *58.50* |
 | `central_spider_bird` | 73.21 | 43.68 | 73.78 | *62.99* | *58.90* | *58.69* |
 | `teacher_7b` | 76.69 | 47.07 | | *71.06* | *63.83* | *62.43* |
-
-Metric chính: Spider dev (miền private) và BIRD dev (miền public). Spider
-test (2,147 câu) dùng để xác nhận. Realistic, SYN, DK (in nghiêng) là các
-biến thể của Spider dev, đo robustness. Ô trống: chưa đo. Trên Spider test,
-chênh dưới khoảng 1 điểm nằm trong mức nhiễu của một seed.
 
 BIRD dev qua các round:
 
@@ -113,9 +93,7 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đ�
 
 ## 5. Các cách đã thử nhưng không hiệu quả
 
-Số là dev, seed 0, exact McNemar. "Coder-1.5B" là student hiện tại;
-"1.5B-Instruct" (Qwen2.5-1.5B-Instruct) và "0.5B" (Qwen2.5-Coder-0.5B) là
-student ở giai đoạn trước.
+Số là dev, seed 0, exact McNemar.
 
 | Hướng | Đã thử | Kết quả chính | Kết luận |
 | --- | --- | --- | --- |
