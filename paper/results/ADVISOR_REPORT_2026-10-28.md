@@ -10,7 +10,7 @@ Em xin gửi thầy tình hình research hiện tại của dự án.
    server gửi một lần (khoảng 33 MB mỗi client). Teacher không chạy ở client;
    client chỉ gửi LoRA adapter (73.9 MB fp32 mỗi round).
 
-Lý do chọn: trên dev, `method` cho EX cao nhất đồng thời trên cả hai miền,
+Trên dev, `method` cho EX cao nhất đồng thời trên cả hai miền,
 private (Spider) và public (BIRD), trong các cấu hình federated ở bảng dưới.
 
 ## 2. Số EX hiện tại (seed 0)
@@ -90,11 +90,11 @@ Nhận xét:
 
 Cùng recipe, server đổi public dataset từ BIRD sang 3,336 câu SynSQL-2.5M.
 
-| Arm                 | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
-| ------------------- | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
-| `FedAvg`            |          67.60 |        25.68 |       71.50 |     *59.65* | *53.68* | *53.27* |
-| `method_no_teacher` |          69.92 |        28.81 |       72.05 |     *61.02* | *53.09* | *54.58* |
-| **`method`**        |      **70.70** |    **29.79** |       72.99 |     *61.22* | *54.84* | *54.95* |
+| Arm                 | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |       *SYN* |        *DK* |
+| ------------------- | -------------: | -----------: | ----------: | ----------: | ----------: | ----------: |
+| `FedAvg`            |          67.60 |        25.68 |       71.50 |     *59.65* |     *53.68* |     *53.27* |
+| `method_no_teacher` |          69.92 |        28.81 |       72.05 |     *61.02* |     *53.09* |     *54.58* |
+| **`method`**        |      **70.70** |    **29.79** |   **72.99** | ***61.22*** | ***54.84*** | ***54.95*** |
 
 Nhận xét: `method` vẫn hiệu quả khi đổi public dataset. Nó hơn `FedAvg` trên
 mọi tập (Spider test khoảng 1.5 điểm) và hơn `method_no_teacher` trên cả 6
