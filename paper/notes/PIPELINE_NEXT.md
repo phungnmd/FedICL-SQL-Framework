@@ -30,6 +30,9 @@ no seeds 1-2.
 State 2026-10-29: P2.53 seed 1 is published (nested `ce51178`). Next:
 P2.55 and P2.56 (the advisor table), then P2.53 seeds 2 and 0.
 
+State 2026-10-30: P2.56 is published (nested `cfaad25`). P2.57 (CoT
+probe, inference only) runs on whichever GPU is free.
+
 ## Status check (read-only, any time, for example after a server restart)
 
 Prints, for P2.37 `central_mix`/`local` and P2.38-P2.43: which stages are
@@ -48,6 +51,41 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.57: CoT probe, inference only (one GPU, seed 0)
+
+Owner, 2026-10-30 (LAB_LOG). No training. Teacher 7B and base student
+Coder-1.5B write CoT in the OmniSQL layout. T1/T2: 300 SynSQL public rows,
+with the gold SQL as a hidden reference (`rationalize`) and without it
+(`solve`). T3: base student on 200 Spider training rows, one
+rationalization per row and 4 CoT samples (cost of a client round). T4:
+teacher on Spider dev, CoT against the SQL-only prompt. Student parts run
+first (about 1 h), then the teacher (about 3-4 h; estimate). The first
+batch of each part is the VRAM smoke (stops above 21.5 GiB). Rerun the
+same command to resume; finished rows are skipped.
+
+1. Pull, test and run on the free GPU (set `$gpu`). It stops at once if
+   that GPU's lane lock is held. The pull admits only the P2.57 files,
+   Markdown and results, so it is safe while the other GPU runs:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_$gpu.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw "GPU $gpu lane is running" }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/rationale/omnisql_cot\.py|scripts/run_p257_cot_probe\.py|tests/test_p257_cot_probe\.py|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p257_cot_probe.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p257_cot_probe --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.57 failed' } }
+```
+
+   It ends by printing the table (EX, SQL found, truncated, copies of
+   gold, reference leaks, output tokens, seconds per row and per output,
+   peak VRAM) and the T4 pair. Read-only status at any time:
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p257_cot_probe --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+2. Publish once the run has finished (the `files` phase takes the lane
+   lock, so it refuses a running lane):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p257_cot_probe'; $msg="results: record the $exp seed 0 inference probe"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
 
 ## P2.55 and P2.56: FedProx and LLM few-shot rows of the advisor table (seed 0)
 

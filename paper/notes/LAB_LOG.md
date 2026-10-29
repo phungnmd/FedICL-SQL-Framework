@@ -29,6 +29,37 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-30: owner: Spider only; P2.57 CoT probe queued
+
+Owner, 2026-10-30: focus on Spider dev and test; BIRD EX is no longer a
+target. Question: can the server teacher contribute on Spider through
+reasoning (CoT) rather than SQL targets, which match gold on about 95% of
+top-1 tokens?
+
+Reading of the earlier CoT runs (all with the old Qwen2.5-1.5B-Instruct
+student): the P2.10 drop (FL in QP-CoT format, Spider 56.38 vs 62.57
+SQL-only) came from template client plans and CoT at inference, not from
+BIRD; the BIRD-specific part was the weak teacher (47.07 on BIRD, 43.6% of
+plans admitted), which also made P2.15 `dss` lose on SQL row count. An
+outside review (2026-10-30) judged a SynSQL-only SFT screen (CoT vs SQL)
+uninformative: post-K Spider differences have not predicted post-A ones
+(P2.15 `dss` +1.35 after K, -0.97 after A; `goldplan` -3.00, -0.97;
+P2.14 +0.29, +1.84), and the paper needs teacher CoT against student
+self-written CoT, both after Spider training. It also corrected that the
+SynSQL CoT field was written by open-source models, not GPT-4o.
+
+Candidate direction (not adopted): teacher writes CoT on public SynSQL
+with the gold SQL as a hidden reference (OmniSQL CoT synthesis); clients
+rationalize their own gold SQL (STaR) or self-train on sampled CoT; FedAvg.
+
+P2.57 (nested `31a2774`, one GPU, seed 0, inference only) measures what
+decides the next step: T1 teacher and T2 base student CoT on 300 SynSQL
+rows (rationalize and solve), T3 base student cost on 200 Spider training
+rows (one rationalization, K=4 samples), T4 teacher CoT vs SQL-only on
+Spider dev (reference). No reading rule fixed; the training screen
+(server S-gold / S-teacher / S-self, then one Spider pass) is designed
+after P2.57.
+
 ## 2026-10-30: P2.56 teacher 5-shot published
 
 Evidence: nested `cfaad25`. Teacher Qwen2.5-Coder-7B, 4-bit, five fixed
