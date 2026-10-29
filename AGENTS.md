@@ -28,17 +28,12 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
 - Method and claims are fixed in LAB_LOG (FREEZE 2026-10-26 and its two
   2026-10-28 addenda); the paper direction is
   `paper/notes/DIRECTION_PROPOSAL.md` (owner, 2026-10-28).
-- Primary metric (owner, 2026-10-16), fixed for every phase: Spider EX, the
-  clients' private domain (Spider dev in exploration, Spider test at
-  confirmation). BIRD EX (public domain) is secondary: rank options by Spider
-  first; a BIRD gain counts only when Spider EX is not lower, and between
-  options whose Spider EX does not differ the higher BIRD wins. Never trade
-  Spider for BIRD. Every arm still reports both; Spider-Realistic/SYN/DK
-  measure robustness; EM is a diagnostic. In the reverse-roles setting
-  (P2.43: BIRD at the clients, Spider at the server) the primary metric is
-  BIRD EX, the private domain, with Spider secondary under the same rule
-  (owner, 2026-10-17).
-- Spider test (2,147 rows) is only for confirmation (R10). Spider dev, its
+- Metrics (owner, 2026-10-16; loosened 2026-10-29): Spider EX, the
+  clients' private domain, is the default primary metric and BIRD EX (public
+  domain) the secondary one; every arm reports both, with
+  Spider-Realistic/SYN/DK for robustness and EM as a diagnostic. Which
+  metric carries the story is chosen for the strongest paper (owner
+  decides). Spider test (2,147 rows) is the final test set; Spider dev, its
   variants and BIRD dev are development sets.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
@@ -112,9 +107,7 @@ current plan.
   public. P2.43 is built; its Hinton K2 and A1 are published and both chains
   run to A3.
 - 2026-10-23 (LAB_LOG): plan judged by acceptance at a Q3 journal; P2.45
-  not run; P2.44 self-teacher control built and queued; no seed 1-2 or
-  Spider test run until every seed 0 control is in and a freeze entry fixes
-  the method.
+  not run; P2.44 self-teacher control built and queued.
 - 2026-10-25: P2.47 client replay published (`mixkd_k2aaa` A3 Spider
   73.98, BIRD 45.24). P2.48 published (nested `8b79530`): top-50 plus tail
   replay targets match the full ones (`mixkd50_k2aaa` A3 Spider 74.08, BIRD
@@ -137,9 +130,10 @@ current plan.
   `gold_k2aaa`) and C7 (method > FedAvg) on Spider test. E1 and
   replay-ratio sensitivity wait for a revision. 2026-10-29: E2 (0.5B
   student, three seeds) queued again after P2.53 (owner).
-- Retired 2026-10-12: per-experiment pass/fail rules (R1-R6, R11, R12) and
-  the fixed phase E arm list. In force: R10, R13, R8 (confirmation) and R9
-  (reporting). Outcomes recorded under retired rules stand as history.
+- Retired: per-experiment pass/fail rules (R1-R6, R11, R12) and the fixed
+  phase E arm list (2026-10-12); R8, R10 and the seed-count part of R13
+  (owner, 2026-10-29: rules that bind the paper's direction go). Outcomes
+  recorded under retired rules stand as history.
 - Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of
   new runs. P2.16 centralized E1-E4 were never published; do not cite them.
 - Both owner checkouts use `main`.
@@ -223,75 +217,54 @@ current plan.
 
 ## Evidence rules
 
-- Never copy a result into the paper without a checkpoint, config, dataset,
-  seed, prediction file, and Git SHA trail. A result reported only in chat is
-  logged as "not committed" and stays out of the paper.
-- Three rules govern selection (owner, 2026-10-12):
-  1. Exploration is open. On seed 0 and the dev sets, any result may be read
-     and used to choose the next arm, setting, schedule or direction; arms may
-     be added after reading results; no pass/fail rule is written before an
-     exploratory run. Log every run and every choice in LAB_LOG.
-  2. Freeze, then confirm. Before any seed 1-2 run or Spider test
-     evaluation, a dated LAB_LOG entry fixes the method, configuration,
-     comparators, test and claims. Paper claims come only from these
-     confirmation runs, never from the dev numbers that chose them. Nothing
-     in that entry changes after a confirmation result is read.
-  3. Disclose briefly (narrowed by the owner, 2026-10-26). The paper calls
-     dev numbers exploratory and states how many variants and checkpoints
-     were evaluated on dev; it does not report exploratory arms one by one.
-  What rule 2 protects: with about 140 discordant questions per Spider dev
-  contrast, the best of ten variants with no true effect still shows about
-  +1.7 points, and roughly 40% of such searches yield one p<.05.
-- Rules are guidance (owner, 2026-10-27): the selection and reporting
-  rules in this file are guidance, not gates. Choose what makes the paper
-  strongest for a Q3 journal; when a rule and that goal conflict, say so in
-  one line with the trade-off and follow the goal unless the owner says
-  otherwise. Every number in the paper still keeps its evidence trail.
-- Lean exploration, strongest story (owner, 2026-10-26):
-  - Run a control during exploration only when its result could change the
-    method or it is a baseline reviewers will certainly ask for. Skip
-    controls whose outcome would not change what we do next. Do not write
-    readings or criteria before exploratory runs; log what ran and what was
-    chosen, and read the results freely.
-  - The paper carries the strongest story the evidence supports. A claim
-    stays when most of the results that test it support it (for example a
-    teacher gain on Spider dev with a smaller gain of the same sign on
-    Spider test); the main text and appendix hold only results that serve
-    the claims (owner, 2026-10-28, replacing "no claim that a result we
-    hold contradicts").
-  - Kept: a Spider test number is never presented as held-out once a
-    choice (setting, arm, checkpoint, claim) was made by looking at it,
-    unless the paper says so; every number keeps its evidence trail. The
-    owner decides which comparisons and claims the paper reports; the goal
-    is the strongest paper.
-- Screens are seed 0 with paired questions and exact McNemar tests. One Spider
-  question is about 0.1 point; small differences need more seeds before any
-  claim. Paper claims use the three-seed confirmation with the
-  question-clustered test (R13).
+Goal (owner, 2026-10-29): the strongest, most interesting Q3 paper the
+results support. Only three rules are fixed, all about honesty:
+
+- Every number in the paper has a checkpoint, config, dataset, seed,
+  prediction file and Git SHA trail. A result reported only in chat is
+  logged as "not committed" and stays out of the paper until it is
+  committed.
+- The paper never misstates how a number was obtained: every number names
+  its set (dev or test), and a Spider test number is not called held-out
+  once a choice (setting, arm, checkpoint, claim) was made by looking at it.
+- Statistics are computed correctly: pooled seeds use the question-clustered
+  test (per-question mean over seeds, test across questions). Summing
+  discordant pairs over seeds treats correlated question-seed pairs as
+  independent and gives p values that are too small (R13).
+
+Everything else is practice, not rule, and gives way whenever another
+choice makes the paper better (owner, 2026-10-29). Never block an option,
+and never call a result invalid or worthless, because a practice was
+skipped; if a reviewer could object, say so in one line and recommend what
+makes the paper strongest. The owner decides.
+
+- Explore freely: read any result, add arms after reading results, write
+  no pass/fail rule beforehand. Log every run and every choice in LAB_LOG.
+- Run a control only when its result could change the method or reviewers
+  will certainly ask for it (owner, 2026-10-26).
+- A claim stays when most of the results that test it support it; the main
+  text and appendix hold only results that serve the claims; the owner
+  decides which comparisons and claims the paper reports (owner,
+  2026-10-28). Claims and evaluation sets may be added at any time (for
+  example Spider-DK, 2026-10-29).
+- Selection on dev inflates: with about 140 discordant questions per Spider
+  dev contrast, the best of ten variants with no true effect still shows
+  about +1.7 points, one reason dev gains shrink on test. A result that
+  carries the story should hold on more seeds or on test.
+- Screens are seed 0 with paired questions and exact McNemar tests; one
+  Spider question is about 0.1 point. The main claims use three seeds.
+- Claim only what a comparator isolates.
+- Compare central and FL at matched data passes, not only at the final
+  checkpoint; a central run past its peak hides the FL penalty (R9).
 - pass@k on training questions is a ceiling with a gold oracle, not a
   forecast of dev EX (P2.28 lesson).
-- Compare central and FL at matched data passes, not only at the final
-  checkpoint; a central run past its peak hides the FL penalty (rule R9).
-- A subgroup found post hoc on one seed is a hypothesis; confirm it only on
-  seeds that did not generate it (rule R8).
-- Pool seeds with a question-clustered test (per-question mean over seeds,
-  test across questions). Summing discordant pairs over seeds treats
-  correlated question-seed pairs as independent and gives p values that are
-  too small (rule R13). Fix the number of seeds from a power check before any
-  confirmation result; never add seeds because p missed .05.
-- Fix the paper wording for each possible outcome before the confirmation
-  results are read, and claim only what a comparator isolates. A component
-  kept from an earlier version without evidence in the current setting is
-  labeled inherited and is not claimed.
-- Keep a record of how the method was selected (rule dates, data seen,
-  number of checkpoints evaluated on dev); the paper reports it (R13).
-- Resume and cache identities never contain a Git SHA or timestamp.
 
 ## Repository discipline
 
 - Commit paper, docs, and archive changes in this repository; code and results
   inside `fedicl-sql/`. Keep the two histories separate.
 - Preserve old artifact paths and run IDs; presentation names may change.
+- Resume and cache identities never contain a Git SHA or timestamp.
 - Move superseded material to the archive with an index entry instead of
   deleting it. Keep reference PDFs private, outside the releasable inner repo.
 - Make small, logical commits with conventional messages. Commit messages never

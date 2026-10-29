@@ -104,9 +104,7 @@ script from origin, so no pull is needed:
 1b. Seed 0 Spider test of the method and its three trained comparators
    first (owner, 2026-10-28; eval only, the seed-0 adapters are
    published; about 35 min) on an idle GPU (set `$gpu`; the GPU lock
-   refuses a busy card). Run it only after the owner has decided the
-   freeze addenda: the FREEZE entry is binding once a Spider test result
-   is read. Prints the seed-0 Spider test EX and the pairs; the claims
+   refuses a busy card). Prints the seed-0 Spider test EX and the pairs; the claims
    use the pooled three-seed test (step 7). The pull admits only files
    the GPU 0 lane never imports:
 

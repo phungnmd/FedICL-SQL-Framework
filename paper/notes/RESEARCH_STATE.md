@@ -22,14 +22,10 @@ frozen (teacher) và một public dataset khác miền (BIRD). Chỉ deploy SLM.
 > phần lợi ích nào thực sự đến từ teacher, từ public data, hay từ cách sắp
 > xếp các stage?
 
-**Metric chính (owner, 2026-10-16), cố định cho mọi giai đoạn: Spider EX**,
-miền private của client (Spider dev khi thăm dò, Spider test khi xác nhận).
-BIRD EX (miền public) là metric phụ: xếp hạng theo Spider trước; gain BIRD
-chỉ tính là lợi khi Spider không thấp hơn, và giữa các phương án có Spider
-không khác nhau thì BIRD cao hơn là tốt hơn. Không đổi Spider lấy BIRD. Vẫn
-luôn báo cả hai miền. Trong setting đảo vai (P2.43: BIRD private, Spider
-public) metric chính là BIRD EX, miền private, Spider là metric phụ theo
-cùng luật (owner, 2026-10-17).
+**Metric (owner, 2026-10-16, nới 2026-10-29):** mặc định Spider EX (miền
+private của client) là metric chính, BIRD EX (miền public) là metric phụ;
+luôn báo cả hai. Metric nào gánh câu chuyện thì chọn theo cái làm paper
+mạnh nhất (owner quyết định).
 
 ## 2. Setup cố định
 
@@ -44,8 +40,8 @@ cùng luật (owner, 2026-10-17).
   `K[ce]` = gold CE, `K[fkl]` = Hinton (0.5 CE + 0.5 KL, T=2). `A[ntd]` =
   FedNTD ở client (beta 1, tau 3).
 - Eval: Spider dev (1,034) và các bản Realistic, SYN, DK; BIRD dev (1,534).
-  Spider test (2,147) chỉ dùng để xác nhận (R10); seed 0 đã eval cho method
-  và các comparator (LAB_LOG 2026-10-28).
+  Spider test (2,147) là tập test cuối; seed 0 đã eval cho method và các
+  comparator (LAB_LOG 2026-10-28).
 
 ## 3. Những gì đã biết
 
@@ -120,46 +116,39 @@ xem kết quả (luật 1, mục 5).
 ## 5. Giai đoạn và luật đang áp dụng
 
 Giai đoạn hiện tại: **xác nhận** (P2.53, 3 seed, Spider test). Hướng paper
-(owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md). Không mở
-thăm dò mới trên dev.
+(owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
 
-Từ 2026-10-27 các luật dưới đây là hướng dẫn, không phải cổng: chọn cái làm
-paper mạnh nhất. Claim được giữ khi đa số kết quả kiểm nó ủng hộ (owner,
-2026-10-28). Vẫn giữ: không trình bày số Spider test là held-out khi đã chọn
-gì đó dựa trên nó mà paper không nói; mọi số có evidence trail.
+Luật (owner, 2026-10-29): mục tiêu là paper Q3 hay và mạnh nhất mà kết quả
+cho phép. Chỉ giữ cố định ba điều, đều về trung thực:
 
-Ba luật (owner, LAB_LOG 2026-10-12):
+- Mọi số trong paper có evidence trail (checkpoint, config, dataset, seed,
+  file prediction, Git SHA).
+- Paper không nói sai cách có số: mỗi số ghi rõ tập (dev hay test); số
+  Spider test đã dùng để chọn gì thì không gọi là held-out.
+- Thống kê tính đúng: gộp seed bằng question-clustered test, không cộng
+  discordant pair qua các seed (R13).
 
-1. **Thăm dò tự do.** Được đọc mọi kết quả dev ở seed 0 và dùng nó để chọn
-   arm, setting, schedule hay hướng tiếp theo; được thêm arm sau khi xem kết
-   quả; không cần viết luật pass/fail trước một run thăm dò. Mọi run và mọi
-   lựa chọn ghi vào LAB_LOG.
-2. **Chốt rồi mới xác nhận.** Trước khi chạy seed 1-2 hay eval Spider test,
-   một entry có ngày trong LAB_LOG chốt method, cấu hình, comparator, phép
-   kiểm và claim. Claim trong paper chỉ lấy từ các run xác nhận này, không
-   lấy từ số dev đã dùng để chọn. Không sửa entry đó sau khi đọc kết quả xác
-   nhận. Đi kèm luật này:
-   - R10: Spider test chỉ dùng để xác nhận.
-   - R13: gộp seed bằng question-clustered test, 3 seed, không thêm seed sau
-     khi đọc kết quả.
-   - R8: subgroup tìm ra sau (ví dụ JOIN) chỉ là giả thuyết, kiểm trên seed
-     không sinh ra nó.
-3. **Công khai.** Paper ghi đã thử gì trên dev (arm, setting, số checkpoint
-   đã eval) và nói rõ số dev là thăm dò.
+Còn lại là thực hành, nhường chỗ khi cách khác làm paper hay hơn. Không chặn
+lựa chọn nào hay gọi kết quả là "mất giá trị" vì bỏ qua một thực hành; nếu
+reviewer có thể bắt bẻ thì nói một dòng rồi đề xuất cách làm paper mạnh
+nhất. Owner quyết định.
 
-Vì sao giữ luật 2: mỗi so sánh trên Spider dev có khoảng 140 câu lệch nhau,
-nên chọn cái tốt nhất trong 10 biến thể không có tác dụng thật vẫn thấy
-khoảng +1.7 điểm, và khoảng 40% lần tìm như vậy cho ra một p<.05.
+- Thăm dò tự do; mọi run và mọi lựa chọn ghi vào LAB_LOG.
+- Chỉ chạy control khi kết quả của nó có thể đổi method hoặc reviewer chắc
+  chắn sẽ hỏi.
+- Claim giữ khi đa số kết quả kiểm nó ủng hộ (owner 2026-10-28). Claim và
+  tập eval được thêm bất cứ lúc nào (ví dụ Spider-DK, 2026-10-29).
+- Chọn trên dev làm số phồng lên: mỗi so sánh trên Spider dev có khoảng 140
+  câu lệch nhau, nên cái tốt nhất trong 10 biến thể không có tác dụng thật
+  vẫn thấy khoảng +1.7 điểm. Kết quả gánh câu chuyện nên giữ được ở seed
+  khác hoặc trên test.
+- Chỉ claim điều có comparator tách riêng. R9: so central và FL ở cùng số
+  pass, không chỉ checkpoint cuối.
 
-Thực hành báo cáo (không phải luật chọn):
-
-- R9: so central và FL ở cùng số pass, không chỉ checkpoint cuối.
-- Chỉ claim điều có comparator tách riêng; thành phần giữ lại mà không có
-  bằng chứng ở setting hiện tại thì ghi là thừa kế, không claim.
-
-Đã bỏ (2026-10-12): luật pass/fail viết trước cho từng thí nghiệm (R1-R6,
-R11, R12) và danh sách arm cố định của giai đoạn E. Kết quả đã ghi theo các
-luật đó giữ nguyên làm lịch sử.
+Đã bỏ: luật pass/fail viết trước cho từng thí nghiệm (R1-R6, R11, R12) và
+danh sách arm cố định của giai đoạn E (2026-10-12); R8, R10 và phần số seed
+của R13 (2026-10-29: luật ràng buộc hướng bài thì bỏ). Kết quả đã ghi theo
+các luật đó giữ nguyên làm lịch sử.
 
 Mức paper (owner, 2026-10-14): **floor** là paper ứng dụng Q3 chuẩn:
 framework chạy trọn; mỗi thành phần là cơ chế đã công bố có adaptation cho

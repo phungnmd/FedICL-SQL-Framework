@@ -28,6 +28,22 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-29: owner: rules that bind the paper's direction go
+
+Owner: the goal is a strong, interesting paper; rules that bind its
+direction are removed. Fixed from now on are only the evidence trail of
+every number, honest labels (dev or test; a Spider test number used for a
+choice is not called held-out) and correct statistics (question-clustered
+pooling). Removed: R8 (post hoc subgroups confirmed only on other seeds),
+R10 (Spider test only for confirmation), the seed-count part of R13,
+fixing paper wording before confirmation results, the required disclosure
+of dev variants, "never trade Spider for BIRD" (Spider EX stays the
+default primary metric; which metric carries the story is the owner's
+choice). The FREEZE entries stay as the record of the confirmation plan;
+claims and evaluation sets may be added later. Updated: `AGENTS.md`,
+`fedicl-sql/AGENTS.md`, `RESEARCH_STATE.md` section 5,
+`system_architecture.md` section 6.
+
 ## 2026-10-29: what the seed-0 Spider-DK gap of `hinton_k2aaa` over `gold_k2aaa` is
 
 Ad hoc read of the published P2.37 A3 predictions (seed 0), no script.
