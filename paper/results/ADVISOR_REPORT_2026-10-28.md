@@ -125,7 +125,8 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 6 tập (0.2 đến 
    (`method_no_teacher_no_replay`) đã hơn `FedAvg` +1.54 trên Spider test,
    gần bằng `method` (+1.68). Phần thêm vào khi có teacher (`method` so với
    `method_no_teacher`) là +0.56 ở seed 0 và +1.16 ở seed 1, cùng chiều nhưng
-   từng seed chưa significant. Khoảng trống để tăng cũng hẹp: train tập
+   từng seed chưa significant; ước tính thô, kiểm định gộp 3 seed sẽ ở quanh
+   ngưỡng p=.05. Khoảng trống để tăng cũng hẹp: train tập
    trung không privacy trên Spider + BIRD (`central_spider_bird`, 73.78)
    chỉ hơn `method_no_teacher_no_replay` (73.03) 0.75 điểm trên Spider test.
    Trong khi đó teacher zero-shot đạt 77.22 trên Spider test, hơn `method`
@@ -136,9 +137,25 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 6 tập (0.2 đến 
    giảm. Ở seed 1, phần so với `method_no_replay` vẫn lớn (+6.91, p<.001),
    phần so với `method_no_teacher` nhỏ lại (+1.63, p=.12). BIRD là metric
    phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ.
+   Nếu gộp 3 seed phần so với `method_no_teacher` yếu, phần chắc nhất còn
+   lại là replay so với không replay, và reviewer sẽ hỏi lợi đến từ target
+   của teacher hay chỉ từ việc replay public data.
 4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
    teacher.** Phần riêng của teacher cùng chiều trên cả 6 tập nhưng nhỏ
    (+0.2 đến +1.7; Spider test +0.93, p=.10), chưa significant.
+5. **Khó tăng thêm phần teacher trên Spider trong setup hiện tại.**
+   - Không phải do FL: trên Spider test, `FedAvg` ngang `central_spider`
+     (71.50 so với 71.08) và `method` ngang `central_spider_bird` (73.17 so
+     với 73.78, p=.46).
+   - Chủ yếu do setup dữ liệu: client đã có đủ 8,659 câu gold Spider, còn
+     teacher chỉ đưa kiến thức qua BIRD. Trên BIRD, top-1 của teacher trùng
+     gold ở 94.8% token, nên tín hiệu thêm so với gold mỏng. Phần teacher
+     hơn gold trên Spider tạo ra ở warm-start (+3.19 Spider dev) co lại qua
+     các round private (round 3: +2.12 dev, +0.47 test).
+   - Teacher 7B chỉ hơn `central_spider_bird` 3.4 điểm trên Spider test;
+     teacher lớn hơn thì vượt quá 2 GPU. Đổi public dataset sang SynSQL,
+     gần Spider hơn, cũng không làm phần teacher lớn hơn (warm-start: -0.19
+     Spider dev).
 
 ## 6. Kế hoạch
 
