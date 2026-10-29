@@ -28,6 +28,18 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-29: P2.54 `gmixgold_k2aaa` A3 Spider test (SynSQL pool)
+
+Evidence: `scripts.status_p254 --seed 0 --spider-test` on the server, not
+committed yet (publication pending). Owner asked for it once the rules
+were loosened; it had been deferred until a reviewer asked (2026-10-28).
+
+- `gmixgold_k2aaa` Spider test 72.05; method minus it +0.93 (76/56,
+  p=.098). With the SynSQL pool the method is now ahead of the matched
+  no-teacher arm on all six sets (+0.20 to +1.74, none p<.05). With the
+  BIRD pool the same Spider test contrast is +0.56 (seed 0) and +1.16
+  (seed 1).
+
 ## 2026-10-29: owner: rules that bind the paper's direction go
 
 Owner: the goal is a strong, interesting paper; rules that bind its

@@ -101,13 +101,13 @@ dev là miền chưa thấy khi train.
 | Arm                 | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
 | ------------------- | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
 | `FedAvg`            |          67.60 |        25.68 |       71.50 |     *59.65* | *53.68* | *53.27* |
-| `method_no_teacher` |          69.92 |        28.81 |             |     *61.02* | *53.09* | *54.58* |
+| `method_no_teacher` |          69.92 |        28.81 |       72.05 |     *61.02* | *53.09* | *54.58* |
 | **`method`**        |      **70.70** |    **29.79** |       72.99 |     *61.22* | *54.84* | *54.95* |
 
 Nhận xét: `method` vẫn hiệu quả khi đổi public dataset. Nó hơn `FedAvg` trên
 mọi tập, rõ nhất ở Spider dev (3.1 điểm), BIRD dev (4.1 điểm) và Spider
-test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đến 1.7
-điểm).
+test (1.5 điểm), và hơn `method_no_teacher` trên cả 6 tập (0.2 đến 1.7
+điểm; Spider test +0.93).
 
 ## 5. Vấn đề
 
@@ -130,8 +130,8 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đ�
    phần so với `method_no_teacher` nhỏ lại (+1.63, p=.12). BIRD là metric
    phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ.
 4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
-   teacher.** Phần riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ
-   (+0.2 đến +1.7), chưa significant.
+   teacher.** Phần riêng của teacher cùng chiều trên cả 6 tập nhưng nhỏ
+   (+0.2 đến +1.7; Spider test +0.93, p=.10), chưa significant.
 
 ## 6. Kế hoạch
 
