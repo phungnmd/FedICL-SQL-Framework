@@ -33,7 +33,7 @@ private (Spider) và public (BIRD), trong các cấu hình federated ở bảng 
 | *Tham chiếu không federated*  |                |              |             |             |         |         |
 | `central_spider`              |          71.37 |        25.75 |       71.08 |     *61.61* | *56.00* | *58.50* |
 | `central_spider_bird`         |          73.21 |        43.68 |       73.78 |     *62.99* | *58.90* | *58.69* |
-| `teacher_7b`                  |          76.69 |        47.07 |             |     *71.06* | *63.83* | *62.43* |
+| `teacher_7b`                  |          76.69 |        47.07 |       77.22 |     *71.06* | *63.83* | *62.43* |
 
 BIRD dev qua các round:
 
@@ -121,6 +121,9 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đ�
    từng seed chưa significant. Khoảng trống để tăng cũng hẹp: train tập
    trung không privacy trên Spider + BIRD (`central_spider_bird`, 73.78)
    chỉ hơn `method_no_teacher_no_replay` (73.03) 0.75 điểm trên Spider test.
+   Trong khi đó teacher zero-shot đạt 77.22 trên Spider test, hơn `method`
+   +4.05 (seed 0) và +2.65 (seed 1), hơn cả `central_spider_bird` +3.45:
+   trên Spider, teacher vẫn cao hơn mọi student đã train.
 3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Ở seed 0, teacher
    giữ BIRD hơn +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không
    giảm. Ở seed 1, phần so với `method_no_replay` vẫn lớn (+6.91, p<.001),
@@ -133,8 +136,8 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đ�
 ## 6. Kế hoạch
 
 1. Hết seed 1 và seed 2 cho method và các comparator; FedCoLLM-style ở cả 3
-   seed; `FedAvg` và `method_no_teacher_no_replay` ở seed 1-2; `teacher_7b` trên Spider
-   test (khoảng 2 ngày GPU).
+   seed; `FedAvg` và `method_no_teacher_no_replay` ở seed 1-2 (khoảng 2 ngày
+   GPU).
 2. Kiểm định gộp 3 seed (question-clustered test).
 3. Student 0.5B, 3 seed: `method`, `method_no_teacher`, `method_no_replay`,
    `FedAvg` (thêm khoảng 2 ngày GPU).

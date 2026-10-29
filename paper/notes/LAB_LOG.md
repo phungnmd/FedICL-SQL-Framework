@@ -21,12 +21,38 @@ Older detail:
   [`PIPELINE_NEXT.md`](PIPELINE_NEXT.md).
 - Seed 0 Spider test is in for the method, its three trained comparators,
   FedAvg and `gold_k2aaa` (entry below), and for the step 1c reference
-  rows (nested `0704737`). P2.53 seed 1 runs on GPU 0; GPU 1 is free
-  for FedCoLLM-style seed 1.
+  rows (nested `0704737`), and for the teacher zero-shot (77.22, nested
+  `c3e3961`, entry 2026-10-29). P2.53 seed 1 runs on both GPUs.
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-29: P2.53 step 6d, teacher zero-shot on Spider test
+
+Evidence: nested `c3e3961` (`p253teacher_zeroshot` predictions, run
+manifest). Qwen2.5-Coder-7B-Instruct without adapter, 4-bit, the P2.53
+Spider test contract, evaluation batch 16 (its Spider dev 76.69 was
+measured at batch 1). Reference row, not a claim; the owner asked for it
+for the advisor report.
+
+Teacher Spider test EX **77.22** (2,147 questions). Exact McNemar,
+teacher minus each row (teacher-only correct / row-only correct):
+
+| Row | Spider test | Teacher minus | Teacher-only / row-only | p |
+|---|---:|---:|---:|---:|
+| method, seed 0 | 73.17 | +4.05 | 215/128 | 3.1e-6 |
+| method, seed 1 | 74.57 | +2.65 | 195/138 | .002 |
+| `central_mix` E3 (seed 0) | 73.78 | +3.45 | 207/133 | 7.1e-5 |
+| `gold_k2aaa` A3 (seed 0) | 73.03 | +4.19 | 224/134 | 2.3e-6 |
+| FedAvg A3 (seed 0) | 71.50 | +5.73 | 260/137 | 6.8e-10 |
+
+- The teacher stays above every trained student on the clients' private
+  domain, including pooled Spider + BIRD training without privacy
+  (+3.45). At seed 0 the method closes 1.68 of the 5.73-point
+  FedAvg-to-teacher gap on Spider test (29%).
+- VRAM: smoke on the 32 longest prompts 15,972 MB, full run 18,352 MB
+  peak reserved; about 0.83 s per question.
 
 ## 2026-10-29: owner: E2 (Coder-0.5B student) back in the queue
 
