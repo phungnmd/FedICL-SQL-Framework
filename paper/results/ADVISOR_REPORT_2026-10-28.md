@@ -126,8 +126,7 @@ tập, nhưng phần hơn `method_no_teacher` nhỏ.
    là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
    metric phụ. Nếu sau 3 seed phần hơn `method_no_teacher` vẫn không rõ,
    điều chắc nhất còn lại là replay so với không replay, và reviewer sẽ hỏi
-   lợi đến từ target
-   của teacher hay chỉ từ việc replay public data.
+   lợi đến từ target của teacher hay chỉ từ việc replay public data.
 4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
    teacher.** Phần riêng của teacher vẫn cùng chiều trên cả 6 tập nhưng nhỏ,
    khoảng 1 điểm trên Spider test.
