@@ -283,8 +283,9 @@ their set named (dev or test).
 ## 2026-10-28: P2.53 seed-0 Spider test; paper direction after an outside review
 
 Evidence: P2.53 step 1b on the server (`scripts/status_p253.py --seed 0`),
-not committed yet. Spider test, 2,147 questions, seed 0, exact McNemar
-against the method.
+published 2026-10-30 (nested `f51a9a1`; Spider test EM: method 64.00,
+`gmixgold_k2aaa` 63.58, `hinton_k2aaa` 64.46, `k2plus_aaa` 64.09). Spider
+test, 2,147 questions, seed 0, exact McNemar against the method.
 
 | Arm | Spider dev A3 | Spider test A3 | Method minus (test) | Wins/Losses | p |
 |---|---:|---:|---:|---:|---:|
