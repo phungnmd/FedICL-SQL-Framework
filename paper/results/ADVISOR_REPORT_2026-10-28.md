@@ -19,21 +19,21 @@ private (Spider) và public (BIRD), trong các cấu hình federated ở bảng 
 
 ## 2. Số EX hiện tại (seed 0)
 
-| Arm                           | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
-| ----------------------------- | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
-| `base`                        |          59.19 |        21.32 |       57.94 |     *46.26* | *45.94* | *47.66* |
-| `single_client`               |          65.49 |        22.96 |       67.27 |             |         |         |
-| `FedAvg`                      |          67.60 |        25.68 |       71.50 |     *59.65* | *53.68* | *53.27* |
-| `FedNTD`                      |          67.79 |        24.32 |       69.68 |     *57.09* | *53.38* | *51.96* |
-| `method_no_teacher_no_replay` |          70.41 |        40.03 |       73.03 |     *61.22* | *56.38* | *52.34* |
-| `method_no_teacher`           |          71.57 |        41.26 |       72.61 |     *62.01* | *55.13* | *53.83* |
-| `method_no_replay`            |          72.53 |        38.53 |       73.50 |     *61.81* | *56.38* | *58.32* |
-| `method_replay_at_server`     |          73.21 |        37.81 |       73.87 |     *62.01* | *58.80* | *57.57* |
-| **`method`**                  |      **74.08** |    **44.78** |       73.17 |     *63.58* | *58.70* | *57.20* |
-| *Tham chiếu không federated*  |                |              |             |             |         |         |
-| `central_spider`              |          71.37 |        25.75 |       71.08 |     *61.61* | *56.00* | *58.50* |
-| `central_spider_bird`         |          73.21 |        43.68 |       73.78 |     *62.99* | *58.90* | *58.69* |
-| `teacher_7b`                  |          76.69 |        47.07 |             |     *71.06* | *63.83* | *62.43* |
+| Arm                          | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
+| ---------------------------- | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
+| `base`                       |          59.19 |        21.32 |       57.94 |     *46.26* | *45.94* | *47.66* |
+| `single_client`              |          65.49 |        22.96 |       67.27 |             |         |         |
+| `FedAvg`                     |          67.60 |        25.68 |       71.50 |     *59.65* | *53.68* | *53.27* |
+| `FedNTD`                     |          67.79 |        24.32 |       69.68 |     *57.09* | *53.38* | *51.96* |
+| `fedavg_gold_warmstart`      |          70.41 |        40.03 |       73.03 |     *61.22* | *56.38* | *52.34* |
+| `method_no_teacher`          |          71.57 |        41.26 |       72.61 |     *62.01* | *55.13* | *53.83* |
+| `method_no_replay`           |          72.53 |        38.53 |       73.50 |     *61.81* | *56.38* | *58.32* |
+| `method_replay_at_server`    |          73.21 |        37.81 |       73.87 |     *62.01* | *58.80* | *57.57* |
+| **`method`**                 |      **74.08** |    **44.78** |       73.17 |     *63.58* | *58.70* | *57.20* |
+| *Tham chiếu không federated* |                |              |             |             |         |         |
+| `central_spider`             |          71.37 |        25.75 |       71.08 |     *61.61* | *56.00* | *58.50* |
+| `central_spider_bird`        |          73.21 |        43.68 |       73.78 |     *62.99* | *58.90* | *58.69* |
+| `teacher_7b`                 |          76.69 |        47.07 |             |     *71.06* | *63.83* | *62.43* |
 
 BIRD dev qua các round:
 
@@ -132,11 +132,11 @@ virtual +6.09, Hinton - self +4.26 ở warm-start).
    72.6-73.9 trên test, chênh nhau trong mức nhiễu của một seed. Một phần là
    do method được chọn trên chính Spider dev.
 2. **Teacher đóng góp nhỏ trên Spider (miền private).** Phần lớn mức tăng
-   so với FedAvg đến từ public data ở server (`method_no_teacher_no_replay` - FedAvg
+   so với FedAvg đến từ public data ở server (`fedavg_gold_warmstart` - FedAvg
    +1.54, p=.042). Phần riêng của teacher trên Spider test là +0.56 (seed 0)
    và +1.16 (seed 1, p=.065), cùng chiều nhưng từng seed chưa significant.
    Chỗ trống trên Spider test hẹp: `central_spider_bird` (73.78) chỉ hơn
-   `method_no_teacher_no_replay` (73.03) +0.75 (p=.37), trong khi trên dev khoảng này là
+   `fedavg_gold_warmstart` (73.03) +0.75 (p=.37), trong khi trên dev khoảng này là
    +2.80 (p=.016).
 3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Teacher giữ BIRD hơn
    +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không giảm. Nhưng BIRD
@@ -150,7 +150,7 @@ virtual +6.09, Hinton - self +4.26 ở warm-start).
 ## 7. Kế hoạch
 
 1. Hết seed 1 và seed 2 cho method và các comparator; FedCoLLM-style ở cả 3
-   seed; `FedAvg` và `method_no_teacher_no_replay` ở seed 1-2; `teacher_7b` trên Spider
+   seed; `FedAvg` và `fedavg_gold_warmstart` ở seed 1-2; `teacher_7b` trên Spider
    test (khoảng 2 ngày GPU).
 2. Kiểm định gộp 3 seed (question-clustered test).
 3. Student 0.5B, 3 seed: `method`, `method_no_teacher`, `method_no_replay`,
