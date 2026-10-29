@@ -92,10 +92,10 @@ Nhận xét:
   FedCoLLM-style (đang chạy), `FedAvg` và `method_no_teacher_no_replay`
   (chưa chạy).
 
-## 4. Robustness theo public pool (SynSQL-2.5M, seed 0)
+## 4. Đổi proxy dataset sang SynSQL-2.5M (seed 0)
 
-Cùng recipe, server đổi public pool từ BIRD sang 3,336 câu SynSQL-2.5M (cùng
-số token SQL với BIRD pool). Ở setting này server không dùng BIRD, nên BIRD
+Cùng recipe, server đổi proxy dataset từ BIRD sang 3,336 câu SynSQL-2.5M
+(cùng số token SQL với BIRD pool). Ở setting này server không dùng BIRD, nên BIRD
 dev là miền chưa thấy khi train.
 
 | Arm                 | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
@@ -104,7 +104,7 @@ dev là miền chưa thấy khi train.
 | `method_no_teacher` |          69.92 |        28.81 |             |     *61.02* | *53.09* | *54.58* |
 | **`method`**        |      **70.70** |    **29.79** |       72.99 |     *61.22* | *54.84* | *54.95* |
 
-Nhận xét: `method` vẫn hiệu quả khi đổi public pool. Nó hơn `FedAvg` trên
+Nhận xét: `method` vẫn hiệu quả khi đổi proxy dataset. Nó hơn `FedAvg` trên
 mọi tập, rõ nhất ở Spider dev (3.1 điểm), BIRD dev (4.1 điểm) và Spider
 test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đến 1.7
 điểm).
@@ -145,26 +145,24 @@ virtual +6.09, Hinton - self +4.26 ở warm-start).
 
 ## 6. Vấn đề
 
-1. **Lợi thế trên Spider co lại ở test.** Trên dev method hơn FedAvg +6.48,
-   trên test chỉ còn +1.68. Các arm có server warm-start đều nằm trong
-   72.6-73.9 trên test, chênh nhau trong mức nhiễu của một seed. Một phần là
-   do method được chọn trên chính Spider dev.
-2. **Teacher đóng góp nhỏ trên Spider (miền private).** Phần lớn mức tăng
-   so với FedAvg đến từ public data ở server (`method_no_teacher_no_replay` - FedAvg
-   +1.54, p=.042). Phần riêng của teacher trên Spider test là +0.56 (seed 0)
-   và +1.16 (seed 1, p=.065), cùng chiều nhưng từng seed chưa significant.
-   Chỗ trống trên Spider test hẹp: `central_spider_bird` (73.78) chỉ hơn
-   `method_no_teacher_no_replay` (73.03) +0.75 (p=.37), trong khi trên dev khoảng này là
-   +2.80 (p=.016).
+1. **EX trên Spider test (tập eval được public sau) không cao như trên dev,
+   dù vẫn dương.** `method` hơn `FedAvg` +6.48 trên Spider dev nhưng chỉ
+   +1.68 trên Spider test.
+2. **Teacher đóng góp nhỏ trên Spider.** Chỉ cần server train gold trên BIRD
+   (`method_no_teacher_no_replay`) đã hơn `FedAvg` +1.54 trên Spider test,
+   gần bằng `method` (+1.68). Phần thêm vào khi có teacher (`method` so với
+   `method_no_teacher`) là +0.56 ở seed 0 và +1.16 ở seed 1, cùng chiều nhưng
+   từng seed chưa significant. Khoảng trống để tăng cũng hẹp: train tập
+   trung không privacy trên Spider + BIRD (`central_spider_bird`, 73.78)
+   chỉ hơn `method_no_teacher_no_replay` (73.03) 0.75 điểm trên Spider test.
 3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Ở seed 0, teacher
    giữ BIRD hơn +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không
    giảm. Ở seed 1, phần so với `method_no_replay` vẫn lớn (+6.91, p<.001),
    phần so với `method_no_teacher` nhỏ lại (+1.63, p=.12). BIRD là metric
    phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ.
-4. **Setting phụ chưa làm rõ thêm phần của teacher.** Với SynSQL, phần
-   riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ (+0.2 đến +1.7),
-   chưa significant. Đảo vai (BIRD private, Spider public) thì replay không
-   giúp miền private (BIRD -1.69, p=.061), em để ngoài phần xác nhận.
+4. **Setting đổi proxy dataset sang SynSQL chưa làm rõ thêm phần của
+   teacher.** Phần riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ
+   (+0.2 đến +1.7), chưa significant.
 
 ## 7. Kế hoạch
 
@@ -178,8 +176,7 @@ virtual +6.09, Hinton - self +4.26 ở warm-start).
 
 ## 8. Em xin ý kiến thầy
 
-1. Với kết quả như trên, câu chuyện "framework hơn FedAvg, teacher giữ kiến
-   thức public domain qua các round FL mà không giảm miền private" có đủ cho
-   một journal Q3 không?
-2. Hay em nên tìm một setting mà teacher giúp rõ hơn trên miền private trước
-   khi viết?
+1. Em nhờ thầy review giúp: với kết quả hiện tại, method đã đủ mạnh để chốt
+   và viết bài theo hướng thầy đã góp ý chưa?
+2. Phần đóng góp của teacher chưa cao, nhất là trên Spider. Em nên tiếp tục
+   research để tăng khả năng của method, hay bắt đầu viết bài?
