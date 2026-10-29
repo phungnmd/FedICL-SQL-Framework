@@ -287,3 +287,25 @@ makes the paper strongest. The owner decides.
 - Replies in Vietnamese keep common technical terms in English (pipeline,
   prompt, token, fallback, ablation, and similar).
 - No emojis. No em dashes; use commas, parentheses, colons, or hyphens.
+
+## Writing reports for the advisor
+
+Learned from the owner's edits to the 2026-10-29 advisor report. The
+advisor knows the project; the report gives results and the points to
+decide, not the lab's reasoning.
+
+- Tables carry the numbers. A remark states the conclusion in plain words
+  (for example "cùng chiều nhưng chưa tăng rõ rệt trên Spider test") and
+  does not repeat the table's numbers or compare seeds one by one.
+- In result tables, bold the best value of each column among the federated
+  arms, also when it is not the method, and the best reference value.
+- No p-values, significance forecasts or test names in remarks and
+  discussion points.
+- No selection or methodology commentary (which seed or set chose what) and
+  no list of runs still missing; the plan section covers progress.
+- A changed setting gets one sentence on what changed; leave out
+  implementation details (token budgets) and consequences the reader can
+  infer.
+- The discussion section is "Các điểm cần cân nhắc", not "Vấn đề". Each
+  point gives the fact, the few numbers it rests on, and one plain
+  explanation, not an arithmetic breakdown.
