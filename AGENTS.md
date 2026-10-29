@@ -58,19 +58,18 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   direction on whether its evidence can hold. Only the wording stays limited:
   no "first" claims and no hiding the closest prior work
   (`paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`).
-- Floor and aim (owner, 2026-10-14). Q3 is an applied venue. The floor is a
-  standard Q3 applied paper: the federated framework works end to end; each
-  component is a published mechanism with a task-specific adaptation; the
-  teacher contribution is measured against the matched gold bootstrap at the
-  final endpoint and confirmed over the three seeds; components may simply add
-  up (no synergy required); controls and dev exploration are reported. The
-  aim is above Q3 when a direction within the constraints can reach it, for
-  example a mechanism whose gain depends on the federated structure (a client
-  method that enlarges the teacher contribution) or a confirmed account of
-  where the teacher's knowledge goes during FL. Pursue the aim only with
-  evidence. Never drop, down-rank or delay a direction that reaches the floor
-  because it misses the aim, and judge any fallback against the floor. A
-  story below the floor (teacher as an ablation) stays ruled out.
+- Judging the Q3 bar (owner, 2026-10-29; replaces the 2026-10-14 floor and
+  aim). No fixed checklist says when the paper is good enough. When asked
+  whether a result, the method or the story is strong enough, judge it as an
+  impartial reviewer at the target journals would (venues in
+  `paper/notes/DIRECTION_PROPOSAL.md`): compare with recent papers in
+  federated learning, LLM-to-SLM distillation and Text-to-SQL that such
+  venues accept (baselines, data-matched controls, seeds, datasets, effect
+  sizes, efficiency results), and say with the numbers what a reviewer would
+  likely accept, question or reject. Name the weaknesses plainly, also when
+  they argue against the current direction. Do not lower the bar to fit the
+  results, and do not raise it beyond what those venues ask. The owner
+  decides.
 
 ## Read first
 

@@ -150,13 +150,11 @@ danh sách arm cố định của giai đoạn E (2026-10-12); R8, R10 và phầ
 của R13 (2026-10-29: luật ràng buộc hướng bài thì bỏ). Kết quả đã ghi theo
 các luật đó giữ nguyên làm lịch sử.
 
-Mức paper (owner, 2026-10-14): **floor** là paper ứng dụng Q3 chuẩn:
-framework chạy trọn; mỗi thành phần là cơ chế đã công bố có adaptation cho
-federated Text-to-SQL; đóng góp của teacher đo so với gold bootstrap cùng
-lịch ở endpoint cuối và xác nhận qua 3 seed; các thành phần chỉ cần cộng
-thêm lợi ích, không bắt buộc synergy; báo đủ control và quá trình thăm dò.
-**Aim** trên Q3 khi có bằng chứng, ví dụ method phía client làm khoảng
-teacher-gold lớn hơn. Không bỏ, hạ hay hoãn một hướng đạt floor chỉ vì nó
-chưa đạt aim; fallback được đánh giá theo floor. Câu chuyện dưới floor
-(teacher chỉ là ablation) vẫn bị loại. K2AAA đơn thuần là baseline mạnh
-nhất mà method phải vượt (owner 2026-10-13).
+Mức paper (owner, 2026-10-29, thay floor/aim ngày 2026-10-14): không có
+checklist cố định. Khi đánh giá kết quả hay câu chuyện có đủ cho Q3 không,
+agent xét công tâm như reviewer của các journal mục tiêu: so với các paper
+gần đây cùng mảng mà những journal đó nhận, nói rõ bằng số điểm mạnh và điểm
+yếu, không hạ chuẩn cho vừa kết quả, không nâng quá mức journal đòi. Owner
+quyết. Câu chuyện teacher chỉ là ablation vẫn không đạt mục tiêu paper.
+K2AAA đơn thuần là baseline mạnh nhất mà method phải vượt (owner
+2026-10-13).
