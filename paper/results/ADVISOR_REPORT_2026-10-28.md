@@ -61,18 +61,36 @@ Nhận xét:
 | Arm                 | Seed | **Spider dev** | **BIRD dev** | Spider test | *Realistic* |   *SYN* |    *DK* |
 | ------------------- | ---: | -------------: | -----------: | ----------: | ----------: | ------: | ------: |
 | `method`            |    0 |          74.08 |        44.78 |       73.17 |     *63.58* | *58.70* | *57.20* |
-| `method`            |    1 |                |              |       74.57 |             |         |         |
+| `method`            |    1 |          73.21 |        43.68 |       74.57 |     *62.99* | *60.06* | *57.38* |
 | `method_no_teacher` |    0 |          71.57 |        41.26 |       72.61 |     *62.01* | *55.13* | *53.83* |
-| `method_no_teacher` |    1 |           71.5 |         42.0 |       73.40 |      *60.6* |  *59.0* |  *55.5* |
+| `method_no_teacher` |    1 |          71.47 |        42.05 |       73.40 |     *60.63* | *58.99* | *55.51* |
+| `method_no_replay`  |    0 |          72.53 |        38.53 |       73.50 |     *61.81* | *56.38* | *58.32* |
+| `method_no_replay`  |    1 |          72.82 |        36.77 |       74.10 |     *61.81* | *58.12* | *58.13* |
+
+`method` trừ từng arm:
+
+| Method trừ          | Seed | Spider test | Spider dev | BIRD dev |
+| ------------------- | ---: | ----------: | ---------: | -------: |
+| `method_no_teacher` |    0 |       +0.56 |      +2.51 |    +3.52 |
+| `method_no_teacher` |    1 |       +1.16 |      +1.74 |    +1.63 |
+| `method_no_replay`  |    0 |       -0.33 |      +1.55 |    +6.26 |
+| `method_no_replay`  |    1 |       +0.47 |      +0.39 |    +6.91 |
 
 Nhận xét:
 
-- `method_no_teacher` ở seed 1 gần như seed 0 trên mọi tập (Spider dev 71.5
-  so với 71.57, BIRD dev 42.0 so với 41.26).
+- **Teacher** (`method` - `method_no_teacher`): dương trên cả 6 tập ở cả
+  hai seed. Trên Spider test seed 1 lớn hơn seed 0 (+1.16 so với +0.56).
+  Trên BIRD dev seed 1 nhỏ hơn (+1.63 so với +3.52). Từng seed riêng chưa
+  significant trên Spider test; kiểm định gộp 3 seed sẽ quyết định.
+- **Replay** (`method` - `method_no_replay`): BIRD dev hơn +6.26 và +6.91,
+  Spider test không giảm (-0.33 và +0.47).
 - `method` seed 1 đạt 74.57 trên Spider test, cao nhất trong mọi run đến
-  nay, hơn `method_no_teacher` 1.2 điểm (seed 0: 0.6 điểm). Phần của
-  teacher trên Spider test dương ở cả hai seed, seed 1 lớn hơn.
-- Đang chạy ở seed 1: `method_no_replay`, `method_replay_at_server`, FedCoLLM-style.
+  nay. Spider dev seed 1 thấp hơn seed 0 (73.21 so với 74.08); method được
+  chọn trên Spider dev của seed 0, nên số dev seed 1 là ước lượng không bị
+  ảnh hưởng bởi việc chọn.
+- Chưa có ở seed 1: `method_replay_at_server` (đang chạy round 1),
+  FedCoLLM-style (đang chạy), `FedAvg` và `method_no_teacher_no_replay`
+  (chưa chạy).
 
 ## 4. Robustness theo public pool (SynSQL-2.5M, seed 0)
 
@@ -138,10 +156,11 @@ virtual +6.09, Hinton - self +4.26 ở warm-start).
    Chỗ trống trên Spider test hẹp: `central_spider_bird` (73.78) chỉ hơn
    `method_no_teacher_no_replay` (73.03) +0.75 (p=.37), trong khi trên dev khoảng này là
    +2.80 (p=.016).
-3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Teacher giữ BIRD hơn
-   +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không giảm. Nhưng BIRD
-   là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
-   metric phụ.
+3. **Đóng góp rõ của teacher nằm ở BIRD (miền public).** Ở seed 0, teacher
+   giữ BIRD hơn +3.5 đến +7 điểm ở mọi so sánh (p<.001) mà Spider không
+   giảm. Ở seed 1, phần so với `method_no_replay` vẫn lớn (+6.91, p<.001),
+   phần so với `method_no_teacher` nhỏ lại (+1.63, p=.12). BIRD là metric
+   phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ.
 4. **Setting phụ chưa làm rõ thêm phần của teacher.** Với SynSQL, phần
    riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ (+0.2 đến +1.7),
    chưa significant. Đảo vai (BIRD private, Spider public) thì replay không

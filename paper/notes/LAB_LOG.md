@@ -53,20 +53,30 @@ added as a descriptive reference row.
 
 Evidence: `scripts.status_p253 --seed 1` and the lane log on the server,
 not committed yet (the seed 1 publication follows the lane). Spider test,
-2,147 questions, exact McNemar against the method.
+2,147 questions, exact McNemar against the method. Updated 2026-10-29 with
+the dev sets and `hinton_k2aaa`.
 
 | Arm, seed 1 | Spider test | Spider dev | BIRD dev | Realistic | SYN | DK |
 |---|---:|---:|---:|---:|---:|---:|
-| `mixkd50_k2aaa` (method) | 74.57 | | | | | |
-| `gmixgold_k2aaa` | 73.40 | 71.5 | 42.0 | 60.6 | 59.0 | 55.5 |
+| `mixkd50_k2aaa` (method) | 74.57 | 73.21 | 43.68 | 62.99 | 60.06 | 57.38 |
+| `gmixgold_k2aaa` | 73.40 | 71.47 | 42.05 | 60.63 | 58.99 | 55.51 |
+| `hinton_k2aaa` | 74.10 | 72.82 | 36.77 | 61.81 | 58.12 | 58.13 |
 
-- C1 contrast at seed 1: +1.16 (97/72, p=.065); seed 0 +0.56 (103/91,
-  p=.43). Same sign on both seeds. The frozen claim uses the pooled
-  three-seed question-clustered test after seed 2.
+| Method minus, seed 1 | Spider test | Spider dev | BIRD dev |
+|---|---|---|---|
+| `gmixgold_k2aaa` (C1, C2) | +1.16 (97/72, p=.065) | +1.74 (55/37, p=.076) | +1.63 (130/105, p=.12) |
+| `hinton_k2aaa` (C3) | +0.47 (80/70, p=.46) | +0.39 (38/34, p=.72) | +6.91 (183/77, p<1e-10) |
+
+- C1 at seed 0 was +0.56 (103/91, p=.43): same sign on both seeds. C2
+  (BIRD) fell from +3.52 at seed 0 to +1.63; C3 holds (+6.26, +6.91) with
+  Spider test level (-0.33, +0.47). The method is ahead of
+  `gmixgold_k2aaa` on all six sets at both seeds. The frozen claims use
+  the pooled three-seed question-clustered test after seed 2.
 - `gmixgold_k2aaa` seed 1 is close to seed 0 (Spider test +0.79, Spider
-  dev -0.07, BIRD dev +0.74); the method moves +1.40 from seed 0.
-- The method's seed 1 dev evaluations are in the lane log; recorded with
-  the seed 1 publication.
+  dev -0.10, BIRD dev +0.79); the method moves +1.40 on Spider test and
+  -0.87 on Spider dev, the dev set it was selected on at seed 0.
+- Seed 1 still missing: `k2plus_aaa` (running, A1), FedCoLLM-style
+  (running, K3), FedAvg and `gold_k2aaa` (runner not built, step 6b).
 
 ## 2026-10-28: P2.53 step 1c reference rows on Spider test
 
