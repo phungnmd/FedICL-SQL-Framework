@@ -22,11 +22,36 @@ Older detail:
 - Seed 0 Spider test is in for the method, its three trained comparators,
   FedAvg and `gold_k2aaa` (entry below), and for the step 1c reference
   rows (nested `0704737`), and for the teacher zero-shot (77.22, nested
-  `c3e3961`, entry 2026-10-29). P2.53 seed 1 runs on both GPUs.
+  `c3e3961`, entry 2026-10-29). P2.53 seed 1 is published (nested
+  `ce51178`); seeds 2 and 0 (step 5) are next, after P2.55 and P2.56.
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
+
+## 2026-10-29: owner: FedProx and LLM few-shot rows for the advisor table
+
+The advisor asked for the results in the table of outline section 4.2
+(Method, EM, EX, trainable parameters, latency; rows Centralized SLM,
+FedAvg-SLM, FedProx-SLM, Federated LLM, LLM few-shot, FedLS-SQL). Owner
+decision: run the two missing rows that need no new training recipe,
+leave Federated LLM out for now, report Spider test as EX and EM with the
+dev sets as extra columns. Runners built (nested `4f71bf7`, `0358c41`,
+docs `a645698`), seed 0, not run yet:
+
+- P2.55 `fedprox` (FedProx, Li et al., MLSys 2020): the P2.27 FedAvg
+  command (Spider only, `alpha_0.1/k5`, 3 rounds of 1 local epoch, LoRA
+  r16) with only `--client-prox-mu 0.01`, the value of the earlier P1.5b
+  screen; no tuning. A3 on Spider test and the five dev sets, paired with
+  P2.27 FedAvg A3.
+- P2.56 `p256teacher_fewshot`: the frozen teacher (4-bit, no adapter)
+  with the P2.53 teacher zero-shot contract plus five demonstrations drawn
+  once at random (seed 0) from the 8,659 Spider training rows, shown as
+  question-SQL pairs without their schemas (DAIL organization with random
+  selection, Gao et al., VLDB 2024). Spider test, Spider dev, Realistic,
+  SYN, DK; no BIRD. The evaluator option `--fixed-demos` is new; without
+  it zero-shot prompts, configs and evaluation identities are unchanged
+  (identity freeze test).
 
 ## 2026-10-29: P2.54 `gmixgold_k2aaa` A3 Spider test (SynSQL pool)
 
@@ -167,8 +192,14 @@ with the dev sets, `hinton_k2aaa` and `k2plus_aaa`.
   (+1.55/+0.39, +0.87/+1.16).
   Replay's effect is on BIRD (+6.26, +6.91), as the FREEZE claims C3
   (BIRD gain, Spider non-inferior) state.
-- Seed 1 still missing: FedCoLLM-style (running), FedAvg and `gold_k2aaa`
-  (runner not built, step 6b).
+- FedCoLLM-style seed 1 (K3, published with the seed 1 run manifest,
+  nested `ce51178`): Spider test 66.88, Spider dev 63.73, BIRD dev 43.42,
+  Realistic 52.36, SYN 52.32, DK 53.46. Method minus it: Spider test +7.69
+  (253/88, p<1e-18), Spider dev +9.48 (137/39), BIRD dev +0.26 (91/87,
+  p=.82). Ending on a public K stage keeps BIRD at the method's level and
+  costs about 8 Spider points.
+- Seed 1 still missing: FedAvg and `gold_k2aaa` (runner not built, step
+  6b).
 
 ## 2026-10-28: P2.53 step 1c reference rows on Spider test
 

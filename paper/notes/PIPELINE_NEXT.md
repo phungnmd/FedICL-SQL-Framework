@@ -27,6 +27,9 @@ and `gold_k2aaa` at seeds 1-2 (claims C6, C7). P2.53 steps 1b and 1c done
 P2.54 seed 0 is published (nested `76496b4`), the robustness setting;
 no seeds 1-2.
 
+State 2026-10-29: P2.53 seed 1 is published (nested `ce51178`). Next:
+P2.55 and P2.56 (the advisor table), then P2.53 seeds 2 and 0.
+
 ## Status check (read-only, any time, for example after a server restart)
 
 Prints, for P2.37 `central_mix`/`local` and P2.38-P2.43: which stages are
@@ -45,6 +48,50 @@ P2.38 launch the shared code changed only by the TAID option (off unless
 resumed after that pull trains exactly as before. Rerun an unfinished lane
 with its identical run command; it skips finished stages and resumes an
 interrupted one from its checkpoint.
+
+## P2.55 and P2.56: FedProx and LLM few-shot rows of the advisor table (seed 0)
+
+Owner, 2026-10-29 (LAB_LOG): the FedProx-SLM and LLM few-shot rows of the
+advisor's table 4.2. P2.55 is the P2.27 FedAvg run (Spider only, 5
+clients, 3 rounds) with FedProx mu 0.01, about 6 h with its six
+evaluations. P2.56 is the teacher zero-shot Spider test run with five
+fixed Spider training demonstrations, on Spider test and the four Spider
+dev sets, about 1.5-2 h. P2.53 seed 1 is published (nested `ce51178`).
+
+1. Pull and prepare, with both GPUs idle: the pull brings the few-shot
+   option of the shared evaluator (nested `0358c41`; zero-shot
+   evaluations keep their prompts and identities). Run it before any
+   other pull command in this file (step 1b publication, steps 2-6),
+   whose allowlists do not admit these files:
+
+```powershell
+& { $ErrorActionPreference='Stop'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__(); exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/prompts/builder\.py|experiments/eval_arms/run\.py|scripts/run_p25[56]_[a-z_]+\.py|tests/test_(p25[56]_[a-z_]+|prompts|eval_arms_config)\.py|docs/.+|AGENTS\.md|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_prompts.py tests/test_eval_arms_config.py tests/test_identity_freeze.py tests/test_struct_sql_qp_cot.py tests/test_p253_teacher_test.py tests/test_p255_fedprox.py tests/test_p256_teacher_fewshot.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p255_fedprox --phase prepare; if ($LASTEXITCODE -ne 0) { throw 'P2.55 preparation failed' }; Write-Host 'P2.55 and P2.56 ready' }
+```
+
+2. P2.55 FedProx on GPU 0 (rerun the same command to resume; finished
+   rounds and evaluations are skipped). Prints FedProx against FedAvg on
+   every set, with EM:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p255_fedprox --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.55 FedProx failed' }; uv run --no-sync python -m scripts.run_p255_fedprox --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+3. P2.56 teacher 5-shot on GPU 1, in parallel. It writes the five
+   demonstrations, runs the VRAM smoke (stops above 21.5 GiB), then
+   Spider test first. Prints EX, EM and time per question per set and the
+   Spider test pair with the zero-shot teacher:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p256_teacher_fewshot --phase run; if ($LASTEXITCODE -ne 0) { throw 'P2.56 teacher few-shot failed' }; uv run --no-sync python -m scripts.run_p256_teacher_fewshot --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+4. Publish each once its lane has finished (set `$exp` to `p255_fedprox`
+   or `p256_teacher_fewshot`; the `files` phase takes the lane lock, so it
+   refuses a running lane):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p256_teacher_fewshot'; $msg="results: record the $exp seed 0 rows of the advisor table"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
 
 ## P2.54: SynSQL-2.5M as the public pool (seed 0 published)
 
