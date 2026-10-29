@@ -47,7 +47,10 @@ means something.
   Realistic (29/26) and Spider dev (52/30).
 - Reading: the DK gap is real at seed 0 but only partly domain knowledge;
   a DK claim would say "higher Spider-DK EX", not "the teacher transfers
-  domain knowledge". Owner: no decision yet.
+  domain knowledge".
+- Owner decision (2026-10-29): no FREEZE addendum. DK is reported with
+  Realistic and SYN over the three seeds (6b already evaluates
+  `gold_k2aaa` seeds 1-2 on DK) and may be highlighted in the text.
 
 ## 2026-10-29: P2.53 step 6d, teacher zero-shot on Spider test
 
