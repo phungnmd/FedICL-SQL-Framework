@@ -153,9 +153,10 @@ the dev sets and `hinton_k2aaa`.
 - `gmixgold_k2aaa` seed 1 is close to seed 0 (Spider test +0.79, Spider
   dev -0.10, BIRD dev +0.79); the method moves +1.40 on Spider test and
   -0.87 on Spider dev, the dev set it was selected on at seed 0.
-- `k2plus_aaa` seed 1 A3 Spider test about 73.4 (lane log 2026-10-29,
-  EX printed to one decimal; dev sets pending): method minus it about
-  +1.2, against -0.70 at seed 0.
+- `k2plus_aaa` seed 1 A3 Spider test about 73.4, Spider dev about 72.1
+  (lane log 2026-10-29, EX printed to one decimal; other dev sets
+  pending): method minus it about +1.2 on test (seed 0: -0.70) and about
+  +1.1 on dev (seed 0: +0.87).
 - On Spider test replay does not move the primary metric: method minus
   `hinton_k2aaa` -0.33 and +0.47; two-seed means method 73.87,
   `hinton_k2aaa` 73.80, `k2plus_aaa` about 73.6, `gmixgold_k2aaa` 73.01.
