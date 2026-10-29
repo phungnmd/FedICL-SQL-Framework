@@ -30,8 +30,8 @@ Older detail:
 
 ## 2026-10-29: P2.54 `gmixgold_k2aaa` A3 Spider test (SynSQL pool)
 
-Evidence: `scripts.status_p254 --seed 0 --spider-test` on the server, not
-committed yet (publication pending). Owner asked for it once the rules
+Evidence: nested `5a638c0` (`p254_gmixgold_k2aaa_a3` Spider test
+predictions, updated run manifest). Owner asked for it once the rules
 were loosened; it had been deferred until a reviewer asked (2026-10-28).
 
 - `gmixgold_k2aaa` Spider test 72.05; method minus it +0.93 (76/56,
