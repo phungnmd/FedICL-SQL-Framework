@@ -55,6 +55,11 @@ Nhận xét:
   giữ target teacher qua các round (`method_no_teacher`, `method_no_replay`,
   `method_replay_at_server`: 37.8-41.3). Spider không giảm: mọi arm có server
   warm-start nằm trong 72.6-73.9 trên Spider test.
+- **Spider-DK:** teacher ở warm-start hơn gold +5.98 điểm (`method_no_replay`
+  58.32 so với `method_no_teacher_no_replay` 52.34, 36/4 câu), khoảng cách
+  lớn nhất phía Spider. Khoảng 1/3 số câu thắng đúng loại domain knowledge
+  (ví dụ "name" là first + last name), phần còn lại là lỗi schema của arm
+  gold. Đang chờ seed 1-2.
 
 ## 3. Seed 1 (đang chạy)
 
@@ -84,10 +89,9 @@ Nhận xét:
   significant trên Spider test; kiểm định gộp 3 seed sẽ quyết định.
 - **Replay** (`method` - `method_no_replay`): BIRD dev hơn +6.26 và +6.91,
   Spider test không giảm (-0.33 và +0.47).
-- `method` seed 1 đạt 74.57 trên Spider test, cao nhất trong mọi run đến
-  nay. Spider dev seed 1 thấp hơn seed 0 (73.21 so với 74.08); method được
-  chọn trên Spider dev của seed 0, nên số dev seed 1 là ước lượng không bị
-  ảnh hưởng bởi việc chọn.
+- `method` seed 1 đạt 74.57 trên Spider test, cao nhất trong các student
+  đến nay. Spider dev seed 1 thấp hơn seed 0 (73.21 so với 74.08), phù hợp
+  với việc method được chọn trên Spider dev của seed 0.
 - Chưa có ở seed 1: `method_replay_at_server` (đang chạy round 1),
   FedCoLLM-style (đang chạy), `FedAvg` và `method_no_teacher_no_replay`
   (chưa chạy).
@@ -113,7 +117,10 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 6 tập (0.2 đến 
 
 1. **EX trên Spider test (tập eval được public sau) không cao như trên dev,
    dù vẫn dương.** `method` hơn `FedAvg` +6.48 trên Spider dev nhưng chỉ
-   +1.68 trên Spider test.
+   +1.68 trên Spider test. Phần lớn chênh lệch do `FedAvg` tăng 3.9 điểm từ
+   dev lên test (67.60 lên 71.50) trong khi `method` giảm 0.9. Trên test,
+   `FedAvg` đã ngang `central_spider` (71.50 so với 71.08), nên FL penalty
+   thấy trên dev (+3.77) không còn trên test.
 2. **Teacher đóng góp nhỏ trên Spider.** Chỉ cần server train gold trên BIRD
    (`method_no_teacher_no_replay`) đã hơn `FedAvg` +1.54 trên Spider test,
    gần bằng `method` (+1.68). Phần thêm vào khi có teacher (`method` so với
