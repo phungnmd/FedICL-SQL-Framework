@@ -29,6 +29,26 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-30: P2.56 teacher 5-shot published
+
+Evidence: nested `cfaad25`. Teacher Qwen2.5-Coder-7B, 4-bit, five fixed
+Spider training demonstrations, seed 0. EX / EM:
+
+| Set | 5-shot | Zero-shot | 5-shot minus zero-shot (EX) |
+|---|---:|---:|---:|
+| Spider test | 76.25 / 59.34 | 77.22 / 46.48 | -0.97 (126/147, p=.23) |
+| Spider dev | 77.27 / 63.73 | 76.69 / 51.35 | +0.58 |
+| Realistic | 69.88 / 53.94 | 71.06 | -1.18 |
+| SYN | 59.09 / 46.62 | 63.83 | -4.74 |
+| DK | 62.80 / 54.58 | 62.43 | +0.37 |
+
+- EX does not move on Spider test (exact McNemar); SYN falls 4.74. The
+  demonstrations teach the gold SQL style: Spider test EM +12.86.
+- 0.74 s per question on Spider test (zero-shot 0.83), peak reserved
+  18.9 GB. Advisor table: `paper/results/ADVISOR_TABLE_4_2_2026-10-30.md`.
+- Only the dev variants were compared unpaired here; the Spider test pair
+  is paired.
+
 ## 2026-10-29: owner: FedProx and LLM few-shot rows for the advisor table
 
 The advisor asked for the results in the table of outline section 4.2
