@@ -45,22 +45,19 @@ BIRD dev qua các round:
 
 Nhận xét:
 
-- **Framework:** `method` cao nhất trên Spider dev và BIRD dev trong các cấu
-  hình federated. Trên Spider test, `method` hơn `FedAvg` khoảng 1.7 điểm và
-  gần `central_spider_bird` dù không gộp dữ liệu; các arm có server
-  warm-start ở đây đều ngang nhau.
-- **Teacher và replay trên BIRD:** ở warm-start, BIRD tăng gần như nhau dù
-  có hay không có teacher, nên phần này đến từ dữ liệu BIRD. Không replay,
-  các round FedAvg kéo BIRD xuống (`method_no_replay` từ 43.61 còn 38.53).
-  Có replay target của teacher, `method` giữ và còn tăng BIRD qua các round,
-  hơn replay gold (`method_no_teacher`) khoảng 3.5 điểm và hơn hai arm không
-  replay khoảng 6-7 điểm, trong khi Spider không giảm rõ.
-- **Spider-DK** (535 câu viết lại từ Spider dev, cần domain knowledge không
-  có trong schema, ví dụ "name" là first name + last name): arm có teacher ở
-  warm-start (`method_no_replay`) hơn arm chỉ train gold
-  (`method_no_teacher_no_replay`) khoảng 6 điểm, khoảng cách lớn nhất phía
-  Spider. Khoảng 1/3 số câu thắng đúng loại domain knowledge, phần còn lại
-  là lỗi thường của arm gold (sai bảng, bịa cột).
+- **Framework** (`method` so với `FedAvg`): `method` cao nhất trên Spider
+  dev và BIRD dev trong các cấu hình federated, hơn `FedAvg` trên cả 6 tập
+  (khoảng 6.5 điểm Spider dev, 19 điểm BIRD dev, 1.7 điểm Spider test). So
+  với `central_spider_bird` (train gộp dữ liệu, không có privacy), `method`
+  nhỉnh hơn trên Spider dev và BIRD dev, ngang trên Spider test.
+- **Teacher** (`method` - `method_no_teacher`): dương trên cả 6 tập, khoảng
+  2.5 điểm Spider dev và 3.5 điểm BIRD dev, nhỏ hơn trên Spider test
+  (khoảng 0.6 điểm).
+- **Replay** (`method` so với `method_no_replay` và
+  `method_replay_at_server`): không replay, BIRD giảm 5-7 điểm ngay round
+  đầu và ở mức đó đến round 3. Có replay target của teacher, `method` giữ
+  và còn tăng BIRD, hơn hai arm này khoảng 6-7 điểm BIRD dev; Spider dev
+  cũng cao hơn (khoảng 1-1.5 điểm), Spider test ngang.
 
 ## 3. Seed 1
 
