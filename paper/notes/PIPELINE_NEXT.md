@@ -83,6 +83,16 @@ final adapter is evaluated on Spider test (2,147) and the five dev sets.
 Measured 1.5B times: Hinton K2 5.2 h, gold K2 4.5 h, one Hinton K 2.6 h,
 plain round 1.2-1.4 h, replay round 2.1-3.3 h; about 28 h per lane below.
 
+Status of one seed, read-only and safe while lanes run (set `$seed`): the
+stages each arm has trained, the EX of every recorded final adapter on Spider
+test and the five dev sets (each cell fills as soon as its set is evaluated),
+and the method pairs on Spider test, Spider dev and BIRD dev. It runs the
+script from origin, so no pull is needed:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $seed='1'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/status_p253.py | uv run --no-sync python - --seed $seed; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
 1. Pull, test, prepare P2.53 (all three seeds) and P2.54 (fetch the
    SynSQL databases, seed 0). Both GPUs must be idle, since the pull brings a
    new dataset profile in shared code:
