@@ -28,6 +28,27 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-29: what the seed-0 Spider-DK gap of `hinton_k2aaa` over `gold_k2aaa` is
+
+Ad hoc read of the published P2.37 A3 predictions (seed 0), no script.
+Context: the agent review proposed C6 on Spider-DK (+5.98, 36/4) as a
+FREEZE addendum before `gold_k2aaa` seed 1 is read; owner asked whether it
+means something.
+
+- The 40 discordant DK questions cover 32 distinct gold queries
+  (paraphrase pairs) in 8 of the 10 DK databases.
+- About 12 of the 36 wins match Spider-DK knowledge types (Gan et al.,
+  EMNLP 2021): "name" read as first plus last name (5), "american" as
+  `USA` (2), "oldest to latest" as ascending (2), "last two years",
+  "European" as the continent code, winner and loser ranks. The other
+  wins are ordinary errors of the gold arm: wrong alias or table, an
+  invented column (15 of 36 do not execute), wrong GROUP BY key.
+- The same databases show no gap in Spider-SYN (51/51) and a small one in
+  Realistic (29/26) and Spider dev (52/30).
+- Reading: the DK gap is real at seed 0 but only partly domain knowledge;
+  a DK claim would say "higher Spider-DK EX", not "the teacher transfers
+  domain knowledge". Owner: no decision yet.
+
 ## 2026-10-29: P2.53 step 6d, teacher zero-shot on Spider test
 
 Evidence: nested `c3e3961` (`p253teacher_zeroshot` predictions, run
