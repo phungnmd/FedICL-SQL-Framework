@@ -303,5 +303,5 @@ tendencies, not checks; follow what reads best.
 - Leave lab-process talk out (selection, which seed chose what, runs still
   missing); the plan section covers progress.
 - Describe a changed setting briefly, without implementation details.
-- Frame the discussion as points to consider ("Các điểm cần cân nhắc")
+- Frame the discussion as points to consider (section "Thảo luận")
   rather than problems.

@@ -3,10 +3,6 @@
 Em xin gửi thầy tình hình research hiện tại của dự án.
 
 ## 1. Method hiện tại
-
-Sau nhiều cấu hình federated đã thử với student Qwen2.5-Coder-1.5B (file
-"Các phương pháp đã thực nghiệm" gửi kèm), em chọn `method` (`mixkd50_k2aaa`):
-
 1. **Server warm-start:** distill teacher Qwen2.5-Coder-7B (frozen) trên BIRD
    public, 0.5 gold CE + 0.5 KL (Hinton KD, T=2), 2 epoch.
 2. **3 round FedAvg trên Spider với client replay:** mỗi round, client trộn
@@ -104,39 +100,26 @@ Nhận xét: `method` vẫn hiệu quả khi đổi public dataset. Nó hơn `Fe
 mọi tập (Spider test khoảng 1.5 điểm) và hơn `method_no_teacher` trên cả 6
 tập, nhưng phần hơn `method_no_teacher` nhỏ.
 
-## 5. Các điểm cần cân nhắc
+## 5. Thảo luận
 
-1. **EX trên Spider test (tập eval được public sau) không cao như trên dev,
-   dù vẫn dương.** `method` hơn `FedAvg` +6.48 trên Spider dev nhưng chỉ
-   +1.68 trên Spider test. Trên test, `FedAvg` đã ngang `central_spider`
-   (71.50 so với 71.08), nên FL penalty thấy trên dev (+3.77) không còn trên
-   test.
-2. **Teacher đóng góp nhỏ.** Chỉ cần server train gold trên BIRD
-   (`method_no_teacher_no_replay`) đã hơn `FedAvg` +1.54 trên Spider test,
-   gần bằng `method` (+1.68). Phần thêm vào khi có teacher (`method` so với
-   `method_no_teacher`) là +0.56 ở seed 0 và +1.16 ở seed 1, cùng chiều nhưng
-   chưa cho tăng rõ rệt. Khoảng trống để tăng cũng hẹp: `method_no_teacher`
-   không chênh lệch nhiều với bản centralized `central_spider_bird` (train
-   tập trung trên cả 2 dataset). Teacher 7B zero-shot cao hơn
-   `central_spider_bird`, nhưng cũng không vượt trội nhiều để truyền thêm
-   cho student.
-3. **Đóng góp rõ của teacher nằm ở BIRD EX (miền public).** Teacher giữ BIRD
-   cao hơn rõ ở mọi so sánh mà Spider không giảm. Ở seed 1, phần hơn
-   `method_no_replay` và `method_replay_at_server` vẫn lớn (khoảng 7 điểm),
-   còn phần hơn `method_no_teacher` nhỏ lại (từ 3.5 xuống 1.6 điểm). BIRD
-   là metric phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào
-   metric phụ. Nếu sau 3 seed phần hơn `method_no_teacher` vẫn không rõ,
-   điều chắc nhất còn lại là replay so với không replay, và reviewer sẽ hỏi
-   lợi đến từ target của teacher hay chỉ từ việc replay public data.
-4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
-   teacher.** Phần riêng của teacher vẫn cùng chiều trên cả 6 tập nhưng nhỏ,
-   khoảng 1 điểm trên Spider test.
-5. **Khó tăng thêm phần teacher đóng góp trên Spider EX trong setup hiện tại.** Không
-   phải do FL: trên Spider test, `FedAvg` đã ngang `central_spider` và
-   `method` ngang `central_spider_bird`. Nguyên nhân có thể nằm ở setup dữ
-   liệu: client đã có đủ gold Spider, còn teacher chỉ truyền kiến thức qua
-   BIRD, nơi teacher gần như trùng với gold (top-1 trùng khoảng 95% token),
-   nên tín hiệu thêm so với gold mỏng. EX của teacher 7b trên các pool không vượt được centralized nhiều.
+1. **Spider test tăng ít hơn Spider dev.** `method` hơn `FedAvg` khoảng 6.5
+   điểm trên Spider dev nhưng 1.7 điểm trên Spider test. Trên test, `FedAvg`
+   đã ngang `central_spider`, nên FL penalty thấy trên dev (khoảng 3.8 điểm)
+   gần như không còn.
+2. **Phần teacher trên Spider nhỏ và khó tăng thêm.** So với
+   `method_no_teacher`, teacher thêm khoảng 2.5 và 1.7 điểm Spider dev,
+   0.6 và 1.2 điểm Spider test (seed 0 và 1). Khoảng trống hẹp: `method`
+   đã ngang `central_spider_bird`, còn teacher 7B chỉ hơn bản này khoảng
+   3.5 điểm. Client đã có đủ gold Spider, còn teacher chỉ truyền qua BIRD,
+   nơi target của teacher gần trùng gold (top-1 trùng khoảng 95% token).
+3. **Đóng góp rõ nhất của teacher nằm ở BIRD, metric phụ.** Replay target
+   của teacher giữ BIRD hơn khoảng 6-7 điểm so với không replay ở cả hai
+   seed, nhưng chỉ hơn replay gold (`method_no_teacher`) 3.5 rồi 1.6 điểm.
+   Reviewer có thể hỏi phần lợi đến từ target của teacher hay chỉ từ việc
+   replay public data.
+4. **Đổi public dataset sang SynSQL không làm phần teacher lớn hơn:** vẫn
+   cùng chiều trên cả 6 tập nhưng nhỏ, dưới 1 điểm trên Spider dev và
+   Spider test.
 
 ## 6. Kế hoạch
 
