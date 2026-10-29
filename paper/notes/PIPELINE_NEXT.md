@@ -51,8 +51,8 @@ interrupted one from its checkpoint.
 Seed 0 is published (nested `76496b4`; LAB_LOG 2026-10-28); the finished
 steps are in the [runbook](../archive/completed_runbooks/PIPELINE_P254_2026-10-28.md).
 P2.54 is the paper's robustness setting at seed 0; no further P2.54
-training (owner, 2026-10-28). Left only if a reviewer asks: the
-`gmixgold_k2aaa` A3 Spider test.
+training (owner, 2026-10-28). Left: the `gmixgold_k2aaa` A3 Spider test
+(owner asked for it, 2026-10-29; eval only, about 10 min).
 
 1. Status (read-only, any time): dev EX per stage, the paired contrasts
    with exact McNemar, and the same cells with the BIRD pool.
@@ -61,9 +61,11 @@ training (owner, 2026-10-28). Left only if a reviewer asks: the
 & { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.status_p254 --seed 0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
 
-2. Only if a reviewer asks: the `gmixgold_k2aaa` A3 Spider test (no
-   training) on an idle GPU (set `$gpu`; the GPU lock refuses a busy
-   card). The pull admits only files the P2.53 lanes never import:
+2. The `gmixgold_k2aaa` A3 Spider test (no training) on an idle GPU (set
+   `$gpu`; the GPU lock refuses a busy card): between two P2.53 lanes, or
+   after stopping (Ctrl+C) a lane that is in a private round (A), as for
+   step 6d, then resuming it. The pull admits only files the P2.53 lanes
+   never import:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='1'; $seed='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/audit_teacher_gold_agreement\.py|tests/test_audit_teacher_gold_agreement\.py|scripts/run_p254_synsql_public\.py|tests/test_p254_synsql_public\.py|scripts/audit_pool_overlap\.py|tests/test_audit_pool_overlap\.py|scripts/status_p254\.py|scripts/status_p253\.py|tests/test_status_p253\.py|scripts/run_p253_reference_test\.py|tests/test_p253_reference_test\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p254_synsql_public.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p254_synsql_public --phase run --seed $seed --arm gmixgold_k2aaa; if ($LASTEXITCODE -ne 0) { throw 'P2.54 gmixgold_k2aaa evaluations failed' }; uv run --no-sync python -m scripts.status_p254 --seed $seed --spider-test; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
