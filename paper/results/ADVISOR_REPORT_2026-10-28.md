@@ -92,9 +92,9 @@ Nhận xét:
   FedCoLLM-style (đang chạy), `FedAvg` và `method_no_teacher_no_replay`
   (chưa chạy).
 
-## 4. Đổi proxy dataset sang SynSQL-2.5M (seed 0)
+## 4. Đổi public dataset sang SynSQL-2.5M (seed 0)
 
-Cùng recipe, server đổi proxy dataset từ BIRD sang 3,336 câu SynSQL-2.5M
+Cùng recipe, server đổi public dataset từ BIRD sang 3,336 câu SynSQL-2.5M
 (cùng số token SQL với BIRD pool). Ở setting này server không dùng BIRD, nên BIRD
 dev là miền chưa thấy khi train.
 
@@ -104,7 +104,7 @@ dev là miền chưa thấy khi train.
 | `method_no_teacher` |          69.92 |        28.81 |             |     *61.02* | *53.09* | *54.58* |
 | **`method`**        |      **70.70** |    **29.79** |       72.99 |     *61.22* | *54.84* | *54.95* |
 
-Nhận xét: `method` vẫn hiệu quả khi đổi proxy dataset. Nó hơn `FedAvg` trên
+Nhận xét: `method` vẫn hiệu quả khi đổi public dataset. Nó hơn `FedAvg` trên
 mọi tập, rõ nhất ở Spider dev (3.1 điểm), BIRD dev (4.1 điểm) và Spider
 test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đến 1.7
 điểm).
@@ -129,7 +129,7 @@ test (1.5 điểm), và hơn `method_no_teacher` trên cả 5 tập dev (0.2 đ�
    giảm. Ở seed 1, phần so với `method_no_replay` vẫn lớn (+6.91, p<.001),
    phần so với `method_no_teacher` nhỏ lại (+1.63, p=.12). BIRD là metric
    phụ của bài, nên câu chuyện "teacher đóng góp" đang dựa vào metric phụ.
-4. **Setting đổi proxy dataset sang SynSQL chưa làm rõ thêm phần của
+4. **Setting đổi public dataset sang SynSQL chưa làm rõ thêm phần của
    teacher.** Phần riêng của teacher cùng chiều trên 5/5 tập dev nhưng nhỏ
    (+0.2 đến +1.7), chưa significant.
 
