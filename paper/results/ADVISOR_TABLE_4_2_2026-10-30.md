@@ -8,14 +8,17 @@ EM và EX tính trên Spider test (2,147 câu).
 
 | Method                    |        EM |        EX | Trainable Params | Latency (s/câu) |
 | ------------------------- | --------: | --------: | ---------------: | --------------: |
-| Centralized SLM           |     61.53 |     71.08 |            18.5M |            0.30 |
-| Centralized SLM\* (+BIRD) | **65.02** |     73.78 |            18.5M |            0.30 |
-| FedAvg-SLM                |     60.22 |     71.50 |            18.5M |            0.30 |
-| FedProx-SLM               |     58.69 |     70.42 |            18.5M |            0.30 |
-| FedLS-SQL\* w/o teacher   |     63.58 |     72.61 |            18.5M |            0.30 |
-| Federated LLM             |           |           |                  |                 |
+| *LLM 7B, không train*     |           |           |                  |                 |
 | LLM zero-shot             |     46.48 | **77.22** |                0 |            0.83 |
 | LLM few-shot (5-shot)     |     59.34 |     76.25 |                0 |            0.74 |
+| Federated LLM             |           |           |                  |                 |
+| *SLM 1.5B, chỉ Spider*    |           |           |                  |                 |
+| Centralized SLM           |     61.53 |     71.08 |            18.5M |            0.30 |
+| FedAvg-SLM                |     60.22 |     71.50 |            18.5M |            0.30 |
+| FedProx-SLM               |     58.69 |     70.42 |            18.5M |            0.30 |
+| *SLM 1.5B, Spider + BIRD* |           |           |                  |                 |
+| Centralized SLM\* (+BIRD) | **65.02** |     73.78 |            18.5M |            0.30 |
+| FedLS-SQL\* w/o teacher   |     63.58 |     72.61 |            18.5M |            0.30 |
 | **FedLS-SQL\***           |     64.00 |     73.17 |            18.5M |            0.30 |
 
 ## Bảng 2: EX trên các tập khác
@@ -24,14 +27,17 @@ Spider dev, BIRD dev và các biến thể robustness của Spider dev.
 
 | Method                    | Spider dev EX | BIRD dev EX | Realistic EX |    SYN EX |     DK EX |
 | ------------------------- | ------------: | ----------: | -----------: | --------: | --------: |
-| Centralized SLM           |         71.37 |       25.75 |        61.61 |     56.00 |     58.50 |
-| Centralized SLM\* (+BIRD) |         73.21 |       43.68 |        62.99 |     58.90 |     58.69 |
-| FedAvg-SLM                |         67.60 |       25.68 |        59.65 |     53.68 |     53.27 |
-| FedProx-SLM               |         67.12 |       24.64 |        57.68 |     52.03 |     51.96 |
-| FedLS-SQL\* w/o teacher   |         71.57 |       41.26 |        62.01 |     55.13 |     53.83 |
-| Federated LLM             |               |             |              |           |           |
+| *LLM 7B, không train*     |               |             |              |           |           |
 | LLM zero-shot             |         76.69 |   **47.07** |    **71.06** | **63.83** |     62.43 |
 | LLM few-shot (5-shot)     |     **77.27** |             |        69.88 |     59.09 | **62.80** |
+| Federated LLM             |               |             |              |           |           |
+| *SLM 1.5B, chỉ Spider*    |               |             |              |           |           |
+| Centralized SLM           |         71.37 |       25.75 |        61.61 |     56.00 |     58.50 |
+| FedAvg-SLM                |         67.60 |       25.68 |        59.65 |     53.68 |     53.27 |
+| FedProx-SLM               |         67.12 |       24.64 |        57.68 |     52.03 |     51.96 |
+| *SLM 1.5B, Spider + BIRD* |               |             |              |           |           |
+| Centralized SLM\* (+BIRD) |         73.21 |       43.68 |        62.99 |     58.90 |     58.69 |
+| FedLS-SQL\* w/o teacher   |         71.57 |       41.26 |        62.01 |     55.13 |     53.83 |
 | **FedLS-SQL\***           |         74.08 |       44.78 |        63.58 |     58.70 |     57.20 |
 
 Ghi chú:
