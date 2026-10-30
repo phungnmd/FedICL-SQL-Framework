@@ -30,8 +30,9 @@ no seeds 1-2.
 State 2026-10-29: P2.53 seed 1 is published (nested `ce51178`). Next:
 P2.55 and P2.56 (the advisor table), then P2.53 seeds 2 and 0.
 
-State 2026-10-30: P2.56 is published (nested `cfaad25`). P2.57 (CoT
-probe, inference only) runs on whichever GPU is free.
+State 2026-10-30: P2.56 and P2.55 are published (nested `cfaad25`,
+`eb69e5a`). P2.57 (CoT probe, inference only) runs on whichever GPU is
+free.
 
 ## Status check (read-only, any time, for example after a server restart)
 

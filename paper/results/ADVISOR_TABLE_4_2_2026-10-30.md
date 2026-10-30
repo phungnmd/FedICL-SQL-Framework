@@ -8,7 +8,7 @@ Spider dev, BIRD dev và các biến thể robustness của Spider dev.
 | Centralized SLM           |     61.53 |     71.08 |            18.5M |            0.30 |         71.37 |       25.75 |        61.61 |     56.00 |     58.50 |
 | Centralized SLM\* (+BIRD) | **65.02** |     73.78 |            18.5M |            0.30 |         73.21 |       43.68 |        62.99 |     58.90 |     58.69 |
 | FedAvg-SLM                |     60.22 |     71.50 |            18.5M |            0.30 |         67.60 |       25.68 |        59.65 |     53.68 |     53.27 |
-| FedProx-SLM               | đang chạy | đang chạy |            18.5M |       đang chạy |     đang chạy |   đang chạy |    đang chạy | đang chạy | đang chạy |
+| FedProx-SLM               |     58.69 |     70.42 |            18.5M |            0.30 |         67.12 |       24.64 |        57.68 |     52.03 |     51.96 |
 | FedLS-SQL\* w/o teacher   |     63.58 |     72.61 |            18.5M |            0.30 |         71.57 |       41.26 |        62.01 |     55.13 |     53.83 |
 | Federated LLM             |           |           |                  |                 |               |             |              |           |           |
 | LLM zero-shot             |     46.48 | **77.22** |                0 |            0.83 |         76.69 |   **47.07** |    **71.06** | **63.83** |     62.43 |

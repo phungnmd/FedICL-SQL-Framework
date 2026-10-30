@@ -23,7 +23,8 @@ Older detail:
   FedAvg and `gold_k2aaa` (entry below), and for the step 1c reference
   rows (nested `0704737`), and for the teacher zero-shot (77.22, nested
   `c3e3961`, entry 2026-10-29). P2.53 seed 1 is published (nested
-  `ce51178`); seeds 2 and 0 (step 5) are next, after P2.55 and P2.56.
+  `ce51178`); seeds 2 and 0 (step 5) are next. P2.55 FedProx and P2.56
+  teacher 5-shot are published (entries 2026-10-30).
 - P2.54 seed 0 (SynSQL public pool) is published; it is the robustness
   setting (entry below).
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
@@ -84,6 +85,29 @@ rows (one rationalization, K=4 samples), T4 teacher CoT vs SQL-only on
 Spider dev (reference). No reading rule fixed; the training screen
 (server S-gold / S-teacher / S-self, then one Spider pass) is designed
 after P2.57.
+
+## 2026-10-30: P2.55 FedProx published
+
+Evidence: nested `eb69e5a`. P2.27 FedAvg recipe (Spider only,
+`alpha_0.1/k5`, 3 rounds) with FedProx mu 0.01, seed 0, A3. EX / EM,
+paired with FedAvg A3 (exact McNemar):
+
+| Set | FedProx | FedAvg EX | FedProx minus FedAvg (EX) |
+|---|---:|---:|---:|
+| Spider test | 70.42 / 58.69 | 71.50 | -1.07 (50/73, p=.047) |
+| Spider dev | 67.12 / 59.57 | 67.60 | -0.48 (33/38, p=.64) |
+| Realistic | 57.68 / 50.20 | 59.65 | -1.97 (15/25, p=.15) |
+| SYN | 52.03 / 43.81 | 53.68 | -1.64 (29/46, p=.064) |
+| DK | 51.96 / 46.36 | 53.27 | -1.31 (11/18, p=.27) |
+| BIRD dev | 24.64 / 3.85 | 25.68 | -1.04 (31/47, p=.089) |
+
+- FedProx at mu 0.01 is below FedAvg on every set, by about 1 point; no
+  mu tuning. With 3 rounds of 1 local epoch, client drift is small, so
+  the proximal term mainly slows local fitting.
+- Spider test 0.34 s per question (measured while the other GPU ran);
+  the advisor table keeps the shared SLM latency 0.30. The runtime
+  reports carry no VRAM peak.
+- Advisor table filled: `paper/results/ADVISOR_TABLE_4_2_2026-10-30.md`.
 
 ## 2026-10-30: P2.56 teacher 5-shot published
 
