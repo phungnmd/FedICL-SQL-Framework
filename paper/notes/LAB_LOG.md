@@ -66,6 +66,11 @@ Design (seed 0, Spider dev only, student Coder-1.5B, LoRA r16, `target_fp32`):
   whose rationalization is correct (coverage reported).
 - If T beats G, a follow-up with teacher-7B CoT on SynSQL is needed:
   SynSQL CoT is not our teacher's contribution.
+- First launch stopped at `t2_rat1`: gold SQL `train:4513` does not execute
+  (ORDER BY before INTERSECT) and the evaluator raises. Three Spider training
+  golds and two Spider dev golds fail this way. Fixed (scored 0, as the
+  project eval loop does; those rows cannot enter the T training data or the
+  RL pool); finished rows are kept.
 
 ## 2026-10-30: P2.57 CoT probe results (not committed yet)
 

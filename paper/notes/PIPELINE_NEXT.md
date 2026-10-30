@@ -50,6 +50,9 @@ lanes. Rerun the same lane command to resume after a stop: finished
 tasks are skipped, generation resumes per row, SFT from its last
 checkpoint, and an interrupted DPO restarts (under 1.5 h).
 
+To pick up a code fix, stop both lanes (Ctrl+C) and rerun steps 1 and 2:
+finished work is kept.
+
 1. GPU 0 window: pull, test and start the GPU 0 lane. It stops at once
    if either GPU lane lock is held. The pull admits only the P2.57 and
    P2.58 files, the SynSQL CoT file, docs, Markdown and results:
