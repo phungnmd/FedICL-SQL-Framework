@@ -123,6 +123,30 @@ Spider dev (reference). No reading rule fixed; the training screen
 (server S-gold / S-teacher / S-self, then one Spider pass) is designed
 after P2.57.
 
+## 2026-10-30: audit of the Spider data, split and EX scoring
+
+Owner asked why FedAvg is not below `central` on Spider test. Local
+check (script not committed), seed 0 predictions:
+
+- Spider test CSV equals the raw `test.json` row for row (2,147, same
+  order, gold and database); databases from `test_database`. Dev equals
+  `dev.json` (1,034). Central train equals `train_spider` +
+  `train_others` (8,659, multiset equal).
+- Train, dev and test databases are disjoint (146 / 20 / 40). 27 test
+  questions and 42 gold SQL strings also occur in train as text, all
+  generic ("How many clubs are there?") on other databases.
+- The five `alpha_0.1/k5` clients partition central train exactly
+  (1,896 + 1,801 + 2,061 + 1,097 + 1,804); each database belongs to one
+  client.
+- Every test gold executes; 54 return an empty result.
+- Re-scoring with the official test-suite comparison: our EX equals it on
+  every row when DISTINCT is kept; the official default removes DISTINCT
+  and gives about +0.7 to +1.1 to every arm (central 71.91, FedAvg
+  72.19, method 73.92; dev central 72.44, FedAvg 68.67). Central minus
+  FedAvg: test -0.28 (163/169), dev +3.77 (106/67), as before.
+- Reading: the data and the metric are correct; at seed 0 the dev FL
+  penalty does not appear on test.
+
 ## 2026-10-30: P2.55 FedProx published
 
 Evidence: nested `eb69e5a`. P2.27 FedAvg recipe (Spider only,
