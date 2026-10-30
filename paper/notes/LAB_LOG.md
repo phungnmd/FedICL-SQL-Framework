@@ -30,6 +30,47 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-30: P2.58 first signals (not committed yet)
+
+Reported from the server receipts while `t2` trains. `eval_g1`, `eval_t1` and
+`eval_g2` were run by hand ahead of the lane order, which puts every
+evaluation after the RL tasks; the order does not change any result.
+
+| Adapter | Target | Data | Spider dev EX | Tokens p50/p95 |
+|---|---|---|---:|---|
+| `g1` | SQL | SynSQL 3,336 | 66.34 | 28/72 |
+| `t1` | CoT | SynSQL 3,336 | 58.22 | 390/563 |
+| `g2` | SQL | `g1`, then Spider 8,659 | 72.53 | 23/70 |
+| `t2` | CoT | `t1`, then Spider rationalizations 6,622 | 62.48 | 395/585 |
+
+- `t2` - `g2` -10.06 (65/169, p<.001). The gap was already -8.12 before Spider,
+  and `g2` gained only 6.19 from all of Spider, so the 2,037 rows `t2` lacks do
+  not explain it.
+- Owner stopped both lanes on 2026-10-31 during `t2_samp0` and `t2_samp1`; their
+  finished rows are kept.
+- Owner, 2026-10-31: the 2026-10-28 paper direction is not convincing enough; a
+  new direction is being sought, and CoT + RL is the current candidate. RL on the
+  T arm has no result yet, so P2.58 runs on; P2.53 seed 2 stays on hold.
+
+- `t1` - `g1` -8.12 (80/164, p<.001). `t1` is below the untrained base on the
+  SQL-only prompt (59.19). Base student with the CoT prompt on Spider dev was
+  not measured.
+- `g2` 72.53 against the published seed-0 centralized runs: `central` E3 71.37,
+  `central_mix` E3 73.21 (not paired here).
+- `t2_rat0-7`: T1 rationalizes all 8,659 Spider training rows at EX 83.21
+  (non-empty gold 81.89), SQL found 99.95, truncated 0.02, mentions the
+  reference 8.01. The base student kept 83.5 on 200 rows (P2.57 T3), so the
+  SynSQL stage does not move this number. It sees the gold SQL, so it measures
+  copying more than solving.
+- `t2` trains on 6,622 rows (76.5%); `g2` on all 8,659.
+- The 8.01 is learned from the targets: 259 of 3,336 SynSQL `cot` rows (7.76%)
+  mention a "reference solution" or similar, and stage 1 does not filter them
+  (stage 2 does). The P2.57 base student's rate on SynSQL was 0%. Runs continue
+  unchanged; any later arm on SynSQL CoT filters these rows.
+- `t1` and `g1` kept all 3,336 pool rows (`wrong_result` 0), not the 3,335
+  written in the queue entry below. Wall 2.6 h and 2.1 h, peak reserved 19.2
+  and 18.1 GiB.
+
 ## 2026-10-30: P2.58 CoT x RL screen queued (owner)
 
 Owner, 2026-10-30: before any federated run, check centrally whether CoT

@@ -36,6 +36,10 @@ free. P2.57 finished (publish after the P2.58 launch, step 3 below).
 P2.58 (centralized CoT x RL screen) runs on both GPUs; P2.53 seed 2
 waits (owner).
 
+State 2026-10-31: owner is looking for a new paper direction, with CoT + RL
+as the candidate (LAB_LOG). P2.58 continues with step 2 below on each GPU,
+never step 1 (its pull is not needed); P2.53 seed 2 stays on hold.
+
 ## P2.58: CoT x RL screen, centralized (both GPUs, seed 0, Spider dev)
 
 Owner, 2026-10-30 (LAB_LOG). Student only, no teacher runs. Two arms: G

@@ -92,6 +92,9 @@ current plan.
 
 ## Current state (2026-10-28)
 
+- 2026-10-31 (owner): the direction below is not convincing enough. A new
+  direction is being sought, with CoT + RL as the candidate (P2.58, LAB_LOG);
+  P2.53 seed 2 is on hold. Do not steer back to the 2026-10-28 story by default.
 - Confirmation phase (P2.53, three seeds, Spider test). Paper direction
   (owner, 2026-10-28, after an outside review): the server teacher's
   public-domain gain is lost in the FedAvg rounds and client replay of
