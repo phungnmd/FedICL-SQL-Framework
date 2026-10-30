@@ -11,7 +11,6 @@ EM và EX tính trên Spider test (2,147 câu).
 | *LLM 7B, không train*     |           |           |                  |                 |
 | LLM zero-shot             |     46.48 | **77.22** |                0 |            0.83 |
 | LLM few-shot (5-shot)     |     59.34 |     76.25 |                0 |            0.74 |
-| Federated LLM             |           |           |                  |                 |
 | *SLM 1.5B, chỉ Spider*    |           |           |                  |                 |
 | Centralized SLM           |     61.53 |     71.08 |            18.5M |            0.30 |
 | FedAvg-SLM                |     60.22 |     71.50 |            18.5M |            0.30 |
@@ -30,7 +29,6 @@ Spider dev, BIRD dev và các biến thể robustness của Spider dev.
 | *LLM 7B, không train*     |               |             |              |           |           |
 | LLM zero-shot             |         76.69 |   **47.07** |    **71.06** | **63.83** |     62.43 |
 | LLM few-shot (5-shot)     |     **77.27** |             |        69.88 |     59.09 | **62.80** |
-| Federated LLM             |               |             |              |           |           |
 | *SLM 1.5B, chỉ Spider*    |               |             |              |           |           |
 | Centralized SLM           |         71.37 |       25.75 |        61.61 |     56.00 |     58.50 |
 | FedAvg-SLM                |         67.60 |       25.68 |        59.65 |     53.68 |     53.27 |
@@ -44,6 +42,8 @@ Ghi chú:
 
 - \* có dùng BIRD (public data ở server); các dòng khác chỉ dùng Spider.
   BIRD dev chỉ so được giữa các dòng có \*.
+- Federated LLM (FL trên LLM 7B) không chạy vì không đủ tài nguyên tính
+  toán (2 GPU RTX A5000).
 - Các dòng SLM cùng một model khi deploy nên latency như nhau; LLM chạy
   4-bit.
 - EM của LLM thấp vì model chưa fine-tune trên Spider viết SQL khác style
