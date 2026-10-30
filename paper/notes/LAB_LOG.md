@@ -29,6 +29,31 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-30: P2.57 CoT probe results (not committed yet)
+
+Reported from the server table; publication pending. Seed 0, inference
+only, OmniSQL-style prompts. EX (%); on SynSQL the second number is EX on
+rows whose gold result is not empty (the databases hold about two rows per
+table, so SynSQL EX is a weak check).
+
+| Writer | SynSQL rationalize (gold as hidden reference) | SynSQL solve (no gold) |
+|---|---:|---:|
+| teacher 7B | 91.33 / 88.03 | 52.33 / 40.85 |
+| base student 1.5B | 75.33 / 71.83 | 19.00 / 12.68 |
+
+- On public SynSQL the teacher reasons much better than the student: +33
+  points without gold, +16 with gold (the student often rewrites the
+  reference into a wrong query; it copies gold in 62% of rows, the teacher
+  73%). Reference leaks: teacher 2%, student 0%.
+- T4, teacher on Spider dev: CoT 75.73 vs SQL-only 76.89, -1.16 (71/83,
+  p=.38). Zero-shot CoT does not help the teacher on Spider.
+- T3, base student on 200 Spider training rows: rationalization keeps a
+  gold-equivalent final SQL in 83.5% of rows; CoT sampling pass@1 42.6,
+  pass@4 71.0.
+- Cost (docs/A5000_RUN_CONFIG.md, nested `2316763`): rationalizing all
+  8,659 Spider training rows about 5.8 h per round; K=4 sampling about
+  25 h per round; teacher CoT on the 3,336 SynSQL rows about 17 h.
+
 ## 2026-10-30: owner: Spider only; P2.57 CoT probe queued
 
 Owner, 2026-10-30: focus on Spider dev and test; BIRD EX is no longer a
