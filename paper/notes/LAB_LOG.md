@@ -30,6 +30,43 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-30: P2.58 CoT x RL screen queued (owner)
+
+Owner, 2026-10-30: before any federated run, check centrally whether CoT
+and RL help on Spider; use SynSQL's published CoT instead of teacher CoT
+(saves about 17 h of teacher generation); drop the self-CoT arm; seed 2
+of P2.53 can wait; use both GPUs. Code: nested `3406fb5`.
+
+Design (seed 0, Spider dev only, student Coder-1.5B, LoRA r16, `target_fp32`):
+
+| Stage | G (SQL only) | T (CoT) |
+|---|---|---|
+| 1, SynSQL pool (3,335 of 3,336 rows; one CoT SQL misses the gold result) | SFT on gold SQL, 2 epochs | SFT on SynSQL `cot` (OmniSQL), solve prompt, 2 epochs |
+| 2, Spider train (8,659) | SFT on gold SQL, 2 epochs | rationalize every row with T1 (gold as hidden reference), SFT on the execution-correct ones, 2 epochs |
+| 3, RL on 1,200 fixed Spider training questions with non-empty gold (of 7,000) | K=8 samples, T=0.7; `d` DPO + NLL, `r` RFT | same |
+
+- Choices and sources. CoT recipe: OmniSQL (SynSQL CoT, execution-voted;
+  CoT vs SQL-only at 7B, Spider dev +3.4, test +5.9); STaR rationalization
+  for the Spider targets. RL: on-policy DPO with an NLL term on the chosen
+  response (Iterative RPO, Pang et al., NeurIPS 2024), pairs from
+  execution feedback with the nearest final SQL (ExCoT, arXiv 2503.19988;
+  ExCoT found CoT SFT alone below SQL SFT and the gain coming from DPO on
+  CoT), beta 0.1, lr 1e-5 for LoRA (ExCoT full fine-tuning 1e-6; LoRA
+  about 10x, "LoRA Without Regret"), 2 epochs, at most 2 pairs per
+  question. RFT (RAFT, Dong et al., TMLR 2023) as the cheap comparator;
+  RAFT-style rejection sampling matches GRPO on math reasoning (Xiong et
+  al., arXiv 2504.11343), so no online GRPO (it needs fast generation we
+  do not have).
+- SynSQL CoT targets: p50 566, p95 876 tokens (SQL targets p50 123).
+  Short CoT suits a 1.5B student better (learnability gap, arXiv
+  2502.12143).
+- Not sourced: the 1,200-question RL subset, K=8 and the 2 epochs per
+  stage were set for the two-GPU budget.
+- G and T differ in stage 2 data: G trains on all rows, T on the rows
+  whose rationalization is correct (coverage reported).
+- If T beats G, a follow-up with teacher-7B CoT on SynSQL is needed:
+  SynSQL CoT is not our teacher's contribution.
+
 ## 2026-10-30: P2.57 CoT probe results (not committed yet)
 
 Reported from the server table; publication pending. Seed 0, inference

@@ -32,7 +32,67 @@ P2.55 and P2.56 (the advisor table), then P2.53 seeds 2 and 0.
 
 State 2026-10-30: P2.56 and P2.55 are published (nested `cfaad25`,
 `eb69e5a`). P2.57 (CoT probe, inference only) runs on whichever GPU is
-free.
+free. P2.57 finished (publish after the P2.58 launch, step 3 below).
+P2.58 (centralized CoT x RL screen) runs on both GPUs; P2.53 seed 2
+waits (owner).
+
+## P2.58: CoT x RL screen, centralized (both GPUs, seed 0, Spider dev)
+
+Owner, 2026-10-30 (LAB_LOG). Student only, no teacher runs. Two arms: G
+(SQL only) and T (OmniSQL-style CoT). Each goes through three stages:
+SFT on the 3,335 SynSQL pool rows (T on SynSQL's published CoT), SFT on
+Spider train (T on its own execution-correct rationalizations), then RL
+from 8 samples on 1,200 fixed Spider training questions, in two forms
+(`d`: DPO plus NLL, `r`: RFT). Every adapter is evaluated on Spider dev;
+Spider test is not touched. Both GPUs run the same lane; each takes the
+next ready task, the T arm first. Estimate: about 16 h wall for both
+lanes. Rerun the same lane command to resume after a stop: finished
+tasks are skipped, generation resumes per row, SFT from its last
+checkpoint, and an interrupted DPO restarts (under 1.5 h).
+
+1. GPU 0 window: pull, test and start the GPU 0 lane. It stops at once
+   if either GPU lane lock is held. The pull admits only the P2.57 and
+   P2.58 files, the SynSQL CoT file, docs, Markdown and results:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; foreach ($g in '0','1') { uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_$g.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw "GPU $g lane is running" } }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/rationale/omnisql_cot\.py|scripts/run_p257_cot_probe\.py|tests/test_p257_cot_probe\.py|fedicl_sql/training/dpo\.py|scripts/build_synsql_cot\.py|scripts/run_p258_cot_rl_screen\.py|tests/test_p258_cot_rl_screen\.py|processed_data/protocol_v2/SYNSQL/pool_tok508k/cot/.+|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p258_cot_rl_screen.py tests/test_p257_cot_probe.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p258_cot_rl_screen --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.58 GPU 0 lane failed' } }
+```
+
+2. GPU 1 window, once step 1 prints `start t1`: start the GPU 1 lane (no
+   pull; it checks that the checkout has the P2.58 runner):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; if (-not (Test-Path 'scripts/run_p258_cot_rl_screen.py')) { throw 'Run step 1 first' }; uv run --no-sync python -m scripts.run_p258_cot_rl_screen --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.58 GPU 1 lane failed' } }
+```
+
+   Each lane prints the task it starts, the training VRAM probe, and per
+   generation batch the time and peak VRAM; it stops above 21.5 GiB. A
+   lane with nothing ready waits (one line per minute) and ends when all
+   tasks are done, printing the table. If a task fails, its lane stops
+   with the error; the other lane finishes what does not depend on it and
+   then stops too. Read-only status at any time (tasks done or running,
+   Spider dev EX per adapter, training data counts, RL sample pass rates,
+   paired contrasts):
+
+```powershell
+& { $ErrorActionPreference='Stop'; uv run --no-sync python -m scripts.run_p258_cot_rl_screen --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+3. Third window, after both lanes started: publish P2.57 (step 2 of the
+   P2.57 section below). It commits only the finished P2.57 files.
+
+4. Publish P2.58 once both lanes have ended (the `files` phase refuses
+   while a task runs):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p258_cot_rl_screen'; $msg="results: record the $exp seed 0 screen"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+   How to read it: T2 against G2 says whether reasoning learned on
+   SynSQL and carried into Spider beats SQL-only SFT before any RL; T3d
+   and T3r against G3d and G3r say whether the gap holds or grows after
+   RL; T3 against T2 says what RL adds on top of CoT. T1 against G1 shows
+   how much of the SynSQL stage alone transfers to Spider.
 
 ## Status check (read-only, any time, for example after a server restart)
 
