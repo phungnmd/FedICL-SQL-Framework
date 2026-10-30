@@ -2,7 +2,19 @@
 
 Seed 0.
 
-## Bảng 1: các metric của bảng 4.2
+## Bảng 1: bảng 4.2 theo outline
+
+EM và EX tính trên Spider test (2,147 câu).
+
+| Method          |        EM |        EX | Trainable Params | Latency (s/câu) |
+| --------------- | --------: | --------: | ---------------: | --------------: |
+| Centralized SLM |     61.53 |     71.08 |            18.5M |            0.30 |
+| FedAvg-SLM      |     60.22 |     71.50 |            18.5M |            0.30 |
+| FedProx-SLM     |     58.69 |     70.42 |            18.5M |            0.30 |
+| LLM Few-shot    |     59.34 | **76.25** |                0 |            0.74 |
+| **FedLS-SQL**   | **64.00** |     73.17 |            18.5M |            0.30 |
+
+## Bảng 2: các metric của bảng 4.2, đầy đủ các dòng
 
 EM và EX tính trên Spider test (2,147 câu).
 
@@ -20,7 +32,7 @@ EM và EX tính trên Spider test (2,147 câu).
 | FedLS-SQL w/o teacher     |     63.58 |     72.61 |            18.5M |            0.30 |
 | **FedLS-SQL**             | **64.00** | **73.17** |            18.5M |            0.30 |
 
-## Bảng 2: EX trên các tập khác
+## Bảng 3: EX trên các tập khác
 
 Spider dev, BIRD dev và các biến thể robustness của Spider dev.
 
