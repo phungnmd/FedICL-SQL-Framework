@@ -59,8 +59,11 @@ CoT case is weaker than it states:
 - ExCoT (arXiv 2503.19988): CoT SFT is below SQL SFT there too (Spider 81.42 vs
   83.00), and only 3 DPO rounds with 32 candidates on 70B flip it (86.59). The
   first off-policy round on GPT-4o candidates matters (BIRD 68.51 vs 66.30 and
-  67.08 on-policy only). No-CoT DPO gains +2.2 on Spider, close to `g3d` +1.93.
-  CoT gap at SFT: ExCoT -1.58, P2.58 -10.06.
+  67.08 on-policy only). No-CoT DPO is 81.00 on Spider, +2.19 over the base
+  model 78.81 and below SQL SFT 83.00; its starting checkpoint is not stated,
+  so it does not compare with `g3d` +1.93 over its own SFT (corrected
+  2026-10-31; this entry first called the two close). CoT gap at SFT: ExCoT
+  -1.58, P2.58 -10.06.
 - GRPO: main advantage is dropping all-wrong prompts, RAFT competitive (Xiong et
   al., arXiv 2504.11343). The P2.58 RFT result is confounded: lr 2e-4 vs DPO 1e-5.
 - Not in the proposal: plain federated DPO loses accuracy as clients grow

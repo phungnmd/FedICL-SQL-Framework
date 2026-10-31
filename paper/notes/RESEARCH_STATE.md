@@ -10,7 +10,8 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-31.
+Cập nhật: 2026-10-31. Tổng hợp literature về CoT và RL:
+[COT_RL_RESEARCH](COT_RL_RESEARCH.md).
 
 Owner 2026-10-31: hướng paper ngày 2026-10-28 chưa thuyết phục, đang tìm
 hướng mới với CoT + RL là ứng viên; P2.53 seed 2 tạm dừng. P2.58 đã publish
