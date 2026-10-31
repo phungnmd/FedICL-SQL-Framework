@@ -10,7 +10,7 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-31. Tổng hợp literature về CoT và RL:
+Cập nhật: 2026-11-01. Tổng hợp literature về CoT và RL:
 [COT_RL_RESEARCH](COT_RL_RESEARCH.md).
 
 Owner 2026-10-31: hướng paper ngày 2026-10-28 chưa thuyết phục, đang tìm
@@ -19,8 +19,11 @@ hướng mới với CoT + RL là ứng viên; P2.53 seed 2 tạm dừng. P2.58 
 trên Spider dev. Chưa đủ bằng chứng chọn hướng này; giả thuyết thiếu
 training chưa được kiểm bằng đường EX theo epoch (LAB_LOG 2026-10-31).
 Đánh giá đề xuất CoT + RL từ bên ngoài và thứ tự thí nghiệm khuyến nghị (chưa
-phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu paper. P2.57 chưa
-publish.
+phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu paper. Khuyến nghị
+2026-11-01 ưu tiên teacher CoT theo clause, kiểm SQL/schema, giữ đủ gold
+supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
+Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
+Chưa thêm lệnh chạy. P2.57 chưa publish.
 
 ## 1. Câu hỏi nghiên cứu
 

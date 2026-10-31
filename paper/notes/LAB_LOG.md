@@ -30,6 +30,42 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-01: teacher-CoT research recommendation
+
+Owner asked which CoT + RL method is worth trying while retaining a real
+server-teacher contribution. Research only; no GPU run or command queued.
+Details and primary sources: [COT_RL_RESEARCH](COT_RL_RESEARCH.md), section 10.
+
+Recommendation: clause-grounded teacher CoT with SQL/schema checks, then
+execution-based Iterative DPO + NLL. VCoT-SQL (EMNLP 2026) supports 7B target
+synthesis; RetrySQL and SLM-SQL support reasoning at student size 1.5B.
+Their full recipes do not match our LoRA, public/private split or budget.
+GRPO is the first policy-gradient alternative, pending an A5000 smoke.
+
+The proposed pilot compares Gold, Self-CoT and Teacher-CoT on the same public
+pool, then through private training and aggregation. Private examples with
+rejected rationales retain gold SQL supervision. P2.58 trained `t2` on only
+6,622/8,659 private rows while `g2` used all rows; target quality, LR and
+coverage remain confounded. Current recommendations prioritize teacher-CoT
+over the SQL-only-first sequence in the entry below; this is not an owner
+direction decision.
+
+Corrections to the preceding literature assessment:
+
+- Published SLM-SQL Figure 1 does contain SFT 54.26 for Coder-1.5B. The
+  conflicting Table 6 does not justify saying the number is absent.
+- P2.58 median training targets CoT/SQL are 566/123 on SynSQL and 384/29 on
+  Spider. SQL 23 tokens refers to evaluation outputs, not matched targets.
+- VCoT-SQL section 3.1 uses final SQL EX and heuristic schema matching; it
+  does not execute each reasoning step. Teacher synthesis uses 7B models,
+  but its students are also 7B, not 1.5B.
+- Shorter CoT and more epochs remain hypotheses on our SQL task. Results
+  from math do not identify the cause of P2.58's deficit. Similar EX for
+  teacher and template would not establish an exactly zero teacher effect.
+- The numerical success probabilities in the 2026-10-31 entry were
+  subjective judgments, not calibrated estimates; they are not used to
+  rank the present recommendation.
+
 ## 2026-10-31: outside CoT + RL proposal checked against the papers
 
 Recommendation, not an owner decision; no run queued. Local recount from the
