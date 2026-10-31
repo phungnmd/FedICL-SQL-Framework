@@ -42,6 +42,22 @@ evaluation after the RL tasks; the order does not change any result.
 | `t1` | CoT | SynSQL 3,336 | 58.22 | 390/563 |
 | `g2` | SQL | `g1`, then Spider 8,659 | 72.53 | 23/70 |
 | `t2` | CoT | `t1`, then Spider rationalizations 6,622 | 62.48 | 395/585 |
+| `g3d` | SQL | `g2`, then DPO + NLL, 433 pairs | 74.47 | 23/69 |
+| `g3r` | SQL | `g2`, then RFT, 1,624 examples | 71.66 | 21/64 |
+| `t3d` | CoT | `t2`, then DPO + NLL, 1,057 pairs | 65.09 | 400/599 |
+| `t3r` | CoT | `t2`, then RFT, 1,887 examples | 61.70 | 415/583 |
+
+- DPO helps both formats by about the same amount: `g3d` - `g2` +1.93 (39/19,
+  p=.012), `t3d` - `t2` +2.61 (91/64, p=.036). RFT does not: `g3r` - `g2` -0.87
+  (52/61, p=.45), `t3r` - `t2` -0.77 (100/108, p=.63).
+- RL does not close the CoT gap: `t3d` - `g3d` -9.38 (60/157, p<.001), `t3r` -
+  `g3r` -9.96 (71/174, p<.001).
+- RL samples, K=8 at T=0.7 on 1,200 training questions: `g2` pass@1 88.21,
+  pass@8 97.17, mixed 25.08; `t2` pass@1 66.90, pass@8 88.58, mixed 54.67.
+  Against dev EX the gap is about 16 for `g2` and 4 for `t2`, so `t2` has not fit
+  its training domain; long outputs also lose more under sampling, which
+  inflates this contrast.
+- Spider test was not touched. No teacher ran in this screen.
 
 - `t2` - `g2` -10.06 (65/169, p<.001). The gap was already -8.12 before Spider,
   and `g2` gained only 6.19 from all of Spider, so the 2,037 rows `t2` lacks do
@@ -49,8 +65,8 @@ evaluation after the RL tasks; the order does not change any result.
 - Owner stopped both lanes on 2026-10-31 during `t2_samp0` and `t2_samp1`; their
   finished rows are kept.
 - Owner, 2026-10-31: the 2026-10-28 paper direction is not convincing enough; a
-  new direction is being sought, and CoT + RL is the current candidate. RL on the
-  T arm has no result yet, so P2.58 runs on; P2.53 seed 2 stays on hold.
+  new direction is being sought, and CoT + RL is the current candidate. P2.58 ran
+  to the end after this; P2.53 seed 2 stays on hold.
 
 - `t1` - `g1` -8.12 (80/164, p<.001). `t1` is below the untrained base on the
   SQL-only prompt (59.19). Base student with the CoT prompt on Spider dev was
