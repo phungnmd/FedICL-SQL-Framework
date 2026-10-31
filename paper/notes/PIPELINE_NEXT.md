@@ -44,6 +44,47 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 P2.57 is still unpublished (its step 2 below). Recommended next order, not
 queued: LAB_LOG 2026-10-31, outside proposal entry.
 
+State 2026-11-01: P2.57 is published (nested `f8f3832`). P2.59 below is the
+active run (owner; design in LAB_LOG 2026-11-01).
+
+## P2.59: teacher CoT, then RL (both GPUs, seed 0, Spider dev)
+
+The student learns short reasoning on SynSQL, then improves from its own samples
+and execution feedback on Spider. Arms are read after RL. About 58 GPU-h, about 30 h
+with both GPUs (estimate; first numbers come from the writer shards).
+
+1. Pull, test and start on GPU 0, with both GPUs idle:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__(); exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/rationale/short_cot\.py|scripts/run_p259_cot_then_rl\.py|tests/test_p259_cot_then_rl\.py|docs/.+|AGENTS\.md|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p259_cot_then_rl.py tests/test_p258_cot_rl_screen.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.59 lane failed' } }
+```
+
+2. Once step 1 has started training or generating, start GPU 1 in a second window. To
+   stop a lane use Ctrl+C; rerun the same command and it resumes:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.59 lane failed' } }
+```
+
+3. Read-only, any time. `preview` prints sample rationales of each writer; read it once
+   `writer_tc0` and `writer_sf0` are done, while training has not gone far. `status`
+   prints the EX table and the paired contrasts:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase preview; if ($LASTEXITCODE -ne 0) { throw 'Preview failed' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+4. Publish when the lanes have stopped, finished or after Ctrl+C for a partial result
+   (the `files` phase refuses a running task; the lanes resume afterwards):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p259_cot_then_rl'; $msg="results: record the $exp seed 0 screen"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
 ## P2.58: completed, awaiting the next direction decision
 
 Published in nested `6dd0cb0`. The [completed runbook](../archive/completed_runbooks/PIPELINE_P258_2026-10-31.md)

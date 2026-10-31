@@ -66,6 +66,34 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 teacher CoT then RL queued (owner)
+
+Owner: teacher CoT in the first phase teaches the student to reason; in the second
+phase the student improves that reasoning by RL. CoT may lose after SFT and still win
+after RL, as in ExCoT and Schema-R1, so arms are read after RL, not after SFT. This
+drops the SFT stop proposed on 2026-10-31. Nested code: `scripts/run_p259_cot_then_rl.py`.
+
+Design, seed 0, Spider dev, greedy, Spider test not touched:
+
+| Stage | Arms | Source |
+|---|---|---|
+| 1, SFT on SynSQL, same rows, final SQL always gold | `tc1` teacher, `sf1` base student, `tp1` template; `t1lr` long CoT at lr 5e-5; references P2.58 `g1`, `t1` | short CoT Li et al. 2502.12143, Chen et al. 2502.18001; execution-order steps RetrySQL; cleaning SLM-SQL; hidden reference STaR |
+| 2a, RL only, 3 rounds, new 1,200 questions each | `tc_r*`, `sf_r*`, `tp_r*`, SQL `g_r*` from `g1` | on-policy DPO with NLL: Iterative RPO, ExCoT |
+| 2b, SFT on Spider, then 1 RL round | `tc2`, `sf2` self-written, `tp2` template, then `*3`; references `g2`, `g3d` | STaR, ExCoT |
+| Control | `g3n`, the NLL term of `g3d` alone | Iterative RPO |
+
+Without a source: labelled-line format, its one worked example, replacing the writer's
+SQL with gold, 1,200 questions per round, K=8, and three rounds on new questions. GRPO
+is not in this run: it needs a new trainer and online generation, and Xiong et al.
+(2504.11343) rank Iterative DPO lowest on math, so it is the next RL to test if the
+interaction appears but stays weak.
+
+Reading: `tc_r3` and `tc3` against the SQL endpoints `g_r3` and `g3d` answer whether CoT
+then RL beats RL alone; against `sf_*` and `tp_*` they answer whether the teacher adds
+anything. Judgment, not measured: a short-CoT endpoint above its SQL comparator, about
+30%; the teacher arm at least 2 points above both controls at the endpoint, about 15%.
+Teacher writer quality is checked with `--phase preview` before the result is read.
+
 ## 2026-10-31: outside CoT + RL proposal checked against the papers
 
 Recommendation, not an owner decision; no run queued. Local recount from the
