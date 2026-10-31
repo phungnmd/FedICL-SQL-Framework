@@ -82,6 +82,17 @@ Design, seed 0, Spider dev, greedy, Spider test not touched:
 | 2b, SFT on Spider, then 1 RL round | `tc2`, `sf2` self-written, `tp2` template, then `*3`; references `g2`, `g3d` | STaR, ExCoT |
 | Control | `g3n`, the NLL term of `g3d` alone | Iterative RPO |
 
+Writer filter, from VCoT-SQL section 3.1: finished, no mention of the reference, names the
+gold tables. Its execution filter on the writer's own SQL is not applied: the base student
+would lose about a quarter of the rows (75.33 on SynSQL), and the final SQL is gold in every
+arm. Rows with a rejected rationale at stage 2b keep their gold SQL with the SQL-only prompt,
+so coverage matches `g2` (COT_RL_RESEARCH section 10.3; P2.58 lost 2,037 rows).
+
+Differences from COT_RL_RESEARCH section 10.4: `tp1` stays as an arm, since teacher against
+template is what a reviewer will ask and it needs no generation; SFT stays at lr 2e-4 so the
+SQL reference `g1` is matched, with `t1lr` as the lr contrast; this run is centralized, and
+the Teacher minus Self contrast after FL follows only if the arms separate here.
+
 Without a source: labelled-line format, its one worked example, replacing the writer's
 SQL with gold, 1,200 questions per round, K=8, and three rounds on new questions. GRPO
 is not in this run: it needs a new trainer and online generation, and Xiong et al.

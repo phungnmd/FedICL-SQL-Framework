@@ -23,7 +23,7 @@ phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu pa
 2026-11-01 ưu tiên teacher CoT theo clause, kiểm SQL/schema, giữ đủ gold
 supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
 Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
-Chưa thêm lệnh chạy. P2.57 chưa publish.
+P2.57 đã publish (nested `f8f3832`). P2.59 đang là lệnh chạy trong PIPELINE_NEXT: teacher CoT ở phase đầu, RL ở phase sau, đọc arm sau RL (LAB_LOG 2026-11-01).
 
 ## 1. Câu hỏi nghiên cứu
 
