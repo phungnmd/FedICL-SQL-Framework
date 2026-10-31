@@ -17,6 +17,9 @@ hướng mới với CoT + RL là ứng viên; P2.53 seed 2 tạm dừng. P2.58 
 (nested `6dd0cb0`): CoT thua SQL-only 10.06 điểm sau SFT, 9.38 sau DPO + NLL
 trên Spider dev. Chưa đủ bằng chứng chọn hướng này; giả thuyết thiếu
 training chưa được kiểm bằng đường EX theo epoch (LAB_LOG 2026-10-31).
+Đánh giá đề xuất CoT + RL từ bên ngoài và thứ tự thí nghiệm khuyến nghị (chưa
+phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu paper. P2.57 chưa
+publish.
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -86,6 +89,7 @@ chỉ là giả thuyết.
 | F27 | Đảo vai: replay giữ public domain (Spider) nhưng không giúp private (BIRD) | P2.52: Spider +6.29 (p<.001), BIRD -1.69 (p=.061) | 1 seed, appendix |
 | F28 | Trên Spider test, mọi arm K2 nằm trong 72.6-73.9, FedAvg 71.50; phần teacher trên Spider khoảng 0.5 | seed 0: method - FedAvg +1.68 (p=.029), `gold_k2aaa` - FedAvg +1.53, method - `gold_k2aaa` +0.14, `hinton_k2aaa` - `gold_k2aaa` +0.47; dev sang test FedAvg +3.90, nhóm K2 +0.66 đến +2.62 | 1 seed, Spider test |
 | F29 | Trên Spider test, method ngang train tập trung Spider + BIRD (không privacy) và hơn train tập trung chỉ Spider; FL penalty của dev không còn trên test | seed 0: method - `central_mix` -0.61 (p=.46), - `central` +2.10 (p=.009), - FedNTD +3.49, - local tốt nhất +2.89 (local trung bình 67.27); `central` - FedAvg -0.42 (p=.66; dev +3.77) | 1 seed, Spider test; `central`, `central_mix` chỉ có seed 0 |
+| F30 | Central, không teacher: DPO + NLL nâng cả SQL-only lẫn CoT một mức tương đương, RFT thì không; CoT vẫn thua SQL-only khoảng 9-10 điểm | P2.58 (nested `6dd0cb0`), Spider dev: `g3d` - `g2` +1.93 (p=.012), `t3d` - `t2` +2.61 (p=.036), `t2` - `g2` -10.06, `t3d` - `g3d` -9.38 (p<.001). RFT dùng lr 2e-4, DPO 1e-5, nên hai bên chưa so được trực tiếp; phần do preference loss chưa tách khỏi NLL | 1 seed, chỉ dev |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,

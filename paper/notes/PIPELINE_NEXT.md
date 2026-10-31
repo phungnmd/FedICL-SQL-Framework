@@ -41,6 +41,8 @@ as the candidate (LAB_LOG). P2.58 is published (nested `6dd0cb0`); all tasks
 finished. No additional CoT/RL run is queued pending the owner's next
 direction decision. P2.53 seed 2
 stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
+P2.57 is still unpublished (its step 2 below). Recommended next order, not
+queued: LAB_LOG 2026-10-31, outside proposal entry.
 
 ## P2.58: completed, awaiting the next direction decision
 

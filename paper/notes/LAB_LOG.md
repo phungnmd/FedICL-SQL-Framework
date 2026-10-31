@@ -30,6 +30,79 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-10-31: outside CoT + RL proposal checked against the papers
+
+Recommendation, not an owner decision; no run queued. Local recount from the
+committed P2.58 predictions (seed 0, Spider dev; script not committed).
+
+Outside proposal: iterative DPO + NLL next, GRPO as the direct RL option, short
+SQL-operation CoT, NLL-only control. The DPO order and the control hold. The
+CoT case is weaker than it states:
+
+- SLM-SQL (arXiv 2507.22478): 61.95 and 67.08 are right; 54.26 is in neither
+  results table (Table 6 SFT 54.17, and its SFT + RL 50.59 looks like a typo).
+  Spider, 16 samples, RL on BIRD only: SFT 74.53, SFT + RL 75.15 on dev, 77.35
+  and 78.42 on test; with CSC 76.66, 76.72 and 79.13, 79.06. The large RL gain
+  is on BIRD.
+- RetrySQL (arXiv 2507.02529): numbers right. For Qwen2.5-Coder 1.5B no SQL-only
+  row exists; BIRD gains nothing from retry (55.96, 55.65, 56.36); Spider 77.18
+  at corruption 0.2, 75.11 at 0.3. GPT-4o writes steps from gold on the training
+  rows, which our private-data rule excludes. Gold schema links, 5 runs.
+- FINER-SQL (arXiv 2605.03465): 59.4 to 63.1 right (BIRD dev). 1.5B Spider 80.0
+  uses schema filtering and 30-candidate voting; at 0.5B greedy is about 35,
+  voting about 49. Removing both dense rewards costs 2.16 at 1.5B. No teacher
+  ablation.
+- Li et al. (arXiv 2502.12143): 27.0 and 34.2 right. Omitted: at 1.5B a larger
+  teacher does not help (32.2 vs 33.0). Long CoT stays flat from 2 to 5 epochs
+  (.270 to .286; short .341), so the extra-epoch probe proposed in the entry
+  below has low value. LR matters (1e-4 .133, 1e-5 .276, full fine-tuning).
+- ExCoT (arXiv 2503.19988): CoT SFT is below SQL SFT there too (Spider 81.42 vs
+  83.00), and only 3 DPO rounds with 32 candidates on 70B flip it (86.59). The
+  first off-policy round on GPT-4o candidates matters (BIRD 68.51 vs 66.30 and
+  67.08 on-policy only). No-CoT DPO gains +2.2 on Spider, close to `g3d` +1.93.
+  CoT gap at SFT: ExCoT -1.58, P2.58 -10.06.
+- GRPO: main advantage is dropping all-wrong prompts, RAFT competitive (Xiong et
+  al., arXiv 2504.11343). The P2.58 RFT result is confounded: lr 2e-4 vs DPO 1e-5.
+- Not in the proposal: plain federated DPO loses accuracy as clients grow
+  (FedPDPO, arXiv 2603.19741, DistilGPT2 on IMDB, 3 to 10 clients 82.73 to
+  76.45); FedMOA (arXiv 2602.00453) and FedDPO in OpenFedLLM (arXiv 2402.06954)
+  are the closest federated work to cite.
+
+P2.58 slices, `t3d` - `g3d`: JOIN -13.5, no JOIN -6.7, GROUP BY -13.7, nested
+-8.2. Of the 157 questions only `g3d` solves, `t3d` runs a wrong query on 98 and
+names a missing column or table on 55, so the gap is mostly logic, not only
+schema linking. Union of both 80.27, `t3d` alone solves 60. Text after the final
+SQL is 13.6% of a `t3d` output at p50, so cleaning it does not make CoT short.
+
+P2.57 is not published: no `p257` audit files in nested `origin/main`.
+
+Cached teacher negatives: `raw/train.csv` holds teacher SQL for all 9,428 BIRD
+rows, 5,319 match gold, 4,109 do not (3,727 where the gold passes the audit).
+These give gold versus teacher-wrong pairs with no teacher run, the closest
+available match to the ExCoT off-policy round. Teacher SQL on Spider stays out.
+
+Recommended order, costs from P2.58 receipts:
+
+1. Spider test on `g2`, `g3d`, `t2`, `t3d` (about 2.4 h): does the gain hold?
+2. `g3n`: NLL only on the `g3d` chosen rows, same lr and updates (about 0.5 h).
+3. SQL-only iterative DPO, 3 rounds on the 7,000 question pool, plus seed 1 of
+   `g1`, `g2`, `g3d` (about 15 GPU-h).
+4. One CoT rescue on the other GPU: base student CoT on Spider dev (0.5 h), then
+   teacher short CoT on SynSQL and SFT against `g1` and `t1` (about 7 h,
+   estimate). Earlier structured CoT also lost (P2.10, old student, template
+   plans). CoT stays only if the gap is near the ExCoT size.
+5. Federated: one client DPO round from existing A3 adapters of FedAvg,
+   `gold_k2aaa`, `hinton_k2aaa` (about 18 GPU-h): survival under non-IID and the
+   teacher contrast.
+6. Teacher as negatives: server DPO on cached teacher pairs against student
+   pairs on the same rows, then the private rounds (about 10 GPU-h).
+
+Judgment, not measured: DPO gain holds on test and seed 1, about 55%; CoT beats
+SQL-only greedy at 1.5B on this data, 10-15%; federated DPO beats FedAvg, about
+60%; a teacher edge above one point on Spider test through this path, about
+20%. The likeliest outcome is a strong federated execution-RL result with a small
+teacher share, which the current paper goal does not accept on its own.
+
 ## 2026-10-31: P2.58 published, CoT training diagnosis
 
 Evidence: nested `6dd0cb0`,
