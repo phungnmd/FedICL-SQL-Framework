@@ -10,7 +10,13 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 [PIPELINE_NEXT](PIPELINE_NEXT.md). Các hướng đã cân nhắc trước 2026-10-11:
 [archive/directions_2026-10](../archive/directions_2026-10/README.md).
 
-Cập nhật: 2026-10-28.
+Cập nhật: 2026-10-31.
+
+Owner 2026-10-31: hướng paper ngày 2026-10-28 chưa thuyết phục, đang tìm
+hướng mới với CoT + RL là ứng viên; P2.53 seed 2 tạm dừng. P2.58 đã publish
+(nested `6dd0cb0`): CoT thua SQL-only 10.06 điểm sau SFT, 9.38 sau DPO + NLL
+trên Spider dev. Chưa đủ bằng chứng chọn hướng này; giả thuyết thiếu
+training chưa được kiểm bằng đường EX theo epoch (LAB_LOG 2026-10-31).
 
 ## 1. Câu hỏi nghiên cứu
 
@@ -115,8 +121,9 @@ xem kết quả (luật 1, mục 5).
 
 ## 5. Giai đoạn và luật đang áp dụng
 
-Giai đoạn hiện tại: **xác nhận** (P2.53, 3 seed, Spider test). Hướng paper
-(owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
+Giai đoạn hiện tại: **tìm hướng mới** (owner, 2026-10-31), CoT + RL đang
+được đánh giá bằng screen P2.58; P2.53 seed 2 tạm dừng. Hướng paper trước
+đó (owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
 
 Luật (owner, 2026-10-29): mục tiêu là paper Q3 hay và mạnh nhất mà kết quả
 cho phép. Chỉ giữ cố định ba điều, đều về trung thực:

@@ -27,6 +27,10 @@ material and index entries only.
 - [Directions and plans before the reset](directions_2026-10/README.md): replaced by `paper/notes/RESEARCH_STATE.md`.
 - [Lab log 2026-09-24 to 2026-10-09](lab_log_2026-10/LAB_LOG_2026-09-24_to_2026-10-09.md).
 
+## 2026-10-31 completed P2.58
+
+- [P2.58 centralized CoT x RL screen](completed_runbooks/PIPELINE_P258_2026-10-31.md): published in nested `6dd0cb0`.
+
 ## 2026-10-25 completed P2.47 and P2.48
 
 - [P2.48 compact replay and server learning](completed_runbooks/PIPELINE_P248_2026-10-25.md): published in nested `8b79530`.

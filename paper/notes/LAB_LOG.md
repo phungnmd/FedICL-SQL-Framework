@@ -30,9 +30,77 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
-## 2026-10-30: P2.58 first signals (not committed yet)
+## 2026-10-31: P2.58 published, CoT training diagnosis
 
-Reported from the server receipts while `t2` trains. `eval_g1`, `eval_t1` and
+Evidence: nested `6dd0cb0`,
+`audits/protocol_v2/p258_cot_rl_screen_s0/{summary.json,done/,eval/}`.
+Local recount from the committed predictions reproduces all eight EX values
+and all eight paired contrasts below, including exact McNemar p-values.
+No GPU training or generation was rerun for this review.
+
+The screen supports execution-preference training as a candidate, but does
+not yet support CoT as the useful component: DPO + NLL adds 1.93 points to
+SQL-only and 2.61 to CoT; the CoT endpoint still trails by 9.38 points.
+The 0.68-point difference between those gains is descriptive, not evidence
+of a CoT-specific DPO advantage. The two arms also have different preference
+data (433 versus 1,057 pairs). RFT lowers both endpoints in this screen.
+These are centralized, seed-0 results, without our server teacher; they do
+not establish a federated or teacher contribution. One batch of sampled
+preferences followed by DPO is not a test of iterative online GRPO.
+
+Does CoT need more training? That remains open, rather than the established
+cause of the gap:
+
+- T1 and T2 each train for two epochs, lr 2e-4, LoRA r16. T1 has 417
+  optimizer updates on 3,336 SynSQL rows, T2 828 on 6,622 Spider rows.
+  Final reported CE is 0.3512 and 0.0691 respectively. These are training
+  summaries, not an epoch-wise validation curve or a SQL-only loss.
+- T2 finds SQL in all 1,034 dev outputs and none is truncated; output
+  length p50/p95 is 395/585 tokens. The failure is not inability to finish
+  the requested format. Prediction records contain 124 execution errors
+  versus G2's 86; missing-column/table errors are 119 versus 79.
+- Sampled train pass@1 is 66.90 for T2 versus 88.21 for G2, but this uses
+  temperature 0.7 on 1,200 non-empty-gold questions. It is neither greedy
+  train EX nor performance restricted to the rows admitted to T2 training:
+  284 of those 1,200 questions are outside T2's admitted SFT rows.
+  Its proximity to dev greedy EX does not diagnose underfitting.
+- Stage 2 changes coverage as well as target/prompt: 6,622 rows for T2
+  versus 8,659 for G2. The gap already exists on identical stage-1 rows,
+  but the contribution of those 2,037 omitted rows at stage 2 is unmeasured.
+- Self-rationalizations are checked by final-SQL execution, not by the
+  correctness of the reasoning. The SynSQL targets also contain 259
+  reference mentions; T2 still mentions a reference on 41 dev questions.
+  These are target-quality concerns, not proof of the cause of the gap.
+
+Recommendation, not a queued run or an owner decision: test additional SFT
+from T2 on the same targets and settings, saving each epoch, and evaluate
+greedy solve-mode EX on a fixed subset of admitted training questions and
+Spider dev before and after. Report reasoning and final-SQL CE separately.
+An additional two epochs took about 2.6 h for the original T2 stage; allow
+extra time for evaluations. A restart from adapter weights is a new SFT
+stage with a new optimizer/schedule, not a continuous four-epoch run.
+If training EX improves without dev EX, more repetition is not improving
+generalization; if both improve, extra optimization benefits this recipe.
+This probe tests extra optimization on existing targets, not the value of
+more distinct CoT examples. Do not launch a full federated chain on this
+screen alone.
+
+Literature checked for this interpretation:
+[OmniSQL](https://arxiv.org/html/2503.02240v2) also uses two epochs, but with
+7B+ students and different adaptation/data. Its CoT-enhanced Spider+BIRD
+ablation improves even without the 2.5M synthetic pool, so the current
+failure cannot simply be attributed to not using millions of rows.
+[ExCoT](https://aclanthology.org/2025.findings-acl.982/) demonstrates gains
+through execution-based preference optimization, but on 32B/70B models
+and multiple DPO rounds, not this 1.5B LoRA screen.
+[Li et al., Findings ACL 2025](https://aclanthology.org/2025.findings-acl.1301/)
+find that smaller models can benefit more from simpler reasoning; this
+motivates adapting targets, not declaring 1.5B incapable of CoT.
+
+## 2026-10-30: P2.58 screen results (published 2026-10-31)
+
+Initially reported from server receipts; now committed in nested `6dd0cb0`.
+`eval_g1`, `eval_t1` and
 `eval_g2` were run by hand ahead of the lane order, which puts every
 evaluation after the RL tasks; the order does not change any result.
 
@@ -54,14 +122,14 @@ evaluation after the RL tasks; the order does not change any result.
   `g3r` -9.96 (71/174, p<.001).
 - RL samples, K=8 at T=0.7 on 1,200 training questions: `g2` pass@1 88.21,
   pass@8 97.17, mixed 25.08; `t2` pass@1 66.90, pass@8 88.58, mixed 54.67.
-  Against dev EX the gap is about 16 for `g2` and 4 for `t2`, so `t2` has not fit
-  its training domain; long outputs also lose more under sampling, which
-  inflates this contrast.
+  These sampled train scores and greedy dev EX do not measure the same
+  decoding setting, and the T2 sampling pool includes rows excluded from
+  its SFT data; their difference does not establish underfitting.
 - Spider test was not touched. No teacher ran in this screen.
 
-- `t2` - `g2` -10.06 (65/169, p<.001). The gap was already -8.12 before Spider,
-  and `g2` gained only 6.19 from all of Spider, so the 2,037 rows `t2` lacks do
-  not explain it.
+- `t2` - `g2` -10.06 (65/169, p<.001). The gap was already -8.12 before
+  Spider on the same rows. Missing stage-2 rows cannot explain the stage-1
+  gap; their contribution to the final gap has not been isolated.
 - Owner stopped both lanes on 2026-10-31 during `t2_samp0` and `t2_samp1`; their
   finished rows are kept.
 - Owner, 2026-10-31: the 2026-10-28 paper direction is not convincing enough; a
