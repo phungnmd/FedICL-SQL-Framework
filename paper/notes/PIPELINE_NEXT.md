@@ -83,6 +83,8 @@ SQL route, same stop rule and same seeds, so its ceiling is measured and not ass
 | CoT + RL ceiling vs SQL SFT ceiling | The owner's question |
 | CoT + RL ceiling vs SQL + RL ceiling | Whether the gain is from CoT or from RL alone |
 
+Every evaluation reports execution errors and wrong answers separately (LAB_LOG 2026-11-01).
+
 Open for the owner: Spider rows still uncovered after the last round are excluded with coverage
 reported (recommended), or train on SQL-only.
 

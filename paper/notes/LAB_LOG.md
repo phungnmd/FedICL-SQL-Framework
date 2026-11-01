@@ -110,6 +110,15 @@ Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only i
 (unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
 so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
 
+## 2026-11-01: P2.59 failure split after RL (not committed)
+
+Template outputs keep their reasoning under RL: has reasoning 100%, lines p50 4, 3, 3 (`tp1`, `tp_r1`,
+`tp_r2`). Split of Spider dev failures, execution error / runs but wrong (100 - EX - error, unpaired):
+`g_r1` 9.1/22.1, `tc_r1` 15.2/22.3, `tp_r1` 9.1/22.8, `sf_r1` 18.6/22.6; `g_r2` 7.4/21.6, `tp_r2`
+7.7/25.2. After one RL round the `tc` gap to SQL is almost all execution errors; the wrong-answer
+share is level. The `tp` gap at round 2 is wrong answers, with errors level. `sf_r1` no-SQL rows may
+sit in its error share. For P2.60, read errors and wrong answers separately at every checkpoint.
+
 ## 2026-11-01: P2.60 compares ceilings (owner)
 
 Owner: separating the teacher's contribution is out of scope, because the teacher is what supplies
