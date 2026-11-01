@@ -45,37 +45,49 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 State 2026-11-01: P2.57 is published (nested `f8f3832`). P2.59 below is the
 active run (owner; design in LAB_LOG 2026-11-01).
 
-## P2.60 draft: does teacher CoT reach a higher ceiling (not runnable yet)
+## P2.60 draft: does CoT + RL reach a higher ceiling than SQL (not runnable yet)
 
 Waits for the narrowed P2.59 and is reviewed against its results; no code and no commands yet.
-Owner, 2026-11-01: teacher CoT route only; the teacher never sees gold SQL; only rows it solves
-correctly are kept, with sampling on wrong rows to raise that share. SynSQL stays the main pool.
-Evidence: LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
+Owner, 2026-11-01: the question is whether CoT + RL beats SQL-only SFT, comparing ceilings and not
+equal steps. The teacher never sees gold SQL; only rows it solves are kept, with sampling on wrong
+rows. Separating the teacher's contribution is out of scope. SynSQL stays the main pool. Evidence:
+LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
 
-The references are the P2.58 SQL adapters, not new arms: `g1` 66.34, `g2` 72.53, `g3d` 74.47
-(Spider dev, seed 0, full data).
+Ceiling: the best Spider dev EX along a route, trained until two evaluations in a row gain less
+than 1 point or the maximum below. The chosen checkpoint is then tested with three seeds on Spider
+test; a dev peak is selected, so it does not carry the claim.
+
+CoT route:
 
 1. Pilot, no training. The 7B solves the P2.57 300 SynSQL rows without gold SQL and without a fixed
    format, then samples up to K=8 on rows it got wrong, keeping outputs whose SQL matches gold on
-   execution. Reads coverage and the length of what is missed. About 6 GPU-h, from the 17 h estimate
-   for one teacher pass over SynSQL; replace it with the P2.59 writer receipts.
-2. CoT pool on SynSQL, same recipe, sampling budget set from the pilot. The target keeps the
+   execution. Reads coverage and missed-row length. About 6 GPU-h, from the 17 h estimate for one
+   teacher pass over SynSQL; replace it with the P2.59 writer receipts.
+2. CoT pool on SynSQL, sampling budget set from the pilot, 17-65 GPU-h. The target keeps the
    teacher's own reasoning and SQL. Rows never solved are out and coverage is reported.
-3. SFT on the pool, 6 epochs, evaluated after epochs 2, 4 and 6 against `g1`. The best epoch goes on.
-4. Spider SFT, one round: the student solves every row without gold (greedy, then K=4 on failures),
-   keeps execution-correct outputs, trains 2 epochs, against `g2` at matched passes. About 18 GPU-h.
-5. A second Spider round only if round 1 coverage is below about 90% (a project choice): sample the
-   failed rows only, train 1 epoch on the union. About 7 GPU-h. No later rounds: the RL stage samples
-   the same way, and on SQL `g3n` shows that more NLL on chosen outputs adds nothing after full SFT.
-6. DPO + NLL rounds until two rounds in a row gain less than 1 point, against `g3d`. Each round
-   about 5 GPU-h.
-7. Three seeds of the final recipe on Spider test, with the question-clustered test.
+3. SFT on the pool, up to 6 epochs, evaluated per epoch. About 8 GPU-h.
+4. Spider SFT from the best epoch: the student solves without gold (greedy, then K=4 on failures),
+   keeps execution-correct outputs, trains up to 6 epochs. A new sampling round on failed rows while
+   coverage is below about 90% (a project choice). About 25-35 GPU-h.
+5. DPO + NLL rounds until the stop rule, at most 5 (new questions run out). About 5 GPU-h each.
+
+SQL route, same stop rule and same seeds, so its ceiling is measured and not assumed:
+
+6. SFT on full SynSQL and then Spider, up to 6 epochs each, evaluated per epoch. `g1` and `g2` stop at
+   2 epochs and are the first points of this curve. About 12 GPU-h.
+7. DPO + NLL rounds from its best checkpoint until the stop rule. About 1 GPU-h each. P2.59 `g_r1-3`
+   and P2.58 `g3d` are early points.
+
+| Comparison | Answers |
+|---|---|
+| CoT + RL ceiling vs SQL SFT ceiling | The owner's question |
+| CoT + RL ceiling vs SQL + RL ceiling | Whether the gain is from CoT or from RL alone |
 
 Open for the owner: Spider rows still uncovered after the last round are excluded with coverage
 reported (recommended), or train on SQL-only.
 
-Review against P2.59: `g_r3` sets the number of RL rounds and the mark to beat. The student's solve
-coverage on Spider before any Spider SFT is already in the P2.59 receipts:
+Review against P2.59: `g_r3` is the first read of the SQL + RL curve. The student's solve coverage on
+Spider before any Spider SFT is already in the P2.59 receipts:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; foreach ($t in 'tc_r1_samp0','tc_r1_samp1','tc_r1_samp2','tc_r1_samp3') { $m=(Get-Content "audits/protocol_v2/p259_cot_then_rl_s0/done/$t.json" -Raw | ConvertFrom-Json).metrics; "$t rows=$($m.rows) pass1=$($m.'pass@1') pass8=$($m.'pass@8') mixed=$($m.mixed_rows)" } }

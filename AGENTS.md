@@ -94,7 +94,8 @@ current plan.
 
 - 2026-11-01 (owner): the question to prove is whether CoT and RL beat SQL-only SFT and how to
   combine them, including whether CoT reaches a higher ceiling with enough training or RL even
-  if CoT alone falls short. The teacher's role is to write CoT on a public dataset that has none.
+  if CoT alone falls short, comparing ceilings and not equal steps. The teacher's role is to write
+  CoT on a public dataset; separating its contribution from CoT is out of scope for now.
 - 2026-10-31 (owner): the direction below is not convincing enough. A new
   direction is being sought, with CoT + RL as the candidate (P2.58, LAB_LOG);
   P2.53 seed 2 is on hold. Do not steer back to the 2026-10-28 story by default.

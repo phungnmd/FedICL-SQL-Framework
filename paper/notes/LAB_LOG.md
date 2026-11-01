@@ -103,6 +103,13 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.60 compares ceilings (owner)
+
+Owner: separating the teacher's contribution is out of scope, because the teacher is what supplies
+the CoT. The question is whether CoT + RL beats SQL-only SFT, comparing ceilings and not equal steps.
+A ceiling needs both routes trained to a plateau, so the SQL route gets its own curve: `g1` and `g2`
+stop at 2 epochs and are not its ceiling. This replaces the fixed one or two Spider rounds below.
+
 ## 2026-11-01: P2.60 reduced to the teacher CoT route (owner)
 
 Owner: for now only teacher CoT, and the teacher never sees gold SQL: keep rows it solves correctly,
