@@ -103,6 +103,27 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: ceiling run proposal reviewed against the literature
+
+Another agent proposed: teacher solves without gold, bounded sampling on failures, rationalization
+with gold for what remains, keep the writer's own SQL, no SQL-only fallback in CoT-SFT, compare on
+accepted rows with Gold full pool as baseline. Sources checked:
+
+- Lee et al. (arXiv 2607.14552, preprint): one-bit experiment on Qwen3-8B. Chains written with the
+  gold answer and a request to reach it cost 16.2 points on MATH-500, three seeds, and also degrade
+  code; correctness filters cannot see it. The harm tracks the rationalize-toward instruction: with
+  neutral instructions the answer stays visible and the cost is about 1 point. Not tested on SQL.
+- Rossiello et al. (arXiv 2502.06759, ICLR workshop): BIRD dev, 8B student. Gold-SQL rationalizer
+  coverage 99.02% gives CoT long 67.41 vs Gold 66.17; coverage 73.86% gives 61.99 vs 63.95.
+- CROP is known here only from the survey arXiv 2402.09748: it keeps a rationale when the answer is
+  correct. It supports the blind step, not rationalization.
+
+Every CoT trained so far saw the SQL: OmniSQL `t1`, `t2`, P2.59 `tc`, `sf`. A blind writer has never
+been trained, so leakage is an untested explanation of the CoT gap. Recommendation: generate blind
+first and read coverage before training; add rationalization only if coverage is too low, and as a
+separate arm with a neutral instruction. Spider stage for CoT arms: blind sampling with execution
+filter, not rationalization. Not decided: the owner picks fallback or exclusion in CoT-SFT.
+
 ## 2026-11-01: P2.59 narrowed (recommendation, owner to confirm)
 
 The rest of the queue spends most of its GPU time on `tc` and `sf`, whose prompt and row filter

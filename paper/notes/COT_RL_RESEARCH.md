@@ -259,6 +259,14 @@ chứng cho recipe tạo target, chưa cô lập giá trị teacher hoặc dự 
 cho 1.5B. §3.1 kiểm final SQL EX và heuristic schema matching, không execute
 từng bước reasoning dù abstract dùng cách diễn đạt mạnh hơn.
 
+Bổ sung 2026-11-01: [Lee et al., arXiv 2607.14552](https://arxiv.org/pdf/2607.14552)
+(preprint, toán và code, chưa thử trên SQL) cho thấy CoT viết khi thấy đáp án kèm yêu cầu đi tới
+đáp án làm student kém 16.2 điểm trên MATH-500 mà bộ lọc đúng sai không phát hiện được; khi chỉ thấy
+đáp án với chỉ dẫn trung tính, mức giảm khoảng 1 điểm. [Rossiello et al., arXiv 2502.06759](https://arxiv.org/html/2502.06759v1)
+ngược lại: rationalizer thấy gold SQL đạt coverage 99.02% thì CoT dài hơn Gold (67.41 so với 66.17,
+BIRD dev, student 8B), ở coverage 73.86% thì thua (61.99 so với 63.95). Mục 10.2 thấy gold nên
+được kiểm bằng một arm teacher không thấy gold.
+
 ### 10.2. CoT sẽ trông như thế nào?
 
 Teacher nhận **question + schema + evidence nếu có + gold SQL**, chỉ trên
