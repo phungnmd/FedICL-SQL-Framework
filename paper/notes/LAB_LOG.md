@@ -81,6 +81,16 @@ tested on a public dataset with no CoT (SynSQL ships one). For the ceiling run: 
 ends in the complete gold SQL; a row whose reasoning fails is retried with a larger token budget,
 and if it still fails it trains on gold SQL with the SQL-only prompt.
 
+Owner, same day: SynSQL stays the main pool for now; other datasets may follow. The owner also
+points out that a teacher shown the gold SQL and told to fill fixed lines is close to the template.
+Checked in the papers: ExCoT gives GPT-4o no gold SQL, samples up to 32 candidates and keeps those
+that match on execution; OmniSQL shows the SQL, samples 8 at T=0.8 with no fixed format and picks
+by execution majority; VCoT-SQL shows the gold SQL and uses a clause template with few-shot; SCoTD
+samples 30 rationales per question; in Li et al. asking a large teacher to be concise did not close
+the gap to a small one. P2.59 `tc` shows the gold SQL, fixes the lines and takes one output, so it
+tests only that form. Proposed teacher arm for the ceiling run: solve without gold, greedy first,
+sampling only on failed rows, keep execution-correct outputs; other rows train on gold SQL.
+
 ## 2026-11-01: P2.59 writer diagnosis (not committed, 3,336 SynSQL rows)
 
 Rows: the `eos` filter keeps 2,132 common rows; accepting complete reasoning before a cut SQL
