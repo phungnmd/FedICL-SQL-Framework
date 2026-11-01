@@ -66,6 +66,16 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 writer preview (not committed, four rows per writer)
+
+Read from `--phase preview` on shard 0. Base-student outputs often stop after the reasoning
+with no SQL block, so the 19.5% own-SQL figure does not measure its reasoning; its training
+targets still end in the gold SQL. A teacher row whose reasoning finished and whose SQL hit the
+384-token cap was dropped, although the writer's SQL is replaced by gold, so the `eos` filter
+removes usable rows. Teacher reasoning in the sample often omits join keys and conditions (one
+HAVING missing); the template states them exactly. Four rows do not measure this:
+`scripts/diagnose_p259_writers.py` (read-only) measures all of it over the full pool.
+
 ## 2026-11-01: P2.59 first signals (not committed, 39/119 tasks)
 
 Reported from the server status; lanes running. Seed 0, Spider dev.
