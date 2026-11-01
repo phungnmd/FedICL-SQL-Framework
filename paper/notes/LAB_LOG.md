@@ -30,6 +30,23 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-01: P2.60 SynSQL pilot read, pool moves to BIRD (pilot numbers not committed yet)
+
+Teacher 7B, no gold SQL, 300 SynSQL rows, greedy then up to 8 samples on unsolved rows (chat output, server):
+
+- Only 142 of 300 rows have a gold result execution can check. On those, solved 40.1% greedy, 51.4%, 56.3%,
+  59.9%, 62.0% after 8 samples. Extrapolated: about 1,000 usable rows of 3,336 for about 27 more GPU-h.
+- Selection: gold SQL p50 294 chars on solved rows, 876 on missed. Accepted SQL textually equal to gold 6 of 88.
+- Cost: 13-14.7 s/output (484 tokens p50, 747 p95), 67 s per checkable row, peak 17.46 GiB; twice the
+  7 s/output measured at 384 new tokens in P2.59, so the earlier estimates were low.
+
+Decision (owner, 2026-11-01; agreed on these numbers): BIRD replaces SynSQL as the P2.60 pool. Think2SQL
+(arXiv 2504.15077) shows BIRD training lifting Spider against the untrained base (3B .725 to .770 with SFT,
+7B .776 to .826 with SFT + RL), which does not isolate CoT from SQL-only on Spider. The reasons to move are
+BIRD having no shipped CoT and real rows for the execution check. All 9,428 rows are out of budget (greedy
+alone about 36 GPU-h), so `POOL_ROWS` takes a subset set from the BIRD pilot; Think2SQL distills 1,142 rows.
+SynSQL marks `g3d`, `g2` stay rough marks only; a claim needs the matched `--stage sql`.
+
 ## 2026-11-01: P2.59 teacher-target design reviewed against distillation papers
 
 Owner questions whether asking the teacher to fill a gold-derived format

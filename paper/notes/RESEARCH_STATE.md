@@ -23,7 +23,7 @@ phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu pa
 2026-11-01 ưu tiên teacher CoT theo clause, kiểm SQL/schema, giữ đủ gold
 supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
 Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
-P2.59 đã publish (nested `9456e09`, bản thu hẹp). Đang chạy: pilot P2.60 (CoT + RL so trần với SQL, teacher không thấy gold) và `tp2`, `tp3` (LAB_LOG 2026-11-01).
+P2.59 đã publish (nested `9456e09`, bản thu hẹp). Pilot SynSQL của P2.60 xong, pool chuyển sang BIRD. Đang chạy: pilot BIRD (CoT + RL so trần với SQL, teacher không thấy gold) và `tp2`, `tp3` (LAB_LOG 2026-11-01).
 Review implementation P2.59: teacher rationale chưa được kiểm qua SQL của
 chính writer rồi bị ghép với gold, còn template render trực tiếp gold SQL.
 Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi student trên public,
