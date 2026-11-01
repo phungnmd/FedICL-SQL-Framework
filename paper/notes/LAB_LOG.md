@@ -105,10 +105,12 @@ Corrections to the preceding literature assessment:
 
 ## 2026-11-01: P2.60 reduced to the teacher CoT route (owner)
 
-Owner: for now no Gold arm, only teacher CoT: teacher writes CoT on SynSQL, SFT on that pool, Spider
-SFT two rounds, then RL. Since the teacher cannot run on Spider, Spider CoT comes from the student's
-own gold-blind samples. P2.58 `g1`, `g2`, `g3d` serve as references. Without a Template arm, a win
-over SQL shows CoT helps but does not isolate what the 7B adds beyond a format.
+Owner: for now only teacher CoT, and the teacher never sees gold SQL: keep rows it solves correctly,
+with sampling on wrong rows to raise that share. Then SFT on that pool, Spider SFT, RL. Since the
+teacher cannot run on Spider, Spider CoT comes from the student's own gold-blind samples. P2.58 `g1`,
+`g2`, `g3d` serve as references. Without a Template arm, a win over SQL shows CoT helps but does not
+isolate what the 7B adds beyond a format. Spider SFT: one round, a second only on failed rows if
+coverage stays below about 90%, because `g3n` shows more NLL on chosen outputs adds nothing on SQL.
 
 ## 2026-11-01: ceiling run proposal reviewed against the literature
 

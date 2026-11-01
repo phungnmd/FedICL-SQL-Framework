@@ -48,8 +48,9 @@ active run (owner; design in LAB_LOG 2026-11-01).
 ## P2.60 draft: does teacher CoT reach a higher ceiling (not runnable yet)
 
 Waits for the narrowed P2.59 and is reviewed against its results; no code and no commands yet.
-Owner, 2026-11-01: one route only, teacher CoT; no new Gold or Template arm. SynSQL stays the main
-pool. Evidence: LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
+Owner, 2026-11-01: teacher CoT route only; the teacher never sees gold SQL; only rows it solves
+correctly are kept, with sampling on wrong rows to raise that share. SynSQL stays the main pool.
+Evidence: LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
 
 The references are the P2.58 SQL adapters, not new arms: `g1` 66.34, `g2` 72.53, `g3d` 74.47
 (Spider dev, seed 0, full data).
@@ -59,22 +60,26 @@ The references are the P2.58 SQL adapters, not new arms: `g1` 66.34, `g2` 72.53,
    execution. Reads coverage and the length of what is missed. About 6 GPU-h, from the 17 h estimate
    for one teacher pass over SynSQL; replace it with the P2.59 writer receipts.
 2. CoT pool on SynSQL, same recipe, sampling budget set from the pilot. The target keeps the
-   teacher's own reasoning and SQL. If coverage is far below about 90% (a project choice), one
-   rationalization pass with gold SQL shown and a neutral instruction fills the rest, and the rows
-   stay marked (Lee et al., arXiv 2607.14552, against Rossiello et al., arXiv 2502.06759).
+   teacher's own reasoning and SQL. Rows never solved are out and coverage is reported.
 3. SFT on the pool, 6 epochs, evaluated after epochs 2, 4 and 6 against `g1`. The best epoch goes on.
-4. Spider SFT, two rounds, no teacher. Each round: the current student solves without gold (greedy,
-   then K=4 on failures), keeps execution-correct outputs, trains 2 epochs from the previous adapter
-   (STaR without its hint). Round 1 reads against `g2` at matched passes; round 2 asks whether more
-   rounds raise the ceiling and coverage. About 15 GPU-h of sampling and 2.6 h of SFT per round.
-5. DPO + NLL rounds until two rounds in a row gain less than 1 point, against `g3d`. Each round
+4. Spider SFT, one round: the student solves every row without gold (greedy, then K=4 on failures),
+   keeps execution-correct outputs, trains 2 epochs, against `g2` at matched passes. About 18 GPU-h.
+5. A second Spider round only if round 1 coverage is below about 90% (a project choice): sample the
+   failed rows only, train 1 epoch on the union. About 7 GPU-h. No later rounds: the RL stage samples
+   the same way, and on SQL `g3n` shows that more NLL on chosen outputs adds nothing after full SFT.
+6. DPO + NLL rounds until two rounds in a row gain less than 1 point, against `g3d`. Each round
    about 5 GPU-h.
-6. Three seeds of the final recipe on Spider test, with the question-clustered test.
+7. Three seeds of the final recipe on Spider test, with the question-clustered test.
 
-Open for the owner: Spider rows still uncovered after round 2 are excluded with coverage reported
-(recommended), or train on SQL-only.
+Open for the owner: Spider rows still uncovered after the last round are excluded with coverage
+reported (recommended), or train on SQL-only.
 
-Review against P2.59: `g_r3` sets the number of RL rounds and the mark to beat.
+Review against P2.59: `g_r3` sets the number of RL rounds and the mark to beat. The student's solve
+coverage on Spider before any Spider SFT is already in the P2.59 receipts:
+
+```powershell
+& { $ErrorActionPreference='Stop'; foreach ($t in 'tc_r1_samp0','tc_r1_samp1','tc_r1_samp2','tc_r1_samp3') { $m=(Get-Content "audits/protocol_v2/p259_cot_then_rl_s0/done/$t.json" -Raw | ConvertFrom-Json).metrics; "$t rows=$($m.rows) pass1=$($m.'pass@1') pass8=$($m.'pass@8') mixed=$($m.mixed_rows)" } }
+```
 
 ## P2.59: teacher CoT, then RL (both GPUs, seed 0, Spider dev)
 
