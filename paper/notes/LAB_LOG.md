@@ -66,6 +66,25 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 writer diagnosis (not committed, 3,336 SynSQL rows)
+
+Rows: the `eos` filter keeps 2,132 common rows; accepting complete reasoning before a cut SQL
+would keep 2,799 (84%). Median gold SQL length: kept 343 characters, dropped 707, all 431, so CoT
+roots train on shorter queries than `g1` and contrasts with `g1` are biased against CoT.
+
+Writers on the kept rows, gold columns and literals named: `tc` 77.2/75.2, `sf` 77.4/72.6, `tp`
+100/100 (substring match; it measures naming, not the logic of the reasoning). Labelled format:
+`sf` 77.4% of rows, `tc` 100%. Own SQL when present matches gold 89.0% (`tc`), 87.7% (`sf`); `sf`
+wrote no SQL on 2,594 rows, which explains its 19.5% overall.
+
+Evaluation, no SQL / execution error: `tc1` 0.0/17.7, `sf1` 2.4/19.1, `tp1` 0.0/10.0, `tc_r1`
+0.0/15.2, `sf_r1` 1.1/18.6, `tp_r1` 0.1/9.1. Output tokens p50: `tp1` 82, `tp_r1` 60. Missing or
+cut SQL does not explain `tc1` below `tp1`, and explains at most 2.4 points of `sf1` below `tc1`.
+
+Decision: lanes keep running; the filter is not refit, because it would not change `tc` against
+`tp` and would retrain the tree. `g1m` (SQL on the 2,132 rows) with one RL round is the proposed
+clean control, to run when the lanes are idle (owner decides).
+
 ## 2026-11-01: P2.59 writer preview (not committed, four rows per writer)
 
 Read from `--phase preview` on shard 0. Base-student outputs often stop after the reasoning
