@@ -110,6 +110,12 @@ Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only i
 (unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
 so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
 
+## 2026-11-01: P2.59 `g_r3` (not committed)
+
+Spider dev, seed 0: `g1` 66.34, `g_r1` 68.76, `g_r2` 70.99, `g_r3` 71.95 (gains +2.42, +2.23, +0.96).
+Three RL rounds on 3,600 questions end near `g2` 72.53 (2-epoch SFT on 8,659) and below `g3d` 74.47
+(unpaired), so on SQL, SFT then RL ends higher than RL alone so far.
+
 ## 2026-11-01: P2.60 built (nested, pilot ready)
 
 Choices made at build time: rows never solved are excluded with coverage reported; rows whose gold is
