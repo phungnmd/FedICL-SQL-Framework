@@ -23,7 +23,7 @@ phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu pa
 2026-11-01 ưu tiên teacher CoT theo clause, kiểm SQL/schema, giữ đủ gold
 supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
 Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
-P2.57 đã publish (nested `f8f3832`). P2.59 đang là lệnh chạy trong PIPELINE_NEXT: teacher CoT ở phase đầu, RL ở phase sau, đọc arm sau RL (LAB_LOG 2026-11-01).
+P2.59 đã publish (nested `9456e09`, bản thu hẹp). Đang chạy: pilot P2.60 (CoT + RL so trần với SQL, teacher không thấy gold) và `tp2`, `tp3` (LAB_LOG 2026-11-01).
 Review implementation P2.59: teacher rationale chưa được kiểm qua SQL của
 chính writer rồi bị ghép với gold, còn template render trực tiếp gold SQL.
 Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi student trên public,
@@ -102,6 +102,7 @@ chỉ là giả thuyết.
 | F28 | Trên Spider test, mọi arm K2 nằm trong 72.6-73.9, FedAvg 71.50; phần teacher trên Spider khoảng 0.5 | seed 0: method - FedAvg +1.68 (p=.029), `gold_k2aaa` - FedAvg +1.53, method - `gold_k2aaa` +0.14, `hinton_k2aaa` - `gold_k2aaa` +0.47; dev sang test FedAvg +3.90, nhóm K2 +0.66 đến +2.62 | 1 seed, Spider test |
 | F29 | Trên Spider test, method ngang train tập trung Spider + BIRD (không privacy) và hơn train tập trung chỉ Spider; FL penalty của dev không còn trên test | seed 0: method - `central_mix` -0.61 (p=.46), - `central` +2.10 (p=.009), - FedNTD +3.49, - local tốt nhất +2.89 (local trung bình 67.27); `central` - FedAvg -0.42 (p=.66; dev +3.77) | 1 seed, Spider test; `central`, `central_mix` chỉ có seed 0 |
 | F30 | Central, không teacher: DPO + NLL nâng cả SQL-only lẫn CoT một mức tương đương, RFT thì không; CoT vẫn thua SQL-only khoảng 9-10 điểm | P2.58 (nested `6dd0cb0`), Spider dev: `g3d` - `g2` +1.93 (p=.012), `t3d` - `t2` +2.61 (p=.036), `t2` - `g2` -10.06, `t3d` - `g3d` -9.38 (p<.001). RFT dùng lr 2e-4, DPO 1e-5, nên hai bên chưa so được trực tiếp; phần do preference loss chưa tách khỏi NLL | 1 seed, chỉ dev |
+| F31 | Central, seed 0, Spider dev: nháp bám SQL (template) sau 3 round RL không khác rõ SQL-only (70.60 so với 71.95, p=.30); teacher CoT có gold thua sau 1 round (-6.29), phần thua gần như đều là lỗi thực thi; với SQL, SFT rồi RL cao hơn 3 round RL-only (74.47 so với 71.95, p=.051) | P2.59 (nested `9456e09`), số train khác nhau giữa `tp` và `g` |
 
 Hướng đã đóng vì kết quả âm hoặc quá tốn: plan task và CoT ở client hoặc
 server (P2.10-P2.15), retention loss (P2.9), weight merge (A1), KID, GKD,

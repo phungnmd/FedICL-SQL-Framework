@@ -42,8 +42,8 @@ finished. No additional CoT/RL run is queued pending the owner's next
 direction decision. P2.53 seed 2
 stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 
-State 2026-11-01: P2.57 is published (nested `f8f3832`). P2.59 below is the
-active run (owner; design in LAB_LOG 2026-11-01).
+State 2026-11-01: P2.59 is published (nested `9456e09`). The P2.60 pilot and the P2.59 template
+follow-up below are the active runs (LAB_LOG 2026-11-01).
 
 ## P2.60: does CoT + RL reach a higher ceiling than SQL (pilot ready, full run not yet)
 
@@ -67,14 +67,13 @@ SQL is not rerun for now. Its marks come from earlier runs on Spider dev: `g3d` 
 60-120 GPU-h for the CoT route, most of the range in the teacher's sampling; three seeds are not included
 and need their code.
 
-1. Pilot, after P2.59 is published and both of its windows have finished. Fast-forward, test and start on
-   GPU 0 (about 6 GPU-h):
+1. Pilot. Fast-forward, test and start on GPU 0 (about 6 GPU-h):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p260_cot_ceiling.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
 ```
 
-2. The same pilot on GPU 1:
+2. Optional, the same pilot on GPU 1 when the follow-up below is not running on it:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
@@ -99,75 +98,22 @@ and need their code.
 
 5. Full run: not ready. It needs `POOL_SAMPLES` set from the pilot; its commands come with that change.
 
-Review against P2.59: `g_r3` is the first read of the SQL + RL curve. The student's solve coverage on
-Spider before any Spider SFT is already in the P2.59 receipts:
+
+## P2.59 follow-up: template through SFT then RL (recommended, about 4 GPU-h)
+
+P2.59 is published (nested `9456e09`; runbook in `paper/archive/completed_runbooks/P2.59_2026-11-01.md`).
+Template against SQL on the same route is the cheapest read of whether a stepwise format can pass `g3d`,
+before the teacher pool is paid for. Needs no new code. GPU 1, while the P2.60 pilot runs on GPU 0:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; foreach ($t in 'tc_r1_samp0','tc_r1_samp1','tc_r1_samp2','tc_r1_samp3') { $m=(Get-Content "audits/protocol_v2/p259_cot_then_rl_s0/done/$t.json" -Raw | ConvertFrom-Json).metrics; "$t rows=$($m.rows) pass1=$($m.'pass@1') pass8=$($m.'pass@8') mixed=$($m.mixed_rows)" } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($task in @('tp2','eval_tp2','tp3_samp0','tp3_samp1','tp3_samp2','tp3_samp3','tp3','eval_tp3')) { uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase task --task $task; if ($LASTEXITCODE -ne 0) { throw "$task failed" } } }
 ```
 
-## P2.59: teacher CoT, then RL (both GPUs, seed 0, Spider dev)
-
-The student learns short reasoning on SynSQL, then improves from its own samples
-and execution feedback on Spider. Arms are read after RL. About 58 GPU-h, about 30 h
-with both GPUs (estimate; first numbers come from the writer shards).
-
-1. Pull, test and start on GPU 0, with both GPUs idle:
+Publish when the window has finished (`files` cannot detect these tasks):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; uv run --no-sync python -c "from scripts import run_p237_phase_e as r; from scripts.run_p213_fullgold_plan import exclusive_lock; exclusive_lock(r.AUDIT / 'gpu_0.lock').__enter__(); exclusive_lock(r.AUDIT / 'gpu_1.lock').__enter__()"; if ($LASTEXITCODE -ne 0) { throw 'A GPU lane is running' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(fedicl_sql/rationale/short_cot\.py|scripts/(run_p259_cot_then_rl|diagnose_p259_writers)\.py|tests/test_p259_cot_then_rl\.py|docs/.+|AGENTS\.md|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p259_cot_then_rl.py tests/test_p258_cot_rl_screen.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.59 lane failed' } }
+& { $ErrorActionPreference='Stop'; $exp='p259_cot_then_rl'; $msg="results: record the $exp seed 0 template route B"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
-
-2. Once step 1 has started training or generating, start GPU 1 in a second window. To
-   stop a lane use Ctrl+C; rerun the same command and it resumes:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase lane; if ($LASTEXITCODE -ne 0) { throw 'P2.59 lane failed' } }
-```
-
-3. Read-only, any time. `preview` prints sample rationales of each writer; read it once
-   `writer_tc0` and `writer_sf0` are done, while training has not gone far. `status`
-   prints the EX table and the paired contrasts:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase preview; if ($LASTEXITCODE -ne 0) { throw 'Preview failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-   `diagnose_p259_writers` is also read-only and safe while the lanes run; it fetches the
-   script without changing the working tree, and prints why writer rows were dropped, how much
-   of the gold SQL each writer names, and how CoT evaluations fail:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/diagnose_p259_writers.py | uv run --no-sync python -; if ($LASTEXITCODE -ne 0) { throw 'Diagnosis failed' } }
-```
-
-   Narrowed 2026-11-01 (owner confirmed and started it): stop both lanes with Ctrl+C and run only the RL curves
-   of `g` and `tp` to round 3, one command per GPU. The `tc` and `sf` tasks are not run: the ceiling
-   run replaces their prompt and row filter. Finished rows are kept. Do not start a lane again,
-   since it would pick up the skipped tasks.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($task in @('g_r2_samp0','g_r2','eval_g_r2','g_r3_samp0','g_r3','eval_g_r3')) { uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase task --task $task; if ($LASTEXITCODE -ne 0) { throw "$task failed" } } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($task in @('tp_r2_samp0','tp_r2_samp1','tp_r2_samp2','tp_r2_samp3','tp_r2','eval_tp_r2','tp_r3_samp0','tp_r3_samp1','tp_r3_samp2','tp_r3_samp3','tp_r3','eval_tp_r3')) { uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase task --task $task; if ($LASTEXITCODE -ne 0) { throw "$task failed" } } }
-```
-
-   These commands take no claim lock, so `status` shows no running task and `files` cannot refuse
-   while they run: publish only after both windows have finished.
-
-4. Publish when the lanes have stopped, finished or after Ctrl+C for a partial result
-   (the `files` phase refuses a running task; the lanes resume afterwards):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $exp='p259_cot_then_rl'; $msg="results: record the $exp seed 0 screen"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
-
 ## P2.58: completed, awaiting the next direction decision
 
 Published in nested `6dd0cb0`. The [completed runbook](../archive/completed_runbooks/PIPELINE_P258_2026-10-31.md)

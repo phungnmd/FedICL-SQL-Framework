@@ -110,6 +110,29 @@ Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only i
 (unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
 so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
 
+## 2026-11-01: P2.59 published (nested `9456e09`, 63 of 119 tasks)
+
+Spider dev, seed 0, greedy. Replaces the "not committed" P2.59 numbers below; every value matches. The
+`tc` and `sf` tasks after round 1 and route B were not run (owner, narrowed).
+
+| Point | EX | Execution error | Runs but wrong | Tokens p50 | RL pairs |
+|---|---:|---:|---:|---:|---:|
+| `g1` / `g_r1` / `g_r2` / `g_r3` | 66.34 / 68.76 / 70.99 / 71.95 | - / 9.09 / 7.35 / 7.93 | - / 22.15 / 21.66 / 20.12 | 26 | 867 / 709 / 566 |
+| `tp1` / `tp_r1` / `tp_r2` / `tp_r3` | 63.73 / 68.09 / 67.12 / 70.60 | 9.96 / 9.09 / 7.74 / 6.48 | 26.31 / 22.82 / 25.15 / 22.92 | 82 / 60 / 76 / 75 | 896 / 702 / 613 |
+| `tc1` / `tc_r1` | 59.28 / 62.48 | 17.70 / 15.18 | 23.02 / 22.34 | 123 / 126 | 1,114 |
+| `sf1` / `sf_r1` | 52.32 / 58.80 | 19.05 / 18.57 | 28.63 / 22.63 | 207 / 209 | 1,260 |
+
+- `tp_r3` - `g_r3` -1.35 (71/85, p=.30), union 78.82; `tp` trained on 2,132 shorter SynSQL rows, `g` on
+  3,336. `tp_r3` - `tp1` +6.87 (104/33), `g_r3` - `g1` +5.61 (88/30). The gap goes -2.61, -0.67, -3.87,
+  -1.35, so it does not narrow steadily. Template outputs keep 3 reasoning lines.
+- `g_r3` - `g3d` -2.51 (69/95, p=.051): on SQL, SFT then one RL round ends above three RL rounds alone.
+- `g3d` - `g3n` +2.22 (41/18, p=.004): the DPO gain comes from the preference term.
+- `tc1` - `tp1` -4.45 (83/129, p=.002), `tc_r1` - `g_r1` -6.29 (69/134). `t1lr` - `t1` -1.45 (p=.32).
+- pass@8 on new Spider questions: `tc_r1` samples 80.33-83.33, `sf_r1` 78.33-83.67, `tp_r1` 79.33-80.67,
+  `g_r1` 83.08, `g_r3` 84.75. So a student straight from SynSQL solves about 82% at K=8; P2.60 `cs` at K=4
+  will likely fall below the 90% line, and `csb` will likely run.
+- Recommended next read: `tp2`, `tp3` against `g2`, `g3d` on the same route, about 4 GPU-h, no new code.
+
 ## 2026-11-01: where training saturated before, and the P2.60 order
 
 Owner asks whether saturation should be checked, since earlier runs peaked early. Earlier evidence:
