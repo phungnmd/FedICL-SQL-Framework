@@ -30,6 +30,23 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-02: P2.60 pipeline on BIRD fixed (owner), SynSQL pilot published
+
+Evidence: nested `814ecde` (SynSQL pilot; the 2026-11-01 entry's numbers are now committed). Reading accepted
+outputs: most differ from gold only in style and answer correctly, a few pass with different logic (for example
+`GROUP BY race_id` where gold groups by name), which is the weak SynSQL check.
+
+Owner's pipeline: teacher CoT on a small BIRD set, as in Think2SQL; student SFT on the correct CoT; student writes
+its own CoT on Spider train; SFT on its correct rows; RL over all Spider train; BIRD inside RL and more teacher
+rows later. SFT stops at the first flat epoch, at most 4; RL adds rounds while it gains.
+
+Choices made here: 2,000 BIRD rows, greedy then K=2, because sampling cost about four times more per kept row
+than greedy on the SynSQL pilot and the aim is about 1,000 kept rows (Think2SQL 1,142). The stop reads Spider dev,
+not Spider test, so test stays unused until the final choice (the owner raised test per epoch; 2,147 rows per
+epoch cost more too). Epochs share one 4-epoch cosine, so a stop at E2 leaves the learning rate above its end
+value. The second Spider pass (`csb`, `cot2b`) is gone: RL covers the hard rows. RL takes 1,200 new questions per
+round for at most 7 rounds, the full train set, with the two-small-gains stop.
+
 ## 2026-11-01: P2.60 SynSQL pilot read, pool moves to BIRD (pilot numbers not committed yet)
 
 Teacher 7B, no gold SQL, 300 SynSQL rows, greedy then up to 8 samples on unsolved rows (chat output, server):
