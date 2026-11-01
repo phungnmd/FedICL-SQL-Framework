@@ -53,17 +53,19 @@ only rows it solves are kept, with sampling on wrong rows. Separating the teache
 of scope. SynSQL stays the main pool. Evidence: LAB_LOG 2026-11-01. Rows never solved are excluded and
 coverage is reported (the recommended default; the owner can still change it).
 
-Ceiling: the best Spider dev EX along a route. SFT stages run their maximum and evaluate every epoch; RL
-rounds stop after two gains in a row below 1 point or at round 5. A dev peak is selected, so the claim
+Ceiling: the best Spider dev EX along a route. SFT stages run 4 epochs (earlier central runs stop at 3 and
+still rise) and evaluate every epoch; RL rounds stop after two gains in a row below 1 point or at round 5. A dev peak is selected, so the claim
 needs later seeds on Spider test. Execution error and runs-but-wrong are reported separately.
 
 | Route | Public | Spider SFT | RL |
 |---|---|---|---|
-| CoT | `pool` from the teacher, `cot1` 6 epochs | `cs` student solves without gold, `cot2` 6 epochs; `csb`, `cot2b` only below 90% coverage | `cot_rl1-5` |
-| SQL | `sql1` 6 epochs | `sql2` 6 epochs | `sql_rl1-5` |
+| CoT | `pool` from the teacher, `cot1` 4 epochs | `cs` student solves without gold, `cot2` 4 epochs; `csb`, `cot2b` only below 90% coverage | `cot_rl1-5` |
 
-P2.58 `g1`, `g2`, `g3d` used a 2-epoch horizon and stay as references. Estimated 80-135 GPU-h for the
-full run, most of the range in the teacher's sampling; three seeds are not included and need their code.
+SQL is not rerun for now. Its marks come from earlier runs on Spider dev: `g3d` 74.47 (SFT + RL),
+`central_mix` E3 73.21 and `g2` 72.53 (SFT). Only if the CoT route passes `g3d` does `--stage sql` (`sql1`,
+`sql2`, `sql_rl1-5`, about 10 GPU-h) measure the SQL ceiling, since that claim then needs it. Estimated
+60-120 GPU-h for the CoT route, most of the range in the teacher's sampling; three seeds are not included
+and need their code.
 
 1. Pilot, after P2.59 is published and both of its windows have finished. Fast-forward, test and start on
    GPU 0 (about 6 GPU-h):
@@ -72,11 +74,10 @@ full run, most of the range in the teacher's sampling; three seeds are not inclu
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p260_cot_ceiling.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
 ```
 
-2. The SQL route on GPU 1, about 15 GPU-h. It measures where SQL saturates and sets the mark before the
-   teacher pool is paid for. When the pilot ends, the same command on GPU 0 (set `$gpu='0'`) helps it:
+2. The same pilot on GPU 1:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage sql; if ($LASTEXITCODE -ne 0) { throw 'P2.60 SQL lane failed' } }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
 ```
 
 3. Read-only, any time. `status` prints coverage per pass, cost and the EX table; `preview` prints

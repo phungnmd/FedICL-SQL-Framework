@@ -121,6 +121,11 @@ epochs, since test is for the final point. The SQL route runs first (`--stage sq
 the mark are known before the teacher pool is paid for. A chosen epoch is rerun on the same 6-epoch
 schedule, because a shorter cosine reaches a different point.
 
+Revised the same day (owner): earlier runs already give the SQL marks, so SQL is not rerun for now. `g3d`
+74.47 is the mark for the CoT route; a real SQL ceiling is measured only if CoT passes it, since only that
+claim needs it. SFT stages go to 4 epochs, one past what earlier central runs reached. A CoT peak at
+epoch 4 would need a longer schedule. A chosen epoch is rerun on the same schedule.
+
 ## 2026-11-01: P2.59 `g_r3` (not committed)
 
 Spider dev, seed 0: `g1` 66.34, `g_r1` 68.76, `g_r2` 70.99, `g_r3` 71.95 (gains +2.42, +2.23, +0.96).
