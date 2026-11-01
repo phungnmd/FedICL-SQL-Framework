@@ -30,6 +30,43 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-01: P2.59 teacher-target design reviewed against distillation papers
+
+Owner questions whether asking the teacher to fill a gold-derived format
+can test its reasoning contribution. Read-only code review at nested
+`a6d3204`; primary-paper research. No GPU run, code change or queue change.
+Full assessment: [COT_RL_RESEARCH](COT_RL_RESEARCH.md), section 12.
+
+Confirmed implementation: `template_steps` renders gold SQL clauses through
+sqlglot; teacher sees question, schema and gold SQL, writes similar labelled
+lines. `writer_reasoning` accepts EOS, no reference mention and gold-table
+names without requiring the writer's own SQL EX. Training then replaces
+the writer's SQL with gold. A 384-token response limit and common-writer
+intersection also remove usable reasoning and reduce coverage.
+
+This tests one noisy rationalization recipe against an exact gold-derived
+representation. It is not a general test of teacher reasoning distillation.
+Template remains a valid strong comparator, not a theoretical ceiling.
+Gold-conditioned reasoning itself is supported by OmniSQL, VCoT-SQL and
+CodePLAN; the material gap is preserving and validating the rationale's
+connection to the generated solution, not merely hiding gold.
+
+Recommendation, not an owner decision: teacher-generated solving traces
+verified against gold, with CROP/STaR-style rationalization backup and
+PERsD/SCD-style feedback on the student's public errors. Keep the full
+public pool and the owner's gold-SQL training targets; failed rationales
+retain SQL-only supervision. Before substituting gold SQL into a target,
+require a rationale compatible with it. Use stand-alone reasoning for
+question-to-SQL; diagnosis of a prior error needs a separate repair input.
+Teacher never processes private data. RL follows the corrected bootstrap.
+
+P2.57 is published (`f8f3832`). A checked example in `t1_solve.jsonl`,
+`data:1017027`, has EX=1 on a nonempty-gold case while omitting the gold's
+Liquidity category filter. This supports checking semantic decisions as
+well as execution on SynSQL's small databases. P2.59 server metrics remain
+unpublished and were not recounted here. The narrowed-lane commands still
+say owner confirmation is pending; this review does not stop a lane.
+
 ## 2026-11-01: teacher-CoT research recommendation
 
 Owner asked which CoT + RL method is worth trying while retaining a real

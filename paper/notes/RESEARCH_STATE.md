@@ -24,6 +24,11 @@ phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu pa
 supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
 Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
 P2.57 đã publish (nested `f8f3832`). P2.59 đang là lệnh chạy trong PIPELINE_NEXT: teacher CoT ở phase đầu, RL ở phase sau, đọc arm sau RL (LAB_LOG 2026-11-01).
+Review implementation P2.59: teacher rationale chưa được kiểm qua SQL của
+chính writer rồi bị ghép với gold, còn template render trực tiếp gold SQL.
+Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi student trên public,
+ở COT_RL_RESEARCH mục 12; chưa sửa code hay chốt recipe mới. Lệnh thu hẹp
+lane hiện ghi “owner to confirm”, không coi là quyết định đã thực hiện.
 
 ## 1. Câu hỏi nghiên cứu
 

@@ -2,16 +2,18 @@
 
 Cập nhật 2026-11-01. File này tổng hợp literature và kết quả của dự án về một
 câu hỏi: server teacher có thể dạy student Coder-1.5B qua reasoning (CoT) không,
-và RL giúp gì. Số của dự án là seed 0, EX (%), đã commit trừ P2.57 (ghi rõ bên
-dưới). Quyết định và lệnh chạy không nằm ở đây: quyết định ở
+và RL giúp gì. Số của dự án là seed 0, EX (%). P2.57 và P2.58 đã publish;
+các số P2.59 từ server trong LAB_LOG chưa publish. Quyết định và lệnh chạy
+không nằm ở đây: quyết định ở
 [LAB_LOG](LAB_LOG.md), lệnh ở [PIPELINE_NEXT](PIPELINE_NEXT.md).
 
 ## 1. Kết luận
 
-1. **Ưu tiên CoT theo clause, có kiểm SQL/schema, rồi Iterative DPO + NLL.**
-   Lấy cách xây target từ VCoT-SQL, cleaning từ SLM-SQL, execution preferences
-   từ ExCoT và NLL từ Iterative RPO. Đây là adaptation cho setup hiện tại;
-   mục 10 ghi phương pháp và pilot được khuyến nghị, chưa phải lịch chạy.
+1. **Cần thay cách tạo target teacher của P2.59.** Teacher đang viết labelled
+   lines từ gold SQL, còn template parse chính gold SQL thành các dòng đó.
+   Ưu tiên trace giải bài có kiểm kết quả theo ExCoT, có rationalization hỗ trợ
+   câu khó, và học từ lỗi student trên public theo PERsD/SCD. Mục 12 đánh giá
+   thiết kế hiện tại và nguồn cho đề xuất này; mục 10 giữ khuyến nghị ban đầu.
 2. **7B có cơ sở để làm teacher CoT.** VCoT-SQL tạo dữ liệu bằng các model 7B.
    RetrySQL và SLM-SQL cho thấy student 1.5B học được reasoning. Chưa có bài
    trong nhóm đã đọc xác nhận toàn bộ chuỗi 7B → 1.5B LoRA → private FL này.
@@ -69,7 +71,7 @@ Các chi tiết quan trọng:
   pass@8 97.17, mixed 25.08%. CoT đa dạng hơn, nên voting có thể giúp CoT nhiều hơn.
   Voting chưa được đo trên dev.
 
-P2.57 (chưa publish; số từ bảng trên server), không train:
+P2.57 (đã publish, nested `f8f3832`), không train:
 
 | Đo | Teacher 7B | Base student 1.5B |
 |---|---:|---:|
@@ -230,6 +232,10 @@ DPO CoT peak reserved 14.43 GiB; số này áp dụng cho đường chạy cũ.
 | ExCoT: SQL-only DPO tăng +2.2, gần `g3d` +1.93 (LAB_LOG trước) | Sai cách so. +2.2 là so với base 78.81, không so với SFT 83.00; dòng DPO no-CoT là 81.00, điểm khởi đầu không được nêu. ExCoT kết luận DPO không CoT chỉ có lợi nhỏ, còn `g3d` tăng so với SFT của chính nó |
 
 ## 10. Phương pháp nên thử (khuyến nghị 2026-11-01)
+
+Đây là khuyến nghị ban đầu, trước khi đọc implementation và diagnosis P2.59.
+Đánh giá mới ở mục 12 thay ưu tiên tạo target teacher; không coi labelled-line
+format là cơ chế KD đã được paper xác nhận.
 
 **Chọn CoT theo clause, kiểm SQL/schema, rồi execution-based Iterative DPO +
 NLL.** Đây là lựa chọn ưu tiên về khả năng triển khai và bằng chứng hiện có,
@@ -414,3 +420,124 @@ published PDF khi có; các nguồn nền từ đợt trước vẫn được gi
 - Agarwal et al., [GKD](https://arxiv.org/html/2306.13649v3)
 - Zhang et al. 2023, [Federated Learning for Semantic Parsing](https://arxiv.org/abs/2305.17221), ACL 2023
 - [FedPDPO](https://arxiv.org/html/2603.19741), [FedMOA](https://arxiv.org/html/2602.00453v1), [OpenFedLLM](https://arxiv.org/pdf/2402.06954)
+
+## 12. Đánh giá teacher CoT của P2.59 và cách KD nên học từ literature
+
+Đánh giá 2026-11-01 theo code nested `a6d3204`, nghiên cứu lại paper gốc.
+Không chạy GPU, không thay code hoặc queue đang dùng. Số P2.59 trong LAB_LOG
+là kết quả server chưa publish, không phải kết quả được recount ở lượt này.
+
+### 12.1. Phép so hiện tại đang đo gì?
+
+- [`template_steps`](../../fedicl-sql/fedicl_sql/rationale/short_cot.py) parse
+  gold SQL bằng sqlglot rồi render Tables, Joins, Filters, Grouping, Output,
+  Order. Nó không lấy CoT có sẵn của SynSQL. Với các clause được parser xử lý,
+  đây là phép chuyển đổi trực tiếp từ đáp án, không có lỗi sinh của LLM.
+- Cùng file, teacher thấy question, full schema, gold SQL và một worked example,
+  rồi được yêu cầu viết các labelled lines tương tự. Nó có thể giải thích
+  quyết định, nhưng format khiến phần lớn target trùng với việc mô tả clause.
+- [`writer_reasoning`](../../fedicl-sql/scripts/run_p259_cot_then_rl.py) chỉ
+  kiểm EOS, không nhắc reference và có tên các gold table. Nó không dùng EX
+  của SQL teacher sinh ra để nhận rationale, không kiểm đủ column, predicate,
+  JOIN key hoặc quan hệ giữa các bước. `training_data` ghép rationale được
+  giữ với gold SQL, kể cả khi SQL của writer sai.
+- Budget 384 token gồm cả rationale và SQL. EOS filter loại cả trường hợp
+  reasoning đã xong nhưng SQL bị cắt. `stage1_reasoning` lấy giao của teacher,
+  base student và template: teacher bị giới hạn coverage bởi writer yếu nhất.
+  Theo diagnosis server, chỉ giữ 2,132/3,336 câu, trong khi SQL `g1` giữ đủ.
+
+**Kết luận:** P2.59 là screen của một recipe rationalization rất cụ thể,
+không phải phép thử tổng quát khả năng teacher distill reasoning. Teacher
+thua template ở đây phù hợp với lợi thế chính xác của AST và nhiễu của LLM.
+Nhưng template không phải trần lý thuyết: template không giải thích vì sao
+ý định trong question đòi hỏi clause đó, hoặc vì sao một cách viết khác sai.
+Chính phần này cần trở thành nội dung teacher dạy.
+
+Điểm cần sửa trong khuyến nghị trước là đã ưu tiên độ ngắn và hình dạng target
+quá sớm. Giving gold không tự làm CoT mất giá trị; nhận rationale chưa kiểm
+rồi thay SQL của writer bằng gold mới làm yếu liên hệ reasoning → lời giải.
+
+### 12.2. Các paper thật sự tạo và distill CoT thế nào?
+
+| Nguồn | Teacher được làm gì? | Điều nên học, giới hạn |
+|---|---|---|
+| [ExCoT](https://arxiv.org/html/2503.19988v1), §3.2–3.4 | Nhận question/schema, không thấy gold SQL; few-shot, nhiều candidates. Giữ trace có SQL cuối khớp gold khi execute; dùng cả preference pairs | Giữ liên kết giữa trace và SQL thực sự được sinh. Model gốc 32B/70B, không suy gain sang 1.5B |
+| [OmniSQL](https://arxiv.org/html/2503.02240v2), §3.5 | Thấy question/schema/SQL, tự xây lời giải; sinh nhiều candidates, chọn theo execution majority | Gold-conditioned CoT vẫn là distillation hợp lệ. Teacher có thể phát hiện lỗi của nhãn; recipe không bị ràng buộc vào phép render AST |
+| [Rationalization Models for Text-to-SQL](https://arxiv.org/html/2502.06759v1), §2 | Teacher dùng các ví dụ đã kiểm để tạo giải thích kèm SQL được xây dần; một rationalization model riêng dùng gold để tăng coverage | Dạy quá trình xây query và kiểm SQL cuối. 70B → 8B, filtered schema; không phải bằng chứng fit A5000 |
+| [CodePLAN, LREC-COLING 2024](https://aclanthology.org/2024.lrec-main.521/), §3–4 | Suy solution plan ngược từ code đúng; student học plan generation và code generation | Bằng chứng ngược với kết luận “thấy gold thì vô ích”: student 350M/770M hưởng lợi. Task code, multi-task/two-stage inference khác recipe CoT nối SQL |
+| [SCoTD](https://arxiv.org/html/2306.14050v1), §3 | Sample nhiều rationale, supervised setting loại candidate trả lời sai | Student 125M–1.3B học được CoT, có greedy eval. 30 rationale/câu là budget của bài, không phải mặc định cho chúng ta |
+| [SCOTT, ACL 2023](https://aclanthology.org/2023.acl-long.304.pdf), §3–4 | Contrastive decoding để rationale hỗ trợ answer; student có counterfactual objective | CoT phải chứa thông tin quyết định answer. Tăng faithfulness không bảo đảm tăng task accuracy; chưa nên bê objective này sang SQL |
+| [PERsD, EMNLP 2023](https://aclanthology.org/2023.emnlp-main.417.pdf), §3.2 và [SCD, AAAI 2026](https://arxiv.org/html/2511.07998), §4.3 | Student thử trước; teacher xem output sai và feedback để sửa, rồi distill dữ liệu sửa lỗi | Teacher dạy phần student đang thiếu. PERsD dùng code models 6B–16B; SCD student 8B, structured QA; adaptation sang SQL 1.5B cần được thử |
+
+VCoT-SQL vẫn là nguồn cho gold-conditioned CoT có cấu trúc, nhưng §3.1 còn
+kiểm SQL writer sinh ra và grounding, không chỉ kiểm tên table. Không có
+nguồn nào ở trên xác nhận recipe “rationale chưa kiểm + thay SQL bằng gold”
+của P2.59 là cách distill tốt cho 1.5B.
+
+### 12.3. Chọn phương pháp nào cho lần thử tiếp?
+
+**Chọn distill lời giải có kiểm kết quả, với teacher hỗ trợ theo lỗi student
+ở những câu khó.** Đây là adaptation của ExCoT + CROP/STaR và PERsD/SCD,
+không phải một recipe nguyên bản đã được chứng minh trên FedLS-SQL.
+
+1. Teacher chỉ xử lý SynSQL public hiện tại. Nó nhận question/schema và tự
+   viết lời giải dẫn đến SQL, không thấy gold ở lượt đầu. Giữ format ngoài
+   rationale rồi SQL; không bắt điền Tables/Joins/Filters theo thứ tự cố định.
+   Câu khó được chia subproblem, câu đơn giản được giải ngắn.
+2. Kiểm **SQL của chính candidate trước mọi thay thế**. Nếu sai, thử thêm một
+   số candidates trong budget đã đo. Lấy nguyên trace đủ và phù hợp với lời
+   giải; bỏ lặp, phần sau SQL và leakage. Nhiều candidates là cơ chế tìm trace
+   tốt, không có nghĩa train phải nhân 30 lần như SCoTD.
+3. Với câu chưa có trace đạt chuẩn, cho teacher xem attempt của student,
+   execution feedback và gold SQL làm hỗ trợ. Teacher giải thích điểm sai và
+   viết lại một lời giải đúng, tự chứa thông tin cần thiết. Cách ưu tiên tự
+   giải rồi rationalize khi cần có nguồn ở
+   [CROP](https://arxiv.org/html/2210.06726), §3, và STaR; phần hướng vào lỗi
+   student lấy từ PERsD/SCD. Đây là lựa chọn ưu tiên để teacher bổ sung thông
+   tin vượt phép chuyển SQL thành text.
+4. Giữ yêu cầu target kết thúc bằng gold SQL của owner. Khi candidate dùng
+   một SQL tương đương nhưng khác cấu trúc, cần làm rationale phù hợp chính
+   gold SQL rồi kiểm lại; không thay đuôi một cách mù quáng. Câu vẫn không có
+   rationale đạt chuẩn học gold SQL với prompt SQL-only. Mọi arm train đủ
+   3,336 câu, không lấy giao coverage của các writer làm pool.
+5. Target cho task question → CoT → SQL phải giải được độc lập từ question.
+   Diagnosis như “query trước sai ở dòng…” chỉ dùng trong task repair có
+   wrong SQL/feedback ở input; không ghép diagnosis thiếu ngữ cảnh vào task
+   sinh SQL trực tiếp. Student sau đó mới tự rollout và học bằng DPO + NLL
+   hoặc GRPO; teacher không nhận dữ liệu private.
+
+Ví dụ thông tin cần teacher: “mỗi nhân viên có thể có nhiều assignment; câu
+hỏi đếm người nên COUNT(*) sẽ đếm assignment, cần COUNT(DISTINCT employee_id)”.
+Template có thể in DISTINCT từ gold, nhưng không cung cấp lập luận về đơn vị
+cần đếm và multiplicity của JOIN. Không yêu cầu mọi rationale phải có phản
+ví dụ khi câu hỏi không cần.
+
+Giving gold ở lượt hỗ trợ không làm mất vai trò teacher. Giá trị cần đo là
+student có học được cách phân biệt các quyết định đó và áp dụng ở schema mới
+hay không. Đây cũng là lý do không coi “bỏ gold khỏi prompt” là toàn bộ sửa đổi.
+
+### 12.4. Phép kiểm nào quyết định được việc?
+
+Trước khi train lại, đọc một mẫu phân tầng khoảng 100–200 public traces để
+kiểm mapping question → schema, JOIN/aggregation/filter, sự nhất quán với
+final SQL và leakage. Đây là quality probe, không phải subset dùng thay full
+pool khi SFT. Đo generation time ở đây trước khi cấp budget sinh toàn pool;
+không sao chép 32 candidates hoặc teacher lớn từ paper.
+
+EX đơn lẻ trên SynSQL chưa đủ. Trong P2.57 đã publish, row `data:1017027`
+(`t1_solve.jsonl`) có EX=1 và gold không rỗng, nhưng teacher bỏ điều kiện
+category_name='Liquidity' so với gold. Đây là một ví dụ trực tiếp việc kết
+quả trùng trên database nhỏ không xác nhận query hoặc CoT đúng về ngữ nghĩa.
+Cần kiểm clause quan trọng với gold và đọc reasoning; không chỉ thêm một
+execution filter rồi gọi mọi trace là faithful.
+
+Screen SFT/RL tiếp theo giữ Gold, Template và teacher recipe mới trên cùng
+full pool; báo SFT curve và endpoint sau RL. Template vẫn là baseline mạnh,
+không phải target style teacher phải bắt chước. Nếu recipe mới có tín hiệu,
+so cùng recipe tạo trace bằng self-writer hoặc bỏ teacher feedback để đo
+teacher contribution. Không cần mở đồng thời mọi writer và mọi KD objective.
+
+P2.59 hiện tại vẫn có giá trị cho đường học của SQL/template và contrast
+DPO/NLL. Không dùng teacher arm này để bác bỏ teacher-CoT nói chung. Các lệnh
+thu hẹp lane trong PIPELINE_NEXT đang ghi “owner to confirm”; review này không
+tự coi đó là quyết định dừng lane hoặc khởi chạy recipe mới.
