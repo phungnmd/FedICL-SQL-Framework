@@ -101,7 +101,7 @@ and need their code.
 
 ## P2.59 follow-up: template through SFT then RL (recommended, about 4 GPU-h)
 
-P2.59 is published (nested `9456e09`; runbook in `paper/archive/completed_runbooks/P2.59_2026-11-01.md`).
+P2.59 is published (nested `9456e09`; runbook in `paper/archive/completed_runbooks/PIPELINE_P259_2026-11-01.md`).
 Template against SQL on the same route is the cheapest read of whether a stepwise format can pass `g3d`,
 before the teacher pool is paid for. Needs no new code. GPU 1, while the P2.60 pilot runs on GPU 0:
 
