@@ -103,6 +103,13 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 RL round 2 (not committed)
+
+Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only is not flattening.
+`tp_r1` 68.09, `tp_r2` 67.12 (-0.97, 702 pairs): the template's gap to SQL goes -2.61, -0.67, -3.87
+(unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
+so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
+
 ## 2026-11-01: P2.60 compares ceilings (owner)
 
 Owner: separating the teacher's contribution is out of scope, because the teacher is what supplies
