@@ -66,6 +66,31 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 first signals (not committed, 39/119 tasks)
+
+Reported from the server status; lanes running. Seed 0, Spider dev.
+
+| Route | SFT on SynSQL | After RL round 1 | Gain | Pairs | Gap to SQL, SFT then r1 |
+|---|---:|---:|---:|---:|---|
+| SQL (`g1`, `g_r1`, 3,336 rows) | 66.34 | 68.76 | +2.42 | 867 | |
+| Template (`tp`, 2,132 rows) | 63.73 | 68.09 | +4.36 | 896 | -2.61, -0.67 |
+| Teacher (`tc`, 2,132 rows) | 59.28 | 62.48 | +3.20 | 1,114 | -7.06, -6.28 |
+| Base student (`sf`, 2,132 rows) | 52.32 | 58.80 | +6.48 | 1,260 | -14.02, -9.96 |
+
+- `tc1` - `tp1` -4.45 (83/129, p=.002): the teacher's reasoning is below a template that only
+  restates the SQL, on the same rows. `tc1` - `sf1` +6.96 (171/99, p<.001), but the base student's
+  own SQL matches gold on only 19.5% of rows here (75.33 with the long P2.57 prompt), so `sf` may
+  be a weak control. Teacher own SQL 78 (91.33 in P2.57).
+- Rows: the writer filters keep 2,132 of 3,336 rows (64%; truncation at 384 tokens 12-14% teacher,
+  19-20% student). `g1` trained on all 3,336, so every contrast with `g1` or `g_r1` mixes format
+  with 36% fewer, probably simpler, rows. The contrasts among `tc`, `sf`, `tp` are matched.
+- `t1lr` - `t1` -1.45 (p=.32): lr does not explain the long-CoT gap. `tc1` - `t1` +1.06 (p=.49,
+  fewer rows): the teacher's shorter target gains little by itself. Target p50: 237 `tc`, 191 `tp`.
+- `g3d` - `g3n` +2.22 (41/18, p=.004) and `g3n` 72.24 against `g2` 72.53: the DPO gain comes from
+  the preference term, not from NLL.
+- RL narrows the gap on every CoT route, more from a lower start. One round; the endpoints
+  `tc3`, `tp3` against `g3d` and `*_r3` against `g_r3` are not in.
+
 ## 2026-11-01: P2.59 teacher CoT then RL queued (owner)
 
 Owner: teacher CoT in the first phase teaches the student to reason; in the second
