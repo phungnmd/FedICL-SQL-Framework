@@ -72,10 +72,11 @@ full run, most of the range in the teacher's sampling; three seeds are not inclu
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p260_cot_ceiling.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
 ```
 
-2. The same pilot on GPU 1:
+2. The SQL route on GPU 1, about 15 GPU-h. It measures where SQL saturates and sets the mark before the
+   teacher pool is paid for. When the pilot ends, the same command on GPU 0 (set `$gpu='0'`) helps it:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage sql; if ($LASTEXITCODE -ne 0) { throw 'P2.60 SQL lane failed' } }
 ```
 
 3. Read-only, any time. `status` prints coverage per pass, cost and the EX table; `preview` prints

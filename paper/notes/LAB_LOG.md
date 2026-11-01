@@ -110,6 +110,17 @@ Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only i
 (unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
 so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
 
+## 2026-11-01: where training saturated before, and the P2.60 order
+
+Owner asks whether saturation should be checked, since earlier runs peaked early. Earlier evidence:
+FL Coder-1.5B peaks at A2 (A3 - A2 -0.68, p=.47) and 0.5B central peaked at E2; Coder-1.5B central keeps
+rising through its last epoch on Spider (`central_mix` 68.28, 71.66, 73.21; `central_k2` still rising
+at E3), though with a 3-epoch cosine that schedule decays to its end. No run went past 3 epochs, so
+the peak beyond is unknown. Decision: dev per epoch, which P2.60 already does; no Spider test between
+epochs, since test is for the final point. The SQL route runs first (`--stage sql`), so saturation and
+the mark are known before the teacher pool is paid for. A chosen epoch is rerun on the same 6-epoch
+schedule, because a shorter cosine reaches a different point.
+
 ## 2026-11-01: P2.59 `g_r3` (not committed)
 
 Spider dev, seed 0: `g1` 66.34, `g_r1` 68.76, `g_r2` 70.99, `g_r3` 71.95 (gains +2.42, +2.23, +0.96).
