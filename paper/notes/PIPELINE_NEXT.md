@@ -59,9 +59,8 @@ CoT + RL beats SQL-only SFT, comparing ceilings and not equal steps. The teacher
 | `cot_rl1-7` | DPO + NLL, 1,200 new questions per round until Spider train is used up | at most 7 rounds | two gains in a row below 1 point |
 
 Estimated 45-85 GPU-h for the route (teacher about 20, `cs` 6-8, `cot2` up to 12, each RL round 2-4); the
-first batches and receipts replace these numbers. Marks: `g3d` 74.47 (SynSQL, SFT + RL), `central_mix` E3 73.21
-(BIRD + Spider, SFT), `g2` 72.53 (SynSQL, SFT). If the route comes close to `g3d`, `--stage sql` gives the
-matched SQL ceiling a claim needs. Adding BIRD into RL and more teacher rows are later options.
+first batches and receipts replace these numbers. Earlier SQL numbers come from another pool or stop at one RL round, so none is a mark for this route (owner,
+2026-11-02); `--stage sql` gives the matched SQL ceiling. Adding BIRD into RL and more teacher rows are later options.
 
 1. Pilot on GPU 0, after the template follow-up has stopped, because this pull changes the trainer that lane
    imports (about 3-4 GPU-h):

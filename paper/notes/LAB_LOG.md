@@ -49,6 +49,9 @@ round (`tp3`), against the same route on SQL.
 - `tp3-tp_r3` +3.00 (103/72, p=.023): SFT on Spider then RL beats RL alone on this format. `tp_r3` 70.60, `g_r3` 71.95.
 - The template trades 1.2-1.7 points of execution error for 1.3-2.0 points of wrong answers.
 
+Owner, 2026-11-02: P2.60 uses BIRD, so `g3d` is not its mark; the template result shows the CoT direction can work.
+Limit: the template restates the gold SQL, while P2.60 uses free-form CoT, whose P2.58 route reached `t3d` 65.09.
+
 Reading: no sign yet of CoT above SQL, and no sign of a lower ceiling. `g3d` is one RL round, not a ceiling: the
 SQL ceiling after many rounds is unmeasured, so `--stage sql` is needed for the claim even if P2.60 stays below 74.47.
 
