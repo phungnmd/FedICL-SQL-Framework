@@ -45,48 +45,57 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 State 2026-11-01: P2.57 is published (nested `f8f3832`). P2.59 below is the
 active run (owner; design in LAB_LOG 2026-11-01).
 
-## P2.60 draft: does CoT + RL reach a higher ceiling than SQL (not runnable yet)
+## P2.60: does CoT + RL reach a higher ceiling than SQL (pilot ready, full run not yet)
 
-Waits for the narrowed P2.59 and is reviewed against its results; no code and no commands yet.
-Owner, 2026-11-01: the question is whether CoT + RL beats SQL-only SFT, comparing ceilings and not
-equal steps. The teacher never sees gold SQL; only rows it solves are kept, with sampling on wrong
-rows. Separating the teacher's contribution is out of scope. SynSQL stays the main pool. Evidence:
-LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
+Code: `scripts/run_p260_cot_ceiling.py`, seed 0, Spider dev. Owner, 2026-11-01: the question is whether
+CoT + RL beats SQL-only SFT, comparing ceilings and not equal steps. The teacher never sees gold SQL;
+only rows it solves are kept, with sampling on wrong rows. Separating the teacher's contribution is out
+of scope. SynSQL stays the main pool. Evidence: LAB_LOG 2026-11-01. Rows never solved are excluded and
+coverage is reported (the recommended default; the owner can still change it).
 
-Ceiling: the best Spider dev EX along a route, trained until two evaluations in a row gain less
-than 1 point or the maximum below. The chosen checkpoint is then tested with three seeds on Spider
-test; a dev peak is selected, so it does not carry the claim.
+Ceiling: the best Spider dev EX along a route. SFT stages run their maximum and evaluate every epoch; RL
+rounds stop after two gains in a row below 1 point or at round 5. A dev peak is selected, so the claim
+needs later seeds on Spider test. Execution error and runs-but-wrong are reported separately.
 
-CoT route:
+| Route | Public | Spider SFT | RL |
+|---|---|---|---|
+| CoT | `pool` from the teacher, `cot1` 6 epochs | `cs` student solves without gold, `cot2` 6 epochs; `csb`, `cot2b` only below 90% coverage | `cot_rl1-5` |
+| SQL | `sql1` 6 epochs | `sql2` 6 epochs | `sql_rl1-5` |
 
-1. Pilot, no training. The 7B solves the P2.57 300 SynSQL rows without gold SQL and without a fixed
-   format, then samples up to K=8 on rows it got wrong, keeping outputs whose SQL matches gold on
-   execution. Reads coverage and missed-row length. About 6 GPU-h, from the 17 h estimate for one
-   teacher pass over SynSQL; replace it with the P2.59 writer receipts.
-2. CoT pool on SynSQL, sampling budget set from the pilot, 17-65 GPU-h. The target keeps the
-   teacher's own reasoning and SQL. Rows never solved are out and coverage is reported.
-3. SFT on the pool, up to 6 epochs, evaluated per epoch. About 8 GPU-h.
-4. Spider SFT from the best epoch: the student solves without gold (greedy, then K=4 on failures),
-   keeps execution-correct outputs, trains up to 6 epochs. A new sampling round on failed rows while
-   coverage is below about 90% (a project choice). About 25-35 GPU-h.
-5. DPO + NLL rounds until the stop rule, at most 5 (new questions run out). About 5 GPU-h each.
+P2.58 `g1`, `g2`, `g3d` used a 2-epoch horizon and stay as references. Estimated 80-135 GPU-h for the
+full run, most of the range in the teacher's sampling; three seeds are not included and need their code.
 
-SQL route, same stop rule and same seeds, so its ceiling is measured and not assumed:
+1. Pilot, after P2.59 is published and both of its windows have finished. Fast-forward, test and start on
+   GPU 0 (about 6 GPU-h):
 
-6. SFT on full SynSQL and then Spider, up to 6 epochs each, evaluated per epoch. `g1` and `g2` stop at
-   2 epochs and are the first points of this curve. About 12 GPU-h.
-7. DPO + NLL rounds from its best checkpoint until the stop rule. About 1 GPU-h each. P2.59 `g_r1-3`
-   and P2.58 `g3d` are early points.
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|docs/.+|.+\.md|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p260_cot_ceiling.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
+```
 
-| Comparison | Answers |
-|---|---|
-| CoT + RL ceiling vs SQL SFT ceiling | The owner's question |
-| CoT + RL ceiling vs SQL + RL ceiling | Whether the gain is from CoT or from RL alone |
+2. The same pilot on GPU 1:
 
-Every evaluation reports execution errors and wrong answers separately (LAB_LOG 2026-11-01).
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage pilot; if ($LASTEXITCODE -ne 0) { throw 'P2.60 pilot lane failed' } }
+```
 
-Open for the owner: Spider rows still uncovered after the last round are excluded with coverage
-reported (recommended), or train on SQL-only.
+3. Read-only, any time. `status` prints coverage per pass, cost and the EX table; `preview` prints
+   accepted teacher outputs, which matters because SynSQL's small databases make execution a weak check:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase status; if ($LASTEXITCODE -ne 0) { throw 'Read failed' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase preview; if ($LASTEXITCODE -ne 0) { throw 'Read failed' } }
+```
+
+4. Publish the pilot when its lanes have stopped:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $exp='p260_cot_ceiling'; $msg="results: record the $exp seed 0 pilot"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+```
+
+5. Full run: not ready. It needs `POOL_SAMPLES` set from the pilot; its commands come with that change.
 
 Review against P2.59: `g_r3` is the first read of the SQL + RL curve. The student's solve coverage on
 Spider before any Spider SFT is already in the P2.59 receipts:
@@ -154,7 +163,7 @@ with both GPUs (estimate; first numbers come from the writer shards).
    (the `files` phase refuses a running task; the lanes resume afterwards):
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $exp='p259_cot_then_rl'; $msg="results: record the $exp seed 0 screen"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; $exp='p259_cot_then_rl'; $msg="results: record the $exp seed 0 screen"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p259_writers|run_p260_cot_ceiling)\.py|tests/test_(p259_cot_then_rl|p260_cot_ceiling)\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
 ## P2.58: completed, awaiting the next direction decision

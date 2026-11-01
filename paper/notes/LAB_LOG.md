@@ -110,6 +110,16 @@ Spider dev, seed 0. `g_r1` 68.76, `g_r2` 70.99 (+2.23, 709 pairs): SQL RL-only i
 (unpaired), so the narrowing at round 1 did not continue. Template output tokens p50 go 82, 60, 76,
 so they are not shrinking steadily. Writer speed: `tc` about 7.1 s per output at p50 about 240 tokens.
 
+## 2026-11-01: P2.60 built (nested, pilot ready)
+
+Choices made at build time: rows never solved are excluded with coverage reported; rows whose gold is
+empty or all NULL are left out of the teacher's rows, since execution checks nothing on them; SFT stages
+run their maximum and evaluate every epoch, so the stop rule acts only on RL rounds; the SQL route's own
+6-epoch curve replaces treating `g1` and `g2` as its first points, because their cosine horizon differs.
+SynSQL databases hold about two rows per table, so an accepted SQL can match gold by chance; the pilot
+reports textual equality and `--phase preview` prints accepted outputs to read. `POOL_SAMPLES` stays
+unset until the pilot. The P2.59 publication allowlist is widened for the new nested files.
+
 ## 2026-11-01: P2.59 failure split after RL (not committed)
 
 Template outputs keep their reasoning under RL: has reasoning 100%, lines p50 4, 3, 3 (`tp1`, `tp_r1`,
