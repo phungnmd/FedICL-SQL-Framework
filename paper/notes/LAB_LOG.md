@@ -115,14 +115,26 @@ accepted rows with Gold full pool as baseline. Sources checked:
   neutral instructions the answer stays visible and the cost is about 1 point. Not tested on SQL.
 - Rossiello et al. (arXiv 2502.06759, ICLR workshop): BIRD dev, 8B student. Gold-SQL rationalizer
   coverage 99.02% gives CoT long 67.41 vs Gold 66.17; coverage 73.86% gives 61.99 vs 63.95.
-- CROP is known here only from the survey arXiv 2402.09748: it keeps a rationale when the answer is
-  correct. It supports the blind step, not rationalization.
+- Correction after checking the original CROP paper (Li et al., arXiv 2210.06726, section 3): it
+  explicitly uses rationalization prompting with gold as backup when blind generation fails.
+  The earlier survey-based reading that CROP supports only blind filtering was incomplete.
 
-Every CoT trained so far saw the SQL: OmniSQL `t1`, `t2`, P2.59 `tc`, `sf`. A blind writer has never
-been trained, so leakage is an untested explanation of the CoT gap. Recommendation: generate blind
+The CoT-SFT targets so far saw the SQL: OmniSQL `t1`, `t2`, P2.59 `tc`, `sf`. A teacher-blind SFT
+arm has not been trained; student DPO rollouts are already blind. Gold-conditioning remains an
+untested explanation of the SFT gap. Recommendation: generate blind
 first and read coverage before training; add rationalization only if coverage is too low, and as a
 separate arm with a neutral instruction. Spider stage for CoT arms: blind sampling with execution
 filter, not rationalization. Not decided: the owner picks fallback or exclusion in CoT-SFT.
+
+Follow-up source review, same day: Lee Table 11 also tests answer-hint rescues only on blind
+failures: Qwen3-8B blind-only 95.2 vs STaR-rescue 91.2 on MATH-500. This is a direct reason to
+keep rationalization separate rather than the default backup proposed earlier. Lee and Rossiello
+do not test opposite answers to the same contrast: Lee compares CoT sources; Rossiello compares
+CoT with SQL-only. Both results can hold. Design details in COT_RL_RESEARCH section 13.
+No code, queue or GPU changes. If final SQL stays teacher-generated, matched SQL-only and template
+controls must use that same SQL to isolate rationale value; original-gold/full remains the
+whole-recipe baseline. Adding rationalized rows only on failures also changes training coverage,
+so its benefit is a rescue-policy contrast, not an isolated test of answer visibility.
 
 ## 2026-11-01: P2.59 narrowed (recommendation, owner to confirm)
 

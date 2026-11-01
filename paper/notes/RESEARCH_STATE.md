@@ -29,6 +29,9 @@ chính writer rồi bị ghép với gold, còn template render trực tiếp go
 Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi student trên public,
 ở COT_RL_RESEARCH mục 12; chưa sửa code hay chốt recipe mới. Lệnh thu hẹp
 lane hiện ghi “owner to confirm”, không coi là quyết định đã thực hiện.
+Kiểm thêm Lee et al. (2026) đổi khuyến nghị: teacher không thấy gold làm arm
+chính, rationalization tách riêng; đính chính CROP và controls khi giữ SQL
+teacher ở COT_RL_RESEARCH mục 13. Chưa có code hoặc queue P2.60.
 
 ## 1. Câu hỏi nghiên cứu
 

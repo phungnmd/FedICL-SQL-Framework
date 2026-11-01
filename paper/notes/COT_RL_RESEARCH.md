@@ -9,11 +9,10 @@ không nằm ở đây: quyết định ở
 
 ## 1. Kết luận
 
-1. **Cần thay cách tạo target teacher của P2.59.** Teacher đang viết labelled
-   lines từ gold SQL, còn template parse chính gold SQL thành các dòng đó.
-   Ưu tiên trace giải bài có kiểm kết quả theo ExCoT, có rationalization hỗ trợ
-   câu khó, và học từ lỗi student trên public theo PERsD/SCD. Mục 12 đánh giá
-   thiết kế hiện tại và nguồn cho đề xuất này; mục 10 giữ khuyến nghị ban đầu.
+1. **Arm chính nên là teacher tự giải không thấy gold.** Sau khi kiểm thêm Lee
+   et al. (2026), không trộn rationalization vào arm này. Rationalization là
+   arm riêng nếu được thử. Mục 13 cập nhật khuyến nghị; mục 12 đánh giá code
+   P2.59 và giữ đề xuất trước khi kiểm Lee; mục 10 là khuyến nghị ban đầu.
 2. **7B có cơ sở để làm teacher CoT.** VCoT-SQL tạo dữ liệu bằng các model 7B.
    RetrySQL và SLM-SQL cho thấy student 1.5B học được reasoning. Chưa có bài
    trong nhóm đã đọc xác nhận toàn bộ chuỗi 7B → 1.5B LoRA → private FL này.
@@ -263,9 +262,10 @@ Bổ sung 2026-11-01: [Lee et al., arXiv 2607.14552](https://arxiv.org/pdf/2607.
 (preprint, toán và code, chưa thử trên SQL) cho thấy CoT viết khi thấy đáp án kèm yêu cầu đi tới
 đáp án làm student kém 16.2 điểm trên MATH-500 mà bộ lọc đúng sai không phát hiện được; khi chỉ thấy
 đáp án với chỉ dẫn trung tính, mức giảm khoảng 1 điểm. [Rossiello et al., arXiv 2502.06759](https://arxiv.org/html/2502.06759v1)
-ngược lại: rationalizer thấy gold SQL đạt coverage 99.02% thì CoT dài hơn Gold (67.41 so với 66.17,
+cho thấy rationalizer thấy gold SQL đạt coverage 99.02% thì CoT dài hơn Gold (67.41 so với 66.17,
 BIRD dev, student 8B), ở coverage 73.86% thì thua (61.99 so với 63.95). Mục 10.2 thấy gold nên
-được kiểm bằng một arm teacher không thấy gold.
+được kiểm bằng một arm teacher không thấy gold. Hai bài dùng comparator khác nhau:
+Lee so hai nguồn CoT; Rossiello so CoT với SQL-only, không có arm CoT không thấy gold.
 
 ### 10.2. CoT sẽ trông như thế nào?
 
@@ -484,6 +484,9 @@ của P2.59 là cách distill tốt cho 1.5B.
 
 ### 12.3. Chọn phương pháp nào cho lần thử tiếp?
 
+Đây là khuyến nghị trước khi kiểm Lee et al.; mục 13 thay ưu tiên bằng arm
+không thấy gold và giữ rationalization riêng.
+
 **Chọn distill lời giải có kiểm kết quả, với teacher hỗ trợ theo lỗi student
 ở những câu khó.** Đây là adaptation của ExCoT + CROP/STaR và PERsD/SCD,
 không phải một recipe nguyên bản đã được chứng minh trên FedLS-SQL.
@@ -549,3 +552,51 @@ P2.59 hiện tại vẫn có giá trị cho đường học của SQL/template v
 DPO/NLL. Không dùng teacher arm này để bác bỏ teacher-CoT nói chung. Các lệnh
 thu hẹp lane trong PIPELINE_NEXT đang ghi “owner to confirm”; review này không
 tự coi đó là quyết định dừng lane hoặc khởi chạy recipe mới.
+
+## 13. Cập nhật sau khi kiểm Lee et al. (2026)
+
+Research review 2026-11-01, chưa chốt lệnh P2.60. Lee et al. (preprint,
+[full text](https://arxiv.org/pdf/2607.14552), Tables 1/11) xác nhận mức giảm
+16.2 điểm MATH-500 ở Qwen3-8B khi sinh CoT với gold và chỉ dẫn rationalize-toward.
+Trong cấu hình chỉ thêm gold-assisted rescues cho câu tự giải thất bại,
+Blind-only đạt 95.2, STaR-rescue 91.2. Vì thế khuyến nghị hiện tại là
+**teacher không thấy gold làm arm chính; rationalization phải tách riêng**,
+thay vì mặc định trộn backup vào CoT-SFT. Bài chưa đo Text-to-SQL.
+
+Ba đính chính quan trọng:
+
+- **CROP thực sự có rationalization backup.** Bài gốc
+  [Li et al., §3](https://arxiv.org/html/2210.06726) nói rõ: lấy rationale tự
+  giải khi answer đúng, dùng rationalization prompting với gold khi không có
+  rationale đó. Mô tả “CROP chỉ lọc câu đúng” trong review qua survey là thiếu.
+- **Lee và Rossiello không đối lập trực tiếp.** Rossiello không có arm CoT
+  answer-blind trên cùng câu. CoT thấy gold có thể hơn SQL-only nhưng vẫn kém
+  CoT không thấy gold; hai phát hiện có thể cùng đúng. Coverage của Rossiello
+  cũng thay đổi cùng nguồn/chất lượng target, chưa cô lập tác động coverage.
+- **Chưa thử teacher-blind SFT, không phải chưa có blind rollouts.** `t1`,
+  `t2`, `tc`, `sf` là các nguồn CoT-SFT có gold; candidates dùng DPO trong
+  P2.58/P2.59 đã được student sinh không thấy gold. Do đó gold-conditioning
+  là giả thuyết về bootstrap SFT, chưa phải nguyên nhân đã xác định.
+
+Hàm ý cho thiết kế P2.60, đây là khuyến nghị chứ chưa phải quyết định owner:
+
+1. Sinh public traces answer-blind trước, sampling có giới hạn cho câu sai,
+   kiểm chất lượng rồi báo coverage và cấu trúc của phần thiếu. Không dùng
+   ngưỡng 90% như gate cứng; quan trọng cả loại câu bị mất và chi phí bổ sung.
+2. CoT-SFT chỉ nhận trace đạt chuẩn, không tự chuyển câu bị loại sang SQL-only.
+   Đây là đề nghị thay quy tắc full-pool ở stage này; Gold full vẫn là mốc thực tế.
+3. **Giữ final SQL teacher thì controls cũng phải theo đúng SQL đó.** Trên cùng
+   accepted rows, dùng teacher-SQL-only và template dựng từ teacher SQL để
+   tách lợi ích rationale khỏi việc đổi SQL label. Gold chuẩn/full là contrast
+   cho toàn recipe, không tự cô lập CoT. Không thay SQL cuối trong một trace
+   bằng gold nếu reasoning không phù hợp.
+4. Nếu thêm rationalization chỉ cho phần thiếu, arm mở rộng có thêm dữ liệu,
+   nên contrast đo hiệu quả rescue cả recipe. Muốn kiểm riêng gold visibility
+   phải so nguồn CoT trên cùng câu với lịch train phù hợp, như Lee đã làm.
+5. Spider là stage riêng không dùng teacher 7B. Có thể thử trực tiếp DPO + NLL
+   trên rollout của student sau public CoT-SFT. Rejection-sampled Spider SFT
+   là một stage RFT bổ sung, không bắt buộc trước DPO; nếu thêm cần báo coverage
+   private của từng arm, tránh gán thay đổi tập train cho teacher reasoning.
+
+Phát hiện của Lee đủ để đổi thứ tự ưu tiên thí nghiệm, chưa đủ để dự báo
+CoT sẽ thắng ở Coder-1.5B hoặc quy khoảng cách P2.58/P2.59 cho việc thấy gold.
