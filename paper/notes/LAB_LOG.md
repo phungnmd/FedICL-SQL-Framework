@@ -103,6 +103,13 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.60 reduced to the teacher CoT route (owner)
+
+Owner: for now no Gold arm, only teacher CoT: teacher writes CoT on SynSQL, SFT on that pool, Spider
+SFT two rounds, then RL. Since the teacher cannot run on Spider, Spider CoT comes from the student's
+own gold-blind samples. P2.58 `g1`, `g2`, `g3d` serve as references. Without a Template arm, a win
+over SQL shows CoT helps but does not isolate what the 7B adds beyond a format.
+
 ## 2026-11-01: ceiling run proposal reviewed against the literature
 
 Another agent proposed: teacher solves without gold, bounded sampling on failures, rationalization

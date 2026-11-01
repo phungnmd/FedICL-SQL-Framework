@@ -45,35 +45,36 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 State 2026-11-01: P2.57 is published (nested `f8f3832`). P2.59 below is the
 active run (owner; design in LAB_LOG 2026-11-01).
 
-## P2.60 draft: does CoT reach a higher ceiling (not runnable yet)
+## P2.60 draft: does teacher CoT reach a higher ceiling (not runnable yet)
 
 Waits for the narrowed P2.59 and is reviewed against its results; no code and no commands yet.
-SynSQL stays the main pool. Evidence: LAB_LOG 2026-11-01.
+Owner, 2026-11-01: one route only, teacher CoT; no new Gold or Template arm. SynSQL stays the main
+pool. Evidence: LAB_LOG 2026-11-01. The teacher runs only on SynSQL.
 
-The question: do CoT and RL beat SQL-only SFT, and how should they be combined? The teacher's role
-is to write CoT on public data, and it has to beat the template to count as a contribution.
+The references are the P2.58 SQL adapters, not new arms: `g1` 66.34, `g2` 72.53, `g3d` 74.47
+(Spider dev, seed 0, full data).
 
 1. Pilot, no training. The 7B solves the P2.57 300 SynSQL rows without gold SQL and without a fixed
    format, then samples up to K=8 on rows it got wrong, keeping outputs whose SQL matches gold on
    execution. Reads coverage and the length of what is missed. About 6 GPU-h, from the 17 h estimate
    for one teacher pass over SynSQL; replace it with the P2.59 writer receipts.
-2. Full pool, same recipe, only if the pilot coverage justifies its cost. The target keeps the
-   teacher's own reasoning and SQL, not a swapped gold SQL.
-3. If coverage is too low (about 90% is the working line, a project choice), add one arm with gold
-   SQL shown and a neutral instruction. It stays a separate arm, because Lee et al. (arXiv
-   2607.14552) and Rossiello et al. (arXiv 2502.06759) disagree on this step.
-4. SFT on SynSQL with a curve per epoch, up to 6 epochs: Teacher, Template and Gold on the accepted
-   rows, and Gold on the full pool as the practical baseline.
-5. Spider, no teacher: SFT, then DPO + NLL rounds until two rounds in a row gain less than 1 point.
-   CoT arms sample without gold and keep execution-correct outputs, instead of rationalizing.
-6. Three seeds of the winners on Spider test, with the question-clustered test.
+2. CoT pool on SynSQL, same recipe, sampling budget set from the pilot. The target keeps the
+   teacher's own reasoning and SQL. If coverage is far below about 90% (a project choice), one
+   rationalization pass with gold SQL shown and a neutral instruction fills the rest, and the rows
+   stay marked (Lee et al., arXiv 2607.14552, against Rossiello et al., arXiv 2502.06759).
+3. SFT on the pool, 6 epochs, evaluated after epochs 2, 4 and 6 against `g1`. The best epoch goes on.
+4. Spider SFT, two rounds, no teacher. Each round: the current student solves without gold (greedy,
+   then K=4 on failures), keeps execution-correct outputs, trains 2 epochs from the previous adapter
+   (STaR without its hint). Round 1 reads against `g2` at matched passes; round 2 asks whether more
+   rounds raise the ceiling and coverage. About 15 GPU-h of sampling and 2.6 h of SFT per round.
+5. DPO + NLL rounds until two rounds in a row gain less than 1 point, against `g3d`. Each round
+   about 5 GPU-h.
+6. Three seeds of the final recipe on Spider test, with the question-clustered test.
 
-Open for the owner: rows with no accepted CoT in the CoT-SFT stage are excluded (recommended, with
-coverage reported) or train on SQL-only.
+Open for the owner: Spider rows still uncovered after round 2 are excluded with coverage reported
+(recommended), or train on SQL-only.
 
-Review against P2.59: `g_r3` sets the number of RL rounds and the SQL mark to beat. If template
-outputs lose their reasoning lines under RL, or `tp_r3` stays well below `g_r3`, the Template arm and
-the ceiling question are reconsidered before any full-pool generation.
+Review against P2.59: `g_r3` sets the number of RL rounds and the mark to beat.
 
 ## P2.59: teacher CoT, then RL (both GPUs, seed 0, Spider dev)
 
