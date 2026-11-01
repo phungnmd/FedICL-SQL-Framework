@@ -66,6 +66,13 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: P2.59 narrowed (recommendation, owner to confirm)
+
+The rest of the queue spends most of its GPU time on `tc` and `sf`, whose prompt and row filter
+the ceiling run replaces. Keep only `g_r2-3` and `tp_r2-3`: they give the shape of the RL curve
+and whether template outputs keep their reasoning lines. What P2.59 shows so far: DPO beats NLL on
+the same chosen rows, seed 0 Spider dev (+2.22); it does not settle CoT or the teacher.
+
 ## 2026-11-01: owner question for the CoT and RL phase
 
 Owner: the experiments must show whether CoT and RL beat SQL-only SFT and how to combine them.

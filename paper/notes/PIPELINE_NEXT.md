@@ -84,6 +84,19 @@ with both GPUs (estimate; first numbers come from the writer shards).
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git show origin/main:scripts/diagnose_p259_writers.py | uv run --no-sync python -; if ($LASTEXITCODE -ne 0) { throw 'Diagnosis failed' } }
 ```
 
+   Narrowed 2026-11-01 (owner to confirm): stop both lanes with Ctrl+C and run only the RL curves
+   of `g` and `tp` to round 3, one command per GPU. The `tc` and `sf` tasks are not run: the ceiling
+   run replaces their prompt and row filter. Finished rows are kept. Do not start a lane again,
+   since it would pick up the skipped tasks.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; foreach ($task in @('g_r2_samp0','g_r2','eval_g_r2','g_r3_samp0','g_r3','eval_g_r3')) { uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase task --task $task; if ($LASTEXITCODE -ne 0) { throw "$task failed" } } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; foreach ($task in @('tp_r2_samp0','tp_r2_samp1','tp_r2_samp2','tp_r2_samp3','tp_r2','eval_tp_r2','tp_r3_samp0','tp_r3_samp1','tp_r3_samp2','tp_r3_samp3','tp_r3','eval_tp_r3')) { uv run --no-sync python -m scripts.run_p259_cot_then_rl --phase task --task $task; if ($LASTEXITCODE -ne 0) { throw "$task failed" } } }
+```
+
 4. Publish when the lanes have stopped, finished or after Ctrl+C for a partial result
    (the `files` phase refuses a running task; the lanes resume afterwards):
 
