@@ -76,6 +76,11 @@ P2.59 reads RL to three rounds at fixed 2-epoch SFT, so it does not test more SF
 until a plateau. The proposed follow-up is a ceiling run: SQL, teacher CoT and template on the same
 rows, an SFT curve, then RL rounds until the gain stops, three seeds on the final claim.
 
+Owner, same day: every arm trains the full pool, not a filtered subset, and the teacher's role is
+tested on a public dataset with no CoT (SynSQL ships one). For the ceiling run: a target always
+ends in the complete gold SQL; a row whose reasoning fails is retried with a larger token budget,
+and if it still fails it trains on gold SQL with the SQL-only prompt.
+
 ## 2026-11-01: P2.59 writer diagnosis (not committed, 3,336 SynSQL rows)
 
 Rows: the `eos` filter keeps 2,132 common rows; accepting complete reasoning before a cut SQL
