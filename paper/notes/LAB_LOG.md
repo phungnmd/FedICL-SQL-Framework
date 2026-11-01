@@ -136,7 +136,7 @@ controls must use that same SQL to isolate rationale value; original-gold/full r
 whole-recipe baseline. Adding rationalized rows only on failures also changes training coverage,
 so its benefit is a rescue-policy contrast, not an isolated test of answer visibility.
 
-## 2026-11-01: P2.59 narrowed (recommendation, owner to confirm)
+## 2026-11-01: P2.59 narrowed (owner confirmed and started it)
 
 The rest of the queue spends most of its GPU time on `tc` and `sf`, whose prompt and row filter
 the ceiling run replaces. Keep only `g_r2-3` and `tp_r2-3`: they give the shape of the RL curve
