@@ -30,6 +30,28 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-02: P2.59 template route B published (nested `32a002b`)
+
+Seed 0, Spider dev. Template CoT on SynSQL (`tp1`), then on Spider train (`tp2`, all 8,659 rows), then one DPO + NLL
+round (`tp3`), against the same route on SQL.
+
+| Point | EX | Execution error | Runs but wrong |
+|---|---:|---:|---:|
+| `g2` SQL SFT | 72.53 | 8.32 | 19.15 |
+| `tp2` template SFT | 73.02 | 6.58 | 20.41 |
+| `g3d` SQL + 1 RL round | 74.47 | 7.16 | 18.37 |
+| `tp3` template + 1 RL round | 73.60 | 6.00 | 20.41 |
+
+- `tp2-g2` +0.48 (74/69, p=.74); `tp3-g3d` -0.87 (64/73, p=.49). The format ties SQL on this route.
+- `tp2-tp1` +9.28 (159/63): the CoT penalty after SynSQL closes once the student trains on Spider.
+- RL gains less from the template: `tp3-tp2` +0.58 (26/20, p=.46), `g3d-g2` +1.93 (39/19, p=.012). Both rounds use
+  about 300 questions with a pair (306 and 301), so pairs do not explain it.
+- `tp3-tp_r3` +3.00 (103/72, p=.023): SFT on Spider then RL beats RL alone on this format. `tp_r3` 70.60, `g_r3` 71.95.
+- The template trades 1.2-1.7 points of execution error for 1.3-2.0 points of wrong answers.
+
+Reading: no sign yet of CoT above SQL, and no sign of a lower ceiling. `g3d` is one RL round, not a ceiling: the
+SQL ceiling after many rounds is unmeasured, so `--stage sql` is needed for the claim even if P2.60 stays below 74.47.
+
 ## 2026-11-02: P2.60 pipeline on BIRD fixed (owner), SynSQL pilot published
 
 Evidence: nested `814ecde` (SynSQL pilot; the 2026-11-01 entry's numbers are now committed). Reading accepted
