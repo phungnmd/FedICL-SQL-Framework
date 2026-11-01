@@ -66,6 +66,16 @@ Corrections to the preceding literature assessment:
   subjective judgments, not calibrated estimates; they are not used to
   rank the present recommendation.
 
+## 2026-11-01: owner question for the CoT and RL phase
+
+Owner: the experiments must show whether CoT and RL beat SQL-only SFT and how to combine them.
+CoT alone may fall short yet reach a higher ceiling with enough training or enough RL. The
+teacher's role is to write CoT on a public dataset that has none.
+
+P2.59 reads RL to three rounds at fixed 2-epoch SFT, so it does not test more SFT epochs or RL
+until a plateau. The proposed follow-up is a ceiling run: SQL, teacher CoT and template on the same
+rows, an SFT curve, then RL rounds until the gain stops, three seeds on the final claim.
+
 ## 2026-11-01: P2.59 writer diagnosis (not committed, 3,336 SynSQL rows)
 
 Rows: the `eos` filter keeps 2,132 common rows; accepting complete reasoning before a cut SQL
