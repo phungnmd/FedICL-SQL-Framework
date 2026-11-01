@@ -40,7 +40,7 @@ Teacher 7B, no gold SQL, 300 SynSQL rows, greedy then up to 8 samples on unsolve
 - Cost: 13-14.7 s/output (484 tokens p50, 747 p95), 67 s per checkable row, peak 17.46 GiB; twice the
   7 s/output measured at 384 new tokens in P2.59, so the earlier estimates were low.
 
-Decision (owner, 2026-11-01; agreed on these numbers): BIRD replaces SynSQL as the P2.60 pool. Think2SQL
+Decision (owner proposed the move, 2026-11-01; the pilot numbers point the same way): BIRD replaces SynSQL as the P2.60 pool. Think2SQL
 (arXiv 2504.15077) shows BIRD training lifting Spider against the untrained base (3B .725 to .770 with SFT,
 7B .776 to .826 with SFT + RL), which does not isolate CoT from SQL-only on Spider. The reasons to move are
 BIRD having no shipped CoT and real rows for the execution check. All 9,428 rows are out of budget (greedy
