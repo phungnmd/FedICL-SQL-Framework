@@ -30,6 +30,18 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-02: P2.60 BIRD teacher pool done, `sql1_e1` (chat output, not committed)
+
+Teacher 7B on BIRD with evidence, no gold SQL, greedy then K=2:
+
+- Pilot: 277 of 300 rows checkable; solved 58.1% greedy, 68.2% after K=2. Pool: 927 greedy, 150 from K=2, 1,077 rows.
+  Total 1,266 kept rows (Think2SQL distills 1,142).
+- Selection is mild: gold p50 155 chars solved, 191 missed (SynSQL pilot 294, 876). Accepted SQL textually equal to
+  gold 40 of 189 (SynSQL 6 of 88).
+- Cost: 9.6-9.8 s/output, tokens p50 373, p95 548, peak 18.81 GiB; about 19 s per checkable row, so all of BIRD
+  would be about 46 GPU-h and about 5,900 kept rows at this rate.
+- `sql1_e1` (BIRD gold, first of at most 4 epochs under one cosine) Spider dev 49.13, execution error 17.21, wrong 33.66.
+
 ## 2026-11-02: P2.59 template route B published (nested `32a002b`)
 
 Seed 0, Spider dev. Template CoT on SynSQL (`tp1`), then on Spider train (`tp2`, all 8,659 rows), then one DPO + NLL
