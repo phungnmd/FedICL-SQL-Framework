@@ -30,6 +30,31 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: next CoT run is RL straight from `cot1` (P2.62 built)
+
+An outside review of the paper comparison (COT_RL_RESEARCH section 14) corrected three readings, all accepted:
+
+- Self-written CoT then SFT has a precedent: STaR-SQL (arXiv 2502.13550, checked) on Llama-3.1-8B-Instruct,
+  3-shot, 8 samples per Spider question, gold SQL as a hint for failed questions, retraining from the base model
+  each iteration: Spider dev 75.0 against SQL SFT 68.6, no best-of-N. The entry below ("none has a stage of SFT on
+  the student's own outputs") and the claim that CoT wins only after RL are wrong. `cot2` lacked the hint, the
+  restart and the iterations.
+- Long reasoning is not shown to cause the 10-point gap: `tp2`, `cot2g` and `sql2` differ in parent and training
+  rows. The same-parent pair `sqlc` 70.21 against `cot2g` 63.44 still differs in coverage (all rows against the 82%
+  the student solved), and `cot2g` joins reasoning written toward the student's SQL with the gold SQL.
+- 77.33% greedy copies and CE 0.11 suggest little new signal but do not prove it; the result that stands is that
+  `cot2_e1` does not raise Spider dev EX.
+
+Order decided (owner): (1) `cot1_e4` then DPO + NLL rounds on Spider, no `cot2`; (2) a short gold-blind teacher CoT
+pilot on BIRD, then the same rounds; (3) a teacher DPO round on BIRD pairs, after counting them. P2.61 E2-E4 are not
+queued. The P2.60 SQL lane continues: `sql2_e1` 73.60 is the SQL SFT mark, not the SQL ceiling after RL.
+
+P2.62 (`scripts/run_p262_rl_from_bird.py`, nested `645e16d`, `cf408e1`) runs (1) as route `c1`, with the P2.60 round settings
+and question sets (all Spider training rows whose gold returns a value, 1,200 new per round), and route `s1` from
+`sql1` as the same route without CoT. `--phase pairs` counts the teacher rows for (3). Prior from P2.59 (SynSQL
+roots, the same rounds): `g` 66.34 to 71.95 and `tp` 63.73 to 70.60 after three rounds, and `tp3 - tp_r3` +3.00
+(p=.023), so RL straight from the public SFT ran below SFT then RL there.
+
 ## 2026-11-03: P2.61 at E1 (chat output, not committed)
 
 Seed 0, Spider dev, from `cot1_e4`, E1 of a 4-epoch cosine like `cot2_e1` and `sql2_e1`.

@@ -603,21 +603,26 @@ CoT sẽ thắng ở Coder-1.5B hoặc quy khoảng cách P2.58/P2.59 cho việc
 
 ## 14. Chỗ P2.60 lệch so với các paper (2026-11-03)
 
-Sau P2.60 và P2.61: `cot2` không học được gì trên Spider (77.33% target lặp output greedy của chính nó), `cot2g`
-(gold SQL) 63.44, `sql2_e1` 73.60.
+Sau P2.60 và P2.61: `cot2_e1` không tăng Spider dev EX so với parent `cot1_e4` (77.33% target trùng output greedy
+của parent), `cot2g` (gold SQL) 63.44, `sql2_e1` 73.60.
 
 | Bước | Paper làm | P2.60 làm | Lệch |
 |---|---|---|---|
-| CoT trên tập đích | ExCoT: GPT-4o viết trên Spider và BIRD train, không thấy gold, giữ 6.1k và 5.6k câu đúng. OmniSQL và SLM-SQL: CoT do LLM viết cho Spider và BIRD train | Teacher chỉ viết trên BIRD; CoT Spider do student 1.5B tự viết | Do ràng buộc teacher chỉ ở public. Không paper nào lấp chỗ này bằng student tự viết rồi SFT |
-| Vòng tự sinh | STaR: nhiều vòng, mỗi vòng train lại từ model gốc trên toàn bộ câu đúng, thêm rationalization (thấy đáp án) cho câu sai: CQA 68.8 không có, 72.5 có | Một vòng, train tiếp từ `cot1_e4`, không rationalization | Thiếu hai phần tạo tín hiệu mới của STaR |
+| CoT trên tập đích | ExCoT: GPT-4o viết trên Spider và BIRD train, không thấy gold, giữ 6.1k và 5.6k câu đúng. OmniSQL và SLM-SQL: CoT do LLM viết cho Spider và BIRD train | Teacher chỉ viết trên BIRD; CoT Spider do student 1.5B tự viết | Do ràng buộc teacher chỉ ở public. STaR-SQL (arXiv 2502.13550) là tiền lệ gần nhất cho student tự viết trên Spider |
+| Vòng tự sinh | STaR: nhiều vòng, mỗi vòng train lại từ model gốc trên toàn bộ câu đúng, thêm rationalization (thấy đáp án) cho câu sai: CQA 68.8 không có, 72.5 có. STaR-SQL trên Spider: Llama-3.1-8B-Instruct, 3-shot, 8 sample mỗi câu, câu sai được sinh lại với gold SQL làm gợi ý, train lại từ base mỗi vòng đến khi bão hòa; Spider dev 75.0 so với SQL SFT 68.6, không best-of-N | Một vòng, train tiếp từ `cot1_e4`, K=4 chỉ trên câu greedy sai, không rationalization | Thiếu ba phần của STaR-SQL: rationalization, train lại từ base, nhiều vòng |
 | Đối chứng | STaR so với fine-tune thẳng lên nhãn trắc nghiệm (60.0), một nhãn ít thông tin | So với SFT trên gold SQL, nhãn chứa trọn chương trình | CoT thêm ít thông tin khi nhãn đã là cả SQL. ExCoT cũng thấy CoT SFT dưới SQL SFT (81.42 so với 83.00) |
-| Độ dài, quy mô SFT | SLM-SQL 916K câu, lr 2e-5, batch 1024, 2 epoch; Think2SQL 1,142 câu, 5 epoch, lr 4e-5, model 3B và 7B | 1,266 câu BIRD, LoRA r16, lr 2e-4, batch 16, model 1.5B | Template 63 token ngang SQL, CoT tự do khoảng 236 token thua 10 điểm |
+| Độ dài, quy mô SFT | SLM-SQL 916K câu, lr 2e-5, batch 1024, 2 epoch; Think2SQL 1,142 câu, 5 epoch, lr 4e-5, model 3B và 7B | 1,266 câu BIRD, LoRA r16, lr 2e-4, batch 16, model 1.5B | Template 63 token ngang SQL, CoT tự do khoảng 236 token thua 10 điểm; hai arm khác cả parent, tập train và độ phủ, nên độ dài chưa được tách riêng |
 | RL | GRPO trên cả tập train: Think2SQL 9,007 câu, 16 generation, lr 1e-6; SLM-SQL 6 rollout, lr 3e-6; FINER 32 rollout, 2,000 step. ExCoT: DPO, round đầu dùng cặp từ candidate của GPT-4o, rồi 2 round tự sinh, 32 candidate | DPO + NLL, K=8, 1,200 câu mỗi round, chỉ on-policy | Ít candidate, ít câu mỗi round, không có round dùng cặp từ teacher |
 | Inference | SLM-SQL 16-64 sample và voting | Greedy | Số của SLM-SQL không so thẳng được |
 | RL thẳng | Think2SQL 3B: RL từ base 0.500 trên BIRD, SFT rồi RL 0.482; trên họ Spider SFT rồi RL tốt hơn | Chưa thử RL thẳng từ `cot1` | Route gần paper nhất chưa chạy |
 
-Paper duy nhất có claim giống câu hỏi của dự án (CoT + RL vượt SQL SFT) là ExCoT: Spider 86.59 so với 83.00,
-model 70B, CoT tập đích do GPT-4o viết, 3 round DPO trên cả tập. Hai phần của nó làm được trong ràng buộc: round DPO
-dùng cặp đúng/sai của teacher trên BIRD (output sai của các lượt K=2 đã có), và RL on-policy trên Spider tại client
-với gold làm reward.
+Hai paper có claim giống câu hỏi của dự án. ExCoT (CoT + DPO vượt SQL SFT): Spider 86.59 so với 83.00, model 70B,
+CoT tập đích do GPT-4o viết, 3 round DPO; ở bước SFT, CoT thấp hơn SQL (81.42 so với 83.00). STaR-SQL (CoT tự sinh
+qua SFT vượt SQL SFT): 75.0 so với 68.6 với Llama-3.1-8B, không có RL. Vậy CoT có thể thắng ngay ở bước SFT khi
+vòng tự sinh có rationalization và train lại từ base; mốc SQL của STaR-SQL (68.6) thấp hơn mốc Coder-1.5B ở đây
+(73.60), nên khoảng cách cần lấp lớn hơn.
+
+Phần làm được trong ràng buộc: RL on-policy trên Spider với gold làm execution oracle (P2.62), round DPO dùng cặp
+đúng/sai của teacher trên BIRD (cần đếm trước: chỉ câu greedy sai mới có sample K=2, nên phần lớn câu chỉ có output
+đúng), và vòng STaR-SQL đầy đủ tại client.
 
