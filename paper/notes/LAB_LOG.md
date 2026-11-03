@@ -30,6 +30,23 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: fix empty Spider test row IDs in the standalone driver
+
+The server launch failed with "expected 2147 unique Spider test rows, got 2147" before model loading.
+Root cause reproduced on the committed CSV: all 2,147 `source_row_id` cells are empty; the test builder
+constructs examples without filling this optional field and the loader correctly preserves it. The new
+eval driver incorrectly assumed unique source IDs. Existing mocked tests did not exercise real CSV loading.
+
+Fix (nested `e96cef1`) only the standalone driver's in-memory eval IDs: `test:0` through `test:2146`, assigned by immutable
+CSV position. No rows are removed, reordered or rewritten. Bind the ID policy in identity and bump the
+driver version to 2. The failed launch produced no predictions to migrate; rerun the same fetch/stdin
+command with `--share-gpu`. Live lanes and their imported code are unchanged.
+
+Validation: 48 targeted CPU tests pass, including real-format CSV loading with empty/repeated source IDs,
+preservation of repeated questions and SQL order, deterministic reload and unchanged CSV bytes. Also
+loaded the actual committed 2,147-row Spider test CSV with all database paths present: 2,147 unique eval
+IDs, first `test:0`, last `test:2146`; input SHA-256 unchanged. No GPU inference ran locally.
+
 ## 2026-11-04: allow c1 test eval alongside running GPU tasks (owner correction)
 
 Owner clarified that the c1 test command should share available GPU capacity with existing tasks rather

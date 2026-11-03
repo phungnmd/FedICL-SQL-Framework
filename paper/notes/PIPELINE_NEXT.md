@@ -50,12 +50,13 @@ must exit before the continuation update below; GPU 1 then resumes `c1`, GPU 0 e
 
 ## P2.62 c1: Spider test backfill (owner 2026-11-04)
 
-Code: nested `36dd39b`, `8514ee4` (45 targeted CPU tests pass).
+Code: nested `36dd39b`, `8514ee4`, `e96cef1` (48 targeted CPU tests pass).
 
 Evaluate the exact CoT checkpoint `c1_rl1` (reported Spider dev EX 66.83) on all 2,147 Spider test rows.
 The standalone driver reuses P2.62's greedy CoT generation, parsing, execution scoring and batch 16.
 It never changes the live dev receipts, parents or stopping decisions. Outputs and resume identity live in
-`audits/protocol_v2/p262_c1_spider_test_s0/c1_rl1/`. CPU validation: 43 targeted tests pass; GPU test inference
+`audits/protocol_v2/p262_c1_spider_test_s0/c1_rl1/`. The driver assigns `test:<CSV index>` IDs because all source IDs in the test CSV are empty.
+CPU validation: 48 targeted tests pass, including loading the actual 2,147-row CSV; GPU test inference
 has not run locally. The first longest-prompt batch reports peak reserved VRAM through the existing engine.
 
 Owner correction 2026-11-04: run eval alongside existing tasks with `--share-gpu`; no lane stop is needed.
