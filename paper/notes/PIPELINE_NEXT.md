@@ -45,6 +45,31 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 State 2026-11-02: P2.59 and the P2.60 SynSQL pilot are published (nested `9456e09`, `814ecde`). P2.60 on BIRD
 and the P2.59 template follow-up below are the active runs (LAB_LOG 2026-11-02).
 
+## P2.61: what the Spider stage of the CoT route needs (active)
+
+Code: `scripts/run_p261_gold_signal.py`, seed 0, Spider dev. P2.60 `cot2` gains nothing on Spider and 77.33% of its
+targets repeat its parent's greedy output (LAB_LOG 2026-11-03), so the CoT lane stops and the SQL lane continues.
+From `cot1_e4`, read at E1: `cot2g` (`cot2` rows and reasoning, gold SQL) against `cot2_e1` 60.35 and `sql2_e1` 73.60;
+`sqlc` (SQL-only gold, all rows) against `sql2_e1`. About 2-2.5 GPU-h per arm.
+
+1. Stop both P2.60 lanes (Ctrl+C), then start the controls on GPU 1. This pull admits only new or unused files:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p260_cot|run_p261_gold_signal)\.py|tests/test_(p260_cot_ceiling|p261_gold_signal)\.py|docs/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p261_gold_signal.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p261_gold_signal --phase lane --epochs 1; if ($LASTEXITCODE -ne 0) { throw 'P2.61 lane failed' } }
+```
+
+2. When step 1 has passed its tests, continue only the SQL route on GPU 0:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p260_cot_ceiling --phase lane --stage sql; if ($LASTEXITCODE -ne 0) { throw 'P2.60 SQL lane failed' } }
+```
+
+3. Read-only, any time:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.run_p261_gold_signal --phase status; if ($LASTEXITCODE -ne 0) { throw 'Read failed' } }
+```
+
 ## P2.60: does CoT + RL reach a higher ceiling than SQL (BIRD, ready to run)
 
 Code: `scripts/run_p260_cot_ceiling.py`, seed 0, Spider dev. Owner, 2026-11-01/02: the question is whether
@@ -104,7 +129,7 @@ Diagnosis of the CoT gap, read-only, safe while lanes run:
 5. Publish when the lanes have stopped, or at any point when no task is running:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $exp='p260_cot_ceiling_bird'; $msg="results: record the $exp seed 0 pilot"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/diagnose_p260_cot\.py|tests/test_p260_cot_ceiling\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; $exp='p260_cot_ceiling_bird'; $msg="results: record the $exp seed 0 pilot"; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git diff --quiet HEAD; if ($LASTEXITCODE -ne 0) { throw 'Tracked changes need review' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/(diagnose_p260_cot|run_p261_gold_signal)\.py|tests/test_(p260_cot_ceiling|p261_gold_signal)\.py|experiments/(federated|eval_arms|client_train)/results/.+|audits/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $files=@(uv run --no-sync python -m "scripts.run_$exp" --phase files); if ($LASTEXITCODE -ne 0) { throw 'Publication validation failed' }; if ($files.Count -eq 0) { throw 'Nothing to publish' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object ($files | Sort-Object -Unique) ($actual | Sort-Object -Unique)).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m $msg; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
 

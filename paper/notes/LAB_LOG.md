@@ -30,6 +30,18 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: P2.60 `cot2` targets checked, P2.61 controls built (chat output, not committed)
+
+Owner suspected a training fault. Targets: no faults in `cot1` (1,266) or `cot2` (7,127), none dropped, tokens p95 444
+and 404. A synthetic target round-trips through the real tokenizer. So nothing is cut.
+
+The fault is the design: 5,511 of 7,127 `cot2` targets (77.33%) repeat the greedy output of `cot1_e4`, and the 1,532
+rows it fails are dropped. Mean CE confirms it: `cot2_e1` 0.1147 on new data at 85% of peak lr, near `cot1_e4` 0.1009
+at the end of its training and far from `cot1_e1` 0.2746. `sql2_e1` 0.1589, falling to 0.0507 at E2. The teacher rule
+was gold-blind generation; carrying it to the student on Spider, where the client owns gold, was an agent choice.
+
+Decision: stop the P2.60 CoT lane, keep its SQL route, run P2.61 (`cot2g`, `sqlc`) on one GPU.
+
 ## 2026-11-03: P2.60 CoT gap diagnosis (chat output, not committed)
 
 Script `scripts/diagnose_p260_cot.py`, nested `aceca51`, Spider dev, points at the same learning-rate position.
