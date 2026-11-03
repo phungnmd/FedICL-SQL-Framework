@@ -13,6 +13,14 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 Cập nhật: 2026-11-01. Tổng hợp literature về CoT và RL:
 [COT_RL_RESEARCH](COT_RL_RESEARCH.md).
 
+Cập nhật 2026-11-04 (owner): từ nay báo Spider dev và Spider test cùng nhau
+cho các so sánh CoT/RL và các thực nghiệm tiếp theo. Spider test được dùng
+trong quá trình chọn phương pháp/checkpoint, không mô tả là held-out.
+P2.58-P2.62 chưa có artifact test trong checkout local đã kiểm; cần bổ sung
+eval các checkpoint hoàn tất bằng output riêng, giữ nguyên receipt, parent
+và điều kiện dừng theo dev của các lane đang chạy. Mức GPU utilization 50%
+không xác nhận đủ VRAM cho thêm một process eval; chưa kiểm trực tiếp GPU server.
+
 Cập nhật 2026-11-03 (owner): đích của các thực nghiệm CoT/RL hiện tại là
 áp dụng vào setup federated cũ, BIRD public ở server và Spider private ở client.
 [FEDERATED_COT_RL_PROPOSAL](FEDERATED_COT_RL_PROPOSAL.md) là bản đề xuất được
@@ -74,8 +82,8 @@ mạnh nhất (owner quyết định).
   `K[ce]` = gold CE, `K[fkl]` = Hinton (0.5 CE + 0.5 KL, T=2). `A[ntd]` =
   FedNTD ở client (beta 1, tau 3).
 - Eval: Spider dev (1,034) và các bản Realistic, SYN, DK; BIRD dev (1,534).
-  Spider test (2,147) là tập test cuối; seed 0 đã eval cho method và các
-  comparator (LAB_LOG 2026-10-28).
+  Spider test (2,147) được báo cùng dev và có thể dùng để chọn phương pháp;
+  seed 0 đã eval cho method cũ và các comparator (LAB_LOG 2026-10-28).
 
 ## 3. Những gì đã biết
 

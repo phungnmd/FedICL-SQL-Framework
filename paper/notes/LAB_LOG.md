@@ -30,6 +30,25 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: report both Spider dev and test during development (owner)
+
+Owner requested Spider test results for the current CoT/RL checkpoints and
+using test, or both splits, for subsequent method development. Default to
+reporting both Spider dev (1,034 rows) and Spider test (2,147 rows). Test
+results may inform method and checkpoint choices; they are not held-out.
+
+Local inspection found no test artifacts under the P2.58-P2.62 audit roots.
+P2.60/P2.62 evaluation tasks load only Spider dev. No new test inference or
+live GPU inspection ran here. Backfill completed checkpoints using separate
+outputs; preserve running-lane receipts, adapter selection and stopping.
+
+The owner reports about 50% GPU utilization. Historical P2.59 peaks are
+14.5-18.7 GiB for K=8 sampling and 7.6-8.0 GiB for eval (A5000_RUN_CONFIG).
+Those measurements do not establish that two simultaneous processes fit
+the 21.5 GiB budget. Prefer a free GPU for backfill; overlapping eval with a
+live lane needs a measured combined memory budget first. No concurrent GPU
+run, new eval implementation or executable-queue change is claimed here.
+
 ## 2026-11-03: CoT/RL screens support a federated proposal (owner)
 
 Owner requested one proposal to maintain until federated implementation begins:

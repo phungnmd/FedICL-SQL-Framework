@@ -38,6 +38,13 @@ Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
   strongest paper (owner decides). Spider dev, its variants and BIRD dev are
   development sets; a Spider test number used to choose anything is not
   called held-out.
+- Owner 2026-11-04: report Spider dev and Spider test together for the current
+  CoT/RL comparisons and future experiments. Spider test may inform method
+  and checkpoint choices; label it honestly as the Spider test split used
+  during development, not an untouched final evaluation. Backfill test for
+  completed checkpoints without changing the identities, parents or dev-based
+  stopping decisions of running P2.60/P2.62 lanes. This reporting decision
+  does not mean test evaluation is already implemented or completed.
 - Ground every method component in a published paper and name it. Flag any
   component that has no source instead of inventing one silently.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
