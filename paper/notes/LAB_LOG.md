@@ -30,6 +30,18 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: allow c1 test eval alongside running GPU tasks (owner correction)
+
+Owner clarified that the c1 test command should share available GPU capacity with existing tasks rather
+than require stopping a lane. Added `--share-gpu` (nested `8514ee4`) to `scripts/eval_p262_spider_test.py`: it skips only the
+exclusive P2.37 GPU lock and always retains the per-point output lock. Default behavior without the flag
+remains exclusive. CoT prompt, adapter, greedy decoding, batch 16, output identity and resume paths are
+unchanged. No smoke prerequisite, Windows counter polling or automatic memory gate was added.
+
+Validation: 45 targeted CPU tests pass, including a run while the GPU lane lock is held and rejection of
+a duplicate eval writing the same output. PIPELINE_NEXT now launches shared mode via fetch/stdin and
+requires no live-lane stop or checkout pull. Concurrent GPU performance/VRAM has not been measured locally.
+
 ## 2026-11-04: standalone c1 Spider test driver (owner request)
 
 Implemented `scripts/eval_p262_spider_test.py` (nested `36dd39b`). It evaluates a completed c1 RL

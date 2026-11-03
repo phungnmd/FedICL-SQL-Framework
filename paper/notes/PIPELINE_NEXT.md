@@ -50,7 +50,7 @@ must exit before the continuation update below; GPU 1 then resumes `c1`, GPU 0 e
 
 ## P2.62 c1: Spider test backfill (owner 2026-11-04)
 
-Code: nested `36dd39b` (43 targeted CPU tests pass).
+Code: nested `36dd39b`, `8514ee4` (45 targeted CPU tests pass).
 
 Evaluate the exact CoT checkpoint `c1_rl1` (reported Spider dev EX 66.83) on all 2,147 Spider test rows.
 The standalone driver reuses P2.62's greedy CoT generation, parsing, execution scoring and batch 16.
@@ -58,14 +58,15 @@ It never changes the live dev receipts, parents or stopping decisions. Outputs a
 `audits/protocol_v2/p262_c1_spider_test_s0/c1_rl1/`. CPU validation: 43 targeted tests pass; GPU test inference
 has not run locally. The first longest-prompt batch reports peak reserved VRAM through the existing engine.
 
-Use a free GPU. For GPU 1, let the current task finish its receipt and exit the c1 lane before this command;
-the driver rejects an occupied GPU lock. It does not enable simultaneous generation/eval on the same card.
+Owner correction 2026-11-04: run eval alongside existing tasks with `--share-gpu`; no lane stop is needed.
+The driver skips the exclusive GPU lock but keeps its per-checkpoint output lock, so duplicate evaluations
+cannot write the same predictions. Batch 16, per-process memory enforcement and test identities are unchanged.
 The command fetches and executes only the new driver from Git, without pulling or changing files imported
 by another running lane. Run from `fedicl-sql/`; rerun the exact command to resume or verify a completed eval.
 Change `$point` in both blocks below to evaluate another completed `c1_rlN` checkpoint.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $point='c1_rl1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $driver=@(git show origin/main:scripts/eval_p262_spider_test.py); if ($LASTEXITCODE -ne 0 -or $driver.Count -eq 0) { throw 'Test driver unavailable' }; $driver | uv run --no-sync python - --point $point; if ($LASTEXITCODE -ne 0) { throw 'c1 Spider test failed' }; if (-not (Test-Path "audits/protocol_v2/p262_c1_spider_test_s0/$point/receipt.json")) { throw 'Test receipt missing' } }
+& { $ErrorActionPreference='Stop'; $point='c1_rl1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $driver=@(git show origin/main:scripts/eval_p262_spider_test.py); if ($LASTEXITCODE -ne 0 -or $driver.Count -eq 0) { throw 'Test driver unavailable' }; $driver | uv run --no-sync python - --point $point --share-gpu; if ($LASTEXITCODE -ne 0) { throw 'c1 Spider test failed' }; if (-not (Test-Path "audits/protocol_v2/p262_c1_spider_test_s0/$point/receipt.json")) { throw 'Test receipt missing' } }
 ```
 
 Separate publication, after all live lanes have exited. It validates only this point's test predictions

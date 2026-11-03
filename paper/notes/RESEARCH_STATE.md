@@ -20,7 +20,8 @@ P2.58-P2.62 chưa có artifact test trong checkout local đã kiểm; cần bổ
 eval các checkpoint hoàn tất bằng output riêng, giữ nguyên receipt, parent
 và điều kiện dừng theo dev của các lane đang chạy. Driver riêng
 `scripts/eval_p262_spider_test.py` đã được bổ sung và kiểm bằng CPU tests;
-queue có lệnh eval `c1_rl1` trên full test, chưa chạy GPU. Mức GPU utilization 50%
+queue có lệnh eval `c1_rl1` trên full test với `--share-gpu`, chạy cùng task
+khác và giữ khóa output riêng; chưa chạy GPU local. Mức GPU utilization 50%
 không xác nhận đủ VRAM cho thêm một process eval; chưa kiểm trực tiếp GPU server.
 
 Cập nhật 2026-11-03 (owner): đích của các thực nghiệm CoT/RL hiện tại là
