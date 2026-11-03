@@ -30,6 +30,20 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: P2.60 SQL route published (nested `d7c3ccb`)
+
+Seed 0, Spider dev. `sql2_e1` 73.60, `sql_rl1` 74.18, `sql_rl2` 75.05; round 3 skipped by the rule (two gains below
+1 point). `sql_rl2 - sql2_e1` +1.45 (31/16, p=.040); per round +0.58 (p=.41) and +0.87 (p=.14). Samples: pass@8
+92.83 and 93.42, mixed questions 38.0% and 34.3%, pairs 658 and 586. A round costs about 1.2 GPU-h.
+
+- The SQL mark for the CoT route is 75.05. The series was still rising when the rule stopped it, so it is a lower
+  bound; more rounds are worth paying only if a CoT route comes within about two points.
+- `cot1_e4 - sql1_e2` +1.84 (144/125, p=.27): after BIRD alone, the CoT student is level with the SQL student while
+  trained on 1,266 rows against 9,428.
+- The SQL route's lead comes from the Spider stage: SFT on all 8,659 gold rows. P2.62 `c1` has no such stage, so
+  `c1` against `sql_rl2` mixes CoT with that stage; `s1` (the same rounds from `sql1_e2`) is the matched control
+  and runs now on GPU 0.
+
 ## 2026-11-03: next CoT run is RL straight from `cot1` (P2.62 built)
 
 An outside review of the paper comparison (COT_RL_RESEARCH section 14) corrected three readings, all accepted:

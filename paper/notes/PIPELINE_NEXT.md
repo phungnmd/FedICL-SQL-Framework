@@ -45,7 +45,7 @@ stays on hold. Training diagnosis: LAB_LOG 2026-10-31.
 State 2026-11-02: P2.59 and the P2.60 SynSQL pilot are published (nested `9456e09`, `814ecde`). P2.60 on BIRD
 and the P2.59 template follow-up below are the active runs (LAB_LOG 2026-11-02).
 
-State 2026-11-03: P2.61 E1 finished; P2.60 runs only its SQL lane; P2.62 (RL straight from `cot1`) is next on GPU 1.
+State 2026-11-03: P2.61 E1 finished; P2.60 SQL route published (`d7c3ccb`, `sql_rl2` 75.05); P2.62 `c1` on GPU 1, `s1` on GPU 0.
 
 ## P2.62: RL on Spider straight from the BIRD SFT (active)
 
@@ -62,13 +62,13 @@ P2.60 SQL RL ceiling once it runs (LAB_LOG 2026-11-03). About 2.5-4 GPU-h per Co
 & { $ErrorActionPreference='Stop'; $gpu='1'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; $bad=@($incoming | Where-Object { $_ -notmatch '^(scripts/run_p26[12]_(gold_signal|rl_from_bird)\.py|tests/test_p262_rl_from_bird\.py|docs/.+|.+\.md)$' }); if ($bad.Count -ne 0) { throw "Unexpected incoming files: $bad" }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_p262_rl_from_bird.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase pairs; if ($LASTEXITCODE -ne 0) { throw 'Pair count failed' }; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase lane --route c1; if ($LASTEXITCODE -ne 0) { throw 'P2.62 lane failed' } }
 ```
 
-2. When the P2.60 SQL lane has finished on GPU 0, it joins route `c1` (the sampling shards split across GPUs):
+2. Optional, when `s1` (step 3) has finished: GPU 0 joins route `c1` (the sampling shards split across GPUs):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase lane --route c1; if ($LASTEXITCODE -ne 0) { throw 'P2.62 lane failed' } }
 ```
 
-3. Optional, after `c1` has read: the same route without CoT on a free GPU:
+3. Now on GPU 0 (P2.60 SQL lane finished, published `d7c3ccb`): the same route without CoT, the matched control of `c1`:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $gpu='0'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES=$gpu; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase lane --route s1; if ($LASTEXITCODE -ne 0) { throw 'P2.62 lane failed' } }
