@@ -30,6 +30,25 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: standalone c1 Spider test driver (owner request)
+
+Implemented `scripts/eval_p262_spider_test.py` (nested `36dd39b`). It evaluates a completed c1 RL
+adapter with the unchanged P2.62 CoT generation engine on full Spider test (2,147 rows), batch 16,
+greedy, the same parsing/token limit and Spider execution evaluator. Process-local overrides select
+test rows and a separate output path; they are restored on success or failure. Other lane processes,
+dev predictions, receipts, training parents and stopping decisions are unchanged.
+
+The driver binds the test CSV, rows, engine, adapter weights/config and source training receipt, rejects
+duplicate/foreign rows and incomplete output, resumes partial predictions and verifies completed results
+without loading a model. It holds the existing GPU lock and a separate per-point output lock. Same-GPU
+overlap is not implemented. Outputs: `audits/protocol_v2/p262_c1_spider_test_s0/<point>/predictions.jsonl`
+and `receipt.json`; publication validates the exact two-file allowlist. PIPELINE_NEXT has a Git-fetch/stdin
+launch that does not pull or modify the running checkout, plus separate publication after lanes exit.
+
+Validation: 43 CPU tests pass across the new driver, P2.60, P2.62 and RL continuation policy. No GPU or
+PowerShell execution ran locally; no new Spider test EX or VRAM measurement is available. The requested
+first checkpoint is `c1_rl1`, reported in chat at Spider dev EX 66.83, not a test result.
+
 ## 2026-11-04: report both Spider dev and test during development (owner)
 
 Owner requested Spider test results for the current CoT/RL checkpoints and
