@@ -92,6 +92,11 @@ current plan.
 
 ## Current state (2026-10-28)
 
+- 2026-11-03 (owner): current CoT/RL experiments support applying the method to the existing federated
+  BIRD-public/Spider-private setup. Maintain `paper/notes/FEDERATED_COT_RL_PROPOSAL.md` until federated
+  implementation begins. It holds the target pipeline and open choices; `PIPELINE_NEXT.md` alone owns
+  executable work. Keep the current CoT prompt for the first federation test; full-local DPO/FedAvg,
+  public teacher-DPO and CoT replay are proposed work, not completed or automatically queued runs.
 - 2026-11-03 (owner): fix P2.60/P2.62 RL continuation: do not stop small positive EX gains. Fresh rounds 1-7
   stop after two rounds without a new dev best; at most two further rounds retry previously sampled, still
   unsolved questions from the best prior adapter. Preserve original question sets and completed receipts,

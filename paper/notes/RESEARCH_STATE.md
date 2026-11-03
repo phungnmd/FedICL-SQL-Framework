@@ -13,6 +13,13 @@ Setup và protocol: [system_architecture](system_architecture.md). Lệnh chạy
 Cập nhật: 2026-11-01. Tổng hợp literature về CoT và RL:
 [COT_RL_RESEARCH](COT_RL_RESEARCH.md).
 
+Cập nhật 2026-11-03 (owner): đích của các thực nghiệm CoT/RL hiện tại là
+áp dụng vào setup federated cũ, BIRD public ở server và Spider private ở client.
+[FEDERATED_COT_RL_PROPOSAL](FEDERATED_COT_RL_PROPOSAL.md) là bản đề xuất được
+cập nhật đến khi bắt đầu triển khai FL: public teacher CoT SFT và teacher-DPO,
+rồi full-local student DPO, FedAvg và sinh lại mỗi global round. Prompt hiện
+tại được giữ làm mốc; chưa triển khai federated CoT-DPO hay thay queue đang chạy.
+
 Owner 2026-10-31: hướng paper ngày 2026-10-28 chưa thuyết phục, đang tìm
 hướng mới với CoT + RL là ứng viên; P2.53 seed 2 tạm dừng. P2.58 đã publish
 (nested `6dd0cb0`): CoT thua SQL-only 10.06 điểm sau SFT, 9.38 sau DPO + NLL
@@ -144,9 +151,10 @@ xem kết quả (luật 1, mục 5).
 
 ## 5. Giai đoạn và luật đang áp dụng
 
-Giai đoạn hiện tại: **tìm hướng mới** (owner, 2026-10-31), CoT + RL đang
-được đánh giá bằng screen P2.58; P2.53 seed 2 tạm dừng. Hướng paper trước
-đó (owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
+Giai đoạn hiện tại: **chuẩn bị CoT + RL cho federated** (owner, 2026-11-03).
+Các screen P2.58-P2.62 hỗ trợ [đề xuất đang cập nhật](FEDERATED_COT_RL_PROPOSAL.md);
+chưa chạy federated CoT-DPO. P2.53 seed 2 tạm dừng. Hướng paper trước đó
+(owner, 2026-10-28): [DIRECTION_PROPOSAL](DIRECTION_PROPOSAL.md).
 
 Luật (owner, 2026-10-29): mục tiêu là paper Q3 hay và mạnh nhất mà kết quả
 cho phép. Chỉ giữ cố định ba điều, đều về trung thực:

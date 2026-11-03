@@ -30,6 +30,27 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: CoT/RL screens support a federated proposal (owner)
+
+Owner requested one proposal to maintain until federated implementation begins:
+[FEDERATED_COT_RL_PROPOSAL](FEDERATED_COT_RL_PROPOSAL.md). The target stays BIRD
+public at the server, Spider private at five clients, frozen 7B teacher and
+Coder-1.5B LoRA student. The current centralized experiments support this target.
+
+Target pipeline: teacher CoT BIRD -> student CoT SFT -> public teacher-pair DPO
+-> repeated full-local student sampling/execution/DPO -> FedAvg. No self-CoT SFT
+Spider in the main route. Keep the current prompt for the first FL test; public
+CoT replay and later prompt-format comparisons remain separate extensions.
+Full pool describes sampling coverage, not guaranteed SFT/DPO acceptance.
+
+The proposal distinguishes the owner's target from untested pilot settings
+(one pair/question, one local epoch, reference from the round's global adapter).
+It maps P2.60/P2.62, the SQL references and teacher-pair counting to decisions
+needed for FL. OpenFedLLM supports local DPO/adapter aggregation; FedPref is a
+structured-output precedent with fixed pairs/reference and client-side teachers,
+not a replication of this SQL setup. Current code, commands and GPU lanes are
+unchanged; federated CoT-DPO and public teacher-DPO are not implemented here.
+
 ## 2026-11-03: RL continuation fixes (owner request, CPU-verified)
 
 The owner requested three fixes: do not stop rising EX after two gains below 1 point; revisit questions whose

@@ -7,6 +7,10 @@ các số P2.59 từ server trong LAB_LOG chưa publish. Quyết định và l�
 không nằm ở đây: quyết định ở
 [LAB_LOG](LAB_LOG.md), lệnh ở [PIPELINE_NEXT](PIPELINE_NEXT.md).
 
+Đề xuất áp dụng literature và các screen hiện tại vào setup BIRD public,
+Spider private nằm trong [FEDERATED_COT_RL_PROPOSAL](FEDERATED_COT_RL_PROPOSAL.md),
+cập nhật đến khi bắt đầu triển khai federated CoT-DPO (owner, 2026-11-03).
+
 ## 1. Kết luận
 
 1. **Arm chính nên là teacher tự giải không thấy gold.** Sau khi kiểm thêm Lee
