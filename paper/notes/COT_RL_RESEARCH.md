@@ -600,3 +600,24 @@ Hàm ý cho thiết kế P2.60, đây là khuyến nghị chứ chưa phải quy
 
 Phát hiện của Lee đủ để đổi thứ tự ưu tiên thí nghiệm, chưa đủ để dự báo
 CoT sẽ thắng ở Coder-1.5B hoặc quy khoảng cách P2.58/P2.59 cho việc thấy gold.
+
+## 14. Chỗ P2.60 lệch so với các paper (2026-11-03)
+
+Sau P2.60 và P2.61: `cot2` không học được gì trên Spider (77.33% target lặp output greedy của chính nó), `cot2g`
+(gold SQL) 63.44, `sql2_e1` 73.60.
+
+| Bước | Paper làm | P2.60 làm | Lệch |
+|---|---|---|---|
+| CoT trên tập đích | ExCoT: GPT-4o viết trên Spider và BIRD train, không thấy gold, giữ 6.1k và 5.6k câu đúng. OmniSQL và SLM-SQL: CoT do LLM viết cho Spider và BIRD train | Teacher chỉ viết trên BIRD; CoT Spider do student 1.5B tự viết | Do ràng buộc teacher chỉ ở public. Không paper nào lấp chỗ này bằng student tự viết rồi SFT |
+| Vòng tự sinh | STaR: nhiều vòng, mỗi vòng train lại từ model gốc trên toàn bộ câu đúng, thêm rationalization (thấy đáp án) cho câu sai: CQA 68.8 không có, 72.5 có | Một vòng, train tiếp từ `cot1_e4`, không rationalization | Thiếu hai phần tạo tín hiệu mới của STaR |
+| Đối chứng | STaR so với fine-tune thẳng lên nhãn trắc nghiệm (60.0), một nhãn ít thông tin | So với SFT trên gold SQL, nhãn chứa trọn chương trình | CoT thêm ít thông tin khi nhãn đã là cả SQL. ExCoT cũng thấy CoT SFT dưới SQL SFT (81.42 so với 83.00) |
+| Độ dài, quy mô SFT | SLM-SQL 916K câu, lr 2e-5, batch 1024, 2 epoch; Think2SQL 1,142 câu, 5 epoch, lr 4e-5, model 3B và 7B | 1,266 câu BIRD, LoRA r16, lr 2e-4, batch 16, model 1.5B | Template 63 token ngang SQL, CoT tự do khoảng 236 token thua 10 điểm |
+| RL | GRPO trên cả tập train: Think2SQL 9,007 câu, 16 generation, lr 1e-6; SLM-SQL 6 rollout, lr 3e-6; FINER 32 rollout, 2,000 step. ExCoT: DPO, round đầu dùng cặp từ candidate của GPT-4o, rồi 2 round tự sinh, 32 candidate | DPO + NLL, K=8, 1,200 câu mỗi round, chỉ on-policy | Ít candidate, ít câu mỗi round, không có round dùng cặp từ teacher |
+| Inference | SLM-SQL 16-64 sample và voting | Greedy | Số của SLM-SQL không so thẳng được |
+| RL thẳng | Think2SQL 3B: RL từ base 0.500 trên BIRD, SFT rồi RL 0.482; trên họ Spider SFT rồi RL tốt hơn | Chưa thử RL thẳng từ `cot1` | Route gần paper nhất chưa chạy |
+
+Paper duy nhất có claim giống câu hỏi của dự án (CoT + RL vượt SQL SFT) là ExCoT: Spider 86.59 so với 83.00,
+model 70B, CoT tập đích do GPT-4o viết, 3 round DPO trên cả tập. Hai phần của nó làm được trong ràng buộc: round DPO
+dùng cặp đúng/sai của teacher trên BIRD (output sai của các lượt K=2 đã có), và RL on-policy trên Spider tại client
+với gold làm reward.
+
