@@ -30,6 +30,15 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: how close papers order SFT and RL
+
+Read from the papers: all run one SFT on CoT written by a stronger source, then RL; none has a stage of SFT on the
+student's own outputs. ExCoT: GPT-4o without gold on BIRD and Spider train, execution filter, then one off-policy and
+two on-policy DPO rounds. SLM-SQL: SynSQL-Think-916K (with OmniSQL CoT for Spider and BIRD train), 2 epochs, then GRPO
+on BIRD train, none on Spider. FINER-SQL: teacher corpus, SFT, then GRPO 2,000 steps. Think2SQL: 1,142 distilled rows,
+then GRPO on BIRD train. Arctic-R1: GRPO from an OmniSQL checkpoint. OmniSQL has no RL. The teacher-only-on-public rule
+blocks the Spider CoT of ExCoT and OmniSQL, so RL straight from `cot1` is the nearest route here: proposed after P2.61.
+
 ## 2026-11-03: P2.60 `cot2` targets checked, P2.61 controls built (chat output, not committed)
 
 Owner suspected a training fault. Targets: no faults in `cot1` (1,266) or `cot2` (7,127), none dropped, tokens p95 444
