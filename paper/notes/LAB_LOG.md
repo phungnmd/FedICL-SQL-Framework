@@ -30,6 +30,27 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: P2.61 at E1 (chat output, not committed)
+
+Seed 0, Spider dev, from `cot1_e4`, E1 of a 4-epoch cosine like `cot2_e1` and `sql2_e1`.
+
+| Point | EX | Execution error |
+|---|---:|---:|
+| `cot2_e1` own SQL | 60.35 | 14.12 |
+| `cot2g_e1` gold SQL, same rows and reasoning | 63.44 | 13.93 |
+| `sqlc_e1` SQL-only from `cot1_e4` | 70.21 | 11.51 |
+| `sql2_e1` SQL-only from `sql1_e2` | 73.60 | 8.03 |
+
+- Gold SQL helps a little: `cot2g - cot2` +3.09 (125/93, p=.036). The rest of the gap stays: `cot2g - sql2_e1` -10.15
+  (57/162). So own SQL is a small part; the free-form reasoning is the large part at this point.
+- Across arms the gap follows reasoning length: `tp2` (template, p50 63 tokens, gold SQL, all rows) 73.02 ties SQL,
+  `cot2g` (p50 about 236) 63.44, `t2` (384) 62.48. `cot2g` covers 82% of the rows and `tp2` all, so length and coverage
+  still move together.
+- The CoT public stage is a weaker start for SQL: `sqlc - sql2_e1` -3.38 (46/81, p=.002), though `cot1_e4` is above
+  `sql1_e2` on dev. `cot1` saw 1,266 rows against 9,428 and a different output format, so this does not isolate CoT.
+- `sql2` stopped after `sql2_e2` 73.11, 0.49 below E1 (5 questions); its RL starts from `sql2_e1`. The SQL SFT ceiling
+  may sit at E3-E4 after the learning rate falls, so 73.60 is a low mark for SQL.
+
 ## 2026-11-03: how close papers order SFT and RL
 
 Read from the papers: all run one SFT on CoT written by a stronger source, then RL; none has a stage of SFT on the
