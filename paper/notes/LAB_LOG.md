@@ -30,6 +30,25 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: P2.60 first Spider numbers, CoT gap under diagnosis (chat output, not committed)
+
+| Epoch | `cot1` (1,266 rows) | `sql1` (9,428) | `cot2` (7,127, 82.31%) | `sql2` (8,659) |
+|---|---:|---:|---:|---:|
+| E1 | 54.64 | 49.13 | 60.35 | 73.60 |
+| E2 | 55.90 | 58.80 | | |
+| E3 | 59.57 | 58.22 | | |
+| E4 | 60.64 | stopped | | |
+
+- `sql1_e1` below base (59.19) is mainly the learning rate: E1 ends at 85% of peak, E2 at 50%. `sql1_e2` 58.80 is
+  next to the old gold K2 (59.09) with the same data and lr, so the route is sound. The stop at E3 turned on -0.58.
+- CoT is not behind on the public stage: `cot1_e4` is above `sql1_e2` with 13% of the rows, and it was still rising.
+- The gap opens on Spider: SQL gains 14.80 from its public best, `cot2_e1` loses 0.29. Both are at the same lr point,
+  so the lr does not explain it, though `cot2` has epochs left and `cot1` rose 6 points as the lr fell.
+- Earlier arms: `tp2` 73.02 (gold SQL, all rows, target p50 63), `g2` 72.53 (29), `t2` 62.48 (76.48% of rows, 384),
+  `cot2_e1` 60.35 (82.31%, own SQL, 236). Length, dropped rows and own SQL move together, so these do not separate them.
+- `scripts/diagnose_p260_cot.py` measures the rows, the SQL and the misses. The status labels `cot_rl`, `sql_rl` name
+  the best point of a route, here SFT points, not RL.
+
 ## 2026-11-02: P2.60 BIRD teacher pool done, `sql1_e1` (chat output, not committed)
 
 Teacher 7B on BIRD with evidence, no gold SQL, greedy then K=2:
