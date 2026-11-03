@@ -92,6 +92,10 @@ current plan.
 
 ## Current state (2026-10-28)
 
+- 2026-11-03 (owner): fix P2.60/P2.62 RL continuation: do not stop small positive EX gains. Fresh rounds 1-7
+  stop after two rounds without a new dev best; at most two further rounds retry previously sampled, still
+  unsolved questions from the best prior adapter. Preserve original question sets and completed receipts,
+  archive the old skipped receipts when reopening, and include the initial adapter in best-point selection.
 - 2026-11-01 (owner): the question to prove is whether CoT and RL beat SQL-only SFT and how to
   combine them, including whether CoT reaches a higher ceiling with enough training or RL even
   if CoT alone falls short, comparing ceilings and not equal steps. The teacher's role is to write

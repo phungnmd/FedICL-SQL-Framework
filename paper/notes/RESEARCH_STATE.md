@@ -23,7 +23,13 @@ phải quyết định của owner): LAB_LOG 2026-10-31, mục đối chiếu pa
 2026-11-01 ưu tiên teacher CoT theo clause, kiểm SQL/schema, giữ đủ gold
 supervision trên private rồi thử Iterative DPO + NLL; GRPO là nhánh tiếp theo.
 Chi tiết và các đính chính nguồn ở COT_RL_RESEARCH mục 10 và LAB_LOG 2026-11-01.
-P2.59 đã publish (nested `9456e09`, bản thu hẹp). Pilot SynSQL của P2.60 đã publish, pool chuyển sang BIRD. Đang chạy: P2.60 trên BIRD (teacher CoT, SFT, student tự viết CoT Spider, SFT, RL; so trần với SQL) và `tp2`, `tp3` (LAB_LOG 2026-11-01).
+Cập nhật 2026-11-03: P2.60 SQL đã publish tới `sql_rl2` (Spider dev EX 75.05, nested `d7c3ccb`).
+P2.62 bỏ self-CoT SFT Spider, chạy DPO + NLL trực tiếp từ BIRD SFT: `c1` từ `cot1`, `s1` từ `sql1`.
+Theo yêu cầu owner, runner tiếp tục khi EX còn lập đỉnh mới, có tối đa bảy batch câu mới và hai round retry
+các câu đã sample nhưng vẫn toàn sai; summary tính cả checkpoint khởi đầu. Cập nhật code phải chờ cả hai
+lane thoát; queue có bước archive receipt skip theo luật cũ trước khi mở lại, gồm SQL round 3 đang bị skip.
+Đây là tìm best trong ngân sách có giới hạn, không đồng nghĩa đã chứng minh hội tụ. Chi tiết: LAB_LOG và PIPELINE_NEXT.
+P2.59 và `tp2`, `tp3` đã hoàn tất; các nhận định review dưới đây ghi lại giai đoạn trước P2.60.
 Review implementation P2.59: teacher rationale chưa được kiểm qua SQL của
 chính writer rồi bị ghép với gold, còn template render trực tiếp gold SQL.
 Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi student trên public,
@@ -31,7 +37,7 @@ Khuyến nghị tạo trace giải bài có kiểm, hỗ trợ theo lỗi studen
 lane hiện ghi “owner to confirm”, không coi là quyết định đã thực hiện.
 Kiểm thêm Lee et al. (2026) đổi khuyến nghị: teacher không thấy gold làm arm
 chính, rationalization tách riêng; đính chính CROP và controls khi giữ SQL
-teacher ở COT_RL_RESEARCH mục 13. Chưa có code hoặc queue P2.60.
+teacher ở COT_RL_RESEARCH mục 13. Review này diễn ra trước khi có code và queue P2.60.
 
 ## 1. Câu hỏi nghiên cứu
 

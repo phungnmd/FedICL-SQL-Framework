@@ -30,6 +30,28 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: RL continuation fixes (owner request, CPU-verified)
+
+The owner requested three fixes: do not stop rising EX after two gains below 1 point; revisit questions whose
+rollouts are all wrong; include the initial adapter when selecting the best observed point. The third fix was
+partly in nested `4fd5673`; it now also reports the start when no RL update was evaluated.
+
+Code: nested `167af94`, `d45df9e`. Implemented: (1) pin the rising SQL series 73.60, 74.18, 75.05 in a failing CPU regression; (2) retain the
+seven immutable fresh-question sets, stop that phase only after two rounds without a new best, then add at most
+two K=8 retry rounds of up to 1,200 previously sampled but still unsolved questions from the best prior adapter;
+(3) freeze route-specific retry manifests, preserve completed/partial generation identities, archive legacy skip
+receipts before reopening them; (4) test the retry/resume/summary behavior and update the active runbook. The
+bounded retry schedule and patience are compute choices, not hyperparameters established by a paper. Both server
+lanes must exit before pulling changed runner code. Reopening also holds both GPU lane locks, not only child-task
+locks. The original seven-set manifest is not rewritten; retry sets have separate frozen manifests that bind
+their source receipts. Empty shards load no model; batches with no usable pair skip their update/evaluation.
+
+Validation: 981 CPU tests pass (one existing PyTorch scalar-conversion warning in `test_server_retention`). On a
+temporary copy of the committed P2.60 receipts, reopening archives exactly 15 legacy SQL skips and makes
+`sql_rl3_samp0` the next task; all successful receipt byte hashes stay identical. No GPU or Windows PowerShell
+execution ran locally. PIPELINE_NEXT now has the stop/update/reopen sequence, continuation commands and a joint
+publication command that accepts only the two runners' explicit compact allowlists. Old launch blocks are archived.
+
 ## 2026-11-03: P2.60 SQL route published (nested `d7c3ccb`)
 
 Seed 0, Spider dev. `sql2_e1` 73.60, `sql_rl1` 74.18, `sql_rl2` 75.05; round 3 skipped by the rule (two gains below
