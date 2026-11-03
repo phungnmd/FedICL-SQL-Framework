@@ -30,6 +30,24 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-03: P2.60 CoT gap diagnosis (chat output, not committed)
+
+Script `scripts/diagnose_p260_cot.py`, nested `aceca51`, Spider dev, points at the same learning-rate position.
+
+- The Spider stage teaches `cot2` nothing on net: `cot2_e1 - cot1_e4` 101 wrong to right, 104 right to wrong, 70% of
+  the SQL changed. SQL: `sql2_e1 - sql1_e2` 211 and 58 (+14.80, p<.001).
+- `cot1_e4 - sql1_e2` +1.84 (144/125, p=.27): the public stage ties despite 13% of the rows.
+- Dropped rows are not the main cause: 1,532 rows dropped, set operations 18.02% of dropped against 3.51% of kept, JOIN
+  55.48% against 41.56%, but the gap is as wide on simple questions: no JOIN -11.82, no GROUP -11.49, not nested -12.93,
+  no set operation -12.16. Set operations account for about 2.0 of the 13.25 points.
+- Targets: own SQL textually gold 15.27%, same tables 81.55%, same clauses 75.94%; SQL is 11% of target chars at p50.
+- Misses on the 192 questions only `sql2_e1` solves: execution error 69, same structure with wrong values 39, other
+  tables 38, other clauses 30, fewer columns 11, more columns 5. Error gap 6.09 points, wrong-answer gap 7.16.
+
+Reading: the student never sees gold SQL or a correction on Spider, and 89% of the target is reasoning. These two stay
+confounded. Part of the error gap may close with the falling learning rate (`cot1` errors fell 17.79 to 12.48).
+Proposed test, not queued: `cot2g` (same rows and reasoning, gold SQL) and `sqlc` (SQL-only gold from `cot1_e4`).
+
 ## 2026-11-03: P2.60 first Spider numbers, CoT gap under diagnosis (chat output, not committed)
 
 | Epoch | `cot1` (1,266 rows) | `sql1` (9,428) | `cot2` (7,127, 82.31%) | `sql2` (8,659) |
