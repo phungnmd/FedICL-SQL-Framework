@@ -30,6 +30,23 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: resume interrupted c1 RL8 and automatically test the best checkpoint
+
+Owner accidentally closed the c1 lane during RL8 training and requested a resume command followed by
+automatic Spider test evaluation. The active GPU-1 command now reruns the unchanged lane, waits for its
+terminal round-9 eval receipt (including a skipped terminal round), selects the maximum dev EX among
+completed c1 RL checkpoints, then fetches and runs the standalone test driver on that point. Ties keep
+the earliest checkpoint. Test outputs remain under `p262_c1_spider_test_s0/<selected point>/`.
+
+No trainer or lane code changed. Inspection confirms DPO saves adapter weights only after the full
+training call; it has no mid-task optimizer resume. Consequently, interrupted RL8 DPO restarts from
+its original parent using the already saved rollouts. Completed receipts are reused. The command never
+pulls or rewrites code used by other running processes. Publication remains separate: the existing test
+publication block accepts the chosen point, while the existing lane publication handles RL artifacts.
+
+CPU validation checks the exact best-point selection expression on mocked completed, skipped and tied
+rounds, including a best checkpoint before round 9. No GPU or PowerShell execution ran locally.
+
 ## 2026-11-04: fix empty Spider test row IDs in the standalone driver
 
 The server launch failed with "expected 2147 unique Spider test rows, got 2147" before model loading.

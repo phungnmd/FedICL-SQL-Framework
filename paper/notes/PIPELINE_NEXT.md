@@ -110,10 +110,15 @@ and continues `c1` (teacher CoT BIRD, `cot1_e4`) and `s1` (SQL-only BIRD, `sql1_
 2. Start GPU 1 on `c1` and GPU 0 on the SQL continuation, in two terminals. GPU 0 automatically starts
    `s1` after the SQL continuation finishes. Neither command publishes results.
 
-GPU 1:
+GPU 1: resume the c1 lane, then automatically evaluate the highest Spider dev EX among completed c1 RL
+checkpoints on Spider test (earliest checkpoint wins ties). Completed task receipts and saved generation
+rows are reused. Interrupted DPO training has no mid-task optimizer checkpoint and restarts that task
+from its original parent; completed rounds are not retrained. Test backfill fetches only the standalone
+driver without pulling the checkout. It uses the shared-GPU mode and a separate output lock. This command
+also works when training is already complete, in which case it proceeds to best-point test evaluation.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase lane --route c1; if ($LASTEXITCODE -ne 0) { throw 'CoT lane failed' }; if (-not (Test-Path 'audits/protocol_v2/p262_rl_from_bird_s0/done/eval_c1_rl9.json')) { throw 'CoT terminal receipt missing' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.run_p262_rl_from_bird --phase lane --route c1; if ($LASTEXITCODE -ne 0) { throw 'CoT lane failed' }; if (-not (Test-Path 'audits/protocol_v2/p262_rl_from_bird_s0/done/eval_c1_rl9.json')) { throw 'CoT terminal receipt missing' }; $points=@(uv run --no-sync python -c "from scripts import run_p262_rl_from_bird as p; points=p.evaluated('c1'); assert points, 'No completed c1 dev evaluation'; print(max(points, key=p.ex_of))"); if ($LASTEXITCODE -ne 0 -or $points.Count -ne 1) { throw 'Best c1 selection failed' }; $point=$points[0].Trim(); if ($point -notmatch '^c1_rl[1-9]$') { throw 'Unexpected best c1 checkpoint' }; Write-Host "Spider test checkpoint: $point"; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $driver=@(git show origin/main:scripts/eval_p262_spider_test.py); if ($LASTEXITCODE -ne 0 -or $driver.Count -eq 0) { throw 'Test driver unavailable' }; $driver | uv run --no-sync python - --point $point --share-gpu; if ($LASTEXITCODE -ne 0) { throw 'Best c1 Spider test failed' }; if (-not (Test-Path "audits/protocol_v2/p262_c1_spider_test_s0/$point/receipt.json")) { throw 'Test receipt missing' } }
 ```
 
 GPU 0:
