@@ -19,8 +19,8 @@ Start here (in this order):
 
 Other active files:
 
-- Related work and claim limits: `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`,
-  `paper/notes/related_papers.md`
+- Candidate directions: `paper/notes/DIRECTION.md`
+- Related work and claim limits: `paper/notes/LITERATURE.md`
 - Archive index (old logs, directions, reviews, runbooks): `paper/archive/README.md`
 - Code: `fedicl-sql/`
 

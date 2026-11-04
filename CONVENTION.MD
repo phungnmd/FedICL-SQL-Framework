@@ -39,7 +39,8 @@ archive directory with a README explaining their replacement.
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
 | Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
-| What novelty/claim boundary is defensible? | `paper/notes/RELATED_WORK_NOVELTY_MATRIX.md` |
+| Which directions are on the table? | `paper/notes/DIRECTION.md` |
+| What novelty/claim boundary is defensible? | `paper/notes/LITERATURE.md` |
 | What happened historically? | `paper/archive/README.md` and Git history |
 
 Paper result tables and the manuscript outline are rebuilt once the paper

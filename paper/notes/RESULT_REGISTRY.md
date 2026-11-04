@@ -24,6 +24,31 @@ Full originals:
 Protocol-v1 registry:
 `paper/archive/protocol_v1_no_bird_evidence/RESULT_REGISTRY_v1.md`.
 
+## P2.53-P2.62 result roots (added 2026-11-04)
+
+Each root under `fedicl-sql/audits/protocol_v2/` holds its receipts, predictions
+and `summary.json`; adapters stay on the server under the matching
+`artifacts/protocol_v2/` root. Numbers and readings are in `LAB_LOG.md`.
+P2.27-P2.52 result commits are named in the archived log
+`paper/archive/lab_log_2026-10/LAB_LOG_2026-10-10_to_2026-10-29.md` and the
+archived queue `paper/archive/completed_runbooks/PIPELINE_P227_P262_2026-11-04.md`.
+
+| Experiment | Audit root | Result commits (nested) | Key points |
+|---|---|---|---|
+| P2.53 seed 0 test, seed 1 | `p253_confirmation_s0`, `p253_confirmation_s1` | `f51a9a1`, `2e863d3`, `ce51178` | method and comparators (closed 2026-11-04) |
+| P2.53 reference and teacher test | `p253_reference_test_s0`, `p253_teacher_test_s0` | `0704737`, `c3e3961` | FedAvg test 71.50; teacher zero-shot test 77.22 |
+| P2.54 SynSQL public pool | `p254_synsql_public_s0` | `76496b4`, `5a638c0` | robustness setting |
+| P2.55 FedProx | `p255_fedprox_s0` | `eb69e5a` | test 70.42 |
+| P2.56 teacher 5-shot | `p256_teacher_fewshot_s0` | `cfaad25` | advisor table |
+| P2.57 CoT probe | `p257_cot_probe_s0` | `f8f3832` | inference only |
+| P2.58 CoT x RL screen | `p258_cot_rl_screen_s0` | `6dd0cb0` | `g2`, `g3d`, `t2`, `t3d` |
+| P2.59 CoT then RL (SynSQL) | `p259_cot_then_rl_s0` | `9456e09`, `32a002b` | `tp2`, `tp3`, `g_r3` |
+| P2.60 SynSQL pilot | `p260_cot_ceiling_s0` | `814ecde` | teacher pool pilot |
+| P2.60 BIRD route | `p260_cot_ceiling_bird_s0` | `d7c3ccb`, `1eeaa6a` | `cot1_e4` 60.64, `sql1_e2` 58.80, `sql2_e1` 73.60, `sql_rl9` 75.53 (dev) |
+| P2.61 gold-signal controls E1 | `p261_gold_signal_s0` | `ec2a50e` | `cot2g_e1` 63.44, `sqlc_e1` 70.21 (dev) |
+| P2.62 RL from BIRD | `p262_rl_from_bird_s0` | `1eeaa6a` | `c1_rl8` 70.89, `s1_rl9` 74.18 (dev) |
+| P2.62 c1 Spider test | `p262_c1_spider_test_s0` | `1eeaa6a` | `c1_rl1` 63.86, `c1_rl8` 69.12 (test) |
+
 ## P2.18 Coder-0.5B, seed 0 (2026-10-07)
 
 Result commit: nested `45a8bdc`; producer `eaf4116` (central evaluations also
