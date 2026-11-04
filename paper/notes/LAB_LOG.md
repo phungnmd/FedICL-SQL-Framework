@@ -30,6 +30,26 @@ Older detail:
 - E2 (0.5B student) is queued after P2.53 (entry 2026-10-29).
 - Earlier status lines (P2.37-P2.52) are in the dated entries below.
 
+## 2026-11-04: P2.62 `c1` and `s1` through RL9, P2.60 SQL to `sql_rl9` (chat output, not committed)
+
+Seed 0, Spider dev. Round 7 is empty on both routes (rounds 1-6 cover all about 6,997 eligible questions); rounds
+8-9 are retries on still-unsolved questions.
+
+| Route | Start | Best | Last | Best - start | Execution error at best | Tokens p50 |
+|---|---:|---:|---:|---:|---:|---:|
+| `c1` (teacher CoT BIRD, then RL) | `cot1_e4` 60.64 | `c1_rl8` 70.89 | `c1_rl9` 69.83 | +10.25 (151/45) | 6.29 | 198 |
+| `s1` (SQL BIRD, then RL) | `sql1_e2` 58.80 | `s1_rl9` 74.18 | `s1_rl9` 74.18 | +15.38 (184/25) | 5.13 | 25 |
+| P2.60 SQL (Spider SFT, then RL) | `sql2_e1` 73.60 | `sql_rl9` 75.53 | | | | |
+
+- Matched routes: `c1_rl8 - s1_rl9` -3.29 (73/107, p=.014). CoT started 1.84 above SQL and ends 3.29 below. Both are
+  best-of-ten on dev, but `s1` is its last point while `c1` is a maximum after a drop, so the gap is not smaller.
+- `s1` is still rising at the budget end (retries +2.03, +1.07); `c1` peaked at RL8 and fell 1.06 at RL9.
+- CoT samples more correct answers on the same question sets (pass@8 84.9-86.3 against 81.1-82.5 in rounds 3-5) and
+  yields more pairs (rounds 1-6: 5,184 against 2,781), yet gains less per round.
+- RL alone from the BIRD SQL student reaches Spider SFT level: `s1_rl9 - sql2_e1` +0.58 (95/89, p=.71),
+  `s1_rl9 - sql_rl9` -1.35 (81/95, p=.33).
+- No Spider test numbers yet for these points; the c1 lane tests its best point automatically.
+
 ## 2026-11-04: resume interrupted c1 RL8 and automatically test the best checkpoint
 
 Owner accidentally closed the c1 lane during RL8 training and requested a resume command followed by
