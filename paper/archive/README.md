@@ -10,7 +10,8 @@ material and index entries only.
 | Folder | What it holds | Replaced by |
 |---|---|---|
 | `lab_log_2026-09/` | full lab log, 2026-09-03 to 2026-09-26 (protocol v2, P2.0–P2.10 setup) | `paper/notes/LAB_LOG.md` |
-| `lab_log_2026-10/` | lab log entries 2026-09-24 to 2026-10-09 (Coder-0.5B, 1.5B-Instruct, P2.2–P2.26) | `paper/notes/LAB_LOG.md` |
+| `lab_log_2026-10/` | lab log entries 2026-09-24 to 2026-10-29 (Coder-0.5B, 1.5B-Instruct, Coder-1.5B K-chain, P2.2–P2.54) | `paper/notes/LAB_LOG.md` |
+| `directions_2026-11/` | directions, proposals, literature notes and agent state before the 2026-11-04 cleanup | `paper/notes/DIRECTION.md`, `LITERATURE.md` |
 | `directions_2026-10/` | paper directions A and B, method v2 proposal, manuscript outline, experiment matrix, stale result tables, closed review notes | `paper/notes/RESEARCH_STATE.md` |
 | `results_reviews_2026-09/` | closed P2.1–P2.4 reviews and the old valid-results/adapter ledger | `paper/notes/RESULT_REGISTRY.md` |
 | `method_reviews_2026-09/` | KD method reviews (RKL; OPD, retention, ordering) and the pre-cleanup architecture | `paper/notes/system_architecture.md` |
@@ -26,6 +27,20 @@ material and index entries only.
 
 - [Directions and plans before the reset](directions_2026-10/README.md): replaced by `paper/notes/RESEARCH_STATE.md`.
 - [Lab log 2026-09-24 to 2026-10-09](lab_log_2026-10/LAB_LOG_2026-09-24_to_2026-10-09.md).
+
+## 2026-11-04 cleanup: earlier directions closed
+
+Owner closed the K-chain/replay direction and the federated CoT-RL proposal; notes were reduced to
+`RESEARCH_STATE`, `DIRECTION`, `PIPELINE_NEXT`, `LAB_LOG`, `RESULT_REGISTRY`, `LITERATURE` and
+`system_architecture`.
+
+- [`directions_2026-11/`](directions_2026-11/): the 2026-10-28 direction proposal, the 2026-11-03 federated
+  CoT-RL proposal, COT_RL_RESEARCH, the novelty matrix, related_papers, and the pre-cleanup RESEARCH_STATE,
+  system_architecture and AGENTS.md state. Replaced by `paper/notes/DIRECTION.md`, `LITERATURE.md`,
+  `RESEARCH_STATE.md`, `system_architecture.md`.
+- [Queue P2.27-P2.62](completed_runbooks/PIPELINE_P227_P262_2026-11-04.md): every command block of the
+  previous `PIPELINE_NEXT.md`, completed, closed or deferred; final publication nested `1eeaa6a`.
+- [Lab log 2026-10-10 to 2026-10-29](lab_log_2026-10/LAB_LOG_2026-10-10_to_2026-10-29.md).
 
 ## 2026-11-03 RL continuation
 
