@@ -48,6 +48,20 @@ and the P2.59 template follow-up below are the active runs (LAB_LOG 2026-11-02).
 State 2026-11-03: P2.61 E1 finished; P2.60 SQL route published (`d7c3ccb`, `sql_rl2` 75.05). Existing P2.62 lanes
 must exit before the continuation update below; GPU 1 then resumes `c1`, GPU 0 extends SQL and then resumes `s1`.
 
+State 2026-11-04: all lanes have exited (owner). P2.60 SQL to `sql_rl9`, P2.62 `c1` and `s1` to RL9 and the `c1_rl8`
+Spider test are complete. No GPU run is queued. Publish them with the single command below.
+
+## P2.60/P2.62 final publication with the c1 Spider test (owner 2026-11-04)
+
+One commit replaces the two separate publication blocks below (lane step 3 and the c1 test block). It
+fast-forwards without rebasing, validates both runners' compact allowlists, validates every c1 test point
+with a receipt (`c1_rl8` must be among them; a completed `c1_rl1` is included too), checks that no other
+tracked file changed, commits only those files and pushes. Run from `fedicl-sql/` on `main`.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $testRoot='audits/protocol_v2/p262_c1_spider_test_s0'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; git fetch origin main; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $incoming=@(git diff --name-only HEAD...origin/main); if ($LASTEXITCODE -ne 0) { throw 'Incoming diff failed' }; if (@($incoming | Where-Object { $_ -notmatch '^(scripts/(eval_p262_spider_test|run_p260_cot_ceiling|run_p262_rl_from_bird|rl_ceiling_policy)\.py|tests/test_(eval_p262_spider_test|p260_cot_ceiling|p262_rl_from_bird|rl_ceiling_policy)\.py|docs/.+|.+\.md|audits/protocol_v2/p26[012]_[^/]+/.+)$' }).Count -ne 0) { throw 'Unexpected incoming files' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $lane=@(@(foreach ($mod in @('run_p260_cot_ceiling','run_p262_rl_from_bird')) { uv run --no-sync python -m "scripts.$mod" --phase files; if ($LASTEXITCODE -ne 0) { throw 'Lane publication validation failed' } }) | Where-Object { $_ } | Sort-Object -Unique); if ($lane.Count -eq 0) { throw 'No lane files' }; if (@($lane | Where-Object { $_ -notmatch '^audits/protocol_v2/p26(0_cot_ceiling_bird|2_rl_from_bird)_s0/' }).Count -ne 0) { throw 'Unexpected lane path' }; $points=@(Get-ChildItem $testRoot -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'receipt.json') } | ForEach-Object { $_.Name } | Sort-Object); if ($points -notcontains 'c1_rl8') { throw 'c1_rl8 test receipt missing' }; $test=@(foreach ($point in $points) { $out=@(uv run --no-sync python -m scripts.eval_p262_spider_test --phase files --point $point); if ($LASTEXITCODE -ne 0 -or $out.Count -ne 2) { throw "Test validation failed: $point" }; $out }); if (@($test | Where-Object { $_ -notmatch "^$testRoot/c1_rl[0-9]+/(predictions\.jsonl|receipt\.json)$" }).Count -ne 0) { throw 'Unexpected test path' }; $files=@(@($lane) + @($test) | Sort-Object -Unique); $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0) { throw 'Worktree check failed' }; if (@($dirty | Where-Object { $_ -notin $files }).Count -ne 0) { throw 'Tracked changes outside publication allowlist' }; foreach ($file in $files) { git add -- $file; if ($LASTEXITCODE -ne 0) { throw 'Staging failed' } }; $actual=@(git diff --cached --name-only | Sort-Object -Unique); if ($LASTEXITCODE -ne 0) { throw 'Staged-set check failed' }; if (@(Compare-Object $files $actual).Count -ne 0) { throw 'Staged set differs from allowlist' }; git commit -m "results: record the continued SQL and CoT RL rounds and the c1 Spider test ($($points -join ', '))"; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' }; Get-Content "$testRoot/c1_rl8/receipt.json" }
+```
+
 ## P2.62 c1: Spider test backfill (owner 2026-11-04)
 
 Code: nested `36dd39b`, `8514ee4`, `e96cef1` (48 targeted CPU tests pass).
