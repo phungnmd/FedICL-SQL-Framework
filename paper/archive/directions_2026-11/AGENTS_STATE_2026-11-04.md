@@ -1,0 +1,157 @@
+# AGENTS.md "What the project is" and "Current state" before the 2026-11-04 cleanup
+
+Archived verbatim from the workspace `AGENTS.md`. History only; the active rules are in `AGENTS.md`.
+
+## What the project is
+
+Paper: *FedLS-SQL* (working title; subtitle open), aimed at a Q3 journal.
+
+Clients hold private Text-to-SQL data (Spider, domain-cluster split) and train
+a small SLM with LoRA and sample-weighted factor-wise FedAvg. The server holds
+a frozen Qwen2.5-Coder-7B teacher and a public pool from another domain
+(BIRD with evidence). Clients send only LoRA adapters; the server sends the
+aggregated adapter and, for the frozen method, once a public subset with
+compressed teacher targets for client replay; only the SLM is deployed. Since
+P2.27 the student is Qwen2.5-Coder-1.5B-Instruct and the clients follow the k5
+alpha 0.1 split (earlier: Qwen2.5-1.5B-Instruct and Coder-0.5B, alpha 0.5).
+Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
+
+- Method and claims are fixed in LAB_LOG (FREEZE 2026-10-26 and its two
+  2026-10-28 addenda); the paper direction is
+  `paper/notes/DIRECTION_PROPOSAL.md` (owner, 2026-10-28).
+- Metrics (owner, 2026-10-16; loosened 2026-10-29; evaluation scope
+  2026-10-30): Spider EX on Spider dev and Spider test (2,147 rows) is the
+  primary metric, the clients' private domain; EM is a diagnostic. A new
+  arm is evaluated on Spider dev and Spider test only. The full set (BIRD
+  dev, the public domain and secondary metric, and Spider-Realistic/SYN/DK
+  for robustness) runs only for arms that are finalized for the paper or
+  when the owner asks. Which metric carries the story is chosen for the
+  strongest paper (owner decides). Spider dev, its variants and BIRD dev are
+  development sets; a Spider test number used to choose anything is not
+  called held-out.
+- Owner 2026-11-04: report Spider dev and Spider test together for the current
+  CoT/RL comparisons and future experiments. Spider test may inform method
+  and checkpoint choices; label it honestly as the Spider test split used
+  during development, not an untouched final evaluation. Backfill test for
+  completed checkpoints without changing the identities, parents or dev-based
+  stopping decisions of running P2.60/P2.62 lanes. This reporting decision
+  does not mean test evaluation is already implemented or completed.
+- Ground every method component in a published paper and name it. Flag any
+  component that has no source instead of inventing one silently.
+- Compute is the two RTX A5000 cards. A direction must fit that budget in
+  memory and run time; a 14B or 32B teacher does not (owner, 2026-10-12).
+  Within the budget, model, method and schedule choices stay open.
+- The teacher runs only at the server, on public data; running it at the
+  clients is ruled out (owner, 2026-10-12).
+- The paper's goal is a federated framework in which the server LLM teacher
+  contributes measurably, for a Q3 journal. A story that reduces the teacher
+  to an ablation (for example "public data at the server closes the FL
+  penalty, the teacher adds nothing") does not meet that goal and is not
+  strong enough for Q3 on its own. Do not offer it as the default fallback;
+  look for directions that keep a real teacher contribution within the fixed
+  constraints, and say plainly if none is supported.
+- Novelty bar for Q3 (owner, 2026-10-12): applying a published mechanism to
+  federated Text-to-SQL with a task-specific adaptation (execution checks,
+  schema handling, the private/public split, the FL schedule) is enough
+  novelty for this venue. Do not drop or down-rank a direction because a
+  similar mechanism exists in another task or domain (for example FedCoT,
+  FDKT, GKD, STaR). Cite the closest work, state what differs, and judge the
+  direction on whether its evidence can hold. Only the wording stays limited:
+  no "first" claims and no hiding the closest prior work
+  (`paper/notes/RELATED_WORK_NOVELTY_MATRIX.md`).
+- Judging the Q3 bar (owner, 2026-10-29; replaces the 2026-10-14 floor and
+  aim). No fixed checklist says when the paper is good enough. When asked
+  whether a result, the method or the story is strong enough, judge it as an
+  impartial reviewer at the target journals would (venues in
+  `paper/notes/DIRECTION_PROPOSAL.md`): compare with recent papers in
+  federated learning, LLM-to-SLM distillation and Text-to-SQL that such
+  venues accept (baselines, data-matched controls, seeds, datasets, effect
+  sizes, efficiency results), and say with the numbers what a reviewer would
+  likely accept, question or reject. Name the weaknesses plainly, also when
+  they argue against the current direction. Do not lower the bar to fit the
+  results, and do not raise it beyond what those venues ask. The owner
+  decides.
+
+## Read first
+
+1. `paper/notes/RESEARCH_STATE.md`: question, findings with their strength,
+   open questions, current phase, rules in force.
+2. `paper/notes/PIPELINE_NEXT.md`: the only active executable queue.
+3. `paper/notes/LAB_LOG.md`: evidence ledger and decisions (from 2026-10-10;
+   older entries are archived).
+4. `paper/notes/system_architecture.md`: setup, data rules, claim limits.
+5. `paper/notes/RESULT_REGISTRY.md`: canonical labels and checkpoints.
+6. `CONVENTION.MD`: repository layout, command contract (section 6.1), result
+   retention, statistics, Git discipline.
+
+Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
+PoC, superseded runbooks) lives under `paper/archive/`. Never use it as the
+current plan.
+
+## Current state (2026-10-28)
+
+- 2026-11-03 (owner): current CoT/RL experiments support applying the method to the existing federated
+  BIRD-public/Spider-private setup. Maintain `paper/notes/FEDERATED_COT_RL_PROPOSAL.md` until federated
+  implementation begins. It holds the target pipeline and open choices; `PIPELINE_NEXT.md` alone owns
+  executable work. Keep the current CoT prompt for the first federation test; full-local DPO/FedAvg,
+  public teacher-DPO and CoT replay are proposed work, not completed or automatically queued runs.
+- 2026-11-03 (owner): fix P2.60/P2.62 RL continuation: do not stop small positive EX gains. Fresh rounds 1-7
+  stop after two rounds without a new dev best; at most two further rounds retry previously sampled, still
+  unsolved questions from the best prior adapter. Preserve original question sets and completed receipts,
+  archive the old skipped receipts when reopening, and include the initial adapter in best-point selection.
+- 2026-11-01 (owner): the question to prove is whether CoT and RL beat SQL-only SFT and how to
+  combine them, including whether CoT reaches a higher ceiling with enough training or RL even
+  if CoT alone falls short, comparing ceilings and not equal steps. The teacher's role is to write
+  CoT on a public dataset; separating its contribution from CoT is out of scope for now.
+- 2026-10-31 (owner): the direction below is not convincing enough. A new
+  direction is being sought, with CoT + RL as the candidate (P2.58, LAB_LOG);
+  P2.53 seed 2 is on hold. Do not steer back to the 2026-10-28 story by default.
+- Confirmation phase (P2.53, three seeds, Spider test). Paper direction
+  (owner, 2026-10-28, after an outside review): the server teacher's
+  public-domain gain is lost in the FedAvg rounds and client replay of
+  compressed teacher targets keeps it, Spider non-inferior; teacher on
+  Spider tested by C6. `paper/notes/DIRECTION_PROPOSAL.md`. Open questions:
+  `RESEARCH_STATE.md` section 4.
+- Owner decision 2026-10-13: K2AAA alone is too simple to be the
+  contribution; it is the strongest simple baseline a method must beat.
+- Published at seed 0: P2.27 (base, FL, FedNTD, gold v1, Hinton v1,
+  `central`), P2.28, P2.29 (`h_plain`), P2.36 (`g_plain`), P2.37
+  `hinton_k2aaa`, `gold_k2aaa`, `central_mix`, `local`; P2.38, the P2.39
+  pilot, P2.40, P2.42. P2.41 not run (its condition failed). Deferred: the
+  P2.37 `akaka_plain` pair.
+- Next direction (owner, 2026-10-17): reverse roles, BIRD private and Spider
+  public. P2.43 is built; its Hinton K2 and A1 are published and both chains
+  run to A3.
+- 2026-10-23 (LAB_LOG): plan judged by acceptance at a Q3 journal; P2.45
+  not run; P2.44 self-teacher control built and queued.
+- 2026-10-25: P2.47 client replay published (`mixkd_k2aaa` A3 Spider
+  73.98, BIRD 45.24). P2.48 published (nested `8b79530`): top-50 plus tail
+  replay targets match the full ones (`mixkd50_k2aaa` A3 Spider 74.08, BIRD
+  44.78, the current candidate); FSL-style server steps keep Spider but each
+  private round gives back most of their BIRD gain (LAB_LOG 2026-10-25).
+- 2026-10-26: freeze approved (LAB_LOG FREEZE): method `mixkd50_k2aaa`;
+  comparators `gmixgold_k2aaa`, `hinton_k2aaa`, `k2plus_aaa`,
+  FedCoLLM-style; Spider test primary, three seeds. P2.53 runs it.
+  2026-10-27: E3 (reverse roles) left the confirmation (P2.52: BIRD -1.69
+  vs `hinton_k2aaa_rev`, p=.061); exploratory only.
+- 2026-10-27: second setting is SynSQL-2.5M as the public pool (P2.54,
+  3,336 rows without external knowledge, BIRD-size token budget), not a
+  limitation story (owner). 2026-10-28: it is the robustness setting of
+  the paper (does the method still work with another public pool), seed 0;
+  published (nested `76496b4`): method minus FedAvg Spider dev +3.09
+  (p=.002), BIRD +4.11 (p<.001), Spider test 72.99 vs 71.50 (p=.028).
+  2026-10-29: `gmixgold_k2aaa` Spider test 72.05, method +0.93 (p=.098;
+  nested `5a638c0`).
+- 2026-10-28: seed-0 Spider test: method 73.17, `gmixgold_k2aaa` 72.61,
+  `hinton_k2aaa` 73.50, `k2plus_aaa` 73.87 (LAB_LOG). FREEZE addendum 2:
+  FedAvg and `gold_k2aaa` join seeds 1-2, claims C6 (`hinton_k2aaa` >
+  `gold_k2aaa`) and C7 (method > FedAvg) on Spider test. E1 and
+  replay-ratio sensitivity wait for a revision. 2026-10-29: E2 (0.5B
+  student, three seeds) queued again after P2.53 (owner).
+- Retired: per-experiment pass/fail rules (R1-R6, R11, R12) and the fixed
+  phase E arm list (2026-10-12); R8, R10 and the seed-count part of R13
+  (owner, 2026-10-29: rules that bind the paper's direction go). Outcomes
+  recorded under retired rules stand as history.
+- Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of
+  new runs. P2.16 centralized E1-E4 were never published; do not cite them.
+- Both owner checkouts use `main`.
