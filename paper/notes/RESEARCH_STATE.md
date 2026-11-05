@@ -1,6 +1,6 @@
 # FedLS-SQL: trạng thái nghiên cứu
 
-Cập nhật: 2026-11-05 (thêm C7; tiêu chí chọn hướng mới ở DIRECTION mục 1). File này trả lời bốn câu: ta hỏi gì,
+Cập nhật: 2026-11-05 (thêm C7; tiêu chí chọn hướng ở DIRECTION mục 1; sửa R2, R5, C1, K2 sau review độc lập). File này trả lời bốn câu: ta hỏi gì,
 đã biết gì (kèm mức chắc chắn), còn chưa biết gì, và đang ở giai đoạn nào.
 Các hướng đang cân nhắc: [DIRECTION](DIRECTION.md). Số liệu: [LAB_LOG](LAB_LOG.md).
 Lệnh chạy: [PIPELINE_NEXT](PIPELINE_NEXT.md). Nguồn tham khảo: [LITERATURE](LITERATURE.md).
@@ -45,16 +45,16 @@ chiều, chưa về độ lớn; **thăm dò** = tìm ra sau khi xem dữ liệu
 | # | Phát hiện | Bằng chứng | Mức |
 |---|---|---|---|
 | R1 | DPO + NLL với pair đúng/sai theo execution nâng SLM rất mạnh | Từ student chỉ train BIRD: `s1` 58.80 lên 74.18 (+15.38, 184/25); `c1` 60.64 lên 70.89 (+10.25) | 1 seed |
-| R2 | RL thẳng từ student BIRD đạt mức Spider SFT, không cần SFT trên gold SQL của Spider | `s1_rl9` - `sql2_e1` +0.58 (p=.71); - `sql_rl9` -1.35 (p=.33) | 1 seed |
+| R2 | RL thẳng từ student BIRD về gần mức Spider SFT mà không SFT trên gold SQL của Spider (reward vẫn chấm bằng kết quả execution của gold) | `s1_rl9` - `sql2_e1` +0.58 (p=.71); - `sql_rl9` -1.35 (p=.33). Không có ý nghĩa thống kê, chưa phải bằng chứng tương đương | 1 seed |
 | R3 | Sau Spider SFT, RL thêm khoảng 2 điểm | `sql_rl9` 75.53 so với `sql2_e1` 73.60; P2.58 `g3d` - `g2` +1.93 (p=.012) | 1 seed, hai lần chạy |
-| R5 | Với SQL-only, gain của DPO đến từ chính preference term, không từ NLL | P2.59 `g3d` - `g3n` (chỉ NLL, cùng chosen) +2.22 (41/18, p=.004); `g3n` 72.24 so với `g2` 72.53. Ngược với Liu et al. (ACL 2025, 6.7-15B, BIRD, DPO không NLL) | 1 seed |
+| R5 | Với SQL-only, gain của DPO đến từ chính preference term, không từ NLL | P2.59 `g3d` - `g3n` (chỉ NLL, cùng chosen) +2.22 (41/18, p=.004); `g3n` 72.24 so với `g2` 72.53. Khác điều kiện Liu et al. (ACL 2025: 6.7-15B, BIRD, DPO không NLL), không phải mâu thuẫn trực tiếp | 1 seed |
 | R4 | Retry trên các câu toàn sai vẫn còn gain, chưa thấy trần ở SQL | `s1` retry +2.03, +1.07; `s1` còn tăng ở round cuối | 1 seed |
 
 ### 3.2. CoT
 
 | # | Phát hiện | Bằng chứng | Mức |
 |---|---|---|---|
-| C1 | Cùng route RL, CoT thua SQL-only | `c1_rl8` - `s1_rl9` -3.29 (73/107, p=.014) trên dev; xuất phát CoT hơn 1.84, kết thúc thua 3.29 | 1 seed, chỉ dev cho SQL |
+| C1 | Cùng route RL, CoT thua SQL-only | `c1_rl8` - `s1_rl9` -3.29 (73/107, p=.014) trên dev; xuất phát CoT hơn 1.84, kết thúc thua 3.29. Hai điểm xuất phát khác dữ liệu (1,266 dòng CoT teacher so với 9,428 gold), nên chưa tách riêng CoT | 1 seed, chỉ dev cho SQL |
 | C2 | Sau SFT, CoT tự do thua SQL khoảng 10 điểm; CoT template (diễn lại SQL) ngang SQL | P2.58 `t2` - `g2` -10.06; P2.61 `cot2g` - `sql2_e1` -10.15; P2.59 `tp2` - `g2` +0.48 | 1 seed, nhiều lần chạy |
 | C3 | CoT khám phá nhiều hơn nhưng chuyển vào greedy kém hơn | Cùng bộ câu: pass@8 CoT 84.9-86.3, SQL 81.1-82.5; pair 5,184 so với 2,781; gain mỗi round nhỏ hơn | thăm dò |
 | C4 | Stage public của teacher CoT không thua SQL | `cot1_e4` - `sql1_e2` +1.84 (p=.27) với 1,266 câu so với 9,428 | 1 seed |
@@ -67,7 +67,7 @@ chiều, chưa về độ lớn; **thăm dò** = tìm ra sau khi xem dữ liệu
 | # | Phát hiện | Bằng chứng | Mức |
 |---|---|---|---|
 | K1 | Một stage server trên BIRD làm SLM federated tốt hơn trên cả hai miền | `h_plain` - FedAvg Spider dev +4.16, BIRD +14.28 | vững (3 model) |
-| K2 | Soft label của teacher hơn gold trên Spider dev, và lợi thế này không phải do smoothing hay do kéo về base model | `hinton_k2aaa` - `gold_k2aaa` A3 +2.13 (p=.020); so với virtual teacher +2.03; so với self-teacher +2.32 | 1 seed, có control |
+| K2 | Soft label của teacher hơn gold trên Spider dev, và lợi thế này không phải do smoothing hay do kéo về base model | `hinton_k2aaa` - `gold_k2aaa` A3 +2.13 (p=.020); so với virtual teacher +2.03; so với self-teacher +2.32. Chỉ trên dev, không lặp lại trên test (K3) | 1 seed, có control |
 | K3 | Trên Spider test, phần teacher chỉ khoảng 0.5 điểm | Các arm K2 72.6-73.9, FedAvg 71.50; `hinton_k2aaa` - `gold_k2aaa` +0.47 | 1 seed |
 | K4 | Các round FedAvg bào mòn phần BIRD học ở server; replay target của teacher giữ lại, replay gold thì không | BIRD 43.61 (K2) xuống 36.77 (A1); replay teacher +6.25 BIRD dev; teacher - gold replay +4.04 (p<.001) | 1 seed |
 | K5 | Teacher 7B zero-shot mạnh hơn mọi student | Spider test 77.22 | đo trực tiếp |
@@ -97,8 +97,8 @@ ICL, self-consistency, public pool cùng miền, frozen LoRA A, teacher ở clie
 
 ## 5. Giai đoạn và luật
 
-Giai đoạn: **chọn hướng mới** (owner, 2026-11-04). Các ứng viên và thí
-nghiệm đầu tiên của mỗi hướng ở [DIRECTION](DIRECTION.md). Không có lệnh GPU
+Giai đoạn: **chốt hướng** (owner, 2026-11-04). Đề xuất P hai miền và thứ tự
+thí nghiệm ở [DIRECTION](DIRECTION.md) mục 6, chờ owner duyệt. Không có lệnh GPU
 nào đang chạy.
 
 Luật cố định (owner, 2026-10-29), đều về trung thực:

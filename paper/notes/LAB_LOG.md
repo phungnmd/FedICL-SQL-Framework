@@ -15,6 +15,29 @@ Older entries:
 - Protocol v1 (no BIRD evidence): `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
+## 2026-11-05: independent review of the directions; "P on two domains" proposed for the owner
+
+An agent acting as a Q3 reviewer read the notes (not the discussion) and judged P, Q, R, D. Readings, with
+the project's numbers it cited checked against the logs:
+
+- RL compresses gaps between starting points: `sql2_e1` over `sql1_e2` +14.80 becomes `sql_rl9` - `s1_rl9`
+  +1.35; `tp1` - `g1` -2.61 becomes `tp_r3` - `g_r3` -1.35. The Hinton - gold K2 gap (about 3.2 dev) is
+  likely under 1 Spider point after RL.
+- Teacher-specific effect on Spider is +0.47 test (K3); on BIRD dev it is large (replay teacher - gold
+  +4.04, p<.001). Proposed: report Spider (RL) and BIRD dev (teacher) together, if federated DPO keeps the
+  BIRD gain that SFT rounds erode (43.61 to 36.77). Rough odds from the reviewer: P on Spider alone about
+  35%, P on two domains about 50%, Q alone 20%, R as main axis 10-15%, D alone 25%.
+- Correction: FedCoLLM-style was run at seed 1 (Spider test 66.88, dev 63.73, BIRD dev 43.42, nested
+  `ce51178`); earlier chat said it was never run.
+- Overstated claims fixed in DIRECTION and RESEARCH_STATE: the "2-3 points on test" estimate for P (no SQL
+  route has a test number), R2 (not equivalence; reward uses gold execution), R5 (different conditions from
+  Liu et al., not a contradiction), C1 (starting points differ in data), K1 used as teacher evidence (it mixes
+  public data and teacher), K2 (dev only), the FL gap (small on test, +3.77 on dev).
+
+DIRECTION section 6 now lists the ordered plan (steps 0-6, about 250-300 GPU-h). Step 0 is eval only;
+step 1 compares the `s1` route from the Hinton K2 adapter with the same route from the gold K2 adapter.
+Owner has not approved.
+
 ## 2026-11-05: directions re-assessed again; P (teacher KD + federated execution DPO) recommended
 
 Owner: RL need not be a new mechanism; apply it in the framework so EX clearly beats the baselines, not as a
