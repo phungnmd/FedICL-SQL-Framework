@@ -104,6 +104,19 @@ tiêu paper. Phải đo cái này trước khi xây FL:
 Nếu Hinton giữ được +1.5 điểm trở lên sau RL (dev, rồi test) thì xây FL. Nếu
 không, chuyển sang Q.
 
+**Vị trí KD (đánh giá 2026-11-05):** giữ KD ở đầu (K2 rồi các round RL).
+
+| Lịch | Kết quả cũ | Paper ủng hộ |
+|---|---|---|
+| KD trước (K2AAA) | Coder-1.5B: teacher - gold +2.13 dev (p=.020), Spider test các arm K2 72.6-73.9; 0.5B: Spider cao nhất (63.93) | Khởi tạo bằng pretrain/public data trước FL (Nguyen et al. ICLR 2023; Wang et al. Findings NAACL 2024; Zhao et al. 2018); distill rồi RL (ExCoT, SLM-SQL, Think2SQL); P2.59 SFT rồi RL hơn RL alone +3.00 |
+| Một round FedAvg rồi KD (AK2AA) | 0.5B: Spider 63.15, teacher - gold +1.35 (p=.19), yếu nhất trong ba lịch | Không thấy paper nào dùng đúng lịch này |
+| KD xen kẽ hoặc sau mỗi FedAvg (AKAKA, server step sau mỗi round) | 0.5B: BIRD edge của teacher chỉ rõ ở đây (+3.13); Coder-1.5B: Spider edge mất khi round cuối plain (+0.39, p=.76); server step sau mỗi round làm Spider giảm ngay (71.57 xuống 65.57) và BIRD mất lại ở round sau | FedDF (NeurIPS 2020), FedCoLLM, FedMKT, DS-FL |
+
+KD sau mỗi round chỉ có lợi cho BIRD, mà phần đó replay giữ được rẻ hơn. KD
+cuối cùng (sau RL) sẽ kéo Spider xuống (F8: K càng muộn Spider càng thấp).
+Một ablation lịch đáng làm: K2 rồi A rồi RL, so với K2 rồi RL. Mốc
+centralized tương tự: `sql_rl9` - `s1_rl9` +1.35 (p=.33), không có KD.
+
 ### Q: teacher làm nguồn pair trên public (bổ sung cho P)
 
 Ở server, teacher giải các câu BIRD mà student sai hết. SQL đúng của teacher
