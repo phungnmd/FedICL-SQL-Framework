@@ -108,9 +108,9 @@ không, chuyển sang Q.
 
 | Lịch | Kết quả cũ | Paper ủng hộ |
 |---|---|---|
-| KD trước (K2AAA) | Coder-1.5B: teacher - gold +2.13 dev (p=.020), Spider test các arm K2 72.6-73.9; 0.5B: Spider cao nhất (63.93) | Khởi tạo bằng pretrain/public data trước FL (Nguyen et al. ICLR 2023; Wang et al. Findings NAACL 2024; Zhao et al. 2018); distill rồi RL (ExCoT, SLM-SQL, Think2SQL); P2.59 SFT rồi RL hơn RL alone +3.00 |
+| KD trước (K2AAA) | Coder-1.5B: teacher - gold +2.13 dev (p=.020), Spider test các arm K2 72.6-73.9; 0.5B: Spider cao nhất (63.93) | Gián tiếp: khởi tạo pretrained trước FL giảm ảnh hưởng của heterogeneity (Nguyen et al. ICLR 2023); public pretraining và distillation từ LLM trước private FL (Wang et al. 2023, arXiv 2305.12132); warm-up trên shared data (Zhao et al. 2018). Distill rồi RL: ExCoT, SLM-SQL; Think2SQL lẫn lộn (3B BIRD: RL 50.0, SFT + RL 48.2). P2.59: SFT rồi RL hơn RL alone +3.00 |
 | Một round FedAvg rồi KD (AK2AA) | 0.5B: Spider 63.15, teacher - gold +1.35 (p=.19), yếu nhất trong ba lịch | Không thấy paper nào dùng đúng lịch này |
-| KD xen kẽ hoặc sau mỗi FedAvg (AKAKA, server step sau mỗi round) | 0.5B: BIRD edge của teacher chỉ rõ ở đây (+3.13); Coder-1.5B: Spider edge mất khi round cuối plain (+0.39, p=.76); server step sau mỗi round làm Spider giảm ngay (71.57 xuống 65.57) và BIRD mất lại ở round sau | FedDF (NeurIPS 2020), FedCoLLM, FedMKT, DS-FL |
+| KD xen kẽ hoặc sau mỗi FedAvg (AKAKA, server step sau mỗi round) | 0.5B: BIRD edge của teacher chỉ rõ ở đây (+3.13); Coder-1.5B: Spider edge mất khi round cuối plain (+0.39, p=.76); server step sau mỗi round làm Spider giảm ngay (71.57 xuống 65.57) và BIRD mất lại ở round sau | Trực tiếp với teacher trong FL: FedCoLLM, FedMKT (KD lặp mỗi round); FedDF (NeurIPS 2020, ensemble distillation sau mỗi aggregation) |
 
 KD sau mỗi round chỉ có lợi cho BIRD, mà phần đó replay giữ được rẻ hơn. KD
 cuối cùng (sau RL) sẽ kéo Spider xuống (F8: K càng muộn Spider càng thấp).
