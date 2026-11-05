@@ -47,6 +47,7 @@ chiều, chưa về độ lớn; **thăm dò** = tìm ra sau khi xem dữ liệu
 | R1 | DPO + NLL với pair đúng/sai theo execution nâng SLM rất mạnh | Từ student chỉ train BIRD: `s1` 58.80 lên 74.18 (+15.38, 184/25); `c1` 60.64 lên 70.89 (+10.25) | 1 seed |
 | R2 | RL thẳng từ student BIRD đạt mức Spider SFT, không cần SFT trên gold SQL của Spider | `s1_rl9` - `sql2_e1` +0.58 (p=.71); - `sql_rl9` -1.35 (p=.33) | 1 seed |
 | R3 | Sau Spider SFT, RL thêm khoảng 2 điểm | `sql_rl9` 75.53 so với `sql2_e1` 73.60; P2.58 `g3d` - `g2` +1.93 (p=.012) | 1 seed, hai lần chạy |
+| R5 | Với SQL-only, gain của DPO đến từ chính preference term, không từ NLL | P2.59 `g3d` - `g3n` (chỉ NLL, cùng chosen) +2.22 (41/18, p=.004); `g3n` 72.24 so với `g2` 72.53. Ngược với Liu et al. (ACL 2025, 6.7-15B, BIRD, DPO không NLL) | 1 seed |
 | R4 | Retry trên các câu toàn sai vẫn còn gain, chưa thấy trần ở SQL | `s1` retry +2.03, +1.07; `s1` còn tăng ở round cuối | 1 seed |
 
 ### 3.2. CoT

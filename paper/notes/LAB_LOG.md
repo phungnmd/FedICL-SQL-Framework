@@ -15,6 +15,24 @@ Older entries:
 - Protocol v1 (no BIRD evidence): `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
+## 2026-11-05: directions re-assessed again; P (teacher KD + federated execution DPO) recommended
+
+Owner: RL need not be a new mechanism; apply it in the framework so EX clearly beats the baselines, not as a
+fix for federated drift. KD on public at the server with private clients is the intended deployment.
+
+Search (abstracts and excerpts): no paper found with federated learning plus RL or DPO for Text-to-SQL;
+federated Text-to-SQL exists without teacher or RL (Zhang et al., ACL 2023); federated DPO (FedPDPO,
+OpenFedLLM, POPri) and federated RLVR (FedMOA, PubSwap, Fed-GRPO) exist for other tasks; server-LLM KD in FL
+exists for general tasks (FedCoLLM, FedMKT, FedCoT, KnowledgeSG). Liu et al. (ACL 2025) report that DPO
+without CoT rarely helps on BIRD at 6.7B-15B; here SQL-only DPO + NLL works at 1.5B on Spider, and the
+preference term carries it (P2.59 `g3d - g3n` +2.22, p=.004). CoT is therefore not a default for this setup;
+BIRD dev, where CoT papers report gains, is untested for the CoT routes.
+
+DIRECTION.md now recommends P (Hinton KD at the server, then federated execution DPO + NLL), with Q (teacher
+pairs on public) as a teacher-in-RL complement, R (CoT as a variant) and D (CoT explorer) as extensions. The
+deciding check before building FL: the P2.62 `s1` route from the `hinton_k2aaa` K2 adapter against `s1` from
+`sql1_e2` (about gold K2). Owner has not chosen.
+
 ## 2026-11-05: directions re-assessed; candidate D, CoT as explorer for all-wrong questions (owner criteria)
 
 Owner criteria: the paper is a framework that applies to the federated setup (the FedAvg-central gap is small on

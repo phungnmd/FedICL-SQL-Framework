@@ -33,6 +33,9 @@ cách diễn đạt claim, không giới hạn việc chọn hướng (AGENTS.md
 | Text-to-SQL RL có teacher | [ReToolSQL](https://arxiv.org/html/2608.27796v1) (teacher có gold viết reasoning cho câu toàn sai), [SERL-SQL](https://arxiv.org/abs/2608.00485) (teacher chấm lại action của student) | Centralized, teacher thấy câu train |
 | Federated RLVR | [PubSwap](https://arxiv.org/pdf/2604.12160) (ICML 2026), Fed-GRPO (arXiv 2610.11502), FedGRPO (arXiv 2602.12014) | Không teacher, không Text-to-SQL |
 | CoT rollout chuyển sang policy không CoT | Masked Distillation (2026, chưa đọc), Yu et al. 2024 Distilling System 2 into System 1 (SFT, self-consistency) | Cần đọc kỹ: gần nhất với hướng D |
+| DPO Text-to-SQL và CoT | Liu et al., [Uncovering the Impact of CoT for DPO: Lessons from Text-to-SQL](https://aclanthology.org/2025.acl-long.1031) (ACL 2025): DPO không CoT thường không giúp trên BIRD (6.7B-15B), CoT tổng hợp giúp; [AutoThinkSQL](https://arxiv.org/pdf/2607.22622): học khi nào cần reasoning | Centralized; ta thấy SQL-only DPO + NLL hiệu quả ở 1.5B Spider (`g3d` - `g3n` +2.22) |
+| FL + KD từ server, task chung | [KnowledgeSG](https://arxiv.org/pdf/2410.05725) (EMNLP 2024), [Communication-aware KD](https://arxiv.org/html/2509.01750v2), [POPri](https://openreview.net/forum?id=ZuaU2bYzlc) (DPO cho synthetic data riêng tư) | Không Text-to-SQL, không execution |
+| DPO cho code theo execution | [Aligning CodeLLMs with DPO](https://www.arxiv.org/pdf/2410.18585) (unit test xếp hạng output) | Centralized, code |
 | On-policy distillation | Agarwal et al., [GKD](https://arxiv.org/html/2306.13649v3), ICLR 2024 | Centralized; cơ sở cho hướng C |
 
 ## 3. CoT có hơn SQL-only không

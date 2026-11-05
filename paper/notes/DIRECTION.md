@@ -1,143 +1,137 @@
 # FedLS-SQL: các hướng ứng viên
 
-Cập nhật: 2026-11-05. Trạng thái: **owner chưa chọn hướng**. Bản 2026-11-04 có
-ba hướng A/B/C; bản này đánh giá lại theo tiêu chí owner đặt ngày 2026-11-05.
-Bằng chứng nền: [RESEARCH_STATE](RESEARCH_STATE.md) mục 3; closest work:
+Cập nhật: 2026-11-05 (lần 2). Trạng thái: **owner chưa chọn hướng**. Bằng
+chứng nền: [RESEARCH_STATE](RESEARCH_STATE.md) mục 3; closest work:
 [LITERATURE](LITERATURE.md).
 
 ## 1. Tiêu chí (owner, 2026-11-05)
 
-- Bài là một framework áp dụng được cho setup federated. FL là bối cảnh, không
-  phải vấn đề chính: với split hiện tại, FedAvg và centralized chênh ít (trên
-  Spider test, `central` - FedAvg -0.42).
-- Mục tiêu tốt nhất: vai trò của teacher và của RL đều rõ.
-- Chỉ bỏ CoT hoặc teacher khi bằng chứng cho thấy chúng không có tác dụng.
-- Cơ chế RL phải chưa có paper nào làm, và phải cho hiệu quả rõ ở mức đủ cho Q3.
+- Bài là một framework cho setup federated: teacher KD trên public ở server,
+  dữ liệu private ở client. FL là bối cảnh, không phải vấn đề cần giải; với
+  split hiện tại FedAvg và centralized chênh ít (Spider test `central` -
+  FedAvg -0.42).
+- RL không cần là cơ chế mới. Áp RL đã có vào framework để EX vượt rõ các
+  baseline.
+- Vai trò của teacher và của RL đều phải đo được. Chỉ bỏ CoT hoặc teacher
+  khi bằng chứng cho thấy chúng không giúp.
 
-## 2. Đánh giá lại các hướng cũ
+## 2. Literature: tổ hợp này đã có ai làm chưa
 
-| Hướng | Vai trò teacher | RL mới? | Bằng chứng | Kết luận |
-|---|---|---|---|---|
-| A. Teacher KD làm điểm xuất phát, federated DPO, replay | Nhỏ trên Spider test (khoảng 0.5, K3); phần chính nằm ở BIRD | Không: DPO + NLL theo execution đã có (ExCoT); federated RLVR đã có (FedMOA, PubSwap) | Lý do "RL ít drift hơn" yếu, vì FL penalty vốn nhỏ | Không đủ. Giữ làm baseline |
-| B. Federated CoT-DPO (teacher CoT, CoT SFT, DPO) | Teacher viết CoT, chưa tách được | Không | CoT thua SQL -3.29 (C1), tốn compute gấp 3 lần | Không đủ |
-| C. Teacher trong RL ở server (on-policy distillation) | Rõ, nhưng chỉ trên public | Một phần: KDRL, SERL-SQL, OPD đã có ở centralized | Gain ở server bị FedAvg bào mòn (K4) | Để làm phần mở rộng |
+Theo các đợt search 2026-11-01 và 2026-11-05 (đọc abstract và trích đoạn,
+không phải systematic review):
 
-Lý do chung: cả ba đều không có một cơ chế RL riêng của bài này.
+| Tổ hợp | Có chưa | Bài gần nhất |
+|---|---|---|
+| Federated Text-to-SQL | Có, nhưng không teacher, không RL | Zhang et al., ACL 2023 |
+| Federated + RL hoặc DPO + Text-to-SQL | Chưa thấy | |
+| Federated DPO (task khác) | Có | FedPDPO, OpenFedLLM (FedDPO), POPri (ICML 2025) |
+| Federated RLVR (toán, code, y tế) | Có, không teacher | FedMOA, PubSwap (ICML 2026), Fed-GRPO |
+| FL với server LLM KD vào SLM trên public | Có, task chung | FedCoLLM, FedMKT, FedCoT, KnowledgeSG |
+| DPO hoặc RL Text-to-SQL, centralized | Nhiều | ExCoT, Liu et al. (ACL 2025), AutoThinkSQL, SLM-SQL, Arctic-R1 |
 
-## 3. Hướng D (khuyến nghị): teacher-seeded CoT exploration, deploy SQL-only
+Tổ hợp "teacher KD ở server trên public + RL bằng execution tại client trên
+private + FedAvg, cho Text-to-SQL" chưa thấy bài nào. Theo novelty bar
+(AGENTS.md), áp cơ chế đã có vào federated Text-to-SQL kèm adaptation riêng
+của task là đủ cho Q3. Diễn đạt phải nêu closest work, không claim "first".
 
-### 3.1. Vấn đề
+## 3. KD public/private có phải hướng hợp lý không
 
-RL bằng execution không học được gì từ những câu mà cả K mẫu đều sai: không có
-pair, không có advantage. Ở P2.62, số câu như vậy chiếm khoảng 15-20% mỗi
-round, và hai round retry riêng trên chúng vẫn thêm +3.1 điểm (R4).
+Có. Đây là mẫu chuẩn của nhóm FedCoLLM và FedMKT, và khớp ràng buộc teacher
+chỉ ở server. Bằng chứng của ta:
 
-Các paper giải quyết câu khó đều cần teacher nhìn thấy chính câu đó:
+- Stage server trên BIRD làm SLM federated tốt hơn (K1, +4.16 dev).
+- Soft label của teacher hơn gold trên dev, không do smoothing hay anchoring (K2).
+- Nhưng trên Spider test phần teacher chỉ khoảng 0.5 (K3).
 
-- hint của teacher khi mọi rollout sai (AAPO, ADHint);
-- teacher có gold làm privileged context viết reasoning cho câu khó (ReToolSQL);
-- teacher chấm lại các action của student (SERL-SQL);
-- trộn trace của teacher vào rollout (LUFFY).
+Câu hỏi còn mở là sau RL phần teacher còn bao nhiêu. Chưa đo, và đó là thí
+nghiệm quyết định (mục 5).
 
-Trong FL, teacher chỉ chạy ở server trên public data, nên không dùng được cho
-câu private. Đây là chỗ trống cụ thể, sinh ra từ ràng buộc privacy của FL.
+## 4. CoT có mặc định tốt với setup này không
 
-### 3.2. Cơ chế
+Literature chia hai phía:
+
+- **Ủng hộ CoT:** Liu et al. (ACL 2025): trên BIRD, với 10 model 6.7B-15B, DPO
+  không có CoT thường không giúp hoặc làm giảm EX; CoT tổng hợp giúp DPO hiệu
+  quả. OmniSQL: CoT hơn SQL-only ở 7B. RetrySQL: gain lớn trên BIRD với gold
+  schema links.
+- **Không ủng hộ:** ExCoT: ở 70B, SFT SQL-only hơn CoT trên cả Spider và BIRD.
+  AutoThinkSQL: model nên tự học khi nào cần reasoning.
+
+Kết quả của ta (1.5B, Spider, greedy) nghiêng về phía không ủng hộ, và ngược
+với Liu et al. ở điều kiện khác:
+
+- SQL-only DPO + NLL hiệu quả: `s1` +15.38. Chính preference term tạo gain:
+  `g3d` - `g3n` +2.22 (p=.004).
+- CoT thua SQL sau SFT (khoảng -10) và sau RL (-3.29, p=.014).
+
+Vậy CoT không mặc định tốt ở setup này. Một chỗ chưa kiểm: CoT có thể giúp
+trên BIRD, nơi các paper ủng hộ CoT báo gain. Các route CoT chưa từng được
+eval trên BIRD dev.
+
+## 5. Các hướng
+
+### P (khuyến nghị): teacher KD ở server, rồi federated execution DPO ở client
 
 ```text
-Server, BIRD public:  teacher 7B viết CoT có kiểm execution
-                      student học hai mode trong một LoRA: CoT mode (từ teacher) và SQL mode (gold)
-Client, mỗi round:    SQL mode sinh K=8 cho mỗi câu private, execution check
-                      câu toàn sai -> CoT mode sinh K mẫu (explorer, kiến thức của teacher)
-                      SQL đúng tìm bằng CoT -> chosen cho prompt SQL mode; rejected = mẫu SQL sai
-                      DPO + NLL trên pair thường + pair cứu được; FedAvg
-Deploy:               chỉ SQL mode, greedy, khoảng 25 token
+Server, BIRD public:  teacher 7B Hinton KD (gold CE + KL) -> G0          [teacher]
+Mỗi global round:     client sinh K=8 SQL trên câu private, execution check,
+                      DPO + NLL local trên pair đúng/sai -> FedAvg       [RL]
+Deploy:               SLM, SQL-only, greedy
 ```
 
-- **Teacher:** kiến thức reasoning của teacher đi tới câu private qua CoT mode
-  mà student học trên public. Teacher không bao giờ thấy dữ liệu private.
-- **CoT:** chỉ làm explorer lúc train. Lúc deploy không có chi phí CoT, nên
-  điểm yếu C1 và C5 (CoT greedy kém, tốn token) được tránh.
-- **RL:** cross-mode preference: chosen do mode khác tìm ra, đã kiểm execution
-  tại client; pair chỉ tập trung vào câu khó.
-
-### 3.3. Bằng chứng có sẵn
-
-Tính trên CPU từ các file đã publish (`p262_rl_from_bird_s0/data/*_rows.json`,
-nested `1eeaa6a`). Hai route cùng bộ câu hỏi và cùng round, cả hai chưa thấy
-gold Spider:
-
-- Trong 1,200 câu mà `s1` (SQL) sinh 8 mẫu đều sai, `c1` (CoT) có ít nhất một
-  SQL đúng ở 508 câu (42.3%).
-- Theo chiều ngược lại, `s1` giải được 386 trong 1,078 câu mà `c1` sai hết.
-- Để so: khi `s1` tự retry các câu này từ checkpoint tốt hơn, nó chỉ cứu được 23.83%.
-- Tổng số câu toàn sai trong các round fresh: CoT khoảng 1,078, SQL khoảng 1,400.
-
-Hai giới hạn của bằng chứng này:
-
-- `c1` và `s1` là hai model khác nhau, nên một phần mức bổ sung cho nhau có thể
-  chỉ do có hai model, không phải do CoT. Cần một explorer SQL thứ hai không
-  dùng gold để tách. Route SQL của P2.60 không dùng được làm control: nó đã SFT
-  trên gold của chính các câu này và cứu 83%.
-- Client có gold SQL, nên baseline bắt buộc là "gold làm chosen cho câu toàn
-  sai". D chỉ có ý nghĩa nếu chosen tự tìm hơn chosen là gold. Có cơ sở cho
-  khả năng này (on-policy quên ít hơn: RL's Razor), và R2 cho thấy SFT trên
-  gold không thêm rõ sau RL (`s1_rl9` - `sql_rl9` -1.35, p=.33), nhưng chưa
-  được kiểm trực tiếp.
-
-### 3.4. Claim và comparator
-
-| Claim | Comparator |
+| Phép so | Đo gì |
 |---|---|
-| D1. Pair cứu bằng CoT nâng EX hơn RL thường | Cùng số round: D so với `s1`-style |
-| D2. Hơn cả khi dùng gold cho câu toàn sai | Chosen là gold SQL trên cùng các câu |
-| D3. Explorer có kiến thức teacher hơn explorer không teacher | CoT mode học từ teacher so với CoT tự sinh trên BIRD (STaR-style, gold-blind, lọc execution) |
-| D4. Hiệu quả không chỉ do có model thứ hai | Explorer là một SQL model khác không dùng gold |
-| D5. Framework chạy được dưới FedAvg `k5` | Federated D so với centralized D |
+| P - FedAvg SFT, cùng số round | Vai trò RL trong FL |
+| P từ Hinton K2 - P từ gold K2 | Vai trò teacher sau RL |
+| P - `hinton_k2aaa` (KD + SFT round) | RL thay cho SFT round |
+| P - centralized P | Chi phí FL (dự kiến nhỏ) |
+| P - teacher zero-shot, FedProx, FedCoLLM-style, local | Baseline của bảng chính |
 
-Vai trò RL được chứng minh qua D1 và `s1` so với SFT; vai trò teacher qua D3;
-vai trò CoT qua D1 và D4.
+Mốc để so (seed 0): FedAvg Spider test 71.50; `hinton_k2aaa` 73.50; FedProx
+70.42; teacher 7B zero-shot 77.22. Ở centralized, RL từ student BIRD đạt
+74.18 dev (`s1_rl9`, chưa có số test). Nếu FL giữ được phần lớn mức này, P hơn
+các baseline FL khoảng 2-3 điểm trên test.
 
-### 3.5. Pilot (centralized, dùng adapter có sẵn)
+**Rủi ro chính:** sau RL, điểm xuất phát Hinton và gold có thể hội tụ về cùng
+một mức. Khi đó phần đóng góp của teacher chỉ còn là ablation, không đạt mục
+tiêu paper. Phải đo cái này trước khi xây FL:
 
-Từ `s1_rl9` (74.18 dev), lấy các câu nó vẫn sinh toàn sai. Cho `c1_rl8` sinh
-K=8 bằng CoT trên các câu đó, rồi chạy một round DPO + NLL cho từng arm:
+1. Chạy route `s1` từ adapter K2 của `hinton_k2aaa` (Spider dev 62.28) thay
+   cho `sql1_e2` (gần như gold K2: 58.80 so với 59.09). Centralized, một GPU,
+   khoảng 10 GPU-h. Đường dẫn adapter cần kiểm trên server.
+2. Spider test cho `s1_rl9`, `sql_rl9`, `sql2_e1`.
 
-- `d_cot`: chosen là SQL đúng do `c1_rl8` tìm ra.
-- `d_gold`: chosen là gold SQL trên cùng các câu.
-- `d_self`: một round retry SQL bình thường.
+Nếu Hinton giữ được +1.5 điểm trở lên sau RL (dev, rồi test) thì xây FL. Nếu
+không, chuyển sang Q.
 
-Eval mỗi arm và `s1_rl9` trên Spider dev và test. Khoảng 3-4 GPU-h cho phần
-sample CoT, mỗi arm khoảng 1 GPU-h; vừa một GPU trong khoảng nửa ngày.
+### Q: teacher làm nguồn pair trên public (bổ sung cho P)
 
-- Nếu `d_cot` hơn `d_gold` và `d_self`: xây model hai mode và các control D3, D4,
-  rồi mới chạy FL.
-- Nếu `d_gold` ngang hoặc hơn: cơ chế cứu bằng CoT không có lý do tồn tại, và
-  đóng hướng D.
+Ở server, teacher giải các câu BIRD mà student sai hết. SQL đúng của teacher
+làm chosen, SQL sai của student làm rejected: một round DPO off-policy như
+ExCoT. Round này chạy một lần trước FL hoặc xen giữa các round. Phép so là
+cùng các câu đó với gold làm chosen. Có sẵn 1,266 lời giải teacher đã kiểm
+(P2.60) cộng cache SeqKD 5,319 dòng. Đây là chỗ teacher đóng góp trực tiếp
+vào RL. Rủi ro: các lần trước, edge của teacher SQL (SeqKD) mất sau round
+private (Q5 cũ).
 
-### 3.6. Rủi ro
+### R: CoT làm biến thể
 
-- **Hai mode trong một LoRA có thể lấn nhau.** Pilot dùng hai adapter riêng.
-  Nếu bản một adapter kém hơn thì phải gửi hai adapter, gấp đôi chi phí truyền.
-- **Chosen đến từ phân phối khác (off-policy).** NLL trên chosen giúp phần này.
-  LUFFY và ExCoT đều dùng off-policy chosen và có kết quả.
-- **Gain có thể nhỏ:** pair cứu được khoảng 500 trên 7,000 câu. Ước lượng thô
-  theo R4 (khoảng 300-400 pair retry cho +1 đến +2 điểm) là +1 đến +3 điểm.
-  Q3 cần gain giữ được trên test và qua 3 seed.
+Giữ CoT làm một arm của P (teacher CoT trên BIRD, rồi federated DPO trên CoT),
+không làm trục chính. Mở lại thành trục chính chỉ khi Spider test hoặc BIRD dev
+đảo kết quả C1. Một bước rẻ: eval `c1_rl8` và `s1_rl9` trên BIRD dev.
 
-## 4. Hướng C ở vai trò phụ
+### D: CoT làm explorer cho câu toàn sai (mở rộng)
 
-Nếu D đứng được, on-policy distillation ở server có thể nâng CoT mode trên
-public giữa các round. Chỉ làm khi D3 cho thấy chất lượng explorer là điểm
-nghẽn.
+CoT mode tìm SQL đúng ở các câu SQL mode sai hết; chỉ deploy SQL. Có tín
+hiệu: 42.3% so với 23.83% (C7). Nhưng bắt buộc phải thắng baseline "gold làm
+chosen". Dùng khi P cần thêm phần đóng góp của teacher và CoT.
 
-## 5. Cần owner quyết
+## 6. Cần owner quyết
 
-1. Chọn D làm hướng chính và chạy pilot 3.5, hay chọn hướng khác.
-2. Nếu chọn D: tôi viết runner pilot (CPU test trước), thêm lệnh Spider test
-   cho `s1_rl9`, và đưa vào PIPELINE_NEXT.
+1. Chọn P làm hướng chính, chạy hai thí nghiệm kiểm ở mục P trước.
+2. Có eval BIRD dev cho `c1_rl8` và `s1_rl9` không (quyết định R).
 
-## 6. Venue
+## 7. Venue
 
 Data & Knowledge Engineering, International Journal of Data Science and
 Analytics, Neural Processing Letters, Distributed and Parallel Databases;
