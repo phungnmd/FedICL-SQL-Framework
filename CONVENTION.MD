@@ -20,7 +20,7 @@ notes must not be moved into the releasable code repository.
 ```text
 paper/
 ├── drafts/       manuscript drafts (rebuilt once the story is fixed)
-├── notes/        research state, setup, lab log, queue, registry, related work
+├── notes/        research state, lab log, queue (more files only when needed)
 ├── references/   private source library
 ├── templates/    venue/manuscript templates
 └── archive/      superseded material, retained for history
@@ -34,14 +34,13 @@ archive directory with a README explaining their replacement.
 
 | Question | Source |
 |---|---|
-| What are we asking, what do we know, which phase are we in? | `paper/notes/RESEARCH_STATE.md` |
-| What is the setup and what may we claim? | `paper/notes/system_architecture.md` |
+| What are we asking, what is fixed, what do we know, which phase are we in? | `paper/notes/RESEARCH_STATE.md` |
 | What evidence is currently valid? | `paper/notes/LAB_LOG.md` |
 | What runs next? | `paper/notes/PIPELINE_NEXT.md` |
-| Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` |
-| Which directions are on the table? | `paper/notes/DIRECTION.md` |
-| What novelty/claim boundary is defensible? | `paper/notes/LITERATURE.md` |
-| What happened historically? | `paper/archive/README.md` and Git history |
+| Which checkpoint/result label is canonical? | `paper/notes/RESULT_REGISTRY.md` (created with the first result) |
+| Which directions are on the table? | `paper/notes/DIRECTION.md` (created when needed) |
+| What novelty/claim boundary is defensible? | `paper/notes/LITERATURE.md` (created when needed) |
+| What happened before the 2026-11-05 fresh start? | `paper/archive/README.md`; hidden unless the owner asks (`AGENTS.md`) |
 
 Paper result tables and the manuscript outline are rebuilt once the paper
 story is fixed in LAB_LOG.
@@ -52,7 +51,6 @@ active files without a clear owner.
 ## 4. Naming and compatibility
 
 - Public method name: FedLS-SQL.
-- Paper comparison labels: Centralized, FL, FedLS-SQL/FL-KD.
 - Internal package and repository directory may remain `fedicl_sql` and
   `fedicl-sql`.
 - Existing arms, run IDs, artifact paths, cache IDs, and setup fingerprints are
@@ -78,14 +76,6 @@ active files without a clear owner.
 - Client-private data never moves to the server in the canonical protocol.
 - Privacy claims must distinguish structural isolation from DP, secure
   aggregation, and resistance to parameter-inference attacks.
-- A KD pool selected by teacher/gold execution match belongs to that teacher:
-  changing teacher requires regeneration from the complete public source and
-  teacher-specific filtering. Never reuse another teacher's selected indices
-  or treat its retained count as a fixed method budget.
-- The canonical teacher-target selector is two-stage: an 8-second quick
-  execution filter, followed by official EX-to-gold scoring on survivors.
-  Teacher-family replications must keep both stages and their timeouts fixed;
-  changing either creates a new result lineage.
 
 ## 6. Experiment lifecycle
 

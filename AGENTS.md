@@ -11,118 +11,87 @@ started inside `fedicl-sql/`, and any agent on the GPU server (which holds only
 `fedicl-sql/`), does not read this file, so code and GPU rules must also live
 there. Claude Code started locally inside `fedicl-sql/` loads both files.
 
+## Fresh start (owner, 2026-11-05)
+
+The project restarted on 2026-11-05. Every earlier direction, decision,
+result, lesson and literature note is archived and hidden:
+
+- Do not read, cite or reason from material dated before 2026-11-05 unless
+  the owner asks for it in the current session. This covers `paper/archive/`,
+  the nested `docs/archive/` and `scripts/archive/`, the result directories
+  committed before that date (`fedicl-sql/experiments/*/results/`), earlier
+  adapters and checkpoints, and old commits read for their results.
+- Earlier results are not baselines, parents, priors or reasons for or
+  against a choice. Measure what the new work needs from scratch.
+- Infrastructure facts stay in force: the GPU measurements in
+  `fedicl-sql/docs/A5000_RUN_CONFIG.md`, the evaluator protocol in
+  `fedicl-sql/docs/PROTOCOL_V2.md`, and the server and Git rules below.
+- The code under `fedicl-sql/fedicl_sql/` and `experiments/` is tooling and
+  may be reused freely. The old `scripts/run_p2*_*.py` runners belong to the
+  archived work; new experiments get new runners.
+
 ## What the project is
 
-Paper: *FedLS-SQL* (working title; subtitle open), aimed at a Q3 journal.
+Paper: *FedLS-SQL* (working title), aimed at a Q3 journal. Question, fixed
+setup and open choices: `paper/notes/RESEARCH_STATE.md`.
 
-Clients hold private Text-to-SQL data (Spider, domain-cluster split `k5`,
-alpha 0.1) and train a small SLM (Qwen2.5-Coder-1.5B-Instruct, LoRA r16) with
-sample-weighted factor-wise FedAvg. The server holds a frozen
-Qwen2.5-Coder-7B teacher and a public pool from another domain (BIRD with
-evidence). Clients send only LoRA adapters; only the SLM is deployed.
-Protocol v2 uses explicit dataset profiles. Canonical runs use no ICL.
-
-- Direction (owner, 2026-11-04): the earlier directions (K-chain, the frozen
-  replay method, the P2.53 confirmation) are closed. Focus on a combination
-  of teacher KD, CoT, RL and federated learning for Text-to-SQL that is
-  meaningful and not duplicated by prior work; not every component has to be
-  used. Candidate directions and the first experiment of each are in
-  `paper/notes/DIRECTION.md`; the owner has not chosen yet. Do not steer back
-  to the 2026-10-28 story by default.
-- Metrics (owner, 2026-10-16; loosened 2026-10-29; scope 2026-10-30;
-  reporting 2026-11-04): Spider EX is primary; report Spider dev (1,034) and
-  Spider test (2,147) together for every new arm. Spider test may inform
-  method and checkpoint choices and is then not called held-out. BIRD dev
-  (secondary) and Spider-Realistic/SYN/DK run only for arms finalized for the
-  paper or when the owner asks. EM is a diagnostic. Which metric carries the
-  story is the owner's choice.
-- Ground every method component in a published paper and name it. Flag any
-  component that has no source instead of inventing one silently.
+- Fixed (owner): the topic (federated Text-to-SQL, a frozen LLM teacher at the
+  server, an SLM trained by clients and deployed alone) and the setup
+  (Qwen2.5-Coder-1.5B-Instruct student, Qwen2.5-Coder-7B-Instruct teacher,
+  5 Spider clients on the `alpha_0.1/k5` split, BIRD train with evidence as
+  the server's public data).
+- The teacher runs only at the server, on public data. Clients never send
+  data.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
-  memory and run time; a 14B or 32B teacher does not (owner, 2026-10-12).
-  Within the budget, model, method and schedule choices stay open.
-- The teacher runs only at the server, on public data; running it at the
-  clients is ruled out (owner, 2026-10-12).
-- The paper's goal is a federated framework in which the server LLM teacher
-  contributes measurably, for a Q3 journal. A story that reduces the teacher
-  to an ablation (for example "public data at the server closes the FL
-  penalty, the teacher adds nothing") does not meet that goal and is not
-  strong enough for Q3 on its own. Do not offer it as the default fallback;
-  look for directions that keep a real teacher contribution within the fixed
-  constraints, and say plainly if none is supported.
-- Novelty bar for Q3 (owner, 2026-10-12): applying a published mechanism to
-  federated Text-to-SQL with a task-specific adaptation (execution checks,
-  schema handling, the private/public split, the FL schedule) is enough
-  novelty for this venue. Do not drop or down-rank a direction because a
-  similar mechanism exists in another task or domain (for example FedCoT,
-  FedMOA, GKD, STaR). Cite the closest work, state what differs, and judge
-  the direction on whether its evidence can hold. Only the wording stays
-  limited: no "first" claims and no hiding the closest prior work
-  (`paper/notes/LITERATURE.md`).
-- Judging the Q3 bar (owner, 2026-10-29). No fixed checklist says when the
-  paper is good enough. When asked whether a result, the method or the story
-  is strong enough, judge it as an impartial reviewer at the target journals
-  would (venues in `paper/notes/DIRECTION.md`): compare with recent papers
-  in federated learning, LLM-to-SLM distillation and Text-to-SQL that such
-  venues accept (baselines, data-matched controls, seeds, datasets, effect
-  sizes, efficiency results), and say with the numbers what a reviewer would
-  likely accept, question or reject. Name the weaknesses plainly, also when
-  they argue against the current direction. Do not lower the bar to fit the
-  results, and do not raise it beyond what those venues ask. The owner
-  decides.
+  memory and run time.
+- Goal: a federated framework in which the server teacher contributes
+  measurably. A story that reduces the teacher to an ablation does not meet
+  this goal. Look for directions that keep a real teacher contribution, and
+  say plainly if none is supported.
+- Open: the method and the metrics. Propose them from the task itself.
+- Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
+  a task-specific adaptation is acceptable. Cite the closest work and state
+  what differs; never claim "first" and never hide the closest prior work.
+- Judging the Q3 bar: when asked whether a result, the method or the story is
+  strong enough, judge as an impartial reviewer at the target venues
+  (`RESEARCH_STATE.md`) would, compared with recent accepted papers in
+  federated learning, LLM-to-SLM distillation and Text-to-SQL. Say with the
+  numbers what a reviewer would likely accept, question or reject, including
+  weaknesses that argue against the current direction. The owner decides.
 
 ## Read first
 
-1. `paper/notes/RESEARCH_STATE.md`: question, findings with their strength,
-   open questions, current phase, rules in force.
-2. `paper/notes/DIRECTION.md`: candidate directions and what the owner must decide.
-3. `paper/notes/PIPELINE_NEXT.md`: the only active executable queue.
-4. `paper/notes/LAB_LOG.md`: evidence ledger and decisions (from 2026-10-30;
-   older entries are archived).
-5. `paper/notes/system_architecture.md`: setup, data rules, claim limits.
-6. `paper/notes/RESULT_REGISTRY.md`: canonical labels and checkpoints.
-7. `paper/notes/LITERATURE.md`: closest work and claim wording.
-8. `CONVENTION.MD`: repository layout, command contract (section 6.1), result
+1. `paper/notes/RESEARCH_STATE.md`: question, fixed setup, what is open, what
+   we know, current phase.
+2. `paper/notes/PIPELINE_NEXT.md`: the only executable queue.
+3. `paper/notes/LAB_LOG.md`: every run, result and decision since the fresh
+   start.
+4. `CONVENTION.MD`: repository layout, command contract (section 6.1), result
    retention, statistics, Git discipline.
 
-Archived material (earlier directions and plans, FedICL, ICL, FLoRA-NA, early
-PoC, superseded runbooks, the pre-cleanup state of this file) lives under
-`paper/archive/`. Never use it as the current plan.
+Create `DIRECTION.md`, `LITERATURE.md` or `RESULT_REGISTRY.md` in
+`paper/notes/` only when the work needs them. Do not create parallel tracker
+files.
 
-## Current state (2026-11-04)
+## Evidence rules
 
-- No GPU run is queued or running. P2.58-P2.62 (centralized CoT and RL
-  screens) and the c1 Spider test are published (nested `1eeaa6a`).
-- Main readings: execution-feedback DPO + NLL is the largest lever (Spider dev
-  58.80 to 74.18 from a BIRD-only SQL student); CoT trails SQL-only on the
-  matched RL route (-3.29, p=.014, dev); the teacher's soft-label edge over
-  gold holds on Spider dev but is about 0.5 points on Spider test.
-- Closed 2026-11-04 (owner): P2.53 seed 2 and the FREEZE confirmation, E2
-  (0.5B), P2.46, P2.41, P2.43 `central_bird`, P2.37 `akaka_plain`. Published
-  results stay valid as evidence and baselines.
-- Retired rules: per-experiment pass/fail rules (R1-R6, R11, R12), the fixed
-  phase E arm list, R8, R10 and the seed-count part of R13. Outcomes recorded
-  under retired rules stand as history.
-- Earlier 0.5B and 1.5B-Instruct adapters are references, never parents of
-  new runs. P2.16 centralized E1-E4 were never published; do not cite them.
-- Both owner checkouts use `main`.
+Fixed (owner), all about honesty:
 
-## Non-negotiable distinctions
+- Every number in the paper has a checkpoint, config, dataset, seed,
+  prediction file and Git SHA trail. A result reported only in chat is logged
+  as "not committed" and stays out of the paper until it is committed.
+- The paper never misstates how a number was obtained: every number names its
+  set (dev or test), and a test number is not called held-out once a choice
+  (setting, arm, checkpoint, claim) was made by looking at it.
+- Statistics are computed correctly: pooled seeds use the question-clustered
+  test (per-question mean over seeds, test across questions), never summed
+  discordant pairs.
 
-- Paper name: **FedLS-SQL**. Internal package `fedicl_sql` stays unchanged.
-  `fedkd` is an internal arm name, not the paper name.
-- A chain containing `K` (for example `A>K[fkl]>A`) is not pure FL; only all-`A`
-  chains are FL controls. A pre-server adapter at T2/T3 inside a `fedkd` lineage
-  inherits earlier KD and is not pure FL.
-- Protocol-v2 BIRD public pools: all 9,428 training rows for public-gold CE and
-  Hinton KD; 5,319 execution-selected teacher targets for SeqKD; the 1,000
-  Struct-SQL admitted rows for P2.14. The 3,873-row pool is protocol-v1 history.
-- Privacy is structural data isolation, not formal differential privacy.
-- Implemented server objectives: teacher-target CE (SeqKD), gold CE plus Hinton
-  forward KL (`T=2` by default), the virtual-teacher control of Yuan et al.
-  (CVPR 2020) in place of the teacher, TAID (Shing et al., ICLR 2025) as the
-  KD target, and an auxiliary plan task next to SQL CE. Client option: frozen
-  LoRA A (FFA-LoRA, Sun et al., ICLR 2024; dropped after the P2.39 pilot).
+Everything else is practice and gives way whenever another choice makes the
+paper better. Never block an option, and never call a result invalid, because
+a practice was skipped; if a reviewer could object, say so in one line. Log
+every run and every choice in `LAB_LOG.md`. Privacy is structural data
+isolation, not formal differential privacy.
 
 ## Experiment commands
 
@@ -142,8 +111,8 @@ PoC, superseded runbooks, the pre-cleanup state of this file) lives under
   identities), while files it wrote are LF. Publication fetches and
   fast-forwards (`git merge --ff-only origin/main`) before committing and
   never rebases a local result commit: a rebase rewrites the replayed files
-  as CRLF and breaks the byte hashes in receipts and manifests (P2.36
-  lesson). Never renormalize line endings on the server during a phase.
+  as CRLF and breaks the byte hashes in receipts and manifests. Never
+  renormalize line endings on the server during a phase.
 - Do not pull, switch, edit, or commit in the server working copy while a lane
   runs. Exception: a runbook step that commits only finished, validated result
   files of a completed arm (never code, run manifests or summaries) and is
@@ -168,65 +137,19 @@ PoC, superseded runbooks, the pre-cleanup state of this file) lives under
 - Two RTX A5000 24 GB cards under WDDM. WDDM never raises CUDA OOM; it pages
   VRAM to host RAM and the job silently slows down. Keep peak reserved VRAM
   under about 21.5 GiB and the process's shared GPU memory near zero.
-- Student training uses `--lm-loss target_fp32` and `logits_to_keep`. It is the
-  standard causal-LM loss (Hugging Face upcasts logits to fp32) over the
-  response window only. The CLI requires `--lm-loss` explicitly. Hinton KD
-  supports it since P2.17. `full_bf16` is legacy: only for the GKD and KID
-  trainers and for reproducing committed rows; on BIRD
-  at 7,168 tokens it paged about 71 GB and took 16.4 h. State the loss mode
-  whenever runs with different modes are compared.
-- Required settings are enforced inside the runners (memory cap 0.88, allocator,
-  long-example probe, evaluation batch 16). Prefer enforcement in code over
-  documentation.
+- Student training uses `--lm-loss target_fp32` and `logits_to_keep`: the
+  standard causal-LM loss over the response window only. The CLI requires
+  `--lm-loss` explicitly. `full_bf16` on BIRD at 7,168 tokens paged about
+  71 GB and took 16.4 h. State the loss mode whenever runs with different
+  modes are compared.
+- Required settings are enforced inside the runners (memory cap 0.88,
+  allocator, long-example probe, evaluation batch 16). Prefer enforcement in
+  code over documentation.
 - Teacher generation: 4-bit, batch 8, `--exec-workers 4`. Evaluation: batch 16.
   Never lower the 30 s BIRD or 60 s Spider execution budgets.
 - Every new GPU path gets a smoke that reports peak reserved VRAM. Add every new
   measurement to `fedicl-sql/docs/A5000_RUN_CONFIG.md`.
 - Set `CUDA_DEVICE_ORDER=PCI_BUS_ID` with `CUDA_VISIBLE_DEVICES`.
-
-## Evidence rules
-
-Goal (owner, 2026-10-29): the strongest, most interesting Q3 paper the
-results support. Only three rules are fixed, all about honesty:
-
-- Every number in the paper has a checkpoint, config, dataset, seed,
-  prediction file and Git SHA trail. A result reported only in chat is
-  logged as "not committed" and stays out of the paper until it is
-  committed.
-- The paper never misstates how a number was obtained: every number names
-  its set (dev or test), and a Spider test number is not called held-out
-  once a choice (setting, arm, checkpoint, claim) was made by looking at it.
-- Statistics are computed correctly: pooled seeds use the question-clustered
-  test (per-question mean over seeds, test across questions). Summing
-  discordant pairs over seeds treats correlated question-seed pairs as
-  independent and gives p values that are too small (R13).
-
-Everything else is practice, not rule, and gives way whenever another
-choice makes the paper better (owner, 2026-10-29). Never block an option,
-and never call a result invalid or worthless, because a practice was
-skipped; if a reviewer could object, say so in one line and recommend what
-makes the paper strongest. The owner decides.
-
-- Explore freely: read any result, add arms after reading results, write
-  no pass/fail rule beforehand. Log every run and every choice in LAB_LOG.
-- Run a control only when its result could change the method or reviewers
-  will certainly ask for it (owner, 2026-10-26).
-- A claim stays when most of the results that test it support it; the main
-  text and appendix hold only results that serve the claims; the owner
-  decides which comparisons and claims the paper reports (owner,
-  2026-10-28). Claims and evaluation sets may be added at any time (for
-  example Spider-DK, 2026-10-29).
-- Selection on dev inflates: with about 140 discordant questions per Spider
-  dev contrast, the best of ten variants with no true effect still shows
-  about +1.7 points, one reason dev gains shrink on test. A result that
-  carries the story should hold on more seeds or on test.
-- Screens are seed 0 with paired questions and exact McNemar tests; one
-  Spider question is about 0.1 point. The main claims use three seeds.
-- Claim only what a comparator isolates.
-- Compare central and FL at matched data passes, not only at the final
-  checkpoint; a central run past its peak hides the FL penalty (R9).
-- pass@k on training questions is a ceiling with a gold oracle, not a
-  forecast of dev EX (P2.28 lesson).
 
 ## Repository discipline
 
@@ -239,27 +162,25 @@ makes the paper strongest. The owner decides.
 - Make small, logical commits with conventional messages. Commit messages never
   mention AI tools. Never change the Git author identity or configuration.
 - Work in the owner's checkouts (`/Users/edric/Learning/FedICL-SQL` and its
-  `fedicl-sql/`), on the branch named in the active queue, so the owner's
-  editor shows every change. Do not create a Git worktree, least of all in a
-  temporary directory. If one is unavoidable, tell the owner its path and
-  branch, and remove it (`git worktree remove`) when the work is pushed.
+  `fedicl-sql/`), on `main` unless the queue names another branch, so the
+  owner's editor shows every change. Do not create a Git worktree, least of
+  all in a temporary directory. If one is unavoidable, tell the owner its path
+  and branch, and remove it (`git worktree remove`) when the work is pushed.
   Before editing, check `git worktree list` and the current branch.
 
 ## Writing for the owner
 
 - The owner works alone and is learning ML. Dense, cross-referenced documents
   are hard to follow. Use plain words, track progress by runnable step and
-  trained artifact rather than paper labels, and prefer fewer documents. Do not
-  create parallel tracker files.
+  trained artifact rather than paper labels, and prefer fewer documents.
 - Replies in Vietnamese keep common technical terms in English (pipeline,
   prompt, token, fallback, ablation, and similar).
 - No emojis. No em dashes; use commas, parentheses, colons, or hyphens.
 
 ## Writing reports for the advisor
 
-From the owner's edits (2026-10-29). The aim is a report that reads
-naturally to an advisor who already knows the project. These are
-tendencies, not checks; follow what reads best.
+From the owner's edits (2026-10-29). These are tendencies, not checks; follow
+what reads best.
 
 - Let tables carry the numbers. Remarks say what the numbers mean in plain
   words, with only the few numbers a point rests on.

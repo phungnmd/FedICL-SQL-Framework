@@ -1,6 +1,8 @@
 # FedLS-SQL — archive index
 
 Everything here is history. It is kept for provenance, not for planning.
+Since the 2026-11-05 fresh start, agents do not read this archive unless the
+owner asks for it in the session (`AGENTS.md`, "Fresh start").
 Commands in archived runbooks are records, not the current queue (that is
 `paper/notes/PIPELINE_NEXT.md`). Do not edit archived content; add new
 material and index entries only.
@@ -22,6 +24,18 @@ material and index entries only.
 | `closed_method_branches/` | failed method branches (P0.10 FedDF, P1.7a preference KD) | own `README.md` |
 | `protocol_v1_no_bird_evidence/` | everything before the 2026-09-03 protocol reset | own `README.md` |
 | `pre_fedls_2026-08/` | FedICL/ICL-era material before 2026-08-19 | own `README.md` |
+
+## 2026-11-05 fresh start
+
+Owner archived every earlier decision, result and literature note so that new
+work starts without them. Only the topic, the fixed setup, the Q3 goal with a
+measurable teacher, the honesty rules and the infrastructure rules were kept.
+
+- [`fresh_start_2026-11-05/`](fresh_start_2026-11-05/): the seven `paper/notes/` files as of the final
+  direction proposal (DIRECTION, RESEARCH_STATE, LAB_LOG 2026-10-30 to 2026-11-05, RESULT_REGISTRY,
+  LITERATURE, system_architecture, PIPELINE_NEXT), the advisor and status reports from `paper/results/`,
+  the old method figure, the 2026-08-19 outline PDF, and copies of `AGENTS.md` and `CONVENTION.MD` before the
+  reset. Replaced by the new `paper/notes/RESEARCH_STATE.md`, `LAB_LOG.md` and `PIPELINE_NEXT.md`.
 
 ## 2026-10-11 docs reset
 
