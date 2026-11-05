@@ -15,6 +15,30 @@ Older entries:
 - Protocol v1 (no BIRD evidence): `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
+## 2026-11-05: directions re-assessed; candidate D, CoT as explorer for all-wrong questions (owner criteria)
+
+Owner criteria: the paper is a framework that applies to the federated setup (the FedAvg-central gap is small on
+this split), the roles of the teacher and of RL must both be clear, CoT and teacher are dropped only if evidence
+shows they do not help, and the RL mechanism must be new and clearly effective. Re-assessed in DIRECTION.md:
+A (KD start + federated DPO + replay), B (federated CoT-DPO) and C (teacher on-policy distillation at the
+server) lack an RL mechanism of their own; A and B also have weak teacher roles on Spider test.
+
+CPU check on published retry manifests (`p262_rl_from_bird_s0/data/{c1,s1}_rl8_rows.json`, nested `1eeaa6a`;
+same question sets and rounds, neither route saw Spider gold): of 1,200 questions where all 8 `s1` SQL samples
+failed, `c1` CoT sampling produced at least one correct SQL on 508 (42.3%); `s1` solved 386 of the 1,078 that
+`c1` failed. `s1`'s own retry from a better checkpoint rescued 23.83%. The P2.60 SQL route rescued 996 (83.0%),
+but it was SFT-trained on these questions' gold, so it is no explorer control. Fresh-round all-wrong counts:
+about 1,078 (CoT) against about 1,400 (SQL).
+
+Candidate D: the student learns a CoT mode from teacher CoT on BIRD; at clients the CoT mode explores the
+questions the SQL mode fails completely, execution-checked SQL it finds becomes the chosen response for the
+SQL-mode prompt, and only SQL mode is deployed. Closest work (abstracts only so far): AAPO, ADHint, LUFFY,
+ReToolSQL and SERL-SQL need the teacher on the training question; PubSwap and Fed-GRPO have no teacher;
+Masked Distillation and System 2 distillation move CoT-conditioned outputs into an answer-only policy and need a
+careful read. Required controls: gold as chosen on the same questions, a second non-gold SQL explorer, and a
+CoT mode learned without the teacher. Proposed pilot (not built): one DPO + NLL round from `s1_rl9` with
+`c1_rl8` rescue pairs, gold-chosen pairs, or a plain retry. Owner has not chosen.
+
 ## 2026-11-04: workspace cleanup; old directions closed (owner)
 
 Owner: drop the earlier directions and focus on combinations of teacher KD, CoT, RL, federated learning and

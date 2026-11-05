@@ -16,9 +16,11 @@ The next runs depend on the direction choice in [DIRECTION.md](DIRECTION.md).
 Nothing below is built yet:
 
 1. Spider test for `s1_rl9`, `sql_rl9` and `sql2_e1` (extend
-   `scripts/eval_p262_spider_test.py` beyond `c1_rlN`). Decides direction B.
-2. Direction A, first step: the P2.62 `s1` route started from the
-   `hinton_k2aaa` K2 adapter (centralized, one GPU, about 10 GPU-h).
+   `scripts/eval_p262_spider_test.py` beyond `c1_rlN`). Baseline test numbers
+   for every direction.
+2. Direction D pilot (DIRECTION section 3.5): CoT rescue pairs from `c1_rl8`
+   on the questions `s1_rl9` still fails, against gold-chosen and plain SQL
+   retry rounds; Spider dev and test (one GPU, about half a day).
 
 ## Status check (read-only, any time)
 

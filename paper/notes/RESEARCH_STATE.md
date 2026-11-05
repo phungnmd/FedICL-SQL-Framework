@@ -1,6 +1,6 @@
 # FedLS-SQL: trạng thái nghiên cứu
 
-Cập nhật: 2026-11-04, sau đợt dọn dẹp. File này trả lời bốn câu: ta hỏi gì,
+Cập nhật: 2026-11-05 (thêm C7; tiêu chí chọn hướng mới ở DIRECTION mục 1). File này trả lời bốn câu: ta hỏi gì,
 đã biết gì (kèm mức chắc chắn), còn chưa biết gì, và đang ở giai đoạn nào.
 Các hướng đang cân nhắc: [DIRECTION](DIRECTION.md). Số liệu: [LAB_LOG](LAB_LOG.md).
 Lệnh chạy: [PIPELINE_NEXT](PIPELINE_NEXT.md). Nguồn tham khảo: [LITERATURE](LITERATURE.md).
@@ -58,6 +58,7 @@ chiều, chưa về độ lớn; **thăm dò** = tìm ra sau khi xem dữ liệu
 | C3 | CoT khám phá nhiều hơn nhưng chuyển vào greedy kém hơn | Cùng bộ câu: pass@8 CoT 84.9-86.3, SQL 81.1-82.5; pair 5,184 so với 2,781; gain mỗi round nhỏ hơn | thăm dò |
 | C4 | Stage public của teacher CoT không thua SQL | `cot1_e4` - `sql1_e2` +1.84 (p=.27) với 1,266 câu so với 9,428 | 1 seed |
 | C5 | CoT tốn hơn nhiều | Token p50 khoảng 200 so với 25; một round RL 2.5-4 GPU-h so với 1.2 | đo trực tiếp |
+| C7 | Khi khám phá, CoT và SQL bổ sung nhau trên câu khó | Cùng bộ câu và round: `c1` có SQL đúng ở 508/1,200 câu `s1` sai hết (42.3%); `s1` tự retry từ checkpoint tốt hơn chỉ cứu 23.83%. Hai model khác nhau, chưa tách khỏi hiệu ứng "có thêm model" | thăm dò, CPU trên file đã publish |
 | C6 | Spider test của CoT tốt nhất | `c1_rl8` 69.12 (dev 70.89); chưa có số test của route SQL để so | 1 seed |
 
 ### 3.3. Teacher KD (giai đoạn K-chain, federated, Coder-1.5B)

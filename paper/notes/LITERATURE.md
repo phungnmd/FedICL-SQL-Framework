@@ -1,6 +1,6 @@
 # FedLS-SQL: literature và giới hạn claim
 
-Cập nhật: 2026-11-04. Gộp từ ba file đã archive (bản đầy đủ, kèm các lớp
+Cập nhật: 2026-11-05 (thêm closest work của hướng D, từ web search, mới đọc abstract). Gộp từ ba file đã archive (bản đầy đủ, kèm các lớp
 đính chính): [COT_RL_RESEARCH](../archive/directions_2026-11/COT_RL_RESEARCH_2026-11-03.md),
 [RELATED_WORK_NOVELTY_MATRIX](../archive/directions_2026-11/RELATED_WORK_NOVELTY_MATRIX_2026-10-28.md),
 [related_papers](../archive/directions_2026-11/related_papers_2026-10.md). File này giới hạn
@@ -29,6 +29,10 @@ cách diễn đạt claim, không giới hạn việc chọn hướng (AGENTS.md
 | CoT distillation Text-to-SQL | [Struct-SQL](https://arxiv.org/abs/2512.17053), [OmniSQL](https://arxiv.org/html/2503.02240v2), [RetrySQL](https://arxiv.org/html/2507.02529v2) | Centralized |
 | RL Text-to-SQL | [ExCoT](https://arxiv.org/html/2503.19988v1) (DPO theo execution), [SLM-SQL](https://aclanthology.org/2025.findings-ijcnlp.92.pdf), [FINER-SQL](https://arxiv.org/html/2605.03465v1), [Think2SQL](https://arxiv.org/html/2504.15077), [Arctic-Text2SQL-R1](https://arxiv.org/html/2505.20315) | Centralized |
 | RL quên ít hơn SFT | Shenfeld et al. 2025, RL's Razor; Chu et al. 2025, SFT Memorizes, RL Generalizes (ICML 2025) | Không federated; cơ sở cho giả thuyết của hướng A. Chưa đọc PDF trong dự án, cần kiểm khi viết |
+| RL cho câu toàn sai, có teacher | [AAPO](https://aclanthology.org/2026.findings-acl.169/) (hint của teacher khi mọi rollout sai), [ADHint](https://arxiv.org/pdf/2512.13095) (prefix của teacher theo độ khó), [LUFFY](https://arxiv.org/abs/2504.14945) (trộn trace off-policy) | Teacher thấy chính câu đang train; ta không được (teacher chỉ ở server, public) |
+| Text-to-SQL RL có teacher | [ReToolSQL](https://arxiv.org/html/2608.27796v1) (teacher có gold viết reasoning cho câu toàn sai), [SERL-SQL](https://arxiv.org/abs/2608.00485) (teacher chấm lại action của student) | Centralized, teacher thấy câu train |
+| Federated RLVR | [PubSwap](https://arxiv.org/pdf/2604.12160) (ICML 2026), Fed-GRPO (arXiv 2610.11502), FedGRPO (arXiv 2602.12014) | Không teacher, không Text-to-SQL |
+| CoT rollout chuyển sang policy không CoT | Masked Distillation (2026, chưa đọc), Yu et al. 2024 Distilling System 2 into System 1 (SFT, self-consistency) | Cần đọc kỹ: gần nhất với hướng D |
 | On-policy distillation | Agarwal et al., [GKD](https://arxiv.org/html/2306.13649v3), ICLR 2024 | Centralized; cơ sở cho hướng C |
 
 ## 3. CoT có hơn SQL-only không
