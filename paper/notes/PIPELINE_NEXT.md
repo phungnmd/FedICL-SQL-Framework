@@ -12,15 +12,20 @@ complete or closed; their commands are preserved in
 
 ## Waiting for the owner
 
-The next runs follow the proposal in [DIRECTION.md](DIRECTION.md) section 6
-(not approved yet). Nothing below is built:
+The next runs follow [DIRECTION.md](DIRECTION.md) section 4 (not approved
+yet). Nothing below is built:
 
 1. Step 0, eval only (under 8 GPU-h): Spider test for `s1_rl9`, `sql_rl9`
    and `sql2_e1` (extend `scripts/eval_p262_spider_test.py` beyond `c1_rlN`);
-   BIRD dev for `sql1_e2`, `sql2_e1`, `s1_rl9`, `sql_rl9` and `c1_rl8`.
-2. Step 1, centralized check (about 25 GPU-h, two GPUs in parallel): the
-   P2.62 `s1` route started from the `hinton_k2aaa` K2 adapter and from the
-   `gold_k2aaa` K2 adapter. Adapter paths to verify on the server.
+   BIRD dev for `c1_rl8` and `s1_rl9`.
+2. Step 1 (about 30 GPU-h, two GPUs): the P2.62 `s1` RL route, with gold as
+   chosen on all-wrong questions, started from the three seed 0 A3 adapters
+   `hinton_k2aaa`, `gold_k2aaa` and FedAvg A3; fixed round count, Spider dev,
+   test and DK per round. Verify on the server that the adapters exist and
+   share the `target_fp32` loss mode.
+3. Step 1b (about 6 GPU-h, in parallel): one DPO + NLL round from `s1_rl9`
+   with `c1` rescued SQL, gold on the same 508 questions, or gold on all 1,200
+   as chosen.
 
 ## Status check (read-only, any time)
 

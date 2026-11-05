@@ -97,8 +97,8 @@ ICL, self-consistency, public pool cùng miền, frozen LoRA A, teacher ở clie
 
 ## 5. Giai đoạn và luật
 
-Giai đoạn: **chốt hướng** (owner, 2026-11-04). Đề xuất P hai miền và thứ tự
-thí nghiệm ở [DIRECTION](DIRECTION.md) mục 6, chờ owner duyệt. Không có lệnh GPU
+Giai đoạn: **chốt hướng** (owner, 2026-11-04). Đề xuất cuối (P, mục tiêu
+Spider) và thứ tự thí nghiệm ở [DIRECTION](DIRECTION.md) mục 4, chờ owner duyệt. Không có lệnh GPU
 nào đang chạy.
 
 Luật cố định (owner, 2026-10-29), đều về trung thực:

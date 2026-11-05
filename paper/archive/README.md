@@ -37,7 +37,8 @@ Owner closed the K-chain/replay direction and the federated CoT-RL proposal; not
 - [`directions_2026-11/`](directions_2026-11/): the 2026-10-28 direction proposal, the 2026-11-03 federated
   CoT-RL proposal, COT_RL_RESEARCH, the novelty matrix, related_papers, and the pre-cleanup RESEARCH_STATE,
   system_architecture and AGENTS.md state. Replaced by `paper/notes/DIRECTION.md`, `LITERATURE.md`,
-  `RESEARCH_STATE.md`, `system_architecture.md`.
+  `RESEARCH_STATE.md`, `system_architecture.md`. Also the 2026-11-05 candidate list (P, Q, R, D with the first
+  review's odds) and the reviewed draft of the final proposal, both replaced by the final DIRECTION.md.
 - [Queue P2.27-P2.62](completed_runbooks/PIPELINE_P227_P262_2026-11-04.md): every command block of the
   previous `PIPELINE_NEXT.md`, completed, closed or deferred; final publication nested `1eeaa6a`.
 - [Lab log 2026-10-10 to 2026-10-29](lab_log_2026-10/LAB_LOG_2026-10-10_to_2026-10-29.md).

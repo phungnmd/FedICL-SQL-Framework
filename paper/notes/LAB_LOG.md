@@ -15,6 +15,30 @@ Older entries:
 - Protocol v1 (no BIRD evidence): `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
+## 2026-11-05: final proposal after a second review
+
+Owner: drop teacher data synthesis; keep one teacher-pair DPO round on BIRD (Q) as a variant; question D and
+other side variants (hidden task, teacher CoT with gold, interleaved teacher). A draft was critiqued by an
+agent acting as reviewer; its readings checked against the logs (Spider-DK Hinton - gold +5.98 at A3 seed 0,
+of which +2.62 teacher-specific against the virtual teacher, p=.049; `g3r` - `g2` -0.87).
+
+Changes adopted in DIRECTION.md:
+- Step 1 now starts RL from the existing seed 0 A3 adapters (`hinton_k2aaa`, `gold_k2aaa`, FedAvg A3), the
+  deployed schedule, and adds the arm without a server stage; results read at a fixed round index, with the
+  per-round curve and Spider-DK.
+- The gate pools Spider dev and test (3,181 questions) with same-sign dev and test: d at least +1.0 builds FL;
+  0.3 to 1.0 runs seed 1; below 0.3 is reported to the owner. The old rule passed a true +1.0 about 25% of the
+  time at one seed.
+- The RL claim rests on FedDPO against FedAvg SFT at matched compute plus federated rejection-SFT; the
+  expected Spider test total is about 75 (71.50 + 1.53 public + 0.47 teacher + 1.5-2 RL).
+- D reduced to a 6 GPU-h pilot against gold-as-chosen; Q conditional on the gate; interleaved teacher kept as
+  the FedCoLLM-style baseline; hidden task and the VCoT-style CoT pilot dropped. Gold as chosen on all-wrong
+  questions becomes part of P.
+- FedDPO choices to fix before the FL pilot: reference model, local epochs, aggregation weights by pairs.
+
+Disagreement recorded: the reviewer would drop Q; it stays conditional because the owner asked to keep one
+teacher-in-RL variant. Owner has not approved.
+
 ## 2026-11-05: owner keeps Spider as the target; CoT literature re-read
 
 Owner: the two-domain framing is secondary; the target is beating the baselines on the private domain (Spider).
