@@ -69,6 +69,16 @@ nhiều lần. Trên Spider với greedy, kết quả lẫn lộn.
 | AutoThinkSQL, Table 1 | như trên | Spider dev / BIRD dev, Maj@8 | 84.46 / 58.01 | 83.33 / 59.55 |
 | Ta, P2.62 | Coder-1.5B, DPO + NLL, tự sinh, xuất phát khác dữ liệu | Spider dev, greedy | 74.18 | 70.89 |
 
+Liu et al. phụ lục A, Table 7 (BIRD dev, Qwen2.5-7B, SFT 58.8): DPO chỉ SQL có
+thêm SFT loss trên câu đúng (tức DPO + NLL) đạt 60.0 (+1.2); KTO 59.8; dữ liệu
+pair kiểu SENSE 58.4. Arm CoT của họ là DPO không NLL, đạt 61.9. CoT của họ
+có thêm phần giải thích sau SQL. Vậy với NLL, SQL-only DPO có gain nhỏ, cùng
+cỡ `g3d` - `g2` +1.93 của ta; CoT vẫn hơn khoảng 2 điểm trên BIRD ở 7B.
+
+VCoT-SQL (EMNLP 2026, Table 3) là bài có writer CoT 7B cho gain: student
+Coder-7B, gold SFT 60.04 BIRD dev / 83.1 Spider test, CoT theo clause đã lọc
+64.86 / 86.7. Student cùng cỡ writer, có schema filtering.
+
 Think2SQL không có arm RL chỉ SQL. Liu et al. (phụ lục G) ghi rằng trên
 Spider, pass@16 của tập train ≥ 99%, nên chỉ có 0.1k-0.3k pair (BIRD
 1.5k-2.5k). Cũng trong bài đó (Table 9), writer yếu vẫn cho DPO gain lớn:
