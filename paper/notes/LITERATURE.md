@@ -120,6 +120,20 @@ Training gốc của SLM-SQL, FINER-SQL và ExCoT cần GPU lớn hơn A5000; DP
 - Dự án: soft label của teacher hơn gold, không do smoothing hay anchoring,
   nhưng nhỏ trên Spider test (RESEARCH_STATE K2, K3).
 
+### 5.1. Vai trò của teacher khi không dùng CoT (kiểm 2026-11-05)
+
+| Vai trò | Bài, số liệu | Ghi chú |
+|---|---|---|
+| Tổng hợp dữ liệu mới (schema, câu hỏi, SQL, domain mới) | [SENSE](https://arxiv.org/abs/2408.03256) (ACL 2024): GPT-4 sinh 8,216 câu trên 503 DB; CodeLLaMA-13B Spider dev 79.4 (Spider + BIRD) lên 82.9 (thêm synthetic), BIRD 51.6 lên 52.9 (Figure 6) | Dòng "w/o Strong" trong Table 5 là base chưa SFT, không phải bỏ riêng synthetic |
+| Tổng hợp dữ liệu | [SQuaD-SQL](https://arxiv.org/html/2607.08161v1): GPT-4o sinh 50K cặp WikiSQL, Qwen 1.5B LoRA từ 35.6 lên 86.9 | Chỉ WikiSQL, không có baseline dữ liệu người |
+| Tổng hợp dữ liệu quy mô lớn | OmniSQL (SynSQL-2.5M, nhiều LLM 7B-72B) | Không tách riêng vai trò từng model |
+| Pair âm cho DPO | SENSE: model yếu DeepSeek-Coder-1.3B sinh SQL sai; DPO thêm Spider dev +0.1 đến +0.9, BIRD +1.3 đến +2.6 | Liu et al. thử lại kiểu SENSE: 58.4 (-0.4) |
+| Context distillation (teacher có prompt đặc quyền) | Zhu et al., NAACL Industry 2025: teacher thấy schema đã lọc, student thấy full; TS +1.9 Spider dev | Mới đọc abstract |
+| Reward hoặc judge | Reasoning-SQL: Gemini làm LLM judge trong reward; Reward-SQL: PRM 7B | Ta: reward ở client là execution |
+| Component lúc inference | Schema linker, Pre-SQL, validator (Reasoning-SQL, VCoT-SQL) | Không hợp setup (chỉ deploy SLM) |
+
+Không thấy bài Text-to-SQL nào dùng KD ở mức logit (Hinton) như ta.
+
 ## 6. Nguồn khác đã dùng
 
 [STaR](https://arxiv.org/abs/2203.14465), [Iterative RPO](https://arxiv.org/html/2404.19733v3),
