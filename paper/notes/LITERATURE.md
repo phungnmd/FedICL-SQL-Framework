@@ -56,6 +56,25 @@ Chỉ các bài có cả hai dòng trên cùng model:
 Gain dương lớn nằm ở BIRD và thường dùng gold schema links hoặc sampling
 nhiều lần. Trên Spider với greedy, kết quả lẫn lộn.
 
+### 3.1. RL có CoT so với RL chỉ SQL (kiểm 2026-11-05 trên full text)
+
+| Bài | Model, RL | Điều kiện | RL chỉ SQL | RL có CoT |
+|---|---|---|---:|---:|
+| ExCoT, Table 1 | LLaMA-3.1 70B, on-policy iterative DPO sau SFT trên data GPT-4o | BIRD dev / Spider test | 59.97 / 81.00 | 68.51 / 86.59 |
+| Liu et al. 2025, Table 1 | Qwen2.5-Coder-7B, DPO chuẩn (không NLL), CoT GPT-4o-mini thấy gold | BIRD dev, greedy | 61.3 | 63.4 |
+| Liu et al. 2025, Table 14 | DeepSeek-Coder-6.7B / Qwen2.5-7B / CodeS-7B | Spider dev, greedy | 81.0 / 79.7 / 79.4 | 82.1 / 80.5 / 80.0 |
+| Reasoning-SQL, Table 1 | Qwen2.5-Coder-7B, GRPO, reward tổng hợp (execution, schema, n-gram, LLM judge) | BIRD dev | 62.25 | 64.01 |
+| Reward-SQL, Table 6 | Qwen3-8B; quy trình train của hai dòng đầu không nêu | BIRD dev, greedy | 63.6 | 64.2 NL-CoT, 66.0 Chain-of-CTEs |
+| AutoThinkSQL, Table 1 | Qwen3-Coder-30B-A3B (3B active), LoRA r16, SFT + DPO trên rollout tự sinh, train BIRD | Spider dev / BIRD dev, greedy | 84.23 / 57.64 | 69.14 / 54.02 |
+| AutoThinkSQL, Table 1 | như trên | Spider dev / BIRD dev, Maj@8 | 84.46 / 58.01 | 83.33 / 59.55 |
+| Ta, P2.62 | Coder-1.5B, DPO + NLL, tự sinh, xuất phát khác dữ liệu | Spider dev, greedy | 74.18 | 70.89 |
+
+Think2SQL không có arm RL chỉ SQL. Liu et al. (phụ lục G) ghi rằng trên
+Spider, pass@16 của tập train ≥ 99%, nên chỉ có 0.1k-0.3k pair (BIRD
+1.5k-2.5k). Cũng trong bài đó (Table 9), writer yếu vẫn cho DPO gain lớn:
+writer Qwen2.5-1.5B 40.9 lên 59.1, 7B 54.3 lên 60.6, GPT-4o-mini 57.4 lên 61.9
+(BIRD dev, student Qwen2.5-7B).
+
 ## 4. RL trong Text-to-SQL
 
 | Bài | Cấu hình | Kết quả |
