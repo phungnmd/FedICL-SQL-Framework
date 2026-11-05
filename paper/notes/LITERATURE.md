@@ -77,7 +77,17 @@ cỡ `g3d` - `g2` +1.93 của ta; CoT vẫn hơn khoảng 2 điểm trên BIRD �
 
 VCoT-SQL (EMNLP 2026, Table 3) là bài có writer CoT 7B cho gain: student
 Coder-7B, gold SFT 60.04 BIRD dev / 83.1 Spider test, CoT theo clause đã lọc
-64.86 / 86.7. Student cùng cỡ writer, có schema filtering.
+64.86 / 86.7. Student cùng cỡ writer, có schema filtering. Chi tiết (đọc
+PDF và data công khai 2026-11-05): writer Qwen2.5-Coder-7B thấy gold SQL, 3
+ví dụ few-shot, kiểm gold trước; CoT theo clause, thứ tự SELECT, WHERE,
+GROUP/ORDER, FROM cuối, mỗi bước nối cụm từ trong câu hỏi với cột hoặc bảng;
+lọc theo cấu trúc, độ dài, SQL của writer khớp gold khi execute, không nhắc
+gold, và có nhắc đủ bảng/cột của gold. Giữ 5,477/8,659 câu Spider và
+3,669/9,428 câu BIRD; full fine-tune 4 epoch, greedy. Bước lọc là phần lớn
+gain (+2.23 đến +2.44 BIRD dev); thứ tự logic chỉ thêm +0.42 đến +0.63.
+Baseline SQL dùng đủ 18K dòng, không có baseline SQL trên cùng tập đã lọc,
+và không có RL. P2.59 `tc` của ta gần thiết kế này nhưng không kiểm SQL
+của writer, thay SQL cuối bằng gold, và chạy trên SynSQL.
 
 Think2SQL không có arm RL chỉ SQL. Liu et al. (phụ lục G) ghi rằng trên
 Spider, pass@16 của tập train ≥ 99%, nên chỉ có 0.1k-0.3k pair (BIRD
