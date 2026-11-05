@@ -15,6 +15,18 @@ Older entries:
 - Protocol v1 (no BIRD evidence): `paper/archive/protocol_v1_no_bird_evidence/LAB_LOG_v1.md`
 - Before FedLS-SQL: `paper/archive/pre_fedls_2026-08/legacy_reports/LAB_LOG_through_2026-08-20.md`
 
+## 2026-11-05: owner keeps Spider as the target; CoT literature re-read
+
+Owner: the two-domain framing is secondary; the target is beating the baselines on the private domain (Spider).
+DIRECTION section 6 now judges step 1 on Spider only (Hinton - gold at least +1 on dev and test, else try Q).
+
+CoT reading (full text; LITERATURE section 3.1): pro-CoT RL results sit at 7B and above, mostly on BIRD, often
+with a GPT-4o teacher or voting; on Spider dev Liu et al. show +0.6 to +1.1 for CoT DPO, and AutoThinkSQL
+(train BIRD, eval Spider, greedy) shows CoT DPO 69.14 against SQL-only 84.23. Liu et al. Table 7: SQL-only DPO
+with an SFT loss gains +1.2 on BIRD, the size of `g3d` - `g2` here. VCoT-SQL gains mostly from filtering
+writer traces, with CoT written on Spider train itself, which the teacher may not do here. `cot1` used 1,266
+BIRD rows (pilot 300 plus 1,700 sampled); teacher CoT over all of BIRD was never generated.
+
 ## 2026-11-05: independent review of the directions; "P on two domains" proposed for the owner
 
 An agent acting as a Q3 reviewer read the notes (not the discussion) and judged P, Q, R, D. Readings, with

@@ -133,19 +133,20 @@ một lựa chọn thiết kế của RL).
 
 ## 6. Đề xuất chốt (chờ owner duyệt)
 
-Hướng chính: **P hai miền**. Teacher Hinton KD ở server trên BIRD làm điểm
-xuất phát, client chạy federated execution DPO + NLL trên Spider private,
-deploy SQL-only. Spider EX đo vai trò của RL; BIRD dev đo vai trò của teacher.
-Q chỉ thêm vào nếu bước 1 cho thấy teacher không còn phần riêng ở cả hai miền.
-CoT giữ làm một arm phân tích (R), không làm trục chính. Đổi metric mang câu
-chuyện sang Spider + BIRD là quyết định của owner (AGENTS.md).
+Hướng chính: **P**. Teacher Hinton KD ở server trên BIRD làm điểm xuất phát,
+client chạy federated execution DPO + NLL trên Spider private, deploy
+SQL-only. Owner 2026-11-05: mục tiêu là thắng baseline trên miền private
+(Spider); BIRD là kết quả phụ, không mang câu chuyện. Vì vậy vai trò teacher
+phải đo được trên Spider, và đây là rủi ro chính (K3: +0.47 test). Q thêm vào
+nếu bước 1 cho thấy Hinton - gold dưới +1 trên Spider. CoT giữ làm một arm
+phân tích (R), không làm trục chính.
 
 Thứ tự thí nghiệm. Mỗi bước có điểm quyết định; GPU-h là ước lượng.
 
 | Bước | Thí nghiệm | GPU-h | Quyết định |
 |---|---|---:|---|
 | 0 | Spider test cho `s1_rl9`, `sql_rl9`, `sql2_e1`; BIRD dev cho `sql1_e2`, `sql2_e1`, `s1_rl9`, `sql_rl9`, `c1_rl8` | < 8 | RL trên Spider có giữ BIRD không; gain RL có còn trên test không |
-| 1 | Centralized: route `s1` từ Hinton K2 và từ đúng adapter gold K2 (không dùng `sql1_e2` làm proxy), hai GPU song song | khoảng 25 | Hinton - gold ≥ +1 Spider (dev và test): P như cũ. Spider < 0.5 nhưng BIRD ≥ +3: P hai miền. Cả hai tan: P không đạt mục tiêu, thử Q một round có control gold-chosen |
+| 1 | Centralized: route `s1` từ Hinton K2 và từ đúng adapter gold K2 (không dùng `sql1_e2` làm proxy), hai GPU song song | khoảng 25 | Hinton - gold ≥ +1 Spider (dev và test): xây FL. Dưới +1: phần teacher trên miền private chưa có, thử Q một round có control gold-chosen trước khi xây FL; BIRD chỉ báo kèm |
 | 2 | Pilot FL: một round FedDPO | khoảng 8 | Chi phí rollout (Q5), số pair theo client (Q4) |
 | 3 | Các arm FL seed 0: P-Hinton, P-gold, rejection-SFT (FedAvg SFT đã có) | khoảng 50 | Bảng chính seed 0 |
 | 4 | Seed 1-2 cho P-Hinton, P-gold, FedAvg, rejection-SFT, gồm K2 còn thiếu | khoảng 130 | Claim chính |
