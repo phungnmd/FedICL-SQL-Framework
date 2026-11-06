@@ -22,7 +22,7 @@ The project restarted on 2026-11-05. Earlier work falls in three groups
 - Ask the owner first: starting from an earlier adapter, or using an earlier
   result as a baseline or paired comparator.
 - Hidden: earlier interpretations, decisions, directions, literature notes
-  and lessons (`paper/archive/`, the nested `docs/archive/`) and the numbers of
+  and lessons (the local `archive/` folder, see below) and the numbers of
   earlier results. Do not read, cite or reason from them unless the owner asks
   in the current session; they are not priors or reasons for or against a
   choice.
@@ -32,7 +32,7 @@ The project restarted on 2026-11-05. Earlier work falls in three groups
   in `fedicl-sql/docs/SERVER_STORAGE.md`, and the rules below.
 - The code under `fedicl-sql/fedicl_sql/`, `experiments/` and the data,
   teacher and audit tools in `scripts/` is tooling and may be reused freely.
-  Every old experiment runner moved to `fedicl-sql/scripts/archive/`; new
+  Every old experiment runner moved to the local `archive/` folder; new
   experiments get new runners.
 
 ## What the project is
@@ -142,6 +142,11 @@ result invalid.
   result could change the method or a reviewer will certainly ask for it.
 - Prefer small commits with conventional messages; move superseded documents
   to the archive instead of deleting them.
+- Archive: everything superseded lives in `archive/` at the workspace root
+  (`archive/paper/` from the outer repository, `archive/fedicl-sql/` from the
+  nested one). It is local to the owner's Mac and ignored by Git; Git history
+  still holds every file (`archive/README.md` names the last commits that
+  tracked them). The server has no archive.
 
 ## Writing for the owner
 

@@ -19,8 +19,10 @@ paper/
 ├── notes/        RESEARCH_STATE, LAB_LOG, PIPELINE_NEXT (more only when needed)
 ├── references/   private source library
 ├── templates/    venue templates
-└── archive/      superseded material, with an index in archive/README.md
 ```
+
+Superseded material from both repositories lives in `archive/` at the
+workspace root, local only and ignored by Git (`archive/README.md`).
 
 ## 3. Naming
 
@@ -57,7 +59,8 @@ inference cost.
 ## 6. Results
 
 Keep a result where it is while a manifest refers to it; move results that
-nothing uses any more to a dated archive with an index entry. Never delete
+nothing uses any more to the local `archive/` folder with an index entry
+(Git history keeps the committed copy). Never delete
 silently.
 
 ## 7. Statistics
