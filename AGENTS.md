@@ -95,6 +95,10 @@ Only these are fixed. Each prevents a real failure or protects honesty.
   server checkout while a job there runs. The server checkout has
   `core.autocrlf=true`: never rebase a result commit there (it rewrites files
   as CRLF and breaks recorded hashes); fetch and fast-forward instead.
+- Server commands are PowerShell and each command is one physical line,
+  because the owner copy-pastes them over a remote session. A command runs
+  from the `fedicl-sql/` root, defines every variable it uses and throws after
+  any non-zero exit.
 - Never commit adapters, model weights, caches, trainer state or
   `artifacts/`.
 - Resume and cache identities never contain a Git SHA or timestamp.
@@ -109,8 +113,7 @@ Use these unless another way is simpler or faster for the task at hand; say
 so in one line when you deviate. None of them may block an option or make a
 result invalid.
 
-- Server commands: PowerShell, run from the `fedicl-sql/` root, stop on any
-  error, written in `PIPELINE_NEXT.md` and also given in chat. Push the paper
+- Server commands are written in `PIPELINE_NEXT.md` and also given in chat. Push the paper
   repository when `PIPELINE_NEXT.md` changes, since the owner copies from it.
 - Results are committed after a run by staging only the compact files
   (config, metrics, predictions, manifests). One publication command per

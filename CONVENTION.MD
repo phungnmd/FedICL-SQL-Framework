@@ -41,9 +41,10 @@ paper/
 
 ## 5. Commands
 
-Server commands live in `paper/notes/PIPELINE_NEXT.md`: PowerShell, run from
-the `fedicl-sql/` root, stop on any error, resume by rerunning the same
-command. Results are committed afterwards by staging only compact files. When
+Server commands live in `paper/notes/PIPELINE_NEXT.md`: PowerShell, one
+physical line per command (the owner copy-pastes over a remote session), run
+from the `fedicl-sql/` root, define every variable they use, throw after any
+non-zero exit, and resume by rerunning the same command. Results are committed afterwards by staging only compact files. When
 a guard (fingerprint, lineage, cache identity) rejects a command, use the
 original flags or a new output root; if the guard itself is wrong, fix it in
 code with a test.
