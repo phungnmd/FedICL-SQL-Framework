@@ -26,9 +26,10 @@ result, lesson and literature note is archived and hidden:
 - Infrastructure facts stay in force: the GPU measurements in
   `fedicl-sql/docs/A5000_RUN_CONFIG.md`, the evaluator protocol in
   `fedicl-sql/docs/PROTOCOL_V2.md`, and the server and Git rules below.
-- The code under `fedicl-sql/fedicl_sql/` and `experiments/` is tooling and
-  may be reused freely. The old `scripts/run_p2*_*.py` runners belong to the
-  archived work; new experiments get new runners.
+- The code under `fedicl-sql/fedicl_sql/`, `experiments/` and the data,
+  teacher and audit tools in `scripts/` is tooling and may be reused freely.
+  Every old experiment runner moved to `fedicl-sql/scripts/archive/`; new
+  experiments get new runners.
 
 ## What the project is
 
