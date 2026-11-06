@@ -48,7 +48,7 @@ are in `archive/paper/fresh_start_2026-11-05/`.
 
 Owner decision: archive every earlier decision, result and literature note so
 that new work is not bound by them. Kept: the topic, the fixed setup
-(`RESEARCH_STATE.md` section 2), the Q3 goal with a measurable teacher
-contribution, the honesty rules, and the infrastructure and Git rules. Open:
+(`RESEARCH_STATE.md` section 2), the Q3 goal (the measurable-teacher part
+was dropped on 2026-11-06), the honesty rules, and the infrastructure and Git rules. Open:
 method and metrics. Archived material is hidden unless the owner asks for it
 in a session.
