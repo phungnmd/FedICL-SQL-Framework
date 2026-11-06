@@ -52,4 +52,6 @@ Nothing measured since the fresh start.
 
 ## 5. Current phase
 
-Choosing a direction. No run is queued (`PIPELINE_NEXT.md`).
+Choosing a direction. Proposals and the recommended first experiment are in
+`DIRECTION.md`; literature in `LITERATURE.md`. No run is queued
+(`PIPELINE_NEXT.md`).

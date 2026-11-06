@@ -3,6 +3,20 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-06: literature review and direction proposals
+
+No run. New `LITERATURE.md` lists the closest verified work (federated
+learning with a server LLM, federated Text-to-SQL and code, federated DPO and
+RLVR, small-model Text-to-SQL training, LLM-to-SLM distillation) and the gaps
+for our setup. New `DIRECTION.md` proposes four directions, revised after one
+round of independent Q3-reviewer critique, and recommends iterative federated
+DPO with execution-labelled pairs built at each client (no teacher), with
+teacher CoT plus federated DPO as the choice if the teacher must contribute.
+Owner input used: client drift is negligible and DPO is effective in this
+setup (earlier observations, to be re-measured). Waiting for the owner to
+choose a direction and to settle whether the teacher is optional
+(`RESEARCH_STATE.md`) or required (`AGENTS.md`).
+
 ## 2026-11-06: teacher becomes optional
 
 Owner decision: the goal is a method that clearly beats the federated
