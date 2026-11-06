@@ -40,19 +40,20 @@ The project restarted on 2026-11-05. Earlier work falls in three groups
 Paper: *FedLS-SQL* (working title), aimed at a Q3 journal. Question, fixed
 setup and open choices: `paper/notes/RESEARCH_STATE.md`.
 
-- Fixed (owner): the topic (federated Text-to-SQL, a frozen LLM teacher at the
-  server, an SLM trained by clients and deployed alone) and the setup
-  (Qwen2.5-Coder-1.5B-Instruct student, Qwen2.5-Coder-7B-Instruct teacher,
-  5 Spider clients on the `alpha_0.1/k5` split, BIRD train with evidence as
-  the server's public data).
-- The teacher runs only at the server, on public data. Clients never send
-  data.
+- Fixed (owner): the topic (federated Text-to-SQL, an SLM trained by clients
+  and deployed alone) and the setup (Qwen2.5-Coder-1.5B-Instruct student,
+  5 Spider clients on the `alpha_0.1/k5` split). Available at the server, use
+  optional: a frozen Qwen2.5-Coder-7B-Instruct teacher and BIRD train with
+  evidence as public data.
+- If the teacher is used, it runs only at the server, on public data. Clients
+  never send data.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
   memory and run time.
-- Goal: a federated framework in which the server teacher contributes
-  measurably. A story that reduces the teacher to an ablation does not meet
-  this goal. Look for directions that keep a real teacher contribution, and
-  say plainly if none is supported.
+- Goal (owner, 2026-11-06): a method that clearly beats the federated
+  baselines on the clients' domain. The teacher is an option, not a
+  requirement; a method without it is acceptable if it is strong enough. If a
+  method uses the teacher, show what the teacher adds with a matched
+  comparison.
 - Open: the method and the metrics. Propose them from the task itself.
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
@@ -85,7 +86,7 @@ Only these are fixed. Each prevents a real failure or protects honesty.
   a test number is not called held-out once a choice was made by looking at
   it. Pooled seeds use the question-clustered test, never summed discordant
   pairs. Privacy is structural data isolation, not differential privacy.
-- Data roles: the teacher runs only at the server on public data; client data
+- Data roles: the teacher, if used, runs only at the server on public data; client data
   never leaves a client; test data never becomes training, retrieval or
   teacher data.
 - GPU: WDDM pages VRAM to host RAM instead of raising OOM, so an over-budget

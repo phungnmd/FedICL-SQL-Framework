@@ -3,6 +3,14 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-06: teacher becomes optional
+
+Owner decision: the goal is a method that clearly beats the federated
+baselines on the clients' domain. Using the server teacher is an option, not
+a requirement; a method without it is acceptable if it is strong enough. If
+the teacher is used, it still runs only at the server on public data, and its
+contribution is shown with a matched comparison.
+
 ## 2026-11-06: reuse of earlier outputs, storage, checkpoints, progress
 
 Owner decision: teacher outputs on BIRD (SQL targets, logit cache, checked

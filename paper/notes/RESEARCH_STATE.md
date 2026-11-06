@@ -7,13 +7,14 @@ fixed, what is open, and what we know so far.
 ## 1. Question
 
 Several clients hold private Text-to-SQL data that cannot leave them. They
-train a small model (SLM) together through federated learning. The server
-holds a large frozen LLM teacher and public data from another domain. How can
-the server teacher make the deployed SLM measurably better on the clients'
-domain?
+train a small model (SLM) together through federated learning, and only the
+SLM is deployed. The server may hold a large frozen LLM teacher and public
+data from another domain. How can the deployed SLM become measurably better
+on the clients' domain than standard federated training?
 
-Goal: a Q3 journal paper in which the teacher's contribution is measurable.
-A story where the teacher ends up as an ablation does not meet this goal.
+Goal: a Q3 journal paper with a method that clearly beats the federated
+baselines. Using the server teacher is an option, not a requirement: a method
+without the teacher is acceptable if it is strong enough (owner, 2026-11-06).
 
 Target venues: Data & Knowledge Engineering, International Journal of Data
 Science and Analytics, Neural Processing Letters, Distributed and Parallel
@@ -24,9 +25,9 @@ Databases; stretch: Journal of Intelligent Information Systems.
 | Part | Fixed choice |
 |---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct |
-| Teacher | Qwen2.5-Coder-7B-Instruct, frozen, runs only at the server, only on public data |
+| Teacher (optional) | Qwen2.5-Coder-7B-Instruct, frozen. If used, it runs only at the server and only on public data |
 | Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`. Private rows never leave a client. |
-| Server public data | BIRD train with evidence (9,428 rows) |
+| Server public data (optional) | BIRD train with evidence (9,428 rows) |
 | Communication | Clients send model updates, never data |
 | Compute | Two RTX A5000 24 GB under WDDM (`fedicl-sql/docs/A5000_RUN_CONFIG.md`) |
 
@@ -38,8 +39,8 @@ differential privacy.
 
 Everything else, including:
 
-- the method: how the teacher is used, what the clients train, the FL
-  algorithm, adapter type and rank, prompting, decoding;
+- the method: whether and how the teacher is used, what the clients train,
+  the FL algorithm, adapter type and rank, prompting, decoding;
 - the metrics and which evaluation sets carry the story (available: Spider dev
   1,034, Spider test 2,147, BIRD dev 1,534, Spider-Realistic, Spider-SYN,
   Spider-DK);
