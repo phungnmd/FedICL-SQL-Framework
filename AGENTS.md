@@ -51,9 +51,7 @@ setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   memory and run time.
 - Goal (owner, 2026-11-06): a method that clearly beats the federated
   baselines on the clients' domain. The teacher is an option, not a
-  requirement; a method without it is acceptable if it is strong enough. If a
-  method uses the teacher, show what the teacher adds with a matched
-  comparison.
+  requirement; a method without it is acceptable if it is strong enough.
 - Open: the method and the metrics. Propose them from the task itself.
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
