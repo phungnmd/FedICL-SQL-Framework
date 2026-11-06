@@ -52,6 +52,6 @@ Nothing measured since the fresh start.
 
 ## 5. Current phase
 
-Choosing a direction. Proposals and the recommended first experiment are in
-`DIRECTION.md`; literature in `LITERATURE.md`. No run is queued
-(`PIPELINE_NEXT.md`).
+Verifying Direction 1 (`DIRECTION.md`): federated on-policy DPO + NLL from the
+owner-approved FedAvg SFT reference (`LAB_LOG.md`, 2026-11-06). Commands in
+`PIPELINE_NEXT.md`.

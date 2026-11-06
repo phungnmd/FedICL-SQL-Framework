@@ -3,6 +3,25 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-06: federated DPO + NLL pipeline, FedAvg reference reused
+
+No run yet. Owner decisions: Direction 1 (federated on-policy DPO + NLL, no
+teacher) first; reuse the earlier FedAvg SFT run `p227_fl_aaa_s0` (seed 0,
+code SHA 3582656, 3 rounds, 1 local epoch) as the federated baseline and the
+start point. Its recorded EX (earlier run, owner-approved reference): Spider
+dev 67.60 (R3; R2 68.28), Spider test 71.50 (R3, one reference pass, no choice
+made on it), BIRD dev 25.68 (R3); centralized SFT e3 71.37 dev, 71.08 test.
+
+New code in `fedicl-sql`: on-policy sampling with execution labels,
+preference pairs, a resumable DPO + NLL trainer with an RFT weight, a
+federated round runner (`experiments/federated_pref/run.py`), a standard
+evaluation runner and contract (`scripts/eval_standard.py`) and a test-suite
+EX scorer. Sampling, prompt, decoding budget and DPO schedule follow the
+earlier SQL-only DPO rounds; the prompt equals the evaluation prompt. A local
+end-to-end smoke (2 clients, 3 questions) passed on the Mac. Queued in
+`PIPELINE_NEXT.md`: GPU smoke, rounds 1-2 of DPO and RFT from FedAvg R3, one
+more FedAvg SFT round as a control, evaluation on Spider dev and BIRD dev.
+
 ## 2026-11-06: literature review and direction proposals
 
 No run. New `LITERATURE.md` lists the closest verified work (federated

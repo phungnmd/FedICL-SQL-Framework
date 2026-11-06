@@ -308,11 +308,9 @@ Còn bất đồng hoặc còn mở:
 - Reviewer coi một bản GRPO ngắn là nên có; bản này chỉ nêu chi phí bằng số và
   chạy GRPO nếu còn ngân sách sau các phép so chính.
 
-## 7. Owner cần quyết định
+## 7. Quyết định của owner (2026-11-06)
 
-1. Chọn hướng (khuyến nghị Hướng 1).
-2. Teacher là tuỳ chọn (`RESEARCH_STATE.md`, LAB_LOG 2026-11-06) hay bắt buộc
-   (`AGENTS.md`, mục "What the project is"). Hai file đang nói khác nhau; nếu
-   bắt buộc thì chọn Hướng 2.
-3. Có cho dùng lại một adapter FedAvg SFT cũ làm điểm xuất phát không (theo
-   rule fresh start phải hỏi owner).
+1. Chạy Hướng 1 trước: DPO + NLL federated, không dùng teacher.
+2. Teacher là tuỳ chọn (`AGENTS.md`, `RESEARCH_STATE.md`).
+3. Dùng lại adapter FedAvg SFT cũ (`p227_fl_aaa_s0`, R3) làm baseline và điểm
+   xuất phát; số tham chiếu ghi trong `LAB_LOG.md`.
