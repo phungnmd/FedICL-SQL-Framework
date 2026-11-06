@@ -3,6 +3,15 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-06: lighter process rules
+
+Owner found the inherited process rules too rigid. `AGENTS.md` now separates
+a short list of hard rules (honesty, data roles, GPU memory budget, evaluator
+budgets, server checkout safety, no weights in Git, Git identity) from
+defaults that may be skipped when another way is simpler. `CONVENTION.MD` was
+cut to the repository layout and the essentials; the full earlier versions
+are in `paper/archive/fresh_start_2026-11-05/`.
+
 ## 2026-11-05: fresh start
 
 Owner decision: archive every earlier decision, result and literature note so

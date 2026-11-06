@@ -1,7 +1,8 @@
 # FedLS-SQL: run queue
 
-The only owner of runnable server commands. Command rules: `AGENTS.md`
-("Experiment commands") and `CONVENTION.MD` section 6.1.
+Commands to run next on the server. Conventions: `AGENTS.md` ("Defaults")
+and `CONVENTION.MD` section 5. Remove a command once its result is logged in
+`LAB_LOG.md`.
 
 ## Queue
 
