@@ -13,19 +13,23 @@ there. Claude Code started locally inside `fedicl-sql/` loads both files.
 
 ## Fresh start (owner, 2026-11-05)
 
-The project restarted on 2026-11-05. Every earlier direction, decision,
-result, lesson and literature note is archived and hidden:
+The project restarted on 2026-11-05. Earlier work falls in three groups
+(owner, 2026-11-06; paths in `fedicl-sql/docs/SERVER_STORAGE.md` section 5):
 
-- Do not read, cite or reason from material dated before 2026-11-05 unless
-  the owner asks for it in the current session. This covers `paper/archive/`,
-  the nested `docs/archive/` and `scripts/archive/`, the result directories
-  committed before that date (`fedicl-sql/experiments/*/results/`), earlier
-  adapters and checkpoints, and old commits read for their results.
-- Earlier results are not baselines, parents, priors or reasons for or
-  against a choice. Measure what the new work needs from scratch.
+- Reuse freely: teacher outputs on BIRD (SQL targets, logit cache, checked
+  CoT) and processed data. They carry no conclusion. Teacher outputs on Spider
+  train are not allowed: Spider train is client data.
+- Ask the owner first: starting from an earlier adapter, or using an earlier
+  result as a baseline or paired comparator.
+- Hidden: earlier interpretations, decisions, directions, literature notes
+  and lessons (`paper/archive/`, the nested `docs/archive/`) and the numbers of
+  earlier results. Do not read, cite or reason from them unless the owner asks
+  in the current session; they are not priors or reasons for or against a
+  choice.
 - Infrastructure facts stay in force: the GPU measurements in
   `fedicl-sql/docs/A5000_RUN_CONFIG.md`, the evaluator protocol in
-  `fedicl-sql/docs/PROTOCOL_V2.md`, and the server and Git rules below.
+  `fedicl-sql/docs/PROTOCOL_V2.md`, server storage, checkpoints and progress
+  in `fedicl-sql/docs/SERVER_STORAGE.md`, and the rules below.
 - The code under `fedicl-sql/fedicl_sql/`, `experiments/` and the data,
   teacher and audit tools in `scripts/` is tooling and may be reused freely.
   Every old experiment runner moved to `fedicl-sql/scripts/archive/`; new
@@ -99,6 +103,13 @@ Only these are fixed. Each prevents a real failure or protects honesty.
   because the owner copy-pastes them over a remote session. A command runs
   from the `fedicl-sql/` root, defines every variable it uses and throws after
   any non-zero exit.
+- Server storage: never delete, overwrite, move or rename anything under
+  `artifacts/` on the server unless the owner asks with an explicit path list;
+  new outputs get their own root.
+- Every job longer than a few minutes resumes by rerunning the same command
+  and shows progress while it runs (done / total, elapsed, time left, peak
+  reserved VRAM; a clear final line; a read-only status command for long
+  multi-step jobs). Details: `fedicl-sql/docs/SERVER_STORAGE.md`.
 - Never commit adapters, model weights, caches, trainer state or
   `artifacts/`.
 - Resume and cache identities never contain a Git SHA or timestamp.

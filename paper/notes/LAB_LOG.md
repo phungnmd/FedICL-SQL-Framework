@@ -3,6 +3,17 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-06: reuse of earlier outputs, storage, checkpoints, progress
+
+Owner decision: teacher outputs on BIRD (SQL targets, logit cache, checked
+CoT) and processed data may be reused freely; starting from an earlier
+adapter or comparing with an earlier result needs the owner's approval;
+earlier interpretations and result numbers stay hidden. Teacher outputs on
+Spider train are excluded because Spider train is client data. New
+`fedicl-sql/docs/SERVER_STORAGE.md` lists the reusable assets and sets the
+rules for server storage (never delete or overwrite `artifacts/`), resume by
+rerun, and progress output for long jobs.
+
 ## 2026-11-06: lighter process rules
 
 Owner found the inherited process rules too rigid. `AGENTS.md` now separates
