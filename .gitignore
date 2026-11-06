@@ -17,3 +17,6 @@ PRIVATE.txt
 # local code index
 .codegraph/
 codegraph.json
+
+
+*.lock
