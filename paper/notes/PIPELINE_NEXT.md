@@ -71,8 +71,11 @@ Add `--phase <name>` to see one phase only.
   `first batch ... peak reserved` and `DPO smoke on the longest pair` lines
   stay under 21.5 GiB. The first-batch number also tells whether sampling can
   use more prompts per call in the next experiment.
-- `cotprobe_s0/srv_*` (BIRD-length rows): peak reserved on the first steps,
-  about 20 GiB expected.
+- `cotprobe_s0/srv_*` (BIRD-length rows): the `first optimizer update done
+  ... peak reserved` line, about 20 GiB expected.
+- Evaluations print `first batch ... peak reserved`, then a line a minute
+  with EX, EM and execution errors so far; sampling prints sample accuracy
+  and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
 - Shared GPU memory of each task's process stays near zero.
 
 ## Queue content
