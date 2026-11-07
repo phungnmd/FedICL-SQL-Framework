@@ -95,15 +95,11 @@ Only these are fixed. Each prevents a real failure or protects honesty.
 - Evaluation: never lower the 30 s BIRD or 60 s Spider execution budgets.
   Results that are compared question by question use the same evaluation
   batch size (16 so far).
-- Server: it holds only `fedicl-sql/`. Pulling, editing and committing while
-  jobs run is allowed when nothing a running job still reads changes. Jobs
-  read code after they start (lazy imports inside runners;
-  `scripts.eval_standard` starts `experiments/eval_arms/run.py` once per set),
-  so a pull that modifies or deletes files under `fedicl_sql/`,
-  `experiments/`, `scripts/`, `pyproject.toml` or `uv.lock` waits until those
-  jobs finish; added files and docs are safe. Never run `uv sync` or switch
-  branches while a job runs, and publish a result only after the jobs that
-  write its paths have finished. The server checkout has
+- Server: it holds only `fedicl-sql/`. Pulling, editing and committing there
+  while jobs run is allowed. When an agent changes code that a running job or
+  a queued task of an unfinished experiment may still load, it says so when
+  it pushes, in chat and in `PIPELINE_NEXT.md`, and names what to let finish
+  first. The server checkout has
   `core.autocrlf=true`: never rebase a result commit there (it rewrites files
   as CRLF and breaks recorded hashes); fetch and fast-forward instead.
 - Server commands are PowerShell and each command is one physical line,
@@ -131,11 +127,15 @@ Use these unless another way is simpler or faster for the task at hand; say
 so in one line when you deviate. None of them may block an option or make a
 result invalid.
 
-- Server commands are written in `PIPELINE_NEXT.md` and also given in chat. Push the paper
-  repository when `PIPELINE_NEXT.md` changes, since the owner copies from it.
+- GPU work goes into the queue file `fedicl-sql/queues/active.toml` (tasks,
+  dependencies, priority order), drained by one worker per GPU
+  (`scripts/gpu_worker.py`); split long work into tasks small enough that
+  both cards stay busy. Server commands are written in `PIPELINE_NEXT.md`
+  and also given in chat. Push the paper repository when `PIPELINE_NEXT.md`
+  changes, since the owner copies from it.
 - Results are committed after a run by staging only the compact files
-  (config, metrics, predictions, manifests). One publication command per
-  batch of runs is enough.
+  (config, metrics, predictions, manifests): a `scripts/publish_results.py`
+  task in the queue, after the tasks that write its paths.
 - Remove finished commands from `PIPELINE_NEXT.md` once their results are
   logged; Git history keeps them.
 - Student training uses `--lm-loss target_fp32` with `logits_to_keep`. Teacher

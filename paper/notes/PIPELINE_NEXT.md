@@ -1,10 +1,67 @@
 # FedLS-SQL: run queue
 
-Commands to run next on the server. Conventions: `AGENTS.md` ("Defaults")
-and `CONVENTION.MD` section 5. Remove a command once its result is logged in
-`LAB_LOG.md`.
+GPU work on the server runs through one queue file,
+`fedicl-sql/queues/active.toml`: every task (one command), what it needs
+first, in priority order. One worker per GPU takes the first ready task, so
+both cards stay busy until the queue is empty. Conventions: `AGENTS.md`
+("Defaults") and `CONVENTION.MD` section 5. Remove an experiment's tasks from
+the queue once its results are logged in `LAB_LOG.md`.
 
-## Queue: federated DPO + NLL, verification run
+Every task resumes when it runs again and skips finished work. Pulling while
+workers run is fine; when a push changes code that a running or queued task
+would load, the agent says so here and in chat.
+
+## How to run
+
+### Step 0: update the checkout and run the tests
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+### Step 1: one worker per GPU, each in its own terminal
+
+The two commands differ only in the GPU digit. A worker rereads the queue
+before every task, so tasks pushed later run after a pull without a restart.
+It prints `start` / `end` per task, with the task's own progress lines
+prefixed `[gpu0 <task>]`, and a final `DONE queue` line. Per-task logs:
+`.queue_state/logs/`.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped: some tasks failed or are blocked (see status)' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped: some tasks failed or are blocked (see status)' } }
+```
+
+- Ctrl+C stops the worker and its running task; rerunning the same command
+  continues where it stopped.
+- A failed task blocks only the tasks that need it; the worker keeps running
+  the others, then stops with `STOP queue` and the list. Rerunning a worker
+  retries failed tasks.
+- Results are committed and pushed by the `publish/...` tasks, after the
+  tasks that write them.
+
+### Status (read-only, any time, second terminal)
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+### Memory checks (owner, first time each path runs)
+
+- `fedpref_s0/smoke` (first task on one GPU, about 10-15 min): the
+  `first batch ... peak reserved` and `DPO smoke on the longest pair` lines
+  stay under 21.5 GiB. The first-batch number also tells whether sampling can
+  use more prompts per call in the next experiment.
+- `cotprobe_s0/srv_*` (BIRD-length rows): peak reserved on the first steps,
+  about 20 GiB expected.
+- Shared GPU memory of each task's process stays near zero.
+
+## Queue content
+
+### Federated DPO + NLL from FedAvg R3 (`fedpref_s0/...`, 51 tasks + 2 publication)
 
 What it tests: starting from the FedAvg R3 adapter (owner-approved reuse, run
 `p227_fl_aaa_s0`: Spider dev 67.60), does one or two rounds of federated
@@ -18,124 +75,21 @@ per query); only samples that end with EOS count. Up to 2 pairs per question,
 the most similar correct and wrong SQL first, no sample used twice; when no
 sample is correct, gold is the chosen side. 2 local epochs of LoRA DPO + NLL
 (beta 0.1, lr 1e-5, the earlier schedule), FedAvg weighted by pair count. The
-RFT arm trains on the same pairs with only the NLL term.
+RFT arm trains on the same pairs with only the NLL term. Round 1 samples are
+shared by both arms; in round 2 each arm samples from its own round 1
+adapter.
+
+Tasks: the smoke (8 questions per client, its own output root); per round,
+sampling per client, training per client and arm, aggregation per arm,
+evaluation per arm and set; the SFT round 4 control (same settings as the
+approved FedAvg run, warm-started from its R3 row) and its evaluation;
+`publish/fedpref_r1` once round 1 is evaluated, `publish/fedpref` at the end.
 
 Evaluation uses `scripts.eval_standard`: the contract of the FedAvg reference
 rows (zero-shot SQL-only prompt, greedy 256 tokens, batch 16), on Spider dev
-and BIRD dev.
+and BIRD dev. Spider test is not used.
 
-Every command resumes when rerun unchanged. Spider test is not used in this
-queue. Pulling while jobs run is fine when it changes no code they may still
-load: the publish and Q2 step 0 commands refuse such a pull and print the
-files; rerun them once those jobs finish.
-
-### Step 0: update the checkout (no job running)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-### Step 1: GPU smoke, about 10-15 min (GPU 0)
-
-8 questions per client, its own output root. Check in the log: the
-`first batch ... peak reserved` line and the `DPO smoke on the longest pair`
-line stay under 21.5 GiB, and shared GPU memory stays near zero.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_smoke_s0'; uv run --no-sync python experiments/federated_pref/run.py round --arm dpo --round 1 --parent-result $P --split-dir $S --out $O --audit "$O/audit" --questions-per-client 8; if ($LASTEXITCODE -ne 0) { throw 'Smoke failed' } }
-```
-
-### Step 2: round 1 sampling, two lanes in parallel
-
-Round 1 samples are shared by both arms. Lane 1 takes clients 1-3, lane 2
-clients 4-5. Start lane 2 a few seconds after lane 1.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py collect --arm dpo --round 1 --clients 1 2 3 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'Sampling lane 1 failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py collect --arm dpo --round 1 --clients 4 5 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'Sampling lane 2 failed' } }
-```
-
-### Step 3: round 1 training, two lanes in parallel (after both step 2 lanes)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py round --arm dpo --round 1 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'DPO round 1 failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py round --arm rft --round 1 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'RFT round 1 failed' } }
-```
-
-### Status (read-only, any time, second terminal)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py status --parent-result $P --split-dir $S --out $O --questions-per-client 400 --rounds 2; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-### Step 4: evaluation of round 1 (Spider dev, BIRD dev), two lanes in parallel
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_dpo_r1'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/dpo/round_1/global_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_rft_r1'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/rft/round_1/global_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
-```
-
-### Step 5: publish (after steps 2-4 finish; other jobs may run)
-
-Commits only the new compact files: samples, pairs, round records, training
-metrics and evaluation rows. It fast-forwards to `origin/main` first, so new
-commits pushed from the Mac (queue 2 code) do not block the push.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- audits/protocol_v2/fedpref_coder15b_alpha01_s0 experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: federated DPO and RFT rounds from the FedAvg R3 adapter'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
-
-### Step 6: round 2, two lanes in parallel (may start without waiting for the round 1 numbers)
-
-Each arm samples from its own round 1 adapter, so this includes sampling.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py round --arm dpo --round 2 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'DPO round 2 failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; uv run --no-sync python experiments/federated_pref/run.py round --arm rft --round 2 --parent-result $P --split-dir $S --out $O --questions-per-client 400; if ($LASTEXITCODE -ne 0) { throw 'RFT round 2 failed' } }
-```
-
-### Step 7: evaluation of round 2 (Spider dev, BIRD dev), two lanes
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_dpo_r2'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/dpo/round_2/global_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_rft_r2'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/rft/round_2/global_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
-```
-
-### Step 8: one more FedAvg SFT round (control), then its evaluation (one lane, about 2 h)
-
-Same settings as the approved FedAvg run, warm-started from its R3 row.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0/sft_r4'; uv run --no-sync python experiments/federated/run.py stage private --parent-result $P --split-dir $S --n-clients 5 --local-epochs 1 --client-dataset-profile spider --client-schema-style full --model Qwen/Qwen2.5-Coder-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --lm-loss target_fp32 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --aggregation-protocol plaintext --stage fedpref_sft_r4_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'SFT round 4 failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_sft_r4'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/sft_r4/fedavg_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
-```
-
-Then publish again with the step 5 command.
-
-### Local, after publication: test-suite EX on Spider dev (CPU, Mac)
-
-Rescores every published dev prediction file against the official test-suite
-databases (`scripts/score_test_suite.py`); run by the agent after pulling.
-
-## Queue 2: headroom check and CoT probe, server side (from FedAvg R3)
+### Headroom check and CoT probe from FedAvg R3 (`cotprobe_s0/...`, 10 tasks + 1 publication)
 
 What it tests (`DIRECTION.md` section 6.3, steps 0 and 1a):
 
@@ -158,76 +112,19 @@ Arms, all from the R3 adapter, one pass each:
 
 The teacher SQL of these rows matches BIRD gold on execution, so the three
 server arms differ only in the plan. `cotprobe_t0` is compared with
-`fedpref_sft_r4` (queue 1, step 8), the same round in SQL-only. Evaluation is
-Spider dev only; CoT evaluation uses 1,024 new tokens and strict parsing.
+`fedpref_sft_r4`, the same round in SQL-only. Evaluation is Spider dev only;
+CoT evaluation uses 1,024 new tokens and strict parsing.
+`publish/cotprobe` commits the results at the end.
 
-Lanes: each command names its GPU; change the `CUDA_VISIBLE_DEVICES` digit to
-use whichever card is free. Q2 step 0 may run while queue 1 jobs run.
+### Priority order
 
-### Q2 step 0: update the checkout (jobs may run)
+The teacher evaluation (about 15 min) runs next to the smoke. The DPO/RFT
+chain comes first, with round 1 evaluated before round 2 starts sampling;
+pass@8, the SFT round 4 control and the CoT probe fill whichever GPU has
+nothing ready on the chain. Estimated total: 25-30 GPU-hours, about 13-15 h
+on both cards.
 
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
+## Local, after publication: test-suite EX on Spider dev (CPU, Mac)
 
-### Q2 step 1: headroom check, about 1.5-2.7 h (one lane)
-
-Teacher greedy on Spider dev (about 15 min, 14-18 GiB measured):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; uv run --no-sync python -m scripts.eval_standard --arm teacher7b_4bit --model Qwen/Qwen2.5-Coder-7B-Instruct --model-4bit --sets spider; if ($LASTEXITCODE -ne 0) { throw 'Teacher eval failed' } }
-```
-
-R3 pass@8 on Spider dev (about 1-2.4 h; check the `first batch ... peak
-reserved` line):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $A='artifacts/protocol_v2/p227_coder15b_alpha01_s0/fl_aaa/round_3/fedavg_adapter'; uv run --no-sync python -m scripts.pass_at_k --arm fedavg_r3 --adapter $A --set spider; if ($LASTEXITCODE -ne 0) { throw 'pass@8 failed' } }
-```
-
-### Q2 step 2: server stages, about 1.2-1.5 h each (any lane)
-
-BIRD-length rows: check the peak reserved VRAM in the log on the first steps
-(about 20 GiB expected) and shared GPU memory near zero.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $POOL='processed_data/protocol_v2/rationale_kd/p215_struct_full_s0/train.csv'; $SIDE='processed_data/protocol_v2/rationale_kd/p215_struct_full_s0/teacher_plans_qwen25_coder_7b.jsonl'; $O='artifacts/protocol_v2/cotprobe_s0/srv_teacher'; uv run --no-sync python experiments/federated/run.py stage public --parent-result $P --server-method qp_teacher --rationale-targets $SIDE --pool $POOL --server-dataset-profile bird_with_evidence --schema-style full --model Qwen/Qwen2.5-Coder-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --lm-loss target_fp32 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --lambda-ft 1 --lambda-kd 0 --stage cotprobe_srv_teacher_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'Server stage srv_teacher failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $POOL='processed_data/protocol_v2/rationale_kd/p215_struct_full_s0/train.csv'; $O='artifacts/protocol_v2/cotprobe_s0/srv_ast'; uv run --no-sync python experiments/federated/run.py stage public --parent-result $P --server-method qp_ast --pool $POOL --server-dataset-profile bird_with_evidence --schema-style full --model Qwen/Qwen2.5-Coder-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --lm-loss target_fp32 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --lambda-ft 1 --lambda-kd 0 --stage cotprobe_srv_ast_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'Server stage srv_ast failed' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $POOL='processed_data/protocol_v2/rationale_kd/p215_struct_full_s0/train.csv'; $O='artifacts/protocol_v2/cotprobe_s0/srv_ce'; uv run --no-sync python experiments/federated/run.py stage public --parent-result $P --server-method ce --pool $POOL --server-dataset-profile bird_with_evidence --schema-style full --model Qwen/Qwen2.5-Coder-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --lm-loss target_fp32 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --lambda-ft 1 --lambda-kd 0 --stage cotprobe_srv_ce_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'Server stage srv_ce failed' } }
-```
-
-### Q2 step 3: one client round with gold-derived plans, about 2.1-2.7 h (any lane)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $P='experiments/federated/results/federated__fedavg__s0__7fd190778bbf__b928b675__r3'; $S='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k5'; $O='artifacts/protocol_v2/cotprobe_s0/t0'; uv run --no-sync python experiments/federated/run.py stage private --parent-result $P --split-dir $S --n-clients 5 --local-epochs 1 --client-dataset-profile spider --client-schema-style full --client-response-format qp_cot_v1 --model Qwen/Qwen2.5-Coder-1.5B-Instruct --lora-r 16 --lr 0.0002 --max-len 7168 --truncation-policy error --gradient-checkpointing --lm-loss target_fp32 --batch-size 1 --grad-accum 16 --save-steps 200 --seed 0 --aggregation-protocol plaintext --stage cotprobe_t0_s0 --out $O; if ($LASTEXITCODE -ne 0) { throw 'Client round t0 failed' } }
-```
-
-### Q2 step 4: evaluation on Spider dev (after each arm; CoT about 0.7-1.2 h)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/cotprobe_s0'; uv run --no-sync python -m scripts.eval_standard --arm cotprobe_srv_teacher --adapter "$O/srv_teacher/m_g" --sets spider --response-format qp_cot_v1; if ($LASTEXITCODE -ne 0) { throw 'Eval failed: srv_teacher' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $O='artifacts/protocol_v2/cotprobe_s0'; uv run --no-sync python -m scripts.eval_standard --arm cotprobe_srv_ast --adapter "$O/srv_ast/m_g" --sets spider --response-format qp_cot_v1; if ($LASTEXITCODE -ne 0) { throw 'Eval failed: srv_ast' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $O='artifacts/protocol_v2/cotprobe_s0'; uv run --no-sync python -m scripts.eval_standard --arm cotprobe_srv_ce --adapter "$O/srv_ce/m_g" --sets spider; if ($LASTEXITCODE -ne 0) { throw 'Eval failed: srv_ce' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/cotprobe_s0'; uv run --no-sync python -m scripts.eval_standard --arm cotprobe_t0 --adapter "$O/t0/fedavg_adapter" --sets spider --response-format qp_cot_v1; if ($LASTEXITCODE -ne 0) { throw 'Eval failed: t0' } }
-```
-
-### Q2 step 5: publish (after Q2 steps 1-4 finish; other jobs may run)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- experiments/pass_at_k/results experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: teacher and pass@8 headroom check, CoT probe server stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
-```
+Rescores every published dev prediction file against the official test-suite
+databases (`scripts/score_test_suite.py`); run by the agent after pulling.
