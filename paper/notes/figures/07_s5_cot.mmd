@@ -1,0 +1,8 @@
+%% S5: teacher dạy suy luận ngắn (CoT) trên BIRD
+flowchart LR
+  T["Teacher viết CoT ngắn + SQL<br/>cho câu BIRD"] --> F{"SQL khớp gold?"}
+  F -- "không" --> X["Bỏ"]
+  F -- "có" --> S["Server SFT student<br/>trên CoT + SQL"]
+  S --> C["Client DPO trên cả<br/>CoT + SQL (như vòng client)"]
+  classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142
+  class T focal

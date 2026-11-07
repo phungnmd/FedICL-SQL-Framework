@@ -1,0 +1,10 @@
+%% S2 (đề xuất chính): KD on-policy, chỉ học từ teacher ở câu teacher khớp gold
+flowchart TB
+  Q["Câu BIRD train"] --> GATE{"SQL teacher<br/>khớp gold?"}
+  GATE -- "không" --> SKIP["Bỏ câu này"]
+  GATE -- "có (5,319 câu)" --> SMP["Model global tự sinh SQL"]
+  SMP --> SC["Teacher chấm từng token<br/>trên SQL student và SQL đúng"]
+  SC --> L["Loss kiểu DistiLLM-2:<br/>kéo lên SQL đúng, đẩy xuống token<br/>student mà teacher cho là khó xảy ra"]
+  L --> U["Cập nhật model global<br/>rồi gửi xuống client"]
+  classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142
+  class GATE,SC focal

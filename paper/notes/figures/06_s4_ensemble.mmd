@@ -1,0 +1,8 @@
+%% S4: chưng cất từ ensemble các adapter client trên public BIRD (kiểu FedDF)
+flowchart LR
+  A["5 adapter client<br/>+ model global"] --> GEN["Mỗi model sinh SQL<br/>cho câu BIRD"]
+  GEN --> EX["Chạy so với gold BIRD,<br/>giữ SQL đúng"]
+  EX --> D["SFT hoặc KD model global<br/>trên SQL đúng của ensemble"]
+  D --> U["Model global mới"]
+  classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142
+  class EX focal

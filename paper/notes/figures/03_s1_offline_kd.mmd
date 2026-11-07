@@ -1,0 +1,9 @@
+%% S1: KD offline từ logit teacher có sẵn trong cache
+flowchart LR
+  B["Câu BIRD train<br/>+ SQL đích"] --> T["Logit teacher trên SQL đích<br/>(cache có sẵn)"]
+  B --> ST["Student forward<br/>trên cùng chuỗi"]
+  T --> L["Loss KL giữa phân phối<br/>teacher và student"]
+  ST --> L
+  L --> U["Cập nhật model global"]
+  classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142
+  class T focal

@@ -1,0 +1,10 @@
+%% Một vòng ở mỗi client (Hướng 1, đang trong queue)
+flowchart TB
+  G["Model global của vòng t"] --> Q["Lấy 400 câu hỏi riêng<br/>(mỗi vòng một tập mới)"]
+  Q --> SM["Sample 8 SQL mỗi câu<br/>(T = 0.7)"]
+  SM --> EX["Chạy SQL trên database của client<br/>so với gold"]
+  EX --> PR["Ghép cặp đúng / sai<br/>(không có sample đúng thì gold là chosen)"]
+  PR --> TR["Train DPO + NLL, 2 epoch<br/>reference = model global"]
+  TR --> UP["Gửi LoRA update lên server"]
+  classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142
+  class EX focal

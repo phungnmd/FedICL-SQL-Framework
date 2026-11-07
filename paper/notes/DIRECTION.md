@@ -317,7 +317,7 @@ Còn bất đồng hoặc còn mở:
 
 ## 8. Hướng tiếp theo: bước server trên public data (đề xuất 2026-11-07)
 
-Nối tiếp Hướng 1, chưa chạy. Diagram cho từng phương án: `paper/notes/figures/`
+Nối tiếp Hướng 1, chưa chạy. Diagram cho từng phương án: `figures/`
 (mục 8.6).
 
 ### 8.1 Vì sao cần bước server
@@ -394,5 +394,41 @@ Spider dev so với R3, dừng hướng server.
 
 ### 8.6 Diagram
 
-Một trang cho mỗi phương án, trong `paper/notes/figures/`: method tổng thể,
-vòng client, S1-S5, cách đặt A/B/C.
+Nguồn Mermaid (`.mmd`) và SVG trong `figures/`. Ô màu cam là bước chính của
+mỗi hình. Sửa file `.mmd` rồi render lại từ thư mục `figures/`:
+
+```bash
+for f in *.mmd; do npx -y -p @mermaid-js/mermaid-cli@11.4.2 mmdc -q -i "$f" -o "${f%.mmd}.svg" -c mermaid.config.json -b white; done
+```
+
+**Method tổng thể (một vòng, server đặt theo cách B)**
+
+![Method tổng thể](figures/01_overview.svg)
+
+**Một vòng ở client (Hướng 1, đang trong queue)**
+
+![Vòng client](figures/02_client_round.svg)
+
+**S1: KD offline từ logit teacher có sẵn**
+
+![S1](figures/03_s1_offline_kd.svg)
+
+**S2: KD on-policy có cổng execution (đề xuất chính)**
+
+![S2](figures/04_s2_gated_kd.svg)
+
+**S3: RL hoặc DPO bằng execution trên BIRD (dự phòng)**
+
+![S3](figures/05_s3_exec_rl.svg)
+
+**S4: chưng cất từ ensemble các adapter client**
+
+![S4](figures/06_s4_ensemble.svg)
+
+**S5: teacher dạy CoT ngắn trên BIRD**
+
+![S5](figures/07_s5_cot.svg)
+
+**Ba cách đặt bước server**
+
+![Cách đặt A, B, C](figures/08_placement.svg)
