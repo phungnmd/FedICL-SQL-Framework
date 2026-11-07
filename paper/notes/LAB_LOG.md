@@ -3,6 +3,18 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-07: next direction, a server step on public BIRD
+
+No run. Proposal recorded in `DIRECTION.md` section 8, to follow the Direction
+1 verification: the server adds knowledge the clients lack, using what only it
+has. Main option: on-policy KD from the frozen teacher on BIRD, gated to
+questions where the teacher SQL matches gold; fallback: execution RL/DPO on
+BIRD. Teacher is not used to correct student SQL (it matches gold on 56% of
+BIRD train, and the server has gold). Placement: one server stage before the
+client rounds first (E1, server side only from FedAvg R3), then after each
+aggregation if E1 raises Spider dev. `LITERATURE.md` gained section 1.6
+(clause- and token-level preference and RL, SQLoom read in full) and FedAuto.
+
 ## 2026-11-06: federated DPO + NLL pipeline, FedAvg reference reused
 
 No run yet. Owner decisions: Direction 1 (federated on-policy DPO + NLL, no

@@ -314,3 +314,85 @@ Còn bất đồng hoặc còn mở:
 2. Teacher là tuỳ chọn (`AGENTS.md`, `RESEARCH_STATE.md`).
 3. Dùng lại adapter FedAvg SFT cũ (`p227_fl_aaa_s0`, R3) làm baseline và điểm
    xuất phát; số tham chiếu ghi trong `LAB_LOG.md`.
+
+## 8. Hướng tiếp theo: bước server trên public data (đề xuất 2026-11-07)
+
+Nối tiếp Hướng 1, chưa chạy. Diagram cho từng phương án: `paper/notes/figures/`
+(mục 8.6).
+
+### 8.1 Vì sao cần bước server
+
+- FedAvg SFT đã gần bằng SFT tập trung (Spider test 71.50 so với 71.08), nên
+  server không có gì nhiều để "sửa" sau aggregate. Vai trò của server là thêm
+  kiến thức mà dữ liệu client không có.
+- DPO ở client chỉ kéo được cái model đã biết (khoảng cách pass@8 và greedy).
+  Public data ở server là chỗ để nâng trần đó.
+- Nhiều paper train chung Spider và BIRD (OmniSQL, SQLoom, ExCoT), nên dùng
+  BIRD làm public data là hợp lệ. Điều kiện: SFT gold BIRD chuyển sang Spider
+  kém (Reasoning-SQL, OmniSQL), còn tín hiệu execution hoặc tương phản trên
+  BIRD chuyển tốt (Think2SQL, Reasoning-SQL, SQLoom B→S 76.3 → 82.1).
+- Nếu server chỉ chạy DPO trên BIRD giống client, nó chỉ là "client thứ 6 giữ
+  BIRD". Bước server phải dùng thứ chỉ server có: teacher, toàn quyền trên
+  public data, thấy mọi adapter client, compute tập trung.
+- Teacher không dùng để sửa câu student viết sai: teacher chỉ khớp gold trên
+  5,319 / 9,428 câu BIRD train (56%), và server đã có gold BIRD.
+
+### 8.2 Các phương án train ở server
+
+| | Phương án | Thứ chỉ server có | Bằng chứng | Chi phí | Đánh giá |
+|---|---|---|---|---|---|
+| S1 | KD offline trên logit teacher của chuỗi BIRD (cache có sẵn) | Teacher | KID: reverse-KL KD hơn SFT khoảng 2 điểm; MiniLLM: KD token xấp xỉ SFT ở 1.3B | Rẻ | Yếu; hợp làm bước khởi động |
+| S2 | KD on-policy có cổng execution: student sinh SQL trên BIRD, teacher chấm từng token, chỉ trên câu teacher khớp gold | Teacher | DistiLLM-2 (đúng cặp 7B → 1.5B, code): HumanEval 30.7 → 42.2. KID (SQL, 1B): GKD +2, tốn 8.3 lần. Speculative KD: on-policy KD hỏng khi sample student kém | Trung bình; tốc độ teacher chấm chưa đo | **Đề xuất chính** |
+| S3 | RL hoặc DPO bằng execution trên BIRD, dạng nặng hơn client (GRPO online) | Compute, toàn quyền dữ liệu | Chuyển BIRD → Spider mạnh nhất: Think2SQL 3B 72.5 → 77.0 | Cao | Dự phòng; cơ chế giống client |
+| S4 | Chưng cất từ ensemble các adapter client trên BIRD, chọn output bằng execution (kiểu FedDF) | Thấy mọi adapter client | FedMKT, FedCoLLM: client +1-3; FedDF trên vision (chưa đọc) | Trung bình | Ít chỗ tăng vì drift nhỏ |
+| S5 | Teacher viết CoT ngắn trên BIRD, student học suy luận | Teacher | Liu et al. ACL 2025; Struct-SQL | Cao; inference chậm khoảng 6.6 lần | Để dành |
+
+### 8.3 Đề xuất: S2, KD on-policy có cổng execution
+
+Mỗi lần ở server:
+
+1. Model global sinh SQL cho câu BIRD train.
+2. Chỉ giữ câu mà SQL teacher khớp gold (5,319 câu có sẵn): học từ teacher ở
+   chỗ teacher đáng tin.
+3. Teacher chấm từng token trên SQL của student và trên SQL đúng. Loss kiểu
+   DistiLLM-2: kéo lên trên SQL đúng, đẩy xuống ở token student mà teacher cho
+   là khó xảy ra.
+
+Phân vai: client có tín hiệu thưa (cả câu đúng hay sai, từ execution trên dữ
+liệu riêng); server có tín hiệu dày (sai ở token nào, từ teacher trên public
+data). Paper gần nhất cần đọc kỹ: SERL-SQL (teacher chấm lại action của
+student để chỉnh GRPO), DistiLLM-2 (loss), GKD, FedDF.
+
+Rủi ro: tốc độ và bộ nhớ khi teacher chấm prompt BIRD dài chưa đo; chưa có
+bằng chứng trên SQL rằng KD trên BIRD chuyển sang Spider; student yếu trên BIRD
+(BIRD dev 25.68) nên sample nhiễu.
+
+### 8.4 Đặt bước server ở đâu
+
+| | Cách | Ai làm | Ưu | Nhược |
+|---|---|---|---|---|
+| A | Server là một participant trong FedAvg, song song với client | FedAuto | Không thêm thời gian tuần tự; đối xứng | Trọng số server là hyperparameter; BIRD có nhiều cặp nên dễ lấn át; update hai hướng có thể triệt tiêu |
+| B | Server train sau mỗi lần aggregate, rồi gửi xuống | FedCoLLM, FedBiOT, FedBiscuit | Bước server tác động đủ; on-policy đúng model global vừa aggregate; reviewer quen | Bước cuối trước khi gửi luôn là BIRD; thêm thời gian mỗi vòng |
+| C | Server train một lần trước các vòng client | GPT-FL, FedAuto stage 1 | Đơn giản, rẻ, ablation sạch | Chỉ đóng góp một lần, có thể bị quên |
+| D | Server train một lần sau FL | | | Model deploy bị BIRD định hình sau cùng; loại |
+
+Thứ tự: thử C trước (E1). Nếu Spider dev tăng, dùng B cho method, A làm
+ablation.
+
+### 8.5 Thí nghiệm E1 (chỉ phía server, từ FedAvg R3)
+
+Bốn arm trên cùng câu BIRD, eval Spider dev và BIRD dev:
+
+1. SFT gold BIRD (đối chứng "chỉ thêm dữ liệu").
+2. DPO bằng execution trên BIRD (S3, bản rẻ).
+3. KD offline từ cache (S1).
+4. KD on-policy có cổng (S2).
+
+Trước E1: probe tốc độ và bộ nhớ cho teacher chấm trên BIRD; đọc kỹ SERL-SQL,
+DistiLLM-2, GKD, FedDF và thêm vào `LITERATURE.md`. Nếu không arm nào tăng
+Spider dev so với R3, dừng hướng server.
+
+### 8.6 Diagram
+
+Một trang cho mỗi phương án, trong `paper/notes/figures/`: method tổng thể,
+vòng client, S1-S5, cách đặt A/B/C.
