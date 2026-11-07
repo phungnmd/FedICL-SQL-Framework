@@ -1,12 +1,12 @@
-%% Method tổng thể, một vòng: client học từ execution trên dữ liệu riêng, server học từ teacher trên public BIRD
+%% Method tổng thể, một vòng: client học từ execution trên dữ liệu riêng, server học từ teacher trên public data
 flowchart LR
   G0["Model global<br/>vòng t"]
   subgraph C["Client 1..5: Spider riêng, database riêng"]
     CL["DPO + NLL<br/>bằng execution"]
   end
-  subgraph S["Server: public BIRD + teacher 7B frozen"]
+  subgraph S["Server: public data (BIRD hoặc SynSQL) + teacher 7B frozen"]
     direction LR
-    AGG["FedAvg<br/>(theo số cặp)"] --> SRV["KD on-policy<br/>có cổng (S2)"]
+    AGG["FedAvg<br/>(theo số cặp)"] --> SRV["KD on-policy<br/>có cổng (S2)<br/>sau mỗi vòng"]
   end
   G1["Model global<br/>vòng t+1"]
   G0 --> CL

@@ -1,19 +1,19 @@
-%% Ba cách đặt bước server so với vòng FedAvg
+%% Ba thời điểm server làm so với vòng FedAvg
 flowchart TB
-  subgraph A["A. Server là một participant (song song)"]
+  subgraph A["Song song: server là participant thứ 6"]
     direction LR
     A0["Model global t"] --> A1["Client 1..5 train"]
-    A0 --> A2["Server train trên BIRD"]
+    A0 --> A2["Server train trên public data"]
     A1 --> A3["FedAvg cả 6"]
     A2 --> A3
   end
-  subgraph B["B. Server train sau mỗi lần aggregate"]
+  subgraph B["Sau mỗi vòng: server train sau FedAvg"]
     direction LR
-    B0["Model global t"] --> B1["Client 1..5 train"] --> B2["FedAvg"] --> B3["Server train trên BIRD"] --> B4["Model global t+1"]
+    B0["Model global t"] --> B1["Client 1..5 train"] --> B2["FedAvg"] --> B3["Server train trên public data"] --> B4["Model global t+1"]
   end
-  subgraph C["C. Server train một lần trước các vòng client"]
+  subgraph C["Trước FL: server train một lần"]
     direction LR
-    C0["FedAvg R3"] --> C1["Server train trên BIRD"] --> C2["Các vòng client"]
+    C0["FedAvg R3"] --> C1["Server train trên public data"] --> C2["Các vòng client"]
   end
   A ~~~ B ~~~ C
   classDef focal fill:#fbeee9,stroke:#bf4520,stroke-width:2px,color:#2d3142

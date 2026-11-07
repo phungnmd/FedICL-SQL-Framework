@@ -44,7 +44,8 @@ setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   and deployed alone) and the setup (Qwen2.5-Coder-1.5B-Instruct student,
   5 Spider clients on the `alpha_0.1/k5` split). Available at the server, use
   optional: a frozen Qwen2.5-Coder-7B-Instruct teacher and BIRD train with
-  evidence as public data.
+  evidence as public data; SynSQL-2.5M may replace or join it at the server
+  (owner, 2026-11-07).
 - If the teacher is used, it runs only at the server, on public data. Clients
   never send data.
 - Compute is the two RTX A5000 cards. A direction must fit that budget in
