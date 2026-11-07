@@ -13,9 +13,10 @@ và dữ liệu public. Mục tiêu: một method thắng rõ các baseline fede
 
 Hai quan sát định hướng:
 
-- FedAvg SFT đã gần bằng SFT tập trung (Spider test 71.50 so với 71.08), nên
-  method sửa drift (FedProx, SCAFFOLD, aggregation mới) gần như không có chỗ
-  để thắng. Phải đổi cái model học.
+- FedAvg SFT đã bằng SFT tập trung trên Spider test (71.50 so với 71.08), nên
+  method sửa drift (FedProx, SCAFFOLD, aggregation mới) có ít chỗ để thắng.
+  Phải đổi cái model học. Trên dev thì khác: FedAvg R3 thấp hơn tập trung 3.8
+  điểm (67.60 so với 71.37).
 - Text-to-SQL có verifier sẵn: client chạy SQL trên database của mình là biết
   đúng hay sai, không cần gửi dữ liệu đi đâu.
 
@@ -27,8 +28,9 @@ thứ tự thử.
 
 ![Method tổng thể](figures/01_overview.svg)
 
-Hình trên là tổ hợp đang đề xuất: client DPO + NLL, server KD on-policy có
-cổng (S2), chạy sau mỗi vòng.
+Hình trên là tổ hợp đề xuất trước research: client DPO + NLL, server KD
+on-policy có cổng (S2), chạy sau mỗi vòng. Research ở mục 6 xếp S5 (CoT) lên
+trước S2.
 
 ## 3. Cách client train
 
@@ -37,6 +39,7 @@ cổng (S2), chạy sau mỗi vòng.
 | C1 | DPO + NLL bằng execution | Model sinh 8 SQL mỗi câu, chạy trên database riêng, học ưu tiên câu đúng hơn câu sai | Ứng viên method |
 | C2 | RFT | Như C1 nhưng chỉ SFT trên các sample đúng, bỏ câu sai | Đối chứng: câu sai có giúp không |
 | C3 | SFT thêm vòng | FedAvg SFT bình thường, thêm vòng | Baseline chính |
+| C4 | DPO theo clause | Như C1, nhưng chạy SQL từng clause (FROM, WHERE, GROUP BY...) để biết sai ở clause nào, rồi tăng trọng số token ở đó | Nâng cấp C1, thử sau round 1 (mục 6) |
 
 Chưa chốt. Round 1 trong `PIPELINE_NEXT.md` chạy cả ba từ cùng điểm xuất phát
 (FedAvg R3) và quyết định:
@@ -154,9 +157,105 @@ sau cùng.
 
 ![Thời điểm](figures/08_placement.svg)
 
-## 6. Thứ tự thử
+## 6. Thứ tự thử (research 2026-11-07)
 
-Đang research (2026-11-07); mục này được viết lại khi có kết quả.
+### 6.1 Kết luận
+
+Với SQL-only, greedy EX trên Spider, chưa lựa chọn nào trong S1-S4 có bằng
+chứng sẽ thắng cả C1 đứng một mình lẫn "SFT trên cùng dữ liệu public" từ 2
+điểm trở lên:
+
+- Các mức tăng KD lớn được công bố đều đến từ teacher train trên cùng domain
+  (KID) hoặc student là base model yếu. DistiLLM-2: student 1.5B sau KD đạt
+  42.2 HumanEval, trong khi bản Instruct gốc đã đạt 70.7.
+- Train thêm trên BIRD khi student đã thấy Spider chỉ thêm khoảng 1 điểm
+  Spider (SLM-SQL 1.5B: RL trên BIRD +0.6 Spider dev). SFT gold BIRD có thể
+  hạ Spider (Reasoning-SQL 7B: 77.9 → 68.1).
+- Ở model nhỏ, KD on-policy gần bằng KD offline (ablation của DistiLLM-2,
+  KID). Loại loss quan trọng hơn: forward KL gần bằng SFT; reverse hoặc skew
+  KL mới hơn.
+
+S5 (CoT) có bằng chứng mạnh nhất, khi đi cùng client train bằng execution trên
+CoT:
+
+- Liu et al.: DPO chỉ giúp khi có CoT (+2.6 ở 7B).
+- OmniSQL 7B: CoT hơn SFT gold 5.9 điểm Spider test.
+- Đây cũng là lựa chọn mà phần federated làm việc thật: client kiểm lời giải
+  trên database riêng.
+- Cái giá: inference chậm khoảng 6.6 lần, bỏ setup SQL-only.
+
+Với C1 (SQL-only), bằng chứng hiện có dự đoán thêm tối đa khoảng 1 điểm: Liu
+et al. thấy DPO hại 6/10 model từ 6.7B, SENSE +0.2 đến +0.9 Spider dev, ExCoT
+thấy DPO SQL-only dưới SFT. Kết quả dương duy nhất ở 1.7B (SQLoom) cần loss
+giới hạn theo token và negative do GPT-4 viết. Round 1 vẫn là thí nghiệm quyết
+định.
+
+Thời điểm server làm (sau mỗi vòng hay một lần trước FL): chưa paper LLM nào so
+hai cách này, nên phải tự đo.
+
+Lưu ý: "drift không đáng kể" chỉ đúng trên test. Trên dev, FedAvg R3 thấp hơn
+SFT tập trung 3.8 điểm (67.60 so với 71.37).
+
+### 6.2 Đánh giá từng lựa chọn
+
+| Lựa chọn | Khả năng thắng 2 điểm | Câu chuyện nếu thắng | Đề xuất |
+|---|---|---|---|
+| S1 trên BIRD (cache forward KL có sẵn) | Thấp: KID forward KL 57.3 so với SFT 57.8 Spider dev, dù teacher cùng domain | Yếu, giống FedCoLLM | Chỉ làm baseline KD |
+| S1 trên SynSQL (reverse/skew KL) | Thấp-trung bình: reverse KL hơn SFT 3-5 điểm ở KID nhưng đó là cùng domain | Trung bình | Một arm trong probe KD |
+| S2 trên BIRD | Thấp: BIRD chuyển sang Spider kém; on-policy gần bằng offline | Tốt (tín hiệu dày ở server, thưa ở client) | Để sau, chỉ khi bản SynSQL thắng |
+| S2 trên SynSQL | Thấp-trung bình: SynSQL giống Spider hơn, nhưng OmniSQL chỉ thêm +1.2 dev / +1.3 test ở 7B với SynSQL; cổng execution yếu trên database 2 dòng | Như trên | Thử đầu tiên trong nhóm KD, sau cổng teacher |
+| S3 trên BIRD | Thấp trên Spider; có thể tăng BIRD dev | Yếu: "client thứ 6" | Để sau, chỉ khi BIRD dev thành số chính |
+| S3 trên SynSQL | Rất thấp: database 2 dòng nên SQL sai hay ra trùng kết quả; Arctic thấy SynSQL "inconclusive" | | Bỏ |
+| S4 | Rất thấp: client không drift trên test nên 5 adapter gần như giống nhau; BIRD 26% nên ít output được giữ; thực chất thành RFT trên public data | Cơ chế FedDF (gộp model khác nhau) không có ở đây | Bỏ |
+| S5 + client train trên CoT | Trung bình: Liu et al. CoT+DPO 63.4 so với DPO SQL-only 61.3 (7B BIRD); Struct-SQL 4B 34.3 → 45.0; ở 1.5B bằng chứng còn mỏng | Tốt nhất: teacher dạy suy luận trên public data, client kiểm suy luận trên database riêng. Gần nhất: ExCoT, Liu et al. (tập trung), FedCoT (teacher thấy dữ liệu client, ta thì không) | Thử đầu tiên |
+| C4 (mới): DPO có trọng số theo clause ở client (EXPO-SQL, Focused-DPO) | Trung bình, nếu C1 đã tăng 0.5-2 điểm: Focused-DPO +1-3 so với DPO; CAPER clause +1.1 Spider test | Trả lời câu reviewer "sao không chỉ ra lỗi ở đâu"; chạy ở client nên federated tự nhiên | Thử sau kết quả round 1 |
+
+### 6.3 Thứ tự
+
+**Bước 0. Kiểm khoảng trống (khoảng 2 GPU-h, chạy cùng round 1).**
+- Teacher 4-bit greedy trên Spider dev với prompt của project: khoảng 0.25 h.
+- R3 pass@8 trên Spider dev, T=0.7: khoảng 1-2.4 h.
+- Teacher hơn R3 (67.60) dưới khoảng 4 điểm: dừng nhóm KD (S1, S2).
+  OmniSQL báo teacher đạt 73.4 dev ở bf16; con số ở 4-bit với prompt của ta
+  có thể khác.
+- Pass@8 trừ greedy là trần của C1.
+
+**Bước 1. Probe S5 (khoảng 17 GPU-h, khoảng 10 h wall trên hai card).**
+Chỉ chạy nếu owner chấp nhận CoT lúc inference (mục 6.4).
+- Arm A: R3, rồi SFT trên khoảng 2k CoT ngắn của teacher trên câu SynSQL (giữ
+  CoT có SQL khớp gold; có thể dùng CoT sẵn của SynSQL), rồi một vòng client
+  CoT-RFT (400 câu mỗi client, K=4).
+- Arm B (đối chứng): R3, SFT trên cùng 2k câu với SQL gold, rồi một vòng C3.
+- Arm S0: R3 + vòng C3 trong round 1.
+- Dừng sớm nếu greedy Spider dev của CoT sau bước SFT dưới khoảng 62.
+- Số quyết định: greedy Spider dev của A trừ max(B, S0) từ 2.0 trở lên. Mức
+  này khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
+
+**Bước 2. Probe KD trên SynSQL (khoảng 15-18 GPU-h, chỉ khi bước 0 qua).**
+- Mọi arm xuất phát từ R3, cùng 3k câu SynSQL:
+  - (a) SFT gold;
+  - (b) KD offline reverse/skew KL trên gold, dùng top-k logit teacher;
+  - (c) DistiLLM-2 on-policy theo batch: một sample student mỗi câu, teacher
+    chấm cả SQL student lẫn SQL gold.
+- Eval ngay sau bước server: greedy dev và pass@8 dev. Đây là phép kiểm giả
+  thuyết "server nâng trần pass@k".
+- Sau đó chạy một vòng C3 cho mỗi arm, eval greedy lại.
+- Số quyết định: arm KD tốt nhất sau vòng client hơn max(S0, a) từ 2.0 điểm
+  greedy dev trở lên, đồng thời pass@8 cũng tăng từ 2 điểm. Tăng dưới 1 điểm
+  thì dừng nhóm KD.
+- Chỉ khi thắng mới so "sau mỗi vòng, 3 vòng" với "một lần trước FL".
+
+**Bước 3. C4 sau kết quả round 1.** Không tốn GPU thêm cho phần chấm clause
+(chạy CPU).
+
+### 6.4 Owner cần quyết
+
+- Có chấp nhận CoT lúc inference không (chậm khoảng 6.6 lần, đổi setup
+  SQL-only). Nếu không, S5 bị loại, và nhóm KD trên SynSQL là lựa chọn server
+  còn lại, với khả năng thành công thấp-trung bình.
+- Đồng ý bỏ S3 trên SynSQL và S4.
+
+Bằng chứng và link: `LITERATURE.md` mục 1.7.
 
 ## 7. Số đo chi phí
 

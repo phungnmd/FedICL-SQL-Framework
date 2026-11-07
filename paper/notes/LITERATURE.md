@@ -3,7 +3,7 @@
 Closest published work to the fixed setup in `RESEARCH_STATE.md` (5 non-IID
 Spider clients, Qwen2.5-Coder-1.5B-Instruct student with LoRA, optional frozen
 Qwen2.5-Coder-7B-Instruct teacher at the server on public BIRD train, two
-24 GB GPUs). Compiled 2026-11-06; section 1.6 and FedAuto added 2026-11-07.
+24 GB GPUs). Compiled 2026-11-06; sections 1.6, 1.7 and FedAuto added 2026-11-07.
 
 How to read this file:
 
@@ -156,6 +156,32 @@ What this means for pair-based training here: clause-level localization beat
 sequence-level and token-level credit in CAPER and EXPO-SQL, and
 error-span weighting beat plain DPO by 1-3 points on 7B code. None of the four
 is federated; only SQLoom is below 7B, and it relies on GPT-4.
+
+### 1.7 Evidence for a server step on public data (read 2026-11-07)
+
+Collected for `DIRECTION.md` section 6. "Read" names what was checked.
+
+| Paper | Number | What it says for us | Read |
+|---|---|---|---|
+| DistiLLM-2 ([2503.07067](https://arxiv.org/abs/2503.07067)) | Table 4, Coder 7B -> 1.5B: HumanEval 30.73 -> 42.24, GKD 40.85; LoRA r16, 4x A100-80GB. Appendix D.1 (GPT-2, Dolly, ROUGE-L): on-policy 26.37, batched 26.20, off-policy 26.13 | The student is most likely the base checkpoint (30.7 vs the official base 43.9 and Instruct 70.7 in the Qwen2.5-Coder report); this is inferred, the paper does not say. On-policy adds little over off-policy | tables |
+| KID ([2410.11371](https://arxiv.org/abs/2410.11371)) | Spider dev EX, Qwen1.5-0.5B with a 7B teacher: SFT 57.8, forward KL 57.3, reverse KL 61.5, GKD 64.3 (13.9x SFT time). TinyLLaMA: SFT 63.0, reverse KL 66.0, GKD 64.8, KID 68.1 | The teacher is fine-tuned on Spider (in-domain). Forward KL is about equal to SFT; reverse KL helps | tables |
+| Reasoning-SQL ([2503.23157](https://arxiv.org/abs/2503.23157)) | Table 5, 7B Spider: base 77.85, BIRD gold SFT 68.08, GRPO 78.72 | Gold SFT on BIRD hurts Spider; execution RL on BIRD does not. Dev or test not stated | table |
+| Think2SQL ([2504.15077](https://arxiv.org/abs/2504.15077)) | Table 4, 3B Spider 72.5 -> 77.0 | Needs both R1-reasoning SFT on 913 BIRD rows and QATCH-reward RL (T=0.7, 40 h on 8x H100); no 1.5B result | table |
+| SLM-SQL ([ACL](https://aclanthology.org/2025.findings-ijcnlp.92/)) | Table 3, 1.5B Spider dev SC@16: zero-shot 63.54, SFT 74.53, SFT + BIRD RL 75.15 | BIRD RL adds +0.6 on Spider once Spider is in the SFT data; no greedy numbers | table |
+| OmniSQL ([2503.02240](https://arxiv.org/abs/2503.02240)) | Table 5, 7B greedy Spider dev / test: base 73.4 / 82.2, SynSQL only 74.6 / 83.5, gold Spider+BIRD 76.9 / 80.7, CoT Spider+BIRD 80.3 / 86.6, all 81.2 / 87.9 | SynSQL alone adds about 1.2 points; CoT beats gold SFT by 3.4 dev / 5.9 test. No model below 7B; generated tables carry two example rows, sparsity not discussed | table |
+| Arctic-Text2SQL-R1 ([2505.20315](https://arxiv.org/abs/2505.20315)) | SynSQL "initial attempts were inconclusive"; unfiltered synthetic data 64.9 -> 64.6, filtered 66.5 | Execution RL on SynSQL needs filtering; smallest model 7B | text |
+| SERL-SQL ([2608.00485](https://arxiv.org/abs/2608.00485)) | Removing the teacher rescoring: -2.55 Spider test (likely the 14B model) | The "teacher" is a synced copy of the student; students 7-32B on 16x H100 | ablation |
+| Rethinking on-policy distillation ([2604.13016](https://arxiv.org/abs/2604.13016)) | An R1-Distill 1.5B student did not improve from a 7B teacher of the same pipeline | On-policy distillation fails when the teacher has no capability the student lacks. Math only | text |
+| FedDF ([2006.07242](https://arxiv.org/abs/2006.07242)) | NLP results only as a figure (DistilBERT, alpha 1) | Its gain comes from fusing drifted, heterogeneous models | figure |
+
+Timing: no LLM paper compares a server step after every round with one-time
+server training before FL.
+
+What this means for the server step: on SQL-only greedy Spider EX, the
+published gains from KD or RL on public data are about 1 point once the
+student has seen Spider; larger KD gains need an in-domain teacher or a weak
+base student. CoT training has the largest gains over gold SFT (OmniSQL,
+Liu et al.), at 7B.
 
 ## 2. What already exists
 

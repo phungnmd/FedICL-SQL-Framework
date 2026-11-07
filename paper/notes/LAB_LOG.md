@@ -3,6 +3,18 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-07: direction note reorganized, server options ranked
+
+No run. `DIRECTION.md` rewritten as client choice (C1-C4) + server option
+(S0-S5) + timing; owner allowed SynSQL as server data. A literature pass
+(`LITERATURE.md` section 1.7) found no evidence that SQL-only KD or RL on public
+data adds 2+ points greedy Spider EX once the student has seen Spider; CoT (S5)
+with client execution training has the strongest support. Proposed order:
+teacher headroom and R3 pass@8 on Spider dev (about 2 GPU-h), then an S5 probe
+if CoT at inference is accepted, then a KD probe on SynSQL if the teacher is
+4+ points above R3. Proposed drops: S3 on SynSQL, S4. Also noted: FedAvg R3 is
+3.8 points below centralized SFT on Spider dev (67.60 vs 71.37), level on test.
+
 ## 2026-11-07: next direction, a server step on public BIRD
 
 No run. Proposal recorded in `DIRECTION.md` section 8, to follow the Direction
