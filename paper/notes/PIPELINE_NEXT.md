@@ -24,8 +24,10 @@ Evaluation uses `scripts.eval_standard`: the contract of the FedAvg reference
 rows (zero-shot SQL-only prompt, greedy 256 tokens, batch 16), on Spider dev
 and BIRD dev.
 
-Every command resumes when rerun unchanged. Do not pull or commit while a
-job runs. Spider test is not used in this queue.
+Every command resumes when rerun unchanged. Spider test is not used in this
+queue. Pulling while jobs run is fine when it changes no code they may still
+load: the publish and Q2 step 0 commands refuse such a pull and print the
+files; rerun them once those jobs finish.
 
 ### Step 0: update the checkout (no job running)
 
@@ -82,14 +84,14 @@ clients 4-5. Start lane 2 a few seconds after lane 1.
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/fedpref_coder15b_alpha01_s0'; $A='fedpref_rft_r1'; uv run --no-sync python -m scripts.eval_standard --arm $A --adapter "$O/rft/round_1/global_adapter" --sets spider bird; if ($LASTEXITCODE -ne 0) { throw "Eval failed: $A" } }
 ```
 
-### Step 5: publish (no job running)
+### Step 5: publish (after steps 2-4 finish; other jobs may run)
 
 Commits only the new compact files: samples, pairs, round records, training
 metrics and evaluation rows. It fast-forwards to `origin/main` first, so new
 commits pushed from the Mac (queue 2 code) do not block the push.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- audits/protocol_v2/fedpref_coder15b_alpha01_s0 experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: federated DPO and RFT rounds from the FedAvg R3 adapter'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- audits/protocol_v2/fedpref_coder15b_alpha01_s0 experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: federated DPO and RFT rounds from the FedAvg R3 adapter'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```
 
 ### Step 6: round 2, two lanes in parallel (may start without waiting for the round 1 numbers)
@@ -160,12 +162,12 @@ server arms differ only in the plan. `cotprobe_t0` is compared with
 Spider dev only; CoT evaluation uses 1,024 new tokens and strict parsing.
 
 Lanes: each command names its GPU; change the `CUDA_VISIBLE_DEVICES` digit to
-use whichever card is free. Do not run queue 2 step 0 while any job runs.
+use whichever card is free. Q2 step 0 may run while queue 1 jobs run.
 
-### Q2 step 0: update the checkout (no job running)
+### Q2 step 0: update the checkout (jobs may run)
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 ### Q2 step 1: headroom check, about 1.5-2.7 h (one lane)
@@ -224,8 +226,8 @@ BIRD-length rows: check the peak reserved VRAM in the log on the first steps
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='1'; $O='artifacts/protocol_v2/cotprobe_s0'; uv run --no-sync python -m scripts.eval_standard --arm cotprobe_t0 --adapter "$O/t0/fedavg_adapter" --sets spider --response-format qp_cot_v1; if ($LASTEXITCODE -ne 0) { throw 'Eval failed: t0' } }
 ```
 
-### Q2 step 5: publish (no job running)
+### Q2 step 5: publish (after Q2 steps 1-4 finish; other jobs may run)
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- experiments/pass_at_k/results experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: teacher and pass@8 headroom check, CoT probe server stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; $staged=@(git diff --cached --name-only); if ($LASTEXITCODE -ne 0 -or $staged.Count -ne 0) { throw 'Index must be empty' }; $dirty=@(git diff --name-only); if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked files changed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; $mod=@(git diff --name-only --diff-filter=MDR HEAD origin/main -- fedicl_sql experiments scripts pyproject.toml uv.lock); if ($LASTEXITCODE -ne 0) { throw 'Diff failed' }; if ($mod.Count -ne 0) { $mod; throw 'This pull changes code that running jobs may load; run it when they finish' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; $new=@(git ls-files --others --exclude-standard -- experiments/pass_at_k/results experiments/eval_arms/results experiments/federated/results); if ($LASTEXITCODE -ne 0) { throw 'Listing failed' }; if ($new.Count -eq 0) { throw 'Nothing to publish' }; $new; foreach ($f in $new) { git add -- $f; if ($LASTEXITCODE -ne 0) { throw "Staging failed: $f" } }; git commit -m 'results: teacher and pass@8 headroom check, CoT probe server stages'; if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }; git push origin main; if ($LASTEXITCODE -ne 0) { throw 'Push failed' } }
 ```

@@ -95,8 +95,15 @@ Only these are fixed. Each prevents a real failure or protects honesty.
 - Evaluation: never lower the 30 s BIRD or 60 s Spider execution budgets.
   Results that are compared question by question use the same evaluation
   batch size (16 so far).
-- Server: it holds only `fedicl-sql/`. Do not pull, edit or commit in the
-  server checkout while a job there runs. The server checkout has
+- Server: it holds only `fedicl-sql/`. Pulling, editing and committing while
+  jobs run is allowed when nothing a running job still reads changes. Jobs
+  read code after they start (lazy imports inside runners;
+  `scripts.eval_standard` starts `experiments/eval_arms/run.py` once per set),
+  so a pull that modifies or deletes files under `fedicl_sql/`,
+  `experiments/`, `scripts/`, `pyproject.toml` or `uv.lock` waits until those
+  jobs finish; added files and docs are safe. Never run `uv sync` or switch
+  branches while a job runs, and publish a result only after the jobs that
+  write its paths have finished. The server checkout has
   `core.autocrlf=true`: never rebase a result commit there (it rewrites files
   as CRLF and breaks recorded hashes); fetch and fast-forward instead.
 - Server commands are PowerShell and each command is one physical line,
