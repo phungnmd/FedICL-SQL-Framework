@@ -3,7 +3,7 @@
 Closest published work to the fixed setup in `RESEARCH_STATE.md` (5 non-IID
 Spider clients, Qwen2.5-Coder-1.5B-Instruct student with LoRA, optional frozen
 Qwen2.5-Coder-7B-Instruct teacher at the server on public BIRD train, two
-24 GB GPUs). Compiled 2026-11-06.
+24 GB GPUs). Compiled 2026-11-06; section 1.6 and FedAuto added 2026-11-07.
 
 How to read this file:
 
@@ -29,6 +29,7 @@ How to read this file:
 | FedCoT, Fan et al., Findings EMNLP 2025 ([ACL](https://aclanthology.org/2025.findings-emnlp.454/)) | Server LLM writes rationales for DP-perturbed client prompts | LLaMA3-70B / Qwen1.5-14B teacher; Pythia-1.4B / Qwen1.5-0.5B student | CQA, BoolQ, ARC-E | CQA 42.4 (standalone) -> 48.1 (eps=3) -> 49.2 (non-private) | CoT distillation into an SLM. Client data (perturbed) reaches the teacher, which our data rule forbids | full |
 | FedBiOT, Wu et al., KDD 2024 ([arXiv 2406.17706](https://arxiv.org/abs/2406.17706)) | Server compresses its LLM, re-aligns it on public data each round; clients tune an adapter | LLaMA-2-7B | Rosetta code (9 languages, HumanEval-X), GSM8K, Dolly | GSM8K 15.2 vs 9.9-10.2 for offsite-tuning baselines | Public-data alignment step at the server each round, evaluated on code. Deploys the full LLM, not a separate SLM | full |
 | CrossLM, Deng et al., 2023 ([arXiv 2312.05842](https://arxiv.org/abs/2312.05842)) | Server LLM generates labelled synthetic data, client SLMs score it | GPT2-L / Llama-7B; BERT-size clients | SST-2, IMDb, AG News, Yahoo | SLM mean acc 0.765 standalone -> 0.825 | Teacher-generated data for clients. Classification only. Venue not verified | full |
+| FedAuto, Wang et al., 2025 ([arXiv 2512.22035](https://arxiv.org/abs/2512.22035)) | Server pre-trains on public data, then each round trains on public data in parallel with the clients and merges its model with theirs (weight 1/(1 + connected clients)); extra server steps on classes missing from client updates | CNN, ResNet, ViT-86M with LoRA | MNIST, CIFAR-10/100 | CIFAR-10 non-IID: 68.35 without its two modules, 77.00 with both (Table 5, read from a summary) | The "server trains on public data during every round" pattern, with a merge rule. Vision classification, no LLM. Preprint, under review | sections I-IV |
 | GPT-FL, Zhang et al., 2023 ([arXiv 2306.02210](https://arxiv.org/abs/2306.02210)) | Server generative model makes synthetic data; model pre-trained on it, then FL | not in abstract | vision/audio/text | no numbers in abstract | Teacher knowledge enters as the FL starting point; its FL-only vs synthetic-only vs both ablation is the right shape for a teacher-contribution test | abstract |
 
 No paper in this family evaluates on SQL or code with a separate deployed SLM,
@@ -88,9 +89,10 @@ frozen server teacher with federated preference optimization.
 | MSc-SQL, Gorti et al., NAACL 2025 ([arXiv 2410.12916](https://arxiv.org/abs/2410.12916)) | Several QLoRA 7-9B models + a critic over candidates with execution results | 7B-9B | BIRD, Spider | BIRD dev 65.6, Spider test 84.7 | Multi-model inference pipeline, not a single SLM | full |
 | DTS-SQL ([arXiv 2402.01117](https://arxiv.org/abs/2402.01117)), DAIL-SQL (PVLDB 17(5), [arXiv 2308.15363](https://arxiv.org/abs/2308.15363)), DIN-SQL (NeurIPS 2023, [arXiv 2304.11015](https://arxiv.org/abs/2304.11015)) | Two-stage SFT; ICL prompting; decomposed prompting | 7B; GPT-4 | Spider, BIRD | DTS-SQL Mistral-7B Spider dev 71.9 -> 78.6 | Prompting and schema-linking references | DTS full; others abstract |
 
-No verified paper runs DPO on a Text-to-SQL student below 6.7B, compares
-iterative with one-shot DPO at 1.5B, or reports a greedy, single-sample,
-Spider-trained 1.5B Qwen2.5-Coder number. Zero-shot 1.5B Spider dev numbers
+Below 6.7B the only DPO-style Text-to-SQL result found is SQLoom (section
+1.6: Qwen3-1.7B, token-restricted DPO terms, GPT-4-mined negatives). No
+verified paper compares iterative with one-shot DPO at 1.5B or reports a
+greedy, single-sample, Spider-trained 1.5B Qwen2.5-Coder number. Zero-shot 1.5B Spider dev numbers
 differ by about 6 points across sources, so the paper must report its own.
 
 ### 1.5 LLM-to-SLM distillation
@@ -119,6 +121,24 @@ Step-DPO ([arXiv 2406.18629](https://arxiv.org/abs/2406.18629), abstract)
 reports self-generated pairs beat GPT-4-generated ones, which are out of
 distribution for the policy.
 
+### 1.6 Token- and clause-level preference and RL for SQL and code
+
+Idea shared by this group: a correct and a wrong query share most tokens, so a
+sequence-level loss spreads the signal over tokens that are not the error.
+Each paper localizes the error and puts the signal there.
+
+| Paper | How the error is localized | Loss | Sizes | Data | Key numbers | Closest point / main difference | Read |
+|---|---|---|---|---|---|---|---|
+| Focused-DPO, Zhang et al. (Peking U.), 2025 ([arXiv 2502.11475](https://arxiv.org/abs/2502.11475)); arXiv page names no venue, Findings ACL 2025 per a search listing, not verified | Self-sampled code (k=10, T=1.5) ranked with self-generated tests; strip the common prefix and suffix of a correct and a wrong sample; the middle span is the error point | DPO with the middle-span log-ratio weighted by w=2 (w=5 hurts), rejected suffix dropped, reference = SFT model, no NLL term | 6.7-7B (DeepSeekCoder, Qwen2.5-Coder-7B base and Instruct) | 5,000 problems per policy | Qwen2.5-Coder-7B-Instruct, HumanEval+ / MBPP+: base 0.841 / 0.714, SFT 0.872 / 0.717, DPO 0.854 / 0.743, token-level TDPO 0.872 / 0.751, Focused-DPO 0.878 / 0.762. LiveCodeBench avg 0.310 (DPO) vs 0.339 | Closest loss to a SQL version of pair focusing; gains over plain DPO are 1-3 points on 7B code. Error points overlap only 32% between two models, so the points are model-specific (supports on-policy pairs). No seeds or variance | full text |
+| SQLoom, Fu et al., 2026 ([arXiv 2611.03298](https://arxiv.org/abs/2611.03298)); header shows a WWW 2027 template, not an acceptance | Three sets: parser-valid vs invalid next tokens (syntax); reference AST node vs a confusion the current model often makes, kept only if execution changes (semantics); question edits propagated along dependencies, checked on a counterexample database (logic). GPT-4 agents mine errors | Set-contrastive loss over the constrained tokens only; with one negative it is DPO restricted to those tokens. Kept with an SFT term; reference = SFT warm-up model | Qwen3-1.7B, LoRA r=16 | Spider train + BIRD train, Spider annotations corrected (378), 38K GPT-4 calls, 10.8 GPU-h on one RTX 4090 | Greedy: Spider dev 88.7, Spider test 89.2, BIRD dev 73.4 (zero-shot Spider dev 62.9). Plain SFT on the same data: -8.8 Spider test, -10.3 BIRD dev | The nearest DPO-style Text-to-SQL work at our size. Centralized, GPT-4 in the loop, Qwen3; no sequence-level DPO baseline found in the part read | sections 1-3.4 verbatim; tables and ablations from a summary |
+| CAPER, Ban et al., 2026 ([arXiv 2606.03327](https://arxiv.org/abs/2606.03327)) | Compare predicted and gold SQL at the first diverging top-level clause; AST repair gives a counterfactual correct clause; fault injection on correct rollouts, kept if execution changes | A clause-level process reward model (9B, pairwise margin loss) guides GRPO with clause-level advantages, mixed with the execution reward | Qwen3.5-9B; 8x A100, 189 GPU-h | BIRD train, SynSQL-5k and Spider dev (dev overlaps evaluation) | P@1 Spider test: SFT 78.71, GRPO outcome reward 81.56, clause reward 82.63, token reward 79.17; BIRD dev 57.56 / 60.21 / 63.56 / 57.36 | Clause beats both sequence-level and token-level credit. RL with a learned PRM, far above our budget | sections 1-4 and tables 1-2 verbatim |
+| EXPO-SQL, Lee et al., 2026 ([arXiv 2606.23693](https://arxiv.org/abs/2606.23693)) | Clause-wise incremental execution (FROM/JOIN, WHERE, GROUP BY, ... added in order) compared with the gold result; SQLite error messages traced back to the clause | Policy gradient with one reward per clause, all its tokens share it, KL penalty, no group baseline | Qwen2.5-Coder-7B, 14B | SynSQL-Complex-5k | 7B Spider dev / test / BIRD dev: 88.5 / 89.1 / 71.3, vs Arctic-SQL-R1-7B 87.3 / 88.8 / 68.9. Ablation (summary): BIRD dev 71.3 full, 68.5 without clause rewards | Clause localization by execution alone, no PRM and no teacher; this is the localization a client can run on its own databases | sections 1-4 verbatim; ablations from a summary |
+
+What this means for pair-based training here: clause-level localization beat
+sequence-level and token-level credit in CAPER and EXPO-SQL, and
+error-span weighting beat plain DPO by 1-3 points on 7B code. None of the four
+is federated; only SQLoom is below 7B, and it relies on GPT-4.
+
 ## 2. What already exists
 
 - Server LLM with public data helping federated SLMs (FedMKT, FedCoLLM,
@@ -144,10 +164,12 @@ distribution for the policy.
    client can label its own samples by executing them against its own
    databases and gold SQL, so pairs are built locally without human labels.
    Federated DPO so far uses human preferences.
-3. No evidence on DPO for Text-to-SQL below 6.7B. The published finding (Liu
-   et al.) is that SQL-only DPO fails at 6.7-15B because pairs are scarce; a
-   1.5B student makes more errors and may yield many more pairs. Whether
-   iterative rounds help at 1.5B is also untested.
+3. Little evidence on DPO for Text-to-SQL below 6.7B. The published finding
+   (Liu et al.) is that SQL-only sequence-level DPO fails at 6.7-15B because
+   pairs are scarce; a 1.5B student makes more errors and may yield many more
+   pairs. The one small-model result (SQLoom, 1.7B) uses token-restricted
+   terms with GPT-4-mined negatives, centrally. Whether iterative on-policy
+   rounds help at 1.5B is untested.
 4. No frozen-teacher-at-server design where the public data comes from
    another domain (BIRD) than the clients' (Spider), and no paper in the
    server-LLM family runs the matched control "same public data with gold
@@ -176,3 +198,10 @@ distribution for the policy.
   federated version stands.
 - Published 1.5B numbers mostly use self-consistency; ours must name greedy or
   sampled decoding explicitly.
+- SQLoom reports 89.2 greedy Spider test at 1.7B. A reviewer will compare;
+  the paper has to state that SQLoom trains centrally on Spider + BIRD with
+  GPT-4 in the loop, while here client data never leaves and no external
+  model sees it.
+- A sequence-level DPO method will be asked why it does not localize the
+  error (Focused-DPO, CAPER, EXPO-SQL). Either localize, or show the
+  comparison.
