@@ -128,9 +128,9 @@ so in one line when you deviate. None of them may block an option or make a
 result invalid.
 
 - GPU work goes into the queue file `fedicl-sql/queues/active.toml` (tasks,
-  dependencies, priority order), drained by one worker per GPU
-  (`scripts/gpu_worker.py`); split long work into tasks small enough that
-  both cards stay busy. Server commands are written in `PIPELINE_NEXT.md`
+  dependencies, priority order, `<phase>/<name>` ids), drained by one worker
+  per GPU (`scripts/gpu_worker.py`, full queue or `--phase`); one task per
+  experiment step. Server commands are written in `PIPELINE_NEXT.md`
   and also given in chat. Push the paper repository when `PIPELINE_NEXT.md`
   changes, since the owner copies from it.
 - Results are committed after a run by staging only the compact files

@@ -19,35 +19,51 @@ would load, the agent says so here and in chat.
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
-### Step 1: one worker per GPU, each in its own terminal
+### Step 1: worker check, about 1 min (once)
 
-The two commands differ only in the GPU digit. A worker rereads the queue
-before every task, so tasks pushed later run after a pull without a restart.
-It prints `start` / `end` per task, with the task's own progress lines
-prefixed `[gpu0 <task>]`, and a final `DONE queue` line. Per-task logs:
-`.queue_state/logs/`.
+Both workers on the `selftest` phase. Each prints its own card and sleeps
+30 s, then one runs a task that needed both; press Ctrl+C once during the
+sleep to see the stop, rerun, and check that each reports `DONE queue`.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped: some tasks failed or are blocked (see status)' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase selftest; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped: some tasks failed or are blocked (see status)' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --phase selftest; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+### Step 2: one worker per GPU, each in its own terminal
+
+The two commands differ only in the GPU digit. Without `--phase` a worker
+runs the full queue; add `--phase fedpref_s0` (or `cotprobe_s0`, or both) to
+run only those phases. A worker rereads the queue before every task, so
+tasks pushed later run after a pull without a restart. It prints `start` /
+`end` per task, the task's own progress lines prefixed `[gpu0 <task>]`, and a
+final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
 - Ctrl+C stops the worker and its running task; rerunning the same command
   continues where it stopped.
-- A failed task blocks only the tasks that need it; the worker keeps running
-  the others, then stops with `STOP queue` and the list. Rerunning a worker
+- A failed task blocks only the tasks that need it; the worker runs the
+  others, then stops with `STOP queue` and the list. Rerunning a worker
   retries failed tasks.
-- Results are committed and pushed by the `publish/...` tasks, after the
-  tasks that write them.
+- Each phase ends with a `publish` task that commits and pushes its results.
 
 ### Status (read-only, any time, second terminal)
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
+
+Add `--phase <name>` to see one phase only.
 
 ### Memory checks (owner, first time each path runs)
 
@@ -61,7 +77,7 @@ prefixed `[gpu0 <task>]`, and a final `DONE queue` line. Per-task logs:
 
 ## Queue content
 
-### Federated DPO + NLL from FedAvg R3 (`fedpref_s0/...`, 51 tasks + 2 publication)
+### Federated DPO + NLL from FedAvg R3 (phase `fedpref_s0`, 18 tasks)
 
 What it tests: starting from the FedAvg R3 adapter (owner-approved reuse, run
 `p227_fl_aaa_s0`: Spider dev 67.60), does one or two rounds of federated
@@ -79,17 +95,18 @@ RFT arm trains on the same pairs with only the NLL term. Round 1 samples are
 shared by both arms; in round 2 each arm samples from its own round 1
 adapter.
 
-Tasks: the smoke (8 questions per client, its own output root); per round,
-sampling per client, training per client and arm, aggregation per arm,
-evaluation per arm and set; the SFT round 4 control (same settings as the
-approved FedAvg run, warm-started from its R3 row) and its evaluation;
-`publish/fedpref_r1` once round 1 is evaluated, `publish/fedpref` at the end.
+Tasks: the smoke (8 questions per client, its own output root); round 1
+sampling per client; one task per arm and round (pairs, local training,
+FedAvg; in round 2 also the sampling); one evaluation per arm on Spider dev
+and BIRD dev; the SFT round 4 control (same settings as the approved FedAvg
+run, warm-started from its R3 row) and its evaluation; `publish_r1` once
+round 1 is evaluated, `publish` at the end.
 
 Evaluation uses `scripts.eval_standard`: the contract of the FedAvg reference
 rows (zero-shot SQL-only prompt, greedy 256 tokens, batch 16), on Spider dev
 and BIRD dev. Spider test is not used.
 
-### Headroom check and CoT probe from FedAvg R3 (`cotprobe_s0/...`, 10 tasks + 1 publication)
+### Headroom check and CoT probe from FedAvg R3 (phase `cotprobe_s0`, 11 tasks)
 
 What it tests (`DIRECTION.md` section 6.3, steps 0 and 1a):
 
@@ -114,7 +131,7 @@ The teacher SQL of these rows matches BIRD gold on execution, so the three
 server arms differ only in the plan. `cotprobe_t0` is compared with
 `fedpref_sft_r4`, the same round in SQL-only. Evaluation is Spider dev only;
 CoT evaluation uses 1,024 new tokens and strict parsing.
-`publish/cotprobe` commits the results at the end.
+`cotprobe_s0/publish` commits the results at the end.
 
 ### Priority order
 
