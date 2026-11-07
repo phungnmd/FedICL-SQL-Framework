@@ -214,7 +214,8 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
 
 ### 6.3 Thứ tự
 
-**Bước 0. Kiểm khoảng trống (khoảng 2 GPU-h, chạy cùng round 1).**
+**Bước 0. Kiểm khoảng trống (khoảng 2 GPU-h, chạy cùng round 1; đã xếp lệnh:
+`PIPELINE_NEXT.md` queue 2).**
 - Teacher 4-bit greedy trên Spider dev với prompt của project: khoảng 0.25 h.
 - R3 pass@8 trên Spider dev, T=0.7: khoảng 1-2.4 h.
 - Teacher hơn R3 (67.60) dưới khoảng 4 điểm: dừng nhóm KD (S1, S2).
@@ -222,29 +223,41 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
   có thể khác.
 - Pass@8 trừ greedy là trần của C1.
 
-**Bước 1. Probe CoT (khoảng 20 GPU-h, khoảng 10 h wall trên hai card).**
-Thiết kế CoT ở mục 6.5. Mọi arm xuất phát từ R3, eval greedy Spider dev batch
-16; S0 dùng lại arm C3 của round 1.
+**Bước 1a. Probe CoT phía server và một vòng client (khoảng 10 GPU-h, đã xếp
+lệnh: `PIPELINE_NEXT.md` queue 2).** Thiết kế CoT ở mục 6.5. Mọi arm xuất phát
+từ R3, mỗi arm một lượt, eval greedy Spider dev batch 16.
 
-| Arm | Các bước | GPU-h (ước lượng) |
+| Arm | Train | Eval |
 |---|---|---|
-| A_srv | Server SFT trên 2k query plan của teacher (BIRD) | 1.3 + eval 1 |
-| B_srv | Server SFT trên SQL gold của cùng 2k câu | 0.6 |
-| T0 | Không bước server; client một vòng SFT trên query plan sinh từ gold SQL của mình | 2.4 + 1 |
-| A1 | A_srv, rồi vòng client như T0 | 2.4 + 1 |
-| A2 | A_srv, rồi vòng client SQL-only, eval ở chế độ CoT | 1.7 + 1 |
-| A3 | A_srv, rồi vòng client CoT-RFT (200 câu mỗi client, K=4, giữ chuỗi có SQL đúng) | 2.9 + 0.8 + 1 |
-| B1 | B_srv, rồi vòng client SQL-only | 1.7 + 0.2 |
+| A_srv (`cotprobe_srv_teacher`) | Server SFT trên 4,109 câu BIRD: plan teacher + SQL teacher | CoT |
+| A_det (`cotprobe_srv_ast`) | Cùng câu: plan sinh từ SQL + cùng SQL | CoT |
+| B_srv (`cotprobe_srv_ce`) | Cùng câu: chỉ SQL | SQL-only |
+| T0 (`cotprobe_t0`) | Không bước server; một vòng FedAvg trên Spider của client với plan sinh từ gold | CoT |
+
+SQL teacher của 4,109 câu này khớp gold BIRD khi chạy, nên ba arm server chỉ
+khác nhau ở plan. T0 so với SFT R4 của round 1 (cùng vòng, SQL-only).
 
 Đọc kết quả:
 
-- max(T0, A1, A3) trừ max(S0, B1) từ 2.0 trở lên: đi tiếp CoT. Từ 1.0 đến
-  2.0: chạy thêm một vòng A3 (khoảng 6 GPU-h) rồi mới quyết. Dưới 1.0: dừng
-  CoT. Mức 2.0 khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
-- A1 hoặc A3 trừ T0 dưới 1.0: teacher không đóng góp đo được; câu chuyện
-  thành CoT chỉ ở client, không teacher.
+- A_srv trừ A_det: phần đóng góp riêng của plan teacher.
+- A_det trừ B_srv: lợi ích của format CoT ở bước server.
+- T0 trừ SFT R4: CoT ở client có đứng được một mình không.
+- Dừng hướng CoT nếu tỉ lệ output đúng format dưới 95%, hoặc T0 thấp hơn SFT
+  R4 từ 3 điểm.
+
+**Bước 1b. Vòng client sau bước server (khoảng 12 GPU-h, chỉ khi 1a ổn).**
+
+| Arm | Các bước |
+|---|---|
+| A1 | A_srv (hoặc A_det nếu teacher không thêm gì), rồi vòng client như T0 |
+| A2 | A_srv, rồi vòng client SQL-only, eval ở chế độ CoT |
+| A3 | A_srv, rồi vòng client CoT-RFT (200 câu mỗi client, K=4, giữ chuỗi có SQL đúng); cần code sample CoT ở client |
+| B1 | B_srv, rồi vòng client SQL-only |
+
+- max(T0, A1, A3) trừ max(SFT R4, B1) từ 2.0 trở lên: đi tiếp CoT. Từ 1.0
+  đến 2.0: chạy thêm một vòng A3 rồi mới quyết. Dưới 1.0: dừng CoT. Mức 2.0
+  khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
 - A2 thấp hơn A1 từ 1 điểm: client bắt buộc train trên CoT.
-- Dừng sớm: tỉ lệ output đúng format của A_srv dưới 95%.
 
 **Bước 2. Probe KD trên SynSQL (khoảng 15-18 GPU-h, chỉ khi bước 0 qua).**
 - Mọi arm xuất phát từ R3, cùng 3k câu SynSQL:

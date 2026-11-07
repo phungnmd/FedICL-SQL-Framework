@@ -55,4 +55,5 @@ Nothing measured since the fresh start.
 Verifying Direction 1 (`DIRECTION.md`): federated on-policy DPO + NLL from the
 owner-approved FedAvg SFT reference (`LAB_LOG.md`, 2026-11-06). Commands in
 `PIPELINE_NEXT.md`.
-Proposed next: a server step on public data, ranked in `DIRECTION.md` section 6.
+Queued next: headroom check and CoT probe (`DIRECTION.md` section 6.3,
+`PIPELINE_NEXT.md` queue 2).

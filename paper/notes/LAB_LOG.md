@@ -3,6 +3,15 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-07: queue 2 written (headroom check, CoT probe server side)
+
+No run. `PIPELINE_NEXT.md` queue 2: teacher 4-bit greedy and R3 pass@8 on
+Spider dev; three server SFT stages from R3 on the 4,109 teacher-plan BIRD rows
+(teacher plan, plan derived from the SQL, SQL only); one client round with
+gold-derived plans. New code: `scripts/pass_at_k.py`; `scripts.eval_standard`
+gained `--model-4bit` and `--response-format`. The round-1 publish step now
+fast-forwards before pushing.
+
 ## 2026-11-07: CoT design for S5
 
 No run. Owner accepts CoT at inference if the cost is feasible. Literature
