@@ -3,6 +3,15 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-07: CoT design for S5
+
+No run. Owner accepts CoT at inference if the cost is feasible. Literature
+(`LITERATURE.md` 1.7): on Spider greedy, CoT SFT alone stays below SQL-only and
+leads only after execution-labelled DPO. Chosen design (`DIRECTION.md` 6.5):
+structured query plan (`qp_cot_v1`, 512-token cap) from the existing 4,109
+teacher plans on BIRD, one prompt for server SFT, client sampling and eval,
+clients train on CoT too. Probe of 7 arms, about 20 GPU-h (`DIRECTION.md` 6.3).
+
 ## 2026-11-07: direction note reorganized, server options ranked
 
 No run. `DIRECTION.md` rewritten as client choice (C1-C4) + server option

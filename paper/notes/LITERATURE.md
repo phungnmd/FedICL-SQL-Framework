@@ -172,6 +172,13 @@ Collected for `DIRECTION.md` section 6. "Read" names what was checked.
 | Arctic-Text2SQL-R1 ([2505.20315](https://arxiv.org/abs/2505.20315)) | SynSQL "initial attempts were inconclusive"; unfiltered synthetic data 64.9 -> 64.6, filtered 66.5 | Execution RL on SynSQL needs filtering; smallest model 7B | text |
 | SERL-SQL ([2608.00485](https://arxiv.org/abs/2608.00485)) | Removing the teacher rescoring: -2.55 Spider test (likely the 14B model) | The "teacher" is a synced copy of the student; students 7-32B on 16x H100 | ablation |
 | Rethinking on-policy distillation ([2604.13016](https://arxiv.org/abs/2604.13016)) | An R1-Distill 1.5B student did not improve from a 7B teacher of the same pipeline | On-policy distillation fails when the teacher has no capability the student lacks. Math only | text |
+| Liu et al. ACL 2025 ([2502.11656](https://arxiv.org/abs/2502.11656)) | Table 14, Spider dev greedy, 7B: CoT SFT 0.7-2.6 below SQL-only SFT; CoT + DPO ends 0.5-0.7 above SQL-only SFT. Recipe: CoT from GPT-4o-mini with gold SQL shown, K=16; DPO samples at T=1.0, one random correct/wrong pair per question, beta 0.1, LR 1e-6, 8 epochs, one offline round | CoT pays off only after execution-labelled DPO, and only a little on Spider | full text via summary |
+| ExCoT ([2503.19988](https://arxiv.org/abs/2503.19988)) | 70B Spider test: CoT SFT 81.4 vs SQL-only SFT 83.0; 86.6 after 3 DPO rounds (up to 32 samples per question); zero-shot simple CoT 77.8 vs no CoT 78.8-79.3 | Same pattern at 70B; divide-and-conquer chains grow from 560 to 910 tokens | full text via summary |
+| Struct-SQL ([2512.17053](https://arxiv.org/abs/2512.17053)) | Qwen3-4B, BIRD mini-dev EX: gold SFT 34.3, free CoT 36.9, query-plan CoT 45.0; free-CoT model scored with the query-plan prompt 29.2 | Structured query plans beat free CoT at 4B; prompt mismatch is costly. Weak baselines (base 17.0 from 1,465-token thinking) | full text via summary |
+| STaR-SQL ([2502.13550](https://arxiv.org/abs/2502.13550)) | Llama-3.1-8B Spider dev: 75.0 vs SQL-only SFT 68.6; 8 samples per question, gold-hint rationalization, iterate | Self-generated rationales verified by execution; the SQL-only baseline looks weak | full text via summary |
+| OmniSQL CoT synthesis ([2503.02240](https://arxiv.org/abs/2503.02240), sections 3.5 and 4) | Several open models given the SQL, 8 samples at T=0.8, majority vote on execution | SynSQL's shipped CoT is answer-conditioned and checked on two-row databases | full text via summary |
+| Answer-conditioned CoT ([2607.14552](https://arxiv.org/abs/2607.14552)) | Chains written with the answer visible hurt distillation in a way correctness filters miss (math) | Argues against SynSQL's shipped CoT | abstract |
+| FedCoT, Li et al. ([2508.10020](https://arxiv.org/abs/2508.10020)) | Clients generate and select chains locally with a discriminator; medical tasks | No execution verifier, no server teacher | abstract |
 | FedDF ([2006.07242](https://arxiv.org/abs/2006.07242)) | NLP results only as a figure (DistilBERT, alpha 1) | Its gain comes from fusing drifted, heterogeneous models | figure |
 
 Timing: no LLM paper compares a server step after every round with one-time
@@ -180,8 +187,9 @@ server training before FL.
 What this means for the server step: on SQL-only greedy Spider EX, the
 published gains from KD or RL on public data are about 1 point once the
 student has seen Spider; larger KD gains need an in-domain teacher or a weak
-base student. CoT training has the largest gains over gold SFT (OmniSQL,
-Liu et al.), at 7B.
+base student. CoT training has the largest gains over gold SFT (OmniSQL), at
+7B, but on Spider greedy CoT SFT alone stays below SQL-only SFT and moves
+ahead only after execution-labelled DPO rounds (Liu et al., ExCoT).
 
 ## 2. What already exists
 

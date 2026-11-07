@@ -183,6 +183,8 @@ CoT:
 - Đây cũng là lựa chọn mà phần federated làm việc thật: client kiểm lời giải
   trên database riêng.
 - Cái giá: inference chậm khoảng 6.6 lần, bỏ setup SQL-only.
+- Research riêng về CoT (mục 6.5) hạ kỳ vọng: CoT SFT một mình thường không
+  hơn SQL-only; mức tăng chỉ có sau các vòng kiểm bằng execution.
 
 Với C1 (SQL-only), bằng chứng hiện có dự đoán thêm tối đa khoảng 1 điểm: Liu
 et al. thấy DPO hại 6/10 model từ 6.7B, SENSE +0.2 đến +0.9 Spider dev, ExCoT
@@ -220,16 +222,29 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
   có thể khác.
 - Pass@8 trừ greedy là trần của C1.
 
-**Bước 1. Probe S5 (khoảng 17 GPU-h, khoảng 10 h wall trên hai card).**
-Chỉ chạy nếu owner chấp nhận CoT lúc inference (mục 6.4).
-- Arm A: R3, rồi SFT trên khoảng 2k CoT ngắn của teacher trên câu SynSQL (giữ
-  CoT có SQL khớp gold; có thể dùng CoT sẵn của SynSQL), rồi một vòng client
-  CoT-RFT (400 câu mỗi client, K=4).
-- Arm B (đối chứng): R3, SFT trên cùng 2k câu với SQL gold, rồi một vòng C3.
-- Arm S0: R3 + vòng C3 trong round 1.
-- Dừng sớm nếu greedy Spider dev của CoT sau bước SFT dưới khoảng 62.
-- Số quyết định: greedy Spider dev của A trừ max(B, S0) từ 2.0 trở lên. Mức
-  này khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
+**Bước 1. Probe CoT (khoảng 20 GPU-h, khoảng 10 h wall trên hai card).**
+Thiết kế CoT ở mục 6.5. Mọi arm xuất phát từ R3, eval greedy Spider dev batch
+16; S0 dùng lại arm C3 của round 1.
+
+| Arm | Các bước | GPU-h (ước lượng) |
+|---|---|---|
+| A_srv | Server SFT trên 2k query plan của teacher (BIRD) | 1.3 + eval 1 |
+| B_srv | Server SFT trên SQL gold của cùng 2k câu | 0.6 |
+| T0 | Không bước server; client một vòng SFT trên query plan sinh từ gold SQL của mình | 2.4 + 1 |
+| A1 | A_srv, rồi vòng client như T0 | 2.4 + 1 |
+| A2 | A_srv, rồi vòng client SQL-only, eval ở chế độ CoT | 1.7 + 1 |
+| A3 | A_srv, rồi vòng client CoT-RFT (200 câu mỗi client, K=4, giữ chuỗi có SQL đúng) | 2.9 + 0.8 + 1 |
+| B1 | B_srv, rồi vòng client SQL-only | 1.7 + 0.2 |
+
+Đọc kết quả:
+
+- max(T0, A1, A3) trừ max(S0, B1) từ 2.0 trở lên: đi tiếp CoT. Từ 1.0 đến
+  2.0: chạy thêm một vòng A3 (khoảng 6 GPU-h) rồi mới quyết. Dưới 1.0: dừng
+  CoT. Mức 2.0 khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
+- A1 hoặc A3 trừ T0 dưới 1.0: teacher không đóng góp đo được; câu chuyện
+  thành CoT chỉ ở client, không teacher.
+- A2 thấp hơn A1 từ 1 điểm: client bắt buộc train trên CoT.
+- Dừng sớm: tỉ lệ output đúng format của A_srv dưới 95%.
 
 **Bước 2. Probe KD trên SynSQL (khoảng 15-18 GPU-h, chỉ khi bước 0 qua).**
 - Mọi arm xuất phát từ R3, cùng 3k câu SynSQL:
@@ -250,10 +265,72 @@ Chỉ chạy nếu owner chấp nhận CoT lúc inference (mục 6.4).
 
 ### 6.4 Owner cần quyết
 
-- Có chấp nhận CoT lúc inference không (chậm khoảng 6.6 lần, đổi setup
-  SQL-only). Nếu không, S5 bị loại, và nhóm KD trên SynSQL là lựa chọn server
-  còn lại, với khả năng thành công thấp-trung bình.
+- CoT lúc inference: owner chấp nhận (2026-11-07), với điều kiện chi phí khả
+  thi (mục 6.5).
 - Đồng ý bỏ S3 trên SynSQL và S4.
+
+### 6.5 Thiết kế CoT (research 2026-11-07)
+
+Kỳ vọng: CoT SFT một mình nhiều khả năng không hơn SQL-only. Ở 7B, trên
+Spider dev greedy, CoT SFT thấp hơn SQL-only SFT 0.7-2.6 điểm (Liu et al.);
+CoT chỉ vượt sau DPO bằng execution, và vượt ít (0.5-0.7 điểm trên SQL-only
+SFT). ExCoT 70B: CoT SFT 81.4 so với SQL-only 83.0 Spider test, lên 86.6 sau 3
+vòng DPO. Chưa có số greedy Spider nào ở 0.5B-3B so CoT với SQL-only. Nếu có
+mức tăng 2 điểm, nó phải đến từ các vòng client kiểm CoT bằng execution.
+
+**Format: query plan có cấu trúc (Struct-SQL, `qp_cot_v1`), giới hạn 512
+token.** Struct-SQL (Qwen3-4B, BIRD mini-dev): SQL gold 34.3, CoT tự do 36.9,
+query plan 45.0. Model nhỏ hợp với chuỗi ngắn (Li et al.: 1.5B, CoT ngắn 34.2
+so với dài 27.0, toán). Format này đã có đủ trong code: prompt, giới hạn 1,024
+token và parse chặt (output sai format tính EX 0).
+
+**Nguồn: query plan của teacher trên BIRD, có sẵn 4,109 câu**
+(`fedicl-sql/processed_data/protocol_v2/rationale_kd/p215_struct_full_s0/`).
+Teacher viết không thấy gold SQL, câu được giữ khi kết quả chạy khớp gold
+trên database BIRD thật; plan dài trung vị 249 token, p95 381. CoT có sẵn của
+SynSQL không hợp: do model khác viết khi đã thấy SQL đáp án, chỉ kiểm trên
+database 2 dòng, dài hơn (trung vị 428 token sau khi cắt).
+
+**Client cũng train trên CoT.** Nếu client giữ SQL-only, mỗi vòng FedAvg kéo
+model về format SQL-only. Chưa paper federated nào đo điều này; arm A2 đo nó.
+Hai cách cho client:
+
+- Rẻ nhất: query plan sinh tự động từ gold SQL của chính client
+  (`sql_to_qp_cot`, cùng format với plan của teacher), không cần sample.
+- On-policy: sample K=4, T=0.7 trên 200-300 câu mỗi client, chạy SQL, giữ một
+  chuỗi đúng mỗi câu (RFT); câu không giải được dùng plan sinh từ gold. Vòng
+  2-3 thêm DPO + NLL trên cặp đúng/sai gần nhau.
+
+**Prompt: một template cho server SFT, client sample và eval** (`qp_cot_v1`,
+instruction của Struct-SQL). Schema dạng DDL, câu hỏi, mục Hint (BIRD điền
+evidence, Spider và SynSQL điền NONE), output là `**Query Plan**:` rồi
+`## SQL Query:`. OmniSQL, SLM-SQL và Struct-SQL đều train và test bằng một
+template. Struct-SQL: model CoT tự do chấm bằng prompt query plan tụt từ 36.9
+xuống 29.2.
+
+**Chi phí (ước lượng):**
+
+| Việc | GPU-h |
+|---|---|
+| Eval CoT Spider dev / test | 0.7-1.2 / 1.4-2.6 |
+| Client sample CoT, K=4, 300 câu mỗi client | khoảng 4.3 mỗi vòng |
+| Vòng client SFT trên plan sinh từ gold | 2.1-2.7 |
+| Server SFT CoT, 2k câu | khoảng 1.3 |
+| Cả paper (method 3 vòng × 3 seed, baseline SQL-only, ablation CoT, eval độ bền) | khoảng 230-330, tức 5-7 ngày trên hai card |
+
+Giảm chi phí: giới hạn 512 token (p95 của plan là 381-456 nên ít chuỗi bị
+cắt), K=4, 200-300 câu mỗi client mỗi vòng, dùng plan sinh từ gold thay cho
+sample ở vòng đầu.
+
+**Phép so reviewer sẽ đòi:** 1.5B CoT so với 7B SQL-only (độ chính xác, token
+mỗi câu, latency, bộ nhớ) và so với 1.5B SQL-only majority vote cùng số token
+(khoảng 8 sample SQL cho một chuỗi CoT). Trên card của ta, 7B 4-bit SQL-only
+mất 0.77-0.83 s mỗi câu ở batch 16, còn 1.5B CoT mất 2.4-4.3 s, nên lý do
+deploy 1.5B phải dựa vào kích thước model và latency batch 1 (chưa đo).
+
+Việc code còn thiếu: `short_cot.py` và `omnisql_cot.py` chưa có response
+format trong `contracts.py`; eval sẽ chạy chúng như SQL-only (256 token, lấy
+block đầu), nên chỉ dùng `qp_cot_v1`.
 
 Bằng chứng và link: `LITERATURE.md` mục 1.7.
 
