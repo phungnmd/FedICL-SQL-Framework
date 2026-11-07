@@ -54,6 +54,10 @@ setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   baselines on the clients' domain. The teacher is an option, not a
   requirement; a method without it is acceptable if it is strong enough.
 - Open: the method and the metrics. Propose them from the task itself.
+- Spider metric (owner, 2026-11-07): every Spider number from now on is
+  Spider test (2,147 rows); Spider dev is skipped or reported only as a
+  secondary diagnostic. Choices are made on Spider test, so it is never
+  called held-out (honesty rule below).
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
   what differs; never claim "first" and never hide the closest prior work.

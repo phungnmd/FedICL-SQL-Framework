@@ -55,9 +55,10 @@ Chi tiết C1:
 
 1. Mỗi vòng, client lấy một phần câu hỏi của mình (400 câu), sample K=8 SQL ở
    T=0.7 từ model global.
-2. Chạy từng SQL so với gold trên database riêng. SQL chỉ tính là đúng khi
-   cũng khớp gold trên vài bản database đổi giá trị (cách sinh database của
-   test-suite, Zhong et al. 2020), để giảm "đúng giả".
+2. Chạy từng SQL so với gold trên database riêng, bằng chính evaluator EX
+   (60 s mỗi query). Chỉ dùng database gốc của client: chưa có bản database
+   đổi giá trị (kiểu test-suite, Zhong et al. 2020) cho Spider train, nên vẫn
+   có thể có "đúng giả".
 3. Chọn cặp: chosen là SQL đúng (dùng gold nếu không sample nào đúng);
    rejected ưu tiên SQL chạy được nhưng ra kết quả sai, rồi mới tới SQL lỗi.
 4. Train DPO + NLL 2 epoch, reference là model global của vòng đó, gửi LoRA.
@@ -214,50 +215,42 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
 
 ### 6.3 Thứ tự
 
-**Bước 0. Kiểm khoảng trống (khoảng 2 GPU-h, chạy cùng round 1; đã xếp lệnh:
-`PIPELINE_NEXT.md` queue 2).**
-- Teacher 4-bit greedy trên Spider dev với prompt của project: khoảng 0.25 h.
-- R3 pass@8 trên Spider dev, T=0.7: khoảng 1-2.4 h.
-- Teacher hơn R3 (67.60) dưới khoảng 4 điểm: dừng nhóm KD (S1, S2).
-  OmniSQL báo teacher đạt 73.4 dev ở bf16; con số ở 4-bit với prompt của ta
-  có thể khác.
-- Pass@8 trừ greedy là trần của C1.
+**Bước 0. Kiểm khoảng trống (khoảng 2-3 GPU-h, chạy cùng round 1; đã xếp
+lệnh: `PIPELINE_NEXT.md`, phase `cotprobe_s0`).**
+- Teacher 4-bit greedy trên Spider test với prompt của project: khoảng 0.5 h.
+  So với R3 71.50 trên Spider test.
+- R3 pass@8 trên Spider dev, T=0.7 (chỉ số phụ, so với R3 greedy dev 67.60):
+  khoảng 1-2.4 h.
 
-**Bước 1a. Probe CoT phía server và một vòng client (khoảng 10 GPU-h, đã xếp
-lệnh: `PIPELINE_NEXT.md` queue 2).** Thiết kế CoT ở mục 6.5. Mọi arm xuất phát
-từ R3, mỗi arm một lượt, eval greedy Spider dev batch 16.
+**Bước 1. Probe CoT có teacher: bước server rồi một vòng client (khoảng 20
+GPU-h, một seed, đã xếp lệnh: phase `cotprobe_s0`).** Thiết kế CoT ở mục 6.5.
+Mọi chain xuất phát từ R3; vòng client giống vòng SFT FedAvg đã duyệt, chỉ đổi
+format; eval greedy Spider test batch 16.
 
-| Arm | Train | Eval |
-|---|---|---|
-| A_srv (`cotprobe_srv_teacher`) | Server SFT trên 4,109 câu BIRD: plan teacher + SQL teacher | CoT |
-| A_det (`cotprobe_srv_ast`) | Cùng câu: plan sinh từ SQL + cùng SQL | CoT |
-| B_srv (`cotprobe_srv_ce`) | Cùng câu: chỉ SQL | SQL-only |
-| T0 (`cotprobe_t0`) | Không bước server; một vòng FedAvg trên Spider của client với plan sinh từ gold | CoT |
+| Arm | Server (4,109 câu BIRD) | Vòng client (Spider) | Eval |
+|---|---|---|---|
+| `cotprobe_t1_teacher` | plan teacher + SQL | plan sinh từ gold + SQL | CoT |
+| `cotprobe_t1_ast` | plan sinh từ SQL + cùng SQL | plan sinh từ gold + SQL | CoT |
+| `cotprobe_t1_ce` | chỉ SQL | chỉ SQL | SQL-only |
+| `cotprobe_t0` | không có | plan sinh từ gold + SQL | CoT |
+| `fedpref_sft_r4` | không có | chỉ SQL | SQL-only |
 
-SQL teacher của 4,109 câu này khớp gold BIRD khi chạy, nên ba arm server chỉ
-khác nhau ở plan. T0 so với SFT R4 của round 1 (cùng vòng, SQL-only).
+SQL teacher của 4,109 câu khớp gold BIRD khi chạy, nên ba bước server chỉ
+khác nhau ở plan. Bước server một mình không được eval: một lần SFT trên BIRD
+từ R3 đo cả việc quên Spider lẫn việc học format, nên chỉ đọc sau vòng client.
 
 Đọc kết quả:
 
-- A_srv trừ A_det: phần đóng góp riêng của plan teacher.
-- A_det trừ B_srv: lợi ích của format CoT ở bước server.
-- T0 trừ SFT R4: CoT ở client có đứng được một mình không.
-- Dừng hướng CoT nếu tỉ lệ output đúng format dưới 95%, hoặc T0 thấp hơn SFT
-  R4 từ 3 điểm.
+- `t1_teacher` trừ `t1_ast`: phần đóng góp riêng của plan teacher.
+- `t1_ast` trừ `t1_ce`: lợi ích của format CoT khi server và client cùng dữ
+  liệu.
+- `t1_ce` trừ `sft_r4`: bước server SQL-only trên BIRD giúp hay hại Spider.
+- `t0` trừ `sft_r4`: CoT ở client khi không có bước server.
+- Tỉ lệ output đúng format và độ dài output đọc cùng EX.
 
-**Bước 1b. Vòng client sau bước server (khoảng 12 GPU-h, chỉ khi 1a ổn).**
-
-| Arm | Các bước |
-|---|---|
-| A1 | A_srv (hoặc A_det nếu teacher không thêm gì), rồi vòng client như T0 |
-| A2 | A_srv, rồi vòng client SQL-only, eval ở chế độ CoT |
-| A3 | A_srv, rồi vòng client CoT-RFT (200 câu mỗi client, K=4, giữ chuỗi có SQL đúng); cần code sample CoT ở client |
-| B1 | B_srv, rồi vòng client SQL-only |
-
-- max(T0, A1, A3) trừ max(SFT R4, B1) từ 2.0 trở lên: đi tiếp CoT. Từ 1.0
-  đến 2.0: chạy thêm một vòng A3 rồi mới quyết. Dưới 1.0: dừng CoT. Mức 2.0
-  khoảng 2 sai số chuẩn trên 1,034 câu ghép cặp.
-- A2 thấp hơn A1 từ 1 điểm: client bắt buộc train trên CoT.
+Bước tiếp theo nếu CoT có teacher không thua rõ SQL: một vòng CoT-DPO ở client
+từ `t1_teacher` (cần code sample CoT trong `federated_pref`), vì ở ExCoT và
+Liu et al. phần lợi của CoT chỉ xuất hiện sau DPO bằng execution.
 
 **Bước 2. Probe KD trên SynSQL (khoảng 15-18 GPU-h, chỉ khi bước 0 qua).**
 - Mọi arm xuất phát từ R3, cùng 3k câu SynSQL:
@@ -376,9 +369,11 @@ riêng; FedAvg SFT (cùng vòng và cùng GPU-h); FedProx; FedOPT + Lorar (FL4SP
 SFT tập trung; RFT (C2); DPO offline (không sample lại); method chạy tập
 trung; SFT thêm dữ liệu public (đối chứng cho mọi lựa chọn server).
 
-Metric: EX greedy trên Spider test (batch 16) là số chính; Spider dev (EX và
-test-suite) để chọn cấu hình; Spider-Realistic, SYN, DK cho độ bền; BIRD dev
-khi server dùng BIRD. Kèm số cặp mỗi client, GPU-h và dung lượng truyền mỗi
+Metric (owner, 2026-11-07): EX greedy trên Spider test (2,147 câu, batch 16)
+là số duy nhất cho Spider, kể cả khi chọn cấu hình; vì vậy Spider test không
+được gọi là held-out. Spider dev bỏ, hoặc chỉ là chỉ số phụ (test-suite EX chỉ
+có cho dev). Spider-Realistic, SYN, DK cho độ bền; BIRD dev khi server dùng
+BIRD. Kèm số cặp mỗi client, GPU-h và dung lượng truyền mỗi
 vòng, kết quả theo độ khó. Ba seed cho arm chính, gộp seed bằng kiểm định theo
 cụm câu hỏi.
 

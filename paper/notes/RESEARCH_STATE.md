@@ -41,9 +41,10 @@ Everything else, including:
 
 - the method: whether and how the teacher is used, what the clients train,
   the FL algorithm, adapter type and rank, prompting, decoding;
-- the metrics and which evaluation sets carry the story (available: Spider dev
-  1,034, Spider test 2,147, BIRD dev 1,534, Spider-Realistic, Spider-SYN,
-  Spider-DK);
+- the metrics beyond Spider EX and which other sets carry the story
+  (available: BIRD dev 1,534, Spider-Realistic, Spider-SYN, Spider-DK). Spider
+  numbers use Spider test (2,147); Spider dev (1,034) is skipped or secondary
+  (owner, 2026-11-07);
 - the baselines and the experiment plan.
 
 ## 4. What we know

@@ -3,6 +3,29 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-07: Spider test becomes the Spider metric; queue revised after a review
+
+No run. Owner decisions: every Spider number is Spider test from now on;
+Spider dev is skipped or a secondary diagnostic (rule in both `AGENTS.md`).
+Choices are made on Spider test, so it is not called held-out. One seed for
+this signal round. The owner wants one feasible CoT-with-teacher test.
+
+An independent review (owner-allowed archive reading) recommended SQL-only
+federated DPO + NLL as the main line and judged the archived CoT routes weaker
+evidence than first stated (best-on-dev selection, matched rounds only -1.55,
+no isolated prompt-format test). Accepted: the sample label note in
+`DIRECTION.md` now matches the code (EX on the client's original database
+only, no test-suite variants for Spider train).
+
+Queue (`fedicl-sql/queues/active.toml`, `PIPELINE_NEXT.md`): every evaluation
+on Spider test and BIRD dev; teacher headroom on Spider test (R3 71.50); R3
+pass@8 stays on Spider dev as a diagnostic; an SFT round 5 control so the SFT
+rounds match DPO round 2; the CoT probe now chains each server stage (teacher
+plan, plan from SQL, SQL only) into one client round in the same format and
+evaluates only after the client round. New code: `--parent-stage` in
+`experiments/federated/run.py` resolves a committed stage row by its stage
+name (nested repo, with a test).
+
 ## 2026-11-07: queue 2 written (headroom check, CoT probe server side)
 
 No run. `PIPELINE_NEXT.md` queue 2: teacher 4-bit greedy and R3 pass@8 on

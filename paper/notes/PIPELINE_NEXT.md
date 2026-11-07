@@ -80,71 +80,71 @@ Add `--phase <name>` to see one phase only.
 
 ## Queue content
 
-### Federated DPO + NLL from FedAvg R3 (phase `fedpref_s0`, 18 tasks)
+Spider numbers are Spider test (2,147 rows, owner 2026-11-07); Spider dev
+appears only as a secondary diagnostic. Every arm runs one seed (seed 0): this
+is a signal round. Reference rows on Spider test (owner-approved reuse, run
+`p227_fl_aaa_s0`): FedAvg R3 71.50, same contract (batch 16, greedy 256).
 
-What it tests: starting from the FedAvg R3 adapter (owner-approved reuse, run
-`p227_fl_aaa_s0`: Spider dev 67.60), does one or two rounds of federated
-on-policy DPO + NLL raise Spider dev EX, and by more than the same rounds with
-the DPO term removed (RFT control) and more than one more FedAvg SFT round?
+### Federated DPO + NLL from FedAvg R3 (phase `fedpref_s0`, 21 tasks)
+
+What it tests: starting from the FedAvg R3 adapter, does one or two rounds of
+federated on-policy DPO + NLL raise Spider test EX, and by more than the same
+rounds with the DPO term removed (NLL-only on the same pairs, called RFT) and
+more than the same number of extra FedAvg SFT rounds (R4, R5)?
 
 Each round, per client: 400 of its questions (a new random subset per round),
 8 sampled SQL per question at T=0.7 (the earlier SQL-only DPO rounds), labels
-by execution against the client's own gold with the evaluator itself (60 s
-per query); only samples that end with EOS count. Up to 2 pairs per question,
-the most similar correct and wrong SQL first, no sample used twice; when no
-sample is correct, gold is the chosen side. 2 local epochs of LoRA DPO + NLL
-(beta 0.1, lr 1e-5, the earlier schedule), FedAvg weighted by pair count. The
-RFT arm trains on the same pairs with only the NLL term. Round 1 samples are
-shared by both arms; in round 2 each arm samples from its own round 1
-adapter.
+by execution against the client's own gold on its original database with the
+evaluator itself (60 s per query); only samples that end with EOS count. Up to
+2 pairs per question, the most similar correct and wrong SQL first, no sample
+used twice; when no sample is correct, gold is the chosen side. 2 local epochs
+of LoRA DPO + NLL (beta 0.1, lr 1e-5, the earlier schedule), FedAvg weighted by
+pair count. Round 1 samples are shared by both arms; in round 2 each arm
+samples from its own round 1 adapter.
 
 Tasks: the smoke (8 questions per client, its own output root); round 1
 sampling per client; one task per arm and round (pairs, local training,
-FedAvg; in round 2 also the sampling); one evaluation per arm on Spider dev
-and BIRD dev; the SFT round 4 control (same settings as the approved FedAvg
-run, warm-started from its R3 row) and its evaluation; `publish_r1` once
-round 1 is evaluated, `publish` at the end.
+FedAvg; in round 2 also the sampling); one evaluation per adapter on Spider
+test and BIRD dev; SFT rounds 4 and 5 (same settings as the approved FedAvg
+run; R5 starts from the committed R4 row, so `publish_sft_r4` runs between);
+`publish_r1` once round 1 is evaluated, `publish` at the end.
 
-Evaluation uses `scripts.eval_standard`: the contract of the FedAvg reference
-rows (zero-shot SQL-only prompt, greedy 256 tokens, batch 16), on Spider dev
-and BIRD dev. Spider test is not used.
+Evaluation uses `scripts.eval_standard --sets spider_test bird --allow-test`:
+the contract of the FedAvg reference rows (zero-shot SQL-only prompt, greedy
+256 tokens, batch 16).
 
-### Headroom check and CoT probe from FedAvg R3 (phase `cotprobe_s0`, 11 tasks)
+### Teacher headroom and CoT with teacher (phase `cotprobe_s0`, 15 tasks)
 
-What it tests (`DIRECTION.md` section 6.3, steps 0 and 1a):
+What it tests (`DIRECTION.md` section 6.3, steps 0 and 1):
 
 - How far the 7B teacher (4-bit, SQL-only, greedy) is above R3 on Spider
-  dev, and R3's sampled pass@8 there (K=8, T=0.7, the round-1 sampling). If
-  the teacher is less than about 4 points above R3, the KD options stop;
-  pass@8 minus greedy is the ceiling of client DPO/RFT.
-- Whether the 1.5B student can use query-plan CoT (`qp_cot_v1`), whether the
-  teacher's plans add anything over plans derived from the SQL, and whether
-  clients' gold-derived plans beat SQL-only.
+  test; R3 sampled pass@8 on Spider dev as a secondary diagnostic.
+- Whether teacher query-plan CoT (`qp_cot_v1`) at the server, followed by a
+  client round in the same format, beats the same chain without the teacher's
+  plans and the same chain in SQL-only.
 
-Arms, all from the R3 adapter, one pass each:
+Chains, all from the R3 adapter: a server SFT on the 4,109 BIRD rows, then one
+FedAvg client round on the clients' Spider rows (the approved FedAvg
+settings), then evaluation on Spider test.
 
-| Arm | Training | Eval mode |
-|---|---|---|
-| `cotprobe_srv_teacher` | server SFT on the 4,109 BIRD rows: teacher plan + teacher SQL | `qp_cot_v1` |
-| `cotprobe_srv_ast` | same rows: plan derived from the SQL + the same SQL | `qp_cot_v1` |
-| `cotprobe_srv_ce` | same rows: SQL only | SQL-only |
-| `cotprobe_t0` | one FedAvg round on the clients' Spider rows with plans derived from their gold SQL | `qp_cot_v1` |
+| Arm | Server stage | Client round | Eval mode |
+|---|---|---|---|
+| `cotprobe_t1_teacher` | teacher plan + teacher SQL | plan derived from gold + gold SQL | `qp_cot_v1` |
+| `cotprobe_t1_ast` | plan derived from the SQL + the same SQL | plan derived from gold + gold SQL | `qp_cot_v1` |
+| `cotprobe_t1_ce` | SQL only | SQL only | SQL-only |
+| `cotprobe_t0` | none | plan derived from gold + gold SQL | `qp_cot_v1` |
 
-The teacher SQL of these rows matches BIRD gold on execution, so the three
-server arms differ only in the plan. `cotprobe_t0` is compared with
-`fedpref_sft_r4`, the same round in SQL-only. Evaluation is Spider dev only;
-CoT evaluation uses 1,024 new tokens and strict parsing.
+`fedpref_sft_r4` (phase `fedpref_s0`) is the SQL-only arm without a server
+stage. The server stage rows are committed by `publish_srv` before the client
+rounds start (`--parent-stage` finds them by stage name); the server stages
+alone are not evaluated. CoT evaluation uses 1,024 new tokens and strict
+parsing, about 1.4-2.6 h per adapter on Spider test.
 `cotprobe_s0/publish` commits the results at the end.
 
 ### Priority order
 
-The teacher evaluation (about 15 min) runs next to the smoke. The DPO/RFT
-chain comes first, with round 1 evaluated before round 2 starts sampling;
-pass@8, the SFT round 4 control and the CoT probe fill whichever GPU has
-nothing ready on the chain. Estimated total: 25-30 GPU-hours, about 13-15 h
-on both cards.
-
-## Local, after publication: test-suite EX on Spider dev (CPU, Mac)
-
-Rescores every published dev prediction file against the official test-suite
-databases (`scripts/score_test_suite.py`); run by the agent after pulling.
+The teacher evaluation runs next to the smoke. The DPO/RFT chain comes first,
+with round 1 evaluated before round 2 starts sampling; the SFT controls and
+the CoT chains fill whichever GPU has nothing ready on the chain; `t0` and
+pass@8 come last. Estimated total: 40-45 GPU-hours, about 20-23 h on both
+cards.
