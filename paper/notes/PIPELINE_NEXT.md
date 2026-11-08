@@ -36,7 +36,7 @@ sleep to see the stop, rerun, and check that each reports `DONE queue`.
 ### Step 2: one worker per GPU, each in its own terminal
 
 The two commands differ only in the GPU digit. Without `--phase` a worker
-runs the full queue; add `--phase fedpref_s0` (or `cotprobe_s0`, or both) to
+runs the full queue; add `--phase fedcot_s0` (or `fedpref_s0`, or both) to
 run only those phases. A worker rereads the queue before every task, so
 tasks pushed later run after a pull without a restart. It prints `start` /
 `end` per task, the task's own progress lines prefixed `[gpu0 <task>]`, and a
@@ -71,8 +71,12 @@ Add `--phase <name>` to see one phase only.
   `first batch ... peak reserved` and `DPO smoke on the longest pair` lines
   stay under 21.5 GiB. The first-batch number also tells whether sampling can
   use more prompts per call in the next experiment.
-- `cotprobe_s0/srv_*` (BIRD-length rows): the `first optimizer update done
+- `fedcot_s0/srv` (BIRD-length rows): the `first optimizer update done
   ... peak reserved` line, about 20 GiB expected.
+- `fedcot_s0/smoke` (query plan sampling at 1,024 new tokens, then DPO on
+  plan + SQL pairs): the same two lines as the SQL-only smoke, and the
+  sampling time per question, which sets `--questions-per-client` for the
+  query-plan DPO rounds (200 now).
 - Evaluations print `first batch ... peak reserved`, then a line a minute
   with EX, EM and execution errors so far; sampling prints sample accuracy
   and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
@@ -80,71 +84,62 @@ Add `--phase <name>` to see one phase only.
 
 ## Queue content
 
-Spider numbers are Spider test (2,147 rows, owner 2026-11-07); Spider dev
-appears only as a secondary diagnostic. Every arm runs one seed (seed 0): this
-is a signal round. Reference rows on Spider test (owner-approved reuse, run
-`p227_fl_aaa_s0`): FedAvg R3 71.50, same contract (batch 16, greedy 256).
+Spider numbers are Spider test (2,147 rows, owner 2026-11-07); Spider dev is
+not evaluated. One seed (seed 0). Reference on Spider test (owner-approved
+reuse, run `p227_fl_aaa_s0`): FedAvg R3 71.50, same contract (batch 16, greedy
+256).
 
-### Federated DPO + NLL from FedAvg R3 (phase `fedpref_s0`, 21 tasks)
+The code in this push changes `experiments/federated_pref/run.py` and
+`fedicl_sql/preference/`, which every `fedpref_s0` and `fedcot_s0` DPO task
+loads. Nothing has run yet: pull and run Step 0 before starting the workers.
 
-What it tests: starting from the FedAvg R3 adapter, does one or two rounds of
-federated on-policy DPO + NLL raise Spider test EX, and by more than the same
-rounds with the DPO term removed (NLL-only on the same pairs, called RFT) and
-more than the same number of extra FedAvg SFT rounds (R4, R5)?
+### Full pipeline (phase `fedcot_s0`, 26 tasks)
 
-Each round, per client: 400 of its questions (a new random subset per round),
-8 sampled SQL per question at T=0.7 (the earlier SQL-only DPO rounds), labels
-by execution against the client's own gold on its original database with the
-evaluator itself (60 s per query); only samples that end with EOS count. Up to
-2 pairs per question, the most similar correct and wrong SQL first, no sample
-used twice; when no sample is correct, gold is the chosen side. 2 local epochs
-of LoRA DPO + NLL (beta 0.1, lr 1e-5, the earlier schedule), FedAvg weighted by
-pair count. Round 1 samples are shared by both arms; in round 2 each arm
-samples from its own round 1 adapter.
+What it measures: Spider test EX of the whole method, with a reading after
+each stage so the later stages can be changed from the signal.
 
-Tasks: the smoke (8 questions per client, its own output root); round 1
-sampling per client; one task per arm and round (pairs, local training,
-FedAvg; in round 2 also the sampling); one evaluation per adapter on Spider
-test and BIRD dev; SFT rounds 4 and 5 (same settings as the approved FedAvg
-run; R5 starts from the committed R4 row, so `publish_sft_r4` runs between);
-`publish_r1` once round 1 is evaluated, `publish` at the end.
+| Step | Where | Data | Target | Task | Eval |
+|---|---|---|---|---|---|
+| 0 | server, from the base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | `srv` | Spider test, lowest priority |
+| 1-3 | 5 clients, FedAvg, 1 local epoch each | each client's Spider rows | plan derived from the gold SQL + gold SQL | `c1`, `c2`, `c3` | after `c3` |
+| 4-5 | 5 clients, federated DPO + NLL | 200 questions per client per round | the client's own 8 sampled plan + SQL, labelled by execution | `dpo_r1`, `dpo_r2` | after each round; BIRD dev too after round 2 |
 
-Evaluation uses `scripts.eval_standard --sets spider_test bird --allow-test`:
-the contract of the FedAvg reference rows (zero-shot SQL-only prompt, greedy
-256 tokens, batch 16).
+- Every step uses the same query-plan prompt (`qp_cot_v1`): server SFT,
+  client SFT, sampling, evaluation (1,024 new tokens, strict parsing; an
+  output that does not parse scores 0).
+- DPO pairs: the most similar correct and wrong sampled outputs; a sample
+  that does not parse counts as wrong; when no sample is correct, the
+  chosen side is the plan derived from gold + gold SQL. Settings as the
+  SQL-only rounds (beta 0.1, lr 1e-5, 2 epochs, FedAvg by pair count).
+- Step 0 starts from the base model, not from FedAvg R3, so the student
+  learns the plan format before any federated round, and the five client
+  rounds match FedAvg R5 and SQL-only DPO R2 (3 + 2 rounds).
+- Each stage row is committed (`publish_*`) before the next stage starts,
+  because a stage starts only from a committed row.
 
-### Teacher headroom and CoT with teacher (phase `cotprobe_s0`, 15 tasks)
+### SQL-only baselines (phase `fedpref_s0`, 17 tasks)
 
-What it tests (`DIRECTION.md` section 6.3, steps 0 and 1):
+- FedAvg SFT rounds 4 and 5 from R3 (`sft_r4`, `sft_r5`): the federated
+  baseline with five client rounds.
+- Federated DPO + NLL from R3, rounds 1-2 (`dpo_r1`, `dpo_r2`): 400 questions
+  per client, 8 sampled SQL at T=0.7, labels by execution on the client's
+  database, the same pair rule and DPO settings as above.
+- Every adapter evaluated on Spider test and BIRD dev
+  (`scripts.eval_standard --sets spider_test bird --allow-test`).
 
-- How far the 7B teacher (4-bit, SQL-only, greedy) is above R3 on Spider
-  test; R3 sampled pass@8 on Spider dev as a secondary diagnostic.
-- Whether teacher query-plan CoT (`qp_cot_v1`) at the server, followed by a
-  client round in the same format, beats the same chain without the teacher's
-  plans and the same chain in SQL-only.
+### Final table (Spider test)
 
-Chains, all from the R3 adapter: a server SFT on the 4,109 BIRD rows, then one
-FedAvg client round on the clients' Spider rows (the approved FedAvg
-settings), then evaluation on Spider test.
+| Row | Client rounds | Source |
+|---|---|---|
+| FedAvg R3 | 3 SFT | reference, 71.50 |
+| FedAvg R5 | 5 SFT | `fedpref_sft_r5` |
+| SQL-only DPO R2 | 3 SFT + 2 DPO | `fedpref_dpo_r2` |
+| fedcot after client SFT | server + 3 SFT | `fedcot_c3` |
+| fedcot full | server + 3 SFT + 2 DPO | `fedcot_dpo_r2` |
 
-| Arm | Server stage | Client round | Eval mode |
-|---|---|---|---|
-| `cotprobe_t1_teacher` | teacher plan + teacher SQL | plan derived from gold + gold SQL | `qp_cot_v1` |
-| `cotprobe_t1_ast` | plan derived from the SQL + the same SQL | plan derived from gold + gold SQL | `qp_cot_v1` |
-| `cotprobe_t1_ce` | SQL only | SQL only | SQL-only |
-| `cotprobe_t0` | none | plan derived from gold + gold SQL | `qp_cot_v1` |
+### Priority and time
 
-`fedpref_sft_r4` (phase `fedpref_s0`) is the SQL-only arm without a server
-stage. The server stage rows are committed by `publish_srv` before the client
-rounds start (`--parent-stage` finds them by stage name); the server stages
-alone are not evaluated. CoT evaluation uses 1,024 new tokens and strict
-parsing, about 1.4-2.6 h per adapter on Spider test.
-`cotprobe_s0/publish` commits the results at the end.
-
-### Priority order
-
-The teacher evaluation runs next to the smoke. The DPO/RFT chain comes first,
-with round 1 evaluated before round 2 starts sampling; the SFT controls and
-the CoT chains fill whichever GPU has nothing ready on the chain; `t0` and
-pass@8 come last. Estimated total: 40-45 GPU-hours, about 20-23 h on both
-cards.
+The two smokes run first, then the `fedcot_s0` chain (the longest path),
+then the SQL-only tasks fill the other GPU. Estimate: fedcot about 30-35
+GPU-h (query-plan sampling is the large unknown, measured by its smoke),
+fedpref about 16 GPU-h; about 24-30 h on both cards.

@@ -3,6 +3,21 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-08: full CoT pipeline queued, probe ablations dropped
+
+No run. Owner decision: measure the whole method first and adjust from its
+signals. Queue (`PIPELINE_NEXT.md`, phase `fedcot_s0`): server SFT from the
+base model on the 4,109 teacher-plan BIRD rows, three FedAvg client rounds on
+plans derived from gold SQL, two rounds of federated DPO + NLL on the
+clients' own sampled plan + SQL (200 questions per client), Spider test after
+round 3 and each DPO round. Dropped: the CoT probe arms, the RFT arm, teacher
+headroom and pass@8. Kept as baselines: FedAvg R4-R5 and SQL-only DPO R1-R2
+from R3. The pipeline starts from the base model rather than R3 so that the
+plan format comes before any federated round and the client rounds match the
+baselines (five). New code (nested repo): `--response-format qp_cot_v1` and
+`--parent-stage` in `experiments/federated_pref/run.py`; unparsed samples are
+rejected as format errors, the gold fallback is the derived plan + gold SQL.
+
 ## 2026-11-07: Spider test becomes the Spider metric; queue revised after a review
 
 No run. Owner decisions: every Spider number is Spider test from now on;

@@ -53,8 +53,8 @@ Nothing measured since the fresh start.
 
 ## 5. Current phase
 
-Verifying Direction 1 (`DIRECTION.md`): federated on-policy DPO + NLL from the
-owner-approved FedAvg SFT reference (`LAB_LOG.md`, 2026-11-06). Commands in
+Running the full CoT-with-teacher pipeline (`DIRECTION.md` section 6.3, step
+1): server teacher-plan SFT, three query-plan client rounds, two query-plan
+DPO rounds, one seed. Baselines in the same queue: FedAvg R4-R5 and SQL-only
+federated DPO from the owner-approved FedAvg R3. Commands in
 `PIPELINE_NEXT.md`.
-Queued next: headroom check and CoT probe (`DIRECTION.md` section 6.3,
-`PIPELINE_NEXT.md` queue 2).

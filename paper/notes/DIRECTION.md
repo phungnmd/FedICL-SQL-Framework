@@ -215,42 +215,35 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
 
 ### 6.3 Thứ tự
 
-**Bước 0. Kiểm khoảng trống (khoảng 2-3 GPU-h, chạy cùng round 1; đã xếp
-lệnh: `PIPELINE_NEXT.md`, phase `cotprobe_s0`).**
-- Teacher 4-bit greedy trên Spider test với prompt của project: khoảng 0.5 h.
-  So với R3 71.50 trên Spider test.
-- R3 pass@8 trên Spider dev, T=0.7 (chỉ số phụ, so với R3 greedy dev 67.60):
-  khoảng 1-2.4 h.
+**Bước 1. Chạy đủ pipeline CoT có teacher, một seed (owner, 2026-11-08; đã
+xếp lệnh: `PIPELINE_NEXT.md`, phase `fedcot_s0`).** Owner bỏ các ablation
+của probe cũ (plan teacher so với plan sinh từ SQL, SQL-only ở server, t0),
+headroom teacher và pass@8: trước hết cần số EX của cả pipeline, các bước sau
+chỉnh theo tín hiệu.
 
-**Bước 1. Probe CoT có teacher: bước server rồi một vòng client (khoảng 20
-GPU-h, một seed, đã xếp lệnh: phase `cotprobe_s0`).** Thiết kế CoT ở mục 6.5.
-Mọi chain xuất phát từ R3; vòng client giống vòng SFT FedAvg đã duyệt, chỉ đổi
-format; eval greedy Spider test batch 16.
-
-| Arm | Server (4,109 câu BIRD) | Vòng client (Spider) | Eval |
+| Bước | Ở đâu | Dữ liệu | Target |
 |---|---|---|---|
-| `cotprobe_t1_teacher` | plan teacher + SQL | plan sinh từ gold + SQL | CoT |
-| `cotprobe_t1_ast` | plan sinh từ SQL + cùng SQL | plan sinh từ gold + SQL | CoT |
-| `cotprobe_t1_ce` | chỉ SQL | chỉ SQL | SQL-only |
-| `cotprobe_t0` | không có | plan sinh từ gold + SQL | CoT |
-| `fedpref_sft_r4` | không có | chỉ SQL | SQL-only |
+| 0 | server, từ base model | 4,109 câu BIRD | plan teacher + SQL |
+| 1-3 | 5 client, FedAvg | Spider của từng client | plan sinh từ gold + gold SQL |
+| 4-5 | 5 client, DPO + NLL | 200 câu mỗi client mỗi vòng | plan + SQL do student tự sample, nhãn bằng execution; fallback là plan sinh từ gold |
 
-SQL teacher của 4,109 câu khớp gold BIRD khi chạy, nên ba bước server chỉ
-khác nhau ở plan. Bước server một mình không được eval: một lần SFT trên BIRD
-từ R3 đo cả việc quên Spider lẫn việc học format, nên chỉ đọc sau vòng client.
+Xuất phát từ base model, không từ R3: student học format plan trước mọi vòng
+federated (đúng ý tưởng ban đầu của owner), và 5 vòng client khớp số vòng
+của FedAvg R5 và SQL-only DPO R2 (3 + 2). Eval Spider test sau bước 0 (ưu tiên
+thấp nhất), sau vòng 3 và sau mỗi vòng DPO.
 
-Đọc kết quả:
+Đọc tín hiệu:
 
-- `t1_teacher` trừ `t1_ast`: phần đóng góp riêng của plan teacher.
-- `t1_ast` trừ `t1_ce`: lợi ích của format CoT khi server và client cùng dữ
-  liệu.
-- `t1_ce` trừ `sft_r4`: bước server SQL-only trên BIRD giúp hay hại Spider.
-- `t0` trừ `sft_r4`: CoT ở client khi không có bước server.
-- Tỉ lệ output đúng format và độ dài output đọc cùng EX.
+- `fedcot_c3` so với FedAvg R3 (71.50): CoT sau SFT thường còn thua SQL-only
+  (Liu et al., ExCoT), nên chưa kết luận ở đây; đọc tỉ lệ output đúng format.
+- `fedcot_dpo_r1`, `fedcot_dpo_r2` so với `fedcot_c3`: phần DPO mang lại.
+- `fedcot_dpo_r2` so với `fedpref_sft_r5` và `fedpref_dpo_r2`: cả method so
+  với baseline cùng 5 vòng client.
+- Smoke CoT đo thời gian sample mỗi câu; số câu mỗi client có thể đổi trước
+  vòng DPO 1.
 
-Bước tiếp theo nếu CoT có teacher không thua rõ SQL: một vòng CoT-DPO ở client
-từ `t1_teacher` (cần code sample CoT trong `federated_pref`), vì ở ExCoT và
-Liu et al. phần lợi của CoT chỉ xuất hiện sau DPO bằng execution.
+Câu reviewer chắc chắn hỏi sau khi có số: phần lợi đến từ CoT hay từ dữ liệu
+BIRD ở server (cần một chain SQL-only có cùng bước server).
 
 **Bước 2. Probe KD trên SynSQL (khoảng 15-18 GPU-h, chỉ khi bước 0 qua).**
 - Mọi arm xuất phát từ R3, cùng 3k câu SynSQL:
@@ -386,6 +379,8 @@ hai card.
   adapter FedAvg SFT `p227_fl_aaa_s0` (R3) làm baseline và điểm xuất phát.
 - 2026-11-07: thêm phần server vào hướng nghiên cứu; dữ liệu server có thể là
   BIRD hoặc SynSQL.
+- 2026-11-08: chạy đủ pipeline CoT có teacher trước (mục 6.3 bước 1), bỏ các
+  ablation của probe CoT; giữ SQL-only DPO và FedAvg R4-R5 làm baseline.
 
 Tên cũ trong bản trước: Hướng 1 = C1; Hướng 2 ≈ S5; Hướng 3 ≈ S3 (có thêm
 chosen từ teacher); Hướng 4 ≈ S2 (chưa có cổng); cách đặt A, B, C = song song,
