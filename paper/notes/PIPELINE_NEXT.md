@@ -71,12 +71,12 @@ Add `--phase <name>` to see one phase only.
   `first batch ... peak reserved` and `DPO smoke on the longest pair` lines
   stay under 21.5 GiB. The first-batch number also tells whether sampling can
   use more prompts per call in the next experiment.
-- `fedcot_s0/srv` (BIRD-length rows): the `first optimizer update done
+- `fedcot_s0/srv_e1` (BIRD-length rows): the `first optimizer update done
   ... peak reserved` line, about 20 GiB expected.
 - `fedcot_s0/smoke` (query plan sampling at 1,024 new tokens, then DPO on
   plan + SQL pairs): the same two lines as the SQL-only smoke, and the
   sampling time per question, which sets `--questions-per-client` for the
-  query-plan DPO rounds (200 now).
+  query-plan DPO rounds (200 planned).
 - Evaluations print `first batch ... peak reserved`, then a line a minute
   with EX, EM and execution errors so far; sampling prints sample accuracy
   and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
@@ -85,61 +85,71 @@ Add `--phase <name>` to see one phase only.
 ## Queue content
 
 Spider numbers are Spider test (2,147 rows, owner 2026-11-07); Spider dev is
-not evaluated. One seed (seed 0). Reference on Spider test (owner-approved
-reuse, run `p227_fl_aaa_s0`): FedAvg R3 71.50, same contract (batch 16, greedy
-256).
+not evaluated. One seed (seed 0). Every line is run as a curve: each stage is
+evaluated on Spider test, and the next stage starts from the best checkpoint
+so far. Choices are made on Spider test, so its numbers are reported as
+"chosen on Spider test", never as held-out. Reference (owner-approved reuse,
+run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
+16, greedy 256).
 
-The code in this push changes `experiments/federated_pref/run.py` and
-`fedicl_sql/preference/`, which every `fedpref_s0` and `fedcot_s0` DPO task
-loads. Nothing has run yet: pull and run Step 0 before starting the workers.
+### Stopping rule (the same for every line)
 
-### Full pipeline (phase `fedcot_s0`, 26 tasks)
+- A step counts as a gain only if Spider test EX rises by more than 1 point
+  (one seed: two adapters on the same questions differ by about 0.5-0.7
+  points from noise alone).
+- Stop a stage after 2 steps in a row without a gain, or at its maximum:
+  server 3 epochs, client SFT 5 rounds, DPO 4 rounds.
+- The next stage starts from the best checkpoint of the stage; a tie within
+  1 point goes to the cheaper one (fewer epochs or rounds).
+- The queue cannot branch, so each decision is a queue edit after the
+  numbers are in; the SQL-only tasks keep the GPU busy meanwhile.
 
-What it measures: Spider test EX of the whole method, with a reading after
-each stage so the later stages can be changed from the signal.
+### Full pipeline (phase `fedcot_s0`)
 
-| Step | Where | Data | Target | Task | Eval |
-|---|---|---|---|---|---|
-| 0 | server, from the base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | `srv` | Spider test, lowest priority |
-| 1-3 | 5 clients, FedAvg, 1 local epoch each | each client's Spider rows | plan derived from the gold SQL + gold SQL | `c1`, `c2`, `c3` | after `c3` |
-| 4-5 | 5 clients, federated DPO + NLL | 200 questions per client per round | the client's own 8 sampled plan + SQL, labelled by execution | `dpo_r1`, `dpo_r2` | after each round; BIRD dev too after round 2 |
+| Step | Where | Data | Target | Now in the queue |
+|---|---|---|---|---|
+| server | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | 1 and 2 epochs (`srv_e1`, `srv_e2`), each a full run with its own cosine schedule, both evaluated |
+| client SFT | 5 clients, FedAvg, 1 local epoch per round | each client's Spider rows | plan derived from the gold SQL + gold SQL | queued after the server choice |
+| DPO + NLL | 5 clients, FedAvg by pair count | 200 questions per client per round | the client's own 8 sampled plan + SQL, labelled by execution | queued after the client SFT choice |
 
-- Every step uses the same query-plan prompt (`qp_cot_v1`): server SFT,
-  client SFT, sampling, evaluation (1,024 new tokens, strict parsing; an
-  output that does not parse scores 0).
-- DPO pairs: the most similar correct and wrong sampled outputs; a sample
-  that does not parse counts as wrong; when no sample is correct, the
-  chosen side is the plan derived from gold + gold SQL. Settings as the
-  SQL-only rounds (beta 0.1, lr 1e-5, 2 epochs, FedAvg by pair count).
-- Step 0 starts from the base model, not from FedAvg R3, so the student
-  learns the plan format before any federated round, and the five client
-  rounds match FedAvg R5 and SQL-only DPO R2 (3 + 2 rounds).
-- Each stage row is committed (`publish_*`) before the next stage starts,
-  because a stage starts only from a committed row.
+- One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
+  evaluation (1,024 new tokens, strict parsing; an output that does not parse
+  scores 0).
+- DPO pairs: the most similar correct and wrong sampled outputs; an output
+  that does not parse counts as wrong; when no sample is correct, the chosen
+  side is the plan derived from gold + gold SQL. Settings as the SQL-only
+  rounds (beta 0.1, lr 1e-5, 2 local epochs).
+- The server step starts from the base model, so the plan format comes
+  before any federated round.
+- `fedcot_s0/smoke` (from the 1-epoch server stage) tests the query-plan DPO
+  path and measures sampling time before the DPO rounds are queued.
+- Decision 1, after `publish_srv_eval`: 2 epochs better by more than 1 point
+  queues a 3-epoch run; otherwise the client rounds start from the better
+  of the two.
 
 ### SQL-only baselines (phase `fedpref_s0`, 17 tasks)
 
-- FedAvg SFT rounds 4 and 5 from R3 (`sft_r4`, `sft_r5`): the federated
-  baseline with five client rounds.
-- Federated DPO + NLL from R3, rounds 1-2 (`dpo_r1`, `dpo_r2`): 400 questions
+- FedAvg curve: rounds 1-2 of the approved run evaluated now
+  (`fedavg_r1_eval`, `fedavg_r2_eval`), round 3 is the reference, rounds 4-5
+  trained and evaluated (`sft_r4`, `sft_r5`).
+- Federated DPO + NLL from R3, rounds 1-2 (`dpo_r1`, `dpo_r2`), 400 questions
   per client, 8 sampled SQL at T=0.7, labels by execution on the client's
-  database, the same pair rule and DPO settings as above.
+  database; rounds 3-4 follow the stopping rule.
 - Every adapter evaluated on Spider test and BIRD dev
   (`scripts.eval_standard --sets spider_test bird --allow-test`).
 
-### Final table (Spider test)
+### Final table (Spider test, best checkpoint of each line by the rule)
 
-| Row | Client rounds | Source |
-|---|---|---|
-| FedAvg R3 | 3 SFT | reference, 71.50 |
-| FedAvg R5 | 5 SFT | `fedpref_sft_r5` |
-| SQL-only DPO R2 | 3 SFT + 2 DPO | `fedpref_dpo_r2` |
-| fedcot after client SFT | server + 3 SFT | `fedcot_c3` |
-| fedcot full | server + 3 SFT + 2 DPO | `fedcot_dpo_r2` |
+| Row | Line |
+|---|---|
+| FedAvg | best of R1-R5 |
+| SQL-only DPO | best round, from R3 |
+| fedcot after client SFT | best client round |
+| fedcot full | best DPO round |
 
-### Priority and time
+### Order on one GPU
 
-The two smokes run first, then the `fedcot_s0` chain (the longest path),
-then the SQL-only tasks fill the other GPU. Estimate: fedcot about 30-35
-GPU-h (query-plan sampling is the large unknown, measured by its smoke),
-fedpref about 16 GPU-h; about 24-30 h on both cards.
+SQL-only smoke (15 min), `srv_e1` (about 1.3 h), `srv_e2` (about 2.6 h),
+the query-plan smoke, the two server evaluations (about 1.4-2.6 h each):
+decision 1 after about 8-9 h. The SQL-only tasks (about 18-20 GPU-h) run
+while the decision is made. A worker on a second GPU can join at any time.

@@ -3,6 +3,15 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-08: every line run as a curve on Spider test
+
+No run. Owner decision: evaluate each stage on Spider test and continue from
+the best checkpoint (stop after 2 steps without a gain of more than 1 point;
+maxima: server 3 epochs, client SFT 5 rounds, DPO 4 rounds), the same rule for
+the baselines. Queue now holds the server epoch choice (1 and 2 epochs, full
+runs) and FedAvg R1-R2 evaluations; the client rounds and the query-plan DPO
+rounds are queued after each decision.
+
 ## 2026-11-08: full CoT pipeline queued, probe ablations dropped
 
 No run. Owner decision: measure the whole method first and adjust from its

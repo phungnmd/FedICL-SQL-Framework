@@ -215,32 +215,29 @@ SFT tập trung 3.8 điểm (67.60 so với 71.37).
 
 ### 6.3 Thứ tự
 
-**Bước 1. Chạy đủ pipeline CoT có teacher, một seed (owner, 2026-11-08; đã
-xếp lệnh: `PIPELINE_NEXT.md`, phase `fedcot_s0`).** Owner bỏ các ablation
-của probe cũ (plan teacher so với plan sinh từ SQL, SQL-only ở server, t0),
-headroom teacher và pass@8: trước hết cần số EX của cả pipeline, các bước sau
-chỉnh theo tín hiệu.
+**Bước 1. Chạy đủ pipeline CoT có teacher theo đường cong, một seed (owner,
+2026-11-08; lệnh: `PIPELINE_NEXT.md`, phase `fedcot_s0`).** Owner bỏ các
+ablation của probe cũ, headroom teacher và pass@8.
 
-| Bước | Ở đâu | Dữ liệu | Target |
-|---|---|---|---|
-| 0 | server, từ base model | 4,109 câu BIRD | plan teacher + SQL |
-| 1-3 | 5 client, FedAvg | Spider của từng client | plan sinh từ gold + gold SQL |
-| 4-5 | 5 client, DPO + NLL | 200 câu mỗi client mỗi vòng | plan + SQL do student tự sample, nhãn bằng execution; fallback là plan sinh từ gold |
+| Giai đoạn | Ở đâu | Dữ liệu | Target | Tối đa |
+|---|---|---|---|---|
+| server | từ base model | 4,109 câu BIRD | plan teacher + SQL | 3 epoch |
+| client SFT | 5 client, FedAvg | Spider của từng client | plan sinh từ gold + gold SQL | 5 vòng |
+| DPO + NLL | 5 client | 200 câu mỗi client mỗi vòng | plan + SQL student tự sample, nhãn bằng execution; fallback là plan sinh từ gold | 4 vòng |
 
-Xuất phát từ base model, không từ R3: student học format plan trước mọi vòng
-federated (đúng ý tưởng ban đầu của owner), và 5 vòng client khớp số vòng
-của FedAvg R5 và SQL-only DPO R2 (3 + 2). Eval Spider test sau bước 0 (ưu tiên
-thấp nhất), sau vòng 3 và sau mỗi vòng DPO.
+Mỗi bước eval Spider test; giai đoạn sau đi tiếp từ checkpoint tốt nhất.
+Dừng một giai đoạn khi 2 bước liền không tăng quá 1 điểm, hoặc chạm tối đa;
+hoà trong 1 điểm thì chọn bản rẻ hơn. Baseline theo cùng luật: FedAvg tốt
+nhất trong R1-R5, SQL-only DPO tốt nhất qua các vòng. Chọn trên Spider test
+(owner chọn, 2026-11-08), nên số được ghi là "chọn trên Spider test".
 
-Đọc tín hiệu:
-
-- `fedcot_c3` so với FedAvg R3 (71.50): CoT sau SFT thường còn thua SQL-only
-  (Liu et al., ExCoT), nên chưa kết luận ở đây; đọc tỉ lệ output đúng format.
-- `fedcot_dpo_r1`, `fedcot_dpo_r2` so với `fedcot_c3`: phần DPO mang lại.
-- `fedcot_dpo_r2` so với `fedpref_sft_r5` và `fedpref_dpo_r2`: cả method so
-  với baseline cùng 5 vòng client.
-- Smoke CoT đo thời gian sample mỗi câu; số câu mỗi client có thể đổi trước
-  vòng DPO 1.
+Căn cứ của các mặc định: số epoch server, số vòng SFT và DPO không có số
+nào từ literature cho setup này; chúng được đo bằng đường cong. SFT trước
+DPO theo Liu et al., ExCoT, ReFT; Iterative RPO không có bước SFT riêng
+(term NLL đóng vai SFT), nên DPO ngay sau server là một phương án hợp lệ nếu
+đường cong SFT phẳng sớm. Plan sinh từ gold bằng template được chọn vì rẻ
+(client không có teacher); paper gần nhất là Struct-SQL, dựng CoT từ
+execution plan của SQL đã kiểm, còn template thuần chưa có paper nào đo.
 
 Câu reviewer chắc chắn hỏi sau khi có số: phần lợi đến từ CoT hay từ dữ liệu
 BIRD ở server (cần một chain SQL-only có cùng bước server).
@@ -380,7 +377,8 @@ hai card.
 - 2026-11-07: thêm phần server vào hướng nghiên cứu; dữ liệu server có thể là
   BIRD hoặc SynSQL.
 - 2026-11-08: chạy đủ pipeline CoT có teacher trước (mục 6.3 bước 1), bỏ các
-  ablation của probe CoT; giữ SQL-only DPO và FedAvg R4-R5 làm baseline.
+  ablation của probe CoT; giữ SQL-only DPO và FedAvg làm baseline. Mọi line
+  chạy theo đường cong, chọn checkpoint trên Spider test.
 
 Tên cũ trong bản trước: Hướng 1 = C1; Hướng 2 ≈ S5; Hướng 3 ≈ S3 (có thêm
 chosen từ teacher); Hướng 4 ≈ S2 (chưa có cổng); cách đặt A, B, C = song song,
