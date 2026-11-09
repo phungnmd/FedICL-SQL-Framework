@@ -3,6 +3,29 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: server epochs and Spider EX in the archive
+
+Owner question: more server epochs on teacher plans may not raise Spider
+test EX; read the archived curves for this (Spider dev, pre-restart).
+
+- SQL-only on BIRD gold barely moves Spider at the server stage: base 59.19,
+  one cosine over E1 / E2 / E3 49.13 / 58.80 / 58.22; separate K1 / K2 runs
+  58.70 and 59.09. Yet gold K2 then three FedAvg rounds reached 70.41 against
+  67.60 for FedAvg alone, and K2 halved Spider execution errors (24.5 to 11).
+  The server stage helps through what the client rounds build on, not
+  through its own Spider EX.
+- Teacher CoT on 1,266 BIRD rows (one 4-epoch cosine) rose every epoch:
+  54.64, 55.90, 59.57, 60.64.
+- A higher server-stage Spider EX did not give the better start: `cot1_e4`
+  60.64 above `sql1_e2` 58.80, but SQL SFT on Spider from them gave 70.21 and
+  73.60 (output format differs, so not a clean test).
+
+Reading for the server curve: the rule keeps the earliest epoch unless a
+later one gains more than 0.5 point, and stops after 2 epochs without a gain,
+so a flat curve costs 2 extra epochs (about 2.5 h) and ends at the earliest
+epoch. What the archive questions is the selector itself: server-stage
+Spider EX ranked starts poorly for the later stages. Rule unchanged for now.
+
 ## 2026-11-09: vLLM reruns differ in the default mode
 
 `vllm_s0`: FedAvg R3 on Spider test, HF 71.50, vLLM 71.45 (`check_sql`
@@ -11,10 +34,11 @@ the same SQL on 2,009 of 2,147 rows (93.6%); `check_rerun` (0.2 point)
 stopped the queue. Cause: vLLM's engine core runs in its own process by
 default, so batch composition depends on timing. Change: evaluations run
 with the engine core in-process (`--vllm-determinism inproc`), which vLLM
-documents as deterministic scheduling for offline runs; the new checks
-require identical SQL on a rerun and 0.5 point of HF. If the LoRA kernels
-still differ run to run, the next option is vLLM batch invariance. Reports
-in `audits/protocol_v2/vllm_eval_check_s0/` on the server (not committed).
+documents as deterministic scheduling for offline runs. Owner: no rerun
+check of the fixed mode; the queue goes straight to the main pipeline. The
+`inproc` mode is therefore not verified to be repeatable on this server;
+vLLM batch invariance is the fallback if a rerun ever differs. Reports in
+`audits/protocol_v2/vllm_eval_check_s0/` on the server (not committed).
 
 ## 2026-11-09: client rows need gradient checkpointing
 

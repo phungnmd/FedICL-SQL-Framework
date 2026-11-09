@@ -80,16 +80,13 @@ SQL on 138 of 2,147 rows: the engine core runs in its own process, so how
 requests are grouped into batches depends on timing. The curves therefore
 use `--vllm-determinism inproc` (engine core in the same process, so
 scheduling is deterministic, vLLM's documented setting for reproducible
-offline runs). `vllm_s0` checks it; a check stops the worker when it fails:
+offline runs). The checks against HF use the runs already made:
 
 | Check | Compared | Stops when |
 |---|---|---|
-| `check_sql` (done) | FedAvg R3, HF row `p253ref_fl_a3` (71.50) and vLLM default | EX differs by more than 0.5 (71.45: passed) |
-| `check_rerun` | FedAvg R3, vLLM default, twice | report only |
-| `check_cot_default` | 1-epoch server stage (plan + SQL), HF and vLLM default | report only |
-| `check_rerun_inproc` | FedAvg R3, vLLM inproc, twice | any row with a different SQL |
-| `check_sql_inproc` | FedAvg R3, HF and vLLM inproc | EX differs by more than 0.5 |
-| `check_cot` | 1-epoch server stage, HF and vLLM inproc | EX differs by more than 0.5 |
+| `check_sql` (done) | FedAvg R3, HF row `p253ref_fl_a3` (71.50) and vLLM | EX differs by more than 0.5 (71.45: passed) |
+| `check_rerun` | FedAvg R3 with vLLM default, twice | report only |
+| `check_cot` | 1-epoch server stage (plan + SQL), HF and vLLM | EX differs by more than 0.5 |
 
 The reports (agreement, discordant rows) go to
 `audits/protocol_v2/vllm_eval_check_s0/`. Every fedcot number of the curves
@@ -119,12 +116,11 @@ command changed, so it runs again, about 1.5 min). The finished
 
 ### Code pushed 2026-11-09: deterministic vLLM evaluation
 
-`fedicl-sql` fb0c33b8 adds `--vllm-determinism` and the `vllm_s0` tasks
-above; the curve evaluations use `inproc`. Nothing was running (the worker
-stopped at `check_rerun`), so pull, then start the worker again: it retries
-`check_rerun` (now a report), runs the two inproc SQL evaluations (about
-3 min each), the inproc plan + SQL evaluation, the checks, then the curves.
-DPO sampling keeps vLLM's default mode.
+`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; the next push keeps only
+the checks above and names the curve evaluations `..._vllm_inproc`. Nothing
+was running (the worker stopped at `check_rerun`): pull, then start the
+worker; it reruns `check_rerun` as a report, runs `check_cot`, publishes, and
+starts the curves. DPO sampling keeps vLLM's default mode.
 
 ### Status (read-only, any time, second terminal)
 
@@ -230,8 +226,7 @@ round).
 ### Order on GPU 0
 
 1. `fedcot_s0/smoke`, `fedcot_s0/client_probe` (minutes each).
-2. `vllm_s0`: FedAvg R3 with vLLM twice in each mode, the 1-epoch server
-   stage with HF and with vLLM in each mode, the checks, publish.
+2. `vllm_s0`: the three checks (seconds), publish.
 3. `curve_server`: epoch 1 is done (1.14 h); each further epoch about 1.1 h
    plus a vLLM evaluation (at most 7 more epochs, about 9 h).
 4. `curve_client`, then `curve_dpo`; their step times are measured by the
