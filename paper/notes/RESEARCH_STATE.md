@@ -56,5 +56,6 @@ Nothing measured since the fresh start.
 Running the full CoT-with-teacher pipeline (`DIRECTION.md` section 6.3, step
 1) as a curve from the base model: server teacher-plan SFT (up to 5 epochs, chained one epoch at a time),
 query-plan client rounds (up to 5), full-data query-plan DPO rounds (up to
-4), one seed, on GPU 0. The baselines (FedAvg R1-R5, SQL-only federated DPO)
-follow after it. Commands in `PIPELINE_NEXT.md`.
+4), one seed, on GPU 0, each line stopped automatically by the rule and
+evaluated with vLLM once it matches HF. The baselines (FedAvg R1-R5, SQL-only
+federated DPO) follow after it, evaluated the same way. Commands in `PIPELINE_NEXT.md`.

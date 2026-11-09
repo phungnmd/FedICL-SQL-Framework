@@ -3,6 +3,18 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: faster pipeline (code, for the next phase)
+
+Decisions (owner: "cập nhật hết"): evaluation moves to vLLM after a check
+against HF; the stopping rule runs by itself; client rounds and DPO rounds
+drop gradient checkpointing after a memory probe; DPO scores chosen and
+rejected in one pass. Code: `scripts.eval_standard --engine vllm`,
+`scripts/compare_predictions.py`, `scripts/curve.py` with three curves in the
+queue (server, client, DPO), `train_length_probe.py --modes gc nogc`,
+`--pair-batch`. Checks before the curves rely on vLLM: FedAvg R3 HF against
+vLLM (stop above 0.5 points), vLLM twice (0.2), the 1-epoch server stage HF
+against vLLM (0.5). Not run yet; all 583 local tests pass.
+
 ## 2026-11-09: server stage, epoch 1 trained
 
 `fedcot_s0/srv_e1` (result row `federated_stage__Kqp-teacher__s0__6f4cfd89be89__48f1b96e`,
