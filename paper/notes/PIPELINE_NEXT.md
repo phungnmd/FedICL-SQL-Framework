@@ -16,7 +16,7 @@ would load, the agent says so here and in chat.
 ### Step 0: update the checkout and run the tests
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 ### Step 1: worker check, about 1 min (once)
@@ -75,6 +75,30 @@ starting worker retries failed tasks and takes `fedcot_s0/srv_e1` first;
 `dpo_r1` resumes later from its last checkpoint (every 25 updates). GPU 1 is
 in use by another user (2026-11-09): do not start a worker on it, and do not
 run other GPU jobs next to a task on GPU 0.
+
+### vLLM sampling check (`vllm_s0/bench_sql`, first in the queue, 2026-11-09)
+
+Sampling with HF takes 1.5-2.2 s per question (SQL-only) and about 20 s
+with the query plan, too slow for full-data DPO rounds on one card. This task
+samples the same 400 round-1 questions of client 3 as
+`fedpref_s0/collect_r1_c3`, through vLLM in the WSL venv
+(`/home/user01st/envs/env-vllm`), on the worker's GPU. A running worker picks
+it up after its current task; nothing else to start.
+
+Read in its log (lines prefixed `vllm |`):
+
+- the vLLM memory lines at start (model weights, KV cache, CUDA graphs), and
+  Windows `nvidia-smi` for GPU 0 while it samples: under 21.5 GiB, shared GPU
+  memory near zero;
+- `GPU check: one visible GPU on PCI bus 0x31`;
+- `vllm sampled: ... s/request ... cut at max_tokens ...`;
+- the final `sampled: 400/400 ... sample accuracy ..., pass@8 ...` line,
+  against HF on the same questions: 13:52, sample accuracy 71.0%, pass@8
+  88.5%.
+
+Code pushed with this task: `--engine` in `experiments/federated_pref/run.py`
+(default `hf`, unchanged behavior and sample identity). The running
+`fedpref_s0/dpo_r1` already loaded its code and is not affected.
 
 ### Status (read-only, any time, second terminal)
 
