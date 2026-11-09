@@ -60,21 +60,12 @@ final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
 GPU 1 is in use by another user (2026-11-09): do not start a worker on it,
 and do not run other GPU jobs next to a task on GPU 0.
 
-### Now: server `--max-len` (2026-11-09)
+### Server `--max-len` (checked 2026-11-09)
 
-`fedcot_s0/srv_e1` stopped while building its examples: one BIRD row has
-6,665 prompt + 525 target tokens = 7,190, above `--max-len 7168` (plan +
-SQL targets are longer than the SQL-only targets the 7,168 limit was set
-for). `lengths_s0/server_cot` renders all 4,109 rows as training does,
-reports how many each limit would reject, and runs 8 training steps on the
-4 longest rows from the base model to read the peak VRAM. Then the server
-stages get a `--max-len` that keeps every row, if its peak stays under
-21.5 GiB. Run only this phase (a few minutes), then paste the `lengths`,
-`longest` and `probe` lines:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase lengths_s0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
+With query plan + SQL targets, the longest of the 4,109 BIRD server rows is
+7,601 tokens (2 rows above 7,168, the limit set for SQL-only targets).
+Training steps on the 4 longest rows peaked at 18.8 GiB reserved. The server
+stages use `--max-len 7680`, which keeps every row.
 
 ### vLLM sampling (checked 2026-11-09)
 
@@ -174,6 +165,6 @@ round).
 `srv_e1` (about 1.3 h), `srv_e2` (about 2.6 h), the query-plan smoke, the
 two server evaluations (about 1.4-2.6 h each): decision 1 after about 8-9 h.
 GPU 1 is in use by another user. The server stages write to
-`server_e1` and `server_e2`; the older `srv_e1` and `srv_e2` folders hold
-only stage contracts from the attempt before the sidecar fix and are not
-used.
+`server_l7680_e1` and `server_l7680_e2`; the older `srv_e1`, `srv_e2` and
+`server_e1` folders hold only stage contracts of earlier attempts and are
+not used.

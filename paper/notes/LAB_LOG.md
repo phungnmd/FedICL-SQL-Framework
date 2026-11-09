@@ -3,6 +3,17 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: server max-len for plan + SQL targets
+
+`fedcot_s0/srv_e1` stopped before training: a BIRD row of 7,190 tokens
+(6,665 prompt + 525 target) is above `--max-len 7168`. Probe
+`lengths_s0/server_cot` (server, report under
+`audits/protocol_v2/fedcot_lengths_s0/`): max 7,601 tokens (train:7343,
+works_cycles), p99 6,978, 2 rows above 7,168; 2 training steps on each of the
+4 longest rows from the base model peaked at 18.8 GiB reserved, 7.2-8.4 s per
+step. Decision: server stages at `--max-len 7680`, every row kept, new out
+roots `server_l7680_e1`, `server_l7680_e2`.
+
 ## 2026-11-09: vLLM sampling matches HF
 
 Run `vllm_s0/bench_sql` (server, not committed): the 400 round-1 questions
