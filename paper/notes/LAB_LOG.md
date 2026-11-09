@@ -3,6 +3,20 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: stopping rule, gain 0.5 point, higher maxima
+
+Decision (owner, after reading the archived pre-restart curves for this
+question only, all Spider dev): a gain is now more than 0.5 point over the
+best step (was 1 point), patience stays 2, maxima go to 8 server epochs,
+8 client rounds and 6 DPO rounds (were 5, 5, 4). In the archive the 1-point
+rule cost nothing on SFT epoch and FL round curves, but those curves were
+mostly still rising at their last step (3-4 steps), and it stopped two DPO
+curves early (by 3.7 and 4.1 points below their later best), whose rounds
+rose by 0.5-1.8 points with dips in between; a 0.5-point threshold with
+patience 2 caught all of them. Those DPO rounds sampled 1,200 questions
+each, so a full-data round may need fewer rounds. Code: per-curve
+`min_gain` and `patience` in `scripts/curve.py`; task commands unchanged.
+
 ## 2026-11-09: faster pipeline (code, for the next phase)
 
 Decisions (owner: "cập nhật hết"): evaluation moves to vLLM after a check

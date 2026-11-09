@@ -97,6 +97,12 @@ queue replaces the fixed server tasks (`srv_e2`, `srv_e3`, their evaluations)
 with the curves; the 2-epoch run from the base model that the old queue
 started (`server_l7680_e2`) is not used by them.
 
+### Code pushed 2026-11-09: stopping rule
+
+`fedicl-sql` 160c2143 sets a gain threshold of 0.5 point and maxima 8 / 8 / 6
+per curve. No task command changed, and no curve has started, so a pull at
+any time is safe; pull before `fedcot_s0/curve_server` starts.
+
 ### Status (read-only, any time, second terminal)
 
 ```powershell
@@ -139,15 +145,17 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 ### Stopping rule (the same for every line)
 
-- A step counts as a gain only if Spider test EX rises by more than 1 point
-  (one seed: two adapters on the same questions differ by about 0.5-0.7
-  points from noise alone).
+- A step counts as a gain only if Spider test EX is more than 0.5 point
+  above the best step so far (owner, 2026-11-09; slow DPO rises of 0.5-1.8
+  points per round with dips in between read as flat under a 1-point
+  threshold).
 - Stop a stage after 2 steps in a row without a gain, or at its maximum:
-  server 5 epochs, client SFT 5 rounds, DPO 4 rounds.
+  server 8 epochs, client SFT 8 rounds, DPO 6 rounds.
 - The next stage starts from the best checkpoint of the stage; a tie within
-  1 point goes to the cheaper one (fewer epochs or rounds).
+  0.5 point goes to the cheaper one (fewer epochs or rounds).
 - Precisely: the best step changes only on a gain, so a later step within
-  1 point of it never replaces it.
+  0.5 point of it never replaces it. Threshold, patience and maximum are set
+  per curve in the queue file (`min_gain`, `patience`, `max_steps`).
 - Automated: each line is a curve (`scripts/curve.py`). It trains a step,
   evaluates it with vLLM, publishes, applies the rule, and either trains the
   next step or stops and records the decision in `audits/curves/`; the next
@@ -157,9 +165,9 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 | Line (task) | Start | Data | Target | Step |
 |---|---|---|---|---|
-| server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 5 |
-| client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, no gradient checkpointing; up to 5 |
-| DPO + NLL (`curve_dpo`) | best client round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 4 |
+| server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 8 |
+| client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, no gradient checkpointing; up to 8 |
+| DPO + NLL (`curve_dpo`) | best client round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
   evaluation (1,024 new tokens, strict parsing; an output that does not parse
@@ -180,7 +188,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 ### Baselines (out of the queue for now, owner 2026-11-09)
 
-FedAvg R1-R5 and SQL-only federated DPO come back after the main pipeline,
+FedAvg rounds and SQL-only federated DPO come back after the main pipeline,
 under the same stopping rule (SQL-only DPO then starts from the best FedAvg
 round).
 
@@ -188,7 +196,7 @@ round).
 
 | Row | Line |
 |---|---|
-| FedAvg | best of R1-R5 |
+| FedAvg | best round by the rule |
 | SQL-only DPO | best round, from the best FedAvg round |
 | fedcot after client SFT | best client round |
 | fedcot full | best DPO round |
@@ -200,7 +208,7 @@ round).
    and with HF (the HF evaluation may already be done by the earlier queue),
    the three checks, publish.
 3. `curve_server`: epoch 1 is done (1.14 h); each further epoch about 1.1 h
-   plus a vLLM evaluation.
+   plus a vLLM evaluation (at most 7 more epochs, about 9 h).
 4. `curve_client`, then `curve_dpo`; their step times are measured by the
    probe, the smoke and the first steps.
 
