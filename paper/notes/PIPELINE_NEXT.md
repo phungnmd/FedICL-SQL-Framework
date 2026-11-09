@@ -70,8 +70,11 @@ differs in content. Safe while a worker runs.
 & { $ErrorActionPreference='Stop'; $d='processed_data/protocol_v2/rationale_kd'; $changed = git diff --name-only -- $d; if ($LASTEXITCODE -ne 0) { throw 'git diff failed' }; if ($changed) { throw "content differs from Git: $changed" }; $files = @(git ls-files -- $d); if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) { throw 'git ls-files failed' }; Remove-Item -LiteralPath $files; git -c core.autocrlf=false checkout -- $d; if ($LASTEXITCODE -ne 0) { throw 'checkout failed' }; $h = (Get-FileHash -Algorithm SHA256 "$d/p215_struct_full_s0/teacher_plans_qwen25_coder_7b.jsonl").Hash.ToLower(); if ($h -ne '6f7d3a66c11ce931ed1185cf2a33c27c103c3dd137f7efa498a594e4062a1e43') { throw "sidecar hash still $h" }; git status --short -- $d; 'sidecar restored with LF' }
 ```
 
-Then start the GPU 1 worker (Step 2). A starting worker retries failed
-tasks, so it takes `fedcot_s0/srv_e1` while GPU 0 continues `dpo_r1`.
+Then stop the GPU 0 worker (Ctrl+C) and start it again (Step 2, GPU 0). A
+starting worker retries failed tasks and takes `fedcot_s0/srv_e1` first;
+`dpo_r1` resumes later from its last checkpoint (every 25 updates). GPU 1 is
+in use by another user (2026-11-09): do not start a worker on it, and do not
+run other GPU jobs next to a task on GPU 0.
 
 ### Status (read-only, any time, second terminal)
 
