@@ -9,8 +9,11 @@ top. A result reported only in chat is logged as "not committed".
 tokens, all `baseball_1`): with gradient checkpointing 9.25 GiB peak reserved,
 1.7 s per step; without it the 2,921-token row ran out of memory at the 0.88
 cap. Client and DPO rounds keep gradient checkpointing (`fedicl-sql`
-e50d05f4); the no-checkpointing speed-up is dropped. Report not committed
-(the task failed before writing it).
+e50d05f4); the no-checkpointing speed-up is dropped. Rerun with gradient
+checkpointing only: done, same 9.25 GiB; lengths of the 8,659 client rows
+p50 712, p99 2,017, max 2,921 tokens (report
+`audits/protocol_v2/fedcot_lengths_s0/client_cot.json` on the server, not
+committed).
 
 ## 2026-11-09: stopping rule, gain 0.5 point, higher maxima
 
