@@ -116,7 +116,7 @@ command changed, so it runs again, about 1.5 min). The finished
 
 ### Code pushed 2026-11-09: deterministic vLLM evaluation
 
-`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; the next push keeps only
+`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; fe439b14 keeps only
 the checks above and names the curve evaluations `..._vllm_inproc`. Nothing
 was running (the worker stopped at `check_rerun`): pull, then start the
 worker; it reruns `check_rerun` as a report, runs `check_cot`, publishes, and
