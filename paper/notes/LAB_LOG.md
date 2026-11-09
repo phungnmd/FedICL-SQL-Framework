@@ -36,7 +36,8 @@ commit 94caca4b): 1 epoch on the 4,109 BIRD rows from the base model in
 1.14 h, peak reserved 20.3 GiB. Not evaluated yet. The same publish commit
 also picked up two older untracked result rows that were on the server
 (`federated_stage__A-Kce-Aret__...`, `federated_stage__A-Kgkd__...`); they
-belong to the pre-restart work and are not used.
+belong to the pre-restart work and are not used; removed from Git in
+`fedicl-sql` 4ce7bf54 (owner, copies in the local archive).
 
 ## 2026-11-09: server epochs as a chain
 
