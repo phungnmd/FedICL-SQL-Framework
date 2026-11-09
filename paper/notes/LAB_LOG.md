@@ -3,6 +3,20 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: fedcot server curve, epochs 1-3
+
+Teacher-plan SFT on 4,109 BIRD rows from the base model, one epoch per step,
+vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`):
+
+| Epoch | EX | Easy | Medium | Hard |
+|---|---:|---:|---:|---:|
+| 1 | 52.17 | 70.64 | 57.76 | 40.39 |
+| 2 | 56.68 | 74.04 | 63.71 | 41.90 |
+| 3 | **58.55** | **75.74** | **64.41** | **44.28** |
+
+Gains of 4.51 and 1.86 points, both well above the 0.5 threshold and the
+about 0.47-point vLLM rerun noise. The rule continues to epoch 4.
+
 ## 2026-11-09: dips followed by a rise in the archive
 
 Owner question: does the rule miss curves that dip and then rise? The rule
