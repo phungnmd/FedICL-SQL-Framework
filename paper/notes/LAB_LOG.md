@@ -3,19 +3,27 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
-## 2026-11-09: fedcot server curve, epochs 1-3
+## 2026-11-09: fedcot server curve, epochs 1-5
 
 Teacher-plan SFT on 4,109 BIRD rows from the base model, one epoch per step,
-vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`):
+vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`, `4da3ad0c`,
+`1667ed2a`):
 
-| Epoch | EX | Easy | Medium | Hard |
-|---|---:|---:|---:|---:|
-| 1 | 52.17 | 70.64 | 57.76 | 40.39 |
-| 2 | 56.68 | 74.04 | 63.71 | 41.90 |
-| 3 | **58.55** | **75.74** | **64.41** | **44.28** |
+| Epoch | EX | Easy | Medium | Hard | Extra | Invalid format | Exec error |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 52.17 | 70.64 | 57.76 | 40.39 | 29.69 | - | - |
+| 2 | 56.68 | 74.04 | 63.71 | 41.90 | 36.13 | - | - |
+| 3 | 58.55 | 75.74 | 64.41 | **44.28** | 40.34 | 92 | **260** |
+| 4 | 59.94 | **78.30** | 66.63 | 44.06 | 40.34 | 52 | 273 |
+| 5 | **60.64** | 77.66 | **68.38** | 43.41 | **42.02** | **48** | 268 |
 
-Gains of 4.51 and 1.86 points, both well above the 0.5 threshold and the
-about 0.47-point vLLM rerun noise. The rule continues to epoch 4.
+- Gains shrink: 4.51, 1.86, 1.40, 0.70. E5 counts as a gain (rule: more than
+  0.5), so the curve runs at least E6.
+- E3 to E4 is mostly format: invalid outputs 92 to 52, cut 36 to 17. E4 to E5
+  leaves format and execution errors nearly flat; 146 rows right only in E5,
+  131 only in E4, so the 0.70 point is the size of the noise (two vLLM runs
+  of one adapter flip 90 rows).
+- Hard stays at 43-44 since E3.
 
 ## 2026-11-09: dips followed by a rise in the archive
 
