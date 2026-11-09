@@ -51,9 +51,10 @@ final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
 
 - Ctrl+C stops the worker and its running task; rerunning the same command
   continues where it stopped.
-- A failed task blocks only the tasks that need it; the worker runs the
-  others, then stops with `STOP queue` and the list. Rerunning a worker
-  retries failed tasks.
+- The first failed task stops the worker: `STOP queue: <task> failed: <last
+  error line>` and the log path. A worker that sees a failure on another
+  worker stops before its next task. Rerunning a worker retries failed
+  tasks.
 - Each phase ends with a `publish` task that commits and pushes its results.
 
 ### Fix once: query-plan sidecar line endings (2026-11-09)
@@ -75,28 +76,13 @@ starting worker retries failed tasks and takes `fedcot_s0/srv_e1` first;
 in use by another user (2026-11-09): do not start a worker on it, and do not
 run other GPU jobs next to a task on GPU 0.
 
-### vLLM sampling check (`vllm_s0/bench_sql`, first in the queue, 2026-11-09)
+### vLLM sampling (checked 2026-11-09)
 
-Sampling with HF takes 1.5-2.2 s per question (SQL-only) and about 20 s
-with the query plan, too slow for full-data DPO rounds on one card. This task
-samples the same 400 round-1 questions of client 3 as
-`fedpref_s0/collect_r1_c3`, through vLLM in the WSL venv
-(`/home/user01st/envs/env-vllm`), on the worker's GPU. A running worker picks
-it up after its current task; nothing else to start.
-
-Read in its log (lines prefixed `vllm |`):
-
-- the vLLM memory lines at start (model weights, KV cache, CUDA graphs), and
-  Windows `nvidia-smi` for GPU 0 while it samples: under 21.5 GiB, shared GPU
-  memory near zero;
-- `GPU check: one visible GPU on PCI bus 0x31`;
-- `vllm sampled: ... s/request ... cut at max_tokens ...`;
-- the final `sampled: 400/400 ... sample accuracy ..., pass@8 ...` line,
-  against HF on the same questions: 13:52, sample accuracy 71.0%, pass@8
-  88.5%.
-
-Code pushed with this task: `--engine` in `experiments/federated_pref/run.py`
-(default `hf`, unchanged behavior and sample identity).
+`vllm_s0/bench_sql` sampled the 400 round-1 questions of client 3 through
+vLLM in the WSL venv in 3:40 for the whole task (HF: 13:52), with sample
+accuracy 72.0% and pass@8 89.0% (HF on the same questions: 71.0%, 88.5%).
+DPO rounds sample with `--engine vllm`. The console shows the progress and
+the key vLLM lines; the full vLLM log is under `<out>/vllm/`.
 
 The SQL-only baselines (`fedpref_s0`) left the queue (owner, 2026-11-09). A
 worker still running `fedpref_s0/dpo_r1` finishes it unless stopped: press

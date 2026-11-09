@@ -3,6 +3,17 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: vLLM sampling matches HF
+
+Run `vllm_s0/bench_sql` (server, not committed): the 400 round-1 questions
+of client 3 from FedAvg R3, K=8, T=0.7, through vLLM 0.33 in WSL. Whole task
+3:40 against 13:52 with HF; sample accuracy 72.0% and pass@8 89.0% against
+71.0% and 88.5% with HF; no output cut at 256 tokens. vLLM needed the
+FlashAttention backend and no FlashInfer sampler (no nvcc in WSL). Decision:
+DPO rounds sample with vLLM. The first server-stage retry failed on the stage
+contract written while the sidecar was CRLF; the server stages now use the
+new out roots `server_e1`, `server_e2`.
+
 ## 2026-11-09: main pipeline first; full-data DPO with vLLM
 
 Runs: `fedpref_s0/smoke` and the round-1 sampling of the SQL-only DPO line
