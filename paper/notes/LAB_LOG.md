@@ -3,6 +3,27 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: vLLM against itself on plan + SQL
+
+1-epoch server stage, Spider test, `fedcot_srv_e1_vllm_inproc` (the server
+curve's step 1): EX 52.17, 4.4% cut, about 4.6 min for the whole command.
+
+| Pair | EX | Right only in each | Same SQL |
+|---|---|---:|---:|
+| vLLM default / vLLM inproc | 51.70 / 52.17 | 40 / 50 | 81.4% |
+| HF / vLLM default | 52.86 / 51.70 | 71 / 46 | 76.9% |
+| HF / vLLM inproc | 52.86 / 52.17 | 67 / 52 | 76.3% |
+
+- Two vLLM runs that differ only in batch scheduling already flip 90 rows
+  and 0.47 point, so long greedy outputs are this sensitive to numerical
+  noise; HF against vLLM flips 117-119 rows, a little more.
+- The execution-error excess of the default run (28 / 7 against HF) reverses
+  against `inproc` (5 / 16): it was part of the noise, not an engine bias.
+  HF against `inproc` is 0.69 point, not a clear difference.
+- For the curves: a numerically different but equivalent evaluation moves a
+  plan + SQL EX by about 0.5 point (90 discordant rows: about 0.44 point
+  standard error of the difference), the size of the rule's gain threshold.
+
 ## 2026-11-09: plan + SQL with vLLM is 1.16 points below HF; vLLM kept
 
 `vllm_s0/check_cot`, 1-epoch server stage on Spider test: HF 52.86, vLLM
