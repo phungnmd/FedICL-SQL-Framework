@@ -3,6 +3,24 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: template client round 1 from E5
+
+One FedAvg round on template plans + gold SQL from E5, vLLM inproc, Spider
+test (fedicl-sql `bd1e7af`), 1:53 for the step:
+
+| | EX | Easy | Medium | Hard | Extra | Invalid format | Cut | Exec error |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| E5 | 60.64 | 77.7 | 68.4 | 43.4 | **42.0** | 48 | 14 | 268 |
+| Template R1 | **62.69** | **79.1** | **71.7** | **50.1** | 35.9 | **0** | **0** | **207** |
+
+- +2.05 points: 275 rows right only after the round, 231 only before. Format
+  errors and cut outputs vanish (the template is short and fixed), execution
+  errors drop by 61, hard rises 6.7 points, extra falls 6.1.
+- Still 8.8 points below SQL-only FedAvg R3 (71.45, three rounds from the
+  base model).
+- Kept as the comparator of the first self-taught round; the curve stops
+  here.
+
 ## 2026-11-10: self-taught client SFT replaces the template rounds
 
 No result yet. Question (owner): skip client SFT and go straight to DPO from
