@@ -3,6 +3,24 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: server stage, epoch 1 trained
+
+`fedcot_s0/srv_e1` (result row `federated_stage__Kqp-teacher__s0__6f4cfd89be89__48f1b96e`,
+commit 94caca4b): 1 epoch on the 4,109 BIRD rows from the base model in
+1.14 h, peak reserved 20.3 GiB. Not evaluated yet. The same publish commit
+also picked up two older untracked result rows that were on the server
+(`federated_stage__A-Kce-Aret__...`, `federated_stage__A-Kgkd__...`); they
+belong to the pre-restart work and are not used.
+
+## 2026-11-09: server epochs as a chain
+
+Decision (owner): the server epochs are probed as a chain, each stage one more
+epoch from the last with its own 1-epoch cosine schedule, instead of a
+separate run per length. It saves about 1.3 h per extra epoch and can go
+past 3 epochs (maximum now 5). An epoch of the chain may score slightly
+below a single-schedule run of the same length; the chosen length can be
+retrained cleanly once the method is settled.
+
 ## 2026-11-09: server max-len for plan + SQL targets
 
 `fedcot_s0/srv_e1` stopped before training: a BIRD row of 7,190 tokens

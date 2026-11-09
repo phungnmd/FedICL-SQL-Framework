@@ -116,7 +116,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   (one seed: two adapters on the same questions differ by about 0.5-0.7
   points from noise alone).
 - Stop a stage after 2 steps in a row without a gain, or at its maximum:
-  server 3 epochs, client SFT 5 rounds, DPO 4 rounds.
+  server 5 epochs, client SFT 5 rounds, DPO 4 rounds.
 - The next stage starts from the best checkpoint of the stage; a tie within
   1 point goes to the cheaper one (fewer epochs or rounds).
 - The queue cannot branch yet, so each decision is a queue edit after the
@@ -126,7 +126,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 | Step | Where | Data | Target | Now in the queue |
 |---|---|---|---|---|
-| server | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | 1 and 2 epochs (`srv_e1`, `srv_e2`), each a full run with its own cosine schedule, both evaluated |
+| server | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | epochs 1-3 as a chain (`srv_e1` from the base model, `srv_e2` and `srv_e3` each one more epoch from the last, with its own 1-epoch cosine schedule), each evaluated |
 | client SFT | 5 clients, FedAvg, 1 local epoch per round | each client's Spider rows | plan derived from the gold SQL + gold SQL | queued after the server choice |
 | DPO + NLL | 5 clients, FedAvg by pair count | every client question, each round (owner, 2026-11-09), sampled with vLLM | the client's own 8 sampled plan + SQL, labelled by execution | queued after the client SFT choice |
 
@@ -143,9 +143,13 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   runs the DPO round path the full rounds use: plan + SQL sampling at 1,024
   new tokens through vLLM, then DPO on the longest pair. It checks the path
   and memory, not accuracy.
-- Decision 1, after `publish_srv_eval`: 2 epochs better by more than 1 point
-  queues a 3-epoch run; otherwise the client rounds start from the better
-  of the two.
+- Server epochs as a chain (owner, 2026-11-09): cheaper than a separate run
+  per length and open-ended; an epoch from a chain may score slightly below
+  a run with one schedule over the same length. A clean run of the chosen
+  length can be retrained once the method is settled.
+- Decision 1, after `publish_srv_eval`: a gain at epoch 3 queues epoch 4
+  (and so on, up to 5); otherwise the client rounds start from the best of
+  epochs 1-3 (a tie within 1 point goes to fewer epochs).
 
 ### Baselines (out of the queue for now, owner 2026-11-09)
 
@@ -164,9 +168,11 @@ round).
 
 ### Order on GPU 0
 
-`srv_e1` (about 1.3 h), `srv_e2` (about 2.6 h), the query-plan smoke, the
-two server evaluations (about 1.4-2.6 h each): decision 1 after about 8-9 h.
-GPU 1 is in use by another user. The server stages write to
-`server_l7680_e1` and `server_l7680_e2`; the older `srv_e1`, `srv_e2` and
+`srv_e1`, the query-plan smoke, `srv_e2`, `srv_e3` (about 1.3 h per epoch),
+then the three server evaluations (about 1.4-2.6 h each): decision 1 after
+about 9-12 h. GPU 1 is in use by another user. The server stages write to
+`server_l7680_e1`, then `server_chain_e2` and `server_chain_e3` (stage labels
+`fedcot_srv_c2_s0`, `fedcot_srv_c3_s0`). `server_l7680_e2` holds a 2-epoch
+run from the base model started before the switch to the chain; the older `srv_e1`, `srv_e2` and
 `server_e1` folders hold only stage contracts of earlier attempts and are
 not used.
