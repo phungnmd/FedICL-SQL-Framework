@@ -16,7 +16,7 @@ would load, the agent says so here and in chat.
 ### Step 0: update the checkout and run the tests
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 ### Step 1: worker check, about 1 min (once)
@@ -59,6 +59,22 @@ final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
 
 GPU 1 is in use by another user (2026-11-09): do not start a worker on it,
 and do not run other GPU jobs next to a task on GPU 0.
+
+### Now: server `--max-len` (2026-11-09)
+
+`fedcot_s0/srv_e1` stopped while building its examples: one BIRD row has
+6,665 prompt + 525 target tokens = 7,190, above `--max-len 7168` (plan +
+SQL targets are longer than the SQL-only targets the 7,168 limit was set
+for). `lengths_s0/server_cot` renders all 4,109 rows as training does,
+reports how many each limit would reject, and runs 8 training steps on the
+4 longest rows from the base model to read the peak VRAM. Then the server
+stages get a `--max-len` that keeps every row, if its peak stays under
+21.5 GiB. Run only this phase (a few minutes), then paste the `lengths`,
+`longest` and `probe` lines:
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase lengths_s0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
 
 ### vLLM sampling (checked 2026-11-09)
 
