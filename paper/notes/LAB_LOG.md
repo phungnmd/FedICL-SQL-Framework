@@ -3,6 +3,15 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: client rows need gradient checkpointing
+
+`fedcot_s0/client_probe` on the 4 longest client rows (plan + SQL, 2,766-2,921
+tokens, all `baseball_1`): with gradient checkpointing 9.25 GiB peak reserved,
+1.7 s per step; without it the 2,921-token row ran out of memory at the 0.88
+cap. Client and DPO rounds keep gradient checkpointing (`fedicl-sql`
+e50d05f4); the no-checkpointing speed-up is dropped. Report not committed
+(the task failed before writing it).
+
 ## 2026-11-09: stopping rule, gain 0.5 point, higher maxima
 
 Decision (owner, after reading the archived pre-restart curves for this

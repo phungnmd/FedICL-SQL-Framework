@@ -103,6 +103,13 @@ started (`server_l7680_e2`) is not used by them.
 per curve. No task command changed, and no curve has started, so a pull at
 any time is safe; pull before `fedcot_s0/curve_server` starts.
 
+### Code pushed 2026-11-09: gradient checkpointing kept
+
+`fedicl-sql` e50d05f4: client rounds and DPO rounds keep gradient
+checkpointing, and `fedcot_s0/client_probe` measures only that mode (its
+command changed, so it runs again, about 1.5 min). The finished
+`fedcot_s0/smoke` keeps its command and is not rerun.
+
 ### Status (read-only, any time, second terminal)
 
 ```powershell
@@ -121,13 +128,16 @@ every curve:
 - `fedcot_s0/srv_e1` (BIRD-length rows): the `first optimizer update done
   ... peak reserved` line, about 20 GiB expected.
 - `fedcot_s0/smoke` (vLLM plan + SQL sampling at 1,024 new tokens, then DPO
-  on plan + SQL pairs without gradient checkpointing, chosen and rejected in
-  one pass): `vLLM samples loaded ... cut at max_tokens` stays low, and the
+  on plan + SQL pairs, chosen and rejected in one pass; this smoke ran
+  without gradient checkpointing, the full rounds use it):
+  `vLLM samples loaded ... cut at max_tokens` stays low, and the
   `DPO smoke on the longest pair` line stays under 21.5 GiB (the task stops
-  above it).
-- `fedcot_s0/client_probe`: `probe gc` and `probe nogc` lines (peak reserved
-  and `mean_seconds_after_first` on the 4 longest client rows); the task
-  stops above 21.5 GiB, which keeps the client rounds from starting.
+  above it). Every full DPO round repeats that check on its own longest pair.
+- `fedcot_s0/client_probe`: the `probe gc` line (peak reserved and
+  `mean_seconds_after_first` on the 4 longest client rows); the task stops
+  above 21.5 GiB, which keeps the client rounds from starting. Without
+  gradient checkpointing the longest row (2,921 tokens) ran out of memory
+  (2026-11-09); with it, 9.25 GiB and 1.7 s per step.
 - Evaluations print `first batch ... peak reserved`, then a line a minute
   with EX, EM and execution errors so far; sampling prints sample accuracy
   and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
@@ -166,7 +176,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 | Line (task) | Start | Data | Target | Step |
 |---|---|---|---|---|
 | server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 8 |
-| client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, no gradient checkpointing; up to 8 |
+| client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; up to 8 |
 | DPO + NLL (`curve_dpo`) | best client round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
