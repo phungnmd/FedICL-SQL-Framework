@@ -86,7 +86,7 @@ offline runs). The checks against HF use the runs already made:
 |---|---|---|
 | `check_sql` (done) | FedAvg R3, HF row `p253ref_fl_a3` (71.50) and vLLM | EX differs by more than 0.5 (71.45: passed) |
 | `check_rerun` | FedAvg R3 with vLLM default, twice | report only |
-| `check_cot` | 1-epoch server stage (plan + SQL), HF and vLLM | EX differs by more than 0.5 |
+| `check_cot` | 1-epoch server stage (plan + SQL), HF and vLLM | report only (HF 52.86, vLLM 51.70) |
 
 The reports (agreement, discordant rows) go to
 `audits/protocol_v2/vllm_eval_check_s0/`. Every fedcot number of the curves
@@ -116,11 +116,20 @@ command changed, so it runs again, about 1.5 min). The finished
 
 ### Code pushed 2026-11-09: deterministic vLLM evaluation
 
-`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; fe439b14 keeps only
-the checks above and names the curve evaluations `..._vllm_inproc`. Nothing
-was running (the worker stopped at `check_rerun`): pull, then start the
-worker; it reruns `check_rerun` as a report, runs `check_cot`, publishes, and
-starts the curves. DPO sampling keeps vLLM's default mode.
+`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; fe439b14 keeps only the
+checks above and names the curve evaluations `..._vllm_inproc`; 0a7d1809
+makes `check_cot` a report (owner: every evaluation stays on vLLM). Nothing
+is running: pull, run the step-1 evaluation below, then start the worker; it
+reruns `check_cot`, publishes, and starts the curves, whose step 1 reuses
+that evaluation. DPO sampling keeps vLLM's default mode.
+
+Step-1 evaluation of the server curve with vLLM `inproc` (about 5 min, GPU
+0), then the two comparisons (vLLM default against `inproc`, HF against
+`inproc`):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $A='artifacts/protocol_v2/fedcot_coder15b_alpha01_s0/server_l7680_e1/m_g'; uv run --no-sync python -m scripts.eval_standard --arm fedcot_srv_e1_vllm_inproc --adapter $A --sets spider_test --allow-test --response-format qp_cot_v1 --engine vllm --vllm-determinism inproc; if ($LASTEXITCODE -ne 0) { throw 'Eval failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1_vllm fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1 fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' } }
+```
 
 ### Status (read-only, any time, second terminal)
 

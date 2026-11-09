@@ -3,6 +3,23 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: plan + SQL with vLLM is 1.16 points below HF; vLLM kept
+
+`vllm_s0/check_cot`, 1-epoch server stage on Spider test: HF 52.86, vLLM
+51.70; 71 rows right only with HF, 46 only with vLLM; same SQL on 76.9% of
+rows, same raw output on 1,067. Cut outputs (88 / 89), invalid formats
+(206 / 208) and median length (278 tokens) match. The gap is execution
+errors (285 / 307; among discordant rows 28 / 7), all real SQL errors
+(unknown columns or tables, aggregate misuse), and every discordant row has
+a different SQL on the two sides, so scoring is not involved. Outputs
+diverge about halfway through (median shared prefix 48%): numerical
+differences carried through long outputs. SQL-only with the same adapter
+type matches (71.50 / 71.45).
+
+Decision (owner): every evaluation of the curves and baselines runs on vLLM
+(`inproc`), each number names its engine; HF re-evaluation of the final
+table rows stays possible at the end. `check_cot` is now a report.
+
 ## 2026-11-09: server epochs and Spider EX in the archive
 
 Owner question: more server epochs on teacher plans may not raise Spider

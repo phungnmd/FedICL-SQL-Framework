@@ -57,5 +57,5 @@ Running the full CoT-with-teacher pipeline (`DIRECTION.md` section 6.3, step
 1) as a curve from the base model: server teacher-plan SFT (up to 8 epochs, chained one epoch at a time),
 query-plan client rounds (up to 8), full-data query-plan DPO rounds (up to
 6), one seed, on GPU 0, each line stopped automatically by the rule and
-evaluated with vLLM once it matches HF. The baselines (FedAvg rounds, SQL-only
+evaluated with vLLM (owner, 2026-11-09: plan + SQL is 1.16 points below HF on the 1-epoch server stage; every row of the comparison uses vLLM). The baselines (FedAvg rounds, SQL-only
 federated DPO) follow after it, evaluated the same way. Commands in `PIPELINE_NEXT.md`.
