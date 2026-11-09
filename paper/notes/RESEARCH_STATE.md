@@ -54,7 +54,7 @@ Nothing measured since the fresh start.
 ## 5. Current phase
 
 Running the full CoT-with-teacher pipeline (`DIRECTION.md` section 6.3, step
-1): server teacher-plan SFT, three query-plan client rounds, two query-plan
-DPO rounds, one seed. Baselines in the same queue: FedAvg R4-R5 and SQL-only
-federated DPO from the owner-approved FedAvg R3. Commands in
-`PIPELINE_NEXT.md`.
+1) as a curve from the base model: server teacher-plan SFT (up to 3 epochs),
+query-plan client rounds (up to 5), full-data query-plan DPO rounds (up to
+4), one seed, on GPU 0. The baselines (FedAvg R1-R5, SQL-only federated DPO)
+follow after it. Commands in `PIPELINE_NEXT.md`.

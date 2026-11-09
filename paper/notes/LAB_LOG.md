@@ -3,6 +3,22 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: main pipeline first; full-data DPO with vLLM
+
+Runs: `fedpref_s0/smoke` and the round-1 sampling of the SQL-only DPO line
+(400 questions per client, HF, from FedAvg R3) finished; `dpo_r1` was
+training. Not committed. `fedcot_s0/srv_e1` and `srv_e2` failed at start:
+the plan sidecar was checked out with CRLF on the server, so its hash did not
+match (fix in `PIPELINE_NEXT.md`). Measured: HF SQL-only sampling 1.5-2.2 s
+per question, peak 18.2 GiB (`A5000_RUN_CONFIG.md`).
+
+Owner decisions: GPU 1 is in use by another user, the work runs on GPU 0;
+DPO rounds use every client question; sampling moves to vLLM in the server's
+WSL venv, checked first against HF (`vllm_s0/bench_sql`); evaluation may move
+to vLLM if it matches HF on FedAvg R3; the server epochs stay a curve; the
+stopping rule is to be automated; the SQL-only baselines leave the queue
+until the main pipeline has run.
+
 ## 2026-11-08: every line run as a curve on Spider test
 
 No run. Owner decision: evaluate each stage on Spider test and continue from

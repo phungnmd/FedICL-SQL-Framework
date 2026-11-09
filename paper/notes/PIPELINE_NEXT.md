@@ -36,8 +36,7 @@ sleep to see the stop, rerun, and check that each reports `DONE queue`.
 ### Step 2: one worker per GPU, each in its own terminal
 
 The two commands differ only in the GPU digit. Without `--phase` a worker
-runs the full queue; add `--phase fedcot_s0` (or `fedpref_s0`, or both) to
-run only those phases. A worker rereads the queue before every task, so
+runs the full queue; add `--phase fedcot_s0` to run only that phase. A worker rereads the queue before every task, so
 tasks pushed later run after a pull without a restart. It prints `start` /
 `end` per task, the task's own progress lines prefixed `[gpu0 <task>]`, and a
 final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
@@ -97,8 +96,12 @@ Read in its log (lines prefixed `vllm |`):
   88.5%.
 
 Code pushed with this task: `--engine` in `experiments/federated_pref/run.py`
-(default `hf`, unchanged behavior and sample identity). The running
-`fedpref_s0/dpo_r1` already loaded its code and is not affected.
+(default `hf`, unchanged behavior and sample identity).
+
+The SQL-only baselines (`fedpref_s0`) left the queue (owner, 2026-11-09). A
+worker still running `fedpref_s0/dpo_r1` finishes it unless stopped: press
+Ctrl+C and start the worker again (this also retries the failed fedcot
+tasks). Its samples and adapters stay on the server for later.
 
 ### Status (read-only, any time, second terminal)
 
@@ -110,16 +113,11 @@ Add `--phase <name>` to see one phase only.
 
 ### Memory checks (owner, first time each path runs)
 
-- `fedpref_s0/smoke` (first task on one GPU, about 10-15 min): the
-  `first batch ... peak reserved` and `DPO smoke on the longest pair` lines
-  stay under 21.5 GiB. The first-batch number also tells whether sampling can
-  use more prompts per call in the next experiment.
 - `fedcot_s0/srv_e1` (BIRD-length rows): the `first optimizer update done
   ... peak reserved` line, about 20 GiB expected.
 - `fedcot_s0/smoke` (query plan sampling at 1,024 new tokens, then DPO on
-  plan + SQL pairs): the same two lines as the SQL-only smoke, and the
-  sampling time per question, which sets `--questions-per-client` for the
-  query-plan DPO rounds (200 planned).
+  plan + SQL pairs): the `first batch ... peak reserved` and `DPO smoke on
+  the longest pair` lines stay under 21.5 GiB.
 - Evaluations print `first batch ... peak reserved`, then a line a minute
   with EX, EM and execution errors so far; sampling prints sample accuracy
   and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
@@ -144,8 +142,8 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   server 3 epochs, client SFT 5 rounds, DPO 4 rounds.
 - The next stage starts from the best checkpoint of the stage; a tie within
   1 point goes to the cheaper one (fewer epochs or rounds).
-- The queue cannot branch, so each decision is a queue edit after the
-  numbers are in; the SQL-only tasks keep the GPU busy meanwhile.
+- The queue cannot branch yet, so each decision is a queue edit after the
+  numbers are in (automating the rule is planned).
 
 ### Full pipeline (phase `fedcot_s0`)
 
@@ -153,15 +151,15 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 |---|---|---|---|---|
 | server | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | 1 and 2 epochs (`srv_e1`, `srv_e2`), each a full run with its own cosine schedule, both evaluated |
 | client SFT | 5 clients, FedAvg, 1 local epoch per round | each client's Spider rows | plan derived from the gold SQL + gold SQL | queued after the server choice |
-| DPO + NLL | 5 clients, FedAvg by pair count | 200 questions per client per round | the client's own 8 sampled plan + SQL, labelled by execution | queued after the client SFT choice |
+| DPO + NLL | 5 clients, FedAvg by pair count | every client question, each round (owner, 2026-11-09), sampled with vLLM | the client's own 8 sampled plan + SQL, labelled by execution | queued after the client SFT choice |
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
   evaluation (1,024 new tokens, strict parsing; an output that does not parse
   scores 0).
 - DPO pairs: the most similar correct and wrong sampled outputs; an output
   that does not parse counts as wrong; when no sample is correct, the chosen
-  side is the plan derived from gold + gold SQL. Settings as the SQL-only
-  rounds (beta 0.1, lr 1e-5, 2 local epochs).
+  side is the plan derived from gold + gold SQL. Beta 0.1, lr 1e-5, 2 local
+  epochs.
 - The server step starts from the base model, so the plan format comes
   before any federated round.
 - `fedcot_s0/smoke` (from the 1-epoch server stage) tests the query-plan DPO
@@ -170,29 +168,23 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   queues a 3-epoch run; otherwise the client rounds start from the better
   of the two.
 
-### SQL-only baselines (phase `fedpref_s0`, 17 tasks)
+### Baselines (out of the queue for now, owner 2026-11-09)
 
-- FedAvg curve: rounds 1-2 of the approved run evaluated now
-  (`fedavg_r1_eval`, `fedavg_r2_eval`), round 3 is the reference, rounds 4-5
-  trained and evaluated (`sft_r4`, `sft_r5`).
-- Federated DPO + NLL from R3, rounds 1-2 (`dpo_r1`, `dpo_r2`), 400 questions
-  per client, 8 sampled SQL at T=0.7, labels by execution on the client's
-  database; rounds 3-4 follow the stopping rule.
-- Every adapter evaluated on Spider test and BIRD dev
-  (`scripts.eval_standard --sets spider_test bird --allow-test`).
+FedAvg R1-R5 and SQL-only federated DPO come back after the main pipeline,
+under the same stopping rule (SQL-only DPO then starts from the best FedAvg
+round).
 
 ### Final table (Spider test, best checkpoint of each line by the rule)
 
 | Row | Line |
 |---|---|
 | FedAvg | best of R1-R5 |
-| SQL-only DPO | best round, from R3 |
+| SQL-only DPO | best round, from the best FedAvg round |
 | fedcot after client SFT | best client round |
 | fedcot full | best DPO round |
 
-### Order on one GPU
+### Order on GPU 0
 
-SQL-only smoke (15 min), `srv_e1` (about 1.3 h), `srv_e2` (about 2.6 h),
-the query-plan smoke, the two server evaluations (about 1.4-2.6 h each):
-decision 1 after about 8-9 h. The SQL-only tasks (about 18-20 GPU-h) run
-while the decision is made. A worker on a second GPU can join at any time.
+`vllm_s0/bench_sql` (minutes), `srv_e1` (about 1.3 h), `srv_e2` (about
+2.6 h), the query-plan smoke, the two server evaluations (about 1.4-2.6 h
+each): decision 1 after about 8-9 h. GPU 1 is in use by another user.
