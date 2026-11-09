@@ -3,6 +3,26 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: dips followed by a rise in the archive
+
+Owner question: does the rule miss curves that dip and then rise? The rule
+(gain 0.5, patience 2, maxima 8 / 8 / 6) replayed on every archived curve
+(Spider dev, pre-restart):
+
+- One dip then a rise, all caught: `tp_r` 68.09, 67.12, 70.60; `c1_rl`
+  66.83, 66.25, 67.70 and 69.54, 69.44, 70.89; `s1_rl` 71.08, 70.02, 73.11.
+- Two flat steps then a rise, missed: `sql_rl` 74.18, 75.05, 74.95, 74.95
+  stops at round 4 with 75.05; the later retry rounds reached 75.53 (0.48
+  point, the size of evaluation noise).
+- With the DPO maximum of 6, `c1_rl` and `s1_rl` would stop at round 6 with
+  69.54 and 71.08, against 70.89 and 74.18 at rounds 8-9. Those rounds
+  sampled 1,200 questions each; rounds 1-6 covered the 6,997 eligible
+  questions once and rounds 8-9 retried unsolved ones. A fedcot DPO round
+  covers every question, so 6 rounds are about six such passes.
+- SFT epoch and FL round curves (2-4 steps) had no dip followed by a rise.
+
+Rule unchanged.
+
 ## 2026-11-09: vLLM against itself on plan + SQL
 
 1-epoch server stage, Spider test, `fedcot_srv_e1_vllm_inproc` (the server
