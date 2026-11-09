@@ -3,6 +3,19 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-09: vLLM reruns differ in the default mode
+
+`vllm_s0`: FedAvg R3 on Spider test, HF 71.50, vLLM 71.45 (`check_sql`
+passed at 0.5). The same vLLM evaluation run twice gave 71.45 and 71.22, with
+the same SQL on 2,009 of 2,147 rows (93.6%); `check_rerun` (0.2 point)
+stopped the queue. Cause: vLLM's engine core runs in its own process by
+default, so batch composition depends on timing. Change: evaluations run
+with the engine core in-process (`--vllm-determinism inproc`), which vLLM
+documents as deterministic scheduling for offline runs; the new checks
+require identical SQL on a rerun and 0.5 point of HF. If the LoRA kernels
+still differ run to run, the next option is vLLM batch invariance. Reports
+in `audits/protocol_v2/vllm_eval_check_s0/` on the server (not committed).
+
 ## 2026-11-09: client rows need gradient checkpointing
 
 `fedcot_s0/client_probe` on the 4 longest client rows (plan + SQL, 2,766-2,921
