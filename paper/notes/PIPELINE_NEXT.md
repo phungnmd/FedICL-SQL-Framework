@@ -92,9 +92,9 @@ Add `--phase <name>` to see one phase only.
 
 - `fedcot_s0/srv_e1` (BIRD-length rows): the `first optimizer update done
   ... peak reserved` line, about 20 GiB expected.
-- `fedcot_s0/smoke` (query plan sampling at 1,024 new tokens, then DPO on
-  plan + SQL pairs): the `first batch ... peak reserved` and `DPO smoke on
-  the longest pair` lines stay under 21.5 GiB.
+- `fedcot_s0/smoke` (vLLM plan + SQL sampling at 1,024 new tokens, then DPO
+  on plan + SQL pairs): `vLLM samples loaded ... cut at max_tokens` stays
+  low, and the `DPO smoke on the longest pair` line stays under 21.5 GiB.
 - Evaluations print `first batch ... peak reserved`, then a line a minute
   with EX, EM and execution errors so far; sampling prints sample accuracy
   and pass@8 so far. Numbers above 21.5 GiB show in red on the console.
@@ -139,8 +139,10 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   epochs.
 - The server step starts from the base model, so the plan format comes
   before any federated round.
-- `fedcot_s0/smoke` (from the 1-epoch server stage) tests the query-plan DPO
-  path and measures sampling time before the DPO rounds are queued.
+- `fedcot_s0/smoke` (from the 1-epoch server stage, 8 questions per client)
+  runs the DPO round path the full rounds use: plan + SQL sampling at 1,024
+  new tokens through vLLM, then DPO on the longest pair. It checks the path
+  and memory, not accuracy.
 - Decision 1, after `publish_srv_eval`: 2 epochs better by more than 1 point
   queues a 3-epoch run; otherwise the client rounds start from the better
   of the two.
