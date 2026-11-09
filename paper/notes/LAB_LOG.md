@@ -3,11 +3,11 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
-## 2026-11-09: fedcot server curve, epochs 1-5
+## 2026-11-09: fedcot server curve stopped, E5 chosen
 
 Teacher-plan SFT on 4,109 BIRD rows from the base model, one epoch per step,
 vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`, `4da3ad0c`,
-`1667ed2a`):
+`1667ed2a`, `323286bf`):
 
 | Epoch | EX | Easy | Medium | Hard | Extra | Invalid format | Exec error |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -16,6 +16,7 @@ vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`, `4da3ad0c`,
 | 3 | 58.55 | 75.74 | 64.41 | **44.28** | 40.34 | 92 | **260** |
 | 4 | 59.94 | **78.30** | 66.63 | 44.06 | 40.34 | 52 | 273 |
 | 5 | **60.64** | 77.66 | **68.38** | 43.41 | **42.02** | **48** | 268 |
+| 6 | 60.20 | - | - | - | - | - | - |
 
 - Gains shrink: 4.51, 1.86, 1.40, 0.70. E5 counts as a gain (rule: more than
   0.5), so the curve runs at least E6.
@@ -24,6 +25,10 @@ vLLM inproc, Spider test (fedicl-sql `f6e316f3`, `6ccba453`, `4da3ad0c`,
   131 only in E4, so the 0.70 point is the size of the noise (two vLLM runs
   of one adapter flip 90 rows).
 - Hard stays at 43-44 since E3.
+- E6 60.20, no gain. Decision (owner): server maximum cut from 8 to 6
+  epochs, so the curve stops at E6 with E5 as the best epoch instead of
+  training E7 only to confirm it (fedicl-sql 47324303). The client rounds
+  start from E5.
 
 ## 2026-11-09: dips followed by a rise in the archive
 

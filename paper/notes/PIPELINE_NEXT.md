@@ -93,43 +93,16 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### Code pushed 2026-11-09 (next phase)
+### Server curve stopped at six epochs (owner, 2026-11-09): restart now
 
-Pulling between tasks is safe: the HF evaluation and DPO defaults are
-unchanged, and a worker reads the new queue before its next task. The new
-queue replaces the fixed server tasks (`srv_e2`, `srv_e3`, their evaluations)
-with the curves; the 2-epoch run from the base model that the old queue
-started (`server_l7680_e2`) is not used by them.
-
-### Code pushed 2026-11-09: stopping rule
-
-`fedicl-sql` 160c2143 sets a gain threshold of 0.5 point and maxima 8 / 8 / 6
-per curve. No task command changed, and no curve has started, so a pull at
-any time is safe; pull before `fedcot_s0/curve_server` starts.
-
-### Code pushed 2026-11-09: gradient checkpointing kept
-
-`fedicl-sql` e50d05f4: client rounds and DPO rounds keep gradient
-checkpointing, and `fedcot_s0/client_probe` measures only that mode (its
-command changed, so it runs again, about 1.5 min). The finished
-`fedcot_s0/smoke` keeps its command and is not rerun.
-
-### Code pushed 2026-11-09: deterministic vLLM evaluation
-
-`fedicl-sql` fb0c33b8 adds `--vllm-determinism`; fe439b14 keeps only the
-checks above and names the curve evaluations `..._vllm_inproc`; 0a7d1809
-makes `check_cot` a report (owner: every evaluation stays on vLLM). Nothing
-is running: pull, run the step-1 evaluation below, then start the worker; it
-reruns `check_cot`, publishes, and starts the curves, whose step 1 reuses
-that evaluation. DPO sampling keeps vLLM's default mode.
-
-Step-1 evaluation of the server curve with vLLM `inproc` (about 5 min, GPU
-0), then the two comparisons (vLLM default against `inproc`, HF against
-`inproc`):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $A='artifacts/protocol_v2/fedcot_coder15b_alpha01_s0/server_l7680_e1/m_g'; uv run --no-sync python -m scripts.eval_standard --arm fedcot_srv_e1_vllm_inproc --adapter $A --sets spider_test --allow-test --response-format qp_cot_v1 --engine vllm --vllm-determinism inproc; if ($LASTEXITCODE -ne 0) { throw 'Eval failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1_vllm fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1 fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' } }
-```
+`fedicl-sql` 47324303 lowers the server maximum from 8 to 6 epochs (EX by
+epoch 52.17, 56.68, 58.55, 59.94, 60.64, 60.20: E6 brought no gain). The
+running `curve_server` read the maximum of 8 when it started and is now
+training E7. Stop the GPU 0 worker with Ctrl+C, run step 0, and start the
+worker again (step 2). The curve skips epochs 1-6 (all done), stops at the
+maximum with E5 as best, records it in `audits/curves/`, publishes, and the
+worker goes on to `curve_client` from E5. The partial E7 folder
+(`server_chain_e7`) is not used. No task command changed.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -188,7 +161,8 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   points per round with dips in between read as flat under a 1-point
   threshold).
 - Stop a stage after 2 steps in a row without a gain, or at its maximum:
-  server 8 epochs, client SFT 8 rounds, DPO 6 rounds.
+  server 6 epochs (cut from 8 after E6, owner 2026-11-09), client SFT 8
+  rounds, DPO 6 rounds.
 - The next stage starts from the best checkpoint of the stage; a tie within
   0.5 point goes to the cheaper one (fewer epochs or rounds).
 - Precisely: the best step changes only on a gain, so a later step within
@@ -203,7 +177,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 | Line (task) | Start | Data | Target | Step |
 |---|---|---|---|---|
-| server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 8 |
+| server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 6 (best: E5) |
 | client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; up to 8 |
 | DPO + NLL (`curve_dpo`) | best client round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
 
@@ -241,11 +215,9 @@ round).
 
 ### Order on GPU 0
 
-1. `fedcot_s0/smoke`, `fedcot_s0/client_probe` (minutes each).
-2. `vllm_s0`: the three checks (seconds), publish.
-3. `curve_server`: epoch 1 is done (1.14 h); each further epoch about 1.1 h
-   plus a vLLM evaluation (at most 7 more epochs, about 9 h).
-4. `curve_client`, then `curve_dpo`; their step times are measured by the
+1. `fedcot_s0/smoke`, `fedcot_s0/client_probe`, `vllm_s0`: done.
+2. `curve_server`: stopped at 6 epochs, best E5 (60.64).
+3. `curve_client`, then `curve_dpo`; their step times are measured by the
    probe, the smoke and the first steps.
 
 GPU 1 is in use by another user. Folders not used by the curves:
