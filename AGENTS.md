@@ -146,6 +146,13 @@ result invalid.
   generation uses 4-bit, batch 8, `--exec-workers 4`. Set
   `CUDA_DEVICE_ORDER=PCI_BUS_ID` with `CUDA_VISIBLE_DEVICES`. Record new memory
   or speed measurements in `A5000_RUN_CONFIG.md`.
+- Run an experiment on the setup it stands for: all of each client's data,
+  every evaluation row, the planned rounds and epochs. A part (a subset of
+  questions or rows, fewer rounds) is fine when the full run does not fit the
+  GPU budget or a quick check is the point (smoke, memory probe). Then say so
+  when queuing it, in chat and in `PIPELINE_NEXT.md`: what is cut, why, what
+  the full version would cost, and whether the result still answers the
+  question. A partial result is reported as partial.
 - Log runs and decisions in `LAB_LOG.md`, briefly.
 - Explore freely: read any new result, add or drop arms after reading
   results, no pass/fail rules written in advance. Run a control when its
