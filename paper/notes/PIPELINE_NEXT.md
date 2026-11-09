@@ -131,6 +131,13 @@ Step-1 evaluation of the server curve with vLLM `inproc` (about 5 min, GPU
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_DEVICE_ORDER='PCI_BUS_ID'; $env:CUDA_VISIBLE_DEVICES='0'; $A='artifacts/protocol_v2/fedcot_coder15b_alpha01_s0/server_l7680_e1/m_g'; uv run --no-sync python -m scripts.eval_standard --arm fedcot_srv_e1_vllm_inproc --adapter $A --sets spider_test --allow-test --response-format qp_cot_v1 --engine vllm --vllm-determinism inproc; if ($LASTEXITCODE -ne 0) { throw 'Eval failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1_vllm fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' }; uv run --no-sync python -m scripts.compare_predictions fedcot_srv_e1 fedcot_srv_e1_vllm_inproc --set spider_test; if ($LASTEXITCODE -ne 0) { throw 'Compare failed' } }
 ```
 
+### Code pushed 2026-11-09: worker console
+
+`fedicl-sql` 0e12e253: every task line on the console starts with the time,
+and key lines are coloured. Only `scripts/gpu_worker.py` changed, which a
+running worker has already loaded: it applies at the next worker start; no
+need to restart for it.
+
 ### Status (read-only, any time, second terminal)
 
 ```powershell
