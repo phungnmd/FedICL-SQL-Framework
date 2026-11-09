@@ -93,16 +93,18 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### Server curve stopped at six epochs (owner, 2026-11-09): restart now
+### Self-taught line queued (owner, 2026-11-10): restart after client round 1
 
-`fedicl-sql` 47324303 lowers the server maximum from 8 to 6 epochs (EX by
-epoch 52.17, 56.68, 58.55, 59.94, 60.64, 60.20: E6 brought no gain). The
-running `curve_server` read the maximum of 8 when it started and is now
-training E7. Stop the GPU 0 worker with Ctrl+C, run step 0, and start the
-worker again (step 2). The curve skips epochs 1-6 (all done), stops at the
-maximum with E5 as best, records it in `audits/curves/`, publishes, and the
-worker goes on to `curve_client` from E5. The partial E7 folder
-(`server_chain_e7`) is not used. No task command changed.
+`fedicl-sql` f0aa2d7f adds self-taught SFT rounds (`experiments/federated_pref/run.py
+star`) and the rationalized DPO fallback; 9fe240bb caps the template client
+curve at one round and queues `star_smoke`, `curve_star`, then `curve_dpo` from
+the best star round. The running `curve_client` (template round 1) does not
+load the changed code; it read the maximum of 8 when it started.
+
+When the console shows `curve fedcot_s0/client: step 1/8 EX ...` and round 2
+starts training: Ctrl+C the GPU 0 worker, run step 0, start the worker again
+(step 2). The client curve stops at round 1 and records it; the worker then
+runs `star_smoke` (minutes), then `curve_star`.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -161,8 +163,8 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   points per round with dips in between read as flat under a 1-point
   threshold).
 - Stop a stage after 2 steps in a row without a gain, or at its maximum:
-  server 6 epochs (cut from 8 after E6, owner 2026-11-09), client SFT 8
-  rounds, DPO 6 rounds.
+  server 6 epochs (cut from 8 after E6, owner 2026-11-09), template client
+  SFT 1 round (the comparator), self-taught SFT 3 rounds, DPO 6 rounds.
 - The next stage starts from the best checkpoint of the stage; a tie within
   0.5 point goes to the cheaper one (fewer epochs or rounds).
 - Precisely: the best step changes only on a gain, so a later step within
@@ -178,16 +180,24 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 | Line (task) | Start | Data | Target | Step |
 |---|---|---|---|---|
 | server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 6 (best: E5) |
-| client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; up to 8 |
-| DPO + NLL (`curve_dpo`) | best client round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
+| template client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL by a template + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; 1 round, the comparator of the self-taught round |
+| self-taught SFT (`curve_star`) | best server epoch | every client question, 8 samples through vLLM | the most frequent correct sampled plan + SQL; for a question with none, a plan the model writes with the gold SQL as a hint, kept if its SQL is correct; otherwise the question is dropped | one FedAvg round (weighted by target count), client SFT recipe (lr 2e-4, 1 local epoch); up to 3 |
+| DPO + NLL (`curve_dpo`) | best self-taught round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
   evaluation (1,024 new tokens, strict parsing; an output that does not parse
   scores 0).
 - DPO pairs: the most similar correct and wrong sampled outputs; an output
   that does not parse counts as wrong; when no sample is correct, the chosen
-  side is the plan derived from gold + gold SQL. Beta 0.1, lr 1e-5, 2 local
-  epochs, 16 pairs per update.
+  side is the hinted (rationalized) response of the round's start model if
+  its SQL is correct, otherwise the question gives no pair. Beta 0.1, lr
+  1e-5, 2 local epochs, 16 pairs per update.
+- Rationalization: 4 samples at T=0.7 with the gold SQL after the question
+  (the hint is never in a training prompt); a response whose plan names the
+  hint ("the correct SQL ...") is not kept.
+- Closest prior work for the self-taught step: STaR-SQL (He et al., ACL
+  2025, arXiv 2502.13550), centralized; here federated, from a teacher-plan
+  server stage, in the Struct-SQL plan format, followed by federated DPO.
 - Server epochs as a chain (owner, 2026-11-09): cheaper than a separate run
   per length and open-ended; an epoch from a chain may score slightly below
   a run with one schedule over the same length. A clean run of the chosen
@@ -196,7 +206,8 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   epochs, K=8, T=0.7.
 - `fedcot_s0/smoke` (from the 1-epoch server stage, 8 questions per client)
   runs the DPO round path of the full rounds and checks its memory, not
-  accuracy.
+  accuracy. `fedcot_s0/star_smoke` does the same for the self-taught round
+  from E5 (8 questions per client): a run check, not a result.
 
 ### Baselines (out of the queue for now, owner 2026-11-09)
 
@@ -210,15 +221,18 @@ round).
 |---|---|
 | FedAvg | best round by the rule |
 | SQL-only DPO | best round, from the best FedAvg round |
-| fedcot after client SFT | best client round |
+| template client SFT, 1 round | from E5 (comparator) |
+| fedcot after self-taught SFT | best star round |
 | fedcot full | best DPO round |
 
 ### Order on GPU 0
 
 1. `fedcot_s0/smoke`, `fedcot_s0/client_probe`, `vllm_s0`: done.
 2. `curve_server`: stopped at 6 epochs, best E5 (60.64).
-3. `curve_client`, then `curve_dpo`; their step times are measured by the
-   probe, the smoke and the first steps.
+3. `curve_client`: template round 1 from E5, running.
+4. `star_smoke` (minutes), `curve_star` (a round: sampling about 1-1.5 h,
+   rationalization about 10 min, SFT about one client round; estimates),
+   then `curve_dpo`.
 
 GPU 1 is in use by another user. Folders not used by the curves:
 `server_l7680_e2` (a 2-epoch run from the base model of the earlier queue),

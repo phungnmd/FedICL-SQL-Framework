@@ -3,6 +3,32 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: self-taught client SFT replaces the template rounds
+
+No result yet. Question (owner): skip client SFT and go straight to DPO from
+E5? A literature review (Liu et al. ACL 2025, ExCoT, Iterative RPO,
+Struct-SQL, STaR, RFT, Tai et al. 2023) and the E5 outputs argued against:
+
+- E5 is 60.64 on Spider test against 71.45 for SQL-only FedAvg R3; the gap is
+  in-domain SQL skill (hard 43.4 against 65.4), not format (48 invalid
+  outputs of 2,147). DPO at lr 1e-5 closes it slowly.
+- Every Text-to-SQL DPO + CoT paper fine-tunes on CoT first; none tests DPO
+  without it.
+- The template plan (about 906 characters against 104 for the SQL, 350 of
+  them fixed text) restates the SQL clause by clause and overwrites the
+  teacher's plan style in one round; as the DPO fallback it pairs template
+  text against teacher-style text.
+
+Decision (owner, 2026-11-10): option C. Template client SFT runs one round
+from E5 as the comparator; then self-taught SFT rounds: the client's own most
+frequent correct sample, else a plan rationalized from the gold SQL (kept if
+its SQL is correct, else dropped, as STaR and RFT keep only verified
+outputs), client SFT recipe, up to 3 rounds; DPO from the best of them, with
+the rationalized response as the fallback chosen side and no pair when it
+fails (as Liu et al. drop all-wrong questions). One target per question, so
+the self-taught round trains on at most as many rows as the template round.
+Code: fedicl-sql f0aa2d7f, queue 9fe240bb.
+
 ## 2026-11-09: fedcot server curve stopped, E5 chosen
 
 Teacher-plan SFT on 4,109 BIRD rows from the base model, one epoch per step,

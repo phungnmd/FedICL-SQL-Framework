@@ -53,9 +53,11 @@ Nothing measured since the fresh start.
 
 ## 5. Current phase
 
-Running the full CoT-with-teacher pipeline (`DIRECTION.md` section 6.3, step
-1) as a curve from the base model: server teacher-plan SFT (up to 8 epochs, chained one epoch at a time),
-query-plan client rounds (up to 8), full-data query-plan DPO rounds (up to
-6), one seed, on GPU 0, each line stopped automatically by the rule and
-evaluated with vLLM (owner, 2026-11-09: plan + SQL is 1.16 points below HF on the 1-epoch server stage; every row of the comparison uses vLLM). The baselines (FedAvg rounds, SQL-only
-federated DPO) follow after it, evaluated the same way. Commands in `PIPELINE_NEXT.md`.
+Running the CoT-with-teacher pipeline on GPU 0, one seed, every step
+evaluated on Spider test with vLLM and stopped by the rule
+(`PIPELINE_NEXT.md`): server SFT on teacher plans (done, E5 chosen, 60.64),
+one template client SFT round from E5 as the comparator, self-taught client
+SFT rounds (own correct samples, else rationalized from the gold SQL), then
+federated DPO + NLL rounds from the best self-taught round (owner,
+2026-11-10). Baselines (FedAvg rounds, SQL-only federated DPO) follow,
+evaluated the same way.
