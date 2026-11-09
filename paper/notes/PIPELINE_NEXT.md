@@ -57,6 +57,22 @@ final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
   retries failed tasks.
 - Each phase ends with a `publish` task that commits and pushes its results.
 
+### Fix once: query-plan sidecar line endings (2026-11-09)
+
+`fedcot_s0/srv_e1` and `srv_e2` failed with `sidecar hash does not match
+its provenance`: the server checkout wrote the plan sidecar with CRLF line
+endings, so its bytes no longer match the recorded hash (the content is the
+same). This restores the tracked files under `rationale_kd` with LF bytes
+and checks the hash; it stops without touching anything if the server copy
+differs in content. Safe while a worker runs.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $d='processed_data/protocol_v2/rationale_kd'; $changed = git diff --name-only -- $d; if ($LASTEXITCODE -ne 0) { throw 'git diff failed' }; if ($changed) { throw "content differs from Git: $changed" }; $files = @(git ls-files -- $d); if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) { throw 'git ls-files failed' }; Remove-Item -LiteralPath $files; git -c core.autocrlf=false checkout -- $d; if ($LASTEXITCODE -ne 0) { throw 'checkout failed' }; $h = (Get-FileHash -Algorithm SHA256 "$d/p215_struct_full_s0/teacher_plans_qwen25_coder_7b.jsonl").Hash.ToLower(); if ($h -ne '6f7d3a66c11ce931ed1185cf2a33c27c103c3dd137f7efa498a594e4062a1e43') { throw "sidecar hash still $h" }; git status --short -- $d; 'sidecar restored with LF' }
+```
+
+Then start the GPU 1 worker (Step 2). A starting worker retries failed
+tasks, so it takes `fedcot_s0/srv_e1` while GPU 0 continues `dpo_r1`.
+
 ### Status (read-only, any time, second terminal)
 
 ```powershell
