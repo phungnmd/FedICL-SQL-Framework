@@ -174,6 +174,43 @@ result invalid.
   prompt, token, fallback, ablation, and similar).
 - No emojis. No em dashes; use commas, parentheses, colons, or hyphens.
 
+## Writing `PIPELINE_NEXT.md`
+
+The owner opens this file to learn two things: what to run now, and what is
+running (owner, 2026-11-10). Both are answered on the first screen. The file
+has four sections, in this order:
+
+1. `## Status`: the time of the update, then one row per GPU: the running
+   task, idle, waiting for the owner, or not ours. Say what the state is
+   known from (the owner's message, a results commit) and since when; an
+   agent never presents a guess as the live state. The read-only status
+   commands sit right under the table.
+2. `## Run now`: numbered steps in the order to run them. Each step is one
+   line of purpose, one full command, and what to send back, if anything.
+   When there is nothing to run, the section says so and names the next
+   moment the owner is needed: after which task, about when, what to read
+   and what to do with it.
+3. `## Running and queued`: one table in queue order with the task ids of
+   the queue file, the question each answers, the time estimate and the
+   state (running, queued). Under it only: what is cut from a full run and
+   what is not queued yet and why.
+4. `## Reference`: commands that stay valid (restart, pull and test, the
+   other GPU) and the description of the lines. Nothing in it is needed to
+   act.
+
+- Every command the owner needs now is written in full in "Run now"; the
+  owner never scrolls to another section to act.
+- No history: why something was restarted, what failed, a decision and its
+  reasons, results. Those go to `LAB_LOG.md`; this file gives the current
+  state only.
+- A finished step or task leaves the file once it is logged; a diagnostic
+  the owner chose to skip leaves at once.
+- Update `Status` and the table in the same commit as a queue change, and
+  whenever the owner reports a start, stop or failure, or a results commit
+  shows a task finished.
+- Estimates are marked as estimates ("about"); a clock time is given with
+  its date.
+
 ## Writing reports for the advisor
 
 From the owner's edits (2026-10-29). These are tendencies, not checks; follow

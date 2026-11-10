@@ -3,6 +3,22 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: worker restarted on GPU 0, seed 1 adapter found
+
+No new result. The owner restarted the worker on GPU 0 with the queue of
+fedicl-sql `f2c1e4a7`. `sqldpo_s0/curve_hinton` closed at 23:55 without
+sampling or training (`reached the maximum of 4 steps`, record
+`audits/curves/sqldpo_s0__hinton_more.json`, fedicl-sql `23e22d36`); the
+controls follow in queue order.
+
+- Seed 1: `resolve_parent` on the server found the `hinton_k2aaa_a3` adapter
+  of seed 1 (`artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`).
+- Round 5 crash (`CUDA error: unspecified launch failure` in vLLM sampling):
+  the owner skipped the GPU and log checks, so the cause is not known. If it
+  comes back in a later task, the log goes to the agent before a third try.
+- `PIPELINE_NEXT.md` has a fixed layout from now on (`AGENTS.md`, "Writing
+  `PIPELINE_NEXT.md`"): status, run now, running and queued, reference.
+
 ## 2026-11-10: three SQL DPO rounds, fixed; Hinton line stops at round 4
 
 No run. Owner decision: the SQL DPO line from `hinton_k2aaa_a3` stops at
