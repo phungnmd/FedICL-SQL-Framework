@@ -3,6 +3,32 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: self-taught client rounds 1-2 from E5
+
+Self-taught SFT (own most frequent correct sample, else rationalized from
+gold, else dropped), FedAvg weighted by targets, vLLM inproc, Spider test
+(fedicl-sql `ffb1d73`, `de6744f`, `d4f7847`, `61ad6ee`), about 2:50 per
+round including evaluation:
+
+| | EX | EM | Easy | Medium | Hard | Extra | Invalid format | Exec error | Wrong result |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| E5 | 60.64 | 24.9 | 77.7 | 68.4 | 43.4 | **42.0** | 48 | 268 | **529** |
+| Template R1 | **62.69** | **52.6** | 79.1 | **71.7** | **50.1** | 35.9 | **0** | **207** | 594 |
+| Self-taught R1 | 60.08 | 27.4 | 79.1 | 66.0 | 46.7 | 38.1 | 82 | 218 | 557 |
+| Self-taught R2 | 60.64 | 30.1 | **79.8** | 66.9 | 47.1 | 38.1 | 63 | 245 | 537 |
+
+- Targets per round: about 83% of questions from the client's own samples,
+  15% rationalized, 2% dropped; sample accuracy on client train 55-66%.
+  Mean training loss 0.11-0.12 against 0.08 for the template round, whose
+  final loss reaches 0.01.
+- R2 equals E5 with 241 rows right only in each: the rounds move many answers
+  and gain none. Template R1 stays ahead of R2 (288 rows right only in
+  template R1, 244 only in R2).
+- Format errors rise above E5 (63-82 against 48): the targets keep the
+  model's own plan wording, so its format variance stays.
+- The curve rule compares steps with each other, not with the start, so R2
+  counts as a gain over R1 and round 3 runs.
+
 ## 2026-11-10: template client round 1 from E5
 
 One FedAvg round on template plans + gold SQL from E5, vLLM inproc, Spider
