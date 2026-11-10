@@ -49,15 +49,25 @@ Everything else, including:
 
 ## 4. What we know
 
-Nothing measured since the fresh start.
+Spider test, one seed (details in `LAB_LOG.md`):
+
+- CoT at 1.5B: a teacher-plan server stage on BIRD reaches 60.64 (E5); one
+  template client round 62.69; self-taught client SFT does not rise above
+  E5 (60.08, 60.64, 58.69). SQL-only FedAvg R3 from the base model scores
+  71.45; the base model 57.94.
+- Archived results (owner allowed their use, 2026-11-10): FedAvg is level
+  with centralized training on Spider (71.50 against 71.08); a BIRD server
+  stage before FedAvg adds 1.5-2.4 points (`gold_k2aaa_a3` 73.03,
+  `hinton_k2aaa_a3` 73.50); on Spider dev, SQL DPO + NLL raised a
+  converged SFT student by about 1.5-2 points and CoT gained less from the
+  same DPO rounds than SQL.
 
 ## 5. Current phase
 
-Running the CoT-with-teacher pipeline on GPU 0, one seed, every step
-evaluated on Spider test with vLLM and stopped by the rule
-(`PIPELINE_NEXT.md`): server SFT on teacher plans (done, E5 chosen, 60.64),
-one template client SFT round from E5 as the comparator, self-taught client
-SFT rounds (own correct samples, else rationalized from the gold SQL), then
-federated DPO + NLL rounds from the best self-taught round (owner,
-2026-11-10). Baselines (FedAvg rounds, SQL-only federated DPO) follow,
-evaluated the same way.
+Method (owner, 2026-11-10): a BIRD server stage with teacher KD, FedAvg on
+the clients, then federated DPO + NLL on the clients' own SQL samples,
+labelled by execution on each client's databases. Running on GPU 0: the
+reference rows again with vLLM, SQL DPO round 1 from `hinton_k2aaa_a3` and
+from FedAvg R3 (the control for the server stage), then more rounds from
+`hinton_k2aaa_a3`. CoT stays as an analysis section: template client rounds
+2-3, then CoT DPO, set against Liu et al. (ACL 2025).

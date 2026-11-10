@@ -93,21 +93,33 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### DPO from template round 1 (owner, 2026-11-10): restart the worker
+### Method line queued (owner, 2026-11-10): restart the worker
 
-Self-taught SFT stopped at 3 rounds, none above template round 1 (62.69
-against 60.64 at best). `curve_dpo` now starts from template round 1
-(`fedcot_cli_r1_s0`) under a new root (`dpo_tpl`), with the template fallback:
-on a question with no correct sample, the chosen side is the gold SQL in the
-template plan the start model was trained on. Only the queue changed; no
-code. The worker was stopped before `curve_dpo` began, so nothing of the old
-DPO line exists. Run step 0, then the GPU 0 worker (step 2): it runs
-`curve_dpo` next.
+Code pushed (fedicl-sql `5c8469ad`, `b03c15e9`): curves can continue a
+stopped curve (`extends`), and the queue gains phase `sqldpo_s0` ahead of the
+remaining fedcot tasks. No running task loads the changed code; the worker is
+stopped. If it was restarted and runs `fedcot_s0/curve_dpo`, press Ctrl+C
+first: that line now waits for template rounds 2-3. Run step 0, then the GPU 0
+worker (step 2).
 
-On the first round, read the sampling line (pass@8, questions with both a
-correct and a wrong sample) and the pair count per client before the DPO
-update: a start trained to a final loss of 0.01 on these questions may give
-few pairs.
+What the worker runs next, in order:
+
+1. `sqldpo_s0/check_parents` (seconds): the reused adapters exist and match
+   their recorded hashes. If it fails, stop and send the error line.
+2. Six reference evaluations with vLLM inproc on Spider test (about 4 min
+   each): base, FedAvg R3, `hinton_k2aaa_a3`, `gold_k2aaa_a3`, `central_e3`,
+   `central_mix_e3`; then one publish.
+3. SQL DPO round 1 from `hinton_k2aaa_a3`, then round 1 from FedAvg R3 (the
+   control for the server stage). Round time is not measured yet: sampling
+   8,659 questions at K=8 takes about an hour (from the 400-question vLLM
+   bench), the DPO update depends on the pair count.
+4. SQL DPO rounds 2-6 from `hinton_k2aaa_a3` under the rule.
+5. fedcot: template client rounds 2-3 (about 2 h each), then CoT DPO from the
+   best template round, up to 3 rounds.
+
+On round 1, read the sampling line (pass@8, questions with both a correct and
+a wrong sample) and the pairs per client, and send the round 1 EX of both
+starts before round 2 begins.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -178,7 +190,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   next step or stops and records the decision in `audits/curves/`; the next
   line starts from that best step.
 
-### Full pipeline (phase `fedcot_s0`)
+### CoT analysis line (phase `fedcot_s0`)
 
 | Line (task) | Start | Data | Target | Step |
 |---|---|---|---|---|
@@ -211,21 +223,29 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   accuracy. `fedcot_s0/star_smoke` does the same for the self-taught round
   from E5 (8 questions per client): a run check, not a result.
 
-### Baselines (out of the queue for now, owner 2026-11-09)
+### Method line (phase `sqldpo_s0`)
 
-FedAvg rounds and SQL-only federated DPO come back after the main pipeline,
-under the same stopping rule (SQL-only DPO then starts from the best FedAvg
-round).
+| Line (curve) | Start | Data | Pairs | Step |
+|---|---|---|---|---|
+| `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs); up to 6 |
+| `sqldpo_s0/fedavg` | FedAvg R3 from the base model (71.50 HF) | same | same | 1 round so far, the control |
+
+Reused adapters (owner, 2026-11-10): `hinton_k2aaa_a3`, `gold_k2aaa_a3`,
+FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3`; each result row names
+its config, seed and Git SHA. Controls after the first reads: RFT (chosen
+side only) from `hinton_k2aaa_a3`, DPO from `gold_k2aaa_a3`.
 
 ### Final table (Spider test, best checkpoint of each line by the rule)
 
 | Row | Line |
 |---|---|
-| FedAvg | best round by the rule |
-| SQL-only DPO | best round, from the best FedAvg round |
-| template client SFT, 1 round | from E5 |
-| self-taught SFT (ablation) | best star round, from E5 |
-| fedcot full | best DPO round, from template round 1 |
+| base, local clients, FedProx, FedNTD | reference rows |
+| FedAvg R3 | from the base model |
+| centralized Spider, centralized Spider + BIRD | references without privacy |
+| `gold_k2aaa_a3`, `hinton_k2aaa_a3` | server stage on BIRD, then FedAvg |
+| SQL DPO from FedAvg R3 | control: no server stage |
+| SQL DPO from `hinton_k2aaa_a3` | the method |
+| CoT analysis | E5, template R1-R3, self-taught R1-R3, CoT DPO |
 
 ### Order on GPU 0
 
@@ -233,7 +253,10 @@ round).
 2. `curve_server`: stopped at 6 epochs, best E5 (60.64).
 3. `curve_client`: template round 1 from E5 (62.69).
 4. `curve_star`: stopped at 3 rounds, best R2 (60.64).
-5. `curve_dpo` from template round 1: next (a round about 3 h, estimate).
+5. `sqldpo_s0`: reference evaluations, SQL DPO round 1 from both starts,
+   then rounds 2-6 from `hinton_k2aaa_a3`: next.
+6. `curve_client_more` (template rounds 2-3), then `curve_dpo` (CoT DPO from
+   the best template round, up to 3).
 
 GPU 1 is in use by another user. Folders not used by the curves:
 `server_l7680_e2` (a 2-epoch run from the base model of the earlier queue),

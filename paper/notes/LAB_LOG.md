@@ -3,6 +3,29 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: method line is SQL DPO from the BIRD server stage; CoT becomes analysis
+
+Owner read the archived results in this session and chose: a method paper
+on SQL-only output (BIRD server stage with teacher KD, FedAvg, then
+federated DPO + NLL labelled by execution on each client's databases), with
+a section on why CoT does not help at 1.5B. Approved reuse of five earlier
+adapters as starts and baselines: `hinton_k2aaa_a3`, `gold_k2aaa_a3`,
+FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3`.
+
+Readings behind it (archive, Spider test unless noted): every K2 arm 72.6-73.9
+against FedAvg 71.50 and centralized Spider 71.08; on Spider dev, SQL DPO
+from a converged SFT student +1.45 after 2 rounds (p=.04) and 75.53 after 9;
+CoT route `c1` 60.64 to 70.89 against SQL `s1` 58.80 to 74.18 under the same
+DPO rounds; Liu et al. (ACL 2025, 6.7B-15B) find CoT DPO above plain SFT by
+0.5-0.7 on Spider dev. Gaps between starts shrank under DPO in the archive
+(14.8 points to 1.35), so DPO from FedAvg R3 is run at round 1 next to the
+Hinton start: it tells whether the server stage still matters after DPO.
+
+Queue (fedicl-sql `5c8469ad`, `b03c15e9`): reference rows with vLLM inproc,
+SQL DPO round 1 from both starts, rounds 2-6 from `hinton_k2aaa_a3`, then
+template client rounds 2-3 (a curve that continues the stopped client
+curve) and CoT DPO from the best template round, up to 3 rounds.
+
 ## 2026-11-10: CoT DPO starts from template round 1
 
 Owner reviewed the archived results (allowed in this session): on Spider dev,
