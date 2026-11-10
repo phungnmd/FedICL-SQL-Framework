@@ -3,6 +3,14 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: SQL DPO without gradient checkpointing does not fit
+
+Root `hinton_mb` (no checkpointing, micro-batched): client 1 trained at
+about 4.5 s per update, but client 2 ran out of memory on one pair of about
+1,450 tokens under the 0.88 memory cap. Owner question: the speed-up does
+not pay for the failures. Round 1 restarts in root `hinton_gc` with
+checkpointing on and micro-batching kept; samples copied again.
+
 ## 2026-11-10: SQL DPO round 1 from `hinton_k2aaa_a3` restarted, micro-batched
 
 Round 1 sampling finished in root `hinton` (pass@8 91-94% per client, 5,393
