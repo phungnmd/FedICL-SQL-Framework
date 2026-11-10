@@ -16,7 +16,7 @@ would load, the agent says so here and in chat.
 ### Step 0: update the checkout and run the tests
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 ### Step 1: worker check, about 1 min (once)
@@ -93,33 +93,39 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### Method line queued (owner, 2026-11-10): restart the worker
+### SQL DPO round 1 restarts (owner, 2026-11-10): pull, then restart the worker
 
-Code pushed (fedicl-sql `5c8469ad`, `b03c15e9`): curves can continue a
-stopped curve (`extends`), and the queue gains phase `sqldpo_s0` ahead of the
-remaining fedcot tasks. No running task loads the changed code; the worker is
-stopped. If it was restarted and runs `fedcot_s0/curve_dpo`, press Ctrl+C
-first: that line now waits for template rounds 2-3. Run step 0, then the GPU 0
-worker (step 2).
+Code pushed (fedicl-sql `a1b22d8b`, `df2a5eef`). The worker is stopped; no
+running task loads the changed code.
 
-What the worker runs next, in order:
+- DPO training packs several pairs per forward pass (`--micro-batch-tokens
+  4096`: rows x padded tokens per pass) and runs without gradient
+  checkpointing. Before the first update it runs the costliest passes forward
+  and backward; while their peak is above 21.5 GiB (or they run out of
+  memory) it halves the budget, down to one pair per pass, and stops if one
+  pair does not fit. Every update checks the peak again and stops the task
+  above 21.5 GiB. The gradient of an update is the same as one pair at a
+  time.
+- Round 1 from `hinton_k2aaa_a3` restarts in a new root, `hinton_mb`. The
+  task `sqldpo_s0/reuse_hinton_samples` copies the round 1 samples from the
+  stopped root `hinton` (same start adapter, same questions and sampler), so
+  the round skips sampling and starts at pairs. Nothing in `hinton` or under
+  `artifacts/` is changed. FedAvg R3 round 1 and rounds 2-6 use the same
+  training settings.
 
-1. `sqldpo_s0/check_parents` (seconds): the reused adapters exist and match
-   their recorded hashes. If it fails, stop and send the error line.
-2. Six reference evaluations with vLLM inproc on Spider test (about 4 min
-   each): base, FedAvg R3, `hinton_k2aaa_a3`, `gold_k2aaa_a3`, `central_e3`,
-   `central_mix_e3`; then one publish.
-3. SQL DPO round 1 from `hinton_k2aaa_a3`, then round 1 from FedAvg R3 (the
-   control for the server stage). Round time is not measured yet: sampling
-   8,659 questions at K=8 takes about an hour (from the 400-question vLLM
-   bench), the DPO update depends on the pair count.
-4. SQL DPO rounds 2-6 from `hinton_k2aaa_a3` under the rule.
-5. fedcot: template client rounds 2-3 (about 2 h each), then CoT DPO from the
-   best template round, up to 3 rounds.
+Run step 0, then the GPU 0 worker (step 2). What it runs next:
 
-On round 1, read the sampling line (pass@8, questions with both a correct and
-a wrong sample) and the pairs per client, and send the round 1 EX of both
-starts before round 2 begins.
+1. `sqldpo_s0/reuse_hinton_samples` (seconds): prints `copied ...` for 5
+   client files and `DONE 5 sample file(s)`.
+2. `sqldpo_s0/curve_hinton_r1`: pairs, then DPO per client, aggregation,
+   evaluation, publish. Send the lines `DPO smoke pass: ...` (pairs per pass,
+   peak reserved), any `budget lowered`, and the first `DPO update 1/...`
+   line of client 1 with its time left.
+3. `sqldpo_s0/curve_fedavg_r1` (samples again, about 10 min with vLLM),
+   then `sqldpo_s0/curve_hinton` (rounds 2-6 under the rule), then the CoT
+   analysis line.
+
+Send the round 1 EX of both starts before round 2 begins.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -227,7 +233,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 
 | Line (curve) | Start | Data | Pairs | Step |
 |---|---|---|---|---|
-| `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs); up to 6 |
+| `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs, 16 pairs per update, several pairs per forward pass); up to 6 |
 | `sqldpo_s0/fedavg` | FedAvg R3 from the base model (71.50 HF) | same | same | 1 round so far, the control |
 
 Reused adapters (owner, 2026-11-10): `hinton_k2aaa_a3`, `gold_k2aaa_a3`,

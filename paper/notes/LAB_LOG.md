@@ -3,6 +3,18 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: SQL DPO round 1 from `hinton_k2aaa_a3` restarted, micro-batched
+
+Round 1 sampling finished in root `hinton` (pass@8 91-94% per client, 5,393
+pairs; not committed). DPO training on client 1 used 8.30 GiB at about
+10.5 s per update with gradient checkpointing and one pair per pass; the
+owner stopped it. Owner decision: train SQL DPO without gradient
+checkpointing and pack several pairs per forward pass, with a memory guard
+that also holds for heavier (CoT) pairs; restart round 1, keeping only the
+samples. Code: `--micro-batch-tokens` (fedicl-sql `a1b22d8b`); the round
+reruns in root `hinton_mb` from the copied samples. The update gradient is
+unchanged up to padding numerics.
+
 ## 2026-11-10: SQL reference rows with vLLM inproc
 
 The reused adapters evaluated again on Spider test with vLLM inproc
