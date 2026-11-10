@@ -12,9 +12,11 @@ SLM is deployed. The server may hold a large frozen LLM teacher and public
 data from another domain. How can the deployed SLM become measurably better
 on the clients' domain than standard federated training?
 
-Goal: a Q3 journal paper with a method that clearly beats the federated
-baselines. Using the server teacher is an option, not a requirement: a method
-without the teacher is acceptable if it is strong enough (owner, 2026-11-06).
+Goal: a journal paper at Q3 or above with a good method that clearly beats
+the federated baselines; the target is a direction, not a bar to hit rigidly
+(owner, 2026-11-11). Using the server teacher is an option, not a
+requirement: a method without the teacher is acceptable if it is strong
+enough (owner, 2026-11-06).
 
 Target venues: Data & Knowledge Engineering, International Journal of Data
 Science and Analytics, Neural Processing Letters, Distributed and Parallel

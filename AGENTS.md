@@ -37,8 +37,15 @@ The project restarted on 2026-11-05. Earlier work falls in three groups
 
 ## What the project is
 
-Paper: *FedLS-SQL* (working title), aimed at a Q3 journal. Question, fixed
-setup and open choices: `paper/notes/RESEARCH_STATE.md`.
+Paper: *FedLS-SQL* (working title), aimed at a Q3 journal or above. Question,
+fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
+
+- Target (owner, 2026-11-11): one paper at Q3 or above with a good method.
+  The target is a direction, not a bar to hit rigidly. Do not close a
+  question with "this already passes Q3", and do not drop an idea only
+  because it leaves one number (for example Spider test EX) unchanged. Judge
+  a change by whether it makes the method better: a clearer mechanism, each
+  part with a shown role, stronger or broader results.
 
 - Fixed (owner): the topic (federated Text-to-SQL, an SLM trained by clients
   and deployed alone) and the setup (Qwen2.5-Coder-1.5B-Instruct student,
