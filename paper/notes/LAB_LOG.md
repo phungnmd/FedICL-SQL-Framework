@@ -3,6 +3,21 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: self-taught round 3 falls, curve stopped
+
+Self-taught R3 from R2 (fedicl-sql `6534e5e`, `8395630`, `aece957`): 58.69 EX
+on Spider test (EM 33.7; easy 80.0, medium 64.3, hard 43.6, extra 36.7;
+invalid format 69, exec error 267, wrong result 551). The curve stops at its
+maximum of 3, best step R2 (60.64). Training again on its own outputs from
+the previous adapter lowers EX by 1.95 points; STaR restarts from the base
+model each iteration for this reason. Worker stopped by the owner before the
+queued DPO line.
+
+Reference given by the owner: the untrained base model, SQL-only prompt,
+scores 57.94 EX on Spider test (archived row). The CoT line adds 2.7 points
+over it at the server (E5) and 2.05 more with one template client round,
+while three SQL-only FedAvg rounds from the base model add 13.5 (71.45).
+
 ## 2026-11-10: self-taught client rounds 1-2 from E5
 
 Self-taught SFT (own most frequent correct sample, else rationalized from
