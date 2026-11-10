@@ -93,6 +93,35 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
+### vLLM crash in DPO round 5 (2026-11-10 22:52)
+
+`sqldpo_s0/curve_hinton` stopped in the round 5 sampling: 7,168 of 8,659
+questions were sampled by 22:27, then no line for 25 minutes (a chunk of
+1,024 takes 1-1.5 min), then `CUDA error: unspecified launch failure`
+(`CUDA_ERROR_LAUNCH_FAILED`, sticky). No code changed since round 4 (only
+the queue file), and rounds 1-4 sampled with the same settings, so a GPU or
+driver fault is the likely cause, not the code. The samples are written per
+chunk of 1,024: the rerun samples only the 1,491 questions left (each
+question has its own seed).
+
+1. Check GPU 0 (any terminal, read-only): the card state, processes and the
+   Windows driver events of 22:00-23:00 (a TDR or Xid shows here).
+
+```powershell
+& { $ErrorActionPreference='Stop'; nvidia-smi; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' }; Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=[datetime]'2026-11-10 22:00'; EndTime=[datetime]'2026-11-10 23:00'} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -match 'nvlddmkm|Display|WHEA|dxgkrnl' } | Format-List TimeCreated,ProviderName,Id,Message }
+```
+
+2. The first error lines of the vLLM log (above the 40 lines shown):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $log='artifacts\protocol_v2\sqldpo_coder15b_alpha01_s0\hinton_gc\vllm\r5_7e13c964e8cb8080\vllm_c1-2-3-4-5.vllm.log'; Select-String -Path $log -Pattern 'Error|Xid|Traceback|illegal|timeout' | Select-Object -First 20 | ForEach-Object { $_.Line } }
+```
+
+3. If `nvidia-smi` shows GPU 0 normal (no error, no process left on it),
+   rerun the GPU 0 command of Step 2. Send the output of 1-2 to the agent
+   either way; if the same failure comes back, stop and do not retry a
+   third time.
+
 ### Restart on GPU 0, then the controls (owner, 2026-11-10)
 
 Queue pushed (fedicl-sql `80a6a13d`): only `queues/active.toml` changed, no
