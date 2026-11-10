@@ -93,18 +93,21 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### Self-taught line queued (owner, 2026-11-10): restart after client round 1
+### DPO from template round 1 (owner, 2026-11-10): restart the worker
 
-`fedicl-sql` f0aa2d7f adds self-taught SFT rounds (`experiments/federated_pref/run.py
-star`) and the rationalized DPO fallback; 9fe240bb caps the template client
-curve at one round and queues `star_smoke`, `curve_star`, then `curve_dpo` from
-the best star round. The running `curve_client` (template round 1) does not
-load the changed code; it read the maximum of 8 when it started.
+Self-taught SFT stopped at 3 rounds, none above template round 1 (62.69
+against 60.64 at best). `curve_dpo` now starts from template round 1
+(`fedcot_cli_r1_s0`) under a new root (`dpo_tpl`), with the template fallback:
+on a question with no correct sample, the chosen side is the gold SQL in the
+template plan the start model was trained on. Only the queue changed; no
+code. The worker was stopped before `curve_dpo` began, so nothing of the old
+DPO line exists. Run step 0, then the GPU 0 worker (step 2): it runs
+`curve_dpo` next.
 
-When the console shows `curve fedcot_s0/client: step 1/8 EX ...` and round 2
-starts training: Ctrl+C the GPU 0 worker, run step 0, start the worker again
-(step 2). The client curve stops at round 1 and records it; the worker then
-runs `star_smoke` (minutes), then `curve_star`.
+On the first round, read the sampling line (pass@8, questions with both a
+correct and a wrong sample) and the pair count per client before the DPO
+update: a start trained to a final loss of 0.01 on these questions may give
+few pairs.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -182,19 +185,18 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 | server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 6 (best: E5) |
 | template client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL by a template + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; 1 round, the comparator of the self-taught round |
 | self-taught SFT (`curve_star`) | best server epoch | every client question, 8 samples through vLLM | the most frequent correct sampled plan + SQL; for a question with none, a plan the model writes with the gold SQL as a hint, kept if its SQL is correct; otherwise the question is dropped | one FedAvg round (weighted by target count), client SFT recipe (lr 2e-4, 1 local epoch); up to 3 |
-| DPO + NLL (`curve_dpo`) | best self-taught round | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
+| DPO + NLL (`curve_dpo`) | template client round 1 | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
   evaluation (1,024 new tokens, strict parsing; an output that does not parse
   scores 0).
 - DPO pairs: the most similar correct and wrong sampled outputs; an output
   that does not parse counts as wrong; when no sample is correct, the chosen
-  side is the hinted (rationalized) response of the round's start model if
-  its SQL is correct, otherwise the question gives no pair. Beta 0.1, lr
+  side is the gold SQL in the template plan (template fallback). Beta 0.1, lr
   1e-5, 2 local epochs, 16 pairs per update.
-- Rationalization: 4 samples at T=0.7 with the gold SQL after the question
-  (the hint is never in a training prompt); a response whose plan names the
-  hint ("the correct SQL ...") is not kept.
+- Rationalization (self-taught rounds only): 4 samples at T=0.7 with the
+  gold SQL after the question (the hint is never in a training prompt); a
+  response whose plan names the hint ("the correct SQL ...") is not kept.
 - Closest prior work for the self-taught step: STaR-SQL (He et al., ACL
   2025, arXiv 2502.13550), centralized; here federated, from a teacher-plan
   server stage, in the Struct-SQL plan format, followed by federated DPO.
@@ -221,18 +223,17 @@ round).
 |---|---|
 | FedAvg | best round by the rule |
 | SQL-only DPO | best round, from the best FedAvg round |
-| template client SFT, 1 round | from E5 (comparator) |
-| fedcot after self-taught SFT | best star round |
-| fedcot full | best DPO round |
+| template client SFT, 1 round | from E5 |
+| self-taught SFT (ablation) | best star round, from E5 |
+| fedcot full | best DPO round, from template round 1 |
 
 ### Order on GPU 0
 
 1. `fedcot_s0/smoke`, `fedcot_s0/client_probe`, `vllm_s0`: done.
 2. `curve_server`: stopped at 6 epochs, best E5 (60.64).
-3. `curve_client`: template round 1 from E5, running.
-4. `star_smoke` (minutes), `curve_star` (a round: sampling about 1-1.5 h,
-   rationalization about 10 min, SFT about one client round; estimates),
-   then `curve_dpo`.
+3. `curve_client`: template round 1 from E5 (62.69).
+4. `curve_star`: stopped at 3 rounds, best R2 (60.64).
+5. `curve_dpo` from template round 1: next (a round about 3 h, estimate).
 
 GPU 1 is in use by another user. Folders not used by the curves:
 `server_l7680_e2` (a 2-epoch run from the base model of the earlier queue),

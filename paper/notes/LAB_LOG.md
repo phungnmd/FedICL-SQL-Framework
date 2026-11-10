@@ -3,6 +3,21 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: CoT DPO starts from template round 1
+
+Owner reviewed the archived results (allowed in this session): on Spider dev,
+centralized, the CoT route `c1` gained less from the same DPO + NLL rounds
+than the SQL route `s1` (60.64 to 70.89 against 58.80 to 74.18) despite more
+pairs; in the larger-model papers (Liu et al., ExCoT) CoT is what makes DPO
+work. The CoT line here has an untested combination, Spider SFT on plans
+before federated DPO, so it continues with DPO.
+
+Decision (owner): DPO from the CoT line. Start: template round 1 (62.69,
+format valid on every row), not self-taught R2 (60.64); 288 rows right only
+in template R1 against 244 only in R2. Fallback: the template plan of the
+gold SQL, the style the start was trained on. Queue: fedicl-sql `curve_dpo`
+under `dpo_tpl`.
+
 ## 2026-11-10: self-taught round 3 falls, curve stopped
 
 Self-taught R3 from R2 (fedicl-sql `6534e5e`, `8395630`, `aece957`): 58.69 EX
