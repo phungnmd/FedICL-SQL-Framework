@@ -48,7 +48,7 @@ measured rounds, counted from 23:55 on 2026-11-10.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `rob_fedavg_r3`, `rob_gold_k2aaa`, `rob_hinton_k2aaa`, `rob_fedavg_dpo_r1`, `rob_hinton_dpo_r1` to `r3`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN and DK | 1-1.5 h | 01:15 on 11-11 | running |
+| 1 | `rob_fedavg_r3`, `rob_gold_k2aaa`, `rob_hinton_k2aaa`, `rob_fedavg_dpo_r1`, `rob_hinton_dpo_r1` to `r3`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN and DK | 1-1.5 h | 01:08 on 11-11 | done (fedicl-sql `7eaad90a`, `LAB_LOG.md`) |
 | 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the round 1 samples and pairs | 1.5 h | 02:45 | queued |
 | 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h | 06:15 | queued |
 | 4 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h | 10:15 | queued |

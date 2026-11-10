@@ -3,6 +3,45 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: SQL rows on Spider dev, Realistic, SYN and DK
+
+Seven rows evaluated with vLLM inproc, batch 16 (fedicl-sql `7eaad90a`). No
+choice was made on these sets since the fresh start; all four are built on
+the 20 Spider dev databases, so they are variants of one set, not four
+independent ones. EX:
+
+| Row | Spider test | Dev | Realistic | SYN | DK |
+|---|---:|---:|---:|---:|---:|
+| FedAvg R3 | 71.26 | 67.89 | 58.86 | 53.77 | 52.15 |
+| `gold_k2aaa_a3` | 73.08 | 70.50 | 61.42 | 55.90 | 52.71 |
+| `hinton_k2aaa_a3` | 73.31 | 72.82 | 62.01 | 56.67 | 58.13 |
+| DPO r1 from FedAvg R3 | 74.29 | 71.18 | 63.39 | 56.67 | 58.13 |
+| DPO r1 from Hinton | 75.69 | 75.53 | 62.60 | 59.19 | 62.24 |
+| DPO r2 from Hinton | 76.43 | **76.89** | **64.17** | 60.83 | 63.55 |
+| DPO r3 from Hinton | **76.71** | 76.50 | **64.17** | **61.03** | **64.11** |
+
+Paired (right only in the first / only in the second):
+
+| Pair | Dev | Realistic | SYN | DK |
+|---|---|---|---|---|
+| FedAvg R3 / Hinton DPO r3 | 38/127 | 27/54 | 51/126 | 14/78 |
+| `hinton_k2aaa_a3` / Hinton DPO r3 | 19/57 | 11/22 | 20/65 | 5/37 |
+| FedAvg DPO r1 / Hinton DPO r1 | 49/94 | 40/36 | 68/94 | 24/46 |
+| Hinton DPO r1 / r3 | 9/19 | 2/10 | 10/29 | 3/13 |
+| Hinton DPO r2 / r3 | 6/2 | 1/1 | 9/11 | 1/4 |
+
+- The method row (Hinton DPO r3) is above FedAvg R3 on every set, by 5.3
+  (Realistic) to 12.0 (DK) points, all p < 0.01.
+- DPO over its own start holds everywhere except Realistic, where it is
+  weaker (+2.17, p = 0.08).
+- Rounds 2-3 are flat on every set, as on Spider test.
+- The server stage after one DPO round: Hinton above FedAvg on dev, SYN and
+  DK (p 0.0002-0.05), level on Realistic (-0.79).
+- Sanity: `hinton_k2aaa_a3` on dev gives 72.82 with vLLM, the same as its
+  HF number in the archive.
+- Not on these sets yet: base model, centralized rows (archived HF numbers
+  only, not paired).
+
 ## 2026-11-10: worker restarted on GPU 0, seed 1 adapter found
 
 No new result. The owner restarted the worker on GPU 0 with the queue of
