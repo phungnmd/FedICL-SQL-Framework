@@ -93,15 +93,36 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### Now running, then the controls (owner, 2026-11-10): nothing to restart
+### Restart on GPU 0, then the controls (owner, 2026-11-10)
 
 Queue pushed (fedicl-sql `80a6a13d`): only `queues/active.toml` changed, no
-code. The running task `sqldpo_s0/curve_hinton` (DPO rounds 2-6 from
-`hinton_k2aaa_a3`; round 2: 76.43) keeps the curve it loaded. Its next
-publish step fast-forwards the server checkout, and the worker rereads the
-queue before its next task, so the controls below start by themselves when
-the curve stops. If the worker was stopped, start it again with the Step 2
-command.
+code. To stop and start again:
+
+1. Ctrl+C once in the GPU 0 worker terminal. It stops the worker and the
+   running task `sqldpo_s0/curve_hinton` (DPO rounds 2-6 from
+   `hinton_k2aaa_a3`; round 2: 76.43).
+2. Step 0 (pull and tests), then the GPU 0 command of Step 2. No worker on
+   GPU 1.
+
+The worker takes `sqldpo_s0/curve_hinton` again; the curve skips its
+finished commands and the unfinished round continues from its samples and
+training checkpoints. The controls below start by themselves when the curve
+stops.
+
+Seed 1 (owner, 2026-11-10): `hinton_k2aaa_a3` of seed 1 is approved for
+reuse as the start of the seed 1 confirmation. Check once that it is still
+on the server with the recorded bytes (CPU, seconds, any terminal):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -c "from fedicl_sql.federated.stage_chain import resolve_parent; print('ok', resolve_parent('experiments/federated/results/federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683')['adapter']['path'])"; if ($LASTEXITCODE -ne 0) { throw 'Seed 1 adapter check failed' } }
+```
+
+It prints `ok artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`
+or stops with the reason. Seed 1 is not queued yet: it waits for the fixed
+number of DPO rounds and the server-stage loss. FedAvg seed 1 does not exist
+on this setup (3 rounds from the base model, about 5 h); of `gold_k2aaa`
+seed 1 only the 2-epoch server stage exists (`p253_gold_k2_k2_s1`, reuse not
+asked).
 
 The two CoT tasks (`fedcot_s0/curve_client_more`, `fedcot_s0/curve_dpo`) are
 removed from the queue. After the Hinton curve, in this order (times are
@@ -248,8 +269,10 @@ rounds. The DPO settings below describe the removed line and the smoke.
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 Reused adapters (owner, 2026-11-10): `hinton_k2aaa_a3`, `gold_k2aaa_a3`,
-FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3`; each result row names
-its config, seed and Git SHA.
+FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3` of seed 0, and
+`hinton_k2aaa_a3` of seed 1 (row
+`federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683`, the seed 0
+recipe); each result row names its config, seed and Git SHA.
 
 ### Final table (Spider test, best checkpoint of each line by the rule)
 

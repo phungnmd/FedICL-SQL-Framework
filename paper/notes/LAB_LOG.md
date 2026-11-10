@@ -3,6 +3,18 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: `hinton_k2aaa_a3` seed 1 approved for reuse
+
+No run. Owner decision: the seed 1 adapter of `hinton_k2aaa_a3` (row
+`federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683`, fedicl-sql
+`0704737`, 2026-10-28; same model, split and recipe as seed 0; adapter
+`artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`)
+may start the seed 1 confirmation. Its presence on the server is not
+checked yet (command in `PIPELINE_NEXT.md`). Seed 1 is queued after the
+controls fix the number of DPO rounds and the server-stage loss. Missing for
+seed 1: FedAvg from the base model (no row on this setup) and `gold_k2aaa`
+(only its server stage `p253_gold_k2_k2_s1` exists; reuse not asked).
+
 ## 2026-11-10: method review, controls queued, CoT runs dropped
 
 No run. The owner asked for a review of the direction (archive reading
