@@ -1,5 +1,139 @@
 # FedLS-SQL: run queue
 
+Section 1 is what to run now, in order. Section 2 is what the worker then
+runs by itself. Everything else is reference.
+
+## 1. Run now (2026-11-10)
+
+All commands run from the `fedicl-sql` root on the server. Only GPU 0: GPU 1
+is in use by another user, so no worker and no other GPU job there.
+
+**1. Check GPU 0** (read-only, any terminal). Send the output to the agent.
+
+```powershell
+& { $ErrorActionPreference='Stop'; nvidia-smi; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' }; Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=[datetime]'2026-11-10 22:00'; EndTime=[datetime]'2026-11-10 23:00'} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -match 'nvlddmkm|Display|WHEA|dxgkrnl' } | Format-List TimeCreated,ProviderName,Id,Message }
+```
+
+**2. First error lines of the round 5 vLLM log.** Send the output too.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $log='artifacts\protocol_v2\sqldpo_coder15b_alpha01_s0\hinton_gc\vllm\r5_7e13c964e8cb8080\vllm_c1-2-3-4-5.vllm.log'; Select-String -Path $log -Pattern 'Error|Xid|Traceback|illegal|timeout' | Select-Object -First 20 | ForEach-Object { $_.Line } }
+```
+
+**3. Stop the worker** if one is still running: Ctrl+C once in its terminal.
+Go on only if step 1 shows GPU 0 normal (no error, no process left on it).
+
+**4. Pull and run the tests.**
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+**5. Start the worker on GPU 0.**
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+**6. Seed 1 adapter check** (CPU, seconds, any terminal, any time). Send the
+line it prints.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -c "from fedicl_sql.federated.stage_chain import resolve_parent; print('ok', resolve_parent('experiments/federated/results/federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683')['adapter']['path'])"; if ($LASTEXITCODE -ne 0) { throw 'Seed 1 adapter check failed' } }
+```
+
+Status, read-only, in a second terminal: the tasks, then EX by step of every
+curve.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.curve status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+What to expect after step 5:
+
+- `sqldpo_s0/curve_hinton` closes at round 4 in seconds (no sampling, no
+  training), publishes `audits/curves/sqldpo_s0__hinton_more.json`, and the
+  tasks of section 2 start.
+- If the vLLM failure of round 5 comes back in a later task, stop and do not
+  retry a third time.
+- After `ctl_rft` and `ctl_sft` (about 6-7 h in): if DPO round 1 (75.69) is
+  not clearly above both, stop with Ctrl+C before `curve_fedavg_more` and
+  report.
+- Ctrl+C stops the worker and its running task; the command of step 5
+  continues where it stopped. A failed task stops the worker with
+  `STOP queue: <task> failed: <last error line>` and the log path; rerunning
+  retries it.
+
+## 2. What the worker runs next
+
+The two CoT tasks (`fedcot_s0/curve_client_more`, `fedcot_s0/curve_dpo`) are
+removed from the queue. After the Hinton curve, in this order (times are
+estimates from the measured rounds):
+
+| # | Tasks | What it answers | About |
+|---|---|---|---|
+| 1 | `rob_*`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN, DK (no choice was made on them since the fresh start) | 1-1.5 h |
+| 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the same round 1 samples and pairs | 1.5 h |
+| 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h |
+| 4 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h |
+| 5 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h |
+| 6 | `rob_*` of the new rounds, then `bird_*` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h |
+
+- Read after steps 2 and 3 (owner): if DPO round 1 (75.69) is not clearly
+  above both the NLL-only round and the extra SFT rounds, stop the worker
+  with Ctrl+C before steps 4-5 and report.
+- What is cut, and why: the NLL-only control is round 1 only (it isolates
+  the loss on identical pairs; later rounds would sample from a different
+  model). The gold and FedAvg lines run exactly the fixed 3 rounds; the
+  Hinton line has a 4th round, used only for the saturation curve. BIRD dev
+  covers 6 rows (the three starts and their round 3), the base model is not
+  on the extra sets yet.
+- `bird_*` is the first BIRD-length evaluation through vLLM: read the first
+  lines of `sqldpo_s0/bird_fedavg_r3`. It runs last, so nothing waits on it.
+- Memory: steps 2, 4 and 5 use the settings of the finished DPO rounds
+  (peak reserved 13.1-17.4 GiB per client); step 3 is the client SFT recipe
+  of the FedAvg rounds.
+
+## 3. Why this restart
+
+The SQL DPO line from `hinton_k2aaa_a3` stops at round 4 (owner,
+2026-11-10, `LAB_LOG.md`): rounds 2-4 are finished (76.43, 76.71, 76.94),
+and every SQL DPO line is reported at 3 rounds. Queue pushed (fedicl-sql
+`f2c1e4a7`): only `queues/active.toml` changed, no code. The Hinton curve
+now ends at 4 steps instead of 6, and `curve_fedavg_more` runs before
+`curve_gold`.
+
+Round 5 is not run. Its sampling stopped on 2026-11-10 at 22:52: 7,168 of
+8,659 questions were sampled by 22:27, then no line for 25 minutes (a chunk
+of 1,024 takes 1-1.5 min), then `CUDA error: unspecified launch failure`
+(`CUDA_ERROR_LAUNCH_FAILED`, sticky). No code changed since round 4, and
+rounds 1-4 sampled with the same settings, so a GPU or driver fault is the
+likely cause, not the code. The partial round 5 samples stay on disk;
+nothing under `artifacts/` is deleted.
+
+On the restart the worker takes `sqldpo_s0/curve_hinton` again. The curve
+skips the finished commands of rounds 2-4, reads their EX from the
+prediction files and stops with `reached the maximum of 4 steps`. The record
+names round 4 as the rule's best step (by 0.01 point); the method row is
+read at round 3.
+
+Seed 1 (owner, 2026-11-10): `hinton_k2aaa_a3` of seed 1 is approved for
+reuse as the start of the seed 1 confirmation. The check of step 6 prints
+`ok artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`
+or stops with the reason. Seed 1 is not queued yet: the number of DPO rounds
+is fixed at 3, and seed 1 waits for the server-stage loss (gold or Hinton).
+FedAvg seed 1 does not exist on this setup (3 rounds from the base model,
+about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server stage exists
+(`p253_gold_k2_k2_s1`, reuse not asked).
+
+## 4. Reference
+
+### The queue and the worker
+
 GPU work on the server runs through one queue file,
 `fedicl-sql/queues/active.toml`: every task (one command), what it needs
 first, in priority order. One worker per GPU takes the first ready task, so
@@ -11,54 +145,26 @@ Every task resumes when it runs again and skips finished work. Pulling while
 workers run is fine; when a push changes code that a running or queued task
 would load, the agent says so here and in chat.
 
-## How to run
+Without `--phase` a worker runs the full queue; add `--phase <name>` to run
+one phase, or to `status` to see one phase. A worker rereads the queue
+before every task, so tasks pushed later run after a pull without a restart.
+It prints `start` / `end` per task, the task's own progress lines prefixed
+`[gpu0 <task>]`, and a final `DONE queue` line. Per-task logs:
+`.queue_state/logs/`. Each phase ends with a `publish` task that commits and
+pushes its results.
 
-### Step 0: update the checkout and run the tests
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-### Step 1: worker check, about 1 min (once)
-
-Both workers on the `selftest` phase. Each prints its own card and sleeps
-30 s, then one runs a task that needed both; press Ctrl+C once during the
-sleep to see the stop, rerun, and check that each reports `DONE queue`.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase selftest; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --phase selftest; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
-
-### Step 2: one worker per GPU, each in its own terminal
-
-The two commands differ only in the GPU digit. Without `--phase` a worker
-runs the full queue; add `--phase fedcot_s0` to run only that phase. A worker rereads the queue before every task, so
-tasks pushed later run after a pull without a restart. It prints `start` /
-`end` per task, the task's own progress lines prefixed `[gpu0 <task>]`, and a
-final `DONE queue` line. Per-task logs: `.queue_state/logs/`.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
+Worker on GPU 1 (not now: the card is in use by another user, 2026-11-09):
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-- Ctrl+C stops the worker and its running task; rerunning the same command
-  continues where it stopped.
-- The first failed task stops the worker: `STOP queue: <task> failed: <last
-  error line>` and the log path. A worker that sees a failure on another
-  worker stops before its next task. Rerunning a worker retries failed
-  tasks.
-- Each phase ends with a `publish` task that commits and pushes its results.
+Worker check, about 1 min, once per server setup (`selftest` phase; with two
+cards run it on both, each prints its own card and sleeps 30 s):
 
-GPU 1 is in use by another user (2026-11-09): do not start a worker on it,
-and do not run other GPU jobs next to a task on GPU 0.
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase selftest; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
 
 ### Server `--max-len` (checked 2026-11-09)
 
@@ -92,117 +198,6 @@ The reports (agreement, discordant rows) go to
 `audits/protocol_v2/vllm_eval_check_s0/`. Every fedcot number of the curves
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
-
-### Restart on GPU 0, then the controls (owner, 2026-11-10)
-
-The SQL DPO line from `hinton_k2aaa_a3` stops at round 4 (owner,
-2026-11-10, `LAB_LOG.md`): rounds 2-4 are finished (76.43, 76.71, 76.94),
-and every SQL DPO line is reported at 3 rounds. Queue pushed (fedicl-sql
-`f2c1e4a7`): only `queues/active.toml` changed, no code. The Hinton curve
-now ends at 4 steps instead of 6, and `curve_fedavg_more` runs before
-`curve_gold`.
-
-Round 5 is not run. Its sampling stopped on 2026-11-10 at 22:52: 7,168 of
-8,659 questions were sampled by 22:27, then no line for 25 minutes (a chunk
-of 1,024 takes 1-1.5 min), then `CUDA error: unspecified launch failure`
-(`CUDA_ERROR_LAUNCH_FAILED`, sticky). No code changed since round 4, and
-rounds 1-4 sampled with the same settings, so a GPU or driver fault is the
-likely cause, not the code. The partial round 5 samples stay on disk;
-nothing under `artifacts/` is deleted.
-
-The controls also sample through vLLM, so check GPU 0 first and send the
-output of 1-2 to the agent before the long run:
-
-1. Check GPU 0 (any terminal, read-only): the card state, processes and the
-   Windows driver events of 22:00-23:00 (a TDR or Xid shows here).
-
-```powershell
-& { $ErrorActionPreference='Stop'; nvidia-smi; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' }; Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=[datetime]'2026-11-10 22:00'; EndTime=[datetime]'2026-11-10 23:00'} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -match 'nvlddmkm|Display|WHEA|dxgkrnl' } | Format-List TimeCreated,ProviderName,Id,Message }
-```
-
-2. The first error lines of the vLLM log (above the 40 lines shown):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $log='artifacts\protocol_v2\sqldpo_coder15b_alpha01_s0\hinton_gc\vllm\r5_7e13c964e8cb8080\vllm_c1-2-3-4-5.vllm.log'; Select-String -Path $log -Pattern 'Error|Xid|Traceback|illegal|timeout' | Select-Object -First 20 | ForEach-Object { $_.Line } }
-```
-
-3. If `nvidia-smi` shows GPU 0 normal (no error, no process left on it),
-   restart:
-   - Ctrl+C once in the GPU 0 worker terminal if a worker is still running.
-   - Step 0 (pull and tests).
-   - The GPU 0 command of Step 2. No worker on GPU 1.
-
-The worker takes `sqldpo_s0/curve_hinton` again. The curve skips the
-finished commands of rounds 2-4, reads their EX from the prediction files,
-stops with `reached the maximum of 4 steps`, then writes and publishes
-`audits/curves/sqldpo_s0__hinton_more.json`: seconds, no sampling, no
-training. The record names round 4 as the rule's best step (by 0.01 point);
-the method row is read at round 3. The controls below then start by
-themselves. If the same vLLM failure comes back in a control, stop and do
-not retry a third time.
-
-Seed 1 (owner, 2026-11-10): `hinton_k2aaa_a3` of seed 1 is approved for
-reuse as the start of the seed 1 confirmation. Check once that it is still
-on the server with the recorded bytes (CPU, seconds, any terminal):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -c "from fedicl_sql.federated.stage_chain import resolve_parent; print('ok', resolve_parent('experiments/federated/results/federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683')['adapter']['path'])"; if ($LASTEXITCODE -ne 0) { throw 'Seed 1 adapter check failed' } }
-```
-
-It prints `ok artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`
-or stops with the reason. Seed 1 is not queued yet: the number of DPO rounds
-is fixed at 3, and seed 1 waits for the server-stage loss (gold or Hinton).
-FedAvg seed 1 does not exist on this setup (3 rounds from the base model,
-about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server stage exists
-(`p253_gold_k2_k2_s1`, reuse not asked).
-
-The two CoT tasks (`fedcot_s0/curve_client_more`, `fedcot_s0/curve_dpo`) are
-removed from the queue. After the Hinton curve, in this order (times are
-estimates from the measured rounds):
-
-| # | Tasks | What it answers | About |
-|---|---|---|---|
-| 1 | `rob_*`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN, DK (no choice was made on them since the fresh start) | 1-1.5 h |
-| 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the same round 1 samples and pairs | 1.5 h |
-| 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h |
-| 4 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h |
-| 5 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h |
-| 6 | `rob_*` of the new rounds, then `bird_*` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h |
-
-- Read after steps 2 and 3 (owner): if DPO round 1 (75.69) is not clearly
-  above both the NLL-only round and the extra SFT rounds, stop the worker
-  with Ctrl+C before steps 4-5 and report.
-- What is cut, and why: the NLL-only control is round 1 only (it isolates
-  the loss on identical pairs; later rounds would sample from a different
-  model). The gold and FedAvg lines run exactly the fixed 3 rounds; the
-  Hinton line has a 4th round, used only for the saturation curve. BIRD dev
-  covers 6 rows (the three starts and their round 3), the base model is not
-  on the extra sets yet.
-- `bird_*` is the first BIRD-length evaluation through vLLM: read the first
-  lines of `sqldpo_s0/bird_fedavg_r3`. It runs last, so nothing waits on it.
-- Memory: steps 2, 4 and 5 use the settings of the finished DPO rounds
-  (peak reserved 13.1-17.4 GiB per client); step 3 is the client SFT recipe
-  of the FedAvg rounds.
-
-### Code pushed 2026-11-09: worker console
-
-`fedicl-sql` 0e12e253: every task line on the console starts with the time,
-and key lines are coloured. Only `scripts/gpu_worker.py` changed, which a
-running worker has already loaded: it applies at the next worker start; no
-need to restart for it.
-
-### Status (read-only, any time, second terminal)
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-Add `--phase <name>` to see one phase only. EX by step and the decision of
-every curve:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.curve status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
 
 ### Memory checks (owner, first time each path runs)
 
