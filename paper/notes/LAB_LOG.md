@@ -3,6 +3,39 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: SQL DPO rounds 3-4 from `hinton_k2aaa_a3`, round 5 crashed
+
+Spider test, vLLM inproc (fedicl-sql `11a139ff`, `7502e90a`, `ce779eaa`,
+`45a7d6e6`):
+
+| Round | EX | EM | Easy | Medium | Hard | Extra | Exec error | Pairs (gold chosen) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 75.69 | 65.2 | | | | | 82 | 5,393 (609) |
+| 2 | 76.43 | 65.2 | 89.4 | 79.2 | 69.3 | 61.9 | 73 | 3,899 (534) |
+| 3 | 76.71 | **65.5** | **89.8** | **79.8** | 68.3 | 63.0 | 58 | 3,208 (500) |
+| 4 | **76.94** | 65.0 | 89.2 | 79.5 | **69.3** | **64.7** | **53** | 2,870 (481) |
+
+| Round 4 against | Its EX | Right only there / only in round 4 | p |
+|---|---:|---:|---:|
+| round 3 | 76.71 | 16 / 21 | 0.51 |
+| round 2 | 76.43 | 20 / 31 | 0.16 |
+| round 1 | 75.69 | 31 / 58 | 0.006 |
+| `hinton_k2aaa_a3` (start) | 73.31 | 40 / 118 | < 0.001 |
+| FedAvg R3 + DPO round 1 | 74.29 | 92 / 149 | < 0.001 |
+| central Spider + BIRD E3 | 73.96 | 105 / 169 | < 0.001 |
+
+- Round 3 is 0.28 above round 2 (no gain). Round 4 is 0.51 above round 2
+  (1,652 against 1,641 rows, 11 rows), a gain by 0.01 point, so round 4 is
+  the best step and the curve continues.
+- Rounds 2-4 differ by under 0.6 point and no pair of them is separable
+  (p 0.16-0.51): the line is flat after round 2, rising by about 0.25 per
+  round.
+- The private signal keeps shrinking: 6,425 of 8,659 questions have all 8
+  samples correct in round 4; sample accuracy 85.7-89.4%.
+- Round 5 sampling crashed at 7,168 / 8,659 questions with
+  `CUDA_ERROR_LAUNCH_FAILED` after 25 minutes without output (no code
+  change since round 4); checks and rerun in `PIPELINE_NEXT.md`.
+
 ## 2026-11-10: `hinton_k2aaa_a3` seed 1 approved for reuse
 
 No run. Owner decision: the seed 1 adapter of `hinton_k2aaa_a3` (row

@@ -329,7 +329,8 @@ the method. Then seed 1 with that configuration.
 3. `curve_client`: template round 1 from E5 (62.69).
 4. `curve_star`: stopped at 3 rounds, best R2 (60.64).
 5. `sqldpo_s0`: reference evaluations and SQL DPO round 1 from both starts:
-   done. Rounds 2-6 from `hinton_k2aaa_a3`: running (round 2: 76.43).
+   done. Rounds 2-6 from `hinton_k2aaa_a3`: round 2 76.43, round 3 76.71,
+   round 4 76.94 (best); round 5 crashed in sampling, rerun pending.
 6. `sqldpo_s0` controls: `rob_*`, `ctl_rft`, `ctl_sft`, `curve_gold`,
    `curve_fedavg_more`, `rob_*` of the new rounds, `bird_*`.
 
