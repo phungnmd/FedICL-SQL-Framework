@@ -93,30 +93,44 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### SQL DPO round 1 restarts (owner, 2026-11-10): pull, then restart the worker
+### Now running, then the controls (owner, 2026-11-10): nothing to restart
 
-Code pushed (fedicl-sql `44a46e82`). The worker is stopped; no running task
-loads the changed code.
+Queue pushed (fedicl-sql `80a6a13d`): only `queues/active.toml` changed, no
+code. The running task `sqldpo_s0/curve_hinton` (DPO rounds 2-6 from
+`hinton_k2aaa_a3`; round 2: 76.43) keeps the curve it loaded. Its next
+publish step fast-forwards the server checkout, and the worker rereads the
+queue before its next task, so the controls below start by themselves when
+the curve stops. If the worker was stopped, start it again with the Step 2
+command.
 
-- DPO training keeps gradient checkpointing and packs several pairs per
-  forward pass (`--micro-batch-tokens 8192`: rows x padded tokens per pass).
-  A pass that runs out of memory under the 0.88 cap is redone with half the
-  budget, down to one pair per pass; if one pair does not fit, the task
-  stops. The gradient of an update is the same as one pair at a time.
-- Without gradient checkpointing (root `hinton_mb`) client 2 ran out of
-  memory on a single pair of about 1,450 tokens, so that setting is dropped.
-- Round 1 from `hinton_k2aaa_a3` restarts in root `hinton_gc`. The task
-  `sqldpo_s0/reuse_hinton_samples` copies the round 1 samples from root
-  `hinton`, so the round skips sampling and starts at pairs. Nothing in
-  `hinton`, `hinton_mb` or under `artifacts/` is changed. FedAvg R3 round 1
-  and rounds 2-6 use the same training settings.
+The two CoT tasks (`fedcot_s0/curve_client_more`, `fedcot_s0/curve_dpo`) are
+removed from the queue. After the Hinton curve, in this order (times are
+estimates from the measured rounds):
 
-Round 1 of both starts is done and logged (`LAB_LOG.md`, 2026-11-10:
-Hinton 75.69, FedAvg 74.29). Running now: `sqldpo_s0/curve_hinton` (rounds
-2-6 from `hinton_k2aaa_a3`, about 2 h 15 per round with sampling and
-evaluation; stops after 2 rounds without a gain of more than 0.5 point),
-then the CoT analysis line. Each round publishes itself; nothing to send
-unless a task stops or a `budget lowered` line appears.
+| # | Tasks | What it answers | About |
+|---|---|---|---|
+| 1 | `rob_*`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN, DK (no choice was made on them since the fresh start) | 1-1.5 h |
+| 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the same round 1 samples and pairs | 1.5 h |
+| 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h |
+| 4 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h |
+| 5 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h |
+| 6 | `rob_*` of the new rounds, then `bird_*` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h |
+
+- Read after steps 2 and 3 (owner): if DPO round 1 (75.69) is not clearly
+  above both the NLL-only round and the extra SFT rounds, stop the worker
+  with Ctrl+C before steps 4-5 and report.
+- What is cut, and why: the NLL-only control is round 1 only (it isolates
+  the loss on identical pairs; later rounds would sample from a different
+  model). The gold and FedAvg lines run 3 rounds against up to 6 on the
+  Hinton line: the three lines are read at the same round index, and a line
+  continues with `extends` if the fixed number of rounds ends above 3
+  (about 1.75-2.2 h per extra round). BIRD dev covers 6 rows (the three
+  starts and their round 3), the base model is not on the extra sets yet.
+- `bird_*` is the first BIRD-length evaluation through vLLM: read the first
+  lines of `sqldpo_s0/bird_fedavg_r3`. It runs last, so nothing waits on it.
+- Memory: steps 2, 4 and 5 use the settings of the finished DPO rounds
+  (peak reserved 13.1-17.4 GiB per client); step 3 is the client SFT recipe
+  of the FedAvg rounds.
 
 ### Code pushed 2026-11-09: worker console
 
@@ -194,7 +208,10 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 | server (`curve_server`) | base model | 4,109 BIRD rows (teacher SQL matches gold) | teacher's query plan + SQL | one more epoch from the last, its own 1-epoch cosine schedule; up to 6 (best: E5) |
 | template client SFT (`curve_client`) | best server epoch | each client's Spider rows (8,659 in all) | plan derived from the gold SQL by a template + gold SQL | one FedAvg round, 1 local epoch, gradient checkpointing; 1 round, the comparator of the self-taught round |
 | self-taught SFT (`curve_star`) | best server epoch | every client question, 8 samples through vLLM | the most frequent correct sampled plan + SQL; for a question with none, a plan the model writes with the gold SQL as a hint, kept if its SQL is correct; otherwise the question is dropped | one FedAvg round (weighted by target count), client SFT recipe (lr 2e-4, 1 local epoch); up to 3 |
-| DPO + NLL (`curve_dpo`) | template client round 1 | every client question each round, 8 samples through vLLM | the client's own sampled plan + SQL, labelled by execution | one federated round, 2 local epochs, chosen and rejected in one pass; up to 6 |
+
+Template rounds 2-3 and CoT DPO were removed from the queue (owner,
+2026-11-10): the line stops at E5, template round 1 and the self-taught
+rounds. The DPO settings below describe the removed line and the smoke.
 
 - One prompt (`qp_cot_v1`) for every step: server SFT, client SFT, sampling,
   evaluation (1,024 new tokens, strict parsing; an output that does not parse
@@ -208,7 +225,7 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   response whose plan names the hint ("the correct SQL ...") is not kept.
 - Closest prior work for the self-taught step: STaR-SQL (He et al., ACL
   2025, arXiv 2502.13550), centralized; here federated, from a teacher-plan
-  server stage, in the Struct-SQL plan format, followed by federated DPO.
+  server stage, in the Struct-SQL plan format.
 - Server epochs as a chain (owner, 2026-11-09): cheaper than a separate run
   per length and open-ended; an epoch from a chain may score slightly below
   a run with one schedule over the same length. A clean run of the chosen
@@ -225,12 +242,14 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 | Line (curve) | Start | Data | Pairs | Step |
 |---|---|---|---|---|
 | `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs, 16 pairs per update, several pairs per forward pass, gradient checkpointing); up to 6 |
-| `sqldpo_s0/fedavg` | FedAvg R3 from the base model (71.50 HF) | same | same | 1 round so far, the control |
+| `sqldpo_s0/fedavg`, `fedavg_more` | FedAvg R3 from the base model (71.50 HF) | same | same | the control without a server stage; 3 rounds |
+| `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds; 73.03 HF) | same | same | the control without the teacher; 3 rounds |
+| `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
+| `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 Reused adapters (owner, 2026-11-10): `hinton_k2aaa_a3`, `gold_k2aaa_a3`,
 FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3`; each result row names
-its config, seed and Git SHA. Controls after the first reads: RFT (chosen
-side only) from `hinton_k2aaa_a3`, DPO from `gold_k2aaa_a3`.
+its config, seed and Git SHA.
 
 ### Final table (Spider test, best checkpoint of each line by the rule)
 
@@ -241,8 +260,15 @@ side only) from `hinton_k2aaa_a3`, DPO from `gold_k2aaa_a3`.
 | centralized Spider, centralized Spider + BIRD | references without privacy |
 | `gold_k2aaa_a3`, `hinton_k2aaa_a3` | server stage on BIRD, then FedAvg |
 | SQL DPO from FedAvg R3 | control: no server stage |
-| SQL DPO from `hinton_k2aaa_a3` | the method |
-| CoT analysis | E5, template R1-R3, self-taught R1-R3, CoT DPO |
+| SQL DPO from `gold_k2aaa_a3` | control: server stage without the teacher |
+| NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
+| SQL DPO from `hinton_k2aaa_a3` | the method (server-stage loss decided after `curve_gold`) |
+| CoT (short analysis) | E5, template R1, self-taught R1-R3 |
+
+Open until the controls are read: the fixed number of DPO rounds (the final
+table uses one number of rounds for every line, not the best step of each),
+gold or Hinton at the server stage, and whether the server stage is part of
+the method. Then seed 1 with that configuration.
 
 ### Order on GPU 0
 
@@ -250,10 +276,10 @@ side only) from `hinton_k2aaa_a3`, DPO from `gold_k2aaa_a3`.
 2. `curve_server`: stopped at 6 epochs, best E5 (60.64).
 3. `curve_client`: template round 1 from E5 (62.69).
 4. `curve_star`: stopped at 3 rounds, best R2 (60.64).
-5. `sqldpo_s0`: reference evaluations, SQL DPO round 1 from both starts,
-   then rounds 2-6 from `hinton_k2aaa_a3`: next.
-6. `curve_client_more` (template rounds 2-3), then `curve_dpo` (CoT DPO from
-   the best template round, up to 3).
+5. `sqldpo_s0`: reference evaluations and SQL DPO round 1 from both starts:
+   done. Rounds 2-6 from `hinton_k2aaa_a3`: running (round 2: 76.43).
+6. `sqldpo_s0` controls: `rob_*`, `ctl_rft`, `ctl_sft`, `curve_gold`,
+   `curve_fedavg_more`, `rob_*` of the new rounds, `bird_*`.
 
 GPU 1 is in use by another user. Folders not used by the curves:
 `server_l7680_e2` (a 2-epoch run from the base model of the earlier queue),

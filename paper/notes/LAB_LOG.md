@@ -3,6 +3,55 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: method review, controls queued, CoT runs dropped
+
+No run. The owner asked for a review of the direction (archive reading
+allowed in this session) and approved the queue change.
+
+- Method kept: BIRD server stage, FedAvg SFT, then federated DPO + NLL
+  labelled by execution at the clients. The paper's claim rests on the DPO
+  stage; it needs the controls below before it stands.
+- Open, decided by the controls: the fixed number of DPO rounds; gold or
+  Hinton at the server stage (Hinton minus gold is 0.23 point before DPO;
+  the teacher zero-shot, 77.22 HF from the archive, is 0.8 point above DPO
+  round 2, so it has little left to give on Spider); whether the server
+  stage stays in the method (the gap between starts went from 2.05 to 1.40
+  after round 1).
+- Final table: one fixed number of rounds for every line instead of each
+  line's best step, since the method line has more steps to choose from;
+  then seed 1 with that configuration.
+- BIRD stays an SFT/KD stage before the client rounds. DPO on BIRD at the
+  start is not run: its pairs come from a model that three SFT rounds at
+  lr 2e-4 then change, and from the base model most chosen sides would be
+  the gold SQL. A server DPO step on BIRD inside the client DPO rounds is a
+  possible pilot after the controls.
+- Dropped: template client rounds 2-3 and CoT DPO. CoT becomes a short
+  analysis from the rows that exist.
+- Queue (fedicl-sql `80a6a13d`), after the Hinton curve: the rows so far on
+  Spider dev, Realistic, SYN and DK; NLL-only round 1 on the Hinton round 1
+  samples; 2 more FedAvg SFT rounds from `hinton_k2aaa_a3`; DPO rounds 1-3
+  from `gold_k2aaa_a3`; DPO rounds 2-3 from FedAvg R3; BIRD dev for 6 rows.
+
+## 2026-11-10: SQL DPO round 2 from `hinton_k2aaa_a3`
+
+Spider test, vLLM inproc (fedicl-sql `8423c631`, `14b14c22`): **76.43**
+(EM 65.2; easy 89.4, medium 79.2, hard 69.3, extra 61.9; execution errors
+73).
+
+| Against | Its EX | Right only there / only in round 2 | p |
+|---|---:|---:|---:|
+| DPO round 1 | 75.69 | 24 / 40 | 0.06 |
+| `hinton_k2aaa_a3` (start) | 73.31 | 37 / 104 | < 0.001 |
+| FedAvg R3 + DPO round 1 | 74.29 | 96 / 142 | 0.003 |
+| FedAvg R3 | 71.26 | 79 / 190 | < 0.001 |
+| central Spider + BIRD E3 (no privacy) | 73.96 | 110 / 163 | 0.002 |
+
+- Round 2 adds 0.74 point, a gain under the rule, so the curve continues.
+- The private signal shrinks: 3,899 pairs (534 with gold as chosen) against
+  5,393 in round 1; 5,773 of 8,659 questions have all 8 samples correct;
+  sample accuracy on the clients' questions 82.7-86.9%.
+- Client updates are close to orthogonal (pairwise cosine 0.04-0.13).
+
 ## 2026-11-10: SQL DPO round 1 from both starts
 
 One federated DPO + NLL round on Spider test, vLLM inproc (fedicl-sql

@@ -63,14 +63,22 @@ Spider test, one seed (details in `LAB_LOG.md`):
   same DPO rounds than SQL.
 - SQL DPO + NLL round 1 (vLLM inproc): from `hinton_k2aaa_a3` 73.31 to
   75.69, from FedAvg R3 71.26 to 74.29. The server stage keeps a smaller
-  lead after DPO (1.40 points, p = 0.07).
+  lead after DPO (1.40 points, p = 0.07). Round 2 from `hinton_k2aaa_a3`:
+  76.43, with fewer pairs (3,899 against 5,393).
 
 ## 5. Current phase
 
-Method (owner, 2026-11-10): a BIRD server stage with teacher KD, FedAvg on
-the clients, then federated DPO + NLL on the clients' own SQL samples,
-labelled by execution on each client's databases. Running on GPU 0: the
-reference rows again with vLLM, SQL DPO round 1 from `hinton_k2aaa_a3` and
-from FedAvg R3 (the control for the server stage), then more rounds from
-`hinton_k2aaa_a3`. CoT stays as an analysis section: template client rounds
-2-3, then CoT DPO, set against Liu et al. (ACL 2025).
+Method (owner, 2026-11-10): a BIRD server stage, FedAvg on the clients, then
+federated DPO + NLL on the clients' own SQL samples, labelled by execution
+on each client's databases. The claim rests on the DPO stage.
+
+Controls on GPU 0 after the Hinton curve (`PIPELINE_NEXT.md`): the NLL term
+alone and extra FedAvg SFT rounds (is the gain from the preference term),
+DPO from `gold_k2aaa_a3` (does the teacher matter after DPO), DPO rounds 2-3
+from FedAvg R3 (does the server stage matter after DPO), and the rows on
+Spider dev, Realistic, SYN, DK and BIRD dev. They decide the fixed number of
+DPO rounds, gold or Hinton at the server stage, and whether the server stage
+is part of the method; then seed 1 with that configuration.
+
+CoT is a short analysis from the rows that exist (E5, template round 1,
+self-taught rounds); template rounds 2-3 and CoT DPO are not run.
