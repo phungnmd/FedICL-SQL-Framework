@@ -100,12 +100,10 @@ running task loads the changed code.
 
 - DPO training packs several pairs per forward pass (`--micro-batch-tokens
   4096`: rows x padded tokens per pass) and runs without gradient
-  checkpointing. Before the first update it runs the costliest passes forward
-  and backward; while their peak is above 21.5 GiB (or they run out of
-  memory) it halves the budget, down to one pair per pass, and stops if one
-  pair does not fit. Every update checks the peak again and stops the task
-  above 21.5 GiB. The gradient of an update is the same as one pair at a
-  time.
+  checkpointing. A pass that runs out of memory under the 0.88 cap is redone
+  with half the budget, down to one pair per pass; if one pair does not fit,
+  the task stops. Every update also checks the peak (21.5 GiB). The gradient
+  of an update is the same as one pair at a time.
 - Round 1 from `hinton_k2aaa_a3` restarts in a new root, `hinton_mb`. The
   task `sqldpo_s0/reuse_hinton_samples` copies the round 1 samples from the
   stopped root `hinton` (same start adapter, same questions and sampler), so
@@ -113,7 +111,10 @@ running task loads the changed code.
   `artifacts/` is changed. FedAvg R3 round 1 and rounds 2-6 use the same
   training settings.
 
-Update (fedicl-sql `303c78a1`): client 1 ran out of memory at update 51 of
+Update (fedicl-sql `303c78a1`, simplified in `cbbb4eec`: the start-up
+probe is gone, the out-of-memory fallback covers it; a running round keeps
+the code it loaded, the next task loads the new one, same identity): client
+1 ran out of memory at update 51 of
 138 under the 0.88 memory cap (smoke 20.47 GiB, then allocator
 fragmentation). An update that runs out of memory is now redone with half
 the budget, which then holds for the rest of the run. The identity is
@@ -126,9 +127,8 @@ Run step 0, then the GPU 0 worker (step 2). What it runs next:
 1. `sqldpo_s0/reuse_hinton_samples` (seconds): prints `copied ...` for 5
    client files and `DONE 5 sample file(s)`.
 2. `sqldpo_s0/curve_hinton_r1`: pairs, then DPO per client, aggregation,
-   evaluation, publish. Send the lines `DPO smoke pass: ...` (pairs per pass,
-   peak reserved), any `budget lowered`, and the first `DPO update 1/...`
-   line of client 1 with its time left.
+   evaluation, publish. Send any `budget lowered` line and the time left of
+   each client.
 3. `sqldpo_s0/curve_fedavg_r1` (samples again, about 10 min with vLLM),
    then `sqldpo_s0/curve_hinton` (rounds 2-6 under the rule), then the CoT
    analysis line.
