@@ -3,6 +3,26 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: SQL reference rows with vLLM inproc
+
+The reused adapters evaluated again on Spider test with vLLM inproc
+(fedicl-sql `4315cee`), next to their archived HF numbers. Every DPO and
+reference row from here on is compared on these vLLM rows.
+
+| Row | vLLM inproc | HF (archive) | Exec error | Rows with a different SQL |
+|---|---:|---:|---:|---:|
+| base | 57.89 | 57.94 | 440 | 188 |
+| central Spider E3 | 70.75 | 71.08 | 219 | 161 |
+| FedAvg R3 | 71.26 | 71.50 | 211 | 150 |
+| `gold_k2aaa_a3` | 73.08 | 73.03 | 144 | 142 |
+| `hinton_k2aaa_a3` | 73.31 | 73.50 | **129** | 117 |
+| central Spider + BIRD E3 (no privacy) | **73.96** | 73.78 | 163 | 118 |
+
+- Engines agree within 0.33 point on every row, and the order is unchanged.
+- The server stage on BIRD adds about 2 points over FedAvg (gold +1.82,
+  Hinton +2.05) and has the fewest execution errors.
+- FedAvg R3 inproc is 71.26 (the default-mode runs gave 71.45 and 71.22).
+
 ## 2026-11-10: method line is SQL DPO from the BIRD server stage; CoT becomes analysis
 
 Owner read the archived results in this session and chose: a method paper
