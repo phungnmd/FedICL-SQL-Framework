@@ -113,6 +113,14 @@ running task loads the changed code.
   `artifacts/` is changed. FedAvg R3 round 1 and rounds 2-6 use the same
   training settings.
 
+Update (fedicl-sql `303c78a1`): client 1 ran out of memory at update 51 of
+138 under the 0.88 memory cap (smoke 20.47 GiB, then allocator
+fragmentation). An update that runs out of memory is now redone with half
+the budget, which then holds for the rest of the run. The identity is
+unchanged: rerunning the worker resumes client 1 from its checkpoint at
+update 50. Run step 0, then the GPU 0 worker; watch for `out of memory,
+micro-batch budget lowered`.
+
 Run step 0, then the GPU 0 worker (step 2). What it runs next:
 
 1. `sqldpo_s0/reuse_hinton_samples` (seconds): prints `copied ...` for 5
