@@ -3,6 +3,54 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: three SQL DPO rounds, fixed; Hinton line stops at round 4
+
+No run. Owner decision: the SQL DPO line from `hinton_k2aaa_a3` stops at
+round 4; rounds 5-6 are not run (the partial round 5 samples stay on disk).
+Every SQL DPO line and seed (the method row, the gold and FedAvg control
+lines, seed 1) runs 3 rounds and is reported at round 3. Round 4 of the
+Hinton line is kept only to show saturation. The number was chosen by
+looking at Spider test, so it is reported as "chosen on Spider test", never
+held-out. Queue: fedicl-sql `f2c1e4a7` (Hinton curve maximum 6 to 4;
+`curve_fedavg_more` now runs before `curve_gold`, since whether the BIRD
+server stage belongs to the method matters more than the teacher question).
+
+Spider test, seed 0, vLLM inproc; pairs and all-correct questions summed
+over the 5 clients (8,659 questions):
+
+| Round | EX | Pairs | All 8 samples correct | All wrong (gold as chosen) | Cosine between client updates |
+|---|---:|---:|---:|---:|---|
+| start | 73.31 | | | | |
+| 1 | 75.69 | 5,393 | 4,820 | 609 | 0.19-0.36 |
+| 2 | 76.43 | 3,899 | 5,773 | 534 | 0.04-0.13 |
+| 3 | 76.71 | 3,208 | 6,197 | 500 | about 0 to 0.04 |
+| 4 | **76.94** | 2,870 | 6,425 | 481 | about 0 to 0.04 |
+
+| Pair | Right only in the earlier / only in the later | p |
+|---|---:|---:|
+| r1 / r2 | 24 / 40 | 0.06 |
+| r2 / r3 | 17 / 23 | 0.43 |
+| r3 / r4 | 16 / 21 | 0.51 |
+| r2 / r4 | 20 / 31 | 0.16 |
+| r1 / r3 | 25 / 47 | 0.013 |
+| r1 / r4 | 31 / 58 | 0.006 |
+| FedAvg R3 (71.26) / r3 | 76 / 193 | < 0.001 |
+
+- Why 3: round 3 is separable from round 1 (p = 0.013), round 2 is not
+  (p = 0.06). Round 4 adds 0.23 point over round 3 that is not separable
+  (p = 0.51), and 3 is not the highest point on Spider test.
+- Why not more: round 4 counted as a gain under the curve rule by 0.01
+  point (0.51 above round 2, 11 rows), so the rule would have run rounds 5
+  and 6 (about 3 h) for an expected 0.2 point each, below the noise of one
+  paired comparison (about 0.3 point). The private signal keeps shrinking
+  (fewer pairs, more all-correct questions, client updates close to
+  orthogonal from round 3).
+- Cost: each extra fixed round costs about 13 GPU-h over all lines and
+  seeds (estimate). The control lines were already queued at exactly 3
+  rounds.
+- The curve record of the Hinton line names round 4 as the rule's best
+  step; the method row is round 3 (76.71).
+
 ## 2026-11-10: SQL DPO rounds 3-4 from `hinton_k2aaa_a3`, round 5 crashed
 
 Spider test, vLLM inproc (fedicl-sql `11a139ff`, `7502e90a`, `ce779eaa`,

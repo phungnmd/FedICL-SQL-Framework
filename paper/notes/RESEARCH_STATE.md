@@ -63,8 +63,12 @@ Spider test, one seed (details in `LAB_LOG.md`):
   same DPO rounds than SQL.
 - SQL DPO + NLL round 1 (vLLM inproc): from `hinton_k2aaa_a3` 73.31 to
   75.69, from FedAvg R3 71.26 to 74.29. The server stage keeps a smaller
-  lead after DPO (1.40 points, p = 0.07). Round 2 from `hinton_k2aaa_a3`:
-  76.43, with fewer pairs (3,899 against 5,393).
+  lead after DPO (1.40 points, p = 0.07). Rounds 2-4 from
+  `hinton_k2aaa_a3`: 76.43, 76.71, 76.94, with fewer pairs each round
+  (3,899, 3,208, 2,870 against 5,393). The line saturates: round 3 is
+  clearly above round 1 (p = 0.013), round 4 is not separable from round 3
+  (p = 0.51). Round 3 is clearly above FedAvg R3 (76 against 193 rows right
+  only in each).
 
 ## 5. Current phase
 
@@ -72,13 +76,17 @@ Method (owner, 2026-11-10): a BIRD server stage, FedAvg on the clients, then
 federated DPO + NLL on the clients' own SQL samples, labelled by execution
 on each client's databases. The claim rests on the DPO stage.
 
-Controls on GPU 0 after the Hinton curve (`PIPELINE_NEXT.md`): the NLL term
-alone and extra FedAvg SFT rounds (is the gain from the preference term),
-DPO from `gold_k2aaa_a3` (does the teacher matter after DPO), DPO rounds 2-3
-from FedAvg R3 (does the server stage matter after DPO), and the rows on
-Spider dev, Realistic, SYN, DK and BIRD dev. They decide the fixed number of
-DPO rounds, gold or Hinton at the server stage, and whether the server stage
-is part of the method; then seed 1 with that configuration.
+DPO rounds (owner, 2026-11-10): 3, fixed for every DPO line and seed. The
+method row is DPO round 3 from `hinton_k2aaa_a3`, 76.71 (chosen on Spider
+test, seed 0); the Hinton line stopped at round 4, which shows saturation.
+
+Controls on GPU 0 (`PIPELINE_NEXT.md`): the NLL term alone and extra FedAvg
+SFT rounds (is the gain from the preference term), DPO rounds 2-3 from
+FedAvg R3 (does the server stage matter after DPO), DPO from
+`gold_k2aaa_a3` (does the teacher matter after DPO), and the rows on Spider
+dev, Realistic, SYN, DK and BIRD dev. They decide whether the server stage
+is part of the method and gold or Hinton at the server stage; then seed 1
+with that configuration.
 
 CoT is a short analysis from the rows that exist (E5, template round 1,
 self-taught rounds); template rounds 2-3 and CoT DPO are not run.

@@ -93,16 +93,25 @@ The reports (agreement, discordant rows) go to
 is a vLLM evaluation; the baselines in the final table will be evaluated with
 vLLM too, so rows compared question by question share one engine.
 
-### vLLM crash in DPO round 5 (2026-11-10 22:52)
+### Restart on GPU 0, then the controls (owner, 2026-11-10)
 
-`sqldpo_s0/curve_hinton` stopped in the round 5 sampling: 7,168 of 8,659
-questions were sampled by 22:27, then no line for 25 minutes (a chunk of
-1,024 takes 1-1.5 min), then `CUDA error: unspecified launch failure`
-(`CUDA_ERROR_LAUNCH_FAILED`, sticky). No code changed since round 4 (only
-the queue file), and rounds 1-4 sampled with the same settings, so a GPU or
-driver fault is the likely cause, not the code. The samples are written per
-chunk of 1,024: the rerun samples only the 1,491 questions left (each
-question has its own seed).
+The SQL DPO line from `hinton_k2aaa_a3` stops at round 4 (owner,
+2026-11-10, `LAB_LOG.md`): rounds 2-4 are finished (76.43, 76.71, 76.94),
+and every SQL DPO line is reported at 3 rounds. Queue pushed (fedicl-sql
+`f2c1e4a7`): only `queues/active.toml` changed, no code. The Hinton curve
+now ends at 4 steps instead of 6, and `curve_fedavg_more` runs before
+`curve_gold`.
+
+Round 5 is not run. Its sampling stopped on 2026-11-10 at 22:52: 7,168 of
+8,659 questions were sampled by 22:27, then no line for 25 minutes (a chunk
+of 1,024 takes 1-1.5 min), then `CUDA error: unspecified launch failure`
+(`CUDA_ERROR_LAUNCH_FAILED`, sticky). No code changed since round 4, and
+rounds 1-4 sampled with the same settings, so a GPU or driver fault is the
+likely cause, not the code. The partial round 5 samples stay on disk;
+nothing under `artifacts/` is deleted.
+
+The controls also sample through vLLM, so check GPU 0 first and send the
+output of 1-2 to the agent before the long run:
 
 1. Check GPU 0 (any terminal, read-only): the card state, processes and the
    Windows driver events of 22:00-23:00 (a TDR or Xid shows here).
@@ -118,25 +127,19 @@ question has its own seed).
 ```
 
 3. If `nvidia-smi` shows GPU 0 normal (no error, no process left on it),
-   rerun the GPU 0 command of Step 2. Send the output of 1-2 to the agent
-   either way; if the same failure comes back, stop and do not retry a
-   third time.
+   restart:
+   - Ctrl+C once in the GPU 0 worker terminal if a worker is still running.
+   - Step 0 (pull and tests).
+   - The GPU 0 command of Step 2. No worker on GPU 1.
 
-### Restart on GPU 0, then the controls (owner, 2026-11-10)
-
-Queue pushed (fedicl-sql `80a6a13d`): only `queues/active.toml` changed, no
-code. To stop and start again:
-
-1. Ctrl+C once in the GPU 0 worker terminal. It stops the worker and the
-   running task `sqldpo_s0/curve_hinton` (DPO rounds 2-6 from
-   `hinton_k2aaa_a3`; round 2: 76.43).
-2. Step 0 (pull and tests), then the GPU 0 command of Step 2. No worker on
-   GPU 1.
-
-The worker takes `sqldpo_s0/curve_hinton` again; the curve skips its
-finished commands and the unfinished round continues from its samples and
-training checkpoints. The controls below start by themselves when the curve
-stops.
+The worker takes `sqldpo_s0/curve_hinton` again. The curve skips the
+finished commands of rounds 2-4, reads their EX from the prediction files,
+stops with `reached the maximum of 4 steps`, then writes and publishes
+`audits/curves/sqldpo_s0__hinton_more.json`: seconds, no sampling, no
+training. The record names round 4 as the rule's best step (by 0.01 point);
+the method row is read at round 3. The controls below then start by
+themselves. If the same vLLM failure comes back in a control, stop and do
+not retry a third time.
 
 Seed 1 (owner, 2026-11-10): `hinton_k2aaa_a3` of seed 1 is approved for
 reuse as the start of the seed 1 confirmation. Check once that it is still
@@ -147,11 +150,11 @@ on the server with the recorded bytes (CPU, seconds, any terminal):
 ```
 
 It prints `ok artifacts/protocol_v2/p253_confirmation_s1/hinton_k2aaa_a3/fedavg_adapter`
-or stops with the reason. Seed 1 is not queued yet: it waits for the fixed
-number of DPO rounds and the server-stage loss. FedAvg seed 1 does not exist
-on this setup (3 rounds from the base model, about 5 h); of `gold_k2aaa`
-seed 1 only the 2-epoch server stage exists (`p253_gold_k2_k2_s1`, reuse not
-asked).
+or stops with the reason. Seed 1 is not queued yet: the number of DPO rounds
+is fixed at 3, and seed 1 waits for the server-stage loss (gold or Hinton).
+FedAvg seed 1 does not exist on this setup (3 rounds from the base model,
+about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server stage exists
+(`p253_gold_k2_k2_s1`, reuse not asked).
 
 The two CoT tasks (`fedcot_s0/curve_client_more`, `fedcot_s0/curve_dpo`) are
 removed from the queue. After the Hinton curve, in this order (times are
@@ -162,8 +165,8 @@ estimates from the measured rounds):
 | 1 | `rob_*`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN, DK (no choice was made on them since the fresh start) | 1-1.5 h |
 | 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the same round 1 samples and pairs | 1.5 h |
 | 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h |
-| 4 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h |
-| 5 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h |
+| 4 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h |
+| 5 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h |
 | 6 | `rob_*` of the new rounds, then `bird_*` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h |
 
 - Read after steps 2 and 3 (owner): if DPO round 1 (75.69) is not clearly
@@ -171,11 +174,10 @@ estimates from the measured rounds):
   with Ctrl+C before steps 4-5 and report.
 - What is cut, and why: the NLL-only control is round 1 only (it isolates
   the loss on identical pairs; later rounds would sample from a different
-  model). The gold and FedAvg lines run 3 rounds against up to 6 on the
-  Hinton line: the three lines are read at the same round index, and a line
-  continues with `extends` if the fixed number of rounds ends above 3
-  (about 1.75-2.2 h per extra round). BIRD dev covers 6 rows (the three
-  starts and their round 3), the base model is not on the extra sets yet.
+  model). The gold and FedAvg lines run exactly the fixed 3 rounds; the
+  Hinton line has a 4th round, used only for the saturation curve. BIRD dev
+  covers 6 rows (the three starts and their round 3), the base model is not
+  on the extra sets yet.
 - `bird_*` is the first BIRD-length evaluation through vLLM: read the first
   lines of `sqldpo_s0/bird_fedavg_r3`. It runs last, so nothing waits on it.
 - Memory: steps 2, 4 and 5 use the settings of the finished DPO rounds
@@ -232,7 +234,7 @@ so far. Choices are made on Spider test, so its numbers are reported as
 run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
 16, greedy 256).
 
-### Stopping rule (the same for every line)
+### Stopping rule
 
 - A step counts as a gain only if Spider test EX is more than 0.5 point
   above the best step so far (owner, 2026-11-09; slow DPO rises of 0.5-1.8
@@ -240,7 +242,11 @@ run `p227_fl_aaa_s0`): FedAvg R3 71.50 on Spider test, same contract (batch
   threshold).
 - Stop a stage after 2 steps in a row without a gain, or at its maximum:
   server 6 epochs (cut from 8 after E6, owner 2026-11-09), template client
-  SFT 1 round (the comparator), self-taught SFT 3 rounds, DPO 6 rounds.
+  SFT 1 round (the comparator), self-taught SFT 3 rounds.
+- SQL DPO: 3 rounds, fixed for every line and seed (owner, 2026-11-10),
+  reported at round 3 rather than at each line's best step. The number was
+  chosen on Spider test (seed 0) from the Hinton line, which stopped at
+  round 4 to show saturation (`LAB_LOG.md`).
 - The next stage starts from the best checkpoint of the stage; a tie within
   0.5 point goes to the cheaper one (fewer epochs or rounds).
 - Precisely: the best step changes only on a gain, so a later step within
@@ -291,7 +297,7 @@ rounds. The DPO settings below describe the removed line and the smoke.
 
 | Line (curve) | Start | Data | Pairs | Step |
 |---|---|---|---|---|
-| `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs, 16 pairs per update, several pairs per forward pass, gradient checkpointing); up to 6 |
+| `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds; 73.50 HF) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs, 16 pairs per update, several pairs per forward pass, gradient checkpointing); 4 rounds run, reported at round 3 (round 4 shows saturation) |
 | `sqldpo_s0/fedavg`, `fedavg_more` | FedAvg R3 from the base model (71.50 HF) | same | same | the control without a server stage; 3 rounds |
 | `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds; 73.03 HF) | same | same | the control without the teacher; 3 rounds |
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
@@ -303,7 +309,7 @@ FedAvg R3 (`fl_aaa`), `central_e3`, `central_mix_e3` of seed 0, and
 `federated_stage__K2fkl-A-A-A__s1__63d8343d817d__72f0d683`, the seed 0
 recipe); each result row names its config, seed and Git SHA.
 
-### Final table (Spider test, best checkpoint of each line by the rule)
+### Final table (Spider test; every SQL DPO line at round 3)
 
 | Row | Line |
 |---|---|
@@ -317,10 +323,11 @@ recipe); each result row names its config, seed and Git SHA.
 | SQL DPO from `hinton_k2aaa_a3` | the method (server-stage loss decided after `curve_gold`) |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
 
-Open until the controls are read: the fixed number of DPO rounds (the final
-table uses one number of rounds for every line, not the best step of each),
-gold or Hinton at the server stage, and whether the server stage is part of
-the method. Then seed 1 with that configuration.
+Every SQL DPO line is reported at 3 rounds (owner, 2026-11-10; chosen on
+Spider test, seed 0). The method row so far: DPO round 3 from
+`hinton_k2aaa_a3`, 76.71. Open until the controls are read: whether the
+server stage is part of the method (`curve_fedavg_more`) and gold or Hinton
+at the server stage (`curve_gold`). Then seed 1 with that configuration.
 
 ### Order on GPU 0
 
@@ -329,10 +336,12 @@ the method. Then seed 1 with that configuration.
 3. `curve_client`: template round 1 from E5 (62.69).
 4. `curve_star`: stopped at 3 rounds, best R2 (60.64).
 5. `sqldpo_s0`: reference evaluations and SQL DPO round 1 from both starts:
-   done. Rounds 2-6 from `hinton_k2aaa_a3`: round 2 76.43, round 3 76.71,
-   round 4 76.94 (best); round 5 crashed in sampling, rerun pending.
-6. `sqldpo_s0` controls: `rob_*`, `ctl_rft`, `ctl_sft`, `curve_gold`,
-   `curve_fedavg_more`, `rob_*` of the new rounds, `bird_*`.
+   done. Rounds 2-4 from `hinton_k2aaa_a3`: round 2 76.43, round 3 76.71
+   (the method row), round 4 76.94; the line stops at round 4 (round 5
+   crashed in sampling and is not run). On the restart the curve closes in
+   seconds.
+6. `sqldpo_s0` controls: `rob_*`, `ctl_rft`, `ctl_sft`, `curve_fedavg_more`,
+   `curve_gold`, `rob_*` of the new rounds, `bird_*`.
 
 GPU 1 is in use by another user. Folders not used by the curves:
 `server_l7680_e2` (a 2-epoch run from the base model of the earlier queue),
