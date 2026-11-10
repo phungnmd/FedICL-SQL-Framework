@@ -111,18 +111,12 @@ loads the changed code.
   `hinton`, `hinton_mb` or under `artifacts/` is changed. FedAvg R3 round 1
   and rounds 2-6 use the same training settings.
 
-Run step 0, then the GPU 0 worker (step 2). What it runs next:
-
-1. `sqldpo_s0/reuse_hinton_samples` (seconds): prints `copied ...` for 5
-   client files and `DONE 5 sample file(s)`.
-2. `sqldpo_s0/curve_hinton_r1`: pairs, then DPO per client, aggregation,
-   evaluation, publish. Send the first `DPO update 1/...` line of client 1
-   (time left, peak reserved) and any `budget lowered` line.
-3. `sqldpo_s0/curve_fedavg_r1` (samples again, about 10 min with vLLM),
-   then `sqldpo_s0/curve_hinton` (rounds 2-6 under the rule), then the CoT
-   analysis line.
-
-Send the round 1 EX of both starts before round 2 begins.
+Round 1 of both starts is done and logged (`LAB_LOG.md`, 2026-11-10:
+Hinton 75.69, FedAvg 74.29). Running now: `sqldpo_s0/curve_hinton` (rounds
+2-6 from `hinton_k2aaa_a3`, about 2 h 15 per round with sampling and
+evaluation; stops after 2 rounds without a gain of more than 0.5 point),
+then the CoT analysis line. Each round publishes itself; nothing to send
+unless a task stops or a `budget lowered` line appears.
 
 ### Code pushed 2026-11-09: worker console
 

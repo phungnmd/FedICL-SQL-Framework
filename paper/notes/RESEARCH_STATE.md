@@ -61,6 +61,9 @@ Spider test, one seed (details in `LAB_LOG.md`):
   `hinton_k2aaa_a3` 73.50); on Spider dev, SQL DPO + NLL raised a
   converged SFT student by about 1.5-2 points and CoT gained less from the
   same DPO rounds than SQL.
+- SQL DPO + NLL round 1 (vLLM inproc): from `hinton_k2aaa_a3` 73.31 to
+  75.69, from FedAvg R3 71.26 to 74.29. The server stage keeps a smaller
+  lead after DPO (1.40 points, p = 0.07).
 
 ## 5. Current phase
 

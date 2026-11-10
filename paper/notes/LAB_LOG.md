@@ -3,6 +3,31 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-10: SQL DPO round 1 from both starts
+
+One federated DPO + NLL round on Spider test, vLLM inproc (fedicl-sql
+`97502841` and `cb35d3ec`; curve records `1bdf7440`, `1b7f42c8`). Pairs from
+K=8 samples of every client question (8,659), gold as chosen when no sample
+is correct.
+
+| Start | Start EX | DPO r1 EX | Right only in start / only in DPO | Pairs (gold chosen) |
+|---|---:|---:|---:|---:|
+| FedAvg R3 | 71.26 | 74.29 | 61 / 126 | 6,509 (736) |
+| `hinton_k2aaa_a3` | 73.31 | **75.69** | 37 / 88 | 5,393 (609) |
+
+- One DPO round adds about 2.4-3.0 points from either start, clearly
+  (both sign tests p < 0.001).
+- Gap between starts shrinks from 2.05 to 1.40 points after DPO (Hinton DPO
+  right only 140 rows, FedAvg DPO 110; p = 0.07): the server stage still
+  helps, less clearly.
+- Hinton DPO r1 is above centralized Spider + BIRD E3 (73.96, no privacy):
+  156 against 119 rows, p = 0.03.
+- Memory: no budget was lowered; peak reserved 13.1-17.4 GiB per client.
+  Wall clock: Hinton round 1 about 1 h 45 (samples reused), FedAvg round 1
+  about 2 h 10 with sampling.
+
+Rounds 2-6 from `hinton_k2aaa_a3` started at 18:13 under the curve rule.
+
 ## 2026-11-10: SQL DPO without gradient checkpointing does not fit
 
 Root `hinton_mb` (no checkpointing, micro-batched): client 1 trained at
