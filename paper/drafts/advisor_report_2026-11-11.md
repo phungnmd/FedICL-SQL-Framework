@@ -35,8 +35,10 @@ Em gửi thầy kết quả mới của đề tài.
   bước 1, vì train trên BIRD với gold SQL không còn tác dụng sau DPO.
 - 3 round DPO là đủ, round 4 không tăng thêm rõ.
 
-**CoT:** ở 1.5B, CoT kém SQL-only ở mọi bước (tốt nhất 62.69), nên em bỏ
-khỏi method và chỉ giữ làm một phân tích ngắn.
+**CoT:** ở 1.5B, CoT kém SQL-only ở mọi bước: server distill plan của
+teacher đạt 60.64, thêm FedAvg đạt 62.69, kể cả CoT + DPO 8 round
+(centralized) cũng chỉ đạt 69.12, vẫn dưới FedAvg SQL-only (71.26). Vì vậy
+em bỏ CoT khỏi method và chỉ giữ làm một phân tích ngắn.
 
 **Điểm hạn chế:** khoảng 20% câu Spider test là SQL chạy được nhưng sai kết
 quả. DPO chủ yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
