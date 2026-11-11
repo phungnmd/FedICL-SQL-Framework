@@ -3,6 +3,62 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: seed 1 queued (plain DPO, Hinton stage); BIRD dev for 6 rows
+
+Owner decisions: the preference term stays plain DPO (focused DPO is an
+ablation row); the method keeps the Hinton server stage; seed 1 is queued;
+the gold server stage of seed 1 (`K2[ce]`, row
+`federated_stage__K2ce__s1__b637761c31e0__5543c6bb`) is approved as the
+start of `gold_k2aaa_a3` seed 1, on the condition that the seed 1 starts are
+the standard recipe (no replay, SQL-only).
+
+Phase `sqldpo_s1` (fedicl-sql `d36293b4`): DPO rounds 1-3 from
+`hinton_k2aaa_a3` seed 1; FedAvg rounds 1-3 from the base model with seed 1,
+then DPO rounds 1-3; FedAvg rounds 1-3 from the gold server stage of seed 1,
+then DPO rounds 1-3; the starts and round 3 on Spider dev, Realistic, SYN,
+DK and BIRD dev. About 28.5 h on GPU 0 (estimate).
+
+Check of the reused seed 1 starts, from the committed result rows:
+
+- `hinton_k2aaa_a3` seed 1 is the chain `K2[fkl]>A>A>A`; the config of each
+  of its 4 stages equals the seed 0 stage except seed, label and output path
+  (2 server epochs, lambda 0.5 / 0.5, T 2, the same teacher logit cache; 3
+  FedAvg rounds, lr 2e-4, 1 local epoch; SQL-only; no replay, no retention
+  term, the same client sizes).
+- The gold server stage of seed 1 has the config of the seed 0 one except
+  the seed (2 epochs, gold SQL only, max length 7,424, from the base model).
+  Its 3 FedAvg rounds did not exist without replay: the seed 1 rows after it
+  are `K2[ce]>Areplay` (clients replay BIRD rows) and are not used.
+- The queued FedAvg and DPO commands parse to seed 1, SQL-only, replay
+  ratio 0, no retention term, proximal weight 0.
+- Not checked: that the gold server stage adapter is still on the server
+  (`sqldpo_s1/check_gold`; the first task prints found or MISSING).
+
+Earlier seed 1 results, read from the archive and the committed rows on the
+owner's request (HF engine, batch 16; they are not paired with vLLM rows):
+`hinton_k2aaa_a3` seed 1 has 74.10 on Spider test (138 execution errors),
+72.82 on Spider dev, 58.13 on DK; seed 0 under the same engine 73.50, 72.53,
+58.32. The only gold-type row of seed 1 is the replay one (73.40, 71.47,
+55.51). Plain `gold_k2aaa_a3`, FedAvg R3 and any DPO round were never run on
+seed 1, so nothing yet shows whether the lead after DPO repeats.
+
+BIRD dev (1,534 rows, with evidence), seed 0, vLLM inproc (fedicl-sql
+`f3f32fc5`). BIRD train is the server's public data, so this set is in the
+domain of the server stage and outside the clients' domain. EX (execution
+errors):
+
+| Line | Start | DPO round 3 | Gain (right only at the start / only at round 3) |
+|---|---:|---:|---|
+| no server stage (FedAvg R3) | 25.55 (610) | 29.66 (439) | +4.11 (41 / 104, p < 0.001) |
+| BIRD gold SFT | **40.03** (259) | 40.87 (**175**) | +0.85 (67 / 80, p = 0.32) |
+| BIRD Hinton KD | 38.33 (311) | **41.20** (214) | +2.87 (47 / 91, p < 0.001) |
+
+- DPO on the clients' Spider data does not cost BIRD accuracy: every line
+  gains.
+- On BIRD dev the teacher adds nothing over gold SQL: Hinton against gold is
+  -1.69 before DPO (114 / 88, p = 0.08) and +0.33 after it (102 / 107,
+  p = 0.78).
+
 ## 2026-11-11: DPO from the gold and FedAvg starts on Spider dev, Realistic, SYN and DK
 
 Seed 0, vLLM inproc, batch 16 (fedicl-sql `26146044`). No choice was made on

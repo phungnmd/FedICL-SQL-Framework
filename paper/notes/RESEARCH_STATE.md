@@ -162,13 +162,14 @@ databases):
 
 ## 6. Current phase
 
-Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): the gold and FedAvg DPO
-rounds on Spider dev, Realistic, SYN and DK, then BIRD dev for 6 rows. The
-focused DPO pilot is finished.
+Phase `sqldpo_s1` on GPU 0 (`PIPELINE_NEXT.md`): seed 1 of the Hinton,
+FedAvg and gold DPO lines, plain DPO, 3 rounds (owner, 2026-11-11: the
+preference term stays plain, the method keeps the Hinton server stage until
+seed 1 is read). Seed 0 is complete, with the other Spider sets and BIRD dev.
 
-Next owner decisions, after `publish_bird`:
+Next owner decisions, after the seed 1 lines:
 
-- the preference term of the method: plain or focused (open point 5);
-- the server stage of the method: Hinton, gold or none (open point 1);
-- then seed 1 with that configuration, and the reference rows of open
-  points 3 and 4.
+- whether the teacher stays in the method (open point 1): Hinton against
+  the FedAvg and gold lines after DPO, both seeds pooled by question;
+- then the reference rows of open points 3 and 4, and a third seed if the
+  teacher's gain is at the edge.

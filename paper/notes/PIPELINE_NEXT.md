@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `publish_rob_starts` finished at 22:45 on 11-11. The next tasks are `bird_*`; no results commit of them yet. | results commit `26146044` (fetched 23:06 on 11-11) |
+| 0 | Idle: `publish_bird` finished at 23:20 on 11-11 and phase `sqldpo_s0` is done. Phase `sqldpo_s1` is pushed and waits for the pull and the worker start of "Run now". | results commit `f3f32fc5` (fetched 23:23 on 11-11); queue commit `d36293b4` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,49 +26,64 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Only if the worker is not running (it stopped, or the server went
-   down): start it again; it continues where it stopped.
+1. Pull the seed 1 queue and run the tests. Only the queue file and a doc
+   changed, no code; nothing has to finish first. Send the output only if a
+   test fails.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+2. Start the worker (the one of phase `sqldpo_s0` ended with `DONE queue`;
+   if it is still open, the pull is enough and this step is skipped). Send
+   the line `gold server stage seed 1: found` or `MISSING` that the first
+   task prints within seconds.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-Otherwise nothing to run. The owner is needed next after `publish_bird`
-(about 23:35 on 11-11, estimate): tell the agent; it reads BIRD dev from
-Git. The owner then chooses the preference term (plain
-or focused; the pilot is in `LAB_LOG.md`) and the server stage (Hinton or
-none; the gold stage adds nothing after DPO on seed 0); seed 1 is queued
-after that.
+The owner is needed next when `curve_hinton` has published its round 3
+(about 05:20 on 11-12, estimate): tell the agent; it reads the method on
+seed 1 from Git. No decision is needed before `curve_fedavg` ends (about
+16:10 on 11-12, estimate), when the Hinton and FedAvg lines of seed 1 are
+read side by side.
 
 ## Running and queued
 
-Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from 22:46 on 11-11.
+Phase `sqldpo_s1`, GPU 0, in queue order: seed 1 of the three DPO lines,
+plain DPO, 3 rounds. Times are estimates from the seed 0 rounds, counted
+from a worker start at 23:45 on 11-11.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `bird_fedavg_r3`, `bird_gold_k2aaa`, `bird_hinton_k2aaa`, `bird_fedavg_dpo_r3`, `bird_gold_dpo_r3`, `bird_hinton_dpo_r3`, `publish_bird` | BIRD dev for the three starts and their DPO round 3 | 50 min | 23:35 on 11-11 | next after `publish_rob_starts`; no results commit yet |
+| 1 | `check_parents`, `eval_hinton`, `publish_start` | Is the seed 1 Hinton adapter on the server; its start row on Spider test | 5 min | 23:50 on 11-11 | queued |
+| 2 | `curve_hinton` | Does the method repeat on seed 1: DPO rounds 1-3 from `hinton_k2aaa_a3` seed 1 | 5.5 h | 05:20 on 11-12 | queued |
+| 3 | `curve_fedavg_sft` | The federated baseline on seed 1: FedAvg rounds 1-3 from the base model | 5 h | 10:20 on 11-12 | queued |
+| 4 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 16:10 on 11-12 | queued |
+| 5 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 17:20 on 11-12 | queued |
+| 6 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 5 h | 22:20 on 11-12 | queued |
+| 7 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 03:50 on 11-13 | queued |
+| 8 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 04:30 on 11-13 | queued |
 
 Cut from a full run:
 
-- BIRD dev covers 6 rows (the three starts and their round 3). The base
-  model is not on the extra sets yet.
-- The gold and FedAvg lines run the fixed 3 rounds; the Hinton line has a
-  4th round, used only for the saturation curve.
+- Seed 1 has the three DPO lines only. The controls of seed 0 (NLL-only
+  round, extra SFT rounds, focused DPO, round 4) are not repeated.
+- On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 has the start and
+  round 3 of each line, not rounds 1 and 2.
 
 Not queued yet:
 
+- FedProx, FedNTD and the local client models through vLLM inproc: whether
+  their adapters are still on the server is not checked.
+- DPO on pooled client data and DPO without aggregation (reference rows,
+  about 5.5 to 6 h each).
 - Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
   wrong results.
-- Seed 1. It waits for row 1 and the owner's choice (plain or
-  focused preference term; Hinton server stage or none).
-  `hinton_k2aaa_a3` of seed 1 is approved and found on the server
-  (2026-11-10). FedAvg seed 1 does not exist on this setup (3 rounds from
-  the base model, about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server
-  stage exists, and its reuse is not approved.
 
-To watch for: `bird_*` is the first BIRD-length evaluation through vLLM, so
-the first lines of `sqldpo_s0/bird_fedavg_r3` show its peak reserved VRAM.
+To watch for: if the first task prints `gold server stage seed 1: MISSING`,
+the queue stops at `check_gold` (row 6), after rows 1 to 5 are done.
 
 ## Reference
 
@@ -161,6 +176,23 @@ Final table (Spider test; every SQL DPO line at round 3):
 | NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
 | SQL DPO from `hinton_k2aaa_a3` | the method so far (76.71 at round 3); server stage and its loss are decided after the gold line |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
+
+### Seed 1 (phase `sqldpo_s1`)
+
+The three DPO lines of seed 0 with seed 1 in every training and sampling
+command; evaluation arms carry `_s1` in their names. Curve rule: every
+curve has at most 3 steps, so every step runs; the DPO lines start from
+round 3 of their SFT curve by name.
+
+| Line (curve) | Start | Step |
+|---|---|---|
+| `sqldpo_s1/hinton` | `hinton_k2aaa_a3` seed 1 (earlier adapter, approved 2026-11-10; the seed 0 recipe with seed 1, SQL-only, no replay) | DPO + NLL round, the settings of seed 0; 3 rounds |
+| `sqldpo_s1/fedavg_sft` | base model | one FedAvg round (lr 2e-4, 1 local epoch), the command of the seed 0 row; 3 rounds |
+| `sqldpo_s1/fedavg` | round 3 of `fedavg_sft` | DPO + NLL round; 3 rounds |
+| `sqldpo_s1/gold_sft` | gold server stage of seed 1 (`K2[ce]`, 2 epochs on BIRD; earlier adapter, approved 2026-11-11; not the `Areplay` rows) | one FedAvg round, same recipe; 3 rounds |
+| `sqldpo_s1/gold` | round 3 of `gold_sft` | DPO + NLL round; 3 rounds |
+
+Outputs: `artifacts/protocol_v2/sqldpo_coder15b_alpha01_s1/`.
 
 ### CoT analysis line (phase `fedcot_s0`, finished)
 
