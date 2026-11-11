@@ -3,18 +3,63 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
-## 2026-11-11: DPO round 3 from FedAvg R3, DPO round 1 from `gold_k2aaa_a3`
+## 2026-11-11: focused DPO pilot queued; federation is the setting, not the claim
+
+No run. Two owner decisions after a review of the direction (an agent's
+literature check and the committed predictions).
+
+- Federation: the method is one that works in the federated setup; the
+  paper does not claim that federation produces the gain. DPO on pooled
+  data (centralized) and DPO without aggregation (local only) are reference
+  rows that show what the setting costs, not a condition of the claim. Not
+  queued yet.
+- Pilot, ahead of the gold line in the queue: arm `fdpo`, round 1 from
+  `hinton_k2aaa_a3` on the round 1 samples and pairs of the Hinton line
+  (fedicl-sql `43d4fb40`, queue `c3a3a16e`). The preference term follows
+  Focused-DPO (arXiv 2502.11475): the response tokens of a pair are split
+  into common prefix, differing middle and common suffix; the middle
+  log-ratios are weighted by 2 and the rejected suffix is left out. The NLL
+  term, pairs, schedule and updates are those of DPO round 1 (75.69, 82
+  execution errors, 440 wrong results), which is its comparator. One round
+  only; about 1 h 45 (estimate). Read: Spider test EX, wrong-result count,
+  execution errors, and the span lengths in `client_*_train.json`
+  (`focus`).
+- What to expect (estimate, not a measurement): 0 to +1 point over DPO
+  round 1. The common prefix already cancels in the plain DPO margin and
+  the pairs are the nearest ones (similarity 0.83), so the loss changes
+  less than in the papers (+1 to +3 over plain DPO on 7B code models,
+  Focused-DPO; +1.07 on Spider test at 9B for clause against outcome
+  rewards, CAPER). One paired comparison separates about 0.8 to 1 point.
+
+How much the wrong-result rows can move, from the committed Spider test
+predictions of the 17 SQL rows (vLLM inproc): of the 442 wrong-result rows
+of the method (Hinton DPO round 3), 193 are right in at least one other row
+and 249 are wrong in every row; 271 rows of the test set are wrong in all
+17 rows (the union of the 17 rows is right on 87.38%). Of the 444
+wrong-result rows of `hinton_k2aaa_a3`, 371 are still wrong results after
+three DPO rounds.
+
+Literature check (2026-11-11, not yet in `LITERATURE.md`): no federated
+Text-to-SQL paper besides FL4SP was found. Federated RL with a verifier on a
+small decoder now exists: FedMOA (arXiv 2602.00453) runs federated GRPO
+with Qwen2.5-1.5B-Instruct on code (HumanEval gains 0 to +1.8); it and
+PubSwap are the closest work to cite. Not found: execution on the client's
+own databases as the verifier, federated DPO with such pairs, Text-to-SQL
+with EX.
+
+## 2026-11-11: DPO round 3 from FedAvg R3, DPO rounds 1-2 from `gold_k2aaa_a3`
 
 Spider test, seed 0, vLLM inproc (fedicl-sql `bc3a36a0`, `f222c624`, curve
-record `9238c82b`; `f03534f6`, `1b79dad0`). The worker was restarted after
-the two crashes; the FedAvg line closed at its maximum of 3 rounds.
+record `9238c82b`; `f03534f6`, `1b79dad0`; `d2e57969`, `0f4fdb80`). The
+worker was restarted after the two crashes; the FedAvg line closed at its
+maximum of 3 rounds.
 
 | Round | From FedAvg R3 | From `gold_k2aaa_a3` | From `hinton_k2aaa_a3` |
 |---|---:|---:|---:|
 | start | 71.26 | 73.08 | 73.31 |
 | 1 | 74.29 | 74.34 | 75.69 |
-| 2 | 75.17 | running | 76.43 |
-| 3 | 75.13 | queued | **76.71** |
+| 2 | 75.17 | 75.13 | 76.43 |
+| 3 | 75.13 | running | **76.71** |
 
 Paired, with a 95% interval from a bootstrap over the 40 test databases
 (10,000 resamples), computed from the committed predictions:
@@ -31,6 +76,9 @@ Paired, with a 95% interval from a bootstrap over the 40 test databases
 | `gold_k2aaa_a3` / gold DPO r1 | +1.26 | 37 / 64 | 0.009 | +0.23 to +2.37 |
 | FedAvg DPO r1 / gold DPO r1 | +0.05 | 123 / 124 | 1.00 | |
 | gold DPO r1 / Hinton DPO r1 | +1.35 | 81 / 110 | 0.04 | -0.05 to +2.65 |
+| gold DPO r1 / gold DPO r2 | +0.79 | 27 / 44 | 0.06 | |
+| FedAvg DPO r2 / gold DPO r2 | -0.04 | 122 / 121 | 1.00 | |
+| gold DPO r2 / Hinton DPO r2 | +1.30 | 76 / 104 | 0.04 | -0.09 to +2.56 |
 | `gold_k2aaa_a3` / `hinton_k2aaa_a3` | +0.23 | 76 / 81 | 0.75 | -1.18 to +1.70 |
 
 - The FedAvg line is flat after round 2. Its round 3 has 101 execution
@@ -41,6 +89,9 @@ Paired, with a 95% interval from a bootstrap over the 40 test databases
   Hinton start 2.38) and ends level with DPO round 1 from FedAvg R3: after
   one DPO round the gold server stage has no lead left, the Hinton one has
   1.40. Gold round 1 has 82 execution errors and 469 wrong results.
+- Round 2 repeats it: gold 75.13 against 75.17 from FedAvg R3, Hinton
+  76.43 (+1.30). Gold round 2 has 77 execution errors and 457 wrong
+  results.
 
 Rejected side of the training pairs, summed over the 5 clients
 (`audits/protocol_v2/sqldpo_coder15b_alpha01_s0/*/dpo/round_*/client_*_pairs_stats.json`):
@@ -55,6 +106,7 @@ Rejected side of the training pairs, summed over the 5 clients
 | FedAvg 2 | 4,161 | 1,704 | 2,457 |
 | FedAvg 3 | 3,812 | 1,354 | 2,458 |
 | gold 1 | 5,794 | 3,063 | 2,731 |
+| gold 2 | 4,016 | 1,550 | 2,466 |
 
 - Pairs with an execution error on the rejected side fall by two thirds
   over the rounds (2,806 to 858); pairs with a wrong result fall by a fifth

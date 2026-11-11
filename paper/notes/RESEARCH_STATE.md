@@ -58,7 +58,9 @@ Chosen by the owner on 2026-11-10. Three stages:
    is correct), trains on the pairs, and the server averages the updates.
 
 The claim rests on stage 3. Stage 1 and the teacher stay in the method only
-if the controls show their role (section 5).
+if the controls show their role (section 5). Federated learning is the
+setting the method has to work in; the paper does not claim that federation
+produces the gain (owner, 2026-11-11).
 
 Closest prior work (`LITERATURE.md`): federated DPO as local DPO with LoRA
 averaging, on human preferences (OpenFedLLM, FedBiscuit); centralized DPO on
@@ -81,7 +83,7 @@ One seed (seed 0). Numbers and commits: `LAB_LOG.md`.
 | centralized Spider + BIRD (no privacy) | 73.96 | 163 |
 | `hinton_k2aaa_a3` + NLL-only round | 73.50 | 117 |
 | `hinton_k2aaa_a3` + 1 FedAvg SFT round | 74.15 | 132 |
-| DPO round 1 from `gold_k2aaa_a3` (rounds 2-3 running) | 74.34 | 82 |
+| DPO round 2 from `gold_k2aaa_a3` (round 3 running) | 75.13 | 77 |
 | DPO round 3 from FedAvg R3 | 75.13 | 101 |
 | DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** |
 
@@ -96,7 +98,7 @@ databases):
 | Preference term | best SFT control to the method | +2.56 | +1.35 to +3.77 | clear |
 | Against no privacy | centralized Spider + BIRD to the method | +2.75 | +0.84 to +4.64 | clear |
 | Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.58 | -0.09 to +3.20 | at the edge |
-| Teacher after DPO round 1 | DPO round 1 from gold to DPO round 1 from Hinton | +1.35 | -0.05 to +2.65 | at the edge |
+| Teacher after DPO round 2 | DPO round 2 from gold to DPO round 2 from Hinton | +1.30 | -0.09 to +2.56 | at the edge |
 | Teacher before DPO | `gold_k2aaa_a3` to `hinton_k2aaa_a3` | +0.23 | -1.18 to +1.70 | no difference |
 
 - The DPO stage is the solid part: 3.4 to 3.9 points from either start, and
@@ -114,43 +116,50 @@ databases):
 - The line saturates: round 4 (76.94) is not separable from round 3; by
   round 4, 6,425 of 8,659 client questions have all 8 samples correct and
   58 execution errors are left on Spider test (2.7 points).
-- The server stage: a gold stage has no lead left after one DPO round
-  (74.34 against 74.29 from FedAvg R3); the Hinton stage keeps 1.4 to 1.6
-  points through round 3.
+- The server stage: a gold stage has no lead left after DPO (74.34 and
+  75.13 at rounds 1 and 2, against 74.29 and 75.17 from FedAvg R3); the
+  Hinton stage keeps 1.3 to 1.6 points through round 3.
+- The wrong results are not all out of reach: of the method's 442, 193 are
+  right in at least one of the other 16 rows and 249 are wrong in every
+  row.
 - CoT at 1.5B does not help (plan + SQL: server stage 60.64, one template
   client round 62.69, self-taught rounds at most 60.64). It is a short
   analysis in the paper, not part of the method.
 
 ## 5. Open
 
-1. The teacher's role. Hinton against gold is +0.23 before DPO and +1.35
-   after one DPO round, on one seed. Gold DPO rounds 2-3 (running) and
-   seed 1 decide whether the server stage is Hinton, gold or dropped.
+1. The teacher's role. Hinton against gold is +0.23 before DPO, +1.35
+   and +1.30 after one and two DPO rounds, on one seed. Gold DPO round 3
+   (running) and seed 1 decide whether the server stage is Hinton, gold or
+   dropped.
 2. Seeds. Every number is seed 0. The DPO gain is large against the noise;
    the server-stage and teacher gains (1.3 to 1.6 points) cannot be claimed
    on one seed. For seed 1, `hinton_k2aaa_a3` exists; FedAvg R3 does not
    (about 5 h); `gold_k2aaa_a3` has only its server stage, reuse not
    approved.
-3. What federation costs in the DPO stage. Not run and not queued: DPO
-   with the same recipe on the pooled client data (centralized), and DPO at
-   each client without aggregation (local only). A reviewer will ask for
-   both; about 5.5 to 6 GPU-h each (estimate).
+3. What the federated setting costs in the DPO stage. Reference rows, not
+   a condition of the claim; not run and not queued: DPO with the same
+   recipe on the pooled client data (centralized), and DPO at each client
+   without aggregation (local only). About 5.5 to 6 GPU-h each (estimate).
 4. Reference rows on the same engine: FedProx, FedNTD and the local client
    models have no vLLM inproc number yet. BIRD dev is queued for 6 rows.
 5. The 20% of wrong results. The method does not touch them, and they
-   bound EX at about 77. Whether to add a part that does (stricter labels,
-   pair choice, a loss on the wrong span) or to keep the method and
-   complete the evidence is under review (2026-11-11); nothing is chosen.
+   bound EX at about 77. A pilot is queued (owner, 2026-11-11): one DPO
+   round whose preference term is focused on the span where chosen and
+   rejected differ (arm `fdpo`, Focused-DPO), read against DPO round 1
+   (75.69). If it lowers the wrong results it becomes part of the method
+   and runs 3 rounds; if not, it is an ablation row and the method stays.
+   Not chosen: stricter labels from mutated client databases.
 
 ## 6. Current phase
 
-Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): DPO rounds 2-3 from
-`gold_k2aaa_a3`, then the new rounds on Spider dev, Realistic, SYN and DK,
-then BIRD dev for 6 rows.
+Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): DPO round 3 from
+`gold_k2aaa_a3`, the focused DPO pilot, then the new rounds on Spider dev,
+Realistic, SYN and DK, then BIRD dev for 6 rows.
 
-Next owner decisions, after `publish_bird`:
+Next owner decisions, after the pilot and `publish_bird`:
 
+- the preference term of the method: plain or focused (open point 5);
 - the server stage of the method: Hinton, gold or none (open point 1);
-- keep the method and complete it (seeds, open points 3 and 4), or pilot
-  an upgrade first (open point 5);
-- then seed 1 with that configuration.
+- then seed 1 with that configuration, and the reference rows of open
+  points 3 and 4.
