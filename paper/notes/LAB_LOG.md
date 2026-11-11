@@ -3,6 +3,39 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: DPO from the gold and FedAvg starts on Spider dev, Realistic, SYN and DK
+
+Seed 0, vLLM inproc, batch 16 (fedicl-sql `26146044`). No choice was made on
+these sets; all four are on the 20 Spider dev databases. EX:
+
+| Row | Spider test | Dev | Realistic | SYN | DK |
+|---|---:|---:|---:|---:|---:|
+| DPO r1 from FedAvg R3 | 74.29 | 71.18 | 63.39 | 56.67 | 58.13 |
+| DPO r2 from FedAvg R3 | 75.17 | 70.99 | 62.99 | 57.16 | 57.76 |
+| DPO r3 from FedAvg R3 | 75.13 | 73.11 | 63.58 | 58.32 | 58.88 |
+| DPO r1 from `gold_k2aaa_a3` | 74.34 | 73.02 | 64.57 | 58.99 | 57.38 |
+| DPO r2 from `gold_k2aaa_a3` | 75.13 | 73.02 | **65.35** | 59.19 | 58.32 |
+| DPO r3 from `gold_k2aaa_a3` | 75.22 | 73.79 | **65.35** | 59.86 | 57.94 |
+| DPO r3 from `hinton_k2aaa_a3` | **76.71** | **76.50** | 64.17 | **61.03** | **64.11** |
+
+Round 3, gain of the second row (right only in the first / only in the
+second, p):
+
+| Pair | Dev | Realistic | SYN | DK |
+|---|---|---|---|---|
+| gold line / Hinton line | +2.71 (27 / 55, 0.003) | -1.18 (29 / 23, 0.49) | +1.16 (52 / 64, 0.31) | +6.17 (7 / 40, < 0.001) |
+| FedAvg line / Hinton line | +3.38 (47 / 82, 0.003) | +0.59 (36 / 39, 0.82) | +2.71 (62 / 90, 0.03) | +5.23 (19 / 47, 0.001) |
+| FedAvg line / gold line | +0.68 (58 / 65, 0.59) | +1.77 (27 / 36, 0.31) | +1.55 (69 / 85, 0.23) | -0.93 (32 / 27, 0.60) |
+
+- The teacher's lead after DPO holds on Spider dev and DK, the two sets
+  where the Hinton stage already led before DPO (+2.32, +5.42). On SYN it
+  has the same sign and is not separable; on Realistic the gold line is
+  ahead by 1.18, not separable.
+- The gold stage against no server stage is not separable on any of the
+  four sets after DPO, as on Spider test.
+- The four sets share their databases, so this is one more set in favour of
+  the teacher, not four; seed 1 is still what confirms it.
+
 ## 2026-11-11: focused DPO pilot: a slightly larger step, the wrong results stay
 
 Spider test, seed 0, vLLM inproc (fedicl-sql `8afdaae2`, `9d6c169d`, curve

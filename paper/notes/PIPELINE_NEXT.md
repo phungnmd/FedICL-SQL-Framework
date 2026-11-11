@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `pilot_fdpo` finished at 22:06 on 11-11. The next task is `rob_gold_dpo_r1`; no results commit of it yet. | results commit `8c536cab` (fetched 22:20 on 11-11) |
+| 0 | `publish_rob_starts` finished at 22:45 on 11-11. The next tasks are `bird_*`; no results commit of them yet. | results commit `26146044` (fetched 23:06 on 11-11) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -34,8 +34,8 @@ tasks, then EX by step of every curve.
 ```
 
 Otherwise nothing to run. The owner is needed next after `publish_bird`
-(about 23:40 on 11-11, estimate): tell the agent; it reads the extra sets
-and BIRD dev from Git. The owner then chooses the preference term (plain
+(about 23:35 on 11-11, estimate): tell the agent; it reads BIRD dev from
+Git. The owner then chooses the preference term (plain
 or focused; the pilot is in `LAB_LOG.md`) and the server stage (Hinton or
 none; the gold stage adds nothing after DPO on seed 0); seed 1 is queued
 after that.
@@ -43,11 +43,11 @@ after that.
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from 22:07 on 11-11.
+measured rounds, counted from 22:46 on 11-11.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | Does the teacher's lead hold on Spider dev, Realistic, SYN and DK after DPO; BIRD dev for 6 rows | 1.5 h | 23:40 on 11-11 | next after the pilot; no results commit yet |
+| 1 | `bird_fedavg_r3`, `bird_gold_k2aaa`, `bird_hinton_k2aaa`, `bird_fedavg_dpo_r3`, `bird_gold_dpo_r3`, `bird_hinton_dpo_r3`, `publish_bird` | BIRD dev for the three starts and their DPO round 3 | 50 min | 23:35 on 11-11 | next after `publish_rob_starts`; no results commit yet |
 
 Cut from a full run:
 
