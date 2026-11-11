@@ -3,6 +3,47 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: gold line closed: the BIRD stage alone does not survive DPO, the teacher does
+
+Spider test, seed 0, vLLM inproc (fedicl-sql `a5220912`, `ada6601e`, curve
+record `cce543f2`). DPO round 3 from `gold_k2aaa_a3`: **75.22** (71
+execution errors, 461 wrong results; 3,492 pairs, 1,174 with an execution
+error and 2,318 with a wrong result on the rejected side).
+
+| Round | No server stage (FedAvg R3) | BIRD gold SFT | BIRD Hinton KD | Hinton minus gold |
+|---|---:|---:|---:|---:|
+| start | 71.26 | 73.08 | 73.31 | +0.23 |
+| 1 | 74.29 | 74.34 | 75.69 | +1.35 |
+| 2 | 75.17 | 75.13 | 76.43 | +1.30 |
+| 3 | 75.13 | 75.22 | **76.71** | +1.49 |
+
+| Pair at round 3 | Gain | Right only in the first / only in the second | p | 95% interval (databases) |
+|---|---:|---:|---:|---|
+| FedAvg line / gold line | +0.09 | 123 / 125 | 0.95 | -1.64 to +1.84 |
+| gold line / Hinton line | +1.49 | 77 / 109 | 0.02 | -0.24 to +3.16 |
+| FedAvg line / Hinton line | +1.58 | 101 / 135 | 0.03 | -0.09 to +3.20 |
+| `gold_k2aaa_a3` / gold DPO r3 | +2.14 | 47 / 93 | < 0.001 | +0.77 to +3.54 |
+| gold DPO r2 / r3 | +0.09 | 27 / 29 | 0.89 | |
+
+- The gold server stage leads FedAvg R3 by 1.82 before DPO and by nothing
+  after it, at every round (+0.05, -0.04, +0.09): what BIRD with gold SQL
+  adds, the DPO rounds also give.
+- The Hinton stage keeps 1.3 to 1.5 points over the gold stage at every
+  round, on the same BIRD questions: the part of the server stage that
+  survives DPO comes from the teacher's distribution, not from the BIRD
+  data. By rows it is separable at round 3 (p = 0.02), by databases the
+  interval touches zero. The three rounds are one pair of lineages, not
+  three tests; seed 1 is what confirms it.
+- Error types at round 3 (execution errors / wrong results): FedAvg line
+  101 / 433, gold line 71 / 461, Hinton line 58 / 442. The gold stage
+  trades execution errors for wrong results; the Hinton stage lowers
+  execution errors without that.
+- Before DPO the two stages already differ on the sets no choice was made
+  on (fedicl-sql `7eaad90a`): Spider dev 70.50 against 72.82 (28 / 52,
+  p = 0.01, interval +1.19 to +3.64), DK 52.71 against 58.13 (6 / 35,
+  p < 0.001, +2.41 to +8.09), Realistic 61.42 against 62.01 (26 / 29). The
+  gold DPO rounds on these sets are queued (`rob_gold_dpo_r*`).
+
 ## 2026-11-11: focused DPO pilot queued; federation is the setting, not the claim
 
 No run. Two owner decisions after a review of the direction (an agent's

@@ -83,7 +83,7 @@ One seed (seed 0). Numbers and commits: `LAB_LOG.md`.
 | centralized Spider + BIRD (no privacy) | 73.96 | 163 |
 | `hinton_k2aaa_a3` + NLL-only round | 73.50 | 117 |
 | `hinton_k2aaa_a3` + 1 FedAvg SFT round | 74.15 | 132 |
-| DPO round 2 from `gold_k2aaa_a3` (round 3 running) | 75.13 | 77 |
+| DPO round 3 from `gold_k2aaa_a3` | 75.22 | 71 |
 | DPO round 3 from FedAvg R3 | 75.13 | 101 |
 | DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** |
 
@@ -98,7 +98,8 @@ databases):
 | Preference term | best SFT control to the method | +2.56 | +1.35 to +3.77 | clear |
 | Against no privacy | centralized Spider + BIRD to the method | +2.75 | +0.84 to +4.64 | clear |
 | Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.58 | -0.09 to +3.20 | at the edge |
-| Teacher after DPO round 2 | DPO round 2 from gold to DPO round 2 from Hinton | +1.30 | -0.09 to +2.56 | at the edge |
+| BIRD with gold SQL after DPO | DPO round 3 from FedAvg R3 to DPO round 3 from gold | +0.09 | -1.64 to +1.84 | no difference |
+| Teacher after DPO | DPO round 3 from gold to the method | +1.49 | -0.24 to +3.16 | at the edge |
 | Teacher before DPO | `gold_k2aaa_a3` to `hinton_k2aaa_a3` | +0.23 | -1.18 to +1.70 | no difference |
 
 - The DPO stage is the solid part: 3.4 to 3.9 points from either start, and
@@ -116,9 +117,13 @@ databases):
 - The line saturates: round 4 (76.94) is not separable from round 3; by
   round 4, 6,425 of 8,659 client questions have all 8 samples correct and
   58 execution errors are left on Spider test (2.7 points).
-- The server stage: a gold stage has no lead left after DPO (74.34 and
-  75.13 at rounds 1 and 2, against 74.29 and 75.17 from FedAvg R3); the
-  Hinton stage keeps 1.3 to 1.6 points through round 3.
+- The server stage: BIRD with gold SQL has no lead left after DPO (74.34,
+  75.13, 75.22 at rounds 1 to 3, against 74.29, 75.17, 75.13 from
+  FedAvg R3). The Hinton stage keeps 1.3 to 1.5 points over the gold stage
+  at every round, on the same BIRD questions: what survives DPO comes from
+  the teacher, not from the BIRD data. Before DPO the Hinton stage is
+  already ahead of the gold stage on Spider dev (+2.32) and DK (+5.42),
+  sets no choice was made on.
 - The wrong results are not all out of reach: of the method's 442, 193 are
   right in at least one of the other 16 rows and 249 are wrong in every
   row.
@@ -128,10 +133,12 @@ databases):
 
 ## 5. Open
 
-1. The teacher's role. Hinton against gold is +0.23 before DPO, +1.35
-   and +1.30 after one and two DPO rounds, on one seed. Gold DPO round 3
-   (running) and seed 1 decide whether the server stage is Hinton, gold or
-   dropped.
+1. The teacher's role. On seed 0 the answer is: Hinton KD at the server
+   stage, or no server stage; the gold stage adds nothing after DPO.
+   Hinton against gold is +0.23 before DPO and +1.35, +1.30, +1.49 after
+   one to three DPO rounds, one pair of training lineages. Still needed:
+   the gold DPO rounds on Spider dev, Realistic, SYN and DK (queued), and
+   seed 1 of the Hinton and gold lines.
 2. Seeds. Every number is seed 0. The DPO gain is large against the noise;
    the server-stage and teacher gains (1.3 to 1.6 points) cannot be claimed
    on one seed. For seed 1, `hinton_k2aaa_a3` exists; FedAvg R3 does not
@@ -153,8 +160,8 @@ databases):
 
 ## 6. Current phase
 
-Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): DPO round 3 from
-`gold_k2aaa_a3`, the focused DPO pilot, then the new rounds on Spider dev,
+Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): the focused DPO pilot,
+then the new rounds on Spider dev,
 Realistic, SYN and DK, then BIRD dev for 6 rows.
 
 Next owner decisions, after the pilot and `publish_bird`:

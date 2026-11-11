@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Last seen in `curve_gold`: round 2 published at 19:01 on 11-11, round 3 to follow. | results commit `0f4fdb80` (fetched 19:41 on 11-11) |
+| 0 | `curve_gold` finished at 20:23 on 11-11. The next task is `pilot_fdpo` if the pull of step 1 was done before that, else `rob_gold_dpo_r1`; which one is not known here. | results commit `cce543f2` (fetched 20:25 on 11-11) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,46 +26,38 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Pull the focused DPO pilot and run the tests, in a second terminal; the
-   worker keeps running. The worker then starts `pilot_fdpo` by itself when
-   `curve_gold` ends (about 20:45 on 11-11, estimate). Send the output only
-   if a test fails. Changed code: `fedicl_sql/training/dpo.py`, which gold
-   round 3 loads only if it starts after the pull; the plain DPO path and
-   its resume identity are unchanged, so nothing has to finish first.
+1. If not done yet: pull the focused DPO pilot and run the tests, in a
+   second terminal; the worker keeps running and starts `pilot_fdpo` by
+   itself after the task it is in. Send the output only if a test fails.
+   Changed code: `fedicl_sql/training/dpo.py`; the plain DPO path and its
+   resume identity are unchanged, so nothing has to finish first.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
-2. Optional, only to start the pilot at once instead of after gold round
-   3: press Ctrl+C in the worker terminal, then start the worker again. The
-   pilot runs first; `curve_gold` then continues round 3 from its samples
-   and checkpoint.
+2. Only if the worker is not running (it stopped, or the server went
+   down): start it again; it continues where it stopped.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-The owner is needed next when the pilot has published (about 22:30 on
-11-11, estimate): tell the agent; it reads the pilot against DPO round 1
-(75.69) from Git. After `publish_bird` (about 00:15 on 11-12, estimate) the
-owner chooses the preference term (plain or focused) and the server stage
-(none, gold or Hinton); seed 1 is queued after that.
-
-If the server went down again or the worker stopped by itself
-(`STOP queue: <task> failed: ...`), restart the worker with the command of
-step 2; it continues where it stopped.
+The owner is needed next when the pilot has published (about 1 h 45 after
+it starts, estimate): tell the agent; it reads the pilot against DPO round
+1 (75.69) from Git. After `publish_bird` the owner chooses the preference
+term (plain or focused) and the server stage (Hinton or none; the gold
+stage adds nothing after DPO on seed 0); seed 1 is queued after that.
 
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds (about 1 h 45 per round).
+measured rounds, counted from 20:25 on 11-11 with the pilot first.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` (rounds 1-2 are done, 74.34 and 75.13) | 1 h left | 20:45 on 11-11 | running (last seen 19:01) |
-| 2 | `pilot_fdpo` | Does a preference term focused on the differing span lower the wrong results: focused DPO round 1 from `hinton_k2aaa_a3`, on the samples and pairs of DPO round 1 (75.69) | 1 h 45 | 22:30 on 11-11 | queued, after the pull of step 1 |
-| 3 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | 00:15 on 11-12 | queued |
+| 1 | `pilot_fdpo` | Does a preference term focused on the differing span lower the wrong results: focused DPO round 1 from `hinton_k2aaa_a3`, on the samples and pairs of DPO round 1 (75.69) | 1 h 45 | 22:15 on 11-11 | queued, needs the pull of step 1 |
+| 2 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | Does the teacher's lead hold on Spider dev, Realistic, SYN and DK after DPO; BIRD dev for 6 rows | 1.5 h | 23:45 on 11-11 | queued |
 
 Cut from a full run:
 
@@ -80,7 +72,7 @@ Cut from a full run:
 Not queued yet:
 
 - Seed 1. It waits for rows 1 and 2 and the owner's choice (plain or
-  focused preference term; server stage or not, gold or Hinton).
+  focused preference term; Hinton server stage or none).
   `hinton_k2aaa_a3` of seed 1 is approved and found on the server
   (2026-11-10). FedAvg seed 1 does not exist on this setup (3 rounds from
   the base model, about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server
@@ -88,7 +80,7 @@ Not queued yet:
 
 To watch for: `bird_*` is the first BIRD-length evaluation through vLLM, so
 the first lines of `sqldpo_s0/bird_fedavg_r3` show its peak reserved VRAM.
-Rows 1 and 2 use the settings of the finished DPO rounds (peak reserved
+Row 1 uses the settings of the finished DPO rounds (peak reserved
 13.1-17.4 GiB per client); the focused loss runs the same forward passes.
 
 ## Reference
