@@ -17,9 +17,10 @@ the second crash. Likely cause outside our task (hardware, power, or other
 load on the machine); not confirmed. The worker restart redoes the client 2
 labeling, with host RAM watched.
 
-- Event details (owner): no power button press, BugcheckCode 0. One more
-  unexpected shutdown, before a boot at 14:51 on 11-08, when no queue
-  task ran (first queue commit that day at 22:44). A second `nvlddmkm`
+- Event details (owner, only the oldest lines were sent): one more
+  unexpected shutdown, before a boot at 14:51 on 11-08, with BugcheckCode 0
+  and no power button press, when no queue task ran (first queue commit
+  that day at 22:44). A second `nvlddmkm`
   event 13 at 22:27:59 on 11-10 falls on the round 5 sampling crash of the
   Hinton line (`CUDA_ERROR_LAUNCH_FAILED`, round 4 published at 22:15).
   The events do not name the card. Both cards at the default 230 W limit,
