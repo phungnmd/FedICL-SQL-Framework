@@ -3,6 +3,34 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: where the DPO gain comes from, by error type
+
+No run. Read from the committed Spider test predictions (2,147 rows, seed 0,
+vLLM inproc), each row counted as right, execution error, or wrong result
+(runs but returns another result):
+
+| Row | Right | Execution error | Wrong result |
+|---|---:|---:|---:|
+| base | 1,243 | 440 | 464 |
+| FedAvg R3 | 1,530 | 211 | **406** |
+| `hinton_k2aaa_a3` | 1,574 | 129 | 444 |
+| + NLL-only round | 1,578 | 117 | 452 |
+| + 1 FedAvg SFT round | 1,592 | 132 | 423 |
+| + DPO round 3 | 1,647 | 58 | 442 |
+| + DPO round 4 | **1,652** | **53** | 442 |
+| FedAvg R3 + DPO round 2 | 1,614 | 98 | 435 |
+
+- DPO removes execution errors (129 to 58 from `hinton_k2aaa_a3`, 211 to 98
+  from FedAvg R3); SFT and the NLL term alone do not (132, 117).
+- The wrong-result count stays between 406 and 464 in every row, from the
+  base model to DPO round 4: rows move in and out of it (from
+  `hinton_k2aaa_a3` to DPO round 3, 52 wrong results become right, 37 right
+  rows become wrong results, 44 execution errors become wrong results), but
+  no stage lowers it. About 20% of Spider test is executable SQL with the
+  wrong result, and that part is what bounds EX now.
+- By hardness, FedAvg R3 to DPO round 3: easy 88.1 to 89.8, medium 74.8 to
+  79.8, hard 64.8 to 68.3, extra 49.0 to 63.0.
+
 ## 2026-11-11: DPO controls (NLL only, more SFT rounds), DPO round 2 from FedAvg R3
 
 Spider test, seed 0, vLLM inproc (fedicl-sql `0f7d70c6`, `8258e940`,
