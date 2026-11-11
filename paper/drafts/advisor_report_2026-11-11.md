@@ -2,7 +2,7 @@
 
 Thưa thầy,
 
-Em gửi thầy kết quả mới và phần đánh giá khoảng trống của đề tài.
+Em gửi thầy kết quả mới và ba điểm em muốn xin ý kiến thầy.
 
 **Method** gồm 3 bước:
 
@@ -11,8 +11,6 @@ Em gửi thầy kết quả mới và phần đánh giá khoảng trống của 
 3. Federated DPO 3 round: mỗi client sample 8 câu SQL cho mỗi câu hỏi, chạy
    trên database của mình để ghép cặp đúng / sai, train DPO, rồi server gộp
    bằng FedAvg. Client không gửi data ra ngoài.
-
-Bước 3 là đóng góp chính. Bước 1 em đang cân nhắc giữ hay bỏ.
 
 **Kết quả** (EX):
 
@@ -27,59 +25,57 @@ Bước 3 là đóng góp chính. Bước 1 em đang cân nhắc giữ hay bỏ.
 | Bước 1 dùng gold SQL thay teacher + 2 + 3 | 75.22 | 73.79 | **65.35** | 59.86 | 57.94 |
 | **Cả 3 bước** | **76.71** | **76.50** | 64.17 | **61.03** | **64.11** |
 
-- DPO là phần chính: trên Spider test tăng 3.4 điểm khi có bước 1 và 3.9 điểm
-  khi không có. Không có bước 1, DPO vẫn tăng 4.6-6.7 điểm trên bốn set còn
-  lại. Control (chỉ train trên câu đúng, hoặc SFT thêm round) không tạo ra
-  mức tăng này. 3 round là đủ.
+- DPO là phần tạo ra mức tăng chính: 3.4 điểm trên Spider test khi có bước 1
+  và 3.9 điểm khi không có. Không có bước 1, DPO vẫn tăng 4.6-6.7 điểm trên
+  bốn set còn lại. Control (chỉ train trên câu đúng, hoặc SFT thêm round)
+  không tạo ra mức tăng này. 3 round là đủ.
 - Cả 3 bước hơn FedAvg 5.45 điểm trên Spider test, hơn bản centralized 2.75
   điểm, và gần bằng teacher 7B zero-shot (77.22).
-- Bước 1: data BIRD với gold SQL không còn tác dụng sau DPO. Teacher giúp
-  thêm 1.5 điểm trên Spider test (chưa rõ rệt), rõ trên Spider dev (+2.7) và
-  DK (+6.2); hai set này dùng chung database nên là một bằng chứng.
-- CoT ở 1.5B kém SQL-only ở mọi bước (tốt nhất 69.12 với CoT + DPO, dưới
-  FedAvg SQL-only), nên em chỉ giữ làm một phân tích ngắn.
+- Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
+  yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này. CoT ở 1.5B
+  kém SQL-only ở mọi bước nên em chỉ giữ làm một phân tích ngắn.
 
-**Khoảng trống so với các paper liên quan:**
+**So với các paper liên quan:**
 
 | Mảng | Paper gần nhất | Đã có | Chưa có |
 | --- | --- | --- | --- |
-| Federated Text-to-SQL | FL4SP (ACL 2023) | T5-base, exact match, 8 dataset một domain | SLM decoder, Spider, EX |
-| Federated DPO | OpenFedLLM (2024), FedBiscuit (ICLR 2025) | DPO ở client rồi gộp LoRA, nhãn preference của người | nhãn từ verifier tự động |
-| Federated RL có verifier | PubSwap, Fed-GRPO, FedMOA (preprint 2026) | GRPO federated ở 1.5-4B, trên toán và code | Text-to-SQL, execution trên database của client |
-| DPO cho Text-to-SQL | Liu et al. (ACL 2025), ExCoT (2025) | centralized, 7B-70B, cặp đúng / sai theo execution | model dưới 7B, setting federated |
+| Federated Text-to-SQL | [FL4SP](https://arxiv.org/abs/2305.17221) | T5-base, exact match | SLM decoder, EX |
+| Federated DPO | [OpenFedLLM](https://arxiv.org/abs/2402.06954), [FedBiscuit](https://arxiv.org/abs/2407.03038) | DPO ở client rồi gộp LoRA, nhãn preference của người | nhãn từ execution |
+| Federated RL có verifier | [PubSwap](https://arxiv.org/abs/2604.12160), [Fed-GRPO](https://arxiv.org/abs/2610.11502), [FedMOA](https://arxiv.org/abs/2602.00453) | GRPO ở 1.5-4B, trên toán và code | Text-to-SQL |
+| DPO cho Text-to-SQL | [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/), [ExCoT](https://arxiv.org/abs/2503.19988), [SQLoom](https://arxiv.org/abs/2611.03298) | centralized; 7B-70B, phải có CoT mới tăng; SQLoom ở 1.7B dùng GPT-4 trong lúc train | federated, không dùng model ngoài |
 
-- Khoảng trống: em chưa tìm thấy paper nào làm federated DPO với cặp do
-  client tự gán nhãn bằng execution trên database của mình, và chưa có paper
-  federated Text-to-SQL nào dùng SLM decoder với EX. Text-to-SQL hợp với
-  hướng này vì verifier có sẵn ở client: không cần nhãn của người, không cần
-  gửi data.
-- Điểm đáng chú ý: Liu et al. và ExCoT báo SQL-only DPO không tăng ở 7B trở
-  lên (Qwen2.5-Coder-7B trên BIRD dev: 61.6 xuống 61.3), phải có CoT mới
-  tăng. Ở 1.5B kết quả của em ngược lại: SQL-only DPO tăng 3.4-3.9 điểm, còn
-  CoT thì kém. Model nhỏ sai nhiều hơn nên có nhiều cặp để học (5,393 cặp ở
-  round 1, Liu et al. chỉ có 0.1-0.3k cặp trên Spider train), và mức tăng
-  đến từ việc sửa các câu SQL không chạy được.
-- Mức mới: cơ chế DPO rồi gộp LoRA đã có. Phần mới là đưa vào federated
-  Text-to-SQL với verifier là execution ở client, cùng kết quả ở 1.5B. Em
-  đánh giá mức này phù hợp journal Q3.
-- Điểm reviewer có thể hỏi: phần federated chỉ là FedAvg, nên cần row DPO
-  centralized và DPO ở từng client không gộp để so. SQLoom (preprint 2026)
-  đạt 89.2 trên Spider test ở 1.7B, nhưng train centralized và dùng GPT-4 đọc
-  data train, khác setting của em.
+- Em chưa tìm thấy paper nào làm federated DPO với cặp do client tự gán nhãn
+  bằng execution trên database của mình. Text-to-SQL hợp với hướng này vì
+  verifier có sẵn ở client: không cần nhãn của người, không cần gửi data.
+- Kết quả của em ngược với CoT for DPO và ExCoT. Hai paper này báo SQL-only
+  DPO không tăng ở 7B trở lên (Qwen2.5-Coder-7B trên BIRD dev: 61.6 xuống
+  61.3), và tỉ lệ SQL không chạy được tăng sau DPO. Ở 1.5B, SQL-only DPO của
+  em tăng 3.4-3.9 điểm và số câu SQL không chạy được giảm (129 xuống 58 trên
+  Spider test). Cách làm của em khác ở ba chỗ: train DPO kèm loss SFT, sample
+  lại sau mỗi round, và dùng gold SQL khi không có sample đúng (theo
+  [Iterative RPO](https://arxiv.org/abs/2404.19733)). Em chưa tách được chỗ
+  nào tạo ra khác biệt.
 
-**Thảo luận:**
+**Em xin ý kiến thầy:**
 
-- Teacher: sau DPO student đã gần bằng teacher trên Spider test (76.71 so
-  với 77.22), nên phần teacher đóng góp nằm ở robustness (DK) hơn là EX trên
-  Spider test. Nếu seed thứ hai lặp lại kết quả trên Spider dev và DK, em giữ
-  bước 1. Nếu không, method còn bước 2 + 3, không cần teacher và data public.
-- Hạn chế: khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả.
-  DPO chủ yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
+1. Trọng tâm của bài. Tên FedLS-SQL và outline hiện tại xoay quanh việc
+   distill từ LLM sang SLM, trong khi phần tạo ra kết quả là DPO. Em đề xuất
+   đổi trọng tâm sang federated DPO với cặp gán nhãn bằng execution ở client,
+   và đưa bước 1 xuống thành một phần phụ. Tên gợi ý: "Federated
+   Execution-Guided Preference Optimization for Text-to-SQL with Small
+   Language Models". Outline gợi ý: bài toán; method (FedAvg rồi federated
+   DPO); kết quả và control; phân tích (loại lỗi được sửa, số round, bước
+   server với teacher, CoT); hạn chế.
+2. Phần teacher và BIRD. Data BIRD với gold SQL không còn tác dụng sau DPO
+   (75.22 so với 75.13). Teacher giúp thêm 1.5 điểm trên Spider test, chưa rõ
+   rệt, nhưng rõ trên Spider dev (+2.7) và DK (+6.2); hai set này dùng chung
+   database. Sau DPO student đã gần bằng teacher (76.71 so với 77.22), nên em
+   nghĩ phần teacher đóng góp là robustness hơn là EX. Thầy đánh giá mức này
+   có đủ để giữ bước 1 trong method không, hay chỉ nên để ở phần ablation?
+3. Phần bổ sung. Em định chạy thêm DPO centralized và DPO ở từng client không
+   gộp, để thấy setting federated mất và được gì, rồi thêm một cách chia data
+   client khác. Thầy thấy thứ tự này có hợp lý không?
 
-**Tiếp theo:**
-
-1. Seed thứ hai, dự kiến xong sáng 13/11, rồi quyết định giữ hay bỏ bước 1.
-2. Hai row tham chiếu: DPO centralized và DPO ở từng client không gộp.
-3. Thêm một cách chia data client khác và các baseline còn thiếu.
+**Tiếp theo:** seed thứ hai đang chạy, dự kiến xong sáng 13/11.
 
 Em cảm ơn thầy ạ.
