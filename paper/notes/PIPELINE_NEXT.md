@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-11 09:40.
+Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker running. `curve_fedavg_more` published DPO round 2 from FedAvg R3 at 08:07; round 3 comes next (row 1 of the table below). | results commit fedicl-sql `d1dc954c`; no later commit at 09:36 |
+| 0 | Stopped: the server restarted while `curve_fedavg_more` ran DPO round 3 from FedAvg R3. Round 2 is published. Cause not known yet. | owner; last results commit fedicl-sql `d1dc954c` (08:07 on 11-11) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,10 +26,32 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run. The worker goes through the table below by itself.
+1. Why the server restarted: boot time, restart and crash events of the
+   last 3 days (who asked for a restart, blue screen code, NVIDIA driver
+   and hardware errors). Read-only. Send the output.
 
-Next moment the owner is needed: when `publish_bird` has finished (about
-17:00 on 2026-11-11, estimate). Tell the agent; it reads the gold line, the
+```powershell
+& { $ErrorActionPreference='Stop'; $since=(Get-Date).AddDays(-3); "LastBoot: $((Get-CimInstance Win32_OperatingSystem).LastBootUpTime)"; $ev=@(); $ev+=Get-WinEvent -FilterHashtable @{LogName='System'; Id=41,1001,1074,6008; StartTime=$since} -ErrorAction SilentlyContinue; $ev+=Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='nvlddmkm','Display','Microsoft-Windows-WHEA-Logger'; StartTime=$since} -ErrorAction SilentlyContinue; $ev | Sort-Object TimeCreated | ForEach-Object { $m = "$($_.Message)" -replace '\s+',' '; if ($m.Length -gt 300) { $m = $m.Substring(0,300) }; "$($_.TimeCreated) id=$($_.Id) $($_.ProviderName): $m" } }
+```
+
+2. The last lines of the task log before the restart. Read-only. Send the
+   output.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $log='.queue_state/logs/sqldpo_s0/curve_fedavg_more.log'; "LastWrite: $((Get-Item $log).LastWriteTime)"; Get-Content $log -Tail 30 }
+```
+
+3. Restart the worker; it continues round 3 where it stopped. If step 1
+   shows a blue screen (`id=1001` BugCheck) or `nvlddmkm` errors, wait for
+   the agent first: a second crash would also stop the other user's job on
+   GPU 1.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+After that the owner is needed when `publish_bird` has finished (about 9 h
+after the restart, estimate). Tell the agent; it reads the gold line, the
 FedAvg line and BIRD dev from Git. Then the owner chooses the server stage
 (none, gold or Hinton) and seed 1 is queued.
 
@@ -39,13 +61,13 @@ the worker" in the reference section.
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from 08:07 on 2026-11-11.
+measured rounds, counted from the worker restart.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO round 3 from FedAvg R3 (round 2 is done, 75.17) | 1.5-2 h | 10:00 on 11-11 | running |
-| 2 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h | 15:30 | queued |
-| 3 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | 17:00 | queued |
+| 1 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO round 3 from FedAvg R3 (round 2 is done, 75.17) | 1.5-2 h | restart + 2 h | stopped by the server restart |
+| 2 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h | restart + 7.5 h | queued |
+| 3 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | restart + 9 h | queued |
 
 Cut from a full run:
 
