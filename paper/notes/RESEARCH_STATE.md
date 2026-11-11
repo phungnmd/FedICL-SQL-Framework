@@ -151,20 +151,22 @@ databases):
 4. Reference rows on the same engine: FedProx, FedNTD and the local client
    models have no vLLM inproc number yet. BIRD dev is queued for 6 rows.
 5. The 20% of wrong results. The method does not touch them, and they
-   bound EX at about 77. A pilot is queued (owner, 2026-11-11): one DPO
-   round whose preference term is focused on the span where chosen and
-   rejected differ (arm `fdpo`, Focused-DPO), read against DPO round 1
-   (75.69). If it lowers the wrong results it becomes part of the method
-   and runs 3 rounds; if not, it is an ablation row and the method stays.
-   Not chosen: stricter labels from mutated client databases.
+   bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
+   the preference term on the span where chosen and rejected differ) did
+   not lower them: round 1 gives 76.20 against 75.69 for DPO round 1
+   (10 / 21, p = 0.07), with 439 wrong results against 440 and 72 execution
+   errors against 82. The span is two thirds of the response, so the pilot
+   does not separate focus from a larger preference weight. It is an
+   ablation row unless the owner decides otherwise. Not chosen: stricter
+   labels from mutated client databases.
 
 ## 6. Current phase
 
-Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): the focused DPO pilot,
-then the new rounds on Spider dev,
-Realistic, SYN and DK, then BIRD dev for 6 rows.
+Phase `sqldpo_s0` on GPU 0 (`PIPELINE_NEXT.md`): the gold and FedAvg DPO
+rounds on Spider dev, Realistic, SYN and DK, then BIRD dev for 6 rows. The
+focused DPO pilot is finished.
 
-Next owner decisions, after the pilot and `publish_bird`:
+Next owner decisions, after `publish_bird`:
 
 - the preference term of the method: plain or focused (open point 5);
 - the server stage of the method: Hinton, gold or none (open point 1);
