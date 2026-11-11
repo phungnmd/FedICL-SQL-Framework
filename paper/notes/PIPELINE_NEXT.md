@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Stopped: the server restarted while `curve_fedavg_more` ran DPO round 3 from FedAvg R3. Round 2 is published. Cause not known yet. | owner; last results commit fedicl-sql `d1dc954c` (08:07 on 11-11) |
+| 0 | Stopped: the server went down at 08:20 on 11-11 while `curve_fedavg_more` labeled the round 3 samples of client 2 (CPU only; vLLM sampling had finished), and again at 08:39 with no worker running; up since 13:21. Round 3 samples are on disk. | owner: Windows System log, task log |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,25 +26,18 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Why the server restarted: boot time, restart and crash events of the
-   last 3 days (who asked for a restart, blue screen code, NVIDIA driver
-   and hardware errors). Read-only. Send the output.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $since=(Get-Date).AddDays(-3); "LastBoot: $((Get-CimInstance Win32_OperatingSystem).LastBootUpTime)"; $ev=@(); $ev+=Get-WinEvent -FilterHashtable @{LogName='System'; Id=41,1001,1074,6008; StartTime=$since} -ErrorAction SilentlyContinue; $ev+=Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='nvlddmkm','Display','Microsoft-Windows-WHEA-Logger'; StartTime=$since} -ErrorAction SilentlyContinue; $ev | Sort-Object TimeCreated | ForEach-Object { $m = "$($_.Message)" -replace '\s+',' '; if ($m.Length -gt 300) { $m = $m.Substring(0,300) }; "$($_.TimeCreated) id=$($_.Id) $($_.ProviderName): $m" } }
-```
-
-2. The last lines of the task log before the restart. Read-only. Send the
+1. Optional, read-only: details of the two crash events (power button
+   pressed or not) and of the NVIDIA event at 00:08 (which card). Send the
    output.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $log='.queue_state/logs/sqldpo_s0/curve_fedavg_more.log'; "LastWrite: $((Get-Item $log).LastWriteTime)"; Get-Content $log -Tail 30 }
+& { $ErrorActionPreference='Stop'; $since=(Get-Date).AddDays(-3); Get-WinEvent -FilterHashtable @{LogName='System'; Id=41,13; StartTime=$since} -ErrorAction SilentlyContinue | Where-Object { $_.Id -eq 41 -or $_.ProviderName -eq 'nvlddmkm' } | ForEach-Object { $x=[xml]$_.ToXml(); $d=($x.Event.EventData.Data | ForEach-Object { "$($_.Name)=$($_.'#text')" }) -join ' '; "$($_.TimeCreated) id=$($_.Id) $($_.ProviderName): $d" }; nvidia-smi --query-gpu=index,pci.bus_id,power.limit,power.max_limit,temperature.gpu --format=csv; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' } }
 ```
 
-3. Restart the worker; it continues round 3 where it stopped. If step 1
-   shows a blue screen (`id=1001` BugCheck) or `nvlddmkm` errors, wait for
-   the agent first: a second crash would also stop the other user's job on
-   GPU 1.
+2. Restart the worker; it continues round 3 at the labeling of client 2
+   (the samples are on disk, no new sampling). For the first 3 minutes,
+   watch Memory in Task Manager: if it climbs toward full, press Ctrl+C
+   and send the last lines to the agent.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }

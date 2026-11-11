@@ -3,6 +3,20 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: server went down twice during DPO round 3 from FedAvg R3
+
+No result. Windows System log (owner): unexpected shutdowns at 08:20 and
+08:39 (Kernel-Power 41, EventLog 6008), no BugCheck, no planned restart
+(1074), no WHEA error, no NVIDIA event near either one; back up at 13:21. One
+`nvlddmkm` event 13 at 00:08, while `rft_hinton` trained; that task finished
+normally. Task log: vLLM sampling of round 3 finished at 08:19:27 (8,659
+prompts); the last line, 08:19:45, starts the execution labeling of client
+2, so at the first crash our task ran only SQLite execution on the CPU, with
+the GPU idle. The task log has no line after the reboot, so no worker ran at
+the second crash. Likely cause outside our task (hardware, power, or other
+load on the machine); not confirmed. The worker restart redoes the client 2
+labeling, with host RAM watched.
+
 ## 2026-11-11: where the DPO gain comes from, by error type
 
 No run. Read from the committed Spider test predictions (2,147 rows, seed 0,
