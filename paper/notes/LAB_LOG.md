@@ -3,6 +3,65 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: DPO round 3 from FedAvg R3, DPO round 1 from `gold_k2aaa_a3`
+
+Spider test, seed 0, vLLM inproc (fedicl-sql `bc3a36a0`, `f222c624`, curve
+record `9238c82b`; `f03534f6`, `1b79dad0`). The worker was restarted after
+the two crashes; the FedAvg line closed at its maximum of 3 rounds.
+
+| Round | From FedAvg R3 | From `gold_k2aaa_a3` | From `hinton_k2aaa_a3` |
+|---|---:|---:|---:|
+| start | 71.26 | 73.08 | 73.31 |
+| 1 | 74.29 | 74.34 | 75.69 |
+| 2 | 75.17 | running | 76.43 |
+| 3 | 75.13 | queued | **76.71** |
+
+Paired, with a 95% interval from a bootstrap over the 40 test databases
+(10,000 resamples), computed from the committed predictions:
+
+| Pair | Gain | Right only in the first / only in the second | p | 95% interval |
+|---|---:|---:|---:|---|
+| FedAvg R3 / Hinton DPO r3 | +5.45 | 76 / 193 | < 0.001 | +3.45 to +7.43 |
+| FedAvg R3 / FedAvg DPO r3 | +3.87 | 59 / 142 | < 0.001 | +2.23 to +5.60 |
+| `hinton_k2aaa_a3` / Hinton DPO r3 | +3.40 | 37 / 110 | < 0.001 | +2.21 to +4.53 |
+| +1 FedAvg SFT round / Hinton DPO r3 | +2.56 | 51 / 106 | < 0.001 | +1.35 to +3.77 |
+| central Spider + BIRD / Hinton DPO r3 | +2.75 | 108 / 167 | < 0.001 | +0.84 to +4.64 |
+| FedAvg DPO r2 / FedAvg DPO r3 | -0.04 | 20 / 19 | 1.00 | |
+| FedAvg DPO r3 / Hinton DPO r3 | +1.58 | 101 / 135 | 0.03 | -0.09 to +3.20 |
+| `gold_k2aaa_a3` / gold DPO r1 | +1.26 | 37 / 64 | 0.009 | +0.23 to +2.37 |
+| FedAvg DPO r1 / gold DPO r1 | +0.05 | 123 / 124 | 1.00 | |
+| gold DPO r1 / Hinton DPO r1 | +1.35 | 81 / 110 | 0.04 | -0.05 to +2.65 |
+| `gold_k2aaa_a3` / `hinton_k2aaa_a3` | +0.23 | 76 / 81 | 0.75 | -1.18 to +1.70 |
+
+- The FedAvg line is flat after round 2. Its round 3 has 101 execution
+  errors and 433 wrong results (Hinton round 3: 58 and 442).
+- The server stage keeps 1.58 points after three DPO rounds; by rows it is
+  separable (p = 0.03), by databases the interval touches zero.
+- The gold start gains 1.26 from DPO round 1 (FedAvg R3 gains 3.03, the
+  Hinton start 2.38) and ends level with DPO round 1 from FedAvg R3: after
+  one DPO round the gold server stage has no lead left, the Hinton one has
+  1.40. Gold round 1 has 82 execution errors and 469 wrong results.
+
+Rejected side of the training pairs, summed over the 5 clients
+(`audits/protocol_v2/sqldpo_coder15b_alpha01_s0/*/dpo/round_*/client_*_pairs_stats.json`):
+
+| Line, round | Pairs | Rejected: execution error | Rejected: wrong result |
+|---|---:|---:|---:|
+| Hinton 1 | 5,393 | 2,806 | 2,587 |
+| Hinton 2 | 3,899 | 1,545 | 2,354 |
+| Hinton 3 | 3,208 | 1,037 | 2,171 |
+| Hinton 4 | 2,870 | 858 | 2,012 |
+| FedAvg 1 | 6,509 | 3,824 | 2,685 |
+| FedAvg 2 | 4,161 | 1,704 | 2,457 |
+| FedAvg 3 | 3,812 | 1,354 | 2,458 |
+| gold 1 | 5,794 | 3,063 | 2,731 |
+
+- Pairs with an execution error on the rejected side fall by two thirds
+  over the rounds (2,806 to 858); pairs with a wrong result fall by a fifth
+  (2,587 to 2,012) and are 70% of the pairs by round 4. The DPO rounds
+  train on wrong-result pairs every round, yet the clients keep sampling
+  them and the wrong-result count on Spider test does not fall.
+
 ## 2026-11-11: server went down twice during DPO round 3 from FedAvg R3
 
 No result. Windows System log (owner): unexpected shutdowns at 08:20 and

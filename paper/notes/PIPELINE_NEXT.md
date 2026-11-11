@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Stopped: the server went down at 08:20 on 11-11 while `curve_fedavg_more` labeled the round 3 samples of client 2 (CPU only; vLLM sampling had finished), and again at 08:39 with no worker running; up since 13:21. Round 3 samples are on disk. | owner: Windows System log, task log |
+| 0 | Worker restarted after the two crashes. Last seen in `curve_gold`: round 1 published at 17:28 on 11-11, rounds 2-3 to follow. `curve_fedavg_more` finished at 15:25. | results commits `9238c82b`, `1b79dad0` (fetched 18:39 on 11-11) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,41 +26,31 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Optional, read-only: details of the two crash events (power button
-   pressed or not) and of the NVIDIA event at 00:08 (which card). Send the
-   output.
+Nothing to run while the worker is up.
 
-```powershell
-& { $ErrorActionPreference='Stop'; $since=(Get-Date).AddDays(-3); Get-WinEvent -FilterHashtable @{LogName='System'; Id=41,13; StartTime=$since} -ErrorAction SilentlyContinue | Where-Object { $_.Id -eq 41 -or $_.ProviderName -eq 'nvlddmkm' } | ForEach-Object { $x=[xml]$_.ToXml(); $d=($x.Event.EventData.Data | ForEach-Object { "$($_.Name)=$($_.'#text')" }) -join ' '; "$($_.TimeCreated) id=$($_.Id) $($_.ProviderName): $d" }; nvidia-smi --query-gpu=index,pci.bus_id,power.limit,power.max_limit,temperature.gpu --format=csv; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' } }
-```
+The owner is needed when `publish_bird` has finished (about 23:00 on 11-11,
+estimate). Tell the agent; it reads the gold line and BIRD dev from Git.
+Then the owner chooses the server stage (none, gold or Hinton) and whether
+to complete the method or pilot an upgrade first (`RESEARCH_STATE.md`
+section 5); seed 1 is queued after that.
 
-2. Restart the worker; it continues round 3 at the labeling of client 2
-   (the samples are on disk, no new sampling). For the first 3 minutes,
-   watch Memory in Task Manager: if it climbs toward full, press Ctrl+C
-   and send the last lines to the agent.
+If the server went down again or the worker stopped by itself
+(`STOP queue: <task> failed: ...`), restart the worker; it continues where
+it stopped:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-After that the owner is needed when `publish_bird` has finished (about 9 h
-after the restart, estimate). Tell the agent; it reads the gold line, the
-FedAvg line and BIRD dev from Git. Then the owner chooses the server stage
-(none, gold or Hinton) and seed 1 is queued.
-
-If the worker stopped by itself (`STOP queue: <task> failed: ...`): "Restart
-the worker" in the reference section.
-
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from the worker restart.
+measured rounds (about 2 h per round).
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO round 3 from FedAvg R3 (round 2 is done, 75.17) | 1.5-2 h | restart + 2 h | stopped by the server restart |
-| 2 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h | restart + 7.5 h | queued |
-| 3 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | restart + 9 h | queued |
+| 1 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` (round 1 is done, 74.34) | 3.5-4 h left | 21:30 on 11-11 | running (last seen 17:28) |
+| 2 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | 23:00 on 11-11 | queued |
 
 Cut from a full run:
 
@@ -71,7 +61,8 @@ Cut from a full run:
 
 Not queued yet:
 
-- Seed 1. It waits for rows 1 and 2 (server stage or not, gold or Hinton).
+- Seed 1. It waits for row 1 and the owner's choice (server stage or not,
+  gold or Hinton).
   `hinton_k2aaa_a3` of seed 1 is approved and found on the server
   (2026-11-10). FedAvg seed 1 does not exist on this setup (3 rounds from
   the base model, about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server
@@ -79,7 +70,7 @@ Not queued yet:
 
 To watch for: `bird_*` is the first BIRD-length evaluation through vLLM, so
 the first lines of `sqldpo_s0/bird_fedavg_r3` show its peak reserved VRAM.
-Rows 1 and 2 use the settings of the finished DPO rounds (peak reserved
+Row 1 uses the settings of the finished DPO rounds (peak reserved
 13.1-17.4 GiB per client).
 
 ## Reference
@@ -170,7 +161,7 @@ Final table (Spider test; every SQL DPO line at round 3):
 | SQL DPO from FedAvg R3 | control: no server stage |
 | SQL DPO from `gold_k2aaa_a3` | control: server stage without the teacher |
 | NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
-| SQL DPO from `hinton_k2aaa_a3` | the method so far (76.71 at round 3); server stage and its loss are decided after rows 4 and 5 |
+| SQL DPO from `hinton_k2aaa_a3` | the method so far (76.71 at round 3); server stage and its loss are decided after the gold line |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
 
 ### CoT analysis line (phase `fedcot_s0`, finished)
