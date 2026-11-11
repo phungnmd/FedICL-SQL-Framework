@@ -3,6 +3,46 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: focused DPO pilot: a slightly larger step, the wrong results stay
+
+Spider test, seed 0, vLLM inproc (fedicl-sql `8afdaae2`, `9d6c169d`, curve
+record `8c536cab`; the task ran 1 h 43). Focused DPO round 1 from
+`hinton_k2aaa_a3`, on the samples and the 5,393 pairs of DPO round 1:
+**76.20**.
+
+| Row | EX | Right | Execution error | Wrong result | Easy | Medium | Hard | Extra |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa_a3` | 73.31 | 1,574 | 129 | 444 | 88.5 | 77.4 | 65.0 | 54.3 |
+| DPO round 1 | 75.69 | 1,625 | 82 | 440 | 89.6 | 79.0 | 66.7 | 61.1 |
+| focused DPO round 1 | 76.20 | 1,636 | 72 | 439 | **89.8** | 79.5 | 68.3 | 60.8 |
+| DPO round 2 | 76.43 | 1,641 | 73 | **433** | 89.4 | 79.2 | **69.3** | 61.9 |
+| DPO round 3 | **76.71** | **1,647** | **58** | 442 | **89.8** | **79.8** | 68.3 | **63.0** |
+
+| Pair | Gain | Right only in the first / only in the second | p | 95% interval (databases) |
+|---|---:|---:|---:|---|
+| DPO r1 / focused r1 | +0.51 | 10 / 21 | 0.07 | -0.04 to +1.09 |
+| `hinton_k2aaa_a3` / focused r1 | +2.89 | 28 / 90 | < 0.001 | +1.79 to +3.88 |
+| focused r1 / DPO r2 | +0.23 | 29 / 34 | 0.62 | -0.61 to +1.16 |
+| focused r1 / DPO r3 | +0.51 | 24 / 35 | 0.19 | -0.05 to +1.09 |
+
+- The pilot's question was the wrong results: 440 with plain DPO, 439 with
+  the focused term. Against DPO round 1, 12 wrong results become right, 7
+  right rows and 7 execution errors become wrong results. The focused term
+  does not reach that part.
+- The 11 more right rows come from execution errors (82 to 72), the same
+  mechanism as plain DPO. Focused round 1 sits between plain rounds 1 and 2
+  and is separable from neither; the two round 1 models give the same SQL on
+  1,913 of 2,147 rows.
+- The span is not narrow here: the differing middle is 63 to 73% of the
+  response tokens per client (for example 32 of 49 on client 1), no pair
+  without a span. With weight 2 on two thirds of the tokens, the focused
+  term is close to plain DPO with a doubled preference term, so the pilot
+  does not separate "focus" from "a larger preference weight".
+- Peak reserved per client 13.1 to 17.3 GiB, as in DPO round 1.
+- By the rule written when it was queued (full line only if round 1 lowers
+  the wrong results), the 3-round focused line is not queued. The choice of
+  the preference term stays with the owner.
+
 ## 2026-11-11: gold line closed: the BIRD stage alone does not survive DPO, the teacher does
 
 Spider test, seed 0, vLLM inproc (fedicl-sql `a5220912`, `ada6601e`, curve

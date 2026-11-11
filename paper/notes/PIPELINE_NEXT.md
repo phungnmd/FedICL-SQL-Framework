@@ -10,7 +10,7 @@ Updated 2026-11-11.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `curve_gold` finished at 20:23 on 11-11. The next task is `pilot_fdpo` if the pull of step 1 was done before that, else `rob_gold_dpo_r1`; which one is not known here. | results commit `cce543f2` (fetched 20:25 on 11-11) |
+| 0 | `pilot_fdpo` finished at 22:06 on 11-11. The next task is `rob_gold_dpo_r1`; no results commit of it yet. | results commit `8c536cab` (fetched 22:20 on 11-11) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,38 +26,28 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. If not done yet: pull the focused DPO pilot and run the tests, in a
-   second terminal; the worker keeps running and starts `pilot_fdpo` by
-   itself after the task it is in. Send the output only if a test fails.
-   Changed code: `fedicl_sql/training/dpo.py`; the plain DPO path and its
-   resume identity are unchanged, so nothing has to finish first.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-2. Only if the worker is not running (it stopped, or the server went
+1. Only if the worker is not running (it stopped, or the server went
    down): start it again; it continues where it stopped.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-The owner is needed next when the pilot has published (about 1 h 45 after
-it starts, estimate): tell the agent; it reads the pilot against DPO round
-1 (75.69) from Git. After `publish_bird` the owner chooses the preference
-term (plain or focused) and the server stage (Hinton or none; the gold
-stage adds nothing after DPO on seed 0); seed 1 is queued after that.
+Otherwise nothing to run. The owner is needed next after `publish_bird`
+(about 23:40 on 11-11, estimate): tell the agent; it reads the extra sets
+and BIRD dev from Git. The owner then chooses the preference term (plain
+or focused; the pilot is in `LAB_LOG.md`) and the server stage (Hinton or
+none; the gold stage adds nothing after DPO on seed 0); seed 1 is queued
+after that.
 
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from 20:25 on 11-11 with the pilot first.
+measured rounds, counted from 22:07 on 11-11.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `pilot_fdpo` | Does a preference term focused on the differing span lower the wrong results: focused DPO round 1 from `hinton_k2aaa_a3`, on the samples and pairs of DPO round 1 (75.69) | 1 h 45 | 22:15 on 11-11 | queued, needs the pull of step 1 |
-| 2 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | Does the teacher's lead hold on Spider dev, Realistic, SYN and DK after DPO; BIRD dev for 6 rows | 1.5 h | 23:45 on 11-11 | queued |
+| 1 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | Does the teacher's lead hold on Spider dev, Realistic, SYN and DK after DPO; BIRD dev for 6 rows | 1.5 h | 23:40 on 11-11 | next after the pilot; no results commit yet |
 
 Cut from a full run:
 
@@ -65,13 +55,12 @@ Cut from a full run:
   model is not on the extra sets yet.
 - The gold and FedAvg lines run the fixed 3 rounds; the Hinton line has a
   4th round, used only for the saturation curve.
-- The focused DPO pilot runs 1 round, not 3, and only on Spider test: it is
-  read against DPO round 1 on the same pairs. The full line (3 rounds,
-  about 5.5 h) is queued only if round 1 lowers the wrong results.
 
 Not queued yet:
 
-- Seed 1. It waits for rows 1 and 2 and the owner's choice (plain or
+- Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
+  wrong results.
+- Seed 1. It waits for row 1 and the owner's choice (plain or
   focused preference term; Hinton server stage or none).
   `hinton_k2aaa_a3` of seed 1 is approved and found on the server
   (2026-11-10). FedAvg seed 1 does not exist on this setup (3 rounds from
@@ -80,8 +69,6 @@ Not queued yet:
 
 To watch for: `bird_*` is the first BIRD-length evaluation through vLLM, so
 the first lines of `sqldpo_s0/bird_fedavg_r3` show its peak reserved VRAM.
-Row 1 uses the settings of the finished DPO rounds (peak reserved
-13.1-17.4 GiB per client); the focused loss runs the same forward passes.
 
 ## Reference
 
@@ -152,7 +139,7 @@ so its numbers are reported as "chosen on Spider test", never as held-out.
 | `sqldpo_s0/fedavg`, `fedavg_more` | FedAvg R3 from the base model | same | same | the control without a server stage; 3 rounds |
 | `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds) | same | same | the control without the teacher; 3 rounds |
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
-| `sqldpo_s0/fdpo_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
+| `sqldpo_s0/fdpo_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 SQL DPO runs 3 rounds, fixed for every line and seed, and is reported at
