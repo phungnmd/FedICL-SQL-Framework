@@ -3,6 +3,41 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-11: DPO controls (NLL only, more SFT rounds), DPO round 2 from FedAvg R3
+
+Spider test, seed 0, vLLM inproc (fedicl-sql `0f7d70c6`, `8258e940`,
+`62663487`, `d1dc954c`; curve records `dd7c4bf8`, `d7d8f116`). All three
+controls start from `hinton_k2aaa_a3` (73.31), as DPO round 1 does (75.69).
+
+| Row | EX | Exec error | Against its start (right only in start / only here) | Against DPO r1 (only here / only in DPO r1) |
+|---|---:|---:|---|---|
+| NLL-only round 1, same pairs and schedule | 73.50 | 117 | 46 / 50, p = 0.76 | 29 / 76, p < 0.001 |
+| +1 FedAvg SFT round | 74.15 | 132 | 32 / 50, p = 0.06 | 53 / 86, p = 0.006 |
+| +2 FedAvg SFT rounds | 72.99 | 143 | 59 / 52, p = 0.57 | 53 / 111, p < 0.001 |
+| DPO round 1 | **75.69** | **82** | 37 / 88, p < 0.001 | |
+
+- The DPO gain comes from the preference term: with the same samples, pairs
+  and schedule, the NLL term alone adds 0.19 point (not separable from the
+  start), the full loss 2.38.
+- More SFT does not give it either: one more round adds 0.84 (level with
+  centralized Spider + BIRD, 73.96), a second one falls back by 1.16
+  (54 / 29, p = 0.008). The method row (DPO round 3, 76.71) is 2.56 above
+  the best SFT control (51 / 106, p < 0.001).
+- Execution errors rise with more SFT (129 at the start, 132, 143) and fall
+  with DPO (82).
+
+DPO from FedAvg R3, round 2: **75.17** (round 1 74.29; 17 / 36, p = 0.013;
+4,161 pairs, 658 with gold as chosen, 5,532 questions all correct).
+
+| Round | From FedAvg R3 | From `hinton_k2aaa_a3` | Gap | Right only in FedAvg line / only in Hinton line |
+|---|---:|---:|---:|---|
+| start | 71.26 | 73.31 | 2.05 | |
+| 1 | 74.29 | 75.69 | 1.40 | 110 / 140, p = 0.07 |
+| 2 | 75.17 | **76.43** | 1.26 | 100 / 127, p = 0.08 |
+
+The server stage keeps about 1.3 points after two DPO rounds, same sign in
+both rounds and not separable in either. Round 3 is running.
+
 ## 2026-11-11: SQL rows on Spider dev, Realistic, SYN and DK
 
 Seven rows evaluated with vLLM inproc, batch 16 (fedicl-sql `7eaad90a`). No

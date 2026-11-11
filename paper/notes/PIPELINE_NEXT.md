@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-10 23:57.
+Updated 2026-11-11 09:40.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker running. `sqldpo_s0/curve_hinton` closed at round 4 at 23:55; the `rob_*` evaluations (row 1 of the table below) come next in the queue. | owner's message (worker restarted), results commit fedicl-sql `23e22d36` |
+| 0 | Worker running. `curve_fedavg_more` published DPO round 2 from FedAvg R3 at 08:07; round 3 comes next (row 1 of the table below). | results commit fedicl-sql `d1dc954c`; no later commit at 09:36 |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -28,15 +28,10 @@ tasks, then EX by step of every curve.
 
 Nothing to run. The worker goes through the table below by itself.
 
-Next moment the owner is needed: when `ctl_sft` has finished (about 06:15 on
-2026-11-11, estimate).
-
-1. Read the two controls with the curve status command above:
-   `sqldpo_s0/rft_hinton` (1 step) and `sqldpo_s0/sft_hinton` (2 steps),
-   against DPO round 1 at 75.69.
-2. If either control is within about 1 point of 75.69, stop the worker with
-   Ctrl+C in its terminal and tell the agent. Otherwise leave it running and
-   tell the agent the controls are in; the results are already pushed.
+Next moment the owner is needed: when `publish_bird` has finished (about
+17:00 on 2026-11-11, estimate). Tell the agent; it reads the gold line, the
+FedAvg line and BIRD dev from Git. Then the owner chooses the server stage
+(none, gold or Hinton) and seed 1 is queued.
 
 If the worker stopped by itself (`STOP queue: <task> failed: ...`): "Restart
 the worker" in the reference section.
@@ -44,21 +39,16 @@ the worker" in the reference section.
 ## Running and queued
 
 Phase `sqldpo_s0`, GPU 0, in queue order. Times are estimates from the
-measured rounds, counted from 23:55 on 2026-11-10.
+measured rounds, counted from 08:07 on 2026-11-11.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `rob_fedavg_r3`, `rob_gold_k2aaa`, `rob_hinton_k2aaa`, `rob_fedavg_dpo_r1`, `rob_hinton_dpo_r1` to `r3`, `publish_rob` | Do the gains hold on Spider dev, Realistic, SYN and DK | 1-1.5 h | 01:08 on 11-11 | done (fedicl-sql `7eaad90a`, `LAB_LOG.md`) |
-| 2 | `ctl_rft` | Is the DPO gain from the preference term: the NLL term alone on the round 1 samples and pairs | 1.5 h | 02:45 | queued |
-| 3 | `ctl_sft` | Does SFT at the same compute give the gain: 2 more FedAvg SFT rounds from `hinton_k2aaa_a3` | 3.5 h | 06:15 | queued |
-| 4 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO rounds 2-3 from FedAvg R3 | 4 h | 10:15 | queued |
-| 5 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h | 15:45 | queued |
-| 6 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | 17:15 | queued |
+| 1 | `curve_fedavg_more` | Does the BIRD server stage matter after DPO: DPO round 3 from FedAvg R3 (round 2 is done, 75.17) | 1.5-2 h | 10:00 on 11-11 | running |
+| 2 | `curve_gold` | Does the teacher matter after DPO: DPO rounds 1-3 from `gold_k2aaa_a3` | 5.5 h | 15:30 | queued |
+| 3 | `rob_gold_dpo_r1` to `r3`, `rob_fedavg_dpo_r2` to `r3`, `publish_rob_starts`, then `bird_*`, `publish_bird` | The same sets for the new rounds; BIRD dev for 6 rows | 1.5 h | 17:00 | queued |
 
 Cut from a full run:
 
-- The NLL-only control is round 1 only: it isolates the loss on identical
-  pairs, and later rounds would sample from a different model.
 - BIRD dev covers 6 rows (the three starts and their round 3). The base
   model is not on the extra sets yet.
 - The gold and FedAvg lines run the fixed 3 rounds; the Hinton line has a
@@ -66,7 +56,7 @@ Cut from a full run:
 
 Not queued yet:
 
-- Seed 1. It waits for rows 4 and 5 (server stage or not, gold or Hinton).
+- Seed 1. It waits for rows 1 and 2 (server stage or not, gold or Hinton).
   `hinton_k2aaa_a3` of seed 1 is approved and found on the server
   (2026-11-10). FedAvg seed 1 does not exist on this setup (3 rounds from
   the base model, about 5 h); of `gold_k2aaa` seed 1 only the 2-epoch server
@@ -74,9 +64,8 @@ Not queued yet:
 
 To watch for: `bird_*` is the first BIRD-length evaluation through vLLM, so
 the first lines of `sqldpo_s0/bird_fedavg_r3` show its peak reserved VRAM.
-Rows 2, 4 and 5 use the settings of the finished DPO rounds (peak reserved
-13.1-17.4 GiB per client); row 3 is the client SFT recipe of the FedAvg
-rounds.
+Rows 1 and 2 use the settings of the finished DPO rounds (peak reserved
+13.1-17.4 GiB per client).
 
 ## Reference
 
