@@ -74,27 +74,34 @@ EX trên các set khác:
 
 **So với các paper liên quan:**
 
-- Khoảng trống: chưa có bài nào làm federated DPO cho Text-to-SQL với cặp do
-  client tự gán nhãn bằng execution trên database của mình. Federated
-  Text-to-SQL mới có [FL4SP](https://arxiv.org/abs/2305.17221) (T5-base,
-  exact match). Federated DPO
-  ([OpenFedLLM](https://arxiv.org/abs/2402.06954),
-  [FedBiscuit](https://arxiv.org/abs/2407.03038)) dùng nhãn preference của
-  người. Federated RL có verifier
-  ([PubSwap](https://arxiv.org/abs/2604.12160),
+Điểm riêng của bài: client dùng database của mình làm verifier cho các sample
+của model, nên model học từ lỗi hiện tại của nó ngay tại client, không cần
+người gán nhãn và không gửi data đi. So với từng hướng gần nhất:
+
+- Federated Text-to-SQL: mới có [FL4SP](https://arxiv.org/abs/2305.17221)
+  (T5-base, exact match), chỉ train trên gold SQL, và bản federated tốt nhất
+  vẫn dưới centralized (62.6 so với 70.3 EM). Bài em dùng SLM 1.5B, đo bằng
+  EX, và nhờ bước DPO mà hơn cả centralized SFT (76.71 so với 73.96).
+- Federated DPO ([OpenFedLLM](https://arxiv.org/abs/2402.06954),
+  [FedBiscuit](https://arxiv.org/abs/2407.03038)): dùng nhãn preference của
+  người. Ở bài em nhãn đến từ execution, nên client tự tạo được cặp và tạo
+  lại sau mỗi round từ model global mới.
+- Federated RL có verifier ([PubSwap](https://arxiv.org/abs/2604.12160),
   [Fed-GRPO](https://arxiv.org/abs/2610.11502),
-  [FedMOA](https://arxiv.org/abs/2602.00453)) làm trên toán và code. DPO cho
-  Text-to-SQL đều centralized.
-- Phát hiện khác: [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/)
-  và [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) là method CoT: ở hai
-  bài này SQL-only DPO làm EX giảm, phải có CoT thì DPO mới tăng
-  (Qwen2.5-Coder-7B trên BIRD dev: SQL-only 61.6 xuống 61.3, CoT 60.8 lên
-  63.4). Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4-3.9 điểm EX, và CoT
-  sau DPO vẫn kém SQL-only.
+  [FedMOA](https://arxiv.org/abs/2602.00453)): gần bài em nhất về ý tưởng,
+  cũng dùng reward tự động ở client, nhưng làm trên toán và code bằng GRPO và
+  tập trung vào cách gộp model, giảm client drift. Bài em làm Text-to-SQL
+  bằng DPO, giữ FedAvg thường, và phần mới nằm ở cách tạo cặp.
+- DPO cho Text-to-SQL, đều centralized:
+  [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/) và
+  [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) thấy SQL-only DPO làm EX
+  giảm, phải có CoT thì DPO mới tăng (Qwen2.5-Coder-7B trên BIRD dev:
+  SQL-only 61.6 xuống 61.3, CoT 60.8 lên 63.4).
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
-  gọi GPT-4 trong lúc train.
-- DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại sau mỗi
-  round, dùng gold SQL khi không có sample đúng (theo
+  gọi GPT-4 trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng
+  3.4-3.9 điểm EX mà không cần CoT hay GPT-4, và CoT sau DPO vẫn kém
+  SQL-only. DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại
+  sau mỗi round, dùng gold SQL khi không có sample đúng (theo
   [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu SQL
   giống nhau nhất.
 
