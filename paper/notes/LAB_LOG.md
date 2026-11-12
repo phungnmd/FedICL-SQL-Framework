@@ -3,6 +3,14 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: no soft-target control for the teacher
+
+Owner decision: no label smoothing or self-distillation server stage is
+queued as a control for the teacher; self-distillation was run before the
+fresh start. If the gold line of seed 1 ends level with the FedAvg line, as
+on seed 0, the Hinton stage's lead over the gold stage after DPO is read as
+the teacher's effect.
+
 ## 2026-11-12: seed 1, the Hinton stage keeps 1.21 points over the FedAvg line after DPO
 
 Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `dfab0013` to
