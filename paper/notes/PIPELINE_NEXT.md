@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-11.
+Updated 2026-11-12, 11:05.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle: `publish_bird` finished at 23:20 on 11-11 and phase `sqldpo_s0` is done. Phase `sqldpo_s1` is pushed and waits for the pull and the worker start of "Run now". | results commit `f3f32fc5` (fetched 23:23 on 11-11); queue commit `d36293b4` |
+| 0 | Phase `sqldpo_s1`: `curve_hinton` finished at 07:37 on 11-12; `curve_fedavg_sft` published round 2 at 10:44 on 11-12, so round 3 was the next step. The worker itself was not observed. | results commits `6f4c6f07` and `091da1f5` (fetched 11:00 on 11-12) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,45 +26,33 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Pull the seed 1 queue and run the tests. Only the queue file and a doc
-   changed, no code; nothing has to finish first. Send the output only if a
-   test fails.
+Nothing to run: the worker drains the queue by itself.
 
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-2. Start the worker (the one of phase `sqldpo_s0` ended with `DONE queue`;
-   if it is still open, the pull is enough and this step is skipped). Send
-   the line `gold server stage seed 1: found` or `MISSING` that the first
-   task prints within seconds.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
-
-The owner is needed next when `curve_hinton` has published its round 3
-(about 05:20 on 11-12, estimate): tell the agent; it reads the method on
-seed 1 from Git. No decision is needed before `curve_fedavg` ends (about
-16:10 on 11-12, estimate), when the Hinton and FedAvg lines of seed 1 are
-read side by side.
+The owner is needed next when `curve_fedavg` has published its round 3
+(about 18:00 on 11-12, estimate; up to 20:30 if its round 1 is as slow as
+the one of `curve_hinton`): tell the agent; it reads the Hinton and FedAvg
+lines of seed 1 side by side from Git. No decision is needed before that.
+If the first task printed `gold server stage seed 1: MISSING`, tell the
+agent now (not known here).
 
 ## Running and queued
 
 Phase `sqldpo_s1`, GPU 0, in queue order: seed 1 of the three DPO lines,
-plain DPO, 3 rounds. Times are estimates from the seed 0 rounds, counted
-from a worker start at 23:45 on 11-11.
+plain DPO, 3 rounds. Times are estimates, counted from the round 2 commit
+of `curve_fedavg_sft` at 10:44 on 11-12: a FedAvg round with its evaluation
+takes 1 h 30; a DPO line is counted at its seed 0 time.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `check_parents`, `eval_hinton`, `publish_start` | Is the seed 1 Hinton adapter on the server; its start row on Spider test | 5 min | 23:50 on 11-11 | queued |
-| 2 | `curve_hinton` | Does the method repeat on seed 1: DPO rounds 1-3 from `hinton_k2aaa_a3` seed 1 | 5.5 h | 05:20 on 11-12 | queued |
-| 3 | `curve_fedavg_sft` | The federated baseline on seed 1: FedAvg rounds 1-3 from the base model | 5 h | 10:20 on 11-12 | queued |
-| 4 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 16:10 on 11-12 | queued |
-| 5 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 17:20 on 11-12 | queued |
-| 6 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 5 h | 22:20 on 11-12 | queued |
-| 7 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 03:50 on 11-13 | queued |
-| 8 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 04:30 on 11-13 | queued |
+| 1 | `curve_fedavg_sft` | The federated baseline on seed 1: FedAvg rounds 1-3 from the base model | 1.5 h left | 12:15 on 11-12 | running (round 3) |
+| 2 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 18:00 on 11-12 | queued |
+| 3 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 19:15 on 11-12 | queued |
+| 4 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 23:45 on 11-12 | queued |
+| 5 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 05:15 on 11-13 | queued |
+| 6 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 05:50 on 11-13 | queued |
+
+`curve_hinton` took 7 h 50 instead of 5.5 h (its round 1 took 5 h); if
+that repeats, each DPO line ends about 2.5 h later than the table says.
 
 Cut from a full run:
 
@@ -83,7 +71,7 @@ Not queued yet:
   wrong results.
 
 To watch for: if the first task prints `gold server stage seed 1: MISSING`,
-the queue stops at `check_gold` (row 6), after rows 1 to 5 are done.
+the queue stops at `check_gold` (row 4), after rows 1 to 3 are done.
 
 ## Reference
 
@@ -174,7 +162,7 @@ Final table (Spider test; every SQL DPO line at round 3):
 | SQL DPO from FedAvg R3 | control: no server stage |
 | SQL DPO from `gold_k2aaa_a3` | control: server stage without the teacher |
 | NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
-| SQL DPO from `hinton_k2aaa_a3` | the method so far (76.71 at round 3); server stage and its loss are decided after the gold line |
+| SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); server stage and its loss are decided after the gold line |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
 
 ### Seed 1 (phase `sqldpo_s1`)

@@ -3,6 +3,48 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: seed 1, the Hinton DPO line repeats (77.04 at round 3)
+
+Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `568f1170` to
+`091da1f5`; curve record `6f4c6f07`). DPO rounds 1-3 from `hinton_k2aaa_a3`
+seed 1, next to seed 0:
+
+| Row | Seed 0 EX | Seed 1 EX | Seed 1: execution error | Wrong result | Easy | Medium | Hard | Extra |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `hinton_k2aaa_a3` | 73.31 | 74.06 | 132 | 425 | 87.9 | 78.0 | 65.4 | 57.7 |
+| DPO round 1 | 75.69 | 75.73 | **71** | 450 | **88.5** | 78.9 | 68.0 | 61.3 |
+| DPO round 2 | 76.43 | 76.53 | 72 | 432 | 87.7 | 80.4 | 69.3 | 61.9 |
+| DPO round 3 | 76.71 | **77.04** | 74 | **419** | 88.3 | **80.5** | **70.2** | **62.7** |
+
+| Pair | Seed 0 | Seed 1 (right only in the first / only in the second, p, 95% interval over databases) |
+|---|---|---|
+| start / round 1 | +2.38 (37 / 88) | +1.68 (30 / 66, < 0.001, +0.71 to +2.63) |
+| round 1 / round 2 | +0.75 (24 / 40) | +0.79 (15 / 32, 0.02, +0.23 to +1.38) |
+| round 2 / round 3 | +0.28 (17 / 23) | +0.51 (12 / 23, 0.09, -0.05 to +1.15) |
+| start / round 3 | +3.40 (37 / 110) | +2.98 (33 / 97, < 0.001, +1.64 to +4.34) |
+
+- The step repeats: +2.98 on seed 1 against +3.40 on seed 0, the same shape
+  by round. Both seeds pooled, clustered by question: +3.19 (95% +2.35 to
+  +4.03).
+- The method row moves 0.33 between seeds (76.71, 77.04; 83 / 90, p = 0.65).
+- The sampled data is the same on both seeds: sample accuracy 79.1, 84.5,
+  86.7% by round (seed 0: 79.1, 84.4, 86.6%); pairs 5,376, 3,833, 3,157
+  (seed 0: 5,393, 3,899, 3,208).
+- Where the gain comes from, start to round 3: execution errors -58, wrong
+  results -6 (seed 0: -71, -2). On seed 1 round 1 turns errors into queries
+  that run (errors -61, wrong results +25) and rounds 2-3 lower the wrong
+  results (450 to 419); on seed 0 the wrong results stayed at 433 to 442.
+- Not answered yet: the lead of the Hinton stage after DPO on seed 1 (the
+  FedAvg and gold lines of seed 1 are running or queued).
+
+FedAvg from the base model, seed 1, so far: round 1 67.63, round 2 69.91
+(seed 0 round 3: 71.26).
+
+Run time: `curve_hinton` took 7 h 50 (round 1: 5 h 03, round 2: 1 h 30,
+round 3: 1 h 16) against an estimate of 5.5 h. Peak reserved memory stayed
+at or under 17.42 GiB in every client update. Why round 1 was slow is not
+readable from Git.
+
 ## 2026-11-11: seed 1 queued (plain DPO, Hinton stage); BIRD dev for 6 rows
 
 Owner decisions: the preference term stays plain DPO (focused DPO is an
