@@ -1,6 +1,6 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-12. The project restarted on 2026-11-05; everything decided
+Updated 2026-11-13. The project restarted on 2026-11-05; everything decided
 or measured before that date is archived and hidden (see `AGENTS.md`, "Fresh
 start"). This file says what is fixed, what the method is, what the results
 show and what is still open. Runs and reasons are in `LAB_LOG.md`.
@@ -180,9 +180,10 @@ Both seeds pooled, clustered by question (95% interval):
    the lead over the FedAvg line (+1.21; +1.40 pooled); the gold line of
    seed 1 decides whether that lead is the teacher's or BIRD's (running).
    Whether the lead after DPO needs the 7B teacher or any soft target is
-   not measured: the virtual-teacher control exists only before DPO. Three
-   DPO rounds from its adapter (`virtual_k2aaa_a3`, about 6 h, estimate)
-   would answer it; not queued, the owner has not decided.
+   not measured yet: the virtual-teacher control exists only before DPO.
+   Three DPO rounds from its adapter (`virtual_k2aaa_a3`, seed 0) are
+   queued after `pilot_no_nll` (owner, 2026-11-13), with the start row on
+   Spider test and the other sets through vLLM.
 2. Seeds. Two seeds for the Hinton and FedAvg lines; the DPO step and the
    method row repeat within 0.7 point. A third seed is worth its cost
    (about 30 h on one card for the FedAvg and DPO rounds of the three
@@ -208,14 +209,17 @@ Both seeds pooled, clustered by question (95% interval):
 
 Phase `sqldpo_s1` on GPU 0 (`PIPELINE_NEXT.md`): the Hinton and FedAvg
 lines of seed 1 are done, with the other sets; the gold line runs next
-(about 07:15 on 11-13 with its other sets, estimate), then DPO round 1
-without the NLL term (seed 0). The preference term stays plain and the
+(about 07:40 on 11-13 with its other sets, estimate), then DPO round 1
+without the NLL term (seed 0), then the soft-target control of seed 0: DPO
+rounds 1-3 from `virtual_k2aaa_a3` (about 15:30 on 11-13, estimate). The
+preference term stays plain and the
 method keeps the Hinton server stage until the gold line of seed 1 is read
 (owner, 2026-11-11).
 
 Next owner decisions, after the seed 1 lines:
 
 - whether the teacher stays in the method (open point 1): Hinton against
-  the FedAvg and gold lines after DPO, both seeds pooled by question;
+  the FedAvg and gold lines after DPO, both seeds pooled by question, and
+  against the virtual-teacher line on seed 0;
 - then the reference rows of open points 3 and 4, and a third seed if the
   teacher's gain is at the edge.

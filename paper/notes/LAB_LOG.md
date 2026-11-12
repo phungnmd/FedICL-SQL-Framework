@@ -3,6 +3,42 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-13: soft-target control queued (DPO from the virtual-teacher start)
+
+No result yet. Owner decision, replacing the one of 2026-11-12 (no
+soft-target control): the control runs from the earlier adapter
+`virtual_k2aaa_a3`, so it costs its DPO rounds only (about 6.5 h with the
+evaluations, estimate) instead of a new server stage and FedAvg rounds
+(about 15.5 h). Both earlier adapters are approved: `virtual_k2aaa_a3` as a
+start and a comparator, `self_k2aaa_a3` as a comparator
+(`fedicl-sql/docs/SERVER_STORAGE.md` section 5).
+
+Queue (fedicl-sql `8ebb7912`), after `sqldpo_s0/pilot_no_nll`:
+
+- `eval_virtual`: `virtual_k2aaa_a3` with vLLM inproc on Spider test,
+  Spider dev, DK, Realistic, SYN and BIRD dev, so the row sits in the
+  paper's tables next to `hinton_k2aaa_a3` and `gold_k2aaa_a3`.
+- `curve_virtual`: DPO rounds 1-3 from it with the settings of the Hinton
+  and gold lines (root `virtual`), then round 3 on the other five sets.
+  Read at round 3 against the Hinton line (76.71) and the gold line
+  (75.22): if it ends near the gold line, the lead after DPO needs the 7B
+  teacher; if near the Hinton line, a soft target is enough.
+- `eval_self`: `self_k2aaa_a3` on the same six sets, last; no DPO line.
+
+Cut: seed 0 only (seed 1 has no virtual-teacher adapter), one pair of
+training lineages.
+
+Checks before the push: the queue parses and the new curve has the form of
+`sqldpo_s0/gold`; the evaluation command resolves six sets in a dry run;
+the result rows of the two adapters differ from the `hinton_k2aaa_a3` row
+only in output path, parent and stage name; 94 queue, curve and stage-chain
+tests pass on the Mac. Not checked: that the two adapters are still on the
+server (`check_virtual`, `check_self`).
+
+Also read from Git: FedAvg round 1 of the gold line of seed 1 was published
+at 22:34 on 11-12 (fedicl-sql `919cbb8e`), so `sqldpo_s1/check_gold`
+passed.
+
 ## 2026-11-12: archived teacher controls approved for the paper
 
 Owner decision: the archived rows below may be used in the paper as
