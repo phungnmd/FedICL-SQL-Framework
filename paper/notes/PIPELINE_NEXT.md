@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-12, 11:05.
+Updated 2026-11-12, 11:15.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Phase `sqldpo_s1`: `curve_hinton` finished at 07:37 on 11-12; `curve_fedavg_sft` published round 2 at 10:44 on 11-12, so round 3 was the next step. The worker itself was not observed. | results commits `6f4c6f07` and `091da1f5` (fetched 11:00 on 11-12) |
+| 0 | Phase `sqldpo_s1`: `curve_hinton` finished at 07:37 on 11-12; `curve_fedavg_sft` published round 2 at 10:44 on 11-12, so round 3 was the next step. The worker itself was not observed. The pair order pilots are pushed; the worker takes them when `curve_fedavg_sft` ends (its publish step pulls). | results commits `6f4c6f07` and `091da1f5` (fetched 11:00 on 11-12); queue commit `d06ab812` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,36 +26,50 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run: the worker drains the queue by itself.
+1. Pull the pair order pilots and run the tests, about 1 min. The push
+   changed `fedicl_sql/preference/pairs.py`, which every queued DPO round
+   loads; with the default order it builds the same pairs as before, so
+   nothing has to finish first. Send the output only if a test fails.
 
-The owner is needed next when `curve_fedavg` has published its round 3
-(about 18:00 on 11-12, estimate; up to 20:30 if its round 1 is as slow as
-the one of `curve_hinton`): tell the agent; it reads the Hinton and FedAvg
-lines of seed 1 side by side from Git. No decision is needed before that.
-If the first task printed `gold server stage seed 1: MISSING`, tell the
-agent now (not known here).
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+The worker is not restarted. The owner is needed next when
+`pilot_pair_random` has published its Spider test row (about 14:00 on
+11-12, estimate): tell the agent; it compares the row with DPO round 1
+(75.69) question by question. If the first task of the phase printed
+`gold server stage seed 1: MISSING`, tell the agent now (not known here).
 
 ## Running and queued
 
-Phase `sqldpo_s1`, GPU 0, in queue order: seed 1 of the three DPO lines,
-plain DPO, 3 rounds. Times are estimates, counted from the round 2 commit
-of `curve_fedavg_sft` at 10:44 on 11-12: a FedAvg round with its evaluation
-takes 1 h 30; a DPO line is counted at its seed 0 time.
+GPU 0, in queue order: the two pair order pilots of seed 0 (phase
+`sqldpo_s0`), then the rest of phase `sqldpo_s1` (seed 1 of the three DPO
+lines, plain DPO, 3 rounds). Times are estimates, counted from the round 2
+commit of `curve_fedavg_sft` at 10:44 on 11-12: a FedAvg round with its
+evaluation takes 1 h 30; a DPO line is counted at its seed 0 time; a pilot
+at the time of the focused DPO pilot (1 h 43).
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
 | 1 | `curve_fedavg_sft` | The federated baseline on seed 1: FedAvg rounds 1-3 from the base model | 1.5 h left | 12:15 on 11-12 | running (round 3) |
-| 2 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 18:00 on 11-12 | queued |
-| 3 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 19:15 on 11-12 | queued |
-| 4 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 23:45 on 11-12 | queued |
-| 5 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 05:15 on 11-13 | queued |
-| 6 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 05:50 on 11-13 | queued |
+| 2 | `pilot_pair_random` | Does it matter which correct and wrong sample form a pair: DPO round 1 from `hinton_k2aaa_a3` (seed 0) with random pairs, against nearest pairs (75.69) | 1.75 h | 14:00 on 11-12 | queued |
+| 3 | `pilot_pair_frequent` | The same with the most often sampled wrong SQL against the most often sampled correct SQL | 1.75 h | 15:45 on 11-12 | queued |
+| 4 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 21:30 on 11-12 | queued |
+| 5 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 22:45 on 11-12 | queued |
+| 6 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 03:15 on 11-13 | queued |
+| 7 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 08:45 on 11-13 | queued |
+| 8 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 09:20 on 11-13 | queued |
 
 `curve_hinton` took 7 h 50 instead of 5.5 h (its round 1 took 5 h); if
 that repeats, each DPO line ends about 2.5 h later than the table says.
 
 Cut from a full run:
 
+- The pair order pilots are 1 round on seed 0 and reuse the round 1 samples
+  of the Hinton line (no sampling). They answer whether the pair order
+  changes round 1; whether a difference grows over rounds needs 3 rounds
+  with their own sampling (about 5.5 h per order).
 - Seed 1 has the three DPO lines only. The controls of seed 0 (NLL-only
   round, extra SFT rounds, focused DPO, round 4) are not repeated.
 - On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 has the start and
@@ -63,6 +77,8 @@ Cut from a full run:
 
 Not queued yet:
 
+- DPO without the NLL term (`--nll-alpha 0`, 1 round on the same samples,
+  about 1.75 h): the flag exists; the owner has not asked for the row.
 - FedProx, FedNTD and the local client models through vLLM inproc: whether
   their adapters are still on the server is not checked.
 - DPO on pooled client data and DPO without aggregation (reference rows,
@@ -71,7 +87,7 @@ Not queued yet:
   wrong results.
 
 To watch for: if the first task prints `gold server stage seed 1: MISSING`,
-the queue stops at `check_gold` (row 4), after rows 1 to 3 are done.
+the queue stops at `check_gold` (row 6), after rows 1 to 5 are done.
 
 ## Reference
 
@@ -143,6 +159,7 @@ so its numbers are reported as "chosen on Spider test", never as held-out.
 | `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds) | same | same | the control without the teacher; 3 rounds |
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/fdpo_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
+| `sqldpo_s0/pairrand_hinton`, `pairfreq_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same labels and pair count; which correct and wrong sample pair up first is random (a fixed hash), or the most often sampled wrong SQL with the most often sampled correct SQL, instead of the most similar two | 1 round each, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 SQL DPO runs 3 rounds, fixed for every line and seed, and is reported at

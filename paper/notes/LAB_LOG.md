@@ -3,6 +3,27 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: pair order pilots queued (random, then frequent)
+
+No result yet. Our pairs match the most similar correct and wrong sample of
+a question; this is one of the differences from the closest DPO work, with
+the NLL term, the on-policy rounds and the gold fallback. Two 1-round
+pilots test whether it matters (fedicl-sql `8c4af387`, `d06ab812`): DPO
+round 1 from `hinton_k2aaa_a3` (seed 0) on the round 1 samples of the Hinton
+line, with `--pair-order random` (a fixed hash order, the control) and
+`--pair-order frequent` (the most often sampled wrong SQL against the most
+often sampled correct SQL). Labels, pair count, loss, schedule and updates
+equal DPO round 1 (75.69), the comparator. Each has its own root
+(`hinton_pair_random`, `hinton_pair_frequent`); about 1.75 h each
+(estimate). They run before the rest of seed 1, which ends about 3.5 h
+later.
+
+Check before the push: with the default order the new code builds the same
+pairs as the previous code on 18,000 random question records, and the
+recorded pair rule identity is unchanged; 616 tests pass on the Mac.
+
+Not queued: DPO without the NLL term (`--nll-alpha 0`).
+
 ## 2026-11-12: seed 1, the Hinton DPO line repeats (77.04 at round 3)
 
 Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `568f1170` to
