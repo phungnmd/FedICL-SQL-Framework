@@ -3,6 +3,27 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: random pairs give the same result as nearest pairs in round 1
+
+Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `6c06c5ce` to
+`1ad627b4`). DPO round 1 from `hinton_k2aaa_a3` on the round 1 samples of
+the Hinton line; only which correct and wrong sample of a question pair up
+differs. Both rows have 5,393 pairs, 609 of them with gold as chosen.
+
+| Pairs | EX | EM | Execution error | Wrong result | Easy | Medium | Hard | Extra | Mean pair similarity | Rejected: execution error / wrong result |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| nearest (DPO round 1) | 75.69 | 65.16 | 82 | 440 | 89.6 | 79.0 | 66.7 | 61.1 | 0.817 | 2,806 / 2,587 |
+| random | 75.73 | 65.35 | 79 | 442 | 89.1 | 78.9 | 68.0 | 60.5 | 0.715 | 2,834 / 2,559 |
+
+- No difference: right only with nearest pairs 15, only with random pairs
+  16 (p = 1.0). The two models write the same SQL on 86.9% of the rows.
+- The pair sets did differ (mean similarity 0.817 against 0.715), so the
+  round 1 gain does not depend on pairing the most similar two samples.
+- Not tested: rounds 2 and 3 with their own sampling, and seed 1.
+- For the owner: nearest pairing has no shown role, while the advisor
+  report lists it as one of four differences from the closest DPO work;
+  whether `pilot_pair_frequent` still runs.
+
 ## 2026-11-12: pair order pilots and a row without the NLL term queued
 
 No result yet. Our pairs match the most similar correct and wrong sample of
