@@ -1,10 +1,21 @@
 # FedLS-SQL method figure
 
 Source: `../advisor_report_2026-11-11.md`, Method section.
-Generator: built-in imagegen.
+Generator: built-in imagegen, image edit.
+Style reference: architecture figure supplied by the owner in this session.
 
-## Prompt
+## Style edit prompt
 
+EDIT THE EXISTING FedLS-SQL METHOD FIGURE USING THE UPLOADED REFERENCE'S VISUAL STYLE.
+
+Two images are supplied. The image headed "Federated Coordination Server (Cloud)" with a "Key Innovations" sidebar is the STYLE REFERENCE ONLY. The image headed "1 Server distillation", "2 Federated SFT", "3 Federated DPO", with a lower inset "Inside each client: execution-guided preference learning", is the EDIT TARGET and the content source. Keep the edit target's method, semantic content and overall upper-overview / lower-client-inset arrangement. Do not transfer any method claims or architecture from the style reference.
+
+STYLE TO MATCH CLOSELY:
+White or nearly white canvas, thin crisp deep royal-blue outer borders and rounded-corner panels, compact navy title tabs with white bold text, restrained fine line icons drawn in navy, purple, forest green and orange. Use black readable regular-weight sans-serif body text and small colored bold subheadings. Panel bodies nearly white with extremely faint color tints only, like the reference. Database cylinders, neural-network diagrams, model icons, local-building/computer icons and document icons in the same formal technical line-art language as the reference. Slim arrow shafts and neat triangular arrowheads; color-code blue model broadcasts, purple adapter uploads (dashed), orange local SQL/preference flow, green local processing. A small four-item flow legend can sit in unused whitespace if needed, without displacing method content. Aim for precise journal architecture figure styling, not pastel cartoon cards.
+Eliminate the target's thick colored header bands, large numbered circles, heavy rounded cartoon model tiles, chunky black arrows, pale-green neural-network blob motifs and tinted gradient backgrounds. Replace those with the reference's slim, clean, technical panels and smaller refined icons. No glossy lighting, no heavy borders, no shadows, no emojis. Use consistent text sizes and margins.
+The top three stages can each use a navy tab with white title; lower inset uses a similar navy tab. Fine purple teacher/model outlines, orange SQL and pair construction outlines, green private client scope, blue server scope. Keep generous enough whitespace so the image is readable inside a paper. Preserve all content details in a high resolution wide landscape image, preferably 3200 by 1600 or larger equivalent aspect ratio. Do not crop text.
+
+EXACT SEMANTIC REQUIREMENTS, from the target's original specification (the OLD pastel-style instructions below are superseded by the reference-style instructions above):
 Use case: infographic-diagram.
 Asset type: a publication-ready method overview figure for a machine-learning research paper, wide landscape approximately 2:1, high resolution, sharp legible English labels.
 Primary request: Illustrate the EXACT three-stage FedLS-SQL method below. Produce a polished academic illustration rather than a generic box-only flowchart. White background, restrained soft pastel blue, mint/teal, pale peach and lavender, thin dark slate outlines, flat vector-like drawings of model blocks, tiny neural-network nodes, database cylinders, document stacks and local client workstations. Clear hierarchy, carefully aligned layout, generous breathing space, consistent sans-serif typography. No gradients, no glossy effects, no shadows, no emojis, no mascot, no decorative illustrations unrelated to the method. The DPO stage is the main visual emphasis.
@@ -31,3 +42,24 @@ D: title "Local training". Draw local student model, a frozen reference model an
 At right of private inset, outside the client boundary, draw the SERVER aggregator icon labeled "Pair-weighted FedAvg". Adapter upload arrow from local training to server. Return arrow along the bottom from this server to the sampling step labeled "Broadcast updated global model; resample next round". This is a 3-round loop. The reference copy refreshes from the global model at the beginning of every round, not from the teacher.
 Within the bottom edge of private client boundary, place a restrained lock/database pictogram and exact label "Data, SQL samples and preference pairs stay local". This is structural data isolation, so do not show differential privacy or cryptographic claims.
 Keep the whole drawing visually balanced with large readable text and a coherent pastel academic illustration style. No metrics, plots, reported experimental results, paper title banner, figure number, caption, citations or watermark. No teacher on clients. Do not introduce retrieval, CoT, rewards or GRPO. English labels only.
+
+
+ADDITIONAL INVARIANTS:
+- The picture must show exactly five clients in each federated overview stage.
+- The uploaded reference's retrieval, ICL, encrypted uploads, secure aggregation, TLS, differential privacy, schema embeddings, knowledge cache, reasoning and structure losses must NOT appear. Those are NOT part of this method.
+- Reference model inside local training is the frozen global model at the round start, not the 7B teacher.
+- Public BIRD supplies data for the server student/teacher distillation, not private Spider data.
+- Deployed student alone receives question and schema and generates SQL. Depiction must clearly link Question + schema -> Student 1.5B -> SQL within the Deployment panel.
+- "Correct" and "Wrong result" labels refer to comparison of execution results to gold; "Execution error" means SQL cannot execute.
+- "No sample reuse" may appear as a small label within Build pairs if space allows.
+- Keep exact names "FedLS-SQL", "LoRA", "FedAvg", "DPO", "NLL" if used.
+FINAL STYLE PRIORITY: emulate the provided technical blue-bordered reference, not the existing soft-pastel figure.
+
+## Reference model clarification edit
+
+Edit only the lower "D. Local training" panel of this FedLS-SQL method illustration. Preserve the entire image's blue-bordered technical academic style, layout, every other panel, all labels, all arrows and all method details.
+The purple frozen reference network currently resembles the server's teacher. This causes a serious misunderstanding. The DPO reference is NOT the 7B teacher. It is a frozen copy of the GLOBAL STUDENT 1.5B at the beginning of the round.
+Inside "D. Local training", replace the two model icons with two IDENTICAL small green student neural-network model icons, matching the upper deployment student design. Left icon: tiny orange LoRA badge, label exactly "Trainable student" with "1.5B" below. Right icon: same green student network icon, NO snowflake, NO brain, NO teacher symbol, NO 7B, label exactly "Frozen reference" with "Student 1.5B" below. Distinguish frozen status by a small unobtrusive gray "frozen" tag or simple dashed outline only. Keep both models visually the same size and same network structure.
+Keep the equation L = L_DPO + L_NLL intact. In the bullets beneath, replace "Reference: global model at round start" with the concise exact phrase "Reference: global student at round start". Preserve beta = 0.1, 2 local epochs, and NLL trains on chosen SQL. Ensure all text fits without overlap or clipping.
+The large Teacher 7B in the top-left Server distillation panel stays unchanged. That is the only teacher in the figure.
+Do not change anything else. High resolution, all labels readable.
