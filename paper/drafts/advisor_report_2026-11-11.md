@@ -29,25 +29,42 @@ chia từ Spider train:
    round 1 (609 cặp dùng gold SQL) xuống 3,208 ở round 3. Client chỉ gửi
    adapter; data, sample và các cặp ở lại client.
 
-**Kết quả** (EX):
+**Kết quả** trên Spider test:
 
-| Cấu hình                                  | Spider test | Spider dev | Realistic |       SYN |        DK |
-| ----------------------------------------- | ----------: | ---------: | --------: | --------: | --------: |
-| Base 1.5B                                 |       57.89 |          - |         - |         - |         - |
-| FedProx                                   |       70.42 |          - |         - |         - |         - |
-| FedAvg                                    |       71.26 |      67.89 |     58.86 |     53.77 |     52.15 |
-| Centralized Spider + BIRD                 |       73.96 |          - |         - |         - |         - |
-| Bước 1 + 2 (chưa DPO)                     |       73.31 |      72.82 |     62.01 |     56.67 |     58.13 |
-| Bước 2 + 3 (bỏ bước 1)                    |       75.13 |      73.11 |     63.58 |     58.32 |     58.88 |
-| Bước 1 dùng gold SQL thay teacher + 2 + 3 |       75.22 |      73.79 | **65.35** |     59.86 |     57.94 |
-| **Cả 3 bước**                             |   **76.71** |  **76.50** |     64.17 | **61.03** | **64.11** |
+| Cấu hình                  |        EX |        EM |
+| ------------------------- | --------: | --------: |
+| Base 1.5B zero-shot       |     57.89 |     31.11 |
+| Teacher 7B zero-shot      | **77.22** |     46.48 |
+| FedProx                   |     70.42 |     58.69 |
+| FedAvg                    |     71.26 |     60.32 |
+| Centralized Spider + BIRD |     73.96 |     65.07 |
+| Method w/o DPO            |     73.31 |     64.42 |
+| Method w/o server stage   |     75.13 |     62.93 |
+| Method w/o teacher        |     75.22 |     64.97 |
+| **Method**                |     76.71 | **65.49** |
+
+Method w/o DPO là bước 1 + 2; w/o server stage là bước 2 + 3; w/o teacher là
+cả 3 bước nhưng bước 1 train bằng gold SQL của BIRD thay cho distill teacher.
+
+EX trên các set khác:
+
+| Cấu hình                | Spider dev | Realistic |       SYN |        DK |
+| ----------------------- | ---------: | --------: | --------: | --------: |
+| FedAvg                  |      67.89 |     58.86 |     53.77 |     52.15 |
+| Method w/o DPO          |      72.82 |     62.01 |     56.67 |     58.13 |
+| Method w/o server stage |      73.11 |     63.58 |     58.32 |     58.88 |
+| Method w/o teacher      |      73.79 | **65.35** |     59.86 |     57.94 |
+| **Method**              |  **76.50** |     64.17 | **61.03** | **64.11** |
 
 - DPO là đóng góp chính: 3.4% EX trên Spider test khi có bước 1
   và 3.9 điểm khi không có. Không có bước 1, DPO vẫn tăng 4.6-6.7 điểm trên
   bốn set còn lại. Control (chỉ train trên câu đúng, hoặc SFT thêm round)
   không tạo ra mức tăng này. 3 round là đủ.
-- Cả 3 bước hơn FedAvg 5.45 điểm trên Spider test, hơn bản centralized 2.75
+- Method hơn FedAvg 5.45 điểm EX trên Spider test, hơn bản centralized 2.75
   điểm, và gần bằng teacher 7B zero-shot (77.22).
+- EM tăng ít hơn EX sau DPO (1.1 điểm khi có bước 1, 2.6 khi không có).
+  Teacher zero-shot có EX cao nhất nhưng EM chỉ 46.48, vì chưa train trên
+  Spider nên viết SQL khác dạng của gold.
 - Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
   yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này. CoT ở 1.5B
   kém SQL-only ở mọi bước nên em chỉ giữ làm một phân tích ngắn.
