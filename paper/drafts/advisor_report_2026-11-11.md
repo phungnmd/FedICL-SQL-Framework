@@ -57,12 +57,6 @@ EX trên các set khác:
 | Method w/o teacher      |      73.79 | **65.35** |     59.86 |     57.94 |
 | **Method**              |  **76.50** |     64.17 | **61.03** | **64.11** |
 
-CoT (student viết plan rồi SQL) so với SQL-only, EX:
-
-| Cấu hình                                |          SQL-only |           CoT |
-| --------------------------------------- | ----------------: | ------------: |
-| Server trên BIRD, rồi DPO (centralized) | 58.80 → **74.18** | 60.64 → 70.89 |
-
 - DPO là đóng góp chính: 3.4% EX trên Spider test khi có bước 1
   và 3.9 điểm khi không có. Không có bước 1, DPO vẫn tăng 4.6-6.7 điểm trên
   bốn set còn lại. Control (chỉ train trên câu đúng, hoặc SFT thêm round)
@@ -74,9 +68,9 @@ CoT (student viết plan rồi SQL) so với SQL-only, EX:
   Spider nên viết SQL khác dạng của gold.
 - Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
   yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
-- CoT ở 1.5B kém SQL-only sau DPO. DPO có nâng CoT (60.64 lên 70.89 trên
-  Spider dev), nhưng SQL-only xuất phát thấp hơn mà lên tới 74.18. Em chỉ
-  giữ CoT làm một phân tích ngắn.
+- CoT ở 1.5B kém SQL-only: sau DPO CoT chỉ đạt 70.89 EX trên Spider dev,
+  SQL-only đạt 74.18 với cùng cách train. Em chỉ giữ CoT làm một phân tích
+  ngắn.
 
 **So với các paper liên quan:**
 
