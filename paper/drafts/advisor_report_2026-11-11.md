@@ -34,14 +34,15 @@ chia từ Spider train:
 | Cấu hình                  |        EX |        EM |
 | ------------------------- | --------: | --------: |
 | Base 1.5B zero-shot       |     57.89 |     31.11 |
-| Teacher 7B zero-shot      | **77.22** |     46.48 |
 | FedProx                   |     70.42 |     58.69 |
 | FedAvg                    |     71.26 |     60.32 |
 | Centralized Spider + BIRD |     73.96 |     65.07 |
 | Method w/o DPO            |     73.31 |     64.42 |
 | Method w/o server stage   |     75.13 |     62.93 |
 | Method w/o teacher        |     75.22 |     64.97 |
-| **Method**                |     76.71 | **65.49** |
+| **Method**                | **76.71** | **65.49** |
+|                           |           |           |
+| _Teacher 7B zero-shot_    |   _77.22_ |   _46.48_ |
 
 Method w/o DPO là bước 1 + 2; w/o server stage là bước 2 + 3; w/o teacher là
 cả 3 bước nhưng bước 1 train bằng gold SQL của BIRD thay cho distill teacher.
