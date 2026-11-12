@@ -93,7 +93,7 @@ trở lên. So với từng hướng gần nhất:
   [FedMOA](https://arxiv.org/abs/2602.00453)): gần bài em nhất về ý tưởng,
   cũng dùng reward tự động ở client, nhưng làm trên toán và code bằng GRPO và
   tập trung vào cách gộp model, giảm client drift. Bài em làm Text-to-SQL
-  bằng DPO, giữ FedAvg thường, và phần mới nằm ở cách tạo cặp.
+  bằng DPO và giữ FedAvg thường.
 - DPO cho Text-to-SQL, đều centralized:
   [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/) và
   [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) cũng gán nhãn sample
@@ -103,10 +103,9 @@ trở lên. So với từng hướng gần nhất:
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
   gọi GPT-4 trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng
   3.4-3.9 điểm EX mà không cần CoT hay GPT-4, và CoT sau DPO vẫn kém
-  SQL-only. DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại
-  sau mỗi round, dùng gold SQL khi không có sample đúng (theo
-  [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu SQL
-  giống nhau nhất.
+  SQL-only. DPO của em khác hai bài CoT ở ba chỗ: kèm loss NLL, sample lại
+  sau mỗi round, và dùng gold SQL khi không có sample đúng (theo
+  [Iterative RPO](https://arxiv.org/abs/2404.19733)).
 
 **Em xin ý kiến thầy:**
 

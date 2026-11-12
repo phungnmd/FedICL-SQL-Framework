@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-12, 14:20.
+Updated 2026-11-12, 14:35.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Phase `sqldpo_s1`: `curve_fedavg_sft` finished at 12:25 on 11-12 and `pilot_pair_random` at 14:10 on 11-12, so `curve_fedavg` was the next task. The worker itself was not observed. | results commits `b7e6451f` and `1ad627b4` (fetched 14:15 on 11-12) |
+| 0 | Phase `sqldpo_s1`: `curve_fedavg_sft` finished at 12:25 on 11-12 and `pilot_pair_random` at 14:10 on 11-12, so `curve_fedavg` was the next task. The worker itself was not observed. | results commits `b7e6451f` and `1ad627b4` (fetched 14:15 on 11-12); queue commit `467f5073` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,7 +26,9 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run. The owner is needed next when `curve_fedavg` has published
+Nothing to run. The queue change of 14:35 (the frequent pair order pilot
+is dropped) reaches the server with the next publish step, which pulls; no
+running or queued task loads anything it changed. The owner is needed next when `curve_fedavg` has published
 round 3 on Spider test (about 20:00 on 11-12, estimate): tell the agent; it
 compares the FedAvg DPO line of seed 1 with the Hinton line of seed 1
 (77.04) question by question. If the first task of the phase printed
@@ -35,7 +37,7 @@ compares the FedAvg DPO line of seed 1 with the Hinton line of seed 1
 ## Running and queued
 
 GPU 0, in queue order: the rest of phase `sqldpo_s1` (seed 1 of the three
-DPO lines, plain DPO, 3 rounds), then two ablation rows of seed 0. Times are
+DPO lines, plain DPO, 3 rounds), then one ablation row of seed 0. Times are
 estimates, counted from the end of `pilot_pair_random` at 14:10 on 11-12: a
 FedAvg round with its evaluation takes 1 h 30; a DPO line is counted at its
 seed 0 time; a pilot at the time of the random pair pilot (1 h 45).
@@ -47,19 +49,17 @@ seed 0 time; a pilot at the time of the random pair pilot (1 h 45).
 | 3 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 01:40 on 11-13 | queued |
 | 4 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 07:10 on 11-13 | queued |
 | 5 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 07:45 on 11-13 | queued |
-| 6 | `pilot_pair_frequent` | The pair order pilot with the most often sampled wrong SQL against the most often sampled correct SQL (seed 0), against nearest pairs (75.69) | 1.75 h | 09:30 on 11-13 | queued |
-| 7 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 11:15 on 11-13 | queued |
+| 6 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:30 on 11-13 | queued |
 
 `curve_hinton` took 7 h 50 instead of 5.5 h (its round 1 took 5 h); if
 that repeats, each DPO line ends about 2.5 h later than the table says.
 
 Cut from a full run:
 
-- The frequent pair order pilot and the row without the NLL term are 1
-  round on seed 0 and reuse the round 1 samples of the Hinton line (no
-  sampling). They answer what the setting changes in round 1; whether a
-  difference grows over rounds needs 3 rounds with their own sampling
-  (about 5.5 h per setting).
+- The row without the NLL term is 1 round on seed 0 and reuses the round 1
+  samples of the Hinton line (no sampling). It answers what the term
+  changes in round 1; whether a difference grows over rounds needs 3 rounds
+  with their own sampling (about 5.5 h).
 - Seed 1 has the three DPO lines only. The controls of seed 0 (NLL-only
   round, extra SFT rounds, focused DPO, round 4) are not repeated.
 - On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 has the start and
@@ -75,8 +75,8 @@ Not queued yet:
   wrong results.
 
 To watch for: if the first task prints `gold server stage seed 1: MISSING`,
-the queue stops at `check_gold` (row 3), after rows 1 and 2 are done; rows 6
-and 7 then do not start.
+the queue stops at `check_gold` (row 3), after rows 1 and 2 are done; row 6
+then does not start.
 
 ## Reference
 
@@ -148,7 +148,7 @@ so its numbers are reported as "chosen on Spider test", never as held-out.
 | `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds) | same | same | the control without the teacher; 3 rounds |
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/fdpo_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
-| `sqldpo_s0/pairrand_hinton`, `pairfreq_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same labels and pair count; which correct and wrong sample pair up first is random (a fixed hash), or the most often sampled wrong SQL with the most often sampled correct SQL, instead of the most similar two | 1 round each, same schedule and updates as DPO round 1 |
+| `sqldpo_s0/pairrand_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same labels and pair count; which correct and wrong sample pair up first is random (a fixed hash) instead of the most similar two | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/nonll_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs (nearest) | 1 round, the preference term only (NLL weight 0), same schedule and updates as DPO round 1 |
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 

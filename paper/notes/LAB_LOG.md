@@ -20,9 +20,12 @@ differs. Both rows have 5,393 pairs, 609 of them with gold as chosen.
 - The pair sets did differ (mean similarity 0.817 against 0.715), so the
   round 1 gain does not depend on pairing the most similar two samples.
 - Not tested: rounds 2 and 3 with their own sampling, and seed 1.
-- For the owner: nearest pairing has no shown role, while the advisor
-  report lists it as one of four differences from the closest DPO work;
-  whether `pilot_pair_frequent` still runs.
+- Owner decision (2026-11-12): nearest pairing stays in the method
+  description as a detail and leaves the list of differences from the
+  closest DPO work in the advisor report (three remain: the NLL term, the
+  on-policy rounds, the gold fallback). `pilot_pair_frequent` is dropped
+  from the queue (fedicl-sql `467f5073`); `pilot_no_nll` now follows the
+  seed 1 lines directly.
 
 ## 2026-11-12: pair order pilots and a row without the NLL term queued
 
