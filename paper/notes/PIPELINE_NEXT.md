@@ -6,7 +6,7 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-12, 14:35.
+Updated 2026-11-12, 14:25.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -26,8 +26,8 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run. The queue change of 14:35 (the frequent pair order pilot
-is dropped) reaches the server with the next publish step, which pulls; no
+Nothing to run. The queue change `467f5073` (the frequent pair order
+pilot is dropped) reaches the server with the next publish step, which pulls; no
 running or queued task loads anything it changed. The owner is needed next when `curve_fedavg` has published
 round 3 on Spider test (about 20:00 on 11-12, estimate): tell the agent; it
 compares the FedAvg DPO line of seed 1 with the Hinton line of seed 1
