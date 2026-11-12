@@ -147,6 +147,26 @@ Both seeds pooled, clustered by question (95% interval):
 - The wrong results are not all out of reach: of the method's 442, 193 are
   right in at least one of the other 16 rows and 249 are wrong in every
   row.
+- The teacher and the method have the same EX on Spider test and are right
+  on different rows (teacher zero-shot 77.22, HF, 4-bit; archived row,
+  approved 2026-11-12). Seed 0: 151 rows right only in the method, 162 only
+  in the teacher; the teacher is right on 129 of the method's 442 wrong
+  results and 33 of its 58 execution errors; at least one of the two is
+  right on 84.26%. The teacher leads on medium and hard (82.3, 70.8 against
+  79.8, 68.3), the method on extra-hard (63.0 against 57.7). The Hinton
+  stage does not pass these rows on: after DPO its wins over the gold line
+  are not on the rows the teacher gets right (64% against 66%).
+- What the teacher's lead over the gold line is made of after DPO (seed 0,
+  +32 rows): 25 from wrong results, 7 from execution errors, on extra-hard
+  questions (63.0 against 59.9). Against the FedAvg line the lead is in
+  execution errors.
+- Soft targets without the teacher do not give the lead before DPO
+  (archived rows, approved 2026-11-12; seed 0, HF, server stage then 3
+  FedAvg rounds): on Spider dev gold SQL 70.41, a virtual teacher 70.50,
+  the student's own logits 70.21, the 7B teacher 72.53 (+2.03 over the
+  virtual teacher, p = 0.03). On DK about half of the lead comes from any
+  soft target (52.34, 55.70, 52.71, 58.32). Not measured on Spider test or
+  after DPO.
 - CoT at 1.5B does not help (plan + SQL: server stage 60.64, one template
   client round 62.69, self-taught rounds at most 60.64). It is a short
   analysis in the paper, not part of the method.
@@ -159,6 +179,10 @@ Both seeds pooled, clustered by question (95% interval):
    one to three DPO rounds, one pair of training lineages. Seed 1 repeats
    the lead over the FedAvg line (+1.21; +1.40 pooled); the gold line of
    seed 1 decides whether that lead is the teacher's or BIRD's (running).
+   Whether the lead after DPO needs the 7B teacher or any soft target is
+   not measured: the virtual-teacher control exists only before DPO. Three
+   DPO rounds from its adapter (`virtual_k2aaa_a3`, about 6 h, estimate)
+   would answer it; not queued, the owner has not decided.
 2. Seeds. Two seeds for the Hinton and FedAvg lines; the DPO step and the
    method row repeat within 0.7 point. A third seed is worth its cost
    (about 30 h on one card for the FedAvg and DPO rounds of the three

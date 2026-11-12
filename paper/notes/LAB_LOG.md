@@ -3,6 +3,30 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: archived teacher controls approved for the paper
+
+Owner decision: the archived rows below may be used in the paper as
+comparators. All are Qwen2.5-Coder-1.5B-Instruct on `alpha_0.1/k5`, seed 0,
+HF engine, batch 16, except the teacher row (7B, 4-bit).
+
+| Row | Result row or prediction file in fedicl-sql | Adapter on the server | Git SHA | Sets |
+|---|---|---|---|---|
+| virtual teacher, K2 then 3 FedAvg rounds (`virtual_k2aaa_a3`) | `federated_stage__K2fkl,virtual-A-A-A__s0__95e15ce88661__f72e0fd5`; audit `p238_virtual_teacher_s0` | `artifacts/protocol_v2/p238_virtual_teacher_s0/virtual_k2aaa_a3/fedavg_adapter` | `02c30d3` | Spider dev, Realistic, SYN, DK, BIRD dev |
+| self teacher, same chain (`self_k2aaa_a3`) | `federated_stage__K2fkl-A-A-A__s0__e18fe166a101__563b55e5`; audit `p244_self_teacher_s0` | `artifacts/protocol_v2/p244_self_teacher_s0/self_k2aaa_a3/fedavg_adapter` | `1f0bee7` | the same five |
+| teacher zero-shot (`p253teacher_zeroshot`) | `eval_arms__s0__20261029T063500__af93cdc520a6__60f456f4804e4f11b55ef9c17cb45172`; audit `p253_teacher_test_s0` | none (base 7B model) | `24f0a5b` | Spider test |
+
+- Nothing had to be restored: every result row, prediction file and audit
+  of the three rows is still tracked in fedicl-sql (checked against
+  `git ls-files`; `p238` 22 audit files, `p244` 24).
+- The Hinton and gold comparators inside `p238` and `p244` are the adapters
+  the method starts from (`p237_phase_e_s0`), so the control rows compare
+  directly with `hinton_k2aaa_a3` and `gold_k2aaa_a3` under HF.
+- What the rows do not cover: Spider test, the vLLM inproc engine of the
+  paper's tables, and DPO after the server stage. Whether the two adapters
+  are still on the server is not checked.
+- `p217` and `p220` (another student or split) stay background for the
+  placement question, not paper rows.
+
 ## 2026-11-12: the teacher's role, read from predictions and the archive
 
 No run. The owner allowed, in this session, reading four archived
