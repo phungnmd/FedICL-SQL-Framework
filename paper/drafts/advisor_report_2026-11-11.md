@@ -57,6 +57,14 @@ EX trên các set khác:
 | Method w/o teacher      |      73.79 | **65.35** |     59.86 |     57.94 |
 | **Method**              |  **76.50** |     64.17 | **61.03** | **64.11** |
 
+CoT (student viết plan rồi SQL) so với SQL-only, EX:
+
+| Cấu hình                                | Set         |          SQL-only |           CoT |
+| --------------------------------------- | ----------- | ----------------: | ------------: |
+| Server trên BIRD, rồi FedAvg            | Spider test |         **73.31** |         62.69 |
+| Server trên BIRD, rồi DPO (centralized) | Spider dev  | 58.80 → **74.18** | 60.64 → 70.89 |
+| Server trên BIRD, rồi DPO (centralized) | Spider test |                 - |         69.12 |
+
 - DPO là đóng góp chính: 3.4% EX trên Spider test khi có bước 1
   và 3.9 điểm khi không có. Không có bước 1, DPO vẫn tăng 4.6-6.7 điểm trên
   bốn set còn lại. Control (chỉ train trên câu đúng, hoặc SFT thêm round)
@@ -67,8 +75,11 @@ EX trên các set khác:
   Teacher zero-shot có EX cao nhất nhưng EM chỉ 46.48, vì chưa train trên
   Spider nên viết SQL khác dạng của gold.
 - Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
-  yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này. CoT ở 1.5B
-  kém SQL-only ở mọi bước nên em chỉ giữ làm một phân tích ngắn.
+  yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
+- CoT ở 1.5B kém SQL-only cả trước và sau DPO. DPO có nâng CoT (60.64 lên
+  70.89 trên Spider dev), nhưng SQL-only xuất phát thấp hơn mà lên tới 74.18,
+  và CoT sau DPO (69.12 trên Spider test) vẫn dưới FedAvg SQL-only (71.26).
+  Em chỉ giữ CoT làm một phân tích ngắn.
 
 **So với các paper liên quan:**
 
@@ -85,24 +96,16 @@ EX trên các set khác:
   Text-to-SQL đều centralized.
 - Phát hiện khác: [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/)
   và [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) là method CoT: ở hai
-  bài này SQL-only DPO làm EX giảm, phải có CoT thì DPO mới tăng (bảng dưới).
-  Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4 điểm EX, còn CoT chỉ đạt
-  62.69, dưới cả FedAvg SQL-only (71.26).
+  bài này SQL-only DPO làm EX giảm, phải có CoT thì DPO mới tăng
+  (Qwen2.5-Coder-7B trên BIRD dev: SQL-only 61.6 xuống 61.3, CoT 60.8 lên
+  63.4). Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4-3.9 điểm EX, và CoT
+  kém SQL-only cả trước và sau DPO.
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
   gọi GPT-4 trong lúc train.
 - DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại sau mỗi
   round, dùng gold SQL khi không có sample đúng (theo
   [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu SQL
   giống nhau nhất.
-
-EX trước và sau DPO:
-
-| Bài         | Model              | Set         | SQL-only      | CoT                  |
-| ----------- | ------------------ | ----------- | ------------- | -------------------- |
-| CoT for DPO | Qwen2.5-Coder-7B   | BIRD dev    | 61.6 → 61.3   | 60.8 → 63.4          |
-| ExCoT       | LLaMA-3.1-70B      | BIRD dev    | 62.0 → 60.0   | 58.1 → 68.5          |
-| ExCoT       | LLaMA-3.1-70B      | Spider test | 83.0 → 81.0   | 81.4 → 86.6          |
-| Của em      | Qwen2.5-Coder-1.5B | Spider test | 73.31 → 76.71 | 62.69 (chưa chạy DPO) |
 
 **Em xin ý kiến thầy:**
 
