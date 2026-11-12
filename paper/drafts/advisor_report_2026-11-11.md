@@ -66,8 +66,11 @@ EX trên các set khác:
 - EM tăng ít hơn EX sau DPO (1.1 điểm khi có bước 1, 2.6 khi không có).
   Teacher zero-shot có EX cao nhất nhưng EM chỉ 46.48, vì chưa train trên
   Spider nên viết SQL khác dạng của gold.
-- Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
-  yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
+- Mức tăng của DPO đến từ lỗi execution (SQL không chạy được, hầu hết do
+  viết sai tên cột hoặc bảng): trên Spider test loại lỗi này giảm từ 129
+  xuống 58 câu, trong khi SFT thêm round không giảm được nó. Số câu chạy được
+  nhưng sai kết quả gần như không đổi (444 và 442 câu, khoảng 20% Spider
+  test); DPO chưa sửa được nhóm này.
 - CoT ở 1.5B kém SQL-only: sau DPO CoT chỉ đạt 70.89 EX trên Spider dev,
   SQL-only đạt 74.18 với cùng cách train. Em chỉ giữ CoT làm một phân tích
   ngắn.
@@ -77,8 +80,8 @@ EX trên các set khác:
 Gán nhãn sample bằng execution rồi train DPO đã có ở Text-to-SQL centralized.
 Bài em khác ở hai điểm: làm việc này tại từng client trong federated learning
 (client tự sample, tự gán nhãn trên database của mình, chỉ gửi adapter), và
-cho thấy ở 1.5B SQL-only DPO có tác dụng, ngược với kết quả đã công bố ở 7B
-trở lên. So với từng hướng gần nhất:
+cho thấy ở SLM 1.5B SQL-only DPO có tác dụng vì nó sửa lỗi execution, loại
+lỗi model nhỏ còn nhiều sau SFT. So với từng hướng gần nhất:
 
 - Federated Text-to-SQL: mới có [FL4SP](https://arxiv.org/abs/2305.17221)
   (T5-base, exact match), chỉ train trên gold SQL, và bản federated tốt nhất
@@ -101,10 +104,13 @@ trở lên. So với từng hướng gần nhất:
   thì DPO mới tăng (Qwen2.5-Coder-7B trên BIRD dev: SQL-only 61.6 xuống 61.3,
   CoT 60.8 lên 63.4).
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
-  gọi GPT-4 trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng
-  3.4-3.9 điểm EX mà không cần CoT hay GPT-4, và CoT sau DPO vẫn kém
-  SQL-only. DPO của em khác hai bài CoT ở ba chỗ: kèm loss NLL, sample lại
-  sau mỗi round, và dùng gold SQL khi không có sample đúng (theo
+  gọi GPT-4 trong lúc train. Ở 1.5B SQL-only DPO của em tăng 3.4-3.9 điểm EX
+  mà không cần CoT hay GPT-4, và CoT sau DPO vẫn kém SQL-only. Hai kết quả
+  không mâu thuẫn: mức tăng của em đến từ lỗi execution, loại lỗi SLM còn
+  nhiều sau SFT (129 câu) còn model 7B thì ít (teacher 7B zero-shot của em:
+  76 câu); với các câu sai kết quả, DPO của em cũng không sửa được, giống hai
+  bài này. DPO của em khác CoT for DPO ở ba chỗ: kèm loss NLL, sample lại sau
+  mỗi round (ExCoT cũng làm), và dùng gold SQL khi không có sample đúng (theo
   [Iterative RPO](https://arxiv.org/abs/2404.19733)).
 
 **Em xin ý kiến thầy:**
