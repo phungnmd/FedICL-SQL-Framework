@@ -84,15 +84,25 @@ EX trên các set khác:
   [FedMOA](https://arxiv.org/abs/2602.00453)) làm trên toán và code. DPO cho
   Text-to-SQL đều centralized.
 - Phát hiện khác: [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/)
-  và [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) đều là method CoT, và
-  báo SQL-only DPO không tăng EX (Qwen2.5-Coder-7B trên BIRD dev: 61.6 xuống
-  61.3). [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) phải gọi GPT-4
-  trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4-3.9 điểm
-  EX, không cần CoT hay model ngoài, và CoT còn kém SQL-only.
+  và [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) là method CoT: ở hai
+  bài này SQL-only DPO làm EX giảm, phải có CoT thì DPO mới tăng (bảng dưới).
+  Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4 điểm EX, còn CoT chỉ đạt
+  62.69, dưới cả FedAvg SQL-only (71.26).
+  [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
+  gọi GPT-4 trong lúc train.
 - DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại sau mỗi
   round, dùng gold SQL khi không có sample đúng (theo
   [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu SQL
   giống nhau nhất.
+
+EX trước và sau DPO:
+
+| Bài         | Model              | Set         | SQL-only      | CoT                  |
+| ----------- | ------------------ | ----------- | ------------- | -------------------- |
+| CoT for DPO | Qwen2.5-Coder-7B   | BIRD dev    | 61.6 → 61.3   | 60.8 → 63.4          |
+| ExCoT       | LLaMA-3.1-70B      | BIRD dev    | 62.0 → 60.0   | 58.1 → 68.5          |
+| ExCoT       | LLaMA-3.1-70B      | Spider test | 83.0 → 81.0   | 81.4 → 86.6          |
+| Của em      | Qwen2.5-Coder-1.5B | Spider test | 73.31 → 76.71 | 62.69 (chưa chạy DPO) |
 
 **Em xin ý kiến thầy:**
 
