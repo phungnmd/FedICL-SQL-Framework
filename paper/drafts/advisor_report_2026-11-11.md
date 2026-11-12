@@ -61,7 +61,6 @@ CoT (student viết plan rồi SQL) so với SQL-only, EX:
 
 | Cấu hình                                |          SQL-only |           CoT |
 | --------------------------------------- | ----------------: | ------------: |
-| Server trên BIRD, rồi FedAvg            |         **73.31** |         62.69 |
 | Server trên BIRD, rồi DPO (centralized) | 58.80 → **74.18** | 60.64 → 70.89 |
 
 - DPO là đóng góp chính: 3.4% EX trên Spider test khi có bước 1
@@ -75,9 +74,9 @@ CoT (student viết plan rồi SQL) so với SQL-only, EX:
   Spider nên viết SQL khác dạng của gold.
 - Còn khoảng 20% câu Spider test là SQL chạy được nhưng sai kết quả; DPO chủ
   yếu sửa các câu SQL không chạy được, chưa sửa được nhóm này.
-- CoT ở 1.5B kém SQL-only cả trước và sau DPO. DPO có nâng CoT (60.64 lên
-  70.89 trên Spider dev), nhưng SQL-only xuất phát thấp hơn mà lên tới 74.18.
-  Em chỉ giữ CoT làm một phân tích ngắn.
+- CoT ở 1.5B kém SQL-only sau DPO. DPO có nâng CoT (60.64 lên 70.89 trên
+  Spider dev), nhưng SQL-only xuất phát thấp hơn mà lên tới 74.18. Em chỉ
+  giữ CoT làm một phân tích ngắn.
 
 **So với các paper liên quan:**
 
@@ -97,7 +96,7 @@ CoT (student viết plan rồi SQL) so với SQL-only, EX:
   bài này SQL-only DPO làm EX giảm, phải có CoT thì DPO mới tăng
   (Qwen2.5-Coder-7B trên BIRD dev: SQL-only 61.6 xuống 61.3, CoT 60.8 lên
   63.4). Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4-3.9 điểm EX, và CoT
-  kém SQL-only cả trước và sau DPO.
+  sau DPO vẫn kém SQL-only.
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
   gọi GPT-4 trong lúc train.
 - DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại sau mỗi
