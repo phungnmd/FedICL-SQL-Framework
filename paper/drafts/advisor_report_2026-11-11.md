@@ -4,30 +4,17 @@ Thưa thầy,
 
 Em gửi thầy kết quả mới và ba điểm em muốn xin ý kiến thầy.
 
-**Method** gồm 3 bước, student là Qwen2.5-Coder-1.5B train bằng LoRA, 5 client
-chia từ Spider train:
+**Method** dùng student Qwen2.5-Coder-1.5B train bằng LoRA, với 5 client
+chia từ Spider train, gồm ba bước:
 
-1. Server: distill logit của teacher 7B (Hinton KD) sang student trên BIRD
-   (data public), 2 epoch. Teacher chỉ chạy ở server.
-2. FedAvg SFT 3 round: mỗi client train trên câu hỏi và gold SQL của mình,
-   server gộp adapter.
-3. Federated DPO 3 round, bắt đầu từ model của bước 2. Mỗi round:
-   - Sample: mỗi client dùng model global hiện tại sample 8 câu SQL cho mỗi
-     câu hỏi train của mình (temperature 0.7).
-   - Gán nhãn: client chạy từng sample trên database của mình và so với kết
-     quả của gold SQL: đúng, sai kết quả, hoặc không chạy được.
-   - Ghép cặp: chosen là một sample đúng, rejected là một sample sai của
-     cùng câu hỏi; ưu tiên hai câu SQL giống nhau nhất, mỗi sample dùng một
-     lần, tối đa 2 cặp mỗi câu hỏi. Câu hỏi không có sample đúng thì gold
-     SQL làm chosen. Câu hỏi có cả 8 sample đúng thì không tạo cặp.
-   - Train: loss DPO (beta 0.1) cộng loss NLL trên chosen, 2 local epoch;
-     reference model là model global đầu round.
-   - Gộp: server FedAvg adapter của các client, weight theo số cặp.
+1. **Server KD:** distill logit từ teacher 7B trên BIRD public, 2 epoch.
+2. **FedAvg SFT:** train trên câu hỏi và gold SQL của client, 3 round.
+3. **Federated DPO:** mỗi client sample SQL, gán nhãn bằng execution trên
+   database của mình, rồi train DPO + NLL trên cặp đúng/sai. Server gộp
+   adapter theo số cặp; lặp 3 round, mỗi round sample lại từ model global mới.
 
-   Round sau sample lại từ model global mới, nên các cặp luôn lấy từ lỗi
-   hiện tại của model và số cặp giảm dần: trên 8,659 câu hỏi, 5,393 cặp ở
-   round 1 (609 cặp dùng gold SQL) xuống 3,208 ở round 3. Client chỉ gửi
-   adapter; data, sample và các cặp ở lại client.
+Teacher chỉ chạy ở server. Client chỉ gửi adapter; data, sample và các cặp
+ở lại client.
 
 ![Tổng quan method FedLS-SQL và vòng federated DPO tại client.](figures/fedls_sql_method.png)
 
