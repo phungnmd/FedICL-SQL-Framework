@@ -74,9 +74,11 @@ EX trên các set khác:
 
 **So với các paper liên quan:**
 
-Điểm riêng của bài: client dùng database của mình làm verifier cho các sample
-của model, nên model học từ lỗi hiện tại của nó ngay tại client, không cần
-người gán nhãn và không gửi data đi. So với từng hướng gần nhất:
+Gán nhãn sample bằng execution rồi train DPO đã có ở Text-to-SQL centralized.
+Bài em khác ở hai điểm: làm việc này tại từng client trong federated learning
+(client tự sample, tự gán nhãn trên database của mình, chỉ gửi adapter), và
+cho thấy ở 1.5B SQL-only DPO có tác dụng, ngược với kết quả đã công bố ở 7B
+trở lên. So với từng hướng gần nhất:
 
 - Federated Text-to-SQL: mới có [FL4SP](https://arxiv.org/abs/2305.17221)
   (T5-base, exact match), chỉ train trên gold SQL, và bản federated tốt nhất
@@ -94,9 +96,10 @@ người gán nhãn và không gửi data đi. So với từng hướng gần nh
   bằng DPO, giữ FedAvg thường, và phần mới nằm ở cách tạo cặp.
 - DPO cho Text-to-SQL, đều centralized:
   [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/) và
-  [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) thấy SQL-only DPO làm EX
-  giảm, phải có CoT thì DPO mới tăng (Qwen2.5-Coder-7B trên BIRD dev:
-  SQL-only 61.6 xuống 61.3, CoT 60.8 lên 63.4).
+  [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) cũng gán nhãn sample
+  bằng execution như bài em, và thấy SQL-only DPO làm EX giảm, phải có CoT
+  thì DPO mới tăng (Qwen2.5-Coder-7B trên BIRD dev: SQL-only 61.6 xuống 61.3,
+  CoT 60.8 lên 63.4).
   [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) không dùng CoT nhưng phải
   gọi GPT-4 trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng
   3.4-3.9 điểm EX mà không cần CoT hay GPT-4, và CoT sau DPO vẫn kém
