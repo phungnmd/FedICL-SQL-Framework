@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-12, 14:25.
+Updated 2026-11-12, 22:10.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Phase `sqldpo_s1`: `curve_fedavg_sft` finished at 12:25 on 11-12 and `pilot_pair_random` at 14:10 on 11-12, so `curve_fedavg` was the next task. The worker itself was not observed. | results commits `b7e6451f` and `1ad627b4` (fetched 14:15 on 11-12); queue commit `467f5073` |
+| 0 | Phase `sqldpo_s1`: `curve_fedavg` finished at 19:34 and `publish_extra` at 20:39 on 11-12, so `check_gold` was the next task, then `curve_gold_sft`. The worker itself was not observed. | results commits `23b3e96d` and `36466dc6` (in the local checkout at 21:58 on 11-12) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,33 +26,34 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run. The queue change `467f5073` (the frequent pair order
-pilot is dropped) reaches the server with the next publish step, which pulls; no
-running or queued task loads anything it changed. The owner is needed next when `curve_fedavg` has published
-round 3 on Spider test (about 20:00 on 11-12, estimate): tell the agent; it
-compares the FedAvg DPO line of seed 1 with the Hinton line of seed 1
-(77.04) question by question. If the first task of the phase printed
-`gold server stage seed 1: MISSING`, tell the agent now (not known here).
+Nothing to run. The owner is needed next in one of two cases:
+
+- If the worker console shows `STOP queue: sqldpo_s1/check_gold failed`
+  (the gold server stage of seed 1 is not on the server), send that line
+  to the agent; the gold line of seed 1 cannot run without it.
+- Otherwise when `curve_gold` has published round 3 on Spider test (about
+  07:10 on 11-13, estimate): tell the agent; it compares the gold DPO line
+  of seed 1 with the Hinton line (77.04) and the FedAvg line (75.83) of
+  seed 1 question by question, and pools both seeds.
 
 ## Running and queued
 
-GPU 0, in queue order: the rest of phase `sqldpo_s1` (seed 1 of the three
-DPO lines, plain DPO, 3 rounds), then one ablation row of seed 0. Times are
-estimates, counted from the end of `pilot_pair_random` at 14:10 on 11-12: a
-FedAvg round with its evaluation takes 1 h 30; a DPO line is counted at its
-seed 0 time; a pilot at the time of the random pair pilot (1 h 45).
+GPU 0, in queue order: the gold line of phase `sqldpo_s1` (seed 1, plain
+DPO, 3 rounds), then one ablation row of seed 0. Times are estimates,
+counted from the end of `publish_extra` at 20:39 on 11-12: a FedAvg round
+with its evaluation takes 1 h 30; a DPO line is counted at its seed 0 time;
+a pilot at the time of the random pair pilot (1 h 45).
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `curve_fedavg` | Does the server stage keep its lead after DPO on seed 1: DPO rounds 1-3 from FedAvg R3 seed 1 | 5.75 h | 20:00 on 11-12 | running (not observed) |
-| 2 | `extra_hinton`, `extra_hinton_dpo_r3`, `extra_fedavg_r3`, `extra_fedavg_dpo_r3`, `publish_extra` | The starts and round 3 of both lines on Spider dev, Realistic, SYN, DK and BIRD dev | 1.2 h | 21:10 on 11-12 | queued |
-| 3 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 01:40 on 11-13 | queued |
-| 4 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 07:10 on 11-13 | queued |
-| 5 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 07:45 on 11-13 | queued |
-| 6 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:30 on 11-13 | queued |
+| 1 | `check_gold`, `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 1-3 from the gold server stage of seed 1 | 4.5 h | 01:10 on 11-13 | running (not observed) |
+| 2 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 06:40 on 11-13 | queued |
+| 3 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 07:15 on 11-13 | queued |
+| 4 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:00 on 11-13 | queued |
 
-`curve_hinton` took 7 h 50 instead of 5.5 h (its round 1 took 5 h); if
-that repeats, each DPO line ends about 2.5 h later than the table says.
+`curve_hinton` took 7 h 50 and `curve_fedavg` 5 h 24 against estimates of
+5.5 h and 5.75 h; `curve_gold` may end up to about 2.5 h later than the
+table says.
 
 Cut from a full run:
 
@@ -74,9 +75,8 @@ Not queued yet:
 - Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
   wrong results.
 
-To watch for: if the first task prints `gold server stage seed 1: MISSING`,
-the queue stops at `check_gold` (row 3), after rows 1 and 2 are done; row 6
-then does not start.
+To watch for: if `check_gold` fails, the worker stops there; rows 2 to 4
+then do not start.
 
 ## Reference
 
@@ -169,7 +169,7 @@ Final table (Spider test; every SQL DPO line at round 3):
 | SQL DPO from FedAvg R3 | control: no server stage |
 | SQL DPO from `gold_k2aaa_a3` | control: server stage without the teacher |
 | NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
-| SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); server stage and its loss are decided after the gold line |
+| SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); server stage and its loss are decided after the gold line of seed 1 |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
 
 ### Seed 1 (phase `sqldpo_s1`)

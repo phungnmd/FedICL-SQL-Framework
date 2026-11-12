@@ -3,6 +3,89 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: seed 1, the Hinton stage keeps 1.21 points over the FedAvg line after DPO
+
+Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `dfab0013` to
+`23b3e96d`; other sets `36466dc6`). DPO rounds 1-3 from FedAvg R3 seed 1,
+next to the Hinton line of seed 1 and both lines of seed 0. Intervals: a
+bootstrap over the test databases (10,000 resamples), computed from the
+committed predictions.
+
+| Round | FedAvg line, seed 0 | FedAvg line, seed 1 | Hinton line, seed 0 | Hinton line, seed 1 | Hinton minus FedAvg, seed 0 / seed 1 |
+|---|---:|---:|---:|---:|---|
+| start | 71.26 | 71.87 | 73.31 | 74.06 | +2.05 / +2.19 |
+| 1 | 74.29 | 75.55 | 75.69 | 75.73 | +1.40 / +0.19 |
+| 2 | 75.17 | 75.27 | 76.43 | 76.53 | +1.26 / +1.26 |
+| 3 | 75.13 | 75.83 | 76.71 | **77.04** | +1.58 / +1.21 |
+
+| Pair, seed 1 | Gain | Right only in the first / only in the second | p | 95% interval (databases) |
+|---|---:|---:|---:|---|
+| FedAvg R3 / FedAvg DPO r1 | +3.68 | 56 / 135 | < 0.001 | +2.00 to +5.53 |
+| FedAvg DPO r1 / r2 | -0.28 | 31 / 25 | 0.50 | |
+| FedAvg DPO r2 / r3 | +0.56 | 25 / 37 | 0.16 | |
+| FedAvg R3 / FedAvg DPO r3 | +3.96 | 65 / 150 | < 0.001 | +2.37 to +5.66 |
+| FedAvg R3 / `hinton_k2aaa_a3` | +2.19 | 96 / 143 | 0.003 | +0.19 to +4.19 |
+| FedAvg DPO r3 / Hinton DPO r3 | +1.21 | 84 / 110 | 0.07 | -0.19 to +2.59 |
+| FedAvg R3 / Hinton DPO r3 | +5.17 | 76 / 187 | < 0.001 | +3.28 to +7.05 |
+
+Both seeds pooled, clustered by question:
+
+| Pair | Gain | 95% interval | p |
+|---|---:|---|---:|
+| FedAvg DPO r3 / Hinton DPO r3 (server stage after DPO) | +1.40 | +0.32 to +2.47 | 0.01 |
+| FedAvg R3 / FedAvg DPO r3 (DPO without a server stage) | +3.91 | +2.82 to +5.01 | < 0.001 |
+| FedAvg R3 / `hinton_k2aaa_a3` (server stage before DPO) | +2.12 | +0.95 to +3.29 | < 0.001 |
+| FedAvg R3 / Hinton DPO r3 (whole method) | +5.31 | +4.06 to +6.56 | < 0.001 |
+
+- The FedAvg line repeats seed 0: one large step at round 1, then flat
+  (75.55, 75.27, 75.83). Seed 0 and seed 1 differ by 0.70 at round 3
+  (63 / 78, p = 0.24).
+- The server-stage lead after DPO repeats in sign and size (+1.58, +1.21).
+  Pooled by question it is separable (+1.40, p = 0.01); within each seed
+  the database interval touches zero. DPO closes a quarter to a half of
+  the lead the server stage had before it (seed 0: 2.05 to 1.58; seed 1:
+  2.19 to 1.21).
+- On seed 1 the lead is gone after round 1 (+0.19, 99 / 103) and comes back
+  at rounds 2-3, because DPO round 1 from FedAvg R3 gains more on seed 1
+  (+3.68) than on seed 0 (+3.03). The round 3 reading is the fixed one.
+- Error types at round 3 (execution errors / wrong results): FedAvg line
+  95 / 424, Hinton line 74 / 419 (seed 0: 101 / 433, 58 / 442). The lead
+  is in execution errors on both seeds. By hardness the Hinton line is
+  ahead on medium (80.5 against 78.4) and extra (62.7 against 59.1), level
+  on easy and hard.
+- Training data of the FedAvg line, seed 1: sample accuracy 73.9, 81.6,
+  83.5% by round (seed 0: 74.3, 82.1, 83.9%; Hinton seed 1: 79.1, 84.5,
+  86.7%); pairs 6,533, 4,338, 3,840 (rejected execution error 3,945,
+  1,883, 1,463; wrong result 2,588, 2,455, 2,377).
+
+Other sets, seed 1, EX (execution errors); no choice was made on these:
+
+| Row | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---:|---:|---:|---:|---:|
+| FedAvg R3 | 68.47 (124) | 58.27 (84) | 55.03 (159) | 54.02 (83) | 25.03 (624) |
+| FedAvg DPO r3 | 72.15 (69) | 62.40 (44) | 58.03 (99) | 58.32 (52) | 29.01 (433) |
+| `hinton_k2aaa_a3` | 73.02 (88) | 61.81 (55) | 57.83 (137) | 58.13 (50) | 37.03 (310) |
+| Hinton DPO r3 | **75.82** (44) | **64.57** (27) | **59.38** (82) | **61.31** (31) | **40.22** (220) |
+
+| Pair at round 3 | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---|---|---|---|---|
+| FedAvg line / Hinton line, seed 1 (right only in the first / only in the second, p) | +3.68 (51 / 89, 0.002) | +2.17 (30 / 41, 0.24) | +1.35 (64 / 78, 0.28) | +2.99 (25 / 41, 0.06) | +11.21 (83 / 255, < 0.001) |
+| seed 0 | +3.38 (47 / 82, 0.003) | +0.59 (36 / 39, 0.82) | +2.71 (62 / 90, 0.03) | +5.23 (19 / 47, 0.001) | +11.54 (73 / 250, < 0.001) |
+| both seeds pooled by question (95% interval) | +3.53 (+1.67 to +5.39) | +1.38 (-1.40 to +4.16) | +2.03 (+0.11 to +3.95) | +4.11 (+1.57 to +6.66) | +11.38 (+9.42 to +13.33) |
+
+- The lead after DPO has the same sign on every set and both seeds. It is
+  clear on Spider dev and DK, small on SYN, not separable on Realistic. The
+  first four sets share the 20 Spider dev databases, so they are one
+  domain check, not four.
+- DPO gains on every set from both starts on seed 1 (Spider dev +2.80 to
+  +3.68, BIRD dev +3.19 and +3.98), as on seed 0: DPO on the clients'
+  Spider data does not cost BIRD accuracy.
+- Not answered yet: whether the lead comes from the teacher or from the
+  BIRD data on seed 1 (the gold line of seed 1 is next in the queue).
+
+Run time: `curve_fedavg` took 5 h 24 (14:10 to 19:34), the extra sets
+1 h 05.
+
 ## 2026-11-12: random pairs give the same result as nearest pairs in round 1
 
 Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `6c06c5ce` to
