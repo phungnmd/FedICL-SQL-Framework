@@ -72,24 +72,27 @@ EX trên các set khác:
 
 **So với các paper liên quan:**
 
-| Mảng                     | Paper gần nhất                                                                                                                                     | Đã có                                                                               | Chưa có                           |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------- |
-| Federated Text-to-SQL    | [FL4SP](https://arxiv.org/abs/2305.17221)                                                                                                          | T5-base, exact match                                                                | SLM decoder, EX                   |
-| Federated DPO            | [OpenFedLLM](https://arxiv.org/abs/2402.06954), [FedBiscuit](https://arxiv.org/abs/2407.03038)                                                     | DPO ở client rồi gộp LoRA, nhãn preference của người                                | nhãn từ execution                 |
-| Federated RL có verifier | [PubSwap](https://arxiv.org/abs/2604.12160), [Fed-GRPO](https://arxiv.org/abs/2610.11502), [FedMOA](https://arxiv.org/abs/2602.00453)              | GRPO ở 1.5-4B, trên toán và code                                                    | Text-to-SQL                       |
-| DPO cho Text-to-SQL      | [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/), [ExCoT](https://arxiv.org/abs/2503.19988), [SQLoom](https://arxiv.org/abs/2611.03298) | centralized; 7B-70B, phải có CoT mới tăng; SQLoom ở 1.7B dùng GPT-4 trong lúc train | federated, không dùng model ngoài |
-
-- Em chưa tìm thấy paper nào làm federated DPO với cặp do client tự gán nhãn
-  bằng execution trên database của mình. Text-to-SQL hợp với hướng này vì
-  verifier có sẵn ở client: không cần nhãn của người, không cần gửi data.
-- Kết quả của em ngược với CoT for DPO và ExCoT. Hai paper này báo SQL-only
-  DPO không tăng ở 7B trở lên (Qwen2.5-Coder-7B trên BIRD dev: 61.6 xuống
-  61.3), và tỉ lệ SQL không chạy được tăng sau DPO. Ở 1.5B, SQL-only DPO của
-  em tăng 3.4-3.9 điểm và số câu SQL không chạy được giảm (129 xuống 58 trên
-  Spider test). Cách làm của em khác ở bốn chỗ: train DPO kèm loss NLL,
-  sample lại sau mỗi round, dùng gold SQL khi không có sample đúng (theo
-  [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu
-  SQL giống nhau nhất. Em chưa tách được chỗ nào tạo ra khác biệt.
+- Khoảng trống: chưa có bài nào làm federated DPO cho Text-to-SQL với cặp do
+  client tự gán nhãn bằng execution trên database của mình. Federated
+  Text-to-SQL mới có [FL4SP](https://arxiv.org/abs/2305.17221) (T5-base,
+  exact match). Federated DPO
+  ([OpenFedLLM](https://arxiv.org/abs/2402.06954),
+  [FedBiscuit](https://arxiv.org/abs/2407.03038)) dùng nhãn preference của
+  người. Federated RL có verifier
+  ([PubSwap](https://arxiv.org/abs/2604.12160),
+  [Fed-GRPO](https://arxiv.org/abs/2610.11502),
+  [FedMOA](https://arxiv.org/abs/2602.00453)) làm trên toán và code. DPO cho
+  Text-to-SQL đều centralized.
+- Phát hiện khác: [CoT for DPO](https://aclanthology.org/2025.acl-long.1031/)
+  và [ExCoT](https://arxiv.org/abs/2503.19988) (7B-70B) đều là method CoT, và
+  báo SQL-only DPO không tăng EX (Qwen2.5-Coder-7B trên BIRD dev: 61.6 xuống
+  61.3). [SQLoom](https://arxiv.org/abs/2611.03298) (1.7B) phải gọi GPT-4
+  trong lúc train. Ở 1.5B em thấy ngược lại: SQL-only DPO tăng 3.4-3.9 điểm
+  EX, không cần CoT hay model ngoài, và CoT còn kém SQL-only.
+- DPO của em khác hai bài CoT ở bốn chỗ: kèm loss NLL, sample lại sau mỗi
+  round, dùng gold SQL khi không có sample đúng (theo
+  [Iterative RPO](https://arxiv.org/abs/2404.19733)), và ghép cặp hai câu SQL
+  giống nhau nhất.
 
 **Em xin ý kiến thầy:**
 
