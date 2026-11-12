@@ -3,6 +3,104 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-12: the teacher's role, read from predictions and the archive
+
+No run. The owner allowed, in this session, reading four archived
+experiments (`audits/protocol_v2/p217_interleave_s0`,
+`p220_placement_grid_s0`, `p238_virtual_teacher_s0`, `p244_self_teacher_s0`)
+and pairing the method rows with the archived teacher zero-shot row
+(`p253teacher_zeroshot`, Spider test, HF, 4-bit, fedicl-sql `24f0a5b`). The
+method rows are vLLM inproc, so those paired counts mix two engines.
+
+Spider test, seed 0, by kind of failure (computed from the committed
+predictions):
+
+| Row | Execution errors | of them `no such column` | Wrong results | Extra-hard EX |
+|---|---:|---:|---:|---:|
+| FedAvg R3 | 211 | 177 | 406 | 49.0 |
+| `gold_k2aaa_a3` | 144 | 123 | 434 | 54.3 |
+| `hinton_k2aaa_a3` | 129 | 111 | 444 | 54.3 |
+| DPO r3 from FedAvg R3 | 101 | 61 | 433 | 56.6 |
+| DPO r3 from `gold_k2aaa_a3` | 71 | 50 | 461 | 59.9 |
+| DPO r3 from `hinton_k2aaa_a3` | **58** | **41** | 442 | **63.0** |
+
+- No line writes BIRD-style SQL on Spider test (backticks, `CAST`,
+  `INNER JOIN`: 0 rows in every row above).
+- Hinton line against gold line at round 3 (+32 rows): 25 come from wrong
+  results (85 become right, 60 become wrong), 7 from execution errors
+  (24 / 17). Against the FedAvg line (+34 rows) 25 come from execution
+  errors. The lead is on extra-hard questions on both seeds (seed 1: 62.7
+  against 59.1 for the FedAvg line); hard is level.
+
+Teacher zero-shot against the method (Spider test):
+
+| | Teacher 7B zero-shot | Method, seed 0 | Method, seed 1 |
+|---|---:|---:|---:|
+| EX | 77.22 | 76.71 | 77.04 |
+| Execution errors / wrong results | 76 / 413 | 58 / 442 | 74 / 419 |
+| Easy / medium / hard / extra | 89.1 / **82.3** / **70.8** / 57.7 | **89.8** / 79.8 / 68.3 / **63.0** | |
+| Right only in the method / only in the teacher | | 151 / 162 | 162 / 166 |
+| Method's wrong-result rows that the teacher gets right | | 129 of 442 | 125 of 419 |
+| Method's execution-error rows that the teacher gets right | | 33 of 58 | 41 of 74 |
+| Right in at least one of the two | | 84.26 | 84.77 |
+
+- Same EX, different rows: the teacher is right on about 160 rows the
+  method misses (7.5 points) and wrong on about 155 the method gets right.
+  Of the 410 rows the method misses on both seeds the teacher is right on
+  108.
+- Whether the Hinton line wins on the rows the teacher gets right (the
+  teacher is right on 77% of all rows):
+
+| Pair | Right only in the first: teacher right | Right only in the second: teacher right |
+|---|---:|---:|
+| `gold_k2aaa_a3` / `hinton_k2aaa_a3` (before DPO) | 48 of 76 (63%) | 66 of 81 (81%) |
+| gold DPO r3 / Hinton DPO r3 | 51 of 77 (66%) | 70 of 109 (64%) |
+| FedAvg DPO r3 / Hinton DPO r3, seed 0 | 62 of 101 (61%) | 99 of 135 (73%) |
+| FedAvg DPO r3 / Hinton DPO r3, seed 1 | 50 of 84 (60%) | 69 of 110 (63%) |
+| FedAvg R3 / FedAvg DPO r3 (no teacher) | 41 of 59 (69%) | 106 of 142 (75%) |
+
+  Before DPO the Hinton start moves toward the teacher's answers at equal
+  EX. After DPO the lead over the gold line is not on the teacher's rows
+  (64% against 66%).
+
+Archive, soft targets without the teacher (`p238`, `p244`; this student and
+split, seed 0, HF, server stage K2 then 3 FedAvg rounds, no DPO; same loss
+as the Hinton stage, lambda 0.5 / 0.5, T 2):
+
+| Server-stage target | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---:|---:|---:|---:|---:|
+| gold SQL | 70.41 | 61.22 | **56.38** | 52.34 | **40.03** |
+| virtual teacher (gold token 0.73, the rest uniform) | 70.50 | 60.83 | 55.03 | 55.70 | 39.83 |
+| self teacher (logits of the base 1.5B student) | 70.21 | 61.02 | 54.84 | 52.71 | 32.27 |
+| 7B teacher (Hinton) | **72.53** | **61.81** | **56.38** | **58.32** | 38.53 |
+
+- Hinton against the virtual teacher: Spider dev +2.03 (54 / 33, p = 0.03),
+  DK +2.62 (29 / 15, p = 0.05). Against the self teacher: Spider dev +2.32
+  (62 / 38, p = 0.02), DK +5.61. The virtual teacher equals gold on Spider
+  dev (+0.10) and gives +3.36 on DK (34 / 16, p = 0.02).
+- So before DPO the lead on Spider dev needs the 7B teacher; about half of
+  the DK lead comes from any soft target. Not measured: these controls on
+  Spider test, and after DPO.
+
+Archive, where the server stage sits:
+
+- `p220` (Qwen2.5-Coder-0.5B, split `alpha_0.5/k5`, seed 0; every arm has 2
+  BIRD epochs and 3 Spider rounds). Hinton arms on Spider dev / Realistic /
+  SYN / DK / BIRD dev: K>K>A>A>A 63.93 / 51.97 / 48.26 / 46.92 / 27.71;
+  A>K>A>K>A 62.57 / 52.17 / 50.48 / 47.85 / 28.88; A>K>K>A>A 63.15 / 51.77 /
+  49.71 / 47.48 / 27.77. Server stage first against interleaved: Spider dev
+  +1.35 (58 / 44, p = 0.20), SYN -2.22 (40 / 63, p = 0.03), the other sets
+  within 1.2 points and not separable.
+- `p217` (Qwen2.5-1.5B-Instruct, not the Coder model): A>K>A>K>A against
+  A>K>A>A, which also adds a BIRD epoch: Hinton 69.54 against 67.60 on
+  Spider dev (51 / 31, p = 0.04), gold 67.50 against 67.89.
+- Neither is this student and split, and neither has DPO after it. On this
+  setup the server knowledge is not lost in the client rounds: BIRD dev of
+  the Hinton line is 38.33 after 3 FedAvg rounds and 41.20 after DPO.
+
+No decision yet. Using the archived rows in the paper needs the owner's
+approval.
+
 ## 2026-11-12: no soft-target control for the teacher
 
 Owner decision: no label smoothing or self-distillation server stage is
