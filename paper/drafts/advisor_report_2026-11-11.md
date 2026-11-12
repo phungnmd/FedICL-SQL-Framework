@@ -29,6 +29,8 @@ chia từ Spider train:
    round 1 (609 cặp dùng gold SQL) xuống 3,208 ở round 3. Client chỉ gửi
    adapter; data, sample và các cặp ở lại client.
 
+![Tổng quan method FedLS-SQL và vòng federated DPO tại client.](figures/fedls_sql_method.png)
+
 **Kết quả** trên Spider test:
 
 | Cấu hình                  |        EX |        EM |
