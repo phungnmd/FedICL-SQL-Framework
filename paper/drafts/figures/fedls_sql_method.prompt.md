@@ -1,6 +1,6 @@
 # FedLS-SQL method figure
 
-Source: `../advisor_report_2026-11-11.md`, Method section.
+Source: Method section of the advisor report dated 2026-11-11.
 Generator: built-in imagegen, image edit.
 Style reference: architecture figure supplied by the owner in this session.
 

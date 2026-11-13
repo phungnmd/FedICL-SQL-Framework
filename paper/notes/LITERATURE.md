@@ -3,13 +3,17 @@
 Closest published work to the fixed setup in `RESEARCH_STATE.md` (5 non-IID
 Spider clients, Qwen2.5-Coder-1.5B-Instruct student with LoRA, optional frozen
 Qwen2.5-Coder-7B-Instruct teacher at the server on public BIRD train, two
-24 GB GPUs). Compiled 2026-11-06; sections 1.6, 1.7 and FedAuto added 2026-11-07.
+24 GB GPUs). Compiled 2026-11-06; updated 2026-11-14 with the papers from
+five research reports on journal articles, wrong-result SQL, label-free
+training, the server stage and federated mechanisms.
 
 How to read this file:
 
-- Every paper was opened at the URL given. "Full" means the numbers come from
-  the paper's tables; "abstract" means only the abstract was read, so its
-  numbers are the abstract's claims.
+- "Full" and named sections/tables distinguish reading the paper body from
+  reading only its abstract. Sections 1.1-1.7 retain their earlier reading
+  records; new entries in 1.8-1.15 were checked against primary sources on
+  2026-11-14. An abstract supports its stated mechanism and scope, not an
+  assessment of experimental details absent from it.
 - Venues come from the ACL Anthology, the proceedings page, or the arXiv
   comment field. "Venue not verified" means the arXiv page lists none; check
   before citing a venue.
@@ -66,7 +70,7 @@ reference.
 | FedRLHF, Fan et al., AAMAS 2025 ([arXiv 2412.15538](https://arxiv.org/abs/2412.15538)) | Local reward functions, personalized RLHF, convergence guarantees | small | MovieLens, IMDb | on par with centralized RLHF | Theory-focused | abstract |
 | PubSwap, Nayak et al., 2026 ([arXiv 2604.12160](https://arxiv.org/abs/2604.12160)) | Federated GRPO; server broadcasts public prompts, clients swap correct responses on them | Qwen2.5-Math-1.5B, Qwen3-1.7B/4B, Llama-3.2-3B, LoRA r=32 | MATH, DeepMath, MedQA | Pass@1 Qwen3-1.7B: FedAvg-GRPO 50.7 vs 55.8; at few local steps sometimes worse (Qwen3-4B tau=40: 66.5 vs 65.4) | Public data injected into federated RLVR at small sizes. Gains come from drift reduction at many local steps; no teacher; math | full |
 | Fed-GRPO, Guo et al., 2026 ([arXiv 2610.11502](https://arxiv.org/abs/2610.11502)) | Reward-std-weighted aggregation for federated GRPO | Qwen2.5-3B, Qwen3-4B | MATH, MBPP | Math avg: centralized 40.21, FedAvg 37.10, Fed-GRPO 39.06 | FedAvg already near centralized with an objective reward | full |
-| FedMOA, 2026 ([arXiv 2602.00453](https://arxiv.org/abs/2602.00453)) | Federated GRPO with heterogeneous rewards | not in abstract | math, code | up to +2.2 over FedAvg | Aggregation-side method | abstract |
+| FedMOA, 2026 ([arXiv 2602.00453](https://arxiv.org/abs/2602.00453)) | Federated GRPO with heterogeneous rewards | Qwen2.5-1.5B-Instruct | math, code | MATH 62.6 to 64.8, Heter+Heter, Table 1 | Aggregation-side method; matched rows and setup checked in section 1.12 | sections 3.3-4, Table 1 |
 
 No federated DPO or RLVR work on Text-to-SQL was found, and none combines a
 frozen server teacher with federated preference optimization.
@@ -181,8 +185,9 @@ Collected for `DIRECTION.md` section 6. "Read" names what was checked.
 | FedCoT, Li et al. ([2508.10020](https://arxiv.org/abs/2508.10020)) | Clients generate and select chains locally with a discriminator; medical tasks | No execution verifier, no server teacher | abstract |
 | FedDF ([2006.07242](https://arxiv.org/abs/2006.07242)) | NLP results only as a figure (DistilBERT, alpha 1) | Its gain comes from fusing drifted, heterogeneous models | figure |
 
-Timing: no LLM paper compares a server step after every round with one-time
-server training before FL.
+Timing: the reviewed sources do not provide a matched LLM comparison of a
+server step after every round against one-time server training before FL
+under this project's out-of-domain public-data setup.
 
 What this means for the server step: on SQL-only greedy Spider EX, the
 published gains from KD or RL on public data are about 1 point once the
@@ -190,6 +195,207 @@ student has seen Spider; larger KD gains need an in-domain teacher or a weak
 base student. CoT training has the largest gains over gold SFT (OmniSQL), at
 7B, but on Spider greedy CoT SFT alone stays below SQL-only SFT and moves
 ahead only after execution-labelled DPO rounds (Liu et al., ExCoT).
+
+### 1.8 Consistency as supervision and execution-only preference labels
+
+These papers distinguish three signals: agreement among samples, successful
+execution, and agreement with a gold result. They are different sources of
+supervision. ScPO is the closest preference objective for training on vote
+labels; ExeSQL is the closest SQL precedent for executes-versus-fails pairs.
+
+| Paper / publication | Signal and scope | Evidence / relation to this setting | Read on 2026-11-14 |
+|---|---|---|---|
+| Prasad et al., **Self-Consistency Preference Optimization (ScPO)**, ICML 2025 ([paper](https://arxiv.org/abs/2411.04109)) | Preference pairs from answer-vote counts; consistency-weighted preference loss plus NLL; Llama-3 8B, math and logic | Table 1, GSM8K greedy after two iterations: ScPO 63.91, gold IRPO 64.29; semi-supervised ScPO 66.64. Sections 2-3 use k=8 at T=0.7 for math, with an additional 8 higher-temperature responses to find rejected answers when needed. Not an always-eight-sample recipe, and not SQL or FL | full, sections 2-5, Tables 1-5 |
+| Zuo et al., **TTRL: Test-Time Reinforcement Learning**, arXiv 2025 ([paper](https://arxiv.org/abs/2504.16084)) | RL on majority-vote rewards without reference answers | Source of vote-reward training, including training on unlabelled test questions. The project can reuse the signal on training questions only; its test-time adaptation protocol conflicts with the project's data roles | abstract |
+| Shafayat et al., **Can Large Reasoning Models Self-Train? (SRT)**, arXiv 2025 ([paper](https://arxiv.org/abs/2505.21444)) | Majority agreement supplies RL rewards on reasoning tasks | Reports improvement followed by reward hacking and collapse under prolonged self-training. Agreement is not an independent correctness check | abstract |
+| Yu et al., **RESTRAIN: From Spurious Votes to Signals**, arXiv 2025 ([paper](https://arxiv.org/abs/2510.02172)) | Penalizes overconfident or low-consistency rollouts while using the answer distribution for label-free RL | A concrete treatment of wrong majorities; evidence is mathematical/scientific reasoning, not SQL result-set voting | abstract; conference venue not checked |
+| Huang et al., **Self-Improvement in Language Models: The Sharpening Mechanism**, arXiv 2024 ([paper](https://arxiv.org/abs/2412.01951)) | Theory and experiments on amortizing inference-time verification through SFT/RLHF | Provides the sharpening/amortization framework. Similar aggregate accuracy before voting and after training does not establish that the same questions are solved | abstract; conference venue not checked |
+| Gkountouras et al., **Consensus as Privileged Context for Label-Free Self-Distillation (CANON)**, arXiv 2026 ([paper](https://arxiv.org/abs/2607.13643)) | A frozen model conditioned on a majority-answer solution gives token-level supervision on student rollouts | An alternative to using consensus only as a scalar reward or preference; math/science, not execution-labelled SQL | abstract |
+| Zhou et al., **Evolving Language Models without Labels (EVOL-RL)**, arXiv 2025, revised 2026 ([paper](https://arxiv.org/abs/2509.15194)) | Majority selection plus novelty and entropy terms | Identifies selection-induced diversity collapse, which matters when tracking pass@k as well as greedy accuracy | abstract |
+| Zhang et al., **CodeDPO: Aligning Code Models with Self Generated and Verified Source Code**, ACL 2025 per authors' camera-ready record ([paper](https://arxiv.org/abs/2410.05605)) | Self-generated code and tests ranked jointly by a PageRank-inspired procedure; correctness and efficiency preferences | Prior preference learning without external test annotations. Its generated-test signal differs from execution against an existing SQL database | abstract |
+| Liu et al., **DSTC: Direct Preference Learning with Only Self-Generated Tests and Code to Improve Code LMs**, arXiv 2024 ([paper](https://arxiv.org/abs/2411.13611)) | Self-generated tests/code, minimax selection and test-code concatenation; DPO/KTO | Another annotation-free code-preference precedent, not evidence for accurate SQL majority labels | abstract |
+| Zhang et al., **ExeSQL: Self-Taught Text-to-SQL Models with Execution-Driven Bootstrapping for SQL Dialects**, Findings EMNLP 2025 ([ACL](https://aclanthology.org/2025.findings-emnlp.1320/); [body](https://arxiv.org/html/2505.17231v1)) | Execution-filtered synthesis and successful-versus-failed execution preferences for dialect adaptation; DeepSeek-Coder-7B, full fine-tuning, DPO plus SFT loss | Appendix A.4, Table 9: SFT to SFT+DPO, PostgreSQL 71.36 to 71.98, MySQL 70.34 to 72.86. These are dialect-adaptation results, not standard Spider-test greedy comparisons at 1.5B | sections 3.4, A.3-A.4, Table 9 |
+| Pedrozo et al., **SQL-Zero: Self-Evolving Text-to-SQL**, arXiv 2026 ([paper](https://arxiv.org/abs/2609.04697)) | Proposer-solver self-play with GRPO and database execution, no annotated NL-SQL pairs; 3B/7B | A label-free SQL precedent with a different source of targets, the proposer's SQL. Its abstract reports BIRD-dev gains of 6.6/7.3 points over zero-shot; not federated or vote-DPO evidence | abstract |
+
+ScPO supports adapting consensus preferences to SQL, not assuming that a
+vote equals a gold label. Result-set agreement can merge semantically
+different SQL, including queries returning the same empty result (section
+1.10). The reviewed corpus contains no matched federated 1.5B SQL experiment
+establishing that vote-labelled DPO reproduces gold-labelled DPO.
+
+### 1.9 Execution-based decoding and learned verification
+
+| Paper / publication | Mechanism and scope | Evidence / relation | Read on 2026-11-14 |
+|---|---|---|---|
+| Shi et al., **Natural Language to Code Translation with Execution (MBR-EXEC)**, EMNLP 2022 ([paper](https://arxiv.org/abs/2204.11454)) | Selects candidates by agreement of execution outcomes; Spider, MBPP and NL2Bash | The direct source for execution-result voting/MBR, an inference procedure that does not update policy weights | abstract |
+| Ni et al., **LEVER: Learning to Verify Language-to-Code Generation with Execution**, ICML 2023 ([paper](https://arxiv.org/html/2302.08468v3)) | A learned verifier sees question, program and execution result; combines verifier and generator probabilities and aggregates equivalent outcomes | Table 2, Spider dev with code-davinci-002: greedy 75.3, execution pruning plus likelihood 77.3, LEVER 81.9. The table's MBR-EXEC 75.2 is a previous-work row, not a matched ablation on this generator | sections 2-4, Table 2 |
+| Sheng and Xu, **CSC-SQL: Corrective Self-Consistency in Text-to-SQL via Reinforcement Learning**, arXiv 2025 ([paper](https://arxiv.org/abs/2505.13271)) | GRPO-trained generator and revision model; revises the two most frequent candidate outputs | A multi-step decoding comparison, distinct from majority voting alone and from a single greedy student | abstract |
+| Borchmann and Wydmuch, **Query and Conquer: Execution-Guided SQL Generation**, arXiv 2025 ([paper](https://arxiv.org/abs/2503.24364)) | Execution-result similarity selects semantically consistent SQL candidates | Relevant inference baseline; no 1.5B federated training evidence is established by the abstract | abstract |
+| Richardson, **What Predicts Correctness in Text-to-SQL? A Selective-Prediction Study**, arXiv 2026 ([paper](https://arxiv.org/abs/2607.06799)) | Studies confidence signals and trained verifiers on BIRD/Spider | Abstract reports trained-verifier AUROC about 0.77-0.79 in distribution versus 0.66 on unseen schemas. This is ranking discrimination, not EX or a measured reranking gain | abstract |
+| Chow et al., **Inference-Aware Fine-Tuning for Best-of-N Sampling in Large Language Models**, arXiv 2024 ([paper](https://arxiv.org/abs/2412.15287v1)) | Fine-tuning optimizes best-of-N deployment rather than greedy output | A separate objective for training/decoding interactions; math and code, not SQL | abstract, v1 |
+
+Execution voting and learned verification add inference computation. A
+training claim needs comparison under the same decoding protocol, alongside
+greedy performance and pass@k. LEVER's previous-work MBR row cannot establish
+that voting offers no gain for a particular strong generator.
+
+### 1.10 Input grounding, semantic labels and synthetic SQL data
+
+| Paper / publication | Mechanism and scope | Evidence / relation | Read on 2026-11-14 |
+|---|---|---|---|
+| Zhong, Yu and Klein, **Semantic Evaluation for Text-to-SQL with Distilled Test Suites**, EMNLP 2020 ([paper](https://arxiv.org/html/2010.02840v1)) | Generates and distils databases that separate non-equivalent queries | Table 2: single-database denotation accuracy has mean false-positive rate 6.5% across 21 Spider-dev submissions, 11.0% on extra-hard. These rates describe those submissions, not the error rate of this project's training pairs | full, sections 4-6, Table 2 |
+| Pourreza and Rafiei, **Evaluating Cross-Domain Text-to-SQL Models and Benchmarks**, EMNLP 2023 ([paper](https://arxiv.org/abs/2310.18538)) | Manual and equivalence-based re-evaluation of questions, gold SQL and generated queries | Ambiguity, implicit assumptions and nondeterministic tied rows complicate scoring; the findings do not identify which of this project's errors are annotation errors | abstract |
+| Klopfenstein et al., **SpotIt: Evaluating Text-to-SQL Evaluation with Formal Verification**, ICLR 2026 per authors' accepted record ([paper](https://arxiv.org/abs/2510.26840)) | Bounded equivalence verification searches for counterexample databases; BIRD | A stricter evaluation mechanism, not evidence that the same mechanism improves 1.5B DPO training | abstract |
+| Zhu et al., **Human-Level Text-to-SQL via Reinforcement Learning on Verified Data, Without Pipeline Engineering**, arXiv 2026 ([paper](https://arxiv.org/abs/2603.20004)) | Expert-verified BIRD-Platinum data; ReViSQL-BIRD combines equivalence verification and process rewards | Separates training-data correction from reward changes. Abstract's 11-16% improvements concern Qwen3-235B on Arcwise-Plat/Spider2, not an isolated equivalence-reward ablation or a 1.5B Spider result | abstract, v4 |
+| Chen et al., **GBV-SQL: Guided Generation and SQL2Text Back-Translation Validation for Multi-Agent Text2SQL**, ACL 2026 ([ACL](https://aclanthology.org/2026.acl-long.837/)) | Back-translates SQL to check alignment with the question | A semantic-validation pipeline, not a measurement of this project's residual-error ceiling | abstract |
+| Li et al., **RESDSQL: Decoupling Schema Linking and Skeleton Parsing for Text-to-SQL**, AAAI 2023 ([paper](https://arxiv.org/abs/2302.05965)) | Ranks schema items before skeleton-aware seq2seq decoding | Supports schema grounding as a distinct component; encoder-decoder input restrictions differ from full-schema decoder prompts | abstract |
+| Lin et al., **Bridging Textual and Tabular Data for Cross-Domain Text-to-SQL Semantic Parsing (BRIDGE)**, Findings EMNLP 2020 ([paper](https://arxiv.org/abs/2012.12627)) | Adds question-mentioned cell values to a joint question/schema representation | A source for value anchoring; no adaptation to the project's prompt is implied | abstract |
+| Qin et al., **ROUTE: Robust Multitask Tuning and Collaboration for Text-to-SQL**, arXiv 2024, revised 2025 ([paper](https://arxiv.org/abs/2412.10138)) | Auxiliary schema-linking, noise-correction and continuation tasks, then multitask prompting | Programmatically related SQL tasks are an alternative to changing the preference loss; venue not verified on the opened record | abstract |
+| Zhang et al., **SPFT-SQL: Enhancing Large Language Model for Text-to-SQL Parsing by Self-Play Fine-Tuning**, Findings EMNLP 2025 ([ACL](https://aclanthology.org/2025.findings-emnlp.59/); [body](https://arxiv.org/html/2509.03937v2)) | Verification-based iterative data synthesis followed by error-driven self-play; includes Qwen2.5-Coder-1.5B and CodeS-style schema processing | Table 1 reports Spider test EX 78.0 for 1.5B SFT and 82.3 for SPFT-SQL. Centralized synthetic-data training differs from this project's data roles. The 7B SFT values 79.0 and 83.7 in that table are dev TS and test EX respectively, not conflicting reports of one metric | sections 3-4, Table 1, Appendix A.3-A.4 |
+| Zhong et al., **Grounded Adaptation for Zero-shot Executable Semantic Parsing (GAZP)**, EMNLP 2020 ([paper](https://arxiv.org/html/2009.07396v3)) | Backward utterance generation plus cycle-consistency in a new database environment | Table 2, Spider dev EX: baseline 55.4, GAZP 59.2, synthesis on train databases 52.1, no cycle filter 52.3. The successful adaptation uses evaluation environments; it is not permissible training on this project's test databases | sections 2-3, Table 2 |
+| Saparina and Lapata, **Improving Generalization in Semantic Parsing by Increasing Natural Language Variation**, EACL 2024 ([paper](https://arxiv.org/abs/2402.08666)) | LLM-generated question reformulations for robustness | Supports linguistic-variation analysis; the abstract alone does not establish a gain on unmodified Spider | abstract |
+| Rączkowska et al., **RetrySQL: text-to-SQL training with retry data for self-correcting query generation**, arXiv 2025 ([paper](https://arxiv.org/abs/2507.02529)) | Corrupted and corrected reasoning steps for continued pretraining | Abstract explicitly reports LoRA SFT ineffective for its retry data and uses full-parameter pretraining. Its result does not justify a cheap LoRA-only replica | abstract; conference venue not checked |
+| Chen et al., **SQLCritic: Correcting Text-to-SQL Generation via Clause-wise Critic**, arXiv 2025 ([paper](https://arxiv.org/abs/2503.07996)) | Clause-aware critiques, with adaptive-beta DPO for the critic | Preference training improves a separate critic, not the SQL generator directly | abstract |
+| Hoang et al., **FINER-SQL: Boosting Small Language Models for Text-to-SQL**, arXiv 2026 ([paper](https://arxiv.org/abs/2605.03465)) | GRPO with memory and operation-level atomic rewards; small-model Text-to-SQL | A fine-grained reward alternative; headline EX in the abstract is for 3B and does not supply a matched 1.5B SQL-only DPO comparison | abstract |
+| Chen et al., **DualSQL: Text-to-SQL with Multi-Agent Reinforcement Learning**, arXiv 2026 ([paper](https://arxiv.org/abs/2609.18135)) | Shared-backbone schema-linking and SQL agents; robust execution match (REX) rewards | Another semantic-reward precedent, at 4B/8B with database tools rather than one SQL-only greedy policy | abstract |
+
+CodeS (section 1.4) remains the main input-component reference. Its
+representative values, value retrieval, keys and schema filtering need to be
+separated when describing a prompt. Neither benchmark-audit percentages nor
+another system's cleaned-set score estimates how many errors of this model
+are fixable; that requires an audit of this model's own questions.
+
+### 1.11 Distillation controls, public-data training and later optimization
+
+| Paper / publication | Mechanism and scope | Evidence / relation | Read on 2026-11-14 |
+|---|---|---|---|
+| Yuan et al., **Revisiting Knowledge Distillation via Label Smoothing Regularization**, CVPR 2020 ([paper](https://arxiv.org/abs/1909.11723)) | KD as learned label smoothing; self-teaching and manually specified virtual teachers | Published basis for comparing teacher logits with teacher-free soft targets. Vision results motivate a control, not a conclusion about SQL transfer | abstract |
+| Piskorz et al., **On-Policy or Off-Policy Learning? A Systematic Study of Distillation Dynamics**, arXiv 2026 ([paper](https://arxiv.org/html/2609.35259v1)) | Separates rollout policy, KL direction and learning rate for Llama/Qwen strong-to-weak KD | Section 5: forward KL has higher pass@10 at similar pass@1 on Countdown-3. Subsequent RLVR favors some off-policy starts; reverse-KL checkpoints collapse at LR 1e-5, but an off-policy reverse-KL start at 5e-5 also performs strongly. This is not a universal forward-KL advantage after reward training | sections 4-5, Figures 5-6 and discussion of Figure 26 |
+| Zhang et al., **Towards the Law of Capacity Gap in Distilling Language Models**, ACL 2025 ([paper](https://arxiv.org/abs/2311.07052)) | Studies non-monotonic teacher-size effects and an empirical optimal-teacher scaling law | A stronger teacher need not yield a better student. Its fitted law is not a teacher-size prescription for Qwen SQL post-training | abstract |
+| Peng et al., **Pre-training Distillation for Large Language Models: A Design Space Exploration**, arXiv 2024 ([paper](https://arxiv.org/abs/2410.16215)) | Teacher logits, losses, scale and offline/online KD in pretraining; 1.9B student in the initial study | Adjacent evidence about KD design; pretraining gains cannot be assumed to persist through this project's SFT and DPO stages | abstract; venue not verified on opened record |
+| Wu et al., **Rethinking Kullback-Leibler Divergence in Knowledge Distillation for Large Language Models (AKL)**, COLING 2025 ([paper](https://arxiv.org/abs/2404.02657)) | Adaptive mixture of forward/reverse KL during finite training | A divergence alternative; no matched post-DPO SQL result established here | abstract |
+| Liu et al., **Understanding Knowledge Distillation in Post-Training: When It Helps and When It Fails**, arXiv 2026 ([paper](https://arxiv.org/abs/2606.22942)) | Tulu 3 KD/SFT comparisons across data volume and teacher strength | KD's advantage shrinks with more data; a stronger instruction teacher can restore it. This is a different task regime from frozen-teacher BIRD-to-Spider transfer | abstract |
+| Busbridge et al., **Distillation Scaling Laws**, ICML 2025 ([paper](https://arxiv.org/abs/2502.08606)) | Compute allocation between teacher/student, including existing-teacher and newly trained-teacher cases | Distillation benefit depends on student size and total compute; no Text-to-SQL-specific optimum | abstract |
+| Li et al., **Small Models Struggle to Learn from Strong Reasoners**, arXiv 2025 ([paper](https://arxiv.org/abs/2502.12143)) | Studies CoT complexity and mixes short/long or weaker/stronger-teacher reasoning | Models up to 3B do not consistently benefit from long CoT; this concerns reasoning-trace distillation rather than a general failure of teacher logits | abstract |
+| Chen et al., **SODA: Semi On-Policy Black-Box Distillation for Large Language Models**, Efficient Reasoning at COLM per authors' comment ([paper](https://arxiv.org/abs/2604.03873)) | Contrasts teacher outputs with a static snapshot of student responses | Distillation without refreshing rollouts at every step; no evidence here about a later SQL preference stage | abstract |
+| Yang et al., **Learning beyond Teacher: Generalized On-Policy Distillation with Reward Extrapolation**, arXiv 2026 ([paper](https://arxiv.org/abs/2602.12125)) | Separates reward scaling and reference policy in OPD; math/code | Student-beyond-teacher results under this objective do not establish gains from simply enlarging the teacher in Hinton KD | abstract |
+| Cai et al., **Text2SQL-Flow: A Robust SQL-Aware Data Augmentation Framework for Text-to-SQL**, arXiv 2025, revised 2026 ([paper](https://arxiv.org/abs/2511.10192)) | SQL-aware synthesis, execution checks, NL-SQL correspondence verification and CoT; releases SQLFlow | Data-quality precedent; no matched 1.5B BIRD/SynSQL initialization followed by federated DPO is established by its abstract | abstract |
+| Hoang et al., **Distill-C: Enhanced NL2SQL via Distilled Customization with LLMs**, NAACL 2025 Industry Track ([paper](https://arxiv.org/abs/2504.00048)) | Teacher-generated synthetic data customized to NL2SQL domains | A teacher-correction/customization precedent; its teacher access and centralized data synthesis differ from the server-only public-data rule | abstract |
+
+For initialization and timing, [Chen et al., ICLR 2023](https://arxiv.org/abs/2206.11488)
+find that pretraining stabilizes aggregation and narrows the FL-centralized
+gap on vision tasks without eliminating local drift; [Nguyen et al.](https://arxiv.org/abs/2210.08090)
+study reduced sensitivity to data/system heterogeneity from pretrained
+starts. [Mai et al.](https://arxiv.org/abs/2210.02614) study auxiliary server
+learning even with a distribution different from the clients'. These three
+abstracts were checked; none establishes the best placement of a frozen
+teacher's public-data step in a federated SQL-DPO pipeline.
+
+### 1.12 Recent federated objectives, aggregation and evaluation protocols
+
+The names **FGRPO**, **Fed-GRPO** and **FedGRPO** below denote distinct
+papers. A baseline called FedGRPO inside FedMOA means local GRPO plus
+FedAvg, not Zhu et al.'s server-training method.
+
+| Paper / publication | Mechanism and setup | Evidence / relation | Read on 2026-11-14 |
+|---|---|---|---|
+| Chen et al., **FGRPO: Federated GRPO with Adaptive Aggregation on Non-IID Data**, arXiv 2026 ([body](https://arxiv.org/html/2606.03094)) | Aggregation from reward improvement relative to a client EMA baseline; vision-language math, primarily 5 clients | Table 3 isolates progress weighting: Open-R1 40.66 to 41.86, GEOQA 38.66 to 40.76. Uses Qwen-VL-family models, not SQL decoders; appendix varies client count and heterogeneity | sections 4.2-4.3, Table 3, Appendix D.4 |
+| Zhu et al., **FedGRPO: Privately Optimizing Foundation Models with Group-Relative Rewards from Domain Client**, AAAI 2026 oral per authors' comment ([paper](https://arxiv.org/abs/2602.12014)) | A competence graph selects client experts to return scalar rewards on server candidates | Trains a server foundation model rather than a client-trained deployed SLM; no raw-data exchange is a different structural design from model-update FL | abstract |
+| Jiang, **Distributed Direct Preference Optimization**, arXiv 2026 ([paper](https://arxiv.org/abs/2605.20696)) | Federated/decentralized DPO convergence and time complexity under drift and preference heterogeneity | Theory context; not execution-labelled Text-to-SQL evidence | abstract |
+| Srewa et al., **A Systematic Evaluation of Preference Aggregation in Federated RLHF for Pluralistic Alignment of LLMs**, NeurIPS 2025 workshop per authors' comment ([paper](https://arxiv.org/abs/2512.08786)) | Historical alignment performance weights group rewards in PPO | Human preference conflict differs from a common SQL correctness criterion | abstract |
+| Nourzad et al., **FIRM: Federated In-client Regularized Multi-objective Alignment for Large Language Models**, arXiv 2025 ([paper](https://arxiv.org/abs/2511.16992)) | Local multi-objective regularization against disagreement drift | A preference-conflict method, not a demonstrated correction for SQL execution labels | abstract |
+| Wang et al., **Beyond Client Clustering: Fine-Grained Preference Alignment in Federated RLHF via Self-Evolving Routing (FedPrism)**, IJCAI 2026 ([proceedings](https://ijcai.org/proceedings/2026/552)) | Per-instance routing to preference experts with routing learned from expert losses | A close successor to preference-selector federation; different from local execution-labelled policy DPO | proceedings abstract |
+| Abourayya et al., **Beyond Parameter Aggregation: Semantic Consensus for Federated Fine-Tuning of LLMs**, arXiv 2026 ([paper](https://arxiv.org/abs/2605.11857)) | Client generations on public prompts form consensus pseudo-labels | Public-prompt behavioral exchange differs from private-database execution-result clusters | abstract |
+| Du et al., **Data Quality Control in Federated Instruction-tuning of Large Language Models (FedDQC)**, arXiv 2024 ([paper](https://arxiv.org/abs/2410.11540)) | Client instruction-response quality scores and easy-to-hard training | A quality-control precedent without a task execution verifier | abstract |
+| Gao et al., **FlowerTune: A Cross-Domain Benchmark for Federated Fine-Tuning of Large Language Models**, NeurIPS 2025 Datasets and Benchmarks ([proceedings](https://proceedings.neurips.cc/paper_files/paper/2025/hash/563991b5c8b45fe75bea42db738223b2-Abstract-Datasets_and_Benchmarks_Track.html); [body](https://arxiv.org/html/2506.02961v2)) | 26 models across four domains; Code-Alpaca has 10 clients, 2 per round, 15 rounds; MBPP/HumanEval/MultiPL-E | Tables 7-8, Qwen2.5-7B base with DoRA: coding average FedAvg 45.25, FedProx 44.65, FedAvgM 46.77, FlexLoRA 43.47. This is neither a Coder-model nor a LoRA-only comparison | sections 2-4.3, Tables 1-2, 7-8 |
+| Zhang et al., **FedRot-LoRA: Mitigating Rotational Misalignment in Federated LoRA**, ICML 2026 ([PMLR](https://proceedings.mlr.press/v306/zhang26cc.html)) | Orthogonally aligns low-rank factors before averaging | Addresses LoRA-factor aggregation error on NLU/generation; no DPO-specific effect established here | proceedings abstract |
+| Bian et al., **LoRA-FAIR: Federated LoRA Fine-Tuning with Aggregation and Initialization Refinement**, ICCV 2025 per authors' comment ([paper](https://arxiv.org/abs/2411.14961)) | Corrects factor aggregation and refines initialization; vision models | Related aggregation mechanism, not direct SQL evidence | abstract |
+| Jhunjhunwala et al., **FedRPCA: Enhancing Federated LoRA Aggregation Using Robust PCA**, arXiv 2025 ([paper](https://arxiv.org/abs/2506.01194)) | Shared low-rank plus client-specific sparse update components | Reports high cosine similarity of client updates; motivates measuring actual update differences before attributing gains to drift reduction | abstract |
+| Huang et al., **Stabilized Fine-Tuning with LoRA in Federated Learning: Mitigating the Side Effect of Client Size and Rank via the Scaling Factor (SFed-LoRA)**, arXiv 2026 ([paper](https://arxiv.org/abs/2603.08058)) | Scaling rule for client-count/rank-induced instability | Adjacent LoRA aggregation evidence, not an execution-DPO control | abstract |
+| Singh et al., **Learning to Collaborate: An Orchestrated-Decentralized Framework for Peer-to-Peer LLM Federation (KNEXA-FL)**, AAAI 2026 per authors' comment ([paper](https://arxiv.org/abs/2601.17133)) | Bandit-based peer matching and distillation among PEFT code agents | Federated code precedent without a central model-update aggregator | abstract |
+
+Updated evidence for existing entries in section 1.3:
+
+- **Fed-GRPO**, [Table 4](https://arxiv.org/html/2610.11502): average 37.10
+  with size-weighted FedAvg, 38.01 with reward-standard-deviation weighting,
+  39.07 after reward calibration, 39.06 after sparse communication. The
+  isolated weighting effect is 0.91 points, not the full method's gain.
+- **FedMOA**, [Table 1](https://arxiv.org/html/2602.00453): uses
+  Qwen2.5-1.5B-Instruct (not Coder), 10 clients and 3 rounds in main math
+  runs, 15 clients in mixed-task runs. In Heter+Heter, MATH rises from 62.6
+  to 64.8 and HumanEval from 50.61 to 52.44 against local GRPO plus FedAvg.
+- **pFedDPO**, [Jiang and Sarkar](https://arxiv.org/abs/2610.12885): the
+  existing entry is *Personalized Federated Direct Preference Optimization
+  via LoRA Adapters*, AAAI Fall Symposium Series 2026 per authors' comment;
+  shared base synchronization and private personalized adapters.
+
+Client pair-count weighting matches the weighting of a per-pair empirical
+objective. Multiple local optimizer steps followed by parameter averaging
+are not identical to centralized DPO. Similarly, [DAPO's dynamic sampling](https://arxiv.org/html/2503.14476)
+filters groups after current rollouts; it does not establish lossless future
+sampling skips from cached outcomes. [Lanchantin et al.](https://arxiv.org/abs/2506.21495)
+compare offline, semi-online and online DPO/GRPO, finding the latter two
+stronger than offline on math/instruction following. Resampling in each FL
+round requires client compute even when it adds no communication round.
+
+### 1.13 Privacy of updates, preference data and deployed models
+
+| Paper / publication | Threat or finding | Boundary relevant here | Read on 2026-11-14 |
+|---|---|---|---|
+| Bossy et al., **Mitigating Unintended Memorization with LoRA in Federated Learning for LLMs**, TMLR 2026 ([paper](https://arxiv.org/abs/2502.05087)) | Compares unintended memorization under LoRA and full fine-tuning | Reduced memorization is not a formal privacy guarantee or proof of no cross-client extraction | abstract |
+| Feng et al., **Exposing Privacy Gaps: Membership Inference Attack on Preference Data for LLM Alignment**, AISTATS 2025 ([PMLR](https://proceedings.mlr.press/v258/feng25a.html)) | Membership inference on preference data; DPO more vulnerable than PPO in the tested setting | Relevant to preference-data exposure, not a demonstrated attack on federated SQL updates | proceedings abstract |
+| Hu et al., **Simple Yet Effective: Extracting Private Data Across Clients in Federated Fine-Tuning of Large Language Models**, Findings IJCNLP-AACL 2025 ([ACL](https://aclanthology.org/2025.findings-ijcnlp.113/)) | Semi-honest participant extracts other clients' memorized PII using local context | Chinese legal-domain benchmark, not SQL-specific; global-model leakage remains possible without raw-data uploads | proceedings abstract |
+| Guo et al., **Can Federated Learning Safeguard Private Data in LLM Training? Vulnerabilities, Attacks, and Defense Evaluation**, Findings EMNLP 2025 per authors' comment ([paper](https://arxiv.org/abs/2509.20680)) | Extraction from global models and update tracking | Model-update isolation and model-output exposure are separate concerns | abstract |
+| Petrov et al., **DAGER: Exact Gradient Inversion for Large Language Models**, arXiv 2024 ([paper](https://arxiv.org/abs/2405.15586)) | Honest-but-curious server with gradient access reconstructs text | Its observed gradients differ from this project's multi-epoch LoRA adapter updates | abstract |
+| Sami et al., **MineGrad: Gradient Inversion Attacks on LoRA Fine-Tuning**, AISTATS 2026 ([PMLR](https://proceedings.mlr.press/v300/sami26a.html)) | Malicious server manipulates the model/initialization to enable inversion | Stronger attacker than an honest-but-curious aggregator; not proof of extraction under the project's training schedule | proceedings abstract |
+| Liu et al., **SAFENLIDB: A Privacy-Preserving Safety Alignment Framework for LLM-based Natural Language Database Interfaces**, AAAI 2026 extended version per authors' comment ([paper](https://arxiv.org/abs/2511.06778)) | DPO-based safety alignment against database-interface attacks | Deployment-time access and disclosure risks, distinct from federated update leakage | abstract |
+
+The privacy statement remains structural: questions, SQL, databases and
+execution results stay at their clients; model updates are exchanged.
+The cited attacks preclude inferring differential privacy or resistance to
+memorization, membership inference or inversion from that structure alone.
+
+### 1.14 Recent journal articles on SQL, query distillation and federated LoRA
+
+These are related-work examples from the journal-article survey. Their
+publication does not estimate acceptance probability or select a venue for
+this paper. Abstract-only entries do not support claims that an article
+lacks seeds, ablations or baselines.
+
+| Paper / publication | Mechanism and relation | Read on 2026-11-14 |
+|---|---|---|
+| Tritto et al., **GradeSQL: Outcome reward models for intelligent Text-to-SQL generation from LLMs**, JIIS 2026 ([publisher](https://link.springer.com/article/10.1007/s10844-026-01071-6)) | Execution-labelled outcome verifiers rank SQL candidates. RQ3 text reports Spider test 87.47 versus majority voting 85.47 at N=32. Separate generator/verifier inference, not policy DPO; directly relevant beside LEVER | full HTML methods/results, RQ3 text; standalone table endpoint unavailable |
+| Yi and Chen, **SKT-SQL: multi-decoupling and skeleton prompt framework for text-to-SQL on small-scale LMs**, JIIS 2025 ([publisher](https://link.springer.com/article/10.1007/s10844-025-00963-3)) | Schema selection, SQL skeleton and T5 slot filling; execution-guided beam search. Small-model SQL precedent with a different architecture | abstract |
+| Xu et al., **PPR-SQL: a robust text-to-SQL system via probabilistic graph pruning and multi-view reasoning**, JIIS 2026 ([publisher](https://link.springer.com/article/10.1007/s10844-026-01049-4)) | PageRank on foreign-key links, multi-view reasoning, value grounding and reranking; ensemble inference on BIRD | abstract |
+| Zhang et al., **Enhancing SQL generation through high-quality logical guidance (LU-SQL)**, JIIS 2026 ([publisher](https://link.springer.com/article/10.1007/s10844-026-01032-z)) | Question skeletons and interpreted representations retrieve logical examples and schema-linking experience | abstract |
+| Li et al., **Mitigating LLM hallucinations in Text-to-SQL parsing with a self-refinement feedback loop and memory augmentation (SRFL)**, JIIS 2026 ([publisher](https://link.springer.com/article/10.1007/s10844-026-01050-x)) | Memory and feedback extend DIN-SQL/DAIL-SQL; inference refinement rather than local preference training | abstract |
+| He et al., **OilRAGSQL: A RAG-based large language model framework for NL2SQL tasks in oilfield data analysis**, JIIS 2026 ([publisher](https://link.springer.com/article/10.1007/s10844-026-01055-6)) | Domain benchmark, terminology/schema knowledge base, two-hop retrieval and reranking | abstract |
+| Zhao et al., **MTC-SQL: a memory-enhanced and task-decomposed correction method for text-to-SQL**, IJDSA 2026 ([publisher](https://link.springer.com/article/10.1007/s41060-025-00995-6)) | Decomposition, schema/QA memory, retrieval and recursive correction with GPT-4 on Spider | abstract |
+| Eckmann et al., **HLR-SQL: Human-like reasoning for Text-to-SQL with the human in the loop**, Information Systems 138 (2026), 102670 ([author institution](https://www.dfki.de/web/forschung/projekte-publikationen/publikation/17167)) | Incremental SQL composition/testing and optional human feedback; Spider-HJ varies join complexity. DOI 10.1016/j.is.2025.102670 | author-institution metadata and PDF introduction/methods |
+| Jain and Verma, **Hierarchical aggregation framework for federated LoRA fine-tuning under heterogeneous and non-IID devices**, Wireless Networks 2026 ([publisher](https://link.springer.com/article/10.1007/s11276-026-04225-0)) | Update clustering, weighted LoRA stacking and SVD fusion; RoBERTa/DeBERTa on SST-2/QNLI, not DPO | abstract |
+| Wu et al., **Communication-efficient heterogeneous federated learning for large language models: federated asymmetric adaptive LoRA fine-tuning (Fed-A2LoRA)**, IJMLC 2026 ([publisher](https://link.springer.com/article/10.1007/s13042-026-03286-z)) | One-factor training, diagonal pruning and communication-budget adaptation; NLU/NLG | abstract and passages around Tables 15-16 |
+| Chen and Su, **PFDP: privacy-preserving federated distillation method for pretrained language models**, IJMLC 2025 ([publisher](https://link.springer.com/article/10.1007/s13042-025-02612-1)) | Local DP distillation and transfer aggregation for classification; an explicit privacy mechanism beyond data isolation | abstract |
+| Chong et al., **Distilcyphergpt: enhancing large language models for knowledge graph question answering in cypher through knowledge distillation**, DMKD 2025 ([publisher](https://link.springer.com/article/10.1007/s10618-025-01157-9)) | Natural-language-to-Cypher KD on knowledge graphs, adjacent to SQL generation but not relational SQL or FL | abstract |
+| Lin et al., **NL2SQL with partial missing metadata based on multi-view metadata graph compensation and reasoning**, Applied Intelligence 2024 ([publisher](https://link.springer.com/article/10.1007/s10489-023-05221-z)) | Graph completion compensates missing metadata; Spider with modified metadata | abstract |
+| Wen et al., **UCP: a unified framework for code generation with pseudocode-based multi-task learning and reinforcement alignment**, Journal of Supercomputing 2025 ([publisher](https://link.springer.com/article/10.1007/s11227-025-07487-1)) | Pseudocode/code multitask training and reinforcement alignment; adjacent code-generation evidence | abstract |
+| Hu et al., **Enhancing large language models for scientific entity recognition via fully automated self-distillation**, IJDSA 2026 ([publisher](https://link.springer.com/article/10.1007/s41060-026-01110-z)) | High-confidence pseudo-label filtering and fine-tuning; adjacent self-labelling evidence without SQL execution | abstract |
+
+### 1.15 Weak supervision, semi-supervised learning and conversational data
+
+| Paper / publication | Supervision and relation | Read on 2026-11-14 |
+|---|---|---|
+| Guo et al., **Improving Few-Shot Text-to-SQL with Meta Self-Training via Column Specificity (MST-SQL)**, IJCAI 2022 ([proceedings](https://ijcai.org/proceedings/2022/576)) | Confidence-weighted pseudo-labels for single-table few-shot SQL, not an execution-vote preference objective | proceedings abstract |
+| Wolfson et al., **Weakly Supervised Text-to-SQL Parsing through Question Decomposition**, Findings NAACL 2022 ([paper](https://arxiv.org/abs/2112.06311)) | Learns without SQL annotations but with QDMR structures and gold answers; this is weak supervision, not absence of correctness labels | abstract |
+| Liao et al., **LearNAT: Learning NL2SQL with AST-guided Task Decomposition for Large Language Models**, ICLR 2026 per authors' accepted record ([paper](https://arxiv.org/abs/2504.02327)) | Verifiable AST-guided decomposition and margin-aware optimization; adjacent structured-reasoning work. The earlier report's semi-supervised appendix numbers were not rechecked and are not transferred | abstract, revised 2026 record |
+| Abourayya et al., **Little is Enough: Boosting Privacy by Sharing Only Hard Labels in Federated Semi-Supervised Learning (FedCT)**, arXiv 2023, revised 2024 ([paper](https://arxiv.org/abs/2310.05696)) | Clients exchange hard labels on public unlabelled data; consensus supplies local pseudo-labels, including LLM fine-tuning experiments | abstract |
+| Diao et al., **SemiFL: Semi-Supervised Federated Learning for Unlabeled Clients with Alternate Training**, arXiv 2021, revised 2022 ([paper](https://arxiv.org/abs/2106.01432)) | Small labelled server dataset with completely unlabelled clients; vision SSL, a different data-role assignment from labelled Spider clients | abstract |
+
+[SParC](https://arxiv.org/abs/1906.02285) (ACL 2019) and
+[CoSQL](https://arxiv.org/abs/1909.05378) (EMNLP 2019) are annotated
+conversational SQL datasets, not naturally unlabelled question logs. Their
+abstracts were checked. Context-dependent turns and database/split overlap
+need examination before treating their questions as extra client data;
+matching counts of databases do not establish identical split membership.
 
 ## 2. What already exists
 
@@ -199,38 +405,54 @@ ahead only after execution-labelled DPO rounds (Liu et al., ExCoT).
 - Federated DPO as local DPO plus LoRA averaging (the "FedDPO" baseline in
   OpenFedLLM and FedBiscuit), and server-side DPO on aggregated preference
   signals (FedBiscuit). All on human preferences.
-- Federated RL with verifiable rewards at 1.5-4B (PubSwap, Fed-GRPO, FedMOA),
-  on math and code. FedAvg is already within 1-3 points of centralized.
+- Federated RL with verifiable rewards at small-model sizes (PubSwap,
+  Fed-GRPO, FedMOA), on math and code; reward/progress-weighted aggregation
+  also appears in FGRPO. These are direct precedents for verifier-driven FL,
+  even though the task and optimization objective differ from SQL DPO.
 - Centralized execution-verified preference training for Text-to-SQL
   (ExCoT, Liu et al., SENSE) at 7B-70B, and execution-reward RL (Arctic,
   Reasoning-SQL, Think2SQL, SLM-SQL) mostly on 8-64 large GPUs.
 - Text-to-SQL distillation into ~1B students (KID) and code distillation with
   our exact model pair (DistiLLM-2).
 - One federated Text-to-SQL paper (FL4SP), with T5-base and exact match.
+- Label-free preference training through self-consistency (ScPO),
+  self-generated code/tests (CodeDPO, DSTC), and execution-success pairs for
+  SQL dialects (ExeSQL). SQL-Zero supplies a separate self-play precedent.
+- Execution-result candidate selection (MBR-EXEC), learned verifiers
+  (LEVER, GradeSQL), and explicit analyses of label reliability and
+  cross-schema verifier transfer (sections 1.9-1.10).
+- Teacher-free soft-target controls (Yuan et al.) and controlled studies
+  separating rollout policy, divergence and later RLVR (Piskorz et al.).
 
 ## 3. Gaps that fit our setup
 
-1. No federated Text-to-SQL work with a modern decoder SLM and execution
-   accuracy. FL4SP is the only reference and predates LLM-based Text-to-SQL.
-2. No federated preference optimization with a verifier: in Text-to-SQL each
-   client can label its own samples by executing them against its own
-   databases and gold SQL, so pairs are built locally without human labels.
-   Federated DPO so far uses human preferences.
-3. Little evidence on DPO for Text-to-SQL below 6.7B. The published finding
-   (Liu et al.) is that SQL-only sequence-level DPO fails at 6.7-15B because
-   pairs are scarce; a 1.5B student makes more errors and may yield many more
-   pairs. The one small-model result (SQLoom, 1.7B) uses token-restricted
-   terms with GPT-4-mined negatives, centrally. Whether iterative on-policy
-   rounds help at 1.5B is untested.
-4. No frozen-teacher-at-server design where the public data comes from
-   another domain (BIRD) than the clients' (Spider), and no paper in the
-   server-LLM family runs the matched control "same public data with gold
-   labels, no teacher".
-5. No BIRD-to-Spider distillation result for SQL at any size; the closest
-   evidence (Think2SQL, Reasoning-SQL, OmniSQL) says reasoning-style training
-   on BIRD transfers to Spider while plain gold SFT on BIRD can hurt it.
-6. No CoT distillation for SQL at 1.5B; math evidence at 1.5B favors short
-   CoT, SQL evidence at 4B favors structured, execution-verified CoT.
+These are gaps in the reviewed corpus as of 2026-11-14, not claims of
+priority or an exhaustive literature search.
+
+1. **Local execution-labelled policy DPO for cross-database federated SQL
+   at 1.5B.** FL4SP covers supervised semantic parsing; OpenFedLLM covers
+   federated DPO; Liu et al. and ExCoT cover centralized execution-labelled
+   SQL DPO. Federated GRPO is already verifier-driven. The narrower
+   intersection is the relevant distinction, not "FL with a verifier".
+2. **Role of preference learning versus correct-sample fitting.** ExeSQL,
+   SPFT-SQL and Iterative RPO supply related training mechanisms. Their
+   objectives, label sources, model sizes and data access differ; they do
+   not settle whether each component of a 1.5B federated SQL recipe helps.
+3. **Gold, vote and execution-success signals under one training protocol.**
+   ScPO is the closest vote-preference work, ExeSQL the execution-success
+   precedent. Neither establishes their equivalence to gold-result labels
+   for this setting. Hiding existing gold labels tests signal dependence;
+   an actual semi-supervised extension is a separate data assumption.
+4. **What a public-data initialization contributes after client DPO.**
+   Yuan et al. motivate soft-target controls, while Piskorz et al. show
+   that initialization coverage and later reward training interact. The
+   corpus supplies no matched frozen-teacher BIRD-to-Spider experiment
+   followed by 1.5B federated SQL DPO that isolates teacher information from
+   extra public data and regularization.
+5. **Training and decoding at equal inference cost.** MBR-EXEC, LEVER,
+   GradeSQL and CSC-SQL require explicit decoding comparisons. A greedy
+   gain and a voting gain answer different questions; equal aggregate
+   scores do not establish per-question amortization.
 
 ## 4. Points a reviewer will raise from this literature
 
@@ -244,10 +466,9 @@ ahead only after execution-labelled DPO rounds (Liu et al., ExCoT).
 - Server-teacher papers confound "more data at the server" with "teacher
   signal". The matched control (same BIRD questions, gold SQL instead of
   teacher output) is expected.
-- With an objective verifier, FedAvg is close to centralized in every recent
-  federated RLVR paper, so aggregation-side contributions have little room;
-  a centralized reference with the same method is expected to show where the
-  federated version stands.
+- Fed-GRPO and FGRPO show isolated aggregation gains in their own settings.
+  They do not establish the size of the gap here; a centralized reference
+  with the same objective and data is needed to measure it.
 - Published 1.5B numbers mostly use self-consistency; ours must name greedy or
   sampled decoding explicitly.
 - SQLoom reports 89.2 greedy Spider test at 1.7B. A reviewer will compare;
@@ -257,3 +478,41 @@ ahead only after execution-labelled DPO rounds (Liu et al., ExCoT).
 - A sequence-level DPO method will be asked why it does not localize the
   error (Focused-DPO, CAPER, EXPO-SQL). Either localize, or show the
   comparison.
+- Vote-labelled training must cite ScPO and distinguish gold-free labels
+  from a dataset with no gold annotations. ExeSQL already trains on
+  successful-versus-failed execution, so that signal alone is not new.
+- Inference selection needs the same sample budget and selection rule on
+  the baselines. LEVER and GradeSQL are direct learned-verifier references;
+  separate greedy EX, voting EX, pass@k and inference cost.
+- FlowerTune documents partial participation, communication and resource
+  reporting. FGRPO and FedMOA also use small client counts, so the corpus
+  supports testing federation breadth without a universal minimum K.
+- Teacher contribution needs gold-only and soft-target controls, and
+  evidence after the later client stage. A capacity-gap law or another
+  task's KL comparison is not a guarantee about a stronger SQL teacher.
+- Report structural data isolation with a defined threat model. The
+  privacy literature in section 1.13 does not justify claiming that LoRA
+  updates reveal no data.
+
+## 5. Scope of the 2026-11-14 literature update
+
+The update integrates relevant references from all five research reports,
+deduplicating existing papers into their original entries or explicit
+updates. It preserves supporting and contrary evidence, including
+cross-schema verifier failure and the dependence of synthetic-data gains
+on evaluation-database adaptation.
+
+Two publisher candidates remain outside the evidence tables because their
+primary article pages could not be retrieved in this update:
+[FedHRQS](https://link.springer.com/article/10.1007/s12083-026-02306-7)
+and the [DKE LLM/knowledge-graph Text-to-SQL article](https://doi.org/10.1016/j.datak.2026.102580).
+Their experimental numbers and claimed full-text reading status are not
+transferred. General healthcare, vision and legal application examples
+used only for venue comparison are outside this method-focused catalogue.
+
+The earlier reports' acceptance odds, subjective success probabilities,
+GPU-time projections and quartiles from secondary websites are not
+literature findings. In particular, an estimate that one third to two
+thirds of this model's errors are benchmark noise cannot be inferred from
+audits of different models' failures. The SPFT-SQL dev-TS/test-EX column
+confusion and LEVER's previous-work MBR row are corrected above.
