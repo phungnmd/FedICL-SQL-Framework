@@ -2,9 +2,8 @@
 
 ## Status
 
-Updated 2026-11-14 at 02:23 (Asia/Ho_Chi_Minh). N2/N3 prepared in the local queue.
-Code/queue commit `cfa2791` is not pushed; server pull and live task state
-are not confirmed.
+Updated 2026-11-14 at 02:52 (Asia/Ho_Chi_Minh). N2/N3 code and queue
+commit `cfa2791c` is pushed. Server pull and live task state are not confirmed.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -22,10 +21,6 @@ Read-only status on the server, from the `fedicl-sql` root:
 ```
 
 ## Run now
-
-No server action until `cfa2791` is published to the code repository.
-Automatic approval review blocked that push; owner approval is pending.
-Once the code is published, use the two steps below.
 
 1. Stop the GPU 0 worker with Ctrl+C and wait for its task process to exit,
    then pull and test from the `fedicl-sql` root. This update changes

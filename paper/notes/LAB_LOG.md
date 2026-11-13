@@ -3,6 +3,13 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: N2/N3 code published
+
+Owner explicitly approves the code push. Commit `cfa2791c` pushed to
+`phungnmd/fedicl-sql` main at about 02:52 (Asia/Ho_Chi_Minh).
+`PIPELINE_NEXT.md` now gives the pull/test/resume steps. Server pull and live
+GPU state remain unconfirmed; no GPU task was started from this session.
+
 ## 2026-11-14: N2/N3 approved; venue candidates CMC or JIIS
 
 Owner approves N2 and N3 after `sqldpo_s0/curve_offline`, before seed 2.
@@ -11,8 +18,8 @@ passed; changed Python files pass Ruff, `git diff --check` is clean.
 Independent code review found no blocking issue. The code push was blocked
 by automatic approval review: existing origin is
 `https://github.com/phungnmd/fedicl-sql.git`, but the review requires explicit
-approval to export this private payload there. Commit remains local; server
-queue unchanged until publication and pull.
+approval to export this private payload there. The owner later approved the
+push; publication is recorded above.
 Implemented two separate one-round DPO curves on every client's round-1
 samples: `sqldpo_s0/curve_vote_labels` (V) and `curve_exec_labels` (X).
 `--pair-label vote|exec --no-gold-fallback` re-executes EOS SQL at the 60 s
