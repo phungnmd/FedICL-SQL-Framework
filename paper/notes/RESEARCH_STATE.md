@@ -1,6 +1,6 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-13. The project restarted on 2026-11-05; everything decided
+Updated 2026-11-14. The project restarted on 2026-11-05; everything decided
 or measured before that date is archived and hidden (see `AGENTS.md`, "Fresh
 start"). This file says what is fixed, what the method is, what the results
 show and what is still open. Runs and reasons are in `LAB_LOG.md`.
@@ -192,6 +192,15 @@ Both seeds pooled, clustered by question (95% interval):
   questions (63.0 against 59.9). Seed 1 does not repeat the extra-hard lead
   (62.7 against 63.6). Against the FedAvg line the lead is in execution
   errors on both seeds.
+- Selection by execution at inference (seed 0, 8 samples, no training). A
+  vote over result rows lifts FedAvg R3 to 75.55 and `hinton_k2aaa_a3` to
+  76.53: level with DPO round 3 greedy from the same start (75.13, 76.71)
+  in total, on different questions (they differ on 185 and 150 rows; 55% of
+  the questions DPO gains were right under the start's vote). The two add
+  up: the method with the vote reaches 78.39, +1.68 over its greedy output,
+  +1.86 over the vote on its start and +2.84 over the vote on FedAvg R3.
+  pass@8 stays near 85 in all four rows: DPO reorders the candidates and
+  adds none.
 - CoT at 1.5B does not help (plan + SQL: server stage 60.64, one template
   client round 62.69, self-taught rounds at most 60.64). It is a short
   analysis in the paper, not part of the method.
@@ -225,9 +234,8 @@ Both seeds pooled, clustered by question (95% interval):
    queued (new code, about 6 h).
 5. Reference rows on the same engine: the 7B teacher, FedProx, FedNTD and
    the local client SFT models are queued with vLLM inproc (earlier seed 0
-   adapters, approved 2026-11-13), and selection by execution over 8
-   samples at inference on four seed 0 rows, to place the DPO stage next
-   to a check that needs no training.
+   adapters, approved 2026-11-13). Selection by execution over 8 samples
+   at inference is in for four seed 0 rows (section 4).
 6. The 20% of wrong results. The method does not touch them, and they
    bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
    the preference term on the span where chosen and rejected differ) did

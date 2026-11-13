@@ -3,6 +3,61 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: selection by execution: a vote matches DPO greedy in total, not by question, and adds 1.68 on top of the method
+
+Spider test, seed 0, vLLM inproc, 8 samples per question at T 0.7
+(fedicl-sql `44b51ef5`, 01:19). No training. Fallback: the greedy SQL when
+it executes, else the most frequent sample that executes. Vote: the most
+frequent result among the samples that execute. Paired counts computed from
+the committed `per_question.csv` files (sign test).
+
+| Row | Greedy | Fallback | Vote | pass@8 | Model calls, fallback |
+|---|---:|---:|---:|---:|---:|
+| FedAvg R3 | 71.26 | 75.03 | 75.55 | 83.47 | 1.79 |
+| `hinton_k2aaa_a3` | 73.31 | 75.59 | 76.53 | 84.68 | 1.48 |
+| DPO round 3 from FedAvg R3 | 75.13 | 77.04 | 76.76 | 84.86 | 1.38 |
+| DPO round 3 from `hinton_k2aaa_a3` (the method) | 76.71 | 77.69 | **78.39** | **85.00** | 1.22 |
+
+| Pair | Gain | Right only in first / second | p |
+|---|---:|---|---:|
+| vote on `hinton_k2aaa_a3` / method greedy | +0.19 | 73 / 77 | 0.81 |
+| vote on FedAvg R3 / its DPO round 3 greedy | -0.42 | 97 / 88 | 0.56 |
+| method greedy / method vote | +1.68 | 27 / 63 | < 0.001 |
+| vote on `hinton_k2aaa_a3` / method vote | +1.86 | 36 / 76 | < 0.001 |
+| vote on FedAvg R3 / vote on its DPO round 3 | +1.21 | 57 / 83 | 0.03 |
+| vote on FedAvg R3 / method vote | +2.84 | 75 / 136 | < 0.001 |
+| vote on DPO from FedAvg R3 / method vote | +1.63 | 78 / 113 | 0.01 |
+
+Test questions grouped by the 8 samples of the start (right answers, greedy):
+
+| Group (from the start's samples) | FedAvg R3: n | start | DPO r3 | `hinton_k2aaa_a3`: n | start | DPO r3 |
+|---|---:|---:|---:|---:|---:|---:|
+| vote right | 1,622 | 1,495 | 1,525 | 1,643 | 1,540 | 1,570 |
+| vote wrong, some sample right | 171 | 26 | 58 | 175 | 31 | 64 |
+| no sample right | 354 | 9 | 30 | 329 | 3 | 13 |
+
+- In total a vote on the start reaches what DPO round 3 reaches greedily
+  (prediction 1 of the hypothesis), but not on the same questions: the two
+  differ on 150 (Hinton) and 185 (FedAvg) questions, and of the questions
+  DPO gains, only 55% (61 of 110) and 56% (80 of 142) were right under the
+  start's vote. More than half of DPO's net gain is on questions where the
+  start's vote was wrong (Hinton: +30 where the vote was right, +33 where a
+  minority sample was right, +10 where no sample was). DPO with gold labels
+  is not only the vote moved into the weights.
+- The two add up: a vote on the method gives 78.39, +1.68 over its greedy
+  output. At the same inference cost (8 samples and a vote) the method is
+  2.84 above FedAvg R3 and the DPO stage adds 1.86 (Hinton) and 1.21
+  (FedAvg), about half of its greedy gain (3.40, 3.87). The server stage
+  keeps 1.63 under the vote after DPO (greedy: 1.58).
+- pass@8 barely moves (83.47 to 85.00): DPO does not add correct candidates,
+  it changes which one comes first. Of the method's 442 wrong results, 154
+  have a correct sample among the 8 and the vote recovers 43; 288 have
+  none. A correct sample exists and the vote misses it on 142 questions
+  (6.6 points).
+- The fallback rule alone costs 1.2 to 1.8 model calls per question and
+  gives +0.98 on the method, +3.77 on FedAvg R3.
+- One seed, Spider test only (the cut named when queued).
+
 ## 2026-11-14: probes of the DPO stage moved ahead of seed 2
 
 Owner (00:50): check what the DPO stage does before running further. Queue
