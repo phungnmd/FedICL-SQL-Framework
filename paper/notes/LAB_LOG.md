@@ -3,6 +3,70 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-13: seed 1 gold line: the teacher's lead after DPO shrinks to 0.47
+
+Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `bbd6f34c` to
+`03b4b3a8`; other sets `990440df`). FedAvg rounds 1-3 from the gold server
+stage of seed 1 (71.45, 72.85, 73.73), then DPO rounds 1-3. Paired counts
+and intervals computed from the committed predictions (bootstrap over the
+40 test databases within a seed; pooled seeds resampled by question).
+
+| Round | FedAvg line s0 / s1 | Gold line s0 / s1 | Hinton line s0 / s1 | Hinton minus gold s0 / s1 |
+|---|---|---|---|---|
+| start | 71.26 / 71.87 | 73.08 / 73.73 | 73.31 / 74.06 | +0.23 / +0.33 |
+| 1 | 74.29 / 75.55 | 74.34 / 75.87 | 75.69 / 75.73 | +1.35 / -0.14 |
+| 2 | 75.17 / 75.27 | 75.13 / 76.06 | 76.43 / 76.53 | +1.30 / +0.47 |
+| 3 | 75.13 / 75.83 | 75.22 / 76.57 | **76.71 / 77.04** | +1.49 / +0.47 |
+
+| Pair at round 3 | Seed 1 (right only in first / second, p, database interval) | Pooled by question (95%) |
+|---|---|---|
+| FedAvg line / gold line | +0.75 (103 / 119, 0.31, -0.57 to +2.06) | +0.42 (-0.70 to +1.54) |
+| gold line / Hinton line | +0.47 (89 / 99, 0.51, -0.63 to +1.52) | +0.98 (+0.05 to +1.91, p = 0.04) |
+| FedAvg line / Hinton line | +1.21 (84 / 110, 0.07) | +1.40 (+0.30 to +2.45) |
+| `gold_k2aaa_a3` / gold DPO r3 | +2.84 (48 / 109, < 0.001) | +2.49 (+1.63 to +3.33) |
+
+- The teacher's lead over gold SQL after DPO, +1.49 on seed 0, is +0.47 on
+  seed 1. Pooled it is +0.98, at the edge (database-clustered pooled
+  interval 0.00 to +1.93). Before DPO it is nil on both seeds.
+- The gold line moves most between seeds: round 3 is 1.35 higher on seed 1
+  (74 / 103, p = 0.04); the Hinton line moves 0.33, the FedAvg line 0.70.
+  The seed 0 gold line looks like a low draw, so the seed 0 reading
+  ("BIRD adds nothing after DPO, the teacher does") overstated the
+  teacher's part.
+- Gold against Hinton at round 3, seed 1: 76 wrong results become right,
+  69 right rows become wrong; execution errors 71 against 74. Extra-hard
+  63.6 against 62.7: the extra-hard lead of seed 0 does not repeat.
+- Training data of the gold line, seed 1: sample accuracy 77.6, 83.7, 85.8%
+  by round (Hinton 79.1, 84.5, 86.7; FedAvg 73.9, 81.6, 83.5); pairs
+  5,796, 4,084, 3,516.
+
+Other sets, round 3, EX (seed 0 / seed 1 / pooled by question):
+
+| Pair | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---|---|---|---|---|
+| gold line / Hinton line | +2.71 / +0.19 / +1.45 (+0.10 to +2.80) | -1.18 / -2.36 / -1.77 (-4.04 to +0.39) | +1.16 / -0.48 / +0.34 | +6.17 / +0.56 / +3.36 (+1.59 to +5.14) | +0.33 / -1.04 / -0.36 |
+| FedAvg line / gold line | +0.68 / +3.48 / +2.08 (+0.34 to +3.87) | +1.77 / +4.53 / +3.15 (+0.69 to +5.71) | +1.55 / +1.84 / +1.69 | -0.93 / +2.43 / +0.75 | +11.21 / +12.26 / +11.73 |
+
+Seed 1 gold DPO r3 EX: Spider dev 75.63, Realistic 66.93, SYN 59.86, DK
+60.75, BIRD dev 41.26.
+
+- The DK and Spider dev lead of the teacher on seed 0 (+6.17, +2.71) is
+  +0.56 and +0.19 on seed 1. The gold start of seed 1 is stronger on those
+  sets (Spider dev 72.34 against 70.50, DK 57.01 against 52.71); against it
+  the Hinton start leads by only 0.68 and 1.12.
+- Pooled, the gold stage now beats no server stage after DPO on Spider dev
+  and Realistic, where seed 0 had found nothing.
+
+What holds on both seeds: DPO gains 2.5 to 3.9 points from every start;
+the BIRD server stage keeps about 11.7 points on BIRD dev after DPO; the
+whole method leads FedAvg + DPO by 1.40 pooled. What does not: the teacher
+as the part of the server stage that survives DPO. The soft-target control
+(`curve_virtual`, seed 0) compares against the seed 0 gold line, which is
+the low draw. No decision yet.
+
+Run time: `curve_gold_sft` rounds 2-3 and `curve_gold` ended at 07:12
+(estimate 07:05); the extra sets at 07:44.
+
 ## 2026-11-13: soft-target control queued (DPO from the virtual-teacher start)
 
 No result yet. Owner decision, replacing the one of 2026-11-12 (no

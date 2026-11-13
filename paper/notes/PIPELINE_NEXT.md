@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-13, 00:15.
+Updated 2026-11-13, 08:20.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Phase `sqldpo_s1`: FedAvg round 1 of `curve_gold_sft` was published at 22:34 on 11-12, so `check_gold` passed and round 2 was next. The worker itself was not observed. | results commit `919cbb8e` (in the local checkout at 23:59 on 11-12) |
+| 0 | Phase `sqldpo_s1` finished: the gold line of seed 1 and its other sets were published at 07:44 on 11-13, so `sqldpo_s0/pilot_no_nll` is next. The worker itself was not observed. | results commit `990440df` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,8 +26,8 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Pull the new tasks (rows 5 to 8 below) before `pilot_no_nll` ends, about
-   09:25 on 11-13 (estimate). Only the queue file and a document changed, no
+1. Pull the new tasks (rows 2 to 5 below) before `pilot_no_nll` ends, about
+   09:30 on 11-13 (estimate). Only the queue file and a document changed, no
    code a running task loads; pulling while the worker runs is fine. Send
    back only an error.
 
@@ -42,36 +42,26 @@ tasks, then EX by step of every curve.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-After that the owner is needed twice:
-
-- When `curve_gold` has published round 3 on Spider test (about 07:05 on
-  11-13, estimate): tell the agent; it compares the gold DPO line of seed 1
-  with the Hinton line (77.04) and the FedAvg line (75.83) of seed 1
-  question by question, and pools both seeds.
-- When `curve_virtual` has published round 3 on Spider test (about 15:15 on
-  11-13, estimate): tell the agent; it compares the virtual-teacher DPO line
-  with the Hinton line (76.71) and the gold line (75.22) of seed 0 question
-  by question.
+After that the owner is needed once: when `curve_virtual` has published
+round 3 on Spider test (about 15:20 on 11-13, estimate), tell the agent; it
+compares the virtual-teacher DPO line with the Hinton line (76.71) and the
+gold line (75.22) of seed 0 question by question.
 
 ## Running and queued
 
-GPU 0, in queue order: the gold line of phase `sqldpo_s1` (seed 1, plain
-DPO, 3 rounds), one ablation row of seed 0, then the soft-target control of
-seed 0. Times are estimates, counted from the end of FedAvg round 1 of
-`curve_gold_sft` at 22:34 on 11-12: a FedAvg round with its evaluation
-takes 1 h 30; a DPO line is counted at its seed 0 time; a pilot at the time
-of the random pair pilot (1 h 45); one row on six sets at 20 min.
+GPU 0, in queue order: one ablation row of seed 0, then the soft-target
+control of seed 0. Times are estimates, counted from the end of the seed 1
+gold line at 07:44 on 11-13: a DPO line is counted at its seed 0 time; a
+pilot at the time of the random pair pilot (1 h 45); one row on six sets at
+20 min.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `curve_gold_sft` | `gold_k2aaa_a3` seed 1: FedAvg rounds 2-3 from the gold server stage of seed 1 (round 1 is done) | 3 h | 01:35 on 11-13 | running (not observed) |
-| 2 | `curve_gold` | Teacher or BIRD data on seed 1: DPO rounds 1-3 from `gold_k2aaa_a3` seed 1 | 5.5 h | 07:05 on 11-13 | queued |
-| 3 | `extra_gold`, `extra_gold_dpo_r3`, `publish_extra_gold` | The gold line on the other sets | 35 min | 07:40 on 11-13 | queued |
-| 4 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:25 on 11-13 | queued |
-| 5 | `check_virtual`, `eval_virtual`, `publish_virtual_start` | The start without the teacher on the paper's engine: `virtual_k2aaa_a3` on Spider test and the other five sets | 20 min | 09:45 on 11-13 | queued (after the pull) |
-| 6 | `curve_virtual` | Teacher or any soft target: DPO rounds 1-3 from `virtual_k2aaa_a3` (seed 0), read at round 3 next to the Hinton and gold lines | 5.5 h | 15:15 on 11-13 | queued (after the pull) |
-| 7 | `extra_virtual_dpo_r3`, `publish_virtual_dpo` | That line on the other sets | 15 min | 15:30 on 11-13 | queued (after the pull) |
-| 8 | `check_self`, `eval_self`, `publish_self` | The self-teacher row (`self_k2aaa_a3`) on Spider test and the other five sets | 20 min | 15:50 on 11-13 | queued (after the pull) |
+| 1 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:30 on 11-13 | running (not observed) |
+| 2 | `check_virtual`, `eval_virtual`, `publish_virtual_start` | The start without the teacher on the paper's engine: `virtual_k2aaa_a3` on Spider test and the other five sets | 20 min | 09:50 on 11-13 | queued (after the pull) |
+| 3 | `curve_virtual` | Teacher or any soft target: DPO rounds 1-3 from `virtual_k2aaa_a3` (seed 0), read at round 3 next to the Hinton and gold lines | 5.5 h | 15:20 on 11-13 | queued (after the pull) |
+| 4 | `extra_virtual_dpo_r3`, `publish_virtual_dpo` | That line on the other sets | 15 min | 15:35 on 11-13 | queued (after the pull) |
+| 5 | `check_self`, `eval_self`, `publish_self` | The self-teacher row (`self_k2aaa_a3`) on Spider test and the other five sets | 20 min | 15:55 on 11-13 | queued (after the pull) |
 
 `curve_hinton` took 7 h 50 and `curve_fedavg` 5 h 24 against estimates of
 5.5 h and 5.75 h; each DPO line may end up to about 2.5 h later than the
@@ -107,9 +97,9 @@ Not queued yet:
   wrong results.
 
 To watch for: if `check_virtual` fails (the adapter is not on the server),
-the worker stops with `STOP queue: sqldpo_s0/check_virtual failed`; rows 5
-to 8 then do not run. Send that line to the agent. A failed `check_self`
-only skips row 8.
+the worker stops with `STOP queue: sqldpo_s0/check_virtual failed`; rows 2
+to 5 then do not run. Send that line to the agent. A failed `check_self`
+only skips row 5.
 
 ## Reference
 
