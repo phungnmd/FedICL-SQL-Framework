@@ -3,6 +3,69 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: DPO rounds 2-3 without the NLL term: 76.76 at round 3, level with DPO + NLL
+
+Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `d3d56604`,
+`b59b9023`, `a4d9369b`, `916e612d`; curve record `7927a7a6`). From
+`hinton_k2aaa_a3`, NLL weight 0; round 1 is the earlier row on the Hinton
+line's round 1 samples, rounds 2-3 sample from the previous round of this
+line. Otherwise the Hinton line's settings.
+
+| Round | DPO + NLL | No NLL | Right only with / without NLL | p |
+|---|---:|---:|---|---:|
+| 1 | 75.69 | 76.20 | 23 / 34 | 0.19 |
+| 2 | 76.43 | 76.67 | 32 / 37 | 0.55 |
+| 3 | 76.71 | 76.76 | 31 / 32 | 0.90 |
+
+| Round 3 | EX | Execution error | Easy | Medium | Hard | Extra |
+|---|---:|---:|---:|---:|---:|---:|
+| DPO + NLL | 76.71 | **58** | 89.8 | 79.8 | 68.2 | **63.0** |
+| No NLL | **76.76** | 68 | **90.0** | 79.8 | **69.5** | 61.3 |
+
+Own samples on the client questions (sample accuracy by client, %):
+
+| Round | DPO + NLL | No NLL | Pairs (NLL / no NLL) |
+|---|---|---|---|
+| 2 | 83.9, 83.9, 82.7, 85.0, 86.9 | 84.2, 84.4, 83.0, 85.1, 87.2 | 3,899 / 3,705 |
+| 3 | 86.2, 87.6, 84.4, 86.8, 88.4 | 86.2, 87.8, 84.9, 86.8, 88.9 | 3,208 / 2,969 |
+
+- Over 3 rounds the NLL term has no measured role: the two lines are level
+  at every round (p 0.19 to 0.90), and at round 3 they differ on 63
+  questions, split 31 / 32.
+- No sign of the drift the term is meant to prevent: without it, the
+  model's own samples on the client questions are as accurate or slightly
+  more accurate in each round, with fewer pairs rejected for execution
+  errors (923 against 1,037 in round 3). On Spider test the line without NLL
+  has 10 more execution errors at round 3 (68 against 58), offset by fewer
+  wrong results. The chosen side's log-likelihood is not logged, so the
+  drift is read from samples only.
+- The term costs no extra compute (same forward pass), so dropping it only
+  simplifies the method. The DPO + NLL comparisons already run (seeds 0 and
+  1, teacher against gold and FedAvg) all use the term; switching the method
+  would need those lines again without it. No decision.
+
+Run time: rounds 2 and 3 with their own sampling and evaluation, 1 h 29
+and 1 h 20 (21:11 to 00:00).
+
+## 2026-11-13: DPO round 1 without the gold fallback: 75.50, level with the fallback
+
+Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `e895c642`,
+`96373824`; curve record `fbd1beb1`). DPO + NLL round 1 from
+`hinton_k2aaa_a3` on the Hinton line's round 1 samples; a question with no
+correct sample gives no pair (4,784 pairs, 609 gold-chosen pairs left out).
+
+| Row | EX | Execution error | Hard | Extra |
+|---|---:|---:|---:|---:|
+| DPO + NLL round 1 | **75.69** | 82 | **66.7** | **61.1** |
+| no gold fallback | 75.50 | **75** | 66.5 | 60.5 |
+
+Paired: 19 questions right only with the fallback, 15 only without
+(p 0.49). In round 1 the gold fallback has no measured role. Rounds 2-3 not
+run (gold-chosen pairs are 11.3, 13.7 and 15.6% of the Hinton line's pairs in
+rounds 1-3).
+
+Run time: 1 h 51 (19:20 to 21:11).
+
 ## 2026-11-13: seed 2, selection by execution and baseline rows queued
 
 Owner decisions (evening of 11-13): yes to a third seed of the three DPO
