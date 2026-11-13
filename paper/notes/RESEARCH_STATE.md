@@ -218,9 +218,10 @@ Both seeds pooled, clustered by question (95% interval):
    without it, with their own sampling (about 5.5 h, estimate). It is one
    of the three differences from the closest DPO work named so far.
 4. What the federated setting costs in the DPO stage. Reference rows, not
-   a condition of the claim; not run and not queued: DPO with the same
-   recipe on the pooled client data (centralized), and DPO at each client
-   without aggregation (local only). About 5.5 to 6 GPU-h each (estimate).
+   a condition of the claim. Queued (2026-11-13): DPO with the same recipe
+   on the pooled client data (centralized, 3 rounds), and the client
+   adapters of round 1 before aggregation. A 3-round line without
+   aggregation is not queued (new code, about 6 h).
 5. Reference rows on the same engine: FedProx, FedNTD and the local client
    models have no vLLM inproc number yet.
 6. The 20% of wrong results. The method does not touch them, and they
@@ -235,16 +236,19 @@ Both seeds pooled, clustered by question (95% interval):
 
 ## 6. Current phase
 
-Phases `sqldpo_s0` and `sqldpo_s1` are finished: the three DPO lines on
-both seeds, the soft-target controls and the row without the NLL term on
-seed 0 (last results 15:25 on 11-13). The queue is empty; GPU 0 waits for
-the owner. The preference term stays plain and the method keeps the
-Hinton server stage until the owner decides (2026-11-11).
+Phases `sqldpo_s0` and `sqldpo_s1` are finished for the three DPO lines on
+both seeds, the soft-target controls and DPO round 1 without the NLL term
+(last results 15:25 on 11-13). Queued on GPU 0 (`PIPELINE_NEXT.md`, about
+16 h from 11-13 evening, estimate): the roles of the DPO stage's parts
+(aggregation in round 1, gold fallback, NLL term over 3 rounds, on-policy
+against offline rounds) and centralized DPO as a reference (open points 3
+and 4). The preference term stays plain and the method keeps the Hinton
+server stage until the owner decides (2026-11-11).
 
 Next owner decisions:
 
 - whether the teacher stays in the method (open point 1);
-- what runs next on GPU 0: the NLL term over 3 rounds (open point 3,
-  about 5.5 h), a third seed (open point 2, about 30 h), the soft-target
-  control on seed 1 (about 15.5 h), the reference rows of open points 4
-  and 5.
+- FedProx, FedNTD and local client SFT rows (open point 5): approve the
+  earlier adapters or train them anew;
+- a third seed (open point 2, about 30 h) or the soft-target control on
+  seed 1 (about 15.5 h).

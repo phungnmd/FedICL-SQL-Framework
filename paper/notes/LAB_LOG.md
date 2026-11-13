@@ -3,6 +3,34 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-13: roles of the method's parts and two reference rows queued
+
+No result yet. Owner request: queue the runs that give each part of the
+DPO stage a measured role, and the reference rows a federated-learning
+reviewer will ask for. Seed 0, from `hinton_k2aaa_a3`, the Hinton line's
+settings unless named (about 16 h on GPU 0, estimate):
+
+- the 5 client adapters of DPO round 1 of the Hinton line, before
+  aggregation, on Spider test (what averaging adds in round 1; no training);
+- DPO round 1 without the gold fallback (609 of 5,393 pairs dropped);
+- rounds 2-3 of the line without the NLL term, each with its own sampling;
+- rounds 1-3 trained on the round 1 samples only (offline against
+  on-policy rounds); round 1 repeats Hinton round 1, so it also shows how
+  much one training rerun moves EX;
+- centralized DPO: the same recipe on the pooled client rows, one model, 3
+  rounds with their own sampling (a reference without privacy).
+
+New code (fedicl-sql): `--samples-from-round N` (rounds after N train on
+round N's samples; recorded in the arm identity) and `--pooled` with
+`--n-clients 1` (one client reads `train.csv`; its adapter is copied as the
+round's adapter, no averaging). Identities of existing roots are unchanged
+(the new fields are left out when unset); 618 tests pass on the Mac.
+
+Cut: the line without aggregation is round 1 only (3 rounds need sampling
+from each client's own model, new code, about 6 h). Not queued: FedProx,
+FedNTD and local client SFT rows, whose earlier adapters are not approved
+for reuse (owner decision: approve them or train anew).
+
 ## 2026-11-13: soft-target control: DPO from the virtual-teacher start ends with the gold line
 
 Seed 0, vLLM inproc, batch 16 (fedicl-sql: start `1d56507e`, rounds

@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-13, 16:30.
+Updated 2026-11-13, 17:45.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle, waiting for the owner: the queue is empty. The last task (`publish_self`) published at 15:25 on 11-13; the worker should have printed `DONE queue` (not observed). | results commit `c09d1aad` |
+| 0 | Idle, waiting for the owner to pull and start the worker (new tasks below). The last task (`publish_self`) published at 15:25 on 11-13. | results commit `c09d1aad` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,14 +26,57 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to run. The owner is needed now, for two choices (results in
-`LAB_LOG.md`, 2026-11-13): whether the teacher stays in the method, and
-what GPU 0 runs next (list below). Once chosen, the agent queues it and
-writes the pull and start commands here.
+1. Pull the new tasks and code, and run the tests. Nothing runs now, so no
+   running job loads the changed code. Send back only an error.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_star_rounds.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+   ```
+
+2. Start the worker on GPU 0. Send back the line `ok: 5 client adapters of
+   round 1` or the error of `sqldpo_s0/check_local`.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
+3. When `curve_central` starts (about 04:15 on 11-14, estimate), check the
+   `first batch ... peak reserved` line of its first training updates: one
+   client holds every pair, a new path. Send it back only if it is above
+   21.5 GiB.
+
+After that the owner is needed when the queue ends (about 10:00 on 11-14,
+estimate): tell the agent, which reads every row.
 
 ## Running and queued
 
-Nothing running or queued on GPU 0.
+GPU 0, in queue order, all seed 0 and from `hinton_k2aaa_a3`. Times are
+estimates from a start at 18:00 on 11-13: a round with its own sampling at
+the Hinton line's rounds 2-3 (about 1.4 h with evaluation), a round on
+copied samples at the no-NLL round 1 (1.75 h), one Spider test evaluation
+at 6 min.
+
+| # | Tasks | What it answers | About | Done by about | State |
+|---|---|---|---|---|---|
+| 1 | `check_local`, `eval_local_c1` to `c5`, `publish_local` | What averaging adds in round 1: the 5 client adapters of DPO round 1 of the Hinton line, before aggregation, on Spider test (against 75.69) | 35 min | 18:35 on 11-13 | queued (after the pull) |
+| 2 | `pilot_no_gold` | The gold fallback: DPO round 1 without gold SQL as the chosen side (609 of 5,393 pairs), on the round 1 samples | 1.75 h | 20:20 on 11-13 | queued |
+| 3 | `curve_nonll_more`, `extra_nonll_r3`, `publish_nonll_extra` | The NLL term over rounds: rounds 2-3 of the no-NLL line, each sampling from its previous round, read at round 3 against 76.71; round 3 on the other sets | 3 h | 23:20 on 11-13 | queued |
+| 4 | `curve_offline` | The on-policy rounds: rounds 1-3 all trained on the round 1 samples, no new sampling, against the Hinton line by round; round 1 repeats Hinton round 1 (a check of training noise) | 5 h | 04:20 on 11-14 | queued |
+| 5 | `curve_central`, `extra_central_r3`, `publish_central_extra` | A reference without privacy: the DPO stage on the pooled client rows (8,659), one model, no aggregation, 3 rounds with their own sampling; round 3 on the other sets | 5.75 h | 10:05 on 11-14 | queued |
+
+`curve_hinton` took 7 h 50 against an estimate of 5.5 h; a 3-round line may
+end up to about 2.5 h later than the table says.
+
+To watch for: if `check_local` fails (the client adapters are not on the
+server), the worker stops with `STOP queue: sqldpo_s0/check_local failed`;
+send that line to the agent.
+
+Cut from a full run:
+
+- Row 1 is round 1 only. A line without aggregation over 3 rounds needs
+  each client to sample from its own model (new code, about 6 h); round 1
+  needs no training because it shares the start of the Hinton line.
+- Rows 2 to 5 are seed 0 only.
 
 Cut from a full run (finished work):
 
@@ -48,17 +91,13 @@ Cut from a full run (finished work):
   (`virtual_k2aaa_a3`); the self-teacher start is evaluated only, without
   DPO.
 
-Not queued yet (each waits for the owner):
+Not queued yet:
 
-- DPO without the NLL term, rounds 1-3 with their own sampling, seed 0
-  (about 5.5 h): whether the term matters after round 1.
-- A third seed of the three lines (about 30 h, with two server stages).
-- The soft-target control on seed 1: server stage, 3 FedAvg rounds, 3 DPO
-  rounds (about 15.5 h).
-- FedProx, FedNTD and the local client models through vLLM inproc: whether
-  their adapters are still on the server is not checked.
-- DPO on pooled client data and DPO without aggregation (reference rows,
-  about 5.5 to 6 h each).
+- FedProx, FedNTD and the local client SFT models: their earlier adapters
+  are not approved for reuse; waits for the owner (reuse after approval,
+  or train them anew from the base model, about 3 FedAvg rounds each).
+- A third seed of the three lines (about 30 h, with two server stages);
+  the soft-target control on seed 1 (about 15.5 h).
 - Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
   wrong results.
 
@@ -134,7 +173,11 @@ so its numbers are reported as "chosen on Spider test", never as held-out.
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/fdpo_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/pairrand_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same labels and pair count; which correct and wrong sample pair up first is random (a fixed hash) instead of the most similar two | 1 round, same schedule and updates as DPO round 1 |
-| `sqldpo_s0/nonll_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs (nearest) | 1 round, the preference term only (NLL weight 0), same schedule and updates as DPO round 1 |
+| `sqldpo_s0/nonll_hinton` (finished, 1 round), `nonll_hinton_more` (rounds 2-3) | `hinton_k2aaa_a3` | round 1: the round 1 samples of the Hinton line; rounds 2-3: its own samples | the same pair rule (nearest) | the preference term only (NLL weight 0), otherwise the Hinton line's round; 3 rounds |
+| `sqldpo_s0/nogold_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same rule without the gold fallback: a question with no correct sample gives no pair | 1 round, same schedule as DPO round 1 |
+| `sqldpo_s0/offline_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line in every round (`--samples-from-round 1`) | the same pairs in every round | the Hinton line's round, from the previous round's model; 3 rounds |
+| `sqldpo_s0/central_hinton` | `hinton_k2aaa_a3` | the pooled rows of the 5 clients (`centralized/train.csv`, 8,659), one model (`--pooled --n-clients 1`) | same rule | the Hinton line's round without aggregation (the one model is the round's adapter); 3 rounds; a reference without privacy |
+| local client adapters (`sqllocal_hinton_r1_c1` to `c5`) | `hinton_k2aaa_a3` | each client's pairs of DPO round 1 of the Hinton line | same | the client adapters of that round, before averaging; evaluation only |
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 SQL DPO runs 3 rounds, fixed for every line and seed, and is reported at
