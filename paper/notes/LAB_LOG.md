@@ -3,6 +3,26 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: probes of the DPO stage moved ahead of seed 2
+
+Owner (00:50): check what the DPO stage does before running further. Queue
+(fedicl-sql `05d0e885`): selection by execution over 8 samples (four seed 0
+rows) and the offline rounds now run before the seed 2 lines; no task
+changed. Hypothesis to test with them: DPO turns what execution-based
+self-consistency reaches over 8 samples into greedy EX. Predictions:
+`hinton_k2aaa_a3` + vote close to DPO round 3 greedy; DPO's gained
+questions mostly those the start's vote already gets right; little gain
+from a vote on top of DPO round 3; DPO on vote labels (no gold) close to
+DPO on gold labels (not queued, new code).
+
+Test-suite EX on Spider dev, seed 0, vLLM inproc (CPU scoring, not
+committed): FedAvg R3 67.89 EX / 62.67 TS, its DPO round 3 73.11 / 67.89;
+`hinton_k2aaa_a3` 72.82 / 67.70, its DPO round 3 76.50 / 70.41. DPO gains
+the same under test-suite from FedAvg R3 (+5.22 both), and about 1 point
+less from `hinton_k2aaa_a3` (+3.68 EX, +2.71 TS; rows right only by EX 53
+to 63). False positives of the execution check are a small part of the
+gain on Spider dev.
+
 ## 2026-11-14: DPO rounds 2-3 without the NLL term: 76.76 at round 3, level with DPO + NLL
 
 Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `d3d56604`,
