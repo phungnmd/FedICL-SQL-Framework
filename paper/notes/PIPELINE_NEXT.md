@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-13, 17:45.
+Updated 2026-11-13, 19:40.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle, waiting for the owner to pull and start the worker (new tasks below). The last task (`publish_self`) published at 15:25 on 11-13. | results commit `c09d1aad` |
+| 0 | Worker started on the new queue: row 1 (`publish_local`) published at 19:20 on 11-13. Next in the queue is `pilot_no_gold`; whether the worker is running it now is not known. | results commit `f456678c` (19:20 on 11-13) |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,43 +26,47 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Pull the new tasks and code, and run the tests. Nothing runs now, so no
-   running job loads the changed code. Send back only an error.
+1. **Top priority: decide on seed 2** (item 1 of the priority list below).
+   Before about 23:00 on 11-13 (estimate), so its tasks can be pushed
+   before row 3 ends (about 00:05 on 11-14, estimate). Send back: yes or no
+   to a third seed of the three lines (about 45 GPU-h), and yes or no to
+   running its Hinton and gold lines ahead of rows 4 and 5.
 
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_star_rounds.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-   ```
+2. Decide on N1 (item 2). Send back: yes or no to the agent writing the
+   new evaluation mode (selection by execution over 8 samples); the task
+   then goes to the head of the queue (about 1 GPU-h).
 
-2. Start the worker on GPU 0. Send back the line `ok: 5 client adapters of
-   round 1` or the error of `sqldpo_s0/check_local`.
+3. Decide on the FL baselines (item 4). Send back: approve the earlier
+   seed 0 FedProx, FedNTD and local client SFT adapters for reuse (about
+   2 GPU-h of evaluation), or train them anew (about 5 h each, estimate).
 
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-   ```
+4. If the agent pushes new tasks after steps 1 to 3, it gives a pull
+   command; run it before row 3 ends (about 00:05 on 11-14, estimate). The
+   worker rereads the queue before every task, so no restart.
 
-3. When `curve_central` starts (about 04:15 on 11-14, estimate), check the
-   `first batch ... peak reserved` line of its first training updates: one
-   client holds every pair, a new path. Send it back only if it is above
-   21.5 GiB.
+5. When `curve_central` starts (about 05:05 on 11-14, estimate; later if
+   seed 2 goes first), check the `first batch ... peak reserved` line of
+   its first training updates: one client holds every pair, a new path.
+   Send it back only if it is above 21.5 GiB.
 
-After that the owner is needed when the queue ends (about 10:00 on 11-14,
-estimate): tell the agent, which reads every row.
+After that the owner is needed when the queue ends (about 10:50 on 11-14
+without seed 2, estimate): tell the agent, which reads every row.
 
 ## Running and queued
 
 GPU 0, in queue order, all seed 0 and from `hinton_k2aaa_a3`. Times are
-estimates from a start at 18:00 on 11-13: a round with its own sampling at
-the Hinton line's rounds 2-3 (about 1.4 h with evaluation), a round on
-copied samples at the no-NLL round 1 (1.75 h), one Spider test evaluation
-at 6 min.
+estimates from the end of row 1 at 19:20 on 11-13: a round with its own
+sampling at the Hinton line's rounds 2-3 (about 1.4 h with evaluation), a
+round on copied samples at the no-NLL round 1 (1.75 h), one Spider test
+evaluation at 6 min.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 1 | `check_local`, `eval_local_c1` to `c5`, `publish_local` | What averaging adds in round 1: the 5 client adapters of DPO round 1 of the Hinton line, before aggregation, on Spider test (against 75.69) | 35 min | 18:35 on 11-13 | queued (after the pull) |
-| 2 | `pilot_no_gold` | The gold fallback: DPO round 1 without gold SQL as the chosen side (609 of 5,393 pairs), on the round 1 samples | 1.75 h | 20:20 on 11-13 | queued |
-| 3 | `curve_nonll_more`, `extra_nonll_r3`, `publish_nonll_extra` | The NLL term over rounds: rounds 2-3 of the no-NLL line, each sampling from its previous round, read at round 3 against 76.71; round 3 on the other sets | 3 h | 23:20 on 11-13 | queued |
-| 4 | `curve_offline` | The on-policy rounds: rounds 1-3 all trained on the round 1 samples, no new sampling, against the Hinton line by round; round 1 repeats Hinton round 1 (a check of training noise) | 5 h | 04:20 on 11-14 | queued |
-| 5 | `curve_central`, `extra_central_r3`, `publish_central_extra` | A reference without privacy: the DPO stage on the pooled client rows (8,659), one model, no aggregation, 3 rounds with their own sampling; round 3 on the other sets | 5.75 h | 10:05 on 11-14 | queued |
+| 1 | `check_local`, `eval_local_c1` to `c5`, `publish_local` | What averaging adds in round 1: the 5 client adapters of DPO round 1 of the Hinton line, before aggregation, on Spider test (against 75.69) | 35 min | 19:20 on 11-13 | done (`f456678c`), not yet logged |
+| 2 | `pilot_no_gold` | The gold fallback: DPO round 1 without gold SQL as the chosen side (609 of 5,393 pairs), on the round 1 samples | 1.75 h | 21:05 on 11-13 | next in the queue; running not confirmed |
+| 3 | `curve_nonll_more`, `extra_nonll_r3`, `publish_nonll_extra` | The NLL term over rounds: rounds 2-3 of the no-NLL line, each sampling from its previous round, read at round 3 against 76.71; round 3 on the other sets | 3 h | 00:05 on 11-14 | queued |
+| 4 | `curve_offline` | The on-policy rounds: rounds 1-3 all trained on the round 1 samples, no new sampling, against the Hinton line by round; round 1 repeats Hinton round 1 (a check of training noise) | 5 h | 05:05 on 11-14 | queued |
+| 5 | `curve_central`, `extra_central_r3`, `publish_central_extra` | A reference without privacy: the DPO stage on the pooled client rows (8,659), one model, no aggregation, 3 rounds with their own sampling; round 3 on the other sets | 5.75 h | 10:50 on 11-14 | queued |
 
 `curve_hinton` took 7 h 50 against an estimate of 5.5 h; a 3-round line may
 end up to about 2.5 h later than the table says.
@@ -91,15 +95,57 @@ Cut from a full run (finished work):
   (`virtual_k2aaa_a3`); the self-teacher start is evaluated only, without
   DPO.
 
-Not queued yet:
+Not queued yet, in priority order (the M, N, S, L, B labels are those of
+`paper/drafts/paper_proposal.md` section 7; hours are GPU-h on one A5000,
+estimates):
 
-- FedProx, FedNTD and the local client SFT models: their earlier adapters
-  are not approved for reuse; waits for the owner (reuse after approval,
-  or train them anew from the base model, about 3 FedAvg rounds each).
-- A third seed of the three lines (about 30 h, with two server stages);
-  the soft-target control on seed 1 (about 15.5 h).
-- Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
-  wrong results.
+1. **Top priority: seed 2 of the Hinton and gold lines (M1, part 1).** Both
+   server stages trained anew with seed 2 (Hinton KD on BIRD, gold SQL on
+   BIRD), 3 FedAvg rounds and 3 DPO rounds each, round 3 on the other sets.
+   Decides: whether the title keeps its server half (teacher against gold
+   after DPO, pooled over 3 seeds). About 33.5 h: Hinton line 17.5, then
+   gold line 16. Blocked by: the owner's decision on a third seed (Run now,
+   step 1), then queue tasks. Runs after row 3, whose result on the NLL
+   term sets the DPO recipe of seed 2, and ahead of rows 4 and 5 if the
+   owner agrees.
+2. N1: selection by execution over 8 sampled SQL at inference, no
+   training, on FedAvg R3, `hinton_k2aaa_a3`, DPO round 3 from FedAvg R3
+   and the method. Decides: how the DPO stage is described (Table 5);
+   needed before the Results section is written. About 1 h. Blocked by: a
+   new evaluation mode (code) and the owner's go-ahead (Run now, step 2).
+   Runs at the head of the queue once its code is pushed.
+3. M4: the 7B teacher zero-shot through vLLM, six sets. Decides: the
+   teacher row on the student's engine (Tables 2 and 3, the row-by-row
+   comparison with the student). About 1 h. Blocked by: a queue task; the
+   7B has not run through vLLM on this card, so its first batch needs a
+   memory check.
+4. M3: FedProx, FedNTD and the local client SFT models through vLLM, six
+   sets, seed 0. Decides: the standard FL baselines of the main table.
+   About 2 h with the earlier adapters, or about 5 h each trained anew.
+   Blocked by: the owner's approval of the earlier adapters (Run now,
+   step 3) and a check that they are on the server.
+5. Seed 2 of the FedAvg line (M1, part 2): 3 FedAvg rounds and 3 DPO
+   rounds, round 3 on the other sets. Decides: the third seed of the FedAvg
+   baseline and of DPO without a server stage (Tables 2 and 4, Figure 2).
+   About 10.5 h. Blocked by: the decision of item 1. Runs after rows 4
+   and 5.
+6. S1: the split `alpha_0.5/k5`, seed 0, the FedAvg line and the method,
+   reusing the server stage. Decides: whether the gain holds at a second
+   non-IID level; needed only for a Q2 target. About 21 h. Blocked by:
+   queue tasks.
+7. S3: a second student (Qwen2.5-Coder-0.5B), seed 0, the FedAvg line and
+   the method. Decides: whether the method holds at a second model size;
+   needed only for a Q2 target. About 15 to 20 h (not measured on this
+   chain). Blocked by: the owner (it changes the fixed setup) and an audit
+   of the teacher logit cache for the new student.
+8. Optional rows (proposal 7.5): S2, K = 4 and 16 and beta = 0.05 and 0.5,
+   round 1 only (about 7 h); S4, FedProx seeds 1 and 2 (about 10 h); L1,
+   3 DPO rounds per client without aggregation (about 6 h, new code); B1,
+   a second client benchmark (not measured; the owner decides, it changes
+   the fixed setup).
+9. Outside the proposal's plan, each an owner decision: the soft-target
+   control on seed 1 (about 15.5 h); focused DPO rounds 2 and 3 (about
+   3.75 h).
 
 ## Reference
 

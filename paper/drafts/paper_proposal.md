@@ -358,8 +358,11 @@ Ghi chú thực hiện:
   độ sampling vLLM đã đo (400 câu hỏi, 8 sample, 3:40).
 - M1: logit cache của teacher trên BIRD dùng lại được vì không phụ thuộc
   seed. Trong 45 h có khoảng 7 h cho stage Hinton, 5.5 h cho stage gold,
-  15 h cho 9 round FedAvg, 16.5 h cho ba dòng DPO. Thứ tự: dòng FedAvg và
-  dòng Hinton trước (Bảng 2), dòng gold sau (Bảng 6).
+  15 h cho 9 round FedAvg, 16.5 h cho ba dòng DPO. Thứ tự: dòng Hinton
+  (khoảng 17.5 h), rồi dòng gold (khoảng 16 h): hai dòng này trả lời câu hỏi
+  ở mục 9 về nửa server của title; dòng FedAvg (khoảng 10.5 h) chạy sau.
+  Các round DPO của seed 2 chạy sau round 2-3 của dòng không có NLL (mục
+  7.2), vì kết quả đó có thể đổi recipe DPO.
 - M3: adapter seed 0 của ba baseline là kết quả trước ngày 2026-11-05, cần
   owner cho phép dùng và cần kiểm tra còn trên server. Nếu thiếu, train lại
   mỗi baseline khoảng 5 h.
@@ -397,13 +400,17 @@ Tổng: khoảng 36 đến 41 GPU-h.
 
 ### 7.6 Thứ tự
 
-1. Queue hiện tại (mục 7.2) chạy xong; đọc năm nhóm kết quả.
-2. N1, M3 và M4 (khoảng 4 h): hoàn thiện Bảng 2 và Bảng 5 cho seed 0, đủ để
+1. Queue hiện tại (mục 7.2) chạy đến hết round 2-3 của dòng không có NLL.
+2. N1, M4 và M3 (khoảng 4 h): hoàn thiện Bảng 2 và Bảng 5 cho seed 0, đủ để
    bắt đầu viết mục 5, 6 và 7.
-3. M1 (45 h): chạy nền trong lúc viết Introduction, Related Work, Setting,
-   Method; M5 làm song song vì không cần GPU.
-4. S1, rồi S3 (36 đến 41 h).
-5. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
+3. M1, dòng Hinton rồi dòng gold (khoảng 33.5 h), trước hai nhóm còn lại
+   của queue (các round dùng lại sample của round 1, DPO tập trung) nếu
+   owner đồng ý; chạy nền trong lúc viết Introduction, Related Work,
+   Setting, Method. M5 làm song song vì không cần GPU.
+4. Hai nhóm còn lại của queue (khoảng 10.75 h), rồi M1 dòng FedAvg
+   (khoảng 10.5 h).
+5. S1, rồi S3 (36 đến 41 h).
+6. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
 
 ## 8. Đối chiếu với chuẩn Q2-Q3
 
