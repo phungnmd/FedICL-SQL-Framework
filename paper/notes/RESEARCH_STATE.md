@@ -71,22 +71,27 @@ execution on its own databases, for Text-to-SQL, at 1.5B.
 
 ## 4. What the results show
 
-Seed 0 is complete; seed 1 has the Hinton and FedAvg lines, the gold line
-is running. Numbers and commits: `LAB_LOG.md`.
+Seed 0 and seed 1 are complete for the three DPO lines; the soft-target
+controls and the row without the NLL term are seed 0 only. Numbers and
+commits: `LAB_LOG.md`.
 
 | Row | Spider test EX, seed 0 | Execution errors, seed 0 | Spider test EX, seed 1 | Execution errors, seed 1 |
 |---|---:|---:|---:|---:|
 | base model | 57.89 | 440 | | |
 | centralized Spider | 70.75 | 219 | | |
 | FedAvg R3 | 71.26 | 211 | 71.87 | 222 |
-| gold server stage, then FedAvg (`gold_k2aaa_a3`) | 73.08 | 144 | running | |
+| virtual-teacher server stage, then FedAvg (`virtual_k2aaa_a3`) | 72.57 | 163 | | |
+| self-teacher server stage, then FedAvg (`self_k2aaa_a3`) | 72.61 | 149 | | |
+| gold server stage, then FedAvg (`gold_k2aaa_a3`) | 73.08 | 144 | 73.73 | 163 |
 | Hinton server stage, then FedAvg (`hinton_k2aaa_a3`) | 73.31 | 129 | 74.06 | 132 |
 | centralized Spider + BIRD (no privacy) | 73.96 | 163 | | |
 | `hinton_k2aaa_a3` + NLL-only round | 73.50 | 117 | | |
 | `hinton_k2aaa_a3` + 1 FedAvg SFT round | 74.15 | 132 | | |
-| DPO round 3 from `gold_k2aaa_a3` | 75.22 | 71 | queued | |
+| DPO round 1 from `hinton_k2aaa_a3`, with NLL / without NLL | 75.69 / 76.20 | 82 / 85 | | |
 | DPO round 3 from FedAvg R3 | 75.13 | 101 | 75.83 | 95 |
-| DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** | **77.04** | **74** |
+| DPO round 3 from `gold_k2aaa_a3` | 75.22 | 71 | 76.57 | 71 |
+| DPO round 3 from `virtual_k2aaa_a3` | 75.59 | 79 | | |
+| DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** | **77.04** | 74 |
 
 What each part adds, seed 0 (95% interval from a bootstrap over the 40
 test databases):
@@ -101,7 +106,10 @@ test databases):
 | Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.58 | -0.09 to +3.20 | at the edge |
 | BIRD with gold SQL after DPO | DPO round 3 from FedAvg R3 to DPO round 3 from gold | +0.09 | -1.64 to +1.84 | no difference |
 | Teacher after DPO | DPO round 3 from gold to the method | +1.49 | -0.24 to +3.16 | at the edge |
+| Teacher against a soft target, after DPO | DPO round 3 from `virtual_k2aaa_a3` to the method | +1.12 | -0.10 to +2.30 | at the edge |
+| Soft target without the teacher, after DPO | DPO round 3 from gold to DPO round 3 from `virtual_k2aaa_a3` | +0.37 | -1.17 to +1.95 | no difference |
 | Teacher before DPO | `gold_k2aaa_a3` to `hinton_k2aaa_a3` | +0.23 | -1.18 to +1.70 | no difference |
+| NLL term, round 1 | DPO round 1 without NLL to DPO round 1 with it | -0.51 | -1.13 to +0.05 | no difference |
 
 Both seeds pooled, clustered by question (95% interval):
 
@@ -112,11 +120,15 @@ Both seeds pooled, clustered by question (95% interval):
 | DPO stage without a server stage | FedAvg R3 to its DPO round 3 | +3.91 | +2.82 to +5.01 | clear |
 | Server stage before DPO | FedAvg R3 to `hinton_k2aaa_a3` | +2.12 | +0.95 to +3.29 | clear |
 | Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.40 | +0.32 to +2.47 | small, separable pooled |
+| BIRD with gold SQL after DPO | DPO round 3 from FedAvg R3 to DPO round 3 from gold | +0.42 | -0.70 to +1.54 | no difference |
+| Teacher after DPO | DPO round 3 from gold to the method | +0.98 | +0.05 to +1.91 | small, at the edge (p = 0.04) |
 
-- The DPO stage is the solid part: 3.2 to 3.9 points from either start on
+- The DPO stage is the solid part: 2.5 to 3.9 points from every start on
   both seeds, and
   the NLL term alone (+0.19) or more SFT rounds (+0.84, then a fall) do not
-  give it.
+  give it. In round 1 the preference term alone does as well as DPO + NLL
+  (76.20 against 75.69, not separable); rounds 2-3 without the NLL term
+  are not run.
 - Other sets: the method is above FedAvg R3 by 5.3 (Realistic) to 12.0 (DK)
   points on Spider dev, Realistic, SYN and DK (seed 0). After DPO the
   Hinton line leads the FedAvg line on every set and both seeds; pooled:
@@ -137,13 +149,32 @@ Both seeds pooled, clustered by question (95% interval):
 - The line saturates: round 4 (76.94) is not separable from round 3; by
   round 4, 6,425 of 8,659 client questions have all 8 samples correct and
   58 execution errors are left on Spider test (2.7 points).
-- The server stage: BIRD with gold SQL has no lead left after DPO (74.34,
-  75.13, 75.22 at rounds 1 to 3, against 74.29, 75.17, 75.13 from
-  FedAvg R3). The Hinton stage keeps 1.3 to 1.5 points over the gold stage
-  at every round, on the same BIRD questions: what survives DPO comes from
-  the teacher, not from the BIRD data. Before DPO the Hinton stage is
-  already ahead of the gold stage on Spider dev (+2.32) and DK (+5.42),
-  sets no choice was made on.
+- The server stage after DPO, by seed. Seed 0: the gold stage ends level
+  with no server stage (75.22 against 75.13) and the Hinton stage 1.49
+  above it. Seed 1: the gold stage ends 0.75 above no server stage and the
+  Hinton stage 0.47 above gold (76.57, 77.04). The gold line moves most
+  between seeds (1.35 at round 3), so the seed 0 reading overstated the
+  teacher's part. Pooled: teacher over gold +0.98 (p = 0.04), gold over no
+  server stage +0.42 (not separable; separable on Spider dev, +2.08, and
+  Realistic, +3.15). The BIRD stage keeps about 11.7 points on BIRD dev
+  after DPO, with or without the teacher.
+- Soft targets without the teacher (seed 0; `virtual_k2aaa_a3`, gold token
+  0.73 and the rest uniform, and `self_k2aaa_a3`, the base student's
+  logits; archived adapters, approved 2026-11-12 and 2026-11-13). Before
+  DPO all four server stages are within 0.75 point on Spider test (gold
+  73.08, virtual 72.57, self 72.61, Hinton 73.31); the Hinton stage leads on
+  Spider dev and DK (over virtual +2.32 and +3.36). After DPO the virtual
+  line ends with the gold line on every set (75.59 against 75.22 on Spider
+  test) and the Hinton line 1.12 above it (69 / 93, p = 0.07), 3.48 on
+  Spider dev, 3.93 on DK, level on Realistic, SYN and BIRD dev. A soft
+  target alone does not give the lead; the control is one lineage on the
+  seed whose gold line was low. The self-teacher stage costs 7.4 points on
+  BIRD dev against the virtual one.
+- On Spider test the Hinton line's lead after DPO sits on rows that flip
+  between training lineages: where the gold and virtual lines agree (2,009
+  rows) it is level (53 / 52); on the 138 rows where they disagree it is
+  right on 96 (FedAvg line 82). On Spider dev and DK it also leads on the
+  rows both agree on.
 - The wrong results are not all out of reach: of the method's 442, 193 are
   right in at least one of the other 16 rows and 249 are wrong in every
   row.
@@ -158,44 +189,41 @@ Both seeds pooled, clustered by question (95% interval):
   are not on the rows the teacher gets right (64% against 66%).
 - What the teacher's lead over the gold line is made of after DPO (seed 0,
   +32 rows): 25 from wrong results, 7 from execution errors, on extra-hard
-  questions (63.0 against 59.9). Against the FedAvg line the lead is in
-  execution errors.
-- Soft targets without the teacher do not give the lead before DPO
-  (archived rows, approved 2026-11-12; seed 0, HF, server stage then 3
-  FedAvg rounds): on Spider dev gold SQL 70.41, a virtual teacher 70.50,
-  the student's own logits 70.21, the 7B teacher 72.53 (+2.03 over the
-  virtual teacher, p = 0.03). On DK about half of the lead comes from any
-  soft target (52.34, 55.70, 52.71, 58.32). Not measured on Spider test or
-  after DPO.
+  questions (63.0 against 59.9). Seed 1 does not repeat the extra-hard lead
+  (62.7 against 63.6). Against the FedAvg line the lead is in execution
+  errors on both seeds.
 - CoT at 1.5B does not help (plan + SQL: server stage 60.64, one template
   client round 62.69, self-taught rounds at most 60.64). It is a short
   analysis in the paper, not part of the method.
 
 ## 5. Open
 
-1. The teacher's role. On seed 0 the answer is: Hinton KD at the server
-   stage, or no server stage; the gold stage adds nothing after DPO.
-   Hinton against gold is +0.23 before DPO and +1.35, +1.30, +1.49 after
-   one to three DPO rounds, one pair of training lineages. Seed 1 repeats
-   the lead over the FedAvg line (+1.21; +1.40 pooled); the gold line of
-   seed 1 decides whether that lead is the teacher's or BIRD's (running).
-   Whether the lead after DPO needs the 7B teacher or any soft target is
-   not measured yet: the virtual-teacher control exists only before DPO.
-   Three DPO rounds from its adapter (`virtual_k2aaa_a3`, seed 0) are
-   queued after `pilot_no_nll` (owner, 2026-11-13), with the start row on
-   Spider test and the other sets through vLLM.
-2. Seeds. Two seeds for the Hinton and FedAvg lines; the DPO step and the
-   method row repeat within 0.7 point. A third seed is worth its cost
+1. The teacher's role (owner decision pending). After DPO on Spider test
+   the Hinton stage leads gold SQL by +1.49 (seed 0) and +0.47 (seed 1),
+   +0.98 pooled (p = 0.04), and the virtual-teacher stage by +1.12 (seed 0,
+   p = 0.07); gold and virtual are level. So the lead is small, not given
+   by a soft target alone, and about as large as the spread of the gold
+   line between seeds (1.35). Before DPO the teacher adds nothing on Spider
+   test; on Spider dev and DK it leads on seed 0 before and after DPO, much
+   less on seed 1.
+2. Seeds. Two seeds for the three DPO lines; the DPO step and the method
+   row repeat within 0.7 point. The teacher's gain over gold is at the edge
+   after seed 1, the case where a third seed was judged worth its cost
    (about 30 h on one card for the FedAvg and DPO rounds of the three
-   lines, plus two server stages; estimate) only if the teacher's gain
-   over gold stays at the edge after seed 1.
-3. What the federated setting costs in the DPO stage. Reference rows, not
+   lines, plus two server stages; estimate). The soft-target control on
+   seed 1 needs its own server stage and 3 FedAvg rounds first (about
+   15.5 h with its DPO rounds, estimate).
+3. The NLL term. In round 1 it adds nothing (76.20 without it, 75.69 with
+   it, not separable). Whether it matters over rounds 2-3 needs 3 rounds
+   without it, with their own sampling (about 5.5 h, estimate). It is one
+   of the three differences from the closest DPO work named so far.
+4. What the federated setting costs in the DPO stage. Reference rows, not
    a condition of the claim; not run and not queued: DPO with the same
    recipe on the pooled client data (centralized), and DPO at each client
    without aggregation (local only). About 5.5 to 6 GPU-h each (estimate).
-4. Reference rows on the same engine: FedProx, FedNTD and the local client
-   models have no vLLM inproc number yet. BIRD dev is queued for 6 rows.
-5. The 20% of wrong results. The method does not touch them, and they
+5. Reference rows on the same engine: FedProx, FedNTD and the local client
+   models have no vLLM inproc number yet.
+6. The 20% of wrong results. The method does not touch them, and they
    bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
    the preference term on the span where chosen and rejected differ) did
    not lower them: round 1 gives 76.20 against 75.69 for DPO round 1
@@ -207,19 +235,16 @@ Both seeds pooled, clustered by question (95% interval):
 
 ## 6. Current phase
 
-Phase `sqldpo_s1` on GPU 0 (`PIPELINE_NEXT.md`): the Hinton and FedAvg
-lines of seed 1 are done, with the other sets; the gold line runs next
-(about 07:40 on 11-13 with its other sets, estimate), then DPO round 1
-without the NLL term (seed 0), then the soft-target control of seed 0: DPO
-rounds 1-3 from `virtual_k2aaa_a3` (about 15:30 on 11-13, estimate). The
-preference term stays plain and the
-method keeps the Hinton server stage until the gold line of seed 1 is read
-(owner, 2026-11-11).
+Phases `sqldpo_s0` and `sqldpo_s1` are finished: the three DPO lines on
+both seeds, the soft-target controls and the row without the NLL term on
+seed 0 (last results 15:25 on 11-13). The queue is empty; GPU 0 waits for
+the owner. The preference term stays plain and the method keeps the
+Hinton server stage until the owner decides (2026-11-11).
 
-Next owner decisions, after the seed 1 lines:
+Next owner decisions:
 
-- whether the teacher stays in the method (open point 1): Hinton against
-  the FedAvg and gold lines after DPO, both seeds pooled by question, and
-  against the virtual-teacher line on seed 0;
-- then the reference rows of open points 3 and 4, and a third seed if the
-  teacher's gain is at the edge.
+- whether the teacher stays in the method (open point 1);
+- what runs next on GPU 0: the NLL term over 3 rounds (open point 3,
+  about 5.5 h), a third seed (open point 2, about 30 h), the soft-target
+  control on seed 1 (about 15.5 h), the reference rows of open points 4
+  and 5.

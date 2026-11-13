@@ -3,6 +3,122 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-13: soft-target control: DPO from the virtual-teacher start ends with the gold line
+
+Seed 0, vLLM inproc, batch 16 (fedicl-sql: start `1d56507e`, rounds
+`87c2d835` to `9a184a28`, other sets `c23b696b`; `self_k2aaa_a3`
+`c09d1aad`). DPO rounds 1-3 from `virtual_k2aaa_a3` (the Hinton loss on BIRD
+with a virtual teacher: gold token 0.73, the rest uniform; then 3 FedAvg
+rounds), settings of the Hinton and gold lines. Paired counts and intervals
+computed from the committed predictions (bootstrap over the test databases).
+
+Spider test:
+
+| Round | Gold line | Virtual line | Hinton line | Hinton minus virtual |
+|---|---:|---:|---:|---:|
+| start | 73.08 | 72.57 | 73.31 | +0.75 |
+| 1 | 74.34 | 75.41 | 75.69 | +0.28 |
+| 2 | 75.13 | 75.08 | 76.43 | +1.35 |
+| 3 | 75.22 | 75.59 | **76.71** | +1.12 |
+
+| Pair at round 3 | Gain | Right only in first / second | p | 95% interval (databases) |
+|---|---:|---|---:|---|
+| virtual line / Hinton line | +1.12 | 69 / 93 | 0.07 | -0.10 to +2.30 |
+| gold line / virtual line | +0.37 | 65 / 73 | 0.55 | -1.17 to +1.95 |
+| FedAvg line / virtual line | +0.47 | 117 / 127 | 0.57 | -1.04 to +2.13 |
+| `virtual_k2aaa_a3` / virtual DPO r3 | +3.03 | 42 / 107 | < 0.001 | +1.76 to +4.34 |
+
+Round 3 (execution errors / wrong results / extra-hard EX): gold 71 / 461 /
+59.9, virtual 79 / 445 / 60.8, Hinton 58 / 442 / 63.0. Training data of the
+virtual line: sample accuracy 77.5, 83.3, 85.3% by round, pairs 5,871,
+4,142, 3,568 (gold line 77.5, 83.7, 85.5%; 5,794, 4,016, 3,492).
+
+Other sets, EX; no choice was made on these:
+
+| Row | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---:|---:|---:|---:|---:|
+| `gold_k2aaa_a3` | 70.50 | 61.42 | 55.90 | 52.71 | **40.03** |
+| `virtual_k2aaa_a3` | 70.50 | 61.02 | 55.42 | 54.77 | 39.77 |
+| `self_k2aaa_a3` | 70.31 | 60.63 | 54.84 | 52.15 | 32.33 |
+| `hinton_k2aaa_a3` | **72.82** | **62.01** | **56.67** | **58.13** | 38.33 |
+| gold DPO r3 | 73.79 | **65.35** | 59.86 | 57.94 | 40.87 |
+| virtual DPO r3 | 73.02 | 64.17 | **61.41** | 60.19 | 40.94 |
+| Hinton DPO r3 | **76.50** | 64.17 | 61.03 | **64.11** | **41.20** |
+
+| Pair at round 3 (right only in first / second, p) | Spider dev | Realistic | SYN | DK | BIRD dev |
+|---|---|---|---|---|---|
+| virtual line / Hinton line | +3.48 (32 / 68, < 0.001) | 0.00 (26 / 26) | -0.39 (58 / 54, 0.78) | +3.93 (13 / 34, 0.003) | +0.26 (103 / 107, 0.84) |
+| gold line / virtual line | -0.77 (43 / 35, 0.43) | -1.18 (34 / 28, 0.53) | +1.55 (51 / 67, 0.17) | +2.24 (20 / 32, 0.13) | +0.07 (101 / 102, 1.0) |
+
+- A soft target without the teacher ends where gold SQL ends after DPO:
+  the virtual and gold lines are not separable on any set, and their
+  training data match round by round.
+- The Hinton line is above the virtual line by 1.12 on Spider test (at the
+  edge), 3.48 on Spider dev and 3.93 on DK, level on Realistic, SYN and
+  BIRD dev: the pattern of Hinton against gold on seed 0 (+1.49; +2.71,
+  +6.17). Two server stages without the teacher land at 75.22 and 75.59 on
+  seed 0, the Hinton stage 1.1 to 1.5 above both. The gold line moved 1.35
+  between seeds, as much as these gaps; the control exists for seed 0 only.
+- Where the lead sits on Spider test: on the 2,009 rows where the gold and
+  virtual lines agree, the Hinton line is level (right on 53 rows both miss,
+  wrong on 52 both get right). Its lead is on the 138 rows where the two
+  disagree: right on 96 (FedAvg line 82). On Spider dev and DK it leads on
+  the rows both agree on as well (35 / 17, 16 / 5).
+- The lead is not on the teacher's rows: the teacher zero-shot is right on
+  51 of the 69 rows right only in the virtual line (74%) and 61 of the 93
+  right only in the Hinton line (66%).
+- Before DPO, on Spider test the four server stages are within 0.75 point
+  (gold 73.08, virtual 72.57, self 72.61, Hinton 73.31; none separable).
+  The Hinton start leads the virtual start on Spider dev (+2.32, 34 / 58,
+  p = 0.02) and DK (+3.36, 13 / 31, p = 0.01).
+- The self-teacher stage costs BIRD accuracy: BIRD dev 32.33, 7.43 below
+  the virtual teacher (74 / 188, p < 0.001); on the Spider sets it is level
+  with gold and virtual.
+- The vLLM rows of the two archived adapters match their HF rows within
+  0.93 point on every set (largest: virtual on DK, 54.77 against 55.70).
+
+Run time: `curve_virtual` 5 h 06 (09:47 to 14:53; estimate 5.5 h), its
+other sets 15 min, `eval_self` 17 min. The queue is empty since 15:25.
+
+## 2026-11-13: DPO round 1 without the NLL term: 76.20, not below DPO + NLL
+
+Spider test, seed 0, vLLM inproc, batch 16 (fedicl-sql `41799ce5`,
+`fc5793b8`; curve record `049c2f09`). DPO round 1 from `hinton_k2aaa_a3` on
+the round 1 samples of the Hinton line, the same 5,393 pairs (same pair
+file hash), schedule and updates; only the NLL weight is 0.
+
+| Row (all from `hinton_k2aaa_a3`) | EX | Execution error | Wrong result | Hard | Extra |
+|---|---:|---:|---:|---:|---:|
+| start | 73.31 | 129 | 444 | 65.0 | 54.3 |
+| NLL-only round 1 | 73.50 | 117 | 452 | 65.2 | 55.7 |
+| DPO + NLL round 1 | 75.69 | 82 | 440 | 66.7 | **61.1** |
+| DPO + NLL round 1, random pairs | 75.73 | 79 | 442 | 68.0 | 60.5 |
+| DPO round 1, no NLL | **76.20** | 85 | **426** | **69.3** | 59.9 |
+| DPO + NLL round 3 (the method) | 76.71 | 58 | 442 | 68.3 | 63.0 |
+
+| Pair | Gain | Right only in first / second | p | 95% interval (databases) |
+|---|---:|---|---:|---|
+| DPO + NLL r1 / no NLL r1 | +0.51 | 23 / 34 | 0.19 | -0.05 to +1.13 |
+| start / no NLL r1 | +2.89 | 39 / 101 | < 0.001 | +1.81 to +4.01 |
+| no NLL r1 / DPO + NLL r3 | +0.51 | 36 / 47 | 0.27 | -0.23 to +1.20 |
+
+- In round 1 the NLL term does not help: without it the round goes 0.51
+  further (not separable), through fewer wrong results (426 against 440)
+  on hard questions; execution errors are level.
+- Client 1 ends training with a DPO margin of 0.47 without the term
+  against 0.37 with it (pair accuracy 0.875 and 0.885). Focused DPO round 1,
+  which raises the preference weight, also reaches 76.20: in round 1 DPO +
+  NLL takes a smaller step than the preference term alone.
+- Not tested: whether the term matters over rounds 2-3, where the usual
+  reason for it (the chosen side's likelihood falling over iterations)
+  would show; that needs 3 rounds with their own sampling (about 5.5 h,
+  estimate).
+- Of the three differences from the closest DPO work named in the advisor
+  report (the NLL term, the on-policy rounds, the gold fallback), the NLL
+  term has no measured role so far. No decision.
+
+Run time: 1 h 46 (07:44 to 09:30; estimate 1 h 45).
+
 ## 2026-11-13: seed 1 gold line: the teacher's lead after DPO shrinks to 0.47
 
 Spider test, seed 1, vLLM inproc, batch 16 (fedicl-sql `bbd6f34c` to

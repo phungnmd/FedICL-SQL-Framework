@@ -6,11 +6,11 @@ reasons are in `LAB_LOG.md`.
 
 ## Status
 
-Updated 2026-11-13, 08:20.
+Updated 2026-11-13, 16:30.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Phase `sqldpo_s1` finished: the gold line of seed 1 and its other sets were published at 07:44 on 11-13, so `sqldpo_s0/pilot_no_nll` is next. The worker itself was not observed. | results commit `990440df` |
+| 0 | Idle, waiting for the owner: the queue is empty. The last task (`publish_self`) published at 15:25 on 11-13; the worker should have printed `DONE queue` (not observed). | results commit `c09d1aad` |
 | 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
 
 Live state, read-only, any terminal on the server (`fedicl-sql` root): the
@@ -26,80 +26,41 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-1. Pull the new tasks (rows 2 to 5 below) before `pilot_no_nll` ends, about
-   09:30 on 11-13 (estimate). Only the queue file and a document changed, no
-   code a running task loads; pulling while the worker runs is fine. Send
-   back only an error.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-   ```
-
-   If the worker already printed `DONE queue` before the pull, start it
-   again after the pull:
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-   ```
-
-After that the owner is needed once: when `curve_virtual` has published
-round 3 on Spider test (about 15:20 on 11-13, estimate), tell the agent; it
-compares the virtual-teacher DPO line with the Hinton line (76.71) and the
-gold line (75.22) of seed 0 question by question.
+Nothing to run. The owner is needed now, for two choices (results in
+`LAB_LOG.md`, 2026-11-13): whether the teacher stays in the method, and
+what GPU 0 runs next (list below). Once chosen, the agent queues it and
+writes the pull and start commands here.
 
 ## Running and queued
 
-GPU 0, in queue order: one ablation row of seed 0, then the soft-target
-control of seed 0. Times are estimates, counted from the end of the seed 1
-gold line at 07:44 on 11-13: a DPO line is counted at its seed 0 time; a
-pilot at the time of the random pair pilot (1 h 45); one row on six sets at
-20 min.
+Nothing running or queued on GPU 0.
 
-| # | Tasks | What it answers | About | Done by about | State |
-|---|---|---|---|---|---|
-| 1 | `pilot_no_nll` | What the NLL term adds: DPO round 1 from `hinton_k2aaa_a3` (seed 0) without it, against DPO round 1 (75.69) | 1.75 h | 09:30 on 11-13 | running (not observed) |
-| 2 | `check_virtual`, `eval_virtual`, `publish_virtual_start` | The start without the teacher on the paper's engine: `virtual_k2aaa_a3` on Spider test and the other five sets | 20 min | 09:50 on 11-13 | queued (after the pull) |
-| 3 | `curve_virtual` | Teacher or any soft target: DPO rounds 1-3 from `virtual_k2aaa_a3` (seed 0), read at round 3 next to the Hinton and gold lines | 5.5 h | 15:20 on 11-13 | queued (after the pull) |
-| 4 | `extra_virtual_dpo_r3`, `publish_virtual_dpo` | That line on the other sets | 15 min | 15:35 on 11-13 | queued (after the pull) |
-| 5 | `check_self`, `eval_self`, `publish_self` | The self-teacher row (`self_k2aaa_a3`) on Spider test and the other five sets | 20 min | 15:55 on 11-13 | queued (after the pull) |
-
-`curve_hinton` took 7 h 50 and `curve_fedavg` 5 h 24 against estimates of
-5.5 h and 5.75 h; each DPO line may end up to about 2.5 h later than the
-table says.
-
-Cut from a full run:
+Cut from a full run (finished work):
 
 - The row without the NLL term is 1 round on seed 0 and reuses the round 1
-  samples of the Hinton line (no sampling). It answers what the term
-  changes in round 1; whether a difference grows over rounds needs 3 rounds
-  with their own sampling (about 5.5 h).
+  samples of the Hinton line (no sampling): it answers round 1 only.
 - Seed 1 has the three DPO lines only. The controls of seed 0 (NLL-only
-  round, extra SFT rounds, focused DPO, round 4) are not repeated.
-- On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 has the start and
-  round 3 of each line, not rounds 1 and 2.
-- The soft-target control is seed 0 only and starts from an earlier adapter
-  (`virtual_k2aaa_a3`). Seed 1 has no such adapter: it needs a server stage
-  and 3 FedAvg rounds before its DPO rounds (about 15.5 h in all,
-  estimate). One seed says whether the Hinton line's lead after DPO shows
-  up without the teacher; it is one pair of training lineages, as the gold
-  line of seed 0 was.
-- The self-teacher start is evaluated only. A DPO line from it would cost
-  about 5.5 h; the virtual teacher is the control with no model behind its
-  soft targets.
+  round, extra SFT rounds, focused DPO, random pairs, no NLL, round 4, the
+  soft-target lines) are not repeated.
+- On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 and the virtual
+  line have the start and round 3 of each line, not rounds 1 and 2.
+- The soft-target control is seed 0 only, from an earlier adapter
+  (`virtual_k2aaa_a3`); the self-teacher start is evaluated only, without
+  DPO.
 
-Not queued yet:
+Not queued yet (each waits for the owner):
 
+- DPO without the NLL term, rounds 1-3 with their own sampling, seed 0
+  (about 5.5 h): whether the term matters after round 1.
+- A third seed of the three lines (about 30 h, with two server stages).
+- The soft-target control on seed 1: server stage, 3 FedAvg rounds, 3 DPO
+  rounds (about 15.5 h).
 - FedProx, FedNTD and the local client models through vLLM inproc: whether
   their adapters are still on the server is not checked.
 - DPO on pooled client data and DPO without aggregation (reference rows,
   about 5.5 to 6 h each).
 - Focused DPO rounds 2 and 3 (about 3.75 h): round 1 did not lower the
   wrong results.
-
-To watch for: if `check_virtual` fails (the adapter is not on the server),
-the worker stops with `STOP queue: sqldpo_s0/check_virtual failed`; rows 2
-to 5 then do not run. Send that line to the agent. A failed `check_self`
-only skips row 5.
 
 ## Reference
 
@@ -169,11 +130,11 @@ so its numbers are reported as "chosen on Spider test", never as held-out.
 | `sqldpo_s0/hinton`, `hinton_more` | `hinton_k2aaa_a3` (Hinton KD on BIRD 2 epochs, then FedAvg 3 rounds) | every client question each round, 8 SQL samples through vLLM (256 new tokens) | correct and wrong samples by execution on the client's databases; gold SQL as chosen when none is correct | one federated DPO + NLL round (beta 0.1, lr 1e-5, 2 local epochs, 16 pairs per update, several pairs per forward pass, gradient checkpointing); 4 rounds run, reported at round 3 |
 | `sqldpo_s0/fedavg`, `fedavg_more` | FedAvg R3 from the base model | same | same | the control without a server stage; 3 rounds |
 | `sqldpo_s0/gold` | `gold_k2aaa_a3` (gold SFT on BIRD 2 epochs, then FedAvg 3 rounds) | same | same | the control without the teacher; 3 rounds |
-| `sqldpo_s0/virtual` | `virtual_k2aaa_a3` (the Hinton loss on BIRD 2 epochs with a virtual teacher: gold token 0.73, the rest uniform; then FedAvg 3 rounds; earlier adapter, approved 2026-11-13) | same | same | the control with soft targets and no teacher; 3 rounds |
+| `sqldpo_s0/virtual` (finished, 3 rounds) | `virtual_k2aaa_a3` (the Hinton loss on BIRD 2 epochs with a virtual teacher: gold token 0.73, the rest uniform; then FedAvg 3 rounds; earlier adapter, approved 2026-11-13) | same | same | the control with soft targets and no teacher; 3 rounds |
 | `sqldpo_s0/rft_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs, chosen side only (preference weight 0) | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/fdpo_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs; the preference term weights the tokens where chosen and rejected differ by 2 and leaves out the rejected suffix | 1 round, same schedule and updates as DPO round 1 |
 | `sqldpo_s0/pairrand_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same labels and pair count; which correct and wrong sample pair up first is random (a fixed hash) instead of the most similar two | 1 round, same schedule and updates as DPO round 1 |
-| `sqldpo_s0/nonll_hinton` | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs (nearest) | 1 round, the preference term only (NLL weight 0), same schedule and updates as DPO round 1 |
+| `sqldpo_s0/nonll_hinton` (finished, 1 round) | `hinton_k2aaa_a3` | the round 1 samples of the Hinton line | the same pairs (nearest) | 1 round, the preference term only (NLL weight 0), same schedule and updates as DPO round 1 |
 | `sqldpo_s0/sft_hinton` | `hinton_k2aaa_a3` | each client's Spider rows, gold SQL | none | 2 more FedAvg SFT rounds (lr 2e-4, 1 local epoch) |
 
 SQL DPO runs 3 rounds, fixed for every line and seed, and is reported at
@@ -195,10 +156,10 @@ Final table (Spider test; every SQL DPO line at round 3):
 | SQL DPO from `virtual_k2aaa_a3` | control: soft targets without the teacher (seed 0) |
 | `virtual_k2aaa_a3`, `self_k2aaa_a3` | server stage with soft targets from no teacher, or from the student itself, then FedAvg (seed 0) |
 | NLL-only round, extra FedAvg SFT rounds from `hinton_k2aaa_a3` | controls: no preference term, SFT at the same compute |
-| SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); server stage and its loss are decided after the gold line of seed 1 |
+| SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); the server stage and its loss wait for the owner's decision |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
 
-### Seed 1 (phase `sqldpo_s1`)
+### Seed 1 (phase `sqldpo_s1`, finished)
 
 The three DPO lines of seed 0 with seed 1 in every training and sampling
 command; evaluation arms carry `_s1` in their names. Curve rule: every
