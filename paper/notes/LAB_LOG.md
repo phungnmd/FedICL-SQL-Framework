@@ -3,6 +3,47 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-13: seed 2, selection by execution and baseline rows queued
+
+Owner decisions (evening of 11-13): yes to a third seed of the three DPO
+lines, with its Hinton and gold lines ahead of the offline and centralized
+rows; yes to selection by execution at inference (N1); the earlier seed 0
+FedProx R3, FedNTD and local client SFT adapters approved for reuse as
+baselines, evaluation only (`fedicl-sql/docs/SERVER_STORAGE.md` section 5).
+
+Queued (fedicl-sql `40b9edb5`), in this order after the no-NLL rounds 2-3:
+seed 2 Hinton line, seed 2 gold line (both server stages trained anew from
+the base model with the seed 0 recipe and `--seed 2`; the teacher logit
+cache is reused, it does not depend on the seed), N1 on four seed 0 rows,
+the 7B teacher zero-shot through vLLM (bf16) on the six sets, FedProx and
+FedNTD on the six sets, the 5 local client models on Spider test, then the
+offline and centralized rows, then the seed 2 FedAvg line (about 59 h on
+GPU 0, estimate).
+
+New code (fedicl-sql `dcf73bd0`): `scripts/exec_select.py` with
+`fedicl_sql/eval/exec_select.py`. It samples K = 8 SQL per question through
+vLLM with the DPO sampling settings and scores two rules that never read the
+gold SQL: keep the greedy SQL when it executes, else take the most frequent
+sample that executes; or vote over the executable samples grouped by their
+result rows. The greedy column is the committed vLLM inproc row of the same
+adapter. 623 tests pass on the Mac.
+
+Cut: the local client models run on Spider test only (their six-set rows
+would add about 2.5 h); N1 is seed 0 and Spider test only.
+
+## 2026-11-13: client adapters of DPO round 1 before aggregation
+
+Seed 0, vLLM inproc, batch 16, Spider test (fedicl-sql `f456678c`). The 5
+client adapters of DPO round 1 of the Hinton line, each evaluated alone,
+against the averaged round 1 adapter:
+
+| Client | 1 | 2 | 3 | 4 | 5 | mean | averaged |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| EX | 75.36 | 75.50 | 74.66 | 74.24 | 75.08 | 74.97 | **75.69** |
+
+Every client adapter is below the averaged one (by 0.19 to 1.45); in round
+1 averaging adds 0.72 point over the mean client adapter.
+
 ## 2026-11-13: roles of the method's parts and two reference rows queued
 
 No result yet. Owner request: queue the runs that give each part of the

@@ -208,22 +208,26 @@ Both seeds pooled, clustered by question (95% interval):
    less on seed 1.
 2. Seeds. Two seeds for the three DPO lines; the DPO step and the method
    row repeat within 0.7 point. The teacher's gain over gold is at the edge
-   after seed 1, the case where a third seed was judged worth its cost
-   (about 30 h on one card for the FedAvg and DPO rounds of the three
-   lines, plus two server stages; estimate). The soft-target control on
-   seed 1 needs its own server stage and 3 FedAvg rounds first (about
-   15.5 h with its DPO rounds, estimate).
+   after seed 1. A third seed of the three lines is queued (owner,
+   2026-11-13), the Hinton and gold lines first, both server stages
+   trained anew. The soft-target control on seed 1 needs its own server
+   stage and 3 FedAvg rounds first (about 15.5 h with its DPO rounds,
+   estimate); not queued.
 3. The NLL term. In round 1 it adds nothing (76.20 without it, 75.69 with
    it, not separable). Whether it matters over rounds 2-3 needs 3 rounds
    without it, with their own sampling (about 5.5 h, estimate). It is one
    of the three differences from the closest DPO work named so far.
 4. What the federated setting costs in the DPO stage. Reference rows, not
-   a condition of the claim. Queued (2026-11-13): DPO with the same recipe
-   on the pooled client data (centralized, 3 rounds), and the client
-   adapters of round 1 before aggregation. A 3-round line without
-   aggregation is not queued (new code, about 6 h).
-5. Reference rows on the same engine: FedProx, FedNTD and the local client
-   models have no vLLM inproc number yet.
+   a condition of the claim. In round 1 each client's adapter alone gives
+   74.24 to 75.50 on Spider test (mean 74.97), the averaged adapter 75.69.
+   Queued: DPO with the same recipe on the pooled client data
+   (centralized, 3 rounds). A 3-round line without aggregation is not
+   queued (new code, about 6 h).
+5. Reference rows on the same engine: the 7B teacher, FedProx, FedNTD and
+   the local client SFT models are queued with vLLM inproc (earlier seed 0
+   adapters, approved 2026-11-13), and selection by execution over 8
+   samples at inference on four seed 0 rows, to place the DPO stage next
+   to a check that needs no training.
 6. The 20% of wrong results. The method does not touch them, and they
    bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
    the preference term on the span where chosen and rejected differ) did
@@ -237,18 +241,16 @@ Both seeds pooled, clustered by question (95% interval):
 ## 6. Current phase
 
 Phases `sqldpo_s0` and `sqldpo_s1` are finished for the three DPO lines on
-both seeds, the soft-target controls and DPO round 1 without the NLL term
-(last results 15:25 on 11-13). Queued on GPU 0 (`PIPELINE_NEXT.md`, about
-16 h from 11-13 evening, estimate): the roles of the DPO stage's parts
-(aggregation in round 1, gold fallback, NLL term over 3 rounds, on-policy
-against offline rounds) and centralized DPO as a reference (open points 3
-and 4). The preference term stays plain and the method keeps the Hinton
-server stage until the owner decides (2026-11-11).
+both seeds, the soft-target controls, DPO round 1 without the NLL term and
+the client adapters of round 1 (last results 19:20 on 11-13). Queued on
+GPU 0 (`PIPELINE_NEXT.md`, about 62 h from 11-13 evening, estimate): the
+gold fallback and the NLL term over 3 rounds (open point 3), seed 2 of the
+Hinton and gold lines (open points 1 and 2), selection by execution and
+the reference rows (open point 5), the offline rounds and centralized DPO
+(open point 4), then seed 2 of the FedAvg line. The preference term stays
+plain and the method keeps the Hinton server stage until the owner decides
+(2026-11-11).
 
-Next owner decisions:
-
-- whether the teacher stays in the method (open point 1);
-- FedProx, FedNTD and local client SFT rows (open point 5): approve the
-  earlier adapters or train them anew;
-- a third seed (open point 2, about 30 h) or the soft-target control on
-  seed 1 (about 15.5 h).
+Next owner decision: whether the teacher stays in the method (open point
+1), once seed 2 of the Hinton and gold lines is in (about 09:35 on 11-15,
+estimate).

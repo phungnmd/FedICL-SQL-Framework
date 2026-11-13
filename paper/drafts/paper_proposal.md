@@ -318,19 +318,19 @@ khoảng 2.7 h, một lần evaluation Spider test khoảng 6 phút.
 | Dòng gold | server stage gold, FedAvg R3, DPO round 1-3 | 0, 1 |
 | Dòng virtual teacher | điểm xuất phát, DPO round 1-3 | 0 |
 | Self teacher | điểm xuất phát (không có DPO) | 0 |
-| Ablation stage DPO | chỉ NLL, thêm 1 và 2 round SFT, Focused-DPO round 1, ghép cặp ngẫu nhiên round 1, không có NLL round 1 | 0 |
+| Ablation stage DPO | chỉ NLL, thêm 1 và 2 round SFT, Focused-DPO round 1, ghép cặp ngẫu nhiên round 1, không có NLL round 1, 5 adapter client của DPO round 1 trước khi aggregate | 0 |
 | Các set khác | Spider dev, DK, SYN, Realistic, BIRD dev: điểm xuất phát và round 3 của mỗi dòng | 0, 1 |
 | Teacher 7B zero-shot | Spider test (engine HF, 4-bit) | 0 |
 | Phân tích từ prediction | loại lỗi, chuyển trạng thái giữa các dòng, theo độ khó, teacher so với student | 0, 1 |
 
 ### 7.2 Đã queue
 
-Trạng thái và giờ: `paper/notes/PIPELINE_NEXT.md`. Tất cả là seed 0, từ điểm
-xuất phát Hinton, khoảng 16 GPU-h.
+Trạng thái và giờ: `paper/notes/PIPELINE_NEXT.md`. Các task dưới đây là seed
+0, từ điểm xuất phát Hinton. N1, M1, M3 và M4 của mục 7.3 cũng đã queue
+(2026-11-13).
 
 | Task | Trả lời câu hỏi | Vào đâu trong paper |
 |---|---|---|
-| 5 adapter client của DPO round 1, trước khi aggregate | Averaging thêm gì ở round 1 | Bảng 7 |
 | DPO round 1 không có gold fallback | Gold fallback có vai trò không | Bảng 7 |
 | Round 2-3 của dòng không có NLL | NLL có vai trò qua các round không | Bảng 7 |
 | Round 1-3 đều train trên sample của round 1 | Sample lại mỗi round có cần không | Bảng 7 |
@@ -343,7 +343,7 @@ Dòng local chỉ có round 1; ba round không aggregate cần code mới (kho�
 
 | # | Thực nghiệm | Trả lời câu hỏi | Vào đâu | GPU-h |
 |---|---|---|---|---:|
-| N1 | Chọn câu theo execution lúc inference, không train thêm: sample 8 SQL cho mỗi câu hỏi test, (a) giữ câu greedy nếu chạy được, nếu không lấy sample đầu tiên chạy được, (b) bỏ phiếu theo kết quả execution. Trên bốn dòng: FedAvg R3, điểm xuất phát Hinton, DPO round 3 từ FedAvg, method | DPO cho được gì mà một bước kiểm tra ở inference không cho; hai cách có cộng được không | Bảng 5, mục 7.3 | 1 |
+| N1 | Chọn câu theo execution lúc inference, không train thêm: sample 8 SQL cho mỗi câu hỏi test, (a) giữ câu greedy nếu chạy được, nếu không lấy sample chạy được xuất hiện nhiều nhất, (b) bỏ phiếu theo kết quả execution. Trên bốn dòng: FedAvg R3, điểm xuất phát Hinton, DPO round 3 từ FedAvg, method | DPO cho được gì mà một bước kiểm tra ở inference không cho; hai cách có cộng được không | Bảng 5, mục 7.3 | 1 |
 | M1 | Seed 2 cho ba dòng (FedAvg, Hinton, gold): hai stage server, 3 round FedAvg và 3 round DPO mỗi dòng, các set khác | Mọi dòng chính có trung bình và độ lệch chuẩn trên 3 seed; cỡ phần teacher trên 3 seed | Bảng 2, 3, 4, 6, Hình 2 | 45 |
 | M3 | FedProx, FedNTD và các model local của từng client trên engine vLLM, sáu set, seed 0 | Bảng chính có đủ baseline FL chuẩn trên cùng engine | Bảng 2, 3 | 2 |
 | M4 | Teacher 7B zero-shot trên vLLM, sáu set | Dòng teacher cùng engine với student; phân tích 7.5 so từng câu hợp lệ | Bảng 2, 3, Hình 5 | 1 |
@@ -363,9 +363,9 @@ Ghi chú thực hiện:
   ở mục 9 về nửa server của title; dòng FedAvg (khoảng 10.5 h) chạy sau.
   Các round DPO của seed 2 chạy sau round 2-3 của dòng không có NLL (mục
   7.2), vì kết quả đó có thể đổi recipe DPO.
-- M3: adapter seed 0 của ba baseline là kết quả trước ngày 2026-11-05, cần
-  owner cho phép dùng và cần kiểm tra còn trên server. Nếu thiếu, train lại
-  mỗi baseline khoảng 5 h.
+- M3: dùng lại adapter seed 0 của ba baseline (owner cho phép ngày
+  2026-11-13); một task kiểm tra chúng còn trên server trước khi evaluate.
+  Model local của từng client chỉ chạy trên Spider test.
 - M4: teacher 7B chưa từng chạy qua vLLM trên card này, kiểm tra bộ nhớ ở
   batch đầu.
 - M5: phần ước lượng dương tính giả cần khoảng 2 giờ đọc tay các chosen
@@ -400,16 +400,17 @@ Tổng: khoảng 36 đến 41 GPU-h.
 
 ### 7.6 Thứ tự
 
-1. Queue hiện tại (mục 7.2) chạy đến hết round 2-3 của dòng không có NLL.
-2. N1, M4 và M3 (khoảng 4 h): hoàn thiện Bảng 2 và Bảng 5 cho seed 0, đủ để
+Thứ tự trong queue (owner đồng ý ngày 2026-11-13):
+
+1. Gold fallback và round 2-3 của dòng không có NLL (mục 7.2).
+2. M1, dòng Hinton rồi dòng gold của seed 2 (khoảng 33.5 h); chạy nền trong
+   lúc viết Introduction, Related Work, Setting, Method. M5 làm song song vì
+   không cần GPU.
+3. N1, M4 và M3 (khoảng 4 h): hoàn thiện Bảng 2 và Bảng 5 cho seed 0, đủ để
    bắt đầu viết mục 5, 6 và 7.
-3. M1, dòng Hinton rồi dòng gold (khoảng 33.5 h), trước hai nhóm còn lại
-   của queue (các round dùng lại sample của round 1, DPO tập trung) nếu
-   owner đồng ý; chạy nền trong lúc viết Introduction, Related Work,
-   Setting, Method. M5 làm song song vì không cần GPU.
-4. Hai nhóm còn lại của queue (khoảng 10.75 h), rồi M1 dòng FedAvg
-   (khoảng 10.5 h).
-5. S1, rồi S3 (36 đến 41 h).
+4. Các round dùng lại sample của round 1 và DPO tập trung (khoảng
+   10.75 h), rồi M1 dòng FedAvg (khoảng 10.5 h).
+5. S1, rồi S3 (36 đến 41 h), chưa queue.
 6. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
 
 ## 8. Đối chiếu với chuẩn Q2-Q3
