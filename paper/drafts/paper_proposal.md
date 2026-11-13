@@ -4,16 +4,16 @@ Ngày 2026-11-13, theo các kết quả đã committed đến 15:25 cùng ngày.
 lấy từ `paper/notes/RESEARCH_STATE.md` (mục 4) và `LAB_LOG.md`; nguồn tham
 khảo lấy từ `paper/notes/LITERATURE.md`.
 
-Bản này đặt stage DPO ở client làm trục của paper. Stage server vẫn nằm
-trong pipeline và trong dòng method; vai trò của teacher được trình bày đúng
-cỡ mà control đo được (mục 2 và mục 9).
+Stage DPO ở client cho phần lớn gain, stage distillation ở server cho phần
+nhỏ hơn; title giữ cả hai. Nửa server của title phụ thuộc kết quả seed 2
+(mục 9).
 
 ## 1. Tóm tắt
 
 | Mục | Đề xuất |
 |---|---|
-| Title | **Private Databases as Verifiers: Federated Preference Optimization for Small Text-to-SQL Models** |
-| Tên method | FedLS-SQL (giữ tên; xem mục 3.2) |
+| Title | **Distill at the Server, Verify at the Client: Federated Text-to-SQL for Small Language Models** |
+| Tên method | FedLS-SQL (Federated LLM-to-SLM for Text-to-SQL) |
 | Loại paper | Empirical method paper, cấu trúc IMRaD mở rộng cho ML |
 | Venue | Data & Knowledge Engineering, Int. J. Data Science and Analytics, Neural Processing Letters, Distributed and Parallel Databases; stretch: J. Intelligent Information Systems |
 | Kết quả chính (Spider test EX) | Method 76.71 / 77.04 (seed 0 / 1), FedAvg 71.26 / 71.87, SFT tập trung Spider + BIRD 73.96, teacher 7B zero-shot 77.22 |
@@ -43,12 +43,14 @@ này (+0.84 và +0.19). Execution errors giảm từ 211 xuống 58. Các báo c
 5,393 cặp từ 8,659 câu hỏi ở round 1.
 
 Server có một nguồn mà client không có: dữ liệu public khác domain (BIRD) và
-một teacher 7B. Một stage warm-up trên BIRD trước các round federated cho
-thêm 1.4 điểm sau DPO trên Spider test, 3.5 trên Spider dev, 4.1 trên DK, và
-giữ 11.4 điểm trên BIRD dev. Control "cùng câu hỏi BIRD, gold SQL thay
-teacher" cho thấy phần lớn gain này đến từ dữ liệu public; teacher thêm
-khoảng 1 điểm (+0.98 gộp hai seed, sát ngưỡng). Các paper server LLM cho FL
-(FedMKT, FedCoLLM) không có control này.
+một teacher 7B. Trước các round federated, server distill teacher vào
+student trên BIRD. Stage này cho thêm 1.4 điểm sau DPO trên Spider test, 3.5
+trên Spider dev, 4.1 trên DK, và giữ 11.4 điểm trên BIRD dev. Control "cùng
+câu hỏi BIRD, gold SQL thay teacher" tách hai phần của nó. Trên Spider test,
+stage với gold SQL không còn lead sau DPO (+0.42, không tách được); teacher
+cho thêm +0.98 (gộp hai seed, sát ngưỡng; +1.49 ở seed 0, +0.47 ở seed 1).
+Phần giữ trên BIRD dev đến từ dữ liệu, có hay không có teacher. Các paper
+server LLM cho FL (FedMKT, FedCoLLM) không có control này.
 
 Cả pipeline cao hơn FedAvg 5.3 điểm trên Spider test (hai seed gộp), cao hơn
 SFT tập trung trên Spider + BIRD (không có privacy) 2.75 điểm, và ngang
@@ -62,36 +64,38 @@ loại này ở mọi dòng, từ base model đến DPO round 4.
 
 ### 3.1 Title
 
-**Private Databases as Verifiers: Federated Preference Optimization for
-Small Text-to-SQL Models** (12 từ).
+**Distill at the Server, Verify at the Client: Federated Text-to-SQL for
+Small Language Models** (14 từ).
 
-Vế trước dấu hai chấm là ý chính của paper; vế sau mang các từ khóa tìm kiếm
-(federated, preference optimization, Text-to-SQL, small models). Abstract
-nói rõ tỉ trọng: stage ở client cho phần lớn gain (+2.5 đến +3.9), stage ở
-server cho thêm khoảng 1.4.
+Hai vế trước dấu hai chấm là hai stage của method và cũng là hai nửa của
+Hình 1; vế sau mang các từ khóa tìm kiếm (federated, Text-to-SQL, small
+language models). Abstract nói rõ tỉ trọng: stage ở client cho phần lớn gain
+(+2.5 đến +3.9), stage ở server cho thêm khoảng 1.4.
 
 Bản dự phòng cho venue thích title mô tả, có tên method:
 
-- FedLS-SQL: Execution-Verified Federated Preference Optimization with a
-  Public-Data Server Warm-up for Text-to-SQL.
+- FedLS-SQL: Server-Side Distillation and Client-Side Execution-Verified
+  Preference Optimization for Federated Text-to-SQL.
+
+Bản dùng khi sau seed 2 phần teacher không tách được khỏi gold SQL (mục 9):
+
+- FedLS-SQL: Execution-Guided Federated Preference Optimization for Small
+  Text-to-SQL Models.
 
 ### 3.2 Tên method
 
-`FedLS-SQL`, giải nghĩa một lần ở Introduction: federated training của một
-SLM được deploy, với một LLM và dữ liệu public ở server. Pipeline vẫn có
-teacher ở server nên tên còn đúng với setup; paper không giải nghĩa tên là
-"distillation" vì phần của teacher nhỏ. Search ngày 2026-11-13 không thấy
-method nào tên FedLS-SQL; tên gần nhất là Multi-FedLS (framework chạy FL
-trên multi-cloud, khác chủ đề).
+`FedLS-SQL`, giải nghĩa một lần ở Introduction: federated training đưa kiến
+thức từ một LLM ở server sang một SLM được deploy. Search ngày 2026-11-13
+không thấy method nào tên FedLS-SQL; tên gần nhất là Multi-FedLS (framework
+chạy FL trên multi-cloud, khác chủ đề).
 
-Hai stage có tên riêng để dùng trong bảng và hình: *execution-verified
-federated DPO* và *server warm-up* (mặc định: Hinton KD từ teacher trên
-BIRD; biến thể không teacher: gold SQL trên BIRD).
+Hai stage có tên riêng để dùng trong bảng và hình: *server distillation*
+(Hinton KD trên BIRD) và *execution-verified federated DPO*.
 
 ### 3.3 Keywords
 
-Federated learning; Text-to-SQL; small language models; direct preference
-optimization; execution feedback; knowledge distillation.
+Federated learning; Text-to-SQL; small language models; knowledge
+distillation; direct preference optimization; execution feedback.
 
 ## 4. Cấu hình paper
 
@@ -117,12 +121,13 @@ optimization; execution feedback; knowledge distillation.
    compute thì không. Work gần nhất: FedDPO trong OpenFedLLM và FedBiscuit
    (preference của người), Liu et al. 2025 và ExCoT (DPO tập trung, 7B trở
    lên, DPO chỉ trên SQL không có gain), Iterative RPO (gold làm chosen).
-3. Server warm-up có control: một stage trên BIRD trước các round federated,
-   với bốn loại target trên cùng câu hỏi (gold SQL, soft target không
-   teacher, logit của chính student, teacher 7B), đo trước và sau DPO. Kết
-   quả: stage cho thêm 1.4 điểm sau DPO, phần lớn từ dữ liệu public; teacher
-   thêm khoảng 1 điểm. Work gần nhất: FedMKT, FedCoLLM, CrossLM (không có
-   control "cùng dữ liệu server, gold label").
+3. Server distillation có control: Hinton KD từ teacher 7B trên BIRD trước
+   các round federated, so với ba loại target khác trên cùng câu hỏi (gold
+   SQL, soft target không teacher, logit của chính student), đo trước và
+   sau DPO. Kết quả: stage cho thêm 1.4 điểm sau DPO trên Spider test; với
+   gold SQL thay teacher phần này không tách được (+0.42), teacher thêm
+   +0.98. Work gần nhất: FedMKT, FedCoLLM, CrossLM (không có control "cùng
+   dữ liệu server, gold label").
 4. Kết quả: cao hơn FedAvg 5.3 điểm trên Spider test, gain giữ trên Spider
    dev, DK, SYN, Realistic (các set không dùng để chọn gì), cao hơn SFT tập
    trung không privacy, ngang teacher 7B zero-shot.
@@ -147,7 +152,8 @@ Ký hiệu: [có] số đã có và committed; [queue] đã queue (mục 7.2); [
   model là tín hiệu train: 10% output không chạy được sau SFT.
 - 1.3 Ý chính: database của client là một verifier có sẵn. Client tự gán
   nhãn sample của model bằng execution và train bằng preference; server góp
-  thứ chỉ nó có, dữ liệu public và teacher, trong một stage warm-up.
+  thứ chỉ nó có, dữ liệu public và teacher, trong một stage distillation
+  trước các round federated.
 - 1.4 Hai, ba con số chính và danh sách contribution (mục 5).
 
 Nguồn: FL4SP (Zhang et al., ACL 2023), OpenFedLLM, FedLLM-Bench, Liu et al.
@@ -192,11 +198,11 @@ mạng. Vòng lặp sample, execute, ghép cặp, train ở client là phần tr
 của hình.
 
 - 4.1 Tổng quan và thứ tự các stage.
-- 4.2 Execution-verified federated DPO: sampling, gán nhãn bằng execution,
+- 4.2 Server distillation: Hinton KD từ teacher 7B trên BIRD train, 2 epoch,
+  trước các round federated.
+- 4.3 Federated SFT: FedAvg trên LoRA, 3 round.
+- 4.4 Execution-verified federated DPO: sampling, gán nhãn bằng execution,
   ghép cặp, loss DPO + NLL, aggregation; 3 round. Algorithm 1.
-- 4.3 Federated SFT trước đó: FedAvg trên LoRA, 3 round.
-- 4.4 Server warm-up: 2 epoch trên BIRD train trước các round federated;
-  mặc định Hinton KD từ teacher 7B, biến thể dùng gold SQL.
 - 4.5 Chi phí: số request sampling, kích thước update mỗi round, GPU-h và
   bộ nhớ mỗi stage ở client và ở server (bảng đầy đủ ở Appendix B). [M5]
 
@@ -222,9 +228,9 @@ của hình.
   0 và 1; M1, M3, M4]
 - 6.2 Các set khác (Bảng 3): Spider dev, DK, SYN, Realistic, BIRD dev. [có
   seed 0 và 1; M1]
-- 6.3 Đóng góp từng stage (Bảng 4): FedAvg, thêm DPO, thêm server warm-up
-  với gold SQL, thêm server warm-up với teacher; chênh lệch cặp và khoảng
-  tin cậy 95% gộp seed. [có 2 seed; M1]
+- 6.3 Đóng góp từng stage (Bảng 4): FedAvg, thêm DPO, thêm stage server với
+  gold SQL, thêm stage server với teacher; chênh lệch cặp và khoảng tin cậy
+  95% gộp seed. [có 2 seed; M1]
 - 6.4 Theo round (Hình 2): EX theo round DPO từ ba điểm xuất phát (FedAvg,
   gold, Hinton), dải theo seed; bão hòa ở round 3-4. [có 2 seed; M1]
 
@@ -241,9 +247,12 @@ của hình.
   số lần gọi model và database cho mỗi câu hỏi. [N1]
 - 7.4 Stage server cho gì: dữ liệu hay teacher (Bảng 6): gold SQL, virtual
   teacher, logit của chính student, teacher 7B, trước và sau DPO, trên sáu
-  set. Sau DPO dòng gold và dòng virtual teacher ngang nhau; dòng teacher
-  cao hơn khoảng 1 điểm trên Spider test, rõ hơn trên Spider dev và DK ở
-  seed 0, gần 0 ở seed 1. [có: gold 2 seed, virtual và self seed 0; M1]
+  set. Trước DPO bốn target ngang nhau trên Spider test. Sau DPO dòng gold
+  và dòng virtual teacher ngang nhau và không tách được khỏi dòng không có
+  stage server; dòng teacher cao hơn khoảng 1 điểm trên Spider test, rõ hơn
+  trên Spider dev và DK ở seed 0, gần 0 ở seed 1. Phần giữ trên BIRD dev
+  (khoảng 11.7 điểm) đến từ dữ liệu. [có: gold 2 seed, virtual và self seed
+  0; M1]
 - 7.5 Student so với teacher (Hình 5): EX ngang nhau nhưng đúng trên các
   câu khác nhau, ít nhất một trong hai đúng trên 84%; teacher dẫn ở medium
   và hard, student dẫn ở extra-hard. [có với dòng teacher HF; M4]
@@ -305,7 +314,7 @@ khoảng 2.7 h, một lần evaluation Spider test khoảng 6 phút.
 |---|---|---|
 | Mốc tham chiếu | base model, SFT tập trung Spider, SFT tập trung Spider + BIRD | 0 |
 | Dòng FedAvg | FedAvg R3, DPO round 1-3 | 0, 1 |
-| Dòng Hinton (method) | server warm-up, FedAvg R3, DPO round 1-3 (seed 0 có thêm round 4) | 0, 1 |
+| Dòng Hinton (method) | server distillation, FedAvg R3, DPO round 1-3 (seed 0 có thêm round 4) | 0, 1 |
 | Dòng gold | server stage gold, FedAvg R3, DPO round 1-3 | 0, 1 |
 | Dòng virtual teacher | điểm xuất phát, DPO round 1-3 | 0 |
 | Self teacher | điểm xuất phát (không có DPO) | 0 |
@@ -409,7 +418,7 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
 | Mốc tập trung của chính method | chỉ có SFT tập trung | có DPO tập trung; local ở round 1 | như trước |
 | Mỗi phần của stage DPO có vai trò được đo | preference term rõ; NLL và cách ghép cặp không có vai trò ở round 1 | thêm gold fallback, NLL qua 3 round, sample lại mỗi round | như trước |
 | Control tách "thêm dữ liệu ở server" khỏi "tín hiệu teacher" | gold 2 seed, virtual teacher seed 0 | gold và Hinton trên 3 seed | như trước |
-| Title và claim khớp với số | khớp: trục là stage DPO, teacher được nêu đúng cỡ | như trước | như trước |
+| Hai nửa của title đều có số đỡ | client: +2.5 đến +3.9, rõ; server: +1.40 gộp 2 seed, trong đó teacher +0.98 sát ngưỡng | teacher so với gold trên 3 seed (mục 9) | như trước |
 | Kết quả ngoài set dùng để chọn | 4 set trên database dev, không chọn gì trên đó, 2 seed | như trước, 3 seed | như trước |
 | Hơn một mức non-IID | một split | một split (ghi ở giới hạn) | hai split |
 | Hơn một backbone | một student | một student (ghi ở giới hạn) | hai student |
@@ -420,6 +429,10 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
 
 Điểm cần cân nhắc:
 
+- Phần chắc nhất của paper là stage DPO (+2.5 đến +3.9 từ mọi điểm xuất
+  phát). Stage server nhỏ hơn (+1.40 gộp hai seed); phần teacher trong đó
+  (+0.98) sát ngưỡng và lệch giữa hai seed (+1.49, +0.47), nên cần seed 2
+  cùng Bảng 6 để đứng vững như một contribution.
 - Sau mục 7.2 và 7.3 paper đủ cho nhóm venue Q3. Với Q2, một split và một
   backbone là điểm reviewer sẽ yêu cầu bổ sung, nên S1 và S3 thuộc phần phải
   chạy cho mục tiêu đó.
@@ -438,8 +451,8 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
 
 | Kết quả hoặc quyết định | Thay đổi trong paper |
 |---|---|
-| Teacher trong dòng method (owner) | Bản này giữ Hinton KD làm mặc định của stage server và báo cáo biến thể gold bên cạnh. Nếu bỏ teacher: dòng method thành dòng gold (75.22 / 76.57), mục 7.5 và Hình 5 thành một đoạn ngắn, tên method cần đổi |
-| Seed 2: teacher so với gold sau DPO | Chỉ đổi một câu ở 7.4: "nhỏ, tách được" nếu khoảng tin cậy gộp 3 seed không chứa 0, "không tách được" nếu có. Title và contribution không đổi |
+| Seed 2: teacher so với gold sau DPO, khoảng tin cậy gộp 3 seed không chứa 0 | Title và contribution 3 giữ nguyên; 7.4 nói teacher cho một phần nhỏ, tách được |
+| Seed 2: khoảng tin cậy gộp 3 seed chứa 0 | Title đổi sang bản thứ ba ở mục 3.1; stage server được mô tả là một stage trên dữ liệu public, Hinton KD là một lựa chọn; contribution 3 thành "control cho thấy teacher không thêm gì tách được sau DPO"; mục 7.5 và Hình 5 thành một đoạn ngắn. Dòng method có giữ teacher hay không là quyết định của owner |
 | N1: FedAvg với chọn câu theo execution đạt gần EX của method | Stage DPO được mô tả là đưa bước kiểm tra vào trọng số của model: một lần greedy, không cần database lúc inference, so với 8 sample và database cho mỗi câu hỏi. Con số +5.3 vẫn là so greedy với greedy |
 | N1: method với chọn câu theo execution cao hơn method greedy | Thêm một dòng "method + chọn theo execution" ở Bảng 5: hai cách cộng được |
 | Round 2-3 không có NLL ngang DPO + NLL | Một dòng ở Bảng 7 và một câu ở 4.2; method giữ nguyên. Nếu cao hơn rõ ở round 3, bỏ NLL là quyết định của owner (phải chạy lại các dòng DPO) |
