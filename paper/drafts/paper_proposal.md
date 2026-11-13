@@ -6,7 +6,8 @@ khảo lấy từ `paper/notes/LITERATURE.md`.
 
 Stage DPO ở client cho phần lớn gain, stage distillation ở server cho phần
 nhỏ hơn; title giữ cả hai. Nửa server của title phụ thuộc kết quả seed 2
-(mục 9). Các thực nghiệm đề xuất thêm ở mục 7.3 và 7.4 chờ owner quyết.
+(mục 9). N2/N3 đã được đồng ý đưa vào queue ngày 2026-11-14; các mở rộng
+setup ở mục 7.4 còn chờ quyết định.
 
 ## 1. Tóm tắt
 
@@ -15,10 +16,10 @@ nhỏ hơn; title giữ cả hai. Nửa server của title phụ thuộc kết q
 | Title | **Distill at the Server, Verify at the Client: Federated Text-to-SQL for Small Language Models** |
 | Tên method | FedLS-SQL (Federated LLM-to-SLM for Text-to-SQL) |
 | Loại paper | Empirical method paper, cấu trúc IMRaD mở rộng cho ML |
-| Venue | Data & Knowledge Engineering, Int. J. Data Science and Analytics, Neural Processing Letters, Distributed and Parallel Databases; stretch: J. Intelligent Information Systems. Quartile và độ hợp: mục 8.1 |
+| Venue | Computers, Materials & Continua (CMC) hoặc Journal of Intelligent Information Systems (JIIS), theo lựa chọn ngày 2026-11-14; mục 8.1 |
 | Kết quả chính (Spider test EX) | Method 76.71 / 77.04 (seed 0 / 1), FedAvg 71.26 / 71.87, SFT tập trung Spider + BIRD 73.96, teacher 7B zero-shot 77.22. Với vote theo execution trên 8 sample (seed 0): method 78.39, FedAvg 75.55 |
-| Đang queue | khoảng 58 GPU-h trên một A5000 (mục 7.2), tức khoảng 2.5 ngày chạy liên tục |
-| Đề xuất chạy thêm | khoảng 4.5 GPU-h (mục 7.3) |
+| Đang queue | khoảng 62.5 GPU-h trên một A5000 (mục 7.2 và N2/N3 ở 7.3), khoảng 2.6 ngày chạy liên tục tính từ cuối xsel seed 0 |
+| N2/N3 | khoảng 4.5 GPU-h, sau offline và trước seed 2; đã queue (mục 7.3) |
 | Đề xuất chạy thêm nếu nhắm Q2 | khoảng 57 đến 62 GPU-h nữa (mục 7.4) |
 
 ## 2. Câu chuyện của paper
@@ -116,7 +117,7 @@ distillation; direct preference optimization; execution feedback.
 | Ngôn ngữ | Tiếng Anh |
 | Độ dài | khoảng 9,200 từ phần chính (không tính references, appendix) |
 | Bảng, hình | 6 bảng và 5 hình ở phần chính; bảng chi phí và hyperparameter ở appendix |
-| Citation | dạng số theo template của venue (Elsevier / Springer), chốt khi chọn venue |
+| Citation | theo venue cuối cùng: CMC dùng Vancouver, số liên tiếp trong ngoặc vuông; JIIS theo template Springer |
 | Output | LaTeX theo template venue |
 | Thống kê | mỗi dòng chính: trung bình và độ lệch chuẩn trên 3 seed; so sánh cặp: bootstrap theo database trong một seed, cluster theo câu hỏi khi gộp seed |
 
@@ -287,7 +288,7 @@ của hình.
   1 [queue]; nhãn bằng vote thay nhãn gold, và chỉ cặp chạy được / không
   chạy được [N2].
 - 7.8 Độ nhạy (ngắn, hình ở appendix): mức non-IID, số client và tỉ lệ tham
-  gia, kích thước student, schema có value và foreign key trong prompt, số
+  gia, kích thước student, schema có sample value trong prompt, số
   sample K, beta. [S1, F1, S3, P1, S2]
 
 ### 8. Discussion (khoảng 600 từ)
@@ -374,9 +375,10 @@ Tổng: khoảng 58 GPU-h.
 - Dòng local chỉ có round 1; ba round không aggregate cần code mới (khoảng
   6 h), xem mục 7.5.
 
-### 7.3 Đề xuất chạy thêm
+### 7.3 N2/N3 đã queue và phân tích bổ sung
 
-Chưa queue; chờ owner quyết.
+N2 và N3 đã được đồng ý ngày 2026-11-14: sau round offline (row 5), trước
+seed 2. M5 chưa queue.
 
 | # | Thực nghiệm | Trả lời câu hỏi | Vào đâu | GPU-h |
 |---|---|---|---|---:|
@@ -389,6 +391,18 @@ Tổng: khoảng 4.5 GPU-h.
 - N2: hơn nửa gain ròng của DPO trên Spider test nằm ở các câu mà vote của
   điểm xuất phát sai (mục 7.3 của outline), nên kỳ vọng V thấp hơn DPO với
   nhãn gold. Nếu V ngang, xem mục 9.
+- N2 giữ toàn bộ câu hỏi ở cả 5 client, sample của round 1, loss DPO + NLL
+  và schedule; mỗi nhánh chạy 1 round, không có gold fallback. V nhóm theo
+  multiset kết quả, chọn nhóm nhiều sample nhất; tie theo candidate có tần
+  suất cao hơn rồi thứ tự SQL, như vote lúc inference. X chỉ dùng SQL chạy
+  được làm chosen, SQL lỗi execution làm rejected; SQL rỗng hoặc bị cắt
+  không được ghép. Số cặp và số update có thể khác giữa các nhánh, nên bảng
+  ablation báo cả số cặp. Chạy đủ 3 round cho hai nhánh ước lượng khoảng
+  10.5 GPU-h; một round kiểm tra nguồn nhãn, chưa cho số cuối của method.
+  Cache cũ thiếu raw response ở một số câu; các target phải dùng parsed SQL
+  được đánh dấu, đếm theo câu, candidate và số lần xuất hiện trong cặp.
+- N3 dùng 8 sample cho mỗi câu của toàn bộ Spider test, bốn model seed 1:
+  FedAvg R3, điểm xuất phát Hinton, DPO R3 từ mỗi dòng. Khoảng 1 GPU-h.
 - M5: hai phần đọc tay cần khoảng 2 giờ mỗi phần.
 - Teacher 7B zero-shot ở đây đạt 77.22 trên Spider test (HF, 4-bit), thấp
   hơn số 82.2 OmniSQL báo cho cùng model với prompt của họ. Sau M4 (bf16,
@@ -404,17 +418,25 @@ Chưa queue; chờ owner quyết.
 | F1 | 20 client trên Spider train, tỉ lệ tham gia 100% và 25% mỗi round, chỉ stage DPO từ model SFT đã có, seed 0 | Method có giữ được khi nhiều client hơn và không phải client nào cũng tham gia mỗi round | 7.8, Appendix D | 10 |
 | S3 | Student thứ hai (Qwen2.5-Coder-0.5B), seed 0: dòng FedAvg và dòng method | Method có giữ được ở một kích thước model khác không; title nói "small models" | Một bảng ở mục 6 | 15-20 |
 | S1 | Split `alpha_0.5/k5` (non-IID nhẹ hơn), seed 0: dòng FedAvg và dòng method; dùng lại stage server | Gain có phụ thuộc vào một mức non-IID không | 7.8, Appendix D | 21 |
-| P1 | FedAvg 3 round rồi DPO 3 round với schema có sample value và foreign key trong prompt (`--schema-style codes`), seed 0, không có stage server | Gain của stage DPO có còn khi baseline SFT nhận input giàu hơn, vì lỗi `no such column` có thể tự giảm | 7.8, Appendix D | 10.5 |
+| P1 | FedAvg 3 round rồi DPO 3 round với cách biểu diễn schema `codes`, bổ sung sample value, seed 0, không có stage server | Gain của stage DPO có còn khi baseline SFT nhận input giàu hơn | 7.8, Appendix D | 10.5 |
 
 Tổng: khoảng 57 đến 62 GPU-h.
 
-- F1 thay đổi phần setup cố định (5 client) và cần một split mới; chạy
-  stage SFT lại trên split đó thêm khoảng 5 h.
+- F1 thay đổi số client và cần một split mới. Chỉ DPO từ model SFT của
+  split 5 client đo độ bền của stage DPO sau khi chia lại dữ liệu, chưa đo
+  toàn pipeline 20 client. Train SFT lại trên split 20 client ước lượng thêm
+  khoảng 5 h, chưa đo. Với 20 client, 25% participation nghĩa là 5 client
+  mỗi round; cùng 3 round sẽ thấy ít dữ liệu hơn 100% participation, nên
+  cần báo số lượt client tham gia và số update khi so sánh.
 - S3 thay đổi phần setup cố định (một student); thời gian chưa đo trên
   0.5B với chuỗi này, và logit cache của teacher cần audit lại cho student
   mới.
-- P1 thay đổi prompt cố định; kết quả là một phép kiểm tra độ bền của gain,
-  không thay các dòng chính.
+- P1 thay đổi cách biểu diễn schema và thêm sample value; prompt `full`
+  hiện tại đã có primary key và foreign key. Phải train lại SFT và DPO,
+  dùng cùng prompt mới ở sampling và evaluation. Kết quả đo độ bền của
+  gain trước thay đổi input, không tách riêng tác động của sample value
+  khỏi cách trình bày schema. Prompt dài hơn cần kiểm tra length và VRAM
+  trước; chưa queue.
 
 ### 7.5 Nên chạy nếu còn thời gian
 
@@ -435,19 +457,18 @@ Tổng: khoảng 57 đến 62 GPU-h.
 Thứ tự trong queue (owner, 2026-11-13 và 2026-11-14):
 
 1. Các round dùng lại sample của round 1 (khoảng 5 h).
-2. M1, dòng Hinton rồi dòng gold của seed 2 (khoảng 33.5 h); chạy nền trong
+2. N2 hai nhánh round 1 và N3 seed 1 (khoảng 4.5 h).
+3. M1, dòng Hinton rồi dòng gold của seed 2 (khoảng 33.5 h); chạy nền trong
    lúc viết Introduction, Related Work, Setting, Method. M5 làm song song vì
    không cần GPU.
-3. M4 và M3 (khoảng 3 h): hoàn thiện Bảng 2 cho seed 0, đủ để bắt đầu viết
+4. M4 và M3 (khoảng 3 h): hoàn thiện Bảng 2 cho seed 0, đủ để bắt đầu viết
    mục 5, 6 và 7.
-4. DPO tập trung (khoảng 5.75 h), rồi M1 dòng FedAvg (khoảng 10.5 h).
+5. DPO tập trung (khoảng 5.75 h), rồi M1 dòng FedAvg (khoảng 10.5 h).
 
 Chưa queue, theo thứ tự đề xuất:
 
-1. N2 và N3 (khoảng 4.5 h). N2 nên chạy trước các round DPO của seed 2, vì
-   kết quả của nó có thể đổi cách mô tả stage DPO.
-2. F1, S3, S1, P1 (57 đến 62 h).
-3. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
+1. F1, S3, S1, P1 (57 đến 62 h); F1/P1 còn chờ quyết định sau giải thích.
+2. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
 
 ## 8. Đối chiếu với chuẩn Q2-Q3
 
@@ -468,7 +489,7 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
 | Số client và tỉ lệ tham gia | 5 client, tham gia đủ mọi round | như trước (ghi ở giới hạn) | thêm 20 client, 100% và 25% |
 | Hơn một backbone | một student | một student (ghi ở giới hạn) | hai student |
 | Hơn một benchmark ở client | chỉ Spider | chỉ Spider (ghi ở giới hạn) | chỉ Spider |
-| Gain có giữ với input giàu hơn | chưa đo; prompt là schema DDL | chưa đo (ghi ở giới hạn) | có, một dòng với sample value và foreign key |
+| Gain có giữ với input giàu hơn | chưa đo; prompt là schema DDL | chưa đo (ghi ở giới hạn) | có, một dòng với schema `codes` và sample value |
 | Chi phí và communication | chưa tổng hợp | có bảng, cả phía client | như trước |
 | So với số đã công bố ở cùng cỡ model | chưa có bảng | bảng ngữ cảnh ghi rõ greedy hay self-consistency, tập trung hay federated | như trước |
 | Privacy | cô lập dữ liệu, không DP | nói rõ một câu ở 3.2 và 8.4 | như trước |
@@ -488,7 +509,7 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
   điểm và stage DPO thêm 1.2 đến 1.9 (seed 0).
 - Teacher 7B zero-shot ở đây (77.22) thấp hơn số đã công bố cho cùng model
   (OmniSQL: 82.2 với prompt của họ). Paper nêu rõ khác biệt về prompt; P1 đo
-  gain của stage DPO khi prompt có sample value và foreign key.
+  gain của stage DPO khi prompt dùng schema `codes` có sample value.
 - Phần mới về kỹ thuật là sự kết hợp và kết quả đo, không phải một loss hay
   một cách aggregate mới: FedDPO, nhãn execution và gold fallback đều đã có
   ở các paper khác. Paper nói rõ điều này và dựa vào các control để cho thấy
@@ -502,22 +523,17 @@ về federated learning cho LLM, và trạng thái của paper theo kế hoạch
 
 ### 8.1 Venue
 
-Quartile theo SJR 2025, lấy từ một trang đăng lại bảng SCImago (chỉ Data &
-Knowledge Engineering được đối chiếu với trang SCImago); cần kiểm tra lại
-trên SCImago và JCR trước khi chọn.
+Hai venue chính theo lựa chọn ngày 2026-11-14:
 
-| Venue | Quartile SJR 2025 | Độ hợp |
-|---|---|---|
-| J. Intelligent Information Systems | Q2 | hợp nhất: nhiều paper LLM Text-to-SQL trong 2025-2026, có paper về model nhỏ |
-| Int. J. Data Science and Analytics | Q1 | hợp; thời gian đến accept dài |
-| Neural Processing Letters | Q2 (một category Q3) | chủ đề còn mới với venue |
-| Data & Knowledge Engineering | Q1 (Q2 năm 2024) | thiên về conceptual modelling |
-| Distributed and Parallel Databases | Q2 ở một trên bốn category | scope lệch, ít bài mỗi năm |
+| Venue | Hướng chuẩn bị bản thảo |
+|---|---|
+| Computers, Materials & Continua (CMC) | Theo [Instructions for Authors](https://www.techscience.com/cmc/info/auth_instru) và template LaTeX của Tech Science Press; references dạng Vancouver, số liên tiếp trong ngoặc vuông |
+| Journal of Intelligent Information Systems (JIIS) | Giữ làm lựa chọn chính cùng CMC; chốt template theo venue được chọn |
 
-Trong các paper Text-to-SQL đã đăng ở nhóm venue này, phần lớn dùng một
-dataset và một backbone, không báo seed. Các paper federated LoRA ở các
-venue lân cận dùng từ 10 client, có partial participation và báo
-communication cost. Chọn venue chính là quyết định của owner.
+Hướng dẫn CMC đã được đọc ngày 2026-11-14: phần cuối gồm Funding Statement,
+Author Contributions, Availability of Data and Materials, Ethics Approval,
+Conflict of Interests; dùng CRediT cho đóng góp. Khai báo việc dùng công cụ
+AI theo chính sách của nhà xuất bản.
 
 ## 9. Quyết định còn mở và kết quả sẽ đổi gì
 
@@ -540,5 +556,5 @@ Còn mở:
 | N2: chỉ cặp "chạy được / không chạy được" (X) ngang nhãn gold | Stage DPO được mô tả hẹp hơn: học viết SQL chạy được trên schema; mục 7.1 và 8.2 nói rõ |
 | Các round dùng lại sample của round 1 ngang các round sample lại | Sample một lần là đủ: nêu như một cách giảm chi phí ở 4.5; nếu thấp hơn, sample lại mỗi round có vai trò được đo |
 | DPO tập trung cao hơn rõ dòng federated | Khoảng cách được báo cáo là chi phí của setting federated ở Bảng 7; nếu ngang, một câu: federation không làm mất gain của stage DPO |
-| P1: gain của stage DPO giảm rõ khi prompt có sample value và foreign key | Paper báo cả hai prompt và nói gain phụ thuộc mức lỗi execution của điểm xuất phát; nếu gain giữ, một dòng ở Appendix D |
+| P1: gain của stage DPO giảm rõ khi prompt dùng schema `codes` có sample value | Paper báo cả hai prompt và nói gain phụ thuộc mức lỗi execution của điểm xuất phát; nếu gain giữ, một dòng ở Appendix D |
 | F1: EX giảm rõ ở 25% tham gia | Báo cáo như chi phí của partial participation ở 7.8; nếu giữ, một câu ở 7.8 và 8.4 bỏ giới hạn "5 client tham gia đủ" |

@@ -3,6 +3,49 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: N2/N3 approved; venue candidates CMC or JIIS
+
+Owner approves N2 and N3 after `sqldpo_s0/curve_offline`, before seed 2.
+Code and queue: `cfa2791`. Verification: full `uv run pytest -q`, 631
+passed; changed Python files pass Ruff, `git diff --check` is clean.
+Independent code review found no blocking issue. The code push was blocked
+by automatic approval review: existing origin is
+`https://github.com/phungnmd/fedicl-sql.git`, but the review requires explicit
+approval to export this private payload there. Commit remains local; server
+queue unchanged until publication and pull.
+Implemented two separate one-round DPO curves on every client's round-1
+samples: `sqldpo_s0/curve_vote_labels` (V) and `curve_exec_labels` (X).
+`--pair-label vote|exec --no-gold-fallback` re-executes EOS SQL at the 60 s
+budget, ignoring gold SQL and cached gold outcomes. V uses inference vote's
+multiset grouping and tie rule; X uses executable SQL vs execution errors.
+Per-question label caches resume, with source hashes and mode in the
+published stats; existing gold-label identities are unchanged. The old
+cache lacks raw response text for some candidates, so their parsed-SQL
+targets are marked and counted by question, candidate and pair occurrence.
+Pair counts and update counts can differ; the training recipe is unchanged.
+
+N3 adds four seed 1 selection tasks (`sqldpo_s1/xsel_*`) and publication;
+seed 2 Hinton now depends on `sqldpo_s1/publish_xsel`. About 4.5 GPU-h added:
+3.5 h for N2 and 1 h for N3, estimates. N2 is a one-round label-source
+ablation, not the method's final three-round result; both variants for
+3 rounds would cost about 10.5 h. No GPU run in this session.
+
+F1 and P1 need explanation before approval; neither is queued. Code
+inspection corrects P1's premise: `full` already contains PK/FK; `codes`
+changes schema representation and adds sample values. F1 from the existing
+5-client SFT adapter tests DPO after repartition, not a complete 20-client
+pipeline; retraining SFT adds an estimated 5 h. At 25% participation the
+number of client updates is lower, so the comparison must report exposure.
+
+CMC (Computers, Materials & Continua) or JIIS are now the main venue
+candidates. CMC's author instructions were opened on 2026-11-14: template
+LaTeX available, references Vancouver, end matter and disclosure requirements
+recorded in the proposal. Research state updated with the already committed
+3-round no-NLL result (76.76 vs 76.71 on Spider test, seed 0), replacing the
+stale pending status; no change to the chosen method. The completed advisor
+report was removed in concurrent paper commit `83651b7`, which also updates
+`LITERATURE.md`; that literature edit is outside this change.
+
 ## 2026-11-14: selection by execution: a vote matches DPO greedy in total, not by question, and adds 1.68 on top of the method
 
 Spider test, seed 0, vLLM inproc, 8 samples per question at T 0.7

@@ -1,20 +1,17 @@
 # FedLS-SQL: run queue
 
-Status: what is running. Run now: what the owner does. Running and queued:
-what the worker does by itself. Reference: not needed to act. History and
-reasons are in `LAB_LOG.md`.
-
 ## Status
 
-Updated 2026-11-14, after the results commit of 01:19.
+Updated 2026-11-14 at 02:23 (Asia/Ho_Chi_Minh). N2/N3 prepared in the local queue.
+Code/queue commit `cfa2791` is not pushed; server pull and live task state
+are not confirmed.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the queue. Selection by execution (`publish_xsel`) published at 01:19 on 11-14. Next in queue order: `sqldpo_s0/curve_offline`; that it runs is not confirmed. | results commit `44b51ef5` (01:19 on 11-14) |
-| 1 | Not ours: in use by another user. No worker, no job. | owner, 2026-11-09 |
+| 0 | Last published: `sqldpo_s0/publish_xsel`. Next in queue: `sqldpo_s0/curve_offline`; running is not confirmed. N2/N3 require the code update below. | results commit `44b51ef5`, 01:19 on 2026-11-14 |
+| 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
-Live state, read-only, any terminal on the server (`fedicl-sql` root): the
-tasks, then EX by step of every curve.
+Read-only status on the server, from the `fedicl-sql` root:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
@@ -26,106 +23,86 @@ tasks, then EX by step of every curve.
 
 ## Run now
 
-Nothing to start: the worker drains the queue by itself.
+No server action until `cfa2791` is published to the code repository.
+Automatic approval review blocked that push; owner approval is pending.
+Once the code is published, use the two steps below.
 
-1. Two memory checks on new paths: when `eval_teacher` starts (about 18:45
-   on 11-15, estimate; the 7B through vLLM), its `first batch ... peak
-   reserved` line; when `curve_central` starts (about 21:45 on 11-15,
-   estimate), the same line of its first training updates. Send either
-   back only if it is above 21.5 GiB.
+1. Stop the GPU 0 worker with Ctrl+C and wait for its task process to exit,
+   then pull and test from the `fedicl-sql` root. This update changes
+   `experiments/federated_pref/run.py` and `pref_rounds.py`, which the next
+   rounds of `sqldpo_s0/curve_offline` may load. Let the stopped invocation
+   exit before pulling; the restart resumes offline work and then runs N2/N3.
 
-Next moments the owner is needed:
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_curve.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_preference_labels.py tests/test_reuse_samples.py tests/test_exec_select.py tests/test_star_rounds.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
 
-- when row 5 has published (about 06:20 on 11-14, estimate): tell the
-  agent. With selection by execution (logged on 11-14) and row 5 the owner
-  decides the method's DPO stage (the NLL term included) before the seed 2
-  DPO rounds start (about 18:20 on 11-14, estimate); keeping the current
-  stage needs no queue change;
-- when row 7 has published (about 15:50 on 11-15, estimate): the teacher
-  decision (`RESEARCH_STATE.md`, open point 1);
-- when the queue ends (about 11:05 on 11-16, estimate).
+Send the error if this command fails; do not start the worker until it passes.
+
+2. Resume the full queue on GPU 0 (no `--phase` filter, because N3 is in
+   `sqldpo_s1`).
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+Next owner actions:
+
+- After `sqldpo_s1/publish_xsel` (about 10:50 on 2026-11-14 if offline ends
+  at 06:20): send the results commit. Read N2/N3 before the seed 2 DPO
+  rounds start (about 22:50 on 2026-11-14, estimate).
+- When `sqldpo_s0/eval_teacher` starts (about 20:20 on 2026-11-15), check
+  its first batch peak reserved VRAM; when `sqldpo_s0/curve_central` starts
+  (about 23:20 the same date), check its first training updates. Send the
+  line if above 21.5 GiB.
+- After `sqldpo_s2/publish_extra_gold` (about 20:20 on 2026-11-15): read
+  the teacher comparison with the agent. Estimated queue end: 15:35 on
+  2026-11-16.
 
 ## Running and queued
 
-GPU 0, in queue order. Times are estimates from the end of selection by
-execution at 01:19 on 11-14: a DPO round with its own sampling about 1.4 h with evaluation (the
-Hinton line's rounds 2-3), a round on copied samples 1.75 h, a 2-epoch
-server stage on BIRD about 7 h (Hinton) or 5.5 h (gold), a FedAvg round
-about 1.7 h, one Spider test evaluation 6 min.
+GPU 0 in queue order. Clock estimates assume row 5 ends at 06:20 on
+2026-11-14, from the last result at 01:19; live progress is not known.
+New labels add CPU execution over cached samples; the N2 estimate has not
+been measured on the server.
 
 | # | Tasks | What it answers | About | Done by about | State |
 |---|---|---|---|---|---|
-| 5 | `sqldpo_s0/curve_offline` | The on-policy rounds: rounds 1-3 all trained on the round 1 samples, against the Hinton line by round; round 1 repeats Hinton round 1 (a check of training noise) | 5 h | 06:20 on 11-14 | next in queue order (running is not confirmed) |
-| 6 | `sqldpo_s2/hinton_k2` to `sqldpo_s2/publish_extra_hinton` | Seed 2 of the method: Hinton KD server stage on BIRD, 3 FedAvg rounds, 3 DPO rounds; start and round 3 on the other sets | 17.5 h | 23:50 on 11-14 | queued |
-| 7 | `sqldpo_s2/gold_k2` to `sqldpo_s2/publish_extra_gold` | Seed 2 of the control without the teacher (gold SQL at the server, same steps); with row 6, teacher against gold after DPO over 3 seeds | 16 h | 15:50 on 11-15 | queued |
-| 8 | `sqldpo_s0/check_baselines`, `eval_teacher` | The 7B teacher zero-shot on the student's engine (bf16), six sets | 1 h | 16:50 on 11-15 | queued |
-| 9 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | The standard FL baselines on the same engine: FedProx R3 and FedNTD on six sets, the 5 local client models on Spider test | 2 h | 18:50 on 11-15 | queued |
-| 10 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | A reference without privacy: the DPO stage on the pooled client rows (8,659), one model, 3 rounds with their own sampling; round 3 on the other sets | 5.75 h | 00:35 on 11-16 | queued |
-| 11 | `sqldpo_s2/curve_fedavg_sft` to `sqldpo_s2/publish_extra_fedavg` | Seed 2 of FedAvg R3 and of DPO without a server stage | 10.5 h | 11:05 on 11-16 | queued |
-
-`curve_hinton` took 7 h 50 against an estimate of 5.5 h; a 3-round DPO line
-may end up to about 2.5 h later than the table says, and the rows after it
-move with it.
-
-To watch for: row 5 runs new code on the server; a failure stops the
-worker with `STOP queue: <task> failed`; send that line to the agent.
-If `check_baselines` fails (an adapter or the 7B is not on
-the server), the worker stops with `STOP queue: sqldpo_s0/check_baselines
-failed`; send that line to the agent.
+| 5 | `sqldpo_s0/curve_offline` | On-policy vs fixed round-1 samples across 3 DPO rounds | 5 h | 06:20 on 2026-11-14 | next in queue, running unconfirmed |
+| 5a | `sqldpo_s0/curve_vote_labels` | N2 V: result-vote pair labels, no gold fallback, one DPO round on the Hinton round-1 samples | 1.75 h | 08:05 on 2026-11-14 | queued |
+| 5b | `sqldpo_s0/curve_exec_labels` | N2 X: executable SQL vs execution errors, otherwise the same one-round ablation | 1.75 h | 09:50 on 2026-11-14 | queued |
+| 5c | `sqldpo_s1/xsel_fedavg_r3`, `xsel_hinton_start`, `xsel_fedavg_dpo_r3`, `xsel_hinton_dpo_r3`, `publish_xsel` | N3: selection by execution on all Spider test questions, 8 samples, four models, seed 1 | 1 h | 10:50 on 2026-11-14 | queued |
+| 6 | `sqldpo_s2/hinton_k2` to `sqldpo_s2/publish_extra_hinton` | Seed 2: Hinton KD on BIRD, 3 FedAvg rounds, 3 DPO rounds; start and round 3 on the other sets | 17.5 h | 04:20 on 2026-11-15 | queued |
+| 7 | `sqldpo_s2/gold_k2` to `sqldpo_s2/publish_extra_gold` | Seed 2 without the teacher, same stages and rounds | 16 h | 20:20 on 2026-11-15 | queued |
+| 8 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | 21:20 on 2026-11-15 | queued |
+| 9 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | 23:20 on 2026-11-15 | queued |
+| 10 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | 05:05 on 2026-11-16 | queued |
+| 11 | `sqldpo_s2/curve_fedavg_sft` to `sqldpo_s2/publish_extra_fedavg` | Seed 2 of FedAvg R3 and DPO without the server stage | 10.5 h | 15:35 on 2026-11-16 | queued |
 
 Cut from a full run:
 
-- Row 9 runs the local client models on Spider test only; their six-set
-  rows would add about 2.5 h. The table row is their mean on Spider test.
-- Rows 5 and 10 are seed 0 only, as were the no-NLL and no-gold lines.
-- Seed 2, as seed 1: the other sets for the start and round 3 of each line,
-  not rounds 1 and 2.
+- N2 is seed 0, one round per variant, every client question, all 2,147
+  Spider test questions. About 10.5 GPU-h for 3 rounds of both variants,
+  compared with 3.5 h here. One round tests the label source; it does not
+  measure the final three-round method. Pair counts and update counts can
+  differ between label sources. Stats count targets reconstructed from
+  parsed SQL when the old sample cache lacks raw response text.
+- N3 is Spider test only. The four models and all questions are included;
+  seed 0 is already published, seed 1 is queued.
+- Offline and centralized DPO are seed 0 only. Seed 2 evaluates the other
+  sets at the start and round 3, not rounds 1 and 2.
+- The local SFT models are evaluated only on Spider test; six sets would
+  add about 2.5 h. DPO without aggregation is not queued.
 
-Cut from a full run (finished work):
+Not queued yet (proposal section 7):
 
-- Selection by execution is seed 0 and Spider test only (seed 1 would add
-  about 1 h).
-- The client adapters before aggregation are round 1 only. A line without
-  aggregation over 3 rounds needs each client to sample from its own model
-  (new code, about 6 h).
-- The row without the NLL term at round 1 reuses the round 1 samples of the
-  Hinton line (no sampling).
-- Seed 1 has the three DPO lines only. The controls of seed 0 (NLL-only
-  round, extra SFT rounds, focused DPO, random pairs, no NLL, round 4, the
-  soft-target lines) are not repeated.
-- On Spider dev, Realistic, SYN, DK and BIRD dev, seed 1 and the virtual
-  line have the start and round 3 of each line, not rounds 1 and 2.
-- The soft-target control is seed 0 only, from an earlier adapter
-  (`virtual_k2aaa_a3`); the self-teacher start is evaluated only, without
-  DPO.
-
-Not queued yet, in priority order (the S, L, B labels are those of
-`paper/drafts/paper_proposal.md` section 7; hours are GPU-h on one A5000,
-estimates):
-
-0. Two DPO-stage probes, each an owner decision, seed 0, 1 round on the
-   Hinton line's round 1 samples (about 1.75 h each, new code): pairs
-   labelled by a vote over result rows instead of the gold SQL (whether the
-   gold labels matter, and DPO for clients with questions but no SQL); the
-   preference term on the clauses where chosen and rejected differ (aimed
-   at the wrong results).
-1. S1: the split `alpha_0.5/k5`, seed 0, the FedAvg line and the method,
-   reusing the server stage. Decides: whether the gain holds at a second
-   non-IID level; needed only for a Q2 target. About 21 h. Blocked by:
-   queue tasks.
-2. S3: a second student (Qwen2.5-Coder-0.5B), seed 0, the FedAvg line and
-   the method. Decides: whether the method holds at a second model size;
-   needed only for a Q2 target. About 15 to 20 h (not measured on this
-   chain). Blocked by: the owner (it changes the fixed setup) and an audit
-   of the teacher logit cache for the new student.
-3. Optional rows (proposal 7.5): S2, K = 4 and 16 and beta = 0.05 and 0.5,
-   round 1 only (about 7 h); S4, FedProx seeds 1 and 2 (about 10 h); L1,
-   3 DPO rounds per client without aggregation (about 6 h, new code); B1,
-   a second client benchmark (not measured; the owner decides, it changes
-   the fixed setup).
-4. Outside the proposal's plan, each an owner decision: the soft-target
-   control on seed 1 (about 15.5 h); focused DPO rounds 2 and 3 (about
-   3.75 h).
+- F1 (20 clients, full and partial participation) and P1 (`codes` schema
+  with sample values): awaiting the owner's decision after explanation.
+- S1, a second non-IID split (about 21 h); S3, a second student size
+  (about 15-20 h), both awaiting the owner's decision.
+- M5, CPU/manual analyses; S2, K/beta sensitivity (one round, about 7 h);
+  S4, FedProx seeds 1-2 (about 10 h); L1, 3 local DPO rounds (about 6 h,
+  new code); B1, a second client benchmark (not measured): not approved.
 
 ## Reference
 
@@ -138,11 +115,11 @@ and skips finished work. A failed task stops the worker with
 retries it. If a task fails again with `CUDA error: unspecified launch
 failure`, send the last lines of its log to the agent before a third try.
 
-Pull and run the tests (needed only after a push to fedicl-sql; pulling
-while the worker runs is fine):
+Pull and run the tests after a code update. For this update use Run now:
+stop the worker and its child process before changing shared DPO code.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 Worker on GPU 0:
