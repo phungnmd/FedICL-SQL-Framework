@@ -227,19 +227,17 @@ Both seeds pooled, clustered by question (95% interval):
    less on seed 1.
 2. Seeds. Two seeds for the three DPO lines; the DPO step and the method
    row repeat within 0.7 point. The teacher's gain over gold is at the edge
-   after seed 1. A third seed of the three lines is queued (owner,
-   2026-11-13), the Hinton and gold lines first, both server stages
-   trained anew. The soft-target control on seed 1 needs its own server
-   stage and 3 FedAvg rounds first (about 15.5 h with its DPO rounds,
-   estimate); not queued.
+   after seed 1. Seed 2 was dropped (owner, 2026-11-15) after its Hinton
+   line reached DPO round 1 (75.87 on Spider test, from 74.24); the paper
+   reports two seeds for the main lines.
 3. The NLL term and the pair labels. Without NLL, round 3 gives 76.76
    against 76.71 on Spider test, seed 0 (31 / 32 discordant questions).
    Dropping the term is an owner decision; the current seed comparisons
-   use DPO + NLL. N2 is queued: one round with result-vote labels, one
-   with executability labels, neither using the gold fallback. Both reuse
-   the raw round-1 samples. P1 (`codes` schema with sample values, FedAvg
-   line, seed 0) is approved and first in the queue; F1 (20 clients) awaits
-   the owner's decision.
+   use DPO + NLL. N2, one round without gold fallback from the same
+   round-1 samples: result-vote labels 75.50, executability labels 74.99,
+   gold labels 75.69 (Spider test, seed 0). The vote-label line for 3
+   rounds and F1 (20 clients) are approved for after P1 (`codes` schema
+   with sample values, FedAvg line, seed 0), which is first in the queue.
 4. What the federated setting costs in the DPO stage. Reference rows, not
    a condition of the claim. In round 1 each client's adapter alone gives
    74.24 to 75.50 on Spider test (mean 74.97), the averaged adapter 75.69.
@@ -250,7 +248,7 @@ Both seeds pooled, clustered by question (95% interval):
    the local client SFT models are queued with vLLM inproc (earlier seed 0
    adapters, approved 2026-11-13). Selection by execution over 8 samples
    at inference is in for four seed 0 rows (section 4); N3 repeats these
-   four rows on seed 1, before seed 2.
+   four rows on seed 1.
 6. The 20% of wrong results. The method does not touch them, and they
    bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
    the preference term on the span where chosen and rejected differ) did
@@ -268,12 +266,12 @@ controls, 3 rounds without NLL, one round without gold fallback, the local
 adapters of round 1 and selection by execution (last published result
 `3767d097`, 06:36 on 2026-11-14, including the offline control).
 
-Queue order: N2 (two one-round label variants), N3
-(selection by execution on seed 1), seed 2 Hinton and gold lines, the
-reference rows on vLLM, centralized DPO, then seed 2 FedAvg. Run commands,
-live-state provenance and estimates are in `PIPELINE_NEXT.md`.
+Queue order: P1 (`codes` schema, FedAvg line, seed 0), the reference rows
+on vLLM, then centralized DPO. After the P1 result (owner, 2026-11-15): F1
+(20 clients, full and partial participation) and DPO with result-vote
+labels for 3 rounds. Run commands, live-state provenance and estimates are
+in `PIPELINE_NEXT.md`.
 
 The preference term stays plain and the method keeps DPO + NLL and the
-Hinton server stage until the owner decides. N2 tests the pair-label
-source, not the entire three-round method. The teacher decision follows
-seed 2 of the Hinton and gold lines.
+Hinton server stage until the owner decides. The teacher decision now
+rests on the two seeds.

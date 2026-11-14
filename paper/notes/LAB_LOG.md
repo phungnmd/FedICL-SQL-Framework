@@ -3,6 +3,24 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-15: seed 2 dropped; F1 and 3-round vote labels after P1
+
+Owner drops seed 2 from the plan. Last seed 2 results, Spider test, vLLM
+inproc: Hinton server stage then FedAvg R3 (`sql_hinton_k2aaa_a3_s2`) 74.24
+(curve `4b9edfdd`), DPO round 1 from it 75.87 (`cbafef0b`, 86 execution
+errors). Rounds 2-3 of that line and the seed 2 gold and FedAvg lines are
+removed from the queue (fedicl-sql `554b7f98`); finished outputs stay on the
+server. The main lines keep 2 seeds, so the teacher-versus-gold comparison
+stays at +1.49 / +0.47 (seed 0 / seed 1).
+
+Owner approves F1 (20 clients, full and partial participation) and DPO with
+result-vote labels for 3 rounds, to be queued after the P1 result. Checked
+locally for F1, nothing committed: `scripts.build_federated` with 20
+clients, alpha 0.1, the same domain groups and the 150-row floor of `k5`
+gives no split within the default 100 draws (smallest client 16 rows); with
+5,000 draws it does (clients 165 to 1,015 rows). Partial participation is
+not in the FedAvg or DPO round code yet.
+
 ## 2026-11-14: P1 (codes schema) approved and first in the queue
 
 Owner approved P1 and put it ahead of the rest of the queue. Phase

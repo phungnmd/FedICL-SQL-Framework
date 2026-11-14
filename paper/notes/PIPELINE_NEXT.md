@@ -2,14 +2,13 @@
 
 ## Status
 
-Updated 2026-11-14 at 22:35 (Asia/Ho_Chi_Minh). Last published result:
-`4b9edfdd` at 22:14 (`sqldpo_s2/curve_hinton_sft` finished). P1 code and
-queue `d7095e42` is pushed; server pull and live task state are not
-confirmed.
+Updated 2026-11-15 at 00:40 (Asia/Ho_Chi_Minh). Last published result:
+`cbafef0b` at 00:12 (seed 2 Hinton DPO round 1 on Spider test). The server
+has not pulled P1 (`d7095e42`) or the queue change `554b7f98`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Next in the old queue was `sqldpo_s2/curve_hinton` (seed 2 Hinton DPO); running since about 22:14 is not confirmed. After the pull, the next task is P1 `sqlcodes_s0/curve_fedavg_sft`. | result commit `4b9edfdd`, 22:14 on 2026-11-14 |
+| 0 | Last known task `sqldpo_s2/curve_hinton` (seed 2 Hinton DPO); its next step after round 1 is round 2, running since about 00:12 is not confirmed. Seed 2 is dropped: the task is no longer in the queue and does not resume. | result commit `cbafef0b`, 00:12 on 2026-11-15 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -24,15 +23,12 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Stop the GPU 0 worker with Ctrl+C and wait for its task process to exit,
-   so P1 starts now. The stopped task (`sqldpo_s2/curve_hinton`) resumes
-   after P1 from its last finished sampling chunk or DPO checkpoint. To let
-   it finish first instead (about 8 h), skip steps 1 and 3: the pull is safe
-   while it runs, and the worker takes P1 when the task ends.
+1. Stop the GPU 0 worker with Ctrl+C and wait for its task process to exit.
+   Its seed 2 round 2 files stay on disk; nothing deletes them.
 
-2. Pull and test from the `fedicl-sql` root. The update changes only the
-   `codes` schema path and adds an evaluation flag whose default leaves
-   every queued command unchanged.
+2. Pull and test from the `fedicl-sql` root. The update adds P1 (`codes`
+   schema path, an evaluation flag whose default leaves every queued command
+   unchanged) and removes the unfinished seed 2 tasks.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_curve.py tests/test_data.py tests/test_eval_standard.py tests/test_training.py tests/test_pref_rounds.py tests/test_dpo.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
@@ -40,7 +36,8 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 Send the error if this command fails; do not start the worker until it passes.
 
-3. Restart the full queue on GPU 0.
+3. Restart the full queue on GPU 0. The first task is P1
+   `sqlcodes_s0/curve_fedavg_sft`.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -56,7 +53,7 @@ Next owner actions:
   reference-pass peak, or the stop line if the trainer stops above
   21.5 GiB.
 - After `sqlcodes_s0/curve_fedavg` (about 16 h after P1 starts): read P1
-  with the agent.
+  with the agent; F1 and the 3-round vote-label line are queued after that.
 
 ## Running and queued
 
@@ -65,30 +62,28 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 5 | `sqlcodes_s0/curve_fedavg_sft`, `curve_fedavg` | P1: FedAvg R3 and 3 DPO rounds with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 16 h | first after the pull |
-| 6 | `sqldpo_s2/curve_hinton` to `sqldpo_s2/publish_extra_hinton` | Seed 2: 3 DPO rounds from the Hinton line's FedAvg R3; start and round 3 on the other sets | 8 h | running unconfirmed, or stopped for P1 |
-| 7 | `sqldpo_s2/gold_k2` to `sqldpo_s2/publish_extra_gold` | Seed 2 without the teacher, same stages and rounds | 16 h | queued |
-| 8 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
-| 9 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
-| 10 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
-| 11 | `sqldpo_s2/curve_fedavg_sft` to `sqldpo_s2/publish_extra_fedavg` | Seed 2 of FedAvg R3 and DPO without the server stage | 10.5 h | queued |
+| 1 | `sqlcodes_s0/curve_fedavg_sft`, `curve_fedavg` | P1: FedAvg R3 and 3 DPO rounds with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 16 h | first after the pull |
+| 2 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
+| 3 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
+| 4 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
 
-All rows total about 59 h from the pull.
+All rows total about 25 h from the pull.
 
 Cut from a full run:
 
-- Centralized DPO is seed 0 only. Seed 2 evaluates the other
-  sets at the start and round 3, not rounds 1 and 2.
+- Centralized DPO is seed 0 only.
 - The local SFT models are evaluated only on Spider test; six sets would
   add about 2.5 h. DPO without aggregation is not queued.
 - P1 is seed 0 and Spider test only: the other five sets for its FedAvg R3
   and DPO round 3 would add about 1 h. Its comparator is the seed 0 FedAvg
   line with the `full` schema.
 
-Not queued yet (proposal section 7):
+Not queued yet:
 
-- F1 (20 clients, full and partial participation): awaiting the owner's
-  decision after explanation.
+- After the P1 result (owner, 2026-11-15), in this order: F1 (20 clients,
+  full and partial participation; needs a 20-client split and new code for
+  partial participation) and DPO with result-vote labels for 3 rounds from
+  `hinton_k2aaa_a3` (about 3.5 h).
 - S1, a second non-IID split (about 21 h); S3, a second student size
   (about 15-20 h), both awaiting the owner's decision.
 - M5, CPU/manual analyses; S2, K/beta sensitivity (one round, about 7 h);
@@ -229,21 +224,12 @@ round 3 of their SFT curve by name.
 
 Outputs: `artifacts/protocol_v2/sqldpo_coder15b_alpha01_s1/`.
 
-### Seed 2 (phase `sqldpo_s2`)
+### Seed 2 (phase `sqldpo_s2`, stopped)
 
-The three DPO lines with seed 2, everything trained here from the base
-model with the seed 0 recipe and `--seed 2` in every training, sampling and
-evaluation command; evaluation arms carry `_s2`. Same curve rule as seed 1.
-
-| Line (task or curve) | Start | Step |
-|---|---|---|
-| `sqldpo_s2/hinton_k2` | base model | Hinton KD on BIRD train with evidence, 2 epochs (lambda 0.5 / 0.5, T 2, the teacher logit cache of seed 0, which does not depend on the seed) |
-| `sqldpo_s2/hinton_sft`, then `hinton` | the Hinton server stage, then round 3 of `hinton_sft` | 3 FedAvg rounds, then 3 DPO + NLL rounds |
-| `sqldpo_s2/gold_k2` | base model | gold SQL on BIRD train, 2 epochs (`--max-len 7424`) |
-| `sqldpo_s2/gold_sft`, then `gold` | the gold server stage, then round 3 of `gold_sft` | 3 FedAvg rounds, then 3 DPO + NLL rounds |
-| `sqldpo_s2/fedavg_sft`, then `fedavg` | base model, then FedAvg R3 | 3 FedAvg rounds, then 3 DPO + NLL rounds |
-
-Outputs: `artifacts/protocol_v2/sqldpo_coder15b_alpha01_s2/`.
+Dropped on 2026-11-15. Finished: the Hinton server stage trained from the
+base model with the seed 0 recipe and `--seed 2`, 3 FedAvg rounds from it
+(`sql_hinton_k2aaa_a{1,2,3}_s2`), and DPO round 1 from round 3
+(`sqldpo_hinton_r1_s2`). Outputs: `artifacts/protocol_v2/sqldpo_coder15b_alpha01_s2/`.
 
 ### Selection by execution and reference rows (phase `sqldpo_s0`)
 
