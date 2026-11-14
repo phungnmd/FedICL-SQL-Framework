@@ -5,7 +5,9 @@ Spider clients, Qwen2.5-Coder-1.5B-Instruct student with LoRA, optional frozen
 Qwen2.5-Coder-7B-Instruct teacher at the server on public BIRD train, two
 24 GB GPUs). Compiled 2026-11-06; updated 2026-11-14 with the papers from
 five research reports on journal articles, wrong-result SQL, label-free
-training, the server stage and federated mechanisms.
+training, the server stage and federated mechanisms; updated 2026-11-15 with
+a full reading of the published 1.5B Spider results (SPFT-SQL, SLM-SQL,
+FINER-SQL, CodeS, the Qwen2.5-Coder report), section 1.4.
 
 How to read this file:
 
@@ -83,8 +85,8 @@ frozen server teacher with federated preference optimization.
 | ExCoT, Zhai et al., 2025 ([arXiv 2503.19988](https://arxiv.org/abs/2503.19988)) | CoT SFT, one off-policy DPO round on GPT-4o samples, two on-policy rounds; execution vs gold | LLaMA-3.1-70B, Qwen2.5-Coder-32B | BIRD + Spider | 70B BIRD dev / Spider test: SFT 58.1 / 81.4 -> off-policy 66.3 / 82.5 -> on-policy 68.5 / 86.6; on-policy only 66.3 / 84.2. SQL-only DPO 60.0 / 81.0, below SQL-only SFT 62.0 / 83.0 | Closest pair construction: teacher pairs as warm start, then on-policy rounds. Centralized, 32-70B, 64 H100. Venue not verified | full |
 | SENSE, Yang et al., ACL 2024 ([ACL](https://aclanthology.org/2024.acl-long.425/)) | GPT-4 synthetic SFT data + DPO on execution-labelled pairs from a weak 1.3B model | CodeLLaMA-7B/13B | Spider, BIRD | DPO step adds +0.2 to +0.9 Spider dev EX, +1.9 to +2.6 BIRD dev; removing strong data costs 22-32 points | Strong data matters far more than the preference step at 7B+ | full |
 | OmniSQL, Li et al., PVLDB 18(11) per header ([arXiv 2503.02240](https://arxiv.org/abs/2503.02240)) | SynSQL-2.5M with CoT; CoT-enhanced Spider + BIRD | Qwen2.5-Coder 7B-32B | Spider, BIRD, variants | 7B greedy, Spider test (TS): base 82.2, gold Spider+BIRD SFT 80.7, CoT Spider+BIRD 86.6; BIRD dev 50.9 / 55.1 / 59.6 | Plain gold SFT can lower Spider test below the base model; teacher CoT raises it. Student is 7B | full |
-| CodeS, Li et al., SIGMOD 2024 ([arXiv 2402.16347](https://arxiv.org/abs/2402.16347)) | SQL-centric pre-training + SFT | 1B-15B | Spider, BIRD | Spider dev EX: 77.9 (1B), 83.4 (3B); BIRD dev with evidence 50.5 (1B) | Reference for what Spider SFT reaches at ~1-3B (different base model) | full |
-| SLM-SQL, Sheng and Xu, Findings IJCNLP-AACL 2025 ([ACL](https://aclanthology.org/2025.findings-ijcnlp.92/)) | 916K synthetic CoT SFT + GRPO on BIRD + corrective self-consistency | Qwen2.5-Coder-0.5B/1.5B-Instruct | SynSQL, BIRD | 1.5B Spider dev EX (SC@16): zero-shot 63.5, SFT 74.5, SFT+RL 75.2; Spider test 78.4; BIRD dev 67.1 (CSC, 64 samples) | Strongest published 1.5B numbers; all use sampling, none greedy; tables partly inconsistent | full |
+| CodeS, Li et al., SIGMOD 2024 ([arXiv 2402.16347](https://arxiv.org/abs/2402.16347)) | StarCoderBase incrementally pre-trained on 21.5 GB (11 GB SQL, 6 GB NL-to-code, 4.5 GB NL), then full-parameter SFT (4 epochs, batch 128, lr 5e-6, max length 4,096; no LoRA mentioned, DeepSpeed ZeRO-3, 8x A800). Prompt: trained schema item classifier (top 6 tables, top 10 columns), value retriever, representative values, PK/FK, comments. Decoding: beam 4, first executable candidate | 1B-15B | Spider, BIRD | SFT CodeS-1B, Spider dev EX / TS 77.9 / 72.2 (Table 5); Syn 66.5 / 59.3, Realistic 70.9 / 61.8, DK 64.7 (Table 7); BIRD dev EX 50.46 with evidence, 38.46 without (Table 6). No zero-shot and no Spider test number. Few-shot, before SFT, Spider dev TS: CodeS-1B 55.7 / 57.4 / 59.1 (1/3/5-shot), StarCoderBase-1B 43.7 / 46.8 / 48.6 (Table 4). 3B: dev EX 83.4 | Reference for Spider SFT at about 1B; differs in base model, SQL pre-training, full fine-tuning, schema filtering with values and execution-filtered beam search | full |
+| SLM-SQL, Sheng and Xu, Findings IJCNLP-AACL 2025 ([ACL](https://aclanthology.org/2025.findings-ijcnlp.92/); [arXiv 2507.22478](https://arxiv.org/abs/2507.22478)) | SFT on SynSQL-Think-916K (filtered from SynSQL-2.5M; includes Spider and BIRD train with OmniSQL CoT), GRPO on BIRD train (9,428 rows), corrective self-consistency with a merge-revision model | Qwen2.5-Coder-0.5B/1.5B-Instruct (our checkpoint), Qwen3-0.6B, Llama-3.2-1B, DeepSeek-Coder-1.3B | SynSQL, BIRD; Spider only evaluated | Table 3, 1.5B, dev SC / CSC and test SC / CSC (16 samples): zero-shot 63.54 / 65.99 and 67.61 / 69.34; SFT 74.53 / 76.66 and 77.35 / 79.13; SFT+RL 75.15 / 76.72 and 78.42 / 79.06. BIRD dev 67.08 (CSC, 64 samples) | Targets BIRD: abstract, RL and ablations are BIRD; Spider is reported as transfer, though Spider train is in the SFT data. Training data about 50 times this project's. Every number uses sampling, none greedy; tables partly inconsistent | full |
 | Think2SQL, Papicchio et al., 2025 ([arXiv 2504.15077](https://arxiv.org/abs/2504.15077)) | GRPO with EX or partial rewards, trained on BIRD only | Qwen2.5-Coder 0.5B-14B | BIRD, Spider | 1.5B BIRD dev (gold tables, T=0.7): 27.5 -> 44.2. BIRD-only RL raises Spider: 3B 72.5 -> 77.0, 7B 77.6 -> 82.2 | BIRD-trained reasoning transfers to Spider; gold-table schema. Venue not verified | full |
 | Reasoning-SQL, Pourreza et al., 2025 ([arXiv 2503.23157](https://arxiv.org/abs/2503.23157)) | GRPO with SQL partial rewards on BIRD | Qwen2.5-Coder 3B-14B | BIRD | BIRD dev 3B: SFT 55.9 -> GRPO 58.7. Spider after BIRD training, 7B: SFT 68.1 vs GRPO 78.7 | BIRD SFT transfers badly to Spider; RL transfers. 8x H100. Venue not verified | full |
 | Arctic-Text2SQL-R1, Yao et al., 2025 ([arXiv 2505.20315](https://arxiv.org/abs/2505.20315)) | GRPO, reward 1 for EX match, 0.1 for executable | 7B-32B | BIRD, Spider, synthetic | 7B BIRD dev 68.9, Spider test 88.8 greedy; online beat batch RL (66.6 vs 64.9) | Simple execution reward suffices; 64 H100. Venue not verified | full |
@@ -96,8 +98,26 @@ frozen server teacher with federated preference optimization.
 Below 6.7B the only DPO-style Text-to-SQL result found is SQLoom (section
 1.6: Qwen3-1.7B, token-restricted DPO terms, GPT-4-mined negatives). No
 verified paper compares iterative with one-shot DPO at 1.5B or reports a
-greedy, single-sample, Spider-trained 1.5B Qwen2.5-Coder number. Zero-shot 1.5B Spider dev numbers
-differ by about 6 points across sources, so the paper must report its own.
+greedy, single-sample, Spider-trained 1.5B Qwen2.5-Coder number.
+
+Published Spider numbers at about 1.5B (read in full 2026-11-15). The
+Qwen2.5-Coder technical report (Hui et al. 2024, [arXiv 2409.12186](https://arxiv.org/abs/2409.12186))
+has no 1.5B Text-to-SQL result: its Figure 12 covers Instruct models from
+7B up (7B Spider 82.0, BIRD 51.1; prompt with table content after Chang and
+Fosler-Lussier). Think2SQL reports 1.5B on BIRD only.
+
+| Paper | Model | Training data | Decoding | Zero-shot Spider | Best Spider |
+|---|---|---|---|---|---|
+| SPFT-SQL | Qwen2.5-Coder-1.5B | Spider train + synthetic rows per round (3K best at 7B), centralized; baseline SFT with LoRA | not stated | dev 72.4, test 72.3 | dev 79.7, test 82.3 |
+| SLM-SQL | Qwen2.5-Coder-1.5B-Instruct | 916K CoT SFT (incl. Spider and BIRD train) + BIRD GRPO | 16 samples, SC / CSC | dev 63.54 / 65.99, test 67.61 / 69.34 | dev 75.15 / 76.72, test 78.42 / 79.06 |
+| FINER-SQL | Qwen2.5-Coder-1.5B | Spider + BIRD, SFT + GRPO | schema ranker, 30-sample vote | not reported | dev 80.0 |
+| CodeS-1B | StarCoderBase-1B + 21.5 GB SQL-centric pre-training | Spider train, full SFT | beam 4, first executable | not reported (few-shot dev TS 55.7-59.1) | dev 77.9 (TS 72.2) |
+
+Zero-shot 1.5B Spider numbers range from 63.54 (dev, SC@16) to 72.4 (dev,
+undisclosed prompt), so the paper must report its own zero-shot under each
+prompt it uses. The large gaps come from training data volume (SLM-SQL,
+CodeS) or from input processing with values and centralized training at a
+similar data volume (SPFT-SQL).
 
 ### 1.5 LLM-to-SLM distillation
 
@@ -171,7 +191,7 @@ Collected for `DIRECTION.md` section 6. "Read" names what was checked.
 | KID ([2410.11371](https://arxiv.org/abs/2410.11371)) | Spider dev EX, Qwen1.5-0.5B with a 7B teacher: SFT 57.8, forward KL 57.3, reverse KL 61.5, GKD 64.3 (13.9x SFT time). TinyLLaMA: SFT 63.0, reverse KL 66.0, GKD 64.8, KID 68.1 | The teacher is fine-tuned on Spider (in-domain). Forward KL is about equal to SFT; reverse KL helps | tables |
 | Reasoning-SQL ([2503.23157](https://arxiv.org/abs/2503.23157)) | Table 5, 7B Spider: base 77.85, BIRD gold SFT 68.08, GRPO 78.72 | Gold SFT on BIRD hurts Spider; execution RL on BIRD does not. Dev or test not stated | table |
 | Think2SQL ([2504.15077](https://arxiv.org/abs/2504.15077)) | Table 4, 3B Spider 72.5 -> 77.0 | Needs both R1-reasoning SFT on 913 BIRD rows and QATCH-reward RL (T=0.7, 40 h on 8x H100); no 1.5B result | table |
-| SLM-SQL ([ACL](https://aclanthology.org/2025.findings-ijcnlp.92/)) | Table 3, 1.5B Spider dev SC@16: zero-shot 63.54, SFT 74.53, SFT + BIRD RL 75.15 | BIRD RL adds +0.6 on Spider once Spider is in the SFT data; no greedy numbers | table |
+| SLM-SQL ([ACL](https://aclanthology.org/2025.findings-ijcnlp.92/)) | Table 3, 1.5B Spider dev SC@16: zero-shot 63.54, SFT 74.53, SFT + BIRD RL 75.15; test SC@16 67.61, 77.35, 78.42 | BIRD RL adds +0.6 (dev) to +1.1 (test) on Spider once Spider is in the SFT data; no greedy numbers | table |
 | OmniSQL ([2503.02240](https://arxiv.org/abs/2503.02240)) | Table 5, 7B greedy Spider dev / test: base 73.4 / 82.2, SynSQL only 74.6 / 83.5, gold Spider+BIRD 76.9 / 80.7, CoT Spider+BIRD 80.3 / 86.6, all 81.2 / 87.9 | SynSQL alone adds about 1.2 points; CoT beats gold SFT by 3.4 dev / 5.9 test. No model below 7B; generated tables carry two example rows, sparsity not discussed | table |
 | Arctic-Text2SQL-R1 ([2505.20315](https://arxiv.org/abs/2505.20315)) | SynSQL "initial attempts were inconclusive"; unfiltered synthetic data 64.9 -> 64.6, filtered 66.5 | Execution RL on SynSQL needs filtering; smallest model 7B | text |
 | SERL-SQL ([2608.00485](https://arxiv.org/abs/2608.00485)) | Removing the teacher rescoring: -2.55 Spider test (likely the 14B model) | The "teacher" is a synced copy of the student; students 7-32B on 16x H100 | ablation |
@@ -251,12 +271,12 @@ that voting offers no gain for a particular strong generator.
 | Li et al., **RESDSQL: Decoupling Schema Linking and Skeleton Parsing for Text-to-SQL**, AAAI 2023 ([paper](https://arxiv.org/abs/2302.05965)) | Ranks schema items before skeleton-aware seq2seq decoding | Supports schema grounding as a distinct component; encoder-decoder input restrictions differ from full-schema decoder prompts | abstract |
 | Lin et al., **Bridging Textual and Tabular Data for Cross-Domain Text-to-SQL Semantic Parsing (BRIDGE)**, Findings EMNLP 2020 ([paper](https://arxiv.org/abs/2012.12627)) | Adds question-mentioned cell values to a joint question/schema representation | A source for value anchoring; no adaptation to the project's prompt is implied | abstract |
 | Qin et al., **ROUTE: Robust Multitask Tuning and Collaboration for Text-to-SQL**, arXiv 2024, revised 2025 ([paper](https://arxiv.org/abs/2412.10138)) | Auxiliary schema-linking, noise-correction and continuation tasks, then multitask prompting | Programmatically related SQL tasks are an alternative to changing the preference loss; venue not verified on the opened record | abstract |
-| Zhang et al., **SPFT-SQL: Enhancing Large Language Model for Text-to-SQL Parsing by Self-Play Fine-Tuning**, Findings EMNLP 2025 ([ACL](https://aclanthology.org/2025.findings-emnlp.59/); [body](https://arxiv.org/html/2509.03937v2)) | Verification-based iterative data synthesis followed by error-driven self-play; includes Qwen2.5-Coder-1.5B and CodeS-style schema processing | Table 1 reports Spider test EX 78.0 for 1.5B SFT and 82.3 for SPFT-SQL. Centralized synthetic-data training differs from this project's data roles. The 7B SFT values 79.0 and 83.7 in that table are dev TS and test EX respectively, not conflicting reports of one metric | sections 3-4, Table 1, Appendix A.3-A.4 |
+| Zhang et al., **SPFT-SQL: Enhancing Large Language Model for Text-to-SQL Parsing by Self-Play Fine-Tuning**, Findings EMNLP 2025 ([ACL](https://aclanthology.org/2025.findings-emnlp.59/); [body](https://arxiv.org/html/2509.03937v2)) | Verification-based iterative data synthesis (VBI-FT) followed by error-driven self-play; includes Qwen2.5-Coder-1.5B and CodeS-style schema processing | Table 1, 1.5B block (Spider dev EX / dev TS / test EX): zero-shot 72.4 / 62.5 / 72.3; SFT 76.8 / 70.2 / 78.0; SPIN 67.6 / 60.5 / 68.5; SPFT-SQL 79.7 / 73.5 / 82.3. Syn EX, Realistic EX, DK EX: SFT 59.0, 64.8, 60.9; SPFT-SQL 66.7, 75.4, 67.3. BIRD dev EX: SFT 44.3, SPFT-SQL 54.0. The SFT and zero-shot rows are the authors' own runs: the cited Hui et al. 2024 (Qwen2.5-Coder report) has no 1.5B Spider number. Appendix A.4: baseline SFT is LoRA through LLaMA-Factory, AdamW, batch 64, lr 2e-4, three epochs "on each training set"; LoRA rank, baseline prompt and decoding are not stated. Synthetic data per VBI-FT round is small: at 7B, 3,000 records was best and 10,000 slightly worse (Figure 4). Its SFT CodeS-1B row is copied correctly from CodeS. Centralized training differs from this project's data roles. The 7B SFT values 79.0 and 83.7 are dev TS and test EX respectively, not conflicting reports of one metric. Other anomalies in Table 1: 1.5B SFT DK below zero-shot (60.9 vs 62.0); 7B SFT dev EX below zero-shot (82.9 vs 83.5) | sections 3-4, Table 1, Appendix A.3-A.4 |
 | Zhong et al., **Grounded Adaptation for Zero-shot Executable Semantic Parsing (GAZP)**, EMNLP 2020 ([paper](https://arxiv.org/html/2009.07396v3)) | Backward utterance generation plus cycle-consistency in a new database environment | Table 2, Spider dev EX: baseline 55.4, GAZP 59.2, synthesis on train databases 52.1, no cycle filter 52.3. The successful adaptation uses evaluation environments; it is not permissible training on this project's test databases | sections 2-3, Table 2 |
 | Saparina and Lapata, **Improving Generalization in Semantic Parsing by Increasing Natural Language Variation**, EACL 2024 ([paper](https://arxiv.org/abs/2402.08666)) | LLM-generated question reformulations for robustness | Supports linguistic-variation analysis; the abstract alone does not establish a gain on unmodified Spider | abstract |
 | Rączkowska et al., **RetrySQL: text-to-SQL training with retry data for self-correcting query generation**, arXiv 2025 ([paper](https://arxiv.org/abs/2507.02529)) | Corrupted and corrected reasoning steps for continued pretraining | Abstract explicitly reports LoRA SFT ineffective for its retry data and uses full-parameter pretraining. Its result does not justify a cheap LoRA-only replica | abstract; conference venue not checked |
 | Chen et al., **SQLCritic: Correcting Text-to-SQL Generation via Clause-wise Critic**, arXiv 2025 ([paper](https://arxiv.org/abs/2503.07996)) | Clause-aware critiques, with adaptive-beta DPO for the critic | Preference training improves a separate critic, not the SQL generator directly | abstract |
-| Hoang et al., **FINER-SQL: Boosting Small Language Models for Text-to-SQL**, arXiv 2026 ([paper](https://arxiv.org/abs/2605.03465)) | GRPO with memory and operation-level atomic rewards; small-model Text-to-SQL | A fine-grained reward alternative; headline EX in the abstract is for 3B and does not supply a matched 1.5B SQL-only DPO comparison | abstract |
+| Hoang et al., **FINER-SQL: Boosting Small Language Models for Text-to-SQL**, arXiv 2026 ([paper](https://arxiv.org/abs/2605.03465)) | SFT on a reasoning bank (2 epochs, lr 2e-5), then GRPO with memory and operation-level atomic rewards (32 rollouts, lr 8e-6, 2x A6000). Inference: GRAST-SQL 0.6B schema ranker (top 30 columns), 30 candidates, majority vote. Trained only on Spider and BIRD databases | Table II, Qwen2.5-Coder 0.5B / 1.5B / 3B (Instruct not stated): BIRD dev EX 50.85 / 63.17 / 67.73, Spider dev EX 70.2 / 80.0 / 85.0. No Spider test and no zero-shot Spider number; BIRD dev 0.5B rises from 35 greedy to about 49 at T 1.0 (Figure 6). A fine-grained reward alternative with a 30-sample vote, not a matched greedy 1.5B comparison | sections IV-V, Table II, Figures 6 and 10 |
 | Chen et al., **DualSQL: Text-to-SQL with Multi-Agent Reinforcement Learning**, arXiv 2026 ([paper](https://arxiv.org/abs/2609.18135)) | Shared-backbone schema-linking and SQL agents; robust execution match (REX) rewards | Another semantic-reward precedent, at 4B/8B with database tools rather than one SQL-only greedy policy | abstract |
 
 CodeS (section 1.4) remains the main input-component reference. Its
@@ -471,6 +491,15 @@ priority or an exhaustive literature search.
   with the same objective and data is needed to measure it.
 - Published 1.5B numbers mostly use self-consistency; ours must name greedy or
   sampled decoding explicitly.
+- Published zero-shot 1.5B Spider numbers (63.54 to 72.4, section 1.4) sit
+  well above a plain-DDL greedy prompt. A reviewer will ask whether a weak
+  prompt inflates the training gain; report zero-shot under each prompt and
+  name the input components (values, schema filtering) next to every
+  external row.
+- External 1.5B rows differ in training data volume by up to about 50
+  times (SLM-SQL 916K SFT rows, CodeS 21.5 GB of pre-training). A comparison
+  table names the training data and its size for each row. SPFT-SQL cites
+  Hui et al. 2024 for the model only; its 1.5B SFT row is its own LoRA run.
 - SQLoom reports 89.2 greedy Spider test at 1.7B. A reviewer will compare;
   the paper has to state that SQLoom trains centrally on Spider + BIRD with
   GPT-4 in the loop, while here client data never leaves and no external
