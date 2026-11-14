@@ -237,8 +237,9 @@ Both seeds pooled, clustered by question (95% interval):
    Dropping the term is an owner decision; the current seed comparisons
    use DPO + NLL. N2 is queued: one round with result-vote labels, one
    with executability labels, neither using the gold fallback. Both reuse
-   the raw round-1 samples. F1 (20 clients) and P1 (`codes` schema with
-   sample values) are proposals awaiting the owner's decision.
+   the raw round-1 samples. P1 (`codes` schema with sample values, FedAvg
+   line, seed 0) is approved and first in the queue; F1 (20 clients) awaits
+   the owner's decision.
 4. What the federated setting costs in the DPO stage. Reference rows, not
    a condition of the claim. In round 1 each client's adapter alone gives
    74.24 to 75.50 on Spider test (mean 74.97), the averaged adapter 75.69.

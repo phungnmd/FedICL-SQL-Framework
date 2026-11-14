@@ -3,6 +3,42 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: P1 (codes schema) approved and first in the queue
+
+Owner approved P1 and put it ahead of the rest of the queue. Phase
+`sqlcodes_s0`: the FedAvg line of seed 0 with the `codes` schema (CodeS
+metadata: type, primary key, column comment, 2 sample values per column,
+foreign keys, and the values the question quotes) in every training,
+sampling and evaluation prompt. 3 FedAvg rounds from the base model, then
+3 DPO + NLL rounds with the `sqldpo_s0/fedavg` recipe; Spider test only.
+Comparator: `sqldpo_s0/fedavg` (same seed, `full` schema). Code and queue:
+`8e3247ce`, `d7095e42` (fedicl-sql); full `pytest -q`, 633 passed.
+
+Prompt measurements (Qwen2.5-Coder tokenizer, chat template, local):
+
+| Set | `full` mean / max tokens | `codes` mean / max tokens |
+|---|---|---|
+| clients 1-5 (8,659 rows) | 572 / 2,259 | 996 / 7,297 |
+| Spider test (2,147) | 418 / 1,140 | 677 / 2,053 |
+
+Client training tokens grow about 1.74x, mostly client 3. The 82 client 3
+rows on `baseball_1` render 7,224 to 7,432 tokens with the gold SQL, so the
+line uses `--max-len 7680` (fits all 2,061 client 3 rows; SFT at 7,680 was
+measured at 20.3 GiB). No other row is above 3,700 tokens.
+
+Two code fixes before queuing. The value matcher of `codes` found a value
+anywhere inside the question, so short codes ('M', 'Y', 'THE') matched in
+most questions (999 of 1,896 client 1 questions); it now needs whole words,
+and values under 4 characters must match the case (575 of 1,896).
+`scripts.eval_standard` takes `--schema-style` (default unchanged). No
+result in use was rendered with `codes`.
+
+Not measured: DPO memory for `baseball_1` pairs (about 7,550 tokens a
+sequence; the pair takes one forward pass of two rows, above the 8,192
+budget). The trainer stops above 21.5 GiB, so a failure shows as a clear
+stop. Estimate about 16 h (SFT about 8.5 h, DPO about 7.5 h, scaled from
+seed 2 FedAvg rounds and `sqldpo_s0/curve_fedavg` by token count).
+
 ## 2026-11-14: N2 label sources and N3 seed 1 selection
 
 Pulled code/results through `d4c215ce` (published at 10:02,

@@ -466,7 +466,8 @@ Thứ tự trong queue (owner, 2026-11-13 và 2026-11-14):
 
 Chưa queue, theo thứ tự đề xuất:
 
-1. F1, S3, S1, P1 (57 đến 62 h); F1/P1 còn chờ quyết định sau giải thích.
+1. F1, S3, S1 (47 đến 52 h); F1 còn chờ quyết định sau giải thích. P1 đã
+   được duyệt và chạy trước (khoảng 16 h).
 2. Mục 7.5 theo thứ tự trong bảng, nếu còn thời gian trước khi nộp.
 
 ## 8. Đối chiếu với chuẩn Q2-Q3

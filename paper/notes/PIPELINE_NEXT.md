@@ -2,13 +2,14 @@
 
 ## Status
 
-Updated 2026-11-14 at 14:47 (Asia/Ho_Chi_Minh). Last published result:
-`d4c215ce` at 10:02 (N2 V, N2 X and N3 seed 1 finished). Live task state
-is not confirmed.
+Updated 2026-11-14 at 22:35 (Asia/Ho_Chi_Minh). Last published result:
+`4b9edfdd` at 22:14 (`sqldpo_s2/curve_hinton_sft` finished). P1 code and
+queue `d7095e42` is pushed; server pull and live task state are not
+confirmed.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Next in queue: `sqldpo_s2/hinton_k2` (seed 2 Hinton KD); running is not confirmed. | result commit `d4c215ce`, 10:02 on 2026-11-14 |
+| 0 | Next in the old queue was `sqldpo_s2/curve_hinton` (seed 2 Hinton DPO); running since about 22:14 is not confirmed. After the pull, the next task is P1 `sqlcodes_s0/curve_fedavg_sft`. | result commit `4b9edfdd`, 22:14 on 2026-11-14 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -23,22 +24,39 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Nothing new to start or pull on the server. Confirm the queue state with
-this read-only command from the `fedicl-sql` root; send the running task or
-any failure line.
+1. Stop the GPU 0 worker with Ctrl+C and wait for its task process to exit,
+   so P1 starts now. The stopped task (`sqldpo_s2/curve_hinton`) resumes
+   after P1 from its last finished sampling chunk or DPO checkpoint. To let
+   it finish first instead (about 8 h), skip steps 1 and 3: the pull is safe
+   while it runs, and the worker takes P1 when the task ends.
+
+2. Pull and test from the `fedicl-sql` root. The update changes only the
+   `codes` schema path and adds an evaluation flag whose default leaves
+   every queued command unchanged.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q tests/test_task_queue.py tests/test_curve.py tests/test_data.py tests/test_eval_standard.py tests/test_training.py tests/test_pref_rounds.py tests/test_dpo.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+Send the error if this command fails; do not start the worker until it passes.
+
+3. Restart the full queue on GPU 0.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
 Next owner actions:
 
-- When `sqldpo_s0/eval_teacher` starts, check its first batch peak reserved
-  VRAM; when `sqldpo_s0/curve_central` starts, check its first training
-  updates. Send the line if above 21.5 GiB.
-- After `sqldpo_s2/publish_extra_gold`: read the three-seed teacher
-  comparison with the agent. The tasks below total about 53 h from
-  the start of `sqldpo_s2/hinton_k2`, excluding progress not yet published.
+- P1 round 1, client 3 (starts about 1 h after P1): its rows reach 7,433
+  tokens, the longest of any client. Send the peak reserved VRAM line of
+  client 3 if above 21.5 GiB.
+- P1 DPO round 1 (about 9 h after P1 starts), client 3: its longest pairs
+  (about 7,550 tokens a sequence) have not been measured. Send the
+  reference-pass peak, or the stop line if the trainer stops above
+  21.5 GiB.
+- After `sqlcodes_s0/curve_fedavg` (about 16 h after P1 starts): read P1
+  with the agent.
 
 ## Running and queued
 
@@ -47,12 +65,15 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 6 | `sqldpo_s2/hinton_k2` to `sqldpo_s2/publish_extra_hinton` | Seed 2: Hinton KD on BIRD, 3 FedAvg rounds, 3 DPO rounds; start and round 3 on the other sets | 17.5 h | next in queue, running unconfirmed |
+| 5 | `sqlcodes_s0/curve_fedavg_sft`, `curve_fedavg` | P1: FedAvg R3 and 3 DPO rounds with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 16 h | first after the pull |
+| 6 | `sqldpo_s2/curve_hinton` to `sqldpo_s2/publish_extra_hinton` | Seed 2: 3 DPO rounds from the Hinton line's FedAvg R3; start and round 3 on the other sets | 8 h | running unconfirmed, or stopped for P1 |
 | 7 | `sqldpo_s2/gold_k2` to `sqldpo_s2/publish_extra_gold` | Seed 2 without the teacher, same stages and rounds | 16 h | queued |
 | 8 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
 | 9 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
 | 10 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
 | 11 | `sqldpo_s2/curve_fedavg_sft` to `sqldpo_s2/publish_extra_fedavg` | Seed 2 of FedAvg R3 and DPO without the server stage | 10.5 h | queued |
+
+All rows total about 59 h from the pull.
 
 Cut from a full run:
 
@@ -60,11 +81,14 @@ Cut from a full run:
   sets at the start and round 3, not rounds 1 and 2.
 - The local SFT models are evaluated only on Spider test; six sets would
   add about 2.5 h. DPO without aggregation is not queued.
+- P1 is seed 0 and Spider test only: the other five sets for its FedAvg R3
+  and DPO round 3 would add about 1 h. Its comparator is the seed 0 FedAvg
+  line with the `full` schema.
 
 Not queued yet (proposal section 7):
 
-- F1 (20 clients, full and partial participation) and P1 (`codes` schema
-  with sample values): awaiting the owner's decision after explanation.
+- F1 (20 clients, full and partial participation): awaiting the owner's
+  decision after explanation.
 - S1, a second non-IID split (about 21 h); S3, a second student size
   (about 15-20 h), both awaiting the owner's decision.
 - M5, CPU/manual analyses; S2, K/beta sensitivity (one round, about 7 h);
@@ -171,6 +195,22 @@ Final table (Spider test; every SQL DPO line at round 3):
 | SQL DPO from `hinton_k2aaa_a3` | the method so far (round 3: 76.71 on seed 0, 77.04 on seed 1); the server stage and its loss wait for the owner's decision |
 | selection by execution over 8 samples | FedAvg R3, `hinton_k2aaa_a3` and DPO round 3 from each, at inference, no training |
 | CoT (short analysis) | E5, template R1, self-taught R1-R3 |
+
+### P1, the `codes` schema (phase `sqlcodes_s0`)
+
+The FedAvg line of seed 0 with `--schema-style codes` (training) and
+`--client-schema-style codes` (FedAvg) instead of `full`, in every
+training, sampling and evaluation prompt. `codes` writes one line per table;
+each column carries its type, primary key, the column name in words and 2
+sample values, then a foreign key block and the text values the question
+quotes as whole words. `--max-len 7680` for the 82 client 3 rows on
+`baseball_1` (up to 7,433 tokens); the rest of the settings are the seed 0
+recipe. Outputs: `artifacts/protocol_v2/sqlcodes_coder15b_alpha01_s0/`.
+
+| Line (curve) | Start | Step |
+|---|---|---|
+| `sqlcodes_s0/fedavg_sft` | base model | one FedAvg round (lr 2e-4, 1 local epoch); 3 rounds |
+| `sqlcodes_s0/fedavg` | round 3 of `fedavg_sft` | DPO + NLL round, the settings of `sqldpo_s0/fedavg`; 3 rounds |
 
 ### Seed 1 (phase `sqldpo_s1`, finished)
 
