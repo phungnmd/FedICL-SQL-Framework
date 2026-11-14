@@ -2,13 +2,13 @@
 
 ## Status
 
-Updated 2026-11-14 at 08:22 (Asia/Ho_Chi_Minh). Last published result:
-`3767d097` at 06:36. The server has used code update `cfa2791c`
-(recorded in the new training provenance). Live task state is not confirmed.
+Updated 2026-11-14 at 14:47 (Asia/Ho_Chi_Minh). Last published result:
+`d4c215ce` at 10:02 (N2 V, N2 X and N3 seed 1 finished). Live task state
+is not confirmed.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Next in queue: `sqldpo_s0/curve_vote_labels` (N2 V); running is not confirmed. | result commit `3767d097`, 06:36 on 2026-11-14 |
+| 0 | Next in queue: `sqldpo_s2/hinton_k2` (seed 2 Hinton KD); running is not confirmed. | result commit `d4c215ce`, 10:02 on 2026-11-14 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -23,9 +23,9 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Nothing new to start or pull on the server from these results. N2/N3 are
-already in the queue. Confirm its current state with this read-only command
-from the `fedicl-sql` root; send the running task or any failure line.
+Nothing new to start or pull on the server. Confirm the queue state with
+this read-only command from the `fedicl-sql` root; send the running task or
+any failure line.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
@@ -33,29 +33,21 @@ from the `fedicl-sql` root; send the running task or any failure line.
 
 Next owner actions:
 
-- After `sqldpo_s1/publish_xsel`: send the results commit for N2/N3.
-  About 4.5 h from the start of `curve_vote_labels`; its start time is not
-  known here. Review these results before the seed 2 DPO rounds, which
-  follow about 12 h of server KD and FedAvg training after N3.
 - When `sqldpo_s0/eval_teacher` starts, check its first batch peak reserved
   VRAM; when `sqldpo_s0/curve_central` starts, check its first training
   updates. Send the line if above 21.5 GiB.
 - After `sqldpo_s2/publish_extra_gold`: read the three-seed teacher
-  comparison with the agent. The tasks below total about 57.5 h from
-  the start of N2 V, excluding progress not yet published.
+  comparison with the agent. The tasks below total about 53 h from
+  the start of `sqldpo_s2/hinton_k2`, excluding progress not yet published.
 
 ## Running and queued
 
 GPU 0 in queue order. Durations are estimates; start times and current
-progress need the status command above. New labels add CPU execution over
-cached samples, not yet measured on the server.
+progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 5a | `sqldpo_s0/curve_vote_labels` | N2 V: result-vote pair labels, no gold fallback, one DPO round on the Hinton round-1 samples | 1.75 h | next in queue, running unconfirmed |
-| 5b | `sqldpo_s0/curve_exec_labels` | N2 X: executable SQL vs execution errors, otherwise the same one-round ablation | 1.75 h | queued |
-| 5c | `sqldpo_s1/xsel_fedavg_r3`, `xsel_hinton_start`, `xsel_fedavg_dpo_r3`, `xsel_hinton_dpo_r3`, `publish_xsel` | N3: selection by execution on all Spider test questions, 8 samples, four models, seed 1 | 1 h | queued |
-| 6 | `sqldpo_s2/hinton_k2` to `sqldpo_s2/publish_extra_hinton` | Seed 2: Hinton KD on BIRD, 3 FedAvg rounds, 3 DPO rounds; start and round 3 on the other sets | 17.5 h | queued |
+| 6 | `sqldpo_s2/hinton_k2` to `sqldpo_s2/publish_extra_hinton` | Seed 2: Hinton KD on BIRD, 3 FedAvg rounds, 3 DPO rounds; start and round 3 on the other sets | 17.5 h | next in queue, running unconfirmed |
 | 7 | `sqldpo_s2/gold_k2` to `sqldpo_s2/publish_extra_gold` | Seed 2 without the teacher, same stages and rounds | 16 h | queued |
 | 8 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
 | 9 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
@@ -64,14 +56,6 @@ cached samples, not yet measured on the server.
 
 Cut from a full run:
 
-- N2 is seed 0, one round per variant, every client question, all 2,147
-  Spider test questions. About 10.5 GPU-h for 3 rounds of both variants,
-  compared with 3.5 h here. One round tests the label source; it does not
-  measure the final three-round method. Pair counts and update counts can
-  differ between label sources. Stats count targets reconstructed from
-  parsed SQL when the old sample cache lacks raw response text.
-- N3 is Spider test only. The four models and all questions are included;
-  seed 0 is already published, seed 1 is queued.
 - Centralized DPO is seed 0 only. Seed 2 evaluates the other
   sets at the start and round 3, not rounds 1 and 2.
 - The local SFT models are evaluated only on Spider test; six sets would

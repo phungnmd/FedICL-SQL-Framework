@@ -3,6 +3,55 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: N2 label sources and N3 seed 1 selection
+
+Pulled code/results through `d4c215ce` (published at 10:02,
+Asia/Ho_Chi_Minh). Spider test, 2,147 questions, vLLM inproc, batch 16.
+
+N2, seed 0, one DPO round from `hinton_k2aaa_a3` on the Hinton line's
+round-1 samples, every client question, no gold fallback. V labels a sample
+by result vote among the 8 samples; X labels executable SQL as chosen and
+execution errors as rejected. Neither reads gold SQL. Results: V `5bdb7afa`,
+`f03e2ac3`; X `4bf30a6a`, `c0cc12ed`. Paired counts against
+`sqldpo_hinton_r1_vllm_inproc` (gold labels with fallback), exact two-sided
+binomial test on discordant questions.
+
+| Round 1 labels | Pairs | EX | Right only here / only gold labels | Exact paired p | Execution errors |
+|---|---:|---:|---|---:|---:|
+| gold, with fallback (Hinton line) | 5,393 | **75.69** | - | - | 82 |
+| gold, no fallback | 4,784 | 75.50 | 15 / 19 | 0.61 | 75 |
+| result vote (V) | 5,670 | 75.50 | 35 / 39 | 0.73 | 69 |
+| executability (X) | 3,497 | 74.99 | 31 / 46 | 0.11 | **68** |
+
+Start model `hinton_k2aaa_a3`: 73.31. V matches gold labels without
+fallback in EX at round 1, and changes more questions in both directions.
+X keeps most of the round-1 gain (+1.68 over the start) with 35% fewer
+pairs; all its rejected samples are execution errors, so it cannot teach
+wrong-result cases. One round only: whether V holds over three on-policy
+rounds is not measured (about 3.5 h for V alone).
+
+N3, selection by execution over 8 samples (T 0.7), seed 1, all Spider test
+questions; seed 0 from earlier commits. Result: `d4c215ce`.
+
+| Model | Seed | Greedy | Fallback | Vote | pass@8 |
+|---|---:|---:|---:|---:|---:|
+| FedAvg R3 | 0 | 71.26 | 75.03 | 75.55 | 83.47 |
+| FedAvg R3 | 1 | 71.87 | 76.01 | 75.87 | 83.70 |
+| `hinton_k2aaa_a3` | 0 | 73.31 | 75.59 | 76.53 | 84.68 |
+| `hinton_k2aaa_a3` | 1 | 74.06 | 76.39 | 76.34 | 84.49 |
+| DPO R3 from FedAvg R3 | 0 | 75.13 | 77.04 | 76.76 | 84.86 |
+| DPO R3 from FedAvg R3 | 1 | 75.83 | 77.69 | **78.39** | **85.19** |
+| DPO R3 from `hinton_k2aaa_a3` | 0 | 76.71 | 77.69 | **78.39** | 85.00 |
+| DPO R3 from `hinton_k2aaa_a3` | 1 | **77.04** | **78.16** | 78.02 | 84.96 |
+
+Seed 1 repeats seed 0's ordering for greedy and fallback: selection adds
+1.0 to 4.1 points, more for weaker models. The Hinton start's lead over
+FedAvg R3 as DPO start is 1.58 / 1.21 greedy and 0.65 / 0.47 with fallback
+(seed 0 / seed 1); with vote it is +1.63 on seed 0 and -0.37 on seed 1. At
+inference with 8 samples, the server stage's contribution is small and not
+consistent across seeds. Seed 2 is queued next (`sqldpo_s2/hinton_k2`);
+its live state is unconfirmed.
+
 ## 2026-11-14: fixed round-1 samples lose ground over repeated DPO rounds
 
 Pulled code/results through `3767d097` (curve published at 06:36,
