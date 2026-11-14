@@ -1,6 +1,6 @@
 # Đề xuất paper FedLS-SQL: tên, outline và thực nghiệm
 
-Ngày 2026-11-14, theo các kết quả đã committed đến 01:19 cùng ngày. Số liệu
+Ngày 2026-11-14, theo các kết quả đã committed đến 06:36 cùng ngày. Số liệu
 lấy từ `paper/notes/RESEARCH_STATE.md` (mục 4) và `LAB_LOG.md`; nguồn tham
 khảo lấy từ `paper/notes/LITERATURE.md`.
 
@@ -18,7 +18,7 @@ setup ở mục 7.4 còn chờ quyết định.
 | Loại paper | Empirical method paper, cấu trúc IMRaD mở rộng cho ML |
 | Venue | Computers, Materials & Continua (CMC) hoặc Journal of Intelligent Information Systems (JIIS), theo lựa chọn ngày 2026-11-14; mục 8.1 |
 | Kết quả chính (Spider test EX) | Method 76.71 / 77.04 (seed 0 / 1), FedAvg 71.26 / 71.87, SFT tập trung Spider + BIRD 73.96, teacher 7B zero-shot 77.22. Với vote theo execution trên 8 sample (seed 0): method 78.39, FedAvg 75.55 |
-| Đang queue | khoảng 62.5 GPU-h trên một A5000 (mục 7.2 và N2/N3 ở 7.3), khoảng 2.6 ngày chạy liên tục tính từ cuối xsel seed 0 |
+| Đang queue | khoảng 57.5 GPU-h trên một A5000 (mục 7.2 và N2/N3 ở 7.3), tính từ lúc offline kết thúc 06:36 ngày 2026-11-14; tiến độ N2 hiện chưa xác nhận |
 | N2/N3 | khoảng 4.5 GPU-h, sau offline và trước seed 2; đã queue (mục 7.3) |
 | Đề xuất chạy thêm nếu nhắm Q2 | khoảng 57 đến 62 GPU-h nữa (mục 7.4) |
 
@@ -285,8 +285,8 @@ của hình.
   round SFT (+0.84), không có NLL qua 3 round (76.76 so với 76.71), ghép
   cặp ngẫu nhiên (75.73 so với 75.69), Focused-DPO, không có gold fallback
   (75.50 so với 75.69), số round [có]; các round dùng lại sample của round
-  1 [queue]; nhãn bằng vote thay nhãn gold, và chỉ cặp chạy được / không
-  chạy được [N2].
+  1 (74.99 ở round 3, thấp hơn sample lại 1.72 điểm) [có]; nhãn bằng vote
+  thay nhãn gold, và chỉ cặp chạy được / không chạy được [N2].
 - 7.8 Độ nhạy (ngắn, hình ở appendix): mức non-IID, số client và tỉ lệ tham
   gia, kích thước student, schema có sample value trong prompt, số
   sample K, beta. [S1, F1, S3, P1, S2]
@@ -345,6 +345,7 @@ khoảng 2.7 h, một lần evaluation Spider test khoảng 6 phút.
 | Dòng gold | server stage gold, FedAvg R3, DPO round 1-3 | 0, 1 |
 | Dòng virtual teacher | điểm xuất phát, DPO round 1-3 | 0 |
 | Self teacher | điểm xuất phát (không có DPO) | 0 |
+| Offline DPO | ba round dùng lại sample và 5,393 cặp của round 1: 75.69, 75.55, 74.99 trên Spider test | 0 |
 | Ablation stage DPO | chỉ NLL, thêm 1 và 2 round SFT, Focused-DPO round 1, ghép cặp ngẫu nhiên round 1, không có NLL round 1-3 (round 3 trên cả sáu set), không có gold fallback round 1, 5 adapter client của DPO round 1 trước khi aggregate | 0 |
 | Chọn câu theo execution lúc inference | 8 sample mỗi câu hỏi Spider test, fallback và vote, trên FedAvg R3, điểm xuất phát Hinton và DPO round 3 từ mỗi dòng | 0 |
 | Các set khác | Spider dev, DK, SYN, Realistic, BIRD dev: điểm xuất phát và round 3 của mỗi dòng | 0, 1 |
@@ -357,14 +358,13 @@ Trạng thái và giờ: `paper/notes/PIPELINE_NEXT.md`. Theo thứ tự trong q
 
 | # | Task | Trả lời câu hỏi | Vào đâu trong paper | GPU-h |
 |---|---|---|---|---:|
-| | Round 1-3 đều train trên sample của round 1 (seed 0, từ điểm xuất phát Hinton) | Sample lại mỗi round có cần không | Bảng 7 | 5 |
 | M1 | Seed 2 của dòng Hinton, rồi dòng gold: stage server, 3 round FedAvg và 3 round DPO mỗi dòng, các set khác | Dòng method có 3 seed; cỡ phần teacher trên 3 seed | Bảng 2, 3, 4, 6, Hình 2 | 33.5 |
 | M4 | Teacher 7B zero-shot trên vLLM, sáu set | Dòng teacher cùng engine với student; phân tích 7.5 so từng câu hợp lệ | Bảng 2, 3, Hình 5 | 1 |
 | M3 | FedProx, FedNTD trên sáu set và các model local của từng client trên Spider test, engine vLLM, seed 0 | Bảng chính có đủ baseline FL chuẩn trên cùng engine | Bảng 2, 3 | 2 |
 | | DPO tập trung trên dữ liệu client gộp, 3 round (seed 0) | Setting federated mất gì ở stage chính | Bảng 7 | 5.75 |
 | M1 | Seed 2 của dòng FedAvg | Stage DPO không có stage server trên 3 seed | Bảng 2, 4, Hình 2 | 10.5 |
 
-Tổng: khoảng 58 GPU-h.
+Tổng: khoảng 53 GPU-h (chưa gồm N2/N3 ở mục 7.3).
 
 - M1: logit cache của teacher trên BIRD dùng lại được vì không phụ thuộc
   seed.
@@ -456,14 +456,13 @@ Tổng: khoảng 57 đến 62 GPU-h.
 
 Thứ tự trong queue (owner, 2026-11-13 và 2026-11-14):
 
-1. Các round dùng lại sample của round 1 (khoảng 5 h).
-2. N2 hai nhánh round 1 và N3 seed 1 (khoảng 4.5 h).
-3. M1, dòng Hinton rồi dòng gold của seed 2 (khoảng 33.5 h); chạy nền trong
+1. N2 hai nhánh round 1 và N3 seed 1 (khoảng 4.5 h).
+2. M1, dòng Hinton rồi dòng gold của seed 2 (khoảng 33.5 h); chạy nền trong
    lúc viết Introduction, Related Work, Setting, Method. M5 làm song song vì
    không cần GPU.
-4. M4 và M3 (khoảng 3 h): hoàn thiện Bảng 2 cho seed 0, đủ để bắt đầu viết
+3. M4 và M3 (khoảng 3 h): hoàn thiện Bảng 2 cho seed 0, đủ để bắt đầu viết
    mục 5, 6 và 7.
-5. DPO tập trung (khoảng 5.75 h), rồi M1 dòng FedAvg (khoảng 10.5 h).
+4. DPO tập trung (khoảng 5.75 h), rồi M1 dòng FedAvg (khoảng 10.5 h).
 
 Chưa queue, theo thứ tự đề xuất:
 
@@ -544,6 +543,7 @@ AI theo chính sách của nhà xuất bản.
 | Chọn câu theo execution (seed 0): vote trên điểm xuất phát ngang greedy sau DPO về tổng, nhưng hai cách đúng trên các câu khác nhau; method với vote cao hơn method greedy 1.68 | Bảng 5 có bốn dòng với greedy, fallback, vote và pass@8. Stage DPO không được mô tả là "bước vote đưa vào trọng số". Paper báo cả hai protocol: greedy (method hơn FedAvg 5.45 ở seed 0) và cùng vote (2.84). "Method + vote" là một dòng decoding, không phải dòng method |
 | Round 1-3 không có NLL ngang DPO + NLL (76.76 so với 76.71 ở round 3) | Một dòng ở Bảng 7 và một câu ở 4.4. Bỏ NLL khỏi method là quyết định của owner (phải chạy lại các dòng DPO); method hiện giữ nguyên |
 | Không có gold fallback ngang có fallback (75.50 so với 75.69, round 1) | Gold fallback là một chi tiết ở 4.4, không nằm trong danh sách điểm khác biệt |
+| Dùng lại sample của round 1: 74.99 ở round 3, thấp hơn sample lại 1.72 điểm (101 / 64 câu đúng riêng, Spider test, seed 0) | Bảng 7 báo đủ ba round và số cặp/update. Sample lại mỗi round có vai trò được đo trong recipe, trong khi số update giữa hai nhánh khác nhau |
 
 Còn mở:
 
@@ -554,7 +554,6 @@ Còn mở:
 | N2: nhãn vote (V) thấp hơn rõ nhãn gold | Nhãn gold qua execution là phần của stage DPO có vai trò được đo; một dòng ở Bảng 7 |
 | N2: V ngang nhãn gold | Stage DPO không cần gold SQL. Mở ra một setting có client chỉ có câu hỏi và database; có chạy setting đó hay không (khoảng 27 GPU-h, giấu SQL của một phần client) là quyết định của owner |
 | N2: chỉ cặp "chạy được / không chạy được" (X) ngang nhãn gold | Stage DPO được mô tả hẹp hơn: học viết SQL chạy được trên schema; mục 7.1 và 8.2 nói rõ |
-| Các round dùng lại sample của round 1 ngang các round sample lại | Sample một lần là đủ: nêu như một cách giảm chi phí ở 4.5; nếu thấp hơn, sample lại mỗi round có vai trò được đo |
 | DPO tập trung cao hơn rõ dòng federated | Khoảng cách được báo cáo là chi phí của setting federated ở Bảng 7; nếu ngang, một câu: federation không làm mất gain của stage DPO |
 | P1: gain của stage DPO giảm rõ khi prompt dùng schema `codes` có sample value | Paper báo cả hai prompt và nói gain phụ thuộc mức lỗi execution của điểm xuất phát; nếu gain giữ, một dòng ở Appendix D |
 | F1: EX giảm rõ ở 25% tham gia | Báo cáo như chi phí của partial participation ở 7.8; nếu giữ, một câu ở 7.8 và 8.4 bỏ giới hạn "5 client tham gia đủ" |

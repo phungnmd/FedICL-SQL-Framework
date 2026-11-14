@@ -92,6 +92,7 @@ commits: `LAB_LOG.md`.
 | DPO round 3 from FedAvg R3 | 75.13 | 101 | 75.83 | 95 |
 | DPO round 3 from `gold_k2aaa_a3` | 75.22 | 71 | 76.57 | 71 |
 | DPO round 3 from `virtual_k2aaa_a3` | 75.59 | 79 | | |
+| DPO round 3 from `hinton_k2aaa_a3`, fixed round-1 samples | 74.99 | 94 | | |
 | DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** | **77.04** | 74 |
 
 What each part adds, seed 0 (95% interval from a bootstrap over the 40
@@ -131,6 +132,13 @@ Both seeds pooled, clustered by question (95% interval):
   (76.20 against 75.69, not separable); at round 3 the preference term
   alone gives 76.76 against 76.71 on Spider test, seed 0, also level
   (`916e612d`; the other sets: `04861191`).
+- Refreshing samples has a measured role: fixed round-1 pairs give
+  75.69, 75.55 and 74.99 over three rounds, against 75.69, 76.43 and
+  76.71 with fresh samples (Spider test, seed 0, `3767d097`). At round 3
+  the on-policy line leads by 1.72 points (101 / 64 discordant questions,
+  exact p = 0.0049), with 58 vs 94 execution errors. Fixed pairs yield
+  more updates in rounds 2-3, so this is a comparison of the full refresh
+  recipe, not equal update counts.
 - Other sets: the method is above FedAvg R3 by 5.3 (Realistic) to 12.0 (DK)
   points on Spider dev, Realistic, SYN and DK (seed 0). After DPO the
   Hinton line leads the FedAvg line on every set and both seeds; pooled:
@@ -257,9 +265,9 @@ Both seeds pooled, clustered by question (95% interval):
 The three DPO lines have two seeds. Seed 0 also has the soft-target
 controls, 3 rounds without NLL, one round without gold fallback, the local
 adapters of round 1 and selection by execution (last published result
-`44b51ef5`, 01:19 on 2026-11-14).
+`3767d097`, 06:36 on 2026-11-14, including the offline control).
 
-Queue order: offline DPO rounds, N2 (two one-round label variants), N3
+Queue order: N2 (two one-round label variants), N3
 (selection by execution on seed 1), seed 2 Hinton and gold lines, the
 reference rows on vLLM, centralized DPO, then seed 2 FedAvg. Run commands,
 live-state provenance and estimates are in `PIPELINE_NEXT.md`.

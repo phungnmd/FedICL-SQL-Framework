@@ -3,6 +3,42 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-14: fixed round-1 samples lose ground over repeated DPO rounds
+
+Pulled code/results through `3767d097` (curve published at 06:36,
+Asia/Ho_Chi_Minh). Offline DPO from `hinton_k2aaa_a3`, seed 0: all five
+clients, all client questions, two local epochs per round, three rounds.
+Every round uses the Hinton line's round-1 samples and the same 5,393
+pairs; no new sampling. Spider test, 2,147 questions, vLLM inproc, batch 16.
+Round results: `5723ab7f`, `a9359bb9`, `b7a2d132`; the corresponding training
+records are in `hinton_offline/dpo/round_1` to `round_3` under
+`audits/protocol_v2/sqldpo_coder15b_alpha01_s0/`.
+
+| Round | Resample each round | Fixed round-1 samples | Right only with resampling / fixed samples | Exact paired p | Execution errors, resampling / fixed |
+|---|---:|---:|---|---:|---|
+| 1 | 75.69 | 75.69 | 8 / 8 | 1.00 | 82 / 82 |
+| 2 | 76.43 | 75.55 | 61 / 42 | 0.076 | 73 / 80 |
+| 3 | **76.71** | 74.99 | 101 / 64 | 0.0049 | 58 / 94 |
+
+Paired counts recomputed from committed prediction files with
+`scripts.compare_predictions`; arm pairs `sqldpo_hinton_r{1,2,3}_vllm_inproc`
+vs `sqloffline_hinton_r{1,2,3}_vllm_inproc`, set `spider_test`. Exact p is
+the two-sided binomial test on discordant questions. Round 1 matches in EX,
+but 119 SQL predictions differ and 16 questions change correctness.
+
+| Round | Pairs, resampling / fixed | Optimizer updates, resampling / fixed |
+|---|---|---|
+| 1 | 5,393 / 5,393 | 680 / 680 |
+| 2 | 3,899 / 5,393 | 490 / 680 |
+| 3 | 3,208 / 5,393 | 406 / 680 |
+
+Offline round 3 is 1.72 points below on-policy round 3, despite more
+updates, and 0.70 below its own first round. The full sample-refresh recipe
+has a measured role; this control does not match the number of updates.
+The current method and queue stay unchanged. Offline has finished; next in
+queue order is `sqldpo_s0/curve_vote_labels`, followed by executability
+labels and seed 1 selection. Their live state is unconfirmed.
+
 ## 2026-11-14: N2/N3 code published
 
 Owner explicitly approves the code push. Commit `cfa2791c` pushed to
