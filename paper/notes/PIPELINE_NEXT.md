@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-16 at 01:03 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-16 at 01:33 (Asia/Ho_Chi_Minh). Last published result:
 `44bbc0f5` (P1 DPO rounds 1-3 with the `codes` schema, Spider test: 76.62,
 77.18, 77.36); no newer results commit. Server work uses drive D only
 (owner, 2026-11-15): every command below sets `TEMP` and `TMP` to
@@ -25,21 +25,21 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Pull the queue and the code changes: evaluation prompts are built once
-   per question, selection by execution takes `--schema-style`, and DPO
-   rounds take `--start-adapter` and `--rejected-kind`. A running worker
-   keeps running: do not stop it. A running task finishes with the outputs
-   it would have given; the changed evaluation code gives the same prompts,
-   and the DPO code changes nothing unless a task passes one of the two new
-   options (a later step of a running DPO task, such as
-   `sqldpo_s0/curve_central`, loads the new code with the old behaviour and
-   the same identities). Run it in a second PowerShell window, from the
-   `fedicl-sql` root, while the worker window does not show a `publish_`
-   task running. The last lines list the `srvdpo_s0` tasks, `waiting` or
-   `ready`.
+1. Pull the queue, the 20-client split and the code changes: evaluation
+   prompts are built once per question, selection by execution takes
+   `--schema-style`, DPO rounds take `--start-adapter` and
+   `--rejected-kind`, and FedAvg and DPO rounds take `--clients-per-round`.
+   A running worker keeps running: do not stop it. A running task finishes
+   with the outputs it would have given. Every FedAvg, stage and DPO task
+   started after the pull (and a later step of a running curve, such as
+   `sqldpo_s0/curve_central`) loads the new code; without the new options
+   it behaves as before and keeps the same identities. Run it in a second
+   PowerShell window, from the `fedicl-sql` root, while the worker window
+   does not show a `publish_` task running. The last lines list the
+   `f1_s0` tasks, `waiting` or `ready`.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_eval_standard.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_curve.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_dpo.py tests/test_reuse_samples.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.gpu_worker status --phase srvdpo_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_eval_standard.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_curve.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_round_loop.py tests/test_stage_chain.py tests/test_participation.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.gpu_worker status --phase f1_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
 
 2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
@@ -68,6 +68,10 @@ Then, when they appear in the worker window:
 - `srvdpo_s0/bird_round`: the sampling progress line after 10 min, and the
   DPO lines up to the first `peak reserved` (the first DPO run on BIRD
   rows, up to about 6,800 tokens a sequence).
+- `f1_s0/check_server_stage`: its last line, `ok artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`
+  or the error.
+- `f1_s0/curve_fedavg_sft`: the first `[client 1]` progress lines of round
+  1 (20 clients of 165 to 1,015 rows, so about 1.7 h a round).
 - Any `STOP queue` line.
 
 Next owner action:
@@ -78,8 +82,13 @@ Next owner action:
   3-round vote-label line are queued after that decision.
 - After `srvdpo_s0/publish_eval` (about 18 h after row 1 starts): read the
   server DPO gate with the agent.
-- After row 8 (about 31 h after row 1 starts): read the rejected-type
-  pilots, the baselines and centralized DPO with the agent.
+- After `sqldpo_s0/pilot_rejected_wrong` (about 22 h after row 1 starts):
+  read the rejected-type pilots with the agent.
+- After `f1_s0/curve_hinton_sft` (about 33 h after row 1 starts): FedAvg
+  and the Hinton line with 20 clients at R3; after `f1_s0/curve_hinton`
+  (about 48 h): both after DPO. Read each with the agent.
+- After row 10 (about 70 h after row 1 starts): partial participation, the
+  baselines and centralized DPO.
 
 ## Running and queued
 
@@ -93,12 +102,14 @@ progress need the status command above.
 | 3 | `sqlcodes_s0/bird_fedavg_r3`, `bird_dpo_r3`, `publish_bird` | The same two P1 adapters on BIRD dev | 2.5 h | queued |
 | 4 | `srvdpo_s0/check_bird`, `bird_round`, `publish_bird_round`, `eval_bird_round`, `clients_round`, `publish_clients_round`, `eval_clients_round`, `publish_eval` | Server DPO gate: one DPO + NLL round at the server on BIRD train with evidence (9,428 rows as one pooled client) from seed 0 FedAvg R3 (`full`), then one client round exactly like round 1 of `sqldpo_s0/fedavg` from that adapter; both on Spider test and BIRD dev. Comparators: FedAvg R3 71.26, DPO round 1 74.29, round 2 75.17 | 14.5 h | queued |
 | 5 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line, rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
-| 6 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16 with `full`, six sets (also the comparator of row 2) | 1 h | queued or running (not confirmed) |
-| 7 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
-| 8 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
+| 6 | `f1_s0/curve_fedavg_sft`, `check_server_stage`, `curve_hinton_sft` | F1, 20 clients, every client: 3 FedAvg SFT rounds from the base model, and from the seed 0 Hinton server stage (`p237_phase_e_s0/hinton_k2aaa_k2/m_g`, the start of `hinton_k2aaa_a3`); each round on Spider test. Does FedAvg fall behind centralized SFT (70.75) with 20 clients, and does the server stage gain more than with 5 (71.26 against 73.31)? | 11 h | queued |
+| 7 | `f1_s0/curve_fedavg`, `curve_hinton` | F1, every client: 3 DPO + NLL rounds from each R3 (5-client rows: 75.13 and 76.71) | 14.5 h | queued |
+| 8 | `f1_s0/curve_fedavg_sft_p10`, `curve_hinton_sft_p10`, `curve_fedavg_p10`, `curve_hinton_p10` | Rows 6-7 with 10 of the 20 clients per round | 14 h | queued |
+| 9 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16 with `full`, six sets (also the comparator of row 2) | 1 h | queued or running (not confirmed) |
+| 10 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines`, `curve_central`, `extra_central_r3`, `publish_central_extra` | Standard FL baselines on the same engine; centralized DPO on pooled client rows, 3 rounds | 7.75 h | queued |
 
-All rows total about 31 h. If the worker is in `eval_teacher` when the pull
-lands, row 1 starts when that task ends and row 6 is then finished. The
+All rows total about 70 h. If the worker is in `eval_teacher` when the pull
+lands, row 1 starts when that task ends and row 9 is then finished. The
 row 4 estimate is the least certain (BIRD sampling, labelling and pair
 count are not measured; derivation in `LAB_LOG.md`).
 
@@ -123,10 +134,16 @@ Cut from a full run:
   audit, so no row is dropped). The 7B teacher is not used.
 - Row 5 is one round, seed 0, on reused samples, like the other pilots of
   the Hinton line.
+- Rows 6-8 (F1) are seed 0, `full` schema: the Hinton server stage exists
+  only with `full`, and a `codes` server stage is not trained.
+- Row 8, partial participation: 10 of 20 clients per round, drawn by a
+  fixed rule from (seed, round), separately for FedAvg and DPO rounds; over
+  the 3 FedAvg rounds clients 1 and 18 never take part, over the 3 DPO
+  rounds clients 7, 11 and 19.
 - Centralized DPO is seed 0 only.
 - The local SFT models are evaluated only on Spider test; six sets would
   add about 2.5 h. DPO without aggregation is not queued.
-- Rows 4-6 use the `full` schema, like every row before P1.
+- Rows 4-10 use the `full` schema, like every row before P1.
 
 Not queued yet:
 
@@ -139,10 +156,12 @@ Not queued yet:
   on the `codes` decision.
 - A KD step between DPO rounds: not recommended by the earlier rows in
   `LAB_LOG.md` (2026-11-16, server-stage variants).
-- After the P1 result (owner, 2026-11-15), in this order: F1 (20 clients,
-  full and partial participation; needs a 20-client split and new code for
-  partial participation) and DPO with result-vote labels for 3 rounds from
-  `hinton_k2aaa_a3` (about 3.5 h).
+- F1 with the gold server stage (the control without the teacher, about
+  13 h with every client): needed only if the Hinton line gains with 20
+  clients.
+- F1 with `codes`: needs a `codes` server stage first.
+- DPO with result-vote labels for 3 rounds from `hinton_k2aaa_a3` (about
+  3.5 h), approved for after P1.
 - S1, a second non-IID split (about 21 h); S3, a second student size
   (about 15-20 h), both awaiting the owner's decision.
 - M5, CPU/manual analyses; S2, K/beta sensitivity (one round, about 7 h);
@@ -278,6 +297,24 @@ teacher with `codes` prompts (arm `sql_teacher7b_codes_vllm_inproc`, its
 `full` comparator `sql_teacher7b_vllm_inproc`); `xsel_dpo_r3` is selection
 by execution on DPO round 3 with `codes` (`xsel_codes_dpo_r3`, greedy
 column `sqlcodes_dpo_fedavg_r3_vllm_inproc`).
+
+### F1, 20 clients (phase `f1_s0`)
+
+Split `processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k20`
+(committed): the `k5` procedure with 20 clients over the same 8,659 rows.
+Seed 0 recipe and `full` schema otherwise. Outputs:
+`artifacts/protocol_v2/f1k20_coder15b_alpha01_s0/`.
+
+| Line (curve) | Start | Step | Arms (Spider test) |
+|---|---|---|---|
+| `f1_s0/fedavg_sft` | base model | one FedAvg round, every client; 3 rounds | `f1_fedavg_r{k}_vllm_inproc` |
+| `f1_s0/hinton_sft` | seed 0 Hinton server stage, row `federated_stage__K2fkl__s0__132e798a5be2__8393f0f9` | same | `f1_hinton_k2aaa_a{k}_vllm_inproc` |
+| `f1_s0/fedavg`, `f1_s0/hinton` | round 3 of the line above | DPO + NLL round, the settings of `sqldpo_s0/fedavg`; 3 rounds | `f1dpo_fedavg_r{k}`, `f1dpo_hinton_r{k}` (`_vllm_inproc`) |
+| `*_p10` | the same, `p10_` folders | the same with `--clients-per-round 10` | `f1p10...` |
+
+Comparators (5 clients, seed 0, Spider test): FedAvg R3 71.26,
+`hinton_k2aaa_a3` 73.31, DPO round 3 from each 75.13 and 76.71;
+centralized Spider SFT `sql_central_e3_vllm_inproc` 70.75.
 
 ### Seed 1 (phase `sqldpo_s1`, finished)
 

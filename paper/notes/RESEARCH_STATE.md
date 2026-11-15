@@ -280,9 +280,10 @@ adapters of round 1 and selection by execution (last published result
 P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`).
 Queue order: a decision batch (`codes` beyond Spider test, the teacher with
 `codes`, the server DPO gate, the rejected-type pilots), then the reference
-rows on vLLM and centralized DPO. After the `codes` decision: F1 (20
-clients, full and partial participation) and DPO with result-vote labels
-for 3 rounds. Run commands, live-state provenance and estimates are
+F1 (20 clients, seed 0, `full`, with and without the Hinton server stage;
+every client, then 10 of 20 per round), then the reference rows on vLLM
+and centralized DPO. Approved for after P1, not queued: DPO with
+result-vote labels for 3 rounds. Run commands, live-state provenance and estimates are
 in `PIPELINE_NEXT.md`.
 
 The preference term stays plain and the method keeps DPO + NLL and the
@@ -291,8 +292,8 @@ rests on the two seeds.
 
 ## 7. Directions after the decision batch
 
-Proposals (2026-11-16), not approved and not queued. Each depends on a
-result of the decision batch.
+Proposals (2026-11-16), not approved and not queued unless marked. Each
+row of the table depends on a result of the decision batch.
 
 | If the batch shows | Then try | Aims at | Cost (estimate) |
 |---|---|---|---|
@@ -305,13 +306,13 @@ result of the decision batch.
 
 Independent of the batch:
 
-- F1 with and without the server stage. With 5 clients FedAvg equals
-  centralized training, so the server stage has no heterogeneity to
-  repair. With 20 clients each holds about 430 rows and about 270 pairs in
-  DPO round 1; if FedAvg then falls behind centralized training, a
-  warm start is the standard remedy, and the public phase is judged on
-  that setup too before it is dropped. About 16 h a line, after the
-  20-client split and partial participation exist.
+- F1 with and without the server stage (queued 2026-11-16, phase
+  `f1_s0`). With 5 clients FedAvg equals centralized training, so the
+  server stage has no heterogeneity to repair. With 20 clients each holds
+  about 430 rows and about 270 pairs in DPO round 1; if FedAvg then falls
+  behind centralized training, a warm start is the standard remedy, and
+  the public phase is judged on that setup too before it is dropped.
+  About 13 h a line with every client, 7 h with 10 of 20 per round.
 - Sampling only the questions that are not saturated: 56% of the client
   questions have all 8 samples right at DPO round 1, 72% at round 3
   (method line, seed 0), and give no pair. A count of how many return

@@ -3,6 +3,70 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: F1 queued: 20 clients, with and without the server stage
+
+Owner decisions (2026-11-16): F1 with and without the server stage is
+queued now, so its results arrive before the method is fixed; the server
+DPO round (`srvdpo_s0`) runs on the full BIRD train set, not a part.
+
+Queued in phase `f1_s0`, after the decision batch and before the baseline
+and centralized tasks: two lines, seed 0, `full` schema, the seed 0 recipe
+(3 FedAvg SFT rounds, then 3 DPO + NLL rounds, Spider test every round,
+vLLM inproc, batch 16). One starts from the base model; one from the seed 0
+Hinton server stage (row `federated_stage__K2fkl__s0__132e798a5be2__8393f0f9`,
+adapter `artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`, the
+start of `hinton_k2aaa_a3`; not retrained, since it does not depend on the
+clients; `f1_s0/check_server_stage` checks its bytes against the start
+recorded by `hinton_k2aaa_a1`). Every client first, then the same four
+curves with 10 of 20 clients per round.
+
+Choices where the approved F1 (2026-11-15) is not specific:
+
+- Partial participation: 10 of 20 clients per round, drawn by ranking
+  sha256 of (phase, seed, round, client); FedAvg and DPO rounds draw
+  separately, and both lines draw the same clients in a round (the draw
+  counts client rounds, not the server stage). Over 3 FedAvg rounds
+  clients 1 and 18 never train, over 3 DPO rounds clients 7, 11 and 19.
+- Both participation settings for both lines; partial costs about half a
+  full line, so full participation runs first.
+
+Split (`alpha_0.1/k20`, committed in `fedicl-sql` `bd50b4f7`):
+`scripts/build_federated.py` with the `k5` settings (same 8,659 rows,
+domain groups, alpha 0.1, seed 0, 150-row floor) and `--max-resample
+5000`, because no draw within the default 100 clears the floor. Rebuilding
+gives the same files. Every row is used once and no database is shared.
+
+| Clients | Rows | Databases |
+|---|---|---|
+| smallest five (14, 5, 15, 9, 10) | 165, 187, 192, 215, 220 | 3, 7, 5, 4, 5 |
+| the two middle ones (1, 8) | 358, 387 | 6, 5 |
+| largest three (17, 2, 20) | 783, 869, 1,015 | 4, 7, 16 |
+
+No client is empty; the smallest has 165 rows, about 10 SFT updates of 16
+rows. FedAvg weights clients by rows; DPO weights by pair count, and a
+client with no pair sends no update that round.
+
+Comparators (5 clients, seed 0, Spider test): FedAvg R3 71.26,
+`hinton_k2aaa_a3` 73.31, DPO round 3 from each 75.13 and 76.71;
+centralized Spider SFT `sql_central_e3_vllm_inproc` 70.75.
+
+Estimates from committed timings: a 5-client FedAvg round takes 5,200 to
+5,830 s on the server (seed 1, 2026-11-12), almost all client training at
+about 0.65 s a row, so a 20-client round is about 1.7 h with 15 more
+model loads; a DPO round about 2 h 10 with 5 clients plus about 15 min for
+the extra clients. About 13 h a line with every client, 7 h with 10 of 20.
+Memory is that of the 5-client rounds (same rows and prompt lengths).
+
+Code (`fedicl-sql` `ddcaf311`): `--clients-per-round` in
+`experiments/federated/run.py` (`run`, `round`, `stage private`, `client`)
+and `experiments/federated_pref/run.py`; the chosen clients enter the
+round fingerprint and the round record. With the default (0) every
+identity and result config is unchanged (full suite, the frozen identity
+tests and the published stage config check pass).
+
+Not verified: the 20-client round times; the server-stage adapter on the
+server (checked by the first task of the Hinton line).
+
 ## 2026-11-16: decision batch, stage 2 queued: a server DPO gate on BIRD, the rejected-type pilots
 
 Queued after stage 1 and before `sqldpo_s0/check_baselines` (seed 0,
