@@ -260,12 +260,14 @@ Both seeds pooled, clustered by question (95% interval):
    labels from mutated client databases. Queued: two one-round pilots
    that limit the rejected side to samples that fail to execute, or to
    samples with a wrong result.
-7. The schema format (owner decision pending). P1 (`codes`: types, keys,
-   2 sample values and the matched text values per column) gives 77.36
-   after DPO round 3 against 75.13 with `full` on Spider test (seed 0,
-   FedAvg line). Queued: the same two adapters on Spider dev, DK,
-   Realistic, SYN and BIRD dev, the 7B teacher with `codes`, and selection
-   by execution with `codes`.
+7. The schema format: `codes` (owner, 2026-11-16). P1 (`codes`: types,
+   keys, 2 sample values and the matched text values per column) gives
+   77.36 after DPO round 3 against 75.13 with `full` on Spider test (seed
+   0, FedAvg line), and is above `full` on Spider dev, DK, Realistic and
+   SYN. Open with `codes`: whether the public stage adds to it (queued:
+   the `codes` line from the seed 0 Hinton server stage, which was trained
+   with `full` prompts), a server stage trained with `codes` prompts (not
+   queued), and the baselines and second seed with `codes`.
 8. A DPO round at the server on public data (owner decision pending).
    Queued as a gate from seed 0 FedAvg R3: one server round on BIRD train,
    then one client round from it, against client DPO rounds 1 and 2.
@@ -277,12 +279,13 @@ controls, 3 rounds without NLL, one round without gold fallback, the local
 adapters of round 1 and selection by execution (last published result
 `3767d097`, 06:36 on 2026-11-14, including the offline control).
 
-P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`).
-Queue order: a decision batch (`codes` beyond Spider test, the teacher with
-`codes`, the server DPO gate, the rejected-type pilots), then the reference
-F1 (20 clients, seed 0, `full`, with and without the Hinton server stage;
-every client, then 10 of 20 per round), then the reference rows on vLLM
-and centralized DPO. Approved for after P1, not queued: DPO with
+P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`), and
+`codes` is the prompt from now on (owner, 2026-11-16). Queue order: P1 on
+BIRD dev, the `codes` line from the seed 0 Hinton server stage (the run
+that decides whether the public stage stays), the rejected-type pilots, F1
+(20 clients, seed 0, `codes`, with and without the Hinton server stage,
+every client), the server DPO gate (`full`), F1 with 10 of 20 clients per
+round, then the `full` reference rows on vLLM and centralized DPO. Approved for after P1, not queued: DPO with
 result-vote labels for 3 rounds. Run commands, live-state provenance and estimates are
 in `PIPELINE_NEXT.md`.
 

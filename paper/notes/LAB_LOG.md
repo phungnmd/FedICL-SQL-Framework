@@ -3,6 +3,78 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: `codes` is the prompt; the queue starts with the `codes` line from the Hinton server stage
+
+Owner decisions (2026-11-16): `codes` is the prompt from now on; the queue
+is fixed with the runs most likely to settle the method first.
+
+Queue order after the BIRD dev rows of P1 (code commit of 03:05):
+
+1. `sqlcodes_s0/curve_hinton_sft`, `curve_hinton`: the seed 0 Hinton server
+   stage (BIRD, trained with `full` prompts, not retrained), then 3 FedAvg
+   SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients;
+   Spider test every round, the four other Spider sets at both R3. It
+   answers whether the public stage adds to the `codes` line (73.17 and
+   77.36 without it). About 17.5 h.
+2. The rejected-type pilots (unchanged).
+3. F1 with `codes` prompts at the clients (it was `full`; nothing of it had
+   started), every client.
+4. The server DPO gate (`full`), moved behind F1 with every client; then F1
+   with 10 of 20 clients, then the `full` baselines.
+
+A server stage with `codes` prompts is not queued: the BIRD train prompt
+lengths with `codes` are not measured (BIRD dev reaches 26,253 tokens),
+and Hinton would need a new teacher logit cache. The start adapter of row
+1 and of the F1 Hinton line is the earlier
+`p237_phase_e_s0/hinton_k2aaa_k2/m_g`; the owner approves it by running the
+pull command of `PIPELINE_NEXT.md`.
+
+## 2026-11-16: earlier KD variants, read with the owner's permission
+
+The owner allowed reading the earlier arms `seqkd`, `kid`, `dss`,
+`goldplan`, `tsql`, `taid`, `arith` and `wise` (owner, 2026-11-16), with
+the gold, Hinton and FedAvg rows of the same phases as comparators. A
+reading of committed prediction files, not a new run. All rows: seed 0,
+`full` prompts, HF engine, Spider dev (none has a Spider test row). Except
+TAID, the chain is short: FedAvg round 1, one server epoch on BIRD, one
+client round. Not read: `p228` (pass@k headroom), `p254` (SynSQL as public
+data), `p256` (teacher few-shot); their runners exist in the archive.
+
+| Question | Row and comparator | Spider dev | DK | Realistic | SYN | BIRD dev |
+|---|---|---:|---:|---:|---:|---:|
+| Teacher SQL as the target, 5,319 rows the teacher solves, right after the server stage | `seqkd_public` | **57.93** | **45.61** | **46.65** | **48.26** | **34.68** |
+| | gold SQL on the same rows (`matched_gold_public`) | 56.29 | 43.18 | 43.90 | 44.87 | 31.68 |
+| The same after one client round | `seqkd_terminal` | 64.99 | 50.28 | 57.68 | **54.55** | 28.42 |
+| | `matched_gold_terminal` | 65.09 | 49.53 | **58.66** | 52.90 | 27.51 |
+| | KID, KD that simulates inference-time errors (`kid_terminal`) | **65.47** | 50.28 | 57.09 | 54.16 | **28.94** |
+| Teacher plan as a second task, 1,000 rows, after one client round | `p214_dss_terminal` | **63.35** | **48.97** | **56.30** | 50.97 | 24.05 |
+| | teacher SQL only (`p214_seq_terminal`) | 61.51 | 48.79 | 54.13 | **51.45** | **24.45** |
+| The same with every BIRD row, after one client round | gold SQL (`p215_gold_terminal`) | **65.86** | **51.21** | 57.68 | **53.48** | 29.53 |
+| | teacher SQL + teacher plan (`p215_dss_terminal`) | 64.89 | 50.09 | 56.89 | 52.71 | 25.62 |
+| | gold SQL + teacher plan (`p215_goldplan_terminal`) | 64.89 | 50.09 | **59.06** | 52.22 | **30.77** |
+| Plan then SQL as the output format (Struct-SQL), after one client round | teacher plan (`p210_teacher_terminal`) | 52.22 | 39.63 | 43.31 | 40.14 | 17.73 |
+| | no public data (`p210_fl_terminal`) | **56.38** | **42.62** | **47.24** | **44.00** | **18.38** |
+| TAID in place of Hinton, 2 server epochs then 3 client rounds | `p240_taid_k2aaa_a3` | 70.70 | 54.21 | **62.20** | **57.16** | 39.57 |
+| | `p237_hinton_k2aaa_a3` | **72.53** | **58.32** | 61.81 | 56.38 | 38.53 |
+| | `p237_gold_k2aaa_a3` | 70.41 | 52.34 | 61.22 | 56.38 | **40.03** |
+| Keeping the server stage through the client round (parent SeqKD; plain client round 64.99 / 28.42) | midpoint of the two adapters (`p29_seqkd_wise0p5`) | 63.64 | 49.72 | 52.76 | 51.45 | 33.25 |
+| | KD task vector added to FedAvg, weight 0.5 / 1.0 (`p29_seqkd_arith*`) | 63.93 / 57.54 | 49.91 / 45.05 | 52.36 / 43.11 | 50.48 / 46.23 | 28.62 / 34.42 |
+| | client KL toward the server-stage model (`p29_seqkd_terminal_ret`) | 61.61 | 46.92 | 50.79 | 49.90 | 30.31 |
+
+- The teacher's SQL beats gold SQL on the same rows right after the server
+  stage (+1.64 Spider dev, all five sets); one client round removes the
+  difference on Spider dev (-0.10).
+- A plan task helps on 1,000 rows (+1.84) and not with every row (-0.97
+  against gold SQL); plan-then-SQL output is below FedAvg without public
+  data.
+- TAID is below Hinton on Spider dev (-1.83) and DK (-4.11).
+- Every way of keeping the server-stage weights through the client round
+  (midpoint, task vector, client KL; the gold parent gives the same
+  picture) keeps more BIRD dev and loses 1 to 7.5 points of Spider dev
+  against the plain client round.
+- These rows do not cover `codes` prompts, Spider test, more than one
+  client round (except TAID) or the DPO stage.
+
 ## 2026-11-16: what the teacher holds that the student lacks: 4.5 points outside the student's 8 samples (local analysis)
 
 No GPU run. Spider test, `codes`, seed 0, from committed files: the greedy
