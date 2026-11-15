@@ -134,8 +134,8 @@ Not queued yet:
 - The baselines with `codes` and seed 1 of the final method: after the
   method is fixed.
 - A KD step between DPO rounds, a plan task, teacher SQL as the target,
-  weight merging: not recommended by the earlier rows in `LAB_LOG.md`
-  (2026-11-16).
+  weight merging, SynSQL in place of BIRD at the same size: not
+  recommended by the earlier rows in `LAB_LOG.md` (2026-11-16).
 - DPO with result-vote labels for 3 rounds from `hinton_k2aaa_a3` (about
   3.5 h), approved for after P1.
 - S1, a second non-IID split (about 21 h); S3, a second student size

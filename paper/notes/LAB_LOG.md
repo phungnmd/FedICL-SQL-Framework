@@ -75,6 +75,34 @@ data), `p256` (teacher few-shot); their runners exist in the archive.
 - These rows do not cover `codes` prompts, Spider test, more than one
   client round (except TAID) or the DPO stage.
 
+## 2026-11-16: earlier rows with SynSQL as the public pool, read with the owner's permission
+
+The owner allowed reading `p254` and `p228` (owner, 2026-11-16). A reading
+of committed prediction files, not a new run. `p254`: the server pool is a
+SynSQL-2.5M subset with the SQL target-token count of BIRD train in place
+of BIRD, everything else as the BIRD rows next to it; seed 0, `full`
+prompts, HF engine. `p228` (pass@k of the client questions before DPO
+existed) has no evaluation row and adds nothing to the pair statistics of
+the current lines.
+
+| Row | Public pool | Spider test | Spider dev | DK | Realistic | SYN | BIRD dev |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Hinton server stage, 3 client rounds with replay of teacher targets (`mixkd50_k2aaa_a3`) | BIRD | **73.17** | **74.08** | **57.20** | **63.58** | **58.70** | **44.78** |
+| | SynSQL | 72.99 | 70.70 | 54.95 | 61.22 | 54.84 | 29.79 |
+| Gold server stage, 3 client rounds with replay of gold (`gmixgold_k2aaa_a3`) | BIRD | 72.61 | 71.57 | 53.83 | 62.01 | 55.13 | 41.26 |
+| | SynSQL | 72.05 | 69.92 | 54.58 | 61.02 | 53.09 | 28.81 |
+| FedAvg, 3 rounds (`fl_a3`) | none | 71.50 | 67.60 | 53.27 | 59.65 | 53.68 | 25.68 |
+| Server stage alone, Hinton / gold (`*_k2_k2`) | BIRD | - | 62.28 / 59.09 | - | - | - | 43.61 / 43.48 |
+| | SynSQL | - | 66.05 / 66.25 | - | - | - | 28.62 / 27.25 |
+
+- Right after the server stage SynSQL is 4 to 7 points of Spider dev above
+  BIRD, with no client data: it is the closer domain.
+- After the client rounds the order turns: BIRD ends 0.2 to 0.6 above
+  SynSQL on Spider test and 1.7 to 3.4 above on Spider dev. Public data in
+  the clients' style adds less to client training than BIRD does.
+- Not covered: a larger SynSQL pool (this one matches BIRD in size), the
+  line without replay, `codes` prompts, the DPO stage.
+
 ## 2026-11-16: what the teacher holds that the student lacks: 4.5 points outside the student's 8 samples (local analysis)
 
 No GPU run. Spider test, `codes`, seed 0, from committed files: the greedy
