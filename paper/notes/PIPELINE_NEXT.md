@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-15 at 17:30 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-15 at 17:45 (Asia/Ho_Chi_Minh). Last published result:
 `fbdd85bd` (P1 FedAvg rounds 1-3 with the `codes` schema, Spider test).
 Server work uses drive D only (owner, 2026-11-15): every command below sets
 `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
@@ -24,27 +24,32 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Read-only check: free space on C and D, the WSL distros, and the folder
-   that holds each distro's disk file (`ext4.vhdx`).
+The WSL distro `Ubuntu` (vLLM venv, model cache) has its disk file on drive
+C (4.2 GB free at 17:40 on 2026-11-15). Moving it to
+`D:\phungthan\wsl\Ubuntu` keeps every file, the default user and the
+distro name. Before step 2, check that nobody else works in this distro: it
+showed `Running` with no job of ours, and `wsl --shutdown` stops it.
+
+1. Read-only: the WSL version, whether this WSL has `--manage ... --move`,
+   and the size of the disk file (the move copies it).
 
 ```powershell
-& { $ErrorActionPreference='Stop'; Get-PSDrive C,D | Format-Table Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}},@{n='UsedGB';e={[math]::Round($_.Used/1GB,1)}}; Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss | ForEach-Object { $p = Get-ItemProperty $_.PSPath; '{0}: {1}' -f $p.DistributionName, $p.BasePath }; wsl -l -v; if ($LASTEXITCODE -ne 0) { throw 'wsl -l failed' } }
+& { $ErrorActionPreference='Stop'; $env:WSL_UTF8='1'; wsl --version; $h = (wsl --help) -join "`n"; if ($h -match '--move') { 'move: supported' } else { 'move: not supported' }; $f='C:\Users\User01ST\AppData\Local\wsl\{70b8e0de-6151-41c4-baad-0e92f6f87adc}\ext4.vhdx'; 'ext4.vhdx: {0:N1} GB' -f ((Get-Item $f).Length/1GB) }
 ```
 
-Send back the whole output.
+Send back the output. If it says `move: not supported`, stop here: the
+agent writes the export and import steps.
 
-2. Restart WSL and test it. `wsl --shutdown` stops every WSL distro of this
-   Windows account (nothing of ours runs now; if the other user of GPU 1
-   works in WSL under the same account, ask first). The test should print
-   `uid=1000(user01st)`.
+2. Stop WSL, move the distro to drive D, test it. The move copies the disk
+   file first and removes the copy on C only at the end; it takes a few
+   minutes per 10 GB. The test should print `uid=1000(user01st)`.
 
 ```powershell
-& { $ErrorActionPreference='Stop'; wsl --shutdown; if ($LASTEXITCODE -ne 0) { throw 'Shutdown failed' }; wsl -e id; if ($LASTEXITCODE -ne 0) { throw 'WSL still fails' } }
+& { $ErrorActionPreference='Stop'; $env:WSL_UTF8='1'; $dst='D:\phungthan\wsl\Ubuntu'; New-Item -ItemType Directory -Force -Path $dst | Out-Null; wsl --shutdown; if ($LASTEXITCODE -ne 0) { throw 'Shutdown failed' }; wsl --manage Ubuntu --move $dst; if ($LASTEXITCODE -ne 0) { throw 'Move failed' }; Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss | ForEach-Object { $p = Get-ItemProperty $_.PSPath; '{0}: {1}' -f $p.DistributionName, $p.BasePath }; wsl -e id; if ($LASTEXITCODE -ne 0) { throw 'WSL still fails' } }
 ```
 
-Send back the output. If it fails again and step 1 shows drive C near 0 GB
-free with the distro folder on C, the WSL disk cannot grow; the agent then
-writes the next step (free space on C, or move the distro to D).
+Send back the output. If the move works but `wsl -e id` still fails, the
+distro's file system was damaged while C was full; send the error.
 
 3. Only when step 2 prints `uid=1000(user01st)`: restart the queue on GPU 0.
    It resumes `sqlcodes_s0/curve_fedavg` at the round 1 evaluation; the
