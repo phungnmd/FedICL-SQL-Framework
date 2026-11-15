@@ -65,6 +65,12 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   Spider test (2,147 rows); Spider dev is skipped or reported only as a
   secondary diagnostic. Choices are made on Spider test, so it is never
   called held-out (honesty rule below).
+- Method first (owner, 2026-11-16): until the owner fixes the method, runs
+  are experiments to choose it, not paper numbers. Judge and explain a run
+  by what it tells about the method. Do not argue from what a reviewer
+  would ask or from what a paper table needs (seeds, baselines, matched
+  controls) unless the owner asks; the full number runs come after the
+  method is fixed.
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
   what differs; never claim "first" and never hide the closest prior work.
