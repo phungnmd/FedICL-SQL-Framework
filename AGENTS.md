@@ -120,6 +120,9 @@ Only these are fixed. Each prevents a real failure or protects honesty.
 - Server storage: never delete, overwrite, move or rename anything under
   `artifacts/` on the server unless the owner asks with an explicit path list;
   new outputs get their own root.
+- Server disks (owner, 2026-11-15): drive D only, never drive C. Server
+  commands set `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp` and run
+  pytest with `--basetemp` there.
 - Every job longer than a few minutes resumes by rerunning the same command
   and shows progress while it runs (done / total, elapsed, time left, peak
   reserved VRAM; a clear final line; a read-only status command for long
