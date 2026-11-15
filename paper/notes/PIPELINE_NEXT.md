@@ -2,16 +2,14 @@
 
 ## Status
 
-Updated 2026-11-15 at 14:50 (Asia/Ho_Chi_Minh). Last published result:
-`fbdd85bd` (P1 FedAvg rounds 1-3 with the `codes` schema, Spider test). The
-server has pulled the DPO fix `68cae2dd`; its tests failed because drive C
-is full (pytest wrote its temp folder there). Server work uses drive D only
-(owner, 2026-11-15): every command below sets `TEMP` and `TMP` to
-`D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-15 at 17:30 (Asia/Ho_Chi_Minh). Last published result:
+`fbdd85bd` (P1 FedAvg rounds 1-3 with the `codes` schema, Spider test).
+Server work uses drive D only (owner, 2026-11-15): every command below sets
+`TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle: the worker stopped at 10:58 on 2026-11-15 when `sqlcodes_s0/curve_fedavg` (P1 DPO round 1) ran out of memory on client 3, update 11 of 194. Clients 1-2 of round 1 are trained and stay on disk. A restart since then is not reported. | owner's log, 10:58 on 2026-11-15 |
+| 0 | Idle: the worker stopped at 17:18 on 2026-11-15. `sqlcodes_s0/curve_fedavg` trained DPO round 1 (all 5 clients, global adapter on disk) and failed at its Spider test evaluation: WSL cannot start vLLM (`getpwnam(user01st) failed 5`, `I/O error`), so the WSL distro cannot read its own disk. A retry at 17:17 failed the same way. | owner's log, 17:18 on 2026-11-15 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -26,45 +24,41 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Decision first (owner), before clients 3 and 5 of round 1 train: the
-round 1 samples of `sqlcodes_s0/curve_fedavg` hold 30 client questions
-labelled while drive C was full (client 3: 6, client 5: 24; clients 1, 2
-and 4: none), and the committed FedAvg R3 `codes` row scored 7 test rows
-under the same error (73.17 committed, at most 73.50). No fix is written
-or queued.
-
-- Fix first: stop the worker with Ctrl+C if it runs (clients 1-2 stay) and
-  tell the agent; the fix is new code, then a pull.
-- Go on: steps 1-2 below as they are; P1 is then read as a run with 30
-  known label errors in round 1.
-
-1. Pull and test from the `fedicl-sql` root, with temp files on drive D.
-   The DPO fix makes a pair whose two sequences exceed the micro-batch
-   budget run as two one-row passes. Only `codes` pairs on `baseball_1`
-   (client 3) are that long; every other queued DPO task runs as before.
+1. Read-only check: free space on C and D, the WSL distros, and the folder
+   that holds each distro's disk file (`ext4.vhdx`).
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_curve.py tests/test_data.py tests/test_eval_standard.py tests/test_training.py tests/test_pref_rounds.py tests/test_dpo.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; Get-PSDrive C,D | Format-Table Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}},@{n='UsedGB';e={[math]::Round($_.Used/1GB,1)}}; Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss | ForEach-Object { $p = Get-ItemProperty $_.PSPath; '{0}: {1}' -f $p.DistributionName, $p.BasePath }; wsl -l -v; if ($LASTEXITCODE -ne 0) { throw 'wsl -l failed' } }
 ```
 
-Send the error if this command fails; do not start the worker until it passes.
+Send back the whole output.
 
-2. Restart the queue on GPU 0. It retries `sqlcodes_s0/curve_fedavg`:
-   clients 1-2 are skipped, client 3 scores its reference again (about
-   2 min) and trains from update 1.
+2. Restart WSL and test it. `wsl --shutdown` stops every WSL distro of this
+   Windows account (nothing of ours runs now; if the other user of GPU 1
+   works in WSL under the same account, ask first). The test should print
+   `uid=1000(user01st)`.
+
+```powershell
+& { $ErrorActionPreference='Stop'; wsl --shutdown; if ($LASTEXITCODE -ne 0) { throw 'Shutdown failed' }; wsl -e id; if ($LASTEXITCODE -ne 0) { throw 'WSL still fails' } }
+```
+
+Send back the output. If it fails again and step 1 shows drive C near 0 GB
+free with the distro folder on C, the WSL disk cannot grow; the agent then
+writes the next step (free space on C, or move the distro to D).
+
+3. Only when step 2 prints `uid=1000(user01st)`: restart the queue on GPU 0.
+   It resumes `sqlcodes_s0/curve_fedavg` at the round 1 evaluation; the
+   trained round 1 is not redone.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-Send back, from client 3 of round 1 (the next 1.5 h): the
-`DPO update ... peak reserved` lines once they pass update 30, or the stop
-line if the trainer stops above 21.5 GiB or runs out of memory again.
-
 Next owner action:
 
-- After `sqlcodes_s0/curve_fedavg` (about 8 h after the restart): read P1
-  with the agent; F1 and the 3-round vote-label line are queued after that.
+- After `sqlcodes_s0/curve_fedavg` (about 5.5 h after the restart, rounds
+  2-3 left): read P1 with the agent; F1 and the 3-round vote-label line are
+  queued after that.
 
 ## Running and queued
 
@@ -73,7 +67,7 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqlcodes_s0/curve_fedavg` | P1: 3 DPO rounds from FedAvg R3 with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 8 h | first after the pull (round 1, clients 1-2 done) |
+| 1 | `sqlcodes_s0/curve_fedavg` | P1: 3 DPO rounds from FedAvg R3 with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 5.5 h left | stopped at the round 1 evaluation (WSL error); round 1 trained |
 | 2 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
 | 3 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
 | 4 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
