@@ -3,6 +3,19 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-15: P1 DPO round 1 trained, its evaluation stopped by WSL
+
+The owner restarted the queue without the label fix, so P1 round 1 trained
+with the 30 client questions labelled under the full drive C (clients 3
+and 5). `sqlcodes_s0/curve_fedavg` finished training round 1 (2:45 after
+the restart) and failed at 16:58 when its Spider test evaluation started
+vLLM: WSL could not create the process (`getpwnam(user01st) failed 5`,
+`fopen(/etc/default/locale) failed 5`, `I/O error`), so the distro could
+not read its own files. A retry at 17:17 failed the same way. Code 5 is
+EIO; the WSL disk file grows on the drive that holds it, so a full drive C
+under that file is the likely cause (to check with the owner's drive and
+distro listing). No code change.
+
 ## 2026-11-15: where the wrong results are; resampling on an empty result (local analysis)
 
 No GPU run. Spider test, from the committed prediction files: an automatic
@@ -35,8 +48,12 @@ from gold, seed 0:
 - `codes` removes the value errors and nothing else: empty results 117 to
   64, literal values 119 to 76, condition columns 181 to 140; table-set and
   structure differences do not fall (157 to 162, 81 to 90).
-- The table set is the first difference in 130 to 145 rows of every line:
-  the largest group that neither `codes` nor DPO lowers.
+- Table-set differences are not lowered by `codes` or DPO, but most are an
+  extra table, not a wrong join path. Method, 442 wrong results: same
+  tables as gold 271, an added table 109, a missing gold table 38, other
+  24; 110 of its 1,647 right rows also use a different table set. So 61%
+  of the wrong results are wrong inside the right tables (conditions,
+  values, select columns, aggregates).
 - The teacher zero-shot is right on 20 to 41% of every group (method:
   tables 37%, literal values 31%, structure 30%): no group is its own.
 - One difference only: 132 of the method's 442 rows (distinct 22, group by
