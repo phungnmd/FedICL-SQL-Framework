@@ -288,3 +288,36 @@ in `PIPELINE_NEXT.md`.
 The preference term stays plain and the method keeps DPO + NLL and the
 Hinton server stage until the owner decides. The teacher decision now
 rests on the two seeds.
+
+## 7. Directions after the decision batch
+
+Proposals (2026-11-16), not approved and not queued. Each depends on a
+result of the decision batch.
+
+| If the batch shows | Then try | Aims at | Cost (estimate) |
+|---|---|---|---|
+| Pairs with a wrong-result rejected sample carry gain (rejected-type pilots) | Pairs built for that error: gold SQL with one clause changed, executable, different result, as the rejected side (closest: CAPER, arXiv 2606.03327, clause-level tuples for a reward model); or a larger share of wrong-result pairs | EX: the 400 wrong results left after DPO | about 2.5 h a one-round pilot, new code |
+| Those pairs carry no gain | Stop adding preference variants for wrong results; the rule drops them and halves client training | client cost | none |
+| The server DPO round transfers (fewer `no such column` on Spider test) | One client round instead of three after it; the server round with `codes`; SynSQL in place of BIRD; teacher SQL as the chosen side on public questions without gold | client cost, a role for public data | about 15 h for the first, more for the rest |
+| The teacher with `codes` is clearly above the student | The server stage with `codes`, gold then Hinton; the teacher's SQL as chosen against the student's wrong-result sample on public questions (closest: PLaD, arXiv 2406.02886) | a role for the teacher | from about 20 h; Hinton needs a new logit cache |
+| `codes` holds on the other sets | A length limit on sample values (BIRD `european_football_2` gives 26k-token prompts); seed 0 again without the 30 mislabelled questions | a clean main row | 8 to 16 h |
+| `codes` keeps losing on questions without a value | `full` plus the matched values only | EX on the 1,173 questions without a value | about 16 h a line |
+
+Independent of the batch:
+
+- F1 with and without the server stage. With 5 clients FedAvg equals
+  centralized training, so the server stage has no heterogeneity to
+  repair. With 20 clients each holds about 430 rows and about 270 pairs in
+  DPO round 1; if FedAvg then falls behind centralized training, a
+  warm start is the standard remedy, and the public phase is judged on
+  that setup too before it is dropped. About 16 h a line, after the
+  20-client split and partial participation exist.
+- Sampling only the questions that are not saturated: 56% of the client
+  questions have all 8 samples right at DPO round 1, 72% at round 3
+  (method line, seed 0), and give no pair. A count of how many return
+  needs the sample files on the server.
+- Inference: resample only when the greedy SQL fails or returns an empty
+  result (estimated offline at +1.2 and +1.6 on the method with `full`,
+  about 2 model calls a question); a real run with the final prompt.
+- Round and setting choices on a public validation set instead of Spider
+  test, if its curve follows Spider test.
