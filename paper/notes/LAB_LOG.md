@@ -3,6 +3,176 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: decision batch, stage 2 queued: a server DPO gate on BIRD, the rejected-type pilots
+
+Queued after stage 1 and before `sqldpo_s0/check_baselines` (seed 0,
+Spider test and BIRD dev through vLLM inproc, batch 16). Nothing is decided
+on a server DPO stage; these rows inform that decision.
+
+- Server DPO gate (phase `srvdpo_s0`, outputs
+  `artifacts/protocol_v2/srvdpo_coder15b_alpha01_s0/`). Step A: one DPO +
+  NLL round at the server on BIRD train with evidence (9,428 rows, one
+  pooled client, `bird_with_evidence`, BIRD evaluator with the 30 s
+  budget), from seed 0 FedAvg R3 (`full`), with the sampling, pair rule and
+  DPO settings of the `sqldpo_s0/fedavg` client round and `--max-len 7680`.
+  Step B: one client round, the command of round 1 of `sqldpo_s0/fedavg`
+  with `--start-adapter` on the Step A adapter. Comparators (Spider test):
+  `sql_fedavg_r3_vllm_inproc` 71.26 (211 execution errors, 177 `no such
+  column`), `sqldpo_fedavg_r1_vllm_inproc` 74.29 (107, 67),
+  `sqldpo_fedavg_r2_vllm_inproc` 75.17 (98, 60). Step B against round 2
+  asks whether a BIRD round can stand in for a client round; Step A against
+  FedAvg R3 asks how much a public-data round alone moves the client
+  domain. The teacher is not used.
+- Rejected-type pilots (curves `sqldpo_s0/rejexec_hinton`,
+  `rejwrong_hinton`): DPO round 1 from `hinton_k2aaa_a3` on the round 1
+  samples of the Hinton line, the rejected side limited to samples that
+  fail to execute, or to samples that execute with a wrong result.
+  Comparator `sqldpo_hinton_r1_vllm_inproc` 75.69. Round 1 has 2,806 and
+  2,587 pairs of the two kinds (entry below); the gold fallback stays.
+
+Estimates: Step A about 12 h (8 samples per BIRD question about 0.5 h,
+labelling on the BIRD databases about 1 h, both unmeasured; about 12,700
+pairs from the BIRD dev EX of FedAvg R3, 25.55, at about 2.5 times the
+tokens of a Spider pair, against 6,509 pairs in about 2 h 10 for the
+FedAvg-start round on Spider), Step B about 2.2 h, evaluations about
+10 min each: about 14.5 h. Pilots about 1 h 45 each (the reused-samples
+round). Memory: BIRD train rows reach 6,779 tokens (committed token audit
+of `p21_bird_qwen15b_integrity_t60_s0`, not remeasured); a pair whose two
+rows exceed the 8,192-token pass runs as two one-row passes, and P1 client
+3 with 7,300-token pairs peaked at 19.29 GiB.
+
+Code (`fedicl-sql` `5d164721`): `--start-adapter` lets round 1 of a new
+root start from an adapter of another root (recorded in the arm identity
+with its file hashes and checked before training); `--rejected-kind`
+(`any`, `exec_error`, `wrong_result`) filters the rejected side. Both
+default to the old behaviour and leave existing setup and arm identities
+unchanged (tests added).
+
+Not verified: BIRD sampling, labelling time and pair count; the first DPO
+batch on BIRD rows; whether every BIRD train database is on the server
+(`srvdpo_s0/check_bird` checks before training).
+
+## 2026-11-16: decision batch, stage 1 queued: `codes` beyond Spider test, the teacher with `codes`, selection with `codes`
+
+Queued ahead of every task not started yet (phase `sqlcodes_s0`, seed 0,
+no training), because the owner's decisions on `codes`, on the teacher and
+on a server DPO stage wait on them:
+
+- P1 FedAvg R3 and DPO round 3 (`codes`) on Spider dev, DK, Realistic and
+  SYN (`rob_*`), then BIRD dev (`bird_*`), under the arm names of their
+  Spider test rows. Comparators, question by question:
+  `sql_fedavg_r3_vllm_inproc` and `sqldpo_fedavg_r3_vllm_inproc` (`full`),
+  committed on all five sets with vLLM 0.33 inproc, batch 16, 4 score
+  workers, seed 0, the same evaluators (Spider `spider_result_eq_v1`, BIRD
+  `bird_official_set_pair_timeout30_v2`) as the new rows will use.
+- The 7B teacher zero-shot with `codes` prompts (bf16, vLLM inproc) on
+  Spider test and the four Spider sets (`eval_teacher_codes`). Its paired
+  comparator is the `full` row of `sqldpo_s0/eval_teacher`, queued after
+  it; the HF 4-bit row `p253teacher_zeroshot` (77.22) is another engine.
+- Selection by execution over 8 samples on DPO round 3 with `codes`
+  (`xsel_dpo_r3`, the `xsel_*` settings).
+
+Prompt lengths, measured on CPU with the evaluation prompt builder and the
+student tokenizer (chat template included); the Spider test means repeat
+the 418 and 677 of the P1 entry:
+
+| Set | `full` mean / max | `codes` mean / max |
+|---|---:|---:|
+| Spider test | 418 / 1,140 | 677 / 2,053 |
+| Spider dev | 445 / 986 | 827 / 1,935 |
+| Spider-DK | 422 / 960 | 843 / 1,877 |
+| Spider-Realistic | 425 / 984 | 754 / 1,934 |
+| Spider-SYN | 446 / 986 | 827 / 1,934 |
+| BIRD dev | 981 / 2,264 | 3,922 / 26,253 |
+
+- On BIRD dev the `codes` schema of `european_football_2` (129 of 1,534
+  questions) is 25,919 tokens: the 2 sample values of the XML columns of
+  `Match` (`cross`, `foulcommit`, `shotoff`, `shoton`, `corner`, ...) fill
+  about 55,000 characters. The next longest `codes` schemas are
+  `card_games` 3,591 and `california_schools` 2,317 tokens. vLLM sets its
+  context to the longest prompt plus 256, under the model's 32,768, so no
+  prompt is cut or dropped; these 129 prompts lie far beyond the 7,680
+  tokens of training, so BIRD dev is read with and without that database.
+- Spider-DK and BIRD databases have no `tables.json` next to them, so their
+  `codes` columns carry no comment (column name in words); Spider dev,
+  Realistic and SYN have them. This holds for the `codes` rows of every
+  adapter.
+- The matched-value scan reads every text column of the database per
+  question: under 0.03 s on Spider, about 5-8 s on `card_games`,
+  `codebase_community` and `european_football_2`; about 48 min for the
+  1,534 BIRD dev questions on a laptop CPU. The evaluation built every
+  prompt twice on the vLLM path (before decoding and while scoring); it now
+  keeps the schema text per question (`experiments/eval_arms/run.py`,
+  same prompts byte for byte, test added), and `scripts/exec_select.py`
+  takes `--schema-style` (default `full`, identity unchanged).
+- The teacher skips BIRD dev: its longest `codes` prompt (26,253 tokens,
+  26,509 with the answer budget) against the KV cache that 0.80 of the card
+  leaves next to the 7B weights is not measured, and each pass costs about
+  50 min of prompt building.
+
+Not verified: the 7B through vLLM has never run on the server
+(`eval_teacher_codes` is the first such task); the prompt-building time on
+the server CPU.
+
+## 2026-11-16: pair statistics of the DPO rounds (client training questions)
+
+From the committed `client_*_pairs_stats.json`, summed over the 5 clients.
+These are the clients' training questions (8,659), not a test set.
+
+Method line, seed 0 (`sqldpo_s0/hinton_gc`), at the start of each round:
+
+| Round | All 8 right | All 8 wrong | Pairs | Rejected fails to execute | Rejected executes, wrong result | Sample accuracy |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 4,820 | 609 | 5,393 | 2,806 | 2,587 | 79.12 |
+| 2 | 5,773 | 534 | 3,899 | 1,545 | 2,354 | 84.37 |
+| 3 | 6,197 | 500 | 3,208 | 1,037 | 2,171 | 86.59 |
+| 4 | 6,425 | 481 | 2,870 | 858 | 2,012 | 87.77 |
+
+- The pairs whose rejected sample fails to execute fall by 63% in two
+  rounds (2,806 to 1,037), those with a wrong result by 16% (2,587 to
+  2,171): the rounds remove execution errors first.
+- At the start of round 1, by server stage (seed 0 / seed 1): sample
+  accuracy without a server stage 74.27 / 73.89, gold 77.50 / 77.62,
+  virtual teacher 77.49 (seed 0), Hinton 79.12 / 79.13 (seed 2: 79.02);
+  questions with all 8 wrong 736 / 800, 671 / 680, 681, 609 / 657.
+- The `codes` line (`sqlcodes_s0/fedavg`), rounds 1-3: pairs 6,626 /
+  4,244 / 3,706, sample accuracy 74.59 / 82.84 / 84.76.
+
+## 2026-11-16: earlier server-stage variants, read with the owner's permission
+
+The owner allowed reading these rows from before the 2026-11-05 fresh
+start (owner, 2026-11-16); nothing else of the earlier work was read. A reading of committed prediction files
+(`experiments/eval_arms/results/*/predictions/<arm>.csv`), not a new run.
+All are SFT-stage rows (before DPO), HF engine, after 3 client rounds. A =
+client round, K2 = 2-epoch server stage on BIRD, S = extra server step.
+
+| Row | Schedule | Spider test s0 / s1 | Spider dev s0 | BIRD dev s0 |
+|---|---|---|---|---|
+| FedAvg (`p253ref_fl_a3` / `p227_fl_a3`) | A A A | 71.50 / - | 67.60 | 25.68 |
+| gold server stage (`p253ref_gold_k2aaa_a3` / `p237_gold_k2aaa_a3`) | K2 A A A | 73.03 / - | 70.41 | 40.03 |
+| Hinton server stage (`p253_hinton_k2aaa_a3` / `p237_hinton_k2aaa_a3`) | K2 A A A | 73.50 / **74.10** | 72.53 | 38.53 |
+| short server Hinton step on 1,731 BIRD rows after client rounds 1 and 2 (`p248_fsl_k2asasa_a3`) | K2 A S A S A | not measured | 73.21 | 40.29 |
+| one more server step on 5,193 BIRD rows before the rounds (`p253_k2plus_aaa_a3` / `p250_k2plus_aaa_a3`) | K2 S A A A | **73.87** / 73.40 | 73.21 | 37.81 |
+| clients replay BIRD rows with the teacher's top-50 targets (`p253_mixkd50_k2aaa_a3` / `p248_mixkd50_k2aaa_a3`) | K2 A A A with replay | 73.17 / **74.57** | **74.08** | **44.78** |
+| gold server stage, clients replay BIRD rows with gold (`p253_gmixgold_k2aaa_a3` / `p249_gmixgold_k2aaa_a3`) | K2 A A A with replay | 72.61 / 73.40 | 71.57 | 41.26 |
+| centralized Spider + BIRD (`p253ref_central_mix_e3` / `p237_central_mix_e3`) | centralized | 73.78 / - | 73.21 | 43.68 |
+| server KD after every round, the last included (`p253_fedcollm_style_k3`, seed 1) | A K A K A K | - / 66.88 | 63.73 (seed 1) | 43.42 (seed 1) |
+
+In `fsl_k2asasa`, right after each server step Spider dev is 65.57 (`s1`)
+and 68.28 (`s2`) and BIRD dev 45.18 and 43.68; the next client round
+brings Spider dev back to 72.05 and 73.21 and BIRD dev to 39.77 and 40.29.
+
+- On Spider test every variant with more public training lies within
+  about 0.7 point of the plain Hinton server stage, and the sign flips
+  between the two seeds (one more server step +0.37 / -0.70; replay with
+  teacher targets -0.33 / +0.47).
+- The interleaved step ends +0.68 on Spider dev (7 questions), one seed,
+  with no Spider test row.
+- Ending on a server step costs the client domain: 66.88 against 74.10
+  (seed 1, Spider test).
+- The clear gains of more public training are on BIRD dev (up to 44.78
+  against 38.53).
+
 ## 2026-11-16: P1 result: the DPO gain holds with `codes`; `codes` adds 2.24, on value questions and two databases
 
 `sqlcodes_s0/curve_fedavg` finished its 3 DPO rounds (curve `44bbc0f5`,

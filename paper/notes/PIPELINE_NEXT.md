@@ -2,14 +2,15 @@
 
 ## Status
 
-Updated 2026-11-16 at 00:10 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-16 at 01:03 (Asia/Ho_Chi_Minh). Last published result:
 `44bbc0f5` (P1 DPO rounds 1-3 with the `codes` schema, Spider test: 76.62,
-77.18, 77.36). Server work uses drive D only (owner, 2026-11-15): every
-command below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+77.18, 77.36); no newer results commit. Server work uses drive D only
+(owner, 2026-11-15): every command below sets `TEMP` and `TMP` to
+`D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `sqlcodes_s0/curve_fedavg` finished at 23:57 on 2026-11-15. A worker that is still running took `sqldpo_s0/check_baselines` next; whether it is running is not confirmed. | results commit `44bbc0f5`, 23:57 on 2026-11-15 |
+| 0 | `sqlcodes_s0/curve_fedavg` finished at 23:57 on 2026-11-15. Whether the worker is still running is not confirmed; if it is, it took `sqldpo_s0/check_baselines` next and may be in `sqldpo_s0/eval_teacher`. | results commit `44bbc0f5`, 23:57 on 2026-11-15 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -24,25 +25,61 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Nothing to start if the worker on GPU 0 is still running: it goes on with
-rows 1-3 of the table below.
+1. Pull the queue and the code changes: evaluation prompts are built once
+   per question, selection by execution takes `--schema-style`, and DPO
+   rounds take `--start-adapter` and `--rejected-kind`. A running worker
+   keeps running: do not stop it. A running task finishes with the outputs
+   it would have given; the changed evaluation code gives the same prompts,
+   and the DPO code changes nothing unless a task passes one of the two new
+   options (a later step of a running DPO task, such as
+   `sqldpo_s0/curve_central`, loads the new code with the old behaviour and
+   the same identities). Run it in a second PowerShell window, from the
+   `fedicl-sql` root, while the worker window does not show a `publish_`
+   task running. The last lines list the `srvdpo_s0` tasks, `waiting` or
+   `ready`.
 
-1. Only if the worker window shows `STOP queue` or was closed: start it
-   again. It skips finished work.
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_eval_standard.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_curve.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_dpo.py tests/test_reuse_samples.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -m scripts.gpu_worker status --phase srvdpo_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
+   `DONE queue`, or was closed): start it. It skips finished work and takes
+   row 1 of the table below first.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
-If it stops with an error, send back the `STOP queue` line.
+Send back: the last lines of step 1 and whether the worker was running.
+Then, when they appear in the worker window:
+
+- `sqlcodes_s0/eval_teacher_codes`, the first 7B run through vLLM: its
+  `vllm | ... KV cache ...` and `Maximum concurrency` lines and its first
+  progress line.
+- `sqlcodes_s0/bird_fedavg_r3`: the lines from `=== arm` to its first
+  progress line. After `=== arm` it prints nothing for about 50 min
+  (measured on a laptop CPU; the server may differ) while it builds the
+  1,534 BIRD prompts (each question scans the text values of its
+  database); it is not stuck. The vLLM lines then show a context of
+  26,509 tokens (the longest prompt, `european_football_2`, plus 256). A
+  silence of more than 2 h: send the lines.
+- `srvdpo_s0/check_bird`: its last line, `ok: 9428 BIRD train rows, 69
+  databases` or `MISSING BIRD train databases`.
+- `srvdpo_s0/bird_round`: the sampling progress line after 10 min, and the
+  DPO lines up to the first `peak reserved` (the first DPO run on BIRD
+  rows, up to about 6,800 tokens a sequence).
+- Any `STOP queue` line.
 
 Next owner action:
 
-- Now, no GPU needed: decide whether `codes` becomes the prompt of the
-  paper (P1 result: `LAB_LOG.md`, entry of 2026-11-16). F1 and the 3-round
-  vote-label line are queued after that decision.
-- After row 3 (about 9 h after `check_baselines` starts): read the
-  baselines and centralized DPO with the agent.
+- After `sqlcodes_s0/publish_rob` (about 30 min after row 1 starts): read
+  the `codes` rows on the four Spider sets with the agent; BIRD dev
+  follows in row 3. The decision on `codes` waits on rows 1-3. F1 and the
+  3-round vote-label line are queued after that decision.
+- After `srvdpo_s0/publish_eval` (about 18 h after row 1 starts): read the
+  server DPO gate with the agent.
+- After row 8 (about 31 h after row 1 starts): read the rejected-type
+  pilots, the baselines and centralized DPO with the agent.
 
 ## Running and queued
 
@@ -51,24 +88,57 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | next after P1 (not confirmed running) |
-| 2 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
-| 3 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
+| 1 | `sqlcodes_s0/rob_fedavg_r3`, `rob_dpo_r3`, `publish_rob` | Does `codes` beat `full` beyond Spider test: P1 FedAvg R3 and DPO round 3 on Spider dev, DK, Realistic and SYN, paired with the `full` rows of the same lines | 30 min | queued, first after the task the worker runs now |
+| 2 | `sqlcodes_s0/eval_teacher_codes`, `xsel_dpo_r3`, `publish_teacher_xsel` | The 7B teacher zero-shot with `codes` prompts on Spider test and the four Spider sets (room for distillation with `codes`); greedy, fallback and vote over 8 samples on P1 DPO round 3, Spider test | 1 h 5 min | queued |
+| 3 | `sqlcodes_s0/bird_fedavg_r3`, `bird_dpo_r3`, `publish_bird` | The same two P1 adapters on BIRD dev | 2.5 h | queued |
+| 4 | `srvdpo_s0/check_bird`, `bird_round`, `publish_bird_round`, `eval_bird_round`, `clients_round`, `publish_clients_round`, `eval_clients_round`, `publish_eval` | Server DPO gate: one DPO + NLL round at the server on BIRD train with evidence (9,428 rows as one pooled client) from seed 0 FedAvg R3 (`full`), then one client round exactly like round 1 of `sqldpo_s0/fedavg` from that adapter; both on Spider test and BIRD dev. Comparators: FedAvg R3 71.26, DPO round 1 74.29, round 2 75.17 | 14.5 h | queued |
+| 5 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line, rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
+| 6 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16 with `full`, six sets (also the comparator of row 2) | 1 h | queued or running (not confirmed) |
+| 7 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
+| 8 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
 
-All rows total about 9 h.
+All rows total about 31 h. If the worker is in `eval_teacher` when the pull
+lands, row 1 starts when that task ends and row 6 is then finished. The
+row 4 estimate is the least certain (BIRD sampling, labelling and pair
+count are not measured; derivation in `LAB_LOG.md`).
 
 Cut from a full run:
 
+- Rows 1-3 are seed 0 only (P1 has no seed 1): they pair with seed 0
+  `full` rows only.
+- Row 2: the teacher with `codes` skips BIRD dev. Its `european_football_2`
+  prompts reach 26,509 tokens with the answer budget, close to what 0.80
+  of the card leaves for the 7B cache, and each BIRD pass costs about
+  50 min of prompt building;
+  with the four Spider sets the row still answers whether the teacher
+  gains from `codes`.
+- Row 3: on BIRD dev the `codes` schema of `european_football_2` (129 of
+  1,534 questions) carries 2 sample values of the XML columns of `Match`,
+  up to 26,253 tokens against 7,680 in training; the rows are read with and
+  without that database.
+- Row 4 is seed 0, one server round and one client round (a gate, not the
+  3-round line), from the `full` FedAvg R3 so that it pairs with the
+  committed `full` DPO rounds; the server round uses `--max-len 7680`
+  (the longest BIRD train row is 6,779 tokens in the committed token
+  audit, so no row is dropped). The 7B teacher is not used.
+- Row 5 is one round, seed 0, on reused samples, like the other pilots of
+  the Hinton line.
 - Centralized DPO is seed 0 only.
 - The local SFT models are evaluated only on Spider test; six sets would
   add about 2.5 h. DPO without aggregation is not queued.
-- Rows 1-3 use the `full` schema, like every row before P1.
+- Rows 4-6 use the `full` schema, like every row before P1.
 
 Not queued yet:
 
-- P1 (finished) is seed 0 and Spider test only: the other five sets for
-  its FedAvg R3 and DPO round 3 would take about 1 h; awaiting the owner's
-  decision on `codes`.
+- A server stage with `codes` (gold or Hinton on BIRD with `codes`, then 3
+  FedAvg rounds and 3 DPO rounds with `codes`): at least about 20 h from
+  committed timings (2 BIRD epochs at 2.7 h each with `full`, more with
+  the longer `codes` prompts; 3 FedAvg rounds; 3 DPO rounds at about 3 h).
+  Hinton needs a new teacher logit cache for `codes` prompts (cost not
+  measured), and the `european_football_2` rows exceed 7,680 tokens. Waits
+  on the `codes` decision.
+- A KD step between DPO rounds: not recommended by the earlier rows in
+  `LAB_LOG.md` (2026-11-16, server-stage variants).
 - After the P1 result (owner, 2026-11-15), in this order: F1 (20 clients,
   full and partial participation; needs a 20-client split and new code for
   partial participation) and DPO with result-vote labels for 3 rounds from
@@ -197,6 +267,17 @@ recipe. Outputs: `artifacts/protocol_v2/sqlcodes_coder15b_alpha01_s0/`.
 |---|---|---|
 | `sqlcodes_s0/fedavg_sft` | base model | one FedAvg round (lr 2e-4, 1 local epoch); 3 rounds |
 | `sqlcodes_s0/fedavg` | round 3 of `fedavg_sft` | DPO + NLL round, the settings of `sqldpo_s0/fedavg`; 3 rounds |
+
+Tasks `sqlcodes_s0/rob_*` and `bird_*` evaluate FedAvg R3 and DPO round 3
+of these lines on Spider dev, DK, Realistic, SYN and BIRD dev under the arm
+names of their Spider test rows (`sqlcodes_fedavg_r3_vllm_inproc`,
+`sqlcodes_dpo_fedavg_r3_vllm_inproc`). Their `full` comparators are
+`sql_fedavg_r3_vllm_inproc` and `sqldpo_fedavg_r3_vllm_inproc`, same
+engine (vLLM 0.33 inproc) and batch 16. `eval_teacher_codes` is the 7B
+teacher with `codes` prompts (arm `sql_teacher7b_codes_vllm_inproc`, its
+`full` comparator `sql_teacher7b_vllm_inproc`); `xsel_dpo_r3` is selection
+by execution on DPO round 3 with `codes` (`xsel_codes_dpo_r3`, greedy
+column `sqlcodes_dpo_fedavg_r3_vllm_inproc`).
 
 ### Seed 1 (phase `sqldpo_s1`, finished)
 

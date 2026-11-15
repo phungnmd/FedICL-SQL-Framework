@@ -1,6 +1,6 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-14. The project restarted on 2026-11-05; everything decided
+Updated 2026-11-16. The project restarted on 2026-11-05; everything decided
 or measured before that date is archived and hidden (see `AGENTS.md`, "Fresh
 start"). This file says what is fixed, what the method is, what the results
 show and what is still open. Runs and reasons are in `LAB_LOG.md`.
@@ -236,8 +236,8 @@ Both seeds pooled, clustered by question (95% interval):
    use DPO + NLL. N2, one round without gold fallback from the same
    round-1 samples: result-vote labels 75.50, executability labels 74.99,
    gold labels 75.69 (Spider test, seed 0). The vote-label line for 3
-   rounds and F1 (20 clients) are approved for after P1 (`codes` schema
-   with sample values, FedAvg line, seed 0), which is first in the queue.
+   rounds and F1 (20 clients) are approved for after the `codes`
+   decision (item 7).
 4. What the federated setting costs in the DPO stage. Reference rows, not
    a condition of the claim. In round 1 each client's adapter alone gives
    74.24 to 75.50 on Spider test (mean 74.97), the averaged adapter 75.69.
@@ -257,7 +257,18 @@ Both seeds pooled, clustered by question (95% interval):
    errors against 82. The span is two thirds of the response, so the pilot
    does not separate focus from a larger preference weight. It is an
    ablation row unless the owner decides otherwise. Not chosen: stricter
-   labels from mutated client databases.
+   labels from mutated client databases. Queued: two one-round pilots
+   that limit the rejected side to samples that fail to execute, or to
+   samples with a wrong result.
+7. The schema format (owner decision pending). P1 (`codes`: types, keys,
+   2 sample values and the matched text values per column) gives 77.36
+   after DPO round 3 against 75.13 with `full` on Spider test (seed 0,
+   FedAvg line). Queued: the same two adapters on Spider dev, DK,
+   Realistic, SYN and BIRD dev, the 7B teacher with `codes`, and selection
+   by execution with `codes`.
+8. A DPO round at the server on public data (owner decision pending).
+   Queued as a gate from seed 0 FedAvg R3: one server round on BIRD train,
+   then one client round from it, against client DPO rounds 1 and 2.
 
 ## 6. Current phase
 
@@ -266,10 +277,12 @@ controls, 3 rounds without NLL, one round without gold fallback, the local
 adapters of round 1 and selection by execution (last published result
 `3767d097`, 06:36 on 2026-11-14, including the offline control).
 
-Queue order: P1 (`codes` schema, FedAvg line, seed 0), the reference rows
-on vLLM, then centralized DPO. After the P1 result (owner, 2026-11-15): F1
-(20 clients, full and partial participation) and DPO with result-vote
-labels for 3 rounds. Run commands, live-state provenance and estimates are
+P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`).
+Queue order: a decision batch (`codes` beyond Spider test, the teacher with
+`codes`, the server DPO gate, the rejected-type pilots), then the reference
+rows on vLLM and centralized DPO. After the `codes` decision: F1 (20
+clients, full and partial participation) and DPO with result-vote labels
+for 3 rounds. Run commands, live-state provenance and estimates are
 in `PIPELINE_NEXT.md`.
 
 The preference term stays plain and the method keeps DPO + NLL and the
