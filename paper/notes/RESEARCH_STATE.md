@@ -28,6 +28,7 @@ not yet selected.
 | Part | Fixed choice |
 |---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct, SQL-only output, greedy decoding |
+| Prompt | `codes` schema (owner, 2026-11-16); every row before P1 uses `full` |
 | Teacher (optional) | Qwen2.5-Coder-7B-Instruct, frozen. If used, it runs only at the server and only on public data |
 | Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`. Private rows never leave a client. |
 | Server public data (optional) | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it (owner, 2026-11-07) |
@@ -46,11 +47,16 @@ does not depend on a choice.
 
 ## 3. Method
 
-Chosen by the owner on 2026-11-10. Three stages:
+The story (owner, 2026-11-16): what a client holds and the server does not
+is the database itself, and the method uses it twice, as content in the
+prompt and as the training signal through execution. Standard federated
+training uses the client's rows only as (question, SQL) text. Nothing but
+adapter updates leaves a client.
 
-1. Server stage: the student trains at the server on BIRD for 2 epochs,
-   with Hinton KD from the teacher. Under test: the same stage with gold SQL
-   only (no teacher), and no server stage at all.
+Core (stages chosen by the owner on 2026-11-10, the prompt on 2026-11-16):
+
+1. The `codes` prompt: each column carries its type, keys, 2 sample values
+   and the text values of the database that the question quotes.
 2. FedAvg SFT: 3 rounds on the clients' Spider rows.
 3. Federated DPO + NLL: 3 rounds, fixed for every line and seed. In a round
    each client samples 8 SQL for each of its questions from the current
@@ -58,8 +64,25 @@ Chosen by the owner on 2026-11-10. Three stages:
    sample with a wrong one (the gold SQL is the chosen side when no sample
    is correct), trains on the pairs, and the server averages the updates.
 
-The claim rests on stage 3. Stage 1 and the teacher stay in the method only
-if the controls show their role (section 5). Federated learning is the
+Optional preparation, not part of the core until its run is read:
+
+- Server stage: before the first client round the student trains at the
+  server on BIRD for 2 epochs with Hinton KD from the teacher. Its role is
+  to prepare stage 3, which learns only from questions where the model
+  samples both right and wrong SQL. At the start of DPO (seed 0, `full`):
+  sample accuracy 74.3 / 77.5 / 79.1 and questions with all 8 samples wrong
+  736 / 671 / 609, for no server stage / gold / Hinton. It is judged by the
+  samples at the start of DPO and by EX after DPO, not as a KD gain of its
+  own.
+- It enters the method if the `codes` line from the Hinton server stage
+  (queued) gains over the `codes` line without it. The gold server stage in
+  front of the `codes` line is the control for the teacher (not queued).
+- If it stays, it stays as Hinton KD before the first client round: the
+  other forms (teacher SQL as the target, KID, a plan task, TAID) and the
+  other positions (between rounds, last, weight merging) did not beat it
+  in the earlier rows (`LAB_LOG.md`, 2026-11-16).
+
+The claim rests on stage 3 and the prompt. Federated learning is the
 setting the method has to work in; the paper does not claim that federation
 produces the gain (owner, 2026-11-11).
 
@@ -289,9 +312,10 @@ round, then the `full` reference rows on vLLM and centralized DPO. Approved for 
 result-vote labels for 3 rounds. Run commands, live-state provenance and estimates are
 in `PIPELINE_NEXT.md`.
 
-The preference term stays plain and the method keeps DPO + NLL and the
-Hinton server stage until the owner decides. The teacher decision now
-rests on the two seeds.
+The preference term stays plain and the core keeps DPO + NLL. The server
+stage and the teacher are an optional preparation step (section 3); with
+`codes` their gain is not measured yet, and with `full` the teacher's lead
+over gold after DPO is +1.49 (seed 0) and +0.47 (seed 1).
 
 ## 7. Directions after the decision batch
 
