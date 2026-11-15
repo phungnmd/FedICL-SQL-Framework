@@ -41,8 +41,8 @@ Send back the output. If it says `move: not supported`, stop here: the
 agent writes the export and import steps.
 
 2. Stop WSL, move the distro to drive D, test it. The move copies the disk
-   file first and removes the copy on C only at the end; it takes a few
-   minutes per 10 GB. The test should print `uid=1000(user01st)`.
+   file first and removes the copy on C only at the end; about 1-2 min per
+   10 GB on a hard disk, less on an SSD; no progress bar shows meanwhile. The test should print `uid=1000(user01st)`.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:WSL_UTF8='1'; $dst='D:\phungthan\wsl\Ubuntu'; New-Item -ItemType Directory -Force -Path $dst | Out-Null; wsl --shutdown; if ($LASTEXITCODE -ne 0) { throw 'Shutdown failed' }; wsl --manage Ubuntu --move $dst; if ($LASTEXITCODE -ne 0) { throw 'Move failed' }; Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss | ForEach-Object { $p = Get-ItemProperty $_.PSPath; '{0}: {1}' -f $p.DistributionName, $p.BasePath }; wsl -e id; if ($LASTEXITCODE -ne 0) { throw 'WSL still fails' } }
