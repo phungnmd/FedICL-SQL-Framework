@@ -3,6 +3,64 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-15: where the wrong results are; resampling on an empty result (local analysis)
+
+No GPU run. Spider test, from the committed prediction files: an automatic
+comparison of predicted and gold SQL (sqlglot syntax tree; a row can differ
+in several parts) and a local execution of both on the test databases (10 s
+limit). The scripts and their output are not committed.
+
+Wrong-result rows (executable SQL, wrong result) by the part that differs
+from gold, seed 0:
+
+| Differs in | FedAvg R3, `full` | FedAvg R3, `codes` | Method (Hinton DPO r3, `full`) |
+|---|---:|---:|---:|
+| wrong results in all | 406 | **371** | 442 |
+| columns in conditions | 181 | **140** | 201 |
+| set of tables | **157** | 162 | 171 |
+| literal values | 119 | **76** | 139 |
+| condition operators | **118** | 119 | 129 |
+| select columns | **106** | 112 | 114 |
+| structure (nested queries, set operations) | **81** | 90 | 84 |
+| distinct | 82 | **67** | 94 |
+| group by | 71 | **68** | 83 |
+| aggregate | 63 | 60 | **59** |
+| order / limit | **41** | **41** | 47 |
+| predicted result empty or zero, gold result not | 117 | **64** | 134 |
+| right rows with an empty or zero result | 49 of 1,530 | 57 of 1,571 | 48 of 1,647 |
+
+- 30% of the method's wrong results (134 of 442) return an empty or zero
+  result where gold returns rows; 2.9% of its right rows do. An empty result
+  is wrong in 134 of 182 rows.
+- `codes` removes the value errors and nothing else: empty results 117 to
+  64, literal values 119 to 76, condition columns 181 to 140; table-set and
+  structure differences do not fall (157 to 162, 81 to 90).
+- The table set is the first difference in 130 to 145 rows of every line:
+  the largest group that neither `codes` nor DPO lowers.
+- The teacher zero-shot is right on 20 to 41% of every group (method:
+  tables 37%, literal values 31%, structure 30%): no group is its own.
+- One difference only: 132 of the method's 442 rows (distinct 22, group by
+  15, order / limit 4 among them).
+
+Inference rule, estimated offline: keep the greedy SQL unless it fails or
+returns an empty or zero result, then take the committed 8-sample vote
+(`experiments/exec_select/results/`). An estimate, not a run: the vote was
+not restricted to non-empty results.
+
+| Row | Greedy | Fallback | Vote | Rule | Questions resampled | Gained / lost against greedy |
+|---|---:|---:|---:|---:|---:|---|
+| FedAvg R3, seed 0 | 71.26 | 75.03 | **75.55** | 75.50 | 17.6% | 93 / 2 |
+| FedAvg R3, seed 1 | 71.87 | 76.01 | 75.87 | **76.85** | 18.2% | 107 / 0 |
+| DPO r3 from FedAvg R3, seed 0 | 75.13 | 77.04 | 76.76 | **77.22** | 13.3% | 47 / 2 |
+| DPO r3 from FedAvg R3, seed 1 | 75.83 | 77.69 | **78.39** | 78.20 | 12.9% | 51 / 0 |
+| Method, seed 0 | 76.71 | 77.69 | **78.39** | 77.92 | 11.2% | 27 / 1 |
+| Method, seed 1 | 77.04 | 78.16 | 78.02 | **78.62** | 12.0% | 36 / 2 |
+
+The rule costs about 2 model calls a question on the method (the vote: 9)
+and gives +1.2 and +1.6 over greedy. On the rows with an empty result the 8
+samples rarely hold a better answer, so these errors need the value in the
+input, not another sample.
+
 ## 2026-11-15: full drive C reached P1: 7 test rows of FedAvg R3, 30 client questions of DPO round 1
 
 `codes` against `full`, FedAvg R3, seed 0, Spider test, question by question
