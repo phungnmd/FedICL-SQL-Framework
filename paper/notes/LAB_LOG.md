@@ -3,6 +3,57 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: `codes` on the other Spider sets; the teacher with `codes` is 3.2 above the student; selection by execution with `codes`
+
+Results commits `a00a5f62` (01:37) and `e2f048c7` (02:06): the first three
+groups of the decision batch and the 7B teacher with `full` through vLLM.
+Seed 0, vLLM inproc, greedy.
+
+| Row | Spider test | Spider dev | DK | Realistic | SYN |
+|---|---:|---:|---:|---:|---:|
+| FedAvg R3, `full` | 71.26 | 67.89 | 52.15 | 58.86 | 53.77 |
+| FedAvg R3, `codes` | 73.17 | 70.31 | 55.51 | 65.94 | 56.87 |
+| DPO r3 from FedAvg R3, `full` | 75.13 | 73.11 | 58.88 | 63.58 | 58.32 |
+| DPO r3 from FedAvg R3, `codes` | 77.36 | 73.79 | 60.19 | 70.67 | 60.83 |
+| Method (Hinton stage, DPO r3, `full`) | 76.71 | 76.50 | 64.11 | 64.17 | 61.03 |
+| Teacher 7B zero-shot, `full` | 78.39 | **78.72** | 63.93 | 73.82 | 65.47 |
+| Teacher 7B zero-shot, `codes` | **80.58** | 78.05 | **66.17** | **75.59** | **65.67** |
+
+The comparisons below are question by question from the committed
+prediction files; the script is not committed.
+
+- `codes` against `full` has the same sign in all ten comparisons (two
+  rows, five sets). After DPO: Spider test +2.24, dev +0.68, DK +1.31,
+  Realistic +7.09, SYN +2.51. Only Realistic is separable over databases
+  (+3.71 to +12.08 over 19 databases, 61 / 25 questions); dev and DK are
+  not separable by question either (82 / 75 and 47 / 40).
+- The DPO stage gains on every set with `codes`: +4.19, +3.48, +4.67,
+  +4.72, +3.97, each separable over databases.
+- `codes` without a server stage against the method on `full`: Spider
+  test +0.65, dev -2.71 (70 / 98), DK -3.93 (44 / 65), Realistic +6.50
+  (71 / 38), SYN -0.19. The server stage and `codes` lead on different
+  sets; no row has both.
+- The teacher through vLLM bf16 with `full` gives 78.39 on Spider test
+  (the earlier HF 4-bit row: 77.22) and 48.31 on BIRD dev; the method is
+  1.68 below it on Spider test (173 / 137, p = 0.05).
+- The teacher gains from `codes` on Spider test (+2.19, 130 / 83, +0.05
+  to +4.41 over databases), not separably elsewhere (dev -0.68, DK +2.24,
+  Realistic +1.77, SYN +0.19). It has no BIRD dev row with `codes`.
+- With `codes` the teacher is above the student on every set: Spider test
+  +3.21 (219 / 150, +0.58 to +5.85 over databases), dev +4.26, DK +5.98,
+  Realistic +4.92, SYN +4.84. On Spider test the teacher is right on 219
+  of the student's 486 wrong questions and on 161 of its 400 wrong
+  results; one of the two is right on 87.56% of the questions. Errors on
+  Spider test: teacher 69 execution errors and 348 wrong results, student
+  86 and 400.
+- Selection by execution on DPO r3 with `codes`, Spider test, 8 samples:
+  greedy 77.36, fallback 78.90 at 1.32 model calls a question, result
+  vote 79.83 at 8 calls; pass@8 86.45; 25 questions without an executable
+  sample.
+
+Not decided (owner): `codes` as the prompt of the paper; a server stage
+with `codes`.
+
 ## 2026-11-16: F1 queued: 20 clients, with and without the server stage
 
 Owner decisions (2026-11-16): F1 with and without the server stage is
