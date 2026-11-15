@@ -3,6 +3,26 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: what the teacher holds that the student lacks: 4.5 points outside the student's 8 samples (local analysis)
+
+No GPU run. Spider test, `codes`, seed 0, from committed files: the greedy
+rows of the teacher and of DPO r3 from FedAvg R3, and the 8 samples of
+`xsel_codes_dpo_r3`. The script is not committed.
+
+| Student's 486 wrong questions | Questions | Teacher greedy right |
+|---|---:|---:|
+| A correct SQL among its 8 samples (not chosen) | 198 | 124 |
+| No correct SQL among its 8 samples | 288 | 95 |
+
+- Adding the teacher's greedy answer to the student's 8 samples lifts
+  pass@8 from 86.45 to 90.96 (97 of the 291 questions the samples miss).
+- The server stage so far does not move pass@8 on Spider test once DPO has
+  run (`full`, seed 0 / seed 1): 85.00 / 84.96 with the Hinton stage,
+  84.86 / 85.19 without it. Before DPO it adds about 1 point (84.68 / 84.49
+  against 83.47 / 83.70). On the clients' training questions the gap stays
+  after 3 DPO rounds: 500 / 518 questions with all 8 samples wrong against
+  617 / 613.
+
 ## 2026-11-16: `codes` on the other Spider sets; the teacher with `codes` is 3.2 above the student; selection by execution with `codes`
 
 Results commits `a00a5f62` (01:37) and `e2f048c7` (02:06): the first three
