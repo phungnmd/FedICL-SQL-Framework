@@ -3,6 +3,55 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-15: full drive C reached P1: 7 test rows of FedAvg R3, 30 client questions of DPO round 1
+
+`codes` against `full`, FedAvg R3, seed 0, Spider test, question by question
+from the committed predictions (`sqlcodes_fedavg_r3_vllm_inproc`,
+`sql_fedavg_r3_vllm_inproc`; the comparison itself is not committed):
+
+| | `full` | `codes` |
+|---|---:|---:|
+| EX | 71.26 | **73.17** |
+| Execution errors | 211 | **205** |
+| of them `no such column` | 177 | 177 |
+| Wrong results | 406 | **371** |
+| Gold SQL with a quoted value (622 rows) | 56.11 | **65.59** |
+| Gold SQL without one (1,525 rows) | **77.44** | 76.26 |
+| Easy / medium / hard / extra | 88.1 / 74.8 / 64.8 / 49.0 | **91.5 / 75.4 / 65.2 / 54.1** |
+
+- Right only with `full` 129, only with `codes` 170 (exact p = 0.02); the
+  bootstrap over the 40 test databases gives -1.17 to +4.77, so the +1.91
+  is not separable by database.
+- The gain is on questions that need a value (+9.5 points); the rest lose
+  1.2. Wrong results fall by 35 and `no such column` errors do not move, so
+  the errors DPO removed on the `full` line (177 to 41) are all still
+  there before DPO. Whether DPO removes them with `codes` is the pending
+  P1 result.
+
+Drive C was full during part of P1. `_execute` in
+`fedicl_sql/eval/metrics.py` returns any SQLite error text as the error of
+the SQL, so `database or disk is full` is scored as an execution error in an
+evaluation and labelled `exec_error` on a sample (a gold SQL that fails this
+way drops its question).
+
+- FedAvg R3 `codes` (evaluated 08:37 to 08:40): 7 rows on `aan_1` carry the
+  error and count as wrong. The committed 73.17 is a lower bound: 73.17 to
+  73.50 on the 2,147 rows, 73.41 on the 2,140 rows without them. R1 and R2
+  (R2 evaluated at 06:17) have none. No other result row since the fresh
+  start has the error (`git grep` over `experiments/` and `audits/`).
+- DPO round 1 samples of `sqlcodes_s0/fedavg` (owner's check on the server,
+  questions whose record holds the error): client 1: 0, client 2: 0,
+  client 3: 6 of 2,061, client 4: 0, client 5: 24 of 1,804. The adapters of
+  clients 1-2, already trained, are clean; 30 of 8,659 questions (0.35%)
+  hold a false label or lost their pair. Not counted: the candidates and
+  pairs these 30 questions give.
+- Until R3 is evaluated again, a DPO gain of P1 is read against R3 on the
+  2,140 rows or with the 73.17 to 73.50 range.
+
+No fix is written. Open (owner): label the 30 questions again before
+clients 3 and 5 train, evaluate R3 again (about 3 min), and make a storage
+error stop a run instead of becoming a label.
+
 ## 2026-11-15: P1 FedAvg rounds; DPO round 1 out of memory on client 3
 
 P1 FedAvg with the `codes` schema, seed 0, Spider test, vLLM inproc

@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-15 at 12:00 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-15 at 14:50 (Asia/Ho_Chi_Minh). Last published result:
 `fbdd85bd` (P1 FedAvg rounds 1-3 with the `codes` schema, Spider test). The
 server has pulled the DPO fix `68cae2dd`; its tests failed because drive C
 is full (pytest wrote its temp folder there). Server work uses drive D only
@@ -11,7 +11,7 @@ is full (pytest wrote its temp folder there). Server work uses drive D only
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle: the worker stopped at 10:58 on 2026-11-15 when `sqlcodes_s0/curve_fedavg` (P1 DPO round 1) ran out of memory on client 3, update 11 of 194. Clients 1-2 of round 1 are trained and stay on disk. | owner's log, 10:58 on 2026-11-15 |
+| 0 | Idle: the worker stopped at 10:58 on 2026-11-15 when `sqlcodes_s0/curve_fedavg` (P1 DPO round 1) ran out of memory on client 3, update 11 of 194. Clients 1-2 of round 1 are trained and stay on disk. A restart since then is not reported. | owner's log, 10:58 on 2026-11-15 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -25,6 +25,18 @@ Read-only status on the server, from the `fedicl-sql` root:
 ```
 
 ## Run now
+
+Decision first (owner), before clients 3 and 5 of round 1 train: the
+round 1 samples of `sqlcodes_s0/curve_fedavg` hold 30 client questions
+labelled while drive C was full (client 3: 6, client 5: 24; clients 1, 2
+and 4: none), and the committed FedAvg R3 `codes` row scored 7 test rows
+under the same error (73.17 committed, at most 73.50). No fix is written
+or queued.
+
+- Fix first: stop the worker with Ctrl+C if it runs (clients 1-2 stay) and
+  tell the agent; the fix is new code, then a pull.
+- Go on: steps 1-2 below as they are; P1 is then read as a run with 30
+  known label errors in round 1.
 
 1. Pull and test from the `fedicl-sql` root, with temp files on drive D.
    The DPO fix makes a pair whose two sequences exceed the micro-batch
