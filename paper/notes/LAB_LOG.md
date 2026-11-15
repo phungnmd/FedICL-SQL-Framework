@@ -3,6 +3,56 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: P1 result: the DPO gain holds with `codes`; `codes` adds 2.24, on value questions and two databases
+
+`sqlcodes_s0/curve_fedavg` finished its 3 DPO rounds (curve `44bbc0f5`,
+23:57 on 2026-11-15). Seed 0, Spider test, vLLM inproc, no server stage in
+either schema. Round 1 of the `codes` line trained with the 30 mislabelled
+client questions (entry below); the FedAvg R3 `codes` row still holds the 7
+disk-full rows (73.17 is 73.41 on the other 2,140 rows; DPO round 3 is
+77.48 there).
+
+| Row | EX | Execution errors | of them `no such column` | Wrong results | Gold SQL with a value (974 rows) | Gold SQL without one (1,173 rows) |
+|---|---:|---:|---:|---:|---:|---:|
+| FedAvg R3, `full` | 71.26 | 211 | 177 | 406 | 60.99 | 79.80 |
+| DPO r1, `full` | 74.29 | 107 | 67 | 445 | 64.17 | 82.69 |
+| DPO r2, `full` | 75.17 | 98 | 60 | 435 | 64.89 | 83.72 |
+| DPO r3, `full` | 75.13 | 101 | 61 | 433 | 64.78 | 83.72 |
+| FedAvg R3, `codes` | 73.17 | 205 | 177 | **371** | 66.84 | 78.43 |
+| DPO r1, `codes` | 76.62 | 94 | 72 | 408 | 71.87 | 80.56 |
+| DPO r2, `codes` | 77.18 | 93 | 66 | 397 | 72.59 | 80.99 |
+| DPO r3, `codes` | **77.36** | 86 | 63 | 400 | **72.79** | 81.16 |
+| Method (Hinton DPO r3, `full`) | 76.71 | **58** | **41** | 442 | 66.12 | **85.51** |
+
+"With a value": the gold SQL holds a quoted text or a number outside
+`LIMIT` (the entry of 2026-11-15 counted quoted text only, 622 rows). The
+comparisons below are from the committed prediction files; the comparison
+script is not committed.
+
+- The DPO stage gives the same gain in both schemas: +4.19 with `codes`
+  (148 / 58 questions, database bootstrap +2.53 to +6.02), +3.87 with
+  `full` (142 / 59, +2.25 to +5.56). `no such column` falls 177 to 63 and
+  177 to 61.
+- `codes` against `full` after DPO round 3: +2.24 (164 / 116, exact
+  p = 0.005), the same size at every round (+2.33, +2.00, +2.24). The
+  bootstrap over the 40 test databases gives -0.70 to +5.29: `codes` is
+  better on 20 databases, worse on 15, equal on 5, and `art_1` (+20
+  questions) and `bakery_1` (+21) hold 41 of the 48 net questions.
+- The gain is on questions with a value: +8.01 (131 / 53). Questions
+  without one lose 2.56 (33 / 63, p = 0.003); before DPO the loss was 1.36
+  (51 / 67, not separable). The 63 lost rows pick another column or table
+  (18 execution errors, 11 of them `no such column`), they do not add a
+  condition. DPO gains less on these rows with `codes` (+2.73) than with
+  `full` (+3.92).
+- `codes` with no server stage against the method on `full`: +0.65
+  (157 / 143, not separable). The two differ by slice: values 72.79
+  against 66.12, no value 81.16 against 85.51.
+- Round 3 against round 1 with `codes`: +0.75 (51 / 35, not separable);
+  the curve's best step by its 0.5 rule is round 2.
+- Mean prompt on Spider test: 418 tokens with `full`, 677 with `codes`.
+
+Not decided (owner): whether `codes` becomes the prompt of the paper.
+
 ## 2026-11-15: P1 DPO round 1 trained, its evaluation stopped by WSL
 
 The owner restarted the queue without the label fix, so P1 round 1 trained

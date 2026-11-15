@@ -2,14 +2,14 @@
 
 ## Status
 
-Updated 2026-11-15 at 17:45 (Asia/Ho_Chi_Minh). Last published result:
-`fbdd85bd` (P1 FedAvg rounds 1-3 with the `codes` schema, Spider test).
-Server work uses drive D only (owner, 2026-11-15): every command below sets
-`TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-16 at 00:10 (Asia/Ho_Chi_Minh). Last published result:
+`44bbc0f5` (P1 DPO rounds 1-3 with the `codes` schema, Spider test: 76.62,
+77.18, 77.36). Server work uses drive D only (owner, 2026-11-15): every
+command below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle: the worker stopped at 17:18 on 2026-11-15. `sqlcodes_s0/curve_fedavg` trained DPO round 1 (all 5 clients, global adapter on disk) and failed at its Spider test evaluation: WSL cannot start vLLM (`getpwnam(user01st) failed 5`, `I/O error`), so the WSL distro cannot read its own disk. A retry at 17:17 failed the same way. | owner's log, 17:18 on 2026-11-15 |
+| 0 | `sqlcodes_s0/curve_fedavg` finished at 23:57 on 2026-11-15. A worker that is still running took `sqldpo_s0/check_baselines` next; whether it is running is not confirmed. | results commit `44bbc0f5`, 23:57 on 2026-11-15 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -24,47 +24,25 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-The WSL distro `Ubuntu` (vLLM venv, model cache) has its disk file on drive
-C (4.2 GB free at 17:40 on 2026-11-15). Moving it to
-`D:\phungthan\wsl\Ubuntu` keeps every file, the default user and the
-distro name. Before step 2, check that nobody else works in this distro: it
-showed `Running` with no job of ours, and `wsl --shutdown` stops it.
+Nothing to start if the worker on GPU 0 is still running: it goes on with
+rows 1-3 of the table below.
 
-1. Read-only: the WSL version, whether this WSL has `--manage ... --move`,
-   and the size of the disk file (the move copies it).
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:WSL_UTF8='1'; wsl --version; $h = (wsl --help) -join "`n"; if ($h -match '--move') { 'move: supported' } else { 'move: not supported' }; $f='C:\Users\User01ST\AppData\Local\wsl\{70b8e0de-6151-41c4-baad-0e92f6f87adc}\ext4.vhdx'; 'ext4.vhdx: {0:N1} GB' -f ((Get-Item $f).Length/1GB) }
-```
-
-Send back the output. If it says `move: not supported`, stop here: the
-agent writes the export and import steps.
-
-2. Stop WSL, move the distro to drive D, test it. The move copies the disk
-   file first and removes the copy on C only at the end; about 1-2 min per
-   10 GB on a hard disk, less on an SSD.
-   The test should print `uid=1000(user01st)`.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:WSL_UTF8='1'; $dst='D:\phungthan\wsl\Ubuntu'; New-Item -ItemType Directory -Force -Path $dst | Out-Null; wsl --shutdown; if ($LASTEXITCODE -ne 0) { throw 'Shutdown failed' }; wsl --manage Ubuntu --move $dst; if ($LASTEXITCODE -ne 0) { throw 'Move failed' }; Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss | ForEach-Object { $p = Get-ItemProperty $_.PSPath; '{0}: {1}' -f $p.DistributionName, $p.BasePath }; wsl -e id; if ($LASTEXITCODE -ne 0) { throw 'WSL still fails' } }
-```
-
-Send back the output. If the move works but `wsl -e id` still fails, the
-distro's file system was damaged while C was full; send the error.
-
-3. Only when step 2 prints `uid=1000(user01st)`: restart the queue on GPU 0.
-   It resumes `sqlcodes_s0/curve_fedavg` at the round 1 evaluation; the
-   trained round 1 is not redone.
+1. Only if the worker window shows `STOP queue` or was closed: start it
+   again. It skips finished work.
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
+If it stops with an error, send back the `STOP queue` line.
+
 Next owner action:
 
-- After `sqlcodes_s0/curve_fedavg` (about 5.5 h after the restart, rounds
-  2-3 left): read P1 with the agent; F1 and the 3-round vote-label line are
-  queued after that.
+- Now, no GPU needed: decide whether `codes` becomes the prompt of the
+  paper (P1 result: `LAB_LOG.md`, entry of 2026-11-16). F1 and the 3-round
+  vote-label line are queued after that decision.
+- After row 3 (about 9 h after `check_baselines` starts): read the
+  baselines and centralized DPO with the agent.
 
 ## Running and queued
 
@@ -73,24 +51,24 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqlcodes_s0/curve_fedavg` | P1: 3 DPO rounds from FedAvg R3 with the `codes` schema (sample values, column comments, quoted values) in every prompt; does the DPO gain hold with a richer input | 5.5 h left | stopped at the round 1 evaluation (WSL error); round 1 trained |
-| 2 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | queued |
-| 3 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
-| 4 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
+| 1 | `sqldpo_s0/check_baselines`, `eval_teacher` | Teacher 7B zero-shot through vLLM bf16, six sets | 1 h | next after P1 (not confirmed running) |
+| 2 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines` | Standard FL baselines on the same engine | 2 h | queued |
+| 3 | `sqldpo_s0/curve_central`, `extra_central_r3`, `publish_central_extra` | Centralized DPO on pooled client rows, 3 rounds | 5.75 h | queued |
 
-All rows total about 17 h from the pull.
+All rows total about 9 h.
 
 Cut from a full run:
 
 - Centralized DPO is seed 0 only.
 - The local SFT models are evaluated only on Spider test; six sets would
   add about 2.5 h. DPO without aggregation is not queued.
-- P1 is seed 0 and Spider test only: the other five sets for its FedAvg R3
-  and DPO round 3 would add about 1 h. Its comparator is the seed 0 FedAvg
-  line with the `full` schema.
+- Rows 1-3 use the `full` schema, like every row before P1.
 
 Not queued yet:
 
+- P1 (finished) is seed 0 and Spider test only: the other five sets for
+  its FedAvg R3 and DPO round 3 would take about 1 h; awaiting the owner's
+  decision on `codes`.
 - After the P1 result (owner, 2026-11-15), in this order: F1 (20 clients,
   full and partial participation; needs a 20-client split and new code for
   partial participation) and DPO with result-vote labels for 3 rounds from
