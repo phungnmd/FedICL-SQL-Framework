@@ -3,6 +3,26 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-15: P1 FedAvg rounds; DPO round 1 out of memory on client 3
+
+P1 FedAvg with the `codes` schema, seed 0, Spider test, vLLM inproc
+(curve `fbdd85bd`): R1 69.03, R2 71.91, R3 73.17. The `full` schema FedAvg
+R3 of seed 0 is 71.26, so `codes` adds 1.91 points before any DPO.
+
+P1 DPO round 1 stopped at client 3, update 11 of 194 (peak 17.67 GiB through
+update 10): out of memory under the 0.88 cap in backward, 19.15 GiB
+allocated and 4.75 GiB asked, which is the float32 attention tensor of
+SDPA's math path for one `baseball_1` pair (2 rows x 12 heads x about
+7,290^2). With `--micro-batch-tokens 8192` such a pair already had a pass of
+its own, so halving the budget could not help. Fix (fedicl-sql `68cae2dd`,
+full `pytest -q` 635 passed): a pair whose two rows exceed the budget scores
+chosen and rejected in two one-row passes, in the reference and in the
+updates, and a run with such pairs scores its reference again. Only client 3
+`codes` pairs are affected (every `full` schema pair stays under 4,096
+tokens a sequence); clients 1-2 of round 1 trained before the fix and are
+kept, since none of their pairs splits. Peak of the one-row passes not
+measured yet.
+
 ## 2026-11-15: seed 2 dropped; F1 and 3-round vote labels after P1
 
 Owner drops seed 2 from the plan. Last seed 2 results, Spider test, vLLM
