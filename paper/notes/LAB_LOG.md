@@ -58,6 +58,14 @@ structure and slightly fewer joins than the client rows. The queued pilot
 of the same structures"; it does not read synthesis aimed at joins or at
 structures the clients lack.
 
+Read by hand: 24 kept rows with a join, drawn at random (2,186 of the
+5,434 kept rows have one). In 8 the question asks for something other
+than the SQL returns (a count where the SQL lists rows with `HAVING`, one
+column asked where two or three are returned, the condition and the
+answer swapped); 2 more have SQL that joins on a column that is not a key.
+The base model as question writer is wrong on about a third of the join
+rows, and the pilot trains on these rows as labels.
+
 No decision. Files of the two maps are in the session scratchpad only.
 
 ## 2026-11-16: questions that do not name the gold columns; scan on schema perturbation (local analysis)
