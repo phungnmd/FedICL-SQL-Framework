@@ -64,6 +64,88 @@ schema perturbation is robustness, not EX on the original set. Not
 queued; the pilot (one DPO round, about 4 h, new code) waits for the
 owner and for the synthetic round (`synth_s0`).
 
+## 2026-11-16: method debate between two agents, two short reads queued (owner)
+
+The owner asked for two agents to look for a method that would stand at
+Q3 or Q2 without a contrived setup: one as the PhD student on this paper
+(reads the notes and the committed predictions, told not to trust the
+project's own conclusions), one as an outside researcher (a one-page
+brief and web search only). Three rounds: proposals, criticism of each
+other, final positions. Their files are session scratch and not
+committed; the paper numbers the outside agent quotes were read through a
+summarising page fetch and are not in `LITERATURE.md` yet.
+
+Counts by the inside agent on committed rows (Spider test, `codes`,
+seed 0, no penalty; table sets read with sqlglot):
+
+| | Base | FedAvg R3 | DPO R3 | 7B teacher |
+|---|---:|---:|---:|---:|
+| Wrong, table set differs from gold | 396 | 276 | 226 | 122 |
+| Wrong, same tables, execution error | 80 | 40 | 27 | 43 |
+| Wrong, same tables, wrong result | 260 | 227 | 240 | 252 |
+
+- A wrong table set is the largest class after DPO (about 9 points once
+  the rate of right answers with another table set is taken off) and the
+  only one training moves. EX by number of gold tables: 87.0 / 68.4 /
+  55.2 / 33.3 (one, two, three, four or more).
+- With the gold tables given, at best 147 of those rows turn right (6.85
+  points): rows where a sample or the teacher is right.
+- 15 of the 40 test databases hold 76% of the errors; 91 of the 226
+  table-set errors repeat one confusion three or more times in a database.
+- Doubt on the DPO decision: its SFT controls (`sqlsft_hinton_x1` 74.15,
+  `sqlrft_hinton_r1` 73.50) were decoded with the penalty, which costs SFT
+  rows 1.1 to 1.5 points and DPO rows nothing.
+
+Both agents end on the same two parts and both put Q3 at about 55%
+(Q2 at 12% and 20%):
+
+1. Tables first: the same adapter lists the tables a question needs
+   (labels read from the clients' gold SQL), then writes the SQL on the
+   schema cut to them; two greedy calls. Closest: DTS-SQL, JOLT-SQL
+   (centralized, 7B). Expected +1 to +3.2.
+2. A new site without labels: the adapter also learns SQL to question; a
+   site with databases and no questions builds SQL on them, writes the
+   questions, keeps pairs checked by execution and trains one local round.
+   Closest: GAZP, YORO, SQL-Zero. Its gain shows on the adapted
+   databases, so not on Spider test unless test databases may be used;
+   that and a held-out client as the new site are open owner decisions.
+
+Dropped in the debate: gold SQL mutants as the rejected side, a full plan
+before the SQL, an exchange of failing SQL skeletons between clients, a
+teacher on public join rows, a repair call as more than a component.
+
+Queued after the `codes_v2` FedAvg rounds and before its DPO rounds
+(phase `gate_s0`, about 50 min, `e4f54e3a`): the five control rows of the
+Hinton line without the penalty, and FedAvg R3, DPO round 3 and the base
+model with the schema cut to the gold tables (`--oracle-tables`,
+`236479aa`; arms `*_oracletab_*`, a diagnostic and never a result). On
+all 2,147 test rows the oracle prompt keeps 1.57 of 4.89 tables and
+changes 1,978 prompts.
+
+## 2026-11-16: one DPO round with samples drawn without the repetition penalty
+
+`norp_s0/curve_fedavg` (`f6a2a6a1`, `8a883578`): DPO + NLL round 1 from
+FedAvg R3 of the `codes` line, samples and evaluation without the penalty,
+arm `sqlcodes_npdpo_fedavg_r1_np_vllm_inproc`. Spider test, seed 0.
+
+| Row (evaluated without the penalty) | EX | Execution errors | New row: gained / lost |
+|---|---:|---:|---:|
+| FedAvg R3 | 74.71 | 171 | 99 / 51 |
+| DPO round 1, samples with the penalty | 76.29 | 98 | 46 / 32 |
+| DPO round 3, samples with the penalty | **77.04** | **82** | 45 / 47 |
+| DPO round 1, samples without the penalty | 76.94 | 88 | |
+
+Round 1 pairs, samples with the penalty against without: 6,626 against
+5,280 pairs; questions with all 8 samples right 4,096 against 4,870;
+mean sample accuracy 74.8% against 79.2%; rejected side fails to execute
+4,078 against 3,117, wrong result 2,548 against 2,163.
+
+- The DPO stage keeps its gain with clean samples: +2.23 over FedAvg R3
+  in one round, from fewer pairs.
+- One clean round equals three rounds trained on penalised samples
+  (76.94 against 77.04); whether clean rounds 2 and 3 add more is the
+  `codes_v2` line.
+
 ## 2026-11-16: zero-shot prompt variants and a schema filter without training (local probe, not committed)
 
 Question: the base model is 6.6 below the zero-shot number SPFT-SQL

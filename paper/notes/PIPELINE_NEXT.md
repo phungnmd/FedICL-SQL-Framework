@@ -2,20 +2,22 @@
 
 ## Status
 
-Updated 2026-11-16 at 20:55 (Asia/Ho_Chi_Minh). Last published result:
-`05c22e54` (19:58 on 2026-11-16: the last four of the six rows without
+Updated 2026-11-16 at 23:50 (Asia/Ho_Chi_Minh). Last published result:
+`e141d031` (23:41 on 2026-11-16: the DPO round with samples drawn without
 the repetition penalty). Server work uses drive D only (owner,
 2026-11-15): every command below sets `TEMP` and `TMP` to
 `D:\phungthan\fediclkd\tmp`.
 
-The worker runs the queue of `d042d287`. Two tasks were added behind row 4
-at 20:51 (`3c505c09`, row 5 below): a new script and queue entries only,
-no change to code a running task loads. The worker takes them at its
-next publish task.
+Pushed at 23:44 (`236479aa`, `e4f54e3a`): the evaluation option
+`--oracle-tables` and the tasks of row 3 below. `experiments/eval_arms/run.py`
+changed; without the option its prompts and result keys are the same, so
+the evaluations of the running lines are not affected and nothing has to
+finish first. The worker takes the new queue at its next publish task
+(`synth_s0/publish_build`); no restart.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the queue below, most likely in row 1, `norp_s0/curve_fedavg`, since about 19:58 (not confirmed). | results commit `05c22e54`, 19:58 on 2026-11-16 |
+| 0 | Worker on the queue below, most likely in row 1, `synth_s0/build`, since about 23:41 (not confirmed). | results commit `e141d031`, 23:41 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -33,21 +35,21 @@ Read-only status on the server, from the `fedicl-sql` root:
 Nothing to run. The worker continues on its own; send back any
 `STOP queue` line when it appears.
 
-Next owner action (clock times are estimates from a start of row 1 at
-19:58 on 2026-11-16):
+Next owner action (clock times are estimates from a start of row 2 at
+about 00:05 on 2026-11-17):
 
-- After row 1 (about 23:00 on 2026-11-16): one DPO round whose samples
-  are drawn without the penalty, against FedAvg R3 without it (74.71) and
-  DPO round 1 trained on samples with it (76.29). This says what the DPO
-  stage gives in the clean setup.
-- After row 3 (about 05:40 on 2026-11-17), in the morning: FedAvg R3 with
-  `codes_v2`, and the decision whether rows 4-10 run as queued.
-- After row 4 (about 14:40 on 2026-11-17): the core with `codes_v2`
+- After row 3 (about 07:25 on 2026-11-17), in the morning: FedAvg R3 with
+  `codes_v2` (row 2) and the two short reads of row 3. They decide
+  whether the DPO rounds of row 4 continue or a table-selection step is
+  tried first (`LAB_LOG.md`, 2026-11-16, method debate). Row 4 starts on
+  its own after row 3; stopping it is Ctrl+C on the worker and loses at
+  most the step in progress.
+- After row 4 (about 16:25 on 2026-11-17): the core with `codes_v2`
   without the penalty.
-- After row 8 (about 22:40 on 2026-11-17): the vote label check and the
+- After row 8 (about 00:25 on 2026-11-18): the vote label check and the
   two mechanism pilots, then the decision on the mechanism
   (`RESEARCH_STATE.md` section 5, item 9).
-- After row 9 (about 05:40 on 2026-11-18) and row 10 (about 12:10 on
+- After row 9 (about 07:25 on 2026-11-18) and row 10 (about 14:00 on
   2026-11-18): centralized SFT, FedAvg with 20 clients.
 
 ## Running and queued
@@ -58,9 +60,9 @@ row published so far was decoded with 1.1.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `norp_s0/curve_fedavg` | Does the DPO stage still gain when its samples are drawn without the penalty? One DPO + NLL round from FedAvg R3 of the `codes` line, its own root, evaluated without the penalty (`sqlcodes_npdpo_fedavg_r1_np_vllm_inproc`). Comparators without the penalty: FedAvg R3 74.71, DPO round 1 trained on samples with it 76.29 | 3 h | running (most likely) |
-| 2 | `synth_s0/build`, `publish_build` | The synthetic rows written without the penalty: per client 1,200 SQL queries refilled on its own databases, a question for each by the base model; a new root | 0.2 h | queued |
-| 3 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2`, each round on Spider test without the penalty. Comparator: FedAvg R3 with `codes` without the penalty, 74.71 | 6.5 h | queued |
+| 1 | `synth_s0/build`, `publish_build` | The synthetic rows written without the penalty: per client 1,200 SQL queries refilled on its own databases, a question for each by the base model; a new root | 0.2 h | running (most likely) |
+| 2 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2`, each round on Spider test without the penalty. Comparator: FedAvg R3 with `codes` without the penalty, 74.71 | 6.5 h | queued |
+| 3 | `gate_s0/*` (5 control evaluations, 3 oracle evaluations, 2 publish tasks) | Two short reads, evaluation only. (1) Does a DPO round still beat one more SFT round at the same decoding? `hinton_k2aaa_a3`, its DPO round 1, its NLL-only round and its two extra SFT rounds, `full` prompts, without the penalty (with it: 73.31, 75.69, 73.50, 74.15, 72.99). (2) How much would a perfect table-selection step give? FedAvg R3 and DPO round 3 of the `codes` line and the base model (`codes_v2`) with the schema cut to the tables of the gold SQL, arms `*_oracletab_*`; comparators 74.71, 77.04, 65.72. A diagnostic, never a result | 0.8 h | queued |
 | 4 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt and no penalty: 3 DPO + NLL rounds from that R3 | 9 h | queued |
 | 5 | `vote_s0/check`, `xsel_dpo_r3` and their publish tasks | Two short reads of the line of row 4. (1) How often does a vote over a question's 8 samples agree with the gold labels, and how many vote-labelled pairs are right? Samples of DPO rounds 1-3, CPU, no training: the first number for clients with few labelled questions. (2) Selection by execution over 8 samples of DPO round 3 on Spider test: the vote and pass@8 without the penalty | 0.5 h | queued |
 | 6 | `peer_s0/check`, `publish_check` | The peer adapter check on the line of row 4, at its DPO round 3. No training | 0.5 h | queued |
@@ -69,24 +71,30 @@ row published so far was decoded with 1.1.
 | 9 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs, `codes_v2`, then epoch 3 on Spider test without the penalty. Comparator: FedAvg R3 of row 3 | 7 h | queued |
 | 10 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split, `codes` prompts, each round on Spider test without the penalty. Comparator: 74.71 (5 clients, `codes`, without the penalty) | 6.5 h | queued |
 
-Rows 1-10 take about 40.2 h. Rows 1-2 and 5-8 run code that has not run
-on the server in this form (DPO samples without the penalty, the vote
-label check, the pilots on a new line); the time of the vote label check
-is not measured. Row 3 is a new prompt style in training: its first batch
-and the peak reserved of round 1 are the memory check (prompts are
-shorter than `codes`: mean 880 tokens, longest 6,444). Row 7 samples up
-to about 14,200 questions instead of 8,659.
+Rows 1-10 take about 38 h. Rows 1, 3 and 5-8 run code that has not run
+on the server in this form (the synthetic rows without the penalty, the
+oracle prompts, the vote label check, the pilots on a new line); the
+time of the vote label check is not measured. Row 2 is a new prompt
+style in training: its first batch and the peak reserved of round 1 are
+the memory check (prompts are shorter than `codes`: mean 880 tokens,
+longest 6,444). Row 7 samples up to about 14,200 questions instead of
+8,659.
 
 Cut from a full run:
 
 - Every row is seed 0.
-- Six existing rows are evaluated without the penalty (`LAB_LOG.md`). The
-  other committed rows (the Hinton and gold lines, seed 1, the other test
-  sets, FedProx, FedNTD, centralized) are not; each is about 6 min and
-  needs no training.
-- Row 1 is one round on the `codes` line, which keeps its FedAvg rounds
-  (training does not decode). The 3-round line without the penalty is
-  row 4, on `codes_v2`.
+- Six existing rows are evaluated without the penalty (`LAB_LOG.md`), and
+  row 3 adds five of the Hinton line. The other committed rows (the rest
+  of the Hinton line, the gold line, seed 1, the other test sets,
+  FedProx, FedNTD, centralized) are not; each is about 6 min and needs no
+  training.
+- Row 3, part 1, reads the existing control adapters again; a fair
+  control of three SFT rounds against three DPO rounds on the `codes_v2`
+  line (about 6.5 h) is not queued. Part 2 is an upper bound with the gold
+  tables; the step itself (a round that also learns to list tables, about
+  3 to 4 h, new code) is not queued.
+- The 3-round DPO line without the penalty is row 4, on `codes_v2`; the
+  `codes` line has one such round (76.94, `LAB_LOG.md`).
 - Row 5 counts label agreement only; a DPO line trained on vote labels
   with few labelled questions per client (about 6 h) is not queued.
 - Row 6 measures candidates only; training with a peer sample as the
