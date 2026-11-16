@@ -50,6 +50,34 @@ Proposed, not approved: evaluate the base model, FedAvg R3 and DPO round 3
 new arm names; existing results keep their identities). Script and rows of
 the probe are in the session scratchpad only.
 
+## 2026-11-16: FedAvg R3 and DPO round 3 of the `codes` line without the repetition penalty
+
+`456d1fea` (19:47 on 2026-11-16), arms `sqlcodes_fedavg_r3_np_vllm_inproc`
+and `sqlcodes_dpo_fedavg_r3_np_vllm_inproc`: the committed adapters,
+Spider test, 2,147 rows, seed 0, vLLM inproc, `--repetition-penalty 1.0`.
+The worker was restarted on the new queue before 19:47 (time not
+reported).
+
+| `codes` line, Spider test | EX, penalty 1.1 | Errors | EX, no penalty | Errors |
+|---|---:|---:|---:|---:|
+| FedAvg R3 | 73.17 | 205 | 74.71 | 171 |
+| DPO round 3 | **77.36** | 86 | **77.04** | **82** |
+| DPO round 3 over FedAvg R3 | +4.19 | | +2.33 | |
+
+- FedAvg R3 gains 1.54 points without the penalty (74 questions gained,
+  41 lost, p = 0.003) and loses 34 execution errors. By hardness the gain
+  is on medium (75.4 to 77.8) and hard (65.2 to 68.7).
+- DPO round 3 does not move (42 gained, 49 lost, p = 0.53). Its samples
+  were drawn with the penalty, so the rounds trained the model to give
+  executable SQL under it.
+- The DPO stage keeps a gain without the penalty: +2.33 (115 gained, 65
+  lost, p < 0.001), against +4.19 with it. About 1.9 points of the
+  reported gain were the penalty's cost on the SFT model, which DPO
+  removed.
+- Open until the next rows: what DPO gives when its samples are drawn
+  without the penalty (`norp_s0/curve_fedavg`), and the base model, DPO
+  round 1 and the `full` pair.
+
 ## 2026-11-16: the repetition penalty: checks first, new lines decode without it (owner)
 
 Owner at about 18:10 on 2026-11-16: the repetition penalty of 1.1 lowers

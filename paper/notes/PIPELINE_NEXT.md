@@ -2,19 +2,18 @@
 
 ## Status
 
-Updated 2026-11-16 at 19:37 (Asia/Ho_Chi_Minh). Last published result:
-`31379f82` (19:23 on 2026-11-16: the synthetic questions of the `codes`
-line). Server work uses drive D only (owner, 2026-11-15): every command
-below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-16 at 19:55 (Asia/Ho_Chi_Minh). Last published result:
+`456d1fea` (19:47 on 2026-11-16: FedAvg R3 and DPO round 3 of the `codes`
+line without the repetition penalty). Server work uses drive D only
+(owner, 2026-11-15): every command below sets `TEMP` and `TMP` to
+`D:\phungthan\fediclkd\tmp`.
 
-The worker runs the queue of `091415a1`. A new queue and code were pushed
-at 19:33 (`d042d287`): the repetition penalty checks first. The worker
-takes a new queue only at its next publish task, which comes after the
-round it is in (about 3.5 h), so the steps of "Run now" stop it.
+The worker runs the queue of `d042d287` (the result commit of 19:47 is a
+task of that queue).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the earlier queue. Most likely in `synth_s0/round_synth` (the DPO round with synthetic questions on the `codes` line, with the repetition penalty) since about 19:23 (not confirmed). | results commit `31379f82`, 19:23 on 2026-11-16 |
+| 0 | Worker on the queue below, in the second half of row 1 (`norp_s0/eval_base` and the three evaluations after it) since about 19:47 (not confirmed). | results commit `456d1fea`, 19:47 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -29,55 +28,36 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-All from the `fedicl-sql` root on the server.
+Nothing to run. The worker continues on its own; send back any
+`STOP queue` line when it appears.
 
-1. Stop the worker: Ctrl+C in the window of the GPU 0 worker. It stops
-   `synth_s0/round_synth`; the files that round wrote stay on disk and
-   the new queue does not use them (its rounds have their own roots).
+Next owner action (clock times are estimates for a start of row 1 at
+19:25 on 2026-11-16):
 
-2. Pull the new queue and code, and run the tests (about 2 min):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py tests/test_synthesis.py tests/test_peer_check.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-3. Start the worker. It begins with `norp_s0/eval_fedavg_r3`:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
-
-Send back: any `STOP queue` line. The results arrive as commits; nothing
-else to send.
-
-Next owner action (clock times are estimates for a start at 19:50 on
-2026-11-16):
-
-- After row 1 (about 21:05): the rows without the repetition penalty
-  against the committed rows with it. The first two (FedAvg R3 and DPO
-  round 3 of the `codes` line) are published about 25 min after the
-  start.
-- After row 2 (about 00:05 on 2026-11-17): one DPO round whose samples
+- After row 1 (about 20:30): the base model, DPO round 1 and the `full`
+  pair without the repetition penalty. FedAvg R3 and DPO round 3 of the
+  `codes` line are published.
+- After row 2 (about 23:30 on 2026-11-16): one DPO round whose samples
   are drawn without the penalty, against FedAvg R3 without it. This says
   whether the DPO stage still gains.
-- After row 4 (about 06:45 on 2026-11-17), in the morning: FedAvg R3 with
+- After row 4 (about 06:15 on 2026-11-17), in the morning: FedAvg R3 with
   `codes_v2`, and the decision whether rows 5-9 run as queued.
-- After row 5 (about 15:45 on 2026-11-17): the core with `codes_v2`
+- After row 5 (about 15:15 on 2026-11-17): the core with `codes_v2`
   without the penalty.
-- After row 8 (about 23:15 on 2026-11-17): the two mechanism pilots, then
+- After row 8 (about 22:45 on 2026-11-17): the two mechanism pilots, then
   the decision on the mechanism (`RESEARCH_STATE.md` section 5, item 9).
-- After row 9 (about 06:15 on 2026-11-18) and row 10 (about 12:45 on
+- After row 9 (about 05:45 on 2026-11-18) and row 10 (about 12:15 on
   2026-11-18): centralized SFT, FedAvg with 20 clients.
 
 ## Running and queued
 
-GPU 0 in queue order, after the restart of "Run now". Durations are
+GPU 0 in queue order. Durations are
 estimates. "Without the penalty" means `--repetition-penalty 1.0`; every
 row published so far was decoded with 1.1.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `norp_s0/eval_fedavg_r3`, `eval_dpo_r3`, `publish_core`, `eval_base`, `eval_dpo_r1`, `eval_full_fedavg_r3`, `eval_full_dpo_r3`, `publish_rest` | How much does the repetition penalty cost at evaluation? Existing adapters on Spider test without it, arms with `_np`. Comparators with the penalty: FedAvg R3 73.17, DPO rounds 1 and 3, 76.62 and 77.36 (`codes`); the base model 61.95 (`codes_v2`); FedAvg R3 71.26 and DPO round 3 from it 75.13 (`full`) | 1.25 h | queued |
+| 1 | `norp_s0/eval_fedavg_r3`, `eval_dpo_r3`, `publish_core`, `eval_base`, `eval_dpo_r1`, `eval_full_fedavg_r3`, `eval_full_dpo_r3`, `publish_rest` | How much does the repetition penalty cost at evaluation? Existing adapters on Spider test without it, arms with `_np`. Comparators with the penalty: FedAvg R3 73.17, DPO rounds 1 and 3, 76.62 and 77.36 (`codes`); the base model 61.95 (`codes_v2`); FedAvg R3 71.26 and DPO round 3 from it 75.13 (`full`) | 1.25 h | running (first two published) |
 | 2 | `norp_s0/curve_fedavg` | Does the DPO stage still gain when its samples are drawn without the penalty? One DPO + NLL round from FedAvg R3 of the `codes` line, its own root, evaluated without the penalty (`sqlcodes_npdpo_fedavg_r1_np_vllm_inproc`). Comparators: FedAvg R3 and DPO round 1 without the penalty, from row 1 | 3 h | queued |
 | 3 | `synth_s0/build`, `publish_build` | The synthetic rows written without the penalty: per client 1,200 SQL queries refilled on its own databases, a question for each by the base model; a new root | 0.2 h | queued |
 | 4 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2`, each round on Spider test without the penalty. Comparators: FedAvg R3 of row 1 | 6.5 h | queued |
@@ -121,7 +101,7 @@ Not queued yet:
 
 - The mechanism pilots on the `codes` line with the penalty: the peer
   check and the synthetic rows are published; the DPO round with
-  synthetic questions is stopped in step 1 of "Run now" and its plain
+  synthetic questions was stopped at the restart and its plain
   comparator did not start. Both rounds now run on the line of row 5.
 - Other mechanism candidates (`RESEARCH_STATE.md` section 5, item 9):
   clients with few labelled questions and vote labels for the rest (about

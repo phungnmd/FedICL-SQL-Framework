@@ -359,11 +359,15 @@ Both seeds pooled, clustered by question (95% interval):
     names the SQL has to copy from the schema are penalized. It may
     account for part of the execution errors (352 of the base model's 377
     are `no such column`) and for part of what the DPO stage gains, since
-    that gain is in executable SQL (section 4). A local check on 200
-    Spider test questions (base model, `codes_v2`, HF) gives 65.5 with the
-    penalty and 71.0 without, execution errors 37 and 25; no committed row
-    yet. Queued first: the existing adapters on Spider test without the penalty (base,
-    FedAvg R3, DPO rounds 1 and 3 with `codes`; FedAvg R3 and DPO round 3
+    that gain is in executable SQL (section 4). Measured on the `codes`
+    line, Spider test, seed 0 (`456d1fea`): without the penalty FedAvg R3
+    goes from 73.17 to 74.71 (execution errors 205 to 171) and DPO round
+    3 from 77.36 to 77.04 (86 to 82, no difference). The DPO stage gains
+    +2.33 without the penalty against +4.19 with it: about 1.9 points of
+    the reported gain were the penalty's cost on the SFT model. The DPO
+    adapters were trained on samples drawn with the penalty. Queued: the
+    other existing adapters without the penalty (base, DPO round 1 with
+    `codes`; FedAvg R3 and DPO round 3
     with `full`), then one DPO round from FedAvg R3 with samples drawn
     without it. New lines decode without the penalty; whether the numbers
     of section 4 are rerun depends on these rows.
