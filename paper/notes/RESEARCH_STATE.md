@@ -479,13 +479,14 @@ not queued: DPO with result-vote labels for 3 rounds.
 
 Since 2026-11-17 the method direction is open again (section 5, items 12
 and 13): the preference term adds about one point of its own and a
-table-selection step is bounded at 3.3. The queue (`a5a204b5`) holds, in
-order: the 3 FedAvg rounds with `codes_v2` (running), the read of
-supervised training on verified synthetic rows (`synv_s0`: one FedAvg SFT
-round from FedAvg R3 with the kept rows against the same round without
-them), the 3 DPO rounds with `codes_v2`, the vote label check,
-centralized SFT, and the FedAvg half of F1. The peer adapter check and
-the DPO round on synthetic rows left the queue. `synv_s0` is the next
+table-selection step is bounded at 3.3. The queue (`0ffbc372`) holds, in
+order: the read of supervised training on verified synthetic rows on
+the `codes` line (`synvc_s0`: one FedAvg SFT round from FedAvg R3 with
+the kept rows against the same round without them), the 3 FedAvg rounds
+with `codes_v2`, the same read on that line (`synv_s0`), the 3 DPO rounds
+with `codes_v2`, the vote label check, centralized SFT, and the FedAvg
+half of F1. The peer adapter check and
+the DPO round on synthetic rows left the queue. `synvc_s0` is the next
 read for the direction. Run commands, live-state provenance and
 estimates are in `PIPELINE_NEXT.md`.
 

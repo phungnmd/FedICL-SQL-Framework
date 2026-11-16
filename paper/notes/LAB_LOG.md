@@ -3,6 +3,22 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: the synthetic-row read first, on the `codes` line (owner)
+
+Owner (2026-11-17): the reads that decide the direction go ahead of the
+running FedAvg rounds. The read below needs a FedAvg R3 adapter, so it
+cannot start from the `codes_v2` line before its rounds end; it is queued
+first on the finished `codes` line instead (`0ffbc372`, phase `synvc_s0`,
+the same five steps, `codes` prompts, without the penalty). From that
+adapter the comparators exist at the same decoding: FedAvg R3 74.71 and
+one DPO + NLL round on samples without the penalty 76.94. The `codes_v2`
+rounds stop at the restart and continue after it; the `codes_v2` form of
+the read (`synv_s0`) stays queued after them. Checked: resolved commands
+against the recipe of the `codes` line (prompt style, penalty, length
+limit, LoRA recipe); none of the 5,434 synthetic rows is above 7,680
+tokens with `codes` prompts; the three GPU commands resolve the `codes`
+FedAvg R3 row locally.
+
 ## 2026-11-17: read of supervised training on verified synthetic rows queued (owner)
 
 Owner (2026-11-17, after the literature map below): update the queue, and
