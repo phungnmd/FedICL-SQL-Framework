@@ -50,6 +50,27 @@ Proposed, not approved: evaluate the base model, FedAvg R3 and DPO round 3
 new arm names; existing results keep their identities). Script and rows of
 the probe are in the session scratchpad only.
 
+## 2026-11-16: vote label check and selection by execution queued (owner)
+
+Owner at about 20:40 on 2026-11-16: yes to two short reads behind the DPO
+rounds of the `codes_v2` line. Code `3c6f849a`, queue `3c505c09`.
+
+- `vote_s0/check` (`scripts/vote_label_check.py`, CPU): the samples of
+  DPO rounds 1-3 labelled by a vote over execution results, against the
+  recorded gold labels: how often the vote winner is right, how many
+  vote-labelled pairs have a right chosen side and a wrong rejected side,
+  and both when a question is used only above a vote size. The first
+  number for candidate C (clients with few labelled questions). After
+  the peer check of the `codes` line, B is the only queued candidate with
+  a role for federation, and it leans negative.
+- `vote_s0/xsel_dpo_r3`: selection by execution over 8 samples of DPO
+  round 3 on Spider test without the penalty (vote, pass@8).
+
+Not queued, to decide from results: the rejected-type ablation with
+samples drawn without the penalty (about 3.5 h), the control with equal
+pair counts for the synthetic round (about 3 h), the baselines and other
+earlier rows evaluated without the penalty (about 6 min a row).
+
 ## 2026-11-16: the six existing rows without the repetition penalty
 
 `456d1fea` (19:47) and `05c22e54` (19:58 on 2026-11-16): committed

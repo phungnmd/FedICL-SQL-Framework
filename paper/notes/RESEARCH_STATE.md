@@ -336,7 +336,9 @@ Both seeds pooled, clustered by question (95% interval):
      check runs again on the line without the penalty. The training pilot
      (about 3 GPU h) is not queued.
    - C, clients with few labelled questions and vote labels for the rest
-     (changes the data assumption, about 6 GPU h); D, a hint for questions
+     (changes the data assumption, about 6 GPU h). Queued: a CPU count of
+     how often vote labels agree with gold labels on the samples of the
+     `codes_v2` DPO rounds. D, a hint for questions
      no sample solves; E, a CPU count of samples that pass by accident, on
      mutated databases. Not queued.
 
