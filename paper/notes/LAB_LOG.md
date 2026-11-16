@@ -3,6 +3,38 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: literature pass on server warm start and KD between rounds; vote of the five client adapters
+
+A literature pass (about 25 papers: warm start, FedDF family, LLM-to-SLM
+co-tuning, LoRA aggregation, federated Text-to-SQL; several read as
+abstracts only) found no published server step that fits the setup and is
+not already covered by a run here. The published gains rest on training
+from scratch, strong client drift, public data from the clients' own
+distribution, or DP noise. Three ideas were kept for the owner:
+
+1. A Hinton KD step between FedAvg R3 and DPO on SynSQL rows that the
+   federated student gets wrong and the teacher gets right (closest:
+   arXiv 2305.12132, selection of public rows with a federated checkpoint).
+   About 8 h for a one-round gate. Not queued.
+2. The queued server DPO gate, read as a replacement for a client round.
+3. FedDF-type fusion (distill the client ensemble into the averaged
+   adapter on public prompts, arXiv 2006.07242), for F1 only.
+
+Check for idea 3, CPU analysis of committed predictions (script not
+committed; results compared with a 10 s budget and sorted rows, not the
+official evaluator), DPO round 1 of the Hinton line, `full`, Spider test:
+
+| | EX |
+|---|---|
+| Client adapters 1 to 5 | 75.36 / 75.50 / 74.66 / 74.24 / 75.08 |
+| Averaged adapter | 75.69 |
+| Result vote of the five | 76.85 |
+| Any of the five right | 80.95 |
+
+The five client adapters agree on one result for 1,682 of 2,147 questions.
+The vote is 1.16 above the average: that is the most a fusion step could
+recover with 5 clients.
+
 ## 2026-11-16: audit of the `codes` prompt against CodeS (arXiv 2402.16347)
 
 Read-only audit of `fedicl_sql/data/spider.py` against the paper and the
