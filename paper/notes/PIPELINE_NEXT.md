@@ -4,7 +4,7 @@
 
 Updated 2026-11-17 at 01:38 (Asia/Ho_Chi_Minh). Last published result:
 `32497b51` (00:13 on 2026-11-17: the control rows without the repetition
-penalty). Queue and code: `0ffbc372` (pushed 01:35 on 2026-11-17). Server
+penalty). Queue and code: `5b1681af` (pushed 01:48 on 2026-11-17; it adds row 7 only). Server
 work uses drive D only (owner, 2026-11-15): every command below sets
 `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
@@ -73,10 +73,11 @@ decoded with 1.1.
 | 4 | `synv_s0/*` | Rows 1-2 again on the `codes_v2` line, from the FedAvg R3 of row 3. Arms `sqlcv2_sftsyn_x1_np_vllm_inproc`, `sqlcv2_sft_x1_np_vllm_inproc` | 6.4 h | queued |
 | 5 | `sqlcv2_s0/curve_fedavg` | The DPO + NLL rounds with the corrected prompt and no penalty: 3 rounds from the R3 of row 3 | 9 h | queued |
 | 6 | `vote_s0/check`, `xsel_dpo_r3` and their publish tasks | Two short reads of the line of row 5. (1) How often does a vote over a question's 8 samples agree with the gold labels? Samples of DPO rounds 1-3, CPU, no training. (2) Selection by execution over 8 samples of DPO round 3 on Spider test: the vote and pass@8 without the penalty | 0.5 h | queued |
-| 7 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs, `codes_v2`, then epoch 3 on Spider test without the penalty. Comparator: FedAvg R3 of row 3 | 7 h | queued |
-| 8 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split, `codes` prompts, each round on Spider test without the penalty. Comparator: 74.71 (5 clients, `codes`, without the penalty) | 6.5 h | queued |
+| 7 | `sqlcv2_s0/curve_hinton_sft`, `curve_hinton` | What does the server stage (teacher on public data) add to the method with the corrected prompt and no penalty? From the seed 0 Hinton server stage on BIRD (existing adapter, trained with `full` prompts): 3 FedAvg SFT rounds, then 3 DPO + NLL rounds, `codes_v2` at the clients, each round on Spider test. Arms `sqlcv2_hinton_k2aaa_a{1,2,3}_np_vllm_inproc`, `sqlcv2_dpo_hinton_r{1,2,3}_np_vllm_inproc`. Comparators: the same rounds of rows 3 and 5 | 15.5 h | queued |
+| 8 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs, `codes_v2`, then epoch 3 on Spider test without the penalty. Comparator: FedAvg R3 of row 3 | 7 h | queued |
+| 9 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split, `codes` prompts, each round on Spider test without the penalty. Comparator: 74.71 (5 clients, `codes`, without the penalty) | 6.5 h | queued |
 
-Rows 1-8 take about 41 h. Rows 1, 2 and 4 run code that has not run on
+Rows 1-9 take about 56 h. Rows 1, 2 and 4 run code that has not run on
 the server (`collect` as its own task, `scripts/synth_verify.py`, an SFT
 stage on a split with synthetic rows); the time of `collect` is not
 measured. It samples 14,093 questions instead of 8,659. The round with
@@ -89,6 +90,9 @@ decided after rows 1-2 are read.
 Cut from a full run:
 
 - Every row is seed 0.
+- Row 7 starts from the server stage trained with `full` prompts; a stage
+  retrained with `codes_v2` prompts (new teacher logits on BIRD and about
+  7 h of training) is not queued.
 - Rows 1, 2 and 4 are a short form of verification-based synthesis (SPFT-SQL,
   arXiv 2509.03937). Cut: the questions come from the base model, not from
   a SQL-to-text model trained by the clients (one federated round, about

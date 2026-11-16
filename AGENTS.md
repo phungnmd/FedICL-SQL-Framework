@@ -65,12 +65,21 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   Spider test (2,147 rows); Spider dev is skipped or reported only as a
   secondary diagnostic. Choices are made on Spider test, so it is never
   called held-out (honesty rule below).
-- Method first (owner, 2026-11-16): until the owner fixes the method, runs
-  are experiments to choose it, not paper numbers. Judge and explain a run
-  by what it tells about the method. Do not argue from what a reviewer
-  would ask or from what a paper table needs (seeds, baselines, matched
-  controls) unless the owner asks; the full number runs come after the
-  method is fixed.
+- Method (owner, 2026-11-17): fixed as three stages, with the story in
+  `RESEARCH_STATE.md`, section 3: the server stage on public data with the
+  teacher, FedAvg SFT at the clients, federated DPO with execution labels
+  at the clients. The decision of 2026-11-16 that took the server stage and
+  the teacher out of the method is withdrawn. A part belongs to the method
+  only when it has a place in the story and a shown effect in the final
+  setup; a part without one is an analysis row or is dropped, and nothing
+  is added only because it raises a number. Further parts (synthetic rows
+  checked at the clients) join under the same condition.
+- Strictness is the reviewer's work (owner, 2026-11-16 and 2026-11-17):
+  do not weaken or drop a part of the method on an argument a reviewer
+  might make (a control that explains part of a gain, a baseline that could
+  be stronger, a mechanism that is already published) unless the owner
+  asks for that judgement ("Judging the Q3 bar" below). Report what a
+  control shows and keep the part when its effect is real.
 - What accepted papers do is open to us (owner, 2026-11-17): the aim is a
   paper that reads well, and a choice that published papers in the area
   make (the model, the baselines shown, the training sets, voting or more

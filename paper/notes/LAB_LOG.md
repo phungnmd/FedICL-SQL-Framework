@@ -3,6 +3,45 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: method fixed as three stages, server stage back in (owner)
+
+Owner (2026-11-17): the aim is a paper that reads well; what published
+papers do is open to us, and being strict is the reviewer's work. A part
+of the method still needs a place in the story and a shown effect; no
+pile of parts. On that reading the decision of 2026-11-16 (server stage
+and teacher out of the method) is withdrawn and the method is fixed.
+
+Where earlier choices had been stricter than published practice:
+
+| Choice here | Published practice | What we hold |
+|---|---|---|
+| a new mechanism required on top of the recipe | CodeLutra is iterative DPO + SFT alone | stage 3 as measured |
+| server stage dropped because the teacher's own part is about one point | SPFT-SQL trains on Spider and BIRD, OmniSQL adds SynSQL; both count as method | FedAvg R3 +2.12 before DPO, +1.40 after (two seeds pooled); Spider dev +3.53, DK +4.11, BIRD dev +11.38 after DPO |
+| only Spider test read | several benchmarks reported | method over FedAvg R3: +5.3 (Realistic) to +12.0 (DK), seed 0 |
+| gain read against the hardest control | gain read against the base model and SFT | method over FedAvg R3 +5.31 on Spider test (two seeds pooled, +4.06 to +6.56) |
+| one greedy call | SLM-SQL reports its main rows with a vote | the method with a vote over 8 samples: 78.39 (+1.68) |
+
+The numbers in the last column are `full` prompts with the repetition
+penalty (`RESEARCH_STATE.md`, section 4); the method's row has not been
+evaluated without the penalty.
+
+Method and story: `RESEARCH_STATE.md`, section 3. Each side's supervision
+is used where it lives: the teacher's on public data at the server, the
+labels and the databases at the clients; only the adapter moves.
+
+Queued (`5b1681af`): the method's line in the final setup,
+`sqlcv2_s0/curve_hinton_sft` and `curve_hinton`, 3 FedAvg SFT rounds and
+3 DPO + NLL rounds with `codes_v2` prompts and no penalty from the seed 0
+Hinton server stage (existing adapter, trained with `full` prompts, the
+start of the `codes` line of 2026-11-16), each round on Spider test;
+about 15.5 h, after the `codes_v2` DPO rounds. The resolved commands
+match those of `sqlcv2_s0/fedavg_sft` and `sqlcv2_s0/fedavg` in prompt
+style, decoding, length limit and LoRA recipe; the entry point differs
+(`stage private` from a parent row against `run --arm fedavg` from the
+base model), as on the `codes` lines. Not queued: the same line from the
+gold stage (the teacher's own part in the final setup), a server stage
+retrained with `codes_v2` prompts.
+
 ## 2026-11-17: the synthetic-row read first, on the `codes` line (owner)
 
 Owner (2026-11-17): the reads that decide the direction go ahead of the
