@@ -71,6 +71,17 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   would ask or from what a paper table needs (seeds, baselines, matched
   controls) unless the owner asks; the full number runs come after the
   method is fixed.
+- What accepted papers do is open to us (owner, 2026-11-17): the aim is a
+  paper that reads well, and a choice that published papers in the area
+  make (the model, the baselines shown, the training sets, voting or more
+  than one call at inference, the benchmarks reported) is an option here
+  too. Do not rule an option out, or advise against it, only because it is
+  not the strictest design or because a reviewer could call a baseline
+  weak; name the paper that does the same and what the choice costs, and
+  let the owner decide. This includes the student model:
+  Qwen2.5-Coder-1.5B is the default, and another student, in its place or
+  beside it, is an option to propose when it gives a clearer result. The
+  hard rules below (honesty, data roles) are not loosened by this.
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
   what differs; never claim "first" and never hide the closest prior work.
