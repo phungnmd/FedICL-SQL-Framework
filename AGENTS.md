@@ -11,6 +11,66 @@ started inside `fedicl-sql/`, and any agent on the GPU server (which holds only
 `fedicl-sql/`), does not read this file, so code and GPU rules must also live
 there. Claude Code started locally inside `fedicl-sql/` loads both files.
 
+## Read this first: aim for a good paper, do not be stricter than asked
+
+Owner, 2026-11-17. Before this date agents argued parts out of the method
+and options off the table on grounds nobody had asked for, and it cost the
+owner many days. These rules come before the defaults and before an agent's
+own caution. Only the hard rules (honesty, data roles, GPU, server) rank
+above them.
+
+1. The aim is a paper that reads well and is accepted at the target
+   journals: a method with a clear story and a visible effect. It is not the
+   strictest possible experiment design.
+2. Being strict is the reviewer's work. Do not weaken, shrink or drop a part
+   of the method, and do not advise against an option, on an argument a
+   reviewer might make: "a control explains part of the gain", "this is
+   already published", "the baseline could be stronger", "it only adds one
+   point". Report what a control shows, keep the part when its effect is
+   real, and give a reviewer's judgement only when the owner asks for one.
+3. What accepted papers do is open to us: the student model (another one in
+   place of or beside Qwen2.5-Coder-1.5B), the baselines shown, the training
+   sets, voting or more than one call at inference, the benchmarks reported,
+   the comparison a gain is stated against. When an option matches published
+   practice, present it as available: name the paper that does the same and
+   what it costs here, and let the owner decide.
+4. A published mechanism adapted to this setting is enough novelty. Do not
+   make "a mechanism of our own" a condition for the method, and do not keep
+   searching for one while the method stands.
+5. Read a result the way papers present theirs: against the base model and
+   the federated baselines, on every benchmark we evaluate. The hardest
+   control and the weakest single number belong in the ablation, not in the
+   verdict on the method.
+6. No pile of parts either: a part belongs to the method only with a place
+   in the story and a shown effect in the final setup. Nothing is added only
+   because it raises a number.
+7. A search for ideas or literature starts from the task, not from the
+   pipeline we have. Cover method families we have not tried, and include a
+   pass by an agent that gets only the generic problem and does not read the
+   project. Earlier rounds looked only at neighbours of the current line.
+8. A reviewer's judgement, when the owner asks for one, is calibrated to the
+   target journals: read what they published recently (kind of contribution,
+   number of datasets, baselines and seeds, size of the gain) and judge
+   against that, not against top machine-learning conferences.
+9. A short run that decides the direction goes ahead of long runs. Do not
+   leave the owner waiting on a long line for a question an hour answers.
+10. An earlier decision is an input, not a wall. When a rule, a decision or
+    an agent's reading of it blocks something that would make the paper
+    better, say so with the numbers and ask; the owner changes decisions.
+
+What this cost before the rule, as examples of what not to repeat:
+
+- The server stage and the teacher were taken out of the method on
+  2026-11-16 because the teacher's own part was about one point; they came
+  back on 2026-11-17.
+- "A mechanism of its own" was required on top of a recipe that a published
+  paper presents alone; five candidates, a debate and several runs followed.
+- Gains were read on Spider test against the hardest control only (+0.9),
+  while the method stood +5.3 over FedAvg on two seeds and +5 to +12 on the
+  other sets.
+- One student model and one greedy call were treated as limits; published
+  papers use several models and voting.
+
 ## Fresh start (owner, 2026-11-05)
 
 The project restarted on 2026-11-05. Earlier work falls in three groups
@@ -49,8 +109,9 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
 
 - Fixed (owner): the topic (federated Text-to-SQL, an SLM trained by clients
   and deployed alone) and the setup (Qwen2.5-Coder-1.5B-Instruct student,
-  5 Spider clients on the `alpha_0.1/k5` split). Available at the server, use
-  optional: a frozen Qwen2.5-Coder-7B-Instruct teacher and BIRD train with
+  5 Spider clients on the `alpha_0.1/k5` split; this is the default setup,
+  and another student model or setting may be proposed under rule 3 of
+  "Read this first"). Available at the server: a frozen Qwen2.5-Coder-7B-Instruct teacher and BIRD train with
   evidence as public data; SynSQL-2.5M may replace or join it at the server
   (owner, 2026-11-07).
 - If the teacher is used, it runs only at the server, on public data. Clients
@@ -60,7 +121,8 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
 - Goal (owner, 2026-11-06): a method that clearly beats the federated
   baselines on the clients' domain. The teacher is an option, not a
   requirement; a method without it is acceptable if it is strong enough.
-- Open: the method and the metrics. Propose them from the task itself.
+- Open: the metrics, the title, and parts that may still join the method.
+  Propose them from the task itself.
 - Spider metric (owner, 2026-11-07): every Spider number from now on is
   Spider test (2,147 rows); Spider dev is skipped or reported only as a
   secondary diagnostic. Choices are made on Spider test, so it is never
@@ -73,31 +135,16 @@ fixed setup and open choices: `paper/notes/RESEARCH_STATE.md`.
   only when it has a place in the story and a shown effect in the final
   setup; a part without one is an analysis row or is dropped, and nothing
   is added only because it raises a number. Further parts (synthetic rows
-  checked at the clients) join under the same condition.
-- Strictness is the reviewer's work (owner, 2026-11-16 and 2026-11-17):
-  do not weaken or drop a part of the method on an argument a reviewer
-  might make (a control that explains part of a gain, a baseline that could
-  be stronger, a mechanism that is already published) unless the owner
-  asks for that judgement ("Judging the Q3 bar" below). Report what a
-  control shows and keep the part when its effect is real.
-- What accepted papers do is open to us (owner, 2026-11-17): the aim is a
-  paper that reads well, and a choice that published papers in the area
-  make (the model, the baselines shown, the training sets, voting or more
-  than one call at inference, the benchmarks reported) is an option here
-  too. Do not rule an option out, or advise against it, only because it is
-  not the strictest design or because a reviewer could call a baseline
-  weak; name the paper that does the same and what the choice costs, and
-  let the owner decide. This includes the student model:
-  Qwen2.5-Coder-1.5B is the default, and another student, in its place or
-  beside it, is an option to propose when it gives a clearer result. The
-  hard rules below (honesty, data roles) are not loosened by this.
+  checked at the clients) join under the same condition. How to judge and
+  defend it: "Read this first" at the top.
 - Novelty for Q3: a published mechanism adapted to federated Text-to-SQL with
   a task-specific adaptation is acceptable. Cite the closest work and state
   what differs; never claim "first" and never hide the closest prior work.
-- Judging the Q3 bar: when asked whether a result, the method or the story is
-  strong enough, judge as an impartial reviewer at the target venues
-  (`RESEARCH_STATE.md`) would, compared with recent accepted papers in
-  federated learning, LLM-to-SLM distillation and Text-to-SQL. Say with the
+- Judging the Q3 bar: only when asked. When asked whether a result, the
+  method or the story is strong enough, judge as an impartial reviewer at
+  the target venues (`RESEARCH_STATE.md`: CMC, JIIS) would, calibrated to
+  what those journals published recently in federated learning, LLM-to-SLM
+  distillation and Text-to-SQL, not to top conferences. Say with the
   numbers what a reviewer would likely accept, question or reject, including
   weaknesses that argue against the current direction. The owner decides.
 
