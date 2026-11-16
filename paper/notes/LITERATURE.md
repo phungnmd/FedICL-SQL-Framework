@@ -10,7 +10,8 @@ a full reading of the published 1.5B Spider results (SPFT-SQL, SLM-SQL,
 FINER-SQL, CodeS, the Qwen2.5-Coder report), section 1.4; updated
 2026-11-16 with section 1.16 (mechanisms that could be added to the core)
 and section 1.17 (a gap scan for the added mechanism: synthesis at the
-clients, other clients' models as helpers, vote labels).
+clients, other clients' models as helpers, vote labels), and section 1.18
+(training on perturbed schemas).
 
 How to read this file:
 
@@ -489,6 +490,30 @@ verifier; training a Text-to-SQL model on vote labels (votes appear only at
 inference); a hint method for SQL questions no rollout solves; federated
 semi-supervised LoRA fine-tuning with votes on private data (FedCT and
 Semantic Consensus vote on public prompts).
+
+### 1.18 Training on perturbed schemas (scan of 2026-11-16)
+
+A short scan (three web searches, two pages fetched) for the idea "same
+question, perturbed schema" as training data. "Summary" marks numbers
+known only from a machine summary of the page: check them before citing.
+
+| Paper | Mechanism and setup | Evidence | Relation | Read |
+|---|---|---|---|---|
+| Zhang et al., **EvoSchema: Towards Text-to-SQL Robustness Against Schema Evolution**, PVLDB 18(10): 3655-3668, 2025 ([arXiv 2603.10697](https://arxiv.org/abs/2603.10697)) | The same question paired with several schema designs: add, remove, rename, split and merge columns and tables. Renames revise the gold SQL where the name occurs; add and remove leave it unchanged. GPT-3.5 proposes added and renamed items, GPT-4 and Claude 3.5 rewrite SQL for split and merge. Built on BIRD; plain fine-tuning of 7-8B models (summary) | Introduction: up to 33 points on perturbed evaluation data. Summary, Table 5, EX without / with perturbation training: original data Code Llama 58 / 57, Mistral 59 / 58, Llama 3 55 / 51, SQLCoder 58 / 58; rename columns 54 / 52, 55 / 54, 49 / 47, 56 / 55; add tables 40 / 58, 39 / 58, 37 / 52, 40 / 57 | The closest work to perturbed schemas as training data. Supervised only, centralized, with large LLMs writing the perturbations; no sampling from the model and no execution signal in training. The gain is on changed table structure, not on renames and not on the original data | sections 1-3.6 verbatim; sections 4-6 and tables summary |
+| Pi et al., **Towards Robustness of Text-to-SQL Models Against Natural and Realistic Adversarial Table Perturbation (ADVETA)**, ACL 2022 ([arXiv 2212.09994](https://arxiv.org/abs/2212.09994)) | Column names replaced (gold SQL mapped to the new name) or columns added (gold SQL unchanged); the defense CTA adds one replaced and one added example per training pair, candidates from a table retriever and an NLI filter | Table 2, Spider, exact match: dev 70.8, replaced 27.6, added 39.9. Summary, Table 3, with CTA: dev 69.8, replaced 35.8, added 50.6 | Perturbation training before LLMs: robustness rises, the clean set loses 1.0 | sections 1-4 and Table 2 verbatim; Table 3 summary |
+| Chang et al., **Dr.Spider**, ICLR 2023 ([arXiv 2301.08881](https://arxiv.org/abs/2301.08881)) | Benchmark of 17 perturbations of Spider dev: database (schema synonym, abbreviation, content), question and SQL | Search snippet only | An evaluation set for schema-side perturbation, on the Spider dev databases | search snippet |
+
+Not opened: SQLong (schema augmentation for long contexts), Solid-SQL
+([arXiv 2412.12522](https://arxiv.org/abs/2412.12522), augmentation for
+schema linking in an in-context pipeline), EGRefine
+([arXiv 2605.00628](https://arxiv.org/abs/2605.00628), schema renaming
+before inference).
+
+Not found with these queries: perturbed schemas inside on-policy,
+execution-labelled preference training; a federated version; a version
+without an LLM writing the perturbations. The published effect of
+perturbation training is robustness on perturbed data with about one
+point lost on the original set.
 
 ## 2. What already exists
 

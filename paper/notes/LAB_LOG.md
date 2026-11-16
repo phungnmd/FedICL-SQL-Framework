@@ -3,6 +3,67 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: questions that do not name the gold columns; scan on schema perturbation (local analysis)
+
+Owner (evening of 2026-11-16): the data assumption stays, every client
+question keeps its gold SQL, so candidate C (clients with few labelled
+questions) is dropped. Asked for other mechanism ideas and approved two
+checks that need no server: this analysis and a literature scan, both for
+the idea "same question, perturbed schema" as a source of pairs for the
+DPO rounds (the client renames tables and columns or adds distractor
+tables on a copy of its database; the gold SQL is renamed with it).
+
+No GPU run. Spider test, `codes`, seed 0, without the repetition penalty,
+from the committed prediction files (`sqlcodes_fedavg_r3_np_vllm_inproc`,
+`sqlcodes_dpo_fedavg_r3_np_vllm_inproc`). A gold column counts as named
+when every word of its name occurs in the question (split on `_`, plural
+endings stripped); columns that occur only in join conditions are left
+out. The script is not committed.
+
+| Gold columns outside joins | Questions | FedAvg R3 | DPO round 3 |
+|---|---:|---:|---:|
+| all named in the question | 883 | 82.11 | **83.81** |
+| some named | 853 | 67.06 | 70.34 |
+| none named | 331 | 69.49 | 71.30 |
+| no such column (`count(*)` and the like) | 80 | 96.25 | 97.50 |
+
+DPO round 3, EX (questions) by the number of gold columns and how many
+of them the question does not name:
+
+| Gold columns | 0 unnamed | 1 unnamed | 2 or more unnamed |
+|---|---:|---:|---:|
+| 1 | 87.0 (376) | 84.2 (158) | |
+| 2 | 81.8 (341) | 73.3 (382) | 61.0 (136) |
+| 3 | 82.3 (130) | 72.2 (162) | 70.2 (124) |
+| 4 or more | 75.0 (36) | 77.2 (79) | 52.4 (143) |
+
+The same for tables: one gold table, named 90.9 (950), not named 73.6
+(280); two gold tables, both named 73.6 (311), one not named 61.3 (284).
+
+- 1,184 of the 2,147 questions (55%) have a gold column the question
+  does not name, and EX there is 10 to 20 points lower at the same number
+  of columns. If these rows reached the EX of the named rows with the same
+  column count, the gain would be about 127 questions (5.9 points): an
+  upper bound, since these questions also ask for more inference.
+- The model still finds the column: 93.1% of the unnamed gold columns are
+  in the predicted SQL against 95.2% of the named ones. Of the 491 wrong
+  rows of DPO round 3, 87 miss an unnamed gold column (4.1 points) and 76
+  a named one. The loss on these questions is mostly not a missing column.
+- DPO gains in every group (+1.70, +3.28, +1.81) and does not close the
+  gap between them.
+
+Literature scan (`LITERATURE.md`, section 1.18): training on the same
+question with perturbed schemas is published as plain SFT (EvoSchema,
+ADVETA). Both report gains on perturbed evaluation data and a small loss
+on the unperturbed set (about 1 point; table values known from a machine
+summary only). No paper was found that uses perturbed schemas inside
+on-policy, execution-labelled preference training, and none is federated.
+
+Reading: the slice exists on Spider test, but the published effect of
+schema perturbation is robustness, not EX on the original set. Not
+queued; the pilot (one DPO round, about 4 h, new code) waits for the
+owner and for the synthetic round (`synth_s0`).
+
 ## 2026-11-16: zero-shot prompt variants and a schema filter without training (local probe, not committed)
 
 Question: the base model is 6.6 below the zero-shot number SPFT-SQL
