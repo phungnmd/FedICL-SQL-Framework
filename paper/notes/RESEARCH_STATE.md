@@ -295,8 +295,8 @@ Both seeds pooled, clustered by question (95% interval):
    77.36 after DPO round 3 against 75.13 with `full` on Spider test (seed
    0, FedAvg line), and is above `full` on Spider dev, DK, Realistic and
    SYN. Open: whether the corrected renderer `codes_v2` holds these
-   numbers (queued: the base model alone, 3 FedAvg rounds and 3 DPO rounds
-   from the base model, centralized SFT), and the baselines and second
+   numbers (the base model alone: 61.95; queued: 3 FedAvg rounds and 3 DPO
+   rounds from the base model, centralized SFT), and the baselines and second
    seed with the final prompt.
 8. A DPO round at the server on public data: dropped with the public
    stage (owner, 2026-11-16). The gate did not run.
@@ -313,9 +313,11 @@ Both seeds pooled, clustered by question (95% interval):
    6-8 h; not approved.
 10. The SFT level. SPFT-SQL reports 72.3 zero-shot and 78.0 after SFT for
     this student on Spider test with its own prompt; here the base model
-    gives 57.89 (`full`) and FedAvg R3 73.17 (`codes`). Queued: the base
-    model and centralized SFT with `codes_v2`, which separate the prompt
-    from the federated split.
+    gives 57.89 (`full`), 61.95 with `codes_v2` (`d22463ca`), and FedAvg
+    R3 73.17 (`codes`). The gap to SPFT-SQL is 10.4 points before training
+    and 4.8 after SFT, so about half of it comes from the prompt and
+    inference side, not from the federated split. Queued: centralized SFT
+    with `codes_v2`.
 
 ## 6. Current phase
 
@@ -335,8 +337,9 @@ The teacher and the public stage left the core on 2026-11-16 (owner). The
 `codes` line from the seed 0 Hinton server stage has its 3 FedAvg rounds
 (73.27 / 75.64 / 75.78, `bff4f42b`, against 69.03 / 71.91 / 73.17 without
 the stage); its DPO rounds were stopped in round 1 and no result of them
-is published. The queue keeps the core only (`9af6b7c7`): the base model
-with `codes_v2`, the rejected-type pilots, the `codes_v2` line from the
+is published. The base model with `codes_v2` gives 61.95 on Spider test
+(`d22463ca`, against 57.89 with `full`). The queue keeps the core only
+(`9af6b7c7`): the rejected-type pilots, the `codes_v2` line from the
 base model (3 FedAvg rounds, 3 DPO rounds), centralized SFT with
 `codes_v2`, and the FedAvg half of F1 (20 clients, `codes`). Out of the
 queue: the gold control, a server stage with `codes_v2`, the server DPO

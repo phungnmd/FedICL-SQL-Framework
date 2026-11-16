@@ -3,6 +3,32 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: the base model with `codes_v2` on Spider test
+
+`d22463ca` (16:47 on 2026-11-16), arm `sqlcv2_base_vllm_inproc`, vLLM
+inproc, greedy, 2,147 rows, seed 0. First task of the core-only queue, so
+the worker was restarted on `9af6b7c7`; the stop and start times were not
+reported.
+
+| Base model, Spider test | EX | Execution errors | Wrong results | Prompt tokens, mean |
+|---|---:|---:|---:|---:|
+| `full` | 57.89 | 440 | 464 | 418 |
+| `codes_v2` | 61.95 | 377 | 440 | 669 |
+
+- `codes_v2` over `full`: +4.06, 258 questions gained and 171 lost
+  (p < 0.001). The longest test prompt is 2,028 tokens.
+- 352 of the 377 execution errors are `no such column` (a column taken
+  from the wrong table), 15 `no such table`.
+- Published zero-shot numbers for this model on Spider test are higher:
+  67.61 (SLM-SQL) and 72.3 (SPFT-SQL, prompt not published). The gap to
+  SPFT-SQL is 10.4 points before training and 4.8 after SFT (73.17 for
+  FedAvg R3 with `codes` against its 78.0), so about half of it is there
+  before any training.
+- The instruction keeps the sentence "The examples below show SQL
+  patterns for reference" although the prompt has no examples (k = 0).
+  Every arm shares it, so comparisons inside the project are not
+  affected.
+
 ## 2026-11-16: teacher and public stage out of the core, queue keeps the core (owner)
 
 Owner decision at about 16:20 on 2026-11-16: stop the `codes` line from

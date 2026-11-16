@@ -2,19 +2,17 @@
 
 ## Status
 
-Updated 2026-11-16 at 16:35 (Asia/Ho_Chi_Minh). Last published result:
-`cd8d0e8b` (14:42 on 2026-11-16: the comment check of the `codes` line).
-Server work uses drive D only (owner, 2026-11-15): every command below
-sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-16 at 17:05 (Asia/Ho_Chi_Minh). Last published result:
+`d22463ca` (16:47 on 2026-11-16: the base model with `codes_v2` on Spider
+test). Server work uses drive D only (owner, 2026-11-15): every command
+below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
-Queue change pushed at 16:29 on 2026-11-16 (`9af6b7c7`): the queue keeps
-the core only (owner, 2026-11-16). No code change, so nothing has to
-finish first. The task the worker is on (`sqlcodes_s0/curve_hinton`) is no
-longer in the queue: the worker is stopped by hand (step 1 below).
+The worker runs the core-only queue (`9af6b7c7`). Its start time was not
+reported; the first task of the new queue was published at 16:47.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Waiting for the owner: steps 1-3 below. Until step 1 the worker is still on the old queue, most likely DPO round 1 of `sqlcodes_s0/curve_hinton` (not confirmed since 14:42). | results commit `cd8d0e8b`, 14:42 on 2026-11-16; the owner's decision at about 16:20 |
+| 0 | Worker on the queue below. Most likely on row 1, `sqldpo_s0/pilot_rejected_exec`, since about 16:48 (not confirmed). | results commit `d22463ca`, 16:47 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -29,52 +27,25 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Stop the worker on GPU 0: press Ctrl+C in its window and wait for the
-   prompt. Nothing is deleted; what the stopped round wrote stays under
-   `artifacts/`. Then check that GPU 0 is free (read-only):
+Nothing to run. The worker continues on its own; send back any
+`STOP queue` line when it appears.
 
-```powershell
-& { $ErrorActionPreference='Stop'; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv; if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' } }
-```
+Next owner action (clock times are estimates from a start of row 1 at
+16:48 on 2026-11-16):
 
-   GPU 0 should show a few hundred MiB at most. If it still shows several
-   GiB one minute after Ctrl+C, send the output to the agent before step 2
-   and do not close any process by hand (GPU 1 belongs to another user).
-
-2. Pull the new queue and run the tests (a few minutes, CPU):
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-```
-
-   Send back: only a failure.
-
-3. Start the worker on GPU 0. Its first task is `sqlcv2_s0/eval_base`.
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-```
-
-   Send back: the start time, and any `STOP queue` line when it appears.
-
-Next owner action (clock times are estimates for a start at 17:00 on
-2026-11-16; shift them by the real start):
-
-- After row 1 (about 17:15 on 2026-11-16): the base model with `codes_v2`
-  on Spider test, against 57.89 with `full`.
-- After row 2 (about 20:45 on 2026-11-16): the rejected-type pilots.
-- After row 3 (about 03:15 on 2026-11-17), in the morning: FedAvg R3 with
+- After row 1 (about 20:15 on 2026-11-16): the rejected-type pilots.
+- After row 2 (about 02:45 on 2026-11-17), in the morning: FedAvg R3 with
   `codes_v2` against 73.17 (`codes`) and 73.45 (`codes` with comments).
   Its round 1 is the memory check of the new prompt in training (first
-  batch, peak reserved). Say then whether row 6 keeps `codes` or moves to
+  batch, peak reserved). Say then whether row 5 keeps `codes` or moves to
   `codes_v2` (a queue edit, no new code).
-- After row 4 (about 12:15 on 2026-11-17): the core with `codes_v2`
+- After row 3 (about 11:45 on 2026-11-17): the core with `codes_v2`
   against 76.62 / 77.18 / 77.36 (`codes`).
-- After row 5 (about 19:30 on 2026-11-17): FedAvg against centralized SFT,
+- After row 4 (about 18:45 on 2026-11-17): FedAvg against centralized SFT,
   both with `codes_v2`.
-- After row 6 (about 02:00 on 2026-11-18): FedAvg with 20 clients.
-- Open, not tied to a row: whether the mechanism to add to the core is
-  piloted (see "Not queued yet").
+- After row 5 (about 01:15 on 2026-11-18): FedAvg with 20 clients.
+- Open, not tied to a row: the mechanism to add to the core and where the
+  vote-label line starts (see "Not queued yet").
 
 ## Running and queued
 
@@ -83,27 +54,26 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqlcv2_s0/eval_base`, `publish_base` | What the `codes_v2` prompt gives before any training: the base model, no adapter, on Spider test. Comparator: 57.89 with `full` | 15 min | queued |
-| 2 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
-| 3 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2` in every prompt, each round on Spider test. Comparators: 69.03 / 71.91 / 73.17 (`codes`), 73.45 (`codes` with comments at evaluation) | 6.5 h | queued |
-| 4 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt: 3 DPO + NLL rounds from that R3. Comparators: 76.62 / 77.18 / 77.36 (`codes`), 77.55 with comments | 9 h | queued |
-| 5 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs from the base model, `codes_v2`, then epoch 3 on Spider test. Comparators: FedAvg R3 of row 3; centralized with `full`, 70.75 | 7 h | queued |
-| 6 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds from the base model on the `k20` split, every client, `codes` prompts, each round on Spider test. Comparator: 73.17 (5 clients, `codes`) | 6.5 h | queued |
+| 1 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
+| 2 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2` in every prompt, each round on Spider test. Comparators: 69.03 / 71.91 / 73.17 (`codes`), 73.45 (`codes` with comments at evaluation) | 6.5 h | queued |
+| 3 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt: 3 DPO + NLL rounds from that R3. Comparators: 76.62 / 77.18 / 77.36 (`codes`), 77.55 with comments | 9 h | queued |
+| 4 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs from the base model, `codes_v2`, then epoch 3 on Spider test. Comparators: FedAvg R3 of row 2; centralized with `full`, 70.75 | 7 h | queued |
+| 5 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds from the base model on the `k20` split, every client, `codes` prompts, each round on Spider test. Comparator: 73.17 (5 clients, `codes`) | 6.5 h | queued |
 
-Rows 1-6 take about 33 h from the start of the worker. Row 3 is a new
+Rows 1-5 take about 32.5 h from the start of row 1. Row 2 is a new
 prompt style in training: its first batch and the peak reserved of round 1
 are the memory check (prompts are shorter than `codes`: mean 880 tokens,
-longest 6,444); row 5 trains on the same rows after it.
+longest 6,444); row 4 trains on the same rows after it.
 
 Cut from a full run:
 
 - Every row is seed 0.
-- Row 2 is one round with `full` prompts on reused samples and starts from
+- Row 1 is one round with `full` prompts on reused samples and starts from
   `hinton_k2aaa_a3`, an adapter with the server stage. It answers a
   question about the pair rule of DPO, which the core shares.
-- Row 5 is centralized SFT only. Centralized DPO with `codes_v2` (3 rounds
+- Row 4 is centralized SFT only. Centralized DPO with `codes_v2` (3 rounds
   on the pooled rows, about 9 h) is not queued.
-- Row 6 is the FedAvg SFT half of F1 and uses `codes`, as its curve is
+- Row 5 is the FedAvg SFT half of F1 and uses `codes`, as its curve is
   defined, not `codes_v2`. It shows whether FedAvg holds with 20 clients
   and says nothing about the DPO rounds with 20 clients (about 11 h) or
   about 10 of 20 clients per round (about 19 h); neither is queued.
@@ -114,7 +84,11 @@ Not queued yet:
   the literature (`LITERATURE.md` section 1.16): each client writes new
   questions and SQL for its own databases, keeps the rows that execute,
   and trains on them with its DPO rounds. New code and a pilot of about
-  6-8 h; waits for the owner's yes.
+  6-8 h; waits for the owner's yes. Two cheaper steps proposed before the
+  pilot, also waiting: an offline count of how often vote labels agree
+  with gold labels on the samples of rounds 1-3 on the server (CPU), and
+  a smoke of about 200 synthetic rows on one client (about 20 min, needs
+  the FedAvg R3 of row 2).
 - Out of the queue since 2026-11-16 (owner: the teacher and the public
   stage leave the core): the DPO rounds of the `codes` line from the
   Hinton server stage (stopped in round 1) and its gold control, a server
@@ -124,7 +98,7 @@ Not queued yet:
 - Reference rows with `full` that had not run: the 5 local client models,
   centralized DPO. The baselines with `codes_v2` (FedProx, FedNTD, local
   SFT) and seed 1 of the final method come after the method is fixed.
-- DPO with result-vote labels for 3 rounds (about 3.5 h): approved
+- DPO with result-vote labels for 3 rounds (about 5 h): approved
   earlier from `hinton_k2aaa_a3`; its start would now be the `codes_v2`
   line, to confirm with the owner.
 - S1, a second non-IID split (about 21 h); S3, a second student size
