@@ -122,6 +122,18 @@ model with the schema cut to the gold tables (`--oracle-tables`,
 all 2,147 test rows the oracle prompt keeps 1.57 of 4.89 tables and
 changes 1,978 prompts.
 
+## 2026-11-16: the two short reads moved ahead of the `codes_v2` line (owner); synthetic rows built
+
+- Owner, 23:48: the gold-table rows and the controls run first, to fix
+  the method direction as early as possible (`70877dc4`). The worker had
+  started the `codes_v2` FedAvg rounds at about 23:47 and is restarted;
+  the rounds continue after the reads.
+- `synth_s0/build` (`04922932`), base model as the question writer,
+  without the penalty, root `sqlsynnp_coder15b_alpha01_s0`: 5,645
+  questions written, 5,434 kept (1,118 / 1,046 / 1,180 / 1,052 / 1,038 by
+  client); with the penalty 5,494 were kept. The rows have not been read
+  by hand.
+
 ## 2026-11-16: one DPO round with samples drawn without the repetition penalty
 
 `norp_s0/curve_fedavg` (`f6a2a6a1`, `8a883578`): DPO + NLL round 1 from
