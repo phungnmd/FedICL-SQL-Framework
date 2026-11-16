@@ -64,7 +64,10 @@ than the SQL returns (a count where the SQL lists rows with `HAVING`, one
 column asked where two or three are returned, the condition and the
 answer swapped); 2 more have SQL that joins on a column that is not a key.
 The base model as question writer is wrong on about a third of the join
-rows, and the pilot trains on these rows as labels.
+rows. The pilot uses the generated SQL only to label the model's samples
+(`--no-fallback-prefix syn:`), so a row with a wrong question mostly
+gives no pair; an SFT round on these rows would train on the wrong
+questions.
 
 No decision. Files of the two maps are in the session scratchpad only.
 
