@@ -3,6 +3,24 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: queue order until the method decision (owner)
+
+Owner decisions (2026-11-16, after the FedAvg rounds of the `codes` line
+from the server stage and the comment check):
+
+- Order: the DPO rounds of that line, the rejected-type pilots, the
+  `codes_v2` line from the base model (3 FedAvg rounds, then 3 DPO rounds;
+  new phase `sqlcv2_s0`), then the method decision (server stage, teacher
+  or gold, prompt). F1 runs after the decision with the chosen prompt; its
+  tasks left the task list. The `full` baselines and the server DPO gate
+  stay at the end and run only while the decision is open. Queue
+  `a7458d47`.
+- The gold control of the `codes` line from the server stage may start
+  from the earlier seed 0 gold server-stage adapter
+  (`federated_stage__K2ce__s0__91bc5cfdd49b__ac34d6f9`). Whether it runs
+  (17.5 h) is decided after the DPO rounds of the Hinton line; it uses
+  `codes`, the prompt of the line it is compared with.
+
 ## 2026-11-16: `codes` line from the Hinton server stage, FedAvg rounds; comment check
 
 Results `eff28d67` to `cd8d0e8b` (last at 14:42 on 2026-11-16). Spider test,

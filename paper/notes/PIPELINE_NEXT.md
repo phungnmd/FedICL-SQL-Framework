@@ -2,10 +2,14 @@
 
 ## Status
 
-Updated 2026-11-16 at 15:15 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-16 at 16:00 (Asia/Ho_Chi_Minh). Last published result:
 `cd8d0e8b` (14:42 on 2026-11-16: the comment check of the `codes` line).
 Server work uses drive D only (owner, 2026-11-15): every command below
 sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+
+Queue change pushed at 16:00 on 2026-11-16 (`a7458d47`): new order below,
+no code change. The worker takes it at its next publish step; nothing has
+to finish first and the worker is not restarted.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -24,9 +28,17 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Nothing to run while the worker on GPU 0 is alive.
+1. Read-only, seconds, CPU: check that the seed 0 gold server stage is on
+   the server (the start of the gold control of row 2, used only if that
+   control is run).
 
-1. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -c "import json; from fedicl_sql.federated.stage_chain import resolve_parent; p = resolve_parent('experiments/federated/results/federated_stage__K2ce__s0__91bc5cfdd49b__ac34d6f9'); r = json.load(open('experiments/federated/results/federated_stage__K2ce-A__s0__73ae8d88b3a7__4ea78f9f/metrics.json', encoding='utf-8'))['parent']['adapter']['files']; assert p['adapter']['files'] == r, 'gold server stage adapter differs from the start of gold_k2aaa_a1'; print('ok', p['adapter']['path'])"; if ($LASTEXITCODE -ne 0) { throw 'Gold server stage check failed: send the output to the agent' } }
+```
+
+   Send back: the `ok` line or the error.
+
+2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
    `DONE queue`, or was closed): start it. It skips finished work.
 
 ```powershell
@@ -40,11 +52,16 @@ Next owner action:
 - After each DPO round of `sqlcodes_s0/curve_hinton` (about 18:00 and
   21:00 on 2026-11-16, 00:15 on 2026-11-17): the round on Spider test
   against 76.62 / 77.18 / 77.36 without the server stage.
-- After `sqlcodes_s0/publish_cmt_hinton` (about 01:00 on 2026-11-17): read
-  row 2 with the agent and decide whether the public stage stays in the
-  method. The rows after it can be cut or reordered then.
+- After `sqlcodes_s0/publish_cmt_hinton` (about 01:00 on 2026-11-17), in
+  the morning of 2026-11-17: read row 2 with the agent and say whether the
+  gold control runs (17.5 h, `codes`, placed in front of whatever has not
+  started). The queue does not wait for this: rows 3 and 4 follow row 2.
 - After row 3 (about 04:30 on 2026-11-17): the rejected-type pilots.
-- After row 4 and row 5 (about 35 h later): F1 with every client.
+- After row 4 (about 11:00 on 2026-11-17): FedAvg R3 with `codes_v2`
+  against 73.17 (`codes`) and 73.45 (`codes` with comments).
+- After row 5 (about 20:00 on 2026-11-17 without the gold control, about
+  13:30 on 2026-11-18 with it): the method decision (server stage, teacher
+  or gold, prompt). F1 is queued after it.
 
 ## Running and queued
 
@@ -56,57 +73,53 @@ progress need the status command above.
 | 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 10 h left | the 3 FedAvg rounds are done (73.27 / 75.64 / 75.78); DPO round 1 is next since 14:42 on 2026-11-16 |
 | 2b | `sqlcodes_s0/cmt_hinton_a3`, `cmt_hinton_dpo_r3`, `publish_cmt_hinton` (after row 2) | How much the missing comments on Spider test cost for the Hinton line: its two R3 adapters evaluated with `codes_cmt` (same text, comments from `test_tables.json`). Comparators: its own `codes` rows | 4 min each | queued |
 | 3 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
-| 4 | `f1_s0/curve_fedavg_sft`, `check_server_stage`, `curve_hinton_sft` | F1, 20 clients, every client, `codes` prompts: 3 FedAvg SFT rounds from the base model, and from the seed 0 Hinton server stage; each round on Spider test. Does the server stage gain more with 20 clients than with 5 (row 2)? | 15 h | queued |
-| 5 | `f1_s0/curve_fedavg`, `curve_hinton` | F1, every client: 3 DPO + NLL rounds from each R3, `codes` | 20 h | queued |
-| 6 | `srvdpo_s0/check_bird`, `bird_round`, `publish_bird_round`, `eval_bird_round`, `clients_round`, `publish_clients_round`, `eval_clients_round`, `publish_eval` | Server DPO gate (`full`): one DPO + NLL round at the server on BIRD train (9,428 rows as one pooled client) from seed 0 FedAvg R3, then one client round like round 1 of `sqldpo_s0/fedavg` from that adapter; both on Spider test and BIRD dev. Comparators: FedAvg R3 71.26, DPO round 1 74.29, round 2 75.17 | 14.5 h | queued |
-| 7 | `f1_s0/curve_fedavg_sft_p10`, `curve_hinton_sft_p10`, `curve_fedavg_p10`, `curve_hinton_p10` | Rows 4-5 with 10 of the 20 clients per round | 19 h | queued |
-| 8 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines`, `curve_central`, `extra_central_r3`, `publish_central_extra` | Standard FL baselines on the same engine; centralized DPO on pooled client rows, 3 rounds (`full`) | 7.75 h | queued |
+| 4 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2` in every prompt, each round on Spider test. Comparators: 69.03 / 71.91 / 73.17 (`codes`), 73.45 (`codes` with comments at evaluation) | 6.5 h | queued |
+| 5 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt: 3 DPO + NLL rounds from that R3. Comparators: 76.62 / 77.18 / 77.36 (`codes`), 77.55 with comments | 9 h | queued |
+| 6 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines`, `curve_central`, `extra_central_r3`, `publish_central_extra` | Standard FL baselines on the same engine; centralized DPO on pooled client rows, 3 rounds (`full`). Runs only while the method decision is open | 7.75 h | queued |
+| 7 | `srvdpo_s0/check_bird`, `bird_round`, `publish_bird_round`, `eval_bird_round`, `clients_round`, `publish_clients_round`, `eval_clients_round`, `publish_eval` | Server DPO gate (`full`): one DPO + NLL round at the server on BIRD train (9,428 rows as one pooled client) from seed 0 FedAvg R3, then one client round like round 1 of `sqldpo_s0/fedavg` from that adapter; both on Spider test and BIRD dev. Comparators: FedAvg R3 71.26, DPO round 1 74.29, round 2 75.17 | 14.5 h | queued |
 
-Rows 2-8 total about 90 h from 14:45 on 2026-11-16; rows 2-3 about
-13.5 h. The estimates of rows 4,
-5 and 7 scale the `full` estimates by the measured `codes` round times of 5
-clients (2.3 h a FedAvg round, 3.1 h a DPO round); the row 6 estimate is the
-least certain (derivation in `LAB_LOG.md`).
+Rows 2-5 take about 29 h from 14:45 on 2026-11-16 (to about 20:00 on
+2026-11-17); rows 6-7 about 22 h more. Row 4 is a new prompt style in
+training: its first batch and the peak reserved of round 1 are the memory
+check (prompts are shorter than `codes`: mean 880 tokens, longest 6,444).
+The row 7 estimate is the least certain (derivation in `LAB_LOG.md`).
 
 Cut from a full run:
 
-- Rows 2, 4, 5 and 7 start from a server stage trained with `full` prompts
-  on BIRD while the clients use `codes`: a server stage with `codes` is not
-  trained (see below). A gain in row 2 holds for the method as it would be
-  run; no gain leaves a server stage with `codes` prompts untested.
-- Row 2 is seed 0, Hinton only. The gold server stage (the control that
-  separates the teacher from the public data) is not queued; it is needed
-  only if row 2 shows a gain.
+- Row 2 starts from a server stage trained with `full` prompts on BIRD
+  while the clients use `codes`: a server stage with `codes` is not trained
+  (see below). A gain in row 2 holds for the method as it would be run; no
+  gain leaves a server stage with `codes` prompts untested.
+- Row 2 is seed 0, Hinton only. Its gold control (the same line from the
+  seed 0 gold server stage, which separates the teacher from the public
+  data) is not queued: the owner decides after reading row 2.
 - Row 3 is one round, seed 0, `full`, on reused samples, like the other
   pilots of the Hinton line.
-- Rows 4, 5 and 7 (F1) are seed 0. Their centralized comparator with
-  `codes` does not exist (centralized Spider SFT is 70.75 with `full`).
-- Row 6 is seed 0, one server round and one client round (a gate), with
+- Rows 4 and 5 are seed 0, from the base model only; the line from the
+  server stage with `codes_v2` is not queued.
+- Row 6 uses the `full` schema: the baselines with `codes` or `codes_v2`
+  (FedProx, FedNTD, local SFT, centralized SFT and DPO) need new training
+  and are not queued.
+- Row 7 is seed 0, one server round and one client round (a gate), with
   `full` prompts so that it pairs with the committed `full` DPO rounds and
   BIRD prompts stay under 7,680 tokens. The 7B teacher is not used.
-- Row 7, partial participation: 10 of 20 clients per round, drawn by a
-  fixed rule from (seed, round), separately for FedAvg and DPO rounds; over
-  the 3 FedAvg rounds clients 1 and 18 never take part, over the 3 DPO
-  rounds clients 7, 11 and 19.
-- Row 8 uses the `full` schema: the baselines with `codes` (FedProx,
-  FedNTD, local SFT, centralized SFT and DPO) need new training and are not
-  queued.
 - The teacher with `codes` has no BIRD dev row (its `european_football_2`
   prompts reach 26,509 tokens with the answer budget).
 
 Not queued yet:
 
-- The lines with `codes_v2` (owner, 2026-11-16: the corrected prompt
-  replaces `codes` for new lines): the line from the base model again
-  (3 FedAvg + 3 DPO rounds, about 16 h) and F1 switched to `codes_v2`
-  before it starts. The order is the owner's to confirm.
-
-- A server stage with `codes` prompts (gold or Hinton on BIRD): the length
-  of the BIRD train prompts with `codes` is not measured, Hinton needs a
-  new teacher logit cache, and long sample values need a length limit in
-  the schema text. At least about 20 h after that. Decided after row 2.
-- The gold server stage in front of the `codes` line (about 17.5 h):
-  after row 2, if it shows a gain.
+- The gold control of row 2 (owner, 2026-11-16: the earlier seed 0 gold
+  server-stage adapter is approved as its start): 3 FedAvg SFT rounds and
+  3 DPO + NLL rounds with `codes` at the clients, about 17.5 h. Added in
+  front of the tasks not started when the owner asks for it.
+- F1, 20 clients (about 35 h with its server-stage half, about 17.5 h
+  without; 10 of 20 clients per round about 19 h more): after the method
+  decision, with the chosen prompt. Its curves stay defined in the queue
+  file; its tasks are out of the task list.
+- A server stage with `codes_v2` prompts (gold or Hinton on BIRD): the
+  length of the BIRD train prompts is not measured (BIRD dev: longest
+  4,988 tokens) and Hinton needs a new teacher logit cache. At least about
+  20 h. Decided after row 2.
 - The baselines with `codes` and seed 1 of the final method: after the
   method is fixed.
 - A KD step between DPO rounds, a plan task, teacher SQL as the target,
@@ -252,7 +265,18 @@ teacher with `codes` prompts (arm `sql_teacher7b_codes_vllm_inproc`, its
 by execution on DPO round 3 with `codes` (`xsel_codes_dpo_r3`, greedy
 column `sqlcodes_dpo_fedavg_r3_vllm_inproc`).
 
-### F1, 20 clients (phase `f1_s0`)
+### The corrected prompt (phase `sqlcv2_s0`)
+
+The line of `sqlcodes_s0` from the base model with `codes_v2` in every
+training, sampling and evaluation prompt; the recipe is otherwise the
+same. Outputs: `artifacts/protocol_v2/sqlcv2_coder15b_alpha01_s0/`.
+
+| Line (curve) | Start | Step | Arms (Spider test) |
+|---|---|---|---|
+| `sqlcv2_s0/fedavg_sft` | base model | one FedAvg round (lr 2e-4, 1 local epoch); 3 rounds | `sqlcv2_fedavg_r{k}_vllm_inproc` |
+| `sqlcv2_s0/fedavg` | round 3 of `fedavg_sft` | DPO + NLL round, the settings of `sqldpo_s0/fedavg`; 3 rounds | `sqlcv2_dpo_fedavg_r{k}_vllm_inproc` |
+
+### F1, 20 clients (phase `f1_s0`, not in the task list)
 
 Split `processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated_noniid/alpha_0.1/k20`
 (committed): the `k5` procedure with 20 clients over the same 8,659 rows.

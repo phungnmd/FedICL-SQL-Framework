@@ -310,11 +310,14 @@ at 27.38 (FedAvg R3) and 30.38 (DPO round 3), `full` at 25.55 and 29.66
 69.03 / 71.91 / 73.17 without the server stage; its DPO rounds are running.
 With comments in the Spider test prompt the `codes` adapters score 73.45
 (FedAvg R3) and 77.55 (DPO round 3) instead of 73.17 and 77.36
-(`cd8d0e8b`). Queue order: the DPO rounds of that line (the run
-that decides whether the public stage stays), the rejected-type pilots, F1
-(20 clients, seed 0, `codes`, with and without the Hinton server stage,
-every client), the server DPO gate (`full`), F1 with 10 of 20 clients per
-round, then the `full` reference rows on vLLM and centralized DPO. Approved for after P1, not queued: DPO with
+(`cd8d0e8b`). Queue order (owner, 2026-11-16): the DPO rounds of that line
+(the run that decides whether the public stage stays), the rejected-type
+pilots, the line from the base model with `codes_v2`, then the method
+decision; the gold control of the server-stage line (`codes`, 17.5 h) is
+added if the owner asks after reading the DPO rounds. F1 (20 clients) runs
+after the decision with the chosen prompt. At the end of the queue, run
+only while the decision is open: the `full` reference rows on vLLM with
+centralized DPO, and the server DPO gate (`full`). Approved for after P1, not queued: DPO with
 result-vote labels for 3 rounds. Run commands, live-state provenance and estimates are
 in `PIPELINE_NEXT.md`.
 
