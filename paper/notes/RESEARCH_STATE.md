@@ -74,8 +74,8 @@ this story and a shown effect in the final setup (`codes_v2` prompts,
 decoding without the repetition penalty). A part without one is an
 analysis row or is dropped; nothing is added only because it raises a
 number. The effects in the table were measured with `full` or `codes`
-prompts and, for stage 1, with the penalty; row 7 of the queue reads
-stage 1 in the final setup.
+prompts and, for stage 1, with the penalty; the queue reads stage 1 in
+the final setup (`sqlcv2_s0/curve_hinton_sft`).
 
 Around the method, not stages of it:
 
@@ -97,6 +97,23 @@ Open for the story:
   as an option.
 - The server stage in the queue was trained with `full` prompts; a stage
   retrained with `codes_v2` prompts is not built.
+
+Weak points and the three directions for them (owner, 2026-11-17). A
+review of the method against its own numbers found: the teacher is the
+weakest part (+0.98 over gold SQL after DPO, and not on the rows the
+teacher gets right); the two sides of the story are unequal (the client
+stages give about +3.5, the server stage +1.40 after DPO); stages 1 and 3
+do not act on each other (the DPO gain is +3.40 from the server stage and
++3.87 without it); execution feedback repairs SQL that does not run (211
+to 58) and leaves the about 440 rows with a wrong result; and FedAvg
+equals centralized training with 5 clients. Each direction has a short
+read in the queue, ahead of the long lines:
+
+| Direction | What changes in the story | Read in the queue | Kept when |
+|---|---|---|---|
+| 1. The clients' execution feedback is the centre; the server stage is a start on public data, the teacher an option inside it | the title and the order of the claims, not the stages | selection at inference on FedAvg R3 (`vote_s0/xsel_fedavg_r3`) against the DPO rounds; the server stage in the final setup (`sqlcv2_s0/curve_hinton_sft`) | the DPO rounds lead what selection at inference gives the FedAvg model |
+| 2. One mechanism in two places: the execution-preference round also runs at the server on the public databases, after the teacher stage | stages 1 and 3 share a mechanism; the teacher can then supply correct SQL where a public row has none | one DPO + NLL round on 3,000 BIRD train questions from the Hinton server stage, on Spider test and BIRD dev (`srvx_s0`) | the round lifts Spider test over the stage's adapter |
+| 3. The client's databases as a source of new training questions | a fourth stage, aimed at the questions the three stages leave wrong | one FedAvg SFT round with the verified synthetic rows against the same round without them (`synvc_s0`) | the round with the rows leads the round without them |
 
 Federated learning is the setting the method has to work in; the paper
 does not claim that federation produces the gain (owner, 2026-11-11).
@@ -320,7 +337,9 @@ Both seeds pooled, clustered by question (95% interval):
    rounds from the base model, centralized SFT), and the baselines and second
    seed with the final prompt.
 8. A DPO round at the server on public data: dropped with the public
-   stage (owner, 2026-11-16). The gate did not run.
+   stage on 2026-11-16 before its gate ran; back as the read of direction
+   2 (owner, 2026-11-17; section 3), cut to 3,000 BIRD questions
+   (`srvx_s0`).
 9. Candidates for a further stage (owner, 2026-11-16; since 2026-11-17 no
    longer a condition for the method, which is fixed as three stages: a
    candidate joins only with a place in the story and a shown effect).
@@ -338,9 +357,9 @@ Both seeds pooled, clustered by question (95% interval):
      3,706). Closest: SPFT-SQL (synthesis, weak preference stage),
      CodeLutra (the loop, no synthesis); their combination is not
      published, and no federated paper checks synthetic rows by execution
-     at the client. Pilot queued on the `codes_v2` line without the
-     repetition penalty: one DPO round with the synthetic rows from its DPO
-     round 3, against a plain fourth round.
+     at the client. The DPO pilot with the synthetic rows left the queue
+     on 2026-11-17; the read is now supervised training on the rows that
+     pass the check (`synvc_s0`, item 13).
    - B, the other clients' adapters as extra samplers. For a question
      where all 8 samples of the global model are wrong (560 at round 3),
      a client also samples from the adapters the other clients trained in
@@ -351,13 +370,13 @@ Both seeds pooled, clustered by question (95% interval):
      support it: of the 560 questions, 32 samples from the four peer
      adapters solve 146 and 32 more samples from the global model solve
      184; 23 are solved only by a peer, 61 only by the global model. The
-     check runs again on the line without the penalty. The training pilot
-     (about 3 GPU h) is not queued.
+     check on the line without the penalty and the training pilot (about
+     3 GPU h) are not queued.
    - C, clients with few labelled questions and vote labels for the rest
      (changes the data assumption, about 6 GPU h). Dropped (owner,
-     2026-11-16): every client question keeps its gold SQL. Queued: a CPU count of
-     how often vote labels agree with gold labels on the samples of the
-     `codes_v2` DPO rounds. D, a hint for questions
+     2026-11-16): every client question keeps its gold SQL. The CPU count of
+     how often vote labels agree with gold labels left the queue on
+     2026-11-17. D, a hint for questions
      no sample solves; E, a CPU count of samples that pass by accident, on
      mutated databases. Not queued.
 
@@ -453,7 +472,7 @@ Both seeds pooled, clustered by question (95% interval):
 
     | Direction | Role | State |
     |---|---|---|
-    | clients generate SQL on their own databases, write questions, keep the pairs that pass an execution check, train on them | candidate for the core | first read queued (`synv_s0`) |
+    | clients generate SQL on their own databases, write questions, keep the pairs that pass an execution check, train on them | candidate for the core | first read queued (`synvc_s0`) |
     | DPO + NLL with execution labels at the clients | component | measured (items 11 and 12) |
     | SFT on public synthetic data (SynSQL) at the server before the client rounds | base for every row | not measured; a public 1.5B checkpoint exists (`cycloneboy/SLM-SQL-Base-1.5B`) |
     | execution inside a multi-turn answer at inference | reserve | needs a ruling on "deployed alone" |
@@ -467,7 +486,7 @@ Both seeds pooled, clustered by question (95% interval):
     The synthetic rows built so far (`04922932`) keep the structures of
     the clients' own queries (58.6% one table, client gold 51.4%), and in
     a hand read of 24 rows with a join the question of 8 asks for
-    something other than the SQL returns. `synv_s0` therefore keeps a row
+    something other than the SQL returns. `synvc_s0` therefore keeps a row
     only when a sample of the client's model returns the result of its
     SQL, and trains on the kept rows with SFT.
 
@@ -499,16 +518,20 @@ On 2026-11-17 the owner fixed the method as three stages (section 3),
 after the reads of items 12 and 13 (the preference term adds about one
 point over an SFT round, a table-selection step is bounded at 3.3) and a
 review of where earlier decisions had been stricter than published
-practice (`LAB_LOG.md`). The queue (`5b1681af`) holds, in order: the read of supervised training on verified synthetic rows on
-the `codes` line (`synvc_s0`: one FedAvg SFT round from FedAvg R3 with
-the kept rows against the same round without them), the 3 FedAvg rounds
-with `codes_v2`, the same read on that line (`synv_s0`), the 3 DPO rounds
-with `codes_v2`, the vote label check, the method's line in the final
-setup (3 FedAvg rounds and 3 DPO rounds with `codes_v2` from the seed 0
-server stage), centralized SFT, and the FedAvg half of F1. The peer adapter check and
-the DPO round on synthetic rows left the queue. `synvc_s0` is the next
-read for the direction. Run commands, live-state provenance and
-estimates are in `PIPELINE_NEXT.md`.
+practice (`LAB_LOG.md`). A review of the fixed method against its own
+numbers then named its weak points, and the owner approved three
+directions for them (section 3). The queue (`39d9edcc`) puts their short
+reads first: after the 3 FedAvg rounds with `codes_v2` (running; round 1
+at 72.05, `c4606d3b`), selection at inference on FedAvg R3, supervised
+training on verified synthetic rows on the `codes` line (`synvc_s0`), and
+one DPO round at the server on 3,000 BIRD questions from the teacher
+stage (`srvx_s0`). Then the long lines of the final setup: the 3 FedAvg
+rounds from the server stage, the 3 DPO rounds of both lines with the
+vote on each, centralized SFT, and the FedAvg rounds with 20 clients on
+`codes_v2`. Out of the queue: the synthetic-row read on the `codes_v2`
+line (`synv_s0`), the vote label check, the 20-client rounds with `codes`
+prompts. Run commands, live-state provenance and estimates are in
+`PIPELINE_NEXT.md`.
 
 ## 7. Directions after the queue
 
@@ -526,8 +549,9 @@ stage (2026-11-16).
 
 Independent of the batch:
 
-- F1, the FedAvg SFT rounds with 20 clients (queued 2026-11-16, phase
-  `f1_s0`, `codes`). With 5 clients FedAvg equals centralized training.
+- F1, the FedAvg SFT rounds with 20 clients (queued, phase `f1v2_s0`,
+  `codes_v2` since 2026-11-17). With 5 clients FedAvg equals centralized
+  training.
   With 20 clients each holds about 430 rows and about 270 pairs in DPO
   round 1; the run shows whether FedAvg then falls behind. The DPO rounds
   with 20 clients (about 11 h) and 10 of 20 clients per round are not

@@ -3,6 +3,49 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: weak points of the fixed method, three directions (owner), queue reordered
+
+A review of the three-stage method against its own numbers (owner's
+request, after the venue review below):
+
+- Weakest part: the teacher. After DPO it adds +0.98 over the same stage
+  with gold SQL (p = 0.04; seed 0 +1.49, seed 1 +0.47), and the wins are
+  not on the rows the teacher gets right (64% against 66%).
+- The two sides of the story are unequal: the client stages give about
+  +3.5, the server stage +1.40 after DPO.
+- Stages 1 and 3 do not act on each other: the DPO gain is +3.40 from the
+  server stage and +3.87 from plain FedAvg.
+- Execution feedback repairs SQL that does not run (211 to 58 errors);
+  about 440 rows with a wrong result stay in every line.
+- The federated part is thin: FedAvg equals centralized SFT with 5
+  clients.
+
+Owner approved three directions (`RESEARCH_STATE.md`, section 3): (1) the
+clients' execution feedback as the centre of the story, the server stage
+as a start on public data; (2) the same execution-preference round at the
+server on the public databases; (3) the client's databases as a source of
+new questions (`synvc_s0`, already queued).
+
+Queue `39d9edcc` (code repository, 02:37): short reads ahead of the long
+lines.
+
+- New: `vote_s0/xsel_fedavg_r3` (selection at inference on FedAvg R3 with
+  `codes_v2`, arm `xsel_cv2_fedavg_r3_np`); `srvx_s0` (one DPO + NLL
+  round at the server on 3,000 of the 9,428 BIRD train questions from the
+  seed 0 Hinton stage, the round's adapter and the stage's adapter on
+  Spider test and BIRD dev); `vote_s0/xsel_hinton_dpo_r3`;
+  `f1v2_s0/curve_fedavg_sft` (20 clients with `codes_v2`).
+- Moved: `sqlcv2_s0/curve_hinton_sft` ahead of the DPO rounds, so stage 1
+  in the final setup is read about 11 h earlier (estimate).
+- Out of the task list: `synv_s0/*`, `vote_s0/check`,
+  `f1_s0/curve_fedavg_sft`.
+- The server round is cut: a full round on BIRD was estimated at about
+  12 h; 3,000 questions take about 4 h (not measured). It uses `full`
+  prompts with evidence and length limit 7680, as the stage was trained.
+- Resolved commands compared with their comparison lines (prompt,
+  decoding without the penalty, length limit, LoRA recipe): equal. Queue
+  and curve tests: 32 passed.
+
 ## 2026-11-17: review of the planned paper against the two target journals (one agent, no project context)
 
 Owner (2026-11-17): one agent that does not see the project reviews the
