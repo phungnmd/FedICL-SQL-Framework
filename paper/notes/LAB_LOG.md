@@ -50,6 +50,90 @@ Proposed, not approved: evaluate the base model, FedAvg R3 and DPO round 3
 new arm names; existing results keep their identities). Script and rows of
 the probe are in the session scratchpad only.
 
+## 2026-11-16: the repetition penalty: checks first, new lines decode without it (owner)
+
+Owner at about 18:10 on 2026-11-16: the repetition penalty of 1.1 lowers
+EX and raises execution errors, it touches the whole paper; check it
+first and turn it off.
+
+What the code did: Qwen2.5-Coder's `generation_config.json` sets
+`repetition_penalty: 1.1`. `StudentModel` (HF) takes it through
+`model.generate`, `VllmStudent` read it from the same file and passed it
+to vLLM. So every committed row was decoded with it: greedy evaluation,
+the 8 samples of the DPO rounds, selection by execution, the peer check.
+Both engines apply the penalty to the prompt tokens as well as the
+output, so the table and column names of the schema, which the SQL has
+to repeat, are penalized. SFT and DPO training do not decode and are not
+touched; the DPO pairs are, through the samples.
+
+Not measured yet. A local run of the base model on 8 Spider test
+questions gave a different SQL on 6 of them with and without the penalty,
+too few rows for an EX reading.
+
+Code (`b0d117be`): `--repetition-penalty` on `scripts.eval_standard`
+(and `experiments/eval_arms/run.py`), the DPO round, `scripts.peer_check`,
+`scripts.exec_select` and `scripts.synth_questions`. Without the option
+the generation config applies and every existing resume key and root
+identity is unchanged (tests). In a DPO root the penalty is a setting of
+the root. Arms without the penalty carry `_np`.
+
+Queue (`d042d287`, pushed at 19:33):
+
+1. Existing adapters on Spider test without the penalty: FedAvg R3 and
+   DPO rounds 1 and 3 of the `codes` line, the base model with
+   `codes_v2`, FedAvg R3 and its DPO round 3 with `full`.
+2. One DPO round from FedAvg R3 of the `codes` line with samples drawn
+   without the penalty (root `fedavg_np`), evaluated without it.
+3. The `codes_v2` line (3 FedAvg rounds, 3 DPO rounds), centralized SFT
+   and the F1 FedAvg rounds decode without the penalty.
+4. The mechanism pilots move behind the DPO rounds of the `codes_v2`
+   line and run on it; the synthetic rows are built again without the
+   penalty in a new root (`sqlsynnp_coder15b_alpha01_s0`).
+
+The server had started the pilots of the earlier queue before the push
+(next entry) and was in the DPO round with synthetic questions (`codes`
+line, with the penalty); `PIPELINE_NEXT.md` asks the owner to stop it,
+pull and restart. Its files stay on the server.
+
+## 2026-11-16: rejected-type pilot 2, peer adapter check, synthetic rows (`codes` line, with the penalty)
+
+All decoded with the repetition penalty of 1.1 (entry above).
+
+Rejected-type pilots, complete (`d4b497ec`, 18:51). DPO round 1 from
+`hinton_k2aaa_a3` (73.31, 129 execution errors) on the round 1 samples of
+the Hinton line, `full`, seed 0, Spider test:
+
+| Rejected side | Pairs | EX | Execution errors |
+|---|---:|---:|---:|
+| every wrong sample (DPO round 1) | 5,393 | **75.69** | 82 |
+| only samples that fail to execute | 3,317 | 75.36 | **70** |
+| only samples with a wrong result | 2,949 | 74.38 | 119 |
+
+The pairs against a failing sample give most of the round's gain (+2.05
+of +2.38) and the fall in execution errors; pairs against a wrong result
+give +1.07 and leave the errors near the start. The discordant questions
+are not counted yet.
+
+Peer adapter check (`8825bad8`, 19:17; `codes` line, DPO round 3, 560
+questions with all 8 samples wrong):
+
+| 32 samples from | Questions solved | Share |
+|---|---:|---:|
+| the four other clients' round 2 adapters (8 each) | 146 | 26.1% |
+| the round 2 global adapter | **184** | **32.9%** |
+| either | 207 | 37.0% |
+
+23 questions are solved only by a peer adapter, 61 only by the global
+adapter. At the same number of samples the other clients' adapters find
+fewer correct SQL than the global model itself, so this check gives no
+support for candidate B. Each peer adapter alone solves 64 to 78
+questions with 8 samples; 8 more global samples solve 93.
+
+Synthetic rows (`31379f82`, 19:23): 5,645 questions written, 5,494 kept
+(1,042 to 1,176 per client), 151 dropped because one wording was written
+for two queries. Not read by hand yet. The DPO round on them started at
+about 19:23 and is the task to stop.
+
 ## 2026-11-16: rejected-type pilot 1, rejected side fails to execute
 
 `415c62f3` (17:54 on 2026-11-16), arm `sqlrejexec_hinton_r1_vllm_inproc`:

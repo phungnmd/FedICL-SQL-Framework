@@ -29,6 +29,7 @@ not yet selected.
 |---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct, SQL-only output, greedy decoding |
 | Prompt | `codes` schema (owner, 2026-11-16); every row before P1 uses `full`. New lines use the corrected renderer `codes_v2` (owner, 2026-11-16; `LAB_LOG.md`): CodeS-style serialization without CodeS's schema filter and value retriever |
+| Decoding | Greedy, 256 new tokens. No repetition penalty from 2026-11-16 (owner); every row before that date was decoded with the penalty of the model's generation config, 1.1, in evaluation and in the DPO samples (section 5, item 11) |
 | Teacher (optional) | Qwen2.5-Coder-7B-Instruct, frozen. If used, it runs only at the server and only on public data. Not used by the core (owner, 2026-11-16) |
 | Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`. Private rows never leave a client. |
 | Server public data (optional) | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it (owner, 2026-11-07). Not used by the core (owner, 2026-11-16) |
@@ -287,9 +288,12 @@ Both seeds pooled, clustered by question (95% interval):
    errors against 82. The span is two thirds of the response, so the pilot
    does not separate focus from a larger preference weight. It is an
    ablation row unless the owner decides otherwise. Not chosen: stricter
-   labels from mutated client databases. Queued: two one-round pilots
-   that limit the rejected side to samples that fail to execute, or to
-   samples with a wrong result.
+   labels from mutated client databases. The two one-round pilots that
+   limit the rejected side (`full`, from `hinton_k2aaa_a3`, 73.31):
+   only samples that fail to execute 75.36 (3,317 pairs, 70 execution
+   errors), only samples with a wrong result 74.38 (2,949 pairs, 119
+   execution errors), every wrong sample 75.69 (5,393 pairs, 82). The
+   pairs against a failing sample carry the larger part.
 7. The schema format: `codes` (owner, 2026-11-16). P1 (`codes`: types,
    keys, 2 sample values and the matched text values per column) gives
    77.36 after DPO round 3 against 75.13 with `full` on Spider test (seed
@@ -316,17 +320,21 @@ Both seeds pooled, clustered by question (95% interval):
      3,706). Closest: SPFT-SQL (synthesis, weak preference stage),
      CodeLutra (the loop, no synthesis); their combination is not
      published, and no federated paper checks synthetic rows by execution
-     at the client. Pilot queued: one DPO round with the synthetic rows
-     from DPO round 3 of the `codes` line, against a plain fourth round.
+     at the client. Pilot queued on the `codes_v2` line without the
+     repetition penalty: one DPO round with the synthetic rows from its DPO
+     round 3, against a plain fourth round.
    - B, the other clients' adapters as extra samplers. For a question
      where all 8 samples of the global model are wrong (560 at round 3),
      a client also samples from the adapters the other clients trained in
      the last round; a correct one becomes the chosen side instead of the
      gold SQL. Closest: FedMatch (helper models for pseudo-labels, vision).
-     The only candidate where federation itself has a role. Check queued:
-     on how many of those questions a peer adapter finds a correct SQL,
-     against 32 more samples from the global model. The training pilot
-     (about 3 GPU h) is not queued; it depends on the check.
+     The only candidate where federation itself has a role. The check on
+     the `codes` line (with the repetition penalty, `8825bad8`) does not
+     support it: of the 560 questions, 32 samples from the four peer
+     adapters solve 146 and 32 more samples from the global model solve
+     184; 23 are solved only by a peer, 61 only by the global model. The
+     check runs again on the line without the penalty. The training pilot
+     (about 3 GPU h) is not queued.
    - C, clients with few labelled questions and vote labels for the rest
      (changes the data assumption, about 6 GPU h); D, a hint for questions
      no sample solves; E, a CPU count of samples that pass by accident, on
@@ -343,6 +351,20 @@ Both seeds pooled, clustered by question (95% interval):
     and 4.8 after SFT, so about half of it comes from the prompt and
     inference side, not from the federated split. Queued: centralized SFT
     with `codes_v2`.
+
+11. The repetition penalty (owner, 2026-11-16). Qwen2.5-Coder's generation
+    config sets a repetition penalty of 1.1, and every row so far was
+    decoded with it: greedy evaluation and the DPO samples, HF and vLLM.
+    The penalty also covers the prompt tokens, so the table and column
+    names the SQL has to copy from the schema are penalized. It may
+    account for part of the execution errors (352 of the base model's 377
+    are `no such column`) and for part of what the DPO stage gains, since
+    that gain is in executable SQL (section 4). Not measured yet. Queued
+    first: the existing adapters on Spider test without the penalty (base,
+    FedAvg R3, DPO rounds 1 and 3 with `codes`; FedAvg R3 and DPO round 3
+    with `full`), then one DPO round from FedAvg R3 with samples drawn
+    without it. New lines decode without the penalty; whether the numbers
+    of section 4 are rerun depends on these rows.
 
 ## 6. Current phase
 
@@ -363,20 +385,21 @@ The teacher and the public stage left the core on 2026-11-16 (owner). The
 (73.27 / 75.64 / 75.78, `bff4f42b`, against 69.03 / 71.91 / 73.17 without
 the stage); its DPO rounds were stopped in round 1 and no result of them
 is published. The base model with `codes_v2` gives 61.95 on Spider test
-(`d22463ca`, against 57.89 with `full`). The queue (`091415a1`) holds, in order:
-the rejected-type pilots, the two mechanism pilots on the `codes` line
-(the peer adapter check; a DPO round with synthetic questions against a
-plain fourth round), the `codes_v2` line from the base model (3 FedAvg
-rounds, 3 DPO rounds), centralized SFT with `codes_v2`, and the FedAvg
-half of F1 (20 clients, `codes`). Out of the
+(`d22463ca`, against 57.89 with `full`). The queue (`d042d287`) holds, in order:
+the repetition penalty checks (section 5, item 11), the `codes_v2` line
+from the base model without the penalty (3 FedAvg rounds, 3 DPO rounds),
+the two mechanism pilots on that line (the peer adapter check; a DPO
+round with synthetic questions against a plain fourth round), centralized
+SFT with `codes_v2`, and the FedAvg half of F1 (20 clients, `codes`). Out of the
 queue: the gold control, a server stage with `codes_v2`, the server DPO
 gate, the local client rows and centralized DPO with `full`. Approved and
 not queued: DPO with result-vote labels for 3 rounds. Run commands,
 live-state provenance and estimates are in `PIPELINE_NEXT.md`.
 
-The preference term stays plain and the core keeps DPO + NLL. The next
-decision is the mechanism to add to the core, from the two pilots
-(section 5, item 9).
+The preference term stays plain and the core keeps DPO + NLL. First the
+repetition penalty rows are read (section 5, item 11): they say how much
+of the DPO gain stands without the penalty. The mechanism to add to the
+core (section 5, item 9) is decided after them, from the two pilots.
 
 ## 7. Directions after the queue
 

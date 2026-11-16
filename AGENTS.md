@@ -160,6 +160,10 @@ result invalid.
   task in the queue, after the tasks that write its paths.
 - Remove finished commands from `PIPELINE_NEXT.md` once their results are
   logged; Git history keeps them.
+- Decoding (owner, 2026-11-16): new lines decode without the repetition
+  penalty (`--repetition-penalty 1.0` in evaluation and sampling). Rows
+  before that date used the model's generation config, 1.1; rows without the
+  penalty carry `_np` in their arm name (`fedicl-sql/AGENTS.md`).
 - Student training uses `--lm-loss target_fp32` with `logits_to_keep`. Teacher
   generation uses 4-bit, batch 8, `--exec-workers 4`. Set
   `CUDA_DEVICE_ORDER=PCI_BUS_ID` with `CUDA_VISIBLE_DEVICES`. Record new memory
