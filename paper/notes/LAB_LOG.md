@@ -3,6 +3,63 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: literature map by two agents that did not see the project; the synthetic rows by number of tables
+
+Owner (2026-11-17): the earlier idea rounds started from the existing
+pipeline, so run one round that does not. Two agents got only the generic
+problem (small model, sites that cannot share rows, databases executable
+at the sites, public data and a frozen 7B model at the server, Spider
+test) and were told not to read the project. One mapped Text-to-SQL
+methods for small models, one federated fine-tuning of LLMs. No GPU.
+The paper numbers below were read by the agents from the papers' tables;
+none is checked by us and none is in `LITERATURE.md` yet.
+
+What the two maps agree on:
+
+- The largest published effect at this model size is training data
+  generated and checked by execution on the training databases, not the
+  training signal: SPFT-SQL, same 1.5B model, Spider test 78.0 to 82.3,
+  and its 7B ablation puts most of the gain in the synthesis. On the
+  federated side the largest effect is also self-generated data kept by a
+  local check (Fed-SE, 57.3 to 63.0 at 3B). Federated generation at the
+  clients with an execution check was not found in any paper.
+- RL or preference tuning with an execution reward over a strong SFT model
+  gives +1.1 to +1.7 on Spider test at 1.5B to 3B (SLM-SQL, SQL-R1), zero
+  in Think2SQL. Our measured +0.9 to +2.2 is in that range.
+- A schema filter: fine-tuned 7B with gold tables still fails 9.7% of
+  Spider dev (DTS-SQL); constrained decoding gives at most +1.1 at 1.5B
+  (IterGen). Both agree with our gold-table bound of +3.3.
+- FedProx, SCAFFOLD, exact LoRA aggregation, personalisation: zero to
+  small on generation tasks whenever FedAvg is close to centralised
+  training. The only federated Text-to-SQL paper found is Lorar (ACL 2023,
+  T5-base, no test on unseen databases).
+- Multi-table questions: no paper at 1B to 3B reports synthesis by join
+  depth, join-path supervision, a join-implicit target (NatSQL: +2.3 on
+  T5 in RESDSQL) on a decoder-only model, or results by number of tables.
+
+Not in our work so far and with a published effect: SFT on public
+synthetic data at the server before the client rounds (OmniSQL, 7B:
+80.7 to 87.9; SLM-SQL, 1.5B trained on SynSQL only, vote of 16: 77.35);
+execution inside a multi-turn answer (MTIR-SQL, 4B: 79.1 to 83.4).
+
+The rows of `synth_s0/build` by number of tables (committed files of
+`04922932`, counted with sqlglot; the script is not committed):
+
+| Tables in the SQL | Client gold SQL (8,659) | Synthetic SQL (5,645) | Spider test (2,147) |
+|---|---:|---:|---:|
+| 1 | 51.4% | 58.6% | 57.3% |
+| 2 | 32.0% | 30.6% | 30.3% |
+| 3 | 12.0% | 10.1% | 10.7% |
+| 4 or more | 4.6% | 0.6% | 1.7% |
+
+The build refills the SQL of a client's own rows, so it adds no query
+structure and slightly fewer joins than the client rows. The queued pilot
+(`synth_s0/round_synth` against `round_plain`) therefore reads "more rows
+of the same structures"; it does not read synthesis aimed at joins or at
+structures the clients lack.
+
+No decision. Files of the two maps are in the session scratchpad only.
+
 ## 2026-11-16: questions that do not name the gold columns; scan on schema perturbation (local analysis)
 
 Owner (evening of 2026-11-16): the data assumption stays, every client
