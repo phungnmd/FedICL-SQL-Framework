@@ -3,6 +3,76 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: mechanism pilots queued: synthetic questions at the clients, peer adapter check (owner)
+
+Owner on 2026-11-16: yes to the pilot of synthetic
+questions in its SQL-first form, yes to the peer adapter check, update
+`LITERATURE.md`, and the queue holds the pilots of these directions.
+
+Before it, a gap scan for the mechanism to add to the core (narrative,
+web sources opened in the run; `LITERATURE.md` section 1.17 and gaps 6 to
+8). Candidates it left, with the numbers of the `codes` line they rest on
+(Spider test and client samples, seed 0):
+
+| Candidate | What it does | Rests on | State |
+|---|---|---|---|
+| A | new questions for SQL generated on each client's own databases, as label-only rows of the DPO rounds | 72% of the client questions have all 8 samples right by round 3; pairs 6,626 / 4,244 / 3,706 | pilot queued |
+| B | the other clients' adapters as extra samplers on questions the global model does not solve | 560 questions with all 8 samples wrong at round 3; vote of the five client adapters 76.85 against 75.69 for their average (`full`, round 1) | check queued, training pilot not queued |
+| C | clients with few labelled questions, vote labels for the rest | vote labels 75.50 against gold labels 75.69 (one round, `full`) | not queued, changes the setup |
+| D | a hint for questions no sample solves | the same 560 questions | not queued |
+| E | CPU count of samples that pass on the client database by accident | none yet | not queued |
+
+Left out by the scan: federated GRPO, other LoRA aggregation rules, an
+expert per client, the teacher again, token or clause DPO, CoT.
+
+Code (`9ec6e452`) and queue (`091415a1`), pushed at 17:45 on 2026-11-16:
+
+- `fedicl_sql/preference/synthesis.py`, `scripts/synth_questions.py`: per
+  client, the SQL of its rows is refilled on its own databases in four
+  ways (other values 15%, other columns 35%, other tables 25%, another
+  database of the client 25%); joins only along declared foreign keys,
+  columns keep their kind and key role. A query is kept when it runs
+  within 5 s to a non-empty result that is not a lone zero or NULL, at
+  most 2 per query shape. The base model, no adapter, writes one question
+  per query with 3 (SQL, question) examples from the client's rows. The
+  new rows follow the client's rows in a new split.
+- `--no-fallback-prefix syn:` on the DPO round: a synthetic question with
+  no correct sample gives no pair, so its SQL is never the chosen side.
+  The default rule and the identities of existing roots are unchanged
+  (tests).
+- `scripts/peer_check.py`: for the questions with all samples wrong at
+  round 3, 8 samples from each other client's round 2 adapter and 32 new
+  samples from the global adapter, labelled against gold on the client's
+  databases. No training.
+
+Pilots, all on the `codes` line, seed 0 (its adapters and samples exist;
+the `codes_v2` line has none yet):
+
+| Tasks | Run | Comparator |
+|---|---|---|
+| `peer_s0/check` | the peer check at round 3 | share of the questions solved by a peer adapter against the share solved by 32 more global samples |
+| `synth_s0/build` | 1,200 queries per client, questions written through vLLM | by hand: about 30 synthetic rows |
+| `synth_s0/round_synth`, `eval_synth` | one DPO round from DPO round 3 on the split with synthetic rows, arm `sqlsyn_dpo_fedavg_r4_vllm_inproc` | the plain round below; 77.36 at round 3 |
+| `synth_s0/round_plain`, `eval_plain` | round 4 of the `codes` line, arm `sqlcodes_dpo_fedavg_r4_vllm_inproc` | 77.36 at round 3 |
+
+Cut: one round, one seed. The synthetic round has more pairs than the
+plain round, so the comparison is of the whole step, not of equal update
+counts; a control with equal pair counts is not queued. No selection pass
+on the synthetic rows beyond the pair rule (1 to 7 of 8 samples right).
+
+Local checks, not committed results: the generator keeps 1,080 to 1,200
+queries per client in seconds; of 32 questions the base model wrote, about
+60% matched their SQL (wrong returned column, "after 2006" for `<>`). A
+wrong question only costs the row when no sample reproduces the result of
+its SQL; when some do, the model is pushed toward that SQL for a question
+that does not ask it. The 30 rows read by hand after the build measure
+how often. Nothing of the new code has run on the server (the vLLM paths
+of both scripts, the round 2 client adapters and round 3 samples on
+disk).
+
+The pilots sit before the `codes_v2` line, which starts about 8 h later
+than planned.
+
 ## 2026-11-16: the base model with `codes_v2` on Spider test
 
 `d22463ca` (16:47 on 2026-11-16), arm `sqlcv2_base_vllm_inproc`, vLLM

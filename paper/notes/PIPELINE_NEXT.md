@@ -2,17 +2,26 @@
 
 ## Status
 
-Updated 2026-11-16 at 17:05 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-16 at 17:55 (Asia/Ho_Chi_Minh). Last published result:
 `d22463ca` (16:47 on 2026-11-16: the base model with `codes_v2` on Spider
 test). Server work uses drive D only (owner, 2026-11-15): every command
 below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
-The worker runs the core-only queue (`9af6b7c7`). Its start time was not
-reported; the first task of the new queue was published at 16:47.
+The worker runs the queue of `9af6b7c7`. Its start time was not reported;
+the first task of that queue was published at 16:47. A newer queue and
+code were pushed at 17:45 (`091415a1`: rows 2-5 below). The worker takes
+them without a restart: every publish task fast-forwards the checkout,
+and the worker rereads the queue before each task.
+
+Code note for that push: it adds one option to the shared DPO round
+(`fedicl_sql/preference/pairs.py`, `experiments/federated_pref/run.py`).
+Without the option the pair rule and the identity of every existing root
+are unchanged, so nothing has to finish before the pull;
+`sqldpo_s0/pilot_rejected_wrong` may start on the new code.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the queue below. Most likely on row 1, `sqldpo_s0/pilot_rejected_exec`, since about 16:48 (not confirmed). | results commit `d22463ca`, 16:47 on 2026-11-16 |
+| 0 | Worker on the queue below. Most likely on row 1, `sqldpo_s0/pilot_rejected_exec`, since about 16:48 (not confirmed). No result commit since. | results commit `d22463ca`, 16:47 on 2026-11-16; `origin/main` read at 17:48 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -30,22 +39,40 @@ Read-only status on the server, from the `fedicl-sql` root:
 Nothing to run. The worker continues on its own; send back any
 `STOP queue` line when it appears.
 
+Rows 2-5 run new code for the first time on the server. If the worker
+stops with `STOP queue: peer_s0/...` or `STOP queue: synth_s0/...`, send
+the line and the last lines of the task's log, and start the worker on
+the other rows so the card does not idle (from the `fedicl-sql` root):
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase sqldpo_s0 sqlcv2_s0 f1_s0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
 Next owner action (clock times are estimates from a start of row 1 at
 16:48 on 2026-11-16):
 
 - After row 1 (about 20:15 on 2026-11-16): the rejected-type pilots.
-- After row 2 (about 02:45 on 2026-11-17), in the morning: FedAvg R3 with
-  `codes_v2` against 73.17 (`codes`) and 73.45 (`codes` with comments).
-  Its round 1 is the memory check of the new prompt in training (first
-  batch, peak reserved). Say then whether row 5 keeps `codes` or moves to
-  `codes_v2` (a queue edit, no new code).
-- After row 3 (about 11:45 on 2026-11-17): the core with `codes_v2`
+- After row 2 (about 20:45): the peer check,
+  `experiments/peer_check/results/codes_dpo_r3/summary.json`: on how many
+  of the questions the global model does not solve a peer adapter finds a
+  correct SQL, against 32 more samples from the global model.
+- After row 3 (about 21:15): the synthetic rows,
+  `audits/protocol_v2/sqlsyn_coder15b_alpha01_s0/synth/`. The agent reads
+  about 30 of them by hand from the results commit.
+- After row 5 (about 04:15 on 2026-11-17), in the morning: the DPO round
+  with synthetic questions against the plain fourth round, both against
+  77.36 at round 3. Then the decision on the mechanism (`RESEARCH_STATE.md`
+  section 5, item 9).
+- After row 6 (about 10:45 on 2026-11-17): FedAvg R3 with `codes_v2`
+  against 73.17 (`codes`) and 73.45 (`codes` with comments). Its round 1
+  is the memory check of the new prompt in training (first batch, peak
+  reserved). Say then whether row 9 keeps `codes` or moves to `codes_v2`
+  (a queue edit, no new code).
+- After row 7 (about 19:45 on 2026-11-17): the core with `codes_v2`
   against 76.62 / 77.18 / 77.36 (`codes`).
-- After row 4 (about 18:45 on 2026-11-17): FedAvg against centralized SFT,
+- After row 8 (about 02:45 on 2026-11-18): FedAvg against centralized SFT,
   both with `codes_v2`.
-- After row 5 (about 01:15 on 2026-11-18): FedAvg with 20 clients.
-- Open, not tied to a row: the mechanism to add to the core and where the
-  vote-label line starts (see "Not queued yet").
+- After row 9 (about 09:15 on 2026-11-18): FedAvg with 20 clients.
 
 ## Running and queued
 
@@ -55,15 +82,22 @@ progress need the status command above.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 1 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
-| 2 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2` in every prompt, each round on Spider test. Comparators: 69.03 / 71.91 / 73.17 (`codes`), 73.45 (`codes` with comments at evaluation) | 6.5 h | queued |
-| 3 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt: 3 DPO + NLL rounds from that R3. Comparators: 76.62 / 77.18 / 77.36 (`codes`), 77.55 with comments | 9 h | queued |
-| 4 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs from the base model, `codes_v2`, then epoch 3 on Spider test. Comparators: FedAvg R3 of row 2; centralized with `full`, 70.75 | 7 h | queued |
-| 5 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds from the base model on the `k20` split, every client, `codes` prompts, each round on Spider test. Comparator: 73.17 (5 clients, `codes`) | 6.5 h | queued |
+| 2 | `peer_s0/check`, `publish_check` | Do the other clients' adapters solve questions the global model does not? For the questions with all 8 samples wrong at DPO round 3 of the `codes` line (560), 8 samples from each other client's round 2 adapter and 32 new samples from the global adapter, labelled on the client's databases. No training | 0.5 h | queued |
+| 3 | `synth_s0/build`, `publish_build` | The synthetic rows: per client 1,200 SQL queries refilled on its own databases, a question for each written by the base model through vLLM; the client's split with the new rows appended | 0.5 h | queued |
+| 4 | `synth_s0/round_synth`, `eval_synth` and their publish tasks | Do synthetic questions give the DPO loop new pairs that help? One DPO + NLL round from DPO round 3 of the `codes` line on the split of row 3; a synthetic question trains only when some of its samples match its SQL and some do not. Arm `sqlsyn_dpo_fedavg_r4_vllm_inproc`. Comparators: row 5; 77.36 at round 3 | 4 h | queued |
+| 5 | `synth_s0/round_plain`, `eval_plain` and their publish tasks | The same round without synthetic rows: round 4 of the `codes` line. Arm `sqlcodes_dpo_fedavg_r4_vllm_inproc`. Comparator: 77.36 at round 3 | 3 h | queued |
+| 6 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2` in every prompt, each round on Spider test. Comparators: 69.03 / 71.91 / 73.17 (`codes`), 73.45 (`codes` with comments at evaluation) | 6.5 h | queued |
+| 7 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt: 3 DPO + NLL rounds from that R3. Comparators: 76.62 / 77.18 / 77.36 (`codes`), 77.55 with comments | 9 h | queued |
+| 8 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs from the base model, `codes_v2`, then epoch 3 on Spider test. Comparators: FedAvg R3 of row 6; centralized with `full`, 70.75 | 7 h | queued |
+| 9 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds from the base model on the `k20` split, every client, `codes` prompts, each round on Spider test. Comparator: 73.17 (5 clients, `codes`) | 6.5 h | queued |
 
-Rows 1-5 take about 32.5 h from the start of row 1. Row 2 is a new
-prompt style in training: its first batch and the peak reserved of round 1
-are the memory check (prompts are shorter than `codes`: mean 880 tokens,
-longest 6,444); row 4 trains on the same rows after it.
+Rows 1-9 take about 40.5 h from the start of row 1. Rows 2-5 are new
+code: the times of rows 2-4 are not measured. Row 4 samples up to 14,659
+questions instead of 8,659; its sampling and first training batch are the
+memory check (the prompts are the `codes` prompts of the line). Row 6 is
+a new prompt style in training: its first batch and the peak reserved of
+round 1 are the memory check (prompts are shorter than `codes`: mean 880
+tokens, longest 6,444); row 8 trains on the same rows after it.
 
 Cut from a full run:
 
@@ -71,24 +105,28 @@ Cut from a full run:
 - Row 1 is one round with `full` prompts on reused samples and starts from
   `hinton_k2aaa_a3`, an adapter with the server stage. It answers a
   question about the pair rule of DPO, which the core shares.
-- Row 4 is centralized SFT only. Centralized DPO with `codes_v2` (3 rounds
+- Rows 2-5 use the `codes` line, whose adapters and samples exist; the
+  `codes_v2` line has none yet.
+- Row 2 measures candidates only; training with a peer sample as the
+  chosen side (one round, about 3 h) is not queued and depends on it.
+- Rows 4 and 5 are one round each. Row 4 has more pairs than row 5, so
+  the two compare the whole step, not equal update counts; a control with
+  equal pair counts (about 3 h) is not queued. The synthetic rows get no
+  selection beyond the pair rule.
+- Row 8 is centralized SFT only. Centralized DPO with `codes_v2` (3 rounds
   on the pooled rows, about 9 h) is not queued.
-- Row 5 is the FedAvg SFT half of F1 and uses `codes`, as its curve is
+- Row 9 is the FedAvg SFT half of F1 and uses `codes`, as its curve is
   defined, not `codes_v2`. It shows whether FedAvg holds with 20 clients
   and says nothing about the DPO rounds with 20 clients (about 11 h) or
   about 10 of 20 clients per round (about 19 h); neither is queued.
 
 Not queued yet:
 
-- A mechanism added to the core. The candidate with the most support in
-  the literature (`LITERATURE.md` section 1.16): each client writes new
-  questions and SQL for its own databases, keeps the rows that execute,
-  and trains on them with its DPO rounds. New code and a pilot of about
-  6-8 h; waits for the owner's yes. Two cheaper steps proposed before the
-  pilot, also waiting: an offline count of how often vote labels agree
-  with gold labels on the samples of rounds 1-3 on the server (CPU), and
-  a smoke of about 200 synthetic rows on one client (about 20 min, needs
-  the FedAvg R3 of row 2).
+- Other mechanism candidates (`RESEARCH_STATE.md` section 5, item 9):
+  clients with few labelled questions and vote labels for the rest (about
+  6 h, changes the setup); a hint for questions no sample solves; a CPU
+  count of samples that pass by accident, on mutated databases. Not
+  approved.
 - Out of the queue since 2026-11-16 (owner: the teacher and the public
   stage leave the core): the DPO rounds of the `codes` line from the
   Hinton server stage (stopped in round 1) and its gold control, a server
@@ -124,7 +162,7 @@ For a future code update, stop the worker and its child process before
 pulling shared DPO changes, then pull and run the tests:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py tests/test_synthesis.py tests/test_peer_check.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 Worker on GPU 0:
@@ -238,6 +276,32 @@ teacher with `codes` prompts (arm `sql_teacher7b_codes_vllm_inproc`, its
 `full` comparator `sql_teacher7b_vllm_inproc`); `xsel_dpo_r3` is selection
 by execution on DPO round 3 with `codes` (`xsel_codes_dpo_r3`, greedy
 column `sqlcodes_dpo_fedavg_r3_vllm_inproc`).
+
+### The mechanism pilots (phases `peer_s0`, `synth_s0`)
+
+Both on the `codes` line, seed 0
+(`artifacts/protocol_v2/sqlcodes_coder15b_alpha01_s0/`).
+
+- `peer_s0/check` (`scripts/peer_check.py`): reads the round 3 samples of
+  the line, takes the questions with all samples wrong, and samples them
+  again through vLLM, one run per adapter: each other client's round 2
+  adapter (8 samples) and the round 2 global adapter (32 samples).
+  Results: `experiments/peer_check/results/codes_dpo_r3/` (`summary.json`,
+  `per_question.csv`); working files under
+  `artifacts/protocol_v2/peer_check/codes_dpo_r3/`.
+- `synth_s0/build` (`scripts/synth_questions.py`): writes the new split
+  to `artifacts/protocol_v2/sqlsyn_coder15b_alpha01_s0/synth/split` and
+  the evidence (queries, questions, why a row was dropped, counts) to
+  `audits/protocol_v2/sqlsyn_coder15b_alpha01_s0/synth/`. Synthetic rows
+  have ids `syn:c<client>:<n>`. Rerunning resumes or reports the build as
+  done.
+- `synth_s0/round_synth`: a new root,
+  `artifacts/protocol_v2/sqlsyn_coder15b_alpha01_s0/dpo_synth`, round 1
+  from the round 3 global adapter of the `codes` line, with
+  `--no-fallback-prefix syn:`. Its pair statistics carry the counts of
+  synthetic questions by number of correct samples (`label_only_*`).
+- `synth_s0/round_plain`: round 4 in the root of the `codes` line; rounds
+  1-3 and the record of the curve are not touched.
 
 ### The corrected prompt (phase `sqlcv2_s0`)
 

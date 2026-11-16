@@ -300,17 +300,42 @@ Both seeds pooled, clustered by question (95% interval):
    seed with the final prompt.
 8. A DPO round at the server on public data: dropped with the public
    stage (owner, 2026-11-16). The gate did not run.
-9. A mechanism of its own (owner decision pending). The core is
-   CodeLutra's recipe in a federated setting at 1.5B, so the recipe cannot
-   carry the paper's novelty. The candidate with the most support in the
-   literature (`LITERATURE.md`, section 1.16): each client writes new
-   questions and SQL on its own databases, keeps the rows that execute,
-   and trains on them together with its DPO rounds. SPFT-SQL reports for
-   this student on Spider test 78.0 after SFT and 82.3 with its full
-   method, and at 7B 86.8 for verified synthesis alone against 83.7 for
-   SFT; its preference stage is weak, CodeLutra has no synthesis, and
-   their combination is not published. New code and a pilot of about
-   6-8 h; not approved.
+9. A mechanism of its own: two candidates in pilot (owner, 2026-11-16).
+   The core is CodeLutra's recipe in a federated setting at 1.5B, so the
+   recipe cannot carry the paper's novelty. A gap scan of 2026-11-16
+   (`LITERATURE.md`, sections 1.16, 1.17 and 3) left five candidates:
+   - A, new questions on the client's own databases. Each client refills
+     the SQL of its labelled questions on its databases (other values,
+     columns, tables or another of its databases), keeps the queries that
+     execute to a non-empty result, and the base model writes a question
+     for each. In a DPO round the synthetic SQL is only the label: a
+     synthetic question trains when some of its 8 samples match the result
+     of its SQL and some do not, and its SQL is never the chosen side. Why
+     here: the loop runs out of questions (72% of the client questions
+     have all 8 samples right by round 3, pairs fall 6,626 / 4,244 /
+     3,706). Closest: SPFT-SQL (synthesis, weak preference stage),
+     CodeLutra (the loop, no synthesis); their combination is not
+     published, and no federated paper checks synthetic rows by execution
+     at the client. Pilot queued: one DPO round with the synthetic rows
+     from DPO round 3 of the `codes` line, against a plain fourth round.
+   - B, the other clients' adapters as extra samplers. For a question
+     where all 8 samples of the global model are wrong (560 at round 3),
+     a client also samples from the adapters the other clients trained in
+     the last round; a correct one becomes the chosen side instead of the
+     gold SQL. Closest: FedMatch (helper models for pseudo-labels, vision).
+     The only candidate where federation itself has a role. Check queued:
+     on how many of those questions a peer adapter finds a correct SQL,
+     against 32 more samples from the global model. The training pilot
+     (about 3 GPU h) is not queued; it depends on the check.
+   - C, clients with few labelled questions and vote labels for the rest
+     (changes the data assumption, about 6 GPU h); D, a hint for questions
+     no sample solves; E, a CPU count of samples that pass by accident, on
+     mutated databases. Not queued.
+
+   Reading of the scan against the venues: the core with A is "SPFT-SQL
+   plus CodeLutra, federated, at 1.5B", a combination with a measured
+   reason; a part where federation has a shown role (B or C) is what would
+   lift it above that.
 10. The SFT level. SPFT-SQL reports 72.3 zero-shot and 78.0 after SFT for
     this student on Spider test with its own prompt; here the base model
     gives 57.89 (`full`), 61.95 with `codes_v2` (`d22463ca`), and FedAvg
@@ -338,17 +363,20 @@ The teacher and the public stage left the core on 2026-11-16 (owner). The
 (73.27 / 75.64 / 75.78, `bff4f42b`, against 69.03 / 71.91 / 73.17 without
 the stage); its DPO rounds were stopped in round 1 and no result of them
 is published. The base model with `codes_v2` gives 61.95 on Spider test
-(`d22463ca`, against 57.89 with `full`). The queue keeps the core only
-(`9af6b7c7`): the rejected-type pilots, the `codes_v2` line from the
-base model (3 FedAvg rounds, 3 DPO rounds), centralized SFT with
-`codes_v2`, and the FedAvg half of F1 (20 clients, `codes`). Out of the
+(`d22463ca`, against 57.89 with `full`). The queue (`091415a1`) holds, in order:
+the rejected-type pilots, the two mechanism pilots on the `codes` line
+(the peer adapter check; a DPO round with synthetic questions against a
+plain fourth round), the `codes_v2` line from the base model (3 FedAvg
+rounds, 3 DPO rounds), centralized SFT with `codes_v2`, and the FedAvg
+half of F1 (20 clients, `codes`). Out of the
 queue: the gold control, a server stage with `codes_v2`, the server DPO
 gate, the local client rows and centralized DPO with `full`. Approved and
 not queued: DPO with result-vote labels for 3 rounds. Run commands,
 live-state provenance and estimates are in `PIPELINE_NEXT.md`.
 
 The preference term stays plain and the core keeps DPO + NLL. The next
-decision is the mechanism to add to the core (section 5, item 9).
+decision is the mechanism to add to the core, from the two pilots
+(section 5, item 9).
 
 ## 7. Directions after the queue
 
