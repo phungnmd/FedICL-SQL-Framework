@@ -59,7 +59,7 @@ lives, and only the small model's adapter moves between the two.
 
 | Stage | Where | Supervision it uses | What it is for | Effect measured so far |
 |---|---|---|---|---|
-| 1. Server stage | server | the teacher's soft targets on public data (BIRD train) | general SQL ability that the clients' few domains do not give; it shows most on databases far from the clients | FedAvg R3 +2.12 before DPO and +1.40 after DPO on Spider test (two seeds pooled); after DPO Spider dev +3.53, DK +4.11, BIRD dev +11.38 |
+| 1. Server stage | server | the teacher's soft targets on public data (BIRD train) | general SQL ability that the clients' few domains do not give; it shows most on databases far from the clients | FedAvg R3 +2.12 before DPO and +1.40 after DPO on Spider test (two seeds pooled); after DPO Spider dev +3.53, DK +4.11; BIRD dev +11.38, which is the public data's own domain and not a transfer |
 | 2. FedAvg SFT | clients | the labelled questions | the clients' domain | base model 65.72 to FedAvg R3 74.71 (`codes`, without the penalty) |
 | 3. Federated DPO + NLL | clients | the client's databases, as a check of the model's own SQL | the errors a gold label cannot show: the label says what is right, execution says what the model gets wrong | +2.3 to +2.75 over FedAvg R3 without the penalty; execution errors 171 to 82 (`codes`); samples drawn again each round +1.72 over fixed samples |
 

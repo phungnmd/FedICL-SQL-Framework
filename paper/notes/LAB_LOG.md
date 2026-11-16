@@ -3,6 +3,52 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: review of the planned paper against the two target journals (one agent, no project context)
+
+Owner (2026-11-17): one agent that does not see the project reviews the
+planned paper as a reviewer of the target journals, after reading what
+those journals accept. It got the title, the story, the three stages, the
+setup, the rows of `RESEARCH_STATE.md` section 4 and the rows measured
+without the penalty. The journal facts and its estimates are its own; the
+CMC papers were read in full text (11), the JIIS pages through a
+summarising fetch (5 full texts, 13 abstracts), and the quartiles were
+not verified.
+
+- CMC: major revision, then accept; its estimate 70% as planned, 85% with
+  the additions below. Typical accepted paper there: a named framework of
+  known parts, 3 to 7 baselines, gains of 1 to 3 points, no theory, no
+  formal privacy analysis in its federated papers. Open access with a
+  charge (about USD 2,400 to 2,900 at this length).
+- JIIS: major revision; 45% as planned, 65% with the additions. Scope
+  "integration of AI and database technologies"; 7 Text-to-SQL papers and
+  6 federated papers in 2025 to 2026, none joining the two; 25-page
+  limit; 104 to 209 days from receipt to acceptance; no charge on the
+  subscription route.
+- Weaknesses it ranks first: no table in the final setup; stage 3 may be
+  matched by selection at inference on the FedAvg model (we hold that
+  row with `full` prompts: a vote over 8 samples lifts FedAvg R3 to
+  75.55, DPO round 3 greedy from it gives 75.13, and the two add up to
+  78.39 on the method); nothing depends on federation (centralized stage
+  3 and the centralized pipeline are missing); the teacher adds under
+  one point and leads the title; BIRD dev +11.38 is the public data's
+  own domain.
+- Additions it calls required for both: every row in the final setup with
+  two seeds; the two inference-only rows on the FedAvg model with an
+  error-type table; FedAvg with six SFT rounds, centralized stage 3, the
+  centralized pipeline; a cost table; the teacher's role settled (or the
+  server stage told as a public-data start); a difference table against
+  the closest work; threat model and limitations. For CMC also 20
+  clients and a second heterogeneity level; for JIIS a table against
+  published small-model Spider numbers and public code.
+- Not needed for these venues in its reading: formal DP, convergence
+  theory, a second teacher, more than three seeds, a fourth stage.
+- Title it suggests: "Federated Text-to-SQL for a Small Language Model:
+  Client-Side Execution Feedback with a Server-Side Public-Data Warm
+  Start", with "Server-Side Distillation from a Large Model" only if the
+  final runs show the teacher's part.
+
+No decision. The full review is in the session scratchpad only.
+
 ## 2026-11-17: method fixed as three stages, server stage back in (owner)
 
 Owner (2026-11-17): the aim is a paper that reads well; what published
