@@ -50,7 +50,43 @@ Proposed, not approved: evaluate the base model, FedAvg R3 and DPO round 3
 new arm names; existing results keep their identities). Script and rows of
 the probe are in the session scratchpad only.
 
-## 2026-11-16: FedAvg R3 and DPO round 3 of the `codes` line without the repetition penalty
+## 2026-11-16: the six existing rows without the repetition penalty
+
+`456d1fea` (19:47) and `05c22e54` (19:58 on 2026-11-16): committed
+adapters, Spider test, 2,147 rows, seed 0, vLLM inproc,
+`--repetition-penalty 1.0`, arms with `_np`. Gained / lost are questions
+against the same adapter with the penalty.
+
+| Row | EX, penalty 1.1 | Errors | EX, no penalty | Errors | Gained / lost |
+|---|---:|---:|---:|---:|---|
+| base model, `codes_v2` | 61.95 | 377 | 65.72 | 272 | 168 / 87 |
+| FedAvg R3, `full` | 71.26 | 211 | 72.33 | 183 | 93 / 70 (p = 0.08) |
+| DPO round 3 from it, `full` | 75.13 | 101 | 75.08 | 107 | 62 / 63 |
+| FedAvg R3, `codes` | 73.17 | 205 | 74.71 | 171 | 74 / 41 (p = 0.003) |
+| DPO round 1, `codes` | 76.62 | 94 | 76.29 | 98 | 46 / 53 |
+| DPO round 3, `codes` | **77.36** | 86 | **77.04** | **82** | 42 / 49 |
+
+| Gain of the DPO stage over FedAvg R3 | Penalty 1.1 | No penalty |
+|---|---:|---:|
+| `full`, round 3 | +3.87 | +2.75 (112 / 53) |
+| `codes`, round 1 | +3.45 | +1.58 (79 / 45) |
+| `codes`, round 3 | +4.19 | +2.33 (115 / 65) |
+
+- The penalty costs the models that were never trained on their own
+  samples: 3.77 points for the base model, 1.07 to 1.54 for FedAvg R3.
+  The DPO adapters do not move under either prompt.
+- The DPO stage keeps a clear gain without the penalty, 2.3 to 2.75
+  points at round 3; 1.1 to 1.9 points of the reported gain were the
+  penalty's cost on the SFT model.
+- `codes` over `full` holds: +2.38 at FedAvg R3 and +1.96 after DPO
+  without the penalty (+1.91 and +2.23 with it).
+- These DPO adapters were trained on samples drawn with the penalty;
+  the round with samples drawn without it is running
+  (`norp_s0/curve_fedavg`).
+
+The first two rows in detail:
+
+### 2026-11-16: FedAvg R3 and DPO round 3 of the `codes` line without the repetition penalty
 
 `456d1fea` (19:47 on 2026-11-16), arms `sqlcodes_fedavg_r3_np_vllm_inproc`
 and `sqlcodes_dpo_fedavg_r3_np_vllm_inproc`: the committed adapters,

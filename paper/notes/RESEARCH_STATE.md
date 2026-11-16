@@ -359,18 +359,27 @@ Both seeds pooled, clustered by question (95% interval):
     names the SQL has to copy from the schema are penalized. It may
     account for part of the execution errors (352 of the base model's 377
     are `no such column`) and for part of what the DPO stage gains, since
-    that gain is in executable SQL (section 4). Measured on the `codes`
-    line, Spider test, seed 0 (`456d1fea`): without the penalty FedAvg R3
-    goes from 73.17 to 74.71 (execution errors 205 to 171) and DPO round
-    3 from 77.36 to 77.04 (86 to 82, no difference). The DPO stage gains
-    +2.33 without the penalty against +4.19 with it: about 1.9 points of
-    the reported gain were the penalty's cost on the SFT model. The DPO
-    adapters were trained on samples drawn with the penalty. Queued: the
-    other existing adapters without the penalty (base, DPO round 1 with
-    `codes`; FedAvg R3 and DPO round 3
-    with `full`), then one DPO round from FedAvg R3 with samples drawn
-    without it. New lines decode without the penalty; whether the numbers
-    of section 4 are rerun depends on these rows.
+    that gain is in executable SQL (section 4). Measured on existing
+    adapters, Spider test, seed 0 (`456d1fea`, `05c22e54`), with the
+    penalty and without:
+
+    | Row | Penalty 1.1 | No penalty |
+    |---|---:|---:|
+    | base model, `codes_v2` | 61.95 | 65.72 |
+    | FedAvg R3, `full` / `codes` | 71.26 / 73.17 | 72.33 / 74.71 |
+    | DPO round 3, `full` / `codes` | 75.13 / 77.36 | 75.08 / 77.04 |
+    | DPO stage over FedAvg R3, `full` / `codes` | +3.87 / +4.19 | +2.75 / +2.33 |
+
+    The penalty costs the models that were not trained on their own
+    samples (base 3.8 points, FedAvg R3 1.1 to 1.5) and nothing after
+    DPO. The DPO stage keeps a clear gain, 2.3 to 2.75 points; 1.1 to 1.9
+    points of the gain in section 4 were the penalty's cost on the SFT
+    model. Every SFT-type row of section 4 (FedAvg, the server stages,
+    centralized, and the baselines) is therefore low by about 1 to 1.5
+    points until evaluated again; they need no retraining. Open: the DPO
+    stage with samples drawn without the penalty (one round running, then
+    the `codes_v2` line), and the counts taken from samples with the
+    penalty (saturation, pairs by type, pass@8, the vote).
 
 ## 6. Current phase
 
