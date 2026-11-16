@@ -3,6 +3,39 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: `codes_v2` and `codes_cmt` schema styles (owner: fix the prompt, then rerun)
+
+Owner decision (2026-11-16): correct the `codes` prompt towards CodeS and
+train the `codes` lines again; no schema filter, no BM25 matcher.
+
+Code `12ccd01d`, `a3091816` (pushed 12:05 on 2026-11-16):
+
+- `codes` is unchanged: every stored prompt of
+  `sqlcodes_fedavg_r3_vllm_inproc` on Spider test, dev, DK, Realistic, SYN
+  and BIRD dev re-rendered with 0 differences; client SFT and DPO prompts
+  on 335 rows likewise.
+- `codes_cmt`: `codes` with comments from the dataset's own tables file
+  (same text as `codes` on Spider train and dev databases). Used only to
+  re-evaluate the `codes` adapters on Spider test (queued, `7f5a7f8e`).
+- `codes_v2`: that comment source; a comment equal to the column name
+  without `_` and spaces is dropped; sample values stripped, empty ones and
+  those above 25 characters dropped; every matched value of a column kept
+  (sorted, at most 25); on BIRD the evidence is matched as well.
+
+Prompt tokens (Qwen chat template), `codes` to `codes_v2`:
+
+| Set | Mean | Max | Prompts with a comment |
+|---|---|---|---|
+| Spider client train (8,659) | 996 to 880 | 7,297 to 6,444 | 8,363 to 2,852 |
+| Spider dev | 827 to 730 | 1,935 to 1,619 | 1,034 to 342 |
+| Spider test | 677 to 669 | 2,053 to 2,028 | 0 to 350 |
+| BIRD dev | 3,922 to 1,932 | 26,253 to 4,988 | 0 to 1,102 |
+
+Still different from CodeS: no schema filter, exact whole-word matching on
+text columns instead of BM25 plus LCS, names in original case and not
+quoted (38 of 806 BIRD dev columns would be quoted, 4 in all Spider
+databases). Not checked: BIRD train databases (not on the Mac).
+
 ## 2026-11-16: literature pass on server warm start and KD between rounds; vote of the five client adapters
 
 A literature pass (about 25 papers: warm start, FedDF family, LLM-to-SLM

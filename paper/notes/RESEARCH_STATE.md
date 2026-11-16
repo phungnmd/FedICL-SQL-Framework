@@ -28,7 +28,7 @@ not yet selected.
 | Part | Fixed choice |
 |---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct, SQL-only output, greedy decoding |
-| Prompt | `codes` schema (owner, 2026-11-16); every row before P1 uses `full` |
+| Prompt | `codes` schema (owner, 2026-11-16); every row before P1 uses `full`. New lines use the corrected renderer `codes_v2` (owner, 2026-11-16; `LAB_LOG.md`): CodeS-style serialization without CodeS's schema filter and value retriever |
 | Teacher (optional) | Qwen2.5-Coder-7B-Instruct, frozen. If used, it runs only at the server and only on public data |
 | Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`. Private rows never leave a client. |
 | Server public data (optional) | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it (owner, 2026-11-07) |

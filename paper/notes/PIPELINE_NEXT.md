@@ -2,10 +2,17 @@
 
 ## Status
 
-Updated 2026-11-16 at 10:45 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-16 at 12:10 (Asia/Ho_Chi_Minh). Last published result:
 `d3475b02` (10:25 on 2026-11-16: FedAvg round 1 of row 2 on Spider test).
 Server work uses drive D only (owner, 2026-11-15): every command below
 sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+
+Code pushed at 12:05 on 2026-11-16 (`7f5a7f8e`) that the running line loads
+from its next round on: two new schema styles (`codes_cmt`, `codes_v2`) in
+`fedicl_sql/data/spider.py` and their callers. The `codes` text is
+unchanged (every stored prompt of six evaluation sets re-rendered, 0
+differences), so nothing has to finish first and the worker is not
+restarted; it takes the commit at its next publish step.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -24,7 +31,15 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Nothing to run while the worker window shows progress lines.
+1. Read-only, seconds: check that the Spider test tables file is on the
+   server. Without it the comment check (row 2b) silently gives the same
+   prompts as `codes`.
+
+```powershell
+& { $ErrorActionPreference='Stop'; if (-not (Test-Path 'data\raw\spider\test_tables.json')) { throw 'test_tables.json missing: tell the agent' }; 'ok test_tables.json' }
+```
+
+   Send back: the `ok` line or the error.
 
 2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
    `DONE queue`, or was closed): start it. It skips finished work.
@@ -44,7 +59,9 @@ Next owner action:
 
 - After round 3 of `sqlcodes_s0/curve_hinton_sft` (about 14:45 on
   2026-11-16): the first reading, FedAvg R3 from the server stage with
-  `codes` against 73.17 without it.
+  `codes` against 73.17 without it. Row 2b follows at once (about 15:00):
+  the `codes` adapters with comments in the Spider test prompt against
+  73.17 and 77.36.
 - After `sqlcodes_s0/publish_rob_hinton` (about 00:45 on 2026-11-17): read
   row 2 with the agent and decide whether the public stage stays in the
   method. The rows after it can be cut or reordered then.
@@ -59,6 +76,7 @@ progress need the status command above.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 17.5 h | running since about 08:20 on 2026-11-16; round 1 of 6 done |
+| 2b | `sqlcodes_s0/cmt_fedavg_r3`, `cmt_dpo_r3`, `publish_cmt` (between the two curves of row 2); `cmt_hinton_a3`, `cmt_hinton_dpo_r3`, `publish_cmt_hinton` (after row 2) | How much the missing comments on Spider test cost: the `codes` adapters evaluated with `codes_cmt` (same text, comments from `test_tables.json`). Comparators: 73.17 and 77.36; for the Hinton line its own `codes` rows | 4 min each | queued |
 | 3 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
 | 4 | `f1_s0/curve_fedavg_sft`, `check_server_stage`, `curve_hinton_sft` | F1, 20 clients, every client, `codes` prompts: 3 FedAvg SFT rounds from the base model, and from the seed 0 Hinton server stage; each round on Spider test. Does the server stage gain more with 20 clients than with 5 (row 2)? | 15 h | queued |
 | 5 | `f1_s0/curve_fedavg`, `curve_hinton` | F1, every client: 3 DPO + NLL rounds from each R3, `codes` | 20 h | queued |
@@ -99,6 +117,11 @@ Cut from a full run:
   prompts reach 26,509 tokens with the answer budget).
 
 Not queued yet:
+
+- The lines with `codes_v2` (owner, 2026-11-16: the corrected prompt
+  replaces `codes` for new lines): the line from the base model again
+  (3 FedAvg + 3 DPO rounds, about 16 h) and F1 switched to `codes_v2`
+  before it starts. The order is the owner's to confirm.
 
 - A server stage with `codes` prompts (gold or Hinton on BIRD): the length
   of the BIRD train prompts with `codes` is not measured, Hinton needs a
