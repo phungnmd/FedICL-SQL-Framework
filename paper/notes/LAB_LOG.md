@@ -3,6 +3,39 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: zero-shot prompt variants and a schema filter without training (local probe, not committed)
+
+Question: the base model is 6.6 below the zero-shot number SPFT-SQL
+reports for the same model (65.72 against 72.3 on Spider test); does the
+wording of the instruction or a simple schema filter close it, before the
+`codes_v2` line trains with the current prompt.
+
+Probe, not committed: the base model, `codes_v2` schema, 300 random rows of
+the five clients' Spider train files (seed 0), greedy, no repetition
+penalty, Hugging Face on the Mac, the project's scorer.
+
+| Prompt | EX | Execution errors | Gained / lost against the current prompt |
+|---|---:|---:|---:|
+| current | 68.00 | 45 | |
+| without the sentence "The examples below show SQL patterns for reference." | 68.00 | 45 | 2 / 2 |
+| that, plus "SQLite" and "use only the tables the question needs, take each column from the table that defines it, return only the columns the question asks for" | **70.00** | 44 | 14 / 8 |
+| OmniSQL layout (task overview, engine, schema, question, instructions), SQL only | 69.67 | **41** | 30 / 25 |
+
+Schema filter without training, counted on all 8,659 client rows (no
+model): tables that share a word with the question, hold a matched value
+or bridge two kept tables keep every gold table on 89.28% of the questions
+(54.7% of the tables left); adding the foreign-key neighbours of the kept
+tables gives 97.60% (77.2% of the tables left).
+
+- No variant differs from the current prompt beyond what 300 rows can
+  show; the wording of the instruction does not explain the 6.6.
+- The filter removes a needed table more often than it could help; a
+  filter needs a trained classifier, as in CodeS.
+- The scorer is not the difference either: it is the result comparison of
+  `test-suite-sql-eval` on the one distributed database.
+- Decision: no prompt change, nothing added to the queue; the `codes_v2`
+  line trains with the current prompt.
+
 ## 2026-11-16: repetition penalty 1.1 in every generation (local probe, not committed)
 
 Question (owner): why the base model scores below the published numbers
