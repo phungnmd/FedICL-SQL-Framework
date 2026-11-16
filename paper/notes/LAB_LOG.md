@@ -3,6 +3,37 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: `codes` line from the Hinton server stage, FedAvg rounds; comment check
+
+Results `eff28d67` to `cd8d0e8b` (last at 14:42 on 2026-11-16). Spider test,
+seed 0, `codes` prompts at the clients, vLLM inproc, batch 16. The server
+stage is the seed 0 Hinton stage trained with `full` prompts on BIRD.
+
+| FedAvg round | From the base model | From the Hinton server stage |
+|---|---|---|
+| 1 | 69.03 | 73.27 |
+| 2 | 71.91 | 75.64 |
+| 3 | 73.17 | **75.78** |
+
+- Round 3: +2.61, paired +130 / -74; execution errors 205 to 136. With
+  `full` the same step gave +2.05 (71.26 to 73.31).
+- A round took 2.02 h, peak reserved 20.18 GiB.
+- The DPO curve starts from round 3 (fixed by name; the curve rule marks
+  round 2 as best because round 3 adds 0.14).
+
+Comment check (`codes_cmt` at evaluation: the `codes` text with comments
+from `test_tables.json`; 2,017 of 2,147 prompts carry a comment, 0 before):
+
+| Adapter (`codes` line from the base model) | `codes` | `codes_cmt` | Paired | Execution errors |
+|---|---|---|---|---|
+| FedAvg R3 | 73.17 | **73.45** | +45 / -39 | 205 to 174 |
+| DPO round 3 | 77.36 | **77.55** | +47 / -43 | 86 to 84 |
+
+The missing comments on Spider test cost 0.2 to 0.3 point on these
+adapters. The other changes of `codes_v2` (fewer redundant comments in
+training, value limits, every matched value) are not measured by this
+check.
+
 ## 2026-11-16: `codes_v2` and `codes_cmt` schema styles (owner: fix the prompt, then rerun)
 
 Owner decision (2026-11-16): correct the `codes` prompt towards CodeS and

@@ -305,7 +305,12 @@ adapters of round 1 and selection by execution (last published result
 P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`), and
 `codes` is the prompt from now on (owner, 2026-11-16). On BIRD dev P1 is
 at 27.38 (FedAvg R3) and 30.38 (DPO round 3), `full` at 25.55 and 29.66
-(`c46c62cd`). Queue order: the `codes` line from the seed 0 Hinton server stage (the run
+(`c46c62cd`). The `codes` line from the seed 0 Hinton server stage is at
+73.27 / 75.64 / 75.78 over its 3 FedAvg rounds (`bff4f42b`), against
+69.03 / 71.91 / 73.17 without the server stage; its DPO rounds are running.
+With comments in the Spider test prompt the `codes` adapters score 73.45
+(FedAvg R3) and 77.55 (DPO round 3) instead of 73.17 and 77.36
+(`cd8d0e8b`). Queue order: the DPO rounds of that line (the run
 that decides whether the public stage stays), the rejected-type pilots, F1
 (20 clients, seed 0, `codes`, with and without the Hinton server stage,
 every client), the server DPO gate (`full`), F1 with 10 of 20 clients per
