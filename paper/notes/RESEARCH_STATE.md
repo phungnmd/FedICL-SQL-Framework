@@ -303,8 +303,9 @@ adapters of round 1 and selection by execution (last published result
 `3767d097`, 06:36 on 2026-11-14, including the offline control).
 
 P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`), and
-`codes` is the prompt from now on (owner, 2026-11-16). Queue order: P1 on
-BIRD dev, the `codes` line from the seed 0 Hinton server stage (the run
+`codes` is the prompt from now on (owner, 2026-11-16). On BIRD dev P1 is
+at 27.38 (FedAvg R3) and 30.38 (DPO round 3), `full` at 25.55 and 29.66
+(`c46c62cd`). Queue order: the `codes` line from the seed 0 Hinton server stage (the run
 that decides whether the public stage stays), the rejected-type pilots, F1
 (20 clients, seed 0, `codes`, with and without the Hinton server stage,
 every client), the server DPO gate (`full`), F1 with 10 of 20 clients per

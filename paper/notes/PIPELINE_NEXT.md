@@ -2,17 +2,15 @@
 
 ## Status
 
-Updated 2026-11-16 at 03:05 (Asia/Ho_Chi_Minh). Last published result:
-`e2f048c7` (02:06 on 2026-11-16: the 7B teacher with `codes`, selection by
-execution on P1 DPO round 3). The queue order changed in the code commit
-pushed at 03:05 on 2026-11-16; the server has it after step 1 below, or
-after its next publish task (which fast-forwards by itself). Server work
-uses drive D only (owner, 2026-11-15): every command below sets `TEMP` and
-`TMP` to `D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-16 at 09:30 (Asia/Ho_Chi_Minh). Last published result:
+`c46c62cd` (08:18 on 2026-11-16: the two P1 adapters on BIRD dev, run on
+the queue commit of 03:05). Server work uses drive D only (owner,
+2026-11-15): every command below sets `TEMP` and `TMP` to
+`D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | The worker was running at 02:06 on 2026-11-16 and published `sqlcodes_s0/publish_teacher_xsel`; the next task in the queue is `sqlcodes_s0/bird_fedavg_r3`. | results commit `e2f048c7`, 02:06 on 2026-11-16 |
+| 0 | The worker was running at 08:18 on 2026-11-16 and published `sqlcodes_s0/publish_bird`; the next tasks are `sqlcodes_s0/check_server_stage`, then `curve_hinton_sft` (row 2). Not known: whether the check passed. | results commit `c46c62cd`, 08:18 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -27,20 +25,18 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Pull the new queue order and check that the Hinton server stage of seed
-   0 is on the server. The worker keeps running; only the queue file
-   changed, and no running task reads the changed lines. Running this
-   command is also the owner's approval to start row 2 and F1 from that
-   earlier adapter (`artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`).
+1. Read-only: check that row 2 started (the worker passed
+   `sqlcodes_s0/check_server_stage` and runs `curve_hinton_sft`).
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_curve.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }; uv run --no-sync python -c "from fedicl_sql.federated.stage_chain import resolve_parent; print('ok', resolve_parent('experiments/federated/results/federated_stage__K2fkl__s0__132e798a5be2__8393f0f9')['adapter']['path'])"; if ($LASTEXITCODE -ne 0) { throw 'Server stage adapter missing: send the error to the agent' }; uv run --no-sync python -m scripts.gpu_worker status --phase sqlcodes_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status --phase sqlcodes_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
 ```
 
-   Send back: the line `ok artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`,
-   or the error. With an error the worker would stop at
-   `sqlcodes_s0/check_server_stage` (about 04:40 on 2026-11-16), so send it
-   before leaving the server.
+   Send back: the lines of `check_server_stage` and `curve_hinton_sft`. If
+   the worker window shows `STOP queue: sqlcodes_s0/check_server_stage`,
+   send that line and the error above it: the server stage adapter
+   (`artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`) is then
+   missing on the server and nothing else runs.
 
 2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
    `DONE queue`, or was closed): start it. It skips finished work.
@@ -51,11 +47,6 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 Send back, when they appear in the worker window:
 
-- `sqlcodes_s0/bird_fedavg_r3`: the lines from `=== arm` to its first
-  progress line. After `=== arm` it prints nothing for about 50 min
-  (measured on a laptop CPU; the server may differ) while it builds the
-  1,534 BIRD prompts; it is not stuck. A silence of more than 2 h: send
-  the lines.
 - `sqlcodes_s0/curve_hinton_sft`: the first `[client 1]` progress lines of
   round 1 (the first client round with `codes` prompts from a server-stage
   adapter).
@@ -63,13 +54,13 @@ Send back, when they appear in the worker window:
 
 Next owner action:
 
-- After round 3 of `sqlcodes_s0/curve_hinton_sft` (about 12:00 on
+- After round 3 of `sqlcodes_s0/curve_hinton_sft` (about 16:00 on
   2026-11-16): the first reading, FedAvg R3 from the server stage with
   `codes` against 73.17 without it.
-- After `sqlcodes_s0/publish_rob_hinton` (about 22:30 on 2026-11-16): read
+- After `sqlcodes_s0/publish_rob_hinton` (about 02:00 on 2026-11-17): read
   row 2 with the agent and decide whether the public stage stays in the
   method. The rows after it can be cut or reordered then.
-- After row 3 (about 02:00 on 2026-11-17): the rejected-type pilots.
+- After row 3 (about 05:30 on 2026-11-17): the rejected-type pilots.
 - After row 4 and row 5 (about 35 h later): F1 with every client.
 
 ## Running and queued
@@ -79,8 +70,7 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqlcodes_s0/bird_fedavg_r3`, `bird_dpo_r3`, `publish_bird` | The two P1 adapters on BIRD dev | 2.5 h | next (not confirmed running) |
-| 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 17.5 h | queued |
+| 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 17.5 h | next after 08:18 on 2026-11-16 (not confirmed running) |
 | 3 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
 | 4 | `f1_s0/curve_fedavg_sft`, `check_server_stage`, `curve_hinton_sft` | F1, 20 clients, every client, `codes` prompts: 3 FedAvg SFT rounds from the base model, and from the seed 0 Hinton server stage; each round on Spider test. Does the server stage gain more with 20 clients than with 5 (row 2)? | 15 h | queued |
 | 5 | `f1_s0/curve_fedavg`, `curve_hinton` | F1, every client: 3 DPO + NLL rounds from each R3, `codes` | 20 h | queued |
@@ -88,17 +78,14 @@ progress need the status command above.
 | 7 | `f1_s0/curve_fedavg_sft_p10`, `curve_hinton_sft_p10`, `curve_fedavg_p10`, `curve_hinton_p10` | Rows 4-5 with 10 of the 20 clients per round | 19 h | queued |
 | 8 | `sqldpo_s0/eval_fedprox`, `eval_fedntd`, `eval_localsft_c1` to `c5`, `publish_baselines`, `curve_central`, `extra_central_r3`, `publish_central_extra` | Standard FL baselines on the same engine; centralized DPO on pooled client rows, 3 rounds (`full`) | 7.75 h | queued |
 
-All rows total about 100 h; rows 1-3 about 23.5 h. The estimates of rows 4,
+Row 1 (P1 on BIRD dev) is finished and logged. Rows 2-8 total about
+97.5 h; rows 2-3 about 21 h. The estimates of rows 4,
 5 and 7 scale the `full` estimates by the measured `codes` round times of 5
 clients (2.3 h a FedAvg round, 3.1 h a DPO round); the row 6 estimate is the
 least certain (derivation in `LAB_LOG.md`).
 
 Cut from a full run:
 
-- Row 1 is seed 0 only (P1 has no seed 1). On BIRD dev the `codes` schema
-  of `european_football_2` (129 of 1,534 questions) reaches 26,253 tokens
-  against 7,680 in training; the rows are read with and without that
-  database.
 - Rows 2, 4, 5 and 7 start from a server stage trained with `full` prompts
   on BIRD while the clients use `codes`: a server stage with `codes` is not
   trained (see below). A gain in row 2 holds for the method as it would be

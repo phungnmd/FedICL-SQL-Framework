@@ -3,6 +3,29 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: P1 on BIRD dev (`codes`, no server stage)
+
+Results commit `c46c62cd` (08:18 on 2026-11-16), seed 0, vLLM `inproc`,
+batch 16, BIRD dev 1,534 rows. EX and rows with an execution error:
+
+| Adapter | `full` | `codes` | Paired, `codes` vs `full` |
+|---|---|---|---|
+| FedAvg R3 | 25.55 (610) | 27.38 (658) | +146 / -118 |
+| DPO round 3 from it | 29.66 (439) | 30.38 (475) | +137 / -126 |
+| DPO gain | +4.11 | +3.00 | |
+
+- `codes` changes little on BIRD dev (+1.83 and +0.72), against +1.91 and
+  +2.24 on Spider test. DPO gains on BIRD dev with both prompts.
+- The distance to a line with a server stage on BIRD stays about 11 points
+  (Hinton line, `full`, DPO round 3: 41.20).
+- `european_football_2` (129 questions, `codes` prompts above the 7,680
+  training limit, up to 26,253 tokens): `codes` loses there (FedAvg R3
+  30.23 to 27.13, DPO round 3 33.33 to 32.56). Without it: 25.12 to 27.40
+  and 29.32 to 30.18.
+- Errors of `codes` DPO round 3: 344 of 475 are `no such column`.
+- Each evaluation took 3.1 h (estimate was 1.25 h); row 2 of the queue
+  starts about 3.7 h later than planned.
+
 ## 2026-11-16: `codes` is the prompt; the queue starts with the `codes` line from the Hinton server stage
 
 Owner decisions (2026-11-16): `codes` is the prompt from now on; the queue
