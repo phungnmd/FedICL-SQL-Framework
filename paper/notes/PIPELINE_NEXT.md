@@ -2,26 +2,23 @@
 
 ## Status
 
-Updated 2026-11-16 at 17:55 (Asia/Ho_Chi_Minh). Last published result:
-`d22463ca` (16:47 on 2026-11-16: the base model with `codes_v2` on Spider
-test). Server work uses drive D only (owner, 2026-11-15): every command
+Updated 2026-11-16 at 18:05 (Asia/Ho_Chi_Minh). Last published result:
+`e06e88b2` (17:54 on 2026-11-16: the first rejected-type pilot, rejected
+side fails to execute). Server work uses drive D only (owner, 2026-11-15): every command
 below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
-The worker runs the queue of `9af6b7c7`. Its start time was not reported;
-the first task of that queue was published at 16:47. A newer queue and
-code were pushed at 17:45 (`091415a1`: rows 2-5 below). The worker takes
-them without a restart: every publish task fast-forwards the checkout,
-and the worker rereads the queue before each task.
+The worker runs the queue of `091415a1` (pushed at 17:45): the results
+commits of 17:51 to 17:54 sit on top of it, so the server checkout has
+the new queue and code. No restart was needed.
 
 Code note for that push: it adds one option to the shared DPO round
 (`fedicl_sql/preference/pairs.py`, `experiments/federated_pref/run.py`).
 Without the option the pair rule and the identity of every existing root
-are unchanged, so nothing has to finish before the pull;
-`sqldpo_s0/pilot_rejected_wrong` may start on the new code.
+are unchanged; `sqldpo_s0/pilot_rejected_wrong` runs on the new code.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the queue below. Most likely on row 1, `sqldpo_s0/pilot_rejected_exec`, since about 16:48 (not confirmed). No result commit since. | results commit `d22463ca`, 16:47 on 2026-11-16; `origin/main` read at 17:48 |
+| 0 | Worker on the queue below. Most likely on row 1, `sqldpo_s0/pilot_rejected_wrong`, since about 17:54 (not confirmed). | results commit `e06e88b2`, 17:54 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -49,30 +46,31 @@ the other rows so the card does not idle (from the `fedicl-sql` root):
 ```
 
 Next owner action (clock times are estimates from a start of row 1 at
-16:48 on 2026-11-16):
+17:54 on 2026-11-16):
 
-- After row 1 (about 20:15 on 2026-11-16): the rejected-type pilots.
-- After row 2 (about 20:45): the peer check,
+- After row 1 (about 19:40 on 2026-11-16): the second rejected-type
+  pilot, with the first (published).
+- After row 2 (about 20:10): the peer check,
   `experiments/peer_check/results/codes_dpo_r3/summary.json`: on how many
   of the questions the global model does not solve a peer adapter finds a
   correct SQL, against 32 more samples from the global model.
-- After row 3 (about 21:15): the synthetic rows,
+- After row 3 (about 20:40): the synthetic rows,
   `audits/protocol_v2/sqlsyn_coder15b_alpha01_s0/synth/`. The agent reads
   about 30 of them by hand from the results commit.
-- After row 5 (about 04:15 on 2026-11-17), in the morning: the DPO round
+- After row 5 (about 03:40 on 2026-11-17), in the morning: the DPO round
   with synthetic questions against the plain fourth round, both against
   77.36 at round 3. Then the decision on the mechanism (`RESEARCH_STATE.md`
   section 5, item 9).
-- After row 6 (about 10:45 on 2026-11-17): FedAvg R3 with `codes_v2`
+- After row 6 (about 10:10 on 2026-11-17): FedAvg R3 with `codes_v2`
   against 73.17 (`codes`) and 73.45 (`codes` with comments). Its round 1
   is the memory check of the new prompt in training (first batch, peak
   reserved). Say then whether row 9 keeps `codes` or moves to `codes_v2`
   (a queue edit, no new code).
-- After row 7 (about 19:45 on 2026-11-17): the core with `codes_v2`
+- After row 7 (about 19:10 on 2026-11-17): the core with `codes_v2`
   against 76.62 / 77.18 / 77.36 (`codes`).
-- After row 8 (about 02:45 on 2026-11-18): FedAvg against centralized SFT,
+- After row 8 (about 02:10 on 2026-11-18): FedAvg against centralized SFT,
   both with `codes_v2`.
-- After row 9 (about 09:15 on 2026-11-18): FedAvg with 20 clients.
+- After row 9 (about 08:40 on 2026-11-18): FedAvg with 20 clients.
 
 ## Running and queued
 
@@ -81,7 +79,7 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
+| 1 | `sqldpo_s0/pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples with a wrong result. Comparators: DPO round 1, 75.69; rejected only samples that fail to execute, 75.36 | 1.75 h | running (most likely) |
 | 2 | `peer_s0/check`, `publish_check` | Do the other clients' adapters solve questions the global model does not? For the questions with all 8 samples wrong at DPO round 3 of the `codes` line (560), 8 samples from each other client's round 2 adapter and 32 new samples from the global adapter, labelled on the client's databases. No training | 0.5 h | queued |
 | 3 | `synth_s0/build`, `publish_build` | The synthetic rows: per client 1,200 SQL queries refilled on its own databases, a question for each written by the base model through vLLM; the client's split with the new rows appended | 0.5 h | queued |
 | 4 | `synth_s0/round_synth`, `eval_synth` and their publish tasks | Do synthetic questions give the DPO loop new pairs that help? One DPO + NLL round from DPO round 3 of the `codes` line on the split of row 3; a synthetic question trains only when some of its samples match its SQL and some do not. Arm `sqlsyn_dpo_fedavg_r4_vllm_inproc`. Comparators: row 5; 77.36 at round 3 | 4 h | queued |
@@ -91,7 +89,7 @@ progress need the status command above.
 | 8 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs from the base model, `codes_v2`, then epoch 3 on Spider test. Comparators: FedAvg R3 of row 6; centralized with `full`, 70.75 | 7 h | queued |
 | 9 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds from the base model on the `k20` split, every client, `codes` prompts, each round on Spider test. Comparator: 73.17 (5 clients, `codes`) | 6.5 h | queued |
 
-Rows 1-9 take about 40.5 h from the start of row 1. Rows 2-5 are new
+Rows 1-9 take about 38.75 h from the start of row 1. Rows 2-5 are new
 code: the times of rows 2-4 are not measured. Row 4 samples up to 14,659
 questions instead of 8,659; its sampling and first training batch are the
 memory check (the prompts are the `codes` prompts of the line). Row 6 is

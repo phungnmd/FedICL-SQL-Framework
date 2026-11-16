@@ -3,6 +3,22 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: rejected-type pilot 1, rejected side fails to execute
+
+`415c62f3` (17:54 on 2026-11-16), arm `sqlrejexec_hinton_r1_vllm_inproc`:
+DPO round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton
+line (`full`, seed 0), pairs only where the rejected sample fails to
+execute. Spider test, 2,147 rows.
+
+| Round 1 from `hinton_k2aaa_a3` | Pairs | EX | Execution errors |
+|---|---:|---:|---:|
+| DPO, every wrong sample as rejected | 5,393 | 75.69 | 82 |
+| rejected side fails to execute | 3,317 | 75.36 | 70 |
+
+The discordant questions are not counted yet; the reading waits for the
+second pilot (rejected side with a wrong result). The server took the
+queue and code of `091415a1` with this publish, without a restart.
+
 ## 2026-11-16: mechanism pilots queued: synthetic questions at the clients, peer adapter check (owner)
 
 Owner on 2026-11-16: yes to the pilot of synthetic
