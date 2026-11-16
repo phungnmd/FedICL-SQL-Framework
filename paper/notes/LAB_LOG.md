@@ -3,6 +3,53 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: repetition penalty 1.1 in every generation (local probe, not committed)
+
+Question (owner): why the base model scores below the published numbers
+for the same model and set.
+
+Finding in code: every generation takes `repetition_penalty` from the
+model's `generation_config.json`, which is 1.1 for Qwen2.5-Coder
+(`fedicl_sql/models/vllm_student.py`, also the Hugging Face path): greedy
+evaluation, the 8 samples of a DPO round, selection by execution. The
+penalty also applies to tokens of the prompt, and SQL has to copy table
+and column names from the prompt.
+
+Probe, not committed: the base model on 400 random rows of Spider test
+(seed 0), the exact `codes_v2` prompts of `d22463ca`, greedy, Hugging Face
+on the Mac (float32, MPS), the project's parser and scorer. Only the
+penalty changes.
+
+| Penalty | EX | Execution errors | `no such column` | Wrong results | SQL with `AS T1` aliases |
+|---|---:|---:|---:|---:|---:|
+| 1.1 | 61.50 | 72 | 68 | 82 | 126 |
+| 1.0 | 65.50 | 53 | 53 | 85 | 83 |
+
+- Without the penalty +4.00 on these rows: 33 questions gained, 17 lost
+  (p = 0.03). The server run (vLLM, penalty 1.1) gives 61.25 on the same
+  400 rows; the local run with 1.1 gives the same SQL on 367 rows and the
+  same verdict on 391.
+- The penalty raises execution errors and leaves wrong results unchanged.
+  The DPO rounds have the same signature (execution errors 205 to 86 with
+  `codes`, wrong results about 400), and their samples are drawn with the
+  penalty. How much of the DPO gain is left without the penalty is not
+  measured: the adapters are on the server.
+- Other points checked and standard: chat template in training and
+  evaluation, loss on the SQL only, LoRA (r 16, alpha 32, all linear
+  layers, lr 2e-4, cosine), the test-suite `result_eq` evaluator, the data
+  (8,659 train rows, 2,147 test rows).
+- Published numbers for this model, untrained, are not measured the same
+  way: SLM-SQL 67.61 on Spider test is a vote over 16 or 64 samples with a
+  reasoning prompt (no inference code released); SPFT-SQL 72.3 has no code
+  and no prompt; `tarubee19/instaquery` (code) gives 68.5 on Spider dev,
+  greedy, with `repetition_penalty=1.0` set by hand; three other
+  repositories with code give 46.4 to 58.7 on Spider dev or a subset.
+
+Proposed, not approved: evaluate the base model, FedAvg R3 and DPO round 3
+(`codes`) on the server with penalty 1.0 (about 30 min, a new option and
+new arm names; existing results keep their identities). Script and rows of
+the probe are in the session scratchpad only.
+
 ## 2026-11-16: rejected-type pilot 1, rejected side fails to execute
 
 `415c62f3` (17:54 on 2026-11-16), arm `sqlrejexec_hinton_r1_vllm_inproc`:
