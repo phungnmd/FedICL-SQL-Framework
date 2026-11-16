@@ -3,6 +3,62 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: teacher and public stage out of the core, queue keeps the core (owner)
+
+Owner decision at about 16:20 on 2026-11-16: stop the `codes` line from
+the Hinton server stage now and keep only the core in the queue. This
+replaces the order of the entry below.
+
+What the decision rests on:
+
+- The teacher's part is about one point and at the edge: after DPO on
+  Spider test, Hinton over gold +1.49 (seed 0) and +0.47 (seed 1), +0.98
+  pooled (p = 0.04), with `full`. The teacher may only see public data,
+  and the published teacher gains of that kind are about 1 point; the
+  large ones have the teacher on the training prompts or databases
+  (`LITERATURE.md` sections 1.7 and 1.16).
+- The public stage is more training data (BIRD with gold SQL), not a
+  mechanism: with `codes` it adds 2.61 points at FedAvg R3 (75.78 against
+  73.17), and with `full` gold SQL after DPO adds +0.42 pooled (not
+  separable).
+- The core recipe (on-policy samples, execution labels, DPO + SFT term,
+  SQL-only) is CodeLutra's (arXiv 2411.05199, centralized, Llama-3-8B:
+  Spider 67.9 after SFT, 76.6 at its best iteration). The paper needs a
+  mechanism of its own on top of the core; neither the teacher nor the
+  public stage is one. Literature read for this: `LITERATURE.md` section
+  1.16 (`8cd7598`).
+
+Stop: `sqlcodes_s0/curve_hinton` is stopped by hand (Ctrl+C on the GPU 0
+worker) during DPO round 1. No result of its DPO rounds is published; its
+outputs stay on the server. The stop time is not reported yet.
+
+Queue `9af6b7c7` (no code change):
+
+- Out of the task list: `sqlcodes_s0/curve_hinton` with its Spider dev,
+  DK, Realistic, SYN rows and comment check; the `full` reference rows
+  that had not run (5 local client models, centralized DPO); the server
+  DPO gate on BIRD (`srvdpo_s0`, nothing ran). The gold control and a
+  server stage with `codes_v2` are no longer planned. The 7B teacher,
+  FedProx R3 and FedNTD rows with vLLM inproc are committed.
+- New order: the base model with `codes_v2` on Spider test
+  (`sqlcv2_base_vllm_inproc`, about 15 min); the rejected-type pilots
+  (3.5 h); `codes_v2` FedAvg rounds (6.5 h) and DPO rounds (9 h) from the
+  base model; centralized SFT with `codes_v2` (about 7 h); the FedAvg half
+  of F1 with 20 clients and `codes` (6.5 h). About 33 h in all.
+- Centralized SFT with `codes_v2`: the recipe of `p227_central_e3_s0`
+  (pooled Spider train, 8,659 rows, 3 epochs, lr 2e-4, LoRA r 16, seed 0)
+  with `--schema-style codes_v2 --max-len 7680`; result id
+  `sqlcv2_central_e3_s0`, arm `sqlcv2_central_e3_vllm_inproc`.
+- The two new rows answer where the SFT level sits: SPFT-SQL reports 72.3
+  zero-shot and 78.0 after SFT for this student on Spider test (its own
+  prompt), against 57.89 (base, `full`) and 73.17 (FedAvg R3, `codes`)
+  here. The base row isolates the prompt, the centralized row the
+  federated split.
+
+Not approved, not queued: a pilot of the mechanism with the most support
+in the literature, execution-verified data synthesis at the clients
+combined with the DPO rounds (new code, about 6-8 h).
+
 ## 2026-11-16: queue order until the method decision (owner)
 
 Owner decisions (2026-11-16, after the FedAvg rounds of the `codes` line
