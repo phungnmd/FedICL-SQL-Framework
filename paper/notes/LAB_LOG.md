@@ -66,9 +66,21 @@ output, so the table and column names of the schema, which the SQL has
 to repeat, are penalized. SFT and DPO training do not decode and are not
 touched; the DPO pairs are, through the samples.
 
-Not measured yet. A local run of the base model on 8 Spider test
-questions gave a different SQL on 6 of them with and without the penalty,
-too few rows for an EX reading.
+Local check, not a committed result (HF on the Mac, fp16, base model,
+`codes_v2`, 200 random Spider test questions, greedy):
+
+| Repetition penalty | EX | Execution errors |
+|---|---:|---:|
+| 1.1 | 65.5 (131) | 37 |
+| 1.0 | **71.0** (142) | **25** |
+
+18 questions are right only without the penalty and 7 only with it; the
+SQL differs on 128 of 200. With the penalty the model avoids repeating a
+table name: it writes aliases (`T1`, `T2`), adds a join the question
+does not need and puts the column under the wrong alias (`no such
+column`: 34 of the 37 errors, 23 of 25 without the penalty). The size on
+the trained adapters and on all 2,147 rows is what the queued rows
+measure.
 
 Code (`b0d117be`): `--repetition-penalty` on `scripts.eval_standard`
 (and `experiments/eval_arms/run.py`), the DPO round, `scripts.peer_check`,
