@@ -2,15 +2,14 @@
 
 ## Status
 
-Updated 2026-11-16 at 09:30 (Asia/Ho_Chi_Minh). Last published result:
-`c46c62cd` (08:18 on 2026-11-16: the two P1 adapters on BIRD dev, run on
-the queue commit of 03:05). Server work uses drive D only (owner,
-2026-11-15): every command below sets `TEMP` and `TMP` to
-`D:\phungthan\fediclkd\tmp`.
+Updated 2026-11-16 at 10:45 (Asia/Ho_Chi_Minh). Last published result:
+`d3475b02` (10:25 on 2026-11-16: FedAvg round 1 of row 2 on Spider test).
+Server work uses drive D only (owner, 2026-11-15): every command below
+sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | The worker was running at 08:18 on 2026-11-16 and published `sqlcodes_s0/publish_bird`; the next tasks are `sqlcodes_s0/check_server_stage`, then `curve_hinton_sft` (row 2). Not known: whether the check passed. | results commit `c46c62cd`, 08:18 on 2026-11-16 |
+| 0 | The worker runs row 2: `sqlcodes_s0/check_server_stage` passed, `curve_hinton_sft` finished round 1 at 10:25 on 2026-11-16 and continues with round 2. | results commit `d3475b02`, 10:25 on 2026-11-16 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -25,18 +24,7 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-1. Read-only: check that row 2 started (the worker passed
-   `sqlcodes_s0/check_server_stage` and runs `curve_hinton_sft`).
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status --phase sqlcodes_s0; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-   Send back: the lines of `check_server_stage` and `curve_hinton_sft`. If
-   the worker window shows `STOP queue: sqlcodes_s0/check_server_stage`,
-   send that line and the error above it: the server stage adapter
-   (`artifacts/protocol_v2/p237_phase_e_s0/hinton_k2aaa_k2/m_g`) is then
-   missing on the server and nothing else runs.
+1. Nothing to run while the worker window shows progress lines.
 
 2. Only if no worker runs on GPU 0 (its window shows `STOP queue` or
    `DONE queue`, or was closed): start it. It skips finished work.
@@ -54,13 +42,13 @@ Send back, when they appear in the worker window:
 
 Next owner action:
 
-- After round 3 of `sqlcodes_s0/curve_hinton_sft` (about 16:00 on
+- After round 3 of `sqlcodes_s0/curve_hinton_sft` (about 14:45 on
   2026-11-16): the first reading, FedAvg R3 from the server stage with
   `codes` against 73.17 without it.
-- After `sqlcodes_s0/publish_rob_hinton` (about 02:00 on 2026-11-17): read
+- After `sqlcodes_s0/publish_rob_hinton` (about 00:45 on 2026-11-17): read
   row 2 with the agent and decide whether the public stage stays in the
   method. The rows after it can be cut or reordered then.
-- After row 3 (about 05:30 on 2026-11-17): the rejected-type pilots.
+- After row 3 (about 04:15 on 2026-11-17): the rejected-type pilots.
 - After row 4 and row 5 (about 35 h later): F1 with every client.
 
 ## Running and queued
@@ -70,7 +58,7 @@ progress need the status command above.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 17.5 h | next after 08:18 on 2026-11-16 (not confirmed running) |
+| 2 | `sqlcodes_s0/check_server_stage`, `curve_hinton_sft`, `curve_hinton`, `rob_hinton_a3`, `rob_hinton_dpo_r3`, `publish_rob_hinton` | Does the public stage add to the `codes` line? From the seed 0 Hinton server stage (BIRD, trained with `full` prompts, not retrained): 3 FedAvg SFT rounds and 3 DPO + NLL rounds with `codes` prompts at the clients, each round on Spider test; then both R3 adapters on Spider dev, DK, Realistic and SYN. Comparators: FedAvg R3 73.17, DPO rounds 76.62 / 77.18 / 77.36 | 17.5 h | running since about 08:20 on 2026-11-16; round 1 of 6 done |
 | 3 | `sqldpo_s0/pilot_rejected_exec`, `pilot_rejected_wrong` | Which rejected side DPO learns from: round 1 from `hinton_k2aaa_a3` on the round 1 samples of the Hinton line (`full`), rejected only samples that fail to execute, or only samples with a wrong result. Comparator: DPO round 1, 75.69 | 3.5 h | queued |
 | 4 | `f1_s0/curve_fedavg_sft`, `check_server_stage`, `curve_hinton_sft` | F1, 20 clients, every client, `codes` prompts: 3 FedAvg SFT rounds from the base model, and from the seed 0 Hinton server stage; each round on Spider test. Does the server stage gain more with 20 clients than with 5 (row 2)? | 15 h | queued |
 | 5 | `f1_s0/curve_fedavg`, `curve_hinton` | F1, every client: 3 DPO + NLL rounds from each R3, `codes` | 20 h | queued |
