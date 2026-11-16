@@ -7,7 +7,8 @@ Qwen2.5-Coder-7B-Instruct teacher at the server on public BIRD train, two
 five research reports on journal articles, wrong-result SQL, label-free
 training, the server stage and federated mechanisms; updated 2026-11-15 with
 a full reading of the published 1.5B Spider results (SPFT-SQL, SLM-SQL,
-FINER-SQL, CodeS, the Qwen2.5-Coder report), section 1.4.
+FINER-SQL, CodeS, the Qwen2.5-Coder report), section 1.4; updated
+2026-11-16 with section 1.16 (mechanisms that could be added to the core).
 
 How to read this file:
 
@@ -417,8 +418,50 @@ abstracts were checked. Context-dependent turns and database/split overlap
 need examination before treating their questions as extra client data;
 matching counts of databases do not establish identical split membership.
 
+### 1.16 Mechanisms that could be added to the core (read 2026-11-16)
+
+Read through page fetches of the arXiv HTML; "verbatim" names the tables
+and sections whose text was obtained in full, "summary" the parts known
+only from a machine summary of the page (not to be cited without a check).
+
+| Paper | Mechanism and setup | Evidence | Relation | Read |
+|---|---|---|---|---|
+| Tao et al., **CodeLutra: Boosting LLM Code Generation via Preference-Guided Refinement**, [arXiv 2411.05199v3](https://arxiv.org/abs/2411.05199), "Reviewed on OpenReview" (TMLR per a search listing, not on the page) | Iterative on-policy preference training: each iteration samples 10 responses per question at T 1.0, labels them by execution against the gold result, pairs a self-generated correct sample with a failed one (K = 10 pairs per question), trains DPO + lambda x SFT on the chosen side (beta 0.1, lambda 1.0 for SQL), reference = previous iteration. Llama-3-8B, LoRA r=8, lr 5e-5, 1 epoch per iteration, 4 iterations. SQL-only examples. Centralized | Table 1, EX (split not stated; evaluation samples at T 0.2): Spider base 59.3, SFT 67.9, iterations 67.8 / 72.4 / 76.6 / 76.3; BIRD 22.3, SFT 35.6, iterations 37.8 / 40.8 / 43.1 / 42.6. Table 2: DPO term alone 17.2 on Spider against 76.6. Table 3: Gemma-7B 49.9 to 72.6, StarCoder-7B 61.2 to 77.5 on Spider. Section 5.3: without negatives the curve stays near the baseline (figure only). Section 6: non-executable outputs among 100 BIRD errors fall from 40% to 11%. Labels by executability alone, no gold: BIRD 22.3 to 30.9 | The closest published recipe to the core (on-policy, execution-labelled, DPO + SFT, SQL-only, saturating at iteration 3 to 4, gain in executable SQL), centralized at 7-8B. It is counter-evidence to "SQL-only DPO gives no gain at 7B+" (Liu et al., ExCoT), with weak SFT baselines. Different here: federated, 1.5B, gold as the chosen side when no sample is correct, and the DPO term alone does not collapse (76.76 against 76.71) | verbatim, whole page; figures not read |
+| Zhang et al., **SPFT-SQL** (section 1.10), ablations | Verified synthesis (VBI-FT): SQL templates extracted by an unnamed LLM, slots filled with random type-compatible columns and random database values on training schemas; an iteratively fine-tuned SQL-to-Text model writes the question (Qwen2.5-Coder-7B in appendix A.10; the writer for the 1.5B row is not stated); rows are split by executing the trained model's SQL against the synthetic SQL. Self-play: a logistic (DPO-like) loss against an opponent checkpoint with execution-labelled wrong SQL. SFT uses schema filtering and value matching after CodeS | Table 2, Qwen2.5-Coder-7B, Spider dev EX / test EX / BIRD dev EX: base 83.5 / 81.5 / 51.5; full 87.2 / 87.4 / 61.0; without VBI-FT 83.9 / 83.6 / 54.2; without self-play 86.6 / 86.8 / 60.3. Table 14: SFT on 7,000 rows 83.7 Spider test; 7,000 real + 3,000 synthetic 87.4; 1 h 45 min per iteration on 2 GPUs. Table 7, synthetic rows per round, Spider test: 0: 81.5, 1,000: 86.9, 3,000: 87.4, 10,000: 86.5. Table 8: synthesis accounts for the gains on Syn, Realistic and DK as well | Verified synthesis on training databases carries almost the whole gain (+3.1 over SFT on Spider test at 7B); the self-play preference stage adds 0.6. No paper combines such synthesis with an on-policy DPO stage of CodeLutra's strength; none is federated | verbatim, whole page; figures not read |
+| Yan et al., **Learning to Reason under Off-Policy Guidance (LUFFY)**, [arXiv 2504.14945](https://arxiv.org/abs/2504.14945), venue not stated | GRPO with 1 teacher trace (DeepSeek-R1) and 7 on-policy rollouts per prompt, policy shaping on the off-policy term. The teacher traces are on the training prompts | Table 3, Qwen2.5-Math-1.5B, six-benchmark average: on-policy RL 30.0, SFT on the teacher traces 31.9, LUFFY 38.0. Table 1, 7B: 45.5 / 44.1 / 50.1. Table 4, 7B: mixing without shaping 44.4, below on-policy RL | A teacher candidate in the group helps a 1.5B student, but only with shaping, and the teacher answers the training prompts themselves, which the data rule here allows only for public questions | verbatim, tables 1, 3, 4 |
+| MATS, [arXiv 2512.18622](https://arxiv.org/abs/2512.18622), venue not stated | Multi-agent pipeline of small models (planner LLaMA-3.2 3B) trained with iterative ORPO on execution-labelled samples (K = 10: one greedy, nine at T 1.0 per section 5.1; section 4.2 instead names one GPT-4o-mini candidate) | Section 5.5, planner, greedy: BIRD dev 53.65 to 59.32, Spider dev 83.3 to 85.4. Table 6, iteration 1: SFT 53.65, + DPO 44.98, + ORPO 56.32 | On-policy execution preference at 3B; plain DPO without an SFT term loses, as in CodeLutra. The paper contradicts itself on whether a stronger model's candidate is in the pool | verbatim, sections 3-5 |
+| **AP2O-Coder**, [arXiv 2510.02393v4](https://arxiv.org/abs/2510.02393), venue not stated | DPO on self-generated pass/fail code pairs ordered by error type (frequency low to high, or high to low), with replay of the error types the current model still makes on a validation set. Pairs generated once | Table 1, HumanEval pass@1, Qwen2.5-Coder-1.5B: initial 69.3, SFT 70.4, DPO 73.2, low-to-high 76.3, high-to-low 71.7; 0.5B: DPO 56.8, 61.5, 56.5. Table 3 (7B): without replay -0.4 to -3.3. No random-order row | An error-type curriculum at this model size gains 3.1 over DPO in one order and loses 1.5 in the other; the order is not predicted by the paper | verbatim, tables 1-3 |
+| Lanchantin et al., **Bridging Offline and Online Reinforcement Learning for LLMs**, [arXiv 2506.21495](https://arxiv.org/abs/2506.21495) (cited in section 1.12) | DPO with the sampling model synchronized every s updates | Table 1, Llama-3.1-8B, Math500: offline DPO 53.7, semi-online s=100 58.9, s=10 57.2, online 58.7, GRPO 58.1 | Refreshing samples once per federated round is semi-online DPO; it matches online DPO and GRPO there | verbatim, table 1 |
+| Setlur et al., **RL on Incorrect Synthetic Data Scales the Efficiency of LLM Math Reasoning by Eight-Fold**, [arXiv 2406.14532](https://arxiv.org/abs/2406.14532), venue not stated on the page | Self-generated correct solutions against positives from stronger models; per-step DPO on negatives | Abstract and section 5: self-generated positives double the efficiency of the same problems; per-step negatives are worth 8x data. 7B models, math | Positives from the learner beat positives from a stronger model; argues against teacher SQL as the chosen side | abstract, sections 1 and 5 |
+| ReViSQL (section 1.10), false positives | Bounded equivalence verifier (VeriEQL, 2 tuples per table) on rollouts whose result matches gold | Abstract and section 1: 32.8% of positive result-based rewards are refuted on BIRD training rollouts. No ablation isolates the corrected reward; clean training data is named as the dominant factor | Label false positives exist at a high rate on BIRD under a bounded verifier; their cost in training is not measured | abstract and section 1 verbatim, sections 4-5 summary |
+| Chowdhury et al., **Provably Robust DPO**, ICML 2024 ([PMLR](https://proceedings.mlr.press/v235/ray-chowdhury24a.html)) | DPO loss de-biased for a known flip rate of preference labels | DPO degrades under random flips; the corrected loss is more robust (IMDb, Anthropic HH) | A loss-side alternative to stricter labels, for random rather than systematic label errors | search summary only |
+| PLaD (section 1.5), detail | Teacher output always preferred over student output, no verification; margin ranking loss | Table 1, LLaMA-2 13B to 7B, TL;DR win rate: SeqKD 37.92, PLaD 40.46 | Unverified teacher-preferred pairs give a small gain on text generation | verbatim, sections 4-5.2 |
+| COAL-SQL, [arXiv 2609.20842](https://arxiv.org/abs/2609.20842), PVLDB template, acceptance not confirmed | 35B teacher synthesizes SQL and questions on BIRD training databases from SQL skeletons chosen for coverage; GRPO plus SFT on teacher-written reasoning for questions where no rollout is correct (15.1% of training questions at the start) | Qwen2.5-Coder-7B: Spider test 85.3 (base 82.5), random instead of coverage-guided augmentation 83.4 | Which synthetic rows are added matters; the teacher sees the training databases | sections 1-3 verbatim, results summary |
+
+Searches on 2026-11-16 found no federated Text-to-SQL paper besides FL4SP,
+no paper that trains a SQL generator on rule-based SQL mutants as negatives
+(SQL mutation operators and data that kills mutants exist for testing:
+SQLMutation, XData), and no federated method that runs a verifier-labelled
+preference step at the server on public data (FedBiscuit and FedPrism use
+learned preference selectors; PubSwap's public step runs at the clients).
+
+What this means for an added mechanism:
+
+- The core recipe is CodeLutra's, federated and at 1.5B. The paper has to
+  cite it as the closest work and cannot rest its novelty on the recipe.
+- The largest published effect at this model size on Spider comes from
+  verified synthesis on training databases (SPFT-SQL), with a weak
+  preference stage; CodeLutra has the strong preference stage and no
+  synthesis. Their combination is not published, centralized or federated.
+- Every large teacher-in-the-loop gain (LUFFY, ExCoT, COAL-SQL, SERL-SQL)
+  has the teacher on the training prompts or databases. With the teacher
+  restricted to public data the published gains are about 1 point (section
+  1.7).
+
 ## 2. What already exists
 
+- Iterative on-policy execution-labelled DPO + SFT for SQL, centralized, at
+  7-8B (CodeLutra) and at 3B with ORPO (MATS).
 - Server LLM with public data helping federated SLMs (FedMKT, FedCoLLM,
   CrossLM, GPT-FL). Client gains over FedAvg are 1-3 points; teachers are
   trained, public data is in-distribution, tasks are classification or QA.
