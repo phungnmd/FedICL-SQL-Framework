@@ -56,7 +56,9 @@ adapter updates leaves a client.
 Core (stages chosen by the owner on 2026-11-10, the prompt on 2026-11-16):
 
 1. The `codes` prompt: each column carries its type, keys, 2 sample values
-   and the text values of the database that the question quotes.
+   and the text values of the database that the question quotes. It is
+   CodeS's serialization (arXiv 2402.16347) and part of the setup: every
+   baseline uses the same prompt.
 2. FedAvg SFT: 3 rounds on the clients' Spider rows.
 3. Federated DPO + NLL: 3 rounds, fixed for every line and seed. In a round
    each client samples 8 SQL for each of its questions from the current
@@ -73,9 +75,14 @@ points at FedAvg R3 (75.78 against 73.17); its DPO rounds were stopped in
 round 1 and are not in the queue. The measured rows stay as analysis
 (section 4).
 
-The claim rests on stage 3 and the prompt. Federated learning is the
-setting the method has to work in; the paper does not claim that federation
-produces the gain (owner, 2026-11-11).
+The claim rests on stage 3 and on the mechanism to be added to the core
+(section 5, item 9), not on the prompt (owner, 2026-11-16). The prompt
+lifts every model alike: after DPO +2.24 for the student on Spider test,
++2.19 for the 7B teacher zero-shot. What the paper reports about it is
+that the gain of stage 3 holds under both prompts: +3.87 with `full`, +4.19
+with `codes` (Spider test, seed 0). Federated learning is the setting the
+method has to work in; the paper does not claim that federation produces
+the gain (owner, 2026-11-11).
 
 Closest prior work (`LITERATURE.md`, sections 1.16 and 2): CodeLutra
 (arXiv 2411.05199) is the same recipe run centrally at 8B: samples from the
