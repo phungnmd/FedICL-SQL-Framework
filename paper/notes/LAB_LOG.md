@@ -92,6 +92,37 @@ not verified.
 
 No decision. The full review is in the session scratchpad only.
 
+## 2026-11-17: the repetition penalty in other papers' code; two claims corrected
+
+Two statements about published practice were made in chat without a
+check and were wrong. Both are corrected here; the rule is in `AGENTS.md`
+("How to work": name the paper and check it before a proposal rests on
+it).
+
+1. "Most papers decode with the model's default generation config", used
+   to propose the rows with the penalty as the main column. Checked on
+   2026-11-17 in the public files:
+
+   | Source | What it shows |
+   |---|---|
+   | `generation_config.json` on Hugging Face | `repetition_penalty` 1.1 for Qwen2.5-Coder-1.5B-Instruct and 7B-Instruct, 1.05 for 3B-Instruct, with `do_sample` true and temperature 0.7 |
+   | OmniSQL, `train_and_evaluate/infer.py` | vLLM, `SamplingParams(temperature, max_tokens, n, stop_token_ids)`; no repetition penalty is set, so vLLM's 1.0 applies. Its evaluation script calls every benchmark with `--n 8` |
+   | CSC-SQL (same author as SLM-SQL), `src/cscsql/model/infer.py` | the same call |
+   | CodeS, `text2sql_zero_shot.py` | Hugging Face `generate(num_beams=4)` on its own models |
+
+   SPFT-SQL and CodeLutra publish no code. The papers that report
+   Qwen2.5-Coder numbers we compare with decode without the penalty, so
+   the main column stays without it (owner's decision of 2026-11-16); the
+   rows with the penalty can be a second column. Their code was read, not
+   run.
+2. "SPFT-SQL trains on Spider and BIRD together", used as a precedent for
+   the server stage. The paper (arXiv 2509.03937, HTML read on
+   2026-11-17) fine-tunes "for three epochs on each training set"; its
+   Table 14 gives SFT on 7,000 Spider rows and 7,000 real plus 3,000
+   synthetic rows for SPFT-SQL. The precedent for the server stage is the
+   server-LLM line of work (FedMKT, FedCoLLM), as in the table below. The
+   decision on the method does not rest on the SPFT-SQL statement.
+
 ## 2026-11-17: method fixed as three stages, server stage back in (owner)
 
 Owner (2026-11-17): the aim is a paper that reads well; what published
@@ -105,7 +136,7 @@ Where earlier choices had been stricter than published practice:
 | Choice here | Published practice | What we hold |
 |---|---|---|
 | a new mechanism required on top of the recipe | CodeLutra is iterative DPO + SFT alone | stage 3 as measured |
-| server stage dropped because the teacher's own part is about one point | SPFT-SQL trains on Spider and BIRD, OmniSQL adds SynSQL; both count as method | FedAvg R3 +2.12 before DPO, +1.40 after (two seeds pooled); Spider dev +3.53, DK +4.11, BIRD dev +11.38 after DPO |
+| server stage dropped because the teacher's own part is about one point | a server LLM that helps federated small models through public data is a method of its own in FedMKT and FedCoLLM (`LITERATURE.md`, section 2) | FedAvg R3 +2.12 before DPO, +1.40 after (two seeds pooled); Spider dev +3.53, DK +4.11, BIRD dev +11.38 after DPO |
 | only Spider test read | several benchmarks reported | method over FedAvg R3: +5.3 (Realistic) to +12.0 (DK), seed 0 |
 | gain read against the hardest control | gain read against the base model and SFT | method over FedAvg R3 +5.31 on Spider test (two seeds pooled, +4.06 to +6.56) |
 | one greedy call | SLM-SQL reports its main rows with a vote | the method with a vote over 8 samples: 78.39 (+1.68) |

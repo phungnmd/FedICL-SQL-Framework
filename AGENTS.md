@@ -19,7 +19,11 @@ only that repository, so the code, GPU and server rules live there.
   gain) and work to that; do not put demands of our own on top of it. What
   published papers do (models, baselines, data, voting, benchmarks) is open
   to us, and a part of the method is not argued away because some reviewer
-  might object.
+  might object. Before a proposal rests on "papers do this", name the paper
+  and check it in the paper or its code; say so when it was not checked. A
+  choice also has to be sound on its own: one that only lowers the
+  baselines, or that the closest papers do not make, is not a way to a
+  larger gain.
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the
