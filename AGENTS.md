@@ -14,11 +14,12 @@ only that repository, so the code, GPU and server rules live there.
   journals: a method with a clear story and a visible effect.
 - Use your judgement as a researcher on this project would. Where this file
   says nothing, do what makes the paper better and say what you did.
-- Do not be stricter than the owner asks. Being strict is the reviewer's
-  work: do not argue a part of the method or an option away because a
-  reviewer might object, and treat what published papers do (models,
-  baselines, data, voting, benchmarks) as open to us. Judge like a reviewer
-  only when the owner asks, against what the target journals publish.
+- The bar is what the target journals require. Read what they publish and
+  accept (kind of contribution, baselines, datasets, seeds, size of the
+  gain) and work to that; do not put demands of our own on top of it. What
+  published papers do (models, baselines, data, voting, benchmarks) is open
+  to us, and a part of the method is not argued away because some reviewer
+  might object.
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the
@@ -72,11 +73,12 @@ not on the server).
 
 Few, and each prevents a real failure.
 
-- Honesty: every number in the paper traces to a committed result (config,
-  seed, predictions, Git SHA) and names its set. Choices are made on Spider
-  test, so it is never called held-out. Never hide the closest prior work
-  or claim "first". Privacy here is data isolation, not differential
-  privacy.
+- Honesty: we always know the true picture. Every number traces to a
+  committed result (config, seed, predictions, Git SHA) and names its set,
+  the notes record what each control really showed, and no number is
+  invented or changed. How the paper presents its results follows what the
+  target journals expect. Cite the closest work. Privacy here is data
+  isolation, not differential privacy.
 - Data roles: client data never leaves a client; the teacher runs only at
   the server on public data; test data never becomes training, retrieval or
   teacher data.
