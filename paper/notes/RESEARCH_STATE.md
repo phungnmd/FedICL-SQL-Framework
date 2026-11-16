@@ -112,7 +112,7 @@ read in the queue, ahead of the long lines:
 | Direction | What changes in the story | Read in the queue | Kept when |
 |---|---|---|---|
 | 1. The clients' execution feedback is the centre; the server stage is a start on public data, the teacher an option inside it | the title and the order of the claims, not the stages | selection at inference on FedAvg R3 (`vote_s0/xsel_fedavg_r3`) against the DPO rounds; the server stage in the final setup (`sqlcv2_s0/curve_hinton_sft`) | the DPO rounds lead what selection at inference gives the FedAvg model |
-| 2. One mechanism in two places: the execution-preference round also runs at the server on the public databases, after the teacher stage | stages 1 and 3 share a mechanism; the teacher can then supply correct SQL where a public row has none | one DPO + NLL round on 3,000 BIRD train questions from the Hinton server stage, on Spider test and BIRD dev (`srvx_s0`) | the round lifts Spider test over the stage's adapter |
+| 2. One mechanism in two places: the execution-preference round also runs at the server on the public databases, after the teacher stage | stages 1 and 3 share a mechanism; the teacher can then supply correct SQL where a public row has none | one DPO + NLL round on 3,000 BIRD train questions from the Hinton server stage, on Spider test and BIRD dev (`srvx_s0`); then the same round with the teacher's SQL as the chosen side where it is correct and no sample is (`srvt_s0`: the pair count first, the round after the other rows) | the round lifts Spider test over the stage's adapter |
 | 3. The client's databases as a source of new training questions | a fourth stage, aimed at the questions the three stages leave wrong | one FedAvg SFT round with the verified synthetic rows against the same round without them (`synvc_s0`) | the round with the rows leads the round without them |
 
 Federated learning is the setting the method has to work in; the paper
@@ -520,12 +520,13 @@ point over an SFT round, a table-selection step is bounded at 3.3) and a
 review of where earlier decisions had been stricter than published
 practice (`LAB_LOG.md`). A review of the fixed method against its own
 numbers then named its weak points, and the owner approved three
-directions for them (section 3). The queue (`39d9edcc`) puts their short
+directions for them (section 3). The queue (`08254bcf`) puts their short
 reads first: after the 3 FedAvg rounds with `codes_v2` (running; round 1
 at 72.05, `c4606d3b`), selection at inference on FedAvg R3, supervised
 training on verified synthetic rows on the `codes` line (`synvc_s0`), and
 one DPO round at the server on 3,000 BIRD questions from the teacher
-stage (`srvx_s0`). Then the long lines of the final setup: the 3 FedAvg
+stage (`srvx_s0`), with the count of the pairs the teacher would supply
+(`srvt_s0`). Then the long lines of the final setup: the 3 FedAvg
 rounds from the server stage, the 3 DPO rounds of both lines with the
 vote on each, centralized SFT, and the FedAvg rounds with 20 clients on
 `codes_v2`. Out of the queue: the synthetic-row read on the `codes_v2`

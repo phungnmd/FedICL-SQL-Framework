@@ -3,6 +3,37 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: the teacher inside the server preference round (`srvt_s0`), built and queued
+
+Owner's request: a branch of direction 2 where the teacher supplies the
+preferred SQL. Code `ce667d9a`, queue `08254bcf` (code repository).
+
+- What it does: in a pooled round at the server (`--fallback teacher
+  --fallback-targets <csv>`), a question with no correct sample takes the
+  teacher's SQL as the chosen side when that SQL returns the gold result
+  under the round's evaluator; the gold SQL stays otherwise. Pairs of
+  questions with a correct sample do not change. The teacher's SQL is the
+  committed greedy output of Qwen2.5-Coder-7B on BIRD train (9,428 rows,
+  all lined up with the split by id, question and database; 5,319 match
+  gold by the earlier 30 s label, 1,718 of the 3,000 questions row 5
+  draws). Nothing is generated; the teacher stays at the server.
+- Guards: the option needs a pooled setup, the file must hold every
+  question of the round with the same text and database, the file's hash
+  and the labels of the teacher's SQL enter the identities, and setups
+  without the option keep their identity and pair stats (713 tests pass).
+- Queue: row 5b (CPU) copies the samples of `srvx_s0/bird_round` and
+  builds the pairs, which gives the number of teacher pairs before any
+  training. Row 13 (the round and its evaluation, about 4 h, not measured)
+  waits for every other row, since the queue cannot run a task on a
+  condition.
+- Resolved commands compared: the round of row 13 against row 5 differs in
+  the root and the two fallback options only; the two evaluation commands
+  differ in arm and adapter only.
+- Expected weak point, not measured: the start adapter was trained on
+  these BIRD rows, so few questions are unsolved, and the teacher's SQL
+  replaces a gold SQL that is also correct. Row 5b's count says how many
+  pairs differ between the two rounds.
+
 ## 2026-11-17: weak points of the fixed method, three directions (owner), queue reordered
 
 A review of the three-stage method against its own numbers (owner's
