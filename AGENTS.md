@@ -168,6 +168,13 @@ result invalid.
   generation uses 4-bit, batch 8, `--exec-workers 4`. Set
   `CUDA_DEVICE_ORDER=PCI_BUS_ID` with `CUDA_VISIBLE_DEVICES`. Record new memory
   or speed measurements in `A5000_RUN_CONFIG.md`.
+- Check a new experiment line against its sources before it is queued
+  (owner, 2026-11-17; the 1.1 repetition penalty and the first `codes`
+  prompt each went unnoticed for days): the paper's method section itself
+  when it follows a paper, with the differences written down; the resolved
+  commands against the line it is compared with (prompt style, decoding,
+  length limit, LoRA recipe); and a check in code where a step reads what
+  an earlier step wrote. Full rule: `fedicl-sql/AGENTS.md`, "Defaults".
 - Run an experiment on the setup it stands for: all of each client's data,
   every evaluation row, the planned rounds and epochs. A part (a subset of
   questions or rows, fewer rounds) is fine when the full run does not fit the

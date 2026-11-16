@@ -421,6 +421,38 @@ Both seeds pooled, clustered by question (95% interval):
     then a site without labels that adapts on its own databases) are in
     `LAB_LOG.md`; not approved.
 
+13. Directions left after a literature map built without the project's
+    history (2026-11-17, two agents; the paper numbers are theirs, read
+    from the papers' tables, not checked by us and not in
+    `LITERATURE.md`). The largest published effect at this model size is
+    training data generated and checked by execution on the training
+    databases (SPFT-SQL, same 1.5B model, Spider test 78.0 to 82.3),
+    not the training signal: RL or preference tuning over a strong SFT
+    model gives +1.1 to +1.7 on Spider test in the papers found, which is
+    where our rounds stand. No paper was found that generates and checks
+    the data at federated clients, and none at 1B to 3B that aims
+    synthesis at joins or reports by number of tables.
+
+    | Direction | Role | State |
+    |---|---|---|
+    | clients generate SQL on their own databases, write questions, keep the pairs that pass an execution check, train on them | candidate for the core | first read queued (`synv_s0`) |
+    | DPO + NLL with execution labels at the clients | component | measured (items 11 and 12) |
+    | SFT on public synthetic data (SynSQL) at the server before the client rounds | base for every row | not measured; a public 1.5B checkpoint exists (`cycloneboy/SLM-SQL-Base-1.5B`) |
+    | execution inside a multi-turn answer at inference | reserve | needs a ruling on "deployed alone" |
+
+    Dropped as a core: tables first (item 12), a join-implicit target
+    (evidence on T5 only), constrained decoding (at most +1.1 at 1.5B in
+    IterGen), fixes to the aggregation (zero on generation tasks when
+    FedAvg is close to centralized training), a site without labels (the
+    data assumption stays, item 9).
+
+    The synthetic rows built so far (`04922932`) keep the structures of
+    the clients' own queries (58.6% one table, client gold 51.4%), and in
+    a hand read of 24 rows with a join the question of 8 asks for
+    something other than the SQL returns. `synv_s0` therefore keeps a row
+    only when a sample of the client's model returns the result of its
+    SQL, and trains on the kept rows with SFT.
+
 ## 6. Current phase
 
 The three DPO lines have two seeds. Seed 0 also has the soft-target
@@ -440,21 +472,22 @@ The teacher and the public stage left the core on 2026-11-16 (owner). The
 (73.27 / 75.64 / 75.78, `bff4f42b`, against 69.03 / 71.91 / 73.17 without
 the stage); its DPO rounds were stopped in round 1 and no result of them
 is published. The base model with `codes_v2` gives 61.95 on Spider test
-(`d22463ca`, against 57.89 with `full`). The queue (`d042d287`) holds, in order:
-the repetition penalty checks (section 5, item 11), the `codes_v2` line
-from the base model without the penalty (3 FedAvg rounds, 3 DPO rounds),
-the two mechanism pilots on that line (the peer adapter check; a DPO
-round with synthetic questions against a plain fourth round), centralized
-SFT with `codes_v2`, and the FedAvg half of F1 (20 clients, `codes`). Out of the
+(`d22463ca`, against 57.89 with `full`). Out of the
 queue: the gold control, a server stage with `codes_v2`, the server DPO
 gate, the local client rows and centralized DPO with `full`. Approved and
-not queued: DPO with result-vote labels for 3 rounds. Run commands,
-live-state provenance and estimates are in `PIPELINE_NEXT.md`.
+not queued: DPO with result-vote labels for 3 rounds.
 
-The preference term stays plain and the core keeps DPO + NLL. First the
-repetition penalty rows are read (section 5, item 11): they say how much
-of the DPO gain stands without the penalty. The mechanism to add to the
-core (section 5, item 9) is decided after them, from the two pilots.
+Since 2026-11-17 the method direction is open again (section 5, items 12
+and 13): the preference term adds about one point of its own and a
+table-selection step is bounded at 3.3. The queue (`a5a204b5`) holds, in
+order: the 3 FedAvg rounds with `codes_v2` (running), the read of
+supervised training on verified synthetic rows (`synv_s0`: one FedAvg SFT
+round from FedAvg R3 with the kept rows against the same round without
+them), the 3 DPO rounds with `codes_v2`, the vote label check,
+centralized SFT, and the FedAvg half of F1. The peer adapter check and
+the DPO round on synthetic rows left the queue. `synv_s0` is the next
+read for the direction. Run commands, live-state provenance and
+estimates are in `PIPELINE_NEXT.md`.
 
 ## 7. Directions after the queue
 

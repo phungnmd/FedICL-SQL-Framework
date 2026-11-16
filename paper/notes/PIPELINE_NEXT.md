@@ -2,14 +2,15 @@
 
 ## Status
 
-Updated 2026-11-17 at 00:20 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-17 at 01:30 (Asia/Ho_Chi_Minh). Last published result:
 `32497b51` (00:13 on 2026-11-17: the control rows without the repetition
-penalty). Server work uses drive D only (owner, 2026-11-15): every
-command below sets `TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
+penalty). Queue and code: `a5a204b5` (pushed 01:26 on 2026-11-17). Server
+work uses drive D only (owner, 2026-11-15): every command below sets
+`TEMP` and `TMP` to `D:\phungthan\fediclkd\tmp`.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on the queue of `70877dc4`, most likely in row 1, `sqlcv2_s0/curve_fedavg_sft`, since about 00:14 (not confirmed). | results commit `32497b51`, 00:13 on 2026-11-17 |
+| 0 | Worker started on the queue of `70877dc4`, most likely in row 1, `sqlcv2_s0/curve_fedavg_sft`, since about 00:14 (not confirmed). Row 1 pulls at each of its publish steps, so the worker should read the queue of `a5a204b5` when row 1 ends and start row 2 on its own (not confirmed). | results commit `32497b51`, 00:13 on 2026-11-17 |
 | 1 | Not ours: in use by another user. No worker or job to start. | owner, 2026-11-09 |
 
 Read-only status on the server, from the `fedicl-sql` root:
@@ -24,52 +25,81 @@ Read-only status on the server, from the `fedicl-sql` root:
 
 ## Run now
 
-Nothing to run. The worker continues on its own; send back any
-`STOP queue` line.
+Nothing to run now. `a5a204b5` adds a script, a module and queue tasks and
+changes no module that row 1 loads, so row 1 keeps running.
 
-Next owner action (clock times are estimates from a start of row 1 at
-00:14 on 2026-11-17):
+1. After row 1 ends (about 06:45 on 2026-11-17, estimate): check that the
+   worker went on to `synv_s0/collect`. Send back the lines of the `synv_s0`
+   tasks.
 
-- Now, no run needed: the decision on the method direction. The two
-  short reads are in `LAB_LOG.md` (2026-11-17) and `RESEARCH_STATE.md`
-  section 5, item 12.
-- After row 1 (about 06:45 on 2026-11-17): FedAvg R3 with `codes_v2`.
-  Row 2 starts on its own; stopping it is Ctrl+C on the worker.
-- After row 2 (about 15:45 on 2026-11-17): the core with `codes_v2`
-  without the penalty, and whether clean rounds 2 and 3 add anything.
-- After row 6 (about 23:45 on 2026-11-17): the vote label check and the
-  two mechanism pilots.
-- After row 7 (about 06:45 on 2026-11-18) and row 8 (about 13:15 on
-  2026-11-18): centralized SFT, FedAvg with 20 clients.
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
+```
+
+2. Only if step 1 shows `sqlcv2_s0/curve_fedavg` running instead of
+   `synv_s0/collect`: press Ctrl+C in the worker window, then pull and
+   test, then start the worker again.
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_synth_verify.py tests/test_synthesis.py tests/test_pref_rounds.py tests/test_preference_sampling.py tests/test_stage_chain.py tests/test_curve.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+```
+
+```powershell
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+```
+
+Next moments the owner is needed (clock times are estimates from a start
+of row 1 at 00:14 on 2026-11-17):
+
+- After row 2 (about 07:35): the line `DONE synthetic rows checked` of
+  `synv_s0/filter`, with the rows kept by number of tables. Send it back.
+- After row 3 (about 10:50): Spider test of the round with synthetic rows,
+  arm `sqlcv2_sftsyn_x1_np_vllm_inproc`.
+- After row 4 (about 13:15): its comparator,
+  `sqlcv2_sft_x1_np_vllm_inproc`. The two rows and FedAvg R3 of row 1 are
+  the read for the method direction.
+- After row 5 (about 22:15): the DPO rounds with `codes_v2`.
+- Any `STOP queue` line: send it back at once.
 
 ## Running and queued
 
-GPU 0 in queue order. Durations are
-estimates. "Without the penalty" means `--repetition-penalty 1.0`; every
-row published so far was decoded with 1.1.
+GPU 0 in queue order. Durations are estimates. "Without the penalty"
+means `--repetition-penalty 1.0`; every row before 2026-11-16 19:33 was
+decoded with 1.1.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 1 | `sqlcv2_s0/curve_fedavg_sft` | Does the corrected prompt hold the `codes` line? 3 FedAvg SFT rounds from the base model with `codes_v2`, each round on Spider test without the penalty. Comparator: FedAvg R3 with `codes` without the penalty, 74.71 | 6.5 h | running (most likely) |
-| 2 | `sqlcv2_s0/curve_fedavg` | The core with the corrected prompt and no penalty: 3 DPO + NLL rounds from that R3 | 9 h | queued |
-| 3 | `vote_s0/check`, `xsel_dpo_r3` and their publish tasks | Two short reads of the line of row 2. (1) How often does a vote over a question's 8 samples agree with the gold labels, and how many vote-labelled pairs are right? Samples of DPO rounds 1-3, CPU, no training: the first number for clients with few labelled questions. (2) Selection by execution over 8 samples of DPO round 3 on Spider test: the vote and pass@8 without the penalty | 0.5 h | queued |
-| 4 | `peer_s0/check`, `publish_check` | The peer adapter check on the line of row 2, at its DPO round 3. No training | 0.5 h | queued |
-| 5 | `synth_s0/round_synth`, `eval_synth` and their publish tasks | Do synthetic questions give the DPO loop new pairs that help? One DPO + NLL round from DPO round 3 of row 2 on the synthetic split (5,434 rows, `04922932`). Arm `sqlsyn_dpo_fedavg_r4_np_vllm_inproc`. Comparator: row 6 | 4 h | queued |
-| 6 | `synth_s0/round_plain`, `eval_plain` and their publish tasks | The same round without synthetic rows: round 4 of the line of row 2. Arm `sqlcv2_dpo_fedavg_r4_np_vllm_inproc` | 3 h | queued |
+| 2 | `synv_s0/collect`, `filter`, `publish_filter` | Which synthetic rows pass the client's own execution check? 8 samples per question from FedAvg R3 of row 1 on the own rows plus the 5,434 synthetic rows (`04922932`), then the rows with at least one sample that returns the result of their SQL. Counts by number of tables | 0.8 h | queued |
+| 3 | `synv_s0/sft_synth`, `eval_synth` and their publish tasks | Does supervised training on the kept synthetic rows help, and on which questions? One FedAvg SFT round from FedAvg R3 on the own rows plus the kept rows, on Spider test without the penalty. Arm `sqlcv2_sftsyn_x1_np_vllm_inproc`. Comparator: row 4 | 3.2 h | queued |
+| 4 | `synv_s0/sft_plain`, `eval_plain` and their publish tasks | The same round on the clients' rows alone. Arm `sqlcv2_sft_x1_np_vllm_inproc` | 2.4 h | queued |
+| 5 | `sqlcv2_s0/curve_fedavg` | The DPO + NLL rounds with the corrected prompt and no penalty: 3 rounds from the R3 of row 1 | 9 h | queued |
+| 6 | `vote_s0/check`, `xsel_dpo_r3` and their publish tasks | Two short reads of the line of row 5. (1) How often does a vote over a question's 8 samples agree with the gold labels? Samples of DPO rounds 1-3, CPU, no training. (2) Selection by execution over 8 samples of DPO round 3 on Spider test: the vote and pass@8 without the penalty | 0.5 h | queued |
 | 7 | `sqlcv2_s0/central_e3`, `eval_central`, `publish_central` | How far FedAvg SFT is from training on the pooled rows: centralized SFT on the 8,659 Spider train rows, 3 epochs, `codes_v2`, then epoch 3 on Spider test without the penalty. Comparator: FedAvg R3 of row 1 | 7 h | queued |
 | 8 | `f1_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split, `codes` prompts, each round on Spider test without the penalty. Comparator: 74.71 (5 clients, `codes`, without the penalty) | 6.5 h | queued |
 
-Rows 1-8 take about 37 h. Rows 3-6 run code that has not run on the
-server in this form (the vote label check, the pilots on a new line);
-the time of the vote label check is not measured. Row 1 is a new prompt
-style in training: its first batch and the peak reserved of round 1 are
-the memory check (prompts are shorter than `codes`: mean 880 tokens,
-longest 6,444). Row 5 samples up to about 14,100 questions instead of
-8,659.
+Rows 1-8 take about 36 h. Rows 2-4 run code that has not run on the
+server (`collect` as its own task, `scripts/synth_verify.py`, an SFT stage
+on a split with synthetic rows); the time of row 2 is not measured. Row 2
+samples 14,093 questions instead of 8,659. Row 3 trains each client on
+more rows than the rounds before; its sequences are no longer than theirs
+(checked locally on the 5,434 rows: none above `--max-len 7680`).
 
 Cut from a full run:
 
 - Every row is seed 0.
+- Rows 2-4 are a short form of verification-based synthesis (SPFT-SQL,
+  arXiv 2509.03937). Cut: the questions come from the base model, not from
+  a SQL-to-text model trained by the clients (one federated round, about
+  2 h, new code); one iteration; one round from FedAvg R3 instead of 3
+  rounds from the base model on the own rows plus the kept rows (about
+  9 h). A gain in row 3 over row 4 answers the question; no gain does not
+  rule out the full form.
+- Row 3 takes more updates than row 4; a control with equal updates
+  (about 3 h) is not queued.
+- The synthetic SQL keeps the structures of the client's own queries
+  (58.6% one table). Synthesis with a share per number of tables, or with
+  structures from public data, is not built.
 - Eleven existing rows are evaluated without the penalty (`LAB_LOG.md`).
   The other committed rows (the rest of the Hinton line, the gold line,
   seed 1, the other test sets, FedProx, FedNTD, centralized) are not;
@@ -79,17 +109,8 @@ Cut from a full run:
   6.5 h) is not queued.
 - The gold-table rows of 2026-11-17 use adapters trained on full
   schemas. Not queued: a FedAvg round trained and evaluated with
-  gold-table prompts (about 2.2 h), and a round that also learns to list
-  tables (about 3 to 4 h, new code).
-- The 3-round DPO line without the penalty is row 2, on `codes_v2`; the
-  `codes` line has one such round (76.94, `LAB_LOG.md`).
-- Row 3 counts label agreement only; a DPO line trained on vote labels
-  with few labelled questions per client (about 6 h) is not queued.
-- Row 4 measures candidates only; training with a peer sample as the
-  chosen side (one round, about 3 h) is not queued.
-- Rows 5 and 6 are one round each. Row 5 has more pairs than row 6, so
-  the two compare the whole step, not equal update counts; a control with
-  equal pair counts (about 3 h) is not queued.
+  gold-table prompts (about 2.2 h).
+- Row 6 counts label agreement only.
 - Row 7 is centralized SFT only. Centralized DPO with `codes_v2` (3 rounds
   on the pooled rows, about 9 h) is not queued.
 - Row 8 is the FedAvg SFT half of F1 and uses `codes`, as its curve is
@@ -99,15 +120,17 @@ Cut from a full run:
 
 Not queued yet:
 
-- The mechanism pilots on the `codes` line with the penalty: the peer
-  check and the synthetic rows are published; the DPO round with
-  synthetic questions was stopped at the restart and its plain
-  comparator did not start. Both rounds now run on the line of row 2.
-- Other mechanism candidates (`RESEARCH_STATE.md` section 5, item 9):
-  clients with few labelled questions and vote labels for the rest (about
-  6 h, changes the setup); a hint for questions no sample solves; a CPU
-  count of samples that pass by accident, on mutated databases. Not
-  approved.
+- A DPO + NLL round from FedAvg R3 on the split with synthetic rows. It
+  can reuse the samples of row 2 (about 2.5 h).
+- The public 1.5B checkpoint trained on SynSQL
+  (`cycloneboy/SLM-SQL-Base-1.5B`, from the same base model, licence
+  CC BY-NC 4.0) on Spider test, as a first read of training on public
+  synthetic data at the server before the client rounds. It answers with
+  reasoning before the SQL, so it needs its own prompt and parser (new
+  evaluation code). Not approved.
+- Out of the queue since 2026-11-17 (owner): the peer adapter check and
+  the DPO round on the synthetic rows from DPO round 3 with its round 4
+  comparator. Nothing of them ran on the `codes_v2` line.
 - Out of the queue since 2026-11-16 (owner: the teacher and the public
   stage leave the core): the DPO rounds of the `codes` line from the
   Hinton server stage (stopped in round 1) and its gold control, a server
@@ -117,14 +140,8 @@ Not queued yet:
 - Reference rows with `full` that had not run: the 5 local client models,
   centralized DPO. The baselines with `codes_v2` (FedProx, FedNTD, local
   SFT) and seed 1 of the final method come after the method is fixed.
-- DPO with result-vote labels for 3 rounds (about 5 h): approved
-  earlier from `hinton_k2aaa_a3`; its start would now be the `codes_v2`
-  line, to confirm with the owner.
 - S1, a second non-IID split (about 21 h); S3, a second student size
   (about 15-20 h), both awaiting the owner's decision.
-- M5, CPU/manual analyses; S2, K/beta sensitivity (one round, about 7 h);
-  S4, FedProx seeds 1-2 (about 10 h); L1, 3 local DPO rounds (about 6 h,
-  new code); B1, a second client benchmark (not measured): not approved.
 
 ## Reference
 
@@ -143,7 +160,7 @@ For a future code update, stop the worker and its child process before
 pulling shared DPO changes, then pull and run the tests:
 
 ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py tests/test_synthesis.py tests/test_peer_check.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; if ((git branch --show-current) -ne 'main') { throw 'Expected main' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Fast-forward failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest" tests/test_task_queue.py tests/test_dpo.py tests/test_reuse_samples.py tests/test_pref_rounds.py tests/test_preference_pairs.py tests/test_preference_sampling.py tests/test_test_suite.py tests/test_eval_standard.py tests/test_pass_at_k.py tests/test_rationale_targets.py tests/test_stage_chain.py tests/test_utils_files.py tests/test_vllm_student.py tests/test_train_length_probe.py tests/test_curve.py tests/test_compare_predictions.py tests/test_eval_arms_config.py tests/test_exec_select.py tests/test_preference_labels.py tests/test_synthesis.py tests/test_peer_check.py tests/test_synth_verify.py; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
 ```
 
 Worker on GPU 0:
@@ -274,39 +291,45 @@ with the model's generation config (1.1). Arms without the penalty carry
   `artifacts/protocol_v2/sqlcodes_coder15b_alpha01_s0/fedavg_np`, from
   round 3 of `sqlcodes_s0/fedavg_sft`.
 
-### The mechanism pilots (phases `vote_s0`, `peer_s0`, `synth_s0`)
+### Synthetic rows and the short reads (phases `synth_s0`, `synv_s0`, `vote_s0`)
 
-On the `codes_v2` line without the penalty, seed 0
-(`artifacts/protocol_v2/sqlcv2_coder15b_alpha01_s0/`), after its DPO
-rounds.
+On the `codes_v2` line without the penalty, seed 0.
 
+- `synth_s0/build` (`scripts/synth_questions.py`, finished, `04922932`):
+  each client refills the SQL of its own rows on its own databases and
+  the base model writes one question per query. Split:
+  `artifacts/protocol_v2/sqlsynnp_coder15b_alpha01_s0/synth/split` (own
+  rows, then rows with ids `syn:c<client>:<n>`); evidence:
+  `audits/protocol_v2/sqlsynnp_coder15b_alpha01_s0/synth/`. The build with
+  the penalty is under `sqlsyn_coder15b_alpha01_s0` and stays as it is.
+- `synv_s0/collect` (`experiments/federated_pref/run.py collect`): 8
+  samples per question of that split from FedAvg R3 of
+  `sqlcv2_s0/fedavg_sft`, labelled by execution against the row's SQL.
+  Root `artifacts/protocol_v2/sqlsynnp_coder15b_alpha01_s0/verify`,
+  samples under `audits/.../verify/samples` (not published).
+- `synv_s0/filter` (`scripts/synth_verify.py`, CPU): keeps a synthetic row
+  when at least one finished sample returns the result of its SQL and its
+  training sequence fits `--max-len 7680`. It stops if the samples were
+  not drawn with `codes_v2` and without the penalty, or on another split
+  file. New split: `artifacts/.../sqlsynnp_coder15b_alpha01_s0/verified/split`;
+  evidence: `audits/.../verified/` (`summary.json`: rows kept by number of
+  tables and by number of matching samples; `rows/client_<i>.jsonl`: one
+  decision per synthetic row, ids and counts only).
+- `synv_s0/sft_synth`: one FedAvg SFT round (the recipe of the rounds of
+  `sqlcv2_s0/fedavg_sft`) from FedAvg R3 on the new split; stage
+  `sqlcv2_sftsyn_x1_s0`, adapter
+  `artifacts/.../sqlsynnp_coder15b_alpha01_s0/sft_synth/x1/fedavg_adapter`.
+- `synv_s0/sft_plain`: the same round on the clients' rows; stage
+  `sqlcv2_sft_x1_s0`, adapter
+  `artifacts/protocol_v2/sqlcv2_coder15b_alpha01_s0/sft/x1/fedavg_adapter`.
 - `vote_s0/check` (`scripts/vote_label_check.py`): reads the samples of
-  rounds 1-3 under the root's `samples` folder, labels them again by a
+  rounds 1-3 under the DPO root's `samples` folder, labels them again by a
   vote over execution results and compares with the recorded gold labels.
   Results: `experiments/vote_check/results/cv2_dpo_np/` (`summary.json`,
   `per_question.csv`); working files under
   `artifacts/protocol_v2/vote_check/cv2_dpo_np/`.
 - `vote_s0/xsel_dpo_r3` (`scripts/exec_select.py`): results under
   `experiments/exec_select/results/xsel_cv2_dpo_r3_np_s0_spider_test/`.
-- `peer_s0/check` (`scripts/peer_check.py`): reads the round 3 samples of
-  the line, takes the questions with all samples wrong, and samples them
-  again through vLLM, one run per adapter: each other client's round 2
-  adapter (8 samples) and the round 2 global adapter (32 samples).
-  Results: `experiments/peer_check/results/cv2_dpo_r3_np/`; working files
-  under `artifacts/protocol_v2/peer_check/cv2_dpo_r3_np/`. The check of
-  the `codes` line with the penalty is `codes_dpo_r3`.
-- `synth_s0/build` (`scripts/synth_questions.py`): writes the new split
-  to `artifacts/protocol_v2/sqlsynnp_coder15b_alpha01_s0/synth/split` and
-  the evidence to `audits/protocol_v2/sqlsynnp_coder15b_alpha01_s0/synth/`.
-  Synthetic rows have ids `syn:c<client>:<n>`. The build with the penalty
-  is under `sqlsyn_coder15b_alpha01_s0` and stays as it is.
-- `synth_s0/round_synth`: root
-  `artifacts/protocol_v2/sqlsynnp_coder15b_alpha01_s0/dpo_synth`, round 1
-  from the round 3 global adapter of the line, with
-  `--no-fallback-prefix syn:`. Its pair statistics carry the counts of
-  synthetic questions by number of correct samples (`label_only_*`).
-- `synth_s0/round_plain`: round 4 in the root of the line; rounds 1-3 and
-  the record of the curve are not touched.
 
 ### The corrected prompt (phase `sqlcv2_s0`)
 

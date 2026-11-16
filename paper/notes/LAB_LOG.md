@@ -3,6 +3,59 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: read of supervised training on verified synthetic rows queued (owner)
+
+Owner (2026-11-17, after the literature map below): update the queue, and
+check each new implementation against its source so that a wrong setting
+does not go unnoticed again (the 1.1 penalty, the first `codes` prompt).
+
+Directions kept: synthetic data generated and checked at the clients
+(candidate for the core), DPO + NLL (component), SFT on public synthetic
+data at the server (not measured), execution in a multi-turn answer
+(reserve). Dropped as a core: tables first, a join-implicit target,
+constrained decoding, aggregation fixes, a site without labels.
+
+Queued ahead of the `codes_v2` DPO rounds (`a5a204b5`, phase `synv_s0`):
+
+1. `collect`: 8 samples per question from FedAvg R3 of the `codes_v2` line
+   on the split of `synth_s0/build` (own rows, then the 5,434 synthetic
+   rows), without the penalty, labelled by execution against the row's
+   SQL.
+2. `filter` (`scripts/synth_verify.py`, new): a synthetic row is kept when
+   at least one finished sample returns the result of its SQL.
+3. One FedAvg SFT round from FedAvg R3 on the own rows plus the kept rows,
+   and the same round on the own rows alone; both on Spider test.
+
+Checked against the source (SPFT-SQL, arXiv 2509.03937, method section
+read from the arXiv HTML): its SQL comes from templates of the training
+queries filled on the training databases, as `synthesis.py` does; its
+questions come from a SQL-to-text model that is trained over iterations
+(the paper reports 56.5% of the questions consistent with their SQL before
+that training and 93.5% after, 7B); a pair counts as verified when the
+model's SQL for the question executes to the result of the pair's SQL, and
+verified pairs train the SQL-to-text model. Different here: no trained
+SQL-to-text model, the check filters the training pairs directly and runs
+on 8 samples, one iteration, one round from FedAvg R3 instead of training
+from the base model. The paper's best amount is 3,000 synthetic rows per
+iteration (7B); its SFT is LoRA at lr 2e-4 as ours, with batch 64 and 3
+epochs (ours: 16 rows per update, 1 local epoch a round).
+
+Checked in the implementation: the resolved commands of the three GPU
+tasks use `codes_v2`, `--repetition-penalty 1.0`, `--max-len 7680` and the
+LoRA recipe of the FedAvg rounds they continue; `synth_verify` stops when
+the sample headers carry another schema style, another penalty or another
+split file; the synthetic split rebuilt locally from the committed
+questions has the bytes of the server's split (same hashes), and none of
+its 5,434 rows is above 7,680 tokens as training renders it; the three
+commands were run locally up to the missing parent row. 708 tests pass.
+
+Out of the queue: `peer_s0`, and the DPO round on the synthetic rows from
+DPO round 3 with its round 4 comparator (nothing of them ran).
+
+Not done: the public SynSQL-trained 1.5B checkpoint
+(`cycloneboy/SLM-SQL-Base-1.5B`) on Spider test. It answers with reasoning
+before the SQL and needs its own prompt and parser; not queued.
+
 ## 2026-11-17: literature map by two agents that did not see the project; the synthetic rows by number of tables
 
 Owner (2026-11-17): the earlier idea rounds started from the existing
