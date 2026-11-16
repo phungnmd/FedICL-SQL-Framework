@@ -33,7 +33,7 @@ Prompt tokens (Qwen chat template), `codes` to `codes_v2`:
 
 Still different from CodeS: no schema filter, exact whole-word matching on
 text columns instead of BM25 plus LCS, names in original case and not
-quoted (38 of 806 BIRD dev columns would be quoted, 4 in all Spider
+quoted (37 of 806 BIRD dev columns would be quoted, 4 in all Spider
 databases). Not checked: BIRD train databases (not on the Mac).
 
 ## 2026-11-16: literature pass on server warm start and KD between rounds; vote of the five client adapters
