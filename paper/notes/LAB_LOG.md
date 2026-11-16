@@ -3,6 +3,35 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-16: audit of the `codes` prompt against CodeS (arXiv 2402.16347)
+
+Read-only audit of `fedicl_sql/data/spider.py` against the paper and the
+official repository. No code changed. Our prompt copies CodeS's
+serialization (types, primary and foreign keys, 2 sample values, matched
+values) and differs in these places:
+
+- Comments: the renderer reads `tables.json` three folders above the
+  database, so Spider test (its file is `test_tables.json`) and BIRD get no
+  comment, while training prompts do. Counted in the committed prompts of
+  `sqlcodes_fedavg_r3_vllm_inproc`: Spider test 0 of 2,147, Spider dev
+  1,034 of 1,034, Realistic 508 of 508, SYN 1,034 of 1,034, DK 408 of 535,
+  BIRD dev 0 of 1,534. Every `codes` number on Spider test so far is
+  measured with prompts that lack the comment field seen in training.
+- Reported by the audit, not rechecked: CodeS drops a comment equal to the
+  column name without `_` (244 comments on Spider train against our
+  2,998, about 117 tokens a training prompt); CodeS strips sample values
+  and drops those above 25 characters (BIRD dev schema 3,741 to 1,645
+  tokens on average, `european_football_2` 25.9k to 4.5k); CodeS keeps
+  several matched values a column, ours one (553 question-column pairs on
+  Spider train and test); CodeS matches BIRD values against evidence plus
+  question; CodeS filters the schema to 6 tables and 10 columns a table
+  with a trained classifier (we have none).
+- Training and evaluation render the same text for the same database
+  (client SFT, DPO and the stored evaluation prompts).
+
+Open, owner's decision: a corrected renderer changes the training prompts,
+so the `codes` lines would be trained again.
+
 ## 2026-11-16: P1 on BIRD dev (`codes`, no server stage)
 
 Results commit `c46c62cd` (08:18 on 2026-11-16), seed 0, vLLM `inproc`,
