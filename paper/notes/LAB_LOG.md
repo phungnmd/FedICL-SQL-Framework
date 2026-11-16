@@ -122,6 +122,55 @@ model with the schema cut to the gold tables (`--oracle-tables`,
 all 2,147 test rows the oracle prompt keeps 1.57 of 4.89 tables and
 changes 1,978 prompts.
 
+## 2026-11-17: the two short reads: gold-table upper bound, DPO against SFT at the same decoding
+
+Spider test, seed 0, without the penalty.
+
+Gold tables (`aaf6eb73`; arms `*_oracletab_*`, the prompt shows only the
+tables of the row's gold SQL, a diagnostic and never a result):
+
+| Model | Full schema | Gold tables | | Gained / lost |
+|---|---:|---:|---:|---:|
+| base model, `codes_v2` | 65.72 | 75.55 | +9.83 | 267 / 56 |
+| FedAvg R3, `codes` | 74.71 | 77.46 | +2.75 | 116 / 57 |
+| DPO round 3, `codes` | 77.04 | **80.34** | +3.31 | 130 / 59 |
+
+DPO round 3 by number of gold tables (questions; full schema, gold
+tables): one (1,230) 87.0, 89.9; two (651) 68.4, 73.6; three (230) 55.2,
+54.8; four or more (36) 33.3, 38.9.
+
+- The bound for a table-selection step on the trained model is 3.3
+  points, about half of the 6.85 counted from samples and the teacher in
+  the debate. The adapters were trained on full schemas; a model trained
+  on cut schemas is not measured (one FedAvg round with gold-table
+  prompts, about 2.2 h).
+- Nothing moves on three-table questions: given the right tables the
+  model still fails to join them. The gain is distractor tables removed
+  on one- and two-table questions.
+- Training already removes most of what the tables cost: +9.83 for the
+  base model, about +3 after SFT and DPO.
+- The base model with gold tables (75.55) is above SPFT-SQL's zero-shot
+  row (72.3, with a schema filter): the zero-shot gap is the filter.
+
+Controls of the DPO decision (`32497b51`, line `hinton_k2aaa_a3`, `full`
+prompts, the adapters of 2026-11-10 to 12, trained on samples with the
+penalty):
+
+| Row | With the penalty | Without | Execution errors without |
+|---|---:|---:|---:|
+| start (`hinton_k2aaa_a3`) | 73.31 | 74.85 | 110 |
+| DPO + NLL round 1 | **75.69** | **76.43** | **89** |
+| NLL only, round 1 | 73.50 | 75.50 | 107 |
+| one more FedAvg SFT round | 74.15 | 75.50 | 132 |
+| two more FedAvg SFT rounds | 72.99 | 74.43 | 129 |
+
+- At the same decoding the DPO round is 0.93 above the NLL-only round
+  (52 gained / 32 lost) and 0.93 above one more SFT round (70 / 50); with
+  the penalty the gaps read 2.19 and 1.54.
+- Of the +1.58 of the DPO round, +0.65 is reached by training on the
+  model's correct samples or by one more SFT round; a second SFT round
+  loses.
+
 ## 2026-11-16: the two short reads moved ahead of the `codes_v2` line (owner); synthetic rows built
 
 - Owner, 23:48: the gold-table rows and the controls run first, to fix

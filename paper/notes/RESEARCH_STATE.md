@@ -379,10 +379,47 @@ Both seeds pooled, clustered by question (95% interval):
     points of the gain in section 4 were the penalty's cost on the SFT
     model. Every SFT-type row of section 4 (FedAvg, the server stages,
     centralized, and the baselines) is therefore low by about 1 to 1.5
-    points until evaluated again; they need no retraining. Open: the DPO
-    stage with samples drawn without the penalty (one round running, then
-    the `codes_v2` line), and the counts taken from samples with the
-    penalty (saturation, pairs by type, pass@8, the vote).
+    points until evaluated again; they need no retraining. With samples
+    drawn without the penalty one DPO round from FedAvg R3 (`codes`) gives
+    76.94 (+2.23, `8a883578`), the level of three rounds on penalised
+    samples. Open: rounds 2 and 3 with clean samples (the `codes_v2`
+    line), and the counts taken from samples with the penalty (saturation,
+    pairs by type, pass@8, the vote).
+
+12. What the preference term and a table-selection step are worth
+    (2026-11-17, Spider test, seed 0, without the penalty; `32497b51`,
+    `aaf6eb73`). Both reads lower what the current candidates can carry.
+
+    | From `hinton_k2aaa_a3`, `full` prompts | EX | Over the start |
+    |---|---:|---:|
+    | start | 74.85 | |
+    | DPO + NLL round 1 | **76.43** | +1.58 |
+    | NLL only on the correct samples, round 1 | 75.50 | +0.65 |
+    | one more FedAvg SFT round | 75.50 | +0.65 |
+    | two more FedAvg SFT rounds | 74.43 | -0.42 |
+
+    With the penalty the DPO round stood 2.19 and 1.54 above the NLL-only
+    and SFT controls; at the same decoding it is 0.93 above both (52
+    gained / 32 lost and 70 / 50). The preference term still helps, by
+    about one point.
+
+    | Prompt (diagnostic: the tables of the gold SQL only) | Full schema | Gold tables | |
+    |---|---:|---:|---:|
+    | base model, `codes_v2` | 65.72 | 75.55 | +9.83 |
+    | FedAvg R3, `codes` | 74.71 | 77.46 | +2.75 |
+    | DPO round 3, `codes` | 77.04 | **80.34** | +3.31 |
+
+    A perfect table selection gives the trained model 3.3 points at most
+    (adapters trained on full schemas; training on cut schemas is not
+    measured). It gives nothing on questions with three gold tables (55.2
+    against 54.8 after DPO): with the right tables the model still fails
+    to join them. The base model with gold tables is above SPFT-SQL's
+    zero-shot 72.3, so the zero-shot gap of item 10 is the schema filter.
+    What is left after DPO with the gold tables: about 290 wrong
+    questions with two or more tables (about 14 points).
+    Proposals from a two-agent method debate of 2026-11-16 (tables first,
+    then a site without labels that adapts on its own databases) are in
+    `LAB_LOG.md`; not approved.
 
 ## 6. Current phase
 
