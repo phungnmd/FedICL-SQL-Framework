@@ -134,7 +134,17 @@ First reads (2026-11-17, seed 0, Spider test, `codes_v2`, no penalty):
   two, 40% of three, 11 of 36 with four or more, so the kept rows are
   68.6 / 24.2 / 6.9 / 0.3% (Spider test 57.3 / 30.3 / 10.7 / 1.7%). For
   1,922 of the kept rows all 8 samples already return the right result;
-  1,255 have one to seven. The training read is running.
+  1,255 have one to seven. One FedAvg SFT round on the own rows plus the
+  kept rows gives 74.15 from 74.71 (`a428e174`); the same round without
+  the rows is running.
+- Direction 1, both sides with selection, `codes` line (`c9c90ff3`):
+  FedAvg R3 74.71 greedy, 77.97 with the fallback, 78.95 with the vote;
+  DPO round 3 from it 77.04, 78.57, 79.32. Stage 3 leads by +2.33 with one
+  call and by +0.37 under the vote (65 / 57 questions, not separable).
+  With `full` prompts and the penalty the DPO rounds keep +1.21 (seed 0)
+  and +2.52 (seed 1) under the vote, and the method +2.84 and +2.15. The
+  final setup is read from `vote_s0/xsel_dpo_r3` and
+  `vote_s0/xsel_hinton_dpo_r3`.
 
 Federated learning is the setting the method has to work in; the paper
 does not claim that federation produces the gain (owner, 2026-11-11).

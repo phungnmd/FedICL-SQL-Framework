@@ -3,6 +3,29 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: selection on both sides of stage 3 (`codes`), SFT round with the verified synthetic rows
+
+Seed 0, Spider test, `codes` prompts, no repetition penalty at inference.
+
+| Adapter | Greedy | Greedy kept when it executes, else a sample | Vote over 8 | A correct sample in 8 | Commit |
+|---|---|---|---|---|---|
+| FedAvg R3 | 74.71 | 77.97 (1.64 calls) | 78.95 | 85.98 | `c9c90ff3` |
+| DPO round 3 from it | **77.04** | **78.57** (1.31 calls) | **79.32** | **86.54** | `c9c90ff3` |
+| FedAvg R3 + one FedAvg SFT round on own rows plus 3,177 verified synthetic rows | 74.15 | | | | `a428e174` |
+
+- Stage 3 against FedAvg, paired by question: greedy +50 rows (115 / 65),
+  fallback +13 (79 / 66), vote +8 (65 / 57). The lead of the DPO rounds
+  is +2.33 with one call and +0.37 under the vote, where it is not
+  separable on one seed. Cut: this DPO adapter was trained on samples
+  drawn with the penalty 1.1.
+- The same four lines with `full` prompts and the penalty (earlier rows,
+  vote over 8): seed 0 FedAvg 75.55, + DPO 76.76, + server stage 76.53,
+  method 78.39; seed 1 75.87, 78.39, 76.34, 78.02. There the DPO rounds
+  keep +1.21 and +2.52 under the vote, and the method +2.84 and +2.15.
+- The round with the synthetic rows ends below its start (74.15 against
+  74.71, 179 against 171 execution errors). Its comparator, the same
+  round on the own rows alone (`synvc_s0/sft_plain`), is running.
+
 ## 2026-11-17: selection at inference on both sides of stage 3, queued first (owner)
 
 The selection on FedAvg R3 (entry below) gives 77.78 and 78.90 with no
