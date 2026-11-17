@@ -117,7 +117,16 @@ Fosler-Lussier). Think2SQL reports 1.5B on BIRD only.
 | SPFT-SQL | Qwen2.5-Coder-1.5B | Spider train + synthetic rows per round (3K best at 7B), centralized; baseline SFT with LoRA | not stated | dev 72.4, test 72.3 | dev 79.7, test 82.3 |
 | SLM-SQL | Qwen2.5-Coder-1.5B-Instruct | 916K CoT SFT (incl. Spider and BIRD train) + BIRD GRPO | 16 samples, SC / CSC | dev 63.54 / 65.99, test 67.61 / 69.34 | dev 75.15 / 76.72, test 78.42 / 79.06 |
 | FINER-SQL | Qwen2.5-Coder-1.5B | Spider + BIRD, SFT + GRPO | schema ranker, 30-sample vote | not reported | dev 80.0 |
+| MCTS-SQL ([arXiv 2501.16607](https://arxiv.org/abs/2501.16607), v3, Table 3) | Qwen2.5-Coder-1.5B-Instruct | none: training-free pipeline (schema selector, CoT few-shot generator, LLM verifier, MCTS refiner) | T 0.1, 2 children, 5 rollouts | not reported for Spider (BIRD dev single-shot 14.71) | dev 67.45, test 71.68 |
 | CodeS-1B | StarCoderBase-1B + 21.5 GB SQL-centric pre-training | Spider train, full SFT | beam 4, first executable | not reported (few-shot dev TS 55.7-59.1) | dev 77.9 (TS 72.2) |
+
+Checked 2026-11-18 for further 1.5B Spider rows, none found: Think2SQL
+(Spider table has 3B and 7B only; 3B 72.5 / SFT 77.0, 7B 77.6 / 82.6, BIRD-trained, T 0.7,
+mean of 3 runs), the Qwen2.5-Coder report (section 7.4, figure only, 7B and up),
+Text2SQL-Flow (arXiv 2511.10192, Table II: 7B and 8B only; Qwen2.5-Coder-7B-Instruct
+Spider test greedy 82.2, vote of 8 at T 0.8 85.6; SFT on SQLFlow 85.1 / 86.6) and
+SQuaD-SQL (WikiSQL only). Community LoRA repositories report 55-74 on Spider dev with
+their own harnesses; not citable.
 
 Zero-shot 1.5B Spider numbers range from 63.54 (dev, SC@16) to 72.4 (dev,
 undisclosed prompt), so the paper must report its own zero-shot under each
