@@ -4,6 +4,50 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: the prompt, two schema styles (code `3d05fa33`)
+
+Owner: implement candidates A and B, with the SQLite sentence, no
+repetition penalty and a length limit that fits.
+
+In the code:
+
+- One layout, taken from the Qwen2.5-Coder evaluation code: schema text,
+  `-- Using valid SQLite, answer the following questions for the tables
+  provided above.`, `Question: ...`, "Please output only the final SQL
+  query, starts with keyword `SELECT`." One user message through the chat
+  template.
+- `--schema-style ddl_rows` (A, default): `CREATE TABLE` text and 3 example
+  rows per table. `ddl_values` (B): `CREATE TABLE` text rebuilt per column
+  with 2 example values as a comment (OmniSQL's schema text; no column
+  descriptions, no question-matched values). `ddl`: no rows.
+- Decoding greedy, penalty 1.0, 256 new tokens. `--max-len 7168`, policy
+  `error`.
+- One `extract_sql` for evaluation and DPO labels; target = gold SQL
+  without a final `;` plus the end token; the prompt identity hashes a
+  rendered prompt and is in the evaluation, sample and stage fingerprints;
+  the sampling seed is derived per round and client.
+
+Token lengths with the student's tokenizer (Mac, whole sets):
+
+| Style | Spider train, sequence p50 / p99 / max | Spider test, prompt max |
+|---|---|---:|
+| `ddl_rows` | 821 / 3,863 / 6,927 | 2,547 |
+| `ddl_values` | 620 / 3,129 / 6,440 | 1,939 |
+| `ddl` | 480 / 1,653 / 2,334 | 1,086 |
+
+No row exceeds 7,168. The longest database is `baseball_1`. BIRD is not
+measured (its databases are not on the Mac).
+
+Smoke on the Mac, not a result: the base model, HF, 40 random Spider test
+rows, greedy. `ddl_rows` 25/40, `ddl_values` 27/40; every output ended at
+the end token and was plain SQL with no code fence. 421 tests pass.
+
+Queued: the base model on all of Spider test with A and B (`prompt/*`,
+vLLM `inproc`).
+
+Not done: the SFT shuffle seed per client and round, LoRA dropout and
+weight decay set on purpose, a key check when an adapter is loaded.
+
 ## 2026-11-17: clean reset (owner)
 
 Decision: the project is set up again from clean. The prompt of every
@@ -58,4 +102,4 @@ report uses `CREATE TABLE` plus 3 example rows per table after Chang and
 Fosler-Lussier (2023).
 
 Open, for the owner: the prompt (three candidates in `RESEARCH_STATE.md`,
-section 4), then the settings of stage 3.
+section 4), then the settings of stage 3. (Prompt: see the entry above.)

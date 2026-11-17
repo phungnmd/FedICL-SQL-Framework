@@ -26,7 +26,8 @@ that clearly beats the federated baselines and reports good numbers.
 | Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
 | Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); such a number is reported as chosen on Spider test, never as held-out | fixed |
-| Prompt | a standard published format, one for training, sampling and evaluation | open, section 4 |
+| Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
+| Length | `--max-len 7168`, no truncation (a longer row stops the run); 256 new tokens | fixed |
 | Training recipe | LoRA SFT at lr 2e-4, 3 FedAvg rounds of 1 local epoch (the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs) | open, section 4 |
 | Compute | RTX A5000 24 GB under WDDM; GPU 1 is in use by another user | fixed |
 
@@ -64,29 +65,30 @@ chosen side when no sample is correct. The rest of the map is in
 
 ## 4. Open
 
-1. The prompt. Checked practice is in `LITERATURE.md`, section 1.19: most
-   work feeds `CREATE TABLE` text plus a few database values, as one user
-   message through the chat template, and a fine-tuned small model outputs
-   SQL only. Candidates, none of which needs a trained filter or a
-   retriever:
+1. The schema text of the prompt. Both candidates are in the code
+   (`--schema-style`), with the same layout around them; checked practice
+   is in `LITERATURE.md`, section 1.19.
 
-   | Candidate | Schema text | Used by |
-   |---|---|---|
-   | A | `CREATE TABLE` text and 3 example rows per table, the line `-- Using valid SQLite, answer the following questions for the tables provided above.`, the question, "Please output only the final SQL query, starts with keyword `SELECT`." | Rajkumar et al. 2022; Chang and Fosler-Lussier 2023; the Qwen2.5-Coder report and its evaluation code |
-   | B | `CREATE TABLE` text with example values of each column as SQL comments | OmniSQL, SLM-SQL (with reasoning in the output; here SQL only), MSc-SQL |
-   | C | `CREATE TABLE` text alone | CodeLutra, DAIL-SQL's code representation |
+   | Style | Schema text | After | Longest Spider train sequence | Longest Spider test prompt |
+   |---|---|---|---:|---:|
+   | `ddl_rows` (A) | `CREATE TABLE` text and 3 example rows per table | the Qwen2.5-Coder evaluation code on Spider (Rajkumar et al. 2022; Chang and Fosler-Lussier 2023) | 6,927 tokens | 2,547 |
+   | `ddl_values` (B) | `CREATE TABLE` text rebuilt per column, 2 example values of each column as a comment | the schema text of OmniSQL, without its column descriptions and question-matched values | 6,440 | 1,939 |
+   | `ddl` | `CREATE TABLE` text alone | the same evaluation code on BIRD; CodeLutra | 2,334 | 1,086 |
 
-   A is the format the student's authors evaluate it with. The choice is
-   the owner's; a zero-shot read of the base model on Spider test with each
-   candidate takes minutes per candidate.
-2. The training target: the SQL followed by the end token; whether gold SQL
-   is normalized (CodeS upper-cases keywords and lower-cases identifiers;
-   2,046 of the 8,659 Spider train golds end with `;`).
+   The base model with no training is queued on Spider test with A and B
+   (`prompt/*`). That read checks the prompt and the decoding against the
+   published zero-shot number of this model (72.3 in SPFT-SQL); the choice
+   between A and B is made on the gain of stage 3 over FedAvg SFT with each.
+2. The training target is the gold SQL without a final `;`, followed by
+   the end-of-turn token. No other normalization (CodeS upper-cases
+   keywords and lower-cases identifiers; not done here).
 3. Stage 3 settings where CodeLutra and the earlier setup differ: samples
    per question (10 or 8), temperature (1.0 or 0.7), pairs per question,
    LoRA rank (8 or 16), learning rate and epochs.
-4. The seeds of sampling (round and client in the seed) and of the SFT
-   shuffle.
+4. The SFT shuffle seed is the same for every client and round. (The
+   sampling seed of stage 3 is now derived per round and client.) LoRA
+   dropout is 0.05 in SFT and 0 in DPO, and AdamW keeps its default weight
+   decay of 0.01; both are to be set on purpose with the recipe.
 5. Stage 1 and the teacher's role. In the earlier setup the teacher's own
    part was small against gold SQL on the same public data.
 6. Baselines with the new prompt: FedAvg, FedProx, FedNTD, centralized SFT.

@@ -2,33 +2,51 @@
 
 ## Status
 
-Updated 2026-11-17 (Asia/Ho_Chi_Minh), after the clean reset. The queue
-holds the worker selftest only; nothing is running.
+Updated 2026-11-17 (Asia/Ho_Chi_Minh). Nothing is running. The cleaned
+code with the new prompt is pushed (code `894e0b17`); the server checkout
+is still at the earlier code (`aa17258c`) until step 1 below is run.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Idle. The worker was stopped by the owner during `synvc_s0/sft_plain` of the earlier setup. | owner, 2026-11-17 |
+| 0 | Idle. The worker was stopped by the owner. | owner, 2026-11-17 |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
-
-The server checkout is still at the code of the earlier setup
-(`aa17258c`). The cleaned code (package `fedls_sql`) is not pushed yet; the
-update command comes here when it is.
 
 ## Run now
 
-Nothing to run on the server.
+1. Update the server checkout and run the tests (about 5 min, estimate).
+   The worker must be stopped. The pull removes the result rows and audit
+   files of the earlier setup from the working tree (5,443 files; they stay
+   in Git at the tag `archive/pre-reset-2026-11-17`); nothing under
+   `artifacts/` is touched. Send back the last lines: the pytest summary
+   (421 passed on the Mac), or the error.
 
-Next moments the owner is needed:
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv sync --extra dev; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+   ```
 
-- Choose the prompt (three candidates in `RESEARCH_STATE.md`, section 4).
-- After the cleaned code is pushed: update the server checkout, run the
-  tests and the worker selftest (commands will be listed here).
+2. Start the worker on GPU 0. It runs the selftest (about 1 min), then
+   the two evaluations and their publication (about 25 min in all,
+   estimate). Send back the final `DONE queue` or `STOP queue` line.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
+If an environment variable of the old name is set on the server
+(`FEDICL_TMP`, `FEDICL_VLLM_PYTHON`), it is now `FEDLS_TMP`,
+`FEDLS_VLLM_PYTHON`. Neither is needed with the default paths.
 
 ## Running and queued
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| | none | | | |
+| 1 | `selftest/*` | the worker and the card after the update | 1 min | queued |
+| 2 | `prompt/zs_ddl_rows` | the base model with no training on Spider test, prompt A (`CREATE TABLE` + 3 example rows); checks prompt and decoding | 10 min (estimate) | queued |
+| 3 | `prompt/zs_ddl_values` | the same with prompt B (`CREATE TABLE` + example values per column) | 10 min (estimate) | queued |
+| 4 | `prompt/publish` | commits and pushes the two result rows | 1 min | queued |
+
+Not queued yet: FedAvg SFT and the DPO rounds on the new prompt. They wait
+for the two rows above and for the owner's choice of the training settings.
 
 ## Reference
 
@@ -40,12 +58,6 @@ Read-only status of the queue:
 
 ```powershell
 & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-Worker on GPU 0:
-
-```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
 ```
 
 GPU work runs through one queue file, `fedicl-sql/queues/active.toml`:
