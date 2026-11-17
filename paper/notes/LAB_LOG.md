@@ -4,6 +4,16 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: aggregation options for the DPO rounds written down (owner)
+
+Owner: the federated options for aggregating the DPO rounds are options to
+test, not changes now. Phase 1 keeps factor-wise FedAvg weighted by pair
+count. Options and the evidence that would trigger each are in
+`RESEARCH_STATE.md` 3.8: equal weights, question weights, FedNova-style
+normalisation, exact LoRA aggregation, FedProx (likely redundant), server
+optimisers (not planned); plus a re-aggregation probe of DPO round 1
+without training, to be scripted once that round exists.
+
 ## 2026-11-17: experiment plan; phase 0 and 1 in code (code `62a48999`)
 
 Owner approved the plan of `RESEARCH_STATE.md` section 3.7 (phases 0 to

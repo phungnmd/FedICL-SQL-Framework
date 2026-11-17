@@ -219,6 +219,40 @@ Not in the plan now: the teacher, unlabelled questions, 10 pairs per
 question, DPO from the base student as the main line. Rounds are chosen on
 Spider test, as the setup allows.
 
+### 3.8 Aggregation of the DPO rounds: options to test (owner, 2026-11-17)
+
+Default, unchanged for phase 1: FedAvg of the LoRA factors (A and B
+averaged separately), each client weighted by its pair count; FedAvg SFT
+uses the same averaging weighted by question count. With 2 pairs per
+mixed question the weight follows the questions a client still gets
+wrong, so a client whose errors are fixed fades from the average (the
+idea behind Lorar, Zhang et al. 2023).
+
+Options, each tried only if the numbers below point to it:
+
+| Option | Problem it answers | When to try |
+|---|---|---|
+| Equal weights per client | a large client dominates under non-IID data | the re-aggregation probe below shows a gain |
+| Weights by question count | as FedAvg SFT | probe only; it gives weight to clients with nothing left to teach |
+| FedNova-style normalisation (Wang et al., NeurIPS 2020): each update divided by its number of local steps | local steps follow the pair count, which differs about 5 times across clients, so FedAvg drifts toward the clients with more steps | client updates diverge (cosine, norms) or the probe shows a gain |
+| Exact LoRA aggregation: A frozen and only B averaged (FFA-LoRA; the code has `restore_frozen_lora_a`), or FedEx-LoRA / FLoRA | the average of the factors is not the average of the products B A | `overall_relative_product_error` of the round records is large |
+| FedProx in the DPO rounds | client drift | likely redundant: the DPO term already keeps each client near its reference, the round's global model; kept as an SFT baseline |
+| Server optimisers (FedAdam, FedYogi), SCAFFOLD | slow convergence, drift | not planned: few rounds; SCAFFOLD doubles the state |
+
+Read from every DPO round (already logged): the weight of each client,
+`overall_relative_product_error`, and the cosine and norms of the client
+updates (`delta_stats`). Probe without training (needs a small script):
+the five client adapters of DPO round 1 re-aggregated with pair, equal,
+question and step-normalised weights into a new directory, each evaluated
+on Spider test (about 10 min each, estimate). Differences under about one
+point are noise and keep the default; a clear difference earns a full
+line in phase 2.
+
+A point for the paper whatever the option: with the round's global model
+as reference, DPO is a trust region around the shared model, so its
+client updates may drift less than SFT updates under non-IID data. The
+cosine of client updates in SFT and DPO rounds measures it (phase 2).
+
 ## 4. Open
 
 1. The schema text of the prompt. Both candidates are in the code

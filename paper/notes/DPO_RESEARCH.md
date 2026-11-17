@@ -385,6 +385,15 @@ This is Target-RPO's loss with CodeLutra's iteration scheme.
 - The three counts per client and round are the stopping signal: when the
   mixed group is nearly empty, more rounds add nothing. They are integers
   and can be sent to the server.
+- Options for later (2026-11-17), each tried only on evidence from the
+  logged diagnostics or a re-aggregation probe: equal weights,
+  FedNova-style normalisation by local steps (Wang et al., NeurIPS 2020;
+  local steps follow the pair count), exact LoRA aggregation (FFA-LoRA,
+  FedEx-LoRA, FLoRA) if the product error is large. FedProx is likely
+  redundant in the DPO rounds because the reference is the round's global
+  model. The list and the triggers are in `RESEARCH_STATE.md`, 3.8. Not
+  checked in those papers for this note: the claims rest on their
+  abstracts as known before this session.
 
 ### 3.5 When the pairs run out
 
