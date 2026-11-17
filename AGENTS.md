@@ -53,16 +53,16 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
 
 - Topic: federated Text-to-SQL. Clients train a small model together and
   only that model is deployed.
-- Method (owner, 2026-11-17, revised the same day): federated DPO with
-  execution labels at the clients, improved for the federated setting so
-  that it beats the federated baselines (FedAvg SFT, and federated DPO as
-  published: fixed pairs, fixed reference). The loop (clients sample SQL
-  from the round's global model, label it by execution on their own
-  databases, train with DPO plus an NLL term) comes from CodeLutra (arXiv
-  2411.05199), cited as its source; the contribution is what makes it work
-  across clients. Candidate improvements, each kept only on a measured
-  gain: on-policy rounds, execution-aware pairs, a FedAvg SFT stage before
-  the rounds. Pre-training at the server with the same loss on public data
+- Method (owner, 2026-11-17, revised the same day): a federated learning
+  method for Text-to-SQL that uses DPO with execution labels at the
+  clients, built to beat the federated baselines (FedAvg SFT, and federated
+  DPO as published: fixed pairs, fixed reference). It is the owner's own
+  design, not CodeLutra applied to federated learning. CodeLutra (arXiv
+  2411.05199) was found later to run a similar sample, label and DPO + NLL
+  loop centrally; it is cited as the closest work, with what differs, and
+  the settings taken from it are said to follow it. Candidate parts, each
+  kept only on a measured gain: on-policy rounds, execution-aware pairs, a
+  FedAvg SFT stage before the rounds. Pre-training at the server with the same loss on public data
   is a secondary part. The teacher is not part of the method; it is a
   research direction. The story is in `RESEARCH_STATE.md`, section 3, the
   papers behind it in `DPO_RESEARCH.md`.

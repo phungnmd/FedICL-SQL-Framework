@@ -6,10 +6,11 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 ## 2026-11-17: direction of the method revised (owner)
 
-Owner: the method is federated DPO improved for the federated setting so
-that it beats the federated baselines; CodeLutra is cited as the source of
-the loop. A FedAvg SFT stage before the DPO rounds may itself be one of
-the improvements. Nothing of it runs yet; the server runs the FedAvg SFT
+Owner: the method is a federated learning method that uses DPO, built to
+beat the federated baselines. It is the owner's own design, not CodeLutra
+applied to federated learning; CodeLutra was found later to have a
+similar loop and is cited as the closest work. A FedAvg SFT stage before
+the DPO rounds may itself be one of the parts. Nothing of it runs yet; the server runs the FedAvg SFT
 rounds.
 
 Written in `AGENTS.md` (Method) and `RESEARCH_STATE.md` section 3: three

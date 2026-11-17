@@ -45,12 +45,14 @@ not differential privacy.
 
 ## 3. Method
 
-Direction (owner, 2026-11-17, revised the same day): federated DPO with
-execution labels at the clients, improved for the federated setting so
-that it beats the federated baselines. CodeLutra is the source of the
-loop and is cited as such; the contribution is what makes the loop work
-across clients (section 3.3). Nothing has run yet; the improvements are
-candidates, each kept only on a measured gain.
+Direction (owner, 2026-11-17, revised the same day): a federated learning
+method for Text-to-SQL that uses DPO with execution labels at the
+clients, built to beat the federated baselines. It is the owner's own
+design, not CodeLutra applied to federated learning. CodeLutra, found
+later, runs a similar loop centrally; the paper cites it as the closest
+work and says what differs (3.6), and the settings taken from it are said
+to follow it. Nothing has run yet; the parts of 3.3 are candidates, each
+kept only on a measured gain.
 
 | Part | Where | Supervision | Place |
 |---|---|---|---|
@@ -132,14 +134,15 @@ Only the small model's adapter leaves a client.
    reference of the DPO term is the round's global model.
 5. The server averages the updates.
 
-The plain loop above is CodeLutra's (plain loss, pairs drawn at random,
-nothing from a question whose samples are all wrong or all correct). The
-method uses the clients' labelled questions only; unlabelled questions are
-not part of it.
+The plain form of the round (plain loss, pairs drawn at random, nothing
+from a question whose samples are all wrong or all correct) is the
+starting point the parts of 3.3 are measured against; its settings follow
+CodeLutra. The method uses the clients' labelled questions only;
+unlabelled questions are not part of it.
 
-### 3.3 Candidate improvements (owner, 2026-11-17)
+### 3.3 Candidate parts (owner, 2026-11-17)
 
-Each is a run against the plain loop from the same start and for the same
+Each is a run against the plain form from the same start and for the same
 rounds, and joins the method only on a clear gain. The paper keeps the
 ones that carry the story; one main improvement with a clear story is
 better than a stack of small ones.
@@ -147,7 +150,7 @@ better than a stack of small ones.
 | # | Improvement | Problem it answers | Evidence so far | Ablation row |
 |---|---|---|---|---|
 | I1 | On-policy rounds: each round samples from the new global model, which is also the DPO reference | federated DPO as published trains on pairs made once against a fixed reference | earlier setup (reference only): fresh samples above fixed round-1 pairs by 1.72 EX at round 3 (p = 0.0049) | pairs fixed from round 1, reference fixed |
-| I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; a question whose gold result is empty or whose database has no rows gives only pairs against execution errors; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | CodeLutra's random pairs |
+| I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; a question whose gold result is empty or whose database has no rows gives only pairs against execution errors; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | random pairs (plain form) |
 | I3 | A FedAvg SFT stage before the DPO rounds (owner's suggestion): the rounds start from the best FedAvg SFT round | from the base student the all-wrong questions (12% here) and the questions on databases without rows (20%) give no useful pair, while gold SQL teaches them | earlier setup (reference only): every DPO run there started after FedAvg SFT, +3.87 EX over FedAvg round 3 (pooled +3.91, interval +2.82 to +5.01), +2.3 to +2.75 without the repetition penalty; more SFT rounds instead gave +0.84 and then fell. Against it in the papers: SFT then plain DPO gives about zero (`DPO_RESEARCH.md`, 2.1), with an offline loss and no NLL term | DPO rounds from the base student; the control for the same number of rounds is the FedAvg SFT line itself, continued |
 
 Smaller choices, not improvements of their own: FedAvg weights by pair
@@ -183,14 +186,16 @@ student has not seen.
 
 ### 3.6 Closest work
 
-CodeLutra (arXiv 2411.05199): the loop this method starts from, run
-centrally at 8B. It starts from the base model with no SFT stage (its SFT
+CodeLutra (arXiv 2411.05199): the closest work, a similar loop run
+centrally at 8B, found after the method was designed. It starts from the base model with no SFT stage (its SFT
 model is a separate baseline), draws 10 samples at T 1.0, draws 10 random
 pairs per question from the model's own correct and wrong samples, and
 trains DPO + SFT with beta 0.1 and lambda 1.0, LoRA r 8, lr 5e-5, one epoch
 per iteration, 4 iterations. It does not mention empty gold results or
 databases without rows and filters no training question. Different here:
-federated, at 1.5B, with the improvements of 3.3. OpenFedLLM (arXiv
+a federated method (clients label by execution on their own databases, a
+round is a re-sampling step, the reference is the round's global model),
+at 1.5B, with the parts of 3.3. OpenFedLLM (arXiv
 2402.06954) runs DPO inside FedAvg with fixed pairs and a reference fixed
 for all rounds. The papers behind each choice are in `DPO_RESEARCH.md`;
 the rest of the map is in `LITERATURE.md`.
