@@ -4,6 +4,22 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: method is k SFT rounds, then DPO; k = 2 read queued first (owner; code `46509f1e`)
+
+Owner: the method starts DPO after a fixed SFT stage of k FedAvg rounds,
+k a value stated in the paper; "the best round" needs the test set and is
+not a method. k is swept over 0, 2 and the best FedAvg round; the paper
+can show EX and pairs against k. Reason to read k = 2 early: after SFT on
+the clients' own questions, more of them are right in all 10 samples, so
+fewer give pairs (base student: 59-66% mixed), and the line from the best
+round would only show this after FedAvg ends. Queued before the FedAvg
+line: one DPO + NLL round from FedAvg round 2 (root
+`fedpref_sftr2_ddlrows_alpha01_s0`, same flags as the line from the best
+round), compared with FedAvg round 3. Rule: at least 1 EX above, the k = 2
+line continues; about 0, read the pair counts first; below, stop and look.
+The worker stopped at 20:43 in FedAvg round 3, client 2; the owner chose
+to restart without looking for the cause.
+
 ## 2026-11-17: FedAvg SFT round 2 (code `32e3f681`, eval `0699ac6d`)
 
 Spider test EX 74.10 (EM 62.93; easy 89.36, medium 78.65, hard 65.23,
