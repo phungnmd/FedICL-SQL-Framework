@@ -2,8 +2,8 @@
 
 Written 2026-11-17 from the papers only. It was not checked against the
 other notes, the current split in the code, or our own results. Section 6
-lists which facts were read in the paper text and which were not. The DPO
-stage itself is covered in `DPO_RESEARCH.md`.
+lists which facts were read in the paper text and which were not. The
+method itself (federated DPO) is covered in `DPO_RESEARCH.md`.
 
 The split of section 3 was built on 2026-11-17 (section 3.5). The tables
 of what it gives on the real data are in `LAB_LOG.md` under that date.
@@ -17,7 +17,7 @@ of what it gives on the real data are in `LAB_LOG.md` under that date.
   generalisation work, and on the partition recipes of federated learning.
 - The database is the unit: every database belongs to one client. This is
   the story (each organisation owns its databases), it has precedent, and
-  the DPO stage needs it because clients label by running SQL on their own
+  the method needs it because clients label by running SQL on their own
   databases.
 - A split by database alone is close to IID for Spider test. The test uses
   unseen databases, so schema knowledge of a client does not carry over;
@@ -29,7 +29,7 @@ of what it gives on the real data are in `LAB_LOG.md` under that date.
   the smallest about 7%, and a client lacks about 2 of the 4 tiers.
 - "Dirichlet alpha 0.1" has two published recipes with opposite outcomes,
   so the paper has to say which one it uses and over which label.
-- Runs for the paper: 14 on the main setting, 4 for alpha, 2 for the client
+- Runs for the paper: 13 on the main setting, 4 for alpha, 2 for the client
   count. One seed with a paired test meets what the target journals print.
 
 ## 2. What the papers show
@@ -170,9 +170,9 @@ LoRA aggregation paper compares with.
   with a limitation sentence that there is no theoretical guarantee.
 - FedDF, FedMD: unlabeled or public data at the server.
 - Nguyen et al. and Chen et al. (both ICLR 2023): a pre-trained start
-  reduces the effect of heterogeneity. This supports a server stage before
-  the rounds, and it also means our split will look milder than the same
-  split would from a cold start.
+  reduces the effect of heterogeneity. This supports pre-training at the
+  server before the rounds, and it also means our split will look milder
+  than the same split would from a cold start.
 
 No paper has a teacher that runs once at the server before FedAvg; the
 ones above keep the large model in every round.
@@ -245,7 +245,7 @@ databases, so the client-count sweep uses alpha 0.5.
 - The six databases from the earlier datasets hold far more questions than
   the others (1,659 questions on six databases). The client that gets them
   grows in questions, not in databases.
-- The server stage makes every split look milder (2.6).
+- Pre-training at the server makes every split look milder (2.6).
 
 ### 3.5 As built
 
@@ -279,16 +279,17 @@ client size, plain FedAvg of the LoRA matrices.
 | Student without training | 0 | starting point |
 | Local training, each client | 5 | lower bound; mean, minimum and maximum |
 | Centralized on the union | 1 | upper bound; the same run serves every split |
-| FedAvg | 1 | main baseline |
+| FedAvg SFT | 1 | main baseline |
 | FedProx | 1 | baseline for non-IID data |
 | FedAdam (FedOPT) | 1 | server optimizer baseline; far above FedAvg in Zhang et al. |
-| Server stage only | 1 | the server stage without federated training; serves every split |
-| Server stage + FedAvg SFT | 1 | the method without the DPO stage |
-| The same, with as many extra rounds as the DPO stage has | 1 | so that the gain of the DPO stage is not longer training |
-| FedAvg SFT + DPO, no server stage | 1 | the method without the server stage |
-| Full method | 1 | |
+| Federated DPO from the base student | 1 | the core alone; against FedAvg SFT it is the effect of the core |
+| Server pre-training only | 1 | the secondary part without federated training; serves every split |
+| Server pre-training + FedAvg SFT | 1 | the baseline from the starting point of the full method |
+| Server pre-training + federated DPO | 1 | the full method |
 
-14 runs. Ablations inside the DPO stage are added on this setting.
+13 runs. The method is the one set on 2026-11-17 (`RESEARCH_STATE.md`,
+section 3): no SFT stage before the DPO rounds and no teacher. Ablations
+inside the DPO rounds are added on this setting.
 
 ### 4.2 Sensitivity
 
@@ -308,7 +309,7 @@ the range, it stays.
 |---|---|---|
 | Local work per round | 1 epoch, or 10 steps | 1 epoch |
 | SFT rounds | 13 to 22, 20, 60 | 20, checkpoint chosen on Spider dev |
-| DPO rounds | 4 iterations with the peak at 3 (CodeLutra), 2 (ScPO) | 4 |
+| DPO rounds | 4 iterations with the peak at 3 (CodeLutra), 2 (ScPO) | open: 4 was set for DPO after 20 SFT rounds; from the base student the DPO rounds do all the training |
 | Centralized | the same number of passes over the data | up to 20 epochs, chosen on dev |
 | LoRA rank | 8, 16, 32 | the current one |
 | FedProx mu | 0.0001 (Zhang et al.) | 0.0001 |
@@ -328,7 +329,7 @@ the range, it stays.
 
 ### 4.5 Count and options
 
-Required: 14 + 4 + 2 = 20 runs, plus the ablations inside the DPO stage.
+Required: 13 + 4 + 2 = 19 runs, plus the ablations inside the DPO rounds.
 
 Options, by value for cost:
 
@@ -336,7 +337,7 @@ Options, by value for cost:
    the split seed changed as well: 4 more runs.
 2. 20 clients at alpha 0.5: 2 more runs.
 3. A second set of clients from BIRD train, main rows only. The public data
-   then has to be SynSQL and the teacher has to run on it. The CMC papers
+   then has to be SynSQL. The CMC papers
    read use about three datasets, so a reviewer may ask; it is the most
    expensive option.
 

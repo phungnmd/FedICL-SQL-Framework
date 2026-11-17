@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: the method is federated DPO; pre-training secondary, the teacher a research direction (owner)
+
+Decision, after the reading in `DPO_RESEARCH.md`. It replaces the three
+stages of the reset entry below (server stage with the teacher, FedAvg
+SFT, federated DPO).
+
+- Core: federated DPO + NLL. In each round the clients sample from the
+  global model, label by execution on their own databases and train; the
+  reference is the round's global model. No SFT stage comes before the
+  rounds. FedAvg SFT is a baseline.
+- Secondary: pre-training at the server with the same loss on public
+  data, as the starting point of the rounds.
+- The teacher is not part of the method. It stays as a research
+  direction.
+- Output is SQL only, no chain of thought.
+
+What the papers gave for it (numbers and sources in `DPO_RESEARCH.md`):
+
+- CodeLutra starts from the base model with no SFT stage, and SFT followed
+  by plain DPO gives about zero for SQL-only output (Liu et al., ExCoT).
+- No Text-to-SQL paper shows a teacher's SQL to beat gold SQL as the
+  target. In KID, forward KL to the teacher ends below training on gold
+  alone; reverse KL on the student's own samples ends above it.
+- Pre-training on public data leaves the clients' questions unseen, so
+  they still give pairs. Whether it adds or removes pairs is not known.
+
+Not decided: whether the gold SQL of an all-wrong question enters the NLL
+term; whether the diff restriction and the nearest-correct pairing are in
+the method or ablations; whether unlabelled questions are in the method
+(`RESEARCH_STATE.md`, section 4, item 9).
+
+Notes changed: `RESEARCH_STATE.md` sections 2 to 4, `DPO_RESEARCH.md`
+(sections 2.7 to 2.9 and 3), the run table of `FEDERATED_DATA_SETUP.md`
+(13 rows on the main setting instead of 14), both `AGENTS.md`. No run and
+no code change; nothing in the queue depends on it.
+
 ## 2026-11-17: what the paper prints (owner)
 
 The paper prints what serves it: the setup as values, the results, the
