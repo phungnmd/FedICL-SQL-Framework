@@ -4,6 +4,20 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: pairs at k = 2 (owner's console, not committed yet)
+
+Round 1 of `dpo_k2` sampled from FedAvg round 2 (vLLM, 8,659 questions x
+10 at T 1.0 in 15 min 21 s). Per client: sample accuracy 74.5 / 75.2 /
+67.9 / 71.0 / 71.5%, pass@10 90.9-94.8%; mixed 457 / 821 / 1205 / 2276 /
+433 (51-65%, 60.0% overall), all wrong 60 / 102 / 183 / 179 / 49 (6.6%),
+all correct 378 / 619 / 621 / 1021 / 252 (33.4%); pairs 914 / 1642 / 2248
+/ 2356 / 866 = 8,026. Base student for comparison (clients 1-3): mixed
+59.3 / 61.5 / 66.3%, all wrong 11.8 / 11.7 / 15.4%. Two SFT rounds halved
+the all-wrong questions and cut the mixed ones by only 6-8 points, so the
+pairs do not run short at k = 2. Client 4 makes 2,356 pairs from 2,276
+mixed questions: 1,098 of them are on its six databases without rows and
+give none, so its share of the average falls from 0.40 (SFT) to 0.29.
+
 ## 2026-11-17: I2 queued on the k = 2 samples (owner; code `922b2660`)
 
 Owner approved. After the random-pair round from FedAvg round 2, the same
