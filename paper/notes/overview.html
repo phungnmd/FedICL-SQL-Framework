@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FedLS-SQL Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: control-room page. Status band on top, then phases, method, evidence, data, directions, paper rows. One column of sections, grids inside. */
+:root {
+  --bg: #F2F4F5;
+  --surface: #FFFFFF;
+  --ink: #131B23;
+  --muted: #5A6672;
+  --line: #D8DEE3;
+  --accent: #1F4FD1;
+  --accent-soft: #E2E9FB;
+  --ok: #1D7A4A;
+  --ok-soft: #DCF0E4;
+  --warn: #9A5D00;
+  --warn-soft: #FAEAD0;
+  --bad: #B3261E;
+  --bad-soft: #F7DEDB;
+  --idle: #6F7B87;
+  --idle-soft: #E5E9EC;
+  --seg-mixed: #1F4FD1;
+  --seg-correct: #3E9A6A;
+  --seg-wrong: #C6524A;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E141A; --surface: #161F28; --ink: #E5EBF0; --muted: #94A2AF; --line: #27333E;
+    --accent: #84A3FF; --accent-soft: #1B2948;
+    --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
+    --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
+    --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E141A; --surface: #161F28; --ink: #E5EBF0; --muted: #94A2AF; --line: #27333E;
+  --accent: #84A3FF; --accent-soft: #1B2948;
+  --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
+  --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
+  --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.6 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h2 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+code { background: var(--idle-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* top nav */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.nav .wrap { display: flex; align-items: center; gap: 20px; padding-block: 10px; overflow-x: auto; scrollbar-width: none; }
+.nav .brand { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.01em; white-space: nowrap; }
+.nav .links { display: flex; gap: 4px; }
+.nav a {
+  color: var(--muted); text-decoration: none; font-size: 0.85rem; white-space: nowrap;
+  padding: 4px 10px; border-radius: 999px;
+}
+.nav a:hover { color: var(--ink); background: var(--idle-soft); }
+
+/* header */
+header.hero { padding-block: 44px 28px; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--muted);
+}
+.hero h1 { font-size: clamp(2.3rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+.hero .thesis { font-size: 1.12rem; max-width: 62ch; margin-top: 14px; color: var(--ink); }
+.hero .thesis em { font-style: normal; color: var(--accent); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chip {
+  font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+}
+.chip b { color: var(--ink); font-weight: 600; }
+
+/* status band */
+.status { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.status .cell { background: var(--surface); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.status .label { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.status .big { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; }
+.status .small { font-size: 0.85rem; color: var(--muted); }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 600;
+  padding: 2px 9px; border-radius: 999px; white-space: nowrap; width: fit-content;
+}
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.run { color: var(--accent); background: var(--accent-soft); }
+.pill.run::before { animation: pulse 1.6s ease-in-out infinite; }
+.pill.done { color: var(--ok); background: var(--ok-soft); }
+.pill.queued { color: var(--warn); background: var(--warn-soft); }
+.pill.plan { color: var(--idle); background: var(--idle-soft); }
+.pill.code { color: var(--bad); background: var(--bad-soft); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .pill.run::before { animation: none; } html { scroll-behavior: auto; } }
+
+/* sections */
+section { padding-block: 44px 8px; scroll-margin-top: 60px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
+.sec-head p { color: var(--muted); max-width: 64ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+
+/* phases */
+.phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.phase { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; position: relative; }
+.phase.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.phase .ph-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.phase .ph-n { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.phase .ph-time { font-size: 0.8rem; color: var(--muted); }
+.phase ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.phase li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; font-size: 0.88rem; line-height: 1.45; }
+.phase li .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; border: 2px solid var(--idle); }
+.phase li .dot.done { background: var(--ok); border-color: var(--ok); }
+.phase li .dot.run { background: var(--accent); border-color: var(--accent); }
+.phase li .dot.queued { border-color: var(--warn); }
+.phase .decides { font-size: 0.82rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; margin-top: auto; }
+.bar { height: 6px; border-radius: 3px; background: var(--idle-soft); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); }
+
+.gate { margin-top: 14px; padding: 18px; display: grid; grid-template-columns: minmax(180px, 0.9fr) repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.gate .q { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.gate .q b { font-family: var(--font-display); font-size: 1rem; }
+.gate .q span { font-size: 0.85rem; color: var(--muted); }
+.gate .out { border-radius: 8px; padding: 12px 14px; font-size: 0.86rem; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.gate .out .cond { font-family: var(--font-mono); font-weight: 500; font-size: 0.82rem; }
+.out.go { background: var(--ok-soft); } .out.go .cond { color: var(--ok); }
+.out.mid { background: var(--warn-soft); } .out.mid .cond { color: var(--warn); }
+.out.stop { background: var(--bad-soft); } .out.stop .cond { color: var(--bad); }
+
+/* method */
+.story { padding: 20px 22px; font-size: 1.02rem; display: flex; gap: 18px; align-items: flex-start; }
+.story .q-mark { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--accent); font-weight: 800; }
+.lanes { margin-top: 14px; padding: 18px; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 0; overflow-x: auto; }
+.lane-name { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 16px 10px 16px 0; border-right: 1px solid var(--line); }
+.lane { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 12px; padding: 12px 0 12px 14px; min-width: 0; }
+.lane.server { border-bottom: 1px dashed var(--line); }
+.step { border-radius: 8px; padding: 10px 12px; font-size: 0.84rem; line-height: 1.45; position: relative; }
+.step b { display: block; font-family: var(--font-display); font-size: 0.92rem; margin-bottom: 2px; }
+.step .n { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.step.s { background: var(--accent-soft); }
+.step.c { background: var(--idle-soft); }
+.step.ghost { background: transparent; border: 1px dashed var(--line); color: var(--muted); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.78rem; }
+.step.arrow-r::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; }
+.boundary { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 20px; padding-top: 14px; font-size: 0.84rem; color: var(--muted); }
+.boundary b { color: var(--ink); }
+
+.parts { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.part { padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.part .id { font-family: var(--font-mono); font-weight: 500; color: var(--accent); font-size: 0.85rem; }
+.part .tag { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--warn); }
+.part dl { margin: 0; display: grid; gap: 8px; font-size: 0.86rem; }
+.part dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.part dd { margin: 0; }
+.ref { font-size: 0.72rem; padding: 1px 6px; border-radius: 4px; background: var(--idle-soft); color: var(--muted); white-space: nowrap; }
+.part.main { border-color: var(--accent); }
+
+.settings { margin-top: 14px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.84rem; }
+.settings span { white-space: nowrap; }
+.settings .k { color: var(--muted); }
+.settings .v { font-family: var(--font-mono); font-weight: 500; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+td .sub { display: block; color: var(--muted); font-size: 0.8rem; }
+
+/* data */
+.data-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.data-grid .panel { padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.data-grid .panel > p { font-size: 0.86rem; color: var(--muted); }
+
+.scale { position: relative; height: 150px; margin: 8px 6px 0; }
+.scale .axis { position: absolute; left: 0; right: 0; top: 78px; height: 2px; background: var(--line); }
+.scale .tick { position: absolute; top: 74px; width: 1px; height: 10px; background: var(--muted); }
+.scale .tick span { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.scale .band { position: absolute; top: 70px; height: 18px; background: var(--ok-soft); border: 1px solid var(--ok); border-radius: 3px; }
+.scale .mark { position: absolute; top: 72px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; border: 3px solid var(--surface); }
+.scale .lbl { position: absolute; font-size: 0.78rem; line-height: 1.3; white-space: nowrap; transform: translateX(-50%); text-align: center; }
+.scale .lbl b { font-family: var(--font-mono); display: block; font-size: 0.88rem; }
+.scale .lbl.up { top: 4px; }
+.scale .lbl.down { top: 104px; }
+.scale .stem { position: absolute; width: 1px; background: var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.clients { display: flex; flex-direction: column; gap: 12px; }
+.client { display: grid; grid-template-columns: 74px minmax(0, 1fr) 70px; gap: 12px; align-items: center; }
+.client .name { font-size: 0.84rem; }
+.client .name b { display: block; font-family: var(--font-display); }
+.client .name span { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); }
+.stack { display: flex; height: 20px; border-radius: 3px; overflow: hidden; }
+.stack span { display: block; height: 100%; }
+.stack .mx { background: var(--seg-mixed); }
+.stack .cr { background: var(--seg-correct); }
+.stack .wr { background: var(--seg-wrong); }
+.client .empty { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+.client .empty.hi { color: var(--bad); font-weight: 500; }
+.callout { font-size: 0.86rem; border-left: 3px solid var(--bad); padding: 8px 12px; background: var(--bad-soft); border-radius: 0 6px 6px 0; }
+
+/* directions */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filters button {
+  font: 500 0.82rem var(--font-body); color: var(--muted); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; cursor: pointer;
+}
+.filters button:hover { color: var(--ink); }
+.filters button[aria-pressed="true"] { color: var(--surface); background: var(--ink); border-color: var(--ink); }
+.dirs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.dir { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dir-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.dir .grp { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.dir h3 { font-size: 0.98rem; }
+.dir dl { margin: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px 10px; font-size: 0.84rem; }
+.dir dt { color: var(--muted); font-size: 0.78rem; padding-top: 1px; }
+.dir dd { margin: 0; }
+.off { margin-top: 14px; padding: 14px 18px; font-size: 0.86rem; color: var(--muted); }
+.off b { color: var(--ink); }
+
+footer { padding-block: 48px 40px; font-size: 0.8rem; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 980px) {
+  .status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .phases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gate { grid-template-columns: 1fr; }
+  .parts, .dirs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .data-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .status, .phases, .parts, .dirs { grid-template-columns: 1fr; }
+  .lanes { grid-template-columns: 1fr; }
+  .lane-name { border-right: 0; padding: 8px 0 0; }
+  .lane { grid-template-columns: 1fr; padding-left: 0; }
+  .step.ghost { display: none; }
+  .step.arrow-r::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -15px; transform: translateX(-50%); }
+  .lane { gap: 16px; }
+  .client { grid-template-columns: 58px minmax(0, 1fr) 52px; gap: 8px; }
+  .story { flex-direction: column; gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Mục lục">
+  <div class="wrap">
+    <span class="brand">FedLS-SQL</span>
+    <div class="links">
+      <a href="#now">Hiện tại</a>
+      <a href="#phases">Lộ trình</a>
+      <a href="#method">Method</a>
+      <a href="#evidence">Bằng chứng</a>
+      <a href="#data">Dữ liệu</a>
+      <a href="#directions">Các hướng</a>
+      <a href="#rows">Hàng của paper</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Federated Text-to-SQL &middot; snapshot 2026-11-17</div>
+    <h1>FedLS-SQL</h1>
+    <p class="thesis">Client không chỉ giữ nhãn gold SQL mà còn giữ <em>database để chạy SQL</em>. FedAvg SFT chỉ dùng nhãn; method dùng cả hai: mỗi round, client sample SQL từ global model, chạy trên database của mình, ghép cặp đúng/sai và train DPO + NLL.</p>
+    <div class="chips">
+      <span class="chip">Target <b>Q3+ (CMC, JIIS)</b></span>
+      <span class="chip">Student <b>Qwen2.5-Coder-1.5B-Instruct + LoRA</b></span>
+      <span class="chip">Clients <b>5 trên Spider, alpha_0.1/k5</b></span>
+      <span class="chip">Metric <b>Spider test EX, 2,147 rows</b></span>
+      <span class="chip">GPU <b>RTX A5000 24 GB</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap" id="now" style="scroll-margin-top:60px">
+  <div class="status">
+    <div class="cell">
+      <span class="label">GPU 0</span>
+      <span class="pill run">đang chạy</span>
+      <span class="big mono">rounds/fedavg_sft</span>
+      <span class="small">Khoảng 2 h/round + 10 phút eval (ước tính), 3 đến 8 round. Sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
+    </div>
+    <div class="cell">
+      <span class="label">GPU 1</span>
+      <span class="pill plan">không phải của mình</span>
+      <span class="big">Người khác dùng</span>
+      <span class="small">Mọi việc GPU đi qua một queue trên GPU 0.</span>
+    </div>
+    <div class="cell">
+      <span class="label">Cần chạy ngay (CPU)</span>
+      <span class="pill queued">chờ owner</span>
+      <span class="big">Pull + test, phase 0a</span>
+      <span class="small">447 test pass trên Mac. Phase 0a: thành phần pairs của round 1 theo client (<code>pair_composition</code>).</span>
+    </div>
+    <div class="cell">
+      <span class="label">Kết quả đã có</span>
+      <span class="pill done">base student</span>
+      <span class="big num">68.05 EX</span>
+      <span class="small">Student chưa train, prompt A. Chưa có hàng nào đã train.</span>
+    </div>
+  </div>
+</div>
+
+<section id="phases">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Lộ trình bốn phase</h2>
+      <p>Mỗi phase kết thúc bằng một luật quyết định có đi tiếp hay không. Thời gian là GPU wall clock trên một card (ước tính).</p>
+    </div>
+    <div class="phases">
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n">PHASE 0</span><span class="pill run">đang làm</span></div>
+        <h3>Đọc pairs và lỗi, không GPU</h3>
+        <div class="bar" aria-label="Tiến độ khoảng 60%"><span style="width:60%"></span></div>
+        <ul>
+          <li><span class="dot done"></span><span>(c) Code cho phase 1, commit <code>62a48999</code></span></li>
+          <li><span class="dot done"></span><span>(b) <code>error_breakdown</code> trên base: 287 execution error, 399 wrong result</span></li>
+          <li><span class="dot queued"></span><span>(a) Pairs round 1 theo loại rejected, theo client: chờ chạy trên server</span></li>
+          <li><span class="dot"></span><span>(b) Cùng cách đọc cho từng round FedAvg</span></li>
+        </ul>
+        <p class="decides">Quyết định: I2 có đáng một run không; DPO còn sửa được bao nhiêu sau SFT.</p>
+      </article>
+      <article class="panel phase current">
+        <div class="ph-top"><span class="ph-n">PHASE 1</span><span class="ph-time">khoảng 1 ngày sau FedAvg</span></div>
+        <h3>FedAvg SFT, rồi DPO + NLL</h3>
+        <div class="bar" aria-label="Tiến độ khoảng 20%"><span style="width:20%"></span></div>
+        <ul>
+          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8)</span></li>
+          <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (I3 + I1), tối đa 6 round</span></li>
+          <li><span class="dot"></span><span>Control: FedAvg chạy tiếp cùng số round</span></li>
+        </ul>
+        <p class="decides">Quyết định câu chuyện của paper (xem gate bên dưới).</p>
+      </article>
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n">PHASE 2</span><span class="ph-time">khoảng 2-3 ngày</span></div>
+        <h3>Bảng chính và ablation</h3>
+        <div class="bar"><span style="width:0%"></span></div>
+        <ul>
+          <li><span class="dot"></span><span>Federated DPO as published (fixed pairs, fixed reference)</span></li>
+          <li><span class="dot"></span><span>RFT, DPO + NLL từ base student, I2 nếu 0a cho thấy cần</span></li>
+          <li><span class="dot"></span><span>Client drift SFT và DPO từ adapter đã lưu</span></li>
+        </ul>
+        <p class="decides">Quyết định: bảng chính và các ablation.</p>
+      </article>
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n">PHASE 3</span><span class="ph-time">khoảng 4-6 ngày</span></div>
+        <h3>Độ rộng cho journal</h3>
+        <div class="bar"><span style="width:0%"></span></div>
+        <ul>
+          <li><span class="dot"></span><span>BIRD làm bộ client thứ hai; alpha 0.5 và IID</span></li>
+          <li><span class="dot"></span><span>FedProx, FedNTD; centralized và local SFT</span></li>
+          <li><span class="dot"></span><span>Seed thứ hai; server pre-training sau cùng</span></li>
+        </ul>
+        <p class="decides">Quyết định: đủ rộng cho Q2, có cơ hội Q1.</p>
+      </article>
+    </div>
+
+    <div class="panel gate">
+      <div class="q">
+        <b>Gate cuối phase 1</b>
+        <span>DPO so với FedAvg tiếp tục, cùng số round, exact McNemar trên Spider test</span>
+      </div>
+      <div class="out go"><span class="cond">gain &ge; 1.5 EX, p &lt; 0.05</span><span>Sang phase 2.</span></div>
+      <div class="out mid"><span class="cond">0.5 &le; gain &lt; 1.5</span><span>Đưa I2 và BIRD lên trước.</span></div>
+      <div class="out stop"><span class="cond">gain &lt; 0.5</span><span>Dừng, nghĩ lại từ kết quả 0a và 0b.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Method đang đề xuất</h2>
+      <p>Thiết kế của owner. CodeLutra (arXiv 2411.05199) chạy vòng lặp tương tự ở dạng centralized và được trích dẫn là công trình gần nhất.</p>
+    </div>
+
+    <div class="panel story">
+      <span class="q-mark" aria-hidden="true">?</span>
+      <p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không? Câu hỏi phụ: pre-training ở server trên public data có giúp, và gain của phần chính còn giữ trên nó không?</p>
+    </div>
+
+    <div class="panel lanes" role="figure" aria-label="Một round của method">
+      <div class="lane-name">Server</div>
+      <div class="lane server">
+        <div class="step s arrow-r"><span class="n">1</span><b>Gửi global model</b>Adapter của round r, cũng là reference của DPO.</div>
+        <div class="step ghost">trên client</div>
+        <div class="step ghost">trên client</div>
+        <div class="step ghost">trên client</div>
+        <div class="step s"><span class="n">5</span><b>FedAvg</b>Trung bình LoRA A, B, trọng số theo số pairs của client.</div>
+      </div>
+      <div class="lane-name">Client k</div>
+      <div class="lane">
+        <div class="step ghost">trên server</div>
+        <div class="step c arrow-r"><span class="n">2</span><b>Sample</b>10 SQL mỗi câu hỏi, T 1.0, từ global model.</div>
+        <div class="step c arrow-r"><span class="n">3</span><b>Chạy và gán nhãn</b>Chạy trên database của client, so kết quả với gold result.</div>
+        <div class="step c arrow-r"><span class="n">4</span><b>Pairs, rồi DPO + NLL</b>2 pairs mỗi câu hỏi mixed; bỏ câu hỏi trên database không có rows.</div>
+        <div class="step ghost">gửi adapter lên server</div>
+      </div>
+      <div class="boundary">
+        <span><b>Rời khỏi client:</b> chỉ adapter LoRA.</span>
+        <span><b>Không thêm:</b> dữ liệu, communication.</span>
+        <span><b>Chi phí thêm:</b> compute ở client để sample và chạy SQL.</span>
+      </div>
+    </div>
+
+    <div class="parts">
+      <article class="panel part">
+        <div class="dir-top"><span class="id">I1</span><span class="pill queued">trong phase 1</span></div>
+        <h3>On-policy rounds</h3>
+        <dl>
+          <div><dt>Ý tưởng</dt><dd>Mỗi round sample lại từ global model mới; global model đó là reference của DPO.</dd></div>
+          <div><dt>Vấn đề trả lời</dt><dd>Federated DPO as published dùng pairs làm một lần và reference cố định.</dd></div>
+          <div><dt>Bằng chứng</dt><dd>Fresh samples hơn fixed round-1 pairs 1.72 EX ở round 3, p = 0.0049 <span class="ref">setup cũ, chỉ tham khảo</span></dd></div>
+          <div><dt>Ablation</dt><dd>Pairs cố định từ round 1, reference cố định.</dd></div>
+        </dl>
+      </article>
+      <article class="panel part main">
+        <div class="dir-top"><span class="id">I2</span><span class="tag">ứng viên chính</span></div>
+        <h3>Execution-aware pairs</h3>
+        <dl>
+          <div><dt>Ý tưởng</dt><dd>Wrong-result ghép với correct gần nhất; execution error ghép với correct bất kỳ; tùy chọn chỉ tính rejected trên token khác.</dd></div>
+          <div><dt>Vấn đề trả lời</dt><dd>Random pairs chủ yếu dạy "SQL phải chạy được"; nhãn trên kết quả rỗng không nói gì về nghĩa.</dd></div>
+          <div><dt>Bằng chứng</dt><dd>Gold result rỗng 1-5% ở client 1, 2, 3, 5 và 41% ở client 4. DPO giảm execution error 211 xuống 58, khoảng 440 wrong-result không đổi <span class="ref">setup cũ, chỉ tham khảo</span></dd></div>
+          <div><dt>Ablation</dt><dd>Random pairs (dạng plain). Cần code pair rule.</dd></div>
+        </dl>
+      </article>
+      <article class="panel part">
+        <div class="dir-top"><span class="id">I3</span><span class="pill queued">trong phase 1</span></div>
+        <h3>FedAvg SFT trước DPO</h3>
+        <dl>
+          <div><dt>Ý tưởng</dt><dd>Các round DPO bắt đầu từ round FedAvg SFT tốt nhất.</dd></div>
+          <div><dt>Vấn đề trả lời</dt><dd>Từ base, câu hỏi all-wrong (12%) và câu hỏi trên database rỗng (20%) không cho pair hữu ích; gold SQL dạy được chúng.</dd></div>
+          <div><dt>Bằng chứng</dt><dd>+3.87 EX trên FedAvg round 3 <span class="ref">setup cũ, chỉ tham khảo</span>. Ngược lại: trong papers, SFT rồi plain DPO cho gần 0 (offline loss, không NLL).</dd></div>
+          <div><dt>Ablation</dt><dd>DPO từ base student; control là FedAvg chạy tiếp.</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div class="panel settings" aria-label="Setting của các round DPO">
+      <span><span class="k">Samples</span> <span class="v">10 @ T 1.0</span></span>
+      <span><span class="k">Pairs/câu hỏi</span> <span class="v">2</span></span>
+      <span><span class="k">beta</span> <span class="v">0.1</span></span>
+      <span><span class="k">NLL weight</span> <span class="v">1.0</span></span>
+      <span><span class="k">lr</span> <span class="v">5e-5</span></span>
+      <span><span class="k">Epoch/round</span> <span class="v">1</span></span>
+      <span><span class="k">LoRA</span> <span class="v">r 16, alpha 32</span></span>
+      <span><span class="k">Max len</span> <span class="v">7168</span></span>
+      <span><span class="k">New tokens</span> <span class="v">256</span></span>
+      <span><span class="k">Decoding eval</span> <span class="v">greedy, rep. penalty 1.0</span></span>
+    </div>
+  </div>
+</section>
+
+<section id="evidence">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Kết quả cần có để câu chuyện đứng được</h2>
+      <p>Hàng đầu tiên quyết định câu chuyện. Trong CodeLutra, iteration 1 chỉ bằng SFT on gold và gain đến ở iteration 2 và 3, nên cần đủ số round.</p>
+    </div>
+    <div class="panel tbl-wrap">
+      <table>
+        <thead><tr><th>Phần của câu chuyện</th><th>Kết quả mang nó</th><th>Phase</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng điểm xuất phát, cùng số round</td><td class="mono">1</td><td><span class="pill run">đang chạy</span></td></tr>
+          <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pill plan">chưa queue</span></td></tr>
+          <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pill plan">chờ dữ liệu</span></td></tr>
+          <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
+          <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Dữ liệu và kết quả hiện có</h2>
+      <p>Chỉ số đo sau reset 2026-11-17. Số của setup cũ không xuất hiện ở đây.</p>
+    </div>
+    <div class="data-grid">
+      <div class="panel">
+        <h3>Khoảng trống trên Spider test</h3>
+        <div class="scale" role="img" aria-label="Thang EX từ 60 đến 85: student chưa train 68.05, SFT trong papers 77 đến 78, cao nhất đã công bố 82.3">
+          <div class="axis"></div>
+          <div class="tick" style="left:0%"><span>60</span></div>
+          <div class="tick" style="left:20%"><span>65</span></div>
+          <div class="tick" style="left:40%"><span>70</span></div>
+          <div class="tick" style="left:60%"><span>75</span></div>
+          <div class="tick" style="left:80%"><span>80</span></div>
+          <div class="tick" style="left:100%"><span>85</span></div>
+          <div class="band" style="left:68%;width:4%"></div>
+          <div class="mark" style="left:32.2%;background:var(--accent)"></div>
+          <div class="mark" style="left:89.2%;background:var(--idle)"></div>
+          <div class="stem" style="left:32.2%;top:40px;height:32px"></div>
+          <div class="lbl up" style="left:32.2%"><b>68.05</b>chưa train, prompt A</div>
+          <div class="stem" style="left:70%;top:88px;height:16px"></div>
+          <div class="lbl down" style="left:70%;top:104px"><b>77-78</b>SFT của student này trong papers</div>
+          <div class="stem" style="left:89.2%;top:40px;height:32px"></div>
+          <div class="lbl up" style="left:auto;right:0;transform:none;text-align:right"><b>82.3</b>cao nhất công bố (SPFT-SQL)</div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Student chưa train</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th></tr></thead>
+            <tbody class="num">
+              <tr><td>Prompt A, <code>ddl_rows</code></td><td class="r"><b>68.05</b></td><td class="r">87.4</td><td class="r"><b>71.4</b></td><td class="r"><b>59.2</b></td><td class="r">45.9</td></tr>
+              <tr><td>Prompt B, <code>ddl_values</code></td><td class="r">67.49</td><td class="r"><b>87.7</b></td><td class="r">71.2</td><td class="r">56.4</td><td class="r"><b>46.5</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A và B không khác nhau (exact McNemar p = 0.47). Các run trên Spider dùng prompt A. Hàng FedAvg SFT sẽ đặt lên thang này khi round đầu tiên publish.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Câu hỏi của 5 client, đọc từ base student</h3>
+        <div class="legend">
+          <span><i style="background:var(--seg-mixed)"></i>mixed (cho pairs)</span>
+          <span><i style="background:var(--seg-correct)"></i>all correct</span>
+          <span><i style="background:var(--seg-wrong)"></i>all wrong</span>
+          <span>cột phải: % gold result rỗng</span>
+        </div>
+        <div class="clients" id="clients"></div>
+        <p>10 samples mỗi câu hỏi, T 1.0, prompt A (results <code>1704b03b</code>). Độ dài thanh theo số câu hỏi của client. Sample accuracy 56.1%; 8,659 câu hỏi: 5,951 mixed, 1,631 all correct, 1,074 all wrong.</p>
+        <div class="callout">Spider release có 7 database train không có rows (<code>geo</code>, <code>scholar</code>, <code>academic</code>, <code>restaurants</code>, <code>imdb</code>, <code>yelp</code>, <code>music_2</code>): 1,759 câu hỏi, 1,648 ở client 4 (47% câu hỏi của nó). Trên đó mọi SQL chạy được đều "đúng". Owner quyết định: bỏ pairs từ các database này.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="directions">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Các hướng có thể chạy</h2>
+      <p>Mỗi hướng ghi khi nào nên chạy, nó trả lời câu hỏi gì và chi phí (ước tính). Chưa hướng nào trong này nằm trong queue.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Lọc theo nhóm">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">Tất cả</button>
+      <button type="button" id="f-p2" data-f="p2" aria-pressed="false">Phase 2</button>
+      <button type="button" id="f-agg" data-f="agg" aria-pressed="false">Aggregation</button>
+      <button type="button" id="f-p3" data-f="p3" aria-pressed="false">Phase 3</button>
+      <button type="button" id="f-rd" data-f="rd" aria-pressed="false">Hướng nghiên cứu</button>
+    </div>
+    <div class="dirs" id="dirs"></div>
+    <div class="panel off"><b>Không nằm trong kế hoạch hiện tại:</b> teacher 7B, câu hỏi không có nhãn, 10 pairs mỗi câu hỏi (59,510 pairs/round, khoảng 13-15 h train), DPO từ base student làm main line, server optimizer (FedAdam, FedYogi), SCAFFOLD.</div>
+  </div>
+</section>
+
+<section id="rows">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Các hàng của paper (kế hoạch)</h2>
+      <p>Cột: EX, easy, medium, hard, extra, execution errors, SQL chạy được nhưng sai kết quả. Thứ tự chốt sau FedAvg SFT.</p>
+    </div>
+    <div class="panel tbl-wrap">
+      <table>
+        <thead><tr><th>Hàng</th><th>Là gì</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td><b>FedAvg SFT</b></td><td>Gold SQL, FedAvg, lr 2e-4, 1 local epoch/round</td><td>Federated baseline</td><td><span class="pill run">đang chạy</span></td></tr>
+          <tr><td><b>Method</b></td><td>DPO + NLL rounds với các cải tiến được giữ</td><td>Hàng chính của paper</td><td><span class="pill queued">queued</span></td></tr>
+          <tr><td><b>Federated DPO as published</b></td><td>Pairs từ base student làm một lần, reference cố định (FedDPO của OpenFedLLM); cùng loss, cùng số pairs</td><td>Federated DPO baseline</td><td><span class="pill code">cần code</span></td></tr>
+          <tr><td><b>Ablations</b></td><td>Method bỏ từng cải tiến được giữ</td><td>Cho thấy mỗi phần đóng góp gì</td><td><span class="pill plan">phase 2</span></td></tr>
+          <tr><td><b>FedProx, FedNTD</b></td><td>Gold SQL, aggregator khác</td><td>Federated baselines</td><td><span class="pill plan">phase 3</span></td></tr>
+          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pill plan">phase 3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Nguồn: <code>RESEARCH_STATE.md</code>, <code>PIPELINE_NEXT.md</code>, <code>LAB_LOG.md</code>, trạng thái ngày 2026-11-17.</span>
+    <span>Thời gian và chi phí ghi "khoảng" là ước tính.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Pair read of the base student, results 1704b03b
+  var clients = [
+    { k: 1, q: 895,  mixed: 531,  correct: 258, wrong: 106, empty: 30 },
+    { k: 2, q: 1542, mixed: 948,  correct: 414, wrong: 180, empty: 21 },
+    { k: 3, q: 2009, mixed: 1332, correct: 368, wrong: 309, empty: 103 },
+    { k: 4, q: 3479, mixed: 2629, correct: 444, wrong: 403, empty: 1433 },
+    { k: 5, q: 734,  mixed: 511,  correct: 147, wrong: 76,  empty: 29 }
+  ];
+  var max = 3479;
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  var box = document.getElementById("clients");
+  clients.forEach(function (c) {
+    var pct = c.empty / c.q * 100;
+    var row = document.createElement("div");
+    row.className = "client";
+    row.innerHTML =
+      '<div class="name"><b>Client ' + c.k + '</b><span>' + fmt(c.q) + ' câu</span></div>' +
+      '<div class="stack" style="width:' + (c.q / max * 100).toFixed(2) + '%" title="mixed ' + fmt(c.mixed) + ', all correct ' + fmt(c.correct) + ', all wrong ' + fmt(c.wrong) + '">' +
+        '<span class="mx" style="flex:' + c.mixed + '"></span>' +
+        '<span class="cr" style="flex:' + c.correct + '"></span>' +
+        '<span class="wr" style="flex:' + c.wrong + '"></span>' +
+      '</div>' +
+      '<div class="empty' + (pct > 20 ? ' hi' : '') + '">' + pct.toFixed(1) + '%</div>';
+    box.appendChild(row);
+  });
+
+  var dirs = [
+    { g: "p2", gl: "Phase 2", t: "Federated DPO as published", st: ["code", "cần code"],
+      when: "Phase 1 qua gate", ans: "Thiết kế federated (I1) có hơn FedDPO của OpenFedLLM không", cost: "Khoảng 1.5-2.5 h/round; cần reference cố định (fixed samples đã có)" },
+    { g: "p2", gl: "Phase 2", t: "RFT: NLL chỉ trên samples đúng", st: ["plan", "chưa queue"],
+      when: "Phase 1 qua gate", ans: "Phần DPO có thêm gì so với chỉ học từ samples đúng", cost: "Cùng cỡ một DPO line" },
+    { g: "p2", gl: "Phase 2", t: "DPO + NLL từ base student", st: ["plan", "chưa queue"],
+      when: "Phase 1 qua gate", ans: "Ablation I3: stage FedAvg SFT trước có cần không", cost: "Cùng cỡ một DPO line" },
+    { g: "p2", gl: "Phase 2", t: "I2: execution-aware pairs", st: ["code", "cần code"],
+      when: "0a cho thấy wrong-result pairs hiếm; hoặc gain 0.5-1.5", ans: "Pair theo mức thông tin của nhãn có sửa được lỗi wrong-result không", cost: "Code pair rule + một DPO line" },
+    { g: "p2", gl: "Phase 2", t: "Client drift SFT so với DPO", st: ["plan", "không cần train"],
+      when: "Có adapter của các round", ans: "DPO với reference là global model có drift ít hơn SFT dưới non-IID không (cosine, norm)", cost: "Chỉ đọc adapter đã lưu" },
+    { g: "agg", gl: "Aggregation", t: "Re-aggregation probe của DPO round 1", st: ["code", "cần script nhỏ"],
+      when: "Có DPO round 1", ans: "Trọng số pair, equal, question, step-normalised có khác nhau rõ không", cost: "Khoảng 10 phút eval mỗi cách, không train" },
+    { g: "agg", gl: "Aggregation", t: "Equal weights mỗi client", st: ["plan", "theo bằng chứng"],
+      when: "Probe cho thấy gain", ans: "Client lớn có lấn át dưới non-IID không", cost: "Một DPO line" },
+    { g: "agg", gl: "Aggregation", t: "FedNova-style normalisation", st: ["plan", "theo bằng chứng"],
+      when: "Client updates phân kỳ hoặc probe cho thấy gain", ans: "Số local step chênh khoảng 5 lần giữa client có kéo FedAvg lệch không", cost: "Một DPO line" },
+    { g: "agg", gl: "Aggregation", t: "Exact LoRA aggregation (FFA-LoRA, FedEx-LoRA)", st: ["plan", "theo bằng chứng"],
+      when: "overall_relative_product_error lớn", ans: "Trung bình factor khác trung bình tích B A bao nhiêu", cost: "Một DPO line; FFA-LoRA đã có trong code" },
+    { g: "p3", gl: "Phase 3", t: "BIRD làm bộ client thứ hai", st: ["code", "cần split"],
+      when: "Sau lần đọc đầu DPO so với FedAvg trên Spider", ans: "Trên BIRD CodeLutra hơn SFT 7.5 điểm; Spider chỉ còn khoảng 4 điểm trên SFT", cost: "Split BIRD theo database, đo độ dài prompt, Spider train làm public data" },
+    { g: "p3", gl: "Phase 3", t: "alpha 0.5 và IID", st: ["plan", "chưa queue"],
+      when: "Có method cuối", ans: "Gain có giữ được khi bớt non-IID", cost: "FedAvg + method cho mỗi split" },
+    { g: "p3", gl: "Phase 3", t: "FedProx, FedNTD", st: ["plan", "chưa queue"],
+      when: "Bảng chính", ans: "Baseline federated mạnh hơn FedAvg", cost: "Hai SFT line" },
+    { g: "p3", gl: "Phase 3", t: "Centralized và local SFT", st: ["plan", "chưa queue"],
+      when: "Bảng chính", ans: "Mốc trên, mốc dưới; split có đủ lý do để federate không", cost: "1 + 5 SFT line" },
+    { g: "p3", gl: "Phase 3", t: "Server pre-training cùng loss", st: ["plan", "chạy sau cùng"],
+      when: "Method đã chốt", ans: "Pre-training trên public data có giúp và gain của round còn không", cost: "Một vòng ở server trên BIRD train" },
+    { g: "rd", gl: "Hướng nghiên cứu", t: "LLM sửa SQL sai ở server", st: ["plan", "ngoài kế hoạch"],
+      when: "Nếu câu hỏi all-wrong là chỗ nghẽn", ans: "Teacher sửa nhỏ một SQL sai để câu hỏi all-wrong vẫn cho pair; execution quyết định giữ hay bỏ", cost: "Teacher 7B ở server, chỉ trên public data" },
+    { g: "rd", gl: "Hướng nghiên cứu", t: "Schema text B (ddl_values)", st: ["plan", "chỉ khi cần"],
+      when: "Một kết quả đòi hỏi", ans: "Prompt B ngắn hơn (1,939 so với 2,547 token test); hai prompt ngang nhau khi chưa train", cost: "Chạy lại hàng cần so" }
+  ];
+  var grid = document.getElementById("dirs");
+  dirs.forEach(function (d) {
+    var el = document.createElement("article");
+    el.className = "panel dir";
+    el.dataset.g = d.g;
+    el.innerHTML =
+      '<div class="dir-top"><span class="grp">' + d.gl + '</span><span class="pill ' + d.st[0] + '">' + d.st[1] + '</span></div>' +
+      '<h3>' + d.t + '</h3>' +
+      '<dl><dt>Khi nào</dt><dd>' + d.when + '</dd><dt>Trả lời</dt><dd>' + d.ans + '</dd><dt>Chi phí</dt><dd>' + d.cost + '</dd></dl>';
+    grid.appendChild(el);
+  });
+
+  var buttons = document.querySelectorAll(".filters button");
+  function apply(f) {
+    buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.f === f)); });
+    grid.querySelectorAll(".dir").forEach(function (el) { el.hidden = !(f === "all" || el.dataset.g === f); });
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      apply(b.dataset.f);
+      try { localStorage.setItem("fedls-dir-filter", b.dataset.f); } catch (e) {}
+    });
+  });
+  try { var saved = localStorage.getItem("fedls-dir-filter"); if (saved) apply(saved); } catch (e) {}
+})();
+</script>
+</body>
+</html>
