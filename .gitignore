@@ -23,3 +23,6 @@ codegraph.json
 
 # Local-only archive of earlier work (hidden from agents, kept out of Git)
 /archive/
+
+# Generated graph of the notes (local tool output)
+/graphify-out/
