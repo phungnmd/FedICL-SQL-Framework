@@ -4,6 +4,65 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: FedAvg SFT runs alone first (code `407a7ad7`)
+
+Owner: run the FedAvg SFT rounds first; that number is needed whatever
+the DPO design becomes. The queue now holds `rounds/fedavg_sft` (the
+FedAvg curve under its own rule: gain of more than 0.5 EX point, patience
+2, at most 8 rounds). The DPO curve and the reference curves keep their
+definitions and are not run; `rounds/sft_vs_dpo` and `refs/central_local`
+left the queue. If the DPO line later runs more rounds than FedAvg, a
+curve that `extends` the FedAvg one adds them.
+
+Open before the DPO line runs (owner):
+
+- pair rule for questions whose gold result is empty: CodeLutra as is,
+  gold as chosen against execution-error samples only, or Arctic's filter;
+- pairs per question: 10 (CodeLutra; 59,510 pairs a round, about 13-15 h
+  of training, estimate) or 2 (about 11,900, 2-3 h, estimate);
+- whether the method is the federated port of CodeLutra or a change to it
+  (a pair rule that uses each execution label at the level it informs,
+  with the port as a baseline row).
+
+## 2026-11-17: what CodeLutra does with empty or uninformative labels
+
+Read in the paper text (arXiv 2411.05199v3); no code is linked. It does
+not name the Spider training split, does not mention empty gold results or
+databases without rows, filters no training question (it drops only wrong
+samples with repeated strings) and has no step for a question whose
+samples are all wrong or all correct. Pairs: 10 samples at T 1.0, 10
+random pairs per question. Its section 6 variant without gold (executable
+as chosen, error as rejected) lifts BIRD EX 22.3 to 30.9, against 43.1
+with gold. On a database without rows our labels reduce to that variant.
+
+## 2026-11-17: pair read of the base student; seven Spider train databases have no rows
+
+Results `1704b03b` (`audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0/pair_read/r1_base.json`),
+10 samples per question at T 1.0, prompt A, `alpha_0.1/k5`.
+
+| Client | Questions | Mixed | All correct | All wrong | Gold empty | Pairs (10 per question) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 895 | 531 | 258 | 106 | 30 | 5,310 |
+| 2 | 1,542 | 948 | 414 | 180 | 21 | 9,480 |
+| 3 | 2,009 | 1,332 | 368 | 309 | 103 | 13,320 |
+| 4 | 3,479 | 2,629 | 444 | 403 | 1,433 | 26,290 |
+| 5 | 734 | 511 | 147 | 76 | 29 | 5,110 |
+| All | 8,659 | 5,951 | 1,631 | 1,074 | 1,616 | 59,510 |
+
+Sample accuracy 56.1%; 3 gold errors; 1,663 samples hit the length limit.
+Of the mixed questions, 1,392 have an empty gold result (1,237 at client
+4).
+
+Cause: the official Spider release ships seven training databases with
+the schema and no rows (`geo`, `scholar`, `academic`, `restaurants`,
+`imdb`, `yelp`, `music_2`): 1,759 questions, 1,648 of them at client 4
+(47% of its questions). On them every executable SQL returns the empty
+gold result and counts as correct. No Spider dev or test question is on
+them. Content for `geo` and `restaurants` exists in
+`jkkummerfeld/text2sql-data` (checked on copies: 530 of 564 and 56 of 125
+gold queries return rows); the others were not checked. FedAvg SFT is not
+affected (it trains on gold SQL).
+
 ## 2026-11-17: the two lines queued round by round; conditional tasks in the queue (code `66b2c01a`)
 
 Owner: run FedAvg SFT and the DPO rounds one round at a time to see a
