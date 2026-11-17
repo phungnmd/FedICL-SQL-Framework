@@ -4,6 +4,23 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: direction of the method revised (owner)
+
+Owner: the method is federated DPO improved for the federated setting so
+that it beats the federated baselines; CodeLutra is cited as the source of
+the loop. A FedAvg SFT stage before the DPO rounds may itself be one of
+the improvements. Nothing of it runs yet; the server runs the FedAvg SFT
+rounds.
+
+Written in `AGENTS.md` (Method) and `RESEARCH_STATE.md` section 3: three
+candidate improvements (I1 on-policy rounds with the round's global model
+as reference; I2 execution-aware pairs, the main candidate; I3 a FedAvg
+SFT stage before the rounds), the rows of the paper with federated DPO as
+published (OpenFedLLM: fixed pairs, fixed reference) as a baseline, and
+the open settings (2 pairs per question proposed for every DPO line; the
+chosen side of a gold-empty question). This replaces "no SFT stage before
+the rounds" of the earlier ruling that day.
+
 ## 2026-11-17: FedAvg SFT runs alone first (code `407a7ad7`)
 
 Owner: run the FedAvg SFT rounds first; that number is needed whatever

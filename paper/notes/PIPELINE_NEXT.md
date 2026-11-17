@@ -2,31 +2,19 @@
 
 ## Status
 
-Updated 2026-11-17 (Asia/Ho_Chi_Minh). Pushed (code `407a7ad7`): the
-queue now runs the FedAvg SFT rounds alone. The read of the pairs is done
-and published (`1704b03b`). The worker on the server still runs the old
-code and loops on `queue queues/active.toml unreadable (... unknown keys
-['when'])`.
+Updated 2026-11-17 (Asia/Ho_Chi_Minh). The worker on GPU 0 runs the
+FedAvg SFT rounds (code `407a7ad7`). The DPO lines are not queued: the
+method's improvements are written down (`RESEARCH_STATE.md`, section 3.3)
+and wait for FedAvg SFT and for their code.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker looping on the unreadable queue; no task running. | owner, 2026-11-17 |
+| 0 | `rounds/fedavg_sft` running. | owner, 2026-11-17 |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
-1. Stop the looping worker with Ctrl+C in its window.
-
-2. Update the server checkout and run the tests (about 5 min, estimate).
-   Send back the last line: the pytest summary (442 passed on the Mac), or
-   the error.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv sync --extra dev; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-   ```
-
-3. Start the worker on GPU 0 and leave it running. It runs the FedAvg SFT
-   rounds. Send back:
+1. Nothing new to start. Leave the worker running. Send back:
    - in the first minutes of round 1: the peak reserved VRAM of the
      progress line and the shared GPU memory of the card in Task Manager
      (it should stay near zero; not measured yet with this prompt);
@@ -34,27 +22,26 @@ code and loops on `queue queues/active.toml unreadable (... unknown keys
    - each `curve ... EX` line after an evaluation;
    - a `STOP queue` line, if one comes.
 
+   If the worker stops, the same command continues where it stopped:
+
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
-
-   Ctrl+C stops the worker and its task; the same command continues where
-   it stopped.
 
 ## Running and queued
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (estimate); 3 to 8 rounds | queued |
+| 1 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (estimate); 3 to 8 rounds | running |
 
 How the rounds stop: a round is a gain when it beats the best round by
 more than 0.5 EX point; the line stops after 2 rounds in a row without a
 gain, or at 8 rounds.
 
-Not queued: the federated DPO rounds (the pair rule for questions with an
-empty gold result and the number of pairs per question are open, see
-`LAB_LOG.md`), the centralized and local reference rows, the pre-training
-at the server, the other splits.
+Not queued: the federated DPO lines (the method with its candidate
+improvements, the published federated DPO baseline, the ablations;
+`RESEARCH_STATE.md`, sections 3.3 and 3.4), the centralized and local
+reference rows, the pre-training at the server, the other splits.
 
 ## Reference
 

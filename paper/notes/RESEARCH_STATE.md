@@ -13,7 +13,8 @@ learning, and only that model is deployed. Standard federated training
 (FedAvg SFT) uses the gold SQL and never the databases.
 
 Main question: does training on the execution of the model's own SQL on
-the clients' databases give a better model than FedAvg SFT on the same
+the clients' databases give a better model than FedAvg SFT, and than
+federated DPO as published (pairs made once, reference fixed), on the same
 data?
 
 Second question: a server usually has public Text-to-SQL data. Does
@@ -35,7 +36,7 @@ that clearly beats the federated baselines and reports good numbers.
 | Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); the lab log records what was chosen on which set, and the paper does not call such a number held-out | fixed |
 | Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
 | Length | `--max-len 7168`, no truncation (a longer row stops the run); 256 new tokens | fixed |
-| Training recipe of the SFT baselines | LoRA SFT at lr 2e-4, 3 FedAvg rounds of 1 local epoch (the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs) | open, section 4 |
+| Training recipe of the SFT baselines | LoRA SFT at lr 2e-4, FedAvg rounds of 1 local epoch, as many as the gain rule allows (more than 0.5 EX point over the best round, patience 2, at most 8); the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs | running from 2026-11-17 |
 | Compute | RTX A5000 24 GB under WDDM; GPU 1 is in use by another user | fixed |
 
 Data rules: train and test never share a database; test data never becomes
@@ -44,18 +45,21 @@ not differential privacy.
 
 ## 3. Method
 
-One core part and one secondary part (owner, 2026-11-17, replacing the
-three stages set earlier that day: a server stage with the teacher, FedAvg
-SFT, federated DPO).
+Direction (owner, 2026-11-17, revised the same day): federated DPO with
+execution labels at the clients, improved for the federated setting so
+that it beats the federated baselines. CodeLutra is the source of the
+loop and is cited as such; the contribution is what makes the loop work
+across clients (section 3.3). Nothing has run yet; the improvements are
+candidates, each kept only on a measured gain.
 
 | Part | Where | Supervision | Place |
 |---|---|---|---|
-| Federated DPO + NLL | clients | execution of the model's own SQL on the client's databases | the core |
+| Federated DPO + NLL with the improvements of 3.3 | clients | execution of the model's own SQL on the client's databases | the core |
 | Pre-training with the same loss | server | execution of the model's own SQL on public data that has gold SQL | secondary; in the method if the results support it |
 
-No SFT stage comes before the DPO rounds; FedAvg SFT is a baseline. The
-teacher is not part of the method; what it could add is a research
-direction (section 4).
+Whether a FedAvg SFT stage comes before the DPO rounds is now a candidate
+improvement (3.3), not ruled out. The teacher is not part of the method;
+what it could add is a research direction (section 4).
 
 ### 3.1 The story (draft, owner, 2026-11-17; follows the results)
 
@@ -76,7 +80,16 @@ run SQL on; FedAvg SFT uses the labels, the method uses both.
    iteration of the DPO loop: the errors of the new global model are found
    again in the next round at no extra cost. The reference is the round's
    global model, so every client moves the model from the same point.
-6. Cost. No extra data and no extra communication (the same adapter is
+   Federated DPO as published makes its pairs once and keeps one reference
+   for all rounds.
+6. What execution tells differs by client. An execution error says only
+   that the SQL does not run; a wrong result says that it means something
+   else; a gold result that is empty, or a database without rows, cannot
+   tell a right SQL from a wrong one that runs. The share of such
+   questions differs across clients (1% to 41% here), and only the client
+   can see it, because the databases stay with it. The pairs use each
+   label at the level it informs.
+7. Cost. No extra data and no extra communication (the same adapter is
    sent). The extra cost is compute at the client, for sampling and
    running SQL.
 
@@ -94,7 +107,8 @@ What the results have to show:
 | Part of the story | Result that carries it |
 |---|---|
 | Execution at the client adds to the labels | federated DPO above FedAvg SFT, from the same start and for the same rounds |
-| The gain comes from correcting the model's own errors | the gain grows over the rounds and sits in the hard and extra columns |
+| The federated design matters | the method above federated DPO as published (fixed pairs, fixed reference) and above the plain federated loop (ablation rows of 3.4) |
+| The gain comes from correcting the model's own errors | the gain grows over the rounds and sits in the hard and extra columns; the count of executable SQL with a wrong result falls, not only the count of execution errors |
 | It holds under non-IID data | the gain remains at alpha 0.1, 0.5 and IID |
 | Pre-training helps and does not use up the gain | pre-training + federated DPO above pre-training + FedAvg SFT |
 
@@ -118,38 +132,68 @@ Only the small model's adapter leaves a client.
    reference of the DPO term is the round's global model.
 5. The server averages the updates.
 
-Choices inside the rounds (owner, 2026-11-17):
+The plain loop above is CodeLutra's (plain loss, pairs drawn at random,
+nothing from a question whose samples are all wrong or all correct). The
+method uses the clients' labelled questions only; unlabelled questions are
+not part of it.
 
-- The base form is CodeLutra's: the plain loss, pairs drawn at random, and
-  nothing from a question whose samples are all wrong.
-- Three changes to it are candidates, each to be checked by a run and
-  taken into the method only on a clear gain: the gold SQL of an all-wrong
-  question in the NLL term (never as the chosen side of a pair); each
-  wrong sample paired with its nearest correct sample; the rejected side
-  counted only on the tokens that differ.
-- The method uses the clients' labelled questions only. Unlabelled
-  questions are not part of it.
+### 3.3 Candidate improvements (owner, 2026-11-17)
 
-### 3.3 Pre-training at the server
+Each is a run against the plain loop from the same start and for the same
+rounds, and joins the method only on a clear gain. The paper keeps the
+ones that carry the story; one main improvement with a clear story is
+better than a stack of small ones.
+
+| # | Improvement | Problem it answers | Evidence so far | Ablation row |
+|---|---|---|---|---|
+| I1 | On-policy rounds: each round samples from the new global model, which is also the DPO reference | federated DPO as published trains on pairs made once against a fixed reference | earlier setup (reference only): fresh samples above fixed round-1 pairs by 1.72 EX at round 3 (p = 0.0049) | pairs fixed from round 1, reference fixed |
+| I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; a question whose gold result is empty or whose database has no rows gives only pairs against execution errors; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | CodeLutra's random pairs |
+| I3 | A FedAvg SFT stage before the DPO rounds (owner's suggestion): the rounds start from the best FedAvg SFT round | from the base student the all-wrong questions (12% here) and the questions on databases without rows (20%) give no useful pair, while gold SQL teaches them | earlier setup (reference only): every DPO run there started after FedAvg SFT, +3.87 EX over FedAvg round 3 (pooled +3.91, interval +2.82 to +5.01), +2.3 to +2.75 without the repetition penalty; more SFT rounds instead gave +0.84 and then fell. Against it in the papers: SFT then plain DPO gives about zero (`DPO_RESEARCH.md`, 2.1), with an offline loss and no NLL term | DPO rounds from the base student; the control for the same number of rounds is the FedAvg SFT line itself, continued |
+
+Smaller choices, not improvements of their own: FedAvg weights by pair
+count (pairs per client run from 5,110 to 26,290 at 10 per question), and
+the gold SQL of an all-wrong question in the NLL term (never as the
+chosen side), which I3 would make unneeded.
+
+Open settings for every DPO line: pairs per question, 2 proposed for all
+lines (10 in CodeLutra gives 59,510 pairs a round here, about 13-15 h of
+training, estimate); the chosen side of a gold-empty question in I2 (the
+model's executable sample or the gold SQL).
+
+### 3.4 Rows of the paper (plan)
+
+| Row | What it is | Role |
+|---|---|---|
+| FedAvg SFT | gold SQL, FedAvg | federated baseline; running |
+| FedProx, FedNTD | gold SQL, other aggregators | federated baselines (item 6 of section 4) |
+| Federated DPO as published | pairs from the base student's samples made once, reference fixed for all rounds (OpenFedLLM's FedDPO); same loss, same pair count | federated DPO baseline |
+| Method | DPO + NLL rounds with the improvements kept | the row of the paper |
+| Ablations | the method without each kept improvement | show what each adds |
+| Centralized SFT, local SFT | the union of the clients; each client alone | upper and lower reference |
+
+Columns: EX, easy, medium, hard, extra, execution errors, executable SQL
+with a wrong result. Not run yet; the order is decided after FedAvg SFT.
+
+### 3.5 Pre-training at the server
 
 The secondary part runs the same loop once at the server, before the
 rounds, on public data. It gives the student the output format and general
 SQL skill without using up the pairs on the clients' questions, which the
 student has not seen.
 
-### 3.4 Closest work
+### 3.6 Closest work
 
-CodeLutra (arXiv 2411.05199), the same loop run centrally at
-8B. It starts from the base model with no SFT stage (its SFT model is a
-separate baseline), draws 10 samples at T 1.0, uses only the model's own
-correct samples as the chosen side, and trains DPO + SFT with beta 0.1 and
-lambda 1.0, LoRA r 8, lr 5e-5, one epoch per iteration, 4 iterations.
-Different here: federated and at 1.5B. A round is an iteration, the pairs
-are made at each client by execution on its own databases, and the
-reference is the round's global model. OpenFedLLM (arXiv 2402.06954) runs
-DPO inside FedAvg with fixed pairs and a reference fixed for all rounds.
-The papers behind each choice are in `DPO_RESEARCH.md`; the rest of the
-map is in `LITERATURE.md`.
+CodeLutra (arXiv 2411.05199): the loop this method starts from, run
+centrally at 8B. It starts from the base model with no SFT stage (its SFT
+model is a separate baseline), draws 10 samples at T 1.0, draws 10 random
+pairs per question from the model's own correct and wrong samples, and
+trains DPO + SFT with beta 0.1 and lambda 1.0, LoRA r 8, lr 5e-5, one epoch
+per iteration, 4 iterations. It does not mention empty gold results or
+databases without rows and filters no training question. Different here:
+federated, at 1.5B, with the improvements of 3.3. OpenFedLLM (arXiv
+2402.06954) runs DPO inside FedAvg with fixed pairs and a reference fixed
+for all rounds. The papers behind each choice are in `DPO_RESEARCH.md`;
+the rest of the map is in `LITERATURE.md`.
 
 ## 4. Open
 
@@ -191,7 +235,8 @@ map is in `LITERATURE.md`.
    that a question whose samples are all wrong still gives a pair, with
    execution deciding whether the repair is kept? (`DPO_RESEARCH.md`,
    section 3.7.)
-6. Baselines with the new prompt: FedAvg, FedProx, FedNTD, centralized SFT.
+6. Baselines with the new prompt: FedAvg (running), FedProx, FedNTD,
+   federated DPO as published (section 3.4), centralized and local SFT.
 7. The client split. In `alpha_0.1/k5` the share of hard and extra
    questions runs from 20% to 60% across the clients, and the clients
    hold 734 to 3,479 questions (table in `LAB_LOG.md`, 2026-11-17). No
@@ -200,21 +245,21 @@ map is in `LITERATURE.md`.
    federate is read from three rows: local training per client, FedAvg,
    centralized. If the local model of the simple client is not below
    FedAvg on the hard and extra columns, the split is too mild.
-8. Whether the clients' questions give enough pairs. Read without
-   training: 10 samples per question on each client, counted as all wrong,
-   mixed and all correct, from the base student and from the student after
-   the server pre-training. The pre-training moves hard questions into the
-   mixed group and easy ones out of it; which side wins is not known.
-   The read from the base student is queued (`pairread/*`).
-9. The three candidate changes of section 3, each as a run against the
-   base form from the same start and for the same rounds:
-   - the gold SQL of all-wrong questions in the NLL term. No paper
-     measures it; the one precedent is Iterative RPO on GSM8K
-     (`DPO_RESEARCH.md`, section 2.9). The count of item 8 says how many
-     questions it touches;
-   - nearest-correct pairing and the rejected side counted on the
-     differing tokens. Neither has been tested on SQL in a paper
-     (`DPO_RESEARCH.md`, section 2.4).
+8. Whether the clients' questions give enough pairs. From the base
+   student (results `1704b03b`): of 8,659 questions 5,951 are mixed, 1,631
+   all correct, 1,074 all wrong; 1,616 have an empty gold result, 1,433 of
+   them at client 4, from seven Spider databases without rows (table in
+   `LAB_LOG.md`). Still to read: how the rejected samples of the pairs
+   split between execution errors and wrong results, per client (from the
+   round 1 samples on the server, no GPU), which grounds I2; and the same
+   read after the server pre-training.
+9. The candidate improvements of section 3.3 (I1 to I3), each as a run
+   against the plain loop. Nearest-correct pairing and the rejected side
+   counted on the differing tokens have not been tested on SQL in a paper
+   (`DPO_RESEARCH.md`, section 2.4); gold SQL in the NLL term has one
+   precedent, Iterative RPO on GSM8K (section 2.9). Code needed before the
+   runs: the pair rule of I2 and a fixed reference for the published
+   federated DPO baseline (fixed samples exist, `samples_from_round`).
 10. BIRD as a second set of clients. The method is tried on Spider first
     (owner, 2026-11-17). On Spider about 4 points are left above the SFT
     of this student in the papers (77 to 78, highest published 82.3); on

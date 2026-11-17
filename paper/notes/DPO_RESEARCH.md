@@ -490,6 +490,12 @@ DPO variant for clause-wise correction).
    on SQL in a paper.
 3. Unlabelled questions (3.5, step 3) are not in the method. The method is
    about the labelled questions the clients already hold.
+4. Revised the same day: a FedAvg SFT stage before the DPO rounds is a
+   candidate improvement again (`RESEARCH_STATE.md`, 3.3, I3). The papers
+   of 2.1 measure SFT followed by plain, offline DPO; the earlier setup of
+   this project (reference only) measured SFT followed by on-policy DPO +
+   NLL rounds and saw +2.3 to +3.9 EX over FedAvg SFT. No run there started
+   DPO from the base student.
 
 ### 3.9 Left out
 
