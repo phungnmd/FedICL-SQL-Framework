@@ -3,6 +3,43 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: FedAvg with `codes_v2`, selection at inference on it, the check of the synthetic rows
+
+Seed 0, Spider test (2,147 rows), decoding without the repetition penalty.
+
+| Row | EX | Execution errors | Commit |
+|---|---|---|---|
+| FedAvg R1, `codes_v2` | 72.05 | | `c4606d3b` |
+| FedAvg R2 | 74.57 | 170 | `e0d01ebb` |
+| FedAvg R3 | 74.85 | 172 | `9ba967cc` |
+| FedAvg R3, greedy kept when it executes, else the most frequent executable of 8 samples | 77.78 | | `db1a36cc` |
+| FedAvg R3, vote over 8 samples by result | **78.90** | | `db1a36cc` |
+
+- `codes_v2` and `codes` are level after 3 FedAvg rounds (74.85 against
+  74.71, 172 against 171 errors).
+- Selection (arm `xsel_cv2_fedavg_r3_np`): a correct sample exists for
+  85.7%; 43 questions have no executable sample; the fallback replaces 130
+  outputs and makes 63 right, at 1.64 model calls a question on average.
+  The vote makes 61 of the 172 non-executable outputs right, repairs 47 of
+  the 368 that run and are wrong, and breaks 21 of the 1,607 right ones.
+  By hardness, greedy / fallback / vote: easy 90.6 / 90.9 / 91.3, medium
+  78.2 / 80.7 / 82.3, hard 68.9 / 72.6 / 73.0, extra 53.8 / 60.2 / 62.2.
+- Against stage 3: the DPO rounds on the `codes` line give 77.04 from
+  74.71 with one greedy call. With no training, the fallback on the FedAvg
+  model gives 77.78 and the vote 78.90, with the database at inference.
+  The DPO rounds with `codes_v2` and the vote on them are queued; those
+  two numbers are what they are read against.
+- The check of the synthetic rows (`synvc_s0/filter`, `24612ccd`, from
+  FedAvg R3 of the `codes` line): 3,177 of 5,434 rows kept (clients 691 /
+  604 / 649 / 598 / 635). Kept of rows, by tables: one 2,178 of 3,190,
+  two 769 of 1,658, three 219 of 550, four or more 11 of 36. For 1,922
+  kept rows all 8 samples match the result of the SQL; 1,255 have one to
+  seven matching. The check drops joins more often than one-table rows,
+  and most of what it keeps the model already answers.
+- The curve file marks round 2 as best (`76722d2c`): round 3 adds 0.28,
+  under its 0.5 threshold. The queue's later rows start from round 3, as
+  written.
+
 ## 2026-11-17: the teacher inside the server preference round (`srvt_s0`), built and queued
 
 Owner's request: a branch of direction 2 where the teacher supplies the

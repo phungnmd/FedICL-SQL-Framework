@@ -60,7 +60,7 @@ lives, and only the small model's adapter moves between the two.
 | Stage | Where | Supervision it uses | What it is for | Effect measured so far |
 |---|---|---|---|---|
 | 1. Server stage | server | the teacher's soft targets on public data (BIRD train) | general SQL ability that the clients' few domains do not give; it shows most on databases far from the clients | FedAvg R3 +2.12 before DPO and +1.40 after DPO on Spider test (two seeds pooled); after DPO Spider dev +3.53, DK +4.11; BIRD dev +11.38, which is the public data's own domain and not a transfer |
-| 2. FedAvg SFT | clients | the labelled questions | the clients' domain | base model 65.72 to FedAvg R3 74.71 (`codes`, without the penalty) |
+| 2. FedAvg SFT | clients | the labelled questions | the clients' domain | base model 65.72 to FedAvg R3 74.71 (`codes`, without the penalty); with `codes_v2` the rounds give 72.05 / 74.57 / 74.85 |
 | 3. Federated DPO + NLL | clients | the client's databases, as a check of the model's own SQL | the errors a gold label cannot show: the label says what is right, execution says what the model gets wrong | +2.3 to +2.75 over FedAvg R3 without the penalty; execution errors 171 to 82 (`codes`); samples drawn again each round +1.72 over fixed samples |
 
 Stage 3 in a round: each client samples 8 SQL for each of its questions
@@ -114,6 +114,27 @@ read in the queue, ahead of the long lines:
 | 1. The clients' execution feedback is the centre; the server stage is a start on public data, the teacher an option inside it | the title and the order of the claims, not the stages | selection at inference on FedAvg R3 (`vote_s0/xsel_fedavg_r3`) against the DPO rounds; the server stage in the final setup (`sqlcv2_s0/curve_hinton_sft`) | the DPO rounds lead what selection at inference gives the FedAvg model |
 | 2. One mechanism in two places: the execution-preference round also runs at the server on the public databases, after the teacher stage | stages 1 and 3 share a mechanism; the teacher can then supply correct SQL where a public row has none | one DPO + NLL round on 3,000 BIRD train questions from the Hinton server stage, on Spider test and BIRD dev (`srvx_s0`); then the same round with the teacher's SQL as the chosen side where it is correct and no sample is (`srvt_s0`: the pair count first, the round after the other rows) | the round lifts Spider test over the stage's adapter |
 | 3. The client's databases as a source of new training questions | a fourth stage, aimed at the questions the three stages leave wrong | one FedAvg SFT round with the verified synthetic rows against the same round without them (`synvc_s0`) | the round with the rows leads the round without them |
+
+First reads (2026-11-17, seed 0, Spider test, `codes_v2`, no penalty):
+
+- Direction 1, selection at inference on FedAvg R3 with no training
+  (`db1a36cc`): greedy 74.85; greedy kept when it executes, else the most
+  frequent executable sample, 77.78 (1.64 model calls a question on
+  average); vote over 8 samples by result, 78.90; a correct sample exists
+  for 85.7% of the questions. Of the 172 greedy outputs that do not run,
+  63 are repaired; of the 368 that run and are wrong, the vote repairs 47,
+  and it breaks 21 right ones. The DPO rounds on the `codes` line reach
+  77.04 from 74.71 with one greedy call. Selection at inference on the
+  FedAvg model therefore gives as much as the DPO rounds, with the
+  database and 1.6 to 8 calls at inference. What stage 3 is worth in the
+  final setup is read from its greedy output against 77.78 and its vote
+  against 78.90 (`sqlcv2_s0/curve_fedavg`, `vote_s0/xsel_dpo_r3`).
+- Direction 3, the check of the synthetic rows (`24612ccd`): 3,177 of
+  5,434 kept. Kept by number of tables: 68% of the one-table rows, 46% of
+  two, 40% of three, 11 of 36 with four or more, so the kept rows are
+  68.6 / 24.2 / 6.9 / 0.3% (Spider test 57.3 / 30.3 / 10.7 / 1.7%). For
+  1,922 of the kept rows all 8 samples already return the right result;
+  1,255 have one to seven. The training read is running.
 
 Federated learning is the setting the method has to work in; the paper
 does not claim that federation produces the gain (owner, 2026-11-11).
@@ -521,8 +542,8 @@ review of where earlier decisions had been stricter than published
 practice (`LAB_LOG.md`). A review of the fixed method against its own
 numbers then named its weak points, and the owner approved three
 directions for them (section 3). The queue (`08254bcf`) puts their short
-reads first: after the 3 FedAvg rounds with `codes_v2` (running; round 1
-at 72.05, `c4606d3b`), selection at inference on FedAvg R3, supervised
+reads first: after the 3 FedAvg rounds with `codes_v2` (72.05 / 74.57 / 74.85,
+`9ba967cc`), selection at inference on FedAvg R3, supervised
 training on verified synthetic rows on the `codes` line (`synvc_s0`), and
 one DPO round at the server on 3,000 BIRD questions from the teacher
 stage (`srvx_s0`), with the count of the pairs the teacher would supply
