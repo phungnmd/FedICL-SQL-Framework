@@ -2,21 +2,33 @@
 
 ## Status
 
-Updated 2026-11-17 (Asia/Ho_Chi_Minh). The worker on GPU 0 runs the
-FedAvg SFT rounds. Pushed (code `62a48999`): phase 0 scripts and the
-phase 1 DPO line, queued after FedAvg. The pushed code changes nothing the
-FedAvg rounds load (one new function in `fedls_sql/data/spider.py`), so
-the pull below is safe while they run.
+Updated 2026-11-17 20:45 (Asia/Ho_Chi_Minh). The worker on GPU 0 stopped
+at 20:43 in FedAvg round 3, client 2, step 134 of 1542, with no error line
+in the console tail; cause not known yet. Rounds 1 and 2 are published
+(EX 72.43 and 74.10). Round 3 client 1 is trained and kept; client 2
+starts again from step 0 on restart.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `rounds/fedavg_sft` running. | owner, 2026-11-17 |
+| 0 | Worker stopped in `rounds/fedavg_sft`, round 3. | owner, 2026-11-17 20:43 |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
+0. Why the worker stopped (read-only, a few seconds). Send back the whole
+   output: queue status, last 40 lines of the task log, `nvidia-smi`, and
+   Windows errors of the last 2 hours.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status; Get-Content .queue_state\logs\rounds\fedavg_sft.log -Tail 40; nvidia-smi; Get-WinEvent -FilterHashtable @{LogName='System','Application'; Level=1,2; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 10 -ErrorAction SilentlyContinue | Format-List TimeCreated,ProviderName,Message }
+   ```
+
+   Then restart the worker with the command of step 3; it skips finished
+   work and goes on with round 3.
+
 Steps 1 and 2 run in a second PowerShell window, without the GPU
-(`CUDA_VISIBLE_DEVICES` empty), while the worker keeps running.
+(`CUDA_VISIBLE_DEVICES` empty), while the worker keeps running. Skip them
+if already done.
 
 1. Pull and run the tests (about 5 min, estimate). Send back the pytest
    summary (447 passed on the Mac), or the error.
@@ -52,7 +64,7 @@ Steps 1 and 2 run in a second PowerShell window, without the GPU
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (estimate); 3 to 8 rounds | running |
+| 1 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | stopped in round 3 (rounds 1-2 done) |
 | 2 | `dpo/after_fedavg` | phase 1: DPO + NLL rounds from the best FedAvg round (10 samples at T 1.0, 2 pairs per question, no pair from a database without rows), each round evaluated on Spider test and published | about 1.5-2.5 h per round (estimate); up to 6 rounds | queued |
 
 How the rounds stop: a round is a gain when it beats the best round by
