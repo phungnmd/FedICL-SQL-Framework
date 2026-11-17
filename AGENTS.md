@@ -32,6 +32,13 @@ code, GPU and server rules live there.
   shrinks the gain, or a comparison that does not make the paper better,
   stays in the notes and out of the paper. Each claim is worded so that it
   is true against everything the notes hold.
+- The paper states the setup, not how it was reached (owner, 2026-11-17).
+  A choice fixed before any training result (the split and its seed, the
+  client count, the prompt layout) appears as a value, with the table or
+  text that shows it. How it was picked stays in `LAB_LOG.md`; the paper
+  neither tells that story nor calls a picked value random. A choice made
+  on evaluation results is different and keeps its wording ("chosen on
+  Spider test").
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the

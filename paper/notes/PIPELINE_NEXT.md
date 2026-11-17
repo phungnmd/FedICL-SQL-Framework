@@ -4,7 +4,7 @@
 
 Updated 2026-11-17 (Asia/Ho_Chi_Minh). Nothing is running. The cleaned
 code with the new prompt and the rebuilt client splits is pushed (code
-`e5c8134f`); the server checkout is still at the earlier code (`aa17258c`)
+`4760352b`); the server checkout is still at the earlier code (`aa17258c`)
 until step 1 below is run.
 
 | GPU | State | Known from |
@@ -16,7 +16,7 @@ until step 1 below is run.
 
 1. Update the server checkout and run the tests (about 5 min, estimate).
    The worker must be stopped. The pull removes the result rows and audit
-   files of the earlier setup from the working tree and the earlier client splits (5,705 files; they
+   files of the earlier setup from the working tree and the earlier client splits (5,704 files; they
    stay in Git at the tag `archive/pre-reset-2026-11-17`) and brings the
    new splits; nothing under `artifacts/` is touched. Send back the last
    lines: the pytest summary (415 passed on the Mac), or the error.

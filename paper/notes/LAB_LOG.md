@@ -4,7 +4,7 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
-## 2026-11-17: client splits rebuilt by database complexity tier (code `e5c8134f`)
+## 2026-11-17: client splits rebuilt by database complexity tier (code `4760352b`)
 
 Owner: rebuild the data processing after `FEDERATED_DATA_SETUP.md`.
 
@@ -20,7 +20,7 @@ In the code:
   client that already holds 146 / K databases takes none of the later
   tiers, and the draw is repeated until every client has 5 databases (3
   with 10 clients). The note's recipe did not have the third rule; without
-  it seed 0 gives one client 85 databases and 64% of the questions.
+  it seed 0 gave one client 85 databases and 64% of the questions.
 - The IID split puts the databases in random order and cuts them into
   equal parts.
 - Removed: the schema-embedding domain groups, their builder and audit,
@@ -41,34 +41,45 @@ level of Spider's own parse in the raw files.
 Tier 3 holds 42% of the questions: `scholar` (569) and `geo` (564) are in
 it.
 
-Main split, `federated/alpha_0.1/k5`, seed 0 (third draw):
+Split seed: 42 (owner, 2026-11-17), for all four splits. Seed 0 was built
+first (code `e5c8134f`): clients of 1,084 / 288 / 1,482 / 1,857 / 3,948
+questions, hard or extra 18% to 57%, third draw. The owner then asked for
+seed 42 and took it from the split tables, before any training: the
+smallest client has 734 questions instead of 288 and the largest 40% of
+the questions instead of 46%. A dataset is split once, so this is a setup
+choice; the paper gives the seed and the table.
+
+Main split, `federated/alpha_0.1/k5`, seed 42 (first draw):
 
 | Client | Databases | Questions | Easy | Medium | Hard | Extra | Hard or extra | Databases per tier 0 to 3 |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
-| 1 | 23 | 1,084 | 30.4% | 49.2% | 12.0% | 8.5% | 20.5% | 23, 0, 0, 0 |
-| 2 | 6 | 288 | 31.6% | 50.7% | 12.2% | 5.6% | 17.7% | 6, 0, 0, 0 |
-| 3 | 35 | 1,482 | 25.6% | 45.0% | 18.6% | 10.9% | 29.4% | 0, 35, 0, 0 |
-| 4 | 37 | 1,857 | 22.5% | 39.1% | 20.2% | 18.1% | 38.4% | 1, 0, 36, 0 |
-| 5 | 45 | 3,948 | 19.4% | 23.5% | 28.0% | 29.1% | 57.1% | 7, 1, 1, 36 |
+| 1 | 21 | 895 | 27.2% | 42.6% | 20.0% | 10.3% | 30.3% | 0, 20, 0, 1 |
+| 2 | 34 | 1,542 | 30.9% | 49.0% | 12.0% | 8.2% | 20.2% | 34, 0, 0, 0 |
+| 3 | 42 | 2,009 | 21.1% | 42.2% | 18.6% | 18.1% | 36.7% | 0, 12, 30, 0 |
+| 4 | 37 | 3,479 | 18.8% | 21.2% | 28.9% | 31.1% | 60.0% | 0, 3, 0, 34 |
+| 5 | 12 | 734 | 25.3% | 38.0% | 24.3% | 12.4% | 36.6% | 3, 1, 7, 1 |
 
-The other splits (seed 0), questions per client and the range of the hard
+The other splits (seed 42), questions per client and the range of the hard
 or extra share:
 
 | Split | Questions per client | Hard or extra share |
 |---|---|---|
-| `alpha_0.5/k5` | 1,803 / 2,052 / 348 / 3,178 / 1,278 | 27.9% to 54.2% |
-| `iid/k5` | 1,505 / 2,068 / 1,564 / 2,068 / 1,454 | 31.9% to 52.3% |
-| `alpha_0.5/k10` | 200 to 2,815 | 26.0% to 57.2% |
+| `alpha_0.5/k5` | 1,238 / 1,429 / 1,170 / 1,533 / 3,289 | 21.9% to 55.6% |
+| `iid/k5` | 1,866 / 1,298 / 2,005 / 1,462 / 2,028 | 33.9% to 52.4% |
+| `alpha_0.5/k10` | 442 to 1,903 | 19.4% to 63.1% |
 | the earlier domain-cluster split `alpha_0.1/k5` | 1,896 / 1,801 / 2,061 / 1,097 / 1,804 | 36.4% to 57.9% |
 
 What it shows:
 
-- The split does at the level of databases what the recipe says: four of
-  the five clients hold one tier each. At the level of questions the skew
-  is in the proportions, 18% to 57% hard or extra. No client lacks a
-  level: the tier 0 clients still hold 222 and 51 hard or extra questions.
+- At the level of databases three clients hold one tier almost alone
+  (clients 1, 2 and 4); client 3 mixes tiers 1 and 2 and client 5 all
+  four. At the level of questions the skew is in the proportions, 20% to
+  60% hard or extra. No client lacks a level: client 2, all of tier 0,
+  still holds 311 hard or extra questions of 1,542.
+- `alpha_0.5/k5` (22% to 56%) is about as skewed as `alpha_0.1/k5` in this
+  measure, so the alpha rows may not differ much.
 - The IID split is equal in databases, not in questions or hardness
-  (extra 12% to 30%), because the databases differ in size.
+  (extra 14% to 31%), because the databases differ in size.
 - Over 200 seeds at alpha 0.1 with 5 clients: the largest client holds 40%
   of the questions on average, the smallest has a median of 522.
 

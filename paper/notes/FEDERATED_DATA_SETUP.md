@@ -252,21 +252,20 @@ databases, so the client-count sweep uses alpha 0.5.
 The code follows NIID-Bench's `noniid-labeldir` branch (`utils.py`, read
 2026-11-17), which has one rule the recipe of 3.1 lacks: a client that
 already holds its equal share of the items (here 146 / K databases) takes
-none of the labels still to come. With it, alpha 0.1 puts four of the five
-clients on one tier each; without it, the first seed gave one client 85
+none of the labels still to come. Without it, one draw gave a client 85
 databases and 64% of the questions.
 
-On the real data the main split (5 clients, alpha 0.1, seed 0) has clients
-of 288 to 3,948 questions, and the share of hard and extra questions runs
-from 18% to 57%. Three of the figures above change:
+On the real data the main split (5 clients, alpha 0.1, split seed 42) has
+clients of 734 to 3,479 questions, and the share of hard and extra
+questions runs from 20% to 60%. Three of the figures above change:
 
 - The tiers are equal in databases, not in questions: the hardest tier
   holds 42% of the questions, because `scholar` and `geo` are in it.
 - No client lacks a hardness level. A client of the simplest tier still
   has about 20% hard or extra questions, so the argument of 3.3 rests on
   proportions, and the check of section 5, step 2, decides it.
-- The IID setting is equal in databases only. Its clients range from 12%
-  to 30% extra hard questions.
+- The IID setting is equal in databases only. Its clients range from 14%
+  to 31% extra hard questions.
 
 ## 4. Runs for the paper
 
