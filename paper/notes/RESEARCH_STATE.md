@@ -334,9 +334,11 @@ Spider test EX, 2,147 rows, greedy. Details in `LAB_LOG.md`.
 |---|---|---:|---:|---:|---:|---:|
 | Student without training | A, `ddl_rows` | 68.05 | 87.4 | 71.4 | 59.2 | 45.9 |
 | Student without training | B, `ddl_values` | 67.49 | 87.7 | 71.2 | 56.4 | 46.5 |
+| FedAvg SFT, round 1 | A, `ddl_rows` | 72.43 | 89.2 | 75.3 | 63.7 | 54.9 |
 
-The two prompts do not differ (exact McNemar p = 0.47). No trained row
-yet.
+The two prompts do not differ (exact McNemar p = 0.47). FedAvg SFT round 1
+(results `d6bfc763`) is above the untrained student with prompt A: 165 rows
+fixed, 71 broken, exact McNemar p = 8.5e-10.
 
 ## 6. Earlier work
 

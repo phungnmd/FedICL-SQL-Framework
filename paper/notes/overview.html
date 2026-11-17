@@ -302,6 +302,37 @@ mark.e { background: var(--bad-soft); color: var(--bad); }
 #progress .status { margin-bottom: 0; }
 #progress .queue { margin-bottom: 14px; }
 
+/* EX chart and update stamp */
+.stamp { display: inline-flex; align-items: center; gap: 6px; font: 500 0.75rem var(--font-mono); color: var(--muted); white-space: nowrap; margin-left: auto; }
+.stamp b { color: var(--ink); font-weight: 500; }
+.exchart { padding: 20px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.exchart .ch-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; }
+.exchart .ch-head p { font-size: 0.84rem; color: var(--muted); max-width: 60ch; }
+.ch-scroll { overflow-x: auto; }
+.ch-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
+.c-grid { stroke: var(--line); stroke-width: 1; }
+.c-axis { font: 400 11px var(--font-mono); fill: var(--muted); }
+.c-band { fill: var(--ok-soft); }
+.c-band-t { font: 500 11px var(--font-body); fill: var(--ok); }
+.c-ref { stroke: var(--idle); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.c-ref-t { font: 500 11px var(--font-body); fill: var(--muted); }
+.c-line { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; }
+.c-area { fill: var(--accent-soft); opacity: 0.7; }
+.c-line.dpo { stroke: var(--warn); }
+.c-pt { fill: var(--surface); stroke: var(--accent); stroke-width: 2.2; }
+.c-pt.end { fill: var(--accent); }
+.c-pt.base { stroke: var(--ink); fill: var(--surface); }
+.c-val { font: 600 13px var(--font-mono); fill: var(--ink); }
+.c-slot { fill: none; stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.ch-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.8rem; color: var(--muted); }
+.ch-legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 6px; }
+.rb.done { background: var(--ok-soft); color: var(--ok); border: 1px solid var(--ok); }
+.updates { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.updates li { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 10px; }
+.updates time { font-family: var(--font-mono); color: var(--ink); }
+footer .wrap.foot { display: grid; gap: 14px; }
+footer h4 { margin: 0; font: 600 0.85rem var(--font-display); color: var(--ink); }
+
 /* method */
 .story { padding: 20px 22px; font-size: 1.02rem; display: flex; gap: 18px; align-items: flex-start; }
 .story .q-mark { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--accent); font-weight: 800; }
@@ -435,6 +466,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <a href="#directions">Hướng tiếp</a>
       <a href="#rows">Hàng của paper</a>
     </div>
+    <span class="stamp">Cập nhật <b>2026-11-17 18:45</b></span>
   </div>
 </nav>
 
@@ -454,7 +486,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <a class="btn" href="#results"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả</a>
       <a class="btn" href="#progress"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg>Tiến độ</a>
       <a class="btn" href="#directions"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg>Hướng tiếp</a>
-      <span class="live"><span class="pill run">GPU 0</span>FedAvg SFT đang chạy &middot; cập nhật 2026-11-17</span>
+      <span class="live"><span class="pill run">GPU 0</span>FedAvg SFT: R1 xong, 72.43 EX &middot; <a href="#updates">cập nhật 2026-11-17 18:45</a></span>
     </div>
     <figure class="panel arch teaser" aria-labelledby="arch-title">
       <div class="arch-scroll">
@@ -610,7 +642,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="tldr">
       <div class="tl-item"><span class="tl-k">Câu hỏi</span><p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không?</p></div>
       <div class="tl-item"><span class="tl-k">Cách làm</span><p>Mỗi round, client sample SQL từ global model, chạy trên database của mình, ghép cặp đúng và sai, train DPO + NLL với reference là global model của round. Server FedAvg các adapter.</p></div>
-      <div class="tl-item"><span class="tl-k">Trạng thái</span><p>Baseline FedAvg SFT đang chạy, các round DPO đã queue sau nó. Chưa có hàng nào đã train; student chưa train đạt 68.05 EX.</p></div>
+      <div class="tl-item"><span class="tl-k">Trạng thái</span><p>FedAvg SFT round 1 đạt 72.43 EX (student chưa train 68.05). FedAvg chạy tiếp tới khi luật dừng; các round DPO đã queue sau nó.</p></div>
     </div>
   </div>
 </header>
@@ -741,37 +773,33 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Kết quả và dữ liệu</h2>
       <p>Chỉ số đo sau reset 2026-11-17. Số của setup cũ không xuất hiện ở đây.</p>
     </div>
+    <div class="panel exchart">
+      <div class="ch-head">
+        <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>EX trên Spider test theo round</h3>
+        <p>2,147 câu, greedy, prompt A. Round 0 là student chưa train, điểm xuất phát chung. Ô tròn đứt nét là round chưa chạy.</p>
+      </div>
+      <div class="ch-scroll"><svg id="exsvg" viewBox="0 0 960 330" role="img" aria-labelledby="ex-title ex-desc"><title id="ex-title">EX theo round</title><desc id="ex-desc">FedAvg SFT: 68.05 ở round 0, 72.43 ở round 1. Chưa có round DPO.</desc></svg></div>
+      <div class="ch-legend">
+        <span><i style="background:var(--accent)"></i>FedAvg SFT</span>
+        <span><i style="background:var(--warn)"></i>DPO + NLL (chưa có round)</span>
+        <span><i style="background:var(--ok-soft);height:10px;vertical-align:-1px"></i>SFT của student này trong papers</span>
+        <span><i style="background:repeating-linear-gradient(90deg,var(--idle) 0 5px,transparent 5px 9px)"></i>cao nhất đã công bố</span>
+      </div>
+    </div>
     <div class="data-grid">
       <div class="panel">
-        <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Khoảng trống trên Spider test</h3>
-        <div class="scale" role="img" aria-label="Thang EX từ 60 đến 85: student chưa train 68.05, SFT trong papers 77 đến 78, cao nhất đã công bố 82.3">
-          <div class="axis"></div>
-          <div class="tick" style="left:0%"><span>60</span></div>
-          <div class="tick" style="left:20%"><span>65</span></div>
-          <div class="tick" style="left:40%"><span>70</span></div>
-          <div class="tick" style="left:60%"><span>75</span></div>
-          <div class="tick" style="left:80%"><span>80</span></div>
-          <div class="tick" style="left:100%"><span>85</span></div>
-          <div class="band" style="left:68%;width:4%"></div>
-          <div class="mark" style="left:32.2%;background:var(--accent)"></div>
-          <div class="mark" style="left:89.2%;background:var(--idle)"></div>
-          <div class="stem" style="left:32.2%;top:40px;height:32px"></div>
-          <div class="lbl up" style="left:32.2%"><b>68.05</b>chưa train, prompt A</div>
-          <div class="stem" style="left:70%;top:88px;height:16px"></div>
-          <div class="lbl down" style="left:70%;top:104px"><b>77-78</b>SFT của student này trong papers</div>
-          <div class="stem" style="left:89.2%;top:40px;height:32px"></div>
-          <div class="lbl up" style="left:auto;right:0;transform:none;text-align:right"><b>82.3</b>cao nhất công bố (SPFT-SQL)</div>
-        </div>
+        <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Các hàng đã có</h3>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Student chưa train</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th></tr></thead>
+            <thead><tr><th>Hàng</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th></tr></thead>
             <tbody class="num">
-              <tr><td>Prompt A, <code>ddl_rows</code></td><td class="r"><b>68.05</b></td><td class="r">87.4</td><td class="r"><b>71.4</b></td><td class="r"><b>59.2</b></td><td class="r">45.9</td></tr>
-              <tr><td>Prompt B, <code>ddl_values</code></td><td class="r">67.49</td><td class="r"><b>87.7</b></td><td class="r">71.2</td><td class="r">56.4</td><td class="r"><b>46.5</b></td></tr>
+              <tr><td>Chưa train</td><td class="r">68.05</td><td class="r">87.45</td><td class="r">71.41</td><td class="r">59.18</td><td class="r">45.94</td><td class="r">287</td><td class="r">399</td></tr>
+              <tr><td>FedAvg SFT R1</td><td class="r"><b>72.43</b></td><td class="r"><b>89.15</b></td><td class="r"><b>75.26</b></td><td class="r"><b>63.71</b></td><td class="r"><b>54.90</b></td><td class="r"><b>215</b></td><td class="r"><b>377</b></td></tr>
             </tbody>
           </table>
         </div>
-        <p>A và B không khác nhau (exact McNemar p = 0.47). Các run trên Spider dùng prompt A. Hàng FedAvg SFT sẽ đặt lên thang này khi round đầu tiên publish.</p>
+        <p>R1 so với chưa train: sửa đúng 165 câu, làm sai 71 câu, exact McNemar p = 8.5e-10. Phần lớn gain là lỗi chạy giảm (287 xuống 215); SQL chạy được nhưng sai kết quả chỉ giảm 399 xuống 377. Đây là nhóm lỗi I2 nhắm tới.</p>
+        <p>Prompt B (<code>ddl_values</code>) khi chưa train: 67.49, không khác A (p = 0.47). Results: chưa train <code>12456b56</code>, FedAvg R1 <code>d6bfc763</code>.</p>
       </div>
 
       <div class="panel">
@@ -817,7 +845,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span>
       <span class="pill run">đang chạy</span>
       <span class="big mono">rounds/fedavg_sft</span>
-      <span class="small">Khoảng 2 h/round + 10 phút eval (ước tính), 3 đến 8 round. Sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
+      <span class="small">R1 đo được: 2.04 h train, peak reserved 20.3 GB, eval 3.4 phút. 3 đến 8 round; sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
     </div>
     <div class="cell">
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span>
@@ -833,23 +861,23 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     </div>
     <div class="cell">
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả đã có</span>
-      <span class="pill done">base student</span>
-      <span class="big num">68.05 EX</span>
-      <span class="small">Student chưa train, prompt A. Chưa có hàng nào đã train.</span>
+      <span class="pill done">FedAvg SFT R1</span>
+      <span class="big num">72.43 EX</span>
+      <span class="small">+4.38 so với chưa train (68.05), p = 8.5e-10.</span>
     </div>
   </div>
 
   <div class="panel queue" aria-label="Queue trên GPU 0 theo round">
-    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>Mỗi round khoảng 2 h train + 10 phút eval (ước tính). Chưa có round nào publish.</span></div>
+    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>R1 đo được 2.04 h train + 3.4 phút eval; các round sau ước tính tương tự.</span></div>
     <div class="q-row">
-      <div class="q-name">FedAvg SFT<span>đang chạy</span></div>
-      <div class="q-track"><span class="rb must">R1</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
+      <div class="q-name">FedAvg SFT<span>R1 xong; worker chạy tiếp R2</span></div>
+      <div class="q-track"><span class="rb done" title="72.43 EX">R1 72.43</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
     </div>
     <div class="q-row">
       <div class="q-name">DPO + NLL<span>queued, từ round FedAvg tốt nhất</span></div>
       <div class="q-track"><span class="rb must wait">R1</span><span class="rb must wait">R2</span><span class="rb must wait">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span></div>
     </div>
-    <div class="q-legend"><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
+    <div class="q-legend"><span>Ô xanh lá: round đã publish.</span><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
   </div>
 
     <div class="phases">
@@ -870,7 +898,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <h3>FedAvg SFT, rồi DPO + NLL</h3>
         <div class="ph-count"><div class="bar"><span class="runseg" style="width:33.3%"></span></div><span>0/3 xong, 1 đang chạy</span></div>
         <ul>
-          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8)</span></li>
+          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8). R1: 72.43 EX</span></li>
           <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (I3 + I1), tối đa 6 round</span></li>
           <li><span class="dot"></span><span>Control: FedAvg chạy tiếp cùng số round</span></li>
         </ul>
@@ -953,10 +981,17 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <span>Nguồn: <code>RESEARCH_STATE.md</code>, <code>PIPELINE_NEXT.md</code>, <code>LAB_LOG.md</code>, trạng thái ngày 2026-11-17.</span>
-    <span>Thời gian và chi phí ghi "khoảng" là ước tính.</span>
+<footer id="updates">
+  <div class="wrap foot" style="border-top:1px solid var(--line);padding-top:18px">
+    <h4>Lịch sử cập nhật</h4>
+    <ul class="updates">
+      <li><time>2026-11-17 18:45</time><span>FedAvg SFT R1 (72.43 EX, results <code>d6bfc763</code>); thêm biểu đồ EX theo round và bảng các hàng đã có.</span></li>
+      <li><time>2026-11-17 18:36</time><span>Bố cục trang dự án, Method lên đầu.</span></li>
+      <li><time>2026-11-17 17:55</time><span>Icon cho sơ đồ và các thẻ.</span></li>
+      <li><time>2026-11-17 17:53</time><span>Sơ đồ architecture, hình 10 samples, ma trận so với baseline.</span></li>
+      <li><time>2026-11-17 17:47</time><span>Tạo trang từ <code>RESEARCH_STATE.md</code>, <code>PIPELINE_NEXT.md</code>, <code>LAB_LOG.md</code>.</span></li>
+    </ul>
+    <span>Mọi số trên trang lấy từ results đã commit trong <code>fedicl-sql</code>. Thời gian và chi phí ghi "khoảng" là ước tính.</span>
   </div>
 </footer>
 
@@ -1033,6 +1068,59 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       '<dl><dt>Khi nào</dt><dd>' + d.when + '</dd><dt>Trả lời</dt><dd>' + d.ans + '</dd><dt>Chi phí</dt><dd>' + d.cost + '</dd></dl>';
     grid.appendChild(el);
   });
+
+  // EX per round on Spider test. Round 0 is the untrained student; DPO rounds start from the best FedAvg round.
+  var EX = {
+    fedavg: [[0, 68.05], [1, 72.43]],
+    dpo: [],            // [[round on this axis, EX], ...]
+    maxRound: 8,
+    yMin: 64, yMax: 84,
+    band: [77, 78],     // SFT of this student in papers
+    best: 82.3          // highest published (SPFT-SQL)
+  };
+  (function drawEx() {
+    var svg = document.getElementById("exsvg");
+    if (!svg) return;
+    var NS = "http://www.w3.org/2000/svg", W = 960, H = 330, ml = 52, mr = 196, mt = 24, mb = 48;
+    function X(r) { return ml + r / EX.maxRound * (W - ml - mr); }
+    function Y(v) { return mt + (EX.yMax - v) / (EX.yMax - EX.yMin) * (H - mt - mb); }
+    function el(tag, attrs, text) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (text != null) e.textContent = text;
+      svg.appendChild(e); return e;
+    }
+    var x0 = X(0), x1 = X(EX.maxRound);
+    el("rect", { "class": "c-band", x: x0, y: Y(EX.band[1]), width: x1 - x0, height: Y(EX.band[0]) - Y(EX.band[1]) });
+    el("text", { "class": "c-band-t", x: x1 + 12, y: (Y(EX.band[0]) + Y(EX.band[1])) / 2 + 4 }, "77-78  SFT trong papers");
+    for (var v = EX.yMin; v <= EX.yMax; v += 4) {
+      el("line", { "class": "c-grid", x1: x0, x2: x1, y1: Y(v), y2: Y(v) });
+      el("text", { "class": "c-axis", x: x0 - 10, y: Y(v) + 4, "text-anchor": "end" }, v);
+    }
+    el("line", { "class": "c-ref", x1: x0, x2: x1, y1: Y(EX.best), y2: Y(EX.best) });
+    el("text", { "class": "c-ref-t", x: x1 + 12, y: Y(EX.best) + 4 }, EX.best + "  SPFT-SQL");
+    for (var r = 0; r <= EX.maxRound; r++) {
+      el("text", { "class": "c-axis", x: X(r), y: H - mb + 22, "text-anchor": "middle" }, r === 0 ? "chưa train" : "R" + r);
+    }
+    el("text", { "class": "c-axis", x: x1 + 12, y: H - mb + 22 }, "round");
+    var done = {}; EX.fedavg.forEach(function (p) { done[p[0]] = 1; });
+    for (var r2 = 1; r2 <= EX.maxRound; r2++) if (!done[r2]) el("circle", { "class": "c-slot", cx: X(r2), cy: Y(EX.fedavg[EX.fedavg.length - 1][1]), r: 5 });
+    function series(pts, cls) {
+      if (!pts.length) return;
+      var d = pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+      if (cls === "fedavg" && pts.length > 1) {
+        el("path", { "class": "c-area", d: d + " L" + X(pts[pts.length - 1][0]).toFixed(1) + "," + Y(EX.yMin) + " L" + X(pts[0][0]).toFixed(1) + "," + Y(EX.yMin) + " Z" });
+      }
+      el("path", { "class": "c-line" + (cls === "dpo" ? " dpo" : ""), d: d });
+      pts.forEach(function (p, i) {
+        var last = i === pts.length - 1;
+        el("circle", { "class": "c-pt" + (p[0] === 0 ? " base" : last ? " end" : ""), cx: X(p[0]), cy: Y(p[1]), r: last ? 6 : 5 });
+        el("text", { "class": "c-val", x: X(p[0]), y: Y(p[1]) - 14, "text-anchor": "middle" }, p[1].toFixed(2));
+      });
+    }
+    series(EX.fedavg, "fedavg");
+    series(EX.dpo, "dpo");
+  })();
 
   var buttons = document.querySelectorAll(".filters button");
   function apply(f) {

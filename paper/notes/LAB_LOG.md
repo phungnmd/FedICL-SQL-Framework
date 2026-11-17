@@ -16,6 +16,15 @@ product error 0.126. Client drift is not measurable from this round
 alone: the round-1 update cosine is taken against the zero adapter (the
 LoRA A init is shared), and no centralized or IID reference exists yet.
 
+## 2026-11-17: FedAvg SFT round 1 (results `d6bfc763`)
+
+Spider test EX 72.43 (easy 89.15, medium 75.26, hard 63.71, extra 54.90),
+against 68.05 for the untrained student with prompt A (results
+`12456b56`): 165 rows fixed, 71 broken, exact McNemar p = 8.5e-10. Wrong
+rows with an execution error fell from 287 to 215; wrong rows without one
+from 399 to 377. Round 1 trained in 7,339 s with peak reserved 20,311 MB;
+the evaluation took 206 s. The worker goes on to round 2 by itself.
+
 ## 2026-11-17: aggregation options for the DPO rounds written down (owner)
 
 Owner: the federated options for aggregating the DPO rounds are options to

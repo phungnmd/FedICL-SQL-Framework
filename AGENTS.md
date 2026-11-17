@@ -148,6 +148,9 @@ deviate.
   quick read; say what is cut and report the result as partial.
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
+- `paper/notes/overview.html` is the owner's project page. Update it only
+  when the owner asks, from committed results; each update sets its
+  `Cập nhật` stamp and adds a line to its update log at the bottom.
 
 ## Writing
 
