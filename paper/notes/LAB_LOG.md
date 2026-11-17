@@ -4,7 +4,7 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
-## 2026-11-18: DPO round 1 from FedAvg round 2, training read (results `431a17e7`)
+## 2026-11-18: DPO round 1 from FedAvg round 2: 77.46 on Spider test (results `431a17e7`, `be787676`)
 
 `dpo_k2` round 1 (random pairs, 2 per mixed question, 8,026 pairs, one
 epoch, beta 0.1, NLL weight 1). On each client the margin rises from
@@ -17,7 +17,17 @@ of the factor average 0.005 (SFT: 0.045-0.126). The DPO updates of the
 five clients point the same way where the SFT updates had become
 orthogonal. Rejected side: 4,087 of 8,026 pairs (51%) reject an execution
 error; greedy round 2 has 183 execution errors and 373 wrong results on
-Spider test. Peak reserved 12.65-18.93 GiB. Greedy EX pending.
+Spider test. Peak reserved 12.65-18.93 GiB.
+
+Greedy EX on Spider test (results `be787676`): 77.46 (easy 91.49, medium
+80.63, hard 71.06, extra 59.66); FedAvg round 3 74.71, round 2 74.10.
+Wrong rows: execution errors 99 (round 3: 164, round 2: 183), wrong
+results 385 (379, 373). Against round 3: fixed 134 (63 from execution
+errors, 71 from wrong results), broke 75 (21 into execution errors, 54
+into wrong results), McNemar p 5.4e-05; against round 2 (its start):
+fixed 146, broke 74, p 1e-06. The whole net gain comes from execution
+errors; the wrong-result count does not move, as the 51% share of
+execution-error rejects predicted.
 
 ## 2026-11-18: FedAvg capped at round 4, centralized SFT next (owner; code `cb947362`)
 
