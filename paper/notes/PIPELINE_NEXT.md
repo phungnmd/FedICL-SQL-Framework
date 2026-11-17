@@ -26,9 +26,11 @@ worker rereads the queue before every task.
    ```
 
 2. Leave the worker running overnight. Expected order and times
-   (estimates, Asia/Ho_Chi_Minh, 18 Nov): DPO round from FedAvg round 2
-   and its evaluation about 01:30-01:45; the nearest-pair round about
-   03:30-03:45; FedAvg round 4 about 05:50; then centralized SFT, about
+   (estimates, Asia/Ho_Chi_Minh, 18 Nov, revised 01:45 from the console:
+   clients 1-3 took 2 h 15 min, about 1.7 s per pair): DPO round from
+   FedAvg round 2 and its evaluation about 03:00-03:15; the nearest-pair
+   round about 05:30-06:00; FedAvg round 4 about 08:00; then centralized
+   SFT, about
    2 h 10 min per epoch with its evaluation, until its rule stops it
    (likely 3 to 5 epochs). If the worker stops, start it again:
 
