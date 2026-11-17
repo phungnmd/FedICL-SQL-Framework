@@ -3,9 +3,9 @@
 ## Status
 
 Updated 2026-11-17 (Asia/Ho_Chi_Minh). Nothing is running. The code for
-the DPO rounds from the base student and the read of the pairs is pushed
-(code `c03bd693`); the server checkout is at the result commit `12456b56`
-(code `083a6a52`) until step 1 below is run.
+the DPO rounds from the base student and the read of the pairs is pushed,
+with a fix of one test that failed only on Windows (code `ce380f46`). The
+server checkout has pulled `c03bd693`; step 1 pulls the fix.
 
 | GPU | State | Known from |
 |---|---|---|
