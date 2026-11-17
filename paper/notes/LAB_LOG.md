@@ -4,6 +4,16 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: I2 queued on the k = 2 samples (owner; code `922b2660`)
+
+Owner approved. After the random-pair round from FedAvg round 2, the same
+round with nearest-correct pairs (`--pair-rule nearest`, 2 per question)
+trains on the same samples, copied to root
+`fedpref_sftr2_nearest_ddlrows_alpha01_s0` by `scripts/reuse_samples.py`;
+same flags otherwise (test in `tests/test_active_queue.py`). Reason: FedAvg
+round 3 left the executable wrong results flat at 373-379 since round 1.
+Then FedAvg round 4 and on.
+
 ## 2026-11-17: FedAvg SFT round 3 (code `845db4bc`, eval `6558ebfe`)
 
 Spider test EX 74.71 (easy 90.21, medium 78.88, hard 67.17, extra
