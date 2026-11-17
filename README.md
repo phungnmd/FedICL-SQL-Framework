@@ -1,44 +1,22 @@
 # FedLS-SQL
 
-Research repository for the paper *FedLS-SQL* (working title; subtitle open).
+Workspace of the paper *FedLS-SQL* (working title): federated Text-to-SQL
+where clients train a small model (Qwen2.5-Coder-1.5B-Instruct) on private
+data and only that model is deployed.
 
-FedLS-SQL trains a small model (Qwen2.5-Coder-1.5B-Instruct) on private
-Text-to-SQL data held by federated clients, and uses a frozen large model
-(Qwen2.5-Coder-7B) on the server, on public data only, to improve it. Only
-the small model is deployed. No method or paper story is fixed yet; the
-project is in an exploration phase.
+Start here:
 
-Start here (in this order):
+1. `paper/notes/RESEARCH_STATE.md`: question, setup, method, what is open.
+2. `paper/notes/PIPELINE_NEXT.md`: what to run now and what is running.
+3. `paper/notes/LAB_LOG.md`: runs, results and decisions, newest first.
 
-1. `paper/notes/RESEARCH_STATE.md`: the question, what we know, what is open,
-   and the current phase.
-2. `paper/notes/LAB_LOG.md`: evidence and decisions, newest first.
-3. `paper/notes/PIPELINE_NEXT.md`: the only list of commands to run.
-4. `paper/notes/system_architecture.md`: setup, data rules, claim limits.
-5. `paper/notes/RESULT_REGISTRY.md`: where every number and adapter came from.
+Also: `paper/notes/LITERATURE.md` (related work), `paper/references/`
+(private source library), `paper/templates/` (venue templates).
 
-Other active files:
+Two repositories on purpose. This one holds the paper material. The code,
+processed data and committed results are in `fedicl-sql/`, a separate Git
+repository (Python package `fedls_sql`) and the only one on the GPU server.
 
-- Candidate directions: `paper/notes/DIRECTION.md`
-- Related work and claim limits: `paper/notes/LITERATURE.md`
-- Archive index (old logs, directions, reviews, runbooks): `paper/archive/README.md`
-- Code: `fedicl-sql/`
-
-**Two-repo layout (intentional):** this outer repo contains private paper
-materials, plans, and references. `fedicl-sql/` is a separate Git repository
-containing code and the reproducibility trail. The legacy Python namespace
-`fedicl_sql` is retained for compatibility; old artifact paths and run IDs are
-immutable provenance identifiers, not presentation names.
-
-The training server may contain only the inner code repository. Paper-facing
-commands must therefore avoid runtime dependencies on this outer repository;
-compact result artifacts are pushed from the server and reconciled with the
-registry and paper tables here.
-
----
-
-## Convention
-
-Project conventions live in [`CONVENTION.MD`](CONVENTION.MD). That file is the
-single source of truth for repository layout, data handling, experiment
-provenance, stage discipline, and paper artifact generation.
+Rules for agents: `AGENTS.md`. Work from before the clean reset of
+2026-11-17 is at the tag `archive/pre-reset-2026-11-17` in each repository
+and in the local `archive/` folder.

@@ -1,599 +1,106 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-17. The project restarted on 2026-11-05; everything decided
-or measured before that date is archived and hidden (see `AGENTS.md`, "Fresh
-start"). This file says what is fixed, what the method is, what the results
-show and what is still open. Runs and reasons are in `LAB_LOG.md`.
+Updated 2026-11-17. On this date the owner set the project up again from
+clean: a new prompt, refactored code (package `fedls_sql`) and every result
+produced again. This file says what is fixed, what the method is and what
+is open. Runs and decisions are in `LAB_LOG.md`.
 
 ## 1. Question
 
 Several clients hold private Text-to-SQL data that cannot leave them. They
-train a small model (SLM) together through federated learning, and only the
-SLM is deployed. The server may hold a large frozen LLM teacher and public
-data from another domain. How can the deployed SLM become measurably better
+train a small model together through federated learning, and only that
+model is deployed. The server may hold a large frozen LLM and public data
+from another domain. How can the deployed model become measurably better
 on the clients' domain than standard federated training?
 
-Goal: a journal paper at Q3 or above with a good method that clearly beats
-the federated baselines; the target is a direction, not a bar to hit rigidly
-(owner, 2026-11-11). The teacher is an option, not a requirement (owner,
-2026-11-06).
+Goal: a journal paper at Q3 or above (candidates: CMC, JIIS) with a method
+that clearly beats the federated baselines and reports good numbers.
 
-Main venue candidates (owner, 2026-11-14): Computers, Materials & Continua
-(CMC) or Journal of Intelligent Information Systems (JIIS). Author guidance:
-[CMC](https://www.techscience.com/cmc/info/auth_instru). The final venue is
-not yet selected.
+## 2. Setup
 
-## 2. Fixed setup
-
-| Part | Fixed choice |
-|---|---|
-| Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct, SQL-only output, greedy decoding |
-| Prompt | `codes` schema (owner, 2026-11-16); every row before P1 uses `full`. New lines use the corrected renderer `codes_v2` (owner, 2026-11-16; `LAB_LOG.md`): CodeS-style serialization without CodeS's schema filter and value retriever |
-| Decoding | Greedy, 256 new tokens. No repetition penalty from 2026-11-16 (owner); every row before that date was decoded with the penalty of the model's generation config, 1.1, in evaluation and in the DPO samples (section 5, item 11) |
-| Teacher (optional) | Qwen2.5-Coder-7B-Instruct, frozen. It runs only at the server and only on public data. Used by stage 1 (owner, 2026-11-17) |
-| Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`. Private rows never leave a client. |
-| Server public data (optional) | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it (owner, 2026-11-07). Used by stage 1 (owner, 2026-11-17) |
-| Communication | Clients send model updates, never data |
-| Compute | Two RTX A5000 24 GB under WDDM (`fedicl-sql/docs/A5000_RUN_CONFIG.md`); GPU 1 is in use by another user for now |
+| Part | Choice | State |
+|---|---|---|
+| Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
+| Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`; private rows never leave a client | fixed |
+| Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | fixed; used by stage 1, which comes after the client stages |
+| Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
+| Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
+| Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); such a number is reported as chosen on Spider test, never as held-out | fixed |
+| Prompt | a standard published format, one for training, sampling and evaluation | open, section 4 |
+| Training recipe | LoRA SFT at lr 2e-4, 3 FedAvg rounds of 1 local epoch (the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs) | open, section 4 |
+| Compute | RTX A5000 24 GB under WDDM; GPU 1 is in use by another user | fixed |
 
 Data rules: train and test never share a database; test data never becomes
 training, retrieval or teacher data; privacy is structural data isolation,
 not differential privacy.
 
-Metric: Spider test EX (2,147 rows), evaluated through vLLM
-(`--vllm-determinism inproc`). Choices are made on Spider test, so it is
-never called held-out. No choice has been made on Spider dev, Realistic, SYN
-and DK (all four on the 20 Spider dev databases); they are the check that
-does not depend on a choice.
-
 ## 3. Method
 
-Fixed by the owner on 2026-11-17: three stages. The decision of 2026-11-16
-that took the server stage and the teacher out of the method is withdrawn.
+Three stages (owner, 2026-11-17). The supervision a small Text-to-SQL model
+needs sits in two places that cannot meet: the server has a large LLM and
+public data and never sees a client's data; a client has its questions and
+databases and cannot share them. The method takes each kind of supervision
+where it lives, and only the small model's adapter moves between the two.
 
-The story: the supervision a small Text-to-SQL model needs sits in two
-places that cannot meet. The server has a large LLM and public data and
-never sees a client's data. A client has its questions and its databases
-and cannot share them. The method takes each kind of supervision where it
-lives, and only the small model's adapter moves between the two.
-
-| Stage | Where | Supervision it uses | What it is for | Effect measured so far |
-|---|---|---|---|---|
-| 1. Server stage | server | the teacher's soft targets on public data (BIRD train) | general SQL ability that the clients' few domains do not give; it shows most on databases far from the clients | FedAvg R3 +2.12 before DPO and +1.40 after DPO on Spider test (two seeds pooled); after DPO Spider dev +3.53, DK +4.11; BIRD dev +11.38, which is the public data's own domain and not a transfer |
-| 2. FedAvg SFT | clients | the labelled questions | the clients' domain | base model 65.72 to FedAvg R3 74.71 (`codes`, without the penalty); with `codes_v2` the rounds give 72.05 / 74.57 / 74.85 |
-| 3. Federated DPO + NLL | clients | the client's databases, as a check of the model's own SQL | the errors a gold label cannot show: the label says what is right, execution says what the model gets wrong | +2.3 to +2.75 over FedAvg R3 without the penalty; execution errors 171 to 82 (`codes`); samples drawn again each round +1.72 over fixed samples |
-
-Stage 3 in a round: each client samples 8 SQL for each of its questions
-from the current model, labels them by execution on its own databases,
-pairs a correct sample with a wrong one (the gold SQL is the chosen side
-when no sample is correct), trains on the pairs, and the server averages
-the updates. Stages 2 and 3 run 3 rounds each.
-
-What belongs to the method (owner, 2026-11-17): a part needs a place in
-this story and a shown effect in the final setup (`codes_v2` prompts,
-decoding without the repetition penalty). A part without one is an
-analysis row or is dropped; nothing is added only because it raises a
-number. The effects in the table were measured with `full` or `codes`
-prompts and, for stage 1, with the penalty; the queue reads stage 1 in
-the final setup (`sqlcv2_s0/curve_hinton_sft`).
-
-Around the method, not stages of it:
-
-- The prompt (`codes_v2`, CodeS's serialization, arXiv 2402.16347) is the
-  setup; every baseline uses it.
-- Selection by execution over 8 samples at inference is an optional row
-  (the method with the vote: 78.39, +1.68 over its greedy output, `full`).
-- A fourth stage under the same condition, if its read shows an effect:
-  the client's databases as a source of new training questions (synthetic
-  rows kept by an execution check; section 5, item 13).
-
-Open for the story:
-
-- The teacher's own part of stage 1. Against the same stage with gold SQL
-  on BIRD, after DPO: +0.98 on Spider test (two seeds pooled, p = 0.04);
-  against a soft target without the teacher, seed 0: +1.12 on Spider test,
-  +3.48 on Spider dev, +3.93 on DK. If the final setup shows no lead over
-  gold SQL, stage 1 is told as public data at the server and the teacher
-  as an option.
-- The server stage in the queue was trained with `full` prompts; a stage
-  retrained with `codes_v2` prompts is not built.
-
-Weak points and the three directions for them (owner, 2026-11-17). A
-review of the method against its own numbers found: the teacher is the
-weakest part (+0.98 over gold SQL after DPO, and not on the rows the
-teacher gets right); the two sides of the story are unequal (the client
-stages give about +3.5, the server stage +1.40 after DPO); stages 1 and 3
-do not act on each other (the DPO gain is +3.40 from the server stage and
-+3.87 without it); execution feedback repairs SQL that does not run (211
-to 58) and leaves the about 440 rows with a wrong result; and FedAvg
-equals centralized training with 5 clients. Each direction has a short
-read in the queue, ahead of the long lines:
-
-| Direction | What changes in the story | Read in the queue | Kept when |
+| Stage | Where | Supervision | Order of work |
 |---|---|---|---|
-| 1. The clients' execution feedback is the centre; the server stage is a start on public data, the teacher an option inside it | the title and the order of the claims, not the stages | selection at inference on FedAvg R3 (`vote_s0/xsel_fedavg_r3`) against the DPO rounds; the server stage in the final setup (`sqlcv2_s0/curve_hinton_sft`) | the DPO rounds lead what selection at inference gives the FedAvg model |
-| 2. One mechanism in two places: the execution-preference round also runs at the server on the public databases, after the teacher stage | stages 1 and 3 share a mechanism; the teacher can then supply correct SQL where a public row has none | one DPO + NLL round on 3,000 BIRD train questions from the Hinton server stage, on Spider test and BIRD dev (`srvx_s0`); then the same round with the teacher's SQL as the chosen side where it is correct and no sample is (`srvt_s0`: the pair count first, the round after the other rows) | the round lifts Spider test over the stage's adapter |
-| 3. The client's databases as a source of new training questions | a fourth stage, aimed at the questions the three stages leave wrong | one FedAvg SFT round with the verified synthetic rows against the same round without them (`synvc_s0`) | the round with the rows leads the round without them |
+| 1. Server stage | server | the teacher on public data | after stages 2 and 3 are in place |
+| 2. FedAvg SFT | clients | the labelled questions | first |
+| 3. Federated DPO + NLL | clients | execution of the model's own SQL on the client's databases | first; the centre of the paper |
 
-First reads (2026-11-17, seed 0, Spider test, `codes_v2`, no penalty):
+Stage 3 in a round: each client samples several SQL for each of its
+questions from the current model, labels them by execution on its own
+databases, pairs a correct sample with a wrong one, trains with DPO plus an
+NLL term on the chosen side, and the server averages the updates.
 
-- Direction 1, selection at inference on FedAvg R3 with no training
-  (`db1a36cc`): greedy 74.85; greedy kept when it executes, else the most
-  frequent executable sample, 77.78 (1.64 model calls a question on
-  average); vote over 8 samples by result, 78.90; a correct sample exists
-  for 85.7% of the questions. Of the 172 greedy outputs that do not run,
-  63 are repaired; of the 368 that run and are wrong, the vote repairs 47,
-  and it breaks 21 right ones. The DPO rounds on the `codes` line reach
-  77.04 from 74.71 with one greedy call. Selection at inference on the
-  FedAvg model therefore gives as much as the DPO rounds, with the
-  database and 1.6 to 8 calls at inference. What stage 3 is worth in the
-  final setup is read from its greedy output against 77.78 and its vote
-  against 78.90 (`sqlcv2_s0/curve_fedavg`, `vote_s0/xsel_dpo_r3`).
-- Direction 3, the check of the synthetic rows (`24612ccd`): 3,177 of
-  5,434 kept. Kept by number of tables: 68% of the one-table rows, 46% of
-  two, 40% of three, 11 of 36 with four or more, so the kept rows are
-  68.6 / 24.2 / 6.9 / 0.3% (Spider test 57.3 / 30.3 / 10.7 / 1.7%). For
-  1,922 of the kept rows all 8 samples already return the right result;
-  1,255 have one to seven. One FedAvg SFT round on the own rows plus the
-  kept rows gives 74.15 from 74.71 (`a428e174`); the same round without
-  the rows is running.
-- Direction 1, both sides with selection, `codes` line (`c9c90ff3`):
-  FedAvg R3 74.71 greedy, 77.97 with the fallback, 78.95 with the vote;
-  DPO round 3 from it 77.04, 78.57, 79.32. Stage 3 leads by +2.33 with one
-  call and by +0.37 under the vote (65 / 57 questions, not separable).
-  With `full` prompts and the penalty the DPO rounds keep +1.21 (seed 0)
-  and +2.52 (seed 1) under the vote, and the method +2.84 and +2.15. The
-  final setup is read from `vote_s0/xsel_dpo_r3` and
-  `vote_s0/xsel_hinton_dpo_r3`.
+Closest work: CodeLutra (arXiv 2411.05199), the same loop run centrally at
+8B. It starts from the base model with no SFT stage (its SFT model is a
+separate baseline), draws 10 samples at T 1.0, uses only the model's own
+correct samples as the chosen side, and trains DPO + SFT with beta 0.1 and
+lambda 1.0, LoRA r 8, lr 5e-5, one epoch per iteration, 4 iterations.
+Different here: federated, 1.5B, after FedAvg SFT, the gold SQL as the
+chosen side when no sample is correct. The rest of the map is in
+`LITERATURE.md`.
 
-Federated learning is the setting the method has to work in; the paper
-does not claim that federation produces the gain (owner, 2026-11-11).
+## 4. Open
 
-Closest prior work (`LITERATURE.md`, sections 1.16 and 2): CodeLutra
-(arXiv 2411.05199) is the recipe of stage 3 run centrally at 8B: samples
-from the current model each iteration, execution labels, DPO with an SFT
-term, SQL-only output; on Spider it goes from 67.9 after SFT to 76.6 at
-its best iteration (Llama-3-8B). Also: federated DPO as local DPO with
-LoRA averaging, on human preferences (OpenFedLLM, FedBiscuit); gold as the
-chosen side (Iterative RPO); a server LLM that helps federated small
-models through public data (FedMKT, FedCoLLM); and reports that SQL-only
-DPO gave no gain at 7B and above (Liu et al., ACL 2025; ExCoT). Different
-here: the two sources are combined for cross-database Text-to-SQL, the
-teacher is frozen and sees public data from another domain only, and the
-preference rounds run at the clients, each on its own databases, at 1.5B.
+1. The prompt. Checked practice is in `LITERATURE.md`, section 1.19: most
+   work feeds `CREATE TABLE` text plus a few database values, as one user
+   message through the chat template, and a fine-tuned small model outputs
+   SQL only. Candidates, none of which needs a trained filter or a
+   retriever:
 
-## 4. What the results show
+   | Candidate | Schema text | Used by |
+   |---|---|---|
+   | A | `CREATE TABLE` text and 3 example rows per table, the line `-- Using valid SQLite, answer the following questions for the tables provided above.`, the question, "Please output only the final SQL query, starts with keyword `SELECT`." | Rajkumar et al. 2022; Chang and Fosler-Lussier 2023; the Qwen2.5-Coder report and its evaluation code |
+   | B | `CREATE TABLE` text with example values of each column as SQL comments | OmniSQL, SLM-SQL (with reasoning in the output; here SQL only), MSc-SQL |
+   | C | `CREATE TABLE` text alone | CodeLutra, DAIL-SQL's code representation |
 
-Seed 0 and seed 1 are complete for the three DPO lines; the soft-target
-controls and the row without the NLL term are seed 0 only. Numbers and
-commits: `LAB_LOG.md`. Every row of this section uses the `full` prompt,
-and "the method" names the line with the Hinton server stage, the method
-until 2026-11-16. The core is the row "DPO round 3 from FedAvg R3" (with
-`codes`: section 5, item 7).
+   A is the format the student's authors evaluate it with. The choice is
+   the owner's; a zero-shot read of the base model on Spider test with each
+   candidate takes minutes per candidate.
+2. The training target: the SQL followed by the end token; whether gold SQL
+   is normalized (CodeS upper-cases keywords and lower-cases identifiers;
+   2,046 of the 8,659 Spider train golds end with `;`).
+3. Stage 3 settings where CodeLutra and the earlier setup differ: samples
+   per question (10 or 8), temperature (1.0 or 0.7), pairs per question,
+   LoRA rank (8 or 16), learning rate and epochs.
+4. The seeds of sampling (round and client in the seed) and of the SFT
+   shuffle.
+5. Stage 1 and the teacher's role. In the earlier setup the teacher's own
+   part was small against gold SQL on the same public data.
+6. Baselines with the new prompt: FedAvg, FedProx, FedNTD, centralized SFT.
 
-| Row | Spider test EX, seed 0 | Execution errors, seed 0 | Spider test EX, seed 1 | Execution errors, seed 1 |
-|---|---:|---:|---:|---:|
-| base model | 57.89 | 440 | | |
-| centralized Spider | 70.75 | 219 | | |
-| FedAvg R3 | 71.26 | 211 | 71.87 | 222 |
-| virtual-teacher server stage, then FedAvg (`virtual_k2aaa_a3`) | 72.57 | 163 | | |
-| self-teacher server stage, then FedAvg (`self_k2aaa_a3`) | 72.61 | 149 | | |
-| gold server stage, then FedAvg (`gold_k2aaa_a3`) | 73.08 | 144 | 73.73 | 163 |
-| Hinton server stage, then FedAvg (`hinton_k2aaa_a3`) | 73.31 | 129 | 74.06 | 132 |
-| centralized Spider + BIRD (no privacy) | 73.96 | 163 | | |
-| `hinton_k2aaa_a3` + NLL-only round | 73.50 | 117 | | |
-| `hinton_k2aaa_a3` + 1 FedAvg SFT round | 74.15 | 132 | | |
-| DPO round 1 from `hinton_k2aaa_a3`, with NLL / without NLL | 75.69 / 76.20 | 82 / 85 | | |
-| DPO round 3 from FedAvg R3 | 75.13 | 101 | 75.83 | 95 |
-| DPO round 3 from `gold_k2aaa_a3` | 75.22 | 71 | 76.57 | 71 |
-| DPO round 3 from `virtual_k2aaa_a3` | 75.59 | 79 | | |
-| DPO round 3 from `hinton_k2aaa_a3`, fixed round-1 samples | 74.99 | 94 | | |
-| DPO round 3 from `hinton_k2aaa_a3` (the method) | **76.71** | **58** | **77.04** | 74 |
+## 5. Results
 
-What each part adds, seed 0 (95% interval from a bootstrap over the 40
-test databases):
+None on the clean setup yet.
 
-| Part | Compared rows | Gain | 95% interval | Reading |
-|---|---|---:|---|---|
-| Whole method | FedAvg R3 to the method | +5.45 | +3.45 to +7.43 | clear |
-| DPO stage | `hinton_k2aaa_a3` to the method | +3.40 | +2.21 to +4.53 | clear |
-| DPO stage without a server stage | FedAvg R3 to its DPO round 3 | +3.87 | +2.23 to +5.60 | clear |
-| Preference term | best SFT control to the method | +2.56 | +1.35 to +3.77 | clear |
-| Against no privacy | centralized Spider + BIRD to the method | +2.75 | +0.84 to +4.64 | clear |
-| Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.58 | -0.09 to +3.20 | at the edge |
-| BIRD with gold SQL after DPO | DPO round 3 from FedAvg R3 to DPO round 3 from gold | +0.09 | -1.64 to +1.84 | no difference |
-| Teacher after DPO | DPO round 3 from gold to the method | +1.49 | -0.24 to +3.16 | at the edge |
-| Teacher against a soft target, after DPO | DPO round 3 from `virtual_k2aaa_a3` to the method | +1.12 | -0.10 to +2.30 | at the edge |
-| Soft target without the teacher, after DPO | DPO round 3 from gold to DPO round 3 from `virtual_k2aaa_a3` | +0.37 | -1.17 to +1.95 | no difference |
-| Teacher before DPO | `gold_k2aaa_a3` to `hinton_k2aaa_a3` | +0.23 | -1.18 to +1.70 | no difference |
-| NLL term, round 1 | DPO round 1 without NLL to DPO round 1 with it | -0.51 | -1.13 to +0.05 | no difference |
+## 6. Earlier work
 
-Both seeds pooled, clustered by question (95% interval):
-
-| Part | Compared rows | Gain | 95% interval | Reading |
-|---|---|---:|---|---|
-| Whole method | FedAvg R3 to the method | +5.31 | +4.06 to +6.56 | clear |
-| DPO stage | `hinton_k2aaa_a3` to the method | +3.19 | +2.35 to +4.03 | clear |
-| DPO stage without a server stage | FedAvg R3 to its DPO round 3 | +3.91 | +2.82 to +5.01 | clear |
-| Server stage before DPO | FedAvg R3 to `hinton_k2aaa_a3` | +2.12 | +0.95 to +3.29 | clear |
-| Server stage after DPO | DPO round 3 from FedAvg R3 to the method | +1.40 | +0.32 to +2.47 | small, separable pooled |
-| BIRD with gold SQL after DPO | DPO round 3 from FedAvg R3 to DPO round 3 from gold | +0.42 | -0.70 to +1.54 | no difference |
-| Teacher after DPO | DPO round 3 from gold to the method | +0.98 | +0.05 to +1.91 | small, at the edge (p = 0.04) |
-
-- The DPO stage is the solid part: 2.5 to 3.9 points from every start on
-  both seeds, and
-  the NLL term alone (+0.19) or more SFT rounds (+0.84, then a fall) do not
-  give it. In round 1 the preference term alone does as well as DPO + NLL
-  (76.20 against 75.69, not separable); at round 3 the preference term
-  alone gives 76.76 against 76.71 on Spider test, seed 0, also level
-  (`916e612d`; the other sets: `04861191`).
-- Refreshing samples has a measured role: fixed round-1 pairs give
-  75.69, 75.55 and 74.99 over three rounds, against 75.69, 76.43 and
-  76.71 with fresh samples (Spider test, seed 0, `3767d097`). At round 3
-  the on-policy line leads by 1.72 points (101 / 64 discordant questions,
-  exact p = 0.0049), with 58 vs 94 execution errors. Fixed pairs yield
-  more updates in rounds 2-3, so this is a comparison of the full refresh
-  recipe, not equal update counts.
-- Other sets: the method is above FedAvg R3 by 5.3 (Realistic) to 12.0 (DK)
-  points on Spider dev, Realistic, SYN and DK (seed 0). After DPO the
-  Hinton line leads the FedAvg line on every set and both seeds; pooled:
-  Spider dev +3.53, DK +4.11, SYN +2.03, Realistic +1.38 (not separable),
-  BIRD dev +11.38.
-- The server stage after DPO: +1.58 on seed 0, +1.21 on seed 1 (84 / 110,
-  p = 0.07), +1.40 pooled (p = 0.01). Within one seed the database
-  interval touches zero. DPO closes a quarter to a half of the lead the
-  stage had before it; the lead that stays is in execution errors (round
-  3, seed 1: 74 against 95; wrong results 419 against 424).
-- Where the gain comes from: executable SQL. From FedAvg R3 to the method,
-  right rows +117, execution errors -153, wrong results +36. About 440 rows
-  (20% of Spider test) are executable SQL with a wrong result in every row
-  from the base model to DPO round 4; no stage lowers that count.
-- The training pairs show the same: pairs whose rejected side is an
-  execution error fall from 2,806 to 858 over four rounds, pairs whose
-  rejected side is a wrong result only from 2,587 to 2,012.
-- The line saturates: round 4 (76.94) is not separable from round 3; by
-  round 4, 6,425 of 8,659 client questions have all 8 samples correct and
-  58 execution errors are left on Spider test (2.7 points).
-- The server stage after DPO, by seed. Seed 0: the gold stage ends level
-  with no server stage (75.22 against 75.13) and the Hinton stage 1.49
-  above it. Seed 1: the gold stage ends 0.75 above no server stage and the
-  Hinton stage 0.47 above gold (76.57, 77.04). The gold line moves most
-  between seeds (1.35 at round 3), so the seed 0 reading overstated the
-  teacher's part. Pooled: teacher over gold +0.98 (p = 0.04), gold over no
-  server stage +0.42 (not separable; separable on Spider dev, +2.08, and
-  Realistic, +3.15). The BIRD stage keeps about 11.7 points on BIRD dev
-  after DPO, with or without the teacher.
-- Soft targets without the teacher (seed 0; `virtual_k2aaa_a3`, gold token
-  0.73 and the rest uniform, and `self_k2aaa_a3`, the base student's
-  logits; archived adapters, approved 2026-11-12 and 2026-11-13). Before
-  DPO all four server stages are within 0.75 point on Spider test (gold
-  73.08, virtual 72.57, self 72.61, Hinton 73.31); the Hinton stage leads on
-  Spider dev and DK (over virtual +2.32 and +3.36). After DPO the virtual
-  line ends with the gold line on every set (75.59 against 75.22 on Spider
-  test) and the Hinton line 1.12 above it (69 / 93, p = 0.07), 3.48 on
-  Spider dev, 3.93 on DK, level on Realistic, SYN and BIRD dev. A soft
-  target alone does not give the lead; the control is one lineage on the
-  seed whose gold line was low. The self-teacher stage costs 7.4 points on
-  BIRD dev against the virtual one.
-- On Spider test the Hinton line's lead after DPO sits on rows that flip
-  between training lineages: where the gold and virtual lines agree (2,009
-  rows) it is level (53 / 52); on the 138 rows where they disagree it is
-  right on 96 (FedAvg line 82). On Spider dev and DK it also leads on the
-  rows both agree on.
-- The wrong results are not all out of reach: of the method's 442, 193 are
-  right in at least one of the other 16 rows and 249 are wrong in every
-  row.
-- The teacher and the method have the same EX on Spider test and are right
-  on different rows (teacher zero-shot 77.22, HF, 4-bit; archived row,
-  approved 2026-11-12). Seed 0: 151 rows right only in the method, 162 only
-  in the teacher; the teacher is right on 129 of the method's 442 wrong
-  results and 33 of its 58 execution errors; at least one of the two is
-  right on 84.26%. The teacher leads on medium and hard (82.3, 70.8 against
-  79.8, 68.3), the method on extra-hard (63.0 against 57.7). The Hinton
-  stage does not pass these rows on: after DPO its wins over the gold line
-  are not on the rows the teacher gets right (64% against 66%).
-- What the teacher's lead over the gold line is made of after DPO (seed 0,
-  +32 rows): 25 from wrong results, 7 from execution errors, on extra-hard
-  questions (63.0 against 59.9). Seed 1 does not repeat the extra-hard lead
-  (62.7 against 63.6). Against the FedAvg line the lead is in execution
-  errors on both seeds.
-- Selection by execution at inference (seed 0, 8 samples, no training). A
-  vote over result rows lifts FedAvg R3 to 75.55 and `hinton_k2aaa_a3` to
-  76.53: level with DPO round 3 greedy from the same start (75.13, 76.71)
-  in total, on different questions (they differ on 185 and 150 rows; 55% of
-  the questions DPO gains were right under the start's vote). The two add
-  up: the method with the vote reaches 78.39, +1.68 over its greedy output,
-  +1.86 over the vote on its start and +2.84 over the vote on FedAvg R3.
-  pass@8 stays near 85 in all four rows: DPO reorders the candidates and
-  adds none.
-- CoT at 1.5B does not help (plan + SQL: server stage 60.64, one template
-  client round 62.69, self-taught rounds at most 60.64). It is a short
-  analysis in the paper, not part of the method.
-
-## 5. Open
-
-1. The teacher's role: back in the method with the server stage (owner,
-   2026-11-17; out of it from 2026-11-16 to 2026-11-17). After DPO on Spider test the Hinton stage leads gold
-   SQL by +1.49 (seed 0) and +0.47 (seed 1), +0.98 pooled (p = 0.04), and
-   the virtual-teacher stage by +1.12 (seed 0, p = 0.07); gold and virtual
-   are level. The lead is small, not given by a soft target alone, and
-   about as large as the spread of the gold line between seeds (1.35).
-2. Seeds. Two seeds for the three DPO lines; the DPO step and the method
-   row repeat within 0.7 point. The teacher's gain over gold is at the edge
-   after seed 1. Seed 2 was dropped (owner, 2026-11-15) after its Hinton
-   line reached DPO round 1 (75.87 on Spider test, from 74.24); the paper
-   reports two seeds for the main lines.
-3. The NLL term and the pair labels. Without NLL, round 3 gives 76.76
-   against 76.71 on Spider test, seed 0 (31 / 32 discordant questions).
-   Dropping the term is an owner decision; the current seed comparisons
-   use DPO + NLL. N2, one round without gold fallback from the same
-   round-1 samples: result-vote labels 75.50, executability labels 74.99,
-   gold labels 75.69 (Spider test, seed 0). The vote-label line for 3
-   rounds is approved and not queued; the FedAvg half of F1 (20 clients)
-   is queued.
-4. What the federated setting costs in the DPO stage. Reference rows, not
-   a condition of the claim. In round 1 each client's adapter alone gives
-   74.24 to 75.50 on Spider test (mean 74.97), the averaged adapter 75.69.
-   DPO with the same recipe on the pooled client data (centralized, 3
-   rounds) left the queue on 2026-11-16 before it ran; centralized SFT
-   with `codes_v2` is queued instead. A 3-round line without aggregation
-   is not queued (new code, about 6 h).
-5. Reference rows on the same engine, `full` prompts: the 7B teacher,
-   FedProx R3 and FedNTD are committed with vLLM inproc on the six sets
-   (earlier seed 0 adapters, approved 2026-11-13); the local client SFT
-   models were not evaluated and left the queue on 2026-11-16. The
-   baselines with the final prompt come after the method is fixed. Selection by execution over 8 samples
-   at inference is in for four seed 0 rows (section 4); N3 repeats these
-   four rows on seed 1.
-6. The 20% of wrong results. The method does not touch them, and they
-   bound EX at about 77. The focused DPO pilot (arm `fdpo`, Focused-DPO:
-   the preference term on the span where chosen and rejected differ) did
-   not lower them: round 1 gives 76.20 against 75.69 for DPO round 1
-   (10 / 21, p = 0.07), with 439 wrong results against 440 and 72 execution
-   errors against 82. The span is two thirds of the response, so the pilot
-   does not separate focus from a larger preference weight. It is an
-   ablation row unless the owner decides otherwise. Not chosen: stricter
-   labels from mutated client databases. The two one-round pilots that
-   limit the rejected side (`full`, from `hinton_k2aaa_a3`, 73.31):
-   only samples that fail to execute 75.36 (3,317 pairs, 70 execution
-   errors), only samples with a wrong result 74.38 (2,949 pairs, 119
-   execution errors), every wrong sample 75.69 (5,393 pairs, 82). The
-   pairs against a failing sample carry the larger part.
-7. The schema format: `codes` (owner, 2026-11-16). P1 (`codes`: types,
-   keys, 2 sample values and the matched text values per column) gives
-   77.36 after DPO round 3 against 75.13 with `full` on Spider test (seed
-   0, FedAvg line), and is above `full` on Spider dev, DK, Realistic and
-   SYN. Open: whether the corrected renderer `codes_v2` holds these
-   numbers (the base model alone: 61.95; queued: 3 FedAvg rounds and 3 DPO
-   rounds from the base model, centralized SFT), and the baselines and second
-   seed with the final prompt.
-8. A DPO round at the server on public data: dropped with the public
-   stage on 2026-11-16 before its gate ran; back as the read of direction
-   2 (owner, 2026-11-17; section 3), cut to 3,000 BIRD questions
-   (`srvx_s0`).
-9. Candidates for a further stage (owner, 2026-11-16; since 2026-11-17 no
-   longer a condition for the method, which is fixed as three stages: a
-   candidate joins only with a place in the story and a shown effect).
-   Stage 3 is CodeLutra's recipe in a federated setting at 1.5B. A gap scan of 2026-11-16
-   (`LITERATURE.md`, sections 1.16, 1.17 and 3) left five candidates:
-   - A, new questions on the client's own databases. Each client refills
-     the SQL of its labelled questions on its databases (other values,
-     columns, tables or another of its databases), keeps the queries that
-     execute to a non-empty result, and the base model writes a question
-     for each. In a DPO round the synthetic SQL is only the label: a
-     synthetic question trains when some of its 8 samples match the result
-     of its SQL and some do not, and its SQL is never the chosen side. Why
-     here: the loop runs out of questions (72% of the client questions
-     have all 8 samples right by round 3, pairs fall 6,626 / 4,244 /
-     3,706). Closest: SPFT-SQL (synthesis, weak preference stage),
-     CodeLutra (the loop, no synthesis); their combination is not
-     published, and no federated paper checks synthetic rows by execution
-     at the client. The DPO pilot with the synthetic rows left the queue
-     on 2026-11-17; the read is now supervised training on the rows that
-     pass the check (`synvc_s0`, item 13).
-   - B, the other clients' adapters as extra samplers. For a question
-     where all 8 samples of the global model are wrong (560 at round 3),
-     a client also samples from the adapters the other clients trained in
-     the last round; a correct one becomes the chosen side instead of the
-     gold SQL. Closest: FedMatch (helper models for pseudo-labels, vision).
-     The only candidate where federation itself has a role. The check on
-     the `codes` line (with the repetition penalty, `8825bad8`) does not
-     support it: of the 560 questions, 32 samples from the four peer
-     adapters solve 146 and 32 more samples from the global model solve
-     184; 23 are solved only by a peer, 61 only by the global model. The
-     check on the line without the penalty and the training pilot (about
-     3 GPU h) are not queued.
-   - C, clients with few labelled questions and vote labels for the rest
-     (changes the data assumption, about 6 GPU h). Dropped (owner,
-     2026-11-16): every client question keeps its gold SQL. The CPU count of
-     how often vote labels agree with gold labels left the queue on
-     2026-11-17. D, a hint for questions
-     no sample solves; E, a CPU count of samples that pass by accident, on
-     mutated databases. Not queued.
-
-   Reading of the scan against the venues: the core with A is "SPFT-SQL
-   plus CodeLutra, federated, at 1.5B", a combination with a measured
-   reason; a part where federation has a shown role (B or C) is what would
-   lift it above that.
-10. The SFT level. SPFT-SQL reports 72.3 zero-shot and 78.0 after SFT for
-    this student on Spider test with its own prompt; here the base model
-    gives 57.89 (`full`), 61.95 with `codes_v2` (`d22463ca`), and FedAvg
-    R3 73.17 (`codes`). The gap to SPFT-SQL is 10.4 points before training
-    and 4.8 after SFT, so about half of it comes from the prompt and
-    inference side, not from the federated split. Queued: centralized SFT
-    with `codes_v2`.
-
-11. The repetition penalty (owner, 2026-11-16). Qwen2.5-Coder's generation
-    config sets a repetition penalty of 1.1, and every row so far was
-    decoded with it: greedy evaluation and the DPO samples, HF and vLLM.
-    The penalty also covers the prompt tokens, so the table and column
-    names the SQL has to copy from the schema are penalized. It may
-    account for part of the execution errors (352 of the base model's 377
-    are `no such column`) and for part of what the DPO stage gains, since
-    that gain is in executable SQL (section 4). Measured on existing
-    adapters, Spider test, seed 0 (`456d1fea`, `05c22e54`), with the
-    penalty and without:
-
-    | Row | Penalty 1.1 | No penalty |
-    |---|---:|---:|
-    | base model, `codes_v2` | 61.95 | 65.72 |
-    | FedAvg R3, `full` / `codes` | 71.26 / 73.17 | 72.33 / 74.71 |
-    | DPO round 3, `full` / `codes` | 75.13 / 77.36 | 75.08 / 77.04 |
-    | DPO stage over FedAvg R3, `full` / `codes` | +3.87 / +4.19 | +2.75 / +2.33 |
-
-    The penalty costs the models that were not trained on their own
-    samples (base 3.8 points, FedAvg R3 1.1 to 1.5) and nothing after
-    DPO. The DPO stage keeps a clear gain, 2.3 to 2.75 points; 1.1 to 1.9
-    points of the gain in section 4 were the penalty's cost on the SFT
-    model. Every SFT-type row of section 4 (FedAvg, the server stages,
-    centralized, and the baselines) is therefore low by about 1 to 1.5
-    points until evaluated again; they need no retraining. With samples
-    drawn without the penalty one DPO round from FedAvg R3 (`codes`) gives
-    76.94 (+2.23, `8a883578`), the level of three rounds on penalised
-    samples. Open: rounds 2 and 3 with clean samples (the `codes_v2`
-    line), and the counts taken from samples with the penalty (saturation,
-    pairs by type, pass@8, the vote).
-
-12. What the preference term and a table-selection step are worth
-    (2026-11-17, Spider test, seed 0, without the penalty; `32497b51`,
-    `aaf6eb73`). Both reads lower what the current candidates can carry.
-
-    | From `hinton_k2aaa_a3`, `full` prompts | EX | Over the start |
-    |---|---:|---:|
-    | start | 74.85 | |
-    | DPO + NLL round 1 | **76.43** | +1.58 |
-    | NLL only on the correct samples, round 1 | 75.50 | +0.65 |
-    | one more FedAvg SFT round | 75.50 | +0.65 |
-    | two more FedAvg SFT rounds | 74.43 | -0.42 |
-
-    With the penalty the DPO round stood 2.19 and 1.54 above the NLL-only
-    and SFT controls; at the same decoding it is 0.93 above both (52
-    gained / 32 lost and 70 / 50). The preference term still helps, by
-    about one point.
-
-    | Prompt (diagnostic: the tables of the gold SQL only) | Full schema | Gold tables | |
-    |---|---:|---:|---:|
-    | base model, `codes_v2` | 65.72 | 75.55 | +9.83 |
-    | FedAvg R3, `codes` | 74.71 | 77.46 | +2.75 |
-    | DPO round 3, `codes` | 77.04 | **80.34** | +3.31 |
-
-    A perfect table selection gives the trained model 3.3 points at most
-    (adapters trained on full schemas; training on cut schemas is not
-    measured). It gives nothing on questions with three gold tables (55.2
-    against 54.8 after DPO): with the right tables the model still fails
-    to join them. The base model with gold tables is above SPFT-SQL's
-    zero-shot 72.3, so the zero-shot gap of item 10 is the schema filter.
-    What is left after DPO with the gold tables: about 290 wrong
-    questions with two or more tables (about 14 points).
-    Proposals from a two-agent method debate of 2026-11-16 (tables first,
-    then a site without labels that adapts on its own databases) are in
-    `LAB_LOG.md`; not approved.
-
-13. Directions left after a literature map built without the project's
-    history (2026-11-17, two agents; the paper numbers are theirs, read
-    from the papers' tables, not checked by us and not in
-    `LITERATURE.md`). The largest published effect at this model size is
-    training data generated and checked by execution on the training
-    databases (SPFT-SQL, same 1.5B model, Spider test 78.0 to 82.3),
-    not the training signal: RL or preference tuning over a strong SFT
-    model gives +1.1 to +1.7 on Spider test in the papers found, which is
-    where our rounds stand. No paper was found that generates and checks
-    the data at federated clients, and none at 1B to 3B that aims
-    synthesis at joins or reports by number of tables.
-
-    | Direction | Role | State |
-    |---|---|---|
-    | clients generate SQL on their own databases, write questions, keep the pairs that pass an execution check, train on them | candidate for the core | first read queued (`synvc_s0`) |
-    | DPO + NLL with execution labels at the clients | component | measured (items 11 and 12) |
-    | SFT on public synthetic data (SynSQL) at the server before the client rounds | base for every row | not measured; a public 1.5B checkpoint exists (`cycloneboy/SLM-SQL-Base-1.5B`) |
-    | execution inside a multi-turn answer at inference | reserve | needs a ruling on "deployed alone" |
-
-    Dropped as a core: tables first (item 12), a join-implicit target
-    (evidence on T5 only), constrained decoding (at most +1.1 at 1.5B in
-    IterGen), fixes to the aggregation (zero on generation tasks when
-    FedAvg is close to centralized training), a site without labels (the
-    data assumption stays, item 9).
-
-    The synthetic rows built so far (`04922932`) keep the structures of
-    the clients' own queries (58.6% one table, client gold 51.4%), and in
-    a hand read of 24 rows with a join the question of 8 asks for
-    something other than the SQL returns. `synvc_s0` therefore keeps a row
-    only when a sample of the client's model returns the result of its
-    SQL, and trains on the kept rows with SFT.
-
-## 6. Current phase
-
-The three DPO lines have two seeds. Seed 0 also has the soft-target
-controls, 3 rounds without NLL, one round without gold fallback, the local
-adapters of round 1 and selection by execution (last published result
-`3767d097`, 06:36 on 2026-11-14, including the offline control).
-
-P1 (`codes` schema, FedAvg line, seed 0) is published (`44bbc0f5`), and
-`codes` is the prompt (owner, 2026-11-16); new lines use `codes_v2`. On
-BIRD dev P1 is at 27.38 (FedAvg R3) and 30.38 (DPO round 3), `full` at
-25.55 and 29.66 (`c46c62cd`). With comments in the Spider test prompt the
-`codes` adapters score 73.45 (FedAvg R3) and 77.55 (DPO round 3) instead of
-73.17 and 77.36 (`cd8d0e8b`).
-
-The teacher and the public stage left the core on 2026-11-16 (owner). The
-`codes` line from the seed 0 Hinton server stage has its 3 FedAvg rounds
-(73.27 / 75.64 / 75.78, `bff4f42b`, against 69.03 / 71.91 / 73.17 without
-the stage); its DPO rounds were stopped in round 1 and no result of them
-is published. The base model with `codes_v2` gives 61.95 on Spider test
-(`d22463ca`, against 57.89 with `full`). Out of the
-queue: the gold control, a server stage with `codes_v2`, the server DPO
-gate, the local client rows and centralized DPO with `full`. Approved and
-not queued: DPO with result-vote labels for 3 rounds.
-
-On 2026-11-17 the owner fixed the method as three stages (section 3),
-after the reads of items 12 and 13 (the preference term adds about one
-point over an SFT round, a table-selection step is bounded at 3.3) and a
-review of where earlier decisions had been stricter than published
-practice (`LAB_LOG.md`). A review of the fixed method against its own
-numbers then named its weak points, and the owner approved three
-directions for them (section 3). The queue (`08254bcf`) puts their short
-reads first: after the 3 FedAvg rounds with `codes_v2` (72.05 / 74.57 / 74.85,
-`9ba967cc`), selection at inference on FedAvg R3, supervised
-training on verified synthetic rows on the `codes` line (`synvc_s0`), and
-one DPO round at the server on 3,000 BIRD questions from the teacher
-stage (`srvx_s0`), with the count of the pairs the teacher would supply
-(`srvt_s0`). Then the long lines of the final setup: the 3 FedAvg
-rounds from the server stage, the 3 DPO rounds of both lines with the
-vote on each, centralized SFT, and the FedAvg rounds with 20 clients on
-`codes_v2`. Out of the queue: the synthetic-row read on the `codes_v2`
-line (`synv_s0`), the vote label check, the 20-client rounds with `codes`
-prompts. Run commands, live-state provenance and estimates are in
-`PIPELINE_NEXT.md`.
-
-## 7. Directions after the queue
-
-Proposals (2026-11-16), not approved and not queued unless marked. Each
-row of the table depends on a result of the queue. The rows that needed
-the server DPO round or the teacher with `codes` left with the public
-stage (2026-11-16).
-
-| If the batch shows | Then try | Aims at | Cost (estimate) |
-|---|---|---|---|
-| Pairs with a wrong-result rejected sample carry gain (rejected-type pilots) | Pairs built for that error: gold SQL with one clause changed, executable, different result, as the rejected side (closest: CAPER, arXiv 2606.03327, clause-level tuples for a reward model); or a larger share of wrong-result pairs | EX: the 400 wrong results left after DPO | about 2.5 h a one-round pilot, new code |
-| Those pairs carry no gain | Stop adding preference variants for wrong results; the rule drops them and halves client training | client cost | none |
-| `codes` holds on the other sets | A length limit on sample values (BIRD `european_football_2` gives 26k-token prompts); seed 0 again without the 30 mislabelled questions | a clean main row | 8 to 16 h |
-| `codes` keeps losing on questions without a value | `full` plus the matched values only | EX on the 1,173 questions without a value | about 16 h a line |
-
-Independent of the batch:
-
-- F1, the FedAvg SFT rounds with 20 clients (queued, phase `f1v2_s0`,
-  `codes_v2` since 2026-11-17). With 5 clients FedAvg equals centralized
-  training.
-  With 20 clients each holds about 430 rows and about 270 pairs in DPO
-  round 1; the run shows whether FedAvg then falls behind. The DPO rounds
-  with 20 clients (about 11 h) and 10 of 20 clients per round are not
-  queued.
-- Sampling only the questions that are not saturated: 56% of the client
-  questions have all 8 samples right at DPO round 1, 72% at round 3
-  (method line, seed 0), and give no pair. A count of how many return
-  needs the sample files on the server.
-- Inference: resample only when the greedy SQL fails or returns an empty
-  result (estimated offline at +1.2 and +1.6 on the method with `full`,
-  about 2 model calls a question); a real run with the final prompt.
-- Round and setting choices on a public validation set instead of Spider
-  test, if its curve follows Spider test.
+Everything measured before 2026-11-17 is reference only: it was produced
+with a prompt that carried a sentence left from an earlier ICL project, and
+most of it with a repetition penalty of 1.1 that nobody had set. Both
+repositories as they were are at the tag `archive/pre-reset-2026-11-17`
+and, on the owner's Mac, in `archive/reset_2026-11-17/` (start at its
+`OVERVIEW.md`). A number from there is quoted as "earlier setup" and never
+as a result.

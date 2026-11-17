@@ -5,8 +5,9 @@ Code, and others); `CLAUDE.md` imports it. Durable rules and lessons go here,
 and they are kept few and general on purpose.
 
 The nested `fedicl-sql/` directory is a separate Git repository (code and
-committed results) with its own `fedicl-sql/AGENTS.md`. The GPU server holds
-only that repository, so the code, GPU and server rules live there.
+committed results, Python package `fedls_sql`) with its own
+`fedicl-sql/AGENTS.md`. The GPU server holds only that repository, so the
+code, GPU and server rules live there.
 
 ## How to work
 
@@ -48,14 +49,21 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
   only that model is deployed.
 - Method (owner, 2026-11-17), three stages: a server stage where the frozen
   teacher teaches the student on public data, FedAvg SFT at the clients,
-  and federated DPO with execution labels at the clients. The story is in
-  `RESEARCH_STATE.md`, section 3.
+  and federated DPO with execution labels at the clients. Work starts with
+  the client stages; the DPO stage follows CodeLutra (arXiv 2411.05199).
+  The story is in `RESEARCH_STATE.md`, section 3.
 - Default setup: Qwen2.5-Coder-1.5B-Instruct student, 5 Spider clients
   (`alpha_0.1/k5`), Qwen2.5-Coder-7B-Instruct teacher, BIRD train (or
   SynSQL-2.5M) as public data. Another model or setting may be proposed.
+- Prompt, training recipe and decoding follow what widely used papers do,
+  checked in the paper or its code (`LITERATURE.md`, section 1.19). One
+  prompt serves training, sampling and evaluation, and the paper prints
+  the prompt the model saw.
 - Compute: RTX A5000 cards with 24 GB; a direction has to fit in memory and
   run time.
-- Spider numbers are Spider test (2,147 rows).
+- Spider numbers are Spider test (2,147 rows). Rounds, steps and settings
+  may be chosen on Spider test (owner, 2026-11-17); such a number is
+  reported as chosen on Spider test, never as held-out.
 - Novelty: a published mechanism adapted to this setting is acceptable.
   Cite the closest work and say what differs.
 
@@ -70,15 +78,23 @@ Add another note only when the work needs it.
 
 ## Earlier work
 
-The project restarted on 2026-11-05. Everything superseded lives in
-`archive/` at the workspace root (local to the owner's Mac, ignored by Git,
-not on the server).
+The project was set up again from clean on 2026-11-17 (owner): the prompt
+of every earlier adapter carried a sentence left from an ICL project, and
+most rows were decoded with a repetition penalty nobody had set. Both
+repositories as they were are at the tag `archive/pre-reset-2026-11-17`
+and, on the owner's Mac, in `archive/reset_2026-11-17/` (ignored by Git,
+not on the server; start at its `OVERVIEW.md`). Older material from the
+restart of 2026-11-05 is in the same `archive/` folder.
 
-- Do not read or reason from the archive or from results before that date
-  unless the owner asks.
-- Teacher outputs on BIRD and processed data may be reused freely. Starting
-  from an earlier adapter, or using an earlier result as a comparator, needs
-  the owner's yes.
+- Everything measured before 2026-11-17 is reference only. It may be read
+  to see what was tried; it is never quoted as a result, and a new claim is
+  not built on it.
+- Do not read or reason from material older than 2026-11-05 unless the
+  owner asks.
+- Processed data and teacher outputs on BIRD may be reused freely.
+  Starting from an earlier adapter needs the owner's yes.
+- The new code keeps no branch, field or default for the sake of an old
+  result (no "historical bytes", no frozen identities).
 
 ## Hard rules
 
@@ -111,8 +127,9 @@ deviate.
   `scripts/gpu_worker.py`. The commands the owner runs are written in
   `PIPELINE_NEXT.md` and given in chat; push when that file changes.
 - Before queuing a new line, compare its resolved commands with the line it
-  is compared against (prompt, decoding, length limit, training recipe).
-  New lines decode without the repetition penalty.
+  is compared against (prompt, decoding, length limit, training recipe),
+  and print one rendered prompt and read it. Decoding uses no repetition
+  penalty; no setting is inherited from a model's generation config.
 - Run an experiment on the setup it stands for. A cut version is fine for a
   quick read; say what is cut and report the result as partial.
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with

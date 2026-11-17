@@ -11,7 +11,9 @@ FINER-SQL, CodeS, the Qwen2.5-Coder report), section 1.4; updated
 2026-11-16 with section 1.16 (mechanisms that could be added to the core)
 and section 1.17 (a gap scan for the added mechanism: synthesis at the
 clients, other clients' models as helpers, vote labels), and section 1.18
-(training on perturbed schemas).
+(training on perturbed schemas); updated 2026-11-17 with section 1.19
+(prompt, training and decoding practice, for the clean setup). Sections
+written before 2026-11-17 compare with the earlier setup and its numbers.
 
 How to read this file:
 
@@ -514,6 +516,51 @@ execution-labelled preference training; a federated version; a version
 without an LLM writing the perturbations. The published effect of
 perturbation training is robustness on perturbed data with about one
 point lost on the original set.
+
+### 1.19 Prompt, training and decoding practice (checked 2026-11-17)
+
+Read for the clean setup: what widely used Text-to-SQL work feeds a
+fine-tuned open model, how it trains and how it decodes. "Code" means the
+item was read in the paper's repository; "figure" means the paper shows it
+only as an image that was not read.
+
+| Work | Schema in the prompt | Extra parts it needs | Output | Training | Decoding | Read |
+|---|---|---|---|---|---|---|
+| Qwen2.5-Coder report ([arXiv 2409.12186](https://arxiv.org/abs/2409.12186)), section 7.4, and its evaluation code (`qwencoder-eval/instruct/bird-spider`) | "table representations aligned with database instructions, examples of table content, optional additional knowledge, and natural language questions", "following the work of Chang & Fosler-Lussier (2023)"; the code appends "Please output only the final SQL query, starts with keyword `SELECT`." | none | SQL only | none (evaluation of the released models) | chat mode, 1 sample, 1,024 new tokens, stops at `;` and end tokens; temperature not found; scored on Spider dev and BIRD dev | section 7.4 verbatim; prompt figure and result figure are images; the instruction field of the data file (in a zip) not read |
+| Chang and Fosler-Lussier, **How to Prompt LLMs for Text-to-SQL** ([arXiv 2305.11853](https://arxiv.org/abs/2305.11853)) | `CREATE TABLE` text, then per table `/* 3 example rows: select * from t limit 3; ... */` (from Rajkumar et al., 2022) or 3 distinct values per column; then `-- Using valid SQLite, answer the following questions for the tables provided above.`, `Question: ...`, `select`. Text lower-cased and spaces unified except database content | none | SQL only | none (prompting) | Codex | sections 3-5 and appendix A.1 verbatim |
+| DAIL-SQL ([arXiv 2308.15363](https://arxiv.org/abs/2308.15363)), section 3.1 | Code representation: `/* Given the following database schema: */`, `CREATE TABLE` with primary and foreign keys, `/* Answer the following: ... */`, `SELECT`. Alpaca SFT: `table(col, col)` lines | none | SQL only | fine-tuned LLaMA 7B to 33B; batch 256, learning rate searched in 1e-6 to 1e-4 (appendix D.4, summary) | not stated | listings verbatim; SFT tables summary |
+| CodeLutra ([arXiv 2411.05199](https://arxiv.org/abs/2411.05199)) | zero-shot, `CREATE TABLE` text of the SQLite file in its figure; no values | none | SQL only | LoRA r 8, lr 5e-5, batch 16, 1 epoch per iteration | T 0.2, 512 new tokens, 1 sample | whole page verbatim; no code published |
+| CodeS ([arXiv 2402.16347](https://arxiv.org/abs/2402.16347)), code | own serialization: `table t , columns = [ t.c ( type \| primary key \| comment : ... \| values : a , b ) ]`, `foreign keys :`, `matched contents :`, question; no instruction, no chat template | a trained schema filter (6 tables, 10 columns kept) and a BM25 value retriever | SQL, keywords upper-cased and identifiers lower-cased (`sqlparse`) | full fine-tuning, lr 5e-6, 4 epochs, batch 128, 4,096 tokens | beam 4, the first executable SQL | code and sections 6, 8, 9 |
+| OmniSQL ([arXiv 2503.02240](https://arxiv.org/abs/2503.02240)), README and section 5.1; reused by SLM-SQL ([arXiv 2507.22478](https://arxiv.org/abs/2507.22478)) | one user message through the chat template: "Task Overview", `CREATE TABLE` text with column descriptions, two representative values and question-relevant values as SQL comments, question, instructions | none stated for the schema text | reasoning, then SQL in a code block | Qwen2.5-Coder 7B to 32B on SynSQL-2.5M plus Spider and BIRD train; full fine-tuning or LoRA r 256, 2 epochs, 8,192 tokens | greedy (temperature 0), 2,048 new tokens; or a vote over 8 samples at T 0.8 | README verbatim, sections 3 to 6.2 verbatim |
+| DTS-SQL ([arXiv 2402.01117](https://arxiv.org/abs/2402.01117)), appendix A.2 | foreign keys, primary keys, column types and three sample rows per table (layout in a figure) | a fine-tuned schema-linking model for the two-stage method | SQL | Mistral 7B, DeepSeek 6.7B; lr 1e-5 and 5e-5 | not stated | text verbatim; prompt figures and notebooks not read |
+| MSc-SQL ([arXiv 2410.12916](https://arxiv.org/abs/2410.12916)), appendix A.2 | `TABLE "t" ( "c" TEXT primary key, -- Example: "..." )` | a schema-linking step | JSON with the SQL | QLoRA r 32, alpha 128, dropout 0.05 | not read | appendix and section 5 verbatim |
+| XiYanSQL-QwenCoder, README; M-Schema, code | M-Schema: `# Table: t`, `(col:TYPE, comment, Primary Key, Examples: [a, b, c])`, `【Foreign keys】`; a Chinese instruction template | none | SQL in a code block | not stated | T 0.1, top_p 0.8, 1,024 new tokens | README and `m_schema.py` |
+| SPFT-SQL ([arXiv 2509.03937](https://arxiv.org/abs/2509.03937)), appendix A.4 | not published; section 3.1.2 names schema extraction, value matching and metadata | not stated for the 1.5B rows | SQL | LoRA through LLaMA-Factory, AdamW, batch 64, lr 2e-4, 3 epochs; rank not stated | not stated | main text and appendix A.4 verbatim |
+
+Numbers on the student's family, each with its own prompt (not comparable
+with ours): SPFT-SQL, Qwen2.5-Coder-1.5B, Spider test: zero-shot 72.3, SFT
+78.0, the method 82.3. OmniSQL Table 4, greedy, Spider test:
+Qwen2.5-Coder-7B / 14B / 32B-Instruct 82.2 / 86.6 / 87.5. SLM-SQL Table 3,
+Qwen2.5-Coder-1.5B, Spider test, a vote over 16 samples: base 67.61, SFT
+77.35. XiYanSQL-QwenCoder-7B-2502, Spider test: 84.15 with M-Schema, 80.01
+with DDL.
+
+What is common to them:
+
+- The schema is `CREATE TABLE` text in most, and nearly all add a few
+  database values: example rows per table (Rajkumar et al.; Chang and
+  Fosler-Lussier; the Qwen2.5-Coder report; DTS-SQL) or example values per
+  column (OmniSQL, MSc-SQL, CodeS, M-Schema). Plain DDL with no values is
+  the minority (DAIL-SQL's code representation, CodeLutra).
+- Schema filters and value retrievers are separate trained or indexed
+  parts (CodeS, DTS-SQL, MSc-SQL).
+- A fine-tuned small model outputs SQL only; reasoning before the SQL is
+  the choice of the SynSQL line (OmniSQL, SLM-SQL).
+- Chat models get one user message through the chat template and no
+  system message of their own (OmniSQL, XiYanSQL), so the template's
+  default system text is in the prompt.
+- Decoding is greedy or near greedy; none states a repetition penalty.
+- LoRA SFT at this size: lr 2e-4, 3 epochs (SPFT-SQL, the same student).
 
 ## 2. What already exists
 
