@@ -2,8 +2,8 @@
 
 ## Status
 
-Updated 2026-11-17 21:30 (Asia/Ho_Chi_Minh). FedAvg rounds 1 and 2 are
-published (EX 72.43 and 74.10). The worker on GPU 0 stopped at 20:43 in
+Updated 2026-11-17 21:30 (Asia/Ho_Chi_Minh). FedAvg rounds 1 to 3 are
+published (EX 72.43, 74.10, 74.71). The worker on GPU 0 stopped at 20:43 in
 round 3 (owner: restart, cause not looked into). Pushed (code
 `46509f1e`): one DPO + NLL round from FedAvg round 2 (`dpo_k2/*`),
 placed before the FedAvg line in the queue, so the worker takes it at
@@ -58,7 +58,7 @@ its next task. It is compared with FedAvg round 3.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 1 | `dpo_k2/round_1`, `dpo_k2/publish_round_1`, `dpo_k2/eval_1`, `dpo_k2/publish_eval_1` | the early read of the switch round: one DPO + NLL round from FedAvg round 2 (k = 2), against FedAvg round 3; pair counts at an SFT start | about 1.5-2.5 h (estimate) | queued, next |
-| 2 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | rounds 1-2 done; round 3 stopped or rerunning |
+| 2 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | rounds 1-3 done (best 74.71 at round 3) |
 | 3 | `dpo/after_fedavg` | DPO + NLL rounds from the best FedAvg round (k = best) (10 samples at T 1.0, 2 pairs per question, no pair from a database without rows), each round evaluated on Spider test and published | about 1.5-2.5 h per round (estimate); up to 6 rounds | queued |
 
 How the rounds stop: a round is a gain when it beats the best round by

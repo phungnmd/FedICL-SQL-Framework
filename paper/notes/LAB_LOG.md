@@ -4,6 +4,19 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: FedAvg SFT round 3 (code `845db4bc`, eval `6558ebfe`)
+
+Spider test EX 74.71 (easy 90.21, medium 78.88, hard 67.17, extra
+54.06): +0.61 over round 2, a gain under the line's rule (> 0.5), but
+not a clear one (fixed 61, broke 48, McNemar p = 0.25). Execution errors
+215 / 183 / 164 over rounds 1-3; executable wrong results 377 / 373 / 379,
+flat since round 1, and extra hard 54.90 / 54.62 / 54.06. So after round 1
+SFT only removes execution errors. Pairwise cosine of the client updates
+-0.014 to 0.016 (round 2: 0.01 to 0.05, round 1: 0.13 to 0.33) while the
+update norms stay at 3.9 to 6.7: the clients move as far as before, in
+unrelated directions, and the average cancels most of it. Mean local
+loss 0.070 to 0.103.
+
 ## 2026-11-17: method is k SFT rounds, then DPO; k = 2 read queued first (owner; code `46509f1e`)
 
 Owner: the method starts DPO after a fixed SFT stage of k FedAvg rounds,
