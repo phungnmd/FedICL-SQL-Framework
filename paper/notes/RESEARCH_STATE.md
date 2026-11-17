@@ -7,11 +7,18 @@ is open. Runs and decisions are in `LAB_LOG.md`.
 
 ## 1. Question
 
-Several clients hold private Text-to-SQL data that cannot leave them. They
-train a small model together through federated learning, and only that
-model is deployed. The server may hold a large frozen LLM and public data
-from another domain. How can the deployed model become measurably better
-on the clients' domain than standard federated training?
+Several organisations each hold databases and questions with gold SQL that
+cannot leave them. They train a small model together through federated
+learning, and only that model is deployed. Standard federated training
+(FedAvg SFT) uses the gold SQL and never the databases.
+
+Main question: does training on the execution of the model's own SQL on
+the clients' databases give a better model than FedAvg SFT on the same
+data?
+
+Second question: a server usually has public Text-to-SQL data. Does
+pre-training on it help, and does the gain of the main part remain on top
+of it?
 
 Goal: a journal paper at Q3 or above (candidates: CMC, JIIS) with a method
 that clearly beats the federated baselines and reports good numbers.
@@ -41,22 +48,63 @@ One core part and one secondary part (owner, 2026-11-17, replacing the
 three stages set earlier that day: a server stage with the teacher, FedAvg
 SFT, federated DPO).
 
-A client has what the server never has: its questions with gold SQL and
-the databases to run SQL on. Running the model's own SQL on those databases
-tells which outputs are right and which are wrong, and this signal exists
-only at the client. The method is federated training on that signal. Only
-the small model's adapter leaves a client.
-
 | Part | Where | Supervision | Place |
 |---|---|---|---|
 | Federated DPO + NLL | clients | execution of the model's own SQL on the client's databases | the core |
-| Pre-training with the same loss | server | execution of the model's own SQL on public data that has gold SQL | secondary; the starting point of the rounds |
+| Pre-training with the same loss | server | execution of the model's own SQL on public data that has gold SQL | secondary; in the method if the results support it |
 
 No SFT stage comes before the DPO rounds; FedAvg SFT is a baseline. The
 teacher is not part of the method; what it could add is a research
 direction (section 4).
 
-The core in a round:
+### 3.1 The story (draft, owner, 2026-11-17; follows the results)
+
+In one sentence: a client holds not only labels but also the databases to
+run SQL on; FedAvg SFT uses the labels, the method uses both.
+
+1. Setting. Each organisation has its own databases and its own questions
+   with SQL, and cannot share them. They train one small model together.
+2. What is missing. FedAvg SFT makes the model imitate one gold SQL per
+   question. It never tells the model which of its own outputs are wrong.
+3. Observation. Text-to-SQL can be checked by running the SQL, and the
+   only place where it can be run is the client, where the databases are.
+   The server never has this signal.
+4. Method. In each round a client samples SQL from the global model, runs
+   it on its own databases, pairs correct samples with wrong ones and
+   trains with DPO + NLL. The server averages.
+5. Why it fits federated learning. A federated round is one re-sampling
+   iteration of the DPO loop: the errors of the new global model are found
+   again in the next round at no extra cost. The reference is the round's
+   global model, so every client moves the model from the same point.
+6. Cost. No extra data and no extra communication (the same adapter is
+   sent). The extra cost is compute at the client, for sampling and
+   running SQL.
+
+The second question, pre-training. If pre-training on public data helps
+and the gain of the rounds remains on top of it, the story becomes one
+objective in two places: the server learns from execution on public
+databases, the clients from execution on their own. Public data gives
+general SQL skill; the clients correct what public data does not hold,
+their schemas and the model's errors on their databases. If pre-training
+lifts every row and the gain shrinks, it stays in the notes and the paper
+keeps the main line.
+
+What the results have to show:
+
+| Part of the story | Result that carries it |
+|---|---|
+| Execution at the client adds to the labels | federated DPO above FedAvg SFT, from the same start and for the same rounds |
+| The gain comes from correcting the model's own errors | the gain grows over the rounds and sits in the hard and extra columns |
+| It holds under non-IID data | the gain remains at alpha 0.1, 0.5 and IID |
+| Pre-training helps and does not use up the gain | pre-training + federated DPO above pre-training + FedAvg SFT |
+
+The first row decides the story. In CodeLutra the first iteration only
+equals SFT on gold and the gain comes in iterations 2 and 3, so the
+comparison needs enough rounds.
+
+### 3.2 The core in a round
+
+Only the small model's adapter leaves a client.
 
 1. The server sends the global model.
 2. Each client samples several SQL for each of its questions from that
@@ -82,12 +130,16 @@ Choices inside the rounds (owner, 2026-11-17):
 - The method uses the clients' labelled questions only. Unlabelled
   questions are not part of it.
 
+### 3.3 Pre-training at the server
+
 The secondary part runs the same loop once at the server, before the
 rounds, on public data. It gives the student the output format and general
 SQL skill without using up the pairs on the clients' questions, which the
 student has not seen.
 
-Closest work: CodeLutra (arXiv 2411.05199), the same loop run centrally at
+### 3.4 Closest work
+
+CodeLutra (arXiv 2411.05199), the same loop run centrally at
 8B. It starts from the base model with no SFT stage (its SFT model is a
 separate baseline), draws 10 samples at T 1.0, uses only the model's own
 correct samples as the chosen side, and trains DPO + SFT with beta 0.1 and
