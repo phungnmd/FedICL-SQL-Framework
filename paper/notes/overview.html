@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FedLS-SQL Overview</title>
+<title>FedLS-SQL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -215,11 +215,11 @@ section { padding-block: 44px 8px; scroll-margin-top: 60px; }
 .demo h3 { margin-bottom: 8px; }
 .demo .qtext { font-size: 0.92rem; }
 .demo .gold { margin-top: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
-.chips { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin-top: 14px; max-width: 420px; }
-.chips span { aspect-ratio: 1; max-width: 100%; border-radius: 4px; display: grid; place-items: center; font: 500 0.68rem var(--font-mono); color: var(--surface); }
-.chips .c { background: var(--seg-correct); }
-.chips .w { background: var(--warn); }
-.chips .e { background: var(--seg-wrong); }
+.samples { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin-top: 14px; max-width: 420px; }
+.samples span { aspect-ratio: 1; max-width: 100%; border-radius: 4px; display: grid; place-items: center; font: 500 0.68rem var(--font-mono); color: var(--surface); }
+.samples .c { background: var(--seg-correct); }
+.samples .w { background: var(--warn); }
+.samples .e { background: var(--seg-wrong); }
 .sqls { margin-top: 14px; display: grid; gap: 6px; font-size: 0.8rem; }
 .sqls div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: baseline; }
 .sqls code { background: transparent; padding: 0; overflow-wrap: anywhere; }
@@ -268,13 +268,39 @@ mark.e { background: var(--bad-soft); color: var(--bad); }
 .a-ic { color: var(--ink); }
 .a-ic.focal { color: var(--accent); }
 .a-ic.muted { color: var(--muted); }
-.chips span { display: flex; flex-direction: column; gap: 1px; }
-.chips span .ic { width: 15px; height: 15px; }
-.chips span small { font-size: 0.6rem; opacity: 0.9; }
+.samples span { display: flex; flex-direction: column; gap: 1px; }
+.samples span .ic { width: 15px; height: 15px; }
+.samples span small { font-size: 0.6rem; opacity: 0.9; }
 .sqls span .ic { margin-right: 4px; }
 .pr .sq .ic { width: 14px; height: 14px; }
 .dir .grp { display: inline-flex; align-items: center; gap: 6px; }
 .dir .grp .ic { width: 14px; height: 14px; }
+
+
+/* project page */
+.hero .subtitle { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.15rem, 2.4vw, 1.5rem); line-height: 1.3; max-width: 46ch; margin-top: 10px; text-wrap: balance; }
+.btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; background: var(--ink); color: var(--surface); text-decoration: none; font-weight: 600; font-size: 0.88rem; }
+.btn:hover { background: var(--accent); }
+.btn .ic { width: 16px; height: 16px; }
+.live { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--muted); margin-left: 6px; }
+.teaser { margin-top: 28px; }
+.fig-n { color: var(--ink); font-weight: 600; flex-basis: 100%; }
+.tldr { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; padding-block: 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.tl-item { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tl-k { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); }
+.tl-item p { font-size: 0.92rem; }
+.ideas { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.idea { padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.idea p { font-size: 0.88rem; color: var(--muted); }
+.sub-h { margin: 28px 0 0; font-size: 1.05rem; }
+.sec-head.sub { margin-top: 36px; }
+.sub-h2 { font-size: 1.2rem; }
+.ph-count { display: flex; align-items: center; gap: 10px; font-size: 0.76rem; color: var(--muted); }
+.ph-count .bar { flex: 1; }
+.bar > span.runseg { background: repeating-linear-gradient(135deg, var(--accent) 0 4px, var(--accent-soft) 4px 8px); }
+#progress .status { margin-bottom: 0; }
+#progress .queue { margin-bottom: 14px; }
 
 /* method */
 .story { padding: 20px 22px; font-size: 1.02rem; display: flex; gap: 18px; align-items: flex-start; }
@@ -373,6 +399,7 @@ footer { padding-block: 48px 40px; font-size: 0.8rem; color: var(--muted); }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
 
 @media (max-width: 980px) {
+  .tldr, .ideas { grid-template-columns: 1fr; gap: 14px; }
   .status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .phases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gate { grid-template-columns: 1fr; }
@@ -402,12 +429,10 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap">
     <span class="brand">FedLS-SQL</span>
     <div class="links">
-      <a href="#now">Hiện tại</a>
-      <a href="#phases">Lộ trình</a>
       <a href="#method">Method</a>
-      <a href="#evidence">Bằng chứng</a>
-      <a href="#data">Dữ liệu</a>
-      <a href="#directions">Các hướng</a>
+      <a href="#results">Kết quả</a>
+      <a href="#progress">Tiến độ</a>
+      <a href="#directions">Hướng tiếp</a>
       <a href="#rows">Hàng của paper</a>
     </div>
   </div>
@@ -415,141 +440,23 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Federated Text-to-SQL &middot; snapshot 2026-11-17</div>
+    <div class="eyebrow">Working title &middot; journal paper, Q3+ (CMC, JIIS)</div>
     <h1>FedLS-SQL</h1>
-    <p class="thesis">Client không chỉ giữ nhãn gold SQL mà còn giữ <em>database để chạy SQL</em>. FedAvg SFT chỉ dùng nhãn; method dùng cả hai: mỗi round, client sample SQL từ global model, chạy trên database của mình, ghép cặp đúng/sai và train DPO + NLL.</p>
+    <p class="subtitle">Federated DPO cho Text-to-SQL, học từ kết quả chạy SQL trên database của từng client</p>
     <div class="chips">
-      <span class="chip">Target <b>Q3+ (CMC, JIIS)</b></span>
       <span class="chip">Student <b>Qwen2.5-Coder-1.5B-Instruct + LoRA</b></span>
       <span class="chip">Clients <b>5 trên Spider, alpha_0.1/k5</b></span>
       <span class="chip">Metric <b>Spider test EX, 2,147 rows</b></span>
       <span class="chip">GPU <b>RTX A5000 24 GB</b></span>
     </div>
-  </div>
-</header>
-
-<main>
-<div class="wrap" id="now" style="scroll-margin-top:60px">
-  <div class="status">
-    <div class="cell">
-      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span>
-      <span class="pill run">đang chạy</span>
-      <span class="big mono">rounds/fedavg_sft</span>
-      <span class="small">Khoảng 2 h/round + 10 phút eval (ước tính), 3 đến 8 round. Sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
+    <div class="btns">
+      <a class="btn" href="#method"><svg class="ic" aria-hidden="true"><use href="#i-vm"/></svg>Method</a>
+      <a class="btn" href="#results"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả</a>
+      <a class="btn" href="#progress"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg>Tiến độ</a>
+      <a class="btn" href="#directions"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg>Hướng tiếp</a>
+      <span class="live"><span class="pill run">GPU 0</span>FedAvg SFT đang chạy &middot; cập nhật 2026-11-17</span>
     </div>
-    <div class="cell">
-      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span>
-      <span class="pill plan">không phải của mình</span>
-      <span class="big">Người khác dùng</span>
-      <span class="small">Mọi việc GPU đi qua một queue trên GPU 0.</span>
-    </div>
-    <div class="cell">
-      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Cần chạy ngay (CPU)</span>
-      <span class="pill queued">chờ owner</span>
-      <span class="big">Pull + test, phase 0a</span>
-      <span class="small">447 test pass trên Mac. Phase 0a: thành phần pairs của round 1 theo client (<code>pair_composition</code>).</span>
-    </div>
-    <div class="cell">
-      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả đã có</span>
-      <span class="pill done">base student</span>
-      <span class="big num">68.05 EX</span>
-      <span class="small">Student chưa train, prompt A. Chưa có hàng nào đã train.</span>
-    </div>
-  </div>
-
-  <div class="panel queue" aria-label="Queue trên GPU 0 theo round">
-    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>Mỗi round khoảng 2 h train + 10 phút eval (ước tính). Chưa có round nào publish.</span></div>
-    <div class="q-row">
-      <div class="q-name">FedAvg SFT<span>đang chạy</span></div>
-      <div class="q-track"><span class="rb must">R1</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
-    </div>
-    <div class="q-row">
-      <div class="q-name">DPO + NLL<span>queued, từ round FedAvg tốt nhất</span></div>
-      <div class="q-track"><span class="rb must wait">R1</span><span class="rb must wait">R2</span><span class="rb must wait">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span></div>
-    </div>
-    <div class="q-legend"><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
-  </div>
-</div>
-
-<section id="phases">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>Lộ trình bốn phase</h2>
-      <p>Mỗi phase kết thúc bằng một luật quyết định có đi tiếp hay không. Thời gian là GPU wall clock trên một card (ước tính).</p>
-    </div>
-    <div class="phases">
-      <article class="panel phase">
-        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>PHASE 0</span><span class="pill run">đang làm</span></div>
-        <h3>Đọc pairs và lỗi, không GPU</h3>
-        <div class="bar" aria-label="Tiến độ khoảng 60%"><span style="width:60%"></span></div>
-        <ul>
-          <li><span class="dot done"></span><span>(c) Code cho phase 1, commit <code>62a48999</code></span></li>
-          <li><span class="dot done"></span><span>(b) <code>error_breakdown</code> trên base: 287 execution error, 399 wrong result</span></li>
-          <li><span class="dot queued"></span><span>(a) Pairs round 1 theo loại rejected, theo client: chờ chạy trên server</span></li>
-          <li><span class="dot"></span><span>(b) Cùng cách đọc cho từng round FedAvg</span></li>
-        </ul>
-        <p class="decides">Quyết định: I2 có đáng một run không; DPO còn sửa được bao nhiêu sau SFT.</p>
-      </article>
-      <article class="panel phase current">
-        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>PHASE 1</span><span class="ph-time">khoảng 1 ngày sau FedAvg</span></div>
-        <h3>FedAvg SFT, rồi DPO + NLL</h3>
-        <div class="bar" aria-label="Tiến độ khoảng 20%"><span style="width:20%"></span></div>
-        <ul>
-          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8)</span></li>
-          <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (I3 + I1), tối đa 6 round</span></li>
-          <li><span class="dot"></span><span>Control: FedAvg chạy tiếp cùng số round</span></li>
-        </ul>
-        <p class="decides">Quyết định câu chuyện của paper (xem gate bên dưới).</p>
-      </article>
-      <article class="panel phase">
-        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm muted"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>PHASE 2</span><span class="ph-time">khoảng 2-3 ngày</span></div>
-        <h3>Bảng chính và ablation</h3>
-        <div class="bar"><span style="width:0%"></span></div>
-        <ul>
-          <li><span class="dot"></span><span>Federated DPO as published (fixed pairs, fixed reference)</span></li>
-          <li><span class="dot"></span><span>RFT, DPO + NLL từ base student, I2 nếu 0a cho thấy cần</span></li>
-          <li><span class="dot"></span><span>Client drift SFT và DPO từ adapter đã lưu</span></li>
-        </ul>
-        <p class="decides">Quyết định: bảng chính và các ablation.</p>
-      </article>
-      <article class="panel phase">
-        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm muted"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg></span>PHASE 3</span><span class="ph-time">khoảng 4-6 ngày</span></div>
-        <h3>Độ rộng cho journal</h3>
-        <div class="bar"><span style="width:0%"></span></div>
-        <ul>
-          <li><span class="dot"></span><span>BIRD làm bộ client thứ hai; alpha 0.5 và IID</span></li>
-          <li><span class="dot"></span><span>FedProx, FedNTD; centralized và local SFT</span></li>
-          <li><span class="dot"></span><span>Seed thứ hai; server pre-training sau cùng</span></li>
-        </ul>
-        <p class="decides">Quyết định: đủ rộng cho Q2, có cơ hội Q1.</p>
-      </article>
-    </div>
-
-    <div class="panel gate">
-      <div class="q">
-        <b>Gate cuối phase 1</b>
-        <span>DPO so với FedAvg tiếp tục, cùng số round, exact McNemar trên Spider test</span>
-      </div>
-      <div class="out go"><span class="cond">gain &ge; 1.5 EX, p &lt; 0.05</span><span>Sang phase 2.</span></div>
-      <div class="out mid"><span class="cond">0.5 &le; gain &lt; 1.5</span><span>Đưa I2 và BIRD lên trước.</span></div>
-      <div class="out stop"><span class="cond">gain &lt; 0.5</span><span>Dừng, nghĩ lại từ kết quả 0a và 0b.</span></div>
-    </div>
-  </div>
-</section>
-
-<section id="method">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-vm"/></svg></span>Method đang đề xuất</h2>
-      <p>Thiết kế của owner. CodeLutra (arXiv 2411.05199) chạy vòng lặp tương tự ở dạng centralized và được trích dẫn là công trình gần nhất.</p>
-    </div>
-
-    <div class="panel story">
-      <span class="q-mark" aria-hidden="true">?</span>
-      <p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không? Câu hỏi phụ: pre-training ở server trên public data có giúp, và gain của phần chính còn giữ trên nó không?</p>
-    </div>
-
-    <figure class="panel arch" aria-labelledby="arch-title">
+    <figure class="panel arch teaser" aria-labelledby="arch-title">
       <div class="arch-scroll">
       <svg viewBox="0 0 1080 600" role="img" aria-labelledby="arch-svg-title arch-svg-desc">
         <title id="arch-svg-title">Một round của FedLS-SQL</title>
@@ -691,6 +598,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </svg>
       </div>
       <figcaption id="arch-title">
+        <span class="fig-n">Hình 1. Một round của FedLS-SQL.</span>
         <span><b>Rời client:</b> chỉ adapter LoRA.</span>
         <span><b>Không thêm:</b> dữ liệu, communication.</span>
         <span><b>Chi phí thêm:</b> compute ở client để sample và chạy SQL.</span>
@@ -698,48 +606,41 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </figcaption>
     </figure>
 
-    <div class="panel demo">
-      <div>
-        <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-sql"/></svg></span>Một câu hỏi, 10 samples</h3>
-        <p class="qtext">"Có bao nhiêu ca sĩ trên 30 tuổi?"</p>
-        <p class="gold">gold: SELECT count(*) FROM singer WHERE age &gt; 30</p>
-        <div class="chips" aria-label="10 samples: 4 đúng, 3 sai kết quả, 3 lỗi chạy">
-          <span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s1</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s2</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s3</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s4</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s5</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s6</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s7</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s8</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s9</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s10</small></span>
-        </div>
-        <div class="sqls">
-          <div><span class="k-c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>đúng</span><code>... WHERE age &gt; 30</code></div>
-          <div><span class="k-w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>sai kết quả</span><code>... WHERE age <mark>&gt;=</mark> 30</code></div>
-          <div><span class="k-e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg>lỗi chạy</span><code>... FROM <mark class="e">singers</mark> ...</code></div>
-        </div>
-      </div>
-      <div class="pairsets">
-        <div class="pairset">
-          <div class="ps-h"><b>Random pairs</b><span>dạng plain</span></div>
-          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s3</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy</span></div>
-          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s8</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s4</span><span>đúng / lỗi chạy</span></div>
-          <p class="lesson">Có thể chỉ dạy "SQL phải chạy được". Lỗi <code>&gt;=</code> không được sửa.</p>
-        </div>
-        <div class="pairset i2">
-          <div class="ps-h"><b>Execution-aware (I2)</b><span>ứng viên chính</span></div>
-          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s1</span><span class="vs">vs</span><span class="sq" style="background:var(--warn)">s2</span><span>khác đúng 1 token</span></div>
-          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s6</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy bất kỳ</span></div>
-          <p class="lesson">Sai kết quả ghép với bản đúng gần nhất, nên gradient tập trung vào chỗ sai nghĩa.</p>
-        </div>
-      </div>
-      <p class="note">Hình minh họa, không phải sample thật. Câu hỏi có samples toàn đúng hoặc toàn sai không cho pair trong round đó và được sample lại ở round sau.</p>
+
+    <div class="tldr">
+      <div class="tl-item"><span class="tl-k">Câu hỏi</span><p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không?</p></div>
+      <div class="tl-item"><span class="tl-k">Cách làm</span><p>Mỗi round, client sample SQL từ global model, chạy trên database của mình, ghép cặp đúng và sai, train DPO + NLL với reference là global model của round. Server FedAvg các adapter.</p></div>
+      <div class="tl-item"><span class="tl-k">Trạng thái</span><p>Baseline FedAvg SFT đang chạy, các round DPO đã queue sau nó. Chưa có hàng nào đã train; student chưa train đạt 68.05 EX.</p></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-vm"/></svg></span>Method</h2>
+      <p>Thiết kế của owner. CodeLutra (arXiv 2411.05199) chạy vòng lặp tương tự ở dạng centralized và được trích dẫn là công trình gần nhất. Chi phí thêm duy nhất là compute ở client để sample và chạy SQL.</p>
+    </div>
+    <div class="ideas">
+      <article class="panel idea">
+        <span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>
+        <h3>Tín hiệu chỉ client có</h3>
+        <p>SQL kiểm tra được bằng cách chạy nó, và chỉ client có database để chạy. FedAvg SFT dùng gold SQL nhưng không bao giờ dùng database. Server không có tín hiệu này.</p>
+      </article>
+      <article class="panel idea">
+        <span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-sync"/></svg></span>
+        <h3>Một round là một vòng sample lại</h3>
+        <p>Lỗi của global model mới được tìm lại ở round sau mà không tốn thêm gì. Reference là global model của round, nên mọi client kéo model từ cùng một điểm.</p>
+      </article>
+      <article class="panel idea">
+        <span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg></span>
+        <h3>Nhãn thực thi khác nhau theo client</h3>
+        <p>Lỗi chạy chỉ nói SQL không chạy được; sai kết quả nói SQL sai nghĩa; gold rỗng không phân biệt được đúng sai. Tỷ lệ câu gold rỗng từ 1% đến 41% tùy client.</p>
+      </article>
     </div>
 
-    <div class="panel tbl-wrap cmp" style="margin-top:14px">
-      <table>
-        <thead><tr><th>So với baseline</th><th class="dotc">Học từ gold SQL</th><th class="dotc">Chạy SQL ở client</th><th class="dotc">Sample lại mỗi round</th><th class="dotc">Reference theo round</th><th class="dotc">Học từ SQL sai của model</th></tr></thead>
-        <tbody>
-          <tr><td><b>FedAvg SFT</b></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg" title="không"></span></td></tr>
-          <tr><td><b>Federated DPO as published</b><span class="sub">OpenFedLLM FedDPO</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg h" title="một lần"></span><span class="sub">một lần</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg" title="không"></span><span class="sub">cố định</span></td><td class="dotc"><span class="dotg f" title="có"></span></td></tr>
-          <tr class="me"><td><b>Method</b></td><td class="dotc"><span class="dotg h" title="qua stage SFT"></span><span class="sub">stage SFT (I3)</span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I2 chọn cặp</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-
+    <h3 class="sub-h">Ba cải tiến ứng viên, mỗi cái chỉ giữ khi có gain đo được</h3>
     <div class="parts">
       <article class="panel part">
         <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-sync"/></svg></span><span class="id">I1</span></span><span class="pill queued">trong phase 1</span></div>
@@ -773,6 +674,51 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </article>
     </div>
 
+
+    <div class="panel demo">
+      <div>
+        <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-sql"/></svg></span>Một câu hỏi, 10 samples</h3>
+        <p class="qtext">"Có bao nhiêu ca sĩ trên 30 tuổi?"</p>
+        <p class="gold">gold: SELECT count(*) FROM singer WHERE age &gt; 30</p>
+        <div class="samples" aria-label="10 samples: 4 đúng, 3 sai kết quả, 3 lỗi chạy">
+          <span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s1</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s2</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s3</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s4</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s5</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s6</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s7</small></span><span class="c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><small>s8</small></span><span class="w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg><small>s9</small></span><span class="e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><small>s10</small></span>
+        </div>
+        <div class="sqls">
+          <div><span class="k-c"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>đúng</span><code>... WHERE age &gt; 30</code></div>
+          <div><span class="k-w"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>sai kết quả</span><code>... WHERE age <mark>&gt;=</mark> 30</code></div>
+          <div><span class="k-e"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg>lỗi chạy</span><code>... FROM <mark class="e">singers</mark> ...</code></div>
+        </div>
+      </div>
+      <div class="pairsets">
+        <div class="pairset">
+          <div class="ps-h"><b>Random pairs</b><span>dạng plain</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s3</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s8</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s4</span><span>đúng / lỗi chạy</span></div>
+          <p class="lesson">Có thể chỉ dạy "SQL phải chạy được". Lỗi <code>&gt;=</code> không được sửa.</p>
+        </div>
+        <div class="pairset i2">
+          <div class="ps-h"><b>Execution-aware (I2)</b><span>ứng viên chính</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s1</span><span class="vs">vs</span><span class="sq" style="background:var(--warn)">s2</span><span>khác đúng 1 token</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s6</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy bất kỳ</span></div>
+          <p class="lesson">Sai kết quả ghép với bản đúng gần nhất, nên gradient tập trung vào chỗ sai nghĩa.</p>
+        </div>
+      </div>
+      <p class="note">Hình minh họa, không phải sample thật. Câu hỏi có samples toàn đúng hoặc toàn sai không cho pair trong round đó và được sample lại ở round sau.</p>
+    </div>
+
+
+    <div class="panel tbl-wrap cmp" style="margin-top:14px">
+      <table>
+        <thead><tr><th>So với baseline</th><th class="dotc">Học từ gold SQL</th><th class="dotc">Chạy SQL ở client</th><th class="dotc">Sample lại mỗi round</th><th class="dotc">Reference theo round</th><th class="dotc">Học từ SQL sai của model</th></tr></thead>
+        <tbody>
+          <tr><td><b>FedAvg SFT</b></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg" title="không"></span></td></tr>
+          <tr><td><b>Federated DPO as published</b><span class="sub">OpenFedLLM FedDPO</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg h" title="một lần"></span><span class="sub">một lần</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg" title="không"></span><span class="sub">cố định</span></td><td class="dotc"><span class="dotg f" title="có"></span></td></tr>
+          <tr class="me"><td><b>Method</b></td><td class="dotc"><span class="dotg h" title="qua stage SFT"></span><span class="sub">stage SFT (I3)</span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I2 chọn cặp</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+
     <div class="panel settings" aria-label="Setting của các round DPO">
       <span><span class="k">Samples</span> <span class="v">10 @ T 1.0</span></span>
       <span><span class="k">Pairs/câu hỏi</span> <span class="v">2</span></span>
@@ -785,34 +731,14 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <span><span class="k">New tokens</span> <span class="v">256</span></span>
       <span><span class="k">Decoding eval</span> <span class="v">greedy, rep. penalty 1.0</span></span>
     </div>
+
   </div>
 </section>
 
-<section id="evidence">
+<section id="results">
   <div class="wrap">
     <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Kết quả cần có để câu chuyện đứng được</h2>
-      <p>Hàng đầu tiên quyết định câu chuyện. Trong CodeLutra, iteration 1 chỉ bằng SFT on gold và gain đến ở iteration 2 và 3, nên cần đủ số round.</p>
-    </div>
-    <div class="panel tbl-wrap">
-      <table>
-        <thead><tr><th>Phần của câu chuyện</th><th>Kết quả mang nó</th><th>Phase</th><th>Trạng thái</th></tr></thead>
-        <tbody>
-          <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng điểm xuất phát, cùng số round</td><td class="mono">1</td><td><span class="pill run">đang chạy</span></td></tr>
-          <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pill plan">chưa queue</span></td></tr>
-          <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pill plan">chờ dữ liệu</span></td></tr>
-          <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
-          <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<section id="data">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Dữ liệu và kết quả hiện có</h2>
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Kết quả và dữ liệu</h2>
       <p>Chỉ số đo sau reset 2026-11-17. Số của setup cũ không xuất hiện ở đây.</p>
     </div>
     <div class="data-grid">
@@ -861,13 +787,135 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <div class="callout">Spider release có 7 database train không có rows (<code>geo</code>, <code>scholar</code>, <code>academic</code>, <code>restaurants</code>, <code>imdb</code>, <code>yelp</code>, <code>music_2</code>): 1,759 câu hỏi, 1,648 ở client 4 (47% câu hỏi của nó). Trên đó mọi SQL chạy được đều "đúng". Owner quyết định: bỏ pairs từ các database này.</div>
       </div>
     </div>
+    <div class="sec-head sub">
+      <h3 class="sub-h2">Kết quả cần có để câu chuyện đứng được</h3>
+      <p>Hàng đầu tiên quyết định câu chuyện. Trong CodeLutra, iteration 1 chỉ bằng SFT on gold và gain đến ở iteration 2 và 3, nên cần đủ số round.</p>
+    </div>
+    <div class="panel tbl-wrap">
+      <table>
+        <thead><tr><th>Phần của câu chuyện</th><th>Kết quả mang nó</th><th>Phase</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng điểm xuất phát, cùng số round</td><td class="mono">1</td><td><span class="pill run">đang chạy</span></td></tr>
+          <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pill plan">chưa queue</span></td></tr>
+          <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pill plan">chờ dữ liệu</span></td></tr>
+          <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
+          <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="progress">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>Tiến độ</h2>
+      <p>Bốn phase, mỗi phase kết thúc bằng một luật quyết định có đi tiếp hay không. Thời gian là GPU wall clock trên một card (ước tính).</p>
+    </div>
+  <div class="status">
+    <div class="cell">
+      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span>
+      <span class="pill run">đang chạy</span>
+      <span class="big mono">rounds/fedavg_sft</span>
+      <span class="small">Khoảng 2 h/round + 10 phút eval (ước tính), 3 đến 8 round. Sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
+    </div>
+    <div class="cell">
+      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span>
+      <span class="pill plan">không phải của mình</span>
+      <span class="big">Người khác dùng</span>
+      <span class="small">Mọi việc GPU đi qua một queue trên GPU 0.</span>
+    </div>
+    <div class="cell">
+      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Cần chạy ngay (CPU)</span>
+      <span class="pill queued">chờ owner</span>
+      <span class="big">Pull + test, phase 0a</span>
+      <span class="small">447 test pass trên Mac. Phase 0a: thành phần pairs của round 1 theo client (<code>pair_composition</code>).</span>
+    </div>
+    <div class="cell">
+      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả đã có</span>
+      <span class="pill done">base student</span>
+      <span class="big num">68.05 EX</span>
+      <span class="small">Student chưa train, prompt A. Chưa có hàng nào đã train.</span>
+    </div>
+  </div>
+
+  <div class="panel queue" aria-label="Queue trên GPU 0 theo round">
+    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>Mỗi round khoảng 2 h train + 10 phút eval (ước tính). Chưa có round nào publish.</span></div>
+    <div class="q-row">
+      <div class="q-name">FedAvg SFT<span>đang chạy</span></div>
+      <div class="q-track"><span class="rb must">R1</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-name">DPO + NLL<span>queued, từ round FedAvg tốt nhất</span></div>
+      <div class="q-track"><span class="rb must wait">R1</span><span class="rb must wait">R2</span><span class="rb must wait">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span></div>
+    </div>
+    <div class="q-legend"><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
+  </div>
+
+    <div class="phases">
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>PHASE 0</span><span class="pill run">đang làm</span></div>
+        <h3>Đọc pairs và lỗi, không GPU</h3>
+        <div class="ph-count"><div class="bar"><span style="width:50%"></span></div><span>2/4 xong</span></div>
+        <ul>
+          <li><span class="dot done"></span><span>(c) Code cho phase 1, commit <code>62a48999</code></span></li>
+          <li><span class="dot done"></span><span>(b) <code>error_breakdown</code> trên base: 287 execution error, 399 wrong result</span></li>
+          <li><span class="dot queued"></span><span>(a) Pairs round 1 theo loại rejected, theo client: chờ chạy trên server</span></li>
+          <li><span class="dot"></span><span>(b) Cùng cách đọc cho từng round FedAvg</span></li>
+        </ul>
+        <p class="decides">Quyết định: I2 có đáng một run không; DPO còn sửa được bao nhiêu sau SFT.</p>
+      </article>
+      <article class="panel phase current">
+        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>PHASE 1</span><span class="ph-time">khoảng 1 ngày sau FedAvg</span></div>
+        <h3>FedAvg SFT, rồi DPO + NLL</h3>
+        <div class="ph-count"><div class="bar"><span class="runseg" style="width:33.3%"></span></div><span>0/3 xong, 1 đang chạy</span></div>
+        <ul>
+          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8)</span></li>
+          <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (I3 + I1), tối đa 6 round</span></li>
+          <li><span class="dot"></span><span>Control: FedAvg chạy tiếp cùng số round</span></li>
+        </ul>
+        <p class="decides">Quyết định câu chuyện của paper (xem gate bên dưới).</p>
+      </article>
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm muted"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>PHASE 2</span><span class="ph-time">khoảng 2-3 ngày</span></div>
+        <h3>Bảng chính và ablation</h3>
+        <div class="ph-count"><div class="bar"><span style="width:0%"></span></div><span>0/3 xong</span></div>
+        <ul>
+          <li><span class="dot"></span><span>Federated DPO as published (fixed pairs, fixed reference)</span></li>
+          <li><span class="dot"></span><span>RFT, DPO + NLL từ base student, I2 nếu 0a cho thấy cần</span></li>
+          <li><span class="dot"></span><span>Client drift SFT và DPO từ adapter đã lưu</span></li>
+        </ul>
+        <p class="decides">Quyết định: bảng chính và các ablation.</p>
+      </article>
+      <article class="panel phase">
+        <div class="ph-top"><span class="ph-n"><span class="ic-tile sm muted"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg></span>PHASE 3</span><span class="ph-time">khoảng 4-6 ngày</span></div>
+        <h3>Độ rộng cho journal</h3>
+        <div class="ph-count"><div class="bar"><span style="width:0%"></span></div><span>0/3 xong</span></div>
+        <ul>
+          <li><span class="dot"></span><span>BIRD làm bộ client thứ hai; alpha 0.5 và IID</span></li>
+          <li><span class="dot"></span><span>FedProx, FedNTD; centralized và local SFT</span></li>
+          <li><span class="dot"></span><span>Seed thứ hai; server pre-training sau cùng</span></li>
+        </ul>
+        <p class="decides">Quyết định: đủ rộng cho Q2, có cơ hội Q1.</p>
+      </article>
+    </div>
+
+    <div class="panel gate">
+      <div class="q">
+        <b>Gate cuối phase 1</b>
+        <span>DPO so với FedAvg tiếp tục, cùng số round, exact McNemar trên Spider test</span>
+      </div>
+      <div class="out go"><span class="cond">gain &ge; 1.5 EX, p &lt; 0.05</span><span>Sang phase 2.</span></div>
+      <div class="out mid"><span class="cond">0.5 &le; gain &lt; 1.5</span><span>Đưa I2 và BIRD lên trước.</span></div>
+      <div class="out stop"><span class="cond">gain &lt; 0.5</span><span>Dừng, nghĩ lại từ kết quả 0a và 0b.</span></div>
+    </div>
   </div>
 </section>
 
 <section id="directions">
   <div class="wrap">
     <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg></span>Các hướng có thể chạy</h2>
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg></span>Hướng tiếp</h2>
       <p>Mỗi hướng ghi khi nào nên chạy, nó trả lời câu hỏi gì và chi phí (ước tính). Chưa hướng nào trong này nằm trong queue.</p>
     </div>
     <div class="filters" role="group" aria-label="Lọc theo nhóm">
