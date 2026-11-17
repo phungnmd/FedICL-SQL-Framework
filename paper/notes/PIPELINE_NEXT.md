@@ -2,10 +2,10 @@
 
 ## Status
 
-Updated 2026-11-17 at 09:13 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-17 at 09:20 (Asia/Ho_Chi_Minh). Last published result:
 `24612ccd` (06:50 on 2026-11-17: the check of the synthetic rows, 3,177 of
-5,434 kept). Queue: `08254bcf` (pushed 02:57 on 2026-11-17). It adds rows
-5b and 13 and changes code the DPO rounds load
+5,434 kept). Queue: `f6635e89` (pushed 09:18 on 2026-11-17: row 3a added, the
+queue file only). `08254bcf` (02:57) added rows 5b and 13 and changed code the DPO rounds load
 (`fedicl_sql/federated/pref_rounds.py`, `fedicl_sql/preference/pairs.py`,
 `experiments/federated_pref/run.py`): a new option, off by default, and
 setups without it keep their identity and pair counts (tests). The worker pulled it before row 3; rows 3, 5, 7 and 9 run with the new
@@ -35,7 +35,9 @@ Nothing to run; do not press Ctrl+C.
 Next moments the owner is needed (clock times are estimates):
 
 - If no result commit arrives by about 11:00: run the status command above
-  and send its output.
+  and send its output. The worker reads row 3a at its next publish step
+  (after the SFT round of row 3) and runs it before the evaluation of row
+  3; nothing to restart.
 - During row 5 (about 13:00): the first lines of `srvx_s0/bird_round`
   (`first batch ... peak reserved` of the sampling and of the first
   training updates). It is the first DPO training on BIRD-length rows;
@@ -58,6 +60,7 @@ the repetition penalty (`--repetition-penalty 1.0`); every row before
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 3 | `synvc_s0/collect`, `filter`, `sft_synth`, `eval_synth` and their publish tasks | Direction 3: does supervised training on the clients' verified synthetic rows help, and on which questions? From FedAvg R3 of the `codes` line: 8 samples per question on the own rows plus the 5,434 synthetic rows (`04922932`); a synthetic row is kept when a sample returns the result of its SQL; then one FedAvg SFT round on the own rows plus the kept rows, on Spider test. Arm `sqlcodes_sftsyn_x1_np_vllm_inproc`. Comparators from the same adapter: row 4, FedAvg R3 74.71, one DPO + NLL round 76.94 | 4.4 h, about 0.8 h left | running: rows collected and checked (3,177 of 5,434 kept), SFT round in progress |
+| 3a | `vote_s0/xsel_codes_fedavg_r3`, `xsel_codes_dpo_r3`, `publish_xsel_codes` | Does stage 3 still lead when both sides select at inference? The selection of the finished FedAvg R3 row (greedy kept when it executes, else a sample; vote over 8 samples) on the two finished adapters of the `codes` line: FedAvg R3 (greedy 74.71) and DPO round 3 from it (greedy 77.04). Arms `xsel_codes_fedavg_r3_np`, `xsel_codes_dpo_r3_np`. Runs between the SFT round and the evaluation of row 3 | 0.5 h | queued |
 | 4 | `synvc_s0/sft_plain`, `eval_plain` and their publish tasks | The same round on the clients' rows alone. Arm `sqlcodes_sft_x1_np_vllm_inproc` | 2.5 h | queued |
 | 5 | `srvx_s0/check_bird`, `eval_stage`, `bird_round`, `eval_bird_round` and their publish tasks | Direction 2: does the clients' execution-preference round also work at the server on the public databases, after the teacher stage? From the seed 0 Hinton server stage: one DPO + NLL round on 3,000 BIRD train questions (one pooled client, `full` prompts as the stage was trained), then the round's adapter against the stage's adapter on Spider test and BIRD dev, no client training. Arms `srvdpo_hinton_q3000_r1_np_vllm_inproc`, `sql_hinton_k2_np_vllm_inproc` | 4.7 h | queued |
 | 5b | `srvt_s0/samples`, `pairs`, `publish_pairs` | The teacher inside the round of row 5, the count first (CPU, no training): the samples of row 5 are copied, the teacher's stored SQL of every question with no correct sample is executed, and the pairs are built with the teacher's SQL as the chosen side where it returns the gold result (gold SQL otherwise). Read: the number of pairs whose chosen side is the teacher's SQL | 5 min | queued |
@@ -70,7 +73,7 @@ the repetition penalty (`--repetition-penalty 1.0`); every row before
 | 12 | `f1v2_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split with `codes_v2`, each round on Spider test. Comparator: the rounds with 5 clients, 72.05 / 74.57 / 74.85 | 6.5 h | queued |
 | 13 | `srvt_s0/bird_round`, `eval_bird_round` and their publish tasks | Does the teacher add to the server round when it supplies the preferred SQL? The round of row 5 on the pairs of row 5b (same start adapter, questions, samples and settings; only the chosen side of the teacher's pairs differs), then its adapter on Spider test and BIRD dev. Arm `srvdpo_hinton_q3000_teacher_r1_np_vllm_inproc`. Comparators: the two arms of row 5 | 4 h | queued, after every other row; taken out if row 5b counts few teacher pairs or row 5 shows no gain |
 
-Rows 3-12 take about 46 h from now, row 13 about 4 h more: rows 3-5 (the
+Rows 3-12 take about 46.5 h from now, row 13 about 4 h more: rows 3-5 (the
 reads for directions 2 and 3) end at about 17:30 on 2026-11-17, row 6 at
 about 00:00 on 2026-11-18, row 10 at about 18:30 on 2026-11-18, row 12 at
 about 08:00 on 2026-11-19. Row 5 runs a code path that has not run on the
@@ -79,6 +82,10 @@ server (a DPO round on BIRD); its time is not measured.
 Cut from a full run:
 
 - Every row is seed 0.
+- Row 3a uses `codes` prompts, and its DPO adapter was trained on samples
+  drawn with the penalty 1.1 (the line trained without it has round 1
+  only). The same pair in the final setup is rows 7 and 8 against the
+  finished FedAvg R3 selection (77.78 and 78.90).
 - Row 5 uses 3,000 of the 9,428 BIRD train questions and one round (the
   full round was estimated at about 12 h). It has no teacher in the round:
   BIRD has gold SQL. A gain answers whether the round transfers; its size

@@ -3,6 +3,21 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: selection at inference on both sides of stage 3, queued first (owner)
+
+The selection on FedAvg R3 (entry below) gives 77.78 and 78.90 with no
+training, against 77.04 for the greedy output after the DPO rounds on the
+`codes` line. Whether stage 3 still leads when both sides select is read
+today on the two finished adapters of the `codes` line instead of after
+the DPO rounds with `codes_v2`: queue `f6635e89`, tasks
+`vote_s0/xsel_codes_fedavg_r3` and `vote_s0/xsel_codes_dpo_r3` (about 30
+min), placed ahead of the remaining rows. Cut: `codes` prompts, and the
+DPO adapter was trained on samples drawn with the penalty 1.1. Resolved
+commands equal those of `vote_s0/xsel_fedavg_r3` except adapter, greedy
+arm and prompt style. The earlier row on the same DPO adapter with the
+penalty at inference (`xsel_codes_dpo_r3`): greedy 77.36, fallback 78.90,
+vote 79.83, a correct sample for 86.45%.
+
 ## 2026-11-17: FedAvg with `codes_v2`, selection at inference on it, the check of the synthetic rows
 
 Seed 0, Spider test (2,147 rows), decoding without the repetition penalty.
