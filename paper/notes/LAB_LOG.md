@@ -32,13 +32,13 @@ What the papers gave for it (numbers and sources in `DPO_RESEARCH.md`):
 
 Choices inside the rounds (owner, the same day):
 
-- The gold SQL of a question whose samples are all wrong enters the NLL
-  term and is never the chosen side of a pair. May change with the
-  results. No paper measures this choice; the one precedent is Iterative
-  RPO on GSM8K.
+- The base form is CodeLutra's: plain loss, random pairs, nothing from a
+  question whose samples are all wrong.
+- The gold SQL of an all-wrong question in the NLL term (never as the
+  chosen side of a pair) is an experiment to run, not a part of the method
+  yet. No paper measures it; the one precedent is Iterative RPO on GSM8K.
 - Nearest-correct pairing and the rejected side counted on the differing
-  tokens join the method if a run shows a clear gain over the plain loss
-  with random pairs.
+  tokens join the method if a run shows a clear gain over the base form.
 - Unlabelled questions are not in the method; it stays on the clients'
   labelled questions.
 

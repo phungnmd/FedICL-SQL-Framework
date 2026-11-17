@@ -342,8 +342,9 @@ L = - w * log sigmoid( beta * [ D(c) - D_diff(r) ] )  -  lambda * w * log p(c | 
   (3.8).
 - w = 1. A vote margin would take its place only for pairs from
   unlabelled questions, which the method does not use (3.8).
-- A question whose samples are all wrong has no pair. It adds only the
-  second term, on its gold SQL (3.8).
+- A question whose samples are all wrong has no pair and adds nothing in
+  the base form. The candidate to check is that it adds the second term
+  alone, on its gold SQL (3.8).
 - Starting values from the papers: beta 0.1 and lambda 1 (CodeLutra's
   SQL setting), one epoch per round.
 
@@ -360,9 +361,10 @@ This is Target-RPO's loss with CodeLutra's iteration scheme.
   single correct sample is not repeated ten times against random partners.
   This pairing is a candidate, like the diff restriction of 3.2; the plain
   form draws the pairs at random (3.8).
-- The SFT term runs on the chosen samples, and on the gold SQL of the
-  questions whose samples are all wrong. With no SFT stage before the
-  rounds, such a question would otherwise meet its gold SQL nowhere.
+- The SFT term runs on the chosen samples. With no SFT stage before the
+  rounds, a question whose samples are all wrong meets its gold SQL
+  nowhere; adding its gold SQL to the SFT term is an experiment to run
+  (3.8).
 
 ### 3.4 Aggregation and non-IID data
 
@@ -447,11 +449,12 @@ The other role with support is writing new questions on public databases
 
 ### 3.8 Choices made inside the rounds (owner, 2026-11-17)
 
-1. The gold SQL of an all-wrong question enters the SFT term; it is not
-   the chosen side of a pair. This may change with the results. For it:
-   with no SFT stage, such a question otherwise gives nothing in that
-   round, and Iterative RPO adds gold in this case. Against it: these are
-   the hardest questions (Gao et al.), and no paper measures the choice.
+1. The gold SQL of an all-wrong question in the SFT term (never as the
+   chosen side of a pair) is an experiment to run, not a part of the
+   method yet. The base form leaves such a question out of the round. For
+   it: with no SFT stage, the question otherwise gives nothing, and
+   Iterative RPO adds gold in this case. Against it: these are the hardest
+   questions (Gao et al.), and no paper measures the choice.
 2. The diff restriction of 3.2 and the nearest-correct pairing of 3.3 join
    the method if a run shows a clear gain over CodeLutra's plain loss with
    random pairs. Otherwise the plain form stays. Neither has been tested
@@ -496,8 +499,10 @@ The other role with support is writing new questions on public databases
 2. From the base student and for the same number of rounds: FedAvg SFT
    against the rounds of 3.1 with the plain loss (DPO + SFT term, random
    pairs). This is the effect of the core.
-3. Add nearest pairing and the diff restriction. They join the method
-   only on a clear gain over run 2.
+3. On top of run 2, each against it: the gold SQL of all-wrong questions
+   in the SFT term; nearest pairing with the diff restriction. Each joins
+   the method only on a clear gain over run 2. Run 1 says first how many
+   questions the gold SQL would touch.
 4. The rounds from the pre-trained student against run 2, with SFT on the
    public gold SQL as the other starting point. This is the effect of the
    secondary part.

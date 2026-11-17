@@ -67,18 +67,18 @@ The core in a round:
    all wrong or all correct gives no pair in that round and is sampled
    again in the next.
 4. The client trains with DPO plus an NLL term on the chosen side. The
-   reference of the DPO term is the round's global model. A question whose
-   samples are all wrong adds its gold SQL to the NLL term only.
+   reference of the DPO term is the round's global model.
 5. The server averages the updates.
 
 Choices inside the rounds (owner, 2026-11-17):
 
-- The gold SQL of an all-wrong question enters the NLL term and is never
-  the chosen side of a pair. This may change with the results.
-- Two changes to CodeLutra's plain loss and random pairs are candidates:
-  each wrong sample paired with its nearest correct sample, and the
-  rejected side counted only on the tokens that differ. They join the
-  method if a run shows a clear gain; otherwise the plain form stays.
+- The base form is CodeLutra's: the plain loss, pairs drawn at random, and
+  nothing from a question whose samples are all wrong.
+- Three changes to it are candidates, each to be checked by a run and
+  taken into the method only on a clear gain: the gold SQL of an all-wrong
+  question in the NLL term (never as the chosen side of a pair); each
+  wrong sample paired with its nearest correct sample; the rejected side
+  counted only on the tokens that differ.
 - The method uses the clients' labelled questions only. Unlabelled
   questions are not part of it.
 
@@ -145,12 +145,15 @@ map is in `LITERATURE.md`.
    mixed and all correct, from the base student and from the student after
    the server pre-training. The pre-training moves hard questions into the
    mixed group and easy ones out of it; which side wins is not known.
-9. The two candidate changes of section 3 (nearest-correct pairing, the
-   rejected side counted on the differing tokens): one run with them
-   against the plain loss with random pairs, from the same start and for
-   the same rounds. Neither has been tested on SQL in a paper
-   (`DPO_RESEARCH.md`, section 2.4). The same pair of runs can be repeated
-   without the gold SQL in the NLL term if that choice is questioned.
+9. The three candidate changes of section 3, each as a run against the
+   base form from the same start and for the same rounds:
+   - the gold SQL of all-wrong questions in the NLL term. No paper
+     measures it; the one precedent is Iterative RPO on GSM8K
+     (`DPO_RESEARCH.md`, section 2.9). The count of item 8 says how many
+     questions it touches;
+   - nearest-correct pairing and the rejected side counted on the
+     differing tokens. Neither has been tested on SQL in a paper
+     (`DPO_RESEARCH.md`, section 2.4).
 
 ## 5. Results
 
