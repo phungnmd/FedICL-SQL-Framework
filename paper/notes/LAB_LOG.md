@@ -4,6 +4,58 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: the two lines queued round by round; conditional tasks in the queue (code `66b2c01a`)
+
+Owner: run FedAvg SFT and the DPO rounds one round at a time to see a
+signal early, let each go on by the gain rule, and let the queue run a
+task on a condition.
+
+In the code:
+
+- `scripts.curve run A B` alternates the curves step by step; with
+  `--same-length` a curve whose rule has stopped follows the longer one,
+  and its record keeps its own decision (`rule_stop_step`). `plan` prints
+  the resolved commands of the first steps.
+- A queue task may carry `when`, a check the worker runs without a GPU:
+  exit 0 runs the task, exit 3 skips it (and the tasks that need it),
+  anything else stops the worker. `scripts.queue_when curve-gain A --over
+  B --min X` reads the published curve records.
+- 442 tests pass on the Mac. Nothing of it has run on the server.
+
+Queued (`queues/active.toml`), after the read of the pairs:
+
+- `rounds/sft_vs_dpo`: FedAvg SFT and federated DPO from the base student
+  on `alpha_0.1/k5`, prompt A, alternating, same length. Rule: gain of
+  more than 0.5 EX point, patience 2, at most 8 rounds. The rounds are
+  chosen on Spider test.
+- `refs/central_local`: centralized SFT and local SFT per client as
+  curves of one epoch per step, only if the best DPO round is at least
+  2.0 points above the best FedAvg SFT round.
+
+Values set here without a ruling of the owner: the rule (0.5, 2, 8), the
+same length, the 2.0 points of the condition, SFT at lr 2e-4 with one
+local epoch per round.
+
+The two lines agree in prompt, length limit (7,168), LoRA r 16 / alpha 32,
+the seeded LoRA initialisation, one epoch per round, 16 examples or pairs
+per update, all 5 clients per round and the evaluation. They differ in:
+
+| Setting | FedAvg SFT | Federated DPO |
+|---|---|---|
+| Learning rate | 2e-4 | 5e-5 |
+| Warmup ratio (cosine) | 0.03 | 0.1 |
+| Weight decay | 0.01 (AdamW default) | 1e-4 |
+| LoRA dropout | 0.05 | 0 |
+| Aggregation weights | client rows | client pairs |
+
+No default of either runner was changed for the queue.
+
+Not measured: peak VRAM of a FedAvg round and of a DPO round with prompt
+A (sequences up to 6,927 tokens); the time of a round. Known risk: the
+centralized and local runner retrains and overwrites a finished adapter
+if its command is run again; the curve's state prevents it unless
+`.queue_state/` is lost.
+
 ## 2026-11-17: Spider first, with prompt A (owner)
 
 - The method is tried on Spider first (owner). Whether BIRD joins as a
