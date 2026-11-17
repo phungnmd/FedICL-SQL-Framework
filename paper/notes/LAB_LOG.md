@@ -4,6 +4,14 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: pass@k of FedAvg round 2 on Spider test (owner's console, not committed yet)
+
+`scripts/pass_at_k.py` (code `532256af`), 10 samples at T 1.0, vLLM at 0.30
+of the card beside the DPO round: pass@1 65.78, pass@2 76.06, pass@5
+84.35, pass@10 88.36; greedy EX of the same adapter 74.10. A correct SQL
+is among 10 samples for 88% of the test questions; greedy decoding lies
+between pass@1 and pass@2.
+
 ## 2026-11-17: pairs at k = 2 (owner's console, not committed yet)
 
 Round 1 of `dpo_k2` sampled from FedAvg round 2 (vLLM, 8,659 questions x
