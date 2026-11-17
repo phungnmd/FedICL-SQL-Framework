@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: DPO round 1 from FedAvg round 2, training read (results `431a17e7`)
+
+`dpo_k2` round 1 (random pairs, 2 per mixed question, 8,026 pairs, one
+epoch, beta 0.1, NLL weight 1). On each client the margin rises from
+0.06-0.20 in the first quarter of the updates to 1.19-1.55 in the last,
+accuracy from 0.67-0.70 to 0.89-0.92; every pair is seen once, so these
+are pairs the client had not trained on yet. Client updates against the
+round-2 adapter: norms 1.35-2.12 (SFT rounds: 3.9-6.7), pairwise cosine
+0.24-0.32 (FedAvg SFT round 2: 0.01-0.05, round 3: about 0), product error
+of the factor average 0.005 (SFT: 0.045-0.126). The DPO updates of the
+five clients point the same way where the SFT updates had become
+orthogonal. Rejected side: 4,087 of 8,026 pairs (51%) reject an execution
+error; greedy round 2 has 183 execution errors and 373 wrong results on
+Spider test. Peak reserved 12.65-18.93 GiB. Greedy EX pending.
+
 ## 2026-11-18: FedAvg capped at round 4, centralized SFT next (owner; code `cb947362`)
 
 Owner: the FedAvg line stops at round 4 (`max_steps` 8 to 4) and
