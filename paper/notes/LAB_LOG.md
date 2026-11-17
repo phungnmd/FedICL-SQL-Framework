@@ -4,6 +4,59 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: the DPO rounds start from the base student, pairs and defaults after CodeLutra (code `c03bd693`)
+
+The preference rounds were written for DPO after an SFT stage. They now
+run the method as set: round 1 from the base student, CodeLutra's pairs.
+No GPU run yet.
+
+In the code (`experiments/federated_pref/run.py`):
+
+- `--from-base`: round 1 samples from the base model with no adapter and
+  every client trains from one saved LoRA initialisation, the same one the
+  FedAvg SFT runner builds from the base model (a test gets bit-identical
+  tensors on a tiny model on CPU). The DPO reference of round 1 is the
+  base model. A start from a parent adapter still works.
+- Pair rule `random` (default), as read in CodeLutra (section 4,
+  Algorithm 1 lines 16 to 19, appendix A.1): 10 pairs per question, the
+  chosen side drawn at random from the correct samples and the rejected
+  side from the wrong ones, with replacement when a set has fewer than 10.
+  The draw is over the samples as produced, so a SQL sampled three times
+  is three times as likely. All-wrong and all-correct questions give no
+  pair. Gold SQL as the chosen side is off (`--gold-chosen` turns it on).
+- Pair rule `nearest` is kept as the candidate: each distinct wrong SQL
+  with its most similar distinct correct SQL. The similarity is a
+  character-level ratio, not the token edit distance of `DPO_RESEARCH.md`,
+  section 3.3.
+- Defaults: 10 samples at T 1.0, beta 0.1, NLL weight 1, lr 5e-5, 1 epoch
+  per round, 16 pairs per update, weight decay 1e-4 (CodeLutra, section
+  5.1 and Table 4). LoRA rank stays 16 (the paper has 8).
+- `read`: sampling, labels and the counts per client without training,
+  into `pair_read/r1_base.json`. Round 1 of the DPO arm on the same root
+  reuses its samples.
+
+Where the code is not the paper:
+
+- The NLL term is a per-token mean; the paper writes the log-likelihood of
+  the sequence. CodeLutra has no public code to check which it ran.
+- Warmup 0.1 with cosine decay: the paper does not state a schedule.
+- A response with no SQL counts as wrong (the paper's rule: every sample
+  that does not match goes to the rejected set). A sample cut at 256
+  tokens is in neither set; the paper filters "answers that contain
+  repeated strings", which is not implemented apart from that.
+- Aggregation weights are the clients' pair counts; FedAvg SFT weights by
+  the number of questions.
+
+Smoke on the Mac, not a result: 2 clients, 4 questions each, HF. The read
+ran through (8 questions: 2 all wrong, 4 mixed, 2 all correct, 40 pairs).
+The round reused the samples, client 1 trained 2 updates, and the run was
+stopped during client 2 (owner: too slow on the Mac). The path from the
+base student has not run through aggregation anywhere. 428 tests pass on
+the Mac.
+
+Queued: `pairread/*`, the read on `alpha_0.1/k5` with prompt A through
+vLLM. Its peak memory on the card is not measured.
+
 ## 2026-11-17: the base model on Spider test with both prompts (results `12456b56`)
 
 The student with no training, greedy, vLLM `inproc`, 2,147 rows, code

@@ -170,9 +170,13 @@ map is in `LITERATURE.md`.
 2. The training target is the gold SQL without a final `;`, followed by
    the end-of-turn token. No other normalization (CodeS upper-cases
    keywords and lower-cases identifiers; not done here).
-3. Settings of the DPO rounds where CodeLutra and the earlier setup
-   differ: samples per question (10 or 8), temperature (1.0 or 0.7), pairs
-   per question, LoRA rank (8 or 16), learning rate and epochs.
+3. Settings of the DPO rounds. The code defaults are CodeLutra's: 10
+   samples per question at temperature 1.0, 10 pairs per question drawn
+   at random, beta 0.1, NLL weight 1, lr 5e-5, 1 epoch per round, weight
+   decay 1e-4. Open: the number of rounds; LoRA rank 16 for every line
+   against 8 in the paper; the NLL term as a per-token mean, where the
+   paper writes the log-likelihood of the sequence; the aggregation
+   weights (pair counts here, question counts in FedAvg SFT).
 4. The SFT shuffle seed is the same for every client and round. (The
    sampling seed of the DPO rounds is now derived per round and client.)
    LoRA dropout is 0.05 in SFT and 0 in DPO, and AdamW keeps its default
@@ -201,6 +205,7 @@ map is in `LITERATURE.md`.
    mixed and all correct, from the base student and from the student after
    the server pre-training. The pre-training moves hard questions into the
    mixed group and easy ones out of it; which side wins is not known.
+   The read from the base student is queued (`pairread/*`).
 9. The three candidate changes of section 3, each as a run against the
    base form from the same start and for the same rounds:
    - the gold SQL of all-wrong questions in the NLL term. No paper
