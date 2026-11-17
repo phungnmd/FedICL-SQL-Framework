@@ -18,11 +18,15 @@ until step 1 below is run.
    The worker must be stopped. The pull removes the result rows and audit
    files of the earlier setup from the working tree and the earlier client splits (5,704 files; they
    stay in Git at the tag `archive/pre-reset-2026-11-17`) and brings the
-   new splits; nothing under `artifacts/` is touched. Send back the last
-   lines: the pytest summary (415 passed on the Mac), or the error.
+   new splits; nothing under `artifacts/` is touched. The server copies of
+   27 tracked files of one earlier result row (`p229_h_plain`) differ from
+   Git and stopped the first try; the command lists them and puts them in
+   a stash (kept, `git stash list`) before the pull. Send back the lines
+   up to the stash line and the last lines: the pytest summary (415 passed
+   on the Mac), or the error.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv sync --extra dev; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git status --short --untracked-files=no; git diff --shortstat; git diff --ignore-cr-at-eol --shortstat; git stash push -m 'server copies of tracked files before the 2026-11-17 reset'; if ($LASTEXITCODE -ne 0) { throw 'Stash failed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv sync --extra dev; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
    ```
 
 2. Start the worker on GPU 0. It runs the selftest (about 1 min), then
