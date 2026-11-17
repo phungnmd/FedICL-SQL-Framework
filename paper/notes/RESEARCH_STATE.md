@@ -163,11 +163,10 @@ map is in `LITERATURE.md`.
    | `ddl_values` (B) | `CREATE TABLE` text rebuilt per column, 2 example values of each column as a comment | the schema text of OmniSQL, without its column descriptions and question-matched values | 6,440 | 1,939 |
    | `ddl` | `CREATE TABLE` text alone | the same evaluation code on BIRD; CodeLutra | 2,334 | 1,086 |
 
-   The base model with no training is queued on Spider test with A and B
-   (`prompt/*`). That read checks the prompt and the decoding against the
-   published zero-shot number of this model (72.3 in SPFT-SQL); the choice
-   between A and B is made on the gain of the federated DPO rounds over
-   FedAvg SFT with each.
+   The base model with no training gives the same level with both (68.05
+   and 67.49, section 5), and the outputs show no defect of the prompt or
+   the decoding. The choice between A and B is made on the gain of the
+   federated DPO rounds over FedAvg SFT with each.
 2. The training target is the gold SQL without a final `;`, followed by
    the end-of-turn token. No other normalization (CodeS upper-cases
    keywords and lower-cases identifiers; not done here).
@@ -214,7 +213,15 @@ map is in `LITERATURE.md`.
 
 ## 5. Results
 
-None on the clean setup yet.
+Spider test EX, 2,147 rows, greedy. Details in `LAB_LOG.md`.
+
+| Row | Prompt | EX | Easy | Medium | Hard | Extra |
+|---|---|---:|---:|---:|---:|---:|
+| Student without training | A, `ddl_rows` | 68.05 | 87.4 | 71.4 | 59.2 | 45.9 |
+| Student without training | B, `ddl_values` | 67.49 | 87.7 | 71.2 | 56.4 | 46.5 |
+
+The two prompts do not differ (exact McNemar p = 0.47). No trained row
+yet.
 
 ## 6. Earlier work
 

@@ -4,6 +4,43 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: the base model on Spider test with both prompts (results `12456b56`)
+
+The student with no training, greedy, vLLM `inproc`, 2,147 rows, code
+`083a6a52`. A check of the prompt and the decoding, not a result of the
+method.
+
+| Prompt | EX | Easy | Medium | Hard | Extra | Rows that do not execute | EM |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A, `ddl_rows` | **68.05** | 87.4 | **71.4** | **59.2** | 45.9 | **287** | **53.3** |
+| B, `ddl_values` | 67.49 | **87.7** | 71.2 | 56.4 | **46.5** | 322 | 44.2 |
+
+- A and B do not differ: 1,461 against 1,449 correct rows; 122 rows are
+  correct only with A and 110 only with B (exact McNemar p = 0.47).
+  1,571 rows are correct with at least one of them.
+- The prompt and the decoding are sound. Every output starts with
+  `SELECT`, none is empty or in a code fence, and all end at the end token
+  except 2 of B that reach 256 tokens. The rows that do not execute are
+  the model's errors, not a format defect: `no such column` in 270 of 287
+  (A) and 304 of 322 (B), a column taken from the wrong table, most on
+  databases with many tables (`bakery_1`, `cre_Doc_and_collections`,
+  `cre_Students_Information_Systems`).
+- Published numbers of this model on Spider test, each with its own
+  prompt: 72.3 (SPFT-SQL, zero-shot), 67.61 (SLM-SQL, a vote over 16
+  samples).
+- B's lower EM is style (`INNER JOIN`, aliases), not correctness.
+- Time: 17 s of generation for the 2,147 rows, about 2.5 min per task
+  with the model load. The 10 min of the queue note was an estimate.
+
+The choice between A and B stays open; it is made on the gain of the DPO
+rounds over FedAvg SFT (`RESEARCH_STATE.md`, section 4, item 1).
+
+On the server: the pull of the reset went through after the server copies
+of 27 tracked files of one earlier result row (`p229_h_plain`) were put in
+a stash; what differs in them was not reported. One test failed there
+(`test_progress`, it assumed CUDA was not initialized) and was fixed in
+`083a6a52`; the test summary on the server after the fix was not reported.
+
 ## 2026-11-17: the method is federated DPO; pre-training secondary, the teacher a research direction (owner)
 
 Decision, after the reading in `DPO_RESEARCH.md`. It replaces the three
