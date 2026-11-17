@@ -4,6 +4,18 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: FedAvg SFT round 1 (code `29f38add`, eval `d6bfc763`)
+
+FedAvg from the base student, `alpha_0.1/k5`, prompt A (`ddl_rows`), one
+local epoch. Spider test EX 72.43 (EM 60.41) against 68.05 zero-shot with
+the same prompt: fixed 165 rows, broke 71 (McNemar p < 0.001). Execution
+errors 287 to 215, wrong results 399 to 377; extra hard 45.94 to 54.90.
+Client sizes 895 / 1542 / 2009 / 3479 / 734 (client 4 weighs 0.40);
+mean local loss 0.140 to 0.152 on every client. Factor FedAvg relative
+product error 0.126. Client drift is not measurable from this round
+alone: the round-1 update cosine is taken against the zero adapter (the
+LoRA A init is shared), and no centralized or IID reference exists yet.
+
 ## 2026-11-17: aggregation options for the DPO rounds written down (owner)
 
 Owner: the federated options for aggregating the DPO rounds are options to
