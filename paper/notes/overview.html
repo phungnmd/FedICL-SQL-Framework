@@ -165,6 +165,90 @@ section { padding-block: 44px 8px; scroll-margin-top: 60px; }
 .out.mid { background: var(--warn-soft); } .out.mid .cond { color: var(--warn); }
 .out.stop { background: var(--bad-soft); } .out.stop .cond { color: var(--bad); }
 
+
+/* queue strip */
+.queue { margin-top: 14px; padding: 16px 18px; display: grid; gap: 10px; }
+.queue .q-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; font-size: 0.84rem; color: var(--muted); }
+.queue .q-head b { color: var(--ink); font-family: var(--font-display); font-size: 0.95rem; }
+.q-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: center; }
+.q-row .q-name { font-size: 0.84rem; font-weight: 600; }
+.q-row .q-name span { display: block; font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+.q-track { display: flex; gap: 4px; overflow-x: auto; padding-block: 2px; }
+.rb { flex: 0 0 auto; min-width: 54px; height: 30px; border-radius: 4px; display: grid; place-items: center; font: 500 0.74rem var(--font-mono); }
+.rb.must { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+.rb.must.wait { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+.rb.maybe { border: 1px dashed var(--idle); color: var(--idle); }
+.rb.gap { min-width: 26px; color: var(--muted); font-size: 0.9rem; }
+.q-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.78rem; color: var(--muted); }
+
+/* architecture figure */
+.arch { margin: 14px 0 0; padding: 0; overflow: hidden; }
+.arch-scroll { overflow-x: auto; }
+.arch svg { display: block; width: 100%; min-width: 1080px; height: auto; }
+.arch figcaption { padding: 12px 18px 16px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--line); }
+.arch figcaption b { color: var(--ink); }
+.a-zone { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+.a-zone.client { stroke: var(--muted); stroke-dasharray: 6 4; }
+.a-stack { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+.a-node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.a-node.focal { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.8; }
+.a-node.opt { stroke: var(--muted); stroke-dasharray: 5 4; }
+.a-node.store { fill: var(--idle-soft); }
+.a-name { font: 600 15px var(--font-body); fill: var(--ink); }
+.a-sub { font: 400 11px var(--font-mono); fill: var(--muted); }
+.a-eyebrow { font: 500 10px var(--font-mono); fill: var(--muted); letter-spacing: 0.14em; }
+.a-lbl { font: 500 10px var(--font-mono); fill: var(--muted); letter-spacing: 0.08em; }
+.a-lbl.acc { fill: var(--accent); }
+.a-note { font: italic 400 13px var(--font-body); fill: var(--muted); }
+.a-mask { fill: var(--bg); }
+.a-mask.out { fill: var(--surface); }
+.a-line { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.a-line.acc { stroke: var(--accent); stroke-width: 1.8; }
+.a-line.dash { stroke-dasharray: 5 4; }
+.a-tag { fill: var(--accent); }
+.a-tag-t { font: 600 10px var(--font-mono); fill: var(--surface); }
+.a-mk { fill: var(--muted); }
+.a-mk.acc { fill: var(--accent); }
+
+/* pair illustration */
+.demo { margin-top: 14px; padding: 20px; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px 28px; }
+.demo h3 { margin-bottom: 8px; }
+.demo .qtext { font-size: 0.92rem; }
+.demo .gold { margin-top: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.chips { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin-top: 14px; max-width: 420px; }
+.chips span { aspect-ratio: 1; max-width: 100%; border-radius: 4px; display: grid; place-items: center; font: 500 0.68rem var(--font-mono); color: var(--surface); }
+.chips .c { background: var(--seg-correct); }
+.chips .w { background: var(--warn); }
+.chips .e { background: var(--seg-wrong); }
+.sqls { margin-top: 14px; display: grid; gap: 6px; font-size: 0.8rem; }
+.sqls div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.sqls code { background: transparent; padding: 0; overflow-wrap: anywhere; }
+.k-c { color: var(--ok); font-weight: 600; } .k-w { color: var(--warn); font-weight: 600; } .k-e { color: var(--bad); font-weight: 600; }
+mark { background: var(--warn-soft); color: var(--warn); border-radius: 3px; padding: 0 2px; font-weight: 600; }
+mark.e { background: var(--bad-soft); color: var(--bad); }
+.pairsets { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.pairset { border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pairset.i2 { border-color: var(--accent); }
+.pairset .ps-h { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 0.78rem; color: var(--muted); }
+.pairset .ps-h b { font-family: var(--font-display); font-size: 0.95rem; color: var(--ink); }
+.pr { display: grid; grid-template-columns: 26px 18px 26px minmax(0, 1fr); gap: 6px; align-items: center; font-size: 0.8rem; }
+.pr .sq { width: 26px; height: 26px; border-radius: 4px; display: grid; place-items: center; font: 500 0.66rem var(--font-mono); color: var(--surface); }
+.pr .vs { text-align: center; color: var(--muted); font-size: 0.8rem; }
+.pairset .lesson { font-size: 0.82rem; border-top: 1px dashed var(--line); padding-top: 8px; margin-top: auto; }
+.demo .note { grid-column: 1 / -1; font-size: 0.78rem; color: var(--muted); }
+
+/* comparison matrix */
+.cmp td.dotc, .cmp th.dotc { text-align: center; }
+.dotg { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); vertical-align: -2px; }
+.dotg.f { background: var(--ink); }
+.dotg.h { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.dotg.na { border-color: var(--line); }
+.cmp tr.me td { background: var(--accent-soft); }
+.cmp tr.me .dotg { border-color: var(--accent); }
+.cmp tr.me .dotg.f { background: var(--accent); }
+.cmp tr.me .dotg.h { background: linear-gradient(90deg, var(--accent) 50%, transparent 50%); }
+.cmp td .sub { font-size: 0.74rem; }
+
 /* method */
 .story { padding: 20px 22px; font-size: 1.02rem; display: flex; gap: 18px; align-items: flex-start; }
 .story .q-mark { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--accent); font-weight: 800; }
@@ -269,6 +353,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   .data-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
+  .demo, .pairsets { grid-template-columns: 1fr; }
+  .q-row { grid-template-columns: 1fr; gap: 4px; }
   .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .status, .phases, .parts, .dirs { grid-template-columns: 1fr; }
   .lanes { grid-template-columns: 1fr; }
@@ -341,6 +427,19 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <span class="big num">68.05 EX</span>
       <span class="small">Student chưa train, prompt A. Chưa có hàng nào đã train.</span>
     </div>
+  </div>
+
+  <div class="panel queue" aria-label="Queue trên GPU 0 theo round">
+    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>Mỗi round khoảng 2 h train + 10 phút eval (ước tính). Chưa có round nào publish.</span></div>
+    <div class="q-row">
+      <div class="q-name">FedAvg SFT<span>đang chạy</span></div>
+      <div class="q-track"><span class="rb must">R1</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-name">DPO + NLL<span>queued, từ round FedAvg tốt nhất</span></div>
+      <div class="q-track"><span class="rb must wait">R1</span><span class="rb must wait">R2</span><span class="rb must wait">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span></div>
+    </div>
+    <div class="q-legend"><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
   </div>
 </div>
 
@@ -422,28 +521,175 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không? Câu hỏi phụ: pre-training ở server trên public data có giúp, và gain của phần chính còn giữ trên nó không?</p>
     </div>
 
-    <div class="panel lanes" role="figure" aria-label="Một round của method">
-      <div class="lane-name">Server</div>
-      <div class="lane server">
-        <div class="step s arrow-r"><span class="n">1</span><b>Gửi global model</b>Adapter của round r, cũng là reference của DPO.</div>
-        <div class="step ghost">trên client</div>
-        <div class="step ghost">trên client</div>
-        <div class="step ghost">trên client</div>
-        <div class="step s"><span class="n">5</span><b>FedAvg</b>Trung bình LoRA A, B, trọng số theo số pairs của client.</div>
+    <figure class="panel arch" aria-labelledby="arch-title">
+      <div class="arch-scroll">
+      <svg viewBox="0 0 1080 600" role="img" aria-labelledby="arch-svg-title arch-svg-desc">
+        <title id="arch-svg-title">Một round của FedLS-SQL</title>
+        <desc id="arch-svg-desc">Server gửi global model cho 5 client; mỗi client sample SQL, chạy trên database của mình, ghép cặp đúng và sai, train DPO cộng NLL với reference là global model của round, rồi gửi adapter LoRA về server để FedAvg.</desc>
+        <defs>
+          <marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="a-mk" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="mk-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="a-mk acc" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+
+        <!-- zones -->
+        <rect class="a-zone" x="24" y="24" width="1032" height="140" rx="8"/>
+        <rect class="a-mask" x="40" y="18" width="70" height="14" rx="2"/>
+        <text class="a-eyebrow" x="48" y="29">SERVER</text>
+        <text class="a-eyebrow" x="1040" y="48" text-anchor="end">ROUND r</text>
+
+        <rect class="a-stack" x="40" y="232" width="1000" height="324" rx="8"/>
+        <rect class="a-stack" x="32" y="224" width="1000" height="324" rx="8"/>
+        <rect class="a-zone client" x="24" y="216" width="1000" height="324" rx="8"/>
+        <rect class="a-mask" x="40" y="533" width="330" height="14" rx="2"/>
+        <text class="a-eyebrow" x="48" y="544">CLIENT k  (x5)  DỮ LIỆU KHÔNG RỜI CLIENT</text>
+
+        <!-- connectors (before nodes) -->
+        <line class="a-line acc" x1="820" y1="100" x2="642" y2="100" marker-end="url(#mk-acc)"/>
+        <rect class="a-mask" x="700" y="78" width="60" height="14" rx="2"/>
+        <text class="a-lbl acc" x="730" y="89" text-anchor="middle">θ r+1</text>
+
+        <line class="a-line dash" x1="256" y1="92" x2="438" y2="92" marker-end="url(#mk)"/>
+        <rect class="a-mask" x="306" y="70" width="84" height="14" rx="2"/>
+        <text class="a-lbl" x="348" y="81" text-anchor="middle">KHỞI TẠO</text>
+
+        <path class="a-line dash" d="M 440,120 H 294 Q 286,120 286,128 V 384 a 8,8 0 0,0 0,16 V 460 Q 286,468 294,468 H 334" marker-end="url(#mk)"/>
+
+        <line class="a-line acc" x1="476" y1="136" x2="476" y2="278" marker-end="url(#mk-acc)"/>
+        <rect class="a-mask out" x="486" y="182" width="78" height="14" rx="2"/>
+        <text class="a-lbl acc" x="490" y="193">GLOBAL θr</text>
+
+        <text class="a-note" x="720" y="196" text-anchor="middle">chỉ adapter LoRA đi qua ranh giới này</text>
+
+        <path class="a-line" d="M 996,468 H 1048 Q 1056,468 1056,460 V 188 Q 1056,180 1048,180 H 928 Q 920,180 920,172 V 138" marker-end="url(#mk)"/>
+        <rect class="a-mask out" x="948" y="188" width="72" height="14" rx="2"/>
+        <text class="a-lbl" x="984" y="199" text-anchor="middle">ADAPTER</text>
+
+        <line class="a-line" x1="236" y1="316" x2="334" y2="316" marker-end="url(#mk)"/>
+        <rect class="a-mask" x="252" y="294" width="66" height="14" rx="2"/>
+        <text class="a-lbl" x="285" y="305" text-anchor="middle">CÂU HỎI</text>
+        <line class="a-line" x1="516" y1="316" x2="574" y2="316" marker-end="url(#mk)"/>
+        <line class="a-line" x1="756" y1="316" x2="814" y2="316" marker-end="url(#mk)"/>
+
+        <path class="a-line" d="M 146,352 V 384 Q 146,392 154,392 H 658 Q 666,392 666,384 V 354" marker-end="url(#mk)"/>
+        <rect class="a-mask" x="364" y="368" width="124" height="14" rx="2"/>
+        <text class="a-lbl" x="426" y="379" text-anchor="middle">DB + GOLD RESULT</text>
+
+        <line class="a-line" x1="906" y1="352" x2="906" y2="430" marker-end="url(#mk)"/>
+        <rect class="a-mask" x="914" y="384" width="96" height="14" rx="2"/>
+        <text class="a-lbl" x="918" y="395">2 PAIRS / CÂU</text>
+
+        <line class="a-line" x1="516" y1="468" x2="814" y2="468" marker-end="url(#mk)"/>
+        <rect class="a-mask" x="626" y="446" width="80" height="14" rx="2"/>
+        <text class="a-lbl" x="666" y="457" text-anchor="middle">LOG-PROB</text>
+
+        <!-- server nodes -->
+        <rect class="a-node opt" x="56" y="64" width="200" height="72" rx="6"/>
+        <text class="a-name" x="72" y="94">Public data (BIRD)</text>
+        <text class="a-sub" x="72" y="116">pre-training, phần phụ</text>
+
+        <rect class="a-node focal" x="440" y="64" width="200" height="72" rx="6"/>
+        <text class="a-name" x="456" y="94">Global model θr</text>
+        <text class="a-sub" x="456" y="116">Qwen2.5-Coder-1.5B + LoRA</text>
+        <rect class="a-tag" x="606" y="56" width="26" height="16" rx="2"/>
+        <text class="a-tag-t" x="619" y="68" text-anchor="middle">I3</text>
+
+        <rect class="a-node" x="820" y="64" width="200" height="72" rx="6"/>
+        <text class="a-name" x="836" y="94">Aggregator</text>
+        <text class="a-sub" x="836" y="116">FedAvg, trọng số = pairs</text>
+
+        <!-- client nodes -->
+        <rect class="a-node store" x="56" y="280" width="180" height="72" rx="6"/>
+        <text class="a-name" x="72" y="310">Dữ liệu client</text>
+        <text class="a-sub" x="72" y="332">câu hỏi, gold SQL, DB</text>
+
+        <rect class="a-node" x="336" y="280" width="180" height="72" rx="6"/>
+        <text class="a-name" x="352" y="310">Sample từ θr</text>
+        <text class="a-sub" x="352" y="332">10 SQL/câu, T 1.0</text>
+        <rect class="a-tag" x="482" y="272" width="26" height="16" rx="2"/>
+        <text class="a-tag-t" x="495" y="284" text-anchor="middle">I1</text>
+
+        <rect class="a-node" x="576" y="280" width="180" height="72" rx="6"/>
+        <text class="a-name" x="592" y="310">Chạy + gán nhãn</text>
+        <text class="a-sub" x="592" y="332">so kết quả với gold</text>
+
+        <rect class="a-node focal" x="816" y="280" width="180" height="72" rx="6"/>
+        <text class="a-name" x="832" y="310">Ghép cặp</text>
+        <text class="a-sub" x="832" y="332">đúng/sai, bỏ DB rỗng</text>
+        <rect class="a-tag" x="962" y="272" width="26" height="16" rx="2"/>
+        <text class="a-tag-t" x="975" y="284" text-anchor="middle">I2</text>
+
+        <rect class="a-node opt" x="336" y="432" width="180" height="72" rx="6"/>
+        <text class="a-name" x="352" y="462">Reference θr</text>
+        <text class="a-sub" x="352" y="484">bản sao, đóng băng</text>
+        <rect class="a-tag" x="482" y="424" width="26" height="16" rx="2"/>
+        <text class="a-tag-t" x="495" y="436" text-anchor="middle">I1</text>
+
+        <rect class="a-node" x="816" y="432" width="180" height="72" rx="6"/>
+        <text class="a-name" x="832" y="462">DPO + NLL</text>
+        <text class="a-sub" x="832" y="484">beta 0.1, NLL weight 1</text>
+
+        <!-- legend strip -->
+        <rect class="a-node focal" x="24" y="568" width="22" height="14" rx="3"/>
+        <text class="a-sub" x="54" y="579">điểm then chốt</text>
+        <rect class="a-node opt" x="176" y="568" width="22" height="14" rx="3"/>
+        <text class="a-sub" x="206" y="579">bản sao / phần phụ</text>
+        <line class="a-line acc" x1="352" y1="575" x2="384" y2="575"/>
+        <text class="a-sub" x="392" y="579">model đi xuống, đi lên</text>
+        <rect class="a-tag" x="566" y="567" width="26" height="16" rx="2"/>
+        <text class="a-tag-t" x="579" y="579" text-anchor="middle">I2</text>
+        <text class="a-sub" x="600" y="579">chỗ cải tiến ứng viên tác động</text>
+        <line class="a-line" x1="820" y1="575" x2="852" y2="575" style="stroke-dasharray:6 4"/>
+        <text class="a-sub" x="860" y="579">ranh giới dữ liệu</text>
+      </svg>
       </div>
-      <div class="lane-name">Client k</div>
-      <div class="lane">
-        <div class="step ghost">trên server</div>
-        <div class="step c arrow-r"><span class="n">2</span><b>Sample</b>10 SQL mỗi câu hỏi, T 1.0, từ global model.</div>
-        <div class="step c arrow-r"><span class="n">3</span><b>Chạy và gán nhãn</b>Chạy trên database của client, so kết quả với gold result.</div>
-        <div class="step c arrow-r"><span class="n">4</span><b>Pairs, rồi DPO + NLL</b>2 pairs mỗi câu hỏi mixed; bỏ câu hỏi trên database không có rows.</div>
-        <div class="step ghost">gửi adapter lên server</div>
-      </div>
-      <div class="boundary">
-        <span><b>Rời khỏi client:</b> chỉ adapter LoRA.</span>
+      <figcaption id="arch-title">
+        <span><b>Rời client:</b> chỉ adapter LoRA.</span>
         <span><b>Không thêm:</b> dữ liệu, communication.</span>
         <span><b>Chi phí thêm:</b> compute ở client để sample và chạy SQL.</span>
+        <span><b>Khác FedDPO đã công bố:</b> pairs làm lại mỗi round, reference là θr của round.</span>
+      </figcaption>
+    </figure>
+
+    <div class="panel demo">
+      <div>
+        <h3>Một câu hỏi, 10 samples</h3>
+        <p class="qtext">"Có bao nhiêu ca sĩ trên 30 tuổi?"</p>
+        <p class="gold">gold: SELECT count(*) FROM singer WHERE age &gt; 30</p>
+        <div class="chips" aria-label="10 samples: 4 đúng, 3 sai kết quả, 3 lỗi chạy">
+          <span class="c">s1</span><span class="w">s2</span><span class="c">s3</span><span class="e">s4</span><span class="w">s5</span><span class="c">s6</span><span class="e">s7</span><span class="c">s8</span><span class="w">s9</span><span class="e">s10</span>
+        </div>
+        <div class="sqls">
+          <div><span class="k-c">đúng</span><code>... WHERE age &gt; 30</code></div>
+          <div><span class="k-w">sai kết quả</span><code>... WHERE age <mark>&gt;=</mark> 30</code></div>
+          <div><span class="k-e">lỗi chạy</span><code>... FROM <mark class="e">singers</mark> ...</code></div>
+        </div>
       </div>
+      <div class="pairsets">
+        <div class="pairset">
+          <div class="ps-h"><b>Random pairs</b><span>dạng plain</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s3</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s8</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s4</span><span>đúng / lỗi chạy</span></div>
+          <p class="lesson">Có thể chỉ dạy "SQL phải chạy được". Lỗi <code>&gt;=</code> không được sửa.</p>
+        </div>
+        <div class="pairset i2">
+          <div class="ps-h"><b>Execution-aware (I2)</b><span>ứng viên chính</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s1</span><span class="vs">vs</span><span class="sq" style="background:var(--warn)">s2</span><span>khác đúng 1 token</span></div>
+          <div class="pr"><span class="sq" style="background:var(--seg-correct)">s6</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy bất kỳ</span></div>
+          <p class="lesson">Sai kết quả ghép với bản đúng gần nhất, nên gradient tập trung vào chỗ sai nghĩa.</p>
+        </div>
+      </div>
+      <p class="note">Hình minh họa, không phải sample thật. Câu hỏi có samples toàn đúng hoặc toàn sai không cho pair trong round đó và được sample lại ở round sau.</p>
+    </div>
+
+    <div class="panel tbl-wrap cmp" style="margin-top:14px">
+      <table>
+        <thead><tr><th>So với baseline</th><th class="dotc">Học từ gold SQL</th><th class="dotc">Chạy SQL ở client</th><th class="dotc">Sample lại mỗi round</th><th class="dotc">Reference theo round</th><th class="dotc">Học từ SQL sai của model</th></tr></thead>
+        <tbody>
+          <tr><td><b>FedAvg SFT</b></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg" title="không"></span></td></tr>
+          <tr><td><b>Federated DPO as published</b><span class="sub">OpenFedLLM FedDPO</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg h" title="một lần"></span><span class="sub">một lần</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg" title="không"></span><span class="sub">cố định</span></td><td class="dotc"><span class="dotg f" title="có"></span></td></tr>
+          <tr class="me"><td><b>Method</b></td><td class="dotc"><span class="dotg h" title="qua stage SFT"></span><span class="sub">stage SFT (I3)</span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I2 chọn cặp</span></td></tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="parts">
