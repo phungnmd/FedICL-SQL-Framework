@@ -150,7 +150,7 @@ better than a stack of small ones.
 | # | Improvement | Problem it answers | Evidence so far | Ablation row |
 |---|---|---|---|---|
 | I1 | On-policy rounds: each round samples from the new global model, which is also the DPO reference | federated DPO as published trains on pairs made once against a fixed reference | earlier setup (reference only): fresh samples above fixed round-1 pairs by 1.72 EX at round 3 (p = 0.0049) | pairs fixed from round 1, reference fixed |
-| I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; a question whose gold result is empty or whose database has no rows gives only pairs against execution errors; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | random pairs (plain form) |
+| I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | random pairs (plain form) |
 | I3 | A FedAvg SFT stage before the DPO rounds (owner's suggestion): the rounds start from the best FedAvg SFT round | from the base student the all-wrong questions (12% here) and the questions on databases without rows (20%) give no useful pair, while gold SQL teaches them | earlier setup (reference only): every DPO run there started after FedAvg SFT, +3.87 EX over FedAvg round 3 (pooled +3.91, interval +2.82 to +5.01), +2.3 to +2.75 without the repetition penalty; more SFT rounds instead gave +0.84 and then fell. Against it in the papers: SFT then plain DPO gives about zero (`DPO_RESEARCH.md`, 2.1), with an offline loss and no NLL term | DPO rounds from the base student; the control for the same number of rounds is the FedAvg SFT line itself, continued |
 
 Smaller choices, not improvements of their own: FedAvg weights by pair
@@ -158,10 +158,12 @@ count (pairs per client run from 5,110 to 26,290 at 10 per question), and
 the gold SQL of an all-wrong question in the NLL term (never as the
 chosen side), which I3 would make unneeded.
 
-Open settings for every DPO line: pairs per question, 2 proposed for all
-lines (10 in CodeLutra gives 59,510 pairs a round here, about 13-15 h of
-training, estimate); the chosen side of a gold-empty question in I2 (the
-model's executable sample or the gold SQL).
+Settings for every DPO line (owner, 2026-11-17): 2 pairs per question
+(10, as in CodeLutra, gives 59,510 pairs a round here, about 13-15 h of
+training, estimate). A question on a database whose tables hold no rows
+gives no pair; a question whose gold result is empty on a database with
+rows keeps its pairs (owner: drop the empty databases only). The code
+does this by default (`9dd4adce`).
 
 ### 3.4 Rows of the paper (plan)
 
@@ -199,6 +201,23 @@ at 1.5B, with the parts of 3.3. OpenFedLLM (arXiv
 2402.06954) runs DPO inside FedAvg with fixed pairs and a reference fixed
 for all rounds. The papers behind each choice are in `DPO_RESEARCH.md`;
 the rest of the map is in `LITERATURE.md`.
+
+
+### 3.7 Experiment plan (owner, 2026-11-17)
+
+Phases in order; each ends with a rule that says whether to go on. Times
+are GPU wall clock on one card (estimates).
+
+| Phase | Runs | Decides |
+|---|---|---|
+| 0, no GPU | (a) the pairs of the base student's round 1 samples counted by rejected outcome (execution error, wrong result) per client, with the empty databases (`scripts/pair_composition.py`); (b) the wrong rows of each FedAvg round split into execution errors and wrong results by hardness (`scripts/error_breakdown.py`); (c) code for phase 1 | whether I2 is worth a run; how much DPO can still fix after SFT |
+| 1, about 1 day after FedAvg | FedAvg SFT (running) until its rule stops it; then DPO + NLL rounds from its best round (I3 + I1): 10 samples at T 1.0, 2 random pairs per question, no pair from a database without rows, rule 0.5 / patience 2 / at most 6 rounds; control: the FedAvg line continued for the same number of rounds | the story: a gain of 1.5 EX or more with exact McNemar p < 0.05 at the same rounds goes on to phase 2; 0.5 to 1.5 brings I2 and BIRD forward; below 0.5 stops and rethinks from (a) and (b) |
+| 2, about 2-3 days | from the same start and for the same rounds: federated DPO as published (pairs fixed from round 1, reference fixed), RFT (NLL on correct samples only), DPO + NLL from the base student (without I3), I2 if (a) shows wrong-result pairs are scarce; client drift of SFT and DPO updates and pairs per client by round, from the saved adapters | the main table and the ablations |
+| 3, about 4-6 days | BIRD as a second set of clients; alpha 0.5 and IID for FedAvg and the method; FedProx and FedNTD; centralized and local SFT; a second seed of the main rows; the server pre-training last | breadth for a Q2 journal, a chance at Q1 |
+
+Not in the plan now: the teacher, unlabelled questions, 10 pairs per
+question, DPO from the base student as the main line. Rounds are chosen on
+Spider test, as the setup allows.
 
 ## 4. Open
 

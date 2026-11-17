@@ -4,6 +4,39 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: experiment plan; phase 0 and 1 in code (code `62a48999`)
+
+Owner approved the plan of `RESEARCH_STATE.md` section 3.7 (phases 0 to
+3) and ruled: drop from the pairs only the questions on databases whose
+tables hold no rows, not those whose gold result is empty; 2 pairs per
+question.
+
+In the code:
+
+- `PairRule.skip_empty_databases` (on by default; `--keep-empty-databases`
+  turns it off) and `fedls_sql.data.spider.empty_databases`. On the
+  `alpha_0.1/k5` clients the databases without rows are `yelp` (client 3)
+  and `academic`, `geo`, `imdb`, `music_2`, `restaurants`, `scholar`
+  (client 4). The pair rule identity changed, so the root of the base
+  student's DPO line no longer matches the new code; it is not queued.
+- Pair statistics now count the wrong samples by outcome, the mixed
+  questions with a wrong-result sample and the questions on empty
+  databases. `scripts/pair_composition.py` rebuilds them from a round's
+  samples (phase 0a, to run on the server).
+- `scripts/error_breakdown.py`: wrong rows split into execution errors,
+  wrong results and cut outputs by hardness, with the exact McNemar p
+  against the first arm (phase 0b). On the base model: prompt A 287
+  execution errors and 399 wrong results; B against A fixed 110 rows and
+  broke 122 (p = 0.47).
+- `compare_predictions` prints the exact McNemar p.
+- Queue: `dpo/after_fedavg`, the curve `fedpref_sft_ddlrows_alpha01_s0/dpo`
+  after the FedAvg curve: `--parent-stage` of FedAvg's best round, 10
+  samples at T 1.0, 2 pairs per question, rule 0.5 / 2 / at most 6.
+  Resolved commands checked against the FedAvg line (prompt, length,
+  LoRA, evaluation) by a test; one rendered prompt read.
+
+447 tests pass on the Mac. Nothing of it has run on the server.
+
 ## 2026-11-17: direction of the method revised (owner)
 
 Owner: the method is a federated learning method that uses DPO, built to
