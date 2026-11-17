@@ -30,7 +30,8 @@ clients that hold questions with gold SQL and the databases to run them on.
   tokens that differ, and remove questions whose gold SQL returns nothing.
 - When the labelled questions stop giving pairs, the next source is
   unlabelled questions on the clients' databases, labelled by agreement of
-  execution results.
+  execution results. The method does not use them (owner, 2026-11-17): it
+  stays on the labelled questions.
 - In a federated run, one round is one iteration: clients sample from the
   round's global model, label by execution on their own databases, and use
   that global model as the DPO reference. No published federated DPO does
@@ -303,7 +304,8 @@ Inferences, not measured in any paper:
 ## 3. Design
 
 The core is 3.1 to 3.5: the federated rounds. 3.6 is the secondary part,
-3.7 the teacher as a research direction, 3.8 the choices that are open.
+3.7 the teacher as a research direction, 3.8 the choices the owner made
+inside the rounds.
 
 ### 3.1 One round
 
@@ -335,9 +337,13 @@ L = - w * log sigmoid( beta * [ D(c) - D_diff(r) ] )  -  lambda * w * log p(c | 
 - `D(y)` is the log-probability of y under the trained model minus that
   under the reference `w_t`, summed over all tokens of y.
 - `D_diff(r)` is the same sum over only the tokens of r that are not in the
-  common subsequence with c.
-- w = 1 for a pair labelled with gold; the vote margin for a pair from an
-  unlabelled question (3.5).
+  common subsequence with c. The plain form has `D(r)`, all tokens of r,
+  in its place; which of the two the method uses is decided by a run
+  (3.8).
+- w = 1. A vote margin would take its place only for pairs from
+  unlabelled questions, which the method does not use (3.8).
+- A question whose samples are all wrong has no pair. It adds only the
+  second term, on its gold SQL (3.8).
 - Starting values from the papers: beta 0.1 and lambda 1 (CodeLutra's
   SQL setting), one epoch per round.
 
@@ -352,9 +358,11 @@ This is Target-RPO's loss with CodeLutra's iteration scheme.
   by token edit distance. The number of pairs of a question is its number
   of distinct wrong samples, not a fixed 10 drawn with replacement, so a
   single correct sample is not repeated ten times against random partners.
-- The SFT term runs on the chosen samples. With no SFT stage before the
-  rounds, a question whose samples are all wrong meets its gold SQL
-  nowhere; whether its gold SQL enters the SFT term is open (3.8).
+  This pairing is a candidate, like the diff restriction of 3.2; the plain
+  form draws the pairs at random (3.8).
+- The SFT term runs on the chosen samples, and on the gold SQL of the
+  questions whose samples are all wrong. With no SFT stage before the
+  rounds, such a question would otherwise meet its gold SQL nowhere.
 
 ### 3.4 Aggregation and non-IID data
 
@@ -395,7 +403,9 @@ In this order:
 
 Step 3 is the one that adds new information; steps 1 and 2 only squeeze
 the same questions. It also fits the setting: a client has its databases
-but few labelled questions.
+but few labelled questions. It is outside the method (owner, 2026-11-17),
+which stays on the labelled questions; it is kept here as what the papers
+offer beyond that.
 
 ### 3.6 Pre-training at the server (secondary part)
 
@@ -435,21 +445,19 @@ samples, at the server, added to a loss that keeps gold as the target
 The other role with support is writing new questions on public databases
 (SENSE, OmniSQL, Distill-C), which the student can also do (3.5, step 3).
 
-### 3.8 Open choices
+### 3.8 Choices made inside the rounds (owner, 2026-11-17)
 
-For the owner; none is decided.
-
-1. Whether the gold SQL of an all-wrong question enters the SFT term. For:
+1. The gold SQL of an all-wrong question enters the SFT term; it is not
+   the chosen side of a pair. This may change with the results. For it:
    with no SFT stage, such a question otherwise gives nothing in that
-   round, and Iterative RPO adds gold in this case. Against: these are the
-   hardest questions (Gao et al.). Suggested default: yes in the SFT term,
-   no as the chosen side of a pair.
-2. Whether the diff restriction of 3.2 and the nearest-correct pairing of
-   3.3 are part of the method or ablations on top of CodeLutra's plain
-   loss and random pairs. Neither has been tested on SQL.
-3. Whether unlabelled questions (3.5, step 3) are in the method. They are
-   the only source of new information once the labelled questions give no
-   pairs.
+   round, and Iterative RPO adds gold in this case. Against it: these are
+   the hardest questions (Gao et al.), and no paper measures the choice.
+2. The diff restriction of 3.2 and the nearest-correct pairing of 3.3 join
+   the method if a run shows a clear gain over CodeLutra's plain loss with
+   random pairs. Otherwise the plain form stays. Neither has been tested
+   on SQL in a paper.
+3. Unlabelled questions (3.5, step 3) are not in the method. The method is
+   about the labelled questions the clients already hold.
 
 ### 3.9 Left out
 
@@ -488,12 +496,13 @@ For the owner; none is decided.
 2. From the base student and for the same number of rounds: FedAvg SFT
    against the rounds of 3.1 with the plain loss (DPO + SFT term, random
    pairs). This is the effect of the core.
-3. Add nearest pairing and the diff restriction.
+3. Add nearest pairing and the diff restriction. They join the method
+   only on a clear gain over run 2.
 4. The rounds from the pre-trained student against run 2, with SFT on the
    public gold SQL as the other starting point. This is the effect of the
    secondary part.
-5. Add unlabelled questions, if run 1 shows a small mixed group or run 2
-   stops gaining after a round or two.
+
+Not planned: unlabelled questions (3.8).
 
 Risks to read the results against: from a base model CodeLutra's first
 iteration only equals SFT on gold, so a gain over FedAvg SFT needs several

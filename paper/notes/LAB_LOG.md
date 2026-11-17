@@ -30,10 +30,17 @@ What the papers gave for it (numbers and sources in `DPO_RESEARCH.md`):
 - Pre-training on public data leaves the clients' questions unseen, so
   they still give pairs. Whether it adds or removes pairs is not known.
 
-Not decided: whether the gold SQL of an all-wrong question enters the NLL
-term; whether the diff restriction and the nearest-correct pairing are in
-the method or ablations; whether unlabelled questions are in the method
-(`RESEARCH_STATE.md`, section 4, item 9).
+Choices inside the rounds (owner, the same day):
+
+- The gold SQL of a question whose samples are all wrong enters the NLL
+  term and is never the chosen side of a pair. May change with the
+  results. No paper measures this choice; the one precedent is Iterative
+  RPO on GSM8K.
+- Nearest-correct pairing and the rejected side counted on the differing
+  tokens join the method if a run shows a clear gain over the plain loss
+  with random pairs.
+- Unlabelled questions are not in the method; it stays on the clients'
+  labelled questions.
 
 Notes changed: `RESEARCH_STATE.md` sections 2 to 4, `DPO_RESEARCH.md`
 (sections 2.7 to 2.9 and 3), the run table of `FEDERATED_DATA_SETUP.md`
