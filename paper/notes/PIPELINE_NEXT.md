@@ -18,7 +18,7 @@ worker rereads the queue before every task.
 ## Run now
 
 1. Pull and run the tests, in a second PowerShell window without the GPU
-   (about 5 min, estimate). Send back the pytest summary (452 passed on
+   (about 5 min, estimate). Send back the pytest summary (453 passed on
    the Mac), or the error.
 
    ```powershell
