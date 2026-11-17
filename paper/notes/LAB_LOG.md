@@ -4,6 +4,78 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: client splits rebuilt by database complexity tier (code `e5c8134f`)
+
+Owner: rebuild the data processing after `FEDERATED_DATA_SETUP.md`.
+
+In the code:
+
+- Every database still goes whole to one client. The label of the
+  Dirichlet is new: each of the 146 train databases gets one of four tiers
+  by its share of hard and extra questions (Spider's hardness levels from
+  the gold SQL, the function evaluation uses; `db_tiers.json`).
+- The partition is NIID-Bench's label-Dirichlet recipe as its code has it
+  (`utils.py`, `noniid-labeldir`, read 2026-11-17): per tier the clients'
+  shares come from Dir(alpha), the tier's databases are cut by them, a
+  client that already holds 146 / K databases takes none of the later
+  tiers, and the draw is repeated until every client has 5 databases (3
+  with 10 clients). The note's recipe did not have the third rule; without
+  it seed 0 gives one client 85 databases and 64% of the questions.
+- The IID split puts the databases in random order and cuts them into
+  equal parts.
+- Removed: the schema-embedding domain groups, their builder and audit,
+  and the splits built from them (Spider and BIRD). They are at the tag
+  `archive/pre-reset-2026-11-17`.
+
+Hardness of Spider train (8,659 questions): easy 1,983, medium 2,999, hard
+1,921, extra 1,755, one unparsed (`train:3153`). 8,658 labels equal the
+level of Spider's own parse in the raw files.
+
+| Tier | Databases | Questions | Hard or extra share of a database | Easy | Medium | Hard | Extra |
+|---|---:|---:|---|---:|---:|---:|---:|
+| 0 | 37 | 1,746 | 0.00 to 0.26 | 30.7% | 49.1% | 12.3% | 8.0% |
+| 1 | 36 | 1,506 | 0.26 to 0.33 | 25.8% | 44.8% | 18.6% | 10.8% |
+| 2 | 37 | 1,791 | 0.34 to 0.44 | 22.3% | 38.7% | 20.4% | 18.6% |
+| 3 | 36 | 3,616 | 0.44 to 0.86 | 18.3% | 21.4% | 29.3% | 31.0% |
+
+Tier 3 holds 42% of the questions: `scholar` (569) and `geo` (564) are in
+it.
+
+Main split, `federated/alpha_0.1/k5`, seed 0 (third draw):
+
+| Client | Databases | Questions | Easy | Medium | Hard | Extra | Hard or extra | Databases per tier 0 to 3 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 1 | 23 | 1,084 | 30.4% | 49.2% | 12.0% | 8.5% | 20.5% | 23, 0, 0, 0 |
+| 2 | 6 | 288 | 31.6% | 50.7% | 12.2% | 5.6% | 17.7% | 6, 0, 0, 0 |
+| 3 | 35 | 1,482 | 25.6% | 45.0% | 18.6% | 10.9% | 29.4% | 0, 35, 0, 0 |
+| 4 | 37 | 1,857 | 22.5% | 39.1% | 20.2% | 18.1% | 38.4% | 1, 0, 36, 0 |
+| 5 | 45 | 3,948 | 19.4% | 23.5% | 28.0% | 29.1% | 57.1% | 7, 1, 1, 36 |
+
+The other splits (seed 0), questions per client and the range of the hard
+or extra share:
+
+| Split | Questions per client | Hard or extra share |
+|---|---|---|
+| `alpha_0.5/k5` | 1,803 / 2,052 / 348 / 3,178 / 1,278 | 27.9% to 54.2% |
+| `iid/k5` | 1,505 / 2,068 / 1,564 / 2,068 / 1,454 | 31.9% to 52.3% |
+| `alpha_0.5/k10` | 200 to 2,815 | 26.0% to 57.2% |
+| the earlier domain-cluster split `alpha_0.1/k5` | 1,896 / 1,801 / 2,061 / 1,097 / 1,804 | 36.4% to 57.9% |
+
+What it shows:
+
+- The split does at the level of databases what the recipe says: four of
+  the five clients hold one tier each. At the level of questions the skew
+  is in the proportions, 18% to 57% hard or extra. No client lacks a
+  level: the tier 0 clients still hold 222 and 51 hard or extra questions.
+- The IID split is equal in databases, not in questions or hardness
+  (extra 12% to 30%), because the databases differ in size.
+- Over 200 seeds at alpha 0.1 with 5 clients: the largest client holds 40%
+  of the questions on average, the smallest has a median of 522.
+
+Not done: no training on the new splits. Whether the split gives a reason
+to federate needs local, FedAvg and centralized rows (`RESEARCH_STATE.md`,
+section 4, item 7). 415 tests pass on the Mac.
+
 ## 2026-11-17: the prompt, two schema styles (code `3d05fa33`)
 
 Owner: implement candidates A and B, with the SQLite sentence, no

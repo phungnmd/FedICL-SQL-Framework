@@ -5,6 +5,9 @@ other notes, the current split in the code, or our own results. Section 6
 lists which facts were read in the paper text and which were not. The DPO
 stage itself is covered in `DPO_RESEARCH.md`.
 
+The split of section 3 was built on 2026-11-17 (section 3.5). The tables
+of what it gives on the real data are in `LAB_LOG.md` under that date.
+
 ## 1. Short answers
 
 - Only one paper trains a Text-to-SQL model with federated learning (Zhang
@@ -244,6 +247,27 @@ databases, so the client-count sweep uses alpha 0.5.
   grows in questions, not in databases.
 - The server stage makes every split look milder (2.6).
 
+### 3.5 As built
+
+The code follows NIID-Bench's `noniid-labeldir` branch (`utils.py`, read
+2026-11-17), which has one rule the recipe of 3.1 lacks: a client that
+already holds its equal share of the items (here 146 / K databases) takes
+none of the labels still to come. With it, alpha 0.1 puts four of the five
+clients on one tier each; without it, the first seed gave one client 85
+databases and 64% of the questions.
+
+On the real data the main split (5 clients, alpha 0.1, seed 0) has clients
+of 288 to 3,948 questions, and the share of hard and extra questions runs
+from 18% to 57%. Three of the figures above change:
+
+- The tiers are equal in databases, not in questions: the hardest tier
+  holds 42% of the questions, because `scholar` and `geo` are in it.
+- No client lacks a hardness level. A client of the simplest tier still
+  has about 20% hard or extra questions, so the argument of 3.3 rests on
+  proportions, and the check of section 5, step 2, decides it.
+- The IID setting is equal in databases only. Its clients range from 12%
+  to 30% extra hard questions.
+
 ## 4. Runs for the paper
 
 ### 4.1 Main setting
@@ -335,7 +359,8 @@ rule, the six earlier datasets and the hardness definition; the hardness
 shares of Spider train (from arXiv 2312.06172, Table 2); Chen et al.'s 10
 tasks by domain with disjoint databases; the descriptions of the two
 streams in LECSP; Shaw et al.'s Spider splits and Table 3; Zhang et al.'s
-Table 2 and the Lorar formula; the label and feature recipes of NIID-Bench;
+Table 2 and the Lorar formula; the label and feature recipes of NIID-Bench
+(the label recipe also in its code, `utils.py`);
 FedNLP section 3.2 and Table 2; Hsu et al.'s recipe; the Flower partitioner
 pages; CSMA's schema division; FS-LLM's two client datasets.
 

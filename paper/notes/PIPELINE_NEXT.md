@@ -3,8 +3,9 @@
 ## Status
 
 Updated 2026-11-17 (Asia/Ho_Chi_Minh). Nothing is running. The cleaned
-code with the new prompt is pushed (code `894e0b17`); the server checkout
-is still at the earlier code (`aa17258c`) until step 1 below is run.
+code with the new prompt and the rebuilt client splits is pushed (code
+`e5c8134f`); the server checkout is still at the earlier code (`aa17258c`)
+until step 1 below is run.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -15,10 +16,10 @@ is still at the earlier code (`aa17258c`) until step 1 below is run.
 
 1. Update the server checkout and run the tests (about 5 min, estimate).
    The worker must be stopped. The pull removes the result rows and audit
-   files of the earlier setup from the working tree (5,443 files; they stay
-   in Git at the tag `archive/pre-reset-2026-11-17`); nothing under
-   `artifacts/` is touched. Send back the last lines: the pytest summary
-   (421 passed on the Mac), or the error.
+   files of the earlier setup from the working tree and the earlier client splits (5,705 files; they
+   stay in Git at the tag `archive/pre-reset-2026-11-17`) and brings the
+   new splits; nothing under `artifacts/` is touched. Send back the last
+   lines: the pytest summary (415 passed on the Mac), or the error.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv sync --extra dev; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
@@ -45,8 +46,10 @@ If an environment variable of the old name is set on the server
 | 3 | `prompt/zs_ddl_values` | the same with prompt B (`CREATE TABLE` + example values per column) | 10 min (estimate) | queued |
 | 4 | `prompt/publish` | commits and pushes the two result rows | 1 min | queued |
 
-Not queued yet: FedAvg SFT and the DPO rounds on the new prompt. They wait
-for the two rows above and for the owner's choice of the training settings.
+Not queued yet: local training, FedAvg SFT, centralized SFT and the DPO
+rounds on the new prompt and the new split
+(`federated/alpha_0.1/k5`). They wait for the two rows above and for the
+owner's choice of the training settings.
 
 ## Reference
 

@@ -21,7 +21,7 @@ that clearly beats the federated baselines and reports good numbers.
 | Part | Choice | State |
 |---|---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
-| Clients | 5 clients on Spider train (8,659 rows), domain-cluster non-IID split `alpha_0.1/k5`; private rows never leave a client | fixed |
+| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5`: every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | fixed; used by stage 1, which comes after the client stages |
 | Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
@@ -92,6 +92,15 @@ chosen side when no sample is correct. The rest of the map is in
 5. Stage 1 and the teacher's role. In the earlier setup the teacher's own
    part was small against gold SQL on the same public data.
 6. Baselines with the new prompt: FedAvg, FedProx, FedNTD, centralized SFT.
+7. The client split. In `alpha_0.1/k5` the share of hard and extra
+   questions runs from 18% to 57% across the clients, and one client
+   holds 46% of the questions (table in `LAB_LOG.md`, 2026-11-17). No
+   client lacks a hardness level: the two clients of the simplest tier
+   still have 18% and 21% hard or extra questions. Whether the split
+   gives a reason to federate is read from three rows: local training
+   per client, FedAvg, centralized. If the local models of the simple
+   clients are not below FedAvg on the hard and extra columns, the
+   split is too mild.
 
 ## 5. Results
 
