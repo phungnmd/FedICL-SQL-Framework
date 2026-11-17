@@ -165,8 +165,8 @@ map is in `LITERATURE.md`.
 
    The base model with no training gives the same level with both (68.05
    and 67.49, section 5), and the outputs show no defect of the prompt or
-   the decoding. The choice between A and B is made on the gain of the
-   federated DPO rounds over FedAvg SFT with each.
+   the decoding. The runs on Spider use A (2026-11-17); B is run again
+   only if a result asks for it.
 2. The training target is the gold SQL without a final `;`, followed by
    the end-of-turn token. No other normalization (CodeS upper-cases
    keywords and lower-cases identifiers; not done here).
@@ -215,6 +215,13 @@ map is in `LITERATURE.md`.
    - nearest-correct pairing and the rejected side counted on the
      differing tokens. Neither has been tested on SQL in a paper
      (`DPO_RESEARCH.md`, section 2.4).
+10. BIRD as a second set of clients. The method is tried on Spider first
+    (owner, 2026-11-17). On Spider about 4 points are left above the SFT
+    of this student in the papers (77 to 78, highest published 82.3); on
+    BIRD CodeLutra is 7.5 points above its SFT. Decided after the first
+    read of the DPO rounds against FedAvg SFT on Spider. Needed for it: a
+    client split of BIRD train by database, the prompt lengths on BIRD,
+    and Spider train as the public data in that setting.
 
 ## 5. Results
 

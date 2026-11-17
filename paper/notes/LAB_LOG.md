@@ -4,6 +4,24 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: Spider first, with prompt A (owner)
+
+- The method is tried on Spider first (owner). Whether BIRD joins as a
+  second set of clients, or becomes the main one, is decided after the
+  first read of the DPO rounds against FedAvg SFT on Spider. Behind the
+  question: on Spider the SFT of this student is at 77 to 78 in the
+  papers and the highest published level is 82.3 (SPFT-SQL), so about 4
+  points are left above SFT; on BIRD CodeLutra is 7.5 points above its
+  SFT (35.6 to 43.1). Nothing is built for BIRD clients yet (no split, no
+  prompt lengths).
+- The runs on Spider use prompt A (`ddl_rows`). A and B give the same
+  level without training (68.05 and 67.49, p = 0.47); A is the prompt of
+  the model's own evaluation code. B is not run again unless a result
+  asks for it, so the first comparison is run once, not once per prompt.
+- The student stays Qwen2.5-Coder-1.5B-Instruct. Both rows of the
+  comparison start from it, so a weaker model lowers both; and the DPO
+  rounds need questions the model answers correctly in some samples.
+
 ## 2026-11-17: the DPO rounds start from the base student, pairs and defaults after CodeLutra (code `c03bd693`)
 
 The preference rounds were written for DPO after an SFT stage. They now
