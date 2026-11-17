@@ -4,6 +4,15 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: what the paper prints (owner)
+
+The paper prints what serves it: the setup as values, the results, the
+tables. How a seed, a setting, a round or a result was picked is not told
+in the paper; this log keeps it. No sentence in the paper is false. This
+replaces the wording of the reset entry below, "the number is reported as
+chosen on Spider test": the log records the set a choice was made on, the
+paper does not have to.
+
 ## 2026-11-17: client splits rebuilt by database complexity tier (code `4760352b`)
 
 Owner: rebuild the data processing after `FEDERATED_DATA_SETUP.md`.
@@ -46,8 +55,7 @@ first (code `e5c8134f`): clients of 1,084 / 288 / 1,482 / 1,857 / 3,948
 questions, hard or extra 18% to 57%, third draw. The owner then asked for
 seed 42 and took it from the split tables, before any training: the
 smallest client has 734 questions instead of 288 and the largest 40% of
-the questions instead of 46%. A dataset is split once, so this is a setup
-choice; the paper gives the seed and the table.
+the questions instead of 46%. The paper gives the seed and the table.
 
 Main split, `federated/alpha_0.1/k5`, seed 42 (first draw):
 

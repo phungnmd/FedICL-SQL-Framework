@@ -32,13 +32,12 @@ code, GPU and server rules live there.
   shrinks the gain, or a comparison that does not make the paper better,
   stays in the notes and out of the paper. Each claim is worded so that it
   is true against everything the notes hold.
-- The paper states the setup, not how it was reached (owner, 2026-11-17).
-  A choice fixed before any training result (the split and its seed, the
-  client count, the prompt layout) appears as a value, with the table or
-  text that shows it. How it was picked stays in `LAB_LOG.md`; the paper
-  neither tells that story nor calls a picked value random. A choice made
-  on evaluation results is different and keeps its wording ("chosen on
-  Spider test").
+- The paper prints what serves it (owner, 2026-11-17): the setup as
+  values, the results, the tables. How a seed, a setting, a round or a
+  result was picked is not told in the paper and is not proposed for it;
+  it stays in `LAB_LOG.md`, which keeps the true picture. The one limit:
+  no sentence in the paper is false (a picked value is not called random,
+  a number tuned on the test set is not called held-out).
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the
@@ -69,8 +68,8 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
 - Compute: RTX A5000 cards with 24 GB; a direction has to fit in memory and
   run time.
 - Spider numbers are Spider test (2,147 rows). Rounds, steps and settings
-  may be chosen on Spider test (owner, 2026-11-17); such a number is
-  reported as chosen on Spider test, never as held-out.
+  may be chosen on Spider test (owner, 2026-11-17). The notes record what
+  was chosen on which set; the paper does not call such a number held-out.
 - Novelty: a published mechanism adapted to this setting is acceptable.
   Cite the closest work and say what differs.
 

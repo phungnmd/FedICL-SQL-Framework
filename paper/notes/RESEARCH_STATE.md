@@ -25,7 +25,7 @@ that clearly beats the federated baselines and reports good numbers.
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | fixed; used by stage 1, which comes after the client stages |
 | Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
-| Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); such a number is reported as chosen on Spider test, never as held-out | fixed |
+| Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); the lab log records what was chosen on which set, and the paper does not call such a number held-out | fixed |
 | Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
 | Length | `--max-len 7168`, no truncation (a longer row stops the run); 256 new tokens | fixed |
 | Training recipe | LoRA SFT at lr 2e-4, 3 FedAvg rounds of 1 local epoch (the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs) | open, section 4 |
