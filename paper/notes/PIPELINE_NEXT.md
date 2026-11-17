@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-17 at 10:20 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-17 at 10:13 (Asia/Ho_Chi_Minh). Last published result:
 `a428e174` (09:45 on 2026-11-17: the SFT round with the verified synthetic
 rows on Spider test, 74.15). Queue: `aa17258c` (pushed 10:12 on 2026-11-17: row 4a added, the
 queue file only). `08254bcf` (02:57) added rows 5b and 13 and changed code the DPO rounds load
