@@ -2,50 +2,49 @@
 
 ## Status
 
-Updated 2026-11-18 00:55 (Asia/Ho_Chi_Minh). FedAvg rounds 1 to 3 and
-their pass@k are published (EX 72.43, 74.10, 74.71; pass@10 88.36 and
-88.68 for rounds 2 and 3). Running: the DPO + NLL round from FedAvg round
-2 (`dpo_k2/round_1`, training since 23:21). Pushed (code `cb947362`, queue
-only, nothing the running task loads): the FedAvg line stops at round 4,
-then centralized SFT runs (`refs/central_sft`). No restart needed: the
-worker rereads the queue before every task.
+Updated 2026-11-18 03:00 (Asia/Ho_Chi_Minh). The DPO + NLL round from
+FedAvg round 2 is published: 77.46 on Spider test (FedAvg round 3: 74.71,
+McNemar p 5.4e-05). Running: the same round with nearest-correct pairs
+(`dpo_k2_nearest`). Pushed (code `c38e7eb0`): round 2 of the k = 2 line,
+with the pair rule that did better in round 1 (owner, 2026-11-18), queued
+before FedAvg round 4. The worker sees it only after a pull (step 1),
+which has to happen before the nearest round's evaluation ends (about
+05:30, estimate); otherwise the worker starts FedAvg round 4 first.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `dpo_k2/round_1` (DPO training). | owner's console, 2026-11-17 23:25 |
+| 0 | `dpo_k2_nearest/round_1` (copy of samples, then DPO training). | queue order after `dpo_k2/publish_eval_1` (results `be787676`) |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
 1. Pull and run the tests, in a second PowerShell window without the GPU
-   (about 5 min, estimate). Send back the pytest summary (453 passed on
-   the Mac), or the error.
+   (about 5 min, estimate). The pull changes nothing the running round
+   loads. Send back the pytest summary (455 passed on the Mac), or the
+   error.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
    ```
 
-2. Leave the worker running overnight. Expected order and times
-   (estimates, Asia/Ho_Chi_Minh, 18 Nov, revised 01:45 from the console:
-   clients 1-3 took 2 h 15 min, about 1.7 s per pair): DPO round from
-   FedAvg round 2 and its evaluation about 03:00-03:15; the nearest-pair
-   round about 05:30-06:00; FedAvg round 4 about 08:00; then centralized
-   SFT, about
-   2 h 10 min per epoch with its evaluation, until its rule stops it
-   (likely 3 to 5 epochs). If the worker stops, start it again:
+2. Leave the worker running. Expected order and times (estimates,
+   Asia/Ho_Chi_Minh, 18 Nov): nearest-pair round and its evaluation about
+   05:15-05:45; round 2 of the k = 2 line (random or nearest, whichever
+   answered more test questions right in round 1; a tie keeps random)
+   about 08:15-08:45; FedAvg round 4 about 10:30-11:00; then centralized
+   SFT, about 2 h 10 min per epoch with its evaluation, until its rule
+   stops it (likely 3 to 5 epochs). If the worker stops, start it again:
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
    Send back:
-   - the pair counts per client that the DPO round prints after
-     sampling (all-correct, mixed, all-wrong questions, pairs);
-   - in its first minutes of training: the peak reserved VRAM of the
-     progress line and the shared GPU memory of the card in Task Manager
-     (DPO with these prompts is not measured yet); then the time left;
-   - the EX of both DPO rounds (random, nearest) and each `curve ... EX`
-     line of FedAvg and of centralized SFT;
+   - the EX of the nearest round and the `WHEN` line the worker prints
+     before round 2 (which rule won, by how many questions);
+   - the pair counts per client of round 2 (all-correct, mixed,
+     all-wrong questions, pairs) and its EX;
+   - each `curve ... EX` line of FedAvg and of centralized SFT;
    - a `STOP queue` line, if one comes.
 
 3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
@@ -60,8 +59,8 @@ worker rereads the queue before every task.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `dpo_k2/round_1`, `dpo_k2/publish_round_1`, `dpo_k2/eval_1`, `dpo_k2/publish_eval_1` | the early read of the switch round: one DPO + NLL round from FedAvg round 2 (k = 2), against FedAvg round 3; pair counts at an SFT start | about 1.5-2.5 h (estimate) | queued, next |
-| 2 | `dpo_k2_nearest/reuse_samples`, `dpo_k2_nearest/round_1`, `dpo_k2_nearest/publish_round_1`, `dpo_k2_nearest/eval_1`, `dpo_k2_nearest/publish_eval_1` | I2: the same round with each distinct wrong SQL paired with its most similar correct SQL (2 per question), on the samples of row 1; aims at the executable wrong results that SFT leaves at 373-379 | about 1-1.5 h, training only (estimate) | queued |
+| 1 | `dpo_k2_nearest/reuse_samples`, `dpo_k2_nearest/round_1`, `dpo_k2_nearest/publish_round_1`, `dpo_k2_nearest/eval_1`, `dpo_k2_nearest/publish_eval_1` | I2: the round from FedAvg round 2 with each distinct wrong SQL paired with its most similar correct SQL (2 per question), on the same samples as the random round (77.46); aims at the executable wrong results, which the random round left at 385 | about 2-2.5 h, training only (estimate) | running |
+| 2 | `dpo_k2/round_2` or `dpo_k2_nearest/round_2`, each with its publish, eval and publish | I1: a second on-policy round (samples and reference from round 1's global model) with the pair rule that won round 1; the other branch is skipped | about 2.5-3 h (estimate) | queued |
 | 3 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | rounds 1-3 done (best 74.71 at round 3); round 4 is the last (owner, 2026-11-18) |
 | 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | about 2 h 10 min per epoch (estimate) | queued |
 | 5 | `dpo/after_fedavg` | DPO + NLL rounds from the best FedAvg round (k = best) (10 samples at T 1.0, 2 pairs per question, no pair from a database without rows), each round evaluated on Spider test and published | about 1.5-2.5 h per round (estimate); up to 6 rounds | queued |
@@ -72,10 +71,9 @@ gain, or at 4 rounds (FedAvg), 8 epochs (centralized) or 6 rounds (DPO).
 The control of a DPO line is FedAvg at the same total rounds; if a DPO
 line runs past FedAvg round 4, a curve that extends FedAvg is queued then.
 
-After the k = 2 reads: the line from k = 2 continues with the better pair
-rule if it is at least 1 EX above FedAvg round 3 (74.71); the line from
-the best round may be dropped if the pair counts at k = 2 already run
-low; then k = 1 and k = 0 with gold; decided on the numbers.
+After round 2 of the k = 2 line: more rounds of it if round 2 gains; the
+line from the best FedAvg round (row 5) and k = 1, k = 0 decided on the
+numbers.
 
 Not queued: phase 2 (the published federated DPO baseline, RFT, DPO from
 the base student (k = 0)) and phase 3 (BIRD, other splits, FedProx, FedNTD,

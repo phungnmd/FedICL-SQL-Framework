@@ -4,6 +4,14 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: round 2 of the k = 2 line queued (owner; code `c38e7eb0`)
+
+Owner: a second on-policy round of the k = 2 line runs before FedAvg round
+4, with the pair rule that answers more Spider test questions right in
+round 1 (random 1,663 / 2,147; nearest pending; a tie keeps random). The
+choice is made by the queue (`queue_when arm-gain`, two tasks with
+complementary conditions), so the rule is picked on Spider test.
+
 ## 2026-11-18: DPO round 1 from FedAvg round 2: 77.46 on Spider test (results `431a17e7`, `be787676`)
 
 `dpo_k2` round 1 (random pairs, 2 per mixed question, 8,026 pairs, one
