@@ -4,6 +4,19 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: FedAvg capped at round 4, centralized SFT next (owner; code `cb947362`)
+
+Owner: the FedAvg line stops at round 4 (`max_steps` 8 to 4) and
+centralized SFT on the union of the clients runs after it overnight
+(`refs/central_sft`, curve `central_base_ddlrows_s0/sft`: same SFT recipe,
+LoRA r 16 / alpha 32 / dropout 0.05, prompt and evaluation as FedAvg; one
+epoch per step, rule 0.5 / patience 2 / at most 8). Then the DPO line from
+the best FedAvg round. pass@k of FedAvg round 3 (results `762b74a2`):
+pass@1 68.34, pass@2 77.66, pass@5 84.97, pass@10 88.68 (round 2: 65.78,
+76.06, 84.35, 88.36); test questions all correct / mixed / all wrong 788 /
+1116 / 243 (round 2: 686 / 1211 / 250). The third SFT round sharpens the
+samples (pass@1 +2.56) and leaves pass@10 where it was.
+
 ## 2026-11-17: pass@k of FedAvg round 2 on Spider test (owner's console, not committed yet)
 
 `scripts/pass_at_k.py` (code `532256af`), 10 samples at T 1.0, vLLM at 0.30
