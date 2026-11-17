@@ -4,26 +4,30 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-17: FedAvg SFT round 2 (code `32e3f681`, eval `0699ac6d`)
+
+Spider test EX 74.10 (EM 62.93; easy 89.36, medium 78.65, hard 65.23,
+extra 54.62). Against round 1: fixed 85 rows, broke 49 (McNemar
+p = 0.0024); execution errors 215 to 183, wrong results 377 to 373.
+Mean local loss 0.094 to 0.117. Pairwise cosine of the client updates
+(against the round's global start) fell from 0.13-0.33 in round 1 to
+0.01-0.05: the shared part of the update was learned in round 1, and the
+round-2 updates are almost orthogonal, so averaging shrinks them. Factor
+FedAvg relative product error 0.126 to 0.062. Whether this costs accuracy
+needs the centralized reference (not run).
+
 ## 2026-11-17: FedAvg SFT round 1 (code `29f38add`, eval `d6bfc763`)
 
 FedAvg from the base student, `alpha_0.1/k5`, prompt A (`ddl_rows`), one
-local epoch. Spider test EX 72.43 (EM 60.41) against 68.05 zero-shot with
-the same prompt: fixed 165 rows, broke 71 (McNemar p < 0.001). Execution
-errors 287 to 215, wrong results 399 to 377; extra hard 45.94 to 54.90.
-Client sizes 895 / 1542 / 2009 / 3479 / 734 (client 4 weighs 0.40);
-mean local loss 0.140 to 0.152 on every client. Factor FedAvg relative
-product error 0.126. Client drift is not measurable from this round
-alone: the round-1 update cosine is taken against the zero adapter (the
-LoRA A init is shared), and no centralized or IID reference exists yet.
-
-## 2026-11-17: FedAvg SFT round 1 (results `d6bfc763`)
-
-Spider test EX 72.43 (easy 89.15, medium 75.26, hard 63.71, extra 54.90),
-against 68.05 for the untrained student with prompt A (results
-`12456b56`): 165 rows fixed, 71 broken, exact McNemar p = 8.5e-10. Wrong
-rows with an execution error fell from 287 to 215; wrong rows without one
-from 399 to 377. Round 1 trained in 7,339 s with peak reserved 20,311 MB;
-the evaluation took 206 s. The worker goes on to round 2 by itself.
+local epoch. Spider test EX 72.43 (EM 60.41; easy 89.15, medium 75.26,
+hard 63.71, extra 54.90) against 68.05 for the untrained student with
+prompt A (results `12456b56`): 165 rows fixed, 71 broken, exact McNemar
+p = 8.5e-10. Execution errors 287 to 215, wrong results 399 to 377.
+Client sizes 895 / 1542 / 2009 / 3479 / 734 (client 4 weighs 0.40); mean
+local loss 0.140 to 0.152 on every client. Pairwise cosine of the client
+updates against the round's start adapter 0.13 to 0.33; factor FedAvg
+relative product error 0.126. Round 1 trained in 7,339 s with peak
+reserved 20,311 MB; the evaluation took 206 s.
 
 ## 2026-11-17: aggregation options for the DPO rounds written down (owner)
 
