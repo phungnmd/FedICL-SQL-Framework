@@ -3,6 +3,68 @@
 Every run, result and decision since the 2026-11-05 fresh start, newest on
 top. A result reported only in chat is logged as "not committed".
 
+## 2026-11-17: what the paper shows (owner), the `full` lines without the penalty queued, the LLM's role by an Opus agent
+
+Owner, after reading how CodeLutra presents its results (arXiv 2411.05199v3,
+read today: greedy against SFT greedy, no vote or self-consistency row
+anywhere, one sample per question at T 0.2, no seeds, an SFT start of 67.9
+at 8B):
+
+- The paper shows the method where its effect shows: setup, model, prompt,
+  comparisons and tables are picked for the gain in the same setup, not
+  for the highest level (`AGENTS.md`, "How to work").
+- The vote at inference stays out of the paper.
+- Decoding stays without the repetition penalty, as other papers do.
+- A prompt format is kept only if the method gains with it.
+
+Prompt, without the penalty, seed 0, Spider test:
+
+| Prompt | FedAvg R3 | + DPO round 3 | Hinton stage + FedAvg R3 | Method |
+|---|---|---|---|---|
+| `full` | 72.33 | 75.08 (+2.75) | 74.85 (+2.52) | DPO round 1: 76.43 (+4.10); round 3 queued |
+| `codes` | 74.71 | 77.04 (+2.33) | not run | not run |
+| `codes_v2` | 74.85 | queued | queued | queued |
+
+`codes` lifts FedAvg by 2.4 and the DPO line by 2.0. Queue `aa17258c`,
+phase `fullnp`: 14 evaluations of finished `full` adapters without the
+penalty (method round 3, seed 1, baselines, gold lines), about 1.7 h,
+ahead of the remaining rows. Resolved commands equal
+`norp_s0/eval_full_fedavg_r3` except arm, adapter and seed. Cut: the DPO
+adapters were trained on samples drawn with the penalty.
+
+The LLM's role, one Opus agent (web search, our two notes; its report is
+in the session scratchpad, not in the repository). Its numbers come from a
+model-made extraction of arXiv HTML and are not checked by us.
+
+- On labelled public data the teacher's correct SQL adds nothing over
+  gold. What gold and execution cannot give: token-level corrections of
+  the student's own wrong samples, and new questions aimed at what the
+  model still gets wrong. Both need a teacher that knows more than the
+  student; the 7B does not on Spider (77.22 against the method's 76.71).
+- Its main lever: a stronger teacher of the same family. OmniSQL Table 4
+  (arXiv 2503.02240, its prompt): Spider test 82.2 / 86.6 / 87.5 for
+  Qwen2.5-Coder 7B / 14B / 32B.
+- Its bottom line: under the data rules no design is likely to add much
+  more than about one point after the client DPO rounds; the large
+  published teacher gains let the teacher see the target prompts or
+  databases, or use it at inference.
+- A server step every round has no measured reason as a repeat: the
+  stage's Spider lead shrinks while its BIRD dev lead stays (+11.4), so
+  the clients catch up; nothing is forgotten. A per-round step is worth
+  it only if it follows the current model's own samples.
+- Its ranking: (1) on-policy teacher correction at the server every
+  round (the teacher's token distribution on the student's failing
+  samples of public questions; its estimate +0.5 to +1.5 with a 14B, 0 to
+  +0.5 with the 7B); (2) the teacher repairs the student's wrong SQL as
+  the chosen side of the server DPO round (0 to +0.7); (3) the Hinton
+  stage with the 14B (+1 to +2 over gold); (4) synthesis on public
+  databases aimed at failing SQL skeletons (0 to +1). First a 1.5 GPU h
+  count: the 14B zero-shot on Spider test, and how often a teacher is
+  right where the FedAvg student is wrong on public rows.
+- It states that the OmniSQL and SLM-SQL checkpoints were trained with
+  Spider train and cannot be starting points; our earlier map had SLM-SQL
+  as SynSQL-only. Not checked.
+
 ## 2026-11-17: selection on both sides of stage 3 (`codes`), SFT round with the verified synthetic rows
 
 Seed 0, Spider test, `codes` prompts, no repetition penalty at inference.

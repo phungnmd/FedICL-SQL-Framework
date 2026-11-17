@@ -2,9 +2,9 @@
 
 ## Status
 
-Updated 2026-11-17 at 10:10 (Asia/Ho_Chi_Minh). Last published result:
+Updated 2026-11-17 at 10:20 (Asia/Ho_Chi_Minh). Last published result:
 `a428e174` (09:45 on 2026-11-17: the SFT round with the verified synthetic
-rows on Spider test, 74.15). Queue: `f6635e89` (pushed 09:18 on 2026-11-17: row 3a added, the
+rows on Spider test, 74.15). Queue: `aa17258c` (pushed 10:12 on 2026-11-17: row 4a added, the
 queue file only). `08254bcf` (02:57) added rows 5b and 13 and changed code the DPO rounds load
 (`fedicl_sql/federated/pref_rounds.py`, `fedicl_sql/preference/pairs.py`,
 `experiments/federated_pref/run.py`): a new option, off by default, and
@@ -35,12 +35,16 @@ Nothing to run; do not press Ctrl+C.
 Next moments the owner is needed (clock times are estimates):
 
 - If no result commit arrives by about 12:45: run the status command above
-  and send its output.
-- During row 5 (about 13:00): the first lines of `srvx_s0/bird_round`
+  and send its output. The worker reads row 4a at its next publish step
+  (after the SFT round of row 4) and runs it before the evaluation of row
+  4; nothing to restart.
+- After row 4a (about 14:00): the owner decides whether rows 6 to 12 (the
+  `codes_v2` lines) stay; row 6 starts at about 19:00.
+- During row 5 (about 14:45): the first lines of `srvx_s0/bird_round`
   (`first batch ... peak reserved` of the sampling and of the first
   training updates). It is the first DPO training on BIRD-length rows;
   send them back.
-- After row 5 (about 17:30): rows 4 and 5 are read with the finished rows for the three
+- After row 5 (about 19:00): rows 4 and 5 are read with the finished rows for the three
   directions (`RESEARCH_STATE.md`, section 3).
 - Row 5b, minutes after row 5: the line of `srvt_s0/pairs` that starts
   `chosen side of the pairs: teacher ...`. Send it back. It tells how many
@@ -58,6 +62,7 @@ the repetition penalty (`--repetition-penalty 1.0`); every row before
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 4 | `synvc_s0/sft_plain`, `eval_plain` and their publish tasks | The same round on the clients' rows alone. Arm `sqlcodes_sft_x1_np_vllm_inproc` | 2.5 h, about 2 h left | running. Comparator: the round with the synthetic rows, 74.15 |
+| 4a | `fullnp/*` (14 evaluations, 3 publish tasks) | Which prompt shows the method's gain without the penalty? The finished `full`-prompt lines on Spider test without the repetition penalty, evaluation only: the method's DPO round 3 (seed 0), the four lines of seed 1, the base model, FedProx, FedNTD, the two centralized rows, the gold-stage lines of both seeds. Seed 0 already has FedAvg R3 72.33, Hinton stage + FedAvg R3 74.85, FedAvg + DPO round 3 75.08, the method's DPO round 1 76.43. Runs between the SFT round and the evaluation of row 4 | 1.7 h | queued |
 | 5 | `srvx_s0/check_bird`, `eval_stage`, `bird_round`, `eval_bird_round` and their publish tasks | Direction 2: does the clients' execution-preference round also work at the server on the public databases, after the teacher stage? From the seed 0 Hinton server stage: one DPO + NLL round on 3,000 BIRD train questions (one pooled client, `full` prompts as the stage was trained), then the round's adapter against the stage's adapter on Spider test and BIRD dev, no client training. Arms `srvdpo_hinton_q3000_r1_np_vllm_inproc`, `sql_hinton_k2_np_vllm_inproc` | 4.7 h | queued |
 | 5b | `srvt_s0/samples`, `pairs`, `publish_pairs` | The teacher inside the round of row 5, the count first (CPU, no training): the samples of row 5 are copied, the teacher's stored SQL of every question with no correct sample is executed, and the pairs are built with the teacher's SQL as the chosen side where it returns the gold result (gold SQL otherwise). Read: the number of pairs whose chosen side is the teacher's SQL | 5 min | queued |
 | 6 | `sqlcv2_s0/curve_hinton_sft` | Stage 1 in the final setup: 3 FedAvg SFT rounds with `codes_v2` from the seed 0 Hinton server stage (existing adapter, trained with `full` prompts), each round on Spider test. Arms `sqlcv2_hinton_k2aaa_a{1,2,3}_np_vllm_inproc`. Comparator: the base-model rounds, 72.05 / 74.57 / 74.85 | 6.5 h | queued |
@@ -69,15 +74,18 @@ the repetition penalty (`--repetition-penalty 1.0`); every row before
 | 12 | `f1v2_s0/curve_fedavg_sft` | Does FedAvg hold with 20 clients? 3 FedAvg SFT rounds on the `k20` split with `codes_v2`, each round on Spider test. Comparator: the rounds with 5 clients, 72.05 / 74.57 / 74.85 | 6.5 h | queued |
 | 13 | `srvt_s0/bird_round`, `eval_bird_round` and their publish tasks | Does the teacher add to the server round when it supplies the preferred SQL? The round of row 5 on the pairs of row 5b (same start adapter, questions, samples and settings; only the chosen side of the teacher's pairs differs), then its adapter on Spider test and BIRD dev. Arm `srvdpo_hinton_q3000_teacher_r1_np_vllm_inproc`. Comparators: the two arms of row 5 | 4 h | queued, after every other row; taken out if row 5b counts few teacher pairs or row 5 shows no gain |
 
-Rows 4-12 take about 45.5 h from now, row 13 about 4 h more: rows 4-5 (the
-reads for directions 2 and 3) end at about 17:30 on 2026-11-17, row 6 at
-about 00:00 on 2026-11-18, row 10 at about 18:30 on 2026-11-18, row 12 at
-about 08:00 on 2026-11-19. Row 5 runs a code path that has not run on the
-server (a DPO round on BIRD); its time is not measured.
+Rows 4-12 take about 47 h from now, row 13 about 4 h more: row 4a ends at
+about 14:00 on 2026-11-17, rows 4-5 (the reads for directions 2 and 3) at
+about 19:00, row 6 at about 01:30 on 2026-11-18, row 10 at about 20:00 on
+2026-11-18, row 12 at about 09:30 on 2026-11-19. Row 5 runs a code path
+that has not run on the server (a DPO round on BIRD); its time is not
+measured.
 
 Cut from a full run:
 
-- Every row is seed 0.
+- Every row is seed 0, except row 4a (two seeds).
+- Row 4a evaluates adapters whose DPO rounds were trained on samples
+  drawn with the penalty 1.1; only the evaluation runs without it.
 - Row 5 uses 3,000 of the 9,428 BIRD train questions and one round (the
   full round was estimated at about 12 h). It has no teacher in the round:
   BIRD has gold SQL. A gain answers whether the round transfers; its size

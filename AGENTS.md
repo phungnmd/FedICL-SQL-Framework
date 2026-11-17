@@ -24,6 +24,13 @@ only that repository, so the code, GPU and server rules live there.
   choice also has to be sound on its own: one that only lowers the
   baselines, or that the closest papers do not make, is not a way to a
   larger gain.
+- The paper shows the method where its effect shows (owner, 2026-11-17).
+  Among sound choices, the setup, model, prompt, comparisons and tables are
+  picked for the gain over the baselines in the same setup, not for the
+  highest level. A prompt or an inference step that lifts every row and
+  shrinks the gain, or a comparison that does not make the paper better,
+  stays in the notes and out of the paper. Each claim is worded so that it
+  is true against everything the notes hold.
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the
