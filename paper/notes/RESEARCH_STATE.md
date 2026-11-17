@@ -183,6 +183,11 @@ map is in `LITERATURE.md`.
    (`DPO_RESEARCH.md`, section 2.7), a teacher's SQL is no better a target
    than gold SQL, forward KL to the teacher is below training on gold
    alone, and reverse KL on the student's own samples is above it.
+   A question to guide this direction, not a planned part: at the server,
+   can the LLM repair a wrong SQL of the student with a small edit, so
+   that a question whose samples are all wrong still gives a pair, with
+   execution deciding whether the repair is kept? (`DPO_RESEARCH.md`,
+   section 3.7.)
 6. Baselines with the new prompt: FedAvg, FedProx, FedNTD, centralized SFT.
 7. The client split. In `alpha_0.1/k5` the share of hard and extra
    questions runs from 20% to 60% across the clients, and the clients

@@ -447,6 +447,35 @@ samples, at the server, added to a loss that keeps gold as the target
 The other role with support is writing new questions on public databases
 (SENSE, OmniSQL, Distill-C), which the student can also do (3.5, step 3).
 
+A question to guide the direction (owner, 2026-11-17; not a planned
+part): can the LLM act as the repairer of the student's wrong SQL instead
+of the writer of an answer?
+
+- Where: at the server, on public data, for the questions whose samples
+  are all wrong, the blind spot of the on-policy loop.
+- How: the teacher gets the schema, the question, one wrong SQL of the
+  student and its execution result, and is asked for the smallest fix.
+  The fix is run; if its result equals the gold result it becomes the
+  chosen side and the wrong SQL the rejected side, otherwise it is
+  dropped.
+- Why it could add something gold does not: the pair is close by
+  construction, as in Target-DPO, whose pairs are a fixed program against
+  its earlier wrong version (2.4). A wrong repair is removed by execution,
+  so the teacher's level sets the number of pairs, not their correctness.
+- What it does not reach: all-wrong questions at the clients, where no
+  LLM runs.
+- A check without training: on BIRD train, the share of the student's
+  all-wrong questions for which a repair matches the gold result, and the
+  edit distance from the wrong SQL to the repair against that to the gold
+  SQL. If the repair is not clearly closer, gold is enough.
+- The control in training: gold SQL as the chosen side for the same
+  questions.
+
+Three searches found no paper that builds DPO pairs this way for
+Text-to-SQL. The nearest seen, in search results only and not read:
+Distill-C (its FixIt part starts from a model's errors) and SQLCritic (a
+DPO variant for clause-wise correction).
+
 ### 3.8 Choices made inside the rounds (owner, 2026-11-17)
 
 1. The gold SQL of an all-wrong question in the SFT term (never as the
@@ -568,6 +597,7 @@ and on the zero-shot BIRD dev level of Qwen2.5-Coder-7B in OmniSQL's table
 - PLaD: arXiv 2406.02886
 - DPKD: arXiv 2406.19774
 - Distill-C: arXiv 2504.00048
+- SQLCritic: arXiv 2503.07996
 - Nguyen et al., Where to Begin? (pre-training and initialization in FL): arXiv 2206.15387
 - Chen et al., On the Importance and Applicability of Pre-Training for FL: arXiv 2206.11488
 - Wang et al., Can Public LLMs Help Private Cross-device FL?: arXiv 2305.12132
