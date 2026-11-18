@@ -322,6 +322,8 @@ mark.e { background: var(--bad-soft); color: var(--bad); }
 .c-pt { fill: var(--surface); stroke: var(--accent); stroke-width: 2.2; }
 .c-pt.end { fill: var(--accent); }
 .c-pt.base { stroke: var(--ink); fill: var(--surface); }
+.c-pt.dpo { stroke: var(--warn); }
+.c-pt.dpo.end { fill: var(--warn); }
 .c-val { font: 600 13px var(--font-mono); fill: var(--ink); }
 .c-slot { fill: none; stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 3 3; }
 .ch-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.8rem; color: var(--muted); }
@@ -466,7 +468,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <a href="#directions">Hướng tiếp</a>
       <a href="#rows">Hàng của paper</a>
     </div>
-    <span class="stamp">Cập nhật <b>2026-11-17 18:45</b></span>
+    <span class="stamp">Cập nhật <b>2026-11-18 09:40</b></span>
   </div>
 </nav>
 
@@ -486,7 +488,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <a class="btn" href="#results"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả</a>
       <a class="btn" href="#progress"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg>Tiến độ</a>
       <a class="btn" href="#directions"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg>Hướng tiếp</a>
-      <span class="live"><span class="pill run">GPU 0</span>FedAvg SFT: R1 xong, 72.43 EX &middot; <a href="#updates">cập nhật 2026-11-17 18:45</a></span>
+      <span class="live"><span class="pill run">GPU 0</span>FedAvg SFT R4 (round cuối) &middot; DPO k = 2 R2: 78.20 EX &middot; <a href="#updates">cập nhật 2026-11-18 09:40</a></span>
     </div>
     <figure class="panel arch teaser" aria-labelledby="arch-title">
       <div class="arch-scroll">
@@ -642,7 +644,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="tldr">
       <div class="tl-item"><span class="tl-k">Câu hỏi</span><p>Train trên kết quả thực thi SQL của chính model, trên database của client, có cho model tốt hơn FedAvg SFT và federated DPO as published, trên cùng dữ liệu không?</p></div>
       <div class="tl-item"><span class="tl-k">Cách làm</span><p>Mỗi round, client sample SQL từ global model, chạy trên database của mình, ghép cặp đúng và sai, train DPO + NLL với reference là global model của round. Server FedAvg các adapter.</p></div>
-      <div class="tl-item"><span class="tl-k">Trạng thái</span><p>FedAvg SFT round 1 đạt 72.43 EX (student chưa train 68.05). FedAvg chạy tiếp tới khi luật dừng; các round DPO đã queue sau nó.</p></div>
+      <div class="tl-item"><span class="tl-k">Trạng thái</span><p>Sau 2 round FedAvg SFT (74.10), 2 round DPO + NLL đạt 78.20 EX; FedAvg round 3 là 74.71. Gain đến từ lỗi chạy giảm; SQL chạy được nhưng sai kết quả vẫn quanh 380. GPU 0 chạy FedAvg R4 (round cuối), rồi centralized SFT.</p></div>
     </div>
   </div>
 </header>
@@ -675,33 +677,33 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <h3 class="sub-h">Ba cải tiến ứng viên, mỗi cái chỉ giữ khi có gain đo được</h3>
     <div class="parts">
       <article class="panel part">
-        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-sync"/></svg></span><span class="id">I1</span></span><span class="pill queued">trong phase 1</span></div>
+        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-sync"/></svg></span><span class="id">I1</span></span><span class="pill run">2 round đã chạy</span></div>
         <h3>On-policy rounds</h3>
         <dl>
           <div><dt>Ý tưởng</dt><dd>Mỗi round sample lại từ global model mới; global model đó là reference của DPO.</dd></div>
           <div><dt>Vấn đề trả lời</dt><dd>Federated DPO as published dùng pairs làm một lần và reference cố định.</dd></div>
-          <div><dt>Bằng chứng</dt><dd>Fresh samples hơn fixed round-1 pairs 1.72 EX ở round 3, p = 0.0049 <span class="ref">setup cũ, chỉ tham khảo</span></dd></div>
+          <div><dt>Bằng chứng</dt><dd>Round 2 (samples và reference từ global model của round 1): 77.46 lên 78.20, sửa 48, làm sai 32, p = 0.093. Pairs giảm 8,026 xuống 3,354 vì model mới đúng cả 10 samples ở nhiều câu hơn. Ablation pairs cố định chưa chạy.</dd></div>
           <div><dt>Ablation</dt><dd>Pairs cố định từ round 1, reference cố định.</dd></div>
         </dl>
       </article>
-      <article class="panel part main">
-        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg></span><span class="id">I2</span></span><span class="tag">ứng viên chính</span></div>
+      <article class="panel part">
+        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg></span><span class="id">I2</span></span><span class="pill code">lần thử đầu: không gain</span></div>
         <h3>Execution-aware pairs</h3>
         <dl>
           <div><dt>Ý tưởng</dt><dd>Wrong-result ghép với correct gần nhất; execution error ghép với correct bất kỳ; tùy chọn chỉ tính rejected trên token khác.</dd></div>
           <div><dt>Vấn đề trả lời</dt><dd>Random pairs chủ yếu dạy "SQL phải chạy được"; nhãn trên kết quả rỗng không nói gì về nghĩa.</dd></div>
-          <div><dt>Bằng chứng</dt><dd>Gold result rỗng 1-5% ở client 1, 2, 3, 5 và 41% ở client 4. DPO giảm execution error 211 xuống 58, khoảng 440 wrong-result không đổi <span class="ref">setup cũ, chỉ tham khảo</span></dd></div>
-          <div><dt>Ablation</dt><dd>Random pairs (dạng plain). Cần code pair rule.</dd></div>
+          <div><dt>Bằng chứng</dt><dd>Nearest-correct pairs, cùng samples với round random: 77.08 so với 77.46 (p = 0.42). Pairs gần hơn (similarity 0.85 so với 0.75) nhưng vẫn 51% rejected là lỗi chạy, và sai kết quả vẫn 382.</dd></div>
+          <div><dt>Ablation</dt><dd>Random pairs (dạng plain), đã chạy cùng samples.</dd></div>
         </dl>
       </article>
       <article class="panel part">
-        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-queue"/></svg></span><span class="id">I3</span></span><span class="pill queued">trong phase 1</span></div>
+        <div class="dir-top"><span class="ph-row"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-queue"/></svg></span><span class="id">I3</span></span><span class="pill run">k = 2 đã chạy</span></div>
         <h3>FedAvg SFT trước DPO</h3>
         <dl>
-          <div><dt>Ý tưởng</dt><dd>Các round DPO bắt đầu từ round FedAvg SFT tốt nhất.</dd></div>
+          <div><dt>Ý tưởng</dt><dd>k round FedAvg SFT, rồi các round DPO + NLL; k là một giá trị ghi trong paper, quét 0, 2 và round FedAvg tốt nhất.</dd></div>
           <div><dt>Vấn đề trả lời</dt><dd>Từ base, câu hỏi all-wrong (12%) và câu hỏi trên database rỗng (20%) không cho pair hữu ích; gold SQL dạy được chúng.</dd></div>
-          <div><dt>Bằng chứng</dt><dd>+3.87 EX trên FedAvg round 3 <span class="ref">setup cũ, chỉ tham khảo</span>. Ngược lại: trong papers, SFT rồi plain DPO cho gần 0 (offline loss, không NLL).</dd></div>
-          <div><dt>Ablation</dt><dd>DPO từ base student; control là FedAvg chạy tiếp.</dd></div>
+          <div><dt>Bằng chứng</dt><dd>k = 2: câu all-wrong còn 6.6%, mixed 60%, đủ 8,026 pairs. DPO R1 77.46 so với FedAvg R3 74.71 (cùng 3 round), p = 5.4e-05. Ngược lại: trong papers, SFT rồi plain DPO cho gần 0 (offline loss, không NLL).</dd></div>
+          <div><dt>Ablation</dt><dd>k = 0 (DPO từ base student), chưa chạy; control là FedAvg chạy tiếp.</dd></div>
         </dl>
       </article>
     </div>
@@ -729,7 +731,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
           <p class="lesson">Có thể chỉ dạy "SQL phải chạy được". Lỗi <code>&gt;=</code> không được sửa.</p>
         </div>
         <div class="pairset i2">
-          <div class="ps-h"><b>Execution-aware (I2)</b><span>ứng viên chính</span></div>
+          <div class="ps-h"><b>Execution-aware (I2)</b><span>nearest-correct</span></div>
           <div class="pr"><span class="sq" style="background:var(--seg-correct)">s1</span><span class="vs">vs</span><span class="sq" style="background:var(--warn)">s2</span><span>khác đúng 1 token</span></div>
           <div class="pr"><span class="sq" style="background:var(--seg-correct)">s6</span><span class="vs">vs</span><span class="sq" style="background:var(--seg-wrong)">s7</span><span>đúng / lỗi chạy bất kỳ</span></div>
           <p class="lesson">Sai kết quả ghép với bản đúng gần nhất, nên gradient tập trung vào chỗ sai nghĩa.</p>
@@ -776,12 +778,12 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="panel exchart">
       <div class="ch-head">
         <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>EX trên Spider test theo round</h3>
-        <p>2,147 câu, greedy, prompt A. Round 0 là student chưa train, điểm xuất phát chung. Ô tròn đứt nét là round chưa chạy.</p>
+        <p>2,147 câu, greedy, prompt A. Trục ngang là tổng số round; round 0 là student chưa train. Đường DPO tách ra từ FedAvg R2 (k = 2). Ô tròn đứt nét là round đang chạy.</p>
       </div>
-      <div class="ch-scroll"><svg id="exsvg" viewBox="0 0 960 330" role="img" aria-labelledby="ex-title ex-desc"><title id="ex-title">EX theo round</title><desc id="ex-desc">FedAvg SFT: 68.05 ở round 0, 72.43 ở round 1. Chưa có round DPO.</desc></svg></div>
+      <div class="ch-scroll"><svg id="exsvg" viewBox="0 0 960 330" role="img" aria-labelledby="ex-title ex-desc"><title id="ex-title">EX theo round</title><desc id="ex-desc">FedAvg SFT: 68.05 chưa train, 72.43, 74.10, 74.71 ở round 1 đến 3. DPO + NLL từ FedAvg round 2: 77.46 ở round 3, 78.20 ở round 4.</desc></svg></div>
       <div class="ch-legend">
         <span><i style="background:var(--accent)"></i>FedAvg SFT</span>
-        <span><i style="background:var(--warn)"></i>DPO + NLL (chưa có round)</span>
+        <span><i style="background:var(--warn)"></i>DPO + NLL từ FedAvg R2 (k = 2)</span>
         <span><i style="background:var(--ok-soft);height:10px;vertical-align:-1px"></i>SFT của student này trong papers</span>
         <span><i style="background:repeating-linear-gradient(90deg,var(--idle) 0 5px,transparent 5px 9px)"></i>cao nhất đã công bố</span>
       </div>
@@ -794,16 +796,22 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
             <thead><tr><th>Hàng</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th></tr></thead>
             <tbody class="num">
               <tr><td>Chưa train</td><td class="r">68.05</td><td class="r">87.45</td><td class="r">71.41</td><td class="r">59.18</td><td class="r">45.94</td><td class="r">287</td><td class="r">399</td></tr>
-              <tr><td>FedAvg SFT R1</td><td class="r"><b>72.43</b></td><td class="r"><b>89.15</b></td><td class="r"><b>75.26</b></td><td class="r"><b>63.71</b></td><td class="r"><b>54.90</b></td><td class="r"><b>215</b></td><td class="r"><b>377</b></td></tr>
+              <tr><td>FedAvg SFT R1</td><td class="r">72.43</td><td class="r">89.15</td><td class="r">75.26</td><td class="r">63.71</td><td class="r">54.90</td><td class="r">215</td><td class="r">377</td></tr>
+              <tr><td>FedAvg SFT R2</td><td class="r">74.10</td><td class="r">89.36</td><td class="r">78.65</td><td class="r">65.23</td><td class="r">54.62</td><td class="r">183</td><td class="r"><b>373</b></td></tr>
+              <tr><td>FedAvg SFT R3</td><td class="r">74.71</td><td class="r">90.21</td><td class="r">78.88</td><td class="r">67.17</td><td class="r">54.06</td><td class="r">164</td><td class="r">379</td></tr>
+              <tr><td>DPO R1</td><td class="r">77.46</td><td class="r">91.49</td><td class="r">80.63</td><td class="r"><b>71.06</b></td><td class="r">59.66</td><td class="r">99</td><td class="r">385</td></tr>
+              <tr><td>DPO R1 nearest</td><td class="r">77.08</td><td class="r">91.70</td><td class="r">79.70</td><td class="r">70.63</td><td class="r">59.94</td><td class="r">110</td><td class="r">382</td></tr>
+              <tr><td>DPO R2</td><td class="r"><b>78.20</b></td><td class="r"><b>91.91</b></td><td class="r"><b>81.91</b></td><td class="r"><b>71.06</b></td><td class="r"><b>60.50</b></td><td class="r"><b>84</b></td><td class="r">384</td></tr>
             </tbody>
           </table>
         </div>
-        <p>R1 so với chưa train: sửa đúng 165 câu, làm sai 71 câu, exact McNemar p = 8.5e-10. Phần lớn gain là lỗi chạy giảm (287 xuống 215); SQL chạy được nhưng sai kết quả chỉ giảm 399 xuống 377. Đây là nhóm lỗi I2 nhắm tới.</p>
-        <p>Prompt B (<code>ddl_values</code>) khi chưa train: 67.49, không khác A (p = 0.47). Results: chưa train <code>12456b56</code>, FedAvg R1 <code>d6bfc763</code>.</p>
+        <p>DPO là đường k = 2 (từ FedAvg R2, random pairs trừ hàng nearest của I2). DPO R1 so với FedAvg R3 (cùng 3 round tổng): sửa 134 câu, làm sai 75, exact McNemar p = 5.4e-05. DPO R2 so với FedAvg R3: sửa 142, làm sai 67, p = 2.3e-07; control cùng 4 round là FedAvg R4, đang chạy.</p>
+        <p>Toàn bộ gain thuần đến từ lỗi chạy (164 xuống 84). SQL chạy được nhưng sai kết quả nằm ở 373-399 trên mọi hàng, kể cả với nearest pairs. 242 câu test sai kết quả ở cả 5 hàng (FedAvg R2, R3 và 3 hàng DPO); 83.28% câu test đúng ở ít nhất một hàng.</p>
+        <p>pass@10 của FedAvg R3 là 88.68 (pass@1 68.34): với 88% câu test, một SQL đúng có trong 10 samples. Prompt B (<code>ddl_values</code>) khi chưa train: 67.49, không khác A (p = 0.47). Results: FedAvg R1-R3 <code>d6bfc763</code>, <code>0699ac6d</code>, <code>6558ebfe</code>; DPO <code>be787676</code>, <code>9253ef8e</code>, <code>5c33e622</code>; pass@k <code>762b74a2</code>.</p>
       </div>
 
       <div class="panel">
-        <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Câu hỏi của 5 client, đọc từ base student</h3>
+        <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Câu hỏi của 5 client và pairs theo round</h3>
         <div class="legend">
           <span><i style="background:var(--seg-mixed)"></i>mixed (cho pairs)</span>
           <span><i style="background:var(--seg-correct)"></i>all correct</span>
@@ -812,6 +820,16 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </div>
         <div class="clients" id="clients"></div>
         <p>10 samples mỗi câu hỏi, T 1.0, prompt A (results <code>1704b03b</code>). Độ dài thanh theo số câu hỏi của client. Sample accuracy 56.1%; 8,659 câu hỏi: 5,951 mixed, 1,631 all correct, 1,074 all wrong.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Samples từ</th><th class="r">Mixed</th><th class="r">All correct</th><th class="r">All wrong</th><th class="r">Pairs</th><th class="r">Rejected lỗi chạy</th></tr></thead>
+            <tbody class="num">
+              <tr><td>FedAvg R2 (DPO R1)</td><td class="r">5,192</td><td class="r">2,891</td><td class="r">573</td><td class="r">8,026</td><td class="r">51%</td></tr>
+              <tr><td>DPO R1 (DPO R2)</td><td class="r">2,244</td><td class="r">5,784</td><td class="r">628</td><td class="r">3,354</td><td class="r">43%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Mỗi round on-policy làm model đúng cả 10 samples ở nhiều câu hơn, nên số câu cho pairs giảm hơn một nửa sau một round DPO.</p>
         <div class="callout">Spider release có 7 database train không có rows (<code>geo</code>, <code>scholar</code>, <code>academic</code>, <code>restaurants</code>, <code>imdb</code>, <code>yelp</code>, <code>music_2</code>): 1,759 câu hỏi, 1,648 ở client 4 (47% câu hỏi của nó). Trên đó mọi SQL chạy được đều "đúng". Owner quyết định: bỏ pairs từ các database này.</div>
       </div>
     </div>
@@ -823,9 +841,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <table>
         <thead><tr><th>Phần của câu chuyện</th><th>Kết quả mang nó</th><th>Phase</th><th>Trạng thái</th></tr></thead>
         <tbody>
-          <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng điểm xuất phát, cùng số round</td><td class="mono">1</td><td><span class="pill run">đang chạy</span></td></tr>
+          <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng điểm xuất phát, cùng số round</td><td class="mono">1</td><td><span class="pill done">3 round: +2.75, p 5.4e-05</span> <span class="pill run">4 round: chờ FedAvg R4</span></td></tr>
           <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pill plan">chưa queue</span></td></tr>
-          <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pill plan">chờ dữ liệu</span></td></tr>
+          <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pill done">hard +3.89, extra +6.44 so với FedAvg R3</span> <span class="pill code">sai KQ không giảm</span></td></tr>
           <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
         </tbody>
@@ -844,8 +862,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="cell">
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span>
       <span class="pill run">đang chạy</span>
-      <span class="big mono">rounds/fedavg_sft</span>
-      <span class="small">R1 đo được: 2.04 h train, peak reserved 20.3 GB, eval 3.4 phút. 3 đến 8 round; sau đó worker tự lấy <code>dpo/after_fedavg</code>.</span>
+      <span class="big mono">rounds/fedavg_sft R4</span>
+      <span class="small">Round cuối của FedAvg (owner chốt tối đa 4), từ khoảng 07:45, xong khoảng 10:00 (ước tính). Sau đó <code>refs/central_sft</code>, rồi <code>dpo/after_fedavg</code>.</span>
     </div>
     <div class="cell">
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span>
@@ -856,51 +874,61 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="cell">
       <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Cần chạy ngay (CPU)</span>
       <span class="pill queued">chờ owner</span>
-      <span class="big">Pull + test, phase 0a</span>
-      <span class="small">447 test pass trên Mac. Phase 0a: thành phần pairs của round 1 theo client (<code>pair_composition</code>).</span>
+      <span class="big">Phase 0a</span>
+      <span class="small">Thành phần pairs của round 1 từ base student theo client (<code>pair_composition</code>), vài phút, không GPU.</span>
     </div>
     <div class="cell">
-      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả đã có</span>
-      <span class="pill done">FedAvg SFT R1</span>
-      <span class="big num">72.43 EX</span>
-      <span class="small">+4.38 so với chưa train (68.05), p = 8.5e-10.</span>
+      <span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả mới nhất</span>
+      <span class="pill done">DPO k = 2, R2</span>
+      <span class="big num">78.20 EX</span>
+      <span class="small">+3.49 so với FedAvg R3 (74.71), p = 2.3e-07; FedAvg R4 là control cùng số round.</span>
     </div>
   </div>
 
   <div class="panel queue" aria-label="Queue trên GPU 0 theo round">
-    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>R1 đo được 2.04 h train + 3.4 phút eval; các round sau ước tính tương tự.</span></div>
+    <div class="q-head"><b>Queue trên GPU 0, theo round</b><span>FedAvg đo được khoảng 2 h train + vài phút eval mỗi round; một round DPO k = 2 khoảng 1 h 50 phút kể cả eval.</span></div>
     <div class="q-row">
-      <div class="q-name">FedAvg SFT<span>R1 xong; worker chạy tiếp R2</span></div>
-      <div class="q-track"><span class="rb done" title="72.43 EX">R1 72.43</span><span class="rb must">R2</span><span class="rb must">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span><span class="rb maybe">R7</span><span class="rb maybe">R8</span></div>
+      <div class="q-name">FedAvg SFT<span>R4 là round cuối</span></div>
+      <div class="q-track"><span class="rb done" title="72.43 EX">R1 72.43</span><span class="rb done" title="74.10 EX">R2 74.10</span><span class="rb done" title="74.71 EX">R3 74.71</span><span class="rb must">R4 chạy</span></div>
     </div>
     <div class="q-row">
-      <div class="q-name">DPO + NLL<span>queued, từ round FedAvg tốt nhất</span></div>
+      <div class="q-name">DPO k = 2<span>từ FedAvg R2, random pairs</span></div>
+      <div class="q-track"><span class="rb done" title="77.46 EX; nearest 77.08">R1 77.46</span><span class="rb done" title="78.20 EX">R2 78.20</span><span class="rb maybe">R3</span><span class="rb maybe">R4</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-name">Centralized SFT<span>queued sau FedAvg R4</span></div>
+      <div class="q-track"><span class="rb must wait">E1</span><span class="rb must wait">E2</span><span class="rb must wait">E3</span><span class="rb maybe">E4</span><span class="rb maybe">E5</span><span class="rb maybe">E6</span><span class="rb maybe">E7</span><span class="rb maybe">E8</span></div>
+    </div>
+    <div class="q-row">
+      <div class="q-name">DPO k = best<span>queued, từ round FedAvg tốt nhất</span></div>
       <div class="q-track"><span class="rb must wait">R1</span><span class="rb must wait">R2</span><span class="rb must wait">R3</span><span class="rb maybe">R4</span><span class="rb maybe">R5</span><span class="rb maybe">R6</span></div>
     </div>
-    <div class="q-legend"><span>Ô xanh lá: round đã publish.</span><span>Ô viền liền: tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX.</span></div>
+    <div class="q-legend"><span>Ô xanh lá: round đã publish.</span><span>Ô viền liền: đang chạy hoặc tối thiểu 3 round (round tốt nhất + patience 2).</span><span>Ô viền đứt: chỉ chạy khi round trước còn gain &gt; 0.5 EX; R3 của k = 2 chưa queue, quyết định theo số.</span></div>
   </div>
 
     <div class="phases">
       <article class="panel phase">
         <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></span>PHASE 0</span><span class="pill run">đang làm</span></div>
         <h3>Đọc pairs và lỗi, không GPU</h3>
-        <div class="ph-count"><div class="bar"><span style="width:50%"></span></div><span>2/4 xong</span></div>
+        <div class="ph-count"><div class="bar"><span style="width:75%"></span></div><span>3/4 xong</span></div>
         <ul>
           <li><span class="dot done"></span><span>(c) Code cho phase 1, commit <code>62a48999</code></span></li>
           <li><span class="dot done"></span><span>(b) <code>error_breakdown</code> trên base: 287 execution error, 399 wrong result</span></li>
-          <li><span class="dot queued"></span><span>(a) Pairs round 1 theo loại rejected, theo client: chờ chạy trên server</span></li>
-          <li><span class="dot"></span><span>(b) Cùng cách đọc cho từng round FedAvg</span></li>
+          <li><span class="dot done"></span><span>(b) Cùng cách đọc cho FedAvg R1-R3 và DPO: lỗi chạy 215 xuống 84, sai kết quả 373-385</span></li>
+          <li><span class="dot queued"></span><span>(a) Pairs round 1 của base student theo loại rejected, theo client: chờ chạy trên server (của k = 2 đã có: 51% rejected là lỗi chạy)</span></li>
         </ul>
         <p class="decides">Quyết định: I2 có đáng một run không; DPO còn sửa được bao nhiêu sau SFT.</p>
       </article>
       <article class="panel phase current">
         <div class="ph-top"><span class="ph-n"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>PHASE 1</span><span class="ph-time">khoảng 1 ngày sau FedAvg</span></div>
         <h3>FedAvg SFT, rồi DPO + NLL</h3>
-        <div class="ph-count"><div class="bar"><span class="runseg" style="width:33.3%"></span></div><span>0/3 xong, 1 đang chạy</span></div>
+        <div class="ph-count"><div class="bar"><span class="runseg" style="width:40%"></span></div><span>2/5 xong, 1 đang chạy</span></div>
         <ul>
-          <li><span class="dot run"></span><span>FedAvg SFT tới khi luật dừng (gain &gt; 0.5, patience 2, tối đa 8). R1: 72.43 EX</span></li>
-          <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (I3 + I1), tối đa 6 round</span></li>
-          <li><span class="dot"></span><span>Control: FedAvg chạy tiếp cùng số round</span></li>
+          <li><span class="dot run"></span><span>FedAvg SFT tới R4 (owner chốt). R1-R3: 72.43, 74.10, 74.71; R4 đang chạy, cũng là control 4 round của k = 2</span></li>
+          <li><span class="dot done"></span><span>DPO + NLL từ FedAvg R2 (k = 2): R1 77.46, R2 78.20</span></li>
+          <li><span class="dot done"></span><span>I2 trên cùng samples: nearest 77.08, không hơn random</span></li>
+          <li><span class="dot queued"></span><span>Centralized SFT trên hợp các client, cùng recipe</span></li>
+          <li><span class="dot queued"></span><span>DPO + NLL từ round FedAvg tốt nhất (k = best), tối đa 6 round</span></li>
         </ul>
         <p class="decides">Quyết định câu chuyện của paper (xem gate bên dưới).</p>
       </article>
@@ -921,7 +949,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <div class="ph-count"><div class="bar"><span style="width:0%"></span></div><span>0/3 xong</span></div>
         <ul>
           <li><span class="dot"></span><span>BIRD làm bộ client thứ hai; alpha 0.5 và IID</span></li>
-          <li><span class="dot"></span><span>FedProx, FedNTD; centralized và local SFT</span></li>
+          <li><span class="dot"></span><span>FedProx, FedNTD; local SFT</span></li>
           <li><span class="dot"></span><span>Seed thứ hai; server pre-training sau cùng</span></li>
         </ul>
         <p class="decides">Quyết định: đủ rộng cho Q2, có cơ hội Q1.</p>
@@ -932,6 +960,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="q">
         <b>Gate cuối phase 1</b>
         <span>DPO so với FedAvg tiếp tục, cùng số round, exact McNemar trên Spider test</span>
+        <span>Đọc đầu (k = 2, 3 round): +2.75 EX, p = 5.4e-05, trong vùng đi tiếp. Ở 4 round chờ FedAvg R4.</span>
       </div>
       <div class="out go"><span class="cond">gain &ge; 1.5 EX, p &lt; 0.05</span><span>Sang phase 2.</span></div>
       <div class="out mid"><span class="cond">0.5 &le; gain &lt; 1.5</span><span>Đưa I2 và BIRD lên trước.</span></div>
@@ -944,7 +973,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap">
     <div class="sec-head">
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg></span>Hướng tiếp</h2>
-      <p>Mỗi hướng ghi khi nào nên chạy, nó trả lời câu hỏi gì và chi phí (ước tính). Chưa hướng nào trong này nằm trong queue.</p>
+      <p>Mỗi hướng ghi khi nào nên chạy, nó trả lời câu hỏi gì và chi phí (ước tính). I2 đã thử một lần; các hướng còn lại chưa nằm trong queue.</p>
     </div>
     <div class="filters" role="group" aria-label="Lọc theo nhóm">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">Tất cả</button>
@@ -968,12 +997,12 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <table>
         <thead><tr><th>Hàng</th><th>Là gì</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
         <tbody>
-          <tr><td><b>FedAvg SFT</b></td><td>Gold SQL, FedAvg, lr 2e-4, 1 local epoch/round</td><td>Federated baseline</td><td><span class="pill run">đang chạy</span></td></tr>
-          <tr><td><b>Method</b></td><td>DPO + NLL rounds với các cải tiến được giữ</td><td>Hàng chính của paper</td><td><span class="pill queued">queued</span></td></tr>
+          <tr><td><b>FedAvg SFT</b></td><td>Gold SQL, FedAvg, lr 2e-4, 1 local epoch/round</td><td>Federated baseline</td><td><span class="pill run">R4, round cuối</span></td></tr>
+          <tr><td><b>Method</b></td><td>k round FedAvg SFT, rồi DPO + NLL rounds với các cải tiến được giữ</td><td>Hàng chính của paper</td><td><span class="pill done">k = 2: 2 round</span> <span class="pill queued">k = best queued</span></td></tr>
           <tr><td><b>Federated DPO as published</b></td><td>Pairs từ base student làm một lần, reference cố định (FedDPO của OpenFedLLM); cùng loss, cùng số pairs</td><td>Federated DPO baseline</td><td><span class="pill code">cần code</span></td></tr>
           <tr><td><b>Ablations</b></td><td>Method bỏ từng cải tiến được giữ</td><td>Cho thấy mỗi phần đóng góp gì</td><td><span class="pill plan">phase 2</span></td></tr>
           <tr><td><b>FedProx, FedNTD</b></td><td>Gold SQL, aggregator khác</td><td>Federated baselines</td><td><span class="pill plan">phase 3</span></td></tr>
-          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pill plan">phase 3</span></td></tr>
+          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pill queued">centralized queued</span> <span class="pill plan">local: phase 3</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -985,6 +1014,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap foot" style="border-top:1px solid var(--line);padding-top:18px">
     <h4>Lịch sử cập nhật</h4>
     <ul class="updates">
+      <li><time>2026-11-18 09:40</time><span>FedAvg SFT R2, R3 (74.10, 74.71); DPO k = 2 R1 random 77.46, nearest 77.08, R2 78.20 (results <code>0699ac6d</code>, <code>6558ebfe</code>, <code>be787676</code>, <code>9253ef8e</code>, <code>5c33e622</code>); đường DPO trên biểu đồ, bảng pairs theo round, I1-I3 theo số mới, queue tới centralized SFT.</span></li>
       <li><time>2026-11-17 18:45</time><span>FedAvg SFT R1 (72.43 EX, results <code>d6bfc763</code>); thêm biểu đồ EX theo round và bảng các hàng đã có.</span></li>
       <li><time>2026-11-17 18:36</time><span>Bố cục trang dự án, Method lên đầu.</span></li>
       <li><time>2026-11-17 17:55</time><span>Icon cho sơ đồ và các thẻ.</span></li>
@@ -1030,12 +1060,12 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       when: "Phase 1 qua gate", ans: "Phần DPO có thêm gì so với chỉ học từ samples đúng", cost: "Cùng cỡ một DPO line" },
     { g: "p2", gl: "Phase 2", t: "DPO + NLL từ base student", st: ["plan", "chưa queue"],
       when: "Phase 1 qua gate", ans: "Ablation I3: stage FedAvg SFT trước có cần không", cost: "Cùng cỡ một DPO line" },
-    { g: "p2", gl: "Phase 2", t: "I2: execution-aware pairs", st: ["code", "cần code"],
-      when: "0a cho thấy wrong-result pairs hiếm; hoặc gain 0.5-1.5", ans: "Pair theo mức thông tin của nhãn có sửa được lỗi wrong-result không", cost: "Code pair rule + một DPO line" },
+    { g: "p2", gl: "Phase 2", t: "I2: execution-aware pairs", st: ["done", "đã thử, không gain"],
+      when: "Đã chạy trên samples k = 2: nearest 77.08, random 77.46 (p = 0.42)", ans: "Pair theo mức thông tin của nhãn có sửa được lỗi wrong-result không: chưa, sai kết quả vẫn 382", cost: "Dạng khác (rejected chỉ tính trên token khác) cần code + một DPO round" },
     { g: "p2", gl: "Phase 2", t: "Client drift SFT so với DPO", st: ["plan", "không cần train"],
-      when: "Có adapter của các round", ans: "DPO với reference là global model có drift ít hơn SFT dưới non-IID không (cosine, norm)", cost: "Chỉ đọc adapter đã lưu" },
+      when: "Có adapter của các round", ans: "Đọc đầu: cosine giữa update của các client 0.24-0.32 ở DPO R1, gần 0 ở FedAvg R3; DPO R2 0.013-0.055", cost: "Chỉ đọc adapter đã lưu" },
     { g: "agg", gl: "Aggregation", t: "Re-aggregation probe của DPO round 1", st: ["code", "cần script nhỏ"],
-      when: "Có DPO round 1", ans: "Trọng số pair, equal, question, step-normalised có khác nhau rõ không", cost: "Khoảng 10 phút eval mỗi cách, không train" },
+      when: "DPO round 1 đã có (k = 2); chờ script", ans: "Trọng số pair, equal, question, step-normalised có khác nhau rõ không", cost: "Khoảng 10 phút eval mỗi cách, không train" },
     { g: "agg", gl: "Aggregation", t: "Equal weights mỗi client", st: ["plan", "theo bằng chứng"],
       when: "Probe cho thấy gain", ans: "Client lớn có lấn át dưới non-IID không", cost: "Một DPO line" },
     { g: "agg", gl: "Aggregation", t: "FedNova-style normalisation", st: ["plan", "theo bằng chứng"],
@@ -1048,8 +1078,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       when: "Có method cuối", ans: "Gain có giữ được khi bớt non-IID", cost: "FedAvg + method cho mỗi split" },
     { g: "p3", gl: "Phase 3", t: "FedProx, FedNTD", st: ["plan", "chưa queue"],
       when: "Bảng chính", ans: "Baseline federated mạnh hơn FedAvg", cost: "Hai SFT line" },
-    { g: "p3", gl: "Phase 3", t: "Centralized và local SFT", st: ["plan", "chưa queue"],
-      when: "Bảng chính", ans: "Mốc trên, mốc dưới; split có đủ lý do để federate không", cost: "1 + 5 SFT line" },
+    { g: "p3", gl: "Phase 3", t: "Local SFT", st: ["plan", "chưa queue"],
+      when: "Bảng chính", ans: "Mốc dưới; cùng centralized SFT (queued) cho biết split có đủ lý do để federate không", cost: "5 SFT line" },
     { g: "p3", gl: "Phase 3", t: "Server pre-training cùng loss", st: ["plan", "chạy sau cùng"],
       when: "Method đã chốt", ans: "Pre-training trên public data có giúp và gain của round còn không", cost: "Một vòng ở server trên BIRD train" },
     { g: "rd", gl: "Hướng nghiên cứu", t: "LLM sửa SQL sai ở server", st: ["plan", "ngoài kế hoạch"],
@@ -1071,8 +1101,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 
   // EX per round on Spider test. Round 0 is the untrained student; DPO rounds start from the best FedAvg round.
   var EX = {
-    fedavg: [[0, 68.05], [1, 72.43]],
-    dpo: [],            // [[round on this axis, EX], ...]
+    fedavg: [[0, 68.05], [1, 72.43], [2, 74.10], [3, 74.71]],
+    fedavgLast: 4,      // FedAvg line capped at round 4 (owner, 2026-11-18)
+    dpo: [[2, 74.10], [3, 77.46], [4, 78.20]],  // k = 2: starts at FedAvg round 2; x = total rounds
     maxRound: 8,
     yMin: 64, yMax: 84,
     band: [77, 78],     // SFT of this student in papers
@@ -1104,7 +1135,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     }
     el("text", { "class": "c-axis", x: x1 + 12, y: H - mb + 22 }, "round");
     var done = {}; EX.fedavg.forEach(function (p) { done[p[0]] = 1; });
-    for (var r2 = 1; r2 <= EX.maxRound; r2++) if (!done[r2]) el("circle", { "class": "c-slot", cx: X(r2), cy: Y(EX.fedavg[EX.fedavg.length - 1][1]), r: 5 });
+    for (var r2 = 1; r2 <= EX.fedavgLast; r2++) if (!done[r2]) el("circle", { "class": "c-slot", cx: X(r2), cy: Y(EX.fedavg[EX.fedavg.length - 1][1]), r: 5 });
     function series(pts, cls) {
       if (!pts.length) return;
       var d = pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
@@ -1113,8 +1144,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       }
       el("path", { "class": "c-line" + (cls === "dpo" ? " dpo" : ""), d: d });
       pts.forEach(function (p, i) {
+        if (cls === "dpo" && i === 0) return;  // shared start point, drawn by the FedAvg series
         var last = i === pts.length - 1;
-        el("circle", { "class": "c-pt" + (p[0] === 0 ? " base" : last ? " end" : ""), cx: X(p[0]), cy: Y(p[1]), r: last ? 6 : 5 });
+        el("circle", { "class": "c-pt" + (cls === "dpo" ? " dpo" : "") + (p[0] === 0 ? " base" : last ? " end" : ""), cx: X(p[0]), cy: Y(p[1]), r: last ? 6 : 5 });
         el("text", { "class": "c-val", x: X(p[0]), y: Y(p[1]) - 14, "text-anchor": "middle" }, p[1].toFixed(2));
       });
     }
