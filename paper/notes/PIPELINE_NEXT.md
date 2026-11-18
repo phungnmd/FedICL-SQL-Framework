@@ -2,28 +2,29 @@
 
 ## Status
 
-Updated 2026-11-18 21:00 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-19 00:20 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
 round 2: round 1 77.46 (random pairs), 77.08 (nearest), round 2 78.20;
 RFT round 1 on the same pairs 75.87 (below DPO, p 0.015); gold as chosen
 for all-wrong questions 77.41 (same as DPO round 1, p 1; not kept);
-round 1 of the fixed line 77.64, the same training as DPO round 1 run
-again (p 0.54), so a rerun moves EX by about 0.2. The worker runs the
+the fixed line (fixed pairs and reference) 77.64 at round 1, the same
+training as DPO round 1 run again, and 78.02 at round 2, the same as
+on-policy round 2 (p 0.78): a rerun moves EX by about 0.2, and on-policy
+rounds do not beat the fixed line at round 2. The worker runs the
 decision runs (`decide/*`); centralized SFT resumes after them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `decide/fixed` round 2 (round 1 published 20:47). | fixed round 1 result commit `67c17163` |
+| 0 | Worker: `decide/k0` (next in queue after the fixed line, published 00:04). | fixed round 2 result commit `aaae06ad` |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
 1. Nothing to start. If the worker stops, start it again with the
    command below. Expected (estimates, Asia/Ho_Chi_Minh; a DPO round
-   with its evaluation has taken about 3 h 15 min): fixed line round 2
-   about 23:45, k = 0 about 05:30 (19 Nov), wrong results first about
-   08:45, no NLL about 12:00, k = 3 about 15:30; then centralized SFT
-   resumes.
+   with its evaluation has taken about 3 h 15 min): k = 0 about 06:00
+   (19 Nov), wrong results first about 09:15, no NLL about 12:30, k = 3
+   about 16:00; then centralized SFT resumes.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -31,9 +32,6 @@ decision runs (`decide/*`); centralized SFT resumes after them.
 
    Send back:
    - the EX line of each decision run;
-   - for the fixed line, round 2: the log line `DPO reference fixed at
-     round 1's start` and the first `DPO update 1/...` line (its margin
-     is not 0, since the policy starts away from the reference);
    - for k = 0: the pair counts per client and, in its first minutes of
      training, the peak reserved VRAM (client 4 has about 4,000 pairs);
      if a round starts sampling instead of reusing the copied samples,
@@ -50,32 +48,27 @@ decision runs (`decide/*`); centralized SFT resumes after them.
 
 ## Running and queued
 
-Every decision run except row 1 is one DPO round, read question by
-question against DPO round 1 from FedAvg round 2 (77.46; execution errors
-99, wrong results 385). Rows 3 and 4 train on its samples from its start
-and differ from it in one setting.
+Every decision run is one DPO round, read question by question against
+DPO round 1 from FedAvg round 2 (77.46; execution errors 99, wrong
+results 385; run again: 77.64). Rows 2 and 3 train on its samples from
+its start and differ from it in one setting.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/fixed/*` | the line without on-policy rounds, as federated DPO is published: round 1 as dpo_k2 round 1, round 2 on the round 1 pairs with FedAvg round 2 as reference. Round 2 is read against on-policy round 2 (78.20); round 1 (77.64) repeats 77.46 | 3 h for round 2 (estimate) | round 1 done, round 2 running (inferred) |
-| 2 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 4.5 h (estimate) | queued |
-| 3 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
-| 4 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
-| 5 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 7 | 3 h (estimate) | queued |
-| 6 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 5 |
-| 7 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 1 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 6 h (estimate) | running (inferred) |
+| 2 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
+| 3 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
+| 4 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 6 | 3 h (estimate) | queued |
+| 5 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 4 |
+| 6 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
 Reading: a setting is kept when it gains at least 0.5 EX over 77.46 with
-a McNemar p below 0.05, or (row 4) when removing it loses that much. Row
-3 is also read on the wrong-result count. Row 1: on-policy rounds
-stay a part of the method when round 2 on-policy (78.20) beats the fixed
-round 2 by at least 0.5 with p below 0.05. The fixed round 2 trains on
-8,026 pairs against 3,354 on-policy, so it gets more updates; only if it
-wins does a run with its pairs cut to the on-policy count follow. Row 2
-at about 74 or more opens a k = 0 line of 4 rounds; at about 72-73 the
+a McNemar p below 0.05, or (row 3) when removing it loses that much. A
+difference of about 0.2 EX is what running the same training again
+gives. Row 2 is also read on the wrong-result count. Row 1 at about 74 or more opens a k = 0 line of 4 rounds; at about 72-73 the
 SFT stage stays. The settings kept then run round 2 together from k = 2.
 A second benchmark (BIRD, clients on BIRD train databases, BIRD dev) is
-the owner's decision after rows 1 and 4.
+the owner's decision after row 3.
 
 ## Reference
 

@@ -4,6 +4,25 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: fixed pairs and reference match on-policy at round 2 (results `6717c7f6`, `aaae06ad`)
+
+Round 2 of `decide/fixed`: the 8,026 pairs of round 1 again (pair hashes
+equal), reference FedAvg round 2, start the line's own round 1. Spider
+test 78.02 (easy 91.70, medium 81.56, hard 70.41, extra 61.34);
+execution errors 97, wrong results 375. Against on-policy round 2
+(78.20; 84 and 384): fixed 54, broke 58, McNemar p 0.78. Against its own
+round 1 (77.64): fixed 53, broke 45, p 0.48. Against FedAvg round 4:
+fixed 159, broke 88, p 7e-06. Training: the first update of each client
+has a margin of 0.58-1.57 (the policy starts away from the reference),
+final accuracy 0.83-0.96, final margin 1.38-2.23; client updates: norms
+1.06-1.62, pairwise cosine 0.031-0.092; peak reserved 12.93-18.92 GiB.
+Reading: at round 2 on-policy rounds do not beat fixed pairs with a fixed
+reference; the difference (0.18) is the size of a rerun, so by the rule
+on-policy rounds are not shown to be a part of the method. On-policy
+round 2 reaches the level with 3,354 pairs against 8,026 (about 210
+updates against 505). The fixed line does not win, so no run with its
+pairs cut follows. Both lines are at about 78 after two rounds.
+
 ## 2026-11-18: a line can continue another line's finished rounds (owner; code `e1ca7d67`, not pushed)
 
 Owner: a finished round is not trained again for another line; the fixed
