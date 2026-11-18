@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: line without on-policy rounds queued next (owner; code `5aedf463`)
+
+`--fixed-reference` keeps round 1's start as the DPO reference of every
+round; with `--samples-from-round 1` it is federated DPO as published
+(fixed pairs, fixed reference). The line `decide/fixed` runs two rounds
+from FedAvg round 2 right after the gold-chosen run: round 1 repeats the
+training of dpo_k2 round 1 in its own root; round 2 trains on the same
+8,026 pairs against FedAvg round 2, to be read against on-policy round 2
+(78.20, 3,354 pairs). Why first: on-policy round 2 gained 0.74 over round
+1 with p 0.093, so whether on-policy rounds are a part of the method is
+open, and it decides the story before the other settings. A pair rule
+mixing one execution-error and one wrong-result rejected side per
+question waits for the wrong-results-first run. BIRD as a second
+benchmark is left to the owner after the fixed line and the no-NLL run.
+
 ## 2026-11-18: RFT round 1 below DPO, above FedAvg (results `e1e49ee0`, `424cd93e`)
 
 RFT (chosen side only, NLL, no preference term) on the same samples and
