@@ -2,32 +2,45 @@
 
 ## Status
 
-Updated 2026-11-18 10:05 (Asia/Ho_Chi_Minh). FedAvg SFT is done: rounds
-1-4 at 72.43, 74.10, 74.71, 74.71; the line stopped with best round 3.
-DPO from FedAvg round 2: 77.46 (round 1), 78.20 (round 2). Running (from
-the queue order after the curve record at 09:49): centralized SFT.
+Updated 2026-11-18 10:30 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
+round 2: round 1 77.46 (random pairs), 77.08 (nearest), round 2 78.20.
+The owner stopped the worker during epoch 1 of centralized SFT. Pushed
+(code `baf58106`): six one-round decision runs (`decide/*`) before
+centralized SFT, which resumes after them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `refs/central_sft`, epoch 1 (since about 09:50). | queue order and the last published result (`7285253d`) |
+| 0 | Idle: worker stopped by the owner. | owner, 2026-11-18 10:20 |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
-1. Leave the worker running. Expected (estimates, Asia/Ho_Chi_Minh, 18
-   Nov): centralized
-   SFT, from about 09:50, about 2 h 10 min per epoch with its evaluation, until its rule
-   stops it (likely 3 to 5 epochs); then the DPO line from the best
-   FedAvg round. If the worker stops, start it again:
+1. Pull and run the tests, without the GPU (about 5 min, estimate). Send
+   back the pytest summary (457 passed on the Mac), or the error.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+   ```
+
+2. Start the worker on GPU 0. Expected (estimates, Asia/Ho_Chi_Minh):
+   RFT about 13:00, gold chosen about 15:30, k = 0 about 20:00, wrong
+   results first about 22:30, no NLL about 01:00, k = 3 about 04:00 (19
+   Nov); then centralized SFT resumes.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-   Send back each `curve ... EX` line of FedAvg and of centralized SFT,
-   and a `STOP queue` line, if one comes.
+   Send back:
+   - the EX line of each decision run;
+   - for k = 0: the pair counts per client and, in its first minutes of
+     training, the peak reserved VRAM (client 4 has about 4,000 pairs);
+     if the round starts sampling instead of reusing the copied samples,
+     say so;
+   - a `STOP queue` line, if one comes.
 
-2. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
+3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
    published. Send back the printed tables.
 
@@ -37,28 +50,29 @@ the queue order after the curve record at 09:49): centralized SFT.
 
 ## Running and queued
 
+Every decision run is one DPO round, read question by question against
+DPO round 1 from FedAvg round 2 (77.46; execution errors 99, wrong
+results 385). Rows 1, 2, 4 and 5 train on the same samples from the same
+start and differ from it in one setting.
+
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `dpo_k2_nearest/reuse_samples`, `dpo_k2_nearest/round_1`, `dpo_k2_nearest/publish_round_1`, `dpo_k2_nearest/eval_1`, `dpo_k2_nearest/publish_eval_1` | I2: the round from FedAvg round 2 with each distinct wrong SQL paired with its most similar correct SQL (2 per question), on the same samples as the random round (77.46); aims at the executable wrong results, which the random round left at 385 | about 2-2.5 h, training only (estimate) | done: 77.08 (random 77.46) |
-| 2 | `dpo_k2/round_2` or `dpo_k2_nearest/round_2`, each with its publish, eval and publish | I1: a second on-policy round (samples and reference from round 1's global model) with the pair rule that won round 1; the other branch is skipped | about 2.5-3 h (estimate) | done: random ran, 78.20; nearest skipped |
-| 3 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | done: 72.43, 74.10, 74.71, 74.71; best round 3 |
-| 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | about 2 h 10 min per epoch (estimate) | running, epoch 1 |
-| 5 | `dpo/after_fedavg` | DPO + NLL rounds from the best FedAvg round (k = best) (10 samples at T 1.0, 2 pairs per question, no pair from a database without rows), each round evaluated on Spider test and published | about 1.5-2.5 h per round (estimate); up to 6 rounds | queued |
+| 1 | `decide/rft/*` | RFT, NLL on the chosen samples without the preference term: is the gain from DPO or from training on correct samples? | 2.5 h (estimate) | queued, next |
+| 2 | `decide/gold_chosen/*` | gold SQL as chosen for questions whose 10 samples are all wrong (573 in round 1) | 2.5 h (estimate) | queued |
+| 3 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 4.5 h (estimate) | queued |
+| 4 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
+| 5 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
+| 6 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 8 | 3 h (estimate) | queued |
+| 7 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 6 |
+| 8 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
-How the rounds stop: a round is a gain when it beats the best round by
-more than 0.5 EX point; a line stops after 2 rounds in a row without a
-gain, or at 4 rounds (FedAvg), 8 epochs (centralized) or 6 rounds (DPO).
-The control of a DPO line is FedAvg at the same total rounds; if a DPO
-line runs past FedAvg round 4, a curve that extends FedAvg is queued then.
-
-After round 2 of the k = 2 line: more rounds of it if round 2 gains; the
-line from the best FedAvg round (row 5) and k = 1, k = 0 decided on the
-numbers.
-
-Not queued: phase 2 (the published federated DPO baseline, RFT, DPO from
-the base student (k = 0)) and phase 3 (BIRD, other splits, FedProx, FedNTD,
-local rows, pre-training); `RESEARCH_STATE.md`, section
-3.7.
+Reading: a setting is kept when it gains at least 0.5 EX over 77.46 with
+a McNemar p below 0.05, or (rows 1 and 5) when removing it loses that
+much. Rows 2 and 4 are also read on the wrong-result count. Row 3 at
+about 74 or more opens a k = 0 line of 4 rounds; at about 72-73 the SFT
+stage stays. The settings kept then run round 2 together from k = 2, and
+the ablation without on-policy rounds (fixed pairs and reference) is
+queued.
 
 ## Reference
 

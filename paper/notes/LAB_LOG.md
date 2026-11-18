@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: decision runs queued before centralized SFT (owner; code `baf58106`)
+
+Owner stopped centralized SFT in epoch 1 to settle the method first. Six
+one-round runs, each read against DPO round 1 from FedAvg round 2
+(77.46): RFT (preference weight 0), gold as chosen for all-wrong
+questions, DPO from the base student with 2 pairs per question (k = 0),
+a new pair rule `wrong_result_first` (rejected side from executable
+wrong results when there are any; same pair count as random), DPO
+without NLL, and DPO from FedAvg round 3 (k = 3). Rows from FedAvg round
+2 reuse the samples of dpo_k2 round 1. Why: nearest and random pairs
+reject the same outcomes (51% execution errors) and give the same EX;
+the wrong-result count stays at 370-385 in every row; CodeLutra reports
+17.2 Spider EX without its NLL term, and RFT tells whether the gain needs
+the preference term at all.
+
 ## 2026-11-18: FedAvg round 4, line stopped at best round 3 (results `f7adcebe`, `da0871d4`, `7285253d`)
 
 FedAvg SFT round 4 on Spider test: 74.71 (easy 90.64, medium 78.18, hard
