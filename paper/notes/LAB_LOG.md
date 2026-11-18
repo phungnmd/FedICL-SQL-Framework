@@ -4,6 +4,20 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: fixed line round 1 repeats DPO round 1 within 0.18 EX (results `7ace0aa3`, `67c17163`)
+
+Round 1 of `decide/fixed` is the training of dpo_k2 round 1 run again in
+its own root: same samples, same 8,026 pairs (pair hashes equal per
+client). Spider test 77.64 (easy 91.28, medium 81.21, hard 71.27, extra
+59.38); execution errors 99, wrong results 381. Against dpo_k2 round 1
+(77.46): fixed 14, broke 10, McNemar p 0.54; 154 of the 2,147 predicted
+SQL differ in text. So running one DPO round again moves EX by about 0.2
+and flips about 24 questions; a difference of that size between two
+settings is noise. On-policy round 2 (78.20) is 0.56 above this rerun
+(fixed 44, broke 32, p 0.21) and 0.74 above the first run (p 0.093).
+Round 2 of the fixed line runs now. Round 1 was published 3 h 15 min
+after the gold-chosen run.
+
 ## 2026-11-18: gold as chosen for all-wrong questions gives the same EX (results `674b993d`, `cf644e95`)
 
 DPO round 1 from FedAvg round 2 on the samples of dpo_k2 round 1, with
@@ -19,7 +33,7 @@ kept. Wrong results fall by 17 and execution errors rise by 18: the gold
 pairs move rows between the two kinds and fix none on net. Its result
 was published 3 h 45 min after RFT's (estimate for the run: 2.5 h).
 
-## 2026-11-18: when a train database hides a boundary error (CPU, results `5afac25`)
+## 2026-11-18: when a train database hides a boundary error (CPU, results `16584744`)
 
 Across the five Spider train clients, 77 distinct (database, SQL text)
 entries matched a simple single-table numeric inequality on a populated

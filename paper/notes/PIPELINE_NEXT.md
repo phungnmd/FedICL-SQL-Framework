@@ -2,27 +2,28 @@
 
 ## Status
 
-Updated 2026-11-18 18:50 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-18 21:00 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
 round 2: round 1 77.46 (random pairs), 77.08 (nearest), round 2 78.20;
 RFT round 1 on the same pairs 75.87 (below DPO, p 0.015); gold as chosen
-for all-wrong questions 77.41 (same as DPO round 1, p 1; not kept). The
-worker runs the decision runs (`decide/*`); centralized SFT resumes after
-them. The server has code `5aedf463` (its result commits sit on it), so
-the line without on-policy rounds (`decide/fixed`) is next in its queue.
+for all-wrong questions 77.41 (same as DPO round 1, p 1; not kept);
+round 1 of the fixed line 77.64, the same training as DPO round 1 run
+again (p 0.54), so a rerun moves EX by about 0.2. The worker runs the
+decision runs (`decide/*`); centralized SFT resumes after them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `decide/fixed` (next in queue after gold chosen, published 17:31). | gold-chosen result commit `cf644e95` |
+| 0 | Worker: `decide/fixed` round 2 (round 1 published 20:47). | fixed round 1 result commit `67c17163` |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
 1. Nothing to start. If the worker stops, start it again with the
-   command below. Expected (estimates, Asia/Ho_Chi_Minh): fixed line (2
-   rounds) about 21:00, k = 0 about 01:30 (19 Nov), wrong results first
-   about 04:00, no NLL about 06:30, k = 3 about 09:30; then centralized
-   SFT resumes.
+   command below. Expected (estimates, Asia/Ho_Chi_Minh; a DPO round
+   with its evaluation has taken about 3 h 15 min): fixed line round 2
+   about 23:45, k = 0 about 05:30 (19 Nov), wrong results first about
+   08:45, no NLL about 12:00, k = 3 about 15:30; then centralized SFT
+   resumes.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -56,7 +57,7 @@ and differ from it in one setting.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/fixed/*` | the line without on-policy rounds, as federated DPO is published: round 1 as dpo_k2 round 1, round 2 on the round 1 pairs with FedAvg round 2 as reference. Round 2 is read against on-policy round 2 (78.20); round 1 is read against 77.46 as a rerun of the same training | 3.5 h for 2 rounds (estimate) | running (inferred) |
+| 1 | `decide/fixed/*` | the line without on-policy rounds, as federated DPO is published: round 1 as dpo_k2 round 1, round 2 on the round 1 pairs with FedAvg round 2 as reference. Round 2 is read against on-policy round 2 (78.20); round 1 (77.64) repeats 77.46 | 3 h for round 2 (estimate) | round 1 done, round 2 running (inferred) |
 | 2 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 4.5 h (estimate) | queued |
 | 3 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
 | 4 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
