@@ -4,6 +4,23 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: when a train database hides a boundary error (CPU, results `5afac25`)
+
+Across the five Spider train clients, 77 distinct (database, SQL text)
+entries matched a simple single-table numeric inequality on a populated
+database. Toggling whether the boundary is included changed the result on
+30 originals. Of the other 47, setting one existing numeric cell to the
+boundary in an in-memory copy separated 38. Five still agreed, three had
+no numeric row to edit and one database had an invalid foreign-key
+declaration. Counts are for constructed mutants, with repeated SQL text
+within a database counted once. They measure an instance's ability to
+expose one class of error. The prevalence in student samples and the EX
+effect of training on the corrected labels are open.
+
+Reproduce from the code repository with `python3 scripts/probe_spider_boundaries.py`.
+The deterministic probe and per-client counts are in the same commit.
+LITERATURE.md section 1.20 describes the proposed audit on actual round samples.
+
 ## 2026-11-18: line without on-policy rounds queued next (owner; code `5aedf463`)
 
 `--fixed-reference` keeps round 1's start as the DPO reference of every

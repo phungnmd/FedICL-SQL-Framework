@@ -571,6 +571,41 @@ What is common to them:
 - Decoding is greedy or near greedy; none states a repetition penalty.
 - LoRA SFT at this size: lr 2e-4, 3 epochs (SPFT-SQL, the same student).
 
+### 1.20 Counterexamples for local preference labels (2026-11-18)
+
+Two SQL queries can return the same rows by accident. Zhong, Yu and Klein
+used multiple database instances to evaluate predicted SQL
+([EMNLP 2020](https://aclanthology.org/2020.emnlp-main.29/)).
+ReViSQL reports that bounded equivalence checking refuted 32.8% of its
+positive execution rewards in a BIRD training pilot ([section 4.1](https://arxiv.org/html/2603.20004v4)).
+SQLoom already constructs counterexamples for training by changing boundary
+values and adding child rows along foreign keys, then uses the verified
+differences in a set-contrastive loss ([section 4 and appendix C](https://arxiv.org/html/2611.03298v1)).
+The [CoRE-DB dataset card, section e](https://huggingface.co/datasets/thanhdath/CoRE-DB-BIRD-SPIDER)
+reports a 1.5B comparison under the same RL recipe: original versus enriched
+reward databases gave 71.57 versus 74.47 on Spider dev and 46.74 versus
+47.85 on BIRD dev. The authors built the databases from gold queries and
+report this comparison in the release card.
+
+Candidate for FedLS-SQL: a client checks its current model's apparent
+positives against the gold on a local, schema-valid copy that exposes a
+disagreement. A sample refuted this way becomes a rejected response. Its
+partner must still match the gold on the original and on that copy.
+Unsupported cases keep the original rule. An informative first audit counts
+distinct train questions whose actual sampled pairs would change, per
+client. A comparison with ordinary local DPO uses the same samples, pair
+budget by client, training steps and aggregation weights. The specific
+question is whether the feedback teaches the global student to generate
+correct answers on new databases. Existing work already establishes the
+use of counterexamples in SQL training.
+
+For venue fit, GradeSQL in JIIS evaluates a verifier separately from the
+effect of using it for downstream SQL selection on Spider and BIRD
+([sections 4 and 5](https://link.springer.com/article/10.1007/s10844-026-01071-6)).
+Here the corresponding outcomes would be corrected local preference
+labels and the greedy EX of the deployed student. The small CPU probe on
+constructed Spider train mutants is in LAB_LOG.md (2026-11-18).
+
 ## 2. What already exists
 
 - Iterative on-policy execution-labelled DPO + SFT for SQL, centralized, at
