@@ -15,36 +15,20 @@ last of its line, then centralized SFT.
 
 ## Run now
 
-1. Pull and run the tests, in a second PowerShell window without the GPU
-   (about 5 min, estimate). The pull changes nothing the running round
-   loads. Send back the pytest summary (455 passed on the Mac), or the
-   error.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-   ```
-
-2. Leave the worker running. Expected order and times (estimates,
-   Asia/Ho_Chi_Minh, 18 Nov): nearest-pair round and its evaluation about
-   05:15-05:45; round 2 of the k = 2 line (random or nearest, whichever
-   answered more test questions right in round 1; a tie keeps random)
-   about 08:15-08:45; FedAvg round 4 about 10:30-11:00; then centralized
+1. Leave the worker running. Expected (estimates, Asia/Ho_Chi_Minh, 18
+   Nov): FedAvg round 4 and its evaluation about 10:00; then centralized
    SFT, about 2 h 10 min per epoch with its evaluation, until its rule
-   stops it (likely 3 to 5 epochs). If the worker stops, start it again:
+   stops it (likely 3 to 5 epochs); then the DPO line from the best
+   FedAvg round. If the worker stops, start it again:
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-   Send back:
-   - the EX of the nearest round and the `WHEN` line the worker prints
-     before round 2 (which rule won, by how many questions);
-   - the pair counts per client of round 2 (all-correct, mixed,
-     all-wrong questions, pairs) and its EX;
-   - each `curve ... EX` line of FedAvg and of centralized SFT;
-   - a `STOP queue` line, if one comes.
+   Send back each `curve ... EX` line of FedAvg and of centralized SFT,
+   and a `STOP queue` line, if one comes.
 
-3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
+2. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
    published. Send back the printed tables.
 
