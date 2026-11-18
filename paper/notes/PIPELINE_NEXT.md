@@ -65,10 +65,11 @@ its start and differ from it in one setting.
 Reading: a setting is kept when it gains at least 0.5 EX over 77.46 with
 a McNemar p below 0.05, or (row 3) when removing it loses that much. A
 difference of about 0.2 EX is what running the same training again
-gives. Row 2 is also read on the wrong-result count. Row 1 at about 74 or more opens a k = 0 line of 4 rounds; at about 72-73 the
-SFT stage stays. The settings kept then run round 2 together from k = 2.
-A second benchmark (BIRD, clients on BIRD train databases, BIRD dev) is
-the owner's decision after row 3.
+gives. Row 2 is also read on the wrong-result count. Row 1 at about 74
+or more opens a k = 0 line of 4 rounds; at about 72-73 the SFT stage
+stays. The settings kept then run round 2 together from k = 2. A second
+benchmark (BIRD, clients on BIRD train databases, BIRD dev) is the
+owner's decision after row 3.
 
 ## Reference
 
