@@ -4,6 +4,16 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: a worker can stop itself at a given time (owner; code `3958a1af`)
+
+Owner: GPU 1 runs until 07:00 and stops by itself.
+`scripts.gpu_worker run --gpu 1 --until 07:00` stops the worker and its
+task at that local time the way Ctrl+C does (on Windows the Ctrl+C event
+of the console; if the worker still runs 3 min later it ends its own
+process tree); the task stays due and another worker continues it. Run
+on the Mac with a throwaway queue: the worker stopped at the minute,
+exit 0, no child left (466 tests pass). Not run on Windows yet.
+
 ## 2026-11-19: gold inside the DPO round from the base student queued; k = 0 runs before k = 3 (owner; code `c1784b46`)
 
 Owner: run the gold rule whole, not by half. From the base student

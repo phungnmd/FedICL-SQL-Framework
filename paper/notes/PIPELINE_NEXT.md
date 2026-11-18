@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-19 04:25 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-19 04:40 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
 round 2: round 1 77.46, round 2 78.20 (fixed pairs and reference: 77.64,
 78.02; on-policy rounds do not beat the fixed line at round 2); RFT
@@ -15,7 +15,7 @@ to 4 rounds (`dpo_k0/*`), then `decide/k3`.
 | GPU | State | Known from |
 |---|---|---|
 | 0 | Worker: `decide/nonll`, client 1 of 5 done at 03:29. | owner's log line, 03:29 |
-| 1 | Worker: `decide/wrfirst`, client 3 at update 56/141 at 03:28, peak reserved 18.98 GiB. | owner's log line, 03:28 |
+| 1 | Worker: `decide/wrfirst`, client 3 at update 56/141 at 03:28, peak reserved 18.98 GiB. To stop at 07:00 (step 2). | owner's log line, 03:28; owner, 04:30 |
 
 ## Run now
 
@@ -31,17 +31,33 @@ to 4 rounds (`dpo_k0/*`), then `decide/k3`.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
    ```
 
-2. Nothing to start: both workers run and take the next tasks by
-   themselves. If one stops, the command below with its GPU digit
-   continues. Expected (estimates, Asia/Ho_Chi_Minh, 19 Nov): both
-   decision runs done about 05:45; then `decide/k0_gold` on one card
-   until about 10:15 and the k = 0 line on the other (rounds 2, 3, 4 at
-   about 08:45, 11:45, 14:45); `decide/k3` from about 10:15 to 13:15,
-   then centralized SFT.
+2. GPU 1 stops by itself at 07:00 (owner): in the GPU 1 terminal press
+   Ctrl+C (its round continues from its checkpoint), then run the line
+   below. It pulls the code with `--until` and starts the worker, which
+   stops itself and its task at 07:00 as Ctrl+C does; the task stays due
+   and the GPU 0 worker takes it when it is free. Not run on Windows yet:
+   the worker should print `STOP worker: stopped at --until 07:00`; if
+   it still runs 3 min later it ends its own processes. If the merge
+   fails because GPU 0 is publishing, run the line again. Leave the
+   GPU 0 worker as it is.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until 07:00; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
+   To start GPU 1 again later, without a stop time (the same line with
+   `--gpu 0` continues GPU 0 if it stops):
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
+
+   Expected (estimates, Asia/Ho_Chi_Minh, 19 Nov): both decision runs
+   done about 05:45-06:00; then `decide/k0_gold` and k = 0 round 2 start,
+   one per card; the one on GPU 1 stops at 07:00 and continues on GPU 0
+   after the other. With GPU 0 alone from 07:00: both done by about
+   12:00, k = 0 rounds 3 and 4 at about 15:00 and 18:00, `decide/k3`
+   at about 21:00.
 
    Send back:
    - the first time two vLLM jobs overlap (an evaluation on one card while
