@@ -19,7 +19,19 @@ effect of training on the corrected labels are open.
 
 Reproduce from the code repository with `python3 scripts/probe_spider_boundaries.py`.
 The deterministic probe and per-client counts are in the same commit.
-LITERATURE.md section 1.20 describes the proposed audit on actual round samples.
+Owner dropped counterexample relabelling. The owner found zero direct
+boundary-operator swaps among the 370 executable wrong answers of FedAvg
+R4 and the 384 of DPO R2. The pilot does not explain those errors.
+
+At the FedAvg R2 checkpoint used to start DPO, greedy evaluation on
+Spider test (2,147 questions, `0699ac6d`) gives 1,591 correct, 373
+executable wrong answers and 183 execution errors. Ten samples from
+that checkpoint at T=1.0 give 250 all-wrong questions (`762b74a2`).
+At least 556 - 250 = 306 greedy failures therefore have a correct sample;
+at least 373 - 250 = 123 are executable wrong answers with a correct
+sample. These are set-size bounds from the published aggregates at the
+start of DPO. The number of train questions for which forcing the greedy
+answer into the rejected slot would change an existing pair is unknown.
 
 ## 2026-11-18: line without on-policy rounds queued next (owner; code `5aedf463`)
 

@@ -587,24 +587,11 @@ reward databases gave 71.57 versus 74.47 on Spider dev and 46.74 versus
 47.85 on BIRD dev. The authors built the databases from gold queries and
 report this comparison in the release card.
 
-Candidate for FedLS-SQL: a client checks its current model's apparent
-positives against the gold on a local, schema-valid copy that exposes a
-disagreement. A sample refuted this way becomes a rejected response. Its
-partner must still match the gold on the original and on that copy.
-Unsupported cases keep the original rule. An informative first audit counts
-distinct train questions whose actual sampled pairs would change, per
-client. A comparison with ordinary local DPO uses the same samples, pair
-budget by client, training steps and aggregation weights. The specific
-question is whether the feedback teaches the global student to generate
-correct answers on new databases. Existing work already establishes the
-use of counterexamples in SQL training.
-
-For venue fit, GradeSQL in JIIS evaluates a verifier separately from the
-effect of using it for downstream SQL selection on Spider and BIRD
-([sections 4 and 5](https://link.springer.com/article/10.1007/s10844-026-01071-6)).
-Here the corresponding outcomes would be corrected local preference
-labels and the greedy EX of the deployed student. The small CPU probe on
-constructed Spider train mutants is in LAB_LOG.md (2026-11-18).
+The owner dropped this direction on 2026-11-18. The CPU probe measured
+constructed boundary errors. The owner's prediction audit found zero
+direct boundary-operator substitutions among the executable wrong answers
+of either FedAvg R4 or DPO R2 on Spider test. The training cause of those
+wrong answers remains unknown.
 
 ## 2. What already exists
 
