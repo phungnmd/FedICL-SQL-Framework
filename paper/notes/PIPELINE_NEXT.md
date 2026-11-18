@@ -2,18 +2,15 @@
 
 ## Status
 
-Updated 2026-11-18 03:00 (Asia/Ho_Chi_Minh). The DPO + NLL round from
-FedAvg round 2 is published: 77.46 on Spider test (FedAvg round 3: 74.71,
-McNemar p 5.4e-05). Running: the same round with nearest-correct pairs
-(`dpo_k2_nearest`). Pushed (code `c38e7eb0`): round 2 of the k = 2 line,
-with the pair rule that did better in round 1 (owner, 2026-11-18), queued
-before FedAvg round 4. The worker sees it only after a pull (step 1),
-which has to happen before the nearest round's evaluation ends (about
-05:30, estimate); otherwise the worker starts FedAvg round 4 first.
+Updated 2026-11-18 09:30 (Asia/Ho_Chi_Minh). Published on Spider test:
+DPO round 1 from FedAvg round 2 with random pairs 77.46, with nearest
+pairs 77.08; round 2 (random, the rule that won) 78.20. Running (from the
+queue order after `dpo_k2/publish_eval_2` at 07:44): FedAvg round 4, the
+last of its line, then centralized SFT.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `dpo_k2_nearest/round_1` (copy of samples, then DPO training). | queue order after `dpo_k2/publish_eval_1` (results `be787676`) |
+| 0 | `rounds/fedavg_sft`, round 4 (since about 07:45). | queue order and the last published result (`5c33e622`) |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
@@ -59,8 +56,8 @@ which has to happen before the nearest round's evaluation ends (about
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `dpo_k2_nearest/reuse_samples`, `dpo_k2_nearest/round_1`, `dpo_k2_nearest/publish_round_1`, `dpo_k2_nearest/eval_1`, `dpo_k2_nearest/publish_eval_1` | I2: the round from FedAvg round 2 with each distinct wrong SQL paired with its most similar correct SQL (2 per question), on the same samples as the random round (77.46); aims at the executable wrong results, which the random round left at 385 | about 2-2.5 h, training only (estimate) | running |
-| 2 | `dpo_k2/round_2` or `dpo_k2_nearest/round_2`, each with its publish, eval and publish | I1: a second on-policy round (samples and reference from round 1's global model) with the pair rule that won round 1; the other branch is skipped | about 2.5-3 h (estimate) | queued |
+| 1 | `dpo_k2_nearest/reuse_samples`, `dpo_k2_nearest/round_1`, `dpo_k2_nearest/publish_round_1`, `dpo_k2_nearest/eval_1`, `dpo_k2_nearest/publish_eval_1` | I2: the round from FedAvg round 2 with each distinct wrong SQL paired with its most similar correct SQL (2 per question), on the same samples as the random round (77.46); aims at the executable wrong results, which the random round left at 385 | about 2-2.5 h, training only (estimate) | done: 77.08 (random 77.46) |
+| 2 | `dpo_k2/round_2` or `dpo_k2_nearest/round_2`, each with its publish, eval and publish | I1: a second on-policy round (samples and reference from round 1's global model) with the pair rule that won round 1; the other branch is skipped | about 2.5-3 h (estimate) | done: random ran, 78.20; nearest skipped |
 | 3 | `rounds/fedavg_sft` | FedAvg SFT from the base student on the 5 clients (`alpha_0.1/k5`), prompt A, one round at a time; every round evaluated on Spider test and published | about 2 h per round plus about 10 min of evaluation (measured round 1: 7,339 s + 206 s); 3 to 8 rounds | rounds 1-3 done (best 74.71 at round 3); round 4 is the last (owner, 2026-11-18) |
 | 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | about 2 h 10 min per epoch (estimate) | queued |
 | 5 | `dpo/after_fedavg` | DPO + NLL rounds from the best FedAvg round (k = best) (10 samples at T 1.0, 2 pairs per question, no pair from a database without rows), each round evaluated on Spider test and published | about 1.5-2.5 h per round (estimate); up to 6 rounds | queued |
