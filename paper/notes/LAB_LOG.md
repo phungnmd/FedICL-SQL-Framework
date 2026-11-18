@@ -4,6 +4,48 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: DPO round 1 from the base student reaches 75.87; k = 0 line queued to 4 rounds (results `1e999231`, `96007ff6`; queue `787c0197`)
+
+`decide/k0`: DPO + NLL round 1 from the base student (no SFT stage), on
+the samples of the pair read, 2 random pairs per question: 8,908 pairs
+(1,062 / 1,896 / 2,470 / 2,458 / 1,022 per client), rejected side 5,339
+execution errors and 3,568 wrong results. Of the 8,659 questions, 5,951
+have right and wrong samples (1,497 of them on databases without rows,
+which give no pair), 1,631 are all right, 1,074 all wrong. Spider test
+75.87 (easy 90.43, medium 79.00, hard 68.90, extra 58.26); execution
+errors 101, wrong results 417; 3 outputs are cut at 256 tokens (nested
+subqueries that repeat); the rows compared below have none.
+
+| Against | EX | fixed | broke | McNemar p |
+|---|---|---|---|---|
+| base student, zero-shot | 68.05 | 225 | 57 | < 1e-6 |
+| FedAvg round 1 (same total: 1 round) | 72.43 | 168 | 94 | 6e-06 |
+| FedAvg round 2 | 74.10 | 157 | 119 | 0.026 |
+| FedAvg round 3 and round 4 | 74.71 | 156 | 131 | 0.16 |
+| RFT round 1 from FedAvg round 2 | 75.87 | 122 | 122 | 1 |
+| DPO round 1 from FedAvg round 2 | 77.46 | 114 | 148 | 0.041 |
+
+Training: final accuracy 0.84-0.91, final margin 0.48-1.52; client
+updates: norms 1.56-2.56, pairwise cosine 0.365-0.462 (DPO round 1 from
+FedAvg round 2: 0.244-0.321); peak reserved 16.99-18.98 GiB; 559 updates;
+round, evaluation and publications about 3 h 10 min. Client 4 has 2,458
+pairs, not the 4,000 expected: 1,648 of its 3,479 questions are on
+databases without rows.
+
+Reading: one DPO + NLL round from the base student, with no gold SQL in
+the loss, is above every FedAvg SFT round (+3.44 at the same single
+round, +1.16 over the best, the latter not significant) and 1.59 below
+one DPO round after two FedAvg rounds (three rounds in total). It removes
+execution errors as the k = 2 line does (101 against 99) and leaves more
+wrong results (417 against 385). Whether the SFT stage is needed is not
+settled by one round: the comparison is at the same total rounds. By the
+rule written before the run (about 74 or more), the k = 0 line runs to 4
+rounds: `dpo_k0/round_2..4`, on-policy as dpo_k2 round 2, the command of
+round 1 with another round number (462 tests pass on the Mac), placed
+after the decision runs and before centralized SFT. Read: round 2 against
+FedAvg round 2 (74.10), round 3 against 77.46, round 4 against 78.20 and
+FedAvg round 4 (74.71).
+
 ## 2026-11-19: second card free; one publication at a time (owner; code `ee1615e8`)
 
 Owner: GPU 1 is free, run tasks on it in parallel. The queue already
