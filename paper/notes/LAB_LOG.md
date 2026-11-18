@@ -4,6 +4,15 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: FedAvg round 4, line stopped at best round 3 (results `f7adcebe`, `da0871d4`, `7285253d`)
+
+FedAvg SFT round 4 on Spider test: 74.71 (easy 90.64, medium 78.18, hard
+66.74, extra 55.74), the same as round 3; execution errors 173, wrong
+results 370; against round 3 fixed 44, broke 44, McNemar p 1. Client
+updates: pairwise cosine -0.020 to 0.011. The curve stopped at step 4
+with best step 3. DPO round 2 of the k = 2 line (78.20) against FedAvg
+round 4: fixed 150, broke 75, p 1e-06.
+
 ## 2026-11-18: nearest pairs no better; DPO round 2 reaches 78.20 (results `c3effaea`, `9253ef8e`, `8fc37f77`, `5c33e622`)
 
 Nearest-correct pairs, round 1 from FedAvg round 2 on the samples of the
