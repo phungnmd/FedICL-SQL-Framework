@@ -4,6 +4,32 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: nearest pairs no better; DPO round 2 reaches 78.20 (results `c3effaea`, `9253ef8e`, `8fc37f77`, `5c33e622`)
+
+Nearest-correct pairs, round 1 from FedAvg round 2 on the samples of the
+random round: 77.08 on Spider test (random 77.46); against random fixed
+34, broke 42, McNemar p 0.42. Its pairs are closer (mean similarity
+0.85-0.86 against 0.74-0.76) and fewer (6,869 against 8,026: one pair per
+distinct wrong SQL), but they reject the same outcomes (51% execution
+errors), and the wrong results stay at 382. Random won by 8 questions
+(1,663 against 1,655), so round 2 ran with random pairs.
+
+Round 2 of the random line (samples and reference: round 1's global
+model): 78.20 (easy 91.91, medium 81.91, hard 71.06, extra 60.50);
+execution errors 84, wrong results 384. Against round 1 fixed 48, broke
+32, p 0.093; against FedAvg round 3 fixed 142, broke 67, p 2.3e-07. The
+round-1 model samples the training questions far better (sample accuracy
+0.82-0.86, round 1: 0.68-0.75): mixed questions fall from 5,192 to 2,244,
+all-correct rise from 2,891 to 5,784, all-wrong from 573 to 628; pairs
+8,026 to 3,354, execution-error rejects 51% to 43%. Training: final
+accuracy 0.75-0.79 and margin 0.26-0.69 (round 1: 0.80-0.96, 0.90-1.67).
+Client updates: norms 0.70-1.20, pairwise cosine 0.013-0.055 (round 1:
+0.24-0.32). Round 2 took about 1 h 50 min with its evaluation.
+
+Across FedAvg rounds 2-3 and the three DPO rows, 359 test questions are
+wrong in all five and 242 are a wrong result in all five (easy 26,
+medium 86, hard 65, extra 65); 83.28% are right in at least one.
+
 ## 2026-11-18: round 2 of the k = 2 line queued (owner; code `c38e7eb0`)
 
 Owner: a second on-policy round of the k = 2 line runs before FedAvg round
