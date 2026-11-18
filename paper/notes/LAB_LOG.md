@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: gold as chosen for all-wrong questions gives the same EX (results `674b993d`, `cf644e95`)
+
+DPO round 1 from FedAvg round 2 on the samples of dpo_k2 round 1, with
+the gold SQL as the chosen side for the questions whose 10 samples are
+all wrong: 9,140 pairs against 8,026, of them 1,114 with gold as chosen
+(per client 120 / 204 / 364 / 328 / 98; all-wrong questions on databases
+without rows give none). Spider test 77.41 (easy 90.64, medium 80.98,
+hard 70.84, extra 59.94); execution errors 117, wrong results 368.
+Against DPO round 1 (77.46; 99 and 385): fixed 38, broke 39, McNemar
+p 1. Against RFT: fixed 106, broke 73, p 0.017. Against FedAvg round 2:
+fixed 141, broke 70, p 1e-06. Reading: no gain, so the setting is not
+kept. Wrong results fall by 17 and execution errors rise by 18: the gold
+pairs move rows between the two kinds and fix none on net. Its result
+was published 3 h 45 min after RFT's (estimate for the run: 2.5 h).
+
 ## 2026-11-18: when a train database hides a boundary error (CPU, results `5afac25`)
 
 Across the five Spider train clients, 77 distinct (database, SQL text)

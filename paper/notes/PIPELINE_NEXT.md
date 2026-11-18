@@ -2,36 +2,27 @@
 
 ## Status
 
-Updated 2026-11-18 15:30 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-18 18:50 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
 round 2: round 1 77.46 (random pairs), 77.08 (nearest), round 2 78.20;
-RFT round 1 on the same pairs 75.87 (below DPO, p 0.015). The worker runs
-the decision runs (`decide/*`); centralized SFT resumes after them.
-Pushed (code `5aedf463`): the line without on-policy rounds
-(`decide/fixed`, fixed pairs and reference), right after the gold-chosen
-run. The running task does not load the new code; the tasks after it do,
-and the code keeps their identities.
+RFT round 1 on the same pairs 75.87 (below DPO, p 0.015); gold as chosen
+for all-wrong questions 77.41 (same as DPO round 1, p 1; not kept). The
+worker runs the decision runs (`decide/*`); centralized SFT resumes after
+them. The server has code `5aedf463` (its result commits sit on it), so
+the line without on-policy rounds (`decide/fixed`) is next in its queue.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `decide/gold_chosen` (next in queue after RFT, published 13:45). | RFT result commit `424cd93e` |
+| 0 | Worker: `decide/fixed` (next in queue after gold chosen, published 17:31). | gold-chosen result commit `cf644e95` |
 | 1 | Not ours: in use by another user. | owner, 2026-11-09 |
 
 ## Run now
 
-1. Pull and run the tests, without the GPU, while the worker runs (about
-   5 min, estimate). The worker reads the new queue before its next task.
-   Send back the pytest summary (459 passed on the Mac), or the error.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
-   ```
-
-2. Nothing else to start. If the worker stops, start it again with the
-   command below. Expected (estimates, Asia/Ho_Chi_Minh): gold chosen
-   about 16:15, fixed line (2 rounds) about 19:45, k = 0 about 00:15 (19
-   Nov), wrong results first about 02:45, no NLL about 05:15, k = 3 about
-   08:15; then centralized SFT resumes.
+1. Nothing to start. If the worker stops, start it again with the
+   command below. Expected (estimates, Asia/Ho_Chi_Minh): fixed line (2
+   rounds) about 21:00, k = 0 about 01:30 (19 Nov), wrong results first
+   about 04:00, no NLL about 06:30, k = 3 about 09:30; then centralized
+   SFT resumes.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -48,7 +39,7 @@ and the code keeps their identities.
      say so;
    - a `STOP queue` line, if one comes.
 
-3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
+2. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
    published. Send back the printed tables.
 
@@ -58,33 +49,32 @@ and the code keeps their identities.
 
 ## Running and queued
 
-Every decision run except row 2 is one DPO round, read question by
+Every decision run except row 1 is one DPO round, read question by
 question against DPO round 1 from FedAvg round 2 (77.46; execution errors
-99, wrong results 385). Rows 1, 4 and 5 train on its samples from its
-start and differ from it in one setting.
+99, wrong results 385). Rows 3 and 4 train on its samples from its start
+and differ from it in one setting.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/gold_chosen/*` | gold SQL as chosen for questions whose 10 samples are all wrong (573 in round 1) | 2.5 h (estimate) | running (inferred) |
-| 2 | `decide/fixed/*` | the line without on-policy rounds, as federated DPO is published: round 1 as dpo_k2 round 1, round 2 on the round 1 pairs with FedAvg round 2 as reference. Round 2 is read against on-policy round 2 (78.20); round 1 is read against 77.46 as a rerun of the same training | 3.5 h for 2 rounds (estimate) | queued, next |
-| 3 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 4.5 h (estimate) | queued |
-| 4 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
-| 5 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
-| 6 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 8 | 3 h (estimate) | queued |
-| 7 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 6 |
-| 8 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 1 | `decide/fixed/*` | the line without on-policy rounds, as federated DPO is published: round 1 as dpo_k2 round 1, round 2 on the round 1 pairs with FedAvg round 2 as reference. Round 2 is read against on-policy round 2 (78.20); round 1 is read against 77.46 as a rerun of the same training | 3.5 h for 2 rounds (estimate) | running (inferred) |
+| 2 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 4.5 h (estimate) | queued |
+| 3 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
+| 4 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
+| 5 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 7 | 3 h (estimate) | queued |
+| 6 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 5 |
+| 7 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
 Reading: a setting is kept when it gains at least 0.5 EX over 77.46 with
-a McNemar p below 0.05, or (row 5) when removing it loses that much. Rows
-1 and 4 are also read on the wrong-result count. Row 2: on-policy rounds
+a McNemar p below 0.05, or (row 4) when removing it loses that much. Row
+3 is also read on the wrong-result count. Row 1: on-policy rounds
 stay a part of the method when round 2 on-policy (78.20) beats the fixed
 round 2 by at least 0.5 with p below 0.05. The fixed round 2 trains on
 8,026 pairs against 3,354 on-policy, so it gets more updates; only if it
-wins does a run with its pairs cut to the on-policy count follow. Row 3
+wins does a run with its pairs cut to the on-policy count follow. Row 2
 at about 74 or more opens a k = 0 line of 4 rounds; at about 72-73 the
 SFT stage stays. The settings kept then run round 2 together from k = 2.
 A second benchmark (BIRD, clients on BIRD train databases, BIRD dev) is
-the owner's decision after rows 2 and 5.
+the owner's decision after rows 1 and 4.
 
 ## Reference
 
