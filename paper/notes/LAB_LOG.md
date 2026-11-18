@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: RFT round 1 below DPO, above FedAvg (results `e1e49ee0`, `424cd93e`)
+
+RFT (chosen side only, NLL, no preference term) on the same samples and
+the same 8,026 pairs as DPO round 1 from FedAvg round 2 (pair hashes
+equal per client): 75.87 on Spider test (easy 90.43, medium 79.35, hard
+67.60, extra 59.10); execution errors 153, wrong results 365. Against
+DPO round 1 (77.46): fixed 76, broke 110, McNemar p 0.015. Against
+FedAvg round 2 (74.10): fixed 59, broke 21, p 2.5e-05. Client updates:
+cosine 0.024-0.058 (DPO 0.24-0.32), norms 0.94-1.41. Reading: training
+on own correct samples gives about half of the gain (+1.77 of +3.36);
+the preference term adds the rest, almost all from execution errors
+(153 to 99). Wrong results go the other way (365 RFT, 385 DPO), so DPO
+trades some wrong results for fewer errors. The preference term stays
+in the method.
+
 ## 2026-11-18: decision runs queued before centralized SFT (owner; code `baf58106`)
 
 Owner stopped centralized SFT in epoch 1 to settle the method first. Six
