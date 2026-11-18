@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-19 00:20 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-19 00:50 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71; best round 3); DPO from FedAvg
 round 2: round 1 77.46 (random pairs), 77.08 (nearest), round 2 78.20;
 RFT round 1 on the same pairs 75.87 (below DPO, p 0.015); gold as chosen
@@ -16,21 +16,38 @@ decision runs (`decide/*`); centralized SFT resumes after them.
 | GPU | State | Known from |
 |---|---|---|
 | 0 | Worker: `decide/k0` (next in queue after the fixed line, published 00:04). | fixed round 2 result commit `aaae06ad` |
-| 1 | Not ours: in use by another user. | owner, 2026-11-09 |
+| 1 | Free; no worker yet (step 2 starts one). | owner, 2026-11-19 |
 
 ## Run now
 
-1. Nothing to start. If the worker stops, start it again with the
-   command below. Expected (estimates, Asia/Ho_Chi_Minh; a DPO round
-   with its evaluation has taken about 3 h 15 min): k = 0 about 06:00
-   (19 Nov), wrong results first about 09:15, no NLL about 12:30, k = 3
-   about 16:00; then centralized SFT resumes.
+1. Pull, in any terminal, while GPU 0 works (the running round keeps the
+   code it loaded). It brings the lock that lets two workers publish, and
+   the tests take about 5 min without a GPU (estimate). Send back the
+   pytest summary (461 passed on the Mac), or the error.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed: send git status' }; uv run --no-sync pytest -q --basetemp "$tmp\pytest"; if ($LASTEXITCODE -ne 0) { throw 'Tests failed' } }
+   ```
+
+2. Start a second worker on GPU 1, in a new terminal; leave the GPU 0
+   worker as it is. It takes the first ready task (`decide/wrfirst`), then
+   whatever is next in the queue. If a worker stops, the same command
+   with its GPU digit continues. Expected with two cards (estimates,
+   Asia/Ho_Chi_Minh, 19 Nov; a DPO round with its evaluation has taken
+   about 3 h 15 min): wrong results first about 04:00 and no NLL about
+   07:15 on GPU 1; k = 0 about 06:00 and k = 3 about 09:30 on GPU 0;
+   then centralized SFT on one card and the DPO line from FedAvg round 3
+   on the other.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
    Send back:
+   - the first lines of the GPU 1 worker (the task it took and its card);
+   - the first time two vLLM jobs overlap (an evaluation on one card while
+     the other samples or evaluates): the peak reserved VRAM of each and
+     whether either slows down; two vLLM jobs at once have not run here;
    - the EX line of each decision run;
    - for k = 0: the pair counts per client and, in its first minutes of
      training, the peak reserved VRAM (client 4 has about 4,000 pairs);
@@ -38,7 +55,7 @@ decision runs (`decide/*`); centralized SFT resumes after them.
      say so;
    - a `STOP queue` line, if one comes.
 
-2. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
+3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
    published. Send back the printed tables.
 
@@ -55,8 +72,8 @@ its start and differ from it in one setting.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 6 h (estimate) | running (inferred) |
-| 2 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 2.5 h (estimate) | queued |
+| 1 | `decide/k0/*` | DPO from the base student (k = 0), 2 pairs per question, on the samples of the pair read: is the FedAvg SFT stage needed? Read against FedAvg round 1 (72.43) and 77.46 | 6 h (estimate) | running on GPU 0 (inferred) |
+| 2 | `decide/wrfirst/*` | rejected side drawn from executable wrong results when there are any: does the outcome of the rejected side decide what DPO fixes? | 3 h 15 min (estimate) | queued, first task of GPU 1 |
 | 3 | `decide/nonll/*` | DPO without the NLL term | 2.5 h (estimate) | queued |
 | 4 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 6 | 3 h (estimate) | queued |
 | 5 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 4 |

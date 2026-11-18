@@ -4,6 +4,17 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: second card free; one publication at a time (owner; code `ee1615e8`)
+
+Owner: GPU 1 is free, run tasks on it in parallel. The queue already
+gives each card its own worker (a lock per card and per task); the
+second worker takes the first ready task, `decide/wrfirst`, while GPU 0
+runs `decide/k0`. `scripts/publish_results.py` now holds a lock file in
+the Git directory, so two workers publishing at once wait for each other
+instead of one failing on its push and stopping both (461 tests pass on
+the Mac; the Windows lock call is the one `exclusive_lock` uses, not run
+there yet). Pushed together with `0017c487`.
+
 ## 2026-11-19: fixed pairs and reference match on-policy at round 2 (results `6717c7f6`, `aaae06ad`)
 
 Round 2 of `decide/fixed`: the 8,026 pairs of round 1 again (pair hashes
@@ -23,7 +34,7 @@ round 2 reaches the level with 3,354 pairs against 8,026 (about 210
 updates against 505). The fixed line does not win, so no run with its
 pairs cut follows. Both lines are at about 78 after two rounds.
 
-## 2026-11-18: a line can continue another line's finished rounds (owner; code `e1ca7d67`, not pushed)
+## 2026-11-18: a line can continue another line's finished rounds (owner; code `0017c487`)
 
 Owner: a finished round is not trained again for another line; the fixed
 line should have reused DPO round 1 instead of spending 3 h 15 min on it.
@@ -34,9 +45,9 @@ settings, and round 1's start (the fixed reference) and the samples of an
 earlier round are read from the root that ran them. Arms without the flag
 keep their identity and behaviour (461 tests pass on the Mac). In the main
 table, federated DPO as published and the method then share round 1 for
-every seed and alpha. Not pushed: the server's publish step merges
-`origin/main` before each publish, so pushed code is loaded by the tasks
-that follow; no queued task uses the flag yet.
+every seed and alpha. Pushed on 2026-11-19 with the publication lock;
+the server's publish step merges `origin/main` before each publish, so
+the tasks that follow load it. No queued task uses the flag yet.
 
 ## 2026-11-18: fixed line round 1 repeats DPO round 1 within 0.18 EX (results `7ace0aa3`, `67c17163`)
 
@@ -67,7 +78,7 @@ kept. Wrong results fall by 17 and execution errors rise by 18: the gold
 pairs move rows between the two kinds and fix none on net. Its result
 was published 3 h 45 min after RFT's (estimate for the run: 2.5 h).
 
-## 2026-11-18: when a train database hides a boundary error (CPU, results `16584744`)
+## 2026-11-18: when a train database hides a boundary error (CPU, results `e16c8f75`)
 
 Across the five Spider train clients, 77 distinct (database, SQL text)
 entries matched a simple single-table numeric inequality on a populated
