@@ -146,6 +146,9 @@ deviate.
   penalty; no setting is inherited from a model's generation config.
 - Run an experiment on the setup it stands for. A cut version is fine for a
   quick read; say what is cut and report the result as partial.
+- A new line reuses the finished rounds it shares with an existing line
+  and does not train them again (owner, 2026-11-18;
+  `fedicl-sql/AGENTS.md`, Defaults).
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
 - `paper/notes/overview.html` is the owner's project page. Update it only

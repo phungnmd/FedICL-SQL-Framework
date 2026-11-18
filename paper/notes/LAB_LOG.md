@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-18: a line can continue another line's finished rounds (owner; code `e1ca7d67`, not pushed)
+
+Owner: a finished round is not trained again for another line; the fixed
+line should have reused DPO round 1 instead of spending 3 h 15 min on it.
+`--continue-from <root> --continue-round N` (with `--continue-arm`) makes
+rounds 1..N of a line those of another root with the same setup (the pair
+rule may differ): the line trains from round N + 1 under its own
+settings, and round 1's start (the fixed reference) and the samples of an
+earlier round are read from the root that ran them. Arms without the flag
+keep their identity and behaviour (461 tests pass on the Mac). In the main
+table, federated DPO as published and the method then share round 1 for
+every seed and alpha. Not pushed: the server's publish step merges
+`origin/main` before each publish, so pushed code is loaded by the tasks
+that follow; no queued task uses the flag yet.
+
 ## 2026-11-18: fixed line round 1 repeats DPO round 1 within 0.18 EX (results `7ace0aa3`, `67c17163`)
 
 Round 1 of `decide/fixed` is the training of dpo_k2 round 1 run again in
