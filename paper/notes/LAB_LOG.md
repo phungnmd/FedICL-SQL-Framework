@@ -95,6 +95,29 @@ follows the BIRD rounds. One commit (`186aaf58`) emptied
 `tests/test_active_queue.py` by mistake; restored in `80b6f287`, no run
 was affected.
 
+## 2026-11-19: the rejected-side rules flip the error type on the same questions (no new run)
+
+Question by question on Spider test, from the committed predictions
+(outcome C correct, E execution error, W wrong result; the script was run
+in chat and is not committed):
+
+| Pair | E to W | W to E | E to C | W to C | C to E or W |
+|---|---|---|---|---|---|
+| random R1 (`be787676`) to wrong-result first R1 (`cd4727a7`) | 6 | 38 | 11 | 27 | 42 |
+| random R2 (`5c33e622`) to wrong-result first R2 (`06e81fdf`) | 5 | 16 | 5 | 12 | 28 |
+| random R1 to gold chosen (`cf644e95`) | 13 | 27 | 11 | 27 | 39 |
+| k = 0 R1 (`96007ff6`) to k = 0 gold rule (`9e7c66b0`) | 43 | 10 | 26 | 64 | 73 |
+
+Reading: most of the drop in wrong results under wrong-result first is
+the same questions turning into execution errors (38 of 43), and most of
+the drop in execution errors under the gold rule is the same questions
+turning into wrong results (43 of 44). About 320-356 wrong results and
+74-82 execution errors stay in both runs of each pair. The rules change
+how the model fails on questions it does not solve; they do not add
+correct answers. A rule that mixes both rejected kinds can at most hold
+back these flips (about 40 questions per run), not reach the stable
+errors.
+
 ## 2026-11-19: BIRD zero-shot and pair read queued after k = 3 (owner; queue `4045d3af`)
 
 Owner: queue the two BIRD runs, labels with 4 workers. `bird/zs` (base
