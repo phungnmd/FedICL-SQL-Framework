@@ -2,15 +2,15 @@
 
 ## Status
 
-Updated 2026-11-20 01:55 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-20 06:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
-| Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
-|---|---|---|---|---|
-| 1 | 72.43 | | | 75.87 |
-| 2 | 74.10 | | | 77.18 |
-| 3 | 74.71 | | 77.46 | 77.69 |
-| 4 | 74.71 | 77.97 | 78.20 | 78.02 |
+| Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) | k = 0 with gold | Centralized SFT (epochs) |
+|---|---|---|---|---|---|---|
+| 1 | 72.43 | | | 75.87 | 76.67 | 75.08 |
+| 2 | 74.10 | | | 77.18 | 75.73 | 75.73 |
+| 3 | 74.71 | | 77.46 | 77.69 | | |
+| 4 | 74.71 | 77.97 | 78.20 | 78.02 | | |
 
 Settled on Spider: the method is DPO + NLL with execution labels on the
 model's own samples (3.3 to 3.5 above FedAvg SFT at 4 rounds; without
@@ -20,17 +20,19 @@ wrong-result rejects first. The FedAvg SFT stage shows no gain on Spider
 at k = 0, 2 or 3 (78.02, 78.20, 77.97 at 4 rounds); it is read next on
 BIRD. BIRD dev, base student: 29.47, with 646 of 1,534 outputs failing
 to execute (570 `no such column`), 1 output cut at 256 tokens and 3 rows
-lost to the 30 s budget. Followed now (owner): the k = 0 line with gold
-where the samples give no correct side (round 1: 76.67 against 75.87),
-to round 2 on Spider and to round 1 on BIRD. BIRD clients, 10 samples
+lost to the 30 s budget. The k = 0 line with gold where the samples give no correct side
+falls at round 2 on Spider (75.73 against 77.18, p 0.033; round 1:
+76.67 against 75.87): not kept on Spider, rounds 3 and 4 not queued;
+its round 1 on BIRD stays queued. Centralized SFT: 75.08 and 75.73
+at epochs 1 and 2, the rule goes on to epoch 3. BIRD clients, 10 samples
 of the base student per question: a correct SQL for 52.4% of the 9,428
 questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 (350 SQL errors, 184 golds on the 30 s budget); 9,566 pairs.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `bird/read` published 23:42; then the first task not started (`k0_gold/round_2` unless GPU 1 has it). | result `55b883c9`, published 23:42 (inferred) |
-| 1 | Not known: stopped since 07:00 unless started with step 1. | no result yet that only a second worker would give |
+| 0 | Worker: `k0_gold/round_2` evaluated and published 03:54; then `bird_sft/round_1` (about 3 h, estimate). | result `1abec88c`, published 03:54; the task after it is inferred |
+| 1 | Worker until 07:30: centralized SFT, epoch 2 published 06:05, epoch 3 since then; it stops in that epoch at 07:30. | result `0643b48c`, published 06:05 |
 
 ## Run now
 
@@ -106,7 +108,6 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `k0_gold/round_2` | Spider: does the k = 0 line with gold (all-wrong questions, databases without rows) end higher than the line without? Round 2 against k = 0 round 2 (77.18; execution errors 92, wrong results 398); rounds 3 and 4 follow if it still rises | 4 h (estimate) | first in the queue since 23:42; running if a worker is up |
 | 6 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1; before the BIRD rounds (owner, 2026-11-20): GPU 1 takes it with step 1 |
 | 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
 | 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
@@ -114,21 +115,20 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 | 4 | `bird_sft/round_2`, `bird_k0/round_2` | the same as row 2 at 2 rounds (Spider: 74.10 against 77.18) | 3 h and 6 h (estimate; the DPO round samples and labels again, 3 h 19 min in the read) | queued |
 | 5 | `bird_fixed/round_2` | on-policy rounds: round 2 on the round 1 pairs with the base student as reference, against `bird_k0/round_2` (re-sampled). On Spider at k = 2: 78.02 against 78.20 | 3 h (estimate; trains only) | queued |
 
-Expected (estimates): row 1 at about 03:45 on GPU 0, which then takes
-row 2 (`bird_sft/round_1`, by about 07:15). Row 6 on GPU 1 from its
-start to 07:30: about 2 epochs with their evaluations; what is left of
-it runs before the BIRD rounds not started on the next free card.
+Expected (estimates): `bird_sft/round_1` on GPU 0 by about 07:15.
+Centralized SFT stops in epoch 3 at 07:30 with GPU 1; what is left of
+it (epoch 3 and, by its rule, up to epoch 8) runs before the BIRD
+rounds not started on the next free card.
 
 Not queued yet, decided on row 2: the line with an SFT stage on
-BIRD (DPO from a `bird_sft` round). Rounds 3 and 4 of the gold line on
-Spider follow row 1 if it still rises.
+BIRD (DPO from a `bird_sft` round).
 
 Reading: a setting is kept when it gains at least 0.5 EX over the run it
 is read against with a McNemar p below 0.05. A difference of about 0.2
 EX is what running the same training again gives. Open for the owner:
 whether the FedAvg SFT stage stays, on rows 2 and 4; whether gold
-where the samples give no correct side is a part of the method, on rows
-1 and 3; whether on-policy rounds are a part of the method, on row 5; round 2 of federated DPO as
+where the samples give no correct side is a part of the method on BIRD, on row
+3 (not kept on Spider); whether on-policy rounds are a part of the method, on row 5; round 2 of federated DPO as
 published (no NLL, fixed pairs, fixed reference) for the baseline row,
 from the start the method ends up with; on BIRD, the 350 golds that fail
 (kept for FedAvg SFT as released) and the 184 on the 30 s budget (step

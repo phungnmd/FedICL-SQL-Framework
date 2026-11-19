@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: gold line round 2 falls on Spider; centralized SFT epochs 1 and 2; queue order (results `73850020`..`0643b48c`; queue `b438dec4`, `42046d18`)
+
+Spider test (2,147 rows), read with `scripts.error_breakdown`:
+
+| Arm | EX | exec errors | wrong results |
+|---|---|---|---|
+| k = 0 line with gold, round 2 (`k0_gold/round_2`) | 75.73 | 76 | 442 |
+| k = 0 line, round 2 | 77.18 | 92 | 398 |
+| k = 0 line with gold, round 1 | 76.67 | 53 | 444 |
+| centralized SFT, epoch 1 | 75.08 | 164 | 370 |
+| centralized SFT, epoch 2 | 75.73 | 149 | 370 |
+| FedAvg SFT, round 2 | 74.10 | 183 | 373 |
+
+- Gold line: round 2 is 1.45 below the k = 0 line at 2 rounds (84 rows
+  fixed, 115 broken, McNemar p 0.033) and 0.94 below its own round 1.
+  It does not rise, so rounds 3 and 4 are not queued. On Spider, gold as
+  chosen where the samples give no correct side is not kept.
+- Centralized SFT: epoch 1 continued from example 624 of 8,659 (the
+  stop of 2026-11-18), epoch 2 ran in one call (2 h 10 min, peak
+  reserved 20,321 MB). Epoch 2 gains 0.65 over epoch 1 (p 0.34), so the
+  rule goes on to epoch 3. Against centralized epoch 2: FedAvg round 2
+  is 1.63 below (p 0.030); the k = 0 DPO line at 2 rounds is 1.45 above
+  (173 against 142 rows, p 0.091).
+- These evaluations ran with SQL in worker processes on the server
+  (`exec_timeouts` 1 in each): the first runs of the pool on Windows.
+
+Queue (owner): centralized SFT stands before the BIRD rounds; GPU 1
+started with `--until 07:30`. The relabel of `bird/read` runs by hand
+since about 01:00 and stands after `bird_sft/round_1` in the queue, so
+a free card trains meanwhile. Its pace on client 1: 575 of 2,011
+questions after 26 min, against 26 min for the whole client in the
+first read (`run_times/bird/read.json`: generate 36 min, label 2 h 42
+min); result not in yet. Measured on the Mac: the golds of the 8,659
+Spider train questions (17,318 jobs) take 25.8 s in threads with the
+earlier check and 4.5 s in 16 worker processes.
+
 ## 2026-11-20: BIRD train golds lost to the 30 s budget came from SQL run in threads; SQL now runs in worker processes (owner; code `0063d2a3`, `addba08d`..`4b4df521`)
 
 Owner: the BIRD read gave 534 `gold_error` questions against about 400
