@@ -35,9 +35,23 @@ gán nhãn đúng hay sai, rồi train DPO + NLL trên các cặp đúng và sai
 
 - Federated DPO hơn FedAvg SFT 3.0 đến 3.4 điểm ở mọi round (round 4:
   p = 3e-05).
-- Em chưa thấy bài nào làm DPO với nhãn execution tại client cho federated
-  Text-to-SQL. Gần nhất là CodeLutra (train tập trung, model 8B) và FedDPO
-  của OpenFedLLM (cặp preference có sẵn, không phải SQL).
+
+**3. Các bài gần nhất**
+
+- CodeLutra (Tao et al., TMLR 2025, arXiv 2411.05199): gần nhất về cơ chế.
+  Mỗi vòng sample 10 SQL cho mỗi câu hỏi, gán nhãn bằng execution, train
+  DPO + SFT. Train tập trung với Llama-3-8B: Spider EX 59.3 lên 76.6 (SFT
+  trên gold: 67.9), BIRD 22.3 lên 43.1 (SFT: 35.6).
+- OpenFedLLM (Ye et al., 2024, arXiv 2402.06954): có FedDPO, tức DPO trong
+  FedAvg với Llama2-7B. Cặp preference có sẵn và tạo một lần, reference cố
+  định qua các round, không phải SQL.
+- Zhang et al. (ACL 2023, arXiv 2305.17221): bài federated Text-to-SQL duy
+  nhất em tìm thấy. T5-base, 8 client, chỉ SFT với FedAvg, FedProx, FedOPT,
+  đo exact match; không có DPO và không dùng execution.
+
+Em chưa thấy bài nào làm DPO với nhãn execution tại client cho federated
+Text-to-SQL. Phần khác của bài em: nhãn execution do từng client tạo trên
+database riêng, mỗi round FL là một lần sample lại, và model chỉ 1.5B.
 
 Em đang chạy tiếp trên BIRD để xem gain có giữ được trên bộ khó hơn không.
 
