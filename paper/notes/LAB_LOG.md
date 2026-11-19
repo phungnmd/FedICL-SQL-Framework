@@ -4,6 +4,29 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: the 256-token limit and the execution budgets against the published code (no run)
+
+Read today in the code of each source:
+
+| Source | New tokens | Execution budget | A timeout scores |
+|---|---|---|---|
+| BIRD official (`DAMO-ConvAI/bird/llm/src`: `gpt_request.py`, `evaluation.py`) | 256 | 30 s for prediction and gold together (`--meta_time_out` default 30.0) | 0 |
+| Spider test-suite (`taoyds/test-suite-sql-eval`, `exec_eval.py`) | | 60 s per query (`TIMEOUT = 60`) | 0 ("wrong if execution fails") |
+| CodeS (`text2sql_zero_shot.py`) | 256, 4 beams | | |
+| Qwen2.5-Coder evaluation (`bird-spider/test.sh`) | 1,024 | 30 s | |
+| OmniSQL (README; `infer.py` not found) | 2,048, output holds reasoning | | |
+
+Ours: 256 new tokens, 60 s per query on Spider, 30 s per pair on BIRD, a
+timeout scores 0: the official evaluators' values. On Spider test the
+limit does not bind: over the 20 committed arms the median output is
+20-27 tokens, the 99th percentile 84-126, the longest finished output
+209; 16 arms have no cut output, the others 2-4 (outputs that run to the
+limit, not long SQL). Timeouts on Spider test: 0 or 1 of 2,147 per arm.
+On BIRD 6 of the 1,534 dev golds and 1 train gold are longer than 256
+tokens; the outputs of the model on BIRD are not measured yet. Kept as
+they are; the zero-shot run on BIRD dev gives the number of cut outputs
+and of timeouts, and the limit on BIRD is read again on that.
+
 ## 2026-11-19: BIRD train as a second set of clients, set up and checked on the Mac; nothing queued (owner; code `ab6bc960`..`3cfd42d3`)
 
 Owner: BIRD clients are prepared before the decision on the SFT stage,
