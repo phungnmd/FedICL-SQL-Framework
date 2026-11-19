@@ -4,6 +4,31 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: queue turned to what settles the method: SFT and DPO from the base student on BIRD; the long Spider DPO line dropped (owner; queue `186aaf58`, `80b6f287`)
+
+Owner: drop the long DPO line from FedAvg round 3 (`dpo/after_fedavg`)
+and queue what is needed to settle the method. Settled on Spider: DPO +
+NLL with execution labels on the model's own samples (NLL term and
+preference term each show a gain). Open: the FedAvg SFT stage (no gain
+on Spider at 3 and 4 rounds; the owner's concern is a harder dataset)
+and, after it, a gold path for the questions without a correct sample.
+Queued after `bird/read`, in this order, each round evaluated on BIRD
+dev and published: `bird_sft/round_1` (FedAvg SFT on the BIRD clients),
+`bird_k0/round_1` (DPO + NLL from the base student on the samples of
+`bird/read`), `bird_sft/round_2`, `bird_k0/round_2`. The FedAvg commands
+are those of the Spider line with the BIRD split, profile, schema text,
+stage label and root; the DPO rounds those of the Spider k = 0 line with
+the BIRD split, profile, schema text, root and 4 score workers, and one
+setup with `bird/read` (test; 492 tests pass, 2 skipped with the removed
+curve). Read at the same number of rounds. The line with an SFT stage on
+BIRD (DPO from a `bird_sft` round) and the gold path are queued after
+round 1 of both lines and the read are in. The curve
+`fedpref_sft_ddlrows_alpha01_s0/dpo` and its task are removed from the
+queue; `decide/k3` keeps its one round. Centralized SFT on Spider now
+follows the BIRD rounds. One commit (`186aaf58`) emptied
+`tests/test_active_queue.py` by mistake; restored in `80b6f287`, no run
+was affected.
+
 ## 2026-11-19: BIRD zero-shot and pair read queued after k = 3 (owner; queue `4045d3af`)
 
 Owner: queue the two BIRD runs, labels with 4 workers. `bird/zs` (base
