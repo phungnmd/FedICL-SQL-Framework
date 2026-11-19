@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 01:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-20 01:55 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
@@ -34,18 +34,20 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 ## Run now
 
-1. Start GPU 1 now: it takes `k0_gold/round_2` (Spider, about 4 h,
-   estimate) while GPU 0 goes on with BIRD. Without it GPU 0 runs that
-   round first and the BIRD rounds move back by 4 h. The
-   line pulls the queue first (fast-forward only, safe while GPU 0
-   runs). Skip this step if GPU 1 already runs. Add `--until HH:MM`
-   after the GPU digit for a stop time:
+1. Start GPU 1 now, until 07:30: it takes centralized SFT
+   (`refs/central_sft`, continued from its epoch 1; it stands before
+   the BIRD rounds since 2026-11-20, owner) while GPU 0 runs
+   `k0_gold/round_2`. If GPU 0 does not run that round, GPU 1 takes it
+   first. At 07:30 the worker stops itself and its task; the same line
+   continues it later. The line pulls the queue first (fast-forward
+   only, safe while GPU 0 runs):
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until 07:30; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-   The same line with `--gpu 0` continues GPU 0 if it stops.
+   The same line with `--gpu 0` and without `--until` continues GPU 0
+   if it stops.
 
 2. Send back, when they come:
    - the last lines the GPU 1 worker printed at 07:00 (the first run of
@@ -105,17 +107,17 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 1 | `k0_gold/round_2` | Spider: does the k = 0 line with gold (all-wrong questions, databases without rows) end higher than the line without? Round 2 against k = 0 round 2 (77.18; execution errors 92, wrong results 398); rounds 3 and 4 follow if it still rises | 4 h (estimate) | first in the queue since 23:42; running if a worker is up |
+| 6 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1; before the BIRD rounds (owner, 2026-11-20): GPU 1 takes it with step 1 |
 | 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
 | 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
 | 3 | `bird_k0_gold/round_1` | BIRD round 1 with gold as chosen for the 3,955 all-wrong questions, on the same samples: against row 2 | 4-6 h (estimate; up to 7,910 more pairs) | queued |
 | 4 | `bird_sft/round_2`, `bird_k0/round_2` | the same as row 2 at 2 rounds (Spider: 74.10 against 77.18) | 3 h and 6 h (estimate; the DPO round samples and labels again, 3 h 19 min in the read) | queued |
 | 5 | `bird_fixed/round_2` | on-policy rounds: round 2 on the round 1 pairs with the base student as reference, against `bird_k0/round_2` (re-sampled). On Spider at k = 2: 78.02 against 78.20 | 3 h (estimate; trains only) | queued |
-| 6 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 5 |
 
-Expected (estimates), counted from 23:42. With GPU 0 alone: row 1 at
-about 03:45, row 2 by about 10:00, row 3 by about 15:30, row 4 by about
-01:00 on 2026-11-21, row 5 by about 04:00. With both cards about half
-of that.
+Expected (estimates): row 1 at about 03:45 on GPU 0, which then takes
+row 2 (`bird_sft/round_1`, by about 07:15). Row 6 on GPU 1 from its
+start to 07:30: about 2 epochs with their evaluations; what is left of
+it runs before the BIRD rounds not started on the next free card.
 
 Not queued yet, decided on row 2: the line with an SFT stage on
 BIRD (DPO from a `bird_sft` round). Rounds 3 and 4 of the gold line on
