@@ -4,6 +4,77 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: loss parts, setup time and environment recorded; times of finished tasks read from the logs (owner; code `03f0eb9a`, `15032280`)
+
+Owner: later runs must hold every result and setting the paper needs,
+and the earlier runs are filled in from the logs on the server.
+
+- Later runs (every task that starts after the server pulls the code):
+  each update's loss is recorded with its preference part and its NLL
+  part; `timing` gains the seconds before the first update; `round.json`
+  carries the runtime environment. With the
+  entry below this closes what was missing in the preference rounds. A
+  call that continues a checkpoint written by the earlier code works;
+  its earlier updates keep the total loss only.
+- Earlier runs: `scripts/log_times.py` reads `.queue_state/logs/` on the
+  server and writes `audits/protocol_v2/run_times/<task id>.json` for
+  every task that finished since 2026-11-17: per start of the task the
+  GPU, command, start, end, seconds and exit code, and the steps its
+  lines show (generation, labels per client, training per client with
+  the reference pass and the updates, aggregation). A file is written
+  once and never changed, because the publication step refuses a
+  checkout with changed tracked files; a rerun adds the tasks finished
+  since. Tested on logs built from the code's own format strings, not
+  yet on the server's logs: the first run there is the check
+  (`PIPELINE_NEXT.md`, Run now).
+- What the logs cannot give back for the rounds already run: the
+  preference and NLL parts of the loss. Token counts can still be
+  counted from the pairs, which are on the server only.
+
+`docs/PROTOCOL_V2.md`, section "What each run records", lists the files
+per kind of run. 502 tests pass.
+
+## 2026-11-19: base student on the BIRD clients: a correct SQL among 10 samples for 52.4% of the questions (results `55b883c9`, `799543a1`)
+
+`bird/read`: 10 samples at T 1.0 for each of the 9,428 BIRD train
+questions at 5 clients, labelled by execution under the 30 s budget
+with 4 workers; 20:23 to 23:42. Spider, same read: 87.6% with a correct
+sample, 12% all wrong.
+
+| Client | Questions | All correct | Mixed | All wrong | Gold fails | of them: budget / SQL error | Pairs (2 per mixed question) | Sample accuracy |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 2,011 | 34 | 1,142 | 817 | 18 | 14 / 4 | 2,284 | 23.6% |
+| 2 | 1,595 | 26 | 783 | 695 | 91 | 85 / 6 | 1,566 | 17.5% |
+| 3 | 2,080 | 25 | 1,119 | 925 | 11 | 11 / 0 | 2,238 | 18.8% |
+| 4 | 683 | 20 | 337 | 325 | 1 | 1 / 0 | 674 | 21.3% |
+| 5 | 3,059 | 51 | 1,402 | 1,193 | 413 | 73 / 340 | 2,804 | 18.2% |
+| All | 9,428 | 156 (1.7%) | 4,783 (50.7%) | 3,955 (41.9%) | 534 (5.7%) | 184 / 350 | 9,566 | 19.6% |
+
+- DPO from the base student without gold trains on half of the BIRD
+  questions (4,783 of 9,428); 3,955 questions have no correct sample
+  and give no pair. On Spider that share was 12%. The gold rule
+  (`bird_k0_gold/round_1`, queued) adds those 3,955 questions; this is
+  where it is read with the most at stake.
+- Gold fails, 534: 350 SQL errors as counted before (`retail_world`
+  330, `works_cycles` 10, `app_store` 6, `shooting` 4; 208 `no such
+  column`, 142 `no such table`) and 184 golds that met the 30 s budget
+  (`donor` 71, `retails` 34, `world_development_indicators` 20,
+  `language_corpus` 16, `movie_platform` 11, `talkingdata` 11,
+  `bike_share_1` 8, others 13). About 50 were expected
+  (`fedicl-sql/AGENTS.md`); whether the other 130 are slow golds or the
+  effect of 4 labels running at once is read by timing each gold alone (`label_timeouts --retime`,
+  `PIPELINE_NEXT.md`). Until then the workers stay at 4.
+- Samples that met the budget: 196 of 94,280 (0.2%), in 154 questions;
+  10 samples in 8 questions were left without a label because the
+  budget ended on the gold.
+- 8,947 samples (9.5%) were cut at 256 new tokens at T 1.0 (greedy on
+  BIRD dev: 1 of 1,534). They count as wrong samples.
+- 271 questions have a gold that returns no rows (186 of them mixed):
+  a sample that returns no rows is labelled correct there.
+
+The split of the gold fails was counted by `scripts/label_timeouts.py`
+(code `0063d2a3`).
+
 ## 2026-11-19: what the result files record, checked; wall time added to the preference rounds (owner; code `5f34c048`)
 
 Owner: is everything recorded that the paper may need, so that nothing
