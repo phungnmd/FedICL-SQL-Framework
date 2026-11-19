@@ -49,9 +49,16 @@ gán nhãn đúng hay sai, rồi train DPO + NLL trên các cặp đúng và sai
   nhất em tìm thấy. T5-base, 8 client, chỉ SFT với FedAvg, FedProx, FedOPT,
   đo exact match; không có DPO và không dùng execution.
 
+Em xin nói rõ một điểm: lúc thiết kế phần DPO này em chưa tìm bài kỹ nên
+chưa biết CodeLutra, em tự đi đến cách sample, chạy SQL rồi train DPO + NLL.
+Sau khi tìm thấy bài này, em thấy cơ chế đó đã có người làm ở dạng train tập
+trung, nên đóng góp của bài em hẹp hơn em nghĩ lúc đầu: phần mới là đưa cơ
+chế này vào federated (nhãn execution do từng client tạo trên database
+riêng, mỗi round FL là một lần sample lại) với model 1.5B. Em sẽ trích
+CodeLutra là bài gần nhất và nói rõ phần khác.
+
 Em chưa thấy bài nào làm DPO với nhãn execution tại client cho federated
-Text-to-SQL. Phần khác của bài em: nhãn execution do từng client tạo trên
-database riêng, mỗi round FL là một lần sample lại, và model chỉ 1.5B.
+Text-to-SQL.
 
 Em đang chạy tiếp trên BIRD để xem gain có giữ được trên bộ khó hơn không.
 
@@ -59,6 +66,7 @@ Em xin ý kiến Thầy hai điểm:
 
 1. Có nên bỏ bước LLM public để bài gọn hơn không ạ, hay giữ lại như
    ablation?
-2. Nếu bỏ, phần federated DPO như trên đã đủ đóng góp cho bài chưa ạ?
+2. Nếu bỏ, và khi đã có CodeLutra, phần federated DPO như trên có đủ đóng
+   góp cho bài không ạ?
 
 Em cảm ơn Thầy.
