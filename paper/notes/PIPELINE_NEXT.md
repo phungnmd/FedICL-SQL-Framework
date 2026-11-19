@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-19 14:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-19 16:15 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
@@ -10,24 +10,25 @@ trained:
 | 1 | 72.43 | | 75.87 |
 | 2 | 74.10 | | 77.18 |
 | 3 | 74.71 | 77.46 | 77.69 |
-| 4 | 74.71 | 78.20 | running |
+| 4 | 74.71 | 78.20 | 78.02 |
 
-New since 09:40: k = 0 round 2 77.18 and round 3 77.69, equal to the
-k = 2 line at 3 rounds (p 0.80) and about 3 above FedAvg SFT at the same
-rounds (p < 0.001); gold inside the round (`decide/k0_gold`) 76.67
-against 75.87 (p 0.21), execution errors 101 to 57 and wrong results 417
-to 444, not kept. Earlier: DPO without the NLL term 73.59 (the NLL term
-stays); wrong-result rejects first in round 1 77.27, not kept; RFT 75.87;
-fixed pairs and reference with NLL 77.64, 78.02.
+New since 14:40: k = 0 round 4 78.02, equal to the k = 2 line at 4
+rounds (p 0.85): on Spider the FedAvg SFT stage shows no gain at 3 or 4
+rounds. Earlier today: gold inside the round 76.67 against 75.87
+(p 0.21), not kept; DPO without the NLL term 73.59 (the NLL term stays);
+wrong-result rejects first in round 1 77.27, not kept. Being prepared on
+the Mac, not queued: BIRD train as a second set of clients (prompt with
+evidence, client split, evaluation on BIRD dev).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `dpo_k0/round_4` since 13:57, done at about 15:40 (estimate), then `decide/wr_round2`. | k = 0 round 3 evaluation `947ca9d8`, published 13:57 (inferred) |
+| 0 | Worker: `decide/wr_round2` since 15:29, done at about 17:00 (estimate), then `decide/k3`. | k = 0 round 4 evaluation `4215a7e1`, published 15:29 (inferred) |
 | 1 | Stopped since 07:00, not started again. | the results since 06:31 came in the order one worker gives (inferred) |
 
 ## Run now
 
-1. Start GPU 1 again (optional; it halves the wait for rows 2-4). Add
+1. Start GPU 1 again (optional; it halves the wait for rows 2-4 of the
+   table). Add
    `--until HH:MM` after the GPU digit for a stop time:
 
    ```powershell
@@ -39,8 +40,7 @@ fixed pairs and reference with NLL 77.64, 78.02.
 2. Send back, when they come:
    - the last lines the GPU 1 worker printed at 07:00 (the first run of
      `--until` on Windows);
-   - the EX line of k = 0 round 4, of `decide/wr_round2` and of
-     `decide/k3`;
+   - the EX line of `decide/wr_round2` and of `decide/k3`;
    - the first time two vLLM jobs overlap (an evaluation on one card while
      the other samples or evaluates): the peak reserved VRAM of each and
      whether either slows down;
@@ -59,24 +59,23 @@ fixed pairs and reference with NLL 77.64, 78.02.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `dpo_k0/round_4` | DPO round 4 from the base student (k = 0), on-policy: is the FedAvg SFT stage needed at 4 total rounds? Read against DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71) | 1 h 45 min (estimate, as round 3) | running since 13:57 (inferred) |
-| 2 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | queued |
-| 3 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20), k = 0 round 4 and FedAvg round 4 (74.71); step 1 of row 5 | 3 h (estimate) | queued |
-| 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 3 |
-| 5 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 1 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | running since 15:29 (inferred) |
+| 2 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20), k = 0 round 4 (78.02) and FedAvg round 4 (74.71); step 1 of row 4 | 3 h (estimate) | queued |
+| 3 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 2 |
+| 4 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
-Expected with GPU 0 alone (estimates): row 1 at about 15:40, row 2 at
-about 17:15, row 3 at about 20:15.
+Expected with GPU 0 alone (estimates): row 1 at about 17:00, row 2 at
+about 20:00.
 
 Reading: a setting is kept when it gains at least 0.5 EX over the run it
 is read against with a McNemar p below 0.05. A difference of about 0.2
 EX is what running the same training again gives. Open for the owner:
-whether the FedAvg SFT stage stays, once row 1 is in (at 3 rounds it
-shows no gain); if it goes, row 5 starts from the k = 0 line instead of
-FedAvg round 3 and row 3 is only a row of the k table; round 2 of
-federated DPO as published (no NLL, fixed pairs, fixed reference) from
-the `decide/nonll` root, about 2.5 h, for the baseline row; the second
-benchmark (BIRD, clients on BIRD train databases, BIRD dev).
+whether the FedAvg SFT stage stays (no gain on Spider at 3 or 4 rounds;
+the read of the base student on BIRD comes first); if it goes, row 4
+starts from the k = 0 line instead of FedAvg round 3 and row 2 is only a
+row of the k table; round 2 of federated DPO as published (no NLL, fixed
+pairs, fixed reference) from the `decide/nonll` root, about 2.5 h, for
+the baseline row.
 
 ## Reference
 

@@ -4,6 +4,37 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: k = 0 round 4 reaches 78.02, equal to the k = 2 line at 4 rounds (results `4fd84bee`, `4215a7e1`)
+
+Spider test: 78.02 (easy 88.94, medium 81.10, hard 72.57, extra 63.31),
+EM 54.73, execution errors 69, wrong results 403, no cut output.
+
+| Total rounds | FedAvg SFT | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
+|---|---|---|---|
+| 1 | 72.43 | | 75.87 |
+| 2 | 74.10 | | 77.18 |
+| 3 | 74.71 | 77.46 | 77.69 |
+| 4 | 74.71 | 78.20 | 78.02 |
+
+| k = 0 round 4 against | Fixed | Broke | p |
+|---|---|---|---|
+| k = 0 round 3 (77.69) | 48 | 41 | 0.53 |
+| k = 2 DPO round 2 (78.20; 4 rounds each) | 116 | 120 | 0.85 |
+| fixed pairs and reference with NLL, round 2 (78.02) | 121 | 121 | 1.0 |
+| FedAvg round 4 (74.71; 4 rounds each) | 178 | 107 | 3.1e-05 |
+
+At 3 and at 4 total rounds the line without the FedAvg SFT stage equals
+the line with it (p 0.80, p 0.85): on Spider with this student the SFT
+stage shows no gain. The k = 0 line: 75.87, 77.18, 77.69, 78.02; the
+steps after round 2 are within what a rerun gives (+0.51 p 0.27, +0.33
+p 0.53). Round 4 trained on 2,740 pairs (174 updates; rounds 1-3: 8,908,
+4,566, 3,222), peak 18.84 GiB. Training questions with no correct
+sample: 1,074, 902, 886, 860 at the start of rounds 1-4. Whether the
+stage stays in the method is the owner's decision; the owner's concern
+(2026-11-19) is a dataset or model where the base student has no correct
+sample for many more questions, so BIRD clients are being set up before
+the decision.
+
 ## 2026-11-19: reading: training removes execution errors; the wrong results are where the untrained student left them (no new run)
 
 Spider test, from the committed metrics:
