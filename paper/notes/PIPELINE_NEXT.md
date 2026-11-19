@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 00:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-20 01:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
@@ -69,7 +69,9 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 4. Now, CPU only: pull the code that runs SQL in worker processes,
    check it on Windows (3 test files, under a minute), then label the
    samples of `bird/read` again into the root of the BIRD DPO lines
-   (1 to 2 h, estimate; no sampling; rerun continues). Of the 184 golds
+   (running since about 01:00; 4 to 6 h, estimate from client 1: 575
+   of 2,011 questions after 26 min; no sampling; rerun continues). Of
+   the 184 golds
    that met the 30 s budget there, 151 run alone in under 15 s, 13 in
    15 to 30 s, 20 in over 30 s. Without this step a card runs the same
    relabel as the queue task `bird/relabel` before the BIRD DPO rounds
@@ -102,8 +104,8 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 1-2 h on CPU (estimate); seconds when step 4 was run by hand | queued, the first ready task of a free card |
 | 1 | `k0_gold/round_2` | Spider: does the k = 0 line with gold (all-wrong questions, databases without rows) end higher than the line without? Round 2 against k = 0 round 2 (77.18; execution errors 92, wrong results 398); rounds 3 and 4 follow if it still rises | 4 h (estimate) | first in the queue since 23:42; running if a worker is up |
+| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
 | 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
 | 3 | `bird_k0_gold/round_1` | BIRD round 1 with gold as chosen for the 3,955 all-wrong questions, on the same samples: against row 2 | 4-6 h (estimate; up to 7,910 more pairs) | queued |
 | 4 | `bird_sft/round_2`, `bird_k0/round_2` | the same as row 2 at 2 rounds (Spider: 74.10 against 77.18) | 3 h and 6 h (estimate; the DPO round samples and labels again, 3 h 19 min in the read) | queued |
