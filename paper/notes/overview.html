@@ -424,6 +424,106 @@ td .sub { display: block; color: var(--muted); font-size: 0.8rem; }
 .client .empty.hi { color: var(--bad); font-weight: 500; }
 .callout { font-size: 0.86rem; border-left: 3px solid var(--bad); padding: 8px 12px; background: var(--bad-soft); border-radius: 0 6px 6px 0; }
 
+/* data setup */
+:root {
+  --h-easy: #C9D7F8; --h-med: #8DA8EE; --h-hard: #4569D8; --h-extra: #1C2F7E;
+  --h-easy-t: #1C2F7E; --h-med-t: #13204F; --h-hard-t: #FFFFFF; --h-extra-t: #FFFFFF;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
+    --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
+  }
+}
+:root[data-theme="dark"] {
+  --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
+  --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
+}
+.setups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.setup { padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.setup-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.setup-top h3 { display: flex; align-items: center; gap: 10px; }
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.role { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.role .rk { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.role b { font-family: var(--font-display); font-size: 0.98rem; }
+.role .big { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.role span.s { font-size: 0.78rem; color: var(--muted); }
+.role.cl { border-color: var(--accent); background: var(--accent-soft); }
+.role.ev { border-color: var(--ok); background: var(--ok-soft); }
+.role.pub { border-style: dashed; }
+.setup dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 6px 12px; font-size: 0.84rem; }
+.setup dt { color: var(--muted); font-size: 0.78rem; padding-top: 1px; }
+.setup dd { margin: 0; }
+
+.hbars { display: flex; flex-direction: column; gap: 10px; }
+.hbar { display: grid; grid-template-columns: 128px minmax(0, 1fr) 150px; gap: 12px; align-items: center; }
+.hbar .nm { font-size: 0.84rem; }
+.hbar .nm b { display: block; font-family: var(--font-display); }
+.hbar .nm span, .hbar .meta { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); }
+.hbar .meta { text-align: right; }
+.hstack { display: flex; height: 26px; border-radius: 4px; overflow: hidden; }
+.hstack span { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; white-space: nowrap; overflow: hidden; min-width: 0; }
+.hstack .e { background: var(--h-easy); color: var(--h-easy-t); }
+.hstack .m { background: var(--h-med); color: var(--h-med-t); }
+.hstack .h { background: var(--h-hard); color: var(--h-hard-t); }
+.hstack .x { background: var(--h-extra); color: var(--h-extra-t); }
+.hbar.gap { margin-top: 6px; }
+
+.steps3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.step3 { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 0.86rem; }
+.step3 .n { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.1em; }
+.step3 h3 { font-size: 0.98rem; }
+.step3 p { color: var(--muted); }
+.tiers-demo { display: flex; gap: 4px; margin-top: 2px; }
+.tiers-demo span { flex: 1; text-align: center; font-family: var(--font-mono); font-size: 0.7rem; padding: 3px 0; border-radius: 3px; }
+
+.skew { padding: 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.skew .ch-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; }
+.skew .ch-head p { font-size: 0.84rem; color: var(--muted); max-width: 64ch; }
+#skewsvg { width: 100%; min-width: 600px; height: auto; display: block; }
+#skewsvg .sk-grid { stroke: var(--line); stroke-width: 1; }
+#skewsvg .sk-axis { fill: var(--muted); font: 12px var(--font-mono); }
+#skewsvg .sk-name { fill: var(--ink); font: 600 13px var(--font-body); }
+#skewsvg .sk-sub { fill: var(--muted); font: 11px var(--font-mono); }
+#skewsvg .sk-range { stroke: var(--line); stroke-width: 6; stroke-linecap: round; }
+#skewsvg .sk-dot { fill: var(--accent); fill-opacity: 0.75; stroke: var(--surface); stroke-width: 1.5; }
+#skewsvg .sk-dot.bird { fill: var(--warn); }
+#skewsvg .sk-all { stroke: var(--ink); stroke-width: 2; }
+#skewsvg .sk-row { cursor: pointer; }
+#skewsvg .sk-row:hover .sk-name, #skewsvg .sk-row.on .sk-name { fill: var(--accent); }
+#skewsvg .sk-hl { fill: var(--accent-soft); fill-opacity: 0; }
+#skewsvg .sk-row.on .sk-hl { fill-opacity: 1; }
+
+.splitx { padding: 20px; display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.splitx .filters { margin-bottom: 0; }
+.sx-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.84rem; align-items: center; }
+.sx-meta .k { color: var(--muted); }
+.sx-meta .v { font-family: var(--font-mono); font-weight: 500; }
+.sx-rows { display: flex; flex-direction: column; gap: 12px; }
+.sx-head, .sx-row { display: grid; grid-template-columns: 124px minmax(0, 1fr) 58px 150px; gap: 12px; align-items: center; }
+.sx-head { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.sx-head .r, .sx-row .pct { text-align: right; }
+.sx-row .name { font-size: 0.84rem; }
+.sx-row .name b { display: block; font-family: var(--font-display); }
+.sx-row .name span { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); }
+.sx-row .barcol { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sx-row .hstack { height: 22px; }
+.sx-row .note { font-size: 0.76rem; color: var(--muted); }
+.sx-row .note.hi { color: var(--bad); }
+.sx-row .pct { font-family: var(--font-mono); font-size: 0.86rem; font-weight: 500; }
+.tchips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+.tchips span { font-family: var(--font-mono); font-size: 0.72rem; text-align: center; padding: 3px 0; border-radius: 3px; }
+.tchips span.z { background: transparent !important; color: var(--line) !important; border: 1px dashed var(--line); }
+.t0 { background: var(--h-easy); color: var(--h-easy-t); }
+.t1 { background: var(--h-med); color: var(--h-med-t); }
+.t2 { background: var(--h-hard); color: var(--h-hard-t); }
+.t3 { background: var(--h-extra); color: var(--h-extra-t); }
+.sx-read { font-size: 0.88rem; border-left: 3px solid var(--accent); padding: 8px 12px; background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+.data-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.data-notes .panel { padding: 16px 18px; font-size: 0.86rem; display: flex; flex-direction: column; gap: 8px; }
+.data-notes h3 { font-size: 0.98rem; display: flex; align-items: center; gap: 10px; }
+
 /* directions */
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .filters button {
@@ -453,6 +553,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   .gate { grid-template-columns: 1fr; }
   .parts, .dirs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .data-grid { grid-template-columns: 1fr; }
+  .setups, .steps3, .data-notes { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .demo, .pairsets { grid-template-columns: 1fr; }
@@ -466,6 +567,14 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   .step.arrow-r::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -15px; transform: translateX(-50%); }
   .lane { gap: 16px; }
   .client { grid-template-columns: 58px minmax(0, 1fr) 52px; gap: 8px; }
+  .roles { grid-template-columns: 1fr; }
+  .setup dl { grid-template-columns: 1fr; gap: 2px; }
+  .setup dd { margin-bottom: 6px; }
+  .hbar { grid-template-columns: 1fr; gap: 4px; }
+  .hbar .meta { text-align: left; }
+  .sx-head { display: none; }
+  .sx-row { grid-template-columns: 64px minmax(0, 1fr) 44px; gap: 8px; }
+  .sx-row .tchips { grid-column: 2 / 4; }
   .story { flex-direction: column; gap: 6px; }
 }
 </style>
@@ -478,12 +587,13 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <span class="brand">FedLS-SQL</span>
     <div class="links">
       <a href="#method">Method</a>
+      <a href="#data">Dữ liệu</a>
       <a href="#results">Kết quả</a>
       <a href="#progress">Tiến độ</a>
       <a href="#directions">Hướng tiếp</a>
       <a href="#rows">Hàng của paper</a>
     </div>
-    <span class="stamp">Cập nhật <b>2026-11-19 19:45</b></span>
+    <span class="stamp">Cập nhật <b>2026-11-19 23:45</b></span>
   </div>
 </nav>
 
@@ -500,6 +610,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     </div>
     <div class="btns">
       <a class="btn" href="#method"><svg class="ic" aria-hidden="true"><use href="#i-vm"/></svg>Method</a>
+      <a class="btn" href="#data"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg>Dữ liệu</a>
       <a class="btn" href="#results"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Kết quả</a>
       <a class="btn" href="#progress"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg>Tiến độ</a>
       <a class="btn" href="#directions"><svg class="ic" aria-hidden="true"><use href="#i-git-branch"/></svg>Hướng tiếp</a>
@@ -794,10 +905,115 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   </div>
 </section>
 
+<section id="data">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Dữ liệu và setup</h2>
+      <p>Hai setting, cùng code và cùng cách chia client. Mỗi database nằm trọn ở một client. Không database nào của test set có trong train set của cùng setting.</p>
+    </div>
+
+    <div class="setups">
+      <article class="panel setup">
+        <div class="setup-top">
+          <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Setting Spider</h3>
+          <span class="pill done">mọi kết quả trên trang</span>
+        </div>
+        <div class="roles">
+          <div class="role cl"><span class="rk">5 client, private</span><b>Spider train</b><span class="big">8,659</span><span class="s">câu &middot; 146 database</span></div>
+          <div class="role ev"><span class="rk">Đo EX</span><b>Spider test</b><span class="big">2,147</span><span class="s">câu &middot; 40 database</span></div>
+          <div class="role pub"><span class="rk">Server, public</span><b>BIRD train</b><span class="big">9,428</span><span class="s">câu &middot; chỉ cho pre-training, chưa chạy</span></div>
+        </div>
+        <dl>
+          <dt>Schema trong prompt</dt><dd><code>CREATE TABLE</code> và 3 rows mẫu mỗi bảng (prompt A, <code>ddl_rows</code>); không evidence</dd>
+          <dt>Độ dài prompt</dt><dd>test: median 606 token, dài nhất 2,547</dd>
+          <dt>Evaluator</dt><dd>Spider, 60 s mỗi query (như <code>test-suite-sql-eval</code>)</dd>
+          <dt>Lưu ý</dt><dd>7 database train không có rows, 1,759 câu; pairs từ đó bị bỏ</dd>
+        </dl>
+      </article>
+      <article class="panel setup">
+        <div class="setup-top">
+          <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Setting BIRD</h3>
+          <span class="pill run">pair read đang chạy</span>
+        </div>
+        <div class="roles">
+          <div class="role cl"><span class="rk">5 client, private</span><b>BIRD train</b><span class="big">9,428</span><span class="s">câu &middot; 69 database</span></div>
+          <div class="role ev"><span class="rk">Đo EX</span><b>BIRD dev</b><span class="big">1,534</span><span class="s">câu &middot; 11 database</span></div>
+          <div class="role pub"><span class="rk">Server, public</span><b>Spider train</b><span class="big">8,659</span><span class="s">câu &middot; kế hoạch, chưa chạy</span></div>
+        </div>
+        <dl>
+          <dt>Schema trong prompt</dt><dd><code>CREATE TABLE</code> (<code>ddl</code>) và evidence, như code Qwen2.5-Coder; evidence rỗng ở 645 câu train, 148 câu dev</dd>
+          <dt>Độ dài prompt</dt><dd>dev: median 977 token, dài nhất 2,207; train dài nhất 6,807 (với 3 rows mẫu: 220,712)</dd>
+          <dt>Evaluator</dt><dd>BIRD, 30 s cho cặp prediction và gold (như <code>evaluation.py</code> của BIRD)</dd>
+          <dt>Lưu ý</dt><dd>mọi database có rows; 350 gold lỗi SQL và khoảng 50 gold hết 30 s: DPO labels bỏ các câu này, FedAvg SFT train trên gold như bản release</dd>
+          <dt>Base student</dt><dd>BIRD dev 29.47 EX, 42% output lỗi chạy (Spider test: 68.05, 13%)</dd>
+        </dl>
+      </article>
+    </div>
+
+    <div class="panel skew" style="margin-top:14px">
+      <div class="ch-head">
+        <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Độ khó câu hỏi theo bộ</h3>
+        <p>Mức easy, medium, hard, extra theo luật hardness của Spider. Với BIRD, luật này chạy trên parse của sqlglot vì evaluator của Spider chỉ parse được 15% gold của BIRD; đây không phải nhãn simple, moderate, challenging của BIRD.</p>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--h-easy)"></i>easy</span>
+        <span><i style="background:var(--h-med)"></i>medium</span>
+        <span><i style="background:var(--h-hard)"></i>hard</span>
+        <span><i style="background:var(--h-extra)"></i>extra</span>
+      </div>
+      <div class="hbars" id="hbars"></div>
+    </div>
+
+    <div class="sec-head sub">
+      <h3 class="sub-h2">Cách chia câu hỏi cho client</h3>
+      <p>Non-IID theo độ khó của database, theo cách NIID-Bench chia label skew. Script <code>scripts/build_federated.py</code>, seed 42.</p>
+    </div>
+    <div class="steps3">
+      <div class="panel step3">
+        <span class="n">BƯỚC 1</span>
+        <h3>Xếp tier cho database</h3>
+        <p>Mỗi database có tỉ lệ câu hard + extra. Xếp hạng theo tỉ lệ đó rồi cắt thành 4 tier bằng nhau.</p>
+        <div class="tiers-demo"><span class="t0">T0</span><span class="t1">T1</span><span class="t2">T2</span><span class="t3">T3</span></div>
+        <p>Spider: T0 đến 26%, T3 từ 44% (36-37 database mỗi tier). BIRD: T0 12-33%, T3 50-67% (17-18 database).</p>
+      </div>
+      <div class="panel step3">
+        <span class="n">BƯỚC 2</span>
+        <h3>Chia từng tier theo Dirichlet(alpha)</h3>
+        <p>Với mỗi tier, rút tỉ lệ cho các client từ Dirichlet(alpha) và chia database của tier theo tỉ lệ đó. Client đã đủ phần đều (tổng database / số client) không nhận thêm.</p>
+        <p>alpha 0.1: mỗi tier dồn về một hai client. alpha 0.5: trải hơn. IID: database xếp ngẫu nhiên rồi cắt đều.</p>
+      </div>
+      <div class="panel step3">
+        <span class="n">BƯỚC 3</span>
+        <h3>Rút lại đến khi đủ database</h3>
+        <p>Cả phép chia rút lại cho đến khi mỗi client có ít nhất 5 database (10 client: 3). Câu hỏi, gold SQL và rows của một database không rời client giữ nó.</p>
+        <p>Số câu mỗi client lệch nhiều hơn số database, vì database có số câu khác nhau.</p>
+      </div>
+    </div>
+
+    <div class="panel skew">
+      <div class="ch-head">
+        <h3 style="display:flex;align-items:center;gap:10px"><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Độ lệch giữa client: % câu hard + extra</h3>
+        <p>Mỗi chấm là một client, kích thước theo số câu. Vạch đen là tỉ lệ của cả train set. Khoảng chấm càng rộng thì client càng khác nhau. Bấm một hàng để xem chi tiết bên dưới.</p>
+      </div>
+      <div class="ch-scroll"><svg id="skewsvg" viewBox="0 0 960 300" role="img" aria-labelledby="sk-title sk-desc"><title id="sk-title">Tỉ lệ hard + extra của từng client theo split</title><desc id="sk-desc">Spider alpha 0.1, 5 client: 20% đến 60%. Spider alpha 0.5, 5 client: 22% đến 56%. Spider IID, 5 client: 34% đến 52%. Spider alpha 0.5, 10 client: 19% đến 63%. BIRD alpha 0.1, 5 client: 25% đến 58%. Cả Spider train 42%, cả BIRD train 41%.</desc></svg></div>
+    </div>
+
+    <div class="panel splitx" id="splitx">
+      <div class="filters" id="sx-tabs" role="group" aria-label="Chọn split"></div>
+      <div class="sx-meta" id="sx-meta"></div>
+      <div class="sx-rows">
+        <div class="sx-head"><span>Client</span><span>Câu hỏi theo độ khó (dài theo số câu)</span><span class="r">H + X</span><span>DB ở tier T0-T3</span></div>
+        <div id="sx-rows" class="sx-rows"></div>
+      </div>
+      <div class="sx-read" id="sx-read"></div>
+    </div>
+  </div>
+</section>
+
 <section id="results">
   <div class="wrap">
     <div class="sec-head">
-      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Kết quả và dữ liệu</h2>
+      <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Kết quả</h2>
       <p>Chỉ số đo sau reset 2026-11-17. Số của setup cũ không xuất hiện ở đây.</p>
     </div>
     <div class="panel exchart">
@@ -1111,6 +1327,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap foot" style="border-top:1px solid var(--line);padding-top:18px">
     <h4>Lịch sử cập nhật</h4>
     <ul class="updates">
+      <li><time>2026-11-19 23:45</time><span>Section mới "Dữ liệu và setup": setting Spider và BIRD (client, test set, public data, prompt), độ khó câu hỏi theo bộ, cách chia client, độ lệch hard + extra giữa client của 5 split, bảng từng client theo split (data commit <code>57cf2f6b</code> cho BIRD). Các phần khác chưa cập nhật.</span></li>
       <li><time>2026-11-19 19:45</time><span>k = 0 R2-R4 (77.18, 77.69, 78.02), không NLL 73.59, wrong-result first R1 77.27 và R2 77.69, gold rule từ base 76.67 (results <code>a3fed6d6</code>, <code>947ca9d8</code>, <code>4215a7e1</code>, <code>f8485b4b</code>, <code>cd4727a7</code>, <code>06e81fdf</code>, <code>9e7c66b0</code>); thẻ NLL trong Method; bảng kết quả theo nhóm; FedDPO as published R1 trên biểu đồ; fixed line ghi là fixed + NLL; BIRD queued; GPU 1 dừng từ 07:00; hướng client sinh nội dung database.</span></li>
       <li><time>2026-11-19 03:30</time><span>DPO + NLL R1 từ base student (k = 0) 75.87 (results <code>96007ff6</code>): hàng mới trong bảng kết quả và bảng pairs, đường k = 0 trên biểu đồ, I3 và story theo số mới; line k = 0 R2-R4 queued; GPU 1 có worker thứ hai.</span></li>
       <li><time>2026-11-19 00:25</time><span>RFT 75.87, gold chosen 77.41, fixed line R1 77.64 và R2 78.02 (results <code>424cd93e</code>, <code>cf644e95</code>, <code>67c17163</code>, <code>aaae06ad</code>); bảng mới "Đã thử, không có gain" (I1 so với fixed, nearest, gold chosen, counterexample relabelling bị bỏ); đường fixed trên biểu đồ; queue các decision run, k = 0 đang chạy.</span></li>
@@ -1289,6 +1506,153 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     });
   });
   try { var saved = localStorage.getItem("fedls-dir-filter"); if (saved) apply(saved); } catch (e) {}
+})();
+</script>
+<script>
+(function () {
+  // Data setup. Counts from processed_data/protocol_v2 in fedicl-sql (clients.csv, meta.json, db_tiers.json)
+  // and the test CSVs; hardness of the test sets from the zero-shot predictions.
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  var SETS = [
+    { nm: "Spider train", sub: "5 client", e: 1983, m: 2999, h: 1921, x: 1755, unk: 1, dbs: 146 },
+    { nm: "Spider test", sub: "đo EX", e: 470, m: 857, h: 463, x: 357, dbs: 40 },
+    { nm: "BIRD train", sub: "5 client", e: 1295, m: 4232, h: 1895, x: 2006, dbs: 69, gap: true },
+    { nm: "BIRD dev", sub: "đo EX", e: 194, m: 727, h: 303, x: 310, dbs: 11 }
+  ];
+  function stack(c, labels) {
+    var t = c.e + c.m + c.h + c.x;
+    return ["e", "m", "h", "x"].map(function (k) {
+      var p = c[k] / t * 100;
+      return '<span class="' + k + '" style="flex:' + c[k] + '" title="' + ({e:"easy",m:"medium",h:"hard",x:"extra"})[k] + ' ' + fmt(c[k]) + ' (' + p.toFixed(1) + '%)">' + (labels && p >= 9 ? p.toFixed(0) + '%' : '') + '</span>';
+    }).join("");
+  }
+  var hb = document.getElementById("hbars");
+  SETS.forEach(function (s) {
+    var t = s.e + s.m + s.h + s.x + (s.unk || 0);
+    var row = document.createElement("div");
+    row.className = "hbar" + (s.gap ? " gap" : "");
+    row.innerHTML = '<div class="nm"><b>' + s.nm + '</b><span>' + s.sub + '</span></div>' +
+      '<div class="hstack">' + stack(s, true) + '</div>' +
+      '<div class="meta">' + fmt(t) + ' câu, ' + s.dbs + ' DB<br>hard + extra ' + ((s.h + s.x) / t * 100).toFixed(0) + '%</div>';
+    hb.appendChild(row);
+  });
+
+  // Per client: [databases, easy, medium, hard, extra, tier0..3 databases, note]
+  var SPLITS = [
+    { id: "s01", ds: "spider", tab: "Spider alpha 0.1, 5 client", short: "Spider &alpha; 0.1", sub: "5 client, split chính",
+      path: "SPIDER/.../federated/alpha_0.1/k5", part: "Dirichlet trên tier, alpha 0.1", minDb: 5, draws: 1,
+      st: ["done", "split chính: mọi kết quả Spider"], all: 42.5, unk: { 4: 1 },
+      c: [[21,243,381,179,92,0,20,0,1,""],[34,476,755,185,126,34,0,0,0,""],[42,423,848,374,364,0,12,30,0,"111 câu trên database rỗng (yelp)"],[37,655,736,1005,1082,0,3,0,34,"1,648 câu trên 6 database rỗng (47%)"],[12,186,279,178,91,3,1,7,1,""]],
+      read: "Client 2 chỉ có database tier 0, client 4 có 34 trong 37 database ở tier 3: hard + extra 20% so với 60%. Client 4 cũng lớn nhất (3,479 câu, gấp 4.7 lần client 5) và giữ 6 trong 7 database rỗng của Spider." },
+    { id: "s05", ds: "spider", tab: "Spider alpha 0.5, 5 client", short: "Spider &alpha; 0.5", sub: "5 client",
+      path: "SPIDER/.../federated/alpha_0.5/k5", part: "Dirichlet trên tier, alpha 0.5", minDb: 5, draws: 1,
+      st: ["plan", "Phase 3, chưa queue"], all: 42.5, unk: { 5: 1 },
+      c: [[16,185,365,254,434,2,11,0,3,"569 câu trên database rỗng (scholar)"],[32,465,651,201,112,25,7,0,0,""],[21,203,434,259,274,1,10,2,8,"236 câu trên 2 database rỗng"],[35,339,618,299,277,0,7,28,0,""],[42,791,931,908,658,9,1,7,25,"954 câu trên 4 database rỗng"]],
+      read: "Phần lớn client có hai tier trở lên, nhưng khoảng hard + extra (22% đến 56%) gần bằng alpha 0.1, vì client 1 có ít database mà nhiều câu extra. Database rỗng chia ra ba client thay vì dồn vào một." },
+    { id: "iid", ds: "spider", tab: "Spider IID, 5 client", short: "Spider IID", sub: "5 client",
+      path: "SPIDER/.../federated/iid/k5", part: "IID: database ngẫu nhiên, cắt đều", minDb: null, draws: 1,
+      st: ["plan", "Phase 3, chưa queue"], all: 42.5, unk: { 5: 1 },
+      c: [[30,385,675,397,409,6,7,8,9,"306 câu trên 2 database rỗng"],[29,297,459,338,204,6,7,8,8,"320 câu trên 3 database rỗng"],[29,589,646,466,304,11,8,5,5,"564 câu trên database rỗng (geo)"],[29,366,601,286,209,9,8,8,4,""],[29,346,618,434,629,5,6,8,10,"569 câu trên database rỗng (scholar)"]],
+      read: "Mỗi client có 29-30 database và đủ cả 4 tier. Hard + extra vẫn từ 34% đến 52% và số câu từ 1,298 đến 2,028, vì vài database rất lớn (geo 564 câu, scholar 569)." },
+    { id: "s05k10", ds: "spider", tab: "Spider alpha 0.5, 10 client", short: "Spider &alpha; 0.5", sub: "10 client",
+      path: "SPIDER/.../federated/alpha_0.5/k10", part: "Dirichlet trên tier, alpha 0.5", minDb: 3, draws: 2,
+      st: ["plan", "đã dựng, chưa queue"], all: 42.5, unk: { 10: 1 },
+      c: [[17,163,257,125,49,0,17,0,0,""],[12,113,243,104,116,2,1,8,1,""],[18,303,448,108,73,18,0,0,0,""],[8,125,144,95,78,2,0,2,4,""],[11,94,205,130,221,0,3,2,6,"125 câu trên database rỗng"],[13,333,264,333,175,1,1,10,1,"564 câu trên database rỗng (geo)"],[14,170,258,214,133,2,2,4,6,"100 câu trên database rỗng"],[17,224,375,130,95,6,11,0,0,""],[14,219,342,167,130,5,0,9,0,"111 câu trên database rỗng (yelp)"],[22,239,463,515,685,1,1,2,18,"859 câu trên 3 database rỗng"]],
+      read: "10 client, 8 đến 22 database và 442 đến 1,903 câu mỗi client. Lệch mạnh nhất trong các split: hard + extra 19% (client 3, chỉ tier 0) đến 63% (client 10, 18 database tier 3)." },
+    { id: "b01", ds: "bird", tab: "BIRD alpha 0.1, 5 client", short: "BIRD &alpha; 0.1", sub: "5 client",
+      path: "BIRD/.../federated/alpha_0.1/k5", part: "Dirichlet trên tier, alpha 0.1", minDb: 5, draws: 1,
+      st: ["run", "pair read đang chạy, round 1-2 queued"], all: 41.4,
+      c: [[16,361,1139,261,250,16,0,0,0,"gold lỗi 4"],[14,166,717,323,389,0,0,14,0,"gold lỗi 6, gold hết 30 s 17"],[16,147,733,622,578,0,0,0,16,"gold hết 30 s 10"],[5,87,300,142,154,1,1,2,1,"gold hết 30 s 1"],[18,534,1343,547,635,1,16,1,0,"gold lỗi 340 (phần lớn retail_world), gold hết 30 s 21"]],
+      read: "Cùng cách chia như split chính của Spider. Ba client chỉ có một tier (client 1: T0, client 2: T2, client 3: T3), hard + extra 25% đến 58%. Client 4 nhỏ nhất (5 database, 683 câu). Mọi database có rows, nên không có câu nào trên database rỗng." }
+  ];
+  SPLITS.forEach(function (s) {
+    s.rows = s.c.map(function (r, i) {
+      var q = r[1] + r[2] + r[3] + r[4] + ((s.unk || {})[i + 1] || 0);
+      return { k: i + 1, db: r[0], e: r[1], m: r[2], h: r[3], x: r[4], q: q, he: (r[3] + r[4]) / q * 100, tiers: r.slice(5, 9), note: r[9] };
+    });
+    s.q = s.rows.reduce(function (a, r) { return a + r.q; }, 0);
+    s.db = s.rows.reduce(function (a, r) { return a + r.db; }, 0);
+  });
+  var maxQ = Math.max.apply(null, SPLITS.map(function (s) { return Math.max.apply(null, s.rows.map(function (r) { return r.q; })); }));
+
+  var tabs = document.getElementById("sx-tabs"), meta = document.getElementById("sx-meta"),
+      rowsBox = document.getElementById("sx-rows"), readBox = document.getElementById("sx-read");
+  var skewRows = [];
+  function show(id) {
+    var s = SPLITS.filter(function (x) { return x.id === id; })[0] || SPLITS[0];
+    tabs.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.id === s.id)); });
+    skewRows.forEach(function (g) { g.classList.toggle("on", g.dataset.id === s.id); });
+    meta.innerHTML =
+      '<span class="pill ' + s.st[0] + '">' + s.st[1] + '</span>' +
+      '<span><span class="k">Chia</span> <span class="v">' + s.part + '</span></span>' +
+      '<span><span class="k">Tổng</span> <span class="v">' + fmt(s.q) + ' câu, ' + s.db + ' DB</span></span>' +
+      (s.minDb ? '<span><span class="k">Ít nhất</span> <span class="v">' + s.minDb + ' DB / client, ' + s.draws + ' lần rút</span></span>' : '') +
+      '<span><span class="k">Thư mục</span> <code>' + s.path + '</code></span>';
+    rowsBox.innerHTML = "";
+    s.rows.forEach(function (r) {
+      var el = document.createElement("div");
+      el.className = "sx-row";
+      el.innerHTML =
+        '<div class="name"><b>Client ' + r.k + '</b><span>' + fmt(r.q) + ' câu &middot; ' + r.db + ' DB</span></div>' +
+        '<div class="barcol"><div class="hstack" style="width:' + (r.q / maxQ * 100).toFixed(2) + '%">' + stack(r, false) + '</div>' +
+          (r.note ? '<span class="note' + (/rỗng/.test(r.note) && r.q && parseInt(r.note.replace(/,/g, ""), 10) / r.q > 0.2 ? ' hi' : '') + '">' + r.note + '</span>' : '') + '</div>' +
+        '<div class="pct">' + r.he.toFixed(0) + '%</div>' +
+        '<div class="tchips">' + r.tiers.map(function (n, t) { return '<span class="t' + t + (n ? '' : ' z') + '" title="tier ' + t + ': ' + n + ' database">' + n + '</span>'; }).join("") + '</div>';
+      rowsBox.appendChild(el);
+    });
+    readBox.textContent = s.read;
+    try { localStorage.setItem("fedls-split", s.id); } catch (e) {}
+  }
+  SPLITS.forEach(function (s) {
+    var b = document.createElement("button");
+    b.type = "button"; b.dataset.id = s.id; b.textContent = s.tab;
+    b.addEventListener("click", function () { show(s.id); });
+    tabs.appendChild(b);
+  });
+
+  (function drawSkew() {
+    var svg = document.getElementById("skewsvg");
+    if (!svg) return;
+    var NS = "http://www.w3.org/2000/svg", W = 960, ml = 190, mr = 30, mt = 16, rowH = 50, H = mt + rowH * SPLITS.length + 36;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var xMin = 10, xMax = 70;
+    function X(v) { return ml + (v - xMin) / (xMax - xMin) * (W - ml - mr); }
+    function el(tag, attrs, text, parent) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (text != null) e.textContent = text;
+      (parent || svg).appendChild(e); return e;
+    }
+    var yBottom = mt + rowH * SPLITS.length;
+    for (var v = xMin; v <= xMax; v += 10) {
+      el("line", { "class": "sk-grid", x1: X(v), x2: X(v), y1: mt, y2: yBottom });
+      el("text", { "class": "sk-axis", x: X(v), y: yBottom + 20, "text-anchor": "middle" }, v + "%");
+    }
+    SPLITS.forEach(function (s, i) {
+      var cy = mt + rowH * i + rowH / 2;
+      var g = el("g", { "class": "sk-row", tabindex: "0", role: "button", "aria-label": s.tab });
+      g.dataset.id = s.id;
+      el("rect", { "class": "sk-hl", x: 0, y: mt + rowH * i + 3, width: W, height: rowH - 6, rx: 6 }, null, g);
+      el("text", { "class": "sk-name", x: 8, y: cy - 2 }, s.short.replace("&alpha;", "α"), g);
+      el("text", { "class": "sk-sub", x: 8, y: cy + 14 }, s.sub, g);
+      var lo = Math.min.apply(null, s.rows.map(function (r) { return r.he; })),
+          hi = Math.max.apply(null, s.rows.map(function (r) { return r.he; }));
+      el("line", { "class": "sk-range", x1: X(lo), x2: X(hi), y1: cy, y2: cy }, null, g);
+      el("line", { "class": "sk-all", x1: X(s.all), x2: X(s.all), y1: cy - 14, y2: cy + 14 }, null, g);
+      s.rows.slice().sort(function (a, b) { return b.q - a.q; }).forEach(function (r) {
+        var c = el("circle", { "class": "sk-dot" + (s.ds === "bird" ? " bird" : ""), cx: X(r.he), cy: cy, r: (3 + Math.sqrt(r.q / maxQ) * 11).toFixed(1) }, null, g);
+        el("title", {}, "Client " + r.k + ": " + r.he.toFixed(0) + "% hard + extra, " + fmt(r.q) + " câu", c);
+      });
+      el("text", { "class": "sk-sub", x: X(hi) + 18, y: cy + 4 }, lo.toFixed(0) + "-" + hi.toFixed(0) + "%", g);
+      g.addEventListener("click", function () { show(s.id); document.getElementById("splitx").scrollIntoView({ block: "nearest" }); });
+      g.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); show(s.id); } });
+      skewRows.push(g);
+    });
+  })();
+
+  var start = "s01";
+  try { var sv = localStorage.getItem("fedls-split"); if (sv) start = sv; } catch (e) {}
+  show(start);
 })();
 </script>
 </body>
