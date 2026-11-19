@@ -4,6 +4,23 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: what CMC and JIIS require and publish, read (owner; `JOURNAL_BAR.md`)
+
+Owner: have the two target journals researched for what to learn before
+writing. 7 CMC papers read in full, 4 JIIS papers in full and 5 by
+abstract; the closest two (LESFT at CMC, GradeSQL at JIIS) read a second
+time from the source. One seed with McNemar tests is the protocol of
+GradeSQL (JIIS, "a fixed seed of 42", Bonferroni correction) and more
+than any CMC paper read reports. The gap against both samples is one
+model: every CMC language-model paper has 3 or more (LESFT: Qwen2.5-0.5B,
+1.5B, 3B), GradeSQL has 7. Also seen in the federated papers and not in
+our plan yet: a cost or communication table, one federated factor
+varied, 4 or more baselines. JIIS fits the topic better and costs
+nothing (25 pages, LaTeX); CMC is faster (USD 1,600 for 15 pages). Both
+require the use of AI tools to be disclosed. Not verified: the SJR and
+JCR quartiles. Nothing is queued from this; which gaps to close is the
+owner's decision.
+
 ## 2026-11-19: the gold line is carried on: round 2 on Spider, round 1 on BIRD (owner; queue `1ac2c545`)
 
 Owner: the k = 0 line with gold was higher at round 1 (76.67 against
