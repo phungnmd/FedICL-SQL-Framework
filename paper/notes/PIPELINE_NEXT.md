@@ -65,6 +65,25 @@ to round 2 on Spider and to round 1 on BIRD.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0'; uv run --no-sync python -m scripts.pair_composition --audit $a --round 1 --policy base --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Composition failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: composition of the base student round 1 pairs per client' --paths "$a/pair_read/composition_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
+4. Any time, CPU only: where the 30 s budget ended in the labels of
+   `bird/read` (534 `gold_error` questions against about 400 counted on
+   the Mac). First line, a few minutes: `gold_error` split into timeouts
+   and SQL errors, per client and database, then published. Send back
+   the printed tables.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0'; uv run --no-sync python -m scripts.label_timeouts --audit $a --round 1 --policy base; if ($LASTEXITCODE -ne 0) { throw 'Read failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: where the 30 s budget ended in the labels of the base student on the BIRD clients' --paths "$a/pair_read/timeouts_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   ```
+
+   Second line, after the first: each gold that met the budget run once
+   alone, stopped at 60 s (at most 1 min per gold, 1 to 3 h for about
+   190 golds, estimate; rerun continues). Send back the last table
+   (golds under 15 s, 15 to 30 s, over 30 s).
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0'; $s='processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.label_timeouts --audit $a --round 1 --policy base --retime --split-dir $s; if ($LASTEXITCODE -ne 0) { throw 'Retime failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: BIRD train golds that met the 30 s budget, timed alone' --paths "$a/pair_read/gold_retime_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   ```
+
 ## Running and queued
 
 | # | Tasks | What it answers | About | State |
