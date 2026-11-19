@@ -4,7 +4,7 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
-## 2026-11-20: what the result files record, checked; wall time added to the preference rounds (owner; code `5f34c048`)
+## 2026-11-19: what the result files record, checked; wall time added to the preference rounds (owner; code `5f34c048`)
 
 Owner: is everything recorded that the paper may need, so that nothing
 has to run again. Checked on the committed files. Evaluations: one row
