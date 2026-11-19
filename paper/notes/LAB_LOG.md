@@ -4,6 +4,31 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: the gold line is carried on: round 2 on Spider, round 1 on BIRD (owner; queue `1ac2c545`)
+
+Owner: the k = 0 line with gold was higher at round 1 (76.67 against
+75.87) and that is enough to follow it; its level after more rounds was
+never read. The rule `--gold-chosen --gold-on-empty-databases` uses the
+gold SQL only where the samples give no correct side (all-wrong
+questions; databases without rows), so DPO stays the main part and the
+all-correct questions are left alone. Its pairs do not run out the way
+the k = 0 line's do (8,908, 4,566, 3,222, 2,740). Queued:
+`k0_gold/round_2` (Spider, on-policy, in the root of `decide/k0_gold`;
+the round 1 command with another round number), first among the tasks
+not started so that GPU 1 takes it at once; read against k = 0 round 2
+(77.18; 92 / 398), rounds 3 and 4 follow if it still rises.
+`bird_k0_gold/round_1` (BIRD, same rule, samples of `bird/read` copied
+into a root of its own), after `bird_k0/round_1`; read against
+`bird_k0` and `bird_sft` at 1 round. BIRD train has no database without
+rows, so there the rule is gold as chosen for all-wrong questions. Each
+with evaluation and publications (test; 495 tests pass, 2 skipped).
+Reading note: round 1 of the gold line trains on 14,050 pairs, about
+the pairs of k = 0 rounds 1 and 2 together (13,474; 77.18), so at equal
+rounds it has trained more. Proposed in chat and dropped, not run: NLL
+on the gold SQL for every question without a pair in the same local
+loss as DPO; by round 3 only 19% of the questions give a pair, so most
+of such a round would be SFT (owner).
+
 ## 2026-11-19: the wrong-result count hides a turnover; the three lines solve different questions (no new run)
 
 Question by question on Spider test from the committed predictions (C
