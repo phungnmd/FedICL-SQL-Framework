@@ -4,6 +4,33 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: what the result files record, checked; wall time added to the preference rounds (owner; code `5f34c048`)
+
+Owner: is everything recorded that the paper may need, so that nothing
+has to run again. Checked on the committed files. Evaluations: one row
+per question with the prompt, the prediction, EX, EM, the execution
+error, token counts and the finish reason, so every accuracy breakdown
+(per database, BIRD difficulty, error kinds, tests) is computed later
+without a GPU. FedAvg SFT rounds: seconds, examples, updates, loss, peak
+memory per client and bytes sent. Preference rounds: pairs and question
+kinds per client, loss, margin and accuracy per update, peak memory,
+update norms and cosines; they had no wall time, token count or bytes
+sent in the files (times were only in the console and in the logs on
+the server). Added from this commit on, for every run that starts after
+the server pulls it: per client `timing` (seconds of the call and of the
+updates, updates measured in this call, the update it resumed from) and
+`sequence_tokens` in `client_N_train.json` and `round.json`;
+`timing.json` in the round's folder with the seconds of the generation
+and of each client's labels (for a pair read: `pair_read/timing_rN.json`);
+`communication_bytes` in `round.json`. None of it enters a signature or
+an identity (496 tests pass). For the rounds already run, the times are
+in the logs on the server (`.queue_state/logs/`, a timestamp per line)
+and in no committed file; bytes sent follow from the adapter size
+(73,911,080 bytes, as in the FedAvg record). Not recorded and not added:
+the preference and NLL parts of the loss per update (the total, the
+margin and the accuracy are). Adapters, samples and logs exist on the
+server's drive D only.
+
 ## 2026-11-19: what CMC and JIIS require and publish, read (owner; `JOURNAL_BAR.md`)
 
 Owner: have the two target journals researched for what to learn before
