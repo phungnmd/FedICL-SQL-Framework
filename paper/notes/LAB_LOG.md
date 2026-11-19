@@ -4,6 +4,26 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: reading: training removes execution errors; the wrong results are where the untrained student left them (no new run)
+
+Spider test, from the committed metrics:
+
+| Run | EX | EM | exec errors | wrong results |
+|---|---|---|---|---|
+| Student without training | 68.05 | 53.33 | 287 | 399 |
+| FedAvg SFT round 4 | 74.71 | 64.46 | 173 | 370 |
+| k = 2, DPO round 2 | 78.20 | 64.42 | 84 | 384 |
+| k = 0, DPO round 3 | 77.69 | 55.29 | 82 | 397 |
+
+Every run so far has 342-444 wrong results against 399 without
+training; the EX gains are execution errors removed (287 to 173 with
+gold SFT, to 82-84 with DPO). Gold SFT moves EM by 11 points and DPO
+from the base student by 2: the SFT stage teaches the form of the gold
+SQL, which EX does not count. On the training questions the untrained
+student already has a correct SQL among its 10 samples for 7,582 of
+8,659 (87.6%). Whether Qwen2.5-Coder saw Spider in pre-training was not
+checked (its report was not read for this).
+
 ## 2026-11-19: DPO from the base student matches the SFT-then-DPO line at 3 rounds; gold inside the round not kept (results `3f9ada19`, `9e7c66b0`, `2bdd4c73`, `a3fed6d6`, `548acdab`, `947ca9d8`)
 
 Spider test, by total rounds trained (every row one federated round of
