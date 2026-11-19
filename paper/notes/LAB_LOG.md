@@ -4,6 +4,54 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: BIRD train as a second set of clients, set up and checked on the Mac; nothing queued (owner; code `ab6bc960`..`3cfd42d3`)
+
+Owner: BIRD clients are prepared before the decision on the SFT stage,
+with the prompt as BIRD is prompted (evidence). Done on the Mac, CPU
+only.
+
+- Prompt, checked against the Qwen2.5-Coder evaluation code
+  (`qwencoder-eval/instruct/bird-spider/sql_suites/preprocess_bird.py`,
+  read twice, the second time independently): schema is `CREATE TABLE`
+  text without rows (`SCHEMA_EXAMPLE_ROWS = 0`, our `ddl`); the lines
+  `-- External Knowledge: {evidence}` and `-- Using valid SQLite and
+  understanding External Knowledge, ...` go on every question, the
+  evidence as given. Ours left them out when the evidence was empty and
+  stripped it: fixed. On all 1,534 BIRD dev rows our text equals the
+  source's except `sqlite_sequence`, which our schema leaves out (4 dev
+  databases; as on Spider, kept). The Spider prompt hashes are pinned by
+  a test and did not change.
+- Length (limit 7,168): `ddl` longest BIRD train sequence 6,807 tokens,
+  longest dev prompt 2,207, no row over; `ddl_rows` 872 train rows over
+  (longest 220,797), `ddl_values` 474. BIRD runs use `ddl`.
+- Split `BIRD/original_train9428_dev1534/federated/alpha_0.1/k5`, built
+  as the Spider main split (Dirichlet 0.1 over 4 database tiers, seed
+  42, a database whole at one client): 16 / 14 / 16 / 5 / 18 databases,
+  2,011 / 1,595 / 2,080 / 683 / 3,059 questions. Tiers by share of hard
+  and extra golds, the levels from Spider's hardness rules on sqlglot's
+  parse (Spider's own parser reads 15% of BIRD golds; the new one agrees
+  with it on 8,656 of 8,658 Spider train golds). Checked here: the five
+  files are the centralized train rows exactly, no database at two
+  clients, none shared with BIRD dev.
+- Golds (one thread on the Mac): no BIRD train database is empty; 350
+  golds raise an SQL error (340 at client 5, mostly `retail_world`), 9
+  run over 60 s, about 40 more spend the 30 s pair budget; 398 questions
+  would be labelled `gold_error` and give no pair. Two BIRD dev golds
+  spend the pair budget and score 0 for every arm.
+- Code: a public pool that holds a client database is rejected; BIRD
+  rows take hardness from the sqlglot rules; a pair whose budget ends on
+  the gold side is a timeout instead of a crash, and such a sample gets
+  no label (it ran, its result was never compared) rather than
+  `exec_error`. 492 tests pass.
+- Not done: no run on the server. The memory of BIRD training is not
+  measured, the labels under several score workers are not timed, the
+  FedAvg SFT command was read but not run.
+
+Open for the owner: queue the read of the base student on BIRD
+(sampling and labels, no training) and the zero-shot evaluation on BIRD
+dev; keep or drop the 350 failing golds for FedAvg SFT; 256 new tokens
+(6 BIRD dev golds are longer).
+
 ## 2026-11-19: k = 0 round 4 reaches 78.02, equal to the k = 2 line at 4 rounds (results `4fd84bee`, `4215a7e1`)
 
 Spider test: 78.02 (easy 88.94, medium 81.10, hard 72.57, extra 63.31),
