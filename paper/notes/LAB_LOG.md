@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: without the NLL term DPO gains nothing; wrong-result rejects trade error types (results `aa05e549`, `cd4727a7`, `3a4759b5`, `f8485b4b`)
+
+Both runs are DPO round 1 from FedAvg round 2 on its samples (8,026
+pairs each), one setting changed. Spider test:
+
+| Run | EX | easy | medium | hard | extra | exec errors | wrong results |
+|---|---|---|---|---|---|---|---|
+| FedAvg round 2 (the start) | 74.10 | 89.36 | 78.65 | 65.23 | 54.62 | 183 | 373 |
+| RFT (NLL on correct samples only) | 75.87 | 90.43 | 79.35 | 67.60 | 59.10 | 153 | 365 |
+| DPO without NLL (`decide/nonll`) | 73.59 | 88.94 | 75.50 | 68.03 | 56.02 | 167 | 400 |
+| DPO + NLL, wrong-result rejects first (`decide/wrfirst`) | 77.27 | 91.06 | 79.70 | 71.49 | 60.78 | 146 | 342 |
+| DPO + NLL, random pairs (dpo_k2 round 1) | 77.46 | 91.49 | 80.63 | 71.06 | 59.66 | 99 | 385 |
+
+No NLL (NLL weight 0, same pairs, pair hashes not compared): against
+DPO + NLL fixed 62, broke 145, McNemar p < 1e-6; against its start
+FedAvg round 2 fixed 157, broke 168, p 0.58; against RFT fixed 123,
+broke 172, p 0.005. Training reaches a larger margin (1.47-2.81 against
+1.01-1.67) with the same accuracy, larger updates (norms 1.53-2.34
+against 1.35-2.12), and the median output grows from 23 to 27 tokens.
+Reading: the preference term alone does not move the model from its
+start (as the papers on SFT then plain DPO report, `DPO_RESEARCH.md`
+2.1); the NLL term alone gives +1.77; both give +3.36. The NLL term is
+a part of the method by the rule. Round 1 of federated DPO as
+`DPO_RESEARCH.md` describes OpenFedLLM (plain DPO, fixed pairs, fixed
+reference; the paper was not read again today) is this run, since
+round 1 has the same pairs and reference either way: 73.59, 3.87 below
+the method. The fixed line of 2026-11-18 (77.64, 78.02) kept the NLL
+term, so it is not that baseline.
+
+Wrong-result rejects first: 5,526 of the 8,026 rejected sides are wrong
+results (random: 3,939). Against random pairs fixed 38, broke 42,
+p 0.74: the same EX. Wrong results fall from 385 to 342 and execution
+errors rise from 99 to 146: the rejected side decides which errors DPO
+removes, at about one for one. Not kept by the rule (no gain of 0.5).
+Peak reserved 12.65-19.03 GiB in both runs.
+
 ## 2026-11-19: a worker can stop itself at a given time (owner; code `3958a1af`)
 
 Owner: GPU 1 runs until 07:00 and stops by itself.
