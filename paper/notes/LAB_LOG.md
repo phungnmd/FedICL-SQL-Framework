@@ -4,6 +4,51 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: a stopped and continued run keeps its results and its totals (owner; code `a1679b75`)
+
+Owner: later runs must give the right numbers whatever is restarted,
+stopped or continued. Read through every step for what a stop does.
+
+Found wrong and fixed:
+
+- SFT with dropout (FedAvg SFT, centralized SFT; LoRA dropout 0.05). A
+  call that continued a checkpoint seeded itself again, so its dropout
+  masks were not those of the uninterrupted training: a valid training,
+  but another one. The checkpoint now holds the state of torch's
+  generators; the test stops a training with dropout at a checkpoint,
+  continues it and gets the same weights, and fails without the fix. No
+  committed result is touched: all 20 FedAvg SFT client trainings ran in
+  one call. `refs/central_sft` was stopped in epoch 1 under the earlier
+  code: its continuation of that epoch is not the uninterrupted one
+  (logged here so the row is read with it); from its next checkpoint on
+  it is.
+- Times of a continued DPO training covered the last call only. Now each
+  update keeps its seconds in the checkpoint and the reference pass keeps
+  its own, so `update_seconds` and `reference_seconds` count the whole
+  training once whatever the number of calls (`calls`); peak memory is
+  over all calls.
+- Times of a continued SFT training: `calls`,
+  `elapsed_seconds_all_calls` and the peak over all calls, next to the
+  last call's numbers.
+- Sampling and labels: a call killed inside the step left no trace and
+  the next call's entry looked like the whole step. Each step now writes
+  a `started` entry before and a `done` entry after, with the questions
+  it found left; `round.json` sums them and `complete` is false when a
+  call was stopped inside a step (its times are then in the task log).
+
+Checked and already right: a continued DPO training equals the
+uninterrupted one (seeded pair order, no dropout, test on the weights);
+samples and labels are kept per question, evaluations per row; pairs
+are rebuilt from the samples and compared; aggregation and publication
+are written whole or not at all.
+
+Where a part is unknown (a checkpoint of earlier code) the total is
+`null`, never a part given as the whole. The rule is in
+`fedicl-sql/AGENTS.md` (Hard rules) and
+`docs/PROTOCOL_V2.md`, "Runs that are stopped and continued". 510 tests
+pass on the committed tree. Not run on the server: the first round that
+starts after the next pull writes the new fields.
+
 ## 2026-11-20: wall times of the finished tasks are in Git: 46 tasks since the reset (result `5aa73a62`, code `a2230da9`)
 
 `scripts/log_times.py` ran on the server's logs: one file per finished
