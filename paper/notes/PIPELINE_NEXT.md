@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-19 16:15 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-19 19:20 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
@@ -12,23 +12,26 @@ trained:
 | 3 | 74.71 | 77.46 | 77.69 |
 | 4 | 74.71 | 78.20 | 78.02 |
 
-New since 14:40: k = 0 round 4 78.02, equal to the k = 2 line at 4
-rounds (p 0.85): on Spider the FedAvg SFT stage shows no gain at 3 or 4
-rounds. Earlier today: gold inside the round 76.67 against 75.87
-(p 0.21), not kept; DPO without the NLL term 73.59 (the NLL term stays);
-wrong-result rejects first in round 1 77.27, not kept. Being prepared on
-the Mac, not queued: BIRD train as a second set of clients (prompt with
-evidence, client split, evaluation on BIRD dev).
+New since 16:15: wrong-result rejects in round 2 (`decide/wr_round2`)
+77.69 against 78.20 (p 0.14), 12 fewer wrong results and 23 more
+execution errors, not kept. BIRD train as a second set of clients is set
+up and checked (prompt with evidence against the Qwen2.5-Coder code,
+client split, labels, evaluation on BIRD dev); its first two runs are
+queued (`4045d3af`), no training in either. Earlier today: k = 0 equals
+the k = 2 line at 3 and 4 rounds; gold inside the round not kept; DPO
+without the NLL term 73.59 (the NLL term stays).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `decide/wr_round2` since 15:29, done at about 17:00 (estimate), then `decide/k3`. | k = 0 round 4 evaluation `4215a7e1`, published 15:29 (inferred) |
+| 0 | Worker: `decide/k3/round_1` since 17:03, done at about 20:00 (estimate); then its evaluation, `bird/zs`, `bird/read`. | `decide/wr_round2` evaluation `06e81fdf`, published 17:03 (inferred) |
 | 1 | Stopped since 07:00, not started again. | the results since 06:31 came in the order one worker gives (inferred) |
 
 ## Run now
 
-1. Start GPU 1 again (optional; it halves the wait for rows 2-4 of the
-   table). Add
+1. Start GPU 1 again (optional; it takes `bird/zs` and `bird/read` at
+   once instead of after `decide/k3`). The server needs a pull first if
+   no publication has run since 19:10 (the publish step merges
+   `origin/main` itself). Add
    `--until HH:MM` after the GPU digit for a stop time:
 
    ```powershell
@@ -40,12 +43,16 @@ evidence, client split, evaluation on BIRD dev).
 2. Send back, when they come:
    - the last lines the GPU 1 worker printed at 07:00 (the first run of
      `--until` on Windows);
-   - the EX line of `decide/wr_round2` and of `decide/k3`;
+   - the EX line of `decide/k3` and of `bird/zs`, and for `bird/read` the
+     table of questions by kind per client, how long sampling and
+     labelling took, and any line that names a timeout;
    - the first time two vLLM jobs overlap (an evaluation on one card while
      the other samples or evaluates): the peak reserved VRAM of each and
      whether either slows down;
-   - a `STOP queue` line, if one comes (`decide/wr_round2` is the first
-     queued use of `--continue-from`).
+   - a `STOP queue` line, if one comes (the BIRD tasks are the first runs
+     on BIRD in this setup: a missing database under
+     `data/raw/bird/train/train_databases/` would stop `bird/read` at
+     its start).
 
 3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
@@ -59,21 +66,22 @@ evidence, client split, evaluation on BIRD dev).
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | running since 15:29 (inferred) |
-| 2 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20), k = 0 round 4 (78.02) and FedAvg round 4 (74.71); step 1 of row 4 | 3 h (estimate) | queued |
-| 3 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 2 |
-| 4 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 1 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20), k = 0 round 4 (78.02) and FedAvg round 4 (74.71); step 1 of row 5 | 3 h (estimate) | running since 17:03 (inferred) |
+| 2 | `bird/zs`, `bird/publish_zs` | base student on BIRD dev (1,534 rows, evidence, `ddl`, greedy): the level before training, and how many outputs are cut at 256 tokens or hit the 30 s budget | 15 min (estimate) | queued |
+| 3 | `bird/read`, `bird/publish_read` | on BIRD train at 5 clients: for how many questions does the base student have a correct SQL among 10 samples (Spider: 87.6%; all wrong 12%)? Decides whether DPO from the base student can stand without a gold path on a harder dataset | 1.5-3 h (estimate; labels with 4 workers under the 30 s budget are the unknown part) | queued |
+| 4 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 3 |
+| 5 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
-Expected with GPU 0 alone (estimates): row 1 at about 17:00, row 2 at
-about 20:00.
+Expected with GPU 0 alone (estimates): row 1 at about 20:15 with its
+evaluation, row 2 at about 20:30, row 3 between 22:00 and 23:30.
 
 Reading: a setting is kept when it gains at least 0.5 EX over the run it
 is read against with a McNemar p below 0.05. A difference of about 0.2
 EX is what running the same training again gives. Open for the owner:
 whether the FedAvg SFT stage stays (no gain on Spider at 3 or 4 rounds;
-the read of the base student on BIRD comes first); if it goes, row 4
-starts from the k = 0 line instead of FedAvg round 3 and row 2 is only a
-row of the k table; round 2 of federated DPO as published (no NLL, fixed
+the read of the base student on BIRD, row 3, comes first); if it goes,
+row 5 starts from the k = 0 line instead of FedAvg round 3 and row 1 is
+only a row of the k table; round 2 of federated DPO as published (no NLL, fixed
 pairs, fixed reference) from the `decide/nonll` root, about 2.5 h, for
 the baseline row.
 

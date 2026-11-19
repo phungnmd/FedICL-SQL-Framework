@@ -4,6 +4,40 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: BIRD zero-shot and pair read queued after k = 3 (owner; queue `4045d3af`)
+
+Owner: queue the two BIRD runs, labels with 4 workers. `bird/zs` (base
+student on BIRD dev, evidence, `ddl`, arm `zs_bird_ddl_vllm_inproc`) and
+`bird/read` (10 samples per question at T 1.0 from the base student on
+the BIRD `alpha_0.1/k5` clients, labelled with the BIRD evaluator,
+`--score-workers 4`, root `fedpref_bird_base_p2_ddl_alpha01_s0`, 2 pairs
+per question so that round 1 from the base student reuses the samples),
+each with its publication, after `decide/k3` and before centralized SFT.
+The read differs from `pairread/base_ddl_rows` in split, profile, schema
+style, root, pairs per question and score workers; the zero-shot from
+`prompt/zs_ddl_rows` in arm, set and schema style (test; 493 tests pass).
+No training in either. Not measured on BIRD: run time and the share of
+samples that hit the 30 s budget.
+
+## 2026-11-19: wrong-result rejects in round 2 trade error types again, not kept (results `0f698bfa`, `06e81fdf`)
+
+`decide/wr_round2`: DPO round 2 after dpo_k2 round 1, same samples as
+dpo_k2 round 2 (3,354 pairs), rejected side from wrong results first
+(2,198 wrong-result rejects against 1,921). Spider test: 77.69 (easy
+91.70, medium 80.98, hard 70.84, extra 60.22), execution errors 107,
+wrong results 372, no cut output.
+
+| Against | EX | exec errors | wrong results | Fixed | Broke | p |
+|---|---|---|---|---|---|---|
+| dpo_k2 round 2, random pairs | 78.20 | 84 | 384 | 17 | 28 | 0.14 |
+| dpo_k2 round 1 (its start) | 77.46 | 99 | 385 | 43 | 38 | 0.66 |
+| k = 0 round 4 | 78.02 | 69 | 403 | 115 | 122 | 0.70 |
+
+As in round 1: 12 fewer wrong results, 23 more execution errors, EX 0.51
+lower (p 0.14). The rule moves errors from one type to the other at a
+loss and is not kept; the first queued use of `--continue-from` ran
+without a stop. Peak reserved 14.39-18.97 GiB, 211 updates.
+
 ## 2026-11-19: the 256-token limit and the execution budgets against the published code (no run)
 
 Read today in the code of each source:
