@@ -21,8 +21,13 @@ gold SFT, to 82-84 with DPO). Gold SFT moves EM by 11 points and DPO
 from the base student by 2: the SFT stage teaches the form of the gold
 SQL, which EX does not count. On the training questions the untrained
 student already has a correct SQL among its 10 samples for 7,582 of
-8,659 (87.6%). Whether Qwen2.5-Coder saw Spider in pre-training was not
-checked (its report was not read for this).
+8,659 (87.6%). Whether Qwen2.5-Coder saw Spider in pre-training is not
+stated in its report (arXiv 2409.12186, read 2026-11-19): section 7.4
+evaluates on Spider and BIRD (split and metric not given, results only
+in figure 12) and credits "finely crafted synthetic data during both
+pre-training and fine-tuning" for the Text-to-SQL level; the data
+sections name no Text-to-SQL dataset; the decontamination step (section
+5, 10-gram overlap) names HumanEval, MBPP, GSM8K and MATH only.
 
 ## 2026-11-19: DPO from the base student matches the SFT-then-DPO line at 3 rounds; gold inside the round not kept (results `3f9ada19`, `9e7c66b0`, `2bdd4c73`, `a3fed6d6`, `548acdab`, `947ca9d8`)
 
