@@ -2,59 +2,50 @@
 
 ## Status
 
-Updated 2026-11-19 09:40 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
-SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71); DPO + NLL from FedAvg
-round 2: round 1 77.46, round 2 78.20 (fixed pairs and reference with
-NLL: 77.64, 78.02); RFT round 1 75.87; DPO round 1 from the base student
-75.87. New: DPO without the NLL term 73.59, no gain over its start
-(74.10) and 3.87 below DPO + NLL (p < 1e-6), so the NLL term is a part
-of the method; wrong-result rejects first 77.27, the same EX as random
-pairs (77.46, p 0.74) with fewer wrong results (342 against 385) and
-more execution errors (146 against 99), not kept in round 1; queued
-for round 2 (`decide/wr_round2`, pushed `d1a3aa9f`). No result since
-06:31.
+Updated 2026-11-19 14:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
+trained:
+
+| Total rounds | FedAvg SFT | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) |
+|---|---|---|---|
+| 1 | 72.43 | | 75.87 |
+| 2 | 74.10 | | 77.18 |
+| 3 | 74.71 | 77.46 | 77.69 |
+| 4 | 74.71 | 78.20 | running |
+
+New since 09:40: k = 0 round 2 77.18 and round 3 77.69, equal to the
+k = 2 line at 3 rounds (p 0.80) and about 3 above FedAvg SFT at the same
+rounds (p < 0.001); gold inside the round (`decide/k0_gold`) 76.67
+against 75.87 (p 0.21), execution errors 101 to 57 and wrong results 417
+to 444, not kept. Earlier: DPO without the NLL term 73.59 (the NLL term
+stays); wrong-result rejects first in round 1 77.27, not kept; RFT 75.87;
+fixed pairs and reference with NLL 77.64, 78.02.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: free at 06:31, took the first ready task then (`dpo_k0/round_2`, or `decide/k0_gold` if GPU 1 had not taken it). | `decide/nonll` result commit `f8485b4b`, published 06:31 (inferred) |
-| 1 | Free at 05:24, took `decide/k0_gold` then; stopped at 07:00 if it was restarted with `--until 07:00`. | `decide/wrfirst` result commit `cd4727a7`, published 05:24 (inferred) |
+| 0 | Worker: `dpo_k0/round_4` since 13:57, done at about 15:40 (estimate), then `decide/wr_round2`. | k = 0 round 3 evaluation `947ca9d8`, published 13:57 (inferred) |
+| 1 | Stopped since 07:00, not started again. | the results since 06:31 came in the order one worker gives (inferred) |
 
 ## Run now
 
-1. Send the state of the queue (read-only), and whether GPU 1 stopped
-   at 07:00 (the last lines of its terminal):
-
-   ```powershell
-& { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker status; if ($LASTEXITCODE -ne 0) { throw 'Status failed' } }
-```
-
-2. To start GPU 1 again (the same line with `--gpu 0` continues GPU 0 if
-   it stops; add `--until HH:MM` after the GPU digit for a stop time):
+1. Start GPU 1 again (optional; it halves the wait for rows 2-4). Add
+   `--until HH:MM` after the GPU digit for a stop time:
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; uv run --no-sync python -m scripts.gpu_worker run --gpu 1; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-   A task that GPU 1 left at 07:00 is taken by the GPU 0 worker after
-   its own task, before the evaluation of the round it just trained
-   (queue order), so with one card the EX of k = 0 round 2 comes after
-   `decide/k0_gold`. Expected with GPU 0 alone (estimates): both done
-   by about 12:30, k = 0 rounds 3 and 4 at about 15:30 and 18:30,
-   `decide/wr_round2` at about 20:00, `decide/k3` at about 23:00. With
-   two cards `decide/wr_round2` runs on the card that is free while the
-   other trains a k = 0 round.
+   The same line with `--gpu 0` continues GPU 0 if it stops.
 
-   Send back:
+2. Send back, when they come:
+   - the last lines the GPU 1 worker printed at 07:00 (the first run of
+     `--until` on Windows);
+   - the EX line of k = 0 round 4, of `decide/wr_round2` and of
+     `decide/k3`;
    - the first time two vLLM jobs overlap (an evaluation on one card while
      the other samples or evaluates): the peak reserved VRAM of each and
      whether either slows down;
-   - the EX line of `decide/k0_gold`, of each k = 0 round and of
-     `decide/wr_round2`;
-   - for `decide/k0_gold`: the pair counts per client and, in the first
-     updates of client 4, the peak reserved VRAM (its questions on
-     databases without rows are new to DPO training);
-   - for k = 0 round 2: the pair counts per client;
-   - a `STOP queue` line, if one comes.
+   - a `STOP queue` line, if one comes (`decide/wr_round2` is the first
+     queued use of `--continue-from`).
 
 3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
    student's round 1 samples by rejected outcome, per client, then
@@ -68,24 +59,24 @@ for round 2 (`decide/wr_round2`, pushed `d1a3aa9f`). No result since
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `decide/k0_gold/*` | DPO round 1 from the base student with the gold SQL as chosen where execution gives no pair: questions whose samples are all wrong, and questions on databases without rows (rejected: their wrong samples). Does gold inside the round replace the SFT stage? Read against DPO round 1 from the base student (75.87) and from FedAvg round 2 (77.46) | 4.5 h (estimate; about 14,000 pairs against 8,908) | running or stopped at 07:00 (inferred) |
-| 2 | `dpo_k0/round_2..4` | DPO rounds 2-4 from the base student (k = 0), on-policy, each evaluated: is the FedAvg SFT stage needed at the same total rounds? Round 2 against FedAvg round 2 (74.10), round 3 against 77.46, round 4 against 78.20 and FedAvg round 4 (74.71) | 3 h per round (estimate) | round 2 running (inferred) |
-| 3 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | queued |
-| 4 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 6 | 3 h (estimate) | queued |
-| 5 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 4 |
-| 6 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 1 | `dpo_k0/round_4` | DPO round 4 from the base student (k = 0), on-policy: is the FedAvg SFT stage needed at 4 total rounds? Read against DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71) | 1 h 45 min (estimate, as round 3) | running since 13:57 (inferred) |
+| 2 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | queued |
+| 3 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20), k = 0 round 4 and FedAvg round 4 (74.71); step 1 of row 5 | 3 h (estimate) | queued |
+| 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 3 |
+| 5 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+
+Expected with GPU 0 alone (estimates): row 1 at about 15:40, row 2 at
+about 17:15, row 3 at about 20:15.
 
 Reading: a setting is kept when it gains at least 0.5 EX over the run it
 is read against with a McNemar p below 0.05. A difference of about 0.2
-EX is what running the same training again gives. Row 1 runs its two
-settings together; if it gains, each runs alone and the k = 0 line takes
-the rule up at its next round. Row 2 is read at the same total rounds as
-the k = 2 line (round 3 against 77.46, round 4 against 78.20); whether
-the SFT stage stays is the owner's decision on those numbers. Open for
-the owner: round 2 of federated DPO as published (no NLL, fixed pairs,
-fixed reference) from the `decide/nonll` root, about 2.5 h, for the
-baseline row; and the second benchmark (BIRD, clients on BIRD train
-databases, BIRD dev).
+EX is what running the same training again gives. Open for the owner:
+whether the FedAvg SFT stage stays, once row 1 is in (at 3 rounds it
+shows no gain); if it goes, row 5 starts from the k = 0 line instead of
+FedAvg round 3 and row 3 is only a row of the k table; round 2 of
+federated DPO as published (no NLL, fixed pairs, fixed reference) from
+the `decide/nonll` root, about 2.5 h, for the baseline row; the second
+benchmark (BIRD, clients on BIRD train databases, BIRD dev).
 
 ## Reference
 

@@ -4,6 +4,72 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: DPO from the base student matches the SFT-then-DPO line at 3 rounds; gold inside the round not kept (results `3f9ada19`, `9e7c66b0`, `2bdd4c73`, `a3fed6d6`, `548acdab`, `947ca9d8`)
+
+Spider test, by total rounds trained (every row one federated round of
+the 5 clients per round):
+
+| Total rounds | FedAvg SFT | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) | k = 0 with the gold rule |
+|---|---|---|---|---|
+| 1 | 72.43 | | 75.87 | 76.67 |
+| 2 | 74.10 | | 77.18 | |
+| 3 | 74.71 | 77.46 | 77.69 | |
+| 4 | 74.71 | 78.20 | running | |
+
+| Run | EX | easy | medium | hard | extra | exec errors | wrong results |
+|---|---|---|---|---|---|---|---|
+| k = 0 round 1 | 75.87 | 90.43 | 79.00 | 68.90 | 58.26 | 101 | 417 |
+| k = 0 round 1, gold rule (`decide/k0_gold`) | 76.67 | 89.79 | 80.28 | 68.47 | 61.34 | 57 | 444 |
+| k = 0 round 2 | 77.18 | 90.64 | 80.51 | 70.84 | 59.66 | 92 | 398 |
+| k = 0 round 3 | 77.69 | 90.43 | 80.98 | 70.41 | 62.46 | 82 | 397 |
+| k = 2, DPO round 1 (3 rounds) | 77.46 | 91.49 | 80.63 | 71.06 | 59.66 | 99 | 385 |
+| k = 2, DPO round 2 (4 rounds) | 78.20 | 91.91 | 81.91 | 71.06 | 60.50 | 84 | 384 |
+
+Question by question (fixed, broke, exact McNemar p):
+
+| Compared | Fixed | Broke | p |
+|---|---|---|---|
+| k = 0 round 2 against round 1 | 69 | 41 | 0.0097 |
+| k = 0 round 3 against round 2 | 46 | 35 | 0.27 |
+| k = 0 round 2 against FedAvg round 2 (2 rounds each) | 166 | 100 | 6e-05 |
+| k = 0 round 3 against FedAvg round 3 (3 rounds each) | 170 | 106 | 0.00014 |
+| k = 0 round 3 against k = 2 DPO round 1 (3 rounds each) | 124 | 119 | 0.80 |
+| k = 0 round 3 against k = 2 DPO round 2 (3 against 4 rounds) | 109 | 120 | 0.51 |
+| k = 0 round 2 against k = 2 DPO round 1 (2 against 3 rounds) | 131 | 137 | 0.76 |
+| gold rule against k = 0 round 1 | 90 | 73 | 0.21 |
+| gold rule against k = 2 DPO round 1 (1 against 3 rounds) | 106 | 123 | 0.29 |
+| k = 0 round 2 against the gold rule (2 against 1 round) | 90 | 79 | 0.44 |
+
+The k = 0 line: at the same total rounds DPO from the base student is
+3.08 above FedAvg SFT at 2 rounds and 2.98 at 3, and equal to the k = 2
+line at 3 rounds (+0.23, p 0.80). The FedAvg SFT stage shows no gain at
+3 rounds; round 4 (running) is read against 78.20. Round 2 is a gain by
+the rule (+1.31, p 0.0097); round 3 adds 0.51 (p 0.27). Pairs per round
+8,908, 4,566, 3,222 (288 and 204 updates in rounds 2 and 3). On the
+training samples the line leaves more questions with no correct sample
+than gold SFT does: 1,074 (base), 902 after round 1, 886 after round 2,
+against 573 after 2 FedAvg SFT rounds.
+
+The gold rule (`--gold-chosen --gold-on-empty-databases`, round 1 from
+the base student, same samples as k = 0 round 1): 14,050 pairs against
+8,908, 5,142 with the gold as chosen (3,110 on databases without rows,
+2,912 of them at client 4; 2,032 on questions whose samples are all
+wrong); rejected sides 9,284 execution errors and 4,765 wrong results
+(k = 0 round 1: 5,339 and 3,568). Client 4 gets 6,064 pairs (weight
+0.43 in the average, 0.28 before). On test: +0.80 (p 0.21), execution
+errors 101 to 57 (the lowest of any row), wrong results 417 to 444, 4
+cut outputs. Not kept by the rule; the two settings do not run alone.
+The added pairs are mostly "gold against a SQL that does not run", and
+that is what moves on test: 44 fewer execution errors, 27 more wrong
+results. Peak reserved 17.38-18.99 GiB (client 4 17.63), 880 updates.
+k = 0 rounds 2 and 3 peak 18.94 and 18.90 GiB.
+
+Server: the results came one after another in the order a single worker
+gives (k = 0 round 2, then `decide/k0_gold`, then the evaluations at
+12:09 and 12:13, round 3 at 13:57), so GPU 0 has run alone since 07:00
+(inferred from the publication times; the owner has not sent the
+worker's lines).
+
 ## 2026-11-19: wrong-result rejects queued for round 2; the NLL term stays (owner; queue `d1a3aa9f`)
 
 Owner: the method keeps the NLL term. Wrong results on Spider test by
