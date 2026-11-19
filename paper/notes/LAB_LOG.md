@@ -40,10 +40,28 @@ memory; update norms and cosines; wall time per step. Not held and not
 recoverable without running again: the preference and NLL parts of the
 loss per update. Not held but countable on the server without a GPU:
 tokens trained on (from the pairs). Bytes sent follow from the adapter
-size (73,911,080 bytes) and the clients that trained. A round that was
-stopped and continued (`dpo_k2/round_1`, `decide/k0_gold/round_1`,
-`decide/wrfirst/round_1`) has its interrupted client's time split over
-two starts; the cost table uses rounds run in one start.
+size (73,911,080 bytes) and the clients that trained.
+
+Stops, checked against the files (owner: do stops change the numbers):
+
+- Results. Every evaluation ran in one start. FedAvg SFT: the task was
+  stopped twice, both times between rounds; all 20 client trainings are
+  recorded as `fresh`. DPO: a stop inside a client's training continues
+  from a checkpoint (adapter, optimizer, schedule; every 25 updates),
+  the order of the pairs is a seeded shuffle and the LoRA dropout is 0,
+  so the continued training is the uninterrupted one (the test compares
+  the weights, equal to 1e-6). Two clients were continued this way:
+  client 3 of `decide/k0_gold/round_1` (from update 25 of 206) and
+  client 4 of `decide/wrfirst/round_1` (from 75 of 148). The stop of
+  `dpo_k2/round_1` fell after client 1. No round was stopped while
+  sampling.
+- Times. The table above uses only rounds run in one start. A continued
+  round's task total also holds the updates done again after the last
+  checkpoint, and its interrupted client has no full step. Times are
+  wall time on a machine whose other card may run a task: five
+  trainings on the same 8,026 pairs took 3:02 to 3:08, so that effect
+  is about 3%. The FedAvg column is the trainer's own clock; by the
+  task log the four rounds with their four evaluations took 8:45.
 
 ## 2026-11-20: loss parts, setup time and environment recorded; times of finished tasks read from the logs (owner; code `03f0eb9a`, `15032280`)
 
