@@ -77,12 +77,11 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0'; $s='processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.label_timeouts --audit $a --round 1 --policy base --retime --split-dir $s; if ($LASTEXITCODE -ne 0) { throw 'Retime failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: BIRD train golds that met the 30 s budget, timed alone' --paths "$a/pair_read/gold_retime_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Any time, CPU only (under a minute): the wall times of every task
-   finished since 2026-11-17, read from the worker's logs into
-   `audits/protocol_v2/run_times/`, one file per task, then published.
-   It is the first run of this script on real logs: send back all it
-   prints. Run it again whenever more tasks have finished; it adds
-   their files and leaves the published ones alone.
+5. After more tasks have finished, CPU only (under a minute): their
+   wall times read from the worker's logs into
+   `audits/protocol_v2/run_times/`, one file per task, then published
+   (46 tasks are in since 00:29; the published files are left alone).
+   Runs that start on the new code also write their times themselves.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }

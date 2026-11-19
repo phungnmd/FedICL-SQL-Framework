@@ -4,6 +4,47 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: wall times of the finished tasks are in Git: 46 tasks since the reset (result `5aa73a62`, code `a2230da9`)
+
+`scripts/log_times.py` ran on the server's logs: one file per finished
+task under `audits/protocol_v2/run_times/`. The steps it reads cover 98%
+or more of each round's time, so the parser matches the real logs. Its
+cut was the day 2026-11-17, which let in 13 tasks of the earlier setup
+from that morning (`gate_s0`, `sqlcv2_s0`, `synvc_s0`, `vote_s0`); the
+cut is now 2026-11-17 11:20 and those 13 files are removed.
+
+Spider, wall time per round on one A5000 (h:mm; FedAvg SFT from its own
+records):
+
+| Round | FedAvg SFT, training | DPO from the base student (k = 0): sampling + labels + training | Pairs |
+|---|---|---|---|
+| 1 | 2:02 | 0:20 + 3:05 | 8,908 |
+| 2 | 2:05 | 0:19 + 1:45 | 4,566 |
+| 3 | 2:06 | 0:19 + 1:15 | 3,222 |
+| 4 | 2:11 | 0:18 + 1:06 | 2,740 |
+| All | 8:24 | 8:27 | |
+
+- Four rounds cost the same wall time for both lines (8:24 against
+  8:27) and end at 74.71 against 78.02. A DPO round gets cheaper each
+  round because fewer questions stay mixed.
+- Within a DPO round's training about one fifth is the reference pass
+  (round 1: 0:36 of 3:05).
+- Round 1 with the gold rule: 14,050 pairs, 4:15 of training.
+- `bird/read`: sampling 0:35, labels 2:42 with 4 workers (Spider: 0:02
+  with 16). Labels are 82% of a BIRD sampling step.
+
+What the earlier rounds now hold for the paper: EX and EM per question
+with the prediction and the error; question kinds, samples by outcome
+and pairs per client; loss, margin and accuracy per update; peak
+memory; update norms and cosines; wall time per step. Not held and not
+recoverable without running again: the preference and NLL parts of the
+loss per update. Not held but countable on the server without a GPU:
+tokens trained on (from the pairs). Bytes sent follow from the adapter
+size (73,911,080 bytes) and the clients that trained. A round that was
+stopped and continued (`dpo_k2/round_1`, `decide/k0_gold/round_1`,
+`decide/wrfirst/round_1`) has its interrupted client's time split over
+two starts; the cost table uses rounds run in one start.
+
 ## 2026-11-20: loss parts, setup time and environment recorded; times of finished tasks read from the logs (owner; code `03f0eb9a`, `15032280`)
 
 Owner: later runs must hold every result and setting the paper needs,
