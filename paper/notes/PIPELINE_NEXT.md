@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-19 09:30 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
+Updated 2026-11-19 09:40 (Asia/Ho_Chi_Minh). Done on Spider test: FedAvg
 SFT rounds 1-4 (72.43, 74.10, 74.71, 74.71); DPO + NLL from FedAvg
 round 2: round 1 77.46, round 2 78.20 (fixed pairs and reference with
 NLL: 77.64, 78.02); RFT round 1 75.87; DPO round 1 from the base student
@@ -10,7 +10,8 @@ NLL: 77.64, 78.02); RFT round 1 75.87; DPO round 1 from the base student
 (74.10) and 3.87 below DPO + NLL (p < 1e-6), so the NLL term is a part
 of the method; wrong-result rejects first 77.27, the same EX as random
 pairs (77.46, p 0.74) with fewer wrong results (342 against 385) and
-more execution errors (146 against 99), not kept. No result since
+more execution errors (146 against 99), not kept in round 1; queued
+for round 2 (`decide/wr_round2`, pushed `d1a3aa9f`). No result since
 06:31.
 
 | GPU | State | Known from |
@@ -39,13 +40,16 @@ more execution errors (146 against 99), not kept. No result since
    (queue order), so with one card the EX of k = 0 round 2 comes after
    `decide/k0_gold`. Expected with GPU 0 alone (estimates): both done
    by about 12:30, k = 0 rounds 3 and 4 at about 15:30 and 18:30,
-   `decide/k3` at about 21:30.
+   `decide/wr_round2` at about 20:00, `decide/k3` at about 23:00. With
+   two cards `decide/wr_round2` runs on the card that is free while the
+   other trains a k = 0 round.
 
    Send back:
    - the first time two vLLM jobs overlap (an evaluation on one card while
      the other samples or evaluates): the peak reserved VRAM of each and
      whether either slows down;
-   - the EX line of `decide/k0_gold` and of each k = 0 round;
+   - the EX line of `decide/k0_gold`, of each k = 0 round and of
+     `decide/wr_round2`;
    - for `decide/k0_gold`: the pair counts per client and, in the first
      updates of client 4, the peak reserved VRAM (its questions on
      databases without rows are new to DPO training);
@@ -66,9 +70,10 @@ more execution errors (146 against 99), not kept. No result since
 | --- | --- | --- | --- | --- |
 | 1 | `decide/k0_gold/*` | DPO round 1 from the base student with the gold SQL as chosen where execution gives no pair: questions whose samples are all wrong, and questions on databases without rows (rejected: their wrong samples). Does gold inside the round replace the SFT stage? Read against DPO round 1 from the base student (75.87) and from FedAvg round 2 (77.46) | 4.5 h (estimate; about 14,000 pairs against 8,908) | running or stopped at 07:00 (inferred) |
 | 2 | `dpo_k0/round_2..4` | DPO rounds 2-4 from the base student (k = 0), on-policy, each evaluated: is the FedAvg SFT stage needed at the same total rounds? Round 2 against FedAvg round 2 (74.10), round 3 against 77.46, round 4 against 78.20 and FedAvg round 4 (74.71) | 3 h per round (estimate) | round 2 running (inferred) |
-| 3 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 5 | 3 h (estimate) | queued |
-| 4 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 3 |
-| 5 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
+| 3 | `decide/wr_round2/*` | DPO round 2 after DPO round 1 from FedAvg round 2 (not trained again), on the samples of its round 2, rejected side from wrong results first: does the rule lower the wrong results once the execution errors are low? Read against DPO round 2 (78.20; execution errors 84, wrong results 384) | 1.5 h (estimate; 3,354 pairs) | queued |
+| 4 | `decide/k3/*` | DPO round 1 from FedAvg round 3 (k = 3): total 4 rounds, as DPO round 2 from k = 2 (78.20) and FedAvg round 4 (74.71); step 1 of row 6 | 3 h (estimate) | queued |
+| 5 | `refs/central_sft` | centralized SFT on the union of the 5 clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1, resumes after row 4 |
+| 6 | `dpo/after_fedavg` | DPO + NLL rounds from FedAvg round 3 until the rule stops them | 2.5-3 h per round (estimate); up to 6 rounds | queued |
 
 Reading: a setting is kept when it gains at least 0.5 EX over the run it
 is read against with a McNemar p below 0.05. A difference of about 0.2

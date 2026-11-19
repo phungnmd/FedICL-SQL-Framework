@@ -4,6 +4,25 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: wrong-result rejects queued for round 2; the NLL term stays (owner; queue `d1a3aa9f`)
+
+Owner: the method keeps the NLL term. Wrong results on Spider test by
+run: FedAvg rounds 2 and 3 373 and 379; DPO + NLL round 1 385 (random),
+382 (nearest), 368 (gold chosen); round 2 384 (on-policy), 375 (fixed);
+RFT 365; wrong-result rejects first 342. The gain of every DPO run so far
+is in execution errors (183 at the start, 84-117 after); only the
+wrong-result rule moves the wrong results, and in round 1 it pays for it
+with execution errors (146). In on-policy round 2, 1,433 of the 3,354
+rejected sides are still execution errors. Queued before `decide/k3`:
+`decide/wr_round2`, a line that takes dpo_k2 round 1 as its own
+(`--continue-from`, first queued use) and runs round 2 on the samples of
+dpo_k2 round 2 (copied) with `--pair-rule wrong_result_first`; the
+command differs from dpo_k2 round 2 in the rule, the root and the two
+continue flags (test; 467 tests pass on the Mac). Read against dpo_k2
+round 2 (78.20; 84 and 384). Root
+`fedpref_sftr2_rand1wr2_ddlrows_alpha01_s0`, arm
+`fedpref_sftr2_rand1wr2_dpo_ddl_rows_a01_r2_vllm_inproc`.
+
 ## 2026-11-19: without the NLL term DPO gains nothing; wrong-result rejects trade error types (results `aa05e549`, `cd4727a7`, `3a4759b5`, `f8485b4b`)
 
 Both runs are DPO round 1 from FedAvg round 2 on its samples (8,026
