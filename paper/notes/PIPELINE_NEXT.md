@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 06:40 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-20 06:50 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) | k = 0 with gold | Centralized SFT (epochs) |
@@ -31,7 +31,7 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `k0_gold/round_2` evaluated and published 03:54; then `bird_sft/round_1` (about 3 h, estimate). | result `1abec88c`, published 03:54; the task after it is inferred |
+| 0 | Worker: `bird_sft/round_1`, client 5 of 5 at 89% at 06:38 (peak reserved 18.9 GiB); then its evaluation on BIRD dev, then `bird_sft/round_2` if the relabel by hand is not through. | worker line sent by the owner, 06:38 |
 | 1 | Worker until 07:30: centralized SFT, epoch 2 published 06:05, epoch 3 since then; it stops in that epoch at 07:30. | result `0643b48c`, published 06:05 |
 
 ## Run now
@@ -109,16 +109,17 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 6 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1; before the BIRD rounds (owner, 2026-11-20): GPU 1 takes it with step 1 |
-| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
+| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1` and `bird_sft/round_2`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
 | 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
 | 3 | `bird_k0_gold/round_1` | BIRD round 1 with gold as chosen for the 3,955 all-wrong questions, on the same samples: against row 2 | 4-6 h (estimate; up to 7,910 more pairs) | queued |
 | 4 | `bird_sft/round_2`, `bird_k0/round_2` | the same as row 2 at 2 rounds (Spider: 74.10 against 77.18) | 3 h and 6 h (estimate; the DPO round samples and labels again, 3 h 19 min in the read) | queued |
 | 5 | `bird_fixed/round_2` | on-policy rounds: round 2 on the round 1 pairs with the base student as reference, against `bird_k0/round_2` (re-sampled). On Spider at k = 2: 78.02 against 78.20 | 3 h (estimate; trains only) | queued |
 
-Expected (estimates): `bird_sft/round_1` on GPU 0 by about 07:15.
-Centralized SFT stops in epoch 3 at 07:30 with GPU 1; what is left of
-it (epoch 3 and, by its rule, up to epoch 8) runs before the BIRD
-rounds not started on the next free card.
+Expected (estimates): `bird_sft/round_1` evaluated on GPU 0 by about
+07:10, then `bird_sft/round_2` (3 h) unless centralized SFT is free
+(GPU 1 holds it until 07:30). Centralized SFT stops in epoch 3 at 07:30
+with GPU 1; what is left of it runs before the BIRD rounds not started
+on the next free card.
 
 Not queued yet, decided on row 2: the line with an SFT stage on
 BIRD (DPO from a `bird_sft` round).
