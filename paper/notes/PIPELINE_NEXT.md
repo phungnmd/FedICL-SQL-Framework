@@ -66,16 +66,27 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0'; uv run --no-sync python -m scripts.pair_composition --audit $a --round 1 --policy base --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Composition failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: composition of the base student round 1 pairs per client' --paths "$a/pair_read/composition_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-4. Any time, CPU only: the 184 BIRD train golds that met the 30 s
-   budget in `bird/read`, each run once alone and stopped at 60 s (at
-   most 1 min per gold, 1 to 3 h, estimate; rerun continues). It says
-   whether they are slow golds or the effect of 4 labels running at
-   once. Send back the last table (golds under 15 s, 15 to 30 s, over
-   30 s).
+4. Now, CPU only: pull the code that runs SQL in worker processes,
+   check it on Windows (3 test files, under a minute), then label the
+   samples of `bird/read` again into the root of the BIRD DPO lines
+   (1 to 2 h, estimate; no sampling; rerun continues). Of the 184 golds
+   that met the 30 s budget there, 151 run alone in under 15 s, 13 in
+   15 to 30 s, 20 in over 30 s. Without this step a card runs the same
+   relabel as the queue task `bird/relabel` before the BIRD DPO rounds
+   and stays unused meanwhile. If the tests fail the line stops before
+   the relabel: send the output. Send back the test line and, per
+   client, the `before`, `after`, `sample label(s) changed` and
+   `SQL budget` lines.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0'; $s='processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.label_timeouts --audit $a --round 1 --policy base --retime --split-dir $s; if ($LASTEXITCODE -ne 0) { throw 'Retime failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: BIRD train golds that met the 30 s budget, timed alone' --paths "$a/pair_read/gold_retime_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m pytest tests/test_sql_pool.py tests/test_relabel_samples.py tests/test_eval.py -q --basetemp "$tmp\pytest_sql_pool"; if ($LASTEXITCODE -ne 0) { throw 'SQL pool tests failed on this machine: send the output' }; uv run --no-sync python -m scripts.relabel_samples --src audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0 --dst audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0 --round 1 --policy base --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5 --dataset-profile bird_with_evidence --score-workers 4; if ($LASTEXITCODE -ne 0) { throw 'Relabel failed' } }
    ```
+
+   The pull changes what the next tasks load, not the running one:
+   evaluations and labels then run their SQL in worker processes (a
+   worker that fails stops the task with `STOP queue`, it is not scored
+   as wrong SQL), BIRD results carry scorer v3, and the BIRD DPO tasks
+   use the `_ev3` roots and wait for `bird/relabel`. No worker restart.
 
 5. After more tasks have finished, CPU only (under a minute): their
    wall times read from the worker's logs into
@@ -91,6 +102,7 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
+| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 1-2 h on CPU (estimate); seconds when step 4 was run by hand | queued, the first ready task of a free card |
 | 1 | `k0_gold/round_2` | Spider: does the k = 0 line with gold (all-wrong questions, databases without rows) end higher than the line without? Round 2 against k = 0 round 2 (77.18; execution errors 92, wrong results 398); rounds 3 and 4 follow if it still rises | 4 h (estimate) | first in the queue since 23:42; running if a worker is up |
 | 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
 | 3 | `bird_k0_gold/round_1` | BIRD round 1 with gold as chosen for the 3,955 all-wrong questions, on the same samples: against row 2 | 4-6 h (estimate; up to 7,910 more pairs) | queued |

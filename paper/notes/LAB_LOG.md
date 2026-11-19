@@ -4,6 +4,72 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: BIRD train golds lost to the 30 s budget came from SQL run in threads; SQL now runs in worker processes (owner; code `0063d2a3`, `addba08d`..`4b4df521`)
+
+Owner: the BIRD read gave 534 `gold_error` questions against about 400
+counted on the Mac; check the 30 s budget, then avoid the fault as far
+as possible on Spider and BIRD.
+
+Measured:
+
+- `bird/read` labels (`timeouts_r1_base.json`, `799543a1`): 534
+  `gold_error` = 350 SQL errors (the Mac count; 330 in `retail_world`)
+  + 184 golds on the budget (`donor` 71, `retails` 34,
+  `world_development_indicators` 20, `language_corpus` 16; client 2 85,
+  client 5 73). 196 samples of 94,280 labelled `exec_error` by a
+  timeout, 10 without a label (budget ended on the gold).
+- The 184 golds and the 8 golds of the unlabelled samples run once
+  alone on the server, stop at 60 s (`gold_retime_r1_base.json`,
+  `b2aeef14`): 159 under 15 s, 13 in 15 to 30 s, 6 in 30 to 60 s, 14
+  over 60 s. Of the 184: 151, 13, 6, 14.
+- Cause, measured on the Mac with the repository's timeout code: the
+  budget check is a Python call from SQLite every 1,000 steps, and in
+  threads it waits for the interpreter lock. One 0.3 s query: 0.4 s
+  alone; 0.4 s in 4 threads; about 260 s in 4 threads next to one busy
+  Python thread; about 5 s the same at 100,000 steps; 0.4 s in 4
+  processes. Not measured on the server itself.
+- Committed evaluations: every row that timed out is slow on its own.
+  Run alone on the Mac, the predictions of BIRD dev rows 106 and 369
+  take 98 s and 141 s, the gold of row 701 over 180 s, the predictions
+  of Spider test rows 1044 and 1040 (`aan_1`) 112 s to over 180 s. No
+  published EX lost a row to load.
+- Spider train labels: `gold_error` is 3 of 8,659 in all 16 label steps
+  (the 3 golds known not to run). Samples labelled `exec_error` by a
+  timeout on Spider: not counted (sample files are on the server).
+
+Changed (owner: yes to SQL in processes, a sparser check, a second run
+alone, timeouts written in the results):
+
+- Every prediction and gold of an evaluation or a label step runs in a
+  worker process (`fedls_sql/eval/sql_pool.py`), as the official BIRD
+  evaluator runs each pair in a process of an `mp.Pool` with one 30 s
+  budget (`DAMO-ConvAI/bird/llm/src/evaluation.py`, read 2026-11-20).
+  The check comes every 100,000 steps. A job that meets its budget next
+  to other jobs runs once more with no other job of the pool running,
+  and that result counts. A worker that fails stops the run.
+  Evaluations write `exec_timeouts`; pair counts carry
+  `questions_gold_timeout` and `samples_exec_timeout` when not zero.
+  Budgets unchanged (30 s BIRD pair, 60 s Spider query).
+- Checked on the Mac: the committed predictions scored again through
+  the pool give the committed EX, 1,675 of 2,147 on Spider test (k = 0
+  round 4, 78.02) and 452 of 1,534 on BIRD dev (base student, 29.47;
+  its 3 timeouts time out alone too). 520 tests pass.
+- BIRD scorer is v3. The Spider scorer keeps its name (my choice: under
+  the threads no Spider gold met the budget and no evaluation row was
+  lost; a new name would stop the running Spider lines at their
+  identity checks).
+- `scripts/relabel_samples.py` labels the samples of `bird/read` again
+  into `fedpref_bird_base_p2_ddl_alpha01_ev3_s0`; the BIRD DPO lines
+  (`bird_k0`, `bird_fixed`, `bird_k0_gold`) run in `_ev3` roots and wait
+  for it (`bird/relabel`, `bird/read_relabelled`). The first read stays
+  as it is.
+
+Not done: the relabel has not run (how many of the 184 come back is not
+known; 151 fit by their time alone); the pool has not run on Windows.
+Open for the owner: the label step runs a gold twice in one budget, so
+the 13 golds of 15 to 30 s stay `gold_error`; running the gold once per
+question would take them in (0.14% of the questions).
+
 ## 2026-11-20: a stopped and continued run keeps its results and its totals (owner; code `a1679b75`)
 
 Owner: later runs must give the right numbers whatever is restarted,
