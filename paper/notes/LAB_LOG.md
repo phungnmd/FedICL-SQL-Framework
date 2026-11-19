@@ -4,6 +4,72 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: on-policy rounds read on BIRD: round 2 on the round 1 pairs queued (owner; queue `6b18a407`)
+
+Owner: carry out the read of on-policy rounds on BIRD. On Spider at
+k = 2, round 2 on the round 1 pairs with a fixed reference gives 78.02
+against 78.20 on-policy (p 0.78) with 8,026 pairs against 3,354, so
+re-sampling shows no gain there; BIRD is where the base student is weak
+and the samples may change more between rounds. Queued after
+`bird_k0` round 2: `bird_fixed/round_2`, the command of
+`bird_k0/round_2` in a root of its own
+(`fedpref_bird_base_p2_fixed_ddl_alpha01_s0`) with `--continue-from` the
+`bird_k0` root at round 1, `--samples-from-round 1` and
+`--fixed-reference`; then its evaluation on BIRD dev and both
+publications. It trains one round and samples nothing. Checked before
+queuing (new test): a line that continues a line from the base student
+with both flags trains from that line's round 1 global adapter, on that
+line's round 1 pairs, with that line's fresh LoRA initialisation (the
+base student) as the reference, and writes nothing in that line's root.
+494 tests pass, 2 skipped. Not run: nothing on BIRD has trained yet;
+time (3 h) and memory are estimates. The matching round on Spider from
+k = 0 is not queued.
+
+## 2026-11-19: base student on BIRD dev: 29.47, 42% of the outputs fail to execute (result `bfa497a8`)
+
+`bird/zs`: base student, BIRD dev (1,534 rows), evidence, `ddl` prompt,
+greedy, 256 new tokens: EX 29.47 (452 right; easy 44.33, medium 34.53,
+hard 21.78, extra 15.81 by structural hardness), EM 4.69. Execution
+errors 646 (42.1%), wrong results 436 (28.4%). Of the errors, 570 are
+`no such column`: in 529 the column is in the prompt's schema and is
+taken from the wrong table or alias, in 11 it is spelled another way, in
+30 it is not in the schema (counted with a pattern over the schema text
+of the prompt). The rest: 29 syntax, 26 `no such function`, 10 misuse of
+an aggregate, 7 `no such table`, 3 timeouts of the 30 s pair budget
+(rows 106 and 369 on the prediction, row 701 on the gold SQL).
+One output is cut at 256 tokens. By database EX runs from 11.2
+(`california_schools`, 63% errors) to 42.6 (`european_football_2`). The
+run took 272 s. Reading: the 256-token limit is not a factor on BIRD dev
+(1 row), and the budget costs 3 rows. On Spider the same student starts
+at 68.05 with 13% execution errors, and training removed mostly those;
+on BIRD the errors are three times that share, so there is more of what
+the method has removed so far. The level printed in the Qwen2.5-Coder
+report for this size is in a figure only (Figure 12, no table), so it is
+not compared here.
+
+## 2026-11-19: k = 3 gives 77.97 at 4 rounds: no gain from the SFT stage on Spider at k = 0, 2 or 3 (results `bc901890`, `b3075597`)
+
+`decide/k3`: DPO + NLL round 1 from FedAvg SFT round 3, 2 random pairs
+per question (7,220 pairs from 4,629 mixed questions; all wrong 483, all
+correct 3,544; 452 updates; peak reserved 17.01 to 18.94 GiB). Spider
+test: 77.97 (easy 91.28, medium 80.86, hard 72.35, extra 60.78), EM
+65.11, execution errors 111, wrong results 362, one cut output.
+
+| At 4 total rounds | EX | exec errors | wrong results | k = 3 fixed | k = 3 broke | p |
+|---|---|---|---|---|---|---|
+| k = 3 (3 SFT + 1 DPO) | 77.97 | 111 | 362 | | | |
+| k = 2 (2 SFT + 2 DPO) | 78.20 | 84 | 384 | 68 | 73 | 0.74 |
+| k = 0 (4 DPO) | 78.02 | 69 | 403 | 133 | 134 | 1.00 |
+| FedAvg SFT round 4 | 74.71 | 173 | 370 | 146 | 76 | 3e-06 |
+
+Against its start (FedAvg round 3, 74.71): fixed 149, broke 79,
+p 4e-06. Reading: at 4 total rounds the three lines are the same within
+a rerun (77.97, 78.20, 78.02), each 3.3 to 3.5 above FedAvg SFT. More
+SFT rounds before DPO leave more execution errors and fewer wrong
+results (69 / 403, 84 / 384, 111 / 362), the same trade seen with gold
+inside the round, and the sum does not move. On Spider the SFT stage is
+not a part that shows an effect; BIRD is read next.
+
 ## 2026-11-19: queue turned to what settles the method: SFT and DPO from the base student on BIRD; the long Spider DPO line dropped (owner; queue `186aaf58`, `80b6f287`)
 
 Owner: drop the long DPO line from FedAvg round 3 (`dpo/after_fedavg`)
