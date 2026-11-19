@@ -4,6 +4,32 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-19: the wrong-result count hides a turnover; the three lines solve different questions (no new run)
+
+Question by question on Spider test from the committed predictions (C
+correct, E execution error, W wrong result; script run in chat, not
+committed). From the untrained student (C 1,461, E 287, W 399):
+
+| To | E to C | E to W | E to E | W to C | W to E | W to W | C to W | C to E |
+|---|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 4 | 107 | 77 | 103 | 128 | 38 | 233 | 60 | 32 |
+| k = 0 round 4 | 147 | 94 | 46 | 130 | 13 | 256 | 53 | 10 |
+| k = 2 DPO round 2 | 144 | 93 | 50 | 157 | 19 | 223 | 68 | 15 |
+| k = 3 DPO round 1 | 139 | 87 | 61 | 167 | 24 | 208 | 67 | 26 |
+
+The wrong results near 400 in every run are a net figure: each line
+fixes 130 to 167 of the 399, takes in 87 to 94 questions that used to
+fail to execute, and breaks 53 to 68 that were right. This corrects the
+wording of the entry "the wrong results are where the untrained student
+left them" below: the count stays, the questions do not. Across the
+three lines at 4 rounds (k = 0, 2, 3; 1,675, 1,679, 1,674 right): right
+in all three 1,508, right in at least one 1,830 (85.2%), wrong in all
+three 317; wrong in every run of the table and the untrained student
+256. Reading: the lines reach the same EX on partly different questions
+(322 are solved by some and not all), and each loses 63 to 93 questions
+the untrained student had right. No run so far tests a round that
+trains on the gold SQL and on the pairs in one local loss.
+
 ## 2026-11-19: on-policy rounds read on BIRD: round 2 on the round 1 pairs queued (owner; queue `6b18a407`)
 
 Owner: carry out the read of on-policy rounds on BIRD. On Spider at
