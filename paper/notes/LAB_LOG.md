@@ -4,6 +4,40 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: label step runs the gold once per question; only a run short of CPU runs again alone (owner; code `a14f140a`)
+
+Owner: the relabel of `bird/read` takes too long for one round; is the
+way it is done the BIRD standard? The evaluation follows the official
+evaluator (one 30 s budget per prediction/gold pair, a process per pair,
+rows as sets). BIRD defines no rule for labelling training samples: the
+30 s per sample is ours. Two costs came from the code of this morning,
+not from any rule: the gold ran three times per question and once more
+per distinct SQL, and every run that met the budget ran a second time
+with the other workers waiting, also a SQL that had used the 30 s itself
+(a runaway join).
+
+Changed, the rule and the scorer name unchanged (BIRD v3):
+
+- One job per question: the gold runs once and its measured seconds
+  count in every pair (a gold that does not fit twice in 30 s is
+  `gold_error`; a SQL that runs and leaves the gold less than its
+  seconds gets no label; a SQL that meets 30 s is a timeout). Spider:
+  60 s for the gold and for each SQL.
+- A run that met the budget is repeated alone only when it had less
+  than 0.8 of its wall-clock time as CPU time.
+- The pool logs the SQL seconds (all, gold, runs alone).
+
+Checked on the Mac, old against new, with each gold, two other golds of
+its database and one failing SQL as the SQL to score: the same result
+for all 26,804 SQL of the 8,659 Spider train questions and all 6,136
+SQL of the 1,534 BIRD dev questions (6 timeouts either way); BIRD dev
+179.5 s against 106.9 s with 4 workers. Not measured on the server or
+on BIRD train (its databases are not on the Mac). The relabel running
+by hand keeps the code it loaded; the first label step on the new code
+is `bird_k0/round_2`. Its `SQL budget` line then says where the time
+goes. Open for the owner: a shorter budget for label steps only (a
+sample over it gets no label), and more than 4 score workers on BIRD.
+
 ## 2026-11-20: gold line round 2 falls on Spider; centralized SFT epochs 1 and 2; queue order (results `73850020`..`0643b48c`; queue `b438dec4`, `42046d18`)
 
 Spider test (2,147 rows), read with `scripts.error_breakdown`:
