@@ -4,6 +4,25 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: published numbers for this student recorded (`LITERATURE.md` 1.4, `RESEARCH_STATE.md` 5.1)
+
+A search agent read the papers with BIRD dev rows at 0.5B to 3B and
+searched for federated Text-to-SQL (owner's request). Read again here in
+the saved text: the rows of SQL-Factory, SPFT-SQL, SLM-SQL and Zhang et
+al.; the rest is as the agent reported it.
+
+- BIRD dev, Qwen2.5-Coder-1.5B without training: 27.5, 28.40, 28.6 in
+  three papers, ours 29.47. SPFT-SQL prints 40.6 and no prompt.
+- Plain SFT on BIRD train at this size: 39.2 (SQL-Factory) and 44.3
+  (SPFT-SQL, LoRA, 3 epochs). FedAvg SFT is at 42.70 after 2 rounds.
+  Every 1.5B number above about 45 adds inputs or voting.
+- Spider, same student: SFT 73.2 (SQL-Factory) and 76.8 dev / 78.0 test
+  (SPFT-SQL); our centralized SFT ends at 75.73 on Spider test. SPFT-SQL
+  also prints Syn, Realistic and DK for its SFT row (59.0, 64.8, 60.9),
+  the sets queued today.
+- Federated: nothing on BIRD, and no federated Text-to-SQL paper besides
+  Zhang et al. The papers citing it were not read (requests refused).
+
 ## 2026-11-20: six Spider rows queued on Spider dev, Syn, Realistic and DK (code `930db2d0`)
 
 Owner, 11:15: evaluate the Spider rows on the other Spider sets. Not

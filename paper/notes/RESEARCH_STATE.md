@@ -377,6 +377,28 @@ The two prompts do not differ (exact McNemar p = 0.47). FedAvg SFT round 1
 (results `d6bfc763`) is above the untrained student with prompt A: 165 rows
 fixed, 71 broken, exact McNemar p = 8.5e-10.
 
+### 5.1 Published numbers for this student (reference, read 2026-11-20)
+
+Qwen2.5-Coder-1.5B in other papers, next to ours, EX. Sources, settings
+and what was not read: `LITERATURE.md`, section 1.4. No paper states a
+plain-DDL prompt, greedy decoding, one sample and LoRA together, so these
+rows place our numbers; they are not the same setup. Ours: Spider test
+and BIRD dev, greedy.
+
+| Set | Row | Ours | Published |
+|---|---|---|---|
+| Spider | without training | 68.05 (test) | SPFT-SQL dev 72.4, test 72.3; SQL-Factory 69.2 (split not named); SLM-SQL test 67.61 (vote of 16) |
+| Spider | SFT on Spider train | centralized 75.08, 75.73, 75.03 (epochs 1-3); FedAvg 74.71 (4 rounds) | SPFT-SQL LoRA SFT, 3 epochs: dev 76.8, test 78.0; SQL-Factory 73.2 |
+| Spider | best with a method | ours 78.02 (k = 0, 4 rounds), 78.20 (k = 2) | SPFT-SQL dev 79.7, test 82.3 (synthetic data, self-play); SQL-Factory 76.5 (synthetic data); SLM-SQL test 79.06 (916K rows, vote of 16) |
+| Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | SPFT-SQL: 55.7 / 60.4 / 62.0; SFT 59.0 / 64.8 / 60.9; SPFT-SQL 66.7 / 75.4 / 67.3. CodeS-1B SFT: 66.5 / 70.9 / 64.7 |
+| BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6; SPFT-SQL 40.6 (prompt not printed) |
+| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70 (rounds 1, 2) | SQL-Factory 39.2 (3 epochs); SPFT-SQL LoRA SFT 44.3 (3 epochs) |
+| BIRD dev | with a method, added inputs or voting | open | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SPFT-SQL 54.0; SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+
+Federated: no result on BIRD and no federated Text-to-SQL paper besides
+Zhang et al. (ACL 2023; T5-base, exact match: centralized 70.32, FedAvg
+40.03, FedOPT 58.32, macro average over 8 clients).
+
 ## 6. Earlier work
 
 Everything measured before 2026-11-17 is reference only: it was produced

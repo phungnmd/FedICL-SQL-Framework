@@ -115,10 +115,16 @@ Fosler-Lussier). Think2SQL reports 1.5B on BIRD only.
 | Paper | Model | Training data | Decoding | Zero-shot Spider | Best Spider |
 |---|---|---|---|---|---|
 | SPFT-SQL | Qwen2.5-Coder-1.5B | Spider train + synthetic rows per round (3K best at 7B), centralized; baseline SFT with LoRA | not stated | dev 72.4, test 72.3 | dev 79.7, test 82.3 |
+| SQL-Factory ([arXiv 2504.14837](https://arxiv.org/abs/2504.14837), Table 4) | Qwen2.5-Coder-1.5B | Spider train ("+Official-Data"), or their synthetic queries; 3 epochs, lr 3e-6, batch 256 | not stated; split of "Spider" not named | 69.2 | Spider train 73.2; synthetic 76.5 |
 | SLM-SQL | Qwen2.5-Coder-1.5B-Instruct | 916K CoT SFT (incl. Spider and BIRD train) + BIRD GRPO | 16 samples, SC / CSC | dev 63.54 / 65.99, test 67.61 / 69.34 | dev 75.15 / 76.72, test 78.42 / 79.06 |
 | FINER-SQL | Qwen2.5-Coder-1.5B | Spider + BIRD, SFT + GRPO | schema ranker, 30-sample vote | not reported | dev 80.0 |
 | MCTS-SQL ([arXiv 2501.16607](https://arxiv.org/abs/2501.16607), v3, Table 3) | Qwen2.5-Coder-1.5B-Instruct | none: training-free pipeline (schema selector, CoT few-shot generator, LLM verifier, MCTS refiner) | T 0.1, 2 children, 5 rollouts | not reported for Spider (BIRD dev single-shot 14.71) | dev 67.45, test 71.68 |
 | CodeS-1B | StarCoderBase-1B + 21.5 GB SQL-centric pre-training | Spider train, full SFT | beam 4, first executable | not reported (few-shot dev TS 55.7-59.1) | dev 77.9 (TS 72.2) |
+
+SPFT-SQL's baseline rows for this model (Table 1, read 2026-11-20; columns Spider dev EX,
+test EX, then Syn, Realistic and DK EX): without training 72.4, 72.3, 55.7, 60.4, 62.0;
+LoRA SFT (3 epochs, lr 2e-4, batch 64) 76.8, 78.0, 59.0, 64.8, 60.9; SPFT-SQL 79.7, 82.3,
+66.7, 75.4, 67.3.
 
 Checked 2026-11-18 for further 1.5B Spider rows, none found: Think2SQL
 (Spider table has 3B and 7B only; 3B 72.5 / SFT 77.0, 7B 77.6 / 82.6, BIRD-trained, T 0.7,
