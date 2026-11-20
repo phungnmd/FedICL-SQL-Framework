@@ -4,6 +4,26 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: centralized SFT ends at 3 epochs; GPU 0 back on the BIRD rounds (owner; queue `c41c48c2`)
+
+Owner: drop epoch 4; the curve rule is not right here. At 10:49 GPU 0
+was in epoch 4 of centralized SFT (762 of 8,659 examples, 1 h 57 min
+left): under the order it had loaded the curve stood before the
+publication and evaluation of `bird_sft/round_2`, and under the rule
+(0.5 over the best, patience 2) a fourth epoch runs after the first
+epoch without a gain. The owner stopped the worker and started it
+again; it published `bird_sft/round_2` at 10:52 (`9ccb7837`).
+
+The curve `central_base_ddlrows_s0/sft` now has `max_steps = 3`: the
+reference row is epochs 1 to 3 (75.08, 75.73, 75.03 on Spider test;
+best epoch 2). With that maximum the rule stops at step 3 with best
+step 2 (checked on the three values), so `refs/central_sft` trains
+nothing more and only writes the curve's record when a worker reaches
+it. The checkpoint of epoch 4 stays on the server and is not used.
+The other curves that carry the same rule (local SFT per client, the
+DPO curve from the base student) are not queued; their rule is
+unchanged. 523 tests pass.
+
 ## 2026-11-20: centralized SFT epoch 3 falls to 75.03; the federated method is above the centralized SFT reference at every epoch (results `171ee546`, `16f82c69`)
 
 Spider test (2,147 rows), `scripts.error_breakdown`:
