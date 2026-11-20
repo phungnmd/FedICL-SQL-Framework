@@ -4,6 +4,39 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: FedAvg SFT round 2 on BIRD dev 42.70, still rising; relabel finished; `bird_k1` stays first (results `9ccb7837`, `53c7bee1`)
+
+BIRD dev (1,534 rows), `scripts.error_breakdown`:
+
+| Row | EX | exec errors | wrong results | easy | medium | hard | extra |
+|---|---|---|---|---|---|---|---|
+| base student | 29.47 | 645 | 436 | 44.33 | 34.53 | 21.78 | 15.81 |
+| FedAvg SFT round 1 | 38.85 | 371 | 566 | 50.52 | 45.94 | 30.69 | 22.90 |
+| FedAvg SFT round 2 | 42.70 | 285 | 593 | 53.61 | 50.34 | 33.33 | 27.10 |
+
+- Round 2 against round 1: +3.85, 98 fixed, 39 broken, exact McNemar
+  p 4e-07. FedAvg SFT has not flattened on BIRD (Spider: +1.67 at round
+  2, then +0.61 and 0). Execution errors fall (371 to 285) and wrong
+  results rise (566 to 593), as on Spider.
+- Training: 2 h 49 min for the five clients (22, 19, 31, 12, 85 min);
+  peak reserved 20,313 MB at client 5, the highest of any round so far
+  (limit about 21.5 GiB); product error of the factor average 0.061.
+- What `bird_k1/round_1` is read against: one DPO + NLL round from
+  round 1 (38.85) has to end above 42.70, a gain of more than 3.85 in
+  one round. On Spider a DPO round from FedAvg round 2 gained 3.36 over
+  its start, against 0.61 for the next FedAvg round.
+
+Owner, 11:00: the relabel of `bird/read` has finished (its per-client
+lines are not in yet; `bird/read_relabelled` publishes the counts).
+Owner asked whether `bird_k0` should now go before `bird_k1`. Kept as
+queued (my recommendation): GPU 0 took `bird_k1/round_1` at about 10:58
+(inferred from the publication of 10:57); with one card both reads are
+in by about 19:00 in either order, and the read of `bird_k1` against
+42.70 is the one that settles more, since one round from the base
+student on half of the questions (4,783 of 9,428) is unlikely to pass
+38.85 and would wait for its round 2. A free second card takes
+`bird_k0/round_1` at once (`PIPELINE_NEXT.md`, step 2).
+
 ## 2026-11-20: centralized SFT ends at 3 epochs; GPU 0 back on the BIRD rounds (owner; queue `c41c48c2`)
 
 Owner: drop epoch 4; the curve rule is not right here. At 10:49 GPU 0

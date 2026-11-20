@@ -2,8 +2,9 @@
 
 ## Status
 
-Updated 2026-11-20 11:00 (Asia/Ho_Chi_Minh). Last publication: the
-round record of `bird_sft/round_2` at 10:52 (its evaluation is next).
+Updated 2026-11-20 11:10 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
+round 2 on BIRD dev, 42.70, published 10:57. The relabel of `bird/read`
+has finished (owner, 11:00; its lines not sent yet).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
 
@@ -26,12 +27,13 @@ first, on-policy rounds over fixed pairs (78.20 against 78.02, with
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 41.9% of the questions for the base
-student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
+student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85,
+round 2 42.70 (still rising: +3.85).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker started again at about 10:50 on the queue order of 09:55: it published `bird_sft/round_2` at 10:52; next its evaluation on BIRD dev, then `bird_k1/round_1` (4-5 h, estimate). | result `9ccb7837` at 10:52; the owner's line of 10:49 showed epoch 4 of centralized SFT on this card before the stop; the tasks after the publication are inferred |
-| 1 | No worker since 07:30. | the `--until 07:30` of its start line |
+| 0 | Worker on `bird_k1/round_1` since about 10:58 (sampling, labels, training: 4-5 h, estimate); then the relabel tasks (seconds), `bird_k0/round_1`, `bird_k0_gold/round_1`. | result `53c7bee1` at 10:57; the task after it is the first ready one in the queue, inferred |
+| 1 | No worker since 07:30. Free card: step 2 puts `bird_k0/round_1` on it now. | the `--until 07:30` of its start line |
 
 ## Run now
 
@@ -44,33 +46,24 @@ student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
    ```
 
 2. When GPU 1 is free: the same line with `--gpu 1` and the hour it has
-   to stop. It takes the next BIRD round that is ready.
+   to stop. The relabel is done, so it takes the relabel tasks (they
+   find the work done, seconds) and then `bird_k0/round_1` (3 h,
+   estimate) next to `bird_k1/round_1` on GPU 0.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-3. The relabel of `bird/read` by hand (CPU). If it has finished, nothing
-   to do: the queue finds it done. If a client or more is still left,
-   Ctrl+C and start the line below (16 worker processes, continues
-   where it stopped). `bird_k1/round_1` labels with 16 more processes
-   while it runs: watch the free RAM in the first minutes of both.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m pytest tests/test_sql_pool.py tests/test_relabel_samples.py tests/test_preference_sampling.py -q --basetemp "$tmp\pytest_sql_pool"; if ($LASTEXITCODE -ne 0) { throw 'SQL pool tests failed on this machine: send the output' }; uv run --no-sync python -m scripts.relabel_samples --src audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0 --dst audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0 --round 1 --policy base --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5 --dataset-profile bird_with_evidence --score-workers 16; if ($LASTEXITCODE -ne 0) { throw 'Relabel failed' } }
-   ```
-
-4. Send back, when they come:
-   - whether the relabel has finished, and per client its `SQL budget`,
-     `before`, `after` and `sample label(s) changed` lines;
-   - the EX line of `bird_sft/round_2`;
+3. Send back, when they come:
+   - from the relabel, per client: its `SQL budget`, `before`, `after`
+     and `sample label(s) changed` lines;
    - from `bird_k1/round_1`: the questions per client by kind (all
      correct, mixed, all wrong) and the pair counts, its EX line, and
      the peak reserved VRAM on the first updates of each client;
    - the EX line and peak VRAM of each later BIRD round;
    - a `STOP queue` line, if one comes.
 
-5. Any time, CPU only (a few minutes each), if not done yet: the pairs
+4. Any time, CPU only (a few minutes each), if not done yet: the pairs
    of the base student's round 1 samples by rejected outcome, and the
    wall times of the finished tasks. Send back the printed tables of the
    first.
@@ -87,20 +80,19 @@ student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 1 | `bird_sft/round_2` | FedAvg SFT on BIRD at 2 rounds: the row the next two are read against | 10 min left (estimate) | trained and published 10:52; evaluation on BIRD dev running or next |
-| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against row 1. Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | 4-5 h (estimate: samples, labels, training; pair count not known) | queued, needs nothing more; new 09:55 |
-| 3 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` with SQL in worker processes, into the `_ev3` root the lines from the base student use | seconds once the run by hand is through | by hand (step 3) |
-| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 3 h (estimate; trains only) | queued, after row 3 |
+| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against `bird_sft` round 2 (42.70). Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | 4-5 h (estimate: samples, labels, training; pair count not known) | running on GPU 0 since about 10:58 (inferred) |
+| 3 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` with SQL in worker processes, into the `_ev3` root the lines from the base student use | seconds | run by hand finished (owner); the tasks only register it |
+| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 3 h (estimate; trains only) | queued; ready after row 3 |
 | 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
-| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against rows 1 and 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
+| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and row 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
 | 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
 | 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued last |
 
-Expected with GPU 0 alone (estimates): `bird_sft/round_2` evaluated by
-about 11:10; `bird_k1/round_1` by about 16:00, the first read of the
-method on BIRD; `bird_k0/round_1` by about 19:30; `bird_k0_gold/round_1`
-after midnight; `bird_k0/round_2` in the morning of 2026-11-21. A second
-card takes rows 4 and 5 earlier.
+Expected with GPU 0 alone (estimates): `bird_k1/round_1` by about
+15:30 to 16:00, the first read of the method on BIRD; `bird_k0/round_1`
+by about 19:00; `bird_k0_gold/round_1` after midnight; `bird_k0/round_2`
+in the morning of 2026-11-21. With GPU 1 from now: `bird_k0/round_1` by
+about 14:30 and each later row about 3 h earlier.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):
@@ -129,7 +121,7 @@ Reading: a difference of about 0.2 EX is what running the same training
 again gives. Open for the owner: round 2 of federated DPO as published
 (no NLL, fixed pairs, fixed reference) for the baseline row, from the
 start the method ends up with; on BIRD, the 350 golds that fail (kept
-for FedAvg SFT as released) and the 184 on the 30 s budget (step 3); a
+for FedAvg SFT as released) and the 184 on the 30 s budget (the relabel); a
 copy of the adapters, samples, pairs and logs that exist on the server's
 drive D only.
 
