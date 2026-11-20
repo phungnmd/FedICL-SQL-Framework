@@ -41,7 +41,10 @@ questions fixed, 106 broken): kept by the rule, as on Spider (+3.44 at 1
 round). k = 1 at 2 rounds is 1.56 above, p 0.13 (127 fixed, 103 broken):
 not separated. Both rounds cut the execution errors (371 to 211, 285 to
 120) and leave more wrong results (566 to 673, 593 to 727). A BIRD round with samples takes about 8 h (sampling 27
-min, labels 3 h 06 min, training 4 h 17 min).
+min, labels 3 h 06 min, training 4 h 17 min). Of the labels, 2 h 03 min
+are SQL run again alone after meeting the 30 s under load, on clients 1,
+2 and 5 (`LAB_LOG.md`, 2026-11-21); a change to the label step is
+proposed, not made.
 
 | GPU | State | Known from |
 |---|---|---|
@@ -68,9 +71,6 @@ min, labels 3 h 06 min, training 4 h 17 min).
    ```
 
 3. Send back, when they come:
-   - from the log of `bird_k1/round_1`: the five lines that start with
-     `SQL budget, this call` (one per client). They say where the 3 h of
-     labels went (clients 2 and 5 took 78 and 70 min);
    - the EX line of each later BIRD round;
    - a `STOP queue` line, if one comes.
 

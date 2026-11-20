@@ -4,6 +4,54 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: the 3 h of BIRD labels are reruns alone, 2 h 03 min of them (log lines of `bird_k1/round_1`, sent in chat, not committed)
+
+Owner: why does a BIRD round take twice a Spider round? Same steps on
+both, from the committed times (`run_times/decide/k3/round_1.json`,
+`timing.json` of `bird_k1/round_1`):
+
+| Step | Spider, 8,659 questions, 7,220 pairs | BIRD, 9,428 questions, 11,224 pairs |
+|---|---|---|
+| Sampling | 17 min | 27 min |
+| Labels | 2.5 min | 3 h 06 min |
+| Training | 2 h 50 min | 4 h 17 min |
+| Round | 3 h 12 min | 7 h 50 min |
+
+- Training is not slower per pair: 1.30 to 1.37 s on BIRD, 1.25 to 1.41
+  s on Spider. `bird_k0/round_1`, which samples nothing, takes 3 h 30
+  min for 9,714 pairs (Spider k = 0 round 1: 3 h 05 min for 8,908).
+- The labels are 3 h 03 min of the 4 h 38 min between the two rounds.
+  The `SQL budget, this call` lines of the label step, 16 worker
+  processes:
+
+| Client | Label step | SQL time (gold) | Workers busy | Met the budget | Jobs run again alone | Seconds alone | Timed out |
+|---|---|---|---|---|---|---|---|
+| 1 | 1,886 s | 7,216 s (1,106) | 24% | 90 | 52 | 1,114 | 18 |
+| 2 | 4,654 s | 14,367 s (4,668) | 19% | 193 | 129 | 3,222 | 76 |
+| 3 | 271 s | 3,532 s (837) | 82% | 60 | 0 | 0 | 60 |
+| 4 | 116 s | 1,271 s (203) | 68% | 5 | 0 | 0 | 5 |
+| 5 | 4,215 s | 11,472 s (4,462) | 17% | 191 | 145 | 3,023 | 67 |
+
+- On clients 1, 2 and 5 a SQL that meets the 30 s on less than 0.8 of
+  its time as CPU runs again with every other worker stopped: 326 jobs,
+  22.6 s each on average, 7,359 s of the 11,142 s label step (59%, 69%
+  and 72% of the three clients' steps). Without those seconds the three
+  steps take 13, 24 and 20 min.
+- The reruns are needed as labels: of the 474 SQL that met the budget
+  on these clients 161 stay timeouts, so about 313 finish inside 30 s
+  once they run alone. Under 16 processes the load still pushes SQL
+  over the budget on the large databases (`donor`, `movie_platform`,
+  `retails`, `language_corpus`, `talkingdata`); the 60 of client 3 used
+  the CPU themselves and are not run again.
+- Not measured: why these runs wait (disk or memory; the server's disk
+  and RAM are not known here), and the label step under fewer worker
+  processes on BIRD train. BIRD dev evaluations with 4 processes: 0 jobs
+  short of CPU.
+- Not changed. Proposed to the owner: the jobs short of CPU run again
+  after the client's other jobs, a few at a time, and only one that
+  meets the budget short of CPU again runs alone (the label rule
+  unchanged). Estimate: labels about 1.5 h in place of 3 h.
+
 ## 2026-11-20: `bird_k0/round_1`, DPO + NLL from the base student on BIRD: 41.85
 
 Results `079a5ab8` (round, published 22:29), `2dceb56f` (BIRD dev).
