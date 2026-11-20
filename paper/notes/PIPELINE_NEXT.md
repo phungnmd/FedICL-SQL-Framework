@@ -43,8 +43,10 @@ not separated. Both rounds cut the execution errors (371 to 211, 285 to
 120) and leave more wrong results (566 to 673, 593 to 727). A BIRD round with samples takes about 8 h (sampling 27
 min, labels 3 h 06 min, training 4 h 17 min). Of the labels, 2 h 03 min
 are SQL run again alone after meeting the 30 s under load, on clients 1,
-2 and 5 (`LAB_LOG.md`, 2026-11-21); a change to the label step is
-proposed, not made.
+2 and 5 (`LAB_LOG.md`, 2026-11-21). From code `0910b84f` a label step
+runs them after its other questions, 4 at a time (labels about 1.5 h,
+estimate); a task takes that code only after the server has pulled
+(step 3).
 
 | GPU | State | Known from |
 |---|---|---|
@@ -70,11 +72,22 @@ proposed, not made.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-3. Send back, when they come:
+3. Before `bird_k0/round_2` starts (any time, seconds; a task that is
+   running keeps the code it loaded): pull the label change on the
+   server.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; git log --oneline -1 }
+   ```
+
+4. Send back, when they come:
+   - from the log of `bird_k0/round_2`: the five lines that start with
+     `SQL budget, this call` (jobs run again after the others, jobs
+     alone, seconds of each);
    - the EX line of each later BIRD round;
    - a `STOP queue` line, if one comes.
 
-4. Any time, CPU only (a few minutes each), if not done yet: the pairs
+5. Any time, CPU only (a few minutes each), if not done yet: the pairs
    of the base student's round 1 samples by rejected outcome, and the
    wall times of the finished tasks. Send back the printed tables of the
    first.
@@ -87,7 +100,7 @@ proposed, not made.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Any time, CPU only (seconds), before the Spider dev rows start: are
+6. Any time, CPU only (seconds), before the Spider dev rows start: are
    the databases of the four sets and the five adapters on the server?
    Send back its last line, or the paths it lists. A missing path fails
    the evaluation task, and a failed task stops its worker. Not run
@@ -102,7 +115,7 @@ proposed, not made.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 5 | `bird_k0_gold/round_1` | round 1 from the base student with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against `bird_k0/round_1` (41.85) | 6.5 h (estimate; up to 8,070 more pairs) | running on GPU 0 since about 22:36 (inferred) |
-| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | 8 h (estimate; samples and labels again) | queued, ready |
+| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | 8 h on the code before `0910b84f`, about 6.5 h on it (estimates; samples and labels again) | queued, ready |
 | 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h 40 min (estimate; `bird_k0/round_1` trained 3 h 30 min) | queued, ready |
 | 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
 | 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |

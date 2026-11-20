@@ -47,10 +47,16 @@ both, from the committed times (`run_times/decide/k3/round_1.json`,
   and RAM are not known here), and the label step under fewer worker
   processes on BIRD train. BIRD dev evaluations with 4 processes: 0 jobs
   short of CPU.
-- Not changed. Proposed to the owner: the jobs short of CPU run again
-  after the client's other jobs, a few at a time, and only one that
-  meets the budget short of CPU again runs alone (the label rule
-  unchanged). Estimate: labels about 1.5 h in place of 3 h.
+- Changed (owner: yes; code `0910b84f`): a label step holds the second
+  runs back until its other questions are labelled, then runs them 4 at
+  a time; one that is short of CPU once more still runs alone. Budgets
+  and the label rule are unchanged; evaluations run a job alone at once
+  as before. Arctic-Text2SQL-R1 (arXiv 2505.20315, section 4.1, read
+  today) drops the questions whose SQL runs over 5 s instead; not taken,
+  the owner keeps every question that can be labelled. 527 tests pass.
+  Estimate, not measured: labels about 1.5 h in place of 3 h. The first
+  label step on the new code says it in its `SQL budget` lines (jobs
+  run again after the others, jobs alone, seconds of each).
 
 ## 2026-11-20: `bird_k0/round_1`, DPO + NLL from the base student on BIRD: 41.85
 
