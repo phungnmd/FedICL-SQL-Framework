@@ -4,6 +4,29 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: `bird_k0/round_1`, DPO + NLL from the base student on BIRD: 41.85
+
+Results `079a5ab8` (round, published 22:29), `2dceb56f` (BIRD dev).
+
+| BIRD dev | Rounds | EX | Execution errors | Wrong results |
+|---|---|---|---|---|
+| Base student | 0 | 29.47 | 645 | 436 |
+| FedAvg SFT | 1 | 38.85 | 371 | 566 |
+| DPO + NLL from the base student | 1 | 41.85 | 211 | 673 |
+| FedAvg SFT | 2 | 42.70 | 285 | 593 |
+
+- +3.00 over FedAvg SFT at 1 round, 152 questions fixed and 106 broken,
+  exact McNemar p 0.005: kept by the rule. Spider at 1 round: +3.44
+  (75.87 against 72.43).
+- Against FedAvg SFT round 2: -0.85, p 0.46 (127 fixed, 140 broken): one
+  DPO round stands where two SFT rounds do.
+- By hardness against FedAvg SFT round 1: easy 51.55 / 50.52, medium
+  48.83 / 45.94, hard 33.00 / 30.69, extra 28.06 / 22.90.
+- Trained on 9,714 pairs from 4,857 of the 9,428 questions (2,298 /
+  1,640 / 2,240 / 678 / 2,858); 76% of the pairs reject an execution
+  error. Training 3 h 30 min, client 5 alone 2 h 06 min; peak reserved
+  17.47 to 18.98 GiB, budget never lowered.
+
 ## 2026-11-20: `bird_k1/round_1`, DPO + NLL from FedAvg SFT round 1 on BIRD: 44.26
 
 Results `7e0d032f` (round), `2913db0c` (BIRD dev, 1,534 rows), `144a8a78`
