@@ -322,7 +322,9 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
    federated DPO baseline (fixed samples exist, `samples_from_round`).
 10. BIRD as a second set of clients. The method is tried on Spider first
     (owner, 2026-11-17). On Spider about 4 points are left above the SFT
-    of this student in the papers (77 to 78, highest published 82.3); on
+    of this student in the papers (77 to 78, highest published 82.3; 78.0
+    and 82.3 are SPFT-SQL's, not used as a reference since 2026-11-20,
+    section 5.1); on
     BIRD CodeLutra is 7.5 points above its SFT. Decided after the first
     read of the DPO rounds against FedAvg SFT on Spider. Needed for it: a
     client split of BIRD train by database, the prompt lengths on BIRD,
@@ -387,13 +389,24 @@ and BIRD dev, greedy.
 
 | Set | Row | Ours | Published |
 |---|---|---|---|
-| Spider | without training | 68.05 (test) | SPFT-SQL dev 72.4, test 72.3; SQL-Factory 69.2 (split not named); SLM-SQL test 67.61 (vote of 16) |
-| Spider | SFT on Spider train | centralized 75.08, 75.73, 75.03 (epochs 1-3); FedAvg 74.71 (4 rounds) | SPFT-SQL LoRA SFT, 3 epochs: dev 76.8, test 78.0; SQL-Factory 73.2 |
-| Spider | best with a method | ours 78.02 (k = 0, 4 rounds), 78.20 (k = 2) | SPFT-SQL dev 79.7, test 82.3 (synthetic data, self-play); SQL-Factory 76.5 (synthetic data); SLM-SQL test 79.06 (916K rows, vote of 16) |
-| Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | SPFT-SQL: 55.7 / 60.4 / 62.0; SFT 59.0 / 64.8 / 60.9; SPFT-SQL 66.7 / 75.4 / 67.3. CodeS-1B SFT: 66.5 / 70.9 / 64.7 |
-| BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6; SPFT-SQL 40.6 (prompt not printed) |
-| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70 (rounds 1, 2) | SQL-Factory 39.2 (3 epochs); SPFT-SQL LoRA SFT 44.3 (3 epochs) |
-| BIRD dev | with a method, added inputs or voting | open | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SPFT-SQL 54.0; SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+| Spider | without training | 68.05 (test) | SQL-Factory 69.2 (split not named); SLM-SQL test 67.61 (vote of 16) |
+| Spider | SFT on Spider train | centralized 75.08, 75.73, 75.03 (epochs 1-3); FedAvg 74.71 (4 rounds) | SQL-Factory 73.2 (3 epochs, split not named) |
+| Spider | best with a method | ours 78.02 (k = 0, 4 rounds), 78.20 (k = 2) | SQL-Factory 76.5 (synthetic data); SLM-SQL test 79.06 (916K rows, vote of 16) |
+| Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | CodeS-1B SFT: 66.5 / 70.9 / 64.7 (another base model, value retrieval, beam) |
+| BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6 |
+| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70 (rounds 1, 2) | SQL-Factory 39.2 (3 epochs) |
+| BIRD dev | with a method, added inputs or voting | open | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+
+SPFT-SQL (arXiv 2509.03937) is not used as a reference (owner,
+2026-11-20). Its row for this student without training is 40.6 on BIRD
+dev, 11 to 13 points above the three other papers and ours, and 72.3 on
+Spider test against 68.05 here; the paper prints no prompt and no
+decoding, so its SFT rows (BIRD 44.3, Spider test 78.0) and its method
+rows (54.0, 82.3) stand on an input we cannot name. Its SFT adds 3.7 on
+BIRD, against 10.6 in SQL-Factory and 13.2 for our two FedAvg rounds.
+The numbers stay in `LITERATURE.md`, section 1.4, as what the paper
+prints. With it out, one plain-SFT row per dataset is left
+(SQL-Factory), with its split, prompt and decoding not stated.
 
 Federated: no result on BIRD and no federated Text-to-SQL paper besides
 Zhang et al. (ACL 2023; T5-base, exact match: centralized 70.32, FedAvg

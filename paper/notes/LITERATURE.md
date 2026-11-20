@@ -124,7 +124,9 @@ Fosler-Lussier). Think2SQL reports 1.5B on BIRD only.
 SPFT-SQL's baseline rows for this model (Table 1, read 2026-11-20; columns Spider dev EX,
 test EX, then Syn, Realistic and DK EX): without training 72.4, 72.3, 55.7, 60.4, 62.0;
 LoRA SFT (3 epochs, lr 2e-4, batch 64) 76.8, 78.0, 59.0, 64.8, 60.9; SPFT-SQL 79.7, 82.3,
-66.7, 75.4, 67.3.
+66.7, 75.4, 67.3. Not used as a reference (owner, 2026-11-20): its untrained BIRD dev row
+for this model, 40.6, is 11 to 13 points above Think2SQL, SLM-SQL, SQL-Factory and ours, and
+the paper prints neither prompt nor decoding (`RESEARCH_STATE.md`, section 5.1).
 
 Checked 2026-11-18 for further 1.5B Spider rows, none found: Think2SQL
 (Spider table has 3B and 7B only; 3B 72.5 / SFT 77.0, 7B 77.6 / 82.6, BIRD-trained, T 0.7,
@@ -166,7 +168,8 @@ without rows, evidence, greedy, LoRA):
   40.6 stands alone and its prompt is not printed.
 - Plain SFT on BIRD train: 39.2 (SQL-Factory) and 44.3 (SPFT-SQL), the
   only two rows at this size without added inputs or voting; neither
-  states prompt and decoding in full. Our FedAvg SFT is at 38.85 and 42.70
+  states prompt and decoding in full, and SPFT-SQL's is on its 40.6
+  baseline, so 39.2 is the one row kept as a reference. Our FedAvg SFT is at 38.85 and 42.70
   after 1 and 2 rounds.
 - Every 1.5B number above about 45 adds inputs or inference we do not
   use: value retrieval and a schema classifier (CodeS), 916K rows and a

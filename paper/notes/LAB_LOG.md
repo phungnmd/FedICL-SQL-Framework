@@ -4,6 +4,26 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: SPFT-SQL is not used as a reference (owner)
+
+Owner: its numbers look too high to rely on. What the saved text shows:
+the untrained Qwen2.5-Coder-1.5B is at 40.6 on BIRD dev there, against
+27.5, 28.40 and 28.6 in three other papers and 29.47 here, and at 72.3 on
+Spider test against 68.05 here; no prompt and no decoding are printed.
+Its SFT adds only 3.7 on BIRD (SQL-Factory 10.6, our two FedAvg rounds
+13.2), which fits a baseline prompt that already carries more than the
+schema. So its SFT and method rows cannot be set next to ours.
+
+- Taken out of the reference table (`RESEARCH_STATE.md`, 5.1); the
+  numbers stay in `LITERATURE.md` 1.4, marked.
+- What changes: the "published SFT of this student at 77 to 78" that our
+  75 to 76 was measured against was SPFT-SQL's 78.0 (test) and SLM-SQL's
+  77.35 (916K rows, vote of 16). The plain row left is SQL-Factory's
+  73.2, below our centralized 75.73, so the check run of centralized SFT
+  on a 3-epoch schedule has no published number to answer to.
+- Not changed: the SFT recipe names SPFT-SQL for lr 2e-4 and 3 epochs
+  (`RESEARCH_STATE.md`, section 2); a setting, not a number.
+
 ## 2026-11-20: published numbers for this student recorded (`LITERATURE.md` 1.4, `RESEARCH_STATE.md` 5.1)
 
 A search agent read the papers with BIRD dev rows at 0.5B to 3B and
