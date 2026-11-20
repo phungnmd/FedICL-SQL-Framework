@@ -15,7 +15,7 @@ BIRD dev (1,534 rows), `scripts.error_breakdown`:
 | FedAvg SFT round 2 | 42.70 | 285 | 593 | 53.61 | 50.34 | 33.33 | 27.10 |
 
 - Round 2 against round 1: +3.85, 98 fixed, 39 broken, exact McNemar
-  p 4e-07. FedAvg SFT has not flattened on BIRD (Spider: +1.67 at round
+  p 4.9e-07. FedAvg SFT has not flattened on BIRD (Spider: +1.67 at round
   2, then +0.61 and 0). Execution errors fall (371 to 285) and wrong
   results rise (566 to 593), as on Spider.
 - Training: 2 h 49 min for the five clients (22, 19, 31, 12, 85 min);
