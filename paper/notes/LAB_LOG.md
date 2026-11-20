@@ -4,6 +4,20 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: FedAvg SFT round 1 on BIRD dev 38.85; 16 worker processes for the BIRD label steps (results `ec5d3ec6`, `91e5fcdd`; queue `4f9e3299`, `f0b35ba9`)
+
+BIRD dev (1,534 rows): FedAvg SFT round 1 on the BIRD clients 38.85
+(execution errors 372, 2 rows on the 30 s budget, scorer v3) against the
+base student 29.47 (646, 3, scorer v2): +9.38. `bird_k0/round_1` is read
+against it.
+
+Owner: the server has 2 x 32 logical processors. The BIRD label steps
+not yet run (`bird/relabel`, `bird_k0`, `bird_k0_gold`, `bird_fixed`)
+take `--score-workers 16` (4 before, chosen for SQL in threads); the
+worker count is not part of a sample file's identity. RAM with 16
+processes on BIRD train is not measured. `bird/read_relabelled` keeps
+the command of the first read (it labels nothing).
+
 ## 2026-11-20: label step runs the gold once per question; only a run short of CPU runs again alone (owner; code `a14f140a`)
 
 Owner: the relabel of `bird/read` takes too long for one round; is the

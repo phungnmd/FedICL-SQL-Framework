@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 06:50 (Asia/Ho_Chi_Minh). Spider test by total rounds
+Updated 2026-11-20 07:50 (Asia/Ho_Chi_Minh). Spider test by total rounds
 trained:
 
 | Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) | k = 0 with gold | Centralized SFT (epochs) |
@@ -18,7 +18,8 @@ the NLL term 73.59; NLL on correct samples alone 75.87 against 77.46).
 Not kept: nearest pairs, gold as chosen, gold inside the round,
 wrong-result rejects first. The FedAvg SFT stage shows no gain on Spider
 at k = 0, 2 or 3 (78.02, 78.20, 77.97 at 4 rounds); it is read next on
-BIRD. BIRD dev, base student: 29.47, with 646 of 1,534 outputs failing
+BIRD. BIRD dev: FedAvg SFT round 1 38.85 (372 outputs fail to execute);
+base student 29.47, with 646 of 1,534 outputs failing
 to execute (570 `no such column`), 1 output cut at 256 tokens and 3 rows
 lost to the 30 s budget. The k = 0 line with gold where the samples give no correct side
 falls at round 2 on Spider (75.73 against 77.18, p 0.033; round 1:
@@ -31,7 +32,7 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `bird_sft/round_1`, client 5 of 5 at 89% at 06:38 (peak reserved 18.9 GiB); then its evaluation on BIRD dev, then `bird_sft/round_2` if the relabel by hand is not through. | worker line sent by the owner, 06:38 |
+| 0 | Worker: `bird_sft/round_1` evaluated and published 06:56 (38.85 on BIRD dev); then `bird_sft/round_2` (about 3 h, estimate) unless centralized SFT was free. | result `91e5fcdd`; the task after it is inferred |
 | 1 | Worker until 07:30: centralized SFT, epoch 2 published 06:05, epoch 3 since then; it stops in that epoch at 07:30. | result `0643b48c`, published 06:05 |
 
 ## Run now
@@ -70,29 +71,20 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0'; uv run --no-sync python -m scripts.pair_composition --audit $a --round 1 --policy base --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Composition failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: composition of the base student round 1 pairs per client' --paths "$a/pair_read/composition_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-4. Now, CPU only: pull the code that runs SQL in worker processes,
-   check it on Windows (3 test files, under a minute), then label the
-   samples of `bird/read` again into the root of the BIRD DPO lines
-   (running since about 01:00; 4 to 6 h, estimate from client 1: 575
-   of 2,011 questions after 26 min; no sampling; rerun continues). Of
-   the 184 golds
-   that met the 30 s budget there, 151 run alone in under 15 s, 13 in
-   15 to 30 s, 20 in over 30 s. Without this step a card runs the same
-   relabel as the queue task `bird/relabel` before the BIRD DPO rounds
-   and stays unused meanwhile. If the tests fail the line stops before
-   the relabel: send the output. Send back the test line and, per
-   client, the `before`, `after`, `sample label(s) changed` and
-   `SQL budget` lines.
+4. The relabel of `bird/read` runs by hand since about 01:00 on the
+   code of that hour (4 workers; the gold runs again for every SQL and
+   every timeout runs a second time alone). If a client or more is
+   still left: stop it with Ctrl+C and start the line below. It pulls
+   the label code of this morning (`a14f140a`: the gold once per question, a second run
+   only when short of CPU, same rule and labels) and continues where
+   the run stopped, with 16 worker processes (the server has 64 logical
+   processors; watch the free RAM in the first minutes). Send back, per
+   client, the `SQL budget`, `before`, `after` and `sample label(s)
+   changed` lines.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m pytest tests/test_sql_pool.py tests/test_relabel_samples.py tests/test_eval.py -q --basetemp "$tmp\pytest_sql_pool"; if ($LASTEXITCODE -ne 0) { throw 'SQL pool tests failed on this machine: send the output' }; uv run --no-sync python -m scripts.relabel_samples --src audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0 --dst audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0 --round 1 --policy base --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5 --dataset-profile bird_with_evidence --score-workers 4; if ($LASTEXITCODE -ne 0) { throw 'Relabel failed' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m pytest tests/test_sql_pool.py tests/test_relabel_samples.py tests/test_preference_sampling.py -q --basetemp "$tmp\pytest_sql_pool"; if ($LASTEXITCODE -ne 0) { throw 'SQL pool tests failed on this machine: send the output' }; uv run --no-sync python -m scripts.relabel_samples --src audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0 --dst audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0 --round 1 --policy base --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5 --dataset-profile bird_with_evidence --score-workers 16; if ($LASTEXITCODE -ne 0) { throw 'Relabel failed' } }
    ```
-
-   The pull changes what the next tasks load, not the running one:
-   evaluations and labels then run their SQL in worker processes (a
-   worker that fails stops the task with `STOP queue`, it is not scored
-   as wrong SQL), BIRD results carry scorer v3, and the BIRD DPO tasks
-   use the `_ev3` roots and wait for `bird/relabel`. No worker restart.
 
 5. After more tasks have finished, CPU only (under a minute): their
    wall times read from the worker's logs into
