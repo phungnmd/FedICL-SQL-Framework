@@ -2,11 +2,13 @@
 
 ## Status
 
-Updated 2026-11-20 11:10 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
+Updated 2026-11-20 11:20 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
 round 2 on BIRD dev, 42.70, published 10:57. The relabel of `bird/read`
 has finished (owner, 11:00; its lines not sent yet).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
+Queued last (owner, 11:15): six Spider rows on Spider dev, Spider-Syn,
+Spider-Realistic and Spider-DK, evaluation only (code `930db2d0`).
 
 Spider test by total rounds trained:
 
@@ -76,6 +78,16 @@ round 2 42.70 (still rising: +3.85).
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
+5. Any time, CPU only (seconds), before the Spider dev rows start: are
+   the databases of the four sets and the five adapters on the server?
+   Send back its last line, or the paths it lists. A missing path fails
+   the evaluation task, and a failed task stops its worker. Not run
+   here: the Mac has no PowerShell.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $miss=@(); foreach ($f in 'processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv','processed_data/SPIDER_SYN/test.csv','processed_data/SPIDER_REALISTIC/test.csv','processed_data/SPIDER_DK/test.csv') { $miss += Import-Csv $f | Select-Object -ExpandProperty db_path -Unique | Where-Object { -not (Test-Path $_) } }; foreach ($a in 'artifacts/protocol_v2/fedavg_base_ddlrows_alpha01_s0/round_4/fedavg_adapter','artifacts/protocol_v2/central_base_ddlrows_s0/e2/adapter','artifacts/protocol_v2/fedpref_base_p2_ddlrows_alpha01_s0/dpo/round_4/global_adapter','artifacts/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0/dpo/round_2/global_adapter','artifacts/protocol_v2/fedpref_sftr2_fixed_ddlrows_alpha01_s0/dpo/round_2/global_adapter') { if (-not (Test-Path $a)) { $miss += $a } }; if ($miss.Count) { $miss; throw "$($miss.Count) path(s) missing" } else { 'OK: the databases and adapters of the Spider dev and variant evaluations are there' } }
+   ```
+
 ## Running and queued
 
 | # | Tasks | What it answers | About | State |
@@ -86,13 +98,17 @@ round 2 42.70 (still rising: +3.85).
 | 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
 | 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and row 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
 | 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
-| 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued last |
+| 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
+| 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
+| 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
 
 Expected with GPU 0 alone (estimates): `bird_k1/round_1` by about
 15:30 to 16:00, the first read of the method on BIRD; `bird_k0/round_1`
 by about 19:00; `bird_k0_gold/round_1` after midnight; `bird_k0/round_2`
 in the morning of 2026-11-21. With GPU 1 from now: `bird_k0/round_1` by
-about 14:30 and each later row about 3 h earlier.
+about 14:30 and each later row about 3 h earlier. Rows 9 and 10 need
+no earlier task: a card with no BIRD task ready takes them, otherwise
+they run after row 7.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):

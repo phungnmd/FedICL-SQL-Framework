@@ -5,8 +5,9 @@ arm to (dataset, line, round) with ARMS below, recounts the wrong rows from the
 prediction CSV (execution error incl. cut output, wrong result), computes the
 exact McNemar test of every row against FedAvg SFT at the same round, and of the
 pairs in TESTS, and writes the result as JSON between the RESULTS markers of the
-page. A new evaluation needs one line in ARMS; a new dataset, model or seed is
-picked up from the metrics file.
+page. A new evaluation needs one line in ARMS; a new model or seed is picked up
+from the metrics file. The page draws Spider test and BIRD dev (DATASET_OF_SET);
+evaluations of other sets are left out.
 
     python3 paper/notes/tools/overview_results.py          # write the page
     python3 paper/notes/tools/overview_results.py --check  # print, write nothing
@@ -77,7 +78,12 @@ TESTS = [
     ("bird", "base", 0, "fedavg", 1),
 ]
 
-DATASET_OF_EVAL = {"spider": "spider", "bird": "bird"}
+# the sets the page draws (the `eval_set` of a metrics file); an arm evaluated on another
+# set as well (Spider dev, Syn, Realistic, DK) keeps its name there and is left out here
+DATASET_OF_SET = {
+    "processed_data/SPIDER_TEST/test.csv": "spider",
+    "processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv": "bird",
+}
 MODEL_SHORT = {"Qwen/Qwen2.5-Coder-1.5B-Instruct": "qwen15"}
 
 
@@ -114,13 +120,15 @@ def load() -> tuple[list[dict], dict]:
     runs, rows_of = [], {}
     for metrics in sorted(RESULTS.glob("*/metrics.json")):
         d = json.loads(metrics.read_text(encoding="utf-8"))
-        ds = DATASET_OF_EVAL.get(d.get("evaluator"))
+        ds = DATASET_OF_SET.get(Path(d.get("eval_set", "")).as_posix())
+        if ds is None:
+            continue
         model = MODEL_SHORT.get(d.get("model"), d.get("model"))
         for arm, a in d["arms"].items():
             stem = arm.removesuffix("_vllm_inproc")
             if stem in SKIP:
                 continue
-            if stem not in ARMS or ds is None:
+            if stem not in ARMS:
                 print(f"not mapped, left out: {arm} ({metrics.parent.name})", file=sys.stderr)
                 continue
             line, r = ARMS[stem]

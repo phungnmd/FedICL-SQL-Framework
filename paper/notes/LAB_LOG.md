@@ -4,6 +4,37 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: six Spider rows queued on Spider dev, Syn, Realistic and DK (code `930db2d0`)
+
+Owner, 11:15: evaluate the Spider rows on the other Spider sets. Not
+required by the journal bar (`JOURNAL_BAR.md`: Spider test and BIRD dev
+are at the level of both journals); Spider dev is the set most papers at
+this size report (GradeSQL at JIIS prints dev and test), and no round or
+setting was chosen on it.
+
+- Rows: base student, FedAvg SFT round 4, centralized SFT epoch 2,
+  DPO + NLL from the base student round 4 (k = 0), DPO + NLL round 2 from
+  FedAvg SFT round 2 (k = 2), its fixed-pair, fixed-reference line. The
+  k = 2 row is there because the method's k is not settled and it is the
+  line the fixed-pair row is compared with.
+- Tasks `spider_dev/*` (Spider dev, 1,034 rows) and `spider_variants/*`
+  (Syn 1,034, Realistic 508, DK 535), after the BIRD rounds; evaluation
+  only. Each command is the row's Spider test evaluation with the set
+  changed (checked by a queue test and on the resolved commands: only
+  `--test-csv` and the resume directory differ). Longest prompt 2,052
+  tokens on all four (Spider test 2,547); one DK prompt printed and read.
+- Checked on the Mac: every database of the four CSVs exists (20, 20,
+  19, 10). Not checked: that the server holds `data/raw/spider_dk/` and
+  the five adapters (`PIPELINE_NEXT.md`, step 5).
+- The Syn, Realistic and DK CSVs are the processed files of July 2026,
+  without the `dataset` and `source_row_id` columns; the loader and the
+  `spider` profile accept them.
+- `overview_results.py` mapped an evaluation to its dataset by evaluator,
+  so a second set of one arm would have stopped it ("two evaluations
+  for"). It now maps by the evaluated set and leaves the other sets out;
+  its output on the committed results is unchanged.
+- Which of these numbers the paper prints is decided when they are in.
+
 ## 2026-11-20: FedAvg SFT round 2 on BIRD dev 42.70, still rising; relabel finished; `bird_k1` stays first (results `9ccb7837`, `53c7bee1`)
 
 BIRD dev (1,534 rows), `scripts.error_breakdown`:
