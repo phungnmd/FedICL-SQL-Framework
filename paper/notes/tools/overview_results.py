@@ -54,8 +54,12 @@ ARMS = {
     "fedpref_sftr2_rand1wr2_dpo_ddl_rows_a01_r2": ("wrfirst", 4),
     "central_ddl_rows_e1": ("central", 1),
     "central_ddl_rows_e2": ("central", 2),
+    "central_ddl_rows_e3": ("central", 3),
     "zs_bird_ddl": ("base", 0),
     "fedavg_bird_ddl_a01_r1": ("fedavg", 1),
+    "fedavg_bird_ddl_a01_r2": ("fedavg", 2),
+    "fedpref_bird_base_p2_dpo_ddl_a01_r1": ("k0", 1),
+    "fedpref_bird_sftr1_p2_dpo_ddl_a01_r1": ("k1", 2),
 }
 SKIP = {"zs_ddl_values"}  # prompt B, kept in the notes only
 
@@ -76,6 +80,11 @@ TESTS = [
     ("spider", "central", 2, "k0", 2),
     ("spider", "central", 2, "fedavg", 2),
     ("bird", "base", 0, "fedavg", 1),
+    ("bird", "fedavg", 1, "fedavg", 2),
+    ("bird", "fedavg", 2, "k0", 1),
+    ("bird", "fedavg", 1, "k1", 2),
+    ("spider", "central", 3, "k0", 3),
+    ("spider", "central", 2, "central", 3),
 ]
 
 # the sets the page draws (the `eval_set` of a metrics file); an arm evaluated on another

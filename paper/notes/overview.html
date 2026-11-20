@@ -36,7 +36,7 @@
   --l-fixed: #6F7B87;
   --l-feddpo: #B3261E;
   --l-k3: #6B4BB8;
-  --l-k1: #0F7C86;
+  --l-k1: #0891B2;
   --l-central: #8A5A2B;
   --l-gold: #B0397A;
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -53,7 +53,7 @@
     --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
     --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
     --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
-    --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #4FC1C9; --l-central: #C99A6B; --l-gold: #E77FB8;
+    --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #67D3EA; --l-central: #C99A6B; --l-gold: #E77FB8;
     --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
     --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
     color-scheme: dark;
@@ -65,7 +65,7 @@
   --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
   --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
   --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
-  --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #4FC1C9; --l-central: #C99A6B; --l-gold: #E77FB8;
+  --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #67D3EA; --l-central: #C99A6B; --l-gold: #E77FB8;
   --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
   --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
   color-scheme: dark;
@@ -603,7 +603,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
       <a href="#directions">Hướng tiếp</a>
       <a href="#paper">Paper</a>
     </div>
-    <span class="stamp">Cập nhật <b>2026-11-20 10:05</b></span>
+    <span class="stamp">Cập nhật <b>2026-11-21 05:30</b></span>
   </div>
 </nav>
 
@@ -626,7 +626,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <span class="k">Kết quả chính</span>
         <span class="v">+3.3 EX</span>
         <span class="t">DPO + NLL so với FedAvg SFT</span>
-        <p>4 round: 77.97 đến 78.20 so với 74.71, p &lt; 1e-4. Cùng wall time: 8 h 27 so với 8 h 24.</p>
+        <p>Spider, 4 round: 77.97 đến 78.20 so với 74.71, p &lt; 1e-4; cùng wall time. BIRD, 1 round: 41.85 so với 38.85 (+3.00, p 0.005).</p>
       </a>
       <a class="panel kpi ok" href="#method">
         <span class="k">Phần được giữ</span>
@@ -643,8 +643,8 @@ tr.plan td { color: var(--muted); font-style: italic; }
       <a class="panel kpi open" href="#directions">
         <span class="k">Còn mở</span>
         <span class="v">342-444</span>
-        <span class="t">SQL sai kết quả không giảm</span>
-        <p>Chưa train: 399. Gain đến từ lỗi chạy: 287 xuống 57-117.</p>
+        <span class="t">SQL sai kết quả không giảm (Spider)</span>
+        <p>Spider, chưa train: 399; gain đến từ lỗi chạy (287 xuống 57-112). BIRD: sai kết quả tăng, 593 lên 727 ở 2 round.</p>
       </a>
     </div>
 
@@ -807,7 +807,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
     </div>
 
     <div class="hero-foot">
-      <span>GPU, ghi nhận 20/11 09:55: GPU 0 chạy FedAvg SFT R2 trên BIRD (suy ra, từ khoảng 07:00); GPU 1 trống, dừng lúc 07:30 trong epoch 3 của centralized SFT. <a href="#progress">Tiến độ</a></span>
+      <span>GPU, ghi nhận 21/11 02:45: GPU 0 chạy BIRD k = 0 gold rule R1 (suy ra, từ khoảng 22:36, EX khoảng 05:15, ước tính); GPU 1 chưa có worker, sẽ nhận BIRD k = 0 R2. <a href="#progress">Tiến độ</a></span>
       <span class="plegend"><span class="pill done">giữ / xong</span><span class="pill neg">không gain</span><span class="pill wait">chờ owner / queued</span><span class="pill run">đang chạy</span><span class="pill plan">kế hoạch</span></span>
     </div>
   </div>
@@ -850,7 +850,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <tbody>
           <tr><td><b>I1</b> On-policy rounds</td><td>Sample lại và đổi reference mỗi round</td><td>78.20 so với fixed + NLL 78.02, p = 0.78. Dùng 3,354 thay vì 8,026 pairs.</td><td><span class="pill neg">không gain</span></td></tr>
           <tr><td><b>I2</b> Execution-aware pairs</td><td>Chọn rejected theo loại lỗi</td><td>Nearest 77.08 so với random 77.46 (p = 0.42). Wrong-result first 77.27 (p = 0.74).</td><td><span class="pill neg">không gain</span></td></tr>
-          <tr><td><b>I3</b> FedAvg SFT trước DPO</td><td>k round SFT, rồi DPO + NLL</td><td>k = 0, 2, 3 bằng nhau ở 4 round: 78.02, 78.20, 77.97 (p 0.74 đến 1.00).</td><td><span class="pills"><span class="pill neg">không gain trên Spider</span><span class="pill wait">đọc trên BIRD</span></span></td></tr>
+          <tr><td><b>I3</b> FedAvg SFT trước DPO</td><td>k round SFT, rồi DPO + NLL</td><td>Spider: k = 0, 2, 3 bằng nhau ở 4 round (78.02, 78.20, 77.97; p 0.74 đến 1.00). BIRD, 2 round: k = 1 44.26 so với FedAvg 42.70 (p 0.13); k = 0 R2 queued.</td><td><span class="pills"><span class="pill neg">không gain trên Spider</span><span class="pill wait">BIRD: chờ k = 0 R2</span></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -892,7 +892,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <tbody>
           <tr><td><b>FedAvg SFT</b></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc hl"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td><td class="dotc"><span class="dotg na" title="không áp dụng"></span></td></tr>
           <tr><td><b>Federated DPO as published</b><span class="sub">OpenFedLLM FedDPO</span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg h" title="một lần"></span><span class="sub">một lần</span></td><td class="dotc hl"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc"><span class="dotg" title="không"></span></td><td class="dotc"><span class="dotg" title="không"></span><span class="sub">cố định</span></td></tr>
-          <tr class="me"><td><b>Method</b></td><td class="dotc"><span class="dotg h" title="qua stage SFT"></span><span class="sub">stage SFT (I3), đọc trên BIRD</span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc hl"><span class="dotg f" title="có"></span><span class="sub">giữ, +3.87</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">random pairs</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1, chưa gain</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1, chưa gain</span></td></tr>
+          <tr class="me"><td><b>Method</b></td><td class="dotc"><span class="dotg h" title="qua stage SFT"></span><span class="sub">stage SFT (I3), chờ BIRD k = 0 R2</span></td><td class="dotc"><span class="dotg f" title="có"></span></td><td class="dotc hl"><span class="dotg f" title="có"></span><span class="sub">giữ, +3.87</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">random pairs</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1, chưa gain</span></td><td class="dotc"><span class="dotg f" title="có"></span><span class="sub">I1, chưa gain</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -941,7 +941,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
       <article class="panel setup">
         <div class="setup-top">
           <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Setting BIRD</h3>
-          <span class="pill done">base, pair read, FedAvg R1 xong</span>
+          <span class="pill done">FedAvg R1-R2, DPO k = 0 và k = 1 xong</span>
         </div>
         <div class="roles">
           <div class="role cl"><span class="rk">5 client, private</span><b>BIRD train</b><span class="big">9,428</span><span class="s">câu &middot; 69 database</span></div>
@@ -952,10 +952,10 @@ tr.plan td { color: var(--muted); font-style: italic; }
           <dt>Schema trong prompt</dt><dd><code>CREATE TABLE</code> (<code>ddl</code>) và evidence, như code Qwen2.5-Coder; evidence rỗng ở 645 câu train, 148 câu dev</dd>
           <dt>Độ dài prompt</dt><dd>dev: median 977 token, dài nhất 2,207; train dài nhất 6,807 (với 3 rows mẫu: 220,712)</dd>
           <dt>Evaluator</dt><dd>BIRD, 30 s cho cặp prediction và gold (như <code>evaluation.py</code> của BIRD)</dd>
-          <dt>Lưu ý</dt><dd>mọi database có rows; 534 gold không cho nhãn: 350 lỗi SQL, 184 hết 30 s khi SQL chạy trong threads (151 chạy riêng dưới 15 s; đang gán nhãn lại với SQL trong worker process). DPO labels bỏ các câu này, FedAvg SFT train trên gold như bản release</dd>
+          <dt>Lưu ý</dt><dd>mọi database có rows; 380 gold không cho nhãn sau relabel với SQL trong worker process (trước đó 534: 350 lỗi SQL, 184 hết 30 s khi SQL chạy trong threads). DPO labels bỏ các câu này, FedAvg SFT train trên gold như bản release</dd>
           <dt>Base student</dt><dd>BIRD dev 29.47 EX, 42% output lỗi chạy, 570 trong đó là <code>no such column</code> (Spider test: 68.05, 13%)</dd>
-          <dt>10 samples / câu</dt><dd>52.4% câu train có SQL đúng (Spider 87.6%), 41.9% toàn sai; 9,566 pairs</dd>
-          <dt>FedAvg SFT R1</dt><dd>BIRD dev 38.85 EX (+9.38), lỗi chạy 372, sai kết quả 566; R2 đang chạy</dd>
+          <dt>10 samples / câu</dt><dd>base student: 53.2% câu train có SQL đúng (Spider 87.6%), 42.8% toàn sai; 9,714 pairs. Sau FedAvg R1: 34.2% toàn sai, 11,224 pairs</dd>
+          <dt>Đã train</dt><dd>BIRD dev: FedAvg SFT 38.85, 42.70 (R1, R2); DPO + NLL k = 0 R1 41.85, k = 1 R2 44.26</dd>
         </dl>
       </article>
     </div>
@@ -1083,22 +1083,25 @@ tr.plan td { color: var(--muted); font-style: italic; }
       </details>
     </div>
     <div class="panel tblpanel" data-ds="bird" style="margin-top:14px">
-      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>BIRD: pairs từ base student</h3>
-      <p class="read">Với 10 samples mỗi câu train, chỉ 52.4% câu BIRD có SQL đúng (Spider 87.6%), nên DPO từ base student có pairs cho khoảng một nửa số câu; 41.9% câu không có sample đúng nào.</p>
+      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>BIRD: pairs theo client và theo round</h3>
+      <p class="read">Với 10 samples mỗi câu train, base student có SQL đúng ở 53.2% câu BIRD (Spider 87.6%); 42.8% câu không có sample đúng nào và không cho pair. Một round FedAvg SFT đưa 815 câu ra khỏi nhóm này, nhưng một phần ba số câu vẫn không cho pair.</p>
       <div class="tbl-wrap">
         <table class="nowrap">
           <thead><tr><th>Client</th><th class="r">Câu hỏi</th><th class="r">Mixed</th><th class="r">All correct</th><th class="r">All wrong</th><th class="r">Gold không cho nhãn</th><th class="r">Pairs</th><th class="r">Sample accuracy</th></tr></thead>
           <tbody class="num">
-            <tr><td>1</td><td class="r">2,011</td><td class="r">1,142</td><td class="r">34</td><td class="r">817</td><td class="r">18</td><td class="r">2,284</td><td class="r">23.6%</td></tr>
-            <tr><td>2</td><td class="r">1,595</td><td class="r">783</td><td class="r">26</td><td class="r">695</td><td class="r">91</td><td class="r">1,566</td><td class="r">17.5%</td></tr>
-            <tr><td>3</td><td class="r">2,080</td><td class="r">1,119</td><td class="r">25</td><td class="r">925</td><td class="r">11</td><td class="r">2,238</td><td class="r">18.8%</td></tr>
-            <tr><td>4</td><td class="r">683</td><td class="r">337</td><td class="r">20</td><td class="r">325</td><td class="r">1</td><td class="r">674</td><td class="r">21.3%</td></tr>
-            <tr><td>5</td><td class="r">3,059</td><td class="r">1,402</td><td class="r">51</td><td class="r">1,193</td><td class="r">413</td><td class="r">2,804</td><td class="r">18.2%</td></tr>
-            <tr class="hlrow"><td>Tất cả</td><td class="r">9,428</td><td class="r">4,783</td><td class="r">156</td><td class="r">3,955</td><td class="r">534</td><td class="r">9,566</td><td class="r">19.6%</td></tr>
+            <tr class="grp"><td colspan="8">Samples của base student (cho k = 0 R1)</td></tr>
+            <tr><td>1</td><td class="r">2,011</td><td class="r">1,149</td><td class="r">34</td><td class="r">822</td><td class="r">6</td><td class="r">2,298</td><td class="r">23.6%</td></tr>
+            <tr><td>2</td><td class="r">1,595</td><td class="r">820</td><td class="r">26</td><td class="r">741</td><td class="r">8</td><td class="r">1,640</td><td class="r">18.1%</td></tr>
+            <tr><td>3</td><td class="r">2,080</td><td class="r">1,120</td><td class="r">25</td><td class="r">929</td><td class="r">6</td><td class="r">2,240</td><td class="r">18.8%</td></tr>
+            <tr><td>4</td><td class="r">683</td><td class="r">339</td><td class="r">20</td><td class="r">324</td><td class="r">0</td><td class="r">678</td><td class="r">21.3%</td></tr>
+            <tr><td>5</td><td class="r">3,059</td><td class="r">1,429</td><td class="r">51</td><td class="r">1,219</td><td class="r">360</td><td class="r">2,858</td><td class="r">18.5%</td></tr>
+            <tr class="hlrow"><td>Tất cả</td><td class="r">9,428</td><td class="r">4,857</td><td class="r">156</td><td class="r">4,035</td><td class="r">380</td><td class="r">9,714</td><td class="r">19.8%</td></tr>
+            <tr class="grp"><td colspan="8">Samples của FedAvg SFT R1 (cho k = 1 R2)</td></tr>
+            <tr class="hlrow"><td>Tất cả</td><td class="r">9,428</td><td class="r">5,612</td><td class="r">196</td><td class="r">3,220</td><td class="r">400</td><td class="r">11,224</td><td class="r">&ndash;</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="muted" style="font-size:0.82rem">10 samples ở T 1.0, prompt <code>ddl</code> với evidence, nhãn bằng evaluator của BIRD (results <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>). Gold không cho nhãn: 350 lỗi SQL, 184 hết 30 s khi SQL chạy trong threads; relabel với SQL trong worker process đang chạy tay. 3,955 câu all-wrong là chỗ gold rule trên BIRD thêm pairs.</p>
+      <p class="muted" style="font-size:0.82rem">10 samples ở T 1.0, prompt <code>ddl</code> với evidence, nhãn bằng evaluator của BIRD với SQL trong worker process (results <code>144a8a78</code>, <code>7e0d032f</code>). Pairs của FedAvg R1 theo client: 2,612 / 1,848 / 2,606 / 716 / 3,442. Rejected là lỗi chạy ở 76% pairs từ base, 63% từ FedAvg R1 (Spider 51-60%). Gold không cho nhãn: lỗi SQL, hoặc hết 30 s cả khi chạy riêng; phần lớn ở client 5 (<code>retail_world</code>).</p>
     </div>
     <div class="panel tblpanel" data-ds="spider" style="margin-top:14px">
       <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Spider: pairs theo client và theo round</h3>
@@ -1174,13 +1177,13 @@ tr.plan td { color: var(--muted); font-style: italic; }
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>Tiến độ</h2>
       <p>Thời gian là GPU wall clock trên một card (ước tính).</p>
     </div>
-    <div class="panel asof"><b>Ghi nhận lúc 2026-11-20 09:55.</b><span>Trạng thái hiện tại: <a href="PIPELINE_NEXT.md"><code>PIPELINE_NEXT.md</code></a>.</span></div>
+    <div class="panel asof"><b>Ghi nhận lúc 2026-11-21 02:45.</b><span>Trạng thái hiện tại: <a href="PIPELINE_NEXT.md"><code>PIPELINE_NEXT.md</code></a>.</span></div>
 
     <div class="status" style="margin-top:14px">
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span><span class="pill run">đang chạy (suy ra)</span><span class="big mono">bird_sft/round_2</span><span class="small">Từ khoảng 07:00, khoảng 3 h (ước tính). Rồi eval trên BIRD dev, rồi <code>bird_k1/round_1</code> sau khi pull queue mới.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span><span class="pill wait">trống</span><span class="big">Không có worker</span><span class="small">Dừng lúc 07:30 trong epoch 3 của centralized SFT, checkpoint giữ. Centralized SFT nay đứng sau các round BIRD.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>CPU, chạy tay</span><span class="pill run">chưa báo</span><span class="big">Relabel BIRD</span><span class="small">Từ khoảng 01:00. Nếu còn client chưa xong: chạy lại với code mới, 16 worker process.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Mới nhất</span><span class="pill done">BIRD FedAvg R1</span><span class="big num">38.85 EX</span><span class="small">BIRD dev, hơn base student 9.38 (p &lt; 1e-6). Không có result mới từ 06:56.</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span><span class="pill run">đang chạy (suy ra)</span><span class="big mono">bird_k0_gold/round_1</span><span class="small">Từ khoảng 22:36, chỉ train; EX khoảng 05:15 (ước tính). Rồi <code>bird_k0/round_2</code>, <code>bird_fixed/round_2</code>.</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span><span class="pill wait">trống</span><span class="big">Chờ khởi động</span><span class="small">Không có worker từ 20/11 07:30. Khi chạy sẽ nhận <code>bird_k0/round_2</code> (khoảng 6.5 h, ước tính).</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Code mới</span><span class="pill wait">cần pull</span><span class="big">Label step nhanh hơn</span><span class="small">Lần chạy lại SQL thiếu CPU dồn về cuối, 4 job một lúc (<code>0910b84f</code>). Label BIRD từ 3 h xuống khoảng 1.5 h (ước tính).</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Mới nhất</span><span class="pill done">BIRD k = 0 R1</span><span class="big num">41.85 EX</span><span class="small">BIRD dev, hơn FedAvg SFT R1 3.00 (p 0.005). Published 20/11 22:35.</span></div>
     </div>
 
     <div class="phases" style="margin-top:14px">
@@ -1193,8 +1196,8 @@ tr.plan td { color: var(--muted); font-style: italic; }
       <article class="panel phase current">
         <div class="ph-top"><span class="ph-n">PHASE 1</span><span class="pill run">đang làm</span></div>
         <h3>FedAvg SFT, rồi DPO + NLL</h3>
-        <div class="ph-count"><div class="bar"><span class="runseg" style="width:80%"></span></div><span>8/10</span></div>
-        <p class="decides">Còn: centralized SFT từ epoch 3 (sau các round BIRD). Stage SFT không gain ở k = 0, 2, 3 trên Spider; đọc lại trên BIRD.</p>
+        <div class="ph-count"><div class="bar"><span class="runseg" style="width:90%"></span></div><span>9/10</span></div>
+        <p class="decides">Centralized SFT xong ở 3 epoch (75.08, 75.73, 75.03). Còn: stage SFT, không gain ở k = 0, 2, 3 trên Spider, chờ BIRD k = 0 R2.</p>
       </article>
       <article class="panel phase later">
         <div class="ph-top"><span class="ph-n">PHASE 2</span><span class="pill plan">kế tiếp, 2-3 ngày</span></div>
@@ -1203,10 +1206,10 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <p class="decides">Còn: FedDPO as published R2, client drift.</p>
       </article>
       <article class="panel phase later">
-        <div class="ph-top"><span class="ph-n">PHASE 3</span><span class="pill run">BIRD R2 chạy</span></div>
+        <div class="ph-top"><span class="ph-n">PHASE 3</span><span class="pill run">BIRD gold rule chạy</span></div>
         <h3>Độ rộng cho journal</h3>
         <div class="ph-count"><div class="bar"><span style="width:0%"></span></div><span>0/3</span></div>
-        <p class="decides">BIRD (base 29.47, FedAvg R1 38.85, R2 chạy, method k = 1 kế tiếp), alpha 0.5 và IID, FedProx, FedNTD, local SFT, seed thứ hai. Phần còn lại 4-6 ngày (ước tính).</p>
+        <p class="decides">BIRD (FedAvg R1-R2, k = 0 R1, k = 1 R2 xong; gold rule chạy, k = 0 R2 và fixed queued), Spider dev / Syn / Realistic / DK queued, alpha 0.5 và IID, FedProx, FedNTD, local SFT, seed thứ hai. Phần còn lại 4-6 ngày (ước tính).</p>
       </article>
     </div>
 
@@ -1218,19 +1221,20 @@ tr.plan td { color: var(--muted); font-style: italic; }
     </div>
 
     <div class="panel queue" style="margin-top:14px" aria-label="Queue theo round">
-      <div class="q-head"><b>Queue theo round, thứ tự từ 09:55</b><span>Đo trên Spider, một card: round FedAvg 2 h 02 đến 2 h 11; round DPO k = 0 từ 3 h 25 (R1, 8,908 pairs) xuống 1 h 24 (R4, 2,740 pairs). 4 round: 8 h 24 so với 8 h 27.</span></div>
+      <div class="q-head"><b>Queue theo round, ghi nhận 21/11 02:45</b><span>Một card. Spider: round FedAvg 2 h 02 đến 2 h 11; round DPO k = 0 từ 3 h 25 (R1, 8,908 pairs) xuống 1 h 24 (R4, 2,740 pairs). BIRD: FedAvg R2 2 h 49; round DPO có sample 7 h 50 (label 3 h 06), k = 0 R1 chỉ train 3 h 30.</span></div>
       <div class="q-row"><div class="q-name">FedAvg SFT</div><div class="q-track"><span class="rb done"><b>R1</b>72.43</span><span class="rb done"><b>R2</b>74.10</span><span class="rb done"><b>R3</b>74.71</span><span class="rb done"><b>R4</b>74.71</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 0</div><div class="q-track"><span class="rb done"><b>R1</b>75.87</span><span class="rb done"><b>R2</b>77.18</span><span class="rb done"><b>R3</b>77.69</span><span class="rb done"><b>R4</b>78.02</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 2</div><div class="q-track"><span class="rb done"><b>R3</b>77.46</span><span class="rb done"><b>R4</b>78.20</span></div></div>
       <div class="q-row"><div class="q-name">Fixed + NLL, k = 2</div><div class="q-track"><span class="rb done"><b>R3</b>77.64</span><span class="rb done"><b>R4</b>78.02</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 3</div><div class="q-track"><span class="rb done"><b>R4</b>77.97</span></div></div>
       <div class="q-row"><div class="q-name">k = 0, gold rule</div><div class="q-track"><span class="rb done"><b>R1</b>76.67</span><span class="rb neg"><b>R2</b>75.73</span></div></div>
-      <div class="q-row"><div class="q-name">Centralized SFT</div><div class="q-track"><span class="rb done"><b>E1</b>75.08</span><span class="rb done"><b>E2</b>75.73</span><span class="rb wait"><b>E3</b>dừng</span><span class="rb maybe"><b>E4</b>&nbsp;</span><span class="rb maybe"><b>E5</b>&nbsp;</span><span class="rb maybe"><b>E6</b>&nbsp;</span><span class="rb maybe"><b>E7</b>&nbsp;</span><span class="rb maybe"><b>E8</b>&nbsp;</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, base student</div><div class="q-track"><span class="rb done"><b>zero-shot</b>29.47</span><span class="rb done"><b>pair read</b>52.4%</span><span class="rb run"><b>relabel</b>CPU</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, FedAvg SFT</div><div class="q-track"><span class="rb done"><b>R1</b>38.85</span><span class="rb run"><b>R2</b>chạy</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 1<span>từ FedAvg R1</span></div><div class="q-track"><span class="rb wait"><b>R2</b>kế tiếp</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 0<span>sau relabel</span></div><div class="q-track"><span class="rb wait"><b>R1</b>&nbsp;</span><span class="rb wait"><b>R2</b>&nbsp;</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, gold rule / fixed</div><div class="q-track"><span class="rb wait"><b>gold R1</b>&nbsp;</span><span class="rb wait"><b>fixed R2</b>&nbsp;</span></div></div>
+      <div class="q-row"><div class="q-name">Centralized SFT<span>dừng ở 3 epoch (owner)</span></div><div class="q-track"><span class="rb done"><b>E1</b>75.08</span><span class="rb done"><b>E2</b>75.73</span><span class="rb done"><b>E3</b>75.03</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, base student</div><div class="q-track"><span class="rb done"><b>zero-shot</b>29.47</span><span class="rb done"><b>pair read</b>53.2%</span><span class="rb done"><b>relabel</b>xong</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, FedAvg SFT</div><div class="q-track"><span class="rb done"><b>R1</b>38.85</span><span class="rb done"><b>R2</b>42.70</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 1<span>từ FedAvg R1</span></div><div class="q-track"><span class="rb done"><b>R2</b>44.26</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 0</div><div class="q-track"><span class="rb done"><b>R1</b>41.85</span><span class="rb wait"><b>R2</b>&nbsp;</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, gold rule / fixed</div><div class="q-track"><span class="rb run"><b>gold R1</b>chạy</span><span class="rb wait"><b>fixed R2</b>&nbsp;</span></div></div>
+      <div class="q-row"><div class="q-name">Spider, bộ đo khác<span>6 hàng, chỉ eval</span></div><div class="q-track"><span class="rb wait"><b>dev</b>&nbsp;</span><span class="rb wait"><b>Syn</b>&nbsp;</span><span class="rb wait"><b>Realistic</b>&nbsp;</span><span class="rb wait"><b>DK</b>&nbsp;</span></div></div>
       <div class="q-legend">
         <span><span class="rb done">&nbsp;</span> có kết quả</span>
         <span><span class="rb run">&nbsp;</span> đang chạy</span>
@@ -1261,9 +1265,10 @@ tr.plan td { color: var(--muted); font-style: italic; }
           <tr><td><b>Re-aggregation probe</b></td><td>Trọng số pair, equal, question, step-normalised có khác nhau không</td><td>10 phút eval mỗi cách</td><td><span class="pill plan">cần script</span></td></tr>
           <tr><td><b>Equal weights, FedNova, exact LoRA</b></td><td>Chỉ chạy nếu probe hoặc drift cho thấy cần</td><td>1 DPO line mỗi cách</td><td><span class="pill plan">theo bằng chứng</span></td></tr>
           <tr class="grp"><td colspan="4">Phase 3</td></tr>
-          <tr><td><b>BIRD: FedAvg SFT so với DPO + NLL</b></td><td>DPO từ base student còn dẫn không khi chỉ một nửa số câu cho pairs (4,783 của 9,428), ở R1 và R2</td><td>khoảng 3 h mỗi round</td><td><span class="pills"><span class="pill done">FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">DPO queued</span></span></td></tr>
-          <tr><td><b>BIRD: gold rule, on-policy, stage SFT</b></td><td>Gold cho 3,955 câu all-wrong; R2 trên pairs của R1; DPO từ một round <code>bird_sft</code></td><td>3-6 h mỗi line</td><td><span class="pills"><span class="pill wait">k = 1 đầu queue</span><span class="pill wait">gold, fixed queued</span></span></td></tr>
-          <tr><td><b>Một loss cho câu all-wrong</b></td><td>DPO + NLL trên câu mixed, NLL trên gold SQL cho câu all-wrong (BIRD 41.9% câu)</td><td>code + 1 round</td><td><span class="pill plan">sau các read BIRD</span></td></tr>
+          <tr><td><b>BIRD: FedAvg SFT so với DPO + NLL</b></td><td>R1: k = 0 41.85 so với 38.85 (+3.00, p 0.005). R2: k = 1 44.26 so với 42.70 (+1.56, p 0.13); k = 0 R2 quyết định có stage SFT không</td><td>khoảng 6.5 h mỗi round có sample (ước tính)</td><td><span class="pills"><span class="pill done">R1 giữ</span><span class="pill neg">k = 1 R2 chưa tách</span><span class="pill wait">k = 0 R2 queued</span></span></td></tr>
+          <tr><td><b>BIRD: gold rule, on-policy</b></td><td>Gold làm chosen cho 4,035 câu all-wrong, so với k = 0 R1 (41.85); R2 trên pairs của R1, so với k = 0 R2</td><td>3.5-6.5 h mỗi line</td><td><span class="pills"><span class="pill run">gold rule chạy</span><span class="pill wait">fixed queued</span></span></td></tr>
+          <tr><td><b>Spider dev, Syn, Realistic, DK</b></td><td>Gain trên FedAvg SFT còn không ở bộ mà papers báo và nơi không chọn round hay setting nào; 6 hàng</td><td>khoảng 1 h eval (ước tính)</td><td><span class="pill wait">queued, không train</span></td></tr>
+          <tr><td><b>Một loss cho câu all-wrong</b></td><td>DPO + NLL trên câu mixed, NLL trên gold SQL cho câu all-wrong (BIRD 42.8% câu với base, 34.2% sau FedAvg R1)</td><td>code + 1 round</td><td><span class="pill plan">sau các read BIRD</span></td></tr>
           <tr><td><b>Centralized DPO + NLL trên Spider</b></td><td>Mốc trên của method khi gộp dữ liệu</td><td>khoảng 8.5 h</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>alpha 0.5 và IID</b></td><td>Gain còn khi bớt non-IID</td><td>FedAvg + method mỗi split</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>FedProx, FedNTD, local SFT</b></td><td>Baseline mạnh hơn và mốc dưới</td><td>2 + 5 SFT line</td><td><span class="pill plan">chưa queue</span></td></tr>
@@ -1293,7 +1298,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
           <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng số round</td><td class="mono">1</td><td><span class="pills"><span class="pill done">k = 2, 4 round: +3.49, p 1e-06</span><span class="pill done">k = 0, 4 round: +3.31, p 3.1e-05</span><span class="pill done">preference trên RFT: +1.59, p 0.015</span></span></td></tr>
           <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pills"><span class="pill done">trên FedDPO as published R1: +3.87, p &lt; 1e-6 (NLL)</span><span class="pill neg">on-policy so với fixed + NLL, R2: +0.18, p 0.78</span><span class="pill wait">FedDPO as published R2: chờ owner</span></span></td></tr>
           <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pills"><span class="pill done">hard +5.83, extra +7.57 (k = 0 R4 so với FedAvg R4)</span><span class="pill neg">sai KQ không giảm: 342-444</span></span></td></tr>
-          <tr><td><b>Giữ được trên dataset khó hơn</b></td><td>Gain còn khi client là BIRD train, đo trên BIRD dev</td><td class="mono">3</td><td><span class="pills"><span class="pill done">base 29.47; FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">method k = 1 kế tiếp</span></span></td></tr>
+          <tr><td><b>Giữ được trên dataset khó hơn</b></td><td>Gain còn khi client là BIRD train, đo trên BIRD dev</td><td class="mono">3</td><td><span class="pills"><span class="pill done">R1: +3.00, p 0.005</span><span class="pill neg">R2 (k = 1): +1.56, p 0.13</span><span class="pill wait">k = 0 R2 queued</span></span></td></tr>
           <tr><td><b>Chi phí ngang FedAvg SFT</b></td><td>Wall time cùng số round trên một card</td><td class="mono">1</td><td><span class="pill done">4 round: 8 h 27 so với 8 h 24</span></td></tr>
           <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
@@ -1310,12 +1315,12 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <thead><tr><th>Hàng</th><th>Là gì</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
         <tbody>
           <tr><td><b>FedAvg SFT</b></td><td>Gold SQL, FedAvg, lr 2e-4, 1 local epoch/round</td><td>Federated baseline</td><td><span class="pill done">xong, best R3 74.71</span></td></tr>
-          <tr><td><b>Method</b></td><td>k round FedAvg SFT (k = 0 nếu bỏ stage), rồi DPO + NLL rounds với các phần được giữ</td><td>Hàng chính của paper</td><td><span class="pills"><span class="pill done">k = 2: 78.20 ở 4 round</span><span class="pill done">k = 0: 78.02 ở 4 round</span><span class="pill done">k = 3: 77.97 ở 4 round</span><span class="pill wait">stage SFT: đọc trên BIRD</span></span></td></tr>
+          <tr><td><b>Method</b></td><td>k round FedAvg SFT (k = 0 nếu bỏ stage), rồi DPO + NLL rounds với các phần được giữ</td><td>Hàng chính của paper</td><td><span class="pills"><span class="pill done">Spider k = 2: 78.20, k = 0: 78.02, k = 3: 77.97 ở 4 round</span><span class="pill done">BIRD k = 0 R1 41.85, k = 1 R2 44.26</span><span class="pill wait">stage SFT: chờ BIRD k = 0 R2</span></span></td></tr>
           <tr><td><b>Federated DPO as published</b></td><td>Pairs làm một lần, reference cố định, DPO không NLL (FedDPO của OpenFedLLM)</td><td>Federated DPO baseline</td><td><span class="pills"><span class="pill done">R1 73.59</span><span class="pill wait">R2: chờ owner, khoảng 2.5 h</span></span></td></tr>
           <tr><td><b>Ablations</b></td><td>Method bỏ từng phần được giữ</td><td>Cho thấy mỗi phần đóng góp gì</td><td><span class="pills"><span class="pill done">bỏ NLL: 73.59</span><span class="pill done">chỉ NLL (RFT): 75.87</span><span class="pill plan">còn lại: phase 2</span></span></td></tr>
           <tr><td><b>FedProx, FedNTD</b></td><td>Gold SQL, aggregator khác</td><td>Federated baselines</td><td><span class="pill plan">phase 3</span></td></tr>
-          <tr><td><b>BIRD</b></td><td>BIRD train làm 5 client, đo trên BIRD dev</td><td>Bộ dữ liệu thứ hai</td><td><span class="pills"><span class="pill done">base 29.47, FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">DPO queued</span></span></td></tr>
-          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pills"><span class="pill done">centralized: E1 75.08, E2 75.73</span><span class="pill wait">E3 dừng, sau BIRD</span><span class="pill plan">local: phase 3</span></span></td></tr>
+          <tr><td><b>BIRD</b></td><td>BIRD train làm 5 client, đo trên BIRD dev</td><td>Bộ dữ liệu thứ hai</td><td><span class="pills"><span class="pill done">base 29.47; FedAvg 38.85, 42.70</span><span class="pill done">k = 0 R1 41.85; k = 1 R2 44.26</span><span class="pill wait">gold rule, k = 0 R2, fixed</span></span></td></tr>
+          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pills"><span class="pill done">centralized: 75.08, 75.73, 75.03 (3 epoch)</span><span class="pill plan">local: phase 3</span></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -1342,6 +1347,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
   <div class="wrap foot">
     <details class="more"><summary>Lịch sử cập nhật</summary>
     <ul class="updates">
+      <li><time>2026-11-21 05:30</time><span>Centralized SFT epoch 3 75.03, dừng ở 3 epoch; BIRD dev FedAvg SFT R2 42.70, DPO + NLL k = 0 R1 41.85, k = 1 R2 44.26 (results <code>16f82c69</code>, <code>53c7bee1</code>, <code>2dceb56f</code>, <code>2913db0c</code>); pairs BIRD sau relabel và sau FedAvg R1 (<code>144a8a78</code>, <code>7e0d032f</code>). Bỏ dải "SFT trong papers" khỏi biểu đồ EX (SPFT-SQL không còn dùng làm mốc). Thẻ kết quả chính và còn mở có số BIRD; Spider dev, Syn, Realistic, DK trong Hướng tiếp và queue. Trạng thái GPU và queue theo ghi nhận 2026-11-21 02:45.</span></li>
       <li><time>2026-11-20 10:05</time><span>BIRD dev FedAvg SFT R1 38.85 (results <code>91e5fcdd</code>). Tab Kết quả sinh từ một khối dữ liệu do <code>paper/notes/tools/overview_results.py</code> đọc từ mọi evaluation đã commit (EX, độ khó, lỗi chạy và sai kết quả đếm lại từ predictions, McNemar so với FedAvg SFT cùng round); chọn bộ đo, model, seed (seed thứ hai trở đi thêm lựa chọn trung bình). Biểu đồ: EX theo round (đường, ẩn hiện từng line), gain so với FedAvg (cột, nhạt khi p &ge; 0.05), mỗi câu test ra sao (thanh 100%), theo độ khó (dumbbell); hàng đang chạy và queued hiện trong bảng. k = 3: lỗi chạy 112, sai kết quả 361 (1 output bị cắt trước đây tính vào sai kết quả). Trạng thái GPU và queue theo ghi nhận 2026-11-20 09:55.</span></li>
       <li><time>2026-11-20 06:41</time><span>k = 3 ở 4 round 77.97, gold rule R2 75.73, centralized SFT epoch 1 và 2 (75.08, 75.73), BIRD dev base student 29.47, pair read trên 5 client BIRD (52.4% câu có SQL đúng, 9,566 pairs), wall time 4 round (results <code>b3075597</code>, <code>1abec88c</code>, <code>8a66fad2</code>, <code>0643b48c</code>, <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>, <code>5aa73a62</code>): k = 3 trên hai biểu đồ, hàng mới trong bảng kết quả, panel BIRD, I3 và gold rule trong Đã thử, queue và trạng thái GPU theo ghi nhận 2026-11-20 06:38.</span></li>
       <li><time>2026-11-20 01:27</time><span>Trang chia thành tab (Tổng quan, Method, Dữ liệu, Kết quả, Đã thử, Tiến độ, Hướng tiếp, Paper), mỗi lần hiện một tab; chữ cắt gọn, phần đã thử và hướng tiếp thành bảng ngắn. Hình 1 và ma trận baseline đánh dấu NLL là phần được giữ, I1-I3 là đã thử; biểu đồ gain so với FedAvg cùng round; biểu đồ EX đến R4; cột tổng round trong bảng kết quả; một màu pill một nghĩa; gate tô kết quả đã đạt. Số liệu giữ như bản 2026-11-19 23:45; trạng thái GPU theo ghi nhận 2026-11-19 19:45.</span></li>
@@ -1451,8 +1457,8 @@ tr.plan td { color: var(--muted); font-style: italic; }
       read: "10 client, 8 đến 22 database và 442 đến 1,903 câu mỗi client. Lệch mạnh nhất trong các split: hard + extra 19% (client 3, chỉ tier 0) đến 63% (client 10, 18 database tier 3)." },
     { id: "b01", ds: "bird", tab: "BIRD alpha 0.1, 5 client", short: "BIRD &alpha; 0.1", sub: "5 client",
       path: "BIRD/.../federated/alpha_0.1/k5", part: "Dirichlet trên tier, alpha 0.1", minDb: 5, draws: 1,
-      st: ["run", "FedAvg R1 xong (38.85), R2 chạy; DPO queued"], all: 41.4,
-      c: [[16,361,1139,261,250,16,0,0,0,"gold lỗi 4"],[14,166,717,323,389,0,0,14,0,"gold lỗi 6, gold hết 30 s 17"],[16,147,733,622,578,0,0,0,16,"gold hết 30 s 10"],[5,87,300,142,154,1,1,2,1,"gold hết 30 s 1"],[18,534,1343,547,635,1,16,1,0,"gold lỗi 340 (phần lớn retail_world), gold hết 30 s 21"]],
+      st: ["run", "FedAvg R1-R2, DPO k = 0 R1 và k = 1 R2 xong; gold rule chạy"], all: 41.4,
+      c: [[16,361,1139,261,250,16,0,0,0,"gold không cho nhãn 6"],[14,166,717,323,389,0,0,14,0,"gold không cho nhãn 8"],[16,147,733,622,578,0,0,0,16,"gold không cho nhãn 6"],[5,87,300,142,154,1,1,2,1,""],[18,534,1343,547,635,1,16,1,0,"gold không cho nhãn 360 (phần lớn retail_world)"]],
       read: "Cùng cách chia như split chính của Spider. Ba client chỉ có một tier (client 1: T0, client 2: T2, client 3: T3), hard + extra 25% đến 58%. Client 4 nhỏ nhất (5 database, 683 câu). Mọi database có rows, nên không có câu nào trên database rỗng." }
   ];
   SPLITS.forEach(function (s) {
@@ -1553,6 +1559,9 @@ tr.plan td { color: var(--muted); font-style: italic; }
 /* RESULTS:BEGIN written by paper/notes/tools/overview_results.py, do not edit by hand */
 var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"n":1534,"ex":29.47,"e":44.33,"m":34.53,"h":21.78,"x":15.81,"err":646,"cut":1,"wr":436,"sha":"bfa497a8"},
 {"ds":"bird","model":"qwen15","seed":0,"line":"fedavg","r":1,"n":1534,"ex":38.85,"e":50.52,"m":45.94,"h":30.69,"x":22.9,"err":372,"cut":1,"wr":566,"sha":"91e5fcdd"},
+{"ds":"bird","model":"qwen15","seed":0,"line":"fedavg","r":2,"n":1534,"ex":42.7,"e":53.61,"m":50.34,"h":33.33,"x":27.1,"err":286,"cut":1,"wr":593,"sha":"53c7bee1"},
+{"ds":"bird","model":"qwen15","seed":0,"line":"k0","r":1,"n":1534,"ex":41.85,"e":51.55,"m":48.83,"h":33.0,"x":28.06,"err":219,"cut":8,"wr":673,"sha":"2dceb56f"},
+{"ds":"bird","model":"qwen15","seed":0,"line":"k1","r":2,"n":1534,"ex":44.26,"e":55.15,"m":51.58,"h":35.64,"x":28.71,"err":128,"cut":8,"wr":727,"sha":"2913db0c"},
 {"ds":"spider","model":"qwen15","seed":0,"line":"base","r":0,"n":2147,"ex":68.05,"e":87.45,"m":71.41,"h":59.18,"x":45.94,"err":287,"cut":0,"wr":399,"sha":"12456b56"},
 {"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":1,"n":2147,"ex":72.43,"e":89.15,"m":75.26,"h":63.71,"x":54.9,"err":215,"cut":0,"wr":377,"sha":"d6bfc763"},
 {"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":2,"n":2147,"ex":74.1,"e":89.36,"m":78.65,"h":65.23,"x":54.62,"err":183,"cut":0,"wr":373,"sha":"0699ac6d"},
@@ -1576,7 +1585,10 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
 {"ds":"spider","model":"qwen15","seed":0,"line":"wrfirst","r":3,"n":2147,"ex":77.27,"e":91.06,"m":79.7,"h":71.49,"x":60.78,"err":146,"cut":0,"wr":342,"sha":"cd4727a7"},
 {"ds":"spider","model":"qwen15","seed":0,"line":"wrfirst","r":4,"n":2147,"ex":77.69,"e":91.7,"m":80.98,"h":70.84,"x":60.22,"err":107,"cut":0,"wr":372,"sha":"06e81fdf"},
 {"ds":"spider","model":"qwen15","seed":0,"line":"central","r":1,"n":2147,"ex":75.08,"e":90.85,"m":79.35,"h":67.6,"x":53.78,"err":165,"cut":1,"wr":370,"sha":"8a66fad2"},
-{"ds":"spider","model":"qwen15","seed":0,"line":"central","r":2,"n":2147,"ex":75.73,"e":91.49,"m":77.48,"h":69.55,"x":58.82,"err":151,"cut":2,"wr":370,"sha":"0643b48c"}],"tests":[{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"feddpo","rb":3,"fixed":146,"broke":170,"p":"0.20","pv":0.196},
+{"ds":"spider","model":"qwen15","seed":0,"line":"central","r":2,"n":2147,"ex":75.73,"e":91.49,"m":77.48,"h":69.55,"x":58.82,"err":151,"cut":2,"wr":370,"sha":"0643b48c"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"central","r":3,"n":2147,"ex":75.03,"e":91.06,"m":78.3,"h":67.17,"x":56.3,"err":159,"cut":1,"wr":377,"sha":"16f82c69"}],"tests":[{"ds":"bird","model":"qwen15","seed":0,"a":"fedavg","ra":1,"b":"k0","rb":1,"fixed":152,"broke":106,"p":"0.005","pv":0.00499},
+{"ds":"bird","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"k1","rb":2,"fixed":127,"broke":103,"p":"0.13","pv":0.129},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"feddpo","rb":3,"fixed":146,"broke":170,"p":"0.20","pv":0.196},
 {"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"fixed","rb":3,"fixed":138,"broke":75,"p":"1.9e-5","pv":1.89e-05},
 {"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"fixed","rb":4,"fixed":159,"broke":88,"p":"7.4e-6","pv":7.35e-06},
 {"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"goldchosen","rb":3,"fixed":134,"broke":76,"p":"7.6e-5","pv":7.6e-05},
@@ -1607,7 +1619,12 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
 {"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"feddpo","rb":3,"fixed":157,"broke":168,"p":"0.58","pv":0.579},
 {"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":2,"b":"k0","rb":2,"fixed":173,"broke":142,"p":"0.091","pv":0.0908},
 {"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":2,"b":"fedavg","rb":2,"fixed":106,"broke":141,"p":"0.03","pv":0.0303},
-{"ds":"bird","model":"qwen15","seed":0,"a":"base","ra":0,"b":"fedavg","rb":1,"fixed":209,"broke":65,"p":"<1e-6","pv":8.4e-19}]};
+{"ds":"bird","model":"qwen15","seed":0,"a":"base","ra":0,"b":"fedavg","rb":1,"fixed":209,"broke":65,"p":"<1e-6","pv":8.4e-19},
+{"ds":"bird","model":"qwen15","seed":0,"a":"fedavg","ra":1,"b":"fedavg","rb":2,"fixed":98,"broke":39,"p":"<1e-6","pv":4.87e-07},
+{"ds":"bird","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"k0","rb":1,"fixed":127,"broke":140,"p":"0.46","pv":0.463},
+{"ds":"bird","model":"qwen15","seed":0,"a":"fedavg","ra":1,"b":"k1","rb":2,"fixed":173,"broke":90,"p":"<1e-6","pv":3.45e-07},
+{"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":3,"b":"k0","rb":3,"fixed":184,"broke":127,"p":"0.0015","pv":0.00146},
+{"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":2,"b":"central","rb":3,"fixed":85,"broke":100,"p":"0.30","pv":0.303}]};
 /* RESULTS:END */
 
   var NS = "http://www.w3.org/2000/svg";
@@ -1619,12 +1636,11 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
   var DS = {
     spider: { name: "Spider test", n: 2147, nh: { e: 470, m: 857, h: 463, x: 357 },
       setting: "Client: Spider train, 5 client, alpha 0.1 (alpha_0.1/k5). Prompt A (ddl_rows), greedy, evaluator Spider (60 s mỗi query).",
-      band: [77, 78, "SFT trong papers"],
-      read: "Ở mọi số round, DPO + NLL hơn FedAvg SFT khoảng 3 EX, có hay không stage SFT trước (k = 0, 2, 3), và đến cùng mức ở R4. FedDPO as published (không NLL) dưới FedAvg SFT. Centralized SFT trên dữ liệu gộp đạt 75.73 sau 2 epoch, dưới DPO + NLL federated sau 2 round (77.18). Gain đến từ lỗi chạy (287 khi chưa train, 164-215 với FedAvg SFT, 57-112 với DPO + NLL); SQL chạy được nhưng sai kết quả ở 342-444 trong mọi hàng." },
+      read: "Ở mọi số round, DPO + NLL hơn FedAvg SFT khoảng 3 EX, có hay không stage SFT trước (k = 0, 2, 3), và đến cùng mức ở R4. FedDPO as published (không NLL) dưới FedAvg SFT. Centralized SFT trên dữ liệu gộp dừng ở 75.0-75.7 qua 3 epoch; DPO + NLL federated cao hơn ở mọi số epoch, ở 3 round +2.66 (p 0.0015). Gain đến từ lỗi chạy (287 khi chưa train, 164-215 với FedAvg SFT, 57-112 với DPO + NLL); SQL chạy được nhưng sai kết quả ở 342-444 trong mọi hàng." },
     bird: { name: "BIRD dev", n: 1534, nh: { e: 194, m: 727, h: 303, x: 310 },
       setting: "Client: BIRD train, 5 client, alpha 0.1. Prompt ddl với evidence, greedy, evaluator BIRD (30 s cho cặp prediction và gold).",
       hnote: "Mức độ khó theo luật hardness của Spider trên parse của sqlglot, không phải nhãn simple / moderate / challenging của BIRD.",
-      read: "FedAvg SFT R1 đạt 38.85, hơn base student 9.38 (sửa 209 câu, làm sai 65, p < 1e-6): lỗi chạy 646 xuống 372, nhưng SQL sai kết quả tăng 436 lên 566. Chưa có round DPO nào xong; round đầu của method là k = 1 (DPO + NLL từ FedAvg R1), đầu queue." }
+      read: "Sau 1 round, DPO + NLL từ base student (k = 0) đạt 41.85, hơn FedAvg SFT R1 3.00 (sửa 152 câu, làm sai 106, p 0.005), gần mức trên Spider (+3.44). Sau 2 round, FedAvg SFT vẫn tăng (42.70, +3.85); k = 1 (FedAvg R1 rồi một round DPO + NLL) đạt 44.26, hơn 1.56 nhưng p 0.13. DPO cắt lỗi chạy mạnh (285 xuống 128 ở R2) nhưng SQL sai kết quả tăng (593 lên 727), rõ hơn trên Spider. Đang chạy: gold rule R1; queued: k = 0 R2, fixed R2." }
   };
   var MODELS = { qwen15: "Qwen2.5-Coder-1.5B" };
   var HL = [["e", "easy"], ["m", "medium"], ["h", "hard"], ["x", "extra"]];
@@ -1654,15 +1670,11 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
     bird:   { fedavg: ["base", 0], k0: ["base", 0], k0gold: ["base", 0], k1: ["fedavg", 1], fixed: ["k0", 1], central: ["base", 0] }
   };
   START.spider.fedavg = ["base", 0];
-  // Rows running or queued (PIPELINE_NEXT.md, 2026-11-20 09:55). st: run or wait.
+  // Rows running or queued (PIPELINE_NEXT.md, 2026-11-21 02:45). st: run or wait.
   var PLAN = [
-    { ds: "bird", model: "qwen15", line: "fedavg", r: 2, st: "run", t: "đang chạy" },
-    { ds: "bird", model: "qwen15", line: "k1", r: 2, st: "wait", t: "queued, đầu queue" },
-    { ds: "bird", model: "qwen15", line: "k0", r: 1, st: "wait", t: "queued, sau relabel" },
-    { ds: "bird", model: "qwen15", line: "k0gold", r: 1, st: "wait", t: "queued, sau relabel" },
+    { ds: "bird", model: "qwen15", line: "k0gold", r: 1, st: "run", t: "đang chạy" },
     { ds: "bird", model: "qwen15", line: "k0", r: 2, st: "wait", t: "queued" },
-    { ds: "bird", model: "qwen15", line: "fixed", r: 2, st: "wait", t: "queued" },
-    { ds: "spider", model: "qwen15", line: "central", r: 3, st: "wait", t: "dừng trong epoch 3, sau BIRD" }
+    { ds: "bird", model: "qwen15", line: "fixed", r: 2, st: "wait", t: "queued" }
   ];
 
   function mean(a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; }
@@ -1744,7 +1756,7 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
       el("text", { "class": "c-axis", x: x0 - 8, y: Y(v) + 4, "text-anchor": "end" }, v);
     }
     for (var r = 0; r <= maxR; r++) el("text", { "class": "c-axis", x: X(r), y: H - mb + 18, "text-anchor": "middle" }, r === 0 ? "chưa train" : "R" + r);
-    el("text", { "class": "c-axis", x: x0, y: H - 6 }, "Centralized SFT theo epoch trên cùng trục");
+    if (lines.indexOf("central") >= 0) el("text", { "class": "c-axis", x: x0, y: H - 6 }, "Centralized SFT theo epoch trên cùng trục");
     var desc = [], ends = [];
     lines.forEach(function (l) {
       var L = LINES[l], rs = roundsOf(V, l), pts = [];
@@ -1772,16 +1784,16 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
       desc.unshift("Chưa train " + f2(base.ex));
     }
     // labels: lines that end at the last round go to the right margin, the others next to their point
-    var groups = {};
-    ends.forEach(function (e) { (groups[e.r] = groups[e.r] || []).push(e); });
-    Object.keys(groups).forEach(function (r) {
-      var g = spread(groups[r], 16, mt + 6, H - mb), atEnd = +r === maxR;
-      g.forEach(function (e) {
-        var L = LINES[e.l], lx = X(e.r) + (atEnd ? 16 : 10);
-        if (atEnd) el("line", { "class": "c-lead", x1: X(e.r) + 7, y1: Y(e.v), x2: lx - 3, y2: e.y - 4 });
-        el("text", { "class": "c-end c-halo", x: lx, y: e.y, fill: L.c }, f2(e.v));
-        el("text", { "class": "c-end-n c-halo", x: lx + 44, y: e.y }, L.name.replace("DPO + NLL, ", "") + (atEnd ? "" : " " + rl(e.l, e.r)));
-      });
+    // every label in the right margin, spread so none overlap; a line that ends before the
+    // last round gets a dashed leader and its round in the name
+    var lx = X(maxR) + 16;
+    spread(ends, 16, mt + 6, H - mb).forEach(function (e) {
+      var L = LINES[e.l], atEnd = e.r === maxR;
+      var ld = { "class": "c-lead", x1: X(e.r) + 7, y1: Y(e.v), x2: lx - 3, y2: e.y - 4 };
+      if (!atEnd) ld["stroke-dasharray"] = "2 3";
+      el("line", ld);
+      el("text", { "class": "c-end c-halo", x: lx, y: e.y, fill: L.c }, f2(e.v));
+      el("text", { "class": "c-end-n c-halo", x: lx + 44, y: e.y }, L.name.replace("DPO + NLL, ", "") + (atEnd ? "" : " " + rl(e.l, e.r)));
     });
     var d = svg.querySelector("desc"); if (d) d.textContent = desc.join(". ") + ".";
   }
