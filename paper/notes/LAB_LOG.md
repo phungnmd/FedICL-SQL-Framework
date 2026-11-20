@@ -4,6 +4,44 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: centralized SFT epoch 3 falls to 75.03; the federated method is above the centralized SFT reference at every epoch (results `171ee546`, `16f82c69`)
+
+Spider test (2,147 rows), `scripts.error_breakdown`:
+
+| Epochs or rounds | Centralized SFT | FedAvg SFT | DPO from the base student (k = 0) | k = 0 against centralized SFT |
+|---|---|---|---|---|
+| 1 | 75.08 | 72.43 | 75.87 | +0.79 |
+| 2 | 75.73 | 74.10 | 77.18 | +1.45 (p 0.091) |
+| 3 | 75.03 | 74.71 | 77.69 | +2.66 (184 against 127 rows, p 0.0015) |
+
+- Epoch 3: EX 75.03 (easy 91.06, medium 78.30, hard 67.17, extra
+  56.30), EM 65.07, execution errors 158, wrong results 377, 2 rows on
+  the 60 s budget. Against epoch 2: 85 fixed, 100 broken, p 0.30;
+  against epoch 1: p 1. The three epochs are one level, 75.0 to 75.7;
+  the best is epoch 2. By the rule (0.5 over the best, patience 2)
+  epoch 4 runs and is the last unless it reaches 76.23.
+- Training: continued from example 5,616 of 8,659 (the stop of GPU 1 at
+  07:30), 47 min in this call, 2 calls, 7,763 s in all; peak reserved
+  20,359 MB; mean loss of the call 0.046.
+- FedAvg SFT against centralized SFT at the same count: -2.65, -1.63
+  (p 0.030), -0.32 (p 0.69). FedAvg SFT is slower, not lower: at 3
+  rounds it is at the centralized level. This corrects the reading
+  under item 12 (a) of `RESEARCH_STATE.md`, section 4: the gap of SFT
+  under this split is one of rounds, so the direction rests on the
+  method against its own centralized form, not on SFT losing level.
+- DPO round 1 from FedAvg round 2 (3 rounds, 77.46) against centralized
+  epoch 3: 157 against 105 rows, p 0.0016.
+- Open: the SFT reference here is about 75 to 76 with one-epoch steps,
+  each with a fresh optimizer and schedule as a FedAvg round has;
+  `RESEARCH_STATE.md` (section 4, item 10) puts the SFT of this student
+  in the papers at 77 to 78. One centralized run on the usual schedule
+  (3 epochs, one schedule; about 6.5 h, estimate) would say whether the
+  reference is low because of the steps. Not queued.
+
+Server: the publication merged the queue of 09:55. The continuation
+started at about 09:44 (10:31 less 47 min); which card ran it is not
+known. No publication of `bird_sft/round_2` yet.
+
 ## 2026-11-20: extensions toward Q2 recorded, to try after the method is settled (owner; no run)
 
 Owner: write the directions down; they are tried after the method is

@@ -2,9 +2,10 @@
 
 ## Status
 
-Updated 2026-11-20 09:55 (Asia/Ho_Chi_Minh). No result since 06:56. The
-queue order changed at 09:55 (owner: the order that settles the method
-soonest); the server has it after the pull of step 1.
+Updated 2026-11-20 10:50 (Asia/Ho_Chi_Minh). Last result: centralized
+SFT epoch 3 on Spider test, published 10:36 (75.03). The server has the
+queue order of 09:55 (its publication merged it); a card inside
+centralized SFT still finishes that curve first (step 1).
 
 Spider test by total rounds trained:
 
@@ -12,7 +13,7 @@ Spider test by total rounds trained:
 |---|---|---|---|---|---|---|
 | 1 | 72.43 | | | 75.87 | 76.67 | 75.08 |
 | 2 | 74.10 | | | 77.18 | 75.73 | 75.73 |
-| 3 | 74.71 | | 77.46 | 77.69 | | |
+| 3 | 74.71 | | 77.46 | 77.69 | | 75.03 |
 | 4 | 74.71 | 77.97 | 78.20 | 78.02 | | |
 
 Settled on Spider: DPO + NLL with execution labels on the model's own
@@ -29,25 +30,24 @@ student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_sft/round_2` since about 07:00 (about 3 h, estimate). Under the order it loaded, its next task is centralized SFT, before the evaluation of that round: step 1 changes this. | result `91e5fcdd` at 06:56; the task after it is inferred |
-| 1 | No worker: it stopped itself at 07:30 inside epoch 3 of centralized SFT (checkpoint kept). | the `--until 07:30` of its start line; no line sent back |
+| 0 | Most likely inside centralized SFT: epoch 3 was continued at about 09:44 and published at 10:31, and the curve goes on to epoch 4 (until about 12:55, estimate) before the card takes a BIRD task. `bird_sft/round_2` has no publication yet: trained and waiting for its publication, or still training. | results `171ee546`, `16f82c69`; 47 min for the rest of epoch 3; which card ran it is inferred, no line sent back |
+| 1 | No worker since 07:30, unless it is the card that continued centralized SFT. | the `--until 07:30` of its start line |
 
 ## Run now
 
-1. Now, before `bird_sft/round_2` ends: pull the queue on the server.
-   Fast-forward only, safe while GPU 0 trains (the push holds the queue,
-   a test and a doc line; no code a running job loads). The worker reads
-   the queue again before its next task and then takes the evaluation of
-   `bird_sft/round_2` and `bird_k1/round_1`.
+1. Look at the lines of GPU 0. If it shows centralized SFT
+   (`central_base_ddlrows_s0/sft`, epoch 4): Ctrl+C, then the worker
+   line below. It then takes the publication and evaluation of
+   `bird_sft/round_2` and `bird_k1/round_1`, about 2 h earlier than if
+   epoch 4 runs first; centralized SFT keeps its checkpoint and runs
+   after the BIRD rounds. Epoch 3 fell below epoch 2 (75.03 against
+   75.73), so epoch 4 most likely only closes the curve. If GPU 0 shows
+   `bird_sft/round_2`, nothing to do. The pull line stays for a server
+   that has not merged yet (fast-forward only, safe while a card trains).
 
    ```powershell
    & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' } }
    ```
-
-   If GPU 0 already shows centralized SFT (`central_base_ddlrows_s0/sft`
-   in its lines): Ctrl+C, run the line above, then start the worker
-   again with the line below. Centralized SFT keeps its checkpoint and
-   continues later.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -104,12 +104,15 @@ student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
 | 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
 | 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against rows 1 and 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
 | 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
-| 8 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients (a reference row); rule 0.5 / patience 2 / at most 8 epochs | 2 h 10 min per epoch | stopped in epoch 3; after the BIRD rounds since 09:55 |
+| 8 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients (a reference row); rule 0.5 / patience 2 / at most 8 epochs | 2 h 10 min per epoch | epoch 3 published 10:36 (75.03, best is epoch 2); epoch 4 running or next, the last one unless it reaches 76.23; after the BIRD rounds for a worker started from now on |
 
-Expected with GPU 0 alone (estimates): `bird_sft/round_2` evaluated by
-about 10:30; `bird_k1/round_1` by about 15:30, the first read of the
-method on BIRD; `bird_k0/round_1` by about 19:00; `bird_k0_gold/round_1`
-after midnight. A second card takes rows 4 and 5 earlier.
+Expected with GPU 0 alone (estimates). If the worker is started again
+now (step 1): `bird_sft/round_2` evaluated by about 11:10,
+`bird_k1/round_1` by about 16:00 (the first read of the method on
+BIRD), `bird_k0/round_1` by about 19:30, `bird_k0_gold/round_1` after
+midnight, `bird_k0/round_2` in the morning of 2026-11-21. If epoch 4 of
+centralized SFT runs first, each about 2 h later. A second card takes
+rows 4 and 5 earlier.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):
