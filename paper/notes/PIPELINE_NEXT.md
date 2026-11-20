@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 17:05 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
+Updated 2026-11-20 17:00 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
 round 2 on BIRD dev, 42.70, published 10:57. The relabel of `bird/read`
 has finished (owner, 11:00; its lines not sent yet).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
