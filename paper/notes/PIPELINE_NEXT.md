@@ -128,6 +128,12 @@ all-wrong ones (needs code: a preference weight per row); centralized
 DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
 estimate).
 
+After the method is settled (owner, 2026-11-20; `RESEARCH_STATE.md`,
+section 4, item 12): centralized DPO + NLL with the federated against
+centralized gap; the one-loss form above if BIRD asks for it; questions
+without gold SQL labelled by vote, as a secondary experiment, after a
+CPU probe of the vote labels.
+
 Reading: a difference of about 0.2 EX is what running the same training
 again gives. Open for the owner: round 2 of federated DPO as published
 (no NLL, fixed pairs, fixed reference) for the baseline row, from the

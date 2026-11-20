@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: extensions toward Q2 recorded, to try after the method is settled (owner; no run)
+
+Owner: write the directions down; they are tried after the method is
+settled on BIRD. In order: (a) centralized DPO + NLL and the gap between
+federated and centralized for SFT and for DPO, with the drift of the
+client updates; (b) one local loss with NLL on the gold SQL for the
+all-wrong questions and DPO + NLL on the mixed ones, only if the BIRD
+reads ask for it; (c) questions without gold SQL labelled by the vote
+over execution results. Owner on (c): hiding gold is an assumption the
+datasets do not make; it is a secondary experiment at most, not a part
+of the method, and it needs an SFT baseline with pseudo-labels to be a
+fair comparison. Its first step is a CPU probe of the vote labels on
+the Spider round 1 samples (script not written). Table with evidence
+and costs: `RESEARCH_STATE.md`, section 4, item 12. Nothing is queued.
+
 ## 2026-11-20: queue turned to the earliest read of the method on BIRD; SFT stage line `bird_k1` queued; centralized SFT after the BIRD rounds (owner; queue `51d09d80`)
 
 Owner: order the pipeline so that the direction of the method is known
