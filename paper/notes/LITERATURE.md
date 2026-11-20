@@ -134,6 +134,55 @@ prompt it uses. The large gaps come from training data volume (SLM-SQL,
 CodeS) or from input processing with values and centralized training at a
 similar data volume (SPFT-SQL).
 
+Published BIRD dev numbers at 0.5B to 3B (searched 2026-11-20 by a search
+agent that opened each arXiv HTML; the rows of SQL-Factory, SPFT-SQL,
+SLM-SQL and Zhang et al. were read again in the saved text). "n.s." is not
+stated in the parts read.
+
+| Paper | Model | Training | Prompt, decoding | Zero-shot | Trained |
+|---|---|---|---|---|---|
+| SQL-Factory ([arXiv 2504.14837](https://arxiv.org/abs/2504.14837), Table 4) | Qwen2.5-Coder-1.5B | BIRD train ("+Official-Data"), 3 epochs, lr 3e-6, batch 256, max length 4,096, LLaMA-Factory defaults; LoRA or full n.s. | "official prompt templates for each model"; evidence and decoding n.s.; split of "Bird" not named | 28.6 | 39.2 (their synthetic data: 40.9) |
+| same | Qwen2.5-Coder-3B; Llama-3.2-1B / 3B; DeepSeek-Coder-1.3B | same | same | 37.1; 11.3 / 30.1; 20.3 | 45.7; 26.0 / 38.9; 36.9 |
+| SPFT-SQL ([arXiv 2509.03937](https://arxiv.org/abs/2509.03937), Table 1) | Qwen2.5-Coder-1.5B | training set of the benchmark, LoRA through LLaMA-Factory, 3 epochs, lr 2e-4, batch 64 | n.s. | 40.6 | SFT 44.3; SPFT-SQL 54.0 |
+| SLM-SQL (Tables 2, 4, 6) | Qwen2.5-Coder-1.5B-Instruct | SFT on 916K CoT rows, then GRPO on BIRD train | schema with column descriptions and values; 64 samples | 28.40 (decoding n.s.); 46.81 with voting | SFT with voting 54.17; full 67.08 |
+| FINER-SQL ([arXiv 2605.03465](https://arxiv.org/abs/2605.03465), Table II, section V-E) | Qwen2.5-Coder 0.5B / 1.5B / 3B | SFT on distilled reasoning traces, then GRPO | schema cut to 30 columns by a ranker; vote of 30 samples | no row | SFT only 42.9 / 59.4 / 63.4; final 50.85 / 63.17 / 67.73 |
+| Think2SQL (Tables 1, 2) | Qwen2.5-Coder 0.5B / 1.5B / 3B | RL on BIRD train; SFT rows at 3B only (913 rows with reasoning traces) | gold tables in the schema; T 0.7, one sample, mean of 3 runs | 8.9 / 27.5 / 38.2 | RL 25.4 / 44.2 / 50.0; 3B SFT 42.7 without reasoning, 46.0 with |
+| Reasoning-SQL (Table 3) | Qwen2.5-Coder-3B | SFT on 8,026 BIRD train rows, 3 epochs, lr 1e-5 | schema filtered by Gemini-1.5-pro | 45.17 | SFT 55.9; GRPO 58.67 |
+| CSC-SQL ([arXiv 2505.13271](https://arxiv.org/abs/2505.13271), Table 1) | Qwen2.5-Coder-3B-Instruct | GRPO on BIRD train | schema with descriptions and values; T 0.8, vote of n | 44.70 (n = 4), 56.15 (n = 64) | 56.95 (n = 8), 63.34 (CSC, n = 64) |
+| Query and Conquer ([arXiv 2503.24364](https://arxiv.org/abs/2503.24364), Table 1) | Qwen2.5-Coder-3B | none | schema with example values, evidence, CoT; greedy; a "validation subset" | 30.2 | no row |
+| MCTS-SQL (Table 1) | Qwen2.5-Coder 1.5B / 3B | none | single shot; MCTS pipeline | 14.71 / 17.68 | pipeline 40.69 / 46.71 |
+| CodeS (Table 6) | CodeS-1B / 3B | BIRD train, full SFT after SQL pre-training | schema classifier, value retriever; beam 4 | no row | with evidence 50.46 / 55.02; without 38.46 / 43.42 |
+
+What this gives for our setup (Qwen2.5-Coder-1.5B, CREATE TABLE text
+without rows, evidence, greedy, LoRA):
+
+- Zero-shot: 27.5, 28.40 and 28.6 in three papers; ours 29.47. SPFT-SQL's
+  40.6 stands alone and its prompt is not printed.
+- Plain SFT on BIRD train: 39.2 (SQL-Factory) and 44.3 (SPFT-SQL), the
+  only two rows at this size without added inputs or voting; neither
+  states prompt and decoding in full. Our FedAvg SFT is at 38.85 and 42.70
+  after 1 and 2 rounds.
+- Every 1.5B number above about 45 adds inputs or inference we do not
+  use: value retrieval and a schema classifier (CodeS), 916K rows and a
+  vote of 64 (SLM-SQL), a schema ranker, distilled reasoning and a vote of
+  30 (FINER-SQL).
+- No paper found reports a greedy, single-sample, plain-DDL LoRA SFT of
+  this model on BIRD with all four settings stated.
+
+Federated: no federated result on BIRD was found at any model size, and
+no federated Text-to-SQL paper besides Zhang et al. (section 1.2; T5-base,
+8 single-domain datasets as clients, exact match: centralized 70.32 /
+74.21 macro / micro, FedAvg 40.03 / 57.89, FedOPT 58.32 / 68.49). Checked
+without a hit: arXiv listing and API queries on federated Text-to-SQL,
+NL2SQL and SQL generation; OpenFedLLM, FedLLM-Bench and FederatedScope-LLM
+(no occurrence of "SQL"); the FlowerTune LLM leaderboard (no SQL task).
+The papers citing Zhang et al. were not read (Semantic Scholar and DBLP
+refused the requests).
+
+Not opened: Text2SQL-Flow for BIRD rows below 7B; the model cards of
+SQL-R1 (Qwen3-4B) and of community LoRA models. No row at this size in
+OmniSQL, BASE-SQL and the BIRD mini-dev README.
+
 ### 1.5 LLM-to-SLM distillation
 
 | Paper | Method | Sizes | Data | Key numbers | Closest point / main difference | Read |
