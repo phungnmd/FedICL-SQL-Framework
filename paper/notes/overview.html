@@ -36,6 +36,9 @@
   --l-fixed: #6F7B87;
   --l-feddpo: #B3261E;
   --l-k3: #6B4BB8;
+  --l-k1: #0F7C86;
+  --l-central: #8A5A2B;
+  --l-gold: #B0397A;
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -50,7 +53,7 @@
     --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
     --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
     --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
-    --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF;
+    --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #4FC1C9; --l-central: #C99A6B; --l-gold: #E77FB8;
     --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
     --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
     color-scheme: dark;
@@ -62,7 +65,7 @@
   --ok: #63C793; --ok-soft: #14301F; --warn: #E8AA43; --warn-soft: #33260E;
   --bad: #F2867D; --bad-soft: #3A1B19; --idle: #8794A1; --idle-soft: #212B35;
   --seg-mixed: #6F90F5; --seg-correct: #4FB57F; --seg-wrong: #DB6B62;
-  --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF;
+  --l-fedavg: #84A3FF; --l-k2: #E8AA43; --l-k0: #63C793; --l-fixed: #8794A1; --l-feddpo: #F2867D; --l-k3: #B29BEF; --l-k1: #4FC1C9; --l-central: #C99A6B; --l-gold: #E77FB8;
   --h-easy: #26365C; --h-med: #3B58A6; --h-hard: #6F90F5; --h-extra: #BFD0FF;
   --h-easy-t: #C9D7F8; --h-med-t: #E5EBF0; --h-hard-t: #0E141A; --h-extra-t: #0E141A;
   color-scheme: dark;
@@ -521,13 +524,46 @@ a.next { display: inline-flex; padding: 8px 14px; border-radius: 8px; background
 a.next:hover { background: var(--accent); }
 footer { padding-block: 24px 40px; }
 
+/* results: selectors and data-driven charts */
+.resbar { padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; }
+.resbar .fg { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.resbar .fl { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.res-setting { flex-basis: 100%; font-size: 0.82rem; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 0.82rem var(--font-body); padding: 5px 12px; border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.seg button small { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.7; margin-left: 6px; }
+.lg-toggle button { font: inherit; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 6px; padding: 2px 6px; cursor: pointer; }
+.lg-toggle button:hover { border-color: var(--line); color: var(--ink); }
+.lg-toggle button[aria-pressed="false"] { opacity: 0.45; text-decoration: line-through; }
+.c-halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.ch-empty { font-size: 0.86rem; color: var(--muted); padding: 28px 18px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+.res-charts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.res-charts #exsvg { min-width: 520px; max-width: none; }
+#res-gain, #hardsvg { min-width: 420px; }
+.outc { display: flex; flex-direction: column; gap: 8px; }
+.oc-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 50px; gap: 10px; align-items: center; font-size: 0.82rem; }
+.oc-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.oc-name i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.oc-bar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; }
+.oc-bar span { display: flex; align-items: center; justify-content: center; font: 500 0.7rem var(--font-mono); color: #fff; min-width: 0; overflow: hidden; white-space: nowrap; }
+.oc-bar .ok { background: var(--seg-correct); }
+.oc-bar .wr { background: var(--warn); }
+.oc-bar .er { background: var(--seg-wrong); }
+.oc-ex { font-family: var(--font-mono); font-weight: 500; text-align: right; }
+.dpos { color: var(--ok); font-weight: 600; }
+.dneg { color: var(--bad); font-weight: 600; }
+tr.plan td { color: var(--muted); font-style: italic; }
+
 @media (max-width: 980px) {
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ideas, .tried-parts { grid-template-columns: 1fr; }
   .status, .phases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gate { grid-template-columns: 1fr; }
   .dirs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .setups, .steps3, .charts2, .pairs-grid { grid-template-columns: minmax(0, 1fr); }
+  .setups, .steps3, .charts2, .res-charts, .pairs-grid { grid-template-columns: minmax(0, 1fr); }
   .gloss { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
@@ -546,6 +582,8 @@ footer { padding-block: 24px 40px; }
   .sx-row { grid-template-columns: 64px minmax(0, 1fr) 44px; gap: 8px; }
   .sx-row .tchips { grid-column: 2 / 4; }
   .updates li { grid-template-columns: 1fr; gap: 0; }
+  .oc-row { grid-template-columns: 1fr 44px; gap: 4px 8px; }
+  .oc-name { grid-column: 1 / -1; }
 }
 </style>
 </head>
@@ -565,7 +603,7 @@ footer { padding-block: 24px 40px; }
       <a href="#directions">Hướng tiếp</a>
       <a href="#paper">Paper</a>
     </div>
-    <span class="stamp">Cập nhật <b>2026-11-20 06:41</b></span>
+    <span class="stamp">Cập nhật <b>2026-11-20 10:05</b></span>
   </div>
 </nav>
 
@@ -579,6 +617,7 @@ footer { padding-block: 24px 40px; }
       <span class="chip">Student <b>Qwen2.5-Coder-1.5B-Instruct + LoRA</b></span>
       <span class="chip">Clients <b>5 trên Spider, alpha_0.1/k5</b></span>
       <span class="chip">Metric <b>Spider test EX, 2,147 câu</b></span>
+      <span class="chip">Bộ thứ hai <b>5 client BIRD train, BIRD dev 1,534 câu</b></span>
     </div>
     <p class="question"><b>Câu hỏi</b>Train trên kết quả chạy SQL của chính model, ở database của client, có tốt hơn FedAvg SFT và federated DPO as published không?</p>
 
@@ -755,7 +794,7 @@ footer { padding-block: 24px 40px; }
       <div class="panel chart">
         <div class="ch-head">
           <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Gain so với FedAvg SFT, cùng số round</h3>
-          <p>EX của DPO + NLL trừ EX của FedAvg SFT ở cùng tổng số round; số nhỏ là McNemar p. Vạch cam: ngưỡng đi tiếp của gate phase 1.</p>
+          <p>Spider test. EX của DPO + NLL trừ EX của FedAvg SFT ở cùng tổng số round; số nhỏ là McNemar p. Vạch cam: mức giữ một phần (+0.5). Bộ khác, model khác, seed khác: tab <a href="#results">Kết quả</a>.</p>
         </div>
         <div class="ch-scroll"><svg id="gainsvg" viewBox="0 0 720 270" role="img" aria-labelledby="gn-title gn-desc"><title id="gn-title">Gain so với FedAvg SFT theo round</title><desc id="gn-desc">k = 0: +3.44 ở R1, +3.08 ở R2, +2.98 ở R3, +3.31 ở R4. k = 2: +2.75 ở R3, +3.49 ở R4. k = 3: +3.26 ở R4. Mọi p dưới 0.001.</desc></svg></div>
         <div class="ch-legend">
@@ -768,7 +807,7 @@ footer { padding-block: 24px 40px; }
     </div>
 
     <div class="hero-foot">
-      <span>GPU, ghi nhận 20/11 06:38: GPU 0 chạy FedAvg SFT R1 trên BIRD; GPU 1 chạy centralized SFT epoch 3 đến 07:30. <a href="#progress">Tiến độ</a></span>
+      <span>GPU, ghi nhận 20/11 09:55: GPU 0 chạy FedAvg SFT R2 trên BIRD (suy ra, từ khoảng 07:00); GPU 1 trống, dừng lúc 07:30 trong epoch 3 của centralized SFT. <a href="#progress">Tiến độ</a></span>
       <span class="plegend"><span class="pill done">giữ / xong</span><span class="pill neg">không gain</span><span class="pill wait">chờ owner / queued</span><span class="pill run">đang chạy</span><span class="pill plan">kế hoạch</span></span>
     </div>
   </div>
@@ -902,7 +941,7 @@ footer { padding-block: 24px 40px; }
       <article class="panel setup">
         <div class="setup-top">
           <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Setting BIRD</h3>
-          <span class="pill done">zero-shot, pair read xong</span>
+          <span class="pill done">base, pair read, FedAvg R1 xong</span>
         </div>
         <div class="roles">
           <div class="role cl"><span class="rk">5 client, private</span><b>BIRD train</b><span class="big">9,428</span><span class="s">câu &middot; 69 database</span></div>
@@ -916,6 +955,7 @@ footer { padding-block: 24px 40px; }
           <dt>Lưu ý</dt><dd>mọi database có rows; 534 gold không cho nhãn: 350 lỗi SQL, 184 hết 30 s khi SQL chạy trong threads (151 chạy riêng dưới 15 s; đang gán nhãn lại với SQL trong worker process). DPO labels bỏ các câu này, FedAvg SFT train trên gold như bản release</dd>
           <dt>Base student</dt><dd>BIRD dev 29.47 EX, 42% output lỗi chạy, 570 trong đó là <code>no such column</code> (Spider test: 68.05, 13%)</dd>
           <dt>10 samples / câu</dt><dd>52.4% câu train có SQL đúng (Spider 87.6%), 41.9% toàn sai; 9,566 pairs</dd>
+          <dt>FedAvg SFT R1</dt><dd>BIRD dev 38.85 EX (+9.38), lỗi chạy 372, sai kết quả 566; R2 đang chạy</dd>
         </dl>
       </article>
     </div>
@@ -964,88 +1004,87 @@ footer { padding-block: 24px 40px; }
   <div class="wrap">
     <div class="sec-head">
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Kết quả</h2>
-      <p>Spider test, greedy, prompt A. R là tổng số round federated, kể cả round SFT.</p>
+      <p>Chọn bộ đo, model và seed; mọi biểu đồ và bảng bên dưới đổi theo. R là tổng số round federated, kể cả round SFT.</p>
     </div>
+    <div class="panel resbar" aria-label="Chọn kết quả">
+      <div class="fg"><span class="fl">Bộ đo</span><div class="seg" id="sel-ds" role="group" aria-label="Bộ đo"></div></div>
+      <div class="fg"><span class="fl">Model</span><div class="seg" id="sel-model" role="group" aria-label="Model"></div></div>
+      <div class="fg"><span class="fl">Seed</span><div class="seg" id="sel-seed" role="group" aria-label="Seed"></div></div>
+      <p class="res-setting" id="res-setting"></p>
+    </div>
+    <p class="read" id="res-read" style="margin-top:14px"></p>
+
+    <div class="charts2 res-charts" style="margin-top:14px">
       <div class="panel chart">
         <div class="ch-head">
           <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>EX theo round</h3>
-          <p>Các đường DPO đến cùng mức ở R4. Cao nhất đã công bố cho student này: 82.3 (SPFT-SQL), ngoài khung.</p>
+          <p>Mỗi đường là một line train. Đường bắt đầu từ model nó tiếp tục (chưa train, hoặc một round FedAvg SFT). Bấm tên trong chú thích để ẩn hoặc hiện.</p>
         </div>
-        <div class="ch-scroll"><svg id="exsvg" viewBox="0 0 640 330" role="img" aria-labelledby="ex-title ex-desc"><title id="ex-title">EX theo round</title><desc id="ex-desc">FedAvg SFT: 68.05 chưa train, 72.43, 74.10, 74.71, 74.71 ở round 1 đến 4. DPO + NLL on-policy từ FedAvg round 2: 77.46 ở round 3, 78.20 ở round 4. Fixed + NLL từ FedAvg round 2: 77.64 ở round 3, 78.02 ở round 4. DPO + NLL từ student chưa train (k = 0): 75.87, 77.18, 77.69, 78.02 ở round 1 đến 4. DPO + NLL từ FedAvg round 3 (k = 3): 77.97 ở round 4. Federated DPO as published, round 1 từ FedAvg round 2: 73.59 ở round 3.</desc></svg></div>
-        <div class="ch-legend">
-          <span><i style="background:var(--l-fedavg)"></i>FedAvg SFT</span>
-          <span><i style="background:var(--l-k0)"></i>k = 0 on-policy</span>
-          <span><i style="background:var(--l-k2)"></i>k = 2 on-policy</span>
-          <span><i style="background:repeating-linear-gradient(90deg,var(--l-fixed) 0 6px,transparent 6px 10px)"></i>k = 2 fixed + NLL</span>
-          <span><i style="background:var(--l-k3)"></i>k = 3</span>
-          <span><i class="dot" style="background:var(--l-feddpo)"></i>FedDPO as published</span>
-          <span><i class="sq" style="background:var(--idle-soft)"></i>SFT trong papers</span>
-        </div>
+        <div class="ch-scroll"><svg id="exsvg" viewBox="0 0 640 340" role="img" aria-labelledby="ex-title ex-desc"><title id="ex-title">EX theo round</title><desc id="ex-desc"></desc></svg></div>
+        <div class="ch-legend lg-toggle" id="ex-legend"></div>
       </div>
+      <div class="panel chart">
+        <div class="ch-head">
+          <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Hơn FedAvg SFT bao nhiêu, cùng số round</h3>
+          <p>EX của line trừ EX của FedAvg SFT ở cùng tổng số round; số nhỏ là McNemar p. Cột nhạt: p &ge; 0.05. Vạch cam: mức giữ một phần (+0.5).</p>
+        </div>
+        <div class="ch-scroll"><svg id="res-gain" viewBox="0 0 560 300" role="img" aria-labelledby="rg-title rg-desc"><title id="rg-title">Gain so với FedAvg SFT theo round</title><desc id="rg-desc"></desc></svg></div>
+        <p class="ch-empty" id="res-gain-empty" hidden></p>
+      </div>
+    </div>
+
+    <div class="charts2 res-charts" style="margin-top:14px">
+      <div class="panel chart">
+        <div class="ch-head">
+          <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Mỗi câu test ra sao</h3>
+          <p>Mỗi thanh là toàn bộ câu test của một hàng, chia theo kết quả. Mỗi line lấy round cuối đã có.</p>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--seg-correct)"></i>đúng</span>
+          <span><i style="background:var(--warn)"></i>chạy được, sai kết quả</span>
+          <span><i style="background:var(--seg-wrong)"></i>lỗi chạy (kể cả output bị cắt)</span>
+        </div>
+        <div class="outc" id="outc"></div>
+      </div>
+      <div class="panel chart">
+        <div class="ch-head">
+          <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Theo độ khó</h3>
+          <p id="hard-sub"></p>
+        </div>
+        <div class="ch-scroll"><svg id="hardsvg" viewBox="0 0 560 300" role="img" aria-labelledby="hd-title hd-desc"><title id="hd-title">EX theo độ khó</title><desc id="hd-desc"></desc></svg></div>
+        <div class="ch-legend" id="hard-legend"></div>
+      </div>
+    </div>
+
     <div class="panel tblpanel" style="margin-top:14px">
-      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Các hàng đã có</h3>
-      <p class="read">Ở mọi số round, DPO + NLL hơn FedAvg SFT khoảng 3 EX, có hay không stage SFT trước (k = 0, 2, 3). Centralized SFT trên dữ liệu gộp đạt 75.73 sau 2 epoch, dưới DPO + NLL federated sau 2 round (77.18). Gain đến từ lỗi chạy: 287 khi chưa train, 164-215 với FedAvg SFT, 57-117 với DPO + NLL. SQL sai kết quả ở 342-444 trong mọi hàng.</p>
+      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Các hàng</h3>
       <div class="tbl-wrap">
         <table class="nowrap">
-          <thead><tr><th>Hàng</th><th class="r">Tổng round</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th></tr></thead>
-          <tbody class="num">
-            <tr class="grp"><td colspan="9">Chưa train và FedAvg SFT</td></tr>
-            <tr><td>Chưa train</td><td class="r">0</td><td class="r">68.05</td><td class="r">87.45</td><td class="r">71.41</td><td class="r">59.18</td><td class="r">45.94</td><td class="r">287</td><td class="r">399</td></tr>
-            <tr><td>FedAvg SFT R1</td><td class="r">1</td><td class="r">72.43</td><td class="r">89.15</td><td class="r">75.26</td><td class="r">63.71</td><td class="r">54.90</td><td class="r">215</td><td class="r">377</td></tr>
-            <tr><td>FedAvg SFT R2</td><td class="r">2</td><td class="r">74.10</td><td class="r">89.36</td><td class="r">78.65</td><td class="r">65.23</td><td class="r">54.62</td><td class="r">183</td><td class="r">373</td></tr>
-            <tr><td>FedAvg SFT R3</td><td class="r">3</td><td class="r">74.71</td><td class="r">90.21</td><td class="r">78.88</td><td class="r">67.17</td><td class="r">54.06</td><td class="r">164</td><td class="r">379</td></tr>
-            <tr><td>FedAvg SFT R4</td><td class="r">4</td><td class="r">74.71</td><td class="r">90.64</td><td class="r">78.18</td><td class="r">66.74</td><td class="r">55.74</td><td class="r">173</td><td class="r">370</td></tr>
-            <tr class="grp"><td colspan="9">DPO + NLL từ student chưa train (k = 0)</td></tr>
-            <tr><td>k = 0, DPO R1</td><td class="r">1</td><td class="r">75.87</td><td class="r">90.43</td><td class="r">79.00</td><td class="r">68.90</td><td class="r">58.26</td><td class="r">101</td><td class="r">417</td></tr>
-            <tr><td>k = 0, DPO R2</td><td class="r">2</td><td class="r">77.18</td><td class="r">90.64</td><td class="r">80.51</td><td class="r">70.84</td><td class="r">59.66</td><td class="r">92</td><td class="r">398</td></tr>
-            <tr><td>k = 0, DPO R3</td><td class="r">3</td><td class="r">77.69</td><td class="r">90.43</td><td class="r">80.98</td><td class="r">70.41</td><td class="r">62.46</td><td class="r">82</td><td class="r">397</td></tr>
-            <tr class="hlrow"><td>k = 0, DPO R4</td><td class="r">4</td><td class="r">78.02</td><td class="r">88.94</td><td class="r">81.10</td><td class="r best">72.57</td><td class="r best">63.31</td><td class="r">69</td><td class="r">403</td></tr>
-            <tr><td>k = 0, DPO R1, gold rule</td><td class="r">1</td><td class="r">76.67</td><td class="r">89.79</td><td class="r">80.28</td><td class="r">68.47</td><td class="r">61.34</td><td class="r best">57</td><td class="r">444</td></tr>
-            <tr><td>k = 0, DPO R2, gold rule</td><td class="r">2</td><td class="r">75.73</td><td class="r">91.06</td><td class="r">79.46</td><td class="r">68.68</td><td class="r">55.74</td><td class="r">79</td><td class="r">442</td></tr>
-            <tr class="grp"><td colspan="9">DPO + NLL từ FedAvg R2 (k = 2)</td></tr>
-            <tr><td>k = 2, DPO R1</td><td class="r">3</td><td class="r">77.46</td><td class="r">91.49</td><td class="r">80.63</td><td class="r">71.06</td><td class="r">59.66</td><td class="r">99</td><td class="r">385</td></tr>
-            <tr class="hlrow"><td>k = 2, DPO R2</td><td class="r">4</td><td class="r best">78.20</td><td class="r best">91.91</td><td class="r best">81.91</td><td class="r">71.06</td><td class="r">60.50</td><td class="r">84</td><td class="r">384</td></tr>
-            <tr class="grp"><td colspan="9">DPO + NLL từ FedAvg R3 (k = 3)</td></tr>
-            <tr class="hlrow"><td>k = 3, DPO R1</td><td class="r">4</td><td class="r">77.97</td><td class="r">91.28</td><td class="r">80.86</td><td class="r">72.35</td><td class="r">60.78</td><td class="r">111</td><td class="r">362</td></tr>
-            <tr class="grp"><td colspan="9">Centralized SFT: gộp dữ liệu 5 client, không federated</td></tr>
-            <tr><td>Centralized, epoch 1</td><td class="r">1 epoch</td><td class="r">75.08</td><td class="r">90.85</td><td class="r">79.35</td><td class="r">67.60</td><td class="r">53.78</td><td class="r">165</td><td class="r">370</td></tr>
-            <tr><td>Centralized, epoch 2</td><td class="r">2 epoch</td><td class="r">75.73</td><td class="r">91.49</td><td class="r">77.48</td><td class="r">69.55</td><td class="r">58.82</td><td class="r">151</td><td class="r">370</td></tr>
-          </tbody>
+          <thead><tr><th>Hàng</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th><th class="r">So với FedAvg cùng R</th><th>Result</th></tr></thead>
+          <tbody class="num" id="res-main"></tbody>
         </table>
       </div>
-      <details class="more">
-        <summary>8 hàng đổi một setting, từ FedAvg R2 (k = 2)</summary>
-      <div class="tbl-wrap">
-        <table class="nowrap">
-          <thead><tr><th>Hàng</th><th class="r">Tổng round</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th></tr></thead>
-          <tbody class="num">
-            <tr><td>RFT, DPO R1</td><td class="r">3</td><td class="r">75.87</td><td class="r">90.43</td><td class="r">79.35</td><td class="r">67.60</td><td class="r">59.10</td><td class="r">153</td><td class="r">365</td></tr>
-            <tr><td>Không NLL, DPO R1</td><td class="r">3</td><td class="r">73.59</td><td class="r">88.94</td><td class="r">75.50</td><td class="r">68.03</td><td class="r">56.02</td><td class="r">167</td><td class="r">400</td></tr>
-            <tr><td>Nearest, DPO R1</td><td class="r">3</td><td class="r">77.08</td><td class="r">91.70</td><td class="r">79.70</td><td class="r">70.63</td><td class="r">59.94</td><td class="r">110</td><td class="r">382</td></tr>
-            <tr><td>Gold chosen, DPO R1</td><td class="r">3</td><td class="r">77.41</td><td class="r">90.64</td><td class="r">80.98</td><td class="r">70.84</td><td class="r">59.94</td><td class="r">117</td><td class="r">368</td></tr>
-            <tr><td>Wrong-result first, DPO R1</td><td class="r">3</td><td class="r">77.27</td><td class="r">91.06</td><td class="r">79.70</td><td class="r">71.49</td><td class="r">60.78</td><td class="r">146</td><td class="r best">342</td></tr>
-            <tr><td>Wrong-result first, DPO R2</td><td class="r">4</td><td class="r">77.69</td><td class="r">91.70</td><td class="r">80.98</td><td class="r">70.84</td><td class="r">60.22</td><td class="r">107</td><td class="r">372</td></tr>
-            <tr><td>Fixed + NLL, DPO R1</td><td class="r">3</td><td class="r">77.64</td><td class="r">91.28</td><td class="r">81.21</td><td class="r">71.27</td><td class="r">59.38</td><td class="r">99</td><td class="r">381</td></tr>
-            <tr><td>Fixed + NLL, DPO R2</td><td class="r">4</td><td class="r">78.02</td><td class="r">91.70</td><td class="r">81.56</td><td class="r">70.41</td><td class="r">61.34</td><td class="r">97</td><td class="r">375</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <details class="more" id="res-more-box">
+        <summary id="res-more-sum">Hàng đổi một setting</summary>
+        <div class="tbl-wrap">
+          <table class="nowrap">
+            <thead><tr><th>Hàng</th><th class="r">EX</th><th class="r">Easy</th><th class="r">Med</th><th class="r">Hard</th><th class="r">Extra</th><th class="r">Lỗi chạy</th><th class="r">Sai KQ</th><th class="r">So với FedAvg cùng R</th><th>Result</th></tr></thead>
+            <tbody class="num" id="res-more"></tbody>
+          </table>
+        </div>
       </details>
-      <p class="muted" style="font-size:0.8rem">Chấm xanh: tốt nhất của cột (EX cao nhất, lỗi thấp nhất). Hàng tô nền: method ở 4 round. Centralized SFT còn chạy (epoch 3).</p>
-      <details class="more">
-        <summary>Định nghĩa các hàng, p-value và results</summary>
-        <p>Mỗi round là một round federated của 5 client. k = 0: DPO + NLL on-policy từ student chưa train. Gold rule: gold làm chosen cho câu all-wrong và trên database rỗng (14,050 pairs thay vì 8,908). Các hàng từ FedAvg R2 dùng cùng 10 samples mỗi câu của FedAvg R2 ở R1. RFT: chỉ NLL trên samples đúng. Không NLL: NLL weight 0; ở R1 đây cũng là federated DPO as published. Wrong-result first: rejected lấy từ SQL sai kết quả khi có; R2 chạy sau R1 random. Fixed + NLL: pairs và reference cố định từ R1, giữ NLL. k = 3: một round DPO + NLL từ FedAvg R3 (7,220 pairs). Centralized SFT: recipe, prompt và evaluation như FedAvg SFT, trên hợp dữ liệu 5 client; epoch 1 được tiếp tục sau một lần dừng.</p>
-        <p>Cùng tổng số round, so với FedAvg SFT: k = 0 R1 +3.44 (sửa 168, làm sai 94, p = 6e-06), R2 +3.08 (p = 6e-05), R3 +2.98 (p = 0.00014), R4 +3.31 (sửa 178, làm sai 107, p = 3.1e-05); k = 2 R1 +2.75 (p = 5.4e-05), R2 +3.49 (p = 1e-06). k = 0 so với k = 2: +0.23 ở 3 round (p = 0.80), -0.18 ở 4 round (p = 0.85). k = 3 ở 4 round: +3.26 so với FedAvg (sửa 146, làm sai 76, p = 3e-06); so với k = 2 p = 0.74, so với k = 0 p = 1.00.</p>
-        <p>Gold rule R2: thấp hơn k = 0 R2 1.45 (sửa 84, làm sai 115, p = 0.033) và thấp hơn R1 của chính nó; R3 và R4 không chạy. Centralized SFT: epoch 2 hơn epoch 1 0.65 (p = 0.34). FedAvg R2 thấp hơn centralized epoch 2 1.63 (p = 0.030); k = 0 R2 cao hơn 1.45 (sửa 173, làm sai 142, p = 0.091).</p>
-        <p>NLL term: không NLL không rời điểm xuất phát FedAvg R2 (p = 0.58) và thấp hơn DPO + NLL 3.87 (p &lt; 1e-6). RFT (chỉ NLL) cho +1.77; preference term thêm phần còn lại (DPO R1 so với RFT p = 0.015).</p>
-        <p>Wrong-result first và gold rule chỉ chuyển câu giữa hai loại lỗi. Gold SFT tăng EM 11 điểm (53.33 lên 64.46 ở R4), DPO từ base 2 điểm (55.29 ở R3): stage SFT dạy dạng SQL của gold, EX không tính.</p>
-        <p>pass@10 của FedAvg R3 là 88.68 (pass@1 68.34). Trên câu train, student chưa train đã có SQL đúng trong 10 samples ở 7,582 của 8,659 câu (87.6%). Prompt B (<code>ddl_values</code>) khi chưa train: 67.49, không khác A (p = 0.47).</p>
-        <p>Results: FedAvg R1-R4 <code>d6bfc763</code>, <code>0699ac6d</code>, <code>6558ebfe</code>, <code>da0871d4</code>; k = 0 <code>96007ff6</code>, <code>a3fed6d6</code>, <code>947ca9d8</code>, <code>4215a7e1</code>; gold rule <code>9e7c66b0</code>; DPO <code>be787676</code>, <code>9253ef8e</code>, <code>5c33e622</code>; RFT <code>424cd93e</code>; không NLL <code>f8485b4b</code>; gold chosen <code>cf644e95</code>; wrong-result first <code>cd4727a7</code>, <code>06e81fdf</code>; fixed <code>67c17163</code>, <code>aaae06ad</code>; k = 3 <code>b3075597</code>; gold rule R2 <code>1abec88c</code>; centralized <code>8a66fad2</code>, <code>0643b48c</code>; pass@k <code>762b74a2</code>.</p>
+      <p class="muted" style="font-size:0.8rem">Chấm xanh: tốt nhất của cột trong bộ đo đang chọn (EX cao nhất, lỗi thấp nhất). Hàng tô nền: method ở round cuối. Hàng chữ nghiêng: đang chạy hoặc queued.</p>
+      <details class="more" data-ds="spider">
+        <summary>Định nghĩa các hàng và các so sánh khác (Spider)</summary>
+        <p>Mỗi round là một round federated của 5 client. k = 0: DPO + NLL on-policy từ student chưa train. k = 2, k = 3: 2 hoặc 3 round FedAvg SFT rồi DPO + NLL. Gold rule: gold làm chosen cho câu all-wrong và trên database rỗng (14,050 pairs thay vì 8,908). Các hàng từ FedAvg R2 dùng cùng 10 samples mỗi câu của FedAvg R2 ở round DPO đầu. FedDPO as published: NLL weight 0, pairs một lần, reference cố định (ở round DPO đầu đây cũng là hàng bỏ NLL). RFT: chỉ NLL trên samples đúng. Wrong-result first: rejected lấy từ SQL sai kết quả khi có; R4 chạy sau R3 random. Fixed + NLL: pairs và reference cố định từ round DPO đầu, giữ NLL. Centralized SFT: recipe, prompt và evaluation như FedAvg SFT, trên hợp dữ liệu 5 client; epoch 1 được tiếp tục sau một lần dừng.</p>
+        <p>Giữa các line DPO: k = 0 so với k = 2 ở R4 p = 0.85, k = 3 so với k = 0 p = 1.00; on-policy k = 2 so với fixed + NLL ở R4 p = 0.78. NLL term: bỏ NLL không rời FedAvg R2 (sửa 157, làm sai 168, p = 0.58) và thấp hơn DPO + NLL 3.87 (sửa 62, làm sai 145, p &lt; 1e-6). RFT (chỉ NLL) cho +1.77 trên FedAvg R2; preference term thêm phần còn lại (DPO + NLL so với RFT p = 0.015). Gold rule R2 thấp hơn k = 0 R2 1.45 (sửa 84, làm sai 115, p = 0.033).</p>
+        <p>Centralized SFT: FedAvg R2 thấp hơn epoch 2 1.63 (p = 0.030); k = 0 R2 cao hơn 1.45 (sửa 173, làm sai 142, p = 0.091). Wrong-result first và gold rule chỉ chuyển câu giữa hai loại lỗi. Gold SFT tăng EM 11 điểm (53.33 lên 64.46 ở R4), DPO từ base 2 điểm (55.29 ở R3): stage SFT dạy dạng SQL của gold, EX không tính.</p>
+        <p>pass@10 của FedAvg R3 là 88.68 (pass@1 68.34, results <code>762b74a2</code>). Trên câu train, student chưa train đã có SQL đúng trong 10 samples ở 7,582 của 8,659 câu (87.6%). Prompt B (<code>ddl_values</code>) khi chưa train: 67.49, không khác A (p = 0.47).</p>
       </details>
     </div>
-    <div class="panel tblpanel" style="margin-top:14px">
-      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>BIRD: base student, trước khi train</h3>
-      <p class="read">Trên BIRD dev, base student đạt 29.47 EX (Spider test 68.05); 42% output lỗi chạy, phần lớn là <code>no such column</code>. Với 10 samples mỗi câu train, chỉ 52.4% câu có SQL đúng (Spider 87.6%), nên DPO từ base student có pairs cho khoảng một nửa số câu.</p>
+    <div class="panel tblpanel" data-ds="bird" style="margin-top:14px">
+      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>BIRD: pairs từ base student</h3>
+      <p class="read">Với 10 samples mỗi câu train, chỉ 52.4% câu BIRD có SQL đúng (Spider 87.6%), nên DPO từ base student có pairs cho khoảng một nửa số câu; 41.9% câu không có sample đúng nào.</p>
       <div class="tbl-wrap">
         <table class="nowrap">
           <thead><tr><th>Client</th><th class="r">Câu hỏi</th><th class="r">Mixed</th><th class="r">All correct</th><th class="r">All wrong</th><th class="r">Gold không cho nhãn</th><th class="r">Pairs</th><th class="r">Sample accuracy</th></tr></thead>
@@ -1059,10 +1098,10 @@ footer { padding-block: 24px 40px; }
           </tbody>
         </table>
       </div>
-      <p class="muted" style="font-size:0.82rem">10 samples ở T 1.0, prompt <code>ddl</code> với evidence, nhãn bằng evaluator của BIRD (results <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>). Gold không cho nhãn: 350 lỗi SQL, 184 hết 30 s. 3,955 câu all-wrong là chỗ gold rule trên BIRD thêm pairs. Chưa có round train nào trên BIRD xong.</p>
+      <p class="muted" style="font-size:0.82rem">10 samples ở T 1.0, prompt <code>ddl</code> với evidence, nhãn bằng evaluator của BIRD (results <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>). Gold không cho nhãn: 350 lỗi SQL, 184 hết 30 s khi SQL chạy trong threads; relabel với SQL trong worker process đang chạy tay. 3,955 câu all-wrong là chỗ gold rule trên BIRD thêm pairs.</p>
     </div>
-    <div class="panel tblpanel" style="margin-top:14px">
-      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Pairs theo client và theo round</h3>
+    <div class="panel tblpanel" data-ds="spider" style="margin-top:14px">
+      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-database"/></svg></span>Spider: pairs theo client và theo round</h3>
       <p class="read">Mỗi round on-policy làm model đúng cả 10 samples ở nhiều câu hơn, nên số câu cho pairs giảm hơn một nửa sau một round DPO.</p>
       <div class="pairs-grid">
         <div class="stack-gap">
@@ -1111,7 +1150,7 @@ footer { padding-block: 24px 40px; }
           <tr><td><b>RFT thay DPO</b></td><td class="r num">75.87</td><td>77.46, p = 0.015</td><td>Khoảng nửa gain; preference term cho nửa còn lại.</td><td><span class="pill done">giữ preference</span></td></tr>
           <tr><td><b>FedAvg SFT R4</b></td><td class="r num">74.71</td><td>R3 74.71, p = 1</td><td>FedAvg bão hòa ở R3.</td><td><span class="pill done">dừng, best R3</span></td></tr>
           <tr class="grp"><td colspan="5">Chờ quyết định</td></tr>
-          <tr><td><b>Stage FedAvg SFT (I3)</b></td><td class="r num">77.97-78.20</td><td>k = 0: 78.02, p 0.74 đến 1.00</td><td>k = 2 và k = 3 cùng EX với k = 0. Thêm round SFT: lỗi chạy tăng (69, 84, 111), sai kết quả giảm (403, 384, 362).</td><td><span class="pill wait">đọc trên BIRD</span></td></tr>
+          <tr><td><b>Stage FedAvg SFT (I3)</b></td><td class="r num">77.97-78.20</td><td>k = 0: 78.02, p 0.74 đến 1.00</td><td>k = 2 và k = 3 cùng EX với k = 0. Thêm round SFT: lỗi chạy tăng (69, 84, 112), sai kết quả giảm (403, 384, 361).</td><td><span class="pill wait">đọc trên BIRD: k = 1 đầu queue</span></td></tr>
           <tr class="grp"><td colspan="5">Không gain</td></tr>
           <tr><td><b>On-policy (I1)</b></td><td class="r num">78.20</td><td>fixed + NLL 78.02, p = 0.78</td><td>Cùng mức, ít pairs hơn (3,354 so với 8,026).</td><td><span class="pill neg">chưa vào method</span></td></tr>
           <tr><td><b>Nearest-correct (I2)</b></td><td class="r num">77.08</td><td>random 77.46, p = 0.42</td><td>Vẫn 51% rejected là lỗi chạy.</td><td><span class="pill neg">không giữ</span></td></tr>
@@ -1135,13 +1174,13 @@ footer { padding-block: 24px 40px; }
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-pipeline"/></svg></span>Tiến độ</h2>
       <p>Thời gian là GPU wall clock trên một card (ước tính).</p>
     </div>
-    <div class="panel asof"><b>Ghi nhận lúc 2026-11-20 06:38.</b><span>Trạng thái hiện tại: <a href="PIPELINE_NEXT.md"><code>PIPELINE_NEXT.md</code></a>.</span></div>
+    <div class="panel asof"><b>Ghi nhận lúc 2026-11-20 09:55.</b><span>Trạng thái hiện tại: <a href="PIPELINE_NEXT.md"><code>PIPELINE_NEXT.md</code></a>.</span></div>
 
     <div class="status" style="margin-top:14px">
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span><span class="pill run">đang chạy</span><span class="big mono">bird_sft/round_1</span><span class="small">Client 5/5, 89% lúc 06:38. Rồi eval trên BIRD dev, rồi <code>bird_sft/round_2</code>.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span><span class="pill run">đến 07:30</span><span class="big">Centralized SFT E3</span><span class="small">Epoch 2 xong 06:05. Dừng trong epoch 3 lúc 07:30.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>CPU, chạy tay</span><span class="pill run">đang chạy</span><span class="big">Relabel BIRD</span><span class="small">SQL trong worker process, từ khoảng 01:00; 4-6 h (ước tính). Phase 0a vẫn chờ owner.</span></div>
-      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Mới nhất</span><span class="pill done">centralized E2</span><span class="big num">75.73 EX</span><span class="small">Dưới DPO + NLL 2 round (77.18, p = 0.091).</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 0</span><span class="pill run">đang chạy (suy ra)</span><span class="big mono">bird_sft/round_2</span><span class="small">Từ khoảng 07:00, khoảng 3 h (ước tính). Rồi eval trên BIRD dev, rồi <code>bird_k1/round_1</code> sau khi pull queue mới.</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>GPU 1</span><span class="pill wait">trống</span><span class="big">Không có worker</span><span class="small">Dừng lúc 07:30 trong epoch 3 của centralized SFT, checkpoint giữ. Centralized SFT nay đứng sau các round BIRD.</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>CPU, chạy tay</span><span class="pill run">chưa báo</span><span class="big">Relabel BIRD</span><span class="small">Từ khoảng 01:00. Nếu còn client chưa xong: chạy lại với code mới, 16 worker process.</span></div>
+      <div class="cell"><span class="label"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg>Mới nhất</span><span class="pill done">BIRD FedAvg R1</span><span class="big num">38.85 EX</span><span class="small">BIRD dev, hơn base student 9.38 (p &lt; 1e-6). Không có result mới từ 06:56.</span></div>
     </div>
 
     <div class="phases" style="margin-top:14px">
@@ -1155,7 +1194,7 @@ footer { padding-block: 24px 40px; }
         <div class="ph-top"><span class="ph-n">PHASE 1</span><span class="pill run">đang làm</span></div>
         <h3>FedAvg SFT, rồi DPO + NLL</h3>
         <div class="ph-count"><div class="bar"><span class="runseg" style="width:80%"></span></div><span>8/10</span></div>
-        <p class="decides">Còn: centralized SFT từ epoch 3, các round DPO tiếp. Stage SFT không gain ở k = 0, 2, 3; đọc lại trên BIRD.</p>
+        <p class="decides">Còn: centralized SFT từ epoch 3 (sau các round BIRD). Stage SFT không gain ở k = 0, 2, 3 trên Spider; đọc lại trên BIRD.</p>
       </article>
       <article class="panel phase later">
         <div class="ph-top"><span class="ph-n">PHASE 2</span><span class="pill plan">kế tiếp, 2-3 ngày</span></div>
@@ -1164,10 +1203,10 @@ footer { padding-block: 24px 40px; }
         <p class="decides">Còn: FedDPO as published R2, client drift.</p>
       </article>
       <article class="panel phase later">
-        <div class="ph-top"><span class="ph-n">PHASE 3</span><span class="pill run">BIRD đã bắt đầu</span></div>
+        <div class="ph-top"><span class="ph-n">PHASE 3</span><span class="pill run">BIRD R2 chạy</span></div>
         <h3>Độ rộng cho journal</h3>
         <div class="ph-count"><div class="bar"><span style="width:0%"></span></div><span>0/3</span></div>
-        <p class="decides">BIRD (base student xong, FedAvg R1 đang chạy), alpha 0.5 và IID, FedProx, FedNTD, local SFT, seed thứ hai. Phần còn lại 4-6 ngày (ước tính).</p>
+        <p class="decides">BIRD (base 29.47, FedAvg R1 38.85, R2 chạy, method k = 1 kế tiếp), alpha 0.5 và IID, FedProx, FedNTD, local SFT, seed thứ hai. Phần còn lại 4-6 ngày (ước tính).</p>
       </article>
     </div>
 
@@ -1179,17 +1218,18 @@ footer { padding-block: 24px 40px; }
     </div>
 
     <div class="panel queue" style="margin-top:14px" aria-label="Queue theo round">
-      <div class="q-head"><b>Queue theo round</b><span>Đo trên Spider, một card: round FedAvg 2 h 02 đến 2 h 11; round DPO k = 0 từ 3 h 25 (R1, 8,908 pairs) xuống 1 h 24 (R4, 2,740 pairs). 4 round: 8 h 24 so với 8 h 27.</span></div>
+      <div class="q-head"><b>Queue theo round, thứ tự từ 09:55</b><span>Đo trên Spider, một card: round FedAvg 2 h 02 đến 2 h 11; round DPO k = 0 từ 3 h 25 (R1, 8,908 pairs) xuống 1 h 24 (R4, 2,740 pairs). 4 round: 8 h 24 so với 8 h 27.</span></div>
       <div class="q-row"><div class="q-name">FedAvg SFT</div><div class="q-track"><span class="rb done"><b>R1</b>72.43</span><span class="rb done"><b>R2</b>74.10</span><span class="rb done"><b>R3</b>74.71</span><span class="rb done"><b>R4</b>74.71</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 0</div><div class="q-track"><span class="rb done"><b>R1</b>75.87</span><span class="rb done"><b>R2</b>77.18</span><span class="rb done"><b>R3</b>77.69</span><span class="rb done"><b>R4</b>78.02</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 2</div><div class="q-track"><span class="rb done"><b>R3</b>77.46</span><span class="rb done"><b>R4</b>78.20</span></div></div>
       <div class="q-row"><div class="q-name">Fixed + NLL, k = 2</div><div class="q-track"><span class="rb done"><b>R3</b>77.64</span><span class="rb done"><b>R4</b>78.02</span></div></div>
       <div class="q-row"><div class="q-name">DPO + NLL, k = 3</div><div class="q-track"><span class="rb done"><b>R4</b>77.97</span></div></div>
       <div class="q-row"><div class="q-name">k = 0, gold rule</div><div class="q-track"><span class="rb done"><b>R1</b>76.67</span><span class="rb neg"><b>R2</b>75.73</span></div></div>
-      <div class="q-row"><div class="q-name">Centralized SFT</div><div class="q-track"><span class="rb done"><b>E1</b>75.08</span><span class="rb done"><b>E2</b>75.73</span><span class="rb run"><b>E3</b>chạy</span><span class="rb maybe"><b>E4</b>&nbsp;</span><span class="rb maybe"><b>E5</b>&nbsp;</span><span class="rb maybe"><b>E6</b>&nbsp;</span><span class="rb maybe"><b>E7</b>&nbsp;</span><span class="rb maybe"><b>E8</b>&nbsp;</span></div></div>
+      <div class="q-row"><div class="q-name">Centralized SFT</div><div class="q-track"><span class="rb done"><b>E1</b>75.08</span><span class="rb done"><b>E2</b>75.73</span><span class="rb wait"><b>E3</b>dừng</span><span class="rb maybe"><b>E4</b>&nbsp;</span><span class="rb maybe"><b>E5</b>&nbsp;</span><span class="rb maybe"><b>E6</b>&nbsp;</span><span class="rb maybe"><b>E7</b>&nbsp;</span><span class="rb maybe"><b>E8</b>&nbsp;</span></div></div>
       <div class="q-row"><div class="q-name">BIRD, base student</div><div class="q-track"><span class="rb done"><b>zero-shot</b>29.47</span><span class="rb done"><b>pair read</b>52.4%</span><span class="rb run"><b>relabel</b>CPU</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, FedAvg SFT</div><div class="q-track"><span class="rb run"><b>R1</b>chạy</span><span class="rb wait"><b>R2</b>&nbsp;</span></div></div>
-      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 0</div><div class="q-track"><span class="rb wait"><b>R1</b>&nbsp;</span><span class="rb wait"><b>R2</b>&nbsp;</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, FedAvg SFT</div><div class="q-track"><span class="rb done"><b>R1</b>38.85</span><span class="rb run"><b>R2</b>chạy</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 1<span>từ FedAvg R1</span></div><div class="q-track"><span class="rb wait"><b>R2</b>kế tiếp</span></div></div>
+      <div class="q-row"><div class="q-name">BIRD, DPO + NLL, k = 0<span>sau relabel</span></div><div class="q-track"><span class="rb wait"><b>R1</b>&nbsp;</span><span class="rb wait"><b>R2</b>&nbsp;</span></div></div>
       <div class="q-row"><div class="q-name">BIRD, gold rule / fixed</div><div class="q-track"><span class="rb wait"><b>gold R1</b>&nbsp;</span><span class="rb wait"><b>fixed R2</b>&nbsp;</span></div></div>
       <div class="q-legend">
         <span><span class="rb done">&nbsp;</span> có kết quả</span>
@@ -1221,8 +1261,10 @@ footer { padding-block: 24px 40px; }
           <tr><td><b>Re-aggregation probe</b></td><td>Trọng số pair, equal, question, step-normalised có khác nhau không</td><td>10 phút eval mỗi cách</td><td><span class="pill plan">cần script</span></td></tr>
           <tr><td><b>Equal weights, FedNova, exact LoRA</b></td><td>Chỉ chạy nếu probe hoặc drift cho thấy cần</td><td>1 DPO line mỗi cách</td><td><span class="pill plan">theo bằng chứng</span></td></tr>
           <tr class="grp"><td colspan="4">Phase 3</td></tr>
-          <tr><td><b>BIRD: FedAvg SFT so với DPO + NLL</b></td><td>DPO từ base student còn dẫn không khi chỉ một nửa số câu cho pairs (4,783 của 9,428), ở R1 và R2</td><td>khoảng 3 h mỗi round</td><td><span class="pills"><span class="pill run">FedAvg R1 chạy</span><span class="pill wait">còn lại queued</span></span></td></tr>
-          <tr><td><b>BIRD: gold rule, on-policy, stage SFT</b></td><td>Gold cho 3,955 câu all-wrong; R2 trên pairs của R1; DPO từ một round <code>bird_sft</code></td><td>3-6 h mỗi line</td><td><span class="pills"><span class="pill wait">gold, fixed queued</span><span class="pill plan">stage SFT sau R1</span></span></td></tr>
+          <tr><td><b>BIRD: FedAvg SFT so với DPO + NLL</b></td><td>DPO từ base student còn dẫn không khi chỉ một nửa số câu cho pairs (4,783 của 9,428), ở R1 và R2</td><td>khoảng 3 h mỗi round</td><td><span class="pills"><span class="pill done">FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">DPO queued</span></span></td></tr>
+          <tr><td><b>BIRD: gold rule, on-policy, stage SFT</b></td><td>Gold cho 3,955 câu all-wrong; R2 trên pairs của R1; DPO từ một round <code>bird_sft</code></td><td>3-6 h mỗi line</td><td><span class="pills"><span class="pill wait">k = 1 đầu queue</span><span class="pill wait">gold, fixed queued</span></span></td></tr>
+          <tr><td><b>Một loss cho câu all-wrong</b></td><td>DPO + NLL trên câu mixed, NLL trên gold SQL cho câu all-wrong (BIRD 41.9% câu)</td><td>code + 1 round</td><td><span class="pill plan">sau các read BIRD</span></td></tr>
+          <tr><td><b>Centralized DPO + NLL trên Spider</b></td><td>Mốc trên của method khi gộp dữ liệu</td><td>khoảng 8.5 h</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>alpha 0.5 và IID</b></td><td>Gain còn khi bớt non-IID</td><td>FedAvg + method mỗi split</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>FedProx, FedNTD, local SFT</b></td><td>Baseline mạnh hơn và mốc dưới</td><td>2 + 5 SFT line</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>Server pre-training cùng loss</b></td><td>Pre-training trên public data có giúp, gain còn không</td><td>1 vòng ở server</td><td><span class="pill plan">sau cùng</span></td></tr>
@@ -1251,7 +1293,7 @@ footer { padding-block: 24px 40px; }
           <tr><td><b>Execution ở client bổ sung cho nhãn</b></td><td>Federated DPO trên FedAvg SFT, cùng số round</td><td class="mono">1</td><td><span class="pills"><span class="pill done">k = 2, 4 round: +3.49, p 1e-06</span><span class="pill done">k = 0, 4 round: +3.31, p 3.1e-05</span><span class="pill done">preference trên RFT: +1.59, p 0.015</span></span></td></tr>
           <tr><td><b>Thiết kế federated có tác dụng</b></td><td>Method trên federated DPO as published và trên plain loop (ablation)</td><td class="mono">2</td><td><span class="pills"><span class="pill done">trên FedDPO as published R1: +3.87, p &lt; 1e-6 (NLL)</span><span class="pill neg">on-policy so với fixed + NLL, R2: +0.18, p 0.78</span><span class="pill wait">FedDPO as published R2: chờ owner</span></span></td></tr>
           <tr><td><b>Gain đến từ sửa lỗi của chính model</b></td><td>Gain tăng theo round, nằm ở cột hard và extra; số SQL chạy được nhưng sai kết quả giảm</td><td class="mono">1, 2</td><td><span class="pills"><span class="pill done">hard +5.83, extra +7.57 (k = 0 R4 so với FedAvg R4)</span><span class="pill neg">sai KQ không giảm: 342-444</span></span></td></tr>
-          <tr><td><b>Giữ được trên dataset khó hơn</b></td><td>Gain còn khi client là BIRD train, đo trên BIRD dev</td><td class="mono">3</td><td><span class="pills"><span class="pill done">base 29.47; 52.4% câu có SQL đúng</span><span class="pill run">FedAvg R1 chạy</span></span></td></tr>
+          <tr><td><b>Giữ được trên dataset khó hơn</b></td><td>Gain còn khi client là BIRD train, đo trên BIRD dev</td><td class="mono">3</td><td><span class="pills"><span class="pill done">base 29.47; FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">method k = 1 kế tiếp</span></span></td></tr>
           <tr><td><b>Chi phí ngang FedAvg SFT</b></td><td>Wall time cùng số round trên một card</td><td class="mono">1</td><td><span class="pill done">4 round: 8 h 27 so với 8 h 24</span></td></tr>
           <tr><td><b>Giữ được dưới non-IID</b></td><td>Gain còn ở alpha 0.1, 0.5 và IID</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
           <tr><td><b>Pre-training giúp và không ăn mất gain</b></td><td>Pre-training + federated DPO trên pre-training + FedAvg SFT</td><td class="mono">3</td><td><span class="pill plan">chưa queue</span></td></tr>
@@ -1272,8 +1314,8 @@ footer { padding-block: 24px 40px; }
           <tr><td><b>Federated DPO as published</b></td><td>Pairs làm một lần, reference cố định, DPO không NLL (FedDPO của OpenFedLLM)</td><td>Federated DPO baseline</td><td><span class="pills"><span class="pill done">R1 73.59</span><span class="pill wait">R2: chờ owner, khoảng 2.5 h</span></span></td></tr>
           <tr><td><b>Ablations</b></td><td>Method bỏ từng phần được giữ</td><td>Cho thấy mỗi phần đóng góp gì</td><td><span class="pills"><span class="pill done">bỏ NLL: 73.59</span><span class="pill done">chỉ NLL (RFT): 75.87</span><span class="pill plan">còn lại: phase 2</span></span></td></tr>
           <tr><td><b>FedProx, FedNTD</b></td><td>Gold SQL, aggregator khác</td><td>Federated baselines</td><td><span class="pill plan">phase 3</span></td></tr>
-          <tr><td><b>BIRD</b></td><td>BIRD train làm 5 client, đo trên BIRD dev</td><td>Bộ dữ liệu thứ hai</td><td><span class="pills"><span class="pill done">base 29.47</span><span class="pill run">FedAvg R1 chạy</span><span class="pill wait">DPO queued</span></span></td></tr>
-          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pills"><span class="pill done">centralized: E1 75.08, E2 75.73</span><span class="pill run">E3 chạy</span><span class="pill plan">local: phase 3</span></span></td></tr>
+          <tr><td><b>BIRD</b></td><td>BIRD train làm 5 client, đo trên BIRD dev</td><td>Bộ dữ liệu thứ hai</td><td><span class="pills"><span class="pill done">base 29.47, FedAvg R1 38.85</span><span class="pill run">FedAvg R2 chạy</span><span class="pill wait">DPO queued</span></span></td></tr>
+          <tr><td><b>Centralized SFT, local SFT</b></td><td>Hợp dữ liệu các client; từng client riêng</td><td>Mốc trên và mốc dưới</td><td><span class="pills"><span class="pill done">centralized: E1 75.08, E2 75.73</span><span class="pill wait">E3 dừng, sau BIRD</span><span class="pill plan">local: phase 3</span></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -1300,6 +1342,7 @@ footer { padding-block: 24px 40px; }
   <div class="wrap foot">
     <details class="more"><summary>Lịch sử cập nhật</summary>
     <ul class="updates">
+      <li><time>2026-11-20 10:05</time><span>BIRD dev FedAvg SFT R1 38.85 (results <code>91e5fcdd</code>). Tab Kết quả sinh từ một khối dữ liệu do <code>paper/notes/tools/overview_results.py</code> đọc từ mọi evaluation đã commit (EX, độ khó, lỗi chạy và sai kết quả đếm lại từ predictions, McNemar so với FedAvg SFT cùng round); chọn bộ đo, model, seed (seed thứ hai trở đi thêm lựa chọn trung bình). Biểu đồ: EX theo round (đường, ẩn hiện từng line), gain so với FedAvg (cột, nhạt khi p &ge; 0.05), mỗi câu test ra sao (thanh 100%), theo độ khó (dumbbell); hàng đang chạy và queued hiện trong bảng. k = 3: lỗi chạy 112, sai kết quả 361 (1 output bị cắt trước đây tính vào sai kết quả). Trạng thái GPU và queue theo ghi nhận 2026-11-20 09:55.</span></li>
       <li><time>2026-11-20 06:41</time><span>k = 3 ở 4 round 77.97, gold rule R2 75.73, centralized SFT epoch 1 và 2 (75.08, 75.73), BIRD dev base student 29.47, pair read trên 5 client BIRD (52.4% câu có SQL đúng, 9,566 pairs), wall time 4 round (results <code>b3075597</code>, <code>1abec88c</code>, <code>8a66fad2</code>, <code>0643b48c</code>, <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>, <code>5aa73a62</code>): k = 3 trên hai biểu đồ, hàng mới trong bảng kết quả, panel BIRD, I3 và gold rule trong Đã thử, queue và trạng thái GPU theo ghi nhận 2026-11-20 06:38.</span></li>
       <li><time>2026-11-20 01:27</time><span>Trang chia thành tab (Tổng quan, Method, Dữ liệu, Kết quả, Đã thử, Tiến độ, Hướng tiếp, Paper), mỗi lần hiện một tab; chữ cắt gọn, phần đã thử và hướng tiếp thành bảng ngắn. Hình 1 và ma trận baseline đánh dấu NLL là phần được giữ, I1-I3 là đã thử; biểu đồ gain so với FedAvg cùng round; biểu đồ EX đến R4; cột tổng round trong bảng kết quả; một màu pill một nghĩa; gate tô kết quả đã đạt. Số liệu giữ như bản 2026-11-19 23:45; trạng thái GPU theo ghi nhận 2026-11-19 19:45.</span></li>
       <li><time>2026-11-19 23:45</time><span>Section mới "Dữ liệu và setup": setting Spider và BIRD (client, test set, public data, prompt), độ khó câu hỏi theo bộ, cách chia client, độ lệch hard + extra giữa client của 5 split, bảng từng client theo split (data commit <code>57cf2f6b</code> cho BIRD). Các phần khác chưa cập nhật.</span></li>
@@ -1314,7 +1357,7 @@ footer { padding-block: 24px 40px; }
       <li><time>2026-11-17 17:53</time><span>Sơ đồ architecture, hình 10 samples, ma trận so với baseline.</span></li>
       <li><time>2026-11-17 17:47</time><span>Tạo trang từ <code>RESEARCH_STATE.md</code>, <code>PIPELINE_NEXT.md</code>, <code>LAB_LOG.md</code>.</span></li>
     </ul></details>
-    <span>Mọi số trên trang lấy từ results đã commit trong <code>fedicl-sql</code>. Thời gian và chi phí ghi "khoảng" là ước tính.</span>
+    <span>Mọi số trên trang lấy từ results đã commit trong <code>fedicl-sql</code>; bảng và biểu đồ của tab Kết quả cập nhật bằng <code>python3 paper/notes/tools/overview_results.py</code> (thêm một dòng vào <code>ARMS</code> cho mỗi evaluation mới). Thời gian và chi phí ghi "khoảng" là ước tính.</span>
   </div>
 </footer>
 
@@ -1352,99 +1395,6 @@ footer { padding-block: 24px 40px; }
       '<div class="empty' + (pct > 20 ? ' hi' : '') + '">' + pct.toFixed(1) + '%</div>';
     box.appendChild(row);
   });
-
-  // Gain of DPO + NLL over FedAvg SFT at the same total round (EX points, McNemar p)
-  (function drawGain() {
-    var svg = document.getElementById("gainsvg");
-    var el = mk(svg), W = 720, H = 270, ml = 52, mr = 16, mt = 20, mb = 58, yMax = 4;
-    var G = [
-      { r: 1, fa: 72.43, k0: [3.44, "6e-6"] },
-      { r: 2, fa: 74.10, k0: [3.08, "6e-5"] },
-      { r: 3, fa: 74.71, k0: [2.98, "1.4e-4"], k2: [2.75, "5.4e-5"] },
-      { r: 4, fa: 74.71, k0: [3.31, "3.1e-5"], k2: [3.49, "1e-6"], k3: [3.26, "3e-6"] }
-    ];
-    var pw = W - ml - mr, ph = H - mt - mb, cw = pw / G.length, bw = 42;
-    function Y(v) { return mt + (yMax - v) / yMax * ph; }
-    for (var v = 0; v <= yMax; v++) {
-      el("line", { "class": v ? "c-grid" : "c-zero", x1: ml, x2: W - mr, y1: Y(v), y2: Y(v) });
-      el("text", { "class": "c-axis", x: ml - 8, y: Y(v) + 4, "text-anchor": "end" }, (v ? "+" : "") + v);
-    }
-    el("line", { "class": "c-ref", x1: ml, x2: W - mr, y1: Y(1.5), y2: Y(1.5) });
-    el("text", { "class": "c-ref-t", x: ml - 8, y: Y(1.5) + 4, "text-anchor": "end" }, "gate");
-    G.forEach(function (g, i) {
-      var cx = ml + cw * i + cw / 2;
-      [["k0", "var(--l-k0)", -1], ["k2", "var(--l-k2)", 0], ["k3", "var(--l-k3)", 1]].forEach(function (s) {
-        var x = cx + s[2] * (bw + 9) - bw / 2, d = g[s[0]];
-        if (!d) {
-          el("rect", { x: x, y: Y(0) - 1, width: bw, height: 2, fill: "var(--line)" });
-          el("text", { "class": "c-none", x: x + bw / 2, y: Y(0) - 10, "text-anchor": "middle" }, "SFT");
-          return;
-        }
-        el("rect", { x: x, y: Y(d[0]), width: bw, height: Y(0) - Y(d[0]), rx: 3, fill: s[1] });
-        el("text", { "class": "c-bar-v", x: x + bw / 2, y: Y(d[0]) - 18, "text-anchor": "middle", fill: s[1] }, "+" + d[0].toFixed(2));
-        el("text", { "class": "c-bar-p", x: x + bw / 2, y: Y(d[0]) - 6, "text-anchor": "middle" }, "p " + d[1]);
-      });
-      el("text", { "class": "c-axis strong", x: cx, y: H - mb + 20, "text-anchor": "middle" }, "R" + g.r);
-      el("text", { "class": "c-axis", x: cx, y: H - mb + 36, "text-anchor": "middle" }, "FedAvg " + g.fa.toFixed(2));
-    });
-    el("text", { "class": "c-axis", x: ml, y: H - 6 }, "ô \"SFT\": với k = 2 và k = 3, round đó còn là FedAvg SFT");
-  })();
-
-  // EX per round on Spider test; x is the total number of federated rounds.
-  (function drawEx() {
-    var svg = document.getElementById("exsvg");
-    var el = mk(svg), W = 640, H = 330, ml = 44, mr = 178, mt = 20, mb = 40, yMin = 66, yMax = 80, maxR = 4;
-    var S = {
-      fedavg: { pts: [[0, 68.05], [1, 72.43], [2, 74.10], [3, 74.71], [4, 74.71]], c: "var(--l-fedavg)", name: "FedAvg SFT" },
-      k0:     { pts: [[0, 68.05], [1, 75.87], [2, 77.18], [3, 77.69], [4, 78.02]], c: "var(--l-k0)", name: "k = 0 on-policy" },
-      fixed:  { pts: [[2, 74.10], [3, 77.64], [4, 78.02]], c: "var(--l-fixed)", name: "k = 2 fixed + NLL", dash: "6 4" },
-      k2:     { pts: [[2, 74.10], [3, 77.46], [4, 78.20]], c: "var(--l-k2)", name: "k = 2 on-policy" },
-      k3:     { pts: [[3, 74.71], [4, 77.97]], c: "var(--l-k3)", name: "k = 3" }
-    };
-    var feddpo = [3, 73.59];
-    function X(r) { return ml + r / maxR * (W - ml - mr); }
-    function Y(v) { return mt + (yMax - v) / (yMax - yMin) * (H - mt - mb); }
-    var x0 = X(0), x1 = X(maxR);
-    el("rect", { "class": "c-band", x: x0, y: Y(78), width: x1 - x0, height: Y(77) - Y(78) });
-    for (var v = yMin; v <= yMax; v += 2) {
-      el("line", { "class": "c-grid", x1: x0, x2: x1, y1: Y(v), y2: Y(v) });
-      el("text", { "class": "c-axis", x: x0 - 8, y: Y(v) + 4, "text-anchor": "end" }, v);
-    }
-    for (var r = 0; r <= maxR; r++) el("text", { "class": "c-axis", x: X(r), y: H - mb + 20, "text-anchor": "middle" }, r === 0 ? "chưa train" : "R" + r);
-    var fa = S.fedavg.pts;
-    el("path", { "class": "c-area", d: fa.map(function (p, i) { return (i ? "L" : "M") + X(p[0]) + "," + Y(p[1]); }).join(" ") + " L" + X(4) + "," + Y(yMin) + " L" + X(0) + "," + Y(yMin) + " Z" });
-    ["k0", "fedavg", "fixed", "k2", "k3"].forEach(function (key) {
-      var s = S[key];
-      var a = { "class": "c-line", d: s.pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" "), stroke: s.c };
-      if (s.dash) a["stroke-dasharray"] = s.dash;
-      el("path", a);
-      s.pts.forEach(function (p, i) {
-        if (key !== "fedavg" && i === 0 && p[0] !== 0) return;
-        if (key === "k0" && i === 0) return;
-        el("circle", { cx: X(p[0]), cy: Y(p[1]), r: p[0] === maxR ? 5.5 : 4.5, fill: p[0] === maxR ? s.c : "var(--surface)", stroke: p[0] === 0 ? "var(--ink)" : s.c, "stroke-width": 2.2 });
-      });
-    });
-    // point labels where they do not collide
-    function lab(x, y, t, c, anchor) { el("text", { "class": "c-val", x: x, y: y, "text-anchor": anchor || "middle", fill: c }, t); }
-    lab(X(0) + 6, Y(68.05) + 18, "68.05", "var(--ink)", "start");
-    lab(X(1), Y(72.43) + 20, "72.43", S.fedavg.c);
-    lab(X(2), Y(74.10) + 20, "74.10", S.fedavg.c);
-    lab(X(3) - 4, Y(74.71) - 9, "74.71", S.fedavg.c, "end");
-    lab(X(1), Y(75.87) - 11, "75.87", S.k0.c);
-    lab(X(2), Y(77.18) - 11, "77.18", S.k0.c);
-    lab(X(3), Y(77.69) - 30, "77.46-77.69", "var(--muted)");
-    el("circle", { cx: X(feddpo[0]), cy: Y(feddpo[1]), r: 5.5, fill: "var(--l-feddpo)" });
-    lab(X(feddpo[0]), Y(feddpo[1]) + 20, "73.59 FedDPO", "var(--l-feddpo)");
-    // end labels at R4, spread so they do not overlap
-    var ends = [["k2", 78.20], ["k0", 78.02], ["fixed", 78.02], ["k3", 77.97], ["fedavg", 74.71]];
-    var yPrev = -1e9, lx = X(maxR) + 14;
-    ends.forEach(function (e) {
-      var s = S[e[0]], y = Math.max(Y(e[1]) + 4, yPrev + 17); yPrev = y;
-      el("line", { "class": "c-lead", x1: X(maxR) + 6, y1: Y(e[1]), x2: lx - 3, y2: y - 4 });
-      el("text", { "class": "c-end", x: lx, y: y, fill: s.c }, e[1].toFixed(2));
-      el("text", { "class": "c-end-n", x: lx + 44, y: y }, s.name);
-    });
-  })();
 
 })();
 </script>
@@ -1501,7 +1451,7 @@ footer { padding-block: 24px 40px; }
       read: "10 client, 8 đến 22 database và 442 đến 1,903 câu mỗi client. Lệch mạnh nhất trong các split: hard + extra 19% (client 3, chỉ tier 0) đến 63% (client 10, 18 database tier 3)." },
     { id: "b01", ds: "bird", tab: "BIRD alpha 0.1, 5 client", short: "BIRD &alpha; 0.1", sub: "5 client",
       path: "BIRD/.../federated/alpha_0.1/k5", part: "Dirichlet trên tier, alpha 0.1", minDb: 5, draws: 1,
-      st: ["run", "pair read đang chạy (19/11), round 1-2 queued"], all: 41.4,
+      st: ["run", "FedAvg R1 xong (38.85), R2 chạy; DPO queued"], all: 41.4,
       c: [[16,361,1139,261,250,16,0,0,0,"gold lỗi 4"],[14,166,717,323,389,0,0,14,0,"gold lỗi 6, gold hết 30 s 17"],[16,147,733,622,578,0,0,0,16,"gold hết 30 s 10"],[5,87,300,142,154,1,1,2,1,"gold hết 30 s 1"],[18,534,1343,547,635,1,16,1,0,"gold lỗi 340 (phần lớn retail_world), gold hết 30 s 21"]],
       read: "Cùng cách chia như split chính của Spider. Ba client chỉ có một tier (client 1: T0, client 2: T2, client 3: T3), hard + extra 25% đến 58%. Client 4 nhỏ nhất (5 database, 683 câu). Mọi database có rows, nên không có câu nào trên database rỗng." }
   ];
@@ -1593,6 +1543,470 @@ footer { padding-block: 24px 40px; }
   var start = "s01";
   try { var sv = localStorage.getItem("fedls-split"); if (sv) start = sv; } catch (e) {}
   show(start);
+})();
+</script>
+<script>
+/* Results: every chart and table of the Kết quả tab, and the gain chart of the overview,
+   drawn from DATA. DATA is written by paper/notes/tools/overview_results.py from the
+   committed evaluations; the hand-kept parts are DS, MODELS, LINES, START and PLAN below. */
+(function () {
+/* RESULTS:BEGIN written by paper/notes/tools/overview_results.py, do not edit by hand */
+var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"n":1534,"ex":29.47,"e":44.33,"m":34.53,"h":21.78,"x":15.81,"err":646,"cut":1,"wr":436,"sha":"bfa497a8"},
+{"ds":"bird","model":"qwen15","seed":0,"line":"fedavg","r":1,"n":1534,"ex":38.85,"e":50.52,"m":45.94,"h":30.69,"x":22.9,"err":372,"cut":1,"wr":566,"sha":"91e5fcdd"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"base","r":0,"n":2147,"ex":68.05,"e":87.45,"m":71.41,"h":59.18,"x":45.94,"err":287,"cut":0,"wr":399,"sha":"12456b56"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":1,"n":2147,"ex":72.43,"e":89.15,"m":75.26,"h":63.71,"x":54.9,"err":215,"cut":0,"wr":377,"sha":"d6bfc763"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":2,"n":2147,"ex":74.1,"e":89.36,"m":78.65,"h":65.23,"x":54.62,"err":183,"cut":0,"wr":373,"sha":"0699ac6d"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":3,"n":2147,"ex":74.71,"e":90.21,"m":78.88,"h":67.17,"x":54.06,"err":164,"cut":0,"wr":379,"sha":"6558ebfe"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fedavg","r":4,"n":2147,"ex":74.71,"e":90.64,"m":78.18,"h":66.74,"x":55.74,"err":173,"cut":0,"wr":370,"sha":"da0871d4"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0","r":1,"n":2147,"ex":75.87,"e":90.43,"m":79.0,"h":68.9,"x":58.26,"err":101,"cut":3,"wr":417,"sha":"96007ff6"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0","r":2,"n":2147,"ex":77.18,"e":90.64,"m":80.51,"h":70.84,"x":59.66,"err":92,"cut":0,"wr":398,"sha":"a3fed6d6"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0","r":3,"n":2147,"ex":77.69,"e":90.43,"m":80.98,"h":70.41,"x":62.46,"err":82,"cut":0,"wr":397,"sha":"947ca9d8"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0","r":4,"n":2147,"ex":78.02,"e":88.94,"m":81.1,"h":72.57,"x":63.31,"err":69,"cut":0,"wr":403,"sha":"4215a7e1"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0gold","r":1,"n":2147,"ex":76.67,"e":89.79,"m":80.28,"h":68.47,"x":61.34,"err":57,"cut":4,"wr":444,"sha":"9e7c66b0"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k0gold","r":2,"n":2147,"ex":75.73,"e":91.06,"m":79.46,"h":68.68,"x":55.74,"err":79,"cut":3,"wr":442,"sha":"1abec88c"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k2","r":3,"n":2147,"ex":77.46,"e":91.49,"m":80.63,"h":71.06,"x":59.66,"err":99,"cut":0,"wr":385,"sha":"be787676"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k2","r":4,"n":2147,"ex":78.2,"e":91.91,"m":81.91,"h":71.06,"x":60.5,"err":84,"cut":0,"wr":384,"sha":"5c33e622"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"k3","r":4,"n":2147,"ex":77.97,"e":91.28,"m":80.86,"h":72.35,"x":60.78,"err":112,"cut":1,"wr":361,"sha":"b3075597"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fixed","r":3,"n":2147,"ex":77.64,"e":91.28,"m":81.21,"h":71.27,"x":59.38,"err":99,"cut":0,"wr":381,"sha":"67c17163"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"fixed","r":4,"n":2147,"ex":78.02,"e":91.7,"m":81.56,"h":70.41,"x":61.34,"err":97,"cut":0,"wr":375,"sha":"aaae06ad"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"feddpo","r":3,"n":2147,"ex":73.59,"e":88.94,"m":75.5,"h":68.03,"x":56.02,"err":167,"cut":0,"wr":400,"sha":"f8485b4b"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"rft","r":3,"n":2147,"ex":75.87,"e":90.43,"m":79.35,"h":67.6,"x":59.1,"err":153,"cut":0,"wr":365,"sha":"424cd93e"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"nearest","r":3,"n":2147,"ex":77.08,"e":91.7,"m":79.7,"h":70.63,"x":59.94,"err":110,"cut":0,"wr":382,"sha":"9253ef8e"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"goldchosen","r":3,"n":2147,"ex":77.41,"e":90.64,"m":80.98,"h":70.84,"x":59.94,"err":117,"cut":0,"wr":368,"sha":"cf644e95"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"wrfirst","r":3,"n":2147,"ex":77.27,"e":91.06,"m":79.7,"h":71.49,"x":60.78,"err":146,"cut":0,"wr":342,"sha":"cd4727a7"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"wrfirst","r":4,"n":2147,"ex":77.69,"e":91.7,"m":80.98,"h":70.84,"x":60.22,"err":107,"cut":0,"wr":372,"sha":"06e81fdf"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"central","r":1,"n":2147,"ex":75.08,"e":90.85,"m":79.35,"h":67.6,"x":53.78,"err":165,"cut":1,"wr":370,"sha":"8a66fad2"},
+{"ds":"spider","model":"qwen15","seed":0,"line":"central","r":2,"n":2147,"ex":75.73,"e":91.49,"m":77.48,"h":69.55,"x":58.82,"err":151,"cut":2,"wr":370,"sha":"0643b48c"}],"tests":[{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"feddpo","rb":3,"fixed":146,"broke":170,"p":"0.20","pv":0.196},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"fixed","rb":3,"fixed":138,"broke":75,"p":"1.9e-5","pv":1.89e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"fixed","rb":4,"fixed":159,"broke":88,"p":"7.4e-6","pv":7.35e-06},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"goldchosen","rb":3,"fixed":134,"broke":76,"p":"7.6e-5","pv":7.6e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":1,"b":"k0","rb":1,"fixed":168,"broke":94,"p":"5.7e-6","pv":5.67e-06},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"k0","rb":2,"fixed":166,"broke":100,"p":"6.2e-5","pv":6.22e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"k0","rb":3,"fixed":170,"broke":106,"p":"1.4e-4","pv":0.00014},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"k0","rb":4,"fixed":178,"broke":107,"p":"3.1e-5","pv":3.09e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":1,"b":"k0gold","rb":1,"fixed":172,"broke":81,"p":"<1e-6","pv":1.07e-08},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"k0gold","rb":2,"fixed":120,"broke":85,"p":"0.017","pv":0.0174},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"k2","rb":3,"fixed":134,"broke":75,"p":"5.4e-5","pv":5.42e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"k2","rb":4,"fixed":150,"broke":75,"p":"<1e-6","pv":6.43e-07},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"k3","rb":4,"fixed":146,"broke":76,"p":"3.0e-6","pv":3.04e-06},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"nearest","rb":3,"fixed":125,"broke":74,"p":"3.7e-4","pv":0.000368},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"rft","rb":3,"fixed":78,"broke":53,"p":"0.036","pv":0.0356},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":3,"b":"wrfirst","rb":3,"fixed":131,"broke":76,"p":"1.6e-4","pv":0.000161},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":4,"b":"wrfirst","rb":4,"fixed":139,"broke":75,"p":"1.4e-5","pv":1.44e-05},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":3,"b":"feddpo","rb":3,"fixed":62,"broke":145,"p":"<1e-6","pv":7.65e-09},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":3,"b":"rft","rb":3,"fixed":76,"broke":110,"p":"0.015","pv":0.0153},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":3,"b":"nearest","rb":3,"fixed":34,"broke":42,"p":"0.42","pv":0.422},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":3,"b":"goldchosen","rb":3,"fixed":38,"broke":39,"p":"1.00","pv":1.0},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":3,"b":"wrfirst","rb":3,"fixed":38,"broke":42,"p":"0.74","pv":0.738},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k2","ra":4,"b":"wrfirst","rb":4,"fixed":17,"broke":28,"p":"0.14","pv":0.135},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fixed","ra":4,"b":"k2","rb":4,"fixed":58,"broke":54,"p":"0.78","pv":0.777},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k0","ra":4,"b":"k2","rb":4,"fixed":120,"broke":116,"p":"0.85","pv":0.845},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k0","ra":4,"b":"k3","rb":4,"fixed":133,"broke":134,"p":"1.00","pv":1.0},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k0","ra":1,"b":"k0gold","rb":1,"fixed":90,"broke":73,"p":"0.21","pv":0.21},
+{"ds":"spider","model":"qwen15","seed":0,"a":"k0","ra":2,"b":"k0gold","rb":2,"fixed":84,"broke":115,"p":"0.033","pv":0.0332},
+{"ds":"spider","model":"qwen15","seed":0,"a":"fedavg","ra":2,"b":"feddpo","rb":3,"fixed":157,"broke":168,"p":"0.58","pv":0.579},
+{"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":2,"b":"k0","rb":2,"fixed":173,"broke":142,"p":"0.091","pv":0.0908},
+{"ds":"spider","model":"qwen15","seed":0,"a":"central","ra":2,"b":"fedavg","rb":2,"fixed":106,"broke":141,"p":"0.03","pv":0.0303},
+{"ds":"bird","model":"qwen15","seed":0,"a":"base","ra":0,"b":"fedavg","rb":1,"fixed":209,"broke":65,"p":"<1e-6","pv":8.4e-19}]};
+/* RESULTS:END */
+
+  var NS = "http://www.w3.org/2000/svg";
+  var fmt = function (n) { return Math.round(n).toLocaleString("en-US"); };
+  var f2 = function (v) { return v == null ? "–" : (+v).toFixed(2); };
+  var sg = function (v) { return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2); };
+
+  // Datasets as evaluated. nh: questions per hardness level of the test set.
+  var DS = {
+    spider: { name: "Spider test", n: 2147, nh: { e: 470, m: 857, h: 463, x: 357 },
+      setting: "Client: Spider train, 5 client, alpha 0.1 (alpha_0.1/k5). Prompt A (ddl_rows), greedy, evaluator Spider (60 s mỗi query).",
+      band: [77, 78, "SFT trong papers"],
+      read: "Ở mọi số round, DPO + NLL hơn FedAvg SFT khoảng 3 EX, có hay không stage SFT trước (k = 0, 2, 3), và đến cùng mức ở R4. FedDPO as published (không NLL) dưới FedAvg SFT. Centralized SFT trên dữ liệu gộp đạt 75.73 sau 2 epoch, dưới DPO + NLL federated sau 2 round (77.18). Gain đến từ lỗi chạy (287 khi chưa train, 164-215 với FedAvg SFT, 57-112 với DPO + NLL); SQL chạy được nhưng sai kết quả ở 342-444 trong mọi hàng." },
+    bird: { name: "BIRD dev", n: 1534, nh: { e: 194, m: 727, h: 303, x: 310 },
+      setting: "Client: BIRD train, 5 client, alpha 0.1. Prompt ddl với evidence, greedy, evaluator BIRD (30 s cho cặp prediction và gold).",
+      hnote: "Mức độ khó theo luật hardness của Spider trên parse của sqlglot, không phải nhãn simple / moderate / challenging của BIRD.",
+      read: "FedAvg SFT R1 đạt 38.85, hơn base student 9.38 (sửa 209 câu, làm sai 65, p < 1e-6): lỗi chạy 646 xuống 372, nhưng SQL sai kết quả tăng 436 lên 566. Chưa có round DPO nào xong; round đầu của method là k = 1 (DPO + NLL từ FedAvg R1), đầu queue." }
+  };
+  var MODELS = { qwen15: "Qwen2.5-Coder-1.5B" };
+  var HL = [["e", "easy"], ["m", "medium"], ["h", "hard"], ["x", "extra"]];
+
+  // Lines. table: main or more (the details table); chart: drawn in the EX chart; gain: has a bar
+  // against FedAvg SFT; method: highlighted at its last round; off: hidden in the chart at first.
+  var LINES = {
+    base:       { name: "Chưa train", c: "var(--ink)", group: "Chưa train và FedAvg SFT", table: "main" },
+    fedavg:     { name: "FedAvg SFT", c: "var(--l-fedavg)", group: "Chưa train và FedAvg SFT", table: "main", chart: true },
+    k0:         { name: "DPO + NLL, k = 0", c: "var(--l-k0)", group: "DPO + NLL từ student chưa train (k = 0)", table: "main", chart: true, gain: true, method: true },
+    k0gold:     { name: "k = 0, gold rule", c: "var(--l-gold)", group: "DPO + NLL từ student chưa train (k = 0)", table: "main", chart: true, gain: true, off: true },
+    k1:         { name: "DPO + NLL, k = 1", c: "var(--l-k1)", group: "DPO + NLL từ FedAvg R1 (k = 1)", table: "main", chart: true, gain: true, method: true },
+    k2:         { name: "DPO + NLL, k = 2", c: "var(--l-k2)", group: "DPO + NLL từ FedAvg R2 (k = 2)", table: "main", chart: true, gain: true, method: true },
+    k3:         { name: "DPO + NLL, k = 3", c: "var(--l-k3)", group: "DPO + NLL từ FedAvg R3 (k = 3)", table: "main", chart: true, gain: true, method: true },
+    feddpo:     { name: "FedDPO as published", c: "var(--l-feddpo)", group: "Federated DPO as published (không NLL, pairs và reference cố định)", table: "main", chart: true, gain: true },
+    central:    { name: "Centralized SFT", unit: "E", c: "var(--l-central)", dash: "2 5", group: "Centralized SFT: gộp dữ liệu 5 client, không federated (theo epoch)", table: "main", chart: true },
+    fixed:      { name: "Fixed + NLL", c: "var(--l-fixed)", dash: "6 4", table: "more", chart: true, gain: true, off: true },
+    rft:        { name: "RFT (chỉ NLL)", table: "more" },
+    nearest:    { name: "Nearest pairs", table: "more" },
+    goldchosen: { name: "Gold chosen", table: "more" },
+    wrfirst:    { name: "Wrong-result first", table: "more" }
+  };
+  var ORDER = Object.keys(LINES);
+  // Where each line starts, per dataset: [line, round] of the model it continues.
+  var START = {
+    spider: { k0: ["base", 0], k0gold: ["base", 0], k2: ["fedavg", 2], k3: ["fedavg", 3], fixed: ["fedavg", 2], feddpo: ["fedavg", 2], central: ["base", 0] },
+    bird:   { fedavg: ["base", 0], k0: ["base", 0], k0gold: ["base", 0], k1: ["fedavg", 1], fixed: ["k0", 1], central: ["base", 0] }
+  };
+  START.spider.fedavg = ["base", 0];
+  // Rows running or queued (PIPELINE_NEXT.md, 2026-11-20 09:55). st: run or wait.
+  var PLAN = [
+    { ds: "bird", model: "qwen15", line: "fedavg", r: 2, st: "run", t: "đang chạy" },
+    { ds: "bird", model: "qwen15", line: "k1", r: 2, st: "wait", t: "queued, đầu queue" },
+    { ds: "bird", model: "qwen15", line: "k0", r: 1, st: "wait", t: "queued, sau relabel" },
+    { ds: "bird", model: "qwen15", line: "k0gold", r: 1, st: "wait", t: "queued, sau relabel" },
+    { ds: "bird", model: "qwen15", line: "k0", r: 2, st: "wait", t: "queued" },
+    { ds: "bird", model: "qwen15", line: "fixed", r: 2, st: "wait", t: "queued" },
+    { ds: "spider", model: "qwen15", line: "central", r: 3, st: "wait", t: "dừng trong epoch 3, sau BIRD" }
+  ];
+
+  function mean(a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; }
+  function rl(line, r) { return r === 0 && line === "base" ? "" : (LINES[line].unit || "R") + r; }
+  function label(line, r) { return line === "base" ? "Chưa train" : LINES[line].name + " " + rl(line, r); }
+
+  // One value per (line, round) for a dataset, model and seed ("all" = mean over seeds).
+  function pick(ds, model, seed) {
+    var by = {};
+    DATA.runs.forEach(function (x) {
+      if (x.ds !== ds || x.model !== model || (seed !== "all" && x.seed !== +seed)) return;
+      var k = x.line + "|" + x.r; (by[k] = by[k] || []).push(x);
+    });
+    var V = {};
+    Object.keys(by).forEach(function (k) {
+      var a = by[k], o = { line: a[0].line, r: a[0].r, n: a[0].n, all: a };
+      ["ex", "e", "m", "h", "x", "err", "wr", "cut"].forEach(function (f) { o[f] = a[0][f] == null ? null : mean(a.map(function (y) { return y[f]; })); });
+      o.lo = Math.min.apply(null, a.map(function (y) { return y.ex; }));
+      o.hi = Math.max.apply(null, a.map(function (y) { return y.ex; }));
+      V[k] = o;
+    });
+    return V;
+  }
+  function get(V, line, r) { return V[line + "|" + r]; }
+  function test(ds, model, seed, a, ra, b, rb) {
+    if (seed === "all") return null;
+    return DATA.tests.filter(function (t) { return t.ds === ds && t.model === model && t.seed === +seed && t.a === a && t.ra === ra && t.b === b && t.rb === rb; })[0] || null;
+  }
+  function roundsOf(V, line) {
+    return Object.keys(V).map(function (k) { return V[k]; }).filter(function (o) { return o.line === line; }).map(function (o) { return o.r; }).sort(function (a, b) { return a - b; });
+  }
+  function linesIn(V) { return ORDER.filter(function (l) { return roundsOf(V, l).length; }); }
+  function mkEl(svg) {
+    return function (tag, attrs, text, parent) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (text != null) e.textContent = text;
+      (parent || svg).appendChild(e); return e;
+    };
+  }
+  function clear(svg) { [].slice.call(svg.childNodes).forEach(function (n) { if (n.nodeName !== "title" && n.nodeName !== "desc") svg.removeChild(n); }); }
+  function niceRange(lo, hi, pad, step) {
+    return [Math.floor((lo - pad) / step) * step, Math.ceil((hi + pad) / step) * step];
+  }
+  // spread labels so that no two are closer than gap (y sorted)
+  function spread(items, gap, top, bottom) {
+    items.sort(function (a, b) { return a.y - b.y; });
+    for (var i = 1; i < items.length; i++) if (items[i].y < items[i - 1].y + gap) items[i].y = items[i - 1].y + gap;
+    var over = items.length ? items[items.length - 1].y - bottom : 0;
+    if (over > 0) { items.forEach(function (it) { it.y -= over; }); for (var j = items.length - 2; j >= 0; j--) if (items[j].y > items[j + 1].y - gap) items[j].y = items[j + 1].y - gap; }
+    items.forEach(function (it) { if (it.y < top) it.y = top; });
+    return items;
+  }
+
+  // Line chart: EX per round.
+  function drawEx(svg, V, ds, show) {
+    clear(svg);
+    var el = mkEl(svg), W = 640, H = 340, ml = 44, mr = 168, mt = 16, mb = 44;
+    var lines = linesIn(V).filter(function (l) { return LINES[l].chart && show(l); });
+    var maxR = 1;
+    Object.keys(V).forEach(function (k) { maxR = Math.max(maxR, V[k].r); });
+    PLAN.forEach(function (p) { if (p.ds === ds) maxR = Math.max(maxR, p.r); });
+    var vals = [];
+    var base = get(V, "base", 0);
+    if (base) vals.push(base.ex);
+    lines.forEach(function (l) { roundsOf(V, l).forEach(function (r) { var o = get(V, l, r); vals.push(o.lo, o.hi); }); });
+    if (!vals.length) return;
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var step = hi - lo > 18 ? 5 : 2, yr = niceRange(lo, hi, 1, step), yMin = yr[0], yMax = yr[1];
+    function X(r) { return ml + r / maxR * (W - ml - mr); }
+    function Y(v) { return mt + (yMax - v) / (yMax - yMin) * (H - mt - mb); }
+    var x0 = X(0), x1 = X(maxR), band = DS[ds].band;
+    if (band && band[0] >= yMin && band[1] <= yMax) {
+      el("rect", { "class": "c-band", x: x0, y: Y(band[1]), width: x1 - x0, height: Y(band[0]) - Y(band[1]) });
+      el("text", { "class": "c-band-t", x: x0 + 6, y: Y(band[1]) - 4 }, band[2]);
+    }
+    for (var v = yMin; v <= yMax + 1e-9; v += step) {
+      el("line", { "class": "c-grid", x1: x0, x2: x1, y1: Y(v), y2: Y(v) });
+      el("text", { "class": "c-axis", x: x0 - 8, y: Y(v) + 4, "text-anchor": "end" }, v);
+    }
+    for (var r = 0; r <= maxR; r++) el("text", { "class": "c-axis", x: X(r), y: H - mb + 18, "text-anchor": "middle" }, r === 0 ? "chưa train" : "R" + r);
+    el("text", { "class": "c-axis", x: x0, y: H - 6 }, "Centralized SFT theo epoch trên cùng trục");
+    var desc = [], ends = [];
+    lines.forEach(function (l) {
+      var L = LINES[l], rs = roundsOf(V, l), pts = [];
+      var st = (START[ds] || {})[l], s0 = st && get(V, st[0], st[1]);
+      if (s0) pts.push([s0.r, s0.ex, true]);
+      rs.forEach(function (r) { var o = get(V, l, r); pts.push([r, o.ex, false, o]); });
+      var a = { "class": "c-line", d: pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" "), stroke: L.c };
+      if (L.dash) a["stroke-dasharray"] = L.dash;
+      if (pts.length > 1) el("path", a);
+      pts.forEach(function (p, i) {
+        if (p[2]) return;
+        var o = p[3], last = i === pts.length - 1;
+        if (o.hi > o.lo) el("line", { x1: X(p[0]), x2: X(p[0]), y1: Y(o.lo), y2: Y(o.hi), stroke: L.c, "stroke-width": 2, opacity: 0.5 });
+        var c = el("circle", { cx: X(p[0]), cy: Y(p[1]), r: last ? 5.5 : 4.5, fill: last ? L.c : "var(--surface)", stroke: L.c, "stroke-width": 2.2 });
+        el("title", {}, label(l, p[0]) + ": " + f2(p[1]) + " EX" + (o.all.length > 1 ? " (trung bình " + o.all.length + " seed)" : ""), c);
+      });
+      var lp = pts[pts.length - 1];
+      ends.push({ l: l, r: lp[0], v: lp[1], y: Y(lp[1]) + 4 });
+      desc.push(L.name + ": " + rs.map(function (r) { return rl(l, r) + " " + f2(get(V, l, r).ex); }).join(", "));
+    });
+    if (base) {
+      var bc = el("circle", { cx: X(0), cy: Y(base.ex), r: 5, fill: "var(--surface)", stroke: "var(--ink)", "stroke-width": 2.2 });
+      el("title", {}, "Chưa train: " + f2(base.ex) + " EX", bc);
+      el("text", { "class": "c-val c-halo", x: X(0) + 9, y: Y(base.ex) + 16, fill: "var(--ink)" }, f2(base.ex));
+      desc.unshift("Chưa train " + f2(base.ex));
+    }
+    // labels: lines that end at the last round go to the right margin, the others next to their point
+    var groups = {};
+    ends.forEach(function (e) { (groups[e.r] = groups[e.r] || []).push(e); });
+    Object.keys(groups).forEach(function (r) {
+      var g = spread(groups[r], 16, mt + 6, H - mb), atEnd = +r === maxR;
+      g.forEach(function (e) {
+        var L = LINES[e.l], lx = X(e.r) + (atEnd ? 16 : 10);
+        if (atEnd) el("line", { "class": "c-lead", x1: X(e.r) + 7, y1: Y(e.v), x2: lx - 3, y2: e.y - 4 });
+        el("text", { "class": "c-end c-halo", x: lx, y: e.y, fill: L.c }, f2(e.v));
+        el("text", { "class": "c-end-n c-halo", x: lx + 44, y: e.y }, L.name.replace("DPO + NLL, ", "") + (atEnd ? "" : " " + rl(e.l, e.r)));
+      });
+    });
+    var d = svg.querySelector("desc"); if (d) d.textContent = desc.join(". ") + ".";
+  }
+
+  // Bar chart: gain over FedAvg SFT at the same total round.
+  function drawGain(svg, V, ds, model, seed, lines, empty) {
+    clear(svg);
+    var el = mkEl(svg), vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, ml = 46, mr = 12, mt = 18, mb = 50;
+    var G = [];
+    roundsOf(V, "fedavg").forEach(function (r) {
+      var fa = get(V, "fedavg", r), bars = [];
+      lines.forEach(function (l) {
+        var o = get(V, l, r);
+        if (!o) return;
+        var t = test(ds, model, seed, "fedavg", r, l, r);
+        var seeds = o.all.length > 1 ? o.all.map(function (x) {
+          var f = fa.all.filter(function (y) { return y.seed === x.seed; })[0]; return f ? x.ex - f.ex : null;
+        }).filter(function (v) { return v != null; }) : [];
+        bars.push({ l: l, g: o.ex - fa.ex, t: t, seeds: seeds });
+      });
+      if (bars.length) G.push({ r: r, fa: fa.ex, bars: bars });
+    });
+    if (empty) {
+      empty.hidden = G.length > 0; svg.parentNode.hidden = !G.length;
+      if (!G.length) {
+        var q = PLAN.filter(function (p) { return p.ds === ds && LINES[p.line].gain; }).map(function (p) { return label(p.line, p.r) + " (" + p.t + ")"; });
+        empty.textContent = "Chưa có hàng DPO nào trên " + DS[ds].name + " để so với FedAvg SFT cùng round." + (q.length ? " Sắp có: " + q.join(", ") + "." : "");
+        return;
+      }
+    }
+    var gs = []; G.forEach(function (g) { g.bars.forEach(function (b) { gs.push(b.g); gs = gs.concat(b.seeds); }); });
+    var yMin = Math.min(0, Math.floor(Math.min.apply(null, gs) - 0.5)), yMax = Math.max(1, Math.ceil(Math.max.apply(null, gs) + 1.6));
+    var pw = W - ml - mr, ph = H - mt - mb, cw = pw / G.length;
+    function Y(v) { return mt + (yMax - v) / (yMax - yMin) * ph; }
+    for (var v = yMin; v <= yMax; v++) {
+      el("line", { "class": v ? "c-grid" : "c-zero", x1: ml, x2: W - mr, y1: Y(v), y2: Y(v) });
+      el("text", { "class": "c-axis", x: ml - 8, y: Y(v) + 4, "text-anchor": "end" }, (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v));
+    }
+    el("line", { "class": "c-ref", x1: ml, x2: W - mr, y1: Y(0.5), y2: Y(0.5) });
+    var desc = [];
+    G.forEach(function (g, i) {
+      var cx = ml + cw * i + cw / 2, nb = g.bars.length, bw = Math.min(42, (cw - 18) / nb - 6), gap = 6;
+      var x0 = cx - (nb * bw + (nb - 1) * gap) / 2;
+      g.bars.forEach(function (b, j) {
+        var L = LINES[b.l], x = x0 + j * (bw + gap), sig = b.t ? b.t.pv < 0.05 : true, up = b.g >= 0;
+        var rect = el("rect", { x: x, y: Math.min(Y(b.g), Y(0)), width: bw, height: Math.max(1, Math.abs(Y(0) - Y(b.g))), rx: 3, fill: L.c, opacity: sig ? 1 : 0.38 });
+        el("title", {}, L.name + " " + rl(b.l, g.r) + ": " + sg(b.g) + " EX so với FedAvg SFT R" + g.r + (b.t ? " (sửa " + b.t.fixed + ", làm sai " + b.t.broke + ", p " + b.t.p + ")" : ""), rect);
+        b.seeds.forEach(function (s) { el("circle", { cx: x + bw / 2, cy: Y(s), r: 2.6, fill: "var(--surface)", stroke: "var(--ink)", "stroke-width": 1.2 }); });
+        var lift = 0;
+        if (nb > 1 && j % 2) {
+          var nbr = [g.bars[j - 1], g.bars[j + 1]].filter(Boolean).map(function (o) { return up ? Math.max(o.g, b.g) : Math.min(o.g, b.g); });
+          var edge = up ? Math.max.apply(null, nbr) : Math.min.apply(null, nbr);
+          lift = Math.abs(Y(edge) - Y(b.g)) + 26;
+        }
+        var ty = up ? Y(b.g) - 6 - lift : Y(b.g) + 14 + lift;
+        if (lift) el("line", { x1: x + bw / 2, x2: x + bw / 2, y1: up ? Y(b.g) - 2 : Y(b.g) + 2, y2: up ? ty + 3 : ty - 12, stroke: "var(--line)" });
+        el("text", { "class": "c-bar-v", x: x + bw / 2, y: up ? ty - 12 : ty, "text-anchor": "middle", fill: L.c, style: bw < 34 ? "font-size:11px" : "" }, sg(b.g));
+        el("text", { "class": "c-bar-p", x: x + bw / 2, y: up ? ty : ty + 12, "text-anchor": "middle" }, b.t ? "p " + b.t.p : b.seeds.length ? b.seeds.length + " seed" : "");
+        desc.push(L.name + " R" + g.r + " " + sg(b.g) + (b.t ? " (p " + b.t.p + ")" : ""));
+      });
+      el("text", { "class": "c-axis strong", x: cx, y: H - mb + 20, "text-anchor": "middle" }, "R" + g.r);
+      el("text", { "class": "c-axis", x: cx, y: H - mb + 36, "text-anchor": "middle" }, "FedAvg " + f2(g.fa));
+    });
+    var d = svg.querySelector("desc"); if (d) d.textContent = desc.join(", ") + ".";
+  }
+
+  // 100% bars: correct / wrong result / execution error for each line's last round.
+  function drawOutcome(box, V, show) {
+    var rows = [];
+    if (get(V, "base", 0)) rows.push(get(V, "base", 0));
+    linesIn(V).forEach(function (l) {
+      if (!LINES[l].chart || !show(l)) return;
+      var rs = roundsOf(V, l); rows.push(get(V, l, rs[rs.length - 1]));
+    });
+    box.innerHTML = rows.map(function (o) {
+      var ok = o.n - o.err - o.wr, seg = function (cls, v, t) {
+        var p = v / o.n * 100;
+        return '<span class="' + cls + '" style="flex:' + v.toFixed(2) + '" title="' + t + ': ' + fmt(v) + ' câu (' + p.toFixed(1) + '%)">' + (p >= 9 ? fmt(v) : "") + '</span>';
+      };
+      return '<div class="oc-row"><div class="oc-name"><i style="background:' + LINES[o.line].c + '"></i>' + label(o.line, o.r) + '</div>' +
+        '<div class="oc-bar">' + seg("ok", ok, "đúng") + seg("wr", o.wr, "sai kết quả") + seg("er", o.err, "lỗi chạy") + '</div>' +
+        '<div class="oc-ex">' + f2(o.ex) + '</div></div>';
+    }).join("");
+  }
+
+  // Dumbbell: EX per hardness level, FedAvg SFT against the method at the same round.
+  function drawHard(svg, V, ds, legend, sub) {
+    clear(svg);
+    var el = mkEl(svg), W = 560, H = 300, ml = 118, mr = 64, mt = 16, mb = 34;
+    var A = null, B = null;
+    roundsOf(V, "fedavg").slice().reverse().forEach(function (r) {
+      if (B) return;
+      ["k0", "k1", "k2", "k3"].forEach(function (l) { if (!B && get(V, l, r)) { A = get(V, "fedavg", r); B = get(V, l, r); } });
+    });
+    var title;
+    if (B) title = LINES[B.line].name + " so với FedAvg SFT, cùng R" + B.r + ".";
+    else {
+      var fr = roundsOf(V, "fedavg");
+      A = get(V, "base", 0); B = fr.length ? get(V, "fedavg", fr[fr.length - 1]) : null;
+      title = B ? "Chưa có hàng DPO: FedAvg SFT " + rl("fedavg", B.r) + " so với chưa train." : "";
+    }
+    sub.textContent = title + " Số bên phải là chênh lệch." + (DS[ds].hnote ? " " + DS[ds].hnote : "");
+    if (!A || !B) return;
+    var rows = HL.map(function (h) { return { k: h[1] + " (" + fmt(DS[ds].nh[h[0]]) + ")", a: A[h[0]], b: B[h[0]] }; });
+    rows.push({ k: "tất cả (" + fmt(DS[ds].n) + ")", a: A.ex, b: B.ex, all: true });
+    var vals = []; rows.forEach(function (r) { vals.push(r.a, r.b); });
+    var xr = niceRange(Math.min.apply(null, vals), Math.max.apply(null, vals), 4, 10), xMin = xr[0], xMax = Math.min(100, xr[1]);
+    function X(v) { return ml + (v - xMin) / (xMax - xMin) * (W - ml - mr); }
+    var rh = (H - mt - mb) / rows.length;
+    for (var v = xMin; v <= xMax; v += 10) {
+      el("line", { "class": "c-grid", x1: X(v), x2: X(v), y1: mt, y2: H - mb });
+      el("text", { "class": "c-axis", x: X(v), y: H - mb + 18, "text-anchor": "middle" }, v);
+    }
+    var ca = LINES[A.line].c, cb = LINES[B.line].c, desc = [];
+    rows.forEach(function (r, i) {
+      var y = mt + rh * i + rh / 2, d = r.b - r.a;
+      if (r.all) el("line", { "class": "c-grid", x1: 0, x2: W, y1: y - rh / 2, y2: y - rh / 2 });
+      el("text", { "class": "c-axis" + (r.all ? " strong" : ""), x: ml - 14, y: y + 4, "text-anchor": "end" }, r.k);
+      el("line", { x1: X(r.a), x2: X(r.b), y1: y, y2: y, stroke: "var(--line)", "stroke-width": 7, "stroke-linecap": "round" });
+      el("circle", { cx: X(r.a), cy: y, r: 6, fill: "var(--surface)", stroke: ca, "stroke-width": 2.4 });
+      el("circle", { cx: X(r.b), cy: y, r: 6, fill: cb });
+      var left = r.a <= r.b;
+      el("text", { "class": "c-bar-p", x: X(r.a) + (left ? -10 : 10), y: y + 4, "text-anchor": left ? "end" : "start" }, f2(r.a));
+      el("text", { "class": "c-bar-p", x: X(r.b) + (left ? 10 : -10), y: y + 4, "text-anchor": left ? "start" : "end", fill: cb }, f2(r.b));
+      el("text", { "class": "c-val", x: W - 6, y: y + 4, "text-anchor": "end", fill: d >= 0 ? "var(--ok)" : "var(--bad)" }, sg(d));
+      desc.push(r.k + ": " + f2(r.a) + " và " + f2(r.b));
+    });
+    legend.innerHTML = '<span><i class="dot" style="background:var(--surface);border:2px solid ' + ca + '"></i>' + label(A.line, A.r) + '</span><span><i class="dot" style="background:' + cb + '"></i>' + label(B.line, B.r) + '</span>';
+    var dd = svg.querySelector("desc"); if (dd) dd.textContent = desc.join(". ") + ".";
+  }
+
+  // Tables.
+  function drawTables(V, ds, model, seed) {
+    var all = Object.keys(V).map(function (k) { return V[k]; });
+    var best = {};
+    ["ex", "e", "m", "h", "x"].forEach(function (f) { best[f] = Math.max.apply(null, all.map(function (o) { return o[f] == null ? -1 : o[f]; })); });
+    ["err", "wr"].forEach(function (f) { best[f] = Math.min.apply(null, all.map(function (o) { return o[f]; })); });
+    var maxR = Math.max.apply(null, all.map(function (o) { return o.r; }));
+    function cell(o, f) { var v = o[f]; var b = v != null && Math.abs(v - best[f]) < 1e-9 ? " best" : ""; return '<td class="r' + b + '">' + (f === "err" || f === "wr" ? fmt(v) : f2(v)) + '</td>'; }
+    function row(o) {
+      var fa = get(V, "fedavg", o.r), t = test(ds, model, seed, "fedavg", o.r, o.line, o.r), dcell = "–";
+      if (fa && ["base", "fedavg", "central"].indexOf(o.line) < 0) {
+        var d = o.ex - fa.ex;
+        dcell = '<span class="' + (d >= 0 ? "dpos" : "dneg") + '">' + sg(d) + '</span>' + (t ? ' <span class="muted">p ' + t.p + '</span>' : "");
+      }
+      var hl = LINES[o.line].method && o.r === maxR ? ' class="hlrow"' : "";
+      var shas = o.all.map(function (x) { return x.sha; }).join(", ");
+      var nm = label(o.line, o.r) + (o.all.length > 1 ? ' <span class="muted">(' + o.all.length + ' seed)</span>' : "");
+      return '<tr' + hl + '><td>' + nm + '</td>' + cell(o, "ex") + cell(o, "e") + cell(o, "m") + cell(o, "h") + cell(o, "x") + cell(o, "err") + cell(o, "wr") + '<td class="r">' + dcell + '</td><td class="mono muted">' + shas + '</td></tr>';
+    }
+    function planRow(p) {
+      return '<tr class="plan"><td>' + label(p.line, p.r) + '</td><td colspan="8"></td><td><span class="pill ' + p.st + '">' + p.t + '</span></td></tr>';
+    }
+    function build(which) {
+      var out = [], lastGroup = null;
+      ORDER.forEach(function (l) {
+        var L = LINES[l];
+        if (L.table !== which) return;
+        var rs = roundsOf(V, l), ps = PLAN.filter(function (p) { return p.ds === ds && p.model === model && p.line === l; });
+        if (!rs.length && !ps.length) return;
+        if (which === "main" && L.group !== lastGroup) { out.push('<tr class="grp"><td colspan="10">' + L.group + '</td></tr>'); lastGroup = L.group; }
+        rs.forEach(function (r) { out.push(row(get(V, l, r))); });
+        ps.forEach(function (p) { if (!get(V, l, p.r)) out.push(planRow(p)); });
+      });
+      return out;
+    }
+    document.getElementById("res-main").innerHTML = build("main").join("");
+    var more = build("more");
+    document.getElementById("res-more").innerHTML = more.join("");
+    document.getElementById("res-more-box").hidden = !more.length;
+    document.getElementById("res-more-sum").textContent = more.length + " hàng đổi một setting của method";
+  }
+
+  // State and controls.
+  var sel = { ds: "spider", model: "qwen15", seed: "0" }, hidden = {};
+  ORDER.forEach(function (l) { if (LINES[l].off) hidden[l] = true; });
+  try { var sv = JSON.parse(localStorage.getItem("fedls-res") || "null"); if (sv) { sel = sv.sel || sel; hidden = sv.hidden || hidden; } } catch (e) {}
+  function save() { try { localStorage.setItem("fedls-res", JSON.stringify({ sel: sel, hidden: hidden })); } catch (e) {} }
+  function uniq(a) { return a.filter(function (v, i) { return a.indexOf(v) === i; }); }
+  function seg(box, items, cur, on) {
+    box.innerHTML = "";
+    items.forEach(function (it) {
+      var b = document.createElement("button");
+      b.type = "button"; b.innerHTML = it.t + (it.n != null ? "<small>" + it.n + "</small>" : "");
+      b.setAttribute("aria-pressed", String(it.v === cur));
+      b.addEventListener("click", function () { on(it.v); });
+      box.appendChild(b);
+    });
+  }
+  function render() {
+    var dss = uniq(DATA.runs.map(function (x) { return x.ds; })).sort(function (a, b) { return Object.keys(DS).indexOf(a) - Object.keys(DS).indexOf(b); });
+    if (dss.indexOf(sel.ds) < 0) sel.ds = dss[0];
+    var models = uniq(DATA.runs.filter(function (x) { return x.ds === sel.ds; }).map(function (x) { return x.model; }));
+    if (models.indexOf(sel.model) < 0) sel.model = models[0];
+    var seeds = uniq(DATA.runs.filter(function (x) { return x.ds === sel.ds && x.model === sel.model; }).map(function (x) { return String(x.seed); })).sort();
+    if (sel.seed !== "all" && seeds.indexOf(sel.seed) < 0) sel.seed = seeds[0];
+    if (sel.seed === "all" && seeds.length < 2) sel.seed = seeds[0];
+    seg(document.getElementById("sel-ds"), dss.map(function (d) { return { v: d, t: DS[d] ? DS[d].name : d, n: DS[d] ? fmt(DS[d].n) : null }; }), sel.ds, function (v) { sel.ds = v; save(); render(); });
+    seg(document.getElementById("sel-model"), models.map(function (m) { return { v: m, t: MODELS[m] || m }; }), sel.model, function (v) { sel.model = v; save(); render(); });
+    seg(document.getElementById("sel-seed"), seeds.map(function (s) { return { v: s, t: s }; }).concat(seeds.length > 1 ? [{ v: "all", t: "trung bình" }] : []), sel.seed, function (v) { sel.seed = v; save(); render(); });
+    var D = DS[sel.ds] || { name: sel.ds, setting: "", read: "" };
+    document.getElementById("res-setting").textContent = D.setting + (seeds.length < 2 ? " Mới có seed " + seeds[0] + "." : "");
+    document.getElementById("res-read").textContent = sel.model === "qwen15" && sel.seed !== "all" ? D.read : "Trung bình trên " + seeds.length + " seed; chấm trên cột gain là từng seed.";
+    var V = pick(sel.ds, sel.model, sel.seed), show = function (l) { return !hidden[l]; };
+    // legend toggles
+    var lg = document.getElementById("ex-legend"); lg.innerHTML = "";
+    linesIn(V).filter(function (l) { return LINES[l].chart; }).forEach(function (l) {
+      var L = LINES[l], b = document.createElement("button");
+      b.type = "button"; b.setAttribute("aria-pressed", String(!hidden[l]));
+      b.innerHTML = '<i style="background:' + (L.dash ? "repeating-linear-gradient(90deg," + L.c + " 0 6px,transparent 6px 10px)" : L.c) + '"></i>' + L.name;
+      b.addEventListener("click", function () { hidden[l] = !hidden[l]; save(); render(); });
+      lg.appendChild(b);
+    });
+    drawEx(document.getElementById("exsvg"), V, sel.ds, show);
+    drawGain(document.getElementById("res-gain"), V, sel.ds, sel.model, sel.seed, ORDER.filter(function (l) { return LINES[l].gain && show(l); }), document.getElementById("res-gain-empty"));
+    drawOutcome(document.getElementById("outc"), V, show);
+    drawHard(document.getElementById("hardsvg"), V, sel.ds, document.getElementById("hard-legend"), document.getElementById("hard-sub"));
+    drawTables(V, sel.ds, sel.model, sel.seed);
+    [].slice.call(document.querySelectorAll("#results [data-ds]")).forEach(function (e) { e.hidden = e.getAttribute("data-ds") !== sel.ds; });
+  }
+  render();
+
+  // Overview: the main setup, the method lines only.
+  var ov = document.getElementById("gainsvg");
+  if (ov) drawGain(ov, pick("spider", "qwen15", "0"), "spider", "qwen15", "0", ["k0", "k2", "k3"], null);
 })();
 </script>
 <script>
