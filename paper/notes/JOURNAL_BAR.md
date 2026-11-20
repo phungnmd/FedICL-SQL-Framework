@@ -15,7 +15,7 @@ tables with quotes and links are in section 4.
 | Publisher | Tech Science Press, open access | Springer, hybrid |
 | Scope | computer networks, AI, big data, software engineering, security, IoT, materials | "integration of artificial intelligence and database technologies"; query languages and interfaces are a listed topic |
 | Impact factor (publisher page, 2025) | 2.4 | 3.5 |
-| Quartile | not verified (SJR and JCR pages could not be opened) | not verified |
+| Quartile | Scimago 2025: Q2 (SJR 0.513, Computer Science Applications). JCR: Q3 on Peeref (JCR 2024). Read 2026-11-20 from search results, pages not opened | Scimago 2025: Q2 (SJR 0.775, Information Systems; Q2 since 2017). JCR: Q3 on Peeref (JCR 2023), Q2 on LetPub. Same reading |
 | Length | no limit; the fee covers 15 pages | 25 pages at submission, with references, tables and figures |
 | Format | Word or LaTeX template | LaTeX only (Springer macro, `smallcondensed`) |
 | Abstract, keywords | 200 to 400 words; 3 to 10 keywords | 150 to 250 words; 4 to 6 keywords |
@@ -110,7 +110,8 @@ Writing conventions seen in both:
 - CMC: abstract of 200 to 400 words ending with the main numbers; limits
   of the work in the discussion or as future work.
 
-Not verified: the SJR and JCR quartiles of both journals; the JIIS blind
+Not verified: the JCR quartiles of both journals on Clarivate itself (the
+Scimago quartiles come from search results of 2026-11-20); the JIIS blind
 model and acceptance rate; everything beyond the abstract for the 5
 paywalled JIIS papers. "Not stated" for seeds and tests in a paper rests
 on a text search of the full text.

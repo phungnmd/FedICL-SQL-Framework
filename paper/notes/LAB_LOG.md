@@ -4,6 +4,68 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: queue turned to the earliest read of the method on BIRD; SFT stage line `bird_k1` queued; centralized SFT after the BIRD rounds (owner; queue `51d09d80`)
+
+Owner: order the pipeline so that the direction of the method is known
+soonest. No new run in this entry.
+
+What is open is one point: what the method does with the questions
+that have no correct sample (Spider 12%, BIRD 41.9% for the base
+student). Three forms: nothing (k = 0), an SFT stage before the DPO
+rounds, gold inside the round. On Spider the first two end equal and
+the gold rule fell at round 2; that run changed three things at once
+(gold for all-wrong questions, 2,032 pairs; gold on databases without
+rows, 3,110 pairs; client 4's weight 0.28 to 0.43), so it is not a
+clean reading of gold next to DPO. BIRD train has no database without
+rows.
+
+Queue:
+
+- New `bird_k1/round_1`: one DPO + NLL round from `bird_sft` round 1
+  (k = 1), the command of `bird_k0/round_1` with `--parent-stage
+  fedavg_bird_ddl_a01_r1_s0` in place of `--from-base` and a root of its
+  own (`fedpref_bird_sftr1_p2_ddl_alpha01_s0`), evaluation on BIRD dev
+  and both publications. Read at 2 total rounds against `bird_sft`
+  round 2 and `bird_k0` round 2. It stands before the relabel: it needs
+  no label of the base student's samples, so it is the first BIRD read
+  of the method a free card can produce. k = 1 and not 2 or the best
+  round: its comparison rows at the same total rounds are already
+  queued. Checked before queuing (new test): against `bird_k0/round_1`
+  only the start and the root differ and the setup (prompt, length,
+  LoRA, sampling, pair rule) is equal; against the Spider k = 2 round
+  only the parent round, split, profile, schema text and root. The
+  parent row resolves from its stage label; one BIRD prompt rendered
+  and read. 523 tests pass, 2 skipped. Not measured: its run time, its
+  pair count, memory, and free RAM with its 16 label processes next to
+  the relabel by hand.
+- `refs/central_sft` moves after the BIRD rounds. It stood before them
+  since this morning (owner), and under that order GPU 0 would take it
+  after `bird_sft/round_2`, before that round's evaluation, for up to 6
+  more epochs of 2 h 10 min. It is a reference row and keeps its
+  checkpoint in epoch 3.
+- Kept in place: `bird_k0/round_1`, `bird_k0_gold/round_1`,
+  `bird_k0/round_2`, `bird_fixed/round_2`.
+
+The server gets the order only after a pull; if GPU 0 reaches
+centralized SFT first, the worker is stopped and started again
+(`PIPELINE_NEXT.md`, step 1).
+
+Owner's expectation: DPO from the best SFT round, 1 to 2 rounds, gives
+the highest level. On Spider one DPO round carries most of the gain
+(+3.36 from FedAvg round 2, +3.26 from round 3; a second round +0.74,
+p 0.093), and the level is the same from k = 0, 2 and 3 (78.02, 78.20,
+77.97), so the start does not raise it there; on BIRD it is read from
+`bird_k1` first. Not queued, decided on those reads: the BIRD lines to
+4 rounds, DPO from the best `bird_sft` round, one local loss with NLL
+on the gold SQL for the all-wrong questions only (needs a preference
+weight per row), centralized DPO + NLL on Spider.
+
+Journal quartiles, looked up today through search results (the pages
+were not opened): Scimago 2025 lists CMC as Q2 (SJR 0.513, Computer
+Science Applications) and JIIS as Q2 (SJR 0.775, Information Systems).
+JCR: CMC Q3 on Peeref (JCR 2024); JIIS Q3 on Peeref (JCR 2023) and Q2
+on LetPub. Which list the owner's requirement counts is open.
+
 ## 2026-11-20: FedAvg SFT round 1 on BIRD dev 38.85; 16 worker processes for the BIRD label steps (results `ec5d3ec6`, `91e5fcdd`; queue `4f9e3299`, `f0b35ba9`)
 
 BIRD dev (1,534 rows): FedAvg SFT round 1 on the BIRD clients 38.85

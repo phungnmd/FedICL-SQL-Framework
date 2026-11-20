@@ -2,8 +2,11 @@
 
 ## Status
 
-Updated 2026-11-20 07:50 (Asia/Ho_Chi_Minh). Spider test by total rounds
-trained:
+Updated 2026-11-20 09:55 (Asia/Ho_Chi_Minh). No result since 06:56. The
+queue order changed at 09:55 (owner: the order that settles the method
+soonest); the server has it after the pull of step 1.
+
+Spider test by total rounds trained:
 
 | Total rounds | FedAvg SFT | 3 SFT rounds then DPO (k = 3) | 2 SFT rounds then DPO (k = 2) | DPO from the base student (k = 0) | k = 0 with gold | Centralized SFT (epochs) |
 |---|---|---|---|---|---|---|
@@ -12,85 +15,79 @@ trained:
 | 3 | 74.71 | | 77.46 | 77.69 | | |
 | 4 | 74.71 | 77.97 | 78.20 | 78.02 | | |
 
-Settled on Spider: the method is DPO + NLL with execution labels on the
-model's own samples (3.3 to 3.5 above FedAvg SFT at 4 rounds; without
-the NLL term 73.59; NLL on correct samples alone 75.87 against 77.46).
-Not kept: nearest pairs, gold as chosen, gold inside the round,
-wrong-result rejects first. The FedAvg SFT stage shows no gain on Spider
-at k = 0, 2 or 3 (78.02, 78.20, 77.97 at 4 rounds); it is read next on
-BIRD. BIRD dev: FedAvg SFT round 1 38.85 (372 outputs fail to execute);
-base student 29.47, with 646 of 1,534 outputs failing
-to execute (570 `no such column`), 1 output cut at 256 tokens and 3 rows
-lost to the 30 s budget. The k = 0 line with gold where the samples give no correct side
-falls at round 2 on Spider (75.73 against 77.18, p 0.033; round 1:
-76.67 against 75.87): not kept on Spider, rounds 3 and 4 not queued;
-its round 1 on BIRD stays queued. Centralized SFT: 75.08 and 75.73
-at epochs 1 and 2, the rule goes on to epoch 3. BIRD clients, 10 samples
-of the base student per question: a correct SQL for 52.4% of the 9,428
-questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
-(350 SQL errors, 184 golds on the 30 s budget); 9,566 pairs.
+Settled on Spider: DPO + NLL with execution labels on the model's own
+samples, 2 random pairs per question (3.3 to 3.5 above FedAvg SFT at 4
+rounds; without the NLL term 73.59; NLL on correct samples alone 75.87
+against 77.46). No gain on Spider: nearest pairs, wrong-result rejects
+first, on-policy rounds over fixed pairs (78.20 against 78.02, with
+3,354 pairs against 8,026), the FedAvg SFT stage (k = 0, 2, 3: 78.02,
+78.20, 77.97), gold as chosen (round 2 falls: 75.73 against 77.18).
+
+Open, read on BIRD: what the method does with the questions that have
+no correct sample (Spider 12%, BIRD 41.9% of the questions for the base
+student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker: `bird_sft/round_1` evaluated and published 06:56 (38.85 on BIRD dev); then `bird_sft/round_2` (about 3 h, estimate) unless centralized SFT was free. | result `91e5fcdd`; the task after it is inferred |
-| 1 | Worker until 07:30: centralized SFT, epoch 2 published 06:05, epoch 3 since then; it stops in that epoch at 07:30. | result `0643b48c`, published 06:05 |
+| 0 | Worker on `bird_sft/round_2` since about 07:00 (about 3 h, estimate). Under the order it loaded, its next task is centralized SFT, before the evaluation of that round: step 1 changes this. | result `91e5fcdd` at 06:56; the task after it is inferred |
+| 1 | No worker: it stopped itself at 07:30 inside epoch 3 of centralized SFT (checkpoint kept). | the `--until 07:30` of its start line; no line sent back |
 
 ## Run now
 
-1. Start GPU 1 now, until 07:30: it takes centralized SFT
-   (`refs/central_sft`, continued from its epoch 1; it stands before
-   the BIRD rounds since 2026-11-20, owner) while GPU 0 runs
-   `k0_gold/round_2`. If GPU 0 does not run that round, GPU 1 takes it
-   first. At 07:30 the worker stops itself and its task; the same line
-   continues it later. The line pulls the queue first (fast-forward
-   only, safe while GPU 0 runs):
+1. Now, before `bird_sft/round_2` ends: pull the queue on the server.
+   Fast-forward only, safe while GPU 0 trains (the push holds the queue,
+   a test and a doc line; no code a running job loads). The worker reads
+   the queue again before its next task and then takes the evaluation of
+   `bird_sft/round_2` and `bird_k1/round_1`.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until 07:30; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' } }
    ```
 
-   The same line with `--gpu 0` and without `--until` continues GPU 0
-   if it stops.
-
-2. Send back, when they come:
-   - the last lines the GPU 1 worker printed at 07:00 (the first run of
-     `--until` on Windows);
-   - the EX line of `k0_gold/round_2` and of each BIRD round, and the
-     peak reserved VRAM on the first updates of each client;
-   - the first time two vLLM jobs overlap (an evaluation on one card while
-     the other samples or evaluates): the peak reserved VRAM of each and
-     whether either slows down;
-   - a `STOP queue` line, if one comes (the BIRD tasks are the first
-     training runs on BIRD in this setup).
-
-3. Any time, CPU only (phase 0a, a few minutes): the pairs of the base
-   student's round 1 samples by rejected outcome, per client, then
-   published. Send back the printed tables.
+   If GPU 0 already shows centralized SFT (`central_base_ddlrows_s0/sft`
+   in its lines): Ctrl+C, run the line above, then start the worker
+   again with the line below. Centralized SFT keeps its checkpoint and
+   continues later.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0'; uv run --no-sync python -m scripts.pair_composition --audit $a --round 1 --policy base --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Composition failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: composition of the base student round 1 pairs per client' --paths "$a/pair_read/composition_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-4. The relabel of `bird/read` runs by hand since about 01:00 on the
-   code of that hour (4 workers; the gold runs again for every SQL and
-   every timeout runs a second time alone). If a client or more is
-   still left: stop it with Ctrl+C and start the line below. It pulls
-   the label code of this morning (`a14f140a`: the gold once per question, a second run
-   only when short of CPU, same rule and labels) and continues where
-   the run stopped, with 16 worker processes (the server has 64 logical
-   processors; watch the free RAM in the first minutes). Send back, per
-   client, the `SQL budget`, `before`, `after` and `sample label(s)
-   changed` lines.
+2. When GPU 1 is free: the same line with `--gpu 1` and the hour it has
+   to stop. It takes the next BIRD round that is ready.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
+3. The relabel of `bird/read` by hand (CPU). If it has finished, nothing
+   to do: the queue finds it done. If a client or more is still left,
+   Ctrl+C and start the line below (16 worker processes, continues
+   where it stopped). `bird_k1/round_1` labels with 16 more processes
+   while it runs: watch the free RAM in the first minutes of both.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m pytest tests/test_sql_pool.py tests/test_relabel_samples.py tests/test_preference_sampling.py -q --basetemp "$tmp\pytest_sql_pool"; if ($LASTEXITCODE -ne 0) { throw 'SQL pool tests failed on this machine: send the output' }; uv run --no-sync python -m scripts.relabel_samples --src audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_s0 --dst audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0 --round 1 --policy base --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5 --dataset-profile bird_with_evidence --score-workers 16; if ($LASTEXITCODE -ne 0) { throw 'Relabel failed' } }
    ```
 
-5. After more tasks have finished, CPU only (under a minute): their
-   wall times read from the worker's logs into
-   `audits/protocol_v2/run_times/`, one file per task, then published
-   (46 tasks are in since 00:29; the published files are left alone).
-   Runs that start on the new code also write their times themselves.
+4. Send back, when they come:
+   - whether the relabel has finished, and per client its `SQL budget`,
+     `before`, `after` and `sample label(s) changed` lines;
+   - the EX line of `bird_sft/round_2`;
+   - from `bird_k1/round_1`: the questions per client by kind (all
+     correct, mixed, all wrong) and the pair counts, its EX line, and
+     the peak reserved VRAM on the first updates of each client;
+   - the EX line and peak VRAM of each later BIRD round;
+   - a `STOP queue` line, if one comes.
+
+5. Any time, CPU only (a few minutes each), if not done yet: the pairs
+   of the base student's round 1 samples by rejected outcome, and the
+   wall times of the finished tasks. Send back the printed tables of the
+   first.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $a='audits/protocol_v2/fedpref_base_ddlrows_alpha01_s0'; uv run --no-sync python -m scripts.pair_composition --audit $a --round 1 --policy base --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Composition failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: composition of the base student round 1 pairs per client' --paths "$a/pair_read/composition_r1_base.json"; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   ```
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
@@ -100,33 +97,44 @@ questions (Spider 87.6%), all wrong 41.9% (Spider 12%), gold fails 5.7%
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 6 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients, same recipe, prompt and evaluation as FedAvg; one epoch per step, rule 0.5 / patience 2 / at most 8 | 2 h 10 min per epoch (estimate) | stopped in epoch 1; before the BIRD rounds (owner, 2026-11-20): GPU 1 takes it with step 1 |
-| 0 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` again with SQL in worker processes, into the `_ev3` root the BIRD DPO rounds use; then the pair counts of that root. How many of the 184 golds lost to the 30 s budget come back (151 run alone in under 15 s) | 4-6 h on CPU (estimate); seconds for the queue task once step 4 is through | running by hand (step 4); in the queue after `bird_sft/round_1` and `bird_sft/round_2`, so a free card trains meanwhile (a card that reaches it earlier waits for the run by hand) |
-| 2 | `bird_sft/round_1`, `bird_k0/round_1` | on BIRD at 1 round: FedAvg SFT against DPO + NLL from the base student (on Spider 72.43 against 75.87). Does DPO from the base student still lead where it has pairs for half of the questions only (4,783 of 9,428; base student 29.47 on BIRD dev)? | 3 h each (estimate; `bird_k0/round_1` trains on the read's 9,566 pairs and samples nothing) | queued |
-| 3 | `bird_k0_gold/round_1` | BIRD round 1 with gold as chosen for the 3,955 all-wrong questions, on the same samples: against row 2 | 4-6 h (estimate; up to 7,910 more pairs) | queued |
-| 4 | `bird_sft/round_2`, `bird_k0/round_2` | the same as row 2 at 2 rounds (Spider: 74.10 against 77.18) | 3 h and 6 h (estimate; the DPO round samples and labels again, 3 h 19 min in the read) | queued |
-| 5 | `bird_fixed/round_2` | on-policy rounds: round 2 on the round 1 pairs with the base student as reference, against `bird_k0/round_2` (re-sampled). On Spider at k = 2: 78.02 against 78.20 | 3 h (estimate; trains only) | queued |
+| 1 | `bird_sft/round_2` | FedAvg SFT on BIRD at 2 rounds: the row the next two are read against | 3 h (estimate) | running on GPU 0 (inferred) |
+| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against row 1. Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | 4-5 h (estimate: samples, labels, training; pair count not known) | queued, needs nothing more; new 09:55 |
+| 3 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` with SQL in worker processes, into the `_ev3` root the lines from the base student use | seconds once the run by hand is through | by hand (step 3) |
+| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 3 h (estimate; trains only) | queued, after row 3 |
+| 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
+| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against rows 1 and 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
+| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
+| 8 | `refs/central_sft` | centralized SFT on the union of the 5 Spider clients (a reference row); rule 0.5 / patience 2 / at most 8 epochs | 2 h 10 min per epoch | stopped in epoch 3; after the BIRD rounds since 09:55 |
 
-Expected (estimates): `bird_sft/round_1` evaluated on GPU 0 by about
-07:10, then `bird_sft/round_2` (3 h) unless centralized SFT is free
-(GPU 1 holds it until 07:30). Centralized SFT stops in epoch 3 at 07:30
-with GPU 1; what is left of it runs before the BIRD rounds not started
-on the next free card.
+Expected with GPU 0 alone (estimates): `bird_sft/round_2` evaluated by
+about 10:30; `bird_k1/round_1` by about 15:30, the first read of the
+method on BIRD; `bird_k0/round_1` by about 19:00; `bird_k0_gold/round_1`
+after midnight. A second card takes rows 4 and 5 earlier.
 
-Not queued yet, decided on row 2: the line with an SFT stage on
-BIRD (DPO from a `bird_sft` round).
+How the reads settle the method (BIRD dev, same total rounds, kept at
+0.5 EX or more with McNemar p below 0.05):
 
-Reading: a setting is kept when it gains at least 0.5 EX over the run it
-is read against with a McNemar p below 0.05. A difference of about 0.2
-EX is what running the same training again gives. Open for the owner:
-whether the FedAvg SFT stage stays, on rows 2 and 4; whether gold
-where the samples give no correct side is a part of the method on BIRD, on row
-3 (not kept on Spider); whether on-policy rounds are a part of the method, on row 5; round 2 of federated DPO as
-published (no NLL, fixed pairs, fixed reference) for the baseline row,
-from the start the method ends up with; on BIRD, the 350 golds that fail
-(kept for FedAvg SFT as released) and the 184 on the 30 s budget (step
-4); a copy of the adapters, samples, pairs and logs that exist on the
-server's drive D only.
+| Read | If yes | If no |
+|---|---|---|
+| `bird_k1/round_1` above `bird_sft/round_2` | the method holds on BIRD from an SFT start; the line runs on, and the start from the best SFT round is queued | DPO adds nothing to SFT there at 2 rounds: rows 4 to 6 decide |
+| `bird_k0/round_2` at least equal to `bird_k1/round_1` | no SFT stage: the method is k = 0 on both datasets | the method is k SFT rounds, then DPO + NLL, k as a value |
+| `bird_k0_gold/round_1` above `bird_k0/round_1` and `bird_sft/round_1` | its round 2 is queued (on Spider the gold line fell there) | gold as chosen is not kept; the one-loss form below is the next try |
+
+Not queued yet, each decided on the reads above: the winning BIRD line
+and `bird_sft` to 4 rounds; DPO from the best `bird_sft` round, 1 to 2
+rounds (owner's expectation of the highest level); one local loss with
+DPO + NLL on the mixed questions and NLL on the gold SQL for the
+all-wrong ones (needs code: a preference weight per row); centralized
+DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
+estimate).
+
+Reading: a difference of about 0.2 EX is what running the same training
+again gives. Open for the owner: round 2 of federated DPO as published
+(no NLL, fixed pairs, fixed reference) for the baseline row, from the
+start the method ends up with; on BIRD, the 350 golds that fail (kept
+for FedAvg SFT as released) and the 184 on the 30 s budget (step 3); a
+copy of the adapters, samples, pairs and logs that exist on the server's
+drive D only.
 
 ## Reference
 
