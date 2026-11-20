@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-20 11:20 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
+Updated 2026-11-20 17:05 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
 round 2 on BIRD dev, 42.70, published 10:57. The relabel of `bird/read`
 has finished (owner, 11:00; its lines not sent yet).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
@@ -34,7 +34,7 @@ round 2 42.70 (still rising: +3.85).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_k1/round_1` since about 10:58 (sampling, labels, training: 4-5 h, estimate); then the relabel tasks (seconds), `bird_k0/round_1`, `bird_k0_gold/round_1`. | result `53c7bee1` at 10:57; the task after it is the first ready one in the queue, inferred |
+| 0 | Worker on `bird_k1/round_1` since about 10:58, training: at 16:59 one client was at DPO update 25 of 216 (about 3,450 pairs; 37 s per update, 2 h 05 min left), peak reserved 18.90 GiB. Which client is not known; if it is the fifth, the round ends about 19:05 and its EX comes about 19:20. Then the relabel tasks (seconds), `bird_k0/round_1`, `bird_k0_gold/round_1`. | owner's log lines of 16:52 to 16:59; the client is inferred from the hours since the start |
 | 1 | No worker since 07:30. Free card: step 2 puts `bird_k0/round_1` on it now. | the `--until 07:30` of its start line |
 
 ## Run now
@@ -92,9 +92,9 @@ round 2 42.70 (still rising: +3.85).
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against `bird_sft` round 2 (42.70). Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | 4-5 h (estimate: samples, labels, training; pair count not known) | running on GPU 0 since about 10:58 (inferred) |
+| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against `bird_sft` round 2 (42.70). Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | about 8.5 h if the client in training is the last (estimate) | running on GPU 0 since about 10:58; in DPO training at 16:59 |
 | 3 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` with SQL in worker processes, into the `_ev3` root the lines from the base student use | seconds | run by hand finished (owner); the tasks only register it |
-| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 3 h (estimate; trains only) | queued; ready after row 3 |
+| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 4 h (estimate; trains only, 9,566 pairs) | queued; ready after row 3 |
 | 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
 | 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and row 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
 | 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
@@ -102,11 +102,12 @@ round 2 42.70 (still rising: +3.85).
 | 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
 | 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
 
-Expected with GPU 0 alone (estimates): `bird_k1/round_1` by about
-15:30 to 16:00, the first read of the method on BIRD; `bird_k0/round_1`
-by about 19:00; `bird_k0_gold/round_1` after midnight; `bird_k0/round_2`
-in the morning of 2026-11-21. With GPU 1 from now: `bird_k0/round_1` by
-about 14:30 and each later row about 3 h earlier. Rows 9 and 10 need
+Expected with GPU 0 alone (estimates, from 37 s per DPO update of 16
+pairs on the client in training): `bird_k1/round_1` by about 19:20, the
+first read of the method on BIRD; `bird_k0/round_1` by about 23:30;
+`bird_k0_gold/round_1` in the morning of 2026-11-21; `bird_k0/round_2`
+in the afternoon. With GPU 1 from now: `bird_k0/round_1` by about 21:15
+and each later row about 4 h earlier. Rows 9 and 10 need
 no earlier task: a card with no BIRD task ready takes them, otherwise
 they run after row 7.
 
