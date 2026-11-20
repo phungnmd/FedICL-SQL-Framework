@@ -395,7 +395,7 @@ and BIRD dev, greedy.
 | Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | CodeS-1B SFT: 66.5 / 70.9 / 64.7 (another base model, value retrieval, beam) |
 | BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6 |
 | BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70 (rounds 1, 2) | SQL-Factory 39.2 (3 epochs) |
-| BIRD dev | with a method, added inputs or voting | open | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+| BIRD dev | with a method, added inputs or voting | 44.26 (1 FedAvg SFT round, then 1 DPO + NLL round; 2 rounds in all) | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
 
 SPFT-SQL (arXiv 2509.03937) is not used as a reference (owner,
 2026-11-20). Its row for this student without training is 40.6 on BIRD

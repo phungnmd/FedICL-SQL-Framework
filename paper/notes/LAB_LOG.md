@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-20: `bird_k1/round_1`, DPO + NLL from FedAvg SFT round 1 on BIRD: 44.26
+
+Results `7e0d032f` (round), `2913db0c` (BIRD dev, 1,534 rows), `144a8a78`
+(pair read of the base student with the labels of worker processes).
+
+| BIRD dev, 2 total rounds | EX | Execution errors | Wrong results |
+|---|---|---|---|
+| FedAvg SFT round 2 | 42.70 | 285 | 593 |
+| FedAvg SFT round 1, then one DPO + NLL round | 44.26 | 120 | 727 |
+
+- +1.56 over FedAvg SFT at the same count, 127 questions fixed and 103
+  broken, exact McNemar p 0.13: not separated by the keep rule (0.5 EX
+  with p below 0.05). Over its own start (38.85): +5.41, where the second
+  SFT round adds +3.85.
+- The round removes execution errors (285 to 120) and leaves more wrong
+  results (593 to 727): of the 103 broken questions 89 end in a wrong
+  result. 8 outputs are cut at 256 tokens (FedAvg SFT round 2: 1).
+- Questions by kind after the SFT round (9,428): mixed 5,612, all wrong
+  3,220, all correct 196, gold fails or meets the budget 400.
+  Pairs 11,224 (2,612 / 1,848 / 2,606 / 716 / 3,442). Of the pairs, 63%
+  reject an execution error. For the base student, relabelled: mixed
+  4,857, all wrong 4,035, pairs 9,714. One SFT round moves 815 questions
+  out of all wrong; a third of the questions still give no pair.
+- Time: 7 h 50 min for the round (sampling 27 min, labels 3 h 06 min,
+  training 4 h 17 min), against 3.1 to 3.6 h for a Spider round 1. The
+  labels of clients 2 and 5 take 78 and 70 min with 16 worker processes,
+  client 3 with more questions 4.5 min; the timeouts (16 to 66 samples a
+  client) do not explain it, the `SQL budget, this call` lines of the
+  log would. Client 5 trains for 2 h 43 min of the 4 h 17 min: 10.3M of
+  the 22.6M sequence tokens, at twice the time per token. Peak reserved
+  14.81 to 18.90 GiB. In `A5000_RUN_CONFIG.md` (code `166b2ce0`).
+- Read against the decision table: the first row is a no at 2 rounds by
+  the rule, with the difference on the method's side. `bird_k0/round_1`,
+  `bird_k0_gold/round_1` and `bird_k0/round_2` decide as queued; the line
+  is not dropped on this read.
+
 ## 2026-11-20: SPFT-SQL is not used as a reference (owner)
 
 Owner: its numbers look too high to rely on. What the saved text shows:

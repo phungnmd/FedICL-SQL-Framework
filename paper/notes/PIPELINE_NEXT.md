@@ -2,9 +2,9 @@
 
 ## Status
 
-Updated 2026-11-20 17:00 (Asia/Ho_Chi_Minh). Last result: FedAvg SFT
-round 2 on BIRD dev, 42.70, published 10:57. The relabel of `bird/read`
-has finished (owner, 11:00; its lines not sent yet).
+Updated 2026-11-20 19:25 (Asia/Ho_Chi_Minh). Last result:
+`bird_k1/round_1` on BIRD dev, 44.26, published 18:55; the pair read of
+the base student with the relabelled samples, published 18:56.
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
 Queued last (owner, 11:15): six Spider rows on Spider dev, Spider-Syn,
@@ -28,14 +28,25 @@ first, on-policy rounds over fixed pairs (78.20 against 78.02, with
 78.20, 77.97), gold as chosen (round 2 falls: 75.73 against 77.18).
 
 Open, read on BIRD: what the method does with the questions that have
-no correct sample (Spider 12%, BIRD 41.9% of the questions for the base
-student). BIRD dev so far: base student 29.47, FedAvg SFT round 1 38.85,
-round 2 42.70 (still rising: +3.85).
+no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
+student, 34% after one SFT round). BIRD dev so far:
+
+| Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) |
+|---|---|---|---|
+| 0 | 29.47 | | |
+| 1 | 38.85 | | running |
+| 2 | 42.70 | 44.26 | queued |
+
+k = 1 at 2 rounds is 1.56 above FedAvg SFT, exact McNemar p 0.13 (127
+questions fixed, 103 broken): not separated by the keep rule. The round
+cuts the execution errors from 285 to 120 and leaves more wrong results
+(593 to 727). A BIRD round with samples takes about 8 h (sampling 27
+min, labels 3 h 06 min, training 4 h 17 min).
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_k1/round_1` since about 10:58, training: at 16:59 one client was at DPO update 25 of 216 (about 3,450 pairs; 37 s per update, 2 h 05 min left), peak reserved 18.90 GiB. Which client is not known; if it is the fifth, the round ends about 19:05 and its EX comes about 19:20. Then the relabel tasks (seconds), `bird_k0/round_1`, `bird_k0_gold/round_1`. | owner's log lines of 16:52 to 16:59; the client is inferred from the hours since the start |
-| 1 | No worker since 07:30. Free card: step 2 puts `bird_k0/round_1` on it now. | the `--until 07:30` of its start line |
+| 0 | Worker on `bird_k0/round_1` since about 18:57 (9,714 pairs, trains only): its EX about 22:45 (estimate). Then `bird_k0_gold/round_1`, `bird_k0/round_2`, `bird_fixed/round_2`. | the publications of 18:50 to 18:56; no log line of the new task seen |
+| 1 | No worker since 07:30. Free card: step 2 puts `bird_k0_gold/round_1` on it now. | the `--until 07:30` of its start line |
 
 ## Run now
 
@@ -48,21 +59,18 @@ round 2 42.70 (still rising: +3.85).
    ```
 
 2. When GPU 1 is free: the same line with `--gpu 1` and the hour it has
-   to stop. The relabel is done, so it takes the relabel tasks (they
-   find the work done, seconds) and then `bird_k0/round_1` (3 h,
-   estimate) next to `bird_k1/round_1` on GPU 0.
+   to stop. It takes `bird_k0_gold/round_1` (6.5 h, estimate; it trains
+   only) next to `bird_k0/round_1` on GPU 0.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
 3. Send back, when they come:
-   - from the relabel, per client: its `SQL budget`, `before`, `after`
-     and `sample label(s) changed` lines;
-   - from `bird_k1/round_1`: the questions per client by kind (all
-     correct, mixed, all wrong) and the pair counts, its EX line, and
-     the peak reserved VRAM on the first updates of each client;
-   - the EX line and peak VRAM of each later BIRD round;
+   - from the log of `bird_k1/round_1`: the five lines that start with
+     `SQL budget, this call` (one per client). They say where the 3 h of
+     labels went (clients 2 and 5 took 78 and 70 min);
+   - the EX line of each later BIRD round;
    - a `STOP queue` line, if one comes.
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
@@ -92,22 +100,20 @@ round 2 42.70 (still rising: +3.85).
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 2 | `bird_k1/round_1` | SFT stage on BIRD: one DPO + NLL round from `bird_sft` round 1, at 2 total rounds against `bird_sft` round 2 (42.70). Does DPO add to an SFT start on BIRD? Its sample counts also say how many of the 3,955 all-wrong questions the SFT round turns into questions with pairs | about 8.5 h if the client in training is the last (estimate) | running on GPU 0 since about 10:58; in DPO training at 16:59 |
-| 3 | `bird/relabel`, `bird/read_relabelled` | the labels of `bird/read` with SQL in worker processes, into the `_ev3` root the lines from the base student use | seconds | run by hand finished (owner); the tasks only register it |
-| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,783 of 9,428) | 4 h (estimate; trains only, 9,566 pairs) | queued; ready after row 3 |
-| 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 4-6 h (estimate; up to 7,910 more pairs) | queued, after row 3 |
-| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and row 2 | 6 h (estimate; samples and labels again) | queued, after row 4 |
-| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h (estimate; trains only) | queued, after row 4 |
+| 4 | `bird_k0/round_1` | DPO + NLL from the base student on BIRD at 1 round, against FedAvg SFT round 1 (38.85); pairs for half of the questions only (4,857 of 9,428) | 3 h 50 min (estimate from the times per pair of `bird_k1/round_1`; trains only, 9,714 pairs) | running on GPU 0 since about 18:57 (inferred) |
+| 5 | `bird_k0_gold/round_1` | the same round with gold as chosen for the all-wrong questions (BIRD train has no database without rows, the part that weighed on the Spider run): against row 4 | 6.5 h (estimate; up to 8,070 more pairs) | queued, ready |
+| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | 8 h (estimate; samples and labels again) | queued, after row 4 |
+| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h 50 min (estimate; trains only) | queued, after row 4 |
 | 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
 | 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
 | 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
 
-Expected with GPU 0 alone (estimates, from 37 s per DPO update of 16
-pairs on the client in training): `bird_k1/round_1` by about 19:20, the
-first read of the method on BIRD; `bird_k0/round_1` by about 23:30;
-`bird_k0_gold/round_1` in the morning of 2026-11-21; `bird_k0/round_2`
-in the afternoon. With GPU 1 from now: `bird_k0/round_1` by about 21:15
-and each later row about 4 h earlier. Rows 9 and 10 need
+Expected with GPU 0 alone (estimates, from the measured times of
+`bird_k1/round_1`): `bird_k0/round_1` by about 22:45;
+`bird_k0_gold/round_1` by about 05:30 on 2026-11-21; `bird_k0/round_2`
+by about 13:30; `bird_fixed/round_2` by about 17:30. With GPU 1 from
+20:00: `bird_k0_gold/round_1` by about 02:30, `bird_k0/round_2` by
+about 07:00 and `bird_fixed/round_2` by about 06:30. Rows 9 and 10 need
 no earlier task: a card with no BIRD task ready takes them, otherwise
 they run after row 7.
 
@@ -116,7 +122,7 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 
 | Read | If yes | If no |
 |---|---|---|
-| `bird_k1/round_1` above `bird_sft/round_2` | the method holds on BIRD from an SFT start; the line runs on, and the start from the best SFT round is queued | DPO adds nothing to SFT there at 2 rounds: rows 4 to 6 decide |
+| `bird_k1/round_1` above `bird_sft/round_2` | the method holds on BIRD from an SFT start; the line runs on, and the start from the best SFT round is queued | read: 44.26 against 42.70, p 0.13, a no by the rule with the difference on the method's side. Rows 4 to 6 decide; the line is not dropped |
 | `bird_k0/round_2` at least equal to `bird_k1/round_1` | no SFT stage: the method is k = 0 on both datasets | the method is k SFT rounds, then DPO + NLL, k as a value |
 | `bird_k0_gold/round_1` above `bird_k0/round_1` and `bird_sft/round_1` | its round 2 is queued (on Spider the gold line fell there) | gold as chosen is not kept; the one-loss form below is the next try |
 
