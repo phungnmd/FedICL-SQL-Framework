@@ -4,6 +4,113 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: BIRD dev by official difficulty: k = 0 loses the challenging questions, the DPO lines gain on the moderate ones (no new run)
+
+Read from the committed predictions of the eight BIRD dev arms and of the
+Spider arms; `difficulty` from `data/raw/bird/dev_20240627/dev.json` (925
+simple, 464 moderate, 145 challenging; same row order as the evaluation
+file, checked on the question text). Scripts run in chat on the Mac, not
+committed.
+
+| BIRD dev | Rounds | EX | Simple | Moderate | Challenging |
+|---|---|---|---|---|---|
+| Base student | 0 | 29.47 | 35.89 | 20.47 | 17.24 |
+| FedAvg SFT | 1 | 38.85 | 46.16 | 28.66 | 24.83 |
+| k = 0 | 1 | 41.85 | 50.16 | 31.25 | 22.76 |
+| k = 0 with gold as chosen | 1 | 39.24 | 46.38 | 29.74 | 24.14 |
+| FedAvg SFT | 2 | 42.70 | 50.49 | 31.25 | 29.66 |
+| k = 0 | 2 | 43.02 | 50.70 | 35.13 | 19.31 |
+| k = 0, round 2 on fixed pairs | 2 | 40.81 | 48.22 | 31.03 | 24.83 |
+| k = 1 | 2 | 44.26 | 50.38 | 37.07 | 28.28 |
+
+- Exact McNemar inside a level (questions only the first line solves /
+  only the second). k = 0 against FedAvg SFT at 2 rounds: simple 76 / 74,
+  moderate 54 / 36 (p 0.07), challenging 3 / 18 (p 0.0015). k = 1 against
+  FedAvg SFT: simple 64 / 65, moderate 51 / 24 (p 0.0024), challenging
+  12 / 14. k = 1 against k = 0: challenging 17 / 4 (p 0.007). k = 0
+  against FedAvg SFT at 1 round: simple 98 / 61 (p 0.004). These are 18
+  tests chosen after the results were seen; with a Bonferroni correction
+  the bar is 0.0028, which the two main ones pass.
+- Reading: the equal EX of k = 0 and FedAvg SFT at 2 rounds is a gain on
+  the moderate questions cancelled by a loss on the challenging ones. With
+  one SFT round first (k = 1) the loss is gone and the gain on moderate
+  stays. On the simple questions the three lines are at one level (50.4
+  to 50.7); DPO reaches it a round earlier.
+- Gold as chosen loses on the simple level (46.38 against 50.16), not on
+  the challenging one (24.14 against 22.76).
+- Spider, k = 0 round 4 against FedAvg SFT round 4, the same count: test
+  easy 11 / 19, medium 65 / 40 (p 0.019), hard 49 / 22 (p 0.0018), extra
+  53 / 26 (p 0.0032); dev hard 26 / 10 (p 0.011), extra 21 / 9 (p 0.043).
+  On Spider the gain sits in the hardest levels, on BIRD k = 0 loses
+  there. The base student has no correct sample for 12% of the Spider
+  train questions and for 42.8% of the BIRD ones.
+- SQL form on BIRD dev, share of the predictions with a subquery: gold
+  SQL 8.2%, FedAvg SFT round 2 6.8%, k = 0 round 1 27.1%, round 2 25.3%,
+  k = 1 20.3%, fixed pairs 30.2%, gold as chosen 21.4% (cut outputs 1, 8,
+  3, 8, 21, 29). Where the gold SQL has joins and no subquery, a
+  prediction that uses a subquery is not right less often (k = 0 round 2:
+  44.6% of 242 against 40.1% of 831). Spider test: gold SQL 16.1%, FedAvg
+  SFT round 4 17.0%, k = 0 round 4 28.4%, k = 2 20.3%.
+- Wrong results by kind, each run again on the Mac's BIRD dev databases
+  (25 s per SQL): the same profile in the base student, FedAvg SFT round
+  2, k = 0 round 2 and k = 1. For k = 1 (728): one wrong number 26.6%, an
+  empty result 24.5%, one wrong value of another type 13.2%, another
+  row count 9.2%, another column count 7.1%, right rows with missing or
+  extra columns 4.7%. Of the empty results 39 to 47% filter on a string
+  literal that the gold SQL does not have (6 to 9% of the correct
+  predictions do). The BIRD prompt (`ddl`) shows no values.
+- Right in FedAvg SFT round 2, k = 0 round 2 or k = 1: 827 questions
+  (53.9%); in any of the eight arms 884 (57.6%); in none 650.
+- In Git and not in the notes until now: 8 of the 18 `spider_variants`
+  evaluations came with commit `d246d243`.
+
+| Set | Base student | FedAvg SFT round 4 | Centralized SFT epoch 2 |
+|---|---|---|---|
+| Spider-Syn (1,034) | 56.77 | 59.09 | 60.83 |
+| Spider-Realistic (508) | 65.16 | 67.72 | 67.13 |
+| Spider-DK (535) | 60.19 | 59.63 | not in |
+
+Papers on the questions without a correct sample, looked up today. Read
+through a page-fetch tool (about the first 40% of each page as text, the
+rest as the tool's summary), not by eye:
+
+- ReLIFT (arXiv 2506.07527, listed as an ICLR 2026 poster): "RL excels
+  at improving performance on questions within the model's original
+  capabilities, while SFT is more effective at enabling progress on
+  questions beyond the current scope". It runs SFT only on the questions
+  with no correct rollout (acc(q) = 0), on solutions of a stronger model
+  kept when the answer is right, between the RL steps. Qwen2.5-Math-7B,
+  average of six benchmarks: SFT 49.0, RL 46.9, SFT then RL 50.7 and
+  50.8, RL with an SFT loss on all questions 48.6, ReLIFT 52.6; at 1.5B
+  32.6 / 34.2 / 36.5 (SFT / RL / ReLIFT). Math with reasoning, GRPO.
+- SuperRL (arXiv 2506.01096, preprint): per question, policy gradient
+  if any rollout has a reward, SFT on the demonstration if none has. In
+  its Table 1 it is above RL in 24 of 35 cells; on HiTab (table
+  questions) it is below RL and below SFT then RL (18.47 against 30.03
+  and 38.64).
+- BREAD (arXiv 2506.17211, listed at NeurIPS 2025): when the rollouts of
+  a question fail, a prefix of the expert solution is put in the prompt
+  and the model completes it; Qwen2.5 1.5B and 3B. It reports SFT on
+  hard expert traces lowering a 1.5B model (GPQA 0.258 to 0.177).
+- UFT (arXiv 2505.16984, listed at NeurIPS 2025): rollouts start from a
+  partial solution (a hint) whose length falls over training, with a
+  log-likelihood term on the hint; Qwen2.5 0.5B to 3B.
+- Two more searches for federated Text-to-SQL found nothing besides
+  Zhang et al. 2023. A search snippet gives CodeLutra as published in
+  TMLR (06/2025) and reports its non-executable SQL falling from 40% to
+  11%; the page was not opened.
+
+None of these is on SQL-only output, with DPO, or federated. Our gold as
+chosen is not their form: they put no preference term on the
+demonstration.
+
+Proposed in chat, not approved, nothing queued: one DPO + NLL round from
+`bird_sft/round_3`, read against `bird_sft/round_4` at 4 rounds (the
+design of `decide/k3` on Spider); `bird_k1/round_2` against
+`bird_sft/round_3`; one round that keeps the pairs of `bird_k0/round_2`
+and adds NLL on the gold SQL of its 3,017 all-wrong questions with no
+preference term on them, read against `bird_k0/round_2` by level.
+
 ## 2026-11-21: BIRD at 2 rounds: `bird_k0/round_2` 43.02, level with FedAvg SFT; fixed pairs 40.81; the six Spider rows on Spider dev
 
 Results `77079f67`, `b16a365a` (`bird_fixed/round_2`), `40dc6a3c`,

@@ -50,6 +50,14 @@ second DPO round adds 1.17 where the second SFT round adds 3.85.
 On-policy rounds are 2.21 above fixed pairs (p 0.008), kept by the rule;
 the fixed line falls from its round 1.
 
+By official difficulty at 2 rounds (simple 925, moderate 464,
+challenging 145; read from the committed predictions, `LAB_LOG.md`,
+2026-11-21): FedAvg SFT 50.49 / 31.25 / 29.66, k = 0 50.70 / 35.13 /
+19.31, k = 1 50.38 / 37.07 / 28.28. k = 0 is below FedAvg SFT on the
+challenging questions (3 against 18 questions, p 0.0015); k = 1 is above
+it on the moderate ones (51 against 24, p 0.0024) and level on the
+others.
+
 k = 0 at 1 round is 3.00 above FedAvg SFT, exact McNemar p 0.005 (152
 questions fixed, 106 broken): kept by the rule, as on Spider (+3.44 at 1
 round). k = 1 at 2 rounds is 1.56 above, p 0.13 (127 fixed, 103 broken):
@@ -161,6 +169,16 @@ DPO + NLL on the mixed questions and NLL on the gold SQL for the
 all-wrong ones (needs code: a preference weight per row); centralized
 DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
 estimate).
+
+Proposed in chat on 2026-11-21 after the reading by difficulty, not
+approved: (1) one DPO + NLL round from `bird_sft/round_3`, read against
+`bird_sft/round_4` at 4 rounds, the design of `decide/k3` on Spider
+(about 8 h, estimate); (2) `bird_k1/round_2` against `bird_sft/round_3`
+(about 8 h, estimate; no code); (3) the one-loss form as one round on
+the samples of `bird_k0/round_2`: its 8,840 pairs unchanged, NLL on the
+gold SQL of its 3,017 all-wrong questions added, read against
+`bird_k0/round_2` by difficulty (training only, about 4.5 h, estimate;
+needs the code above).
 
 After the method is settled (owner, 2026-11-20; `RESEARCH_STATE.md`,
 section 4, item 12): centralized DPO + NLL with the federated against
