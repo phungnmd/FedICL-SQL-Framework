@@ -2,16 +2,14 @@
 
 ## Status
 
-Updated 2026-11-21 17:28 (Asia/Ho_Chi_Minh). The hint probe is published
-(17:21, `fcbd86b7`): with the hint 984 of the 3,017 all-wrong questions
-of `bird_k0/round_2` hold a correct sample, 32.6% (30.4 to 34.9 by
-client), sample accuracy 13.2%; 2,026 stay all wrong. What of it is the
-hint and what a second draw is read from the control without the hint
-(row 11b). The server has code `7e8a9a2e` (the publication sits on it),
-so GPU 0 should be on `hint/control`; not confirmed. GPU 1 runs
-`bird_k0_goldnll/round_2` since 16:08. `bird_sft/round_3` goes on from
-its checkpoints on GPU 0 after the control; `bird_k2` stands before
-`bird_sft/round_4`.
+Updated 2026-11-21 18:25 (Asia/Ho_Chi_Minh). Hint probe and control are
+published (17:21, 18:05): on clients 1, 3 and 4, 31.7% of the all-wrong
+questions of `bird_k0/round_2` hold a correct sample with the hint and
+10.4% without it; the hint adds 21.4 points (interval 19.0 to 23.7; 378
+questions with the hint only against 47 without it only), and 65% have
+none in either draw. GPU 0 should be on `bird_sft/round_3` (resumed)
+since 18:06, not confirmed. GPU 1 runs `bird_k0_goldnll/round_2` since
+16:08. `bird_k2` stands before `bird_sft/round_4`.
 Last results:
 `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
@@ -95,13 +93,12 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `hint/control` if its worker read the queue after the pull (the probe ended 17:21); then `bird_sft/round_3` (resumed) | remote, read 17:28; the control itself not confirmed |
+| 0 | `bird_sft/round_3`, going on from its checkpoints, since the control ended at 18:05 | remote, read 18:25: the control is published; the round itself not confirmed |
 | 1 | `bird_k0_goldnll/round_2`, training, since 16:08 | worker log in chat, 16:08 |
 
 ## Run now
 
-1. Send the last lines of the GPU 0 worker window, or the output of
-   the status line (Reference): is `hint/control` running?
+1. Nothing to start: both workers take the rows below in file order.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -112,9 +109,6 @@ its log say whether the second runs 4 at a time cost them.
    ```
 
 3. Send back, when they come:
-   - a word when `hint/publish_probe` and `hint/publish_control` are
-     done (they are then read from the remote), or the two `DONE hint
-     probe` lines with the `client N:` lines above them;
    - from `bird_k0_goldnll/round_2`: a `DPO update` line of client 1
      with its `peak reserved` and `left`;
    - from the log of `bird_k0/round_2`
@@ -142,25 +136,24 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 11b | `hint/control`, `hint/publish_control` | how many of the same questions get a correct sample in ten more draws without the hint (clients 1, 3, 4: 1,550 questions)? What the hint adds is the hinted share minus this one, counted question by question | about 45 min (estimate from the probe: generation 10 min, labels 24 + 5 + 4 min) | on the server since the pull; running on GPU 0 from 17:22 if its worker took it (not confirmed) |
 | 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | running on GPU 1 since 16:08: 8,840 pairs and 3,017 gold rows |
 | 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | stopped on GPU 1 about 16:08 for row 12 (owner); goes on from its checkpoints on GPU 0 after row 11 |
 | 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | more than 5 h (estimate: sampling, labels, training) | queued 16:01 (code `38610a58`), not pulled yet; ready after row 13 on the same card, or on the card of row 12 if it ends first |
 | 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 15:10; after rows 13 and 14 in the file |
 
-Expected (estimates): the control is read about 18:10; then
-`bird_sft/round_3` goes on and is read about 20:45; row 12 about 20:50;
-`bird_k2/round_1` starts on GPU 0 after row 13 and is read about 5.5 h
-later; `bird_sft/round_4` goes to GPU 1 after row 12.
+Expected (estimates): `bird_sft/round_3` is read about 20:45; row 12
+about 20:50; `bird_k2/round_1` starts on GPU 0 after row 13 and is read
+about 5.5 h later; `bird_sft/round_4` goes to GPU 1 after row 12.
 
-After the probe (owner's choice, proposed): the read is the share of
-the all-wrong questions with a correct sample under the hint minus the
-share without it (row 11b), on clients 1, 3 and 4. 25 points or more:
-one training round with the hinted pairs from `bird_k0/round_1`, about
-4 h; needs code (the pairs of the hinted samples joined to the
-round's). It is read against row 12, which uses the same gold SQL
-without a second sampling: the hint is kept only if it is above it.
-Under that the hint is dropped.
+After the probe (owner's choice): the hint adds 21.4 points of
+all-wrong questions with a correct sample over a second draw without
+it, under the 25 proposed as the bar and far from 0. A training round
+with the hinted pairs from `bird_k0/round_1` (about 4 h of training and
+1 h 36 min of sampling and labels already done for round 2; needs code:
+the pairs of the hinted samples joined to the round's) is not written
+until row 12 is read: the gold rows cover all 3,017 questions without a
+second sampling, and the hint is worth the round only if row 12 leaves
+the challenging level low.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):

@@ -105,6 +105,38 @@ sequential SFT then preference learning forgets the first stage, joint
 training instead), 2505.12380 (Graph-Reward-SQL), 2603.20004 (verified
 BIRD training data), 2609.04697 (SQL-Zero), 2610.11502 (Fed-GRPO).
 
+## 2026-11-21: control of the hint probe: the hint adds 21.4 points of all-wrong questions with a correct sample
+
+`.../hint_probe/r2_740967ede559a725_nohint.json`, result commit `10c65a49`
+(18:05) on code `7e8a9a2e`. The all-wrong questions of `bird_k0/round_2`
+on clients 1, 3 and 4 (1,550 of the 3,017), sampled again as in the probe
+without the hint line.
+
+| Client | Questions | With the hint | Without | Difference | Sample accuracy with / without |
+|---|---|---|---|---|---|
+| 1 | 625 | 31.7% | 11.0% | 20.6 | 12.8% / 1.8% |
+| 3 | 641 | 30.4% | 9.4% | 21.1 | 11.9% / 1.6% |
+| 4 | 284 | 34.9% | 11.3% | 23.6 | 15.9% / 1.5% |
+| All three | 1,550 | 31.7% | 10.4% | 21.4 | 13.0% / 1.6% |
+
+- Per question: a correct sample in both draws 114, with the hint only
+  378, without it only 47, in neither 1,011. Exact McNemar p 2.5e-65;
+  difference 21.4 points, 95% interval 19.0 to 23.7.
+- A second draw alone gives 10.4% of these questions a correct sample at
+  a sample accuracy of 1.6% (the Beta estimate of the entry below: 11 to
+  16% and 2%). The hint's own part is 21.4 points: under the 25 points
+  proposed as the bar for a training round with hinted pairs, above 0
+  beyond doubt. At that rate on the 3,017 questions: about 640 questions
+  from the hint, about 310 from the second draw.
+- 65% of the questions have no correct sample in either draw.
+- Time: 43 min (generation step 10 min, labels 24, 6 and 2 min). The
+  generation step has two start lines (17:22:03, 17:23:45): the task was
+  started twice.
+- Not decided (owner): the hinted round. Proposed in chat: no code for it
+  until `bird_k0_goldnll/round_2` is read; the gold rows cover all 3,017
+  questions without a second sampling, and the hint is worth a round only
+  if that row leaves the challenging level low.
+
 ## 2026-11-21: hint probe: 32.6% of the all-wrong questions hold a correct sample with the hint (control pending)
 
 `audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0/hint_probe/r2_740967ede559a725.json`,
