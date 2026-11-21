@@ -90,6 +90,76 @@ row "SQL-only output: fixed" and changes the prompt. Open: whether the
 plan lifts the method more than it lifts FedAvg SFT in the same format
 (C: 0.30).
 
+The three reviewers on the proposal (01:00 to 01:25; owner's question:
+are the odds and the basis too low). A and B critiqued it, C answered
+the check above; read-only, their texts are not kept.
+
+| Probability, BIRD dev | A | B | C before | C after | Session |
+|---|---|---|---|---|---|
+| Plan-first FedAvg SFT round 1 at 36.8 or more | 0.65 | 0.75 | none | 0.70 | none |
+| Plan-first method separated from SQL-only FedAvg SFT | 0.30 | 0.35 | 0.45 | 0.30 | 0.30 |
+| Plan-first method separated from plan-first FedAvg SFT | 0.40 | 0.30 | 0.30 | 0.10 (0.15 with the forced gold plan) | 0.15 to 0.20 |
+| The plan adds a separated gain to the method as it stands | 0.15 | "none" | none | none | none |
+
+- C accepts the check and withdraws "the plan makes the method gain
+  more over FedAvg SFT": no number supports it. All three: the plan is
+  an ordering of names the SQL already shows, not new supervision; not
+  the main improvement; at most one gated experiment.
+- A and B find the session's 0.15 to 0.20 too low: that row is the
+  method's own question in another format (their 0.40 to 0.45 at 3
+  rounds), less a risk from the format. C went lower for another
+  reason, the 439 against 439 below.
+- Counts they give, checked by the session on the committed
+  predictions (BIRD dev, from FedAvg SFT round 1):
+
+| | Fixes | of them with other tables or columns than the parent's answer | landing on the gold's | Breaks | with other tables or columns | from the gold's set | into an execution error |
+|---|---|---|---|---|---|---|---|
+| DPO + NLL round (k = 1) | 173 | 150 | 119 | 90 | 68 | 60 | 11 |
+| SFT round (FedAvg SFT round 2) | 98 | 85 | 72 | 39 | 27 | 27 | 15 |
+
+- Wrong answers by where they differ from the gold: k = 1 (855): other
+  tables 402, the gold's tables with other columns 257, the gold's
+  tables and columns 186, not parsed 10. FedAvg SFT round 2 (879): 479,
+  227, 171, 2. Predictions on the gold's tables: base 840, FedAvg SFT
+  944 and 996 at rounds 1 and 2, k = 0 1,035 and 1,050, k = 1 1,062: a
+  DPO round moves the tables more than an SFT round, the columns as
+  much.
+- Where the method's gain over FedAvg SFT at two rounds sits: right
+  answers on the gold's tables and columns 513 against 519; right
+  answers on other tables or columns 166 against 136. On the 561
+  questions where both rows use the gold's set each solves 439.
+- C's closing point: the room is in what a DPO round breaks (90 against
+  39 for an SFT round from the same parent; 79 of the 90 end in a wrong
+  result, 56 of the 90 are simple questions). With the SFT round's 39 breaks
+  the k = 1 row would stand 3.3 points higher; that is a ceiling, not an
+  estimate. The merge probe already in the reviewers' order is the
+  short read of it.
+- Papers: Liu et al., arXiv 2502.11656, read in the paper by A, B and C
+  (Table 1: DPO over SFT in one format, -1.3 to +0.8 SQL-only and +0.8
+  to +4.5 with reasoning, on 6.7B to 15B models with about 400 tokens
+  of reasoning from GPT-4o-mini; reasoning SFT is below SQL-only SFT
+  for both Qwen2.5 7B models; Table 3, 7B: table errors fixed 13.0%
+  with SQL-only DPO and 15.9% with reasoning, columns 10.3% and 16.1%).
+  Its SQL-only DPO gains nothing where ours gains (k = 0 round 1 is
+  3.00 over FedAvg SFT round 1, k = 1 is 1.56 over round 2). DTS-SQL,
+  arXiv 2402.01117 (C: read in the paper; a separate 7B model for the
+  tables, Spider dev 71.9 to 78.6). C's one search found no paper with
+  the plan in the output of a fine-tuned model under 3B. ExCoT:
+  abstract only; CodeS and RESDSQL: from memory (B). None read again by
+  the session.
+- Not checked by the session: A's 86.6% of 3,810 right and wrong
+  answers of one question that differ in tables or columns (the
+  session's count over three rows: 517 of 630, 82.1%); C's token
+  position of the first difference; B's 13.2% and 1.65% of samples.
+- Proposed, not decided (owner): an oracle read before any plan-first
+  training (B, C): the FedAvg SFT round 2 and k = 1 adapters on BIRD
+  dev with the gold SQL's tables and columns as a hint line, 7 to 15
+  minutes of evaluation after a small change to the evaluation script,
+  notes only (the dev gold is in the prompt). B: under +8 EX, drop the
+  plan. C expects its own bar to fail. Order on the card: A puts C's
+  first step after `bird_k2/round_1`, B only after the oracle read
+  passes; neither holds `bird_k2/round_2` or its fixed-pair twin.
+
 ## 2026-11-21: `bird_k0_goldnll/round_2`, NLL on the gold SQL of the all-wrong questions next to the pairs: 42.37, not above the round without it
 
 Run `eval_arms__s0__20261121T154802__f90b5cf8d781__dd596c44cd1a4904be3aa733fdbaf809`,
