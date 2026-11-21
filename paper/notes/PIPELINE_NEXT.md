@@ -2,12 +2,12 @@
 
 ## Status
 
-Updated 2026-11-21 16:25 (Asia/Ho_Chi_Minh). Last results:
+Updated 2026-11-21 15:36 (Asia/Ho_Chi_Minh). Last results:
 `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
 one DPO + NLL round on BIRD 3,017 of the 9,428 questions have no correct
 sample (4,035 before it, 3,220 after one FedAvg SFT round), and round 2
-trains on 8,840 pairs (round 1: 9,714). Queued 16:20 (owner: yes; code
+trains on 8,840 pairs (round 1: 9,714). Queued 15:34 (owner: yes; code
 `40ae6bce`): the hint probe on those 3,017 questions.
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
@@ -83,11 +83,11 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0, 1 | Row 10 was published at 15:33 on code `62e56a32`, so the server has `bird_sft` rounds 3 and 4. Which card runs `bird_sft/round_3` and whether both workers are alive is not known. | remote, read 16:20 |
+| 0, 1 | Row 10 was published at 15:33 on code `62e56a32`, so the server has `bird_sft` rounds 3 and 4. Which card runs `bird_sft/round_3` and whether both workers are alive is not known. | remote, read 15:34 |
 
 ## Run now
 
-1. Pull code `40ae6bce` and start the workers (owner, 16:20). A card
+1. Pull code `40ae6bce` and start the workers (owner, 15:30). A card
    whose worker is still alive needs only the pull, in another window
    (`git fetch origin`, then `git merge --ff-only origin/main`): it
    reads the queue again before its next task. A card without a worker:
@@ -146,7 +146,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | queued 16:20 (code `40ae6bce`), first ready task |
+| 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | queued 15:34 (code `40ae6bce`), first ready task |
 | 12 | `bird_sft/round_3`, `bird_sft/round_4`, each with its evaluation and publications | FedAvg SFT on BIRD to 4 rounds: the baseline of the BIRD table and the starts of the lines with an SFT stage; does it pass the DPO lines at 3 rounds? | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | queued 15:10 (code `62e56a32`); on the server since 15:33 at the latest, state not known |
 
 Expected (estimates): the probe 30 min after a card takes it;
