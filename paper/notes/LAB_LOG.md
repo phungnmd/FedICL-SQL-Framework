@@ -4,6 +4,38 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: hint probe: 32.6% of the all-wrong questions hold a correct sample with the hint (control pending)
+
+`audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0/hint_probe/r2_740967ede559a725.json`,
+result commit `fcbd86b7` (17:21) on code `7e8a9a2e`. The 3,017 all-wrong
+questions of `bird_k0/round_2`, sampled again from its round 1 global
+adapter, 10 samples at T 1.0, with the tables and columns of the gold SQL
+in one line after the question (2.1 tables and 5.0 columns on average).
+
+| Client | All wrong before | With a correct sample | Share | Sample accuracy |
+|---|---|---|---|---|
+| 1 | 625 | 198 | 31.7% | 12.8% |
+| 2 | 595 | 198 | 33.3% | 12.8% |
+| 3 | 641 | 195 | 30.4% | 11.9% |
+| 4 | 284 | 99 | 34.9% | 15.9% |
+| 5 | 872 | 294 | 33.7% | 13.9% |
+| All | 3,017 | 984 | 32.6% | 13.2% |
+
+- Of the 984, 918 are mixed (they would give pairs: 1,836 at 2 a
+  question, next to the round's 8,840) and 66 all correct. 2,026 stay all
+  wrong and 7 lost their gold to the 30 s budget in this run.
+- Samples: 3,983 correct of 30,170; 18,904 wrong results, 6,645 execution
+  errors, 545 cut at 256 tokens. 355 of the correct samples (8.9%) equal
+  the gold SQL after normalisation; mean similarity to the gold 0.75. The
+  hint does not make the model copy the gold.
+- Not read from this number: how much of the 32.6% the hint adds. The
+  draw uses other seeds than the round, so some questions get a correct
+  sample without a hint; the control on clients 1, 3 and 4 (queued, entry
+  below) measures that share.
+- Time: 1 h 36 min (generation step 17 min, labels 1 h 19 min; 24, 25, 5,
+  4 and 21 min for clients 1 to 5), with the gold-row round training on
+  the other card. The estimate of 30 min was wrong.
+
 ## 2026-11-21: the hint probe runs; a control without the hint is queued (code `7e8a9a2e`)
 
 - Probe on GPU 0 (worker log in chat, not committed): 3,017 questions

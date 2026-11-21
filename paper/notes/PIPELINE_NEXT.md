@@ -2,15 +2,16 @@
 
 ## Status
 
-Updated 2026-11-21 16:17 (Asia/Ho_Chi_Minh). GPU 0 runs `hint/probe`:
-sampling done in 12 min, labels of client 1 at 605 of 625 at 16:10 with
-31.1% of the questions holding a correct sample (worker log in chat, not
-committed; clients 2 to 5 to come, end about 16:55, estimate). GPU 1 runs
-`bird_k0_goldnll/round_2` since 16:08 with 8,840 pairs and 3,017 gold
-rows, as expected. The owner stopped `bird_sft/round_3` on GPU 1 for it:
-that round goes on from its checkpoints on GPU 0. Queued 16:17 (owner:
-yes; code `7e8a9a2e`), not pulled yet: the probe's control without the
-hint on clients 1, 3 and 4. `bird_k2` stands before `bird_sft/round_4`.
+Updated 2026-11-21 17:28 (Asia/Ho_Chi_Minh). The hint probe is published
+(17:21, `fcbd86b7`): with the hint 984 of the 3,017 all-wrong questions
+of `bird_k0/round_2` hold a correct sample, 32.6% (30.4 to 34.9 by
+client), sample accuracy 13.2%; 2,026 stay all wrong. What of it is the
+hint and what a second draw is read from the control without the hint
+(row 11b). The server has code `7e8a9a2e` (the publication sits on it),
+so GPU 0 should be on `hint/control`; not confirmed. GPU 1 runs
+`bird_k0_goldnll/round_2` since 16:08. `bird_sft/round_3` goes on from
+its checkpoints on GPU 0 after the control; `bird_k2` stands before
+`bird_sft/round_4`.
 Last results:
 `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
@@ -90,23 +91,13 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `hint/probe` (labels); then `hint/publish_probe`, `hint/control` if the pull is in, `bird_sft/round_3` (resumed) | worker log in chat, 16:10 |
+| 0 | `hint/control` if its worker read the queue after the pull (the probe ended 17:21); then `bird_sft/round_3` (resumed) | remote, read 17:28; the control itself not confirmed |
 | 1 | `bird_k0_goldnll/round_2`, training, since 16:08 | worker log in chat, 16:08 |
 
 ## Run now
 
-1. Pull code `7e8a9a2e` before the probe ends (about 16:55, estimate),
-   in another window than the workers; nothing is restarted. GPU 0 then
-   runs `hint/control` right after the probe and before
-   `bird_sft/round_3`. After a later pull the control runs on the next
-   free card. What the pull changes for the running jobs: the probe's
-   label processes may load `scripts/hint_probe.py` again, where only
-   the new option differs; the gold-row round loads none of the changed
-   files.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; git log --oneline -1 }
-   ```
+1. Send the last lines of the GPU 0 worker window, or the output of
+   the status line (Reference): is `hint/control` running?
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -147,16 +138,14 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | running on GPU 0 (owner, about 16:12) |
-| 11b | `hint/control`, `hint/publish_control` | how many of the same questions get a correct sample in ten more draws without the hint (clients 1, 3, 4: 1,550 questions)? What the hint adds is the hinted share minus this one, counted question by question | about 20 min (estimate) | queued 16:17 (code `7e8a9a2e`), not pulled yet |
+| 11b | `hint/control`, `hint/publish_control` | how many of the same questions get a correct sample in ten more draws without the hint (clients 1, 3, 4: 1,550 questions)? What the hint adds is the hinted share minus this one, counted question by question | about 45 min (estimate from the probe: generation 10 min, labels 24 + 5 + 4 min) | on the server since the pull; running on GPU 0 from 17:22 if its worker took it (not confirmed) |
 | 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | running on GPU 1 since 16:08: 8,840 pairs and 3,017 gold rows |
 | 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | stopped on GPU 1 about 16:08 for row 12 (owner); goes on from its checkpoints on GPU 0 after row 11 |
 | 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | more than 5 h (estimate: sampling, labels, training) | queued 16:01 (code `38610a58`), not pulled yet; ready after row 13 on the same card, or on the card of row 12 if it ends first |
 | 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 15:10; after rows 13 and 14 in the file |
 
-Expected (estimates): the probe ends about 16:55, the control 20 min
-later; `bird_sft/round_3` is read about 20:00 (what it trained before
-the stop is kept up to its last checkpoint); row 12 about 20:50;
+Expected (estimates): the control is read about 18:10; then
+`bird_sft/round_3` goes on and is read about 20:45; row 12 about 20:50;
 `bird_k2/round_1` starts on GPU 0 after row 13 and is read about 5.5 h
 later; `bird_sft/round_4` goes to GPU 1 after row 12.
 
