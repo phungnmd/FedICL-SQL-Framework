@@ -104,12 +104,17 @@ None of these is on SQL-only output, with DPO, or federated. Our gold as
 chosen is not their form: they put no preference term on the
 demonstration.
 
-Proposed in chat, not approved, nothing queued: one DPO + NLL round from
-`bird_sft/round_3`, read against `bird_sft/round_4` at 4 rounds (the
-design of `decide/k3` on Spider); `bird_k1/round_2` against
-`bird_sft/round_3`; one round that keeps the pairs of `bird_k0/round_2`
-and adds NLL on the gold SQL of its 3,017 all-wrong questions with no
-preference term on them, read against `bird_k0/round_2` by level.
+What this adds to the order proposed today (`PIPELINE_NEXT.md`: the hint
+probe, then a round with the hint or DPO from `bird_sft` round 2); not
+approved, nothing queued. BREAD and UFT are the published form of a hint
+for the questions no rollout solves, and they keep the hint in the
+prompt while training; training the hinted sample under the prompt
+without the hint is context distillation (Snell et al., arXiv
+2209.15189, seen in a search summary only). A round with the hint needs
+a control on the same samples: the pairs of `bird_k0/round_2` unchanged
+plus NLL on the gold SQL of its 3,017 all-wrong questions, no preference
+term on them (the form of ReLIFT and SuperRL). The reads are by level:
+challenging at the FedAvg SFT level, no loss on simple.
 
 ## 2026-11-21: BIRD at 2 rounds: `bird_k0/round_2` 43.02, level with FedAvg SFT; fixed pairs 40.81; the six Spider rows on Spider dev
 

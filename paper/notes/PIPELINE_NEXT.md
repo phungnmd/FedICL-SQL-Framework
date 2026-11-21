@@ -4,7 +4,11 @@
 
 Updated 2026-11-21 15:30 (Asia/Ho_Chi_Minh). Last results (published
 12:57 to 15:07): `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2`
-40.81, the six Spider rows on Spider dev. After one DPO + NLL round on
+40.81, the six Spider rows on Spider dev. Of row 10, 8 of the 18
+evaluations are already in Git (commit `d246d243`): the base student and
+FedAvg SFT round 4 on the three sets, centralized SFT on Syn and
+Realistic (`LAB_LOG.md`, 2026-11-21); the DPO rows are not in. After one
+DPO + NLL round on
 BIRD 3,017 of the 9,428 questions have no correct sample (4,035 before
 it, 3,220 after one FedAvg SFT round), and round 2 trains on 8,840 pairs
 (round 1: 9,714).
@@ -170,15 +174,16 @@ all-wrong ones (needs code: a preference weight per row); centralized
 DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
 estimate).
 
-Proposed in chat on 2026-11-21 after the reading by difficulty, not
-approved: (1) one DPO + NLL round from `bird_sft/round_3`, read against
-`bird_sft/round_4` at 4 rounds, the design of `decide/k3` on Spider
-(about 8 h, estimate); (2) `bird_k1/round_2` against `bird_sft/round_3`
-(about 8 h, estimate; no code); (3) the one-loss form as one round on
-the samples of `bird_k0/round_2`: its 8,840 pairs unchanged, NLL on the
-gold SQL of its 3,017 all-wrong questions added, read against
-`bird_k0/round_2` by difficulty (training only, about 4.5 h, estimate;
-needs the code above).
+Added after the reading by difficulty (chat, 2026-11-21; not approved);
+the order above stands. The round with the hint is read with a control
+on the same samples, the one-loss form: the 8,840 pairs of
+`bird_k0/round_2` unchanged and NLL on the gold SQL of its 3,017
+all-wrong questions, no preference term on them (training only, about
+4.5 h, estimate; needs the per-row weight). Both use the gold SQL of
+those questions, so the hint is kept only if it is above that control.
+Every BIRD row is read by official difficulty: a part for the all-wrong
+questions has to bring the challenging level to that of FedAvg SFT
+without a loss on the simple one, where gold as chosen lost 3.8.
 
 After the method is settled (owner, 2026-11-20; `RESEARCH_STATE.md`,
 section 4, item 12): centralized DPO + NLL with the federated against
