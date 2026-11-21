@@ -2,12 +2,15 @@
 
 ## Status
 
-Updated 2026-11-21 16:01 (Asia/Ho_Chi_Minh). Both cards work (owner, chat,
-about 15:48): one on `hint/probe`, the other on `bird_sft/round_3`.
-Queued 16:01 (owner: yes; code `38610a58`), not pulled on the server yet:
-round 2 of `bird_k0` with NLL on the gold SQL of its all-wrong questions
-(`bird_k0_goldnll`, training only), and DPO + NLL from FedAvg SFT round 2
-(`bird_k2`), which stands before `bird_sft/round_4`. Last results:
+Updated 2026-11-21 16:09 (Asia/Ho_Chi_Minh). The server has code
+`38610a58`: GPU 1 started `bird_k0_goldnll/round_2` at 16:08 (worker log
+in chat) with 8,840 pairs and 3,017 gold rows, as expected (per client
+1,992 + 625, 1,516 + 595, 2,150 + 641, 552 + 284, 2,630 + 872). Not
+known: where `hint/probe` and `bird_sft/round_3` stand. The probe is not
+published at 16:09, and `hint/publish_probe` stands before the task GPU 1
+took, so the probe is not finished; the status line (Reference) says
+which card holds what. `bird_k2` stands before `bird_sft/round_4`.
+Last results:
 `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
 one DPO + NLL round on BIRD 3,017 of the 9,428 questions have no correct
@@ -86,23 +89,15 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0, 1 | one runs `hint/probe`, the other `bird_sft/round_3`; which card runs which was not sent | owner, chat, about 15:48 |
+| 1 | `bird_k0_goldnll/round_2`, training, since 16:08 | worker log in chat, 16:08 |
+| 0 | `hint/probe` or `bird_sft/round_3` (owner, about 15:48: both ran then); the other of the two is not on a card if GPU 1 held it before 16:08 | not known at 16:09 |
 
 ## Run now
 
-1. Pull code `38610a58`, in another window than the workers. Both are
-   alive, so nothing is restarted: a worker reads the queue file again
-   before its next task, and every 30 s while it waits. The card that
-   ends the probe then takes `bird_k0_goldnll` (row 12), the other one
-   `bird_k2/round_1` after the evaluation of `bird_sft/round_3` (row
-   14). What the pull changes for the running jobs: nothing
-   `bird_sft/round_3` loads; of the files the probe may load again in
-   its label processes (`pairs.py`, `pref_rounds.py`), the code is the
-   same without `--gold-nll`.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; git log --oneline -1 }
-   ```
+1. Send the output of the status line (Reference, read-only). It says
+   which of `hint/probe` and `bird_sft/round_3` GPU 0 runs and whether
+   the other one waits. If `bird_sft/round_3` waits, it resumes from its
+   last checkpoint on the first free card, after row 12 in the file.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -113,14 +108,11 @@ its log say whether the second runs 4 at a time cost them.
    ```
 
 3. Send back, when they come:
-   - the last line of the pull (`38610a58 ...`);
    - the `DONE hint probe` line and the five `client N:` lines above it,
      or a word when `hint/publish_probe` is done (it is then read from
      the remote);
-   - from the start of `bird_k0_goldnll/round_2`: the five
-     `client N: ... pairs and ... gold rows` lines (expected 8,840 pairs
-     and 3,017 gold rows in all) and the first `peak reserved` line of a
-     client's updates;
+   - from `bird_k0_goldnll/round_2`: a `DPO update` line of client 1
+     with its `peak reserved` and `left`;
    - from the log of `bird_k0/round_2`
      (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
@@ -147,7 +139,7 @@ its log say whether the second runs 4 at a time cost them.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | running (owner, about 15:48) |
-| 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | queued 16:01 (code `38610a58`), not pulled yet |
+| 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | running on GPU 1 since 16:08: 8,840 pairs and 3,017 gold rows |
 | 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | running (owner, about 15:48) |
 | 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | more than 5 h (estimate: sampling, labels, training) | queued 16:01 (code `38610a58`), not pulled yet; ready after row 13 on the same card, or on the card of row 12 if it ends first |
 | 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 15:10; after rows 13 and 14 in the file |
