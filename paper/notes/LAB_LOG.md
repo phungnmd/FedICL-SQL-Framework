@@ -4,6 +4,107 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: test-suite accuracy of the Spider rows: the line from the base student keeps no gain, the line with an SFT stage does; what a DPO round breaks (no new run)
+
+Read on the Mac from the committed predictions; none of it is a committed
+result yet. The counts come from a discussion of two reviewer agents the
+owner asked for (federated learning; Text-to-SQL); each one below was run
+again by the session that logs it.
+
+Test-suite accuracy (Zhong et al. 2020; the project's judge,
+`fedls_sql/eval/test_suite.py`: correct on the original database and on
+every suite database of the db_id). The suite holds the 20 Spider dev
+databases, so it covers dev, Syn, Realistic and 408 of the 535 DK rows.
+
+| Set | Base student | FedAvg SFT round 4 | Centralized SFT epoch 2 | k = 0 round 4 | k = 2 | k = 2 on fixed pairs |
+|---|---|---|---|---|---|---|
+| Spider dev (1,034) | 58.32 | 67.99 | 66.44 | 67.21 | 70.41 | 69.44 |
+| Syn (1,034) | 46.23 | 51.84 | 53.09 | 51.35 | 55.51 | 54.06 |
+| Realistic (508) | 51.18 | 58.86 | 58.86 | 57.09 | 62.20 | 61.22 |
+| DK (408 rows) | 50.74 | 53.19 | 50.98 | 55.39 | 55.15 | 56.37 |
+
+Exact McNemar on the suite verdicts (questions only the first line has /
+only the second, p):
+
+| Comparison | Spider dev | Syn | Realistic | DK |
+|---|---|---|---|---|
+| k = 0 against FedAvg SFT | 74 / 82, 0.58 | 85 / 90, 0.76 | 40 / 49, 0.40 | 36 / 27, 0.31 |
+| k = 2 against FedAvg SFT | 72 / 47, 0.027 | 75 / 37, 0.0004 | 38 / 21, 0.036 | 25 / 17, 0.28 |
+| k = 2 against k = 0 | 95 / 62, 0.010 | 109 / 66, 0.0014 | 56 / 30, 0.0067 | 26 / 27, 1.0 |
+| k = 2 against fixed pairs | 35 / 25, 0.25 | 40 / 25, 0.082 | 18 / 13, 0.47 | 7 / 12, 0.36 |
+| k = 2 against centralized SFT | 96 / 55, 0.0011 | 92 / 67, 0.057 | 47 / 30, 0.068 | 36 / 19, 0.030 |
+| FedAvg SFT against the base student | 148 / 48, <0.0001 | 128 / 70, <0.0001 | 68 / 29, 0.0001 | 37 / 27, 0.26 |
+
+- The line from the base student (k = 0) has no gain over FedAvg SFT on
+  the suite; the line with the SFT stage (k = 2) keeps 2.42, 3.67 and 3.34
+  on dev, Syn and Realistic. On EX the two lines are level (dev: 69 / 65,
+  p 0.80). "The FedAvg SFT stage gives no gain on Spider" holds for test
+  EX alone.
+- The entry on the variant rows says FedAvg SFT is not separated from the
+  base student on Syn and Realistic: that is EX. On the suite it is above.
+- Limits: Syn and Realistic reuse the databases and gold SQL of dev;
+  Spider test and BIRD have no suite; on DK nothing is separated.
+- To commit it: `scripts/score_test_suite.py` on the six prediction files
+  of each set (CPU, about a minute a set on the Mac); the owner's yes.
+
+What a round breaks. BIRD dev, both rounds from FedAvg SFT round 1: the
+DPO + NLL round (`bird_k1/round_1`) fixes 173 questions (98 of them
+execution errors) and breaks 90 (79 into wrong results); the SFT round
+fixes 98 and breaks 39. From the base student the two break the same (64
+and 65) and the DPO round fixes more (254, 198 of them execution errors,
+against 209 and 155).
+
+Spider test, one round from FedAvg SFT round 2 (1,591 correct answers),
+the same samples and pairs:
+
+| Round | Correct answers written differently | Broken | Fixed |
+|---|---|---|---|
+| NLL on the model's own correct samples | 6.0% | 21 | 59 |
+| Preference term alone | 36.5% | 168 | 157 |
+| DPO + NLL | 19.4% | 74 | 146 |
+| FedAvg SFT round 3 | 14.4% | 48 | 61 |
+
+The preference term makes the fixes and the breaks; the NLL term holds
+the rewriting down.
+
+Decision (owner, 2026-11-21): questions without gold SQL are not a
+setting of this paper (a client without gold SQL would have no questions
+either). Item 12c of `RESEARCH_STATE.md` is skipped.
+
+What the two reviewers signed (a proposal, not approved):
+
+1. The method keeps the FedAvg SFT stage; k is printed with its ablation
+   and k = 0 is an ablation row; the Spider tables carry a test-suite
+   column for dev, Syn and Realistic, DK without a claim.
+2. Candidate main part: the gold SQL as an NLL target for every question
+   inside each DPO round, outside the preference term, in one local loss
+   next to the NLL on the model's own sample. `bird_k0_goldnll` does it
+   for the all-wrong questions only, and a null there does not close it:
+   the breaks sit on questions the model already answers. First run: one
+   round from `bird_sft/round_1` on the stored samples of
+   `bird_k1/round_1` (about 6.5 h, estimate; needs a gold row for every
+   question), kept at 45.3 or more on BIRD dev with at most 60 broken
+   answers, and read against `bird_sft/round_4` for equal compute.
+3. Controls and rows: a chosen side that also carries the tables and
+   join keys of the gold SQL, after a CPU probe on the stored samples;
+   centralized DPO + NLL from the SFT start and local-only; the hint as a
+   table row at best (it samples under a prompt that training and testing
+   never use).
+4. Dropped: other aggregation weights, k decided by client counts,
+   pairs anchored on the greedy output.
+
+Not agreed: an evaluation-only probe that adds the updates of
+`bird_sft/round_2` and `bird_k1/round_1` to their parent (go at 45.3 or
+at 46.0); the weight of the gold rows (1 or 4). Their estimates of a
+separated gain on BIRD: 0.20 to 0.35 for part 2, 0.55 for
+`bird_k2/round_1` against `bird_sft/round_3`.
+
+Papers the agents read by page fetch; title and abstract checked here,
+the numbers inside them not: arXiv 2410.15483 (Fernando et al.:
+sequential SFT then preference learning forgets the first stage, joint
+training instead), 2505.12380 (Graph-Reward-SQL), 2603.20004 (verified
+BIRD training data), 2609.04697 (SQL-Zero), 2610.11502 (Fed-GRPO).
+
 ## 2026-11-21: hint probe: 32.6% of the all-wrong questions hold a correct sample with the hint (control pending)
 
 `audits/protocol_v2/fedpref_bird_base_p2_ddl_alpha01_ev3_s0/hint_probe/r2_740967ede559a725.json`,

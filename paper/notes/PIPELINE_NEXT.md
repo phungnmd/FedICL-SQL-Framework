@@ -42,7 +42,11 @@ adapters give FedAvg SFT 75.15, k = 0 77.27 (+2.12, p 0.08), k = 2 77.66
 (+2.51, p 0.02), the fixed-pair line 76.21, centralized SFT 73.02. On
 Spider-Syn, Realistic and DK k = 0 is 3.00, 3.54 and 7.47 above FedAvg
 SFT (p 0.024, 0.063, 2.4e-5) and k = 2 3.87, 2.75 and 3.92 (p 0.0006,
-0.10, 0.017; `LAB_LOG.md`).
+0.10, 0.017; `LAB_LOG.md`). On test-suite accuracy (dev, Syn, Realistic;
+read on the Mac with the project's judge, not committed) k = 0 is level
+with FedAvg SFT (p 0.58, 0.76, 0.40) and k = 2 is 2.42, 3.67 and 3.34
+above it (p 0.027, 0.0004, 0.036): there the gain needs the SFT stage
+(`LAB_LOG.md`, 2026-11-21).
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
