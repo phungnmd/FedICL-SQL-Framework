@@ -2,14 +2,14 @@
 
 ## Status
 
-Updated 2026-11-21 16:09 (Asia/Ho_Chi_Minh). The server has code
-`38610a58`: GPU 1 started `bird_k0_goldnll/round_2` at 16:08 (worker log
-in chat) with 8,840 pairs and 3,017 gold rows, as expected (per client
-1,992 + 625, 1,516 + 595, 2,150 + 641, 552 + 284, 2,630 + 872). Not
-known: where `hint/probe` and `bird_sft/round_3` stand. The probe is not
-published at 16:09, and `hint/publish_probe` stands before the task GPU 1
-took, so the probe is not finished; the status line (Reference) says
-which card holds what. `bird_k2` stands before `bird_sft/round_4`.
+Updated 2026-11-21 16:11 (Asia/Ho_Chi_Minh). The server has code
+`38610a58`. GPU 0 runs `hint/probe`. GPU 1 runs
+`bird_k0_goldnll/round_2` since 16:08 with 8,840 pairs and 3,017 gold
+rows, as expected (per client 1,992 + 625, 1,516 + 595, 2,150 + 641,
+552 + 284, 2,630 + 872). The owner stopped `bird_sft/round_3` on GPU 1
+for it (owner, chat, about 16:12): that round waits and goes on from its
+checkpoints on GPU 0 after the probe, where it is the first ready task.
+`bird_k2` stands after its evaluation and before `bird_sft/round_4`.
 Last results:
 `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
@@ -89,15 +89,13 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
+| 0 | `hint/probe`; then `hint/publish_probe` and `bird_sft/round_3` (resumed) | owner, chat, about 16:12 |
 | 1 | `bird_k0_goldnll/round_2`, training, since 16:08 | worker log in chat, 16:08 |
-| 0 | `hint/probe` or `bird_sft/round_3` (owner, about 15:48: both ran then); the other of the two is not on a card if GPU 1 held it before 16:08 | not known at 16:09 |
 
 ## Run now
 
-1. Send the output of the status line (Reference, read-only). It says
-   which of `hint/probe` and `bird_sft/round_3` GPU 0 runs and whether
-   the other one waits. If `bird_sft/round_3` waits, it resumes from its
-   last checkpoint on the first free card, after row 12 in the file.
+1. Nothing to start: both workers are alive and take the rows below in
+   file order.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -138,15 +136,17 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | running (owner, about 15:48) |
+| 11 | `hint/probe`, `hint/publish_probe` | do the 3,017 all-wrong questions of `bird_k0/round_2` get a correct sample when the prompt names the tables and columns of the gold SQL? Samples and labels, no training | about 30 min (estimate: sampling 9 min, labels not measured) | running on GPU 0 (owner, about 16:12) |
 | 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | running on GPU 1 since 16:08: 8,840 pairs and 3,017 gold rows |
-| 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | running (owner, about 15:48) |
+| 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | stopped on GPU 1 about 16:08 for row 12 (owner); goes on from its checkpoints on GPU 0 after row 11 |
 | 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | more than 5 h (estimate: sampling, labels, training) | queued 16:01 (code `38610a58`), not pulled yet; ready after row 13 on the same card, or on the card of row 12 if it ends first |
 | 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 15:10; after rows 13 and 14 in the file |
 
-Expected (estimates): the probe ends about 16:20; row 12 is read about
-21:15 if its card takes it at 16:30; `bird_sft/round_3` is read about
-19:00, `bird_k2/round_1` about 5.5 h after its card takes it.
+Expected (estimates): the probe ends about 16:20; `bird_sft/round_3`
+is read about 19:15 (what it trained before the stop is kept up to its
+last checkpoint); row 12 about 20:50; `bird_k2/round_1` starts on GPU 0
+after row 13 and is read about 5.5 h later; `bird_sft/round_4` goes to
+GPU 1 after row 12.
 
 After the probe (owner's choice, proposed): 25% or more of the 3,017
 with a correct sample: one training round with the hinted pairs from
