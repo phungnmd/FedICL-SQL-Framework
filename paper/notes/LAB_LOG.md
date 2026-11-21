@@ -4,6 +4,92 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: a third reviewer's independent proposal, a plan line before the SQL (not decided); the read behind it checked (no new run)
+
+Owner's request (00:10): a third reviewer agent with an independent
+view, not bound to the directions or results so far, for a method with
+high EX on BIRD and Spider. It wrote its own list from the task and a
+literature search first, then checked it against the notes; read-only.
+Its texts were in the session's temporary folder and are not kept.
+
+Proposal (reviewer C). Keep the loop (FedAvg SFT stage, then on-policy
+DPO + NLL rounds) and change what the student writes: two comment lines
+that name the tables and columns it will use, then the SQL. The plan of
+a training row is parsed from the gold SQL (`gold_tables_columns`), no
+model writes it. SFT rounds train on plan + gold SQL, the DPO rounds
+sample plan + SQL; one prompt, one greedy call at test. Optional second
+part: an all-wrong question is sampled again with its gold plan forced
+as the start of the output, which is the hint without a second prompt.
+Story: execution tells a client that a SQL is wrong, not where; a
+stated plan puts the choice of tables and columns under the preference
+term.
+
+- C's first experiment: FedAvg SFT round 1 on BIRD in the new format (2
+  h 50 min), stop under 36.8 against 38.85 for SQL-only; then one DPO +
+  NLL round from it (about 8 h), continue at 44.8 or more on BIRD dev
+  (2.1 over FedAvg SFT round 2), stop at 44.26 or less.
+- C's estimates: +2 to +4 over FedAvg SFT on BIRD dev; 0.45 for a
+  separated gain over FedAvg SFT, 0.30 over FedAvg SFT in the same
+  output format; about 60 GPU hours for the rows in the new format, 115
+  with the rest the paper needs.
+- It needs a target builder, a new answer line in the prompt (the
+  present one asks for the SQL only) and 320 new tokens. Every row would
+  run again in the new format; the present rows become the ablation
+  without a plan.
+- C's other candidates, each of which lifts every row: example values
+  and column descriptions in the BIRD prompt; execution at inference
+  (fallback or a vote).
+- C would stop new variants inside the SQL-only round and hold
+  `bird_k2/round_2`, its fixed-pair twin and the other models until the
+  first experiment is read; `bird_sft/round_3` and `bird_k2/round_1`
+  stay as the SQL-only reference.
+- Papers C names, none checked again by the session: Liu et al., arXiv
+  2502.11656 (C: read in the paper; on BIRD dev DPO moves ten models by
+  -1.3 to +0.8 with SQL-only output and +0.8 to +4.5 with reasoning; it
+  is in `DPO_RESEARCH.md`); CodeS 2402.16347, CSC-SQL 2505.13271,
+  SLM-SQL 2507.22478, GradeSQL 2509.01308 (C: read in the paper); ExCoT
+  2503.19988 (abstract).
+
+Checked by the session on the committed predictions (BIRD dev; the
+tables and `table.column` names of a SQL read with `gold_tables_columns`
+and the database's schema, both sets equal to the gold's; C compared
+unqualified names, so C's counts are higher):
+
+| Row | EX | Predictions on the gold's tables and columns | EX on those | EX on the rest |
+|---|---|---|---|---|
+| Base student | 29.47 | 459 | 72.5 | 11.1 |
+| FedAvg SFT round 1 | 38.85 | 621 | 75.4 | 14.0 |
+| FedAvg SFT round 2 | 42.70 | 690 | 75.2 | 16.1 |
+| k = 0 round 1 | 41.85 | 627 | 74.2 | 19.5 |
+| k = 0 round 2 | 43.02 | 628 | 74.7 | 21.1 |
+| k = 1 | 44.26 | 699 | 73.4 | 19.9 |
+| k = 0 round 2 with gold rows | 42.37 | 616 | 74.0 | 21.1 |
+
+- Holds: a prediction on the gold's tables and columns is right in 72
+  to 75% of cases in every row, a prediction on others in 11 to 21%. At
+  FedAvg SFT round 2, 844 of the 1,534 predictions are in the second
+  group.
+- Does not hold as C words it ("SFT rounds raise that count, DPO rounds
+  do not"): from the same parent a first DPO round raises it as much as
+  an SFT round (459 to 627 against 621; 621 to 699 against 690). The
+  second DPO round from the base student leaves it where it was (627 to
+  628).
+- At equal rounds the gain of the DPO lines over FedAvg SFT sits in the
+  second group (EX 19.5 to 21.1 against 14.0 to 16.1): answers on other
+  tables or columns that return the gold result. In line with the
+  test-suite read of 2026-11-21.
+- Not checked: C's counts of `no such column` errors and of string
+  literals; whether a plan line costs this student accuracy (before the
+  reset a long plan was 9 points under SQL-only on Spider test,
+  reference only).
+
+Session view, not decided (owner): the first proposal that changes what
+the student writes and not what a round trains on, with a short first
+step (one FedAvg SFT round after the code). It goes against the setup
+row "SQL-only output: fixed" and changes the prompt. Open: whether the
+plan lifts the method more than it lifts FedAvg SFT in the same format
+(C: 0.30).
+
 ## 2026-11-21: `bird_k0_goldnll/round_2`, NLL on the gold SQL of the all-wrong questions next to the pairs: 42.37, not above the round without it
 
 Run `eval_arms__s0__20261121T154802__f90b5cf8d781__dd596c44cd1a4904be3aa733fdbaf809`,
