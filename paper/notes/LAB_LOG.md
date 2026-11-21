@@ -4,6 +4,29 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: the hint probe runs; a control without the hint is queued (code `7e8a9a2e`)
+
+- Probe on GPU 0 (worker log in chat, not committed): 3,017 questions
+  sampled in 12 min 07 s (1.8% of the samples cut at 256 tokens). Labels
+  of client 1 at 605 of 625 questions (16:10): 31.1% of them hold a
+  correct sample, sample accuracy 12.5%; 24 questions with a SQL short of
+  CPU were run again in 2 min 42 s. The estimate of 30 min for the probe
+  counted the sampling only; with the labels of clients 2 to 5 it ends
+  about 16:55 (estimate).
+- The probe as built does not separate the hint from a second draw: a
+  question with no correct sample in ten can get one in ten more whatever
+  the prompt. Control (owner: yes, about 16:14): `hint_probe --no-hint`,
+  the same questions with the probe's seeds and the prompt without the
+  hint line, on clients 1, 3 and 4 (1,550 of the 3,017 questions; the
+  clients whose labels are fast). The read is the hinted share minus the
+  control's, and the count per question of which draw has a correct
+  sample. The 25% of the earlier entry is read on that difference.
+- GPU 1: the owner stopped `bird_sft/round_3` (about 16:08) to run
+  `bird_k0_goldnll/round_2` first: 8,840 pairs and 3,017 gold rows, per
+  client 1,992 + 625, 1,516 + 595, 2,150 + 641, 552 + 284, 2,630 + 872
+  (worker log in chat). `bird_sft/round_3` goes on from its checkpoints
+  on GPU 0 after the probe and the control.
+
 ## 2026-11-21: one loss for mixed and all-wrong questions, and the k = 2 round on BIRD, queued (code `38610a58`)
 
 Owner's yes in chat (about 15:55), after the reading by difficulty below:
