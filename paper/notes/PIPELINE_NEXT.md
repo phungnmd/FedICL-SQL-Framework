@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-21 09:15 (Asia/Ho_Chi_Minh). Last result:
+Updated 2026-11-21 11:05 (Asia/Ho_Chi_Minh). Last result:
 `bird_k0_gold/round_1` on BIRD dev, 39.24, published 2026-11-21 06:58.
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
@@ -54,8 +54,8 @@ it, and `bird_k0/round_2` started after it.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_k0/round_2` since about 07:00 (samples, labels, trains): its EX about 13:30 (estimate). Then `bird_fixed/round_2`. | the publication of 06:58 and none since (read 09:00); no log line of the task seen |
-| 1 | No worker since 2026-11-20 07:30, as far as known. Free card: step 2 puts `bird_fixed/round_2` on it now. | the `--until 07:30` of its start line |
+| 0 | Worker on `bird_k0/round_2` (samples, labels, trains): its EX about 13:30 (estimate). | owner, chat, 11:00; no log line of the task seen |
+| 1 | `bird_fixed/round_2` has finished; its round record and its EX are not published (remote at `ff917437` of 06:58, read 11:00). Whether a worker is still on the card is not known. | owner, chat, 11:00 |
 
 ## Run now
 
@@ -67,15 +67,20 @@ it, and `bird_k0/round_2` started after it.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. When GPU 1 is free: the same line with `--gpu 1` and the hour it has
-   to stop. It takes `bird_fixed/round_2` (3 h 40 min, estimate; trains
-   only) next to `bird_k0/round_2` on GPU 0.
+2. When GPU 1 has no worker: the same line with `--gpu 1` and the hour
+   it has to stop. It takes what is left of `bird_fixed` (the evaluation
+   of round 2 and the two publications), then rows 8 to 10.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
 3. Send back, when they come:
+   - now: the output of the status line (Reference), and the EX line of
+     `bird_fixed/round_2` if its evaluation has run;
+   - now, from the log of `bird_k0/round_2`: the five lines with
+     `pairs from` (pairs, mixed, all wrong and all correct questions per
+     client after one DPO round on BIRD; 4,035 were all wrong before it);
    - from the log of `bird_k0/round_2`: the five lines that start with
      `SQL budget, this call` (jobs run again after the others, jobs
      alone, seconds of each);
@@ -110,15 +115,14 @@ it, and `bird_k0/round_2` started after it.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | 8 h on the code before `0910b84f`, about 6.5 h on it (estimates; samples and labels again) | running on GPU 0 since about 07:00 (inferred), on code `0910b84f` |
-| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h 40 min (estimate; `bird_k0/round_1` trained 3 h 30 min) | queued, ready |
+| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h 40 min (estimate; `bird_k0/round_1` trained 3 h 30 min) | trained (owner, chat, 11:00); evaluation and publications not seen |
 | 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
 | 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
 | 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
 
 Expected with GPU 0 alone (estimates, from the measured times of
 `bird_k1/round_1` and `bird_k0/round_1`): `bird_k0/round_2` by about
-13:30; `bird_fixed/round_2` by about 17:15. With GPU 1 from the
-morning, the two rows run side by side. Rows 9 and 10 need
+13:30. Rows 9 and 10 need
 no earlier task: a card with no BIRD task ready takes them, otherwise
 they run after row 7.
 
