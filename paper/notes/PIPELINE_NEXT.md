@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-21 15:40 (Asia/Ho_Chi_Minh). Last results (published
+Updated 2026-11-21 15:50 (Asia/Ho_Chi_Minh). Last results (published
 12:57 to 15:07): `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2`
 40.81, the six Spider rows on Spider dev. After one DPO + NLL round on
 BIRD 3,017 of the 9,428 questions have no correct sample (4,035 before
@@ -72,8 +72,8 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Published the evaluation of `bird_k0/round_2` at 15:07. What it runs now is not known: nothing of its queue was left but row 10, if GPU 1 has not run it. | remote, read 15:08 |
-| 1 | A worker ran here from about 12:30 (`bird_fixed`, the centralized record, Spider dev at 13:49). Row 10 is not published at 15:08: whether the worker still runs, stopped at its hour or failed is not known. | remote, read 15:08 |
+| 0 | Worker on row 10 (`spider_variants/k0_r4`, Spider-DK). | owner's console, 15:14 |
+| 1 | Worker on row 10 (`spider_variants/k2_r2`). | owner's console, 15:12 |
 
 ## Run now
 
@@ -132,7 +132,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | not published at 15:08; state not known |
+| 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | running on both cards at 15:14 |
 | 11 | `bird_sft/round_3`, `bird_sft/round_4`, each with its evaluation and publications | FedAvg SFT on BIRD to 4 rounds: the baseline of the BIRD table and the starts of the lines with an SFT stage; does it pass the DPO lines at 3 rounds? | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | queued 15:35 (code `62e56a32`), not started |
 
 Expected (estimates): `bird_sft/round_3` evaluated about 3 h after a
