@@ -83,6 +83,37 @@ rounds over fixed pairs from an SFT start 55%; the hinted round 10 to
 Before this result the gold rows for the all-wrong questions were given
 30%, the same for every question 30% and the hint 25%.
 
+The two reviewers asked again (23:50, the owner's question; two new
+agents, each given that reviewer's last text, the joint text of the
+entry below and the two results of the evening; read-only, each answered
+alone). Chance of a gain separated on BIRD dev / of a gain at all:
+
+| Direction | Reviewer A | Reviewer B | Verdict of both |
+|---|---|---|---|
+| The method with the SFT stage at 3 rounds (`bird_k2/round_1` against `bird_sft/round_3`) | 0.40 / 0.85 | 0.45 / 0.85 | goes on (both had 0.55) |
+| The same at 4 rounds (`bird_k2/round_2`) | 0.50 / 0.85 | 0.45 / 0.80 | goes on, with its fixed-pair twin (A: 0.35 / 0.75 for the twin) |
+| A round with hinted pairs | 0.12 / 0.45 | 0.12 / 0.50 | last; a table row, if the owner allows the second prompt |
+| The probe that adds the two updates | 0.08 at 46.0 | 0.15 at 45.3 | kept: about 0.3 h of evaluation (needs a script); it only decides whether the row below gets a run |
+| Gold rows for every question | 0.10 / 0.35 | 0.10 / 0.30 | dropped unless the probe passes |
+| Verified positives | 0.05 / 0.25 | 0.05 / 0.30 | dropped |
+
+- Both close part 2 of their text (gold SQL as an NLL target inside the
+  rounds) as the main improvement: its reason was fewer broken answers,
+  and the gold rows raised them (81 against 67).
+- Both add a second model on Spider, as what CMC asks for.
+- A: with one DPO round the on-policy line and the fixed-pair line train
+  on the same pairs, so only the second DPO round from an SFT start can
+  show the method above federated DPO as published.
+- The same order on one card from both, 37 to 41 h (estimate):
+  `bird_sft/round_3`; `bird_k2/round_1` (below `bird_sft/round_3`: stop
+  and read); the probe; `bird_sft/round_4`; `bird_k2/round_2`; its
+  fixed-pair twin; a second model on Spider; the hinted round.
+- Main improvement in both texts: on-policy DPO + NLL rounds with
+  execution labels after a FedAvg SFT stage, gold SQL and execution in
+  separate rounds. Still needed: a separated gain over FedAvg SFT on
+  BIRD at equal rounds (k = 1: +1.56, p 0.13).
+- Not agreed: the bar of the probe (46.0 or 45.3).
+
 ## 2026-11-21: test-suite accuracy of the Spider rows: the line from the base student keeps no gain, the line with an SFT stage does; what a DPO round breaks (no new run)
 
 Read on the Mac from the committed predictions; none of it is a committed
