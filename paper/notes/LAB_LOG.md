@@ -4,6 +4,39 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: `bird_k0_gold/round_1`, gold as chosen for the all-wrong questions on BIRD: 39.24, below the line without gold
+
+Results `0c5258a9` (round, published 06:50), `ff917437` (BIRD dev). Same
+samples and labels as `bird_k0/round_1`; the gold rule adds 2 pairs for
+each of the 4,035 questions without a correct sample (gold as chosen, a
+wrong sample as rejected): 17,784 pairs against 9,714, 8,070 of them
+with gold.
+
+| BIRD dev, 1 round | EX | Execution errors | Wrong results | Cut outputs |
+|---|---|---|---|---|
+| FedAvg SFT | 38.85 | 371 | 566 | 1 |
+| DPO + NLL from the base student | 41.85 | 211 | 673 | 8 |
+| the same with gold as chosen | 39.24 | 76 | 827 | 29 |
+
+- Against the line without gold: -2.61, 86 questions fixed and 126
+  broken, exact McNemar p 0.007. Against FedAvg SFT round 1: +0.39, p
+  0.76 (141 fixed, 135 broken). By the rule of the read: gold as chosen
+  is not kept, and its round 2 is not queued. On Spider the same rule
+  was above at round 1 (76.67 against 75.87) and fell at round 2.
+- The gold pairs remove execution errors (211 to 76) and add more wrong
+  results than that (673 to 827): 114 of the 126 broken questions now
+  run and return another result. Lower at every hardness level (easy
+  50.00 against 51.55, medium 46.08 against 48.83, hard 30.36 against
+  33.00, extra 25.16 against 28.06).
+- Time: training 8 h 09 min (reference 1 h 46 min, updates 6 h 23 min)
+  against 3 h 30 min; 1.65 s per pair against 1.30 s.
+- The server took code `0910b84f` before this publication (the result
+  commit sits on it), so `bird_k0/round_2`, a new process started after
+  it, labels with the second runs held back.
+- Next for the all-wrong questions, if the BIRD reads still ask for it:
+  the one-loss form (NLL on the gold SQL for them, no preference term;
+  `RESEARCH_STATE.md`, section 4), not queued.
+
 ## 2026-11-21: the 3 h of BIRD labels are reruns alone, 2 h 03 min of them (log lines of `bird_k1/round_1`, sent in chat, not committed)
 
 Owner: why does a BIRD round take twice a Spider round? Same steps on
