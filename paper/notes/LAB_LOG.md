@@ -4,6 +4,44 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: one loss for mixed and all-wrong questions, and the k = 2 round on BIRD, queued (code `38610a58`)
+
+Owner's yes in chat (about 15:55), after the reading by difficulty below:
+`bird_k0/round_2` is 10 points under FedAvg SFT on the challenging level
+(19.31 against 29.66) and never trains its 3,017 all-wrong questions.
+
+- New pair-rule setting `--gold-nll`: an all-wrong question gives one row
+  with its gold SQL as the chosen side and no rejected side. The trainer
+  puts the NLL term alone on it (no preference term, no reference
+  log-probability), in the same updates and schedule as the pairs. The
+  pairs themselves do not change. FedAvg weights are the rows a client
+  trained on (pairs plus gold rows). One row per question, weight 1: not
+  tuned. This is not gold as the chosen side of a pair, which lost 2.61
+  on BIRD at 1 round.
+- `bird_k0_goldnll/round_2`: round 2 from `bird_k0/round_1`
+  (`--continue-from`), samples of `bird_k0/round_2` copied, so 8,840 pairs
+  and 3,017 gold rows expected, training only. Read against
+  `bird_k0/round_2` 43.02 (same pairs, no gold rows), `bird_k1/round_1`
+  44.26, `bird_sft/round_2` 42.70, overall and by difficulty. It is also
+  the control of a round with hinted pairs: both use the gold SQL of the
+  same questions.
+- `bird_k2/round_1`: DPO + NLL from FedAvg SFT round 2, the command of
+  `bird_k1/round_1` with the parent round changed; the method at 3 rounds
+  against `bird_sft/round_3`. Placed before `bird_sft/round_4`. It runs in
+  the loss as it stood (no gold rows): its samples can train a round with
+  gold rows later without sampling again.
+- Checked on the Mac: 541 tests pass; resolved commands compared in the
+  queue tests (the gold-row round differs from `bird_k0/round_2` in the
+  root, `--gold-nll` and the two continue flags; the k = 2 round from
+  `bird_k1/round_1` in the parent stage and the root); one gold row
+  rendered with the real tokenizer on a BIRD dev database (the training
+  prompt of the line, target the gold SQL and the end token). Packed and
+  one-row-per-pass training give the same weights after one update on a
+  tiny model. Not run on a GPU: memory and time are estimates
+  (`docs/A5000_RUN_CONFIG.md`).
+- State at 16:02: pushed, not pulled on the server yet. The cards run
+  `hint/probe` and `bird_sft/round_3` (owner, about 15:48).
+
 ## 2026-11-21: BIRD dev by official difficulty: k = 0 loses the challenging questions, the DPO lines gain on the moderate ones (no new run)
 
 Read from the committed predictions of the eight BIRD dev arms and of the
