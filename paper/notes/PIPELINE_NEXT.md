@@ -34,7 +34,8 @@ On Spider dev (1,034 rows, no round or setting chosen there) the same
 adapters give FedAvg SFT 75.15, k = 0 77.27 (+2.12, p 0.08), k = 2 77.66
 (+2.51, p 0.02), the fixed-pair line 76.21, centralized SFT 73.02. On
 Spider-Syn, Realistic and DK k = 0 is 3.00, 3.54 and 7.47 above FedAvg
-SFT and k = 2 3.87, 2.75 and 3.92 (tests not run yet; `LAB_LOG.md`).
+SFT (p 0.024, 0.063, 2.4e-5) and k = 2 3.87, 2.75 and 3.92 (p 0.0006,
+0.10, 0.017; `LAB_LOG.md`).
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 42.8% of the questions for the base

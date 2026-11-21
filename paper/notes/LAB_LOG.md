@@ -120,7 +120,8 @@ challenging at the FedAvg SFT level, no loss on simple.
 
 Results `ca8c3a18` (and `5a8b7c8f` for the rows that finished with Spider
 dev). EX, greedy, the adapters of the Spider table; nothing was chosen on
-these sets. Exact McNemar tests on them: not run yet.
+these sets. Exact McNemar tests: second table (read from the committed
+predictions, 2026-11-21 15:50).
 
 | Row | Spider test | Spider dev | Syn (1,034) | Realistic (508) | DK (535) |
 |---|---|---|---|---|---|
@@ -137,6 +138,26 @@ these sets. Exact McNemar tests on them: not run yet.
 - On-policy against fixed pairs (k = 2): +2.22 on Syn, -0.20 on
   Realistic, +0.93 on DK.
 - FedAvg SFT is below the base student on DK (59.63 against 60.19).
+
+Exact McNemar tests, two-sided: questions only the first line solves /
+only the second, then p.
+
+| Comparison | Spider test | Spider dev | Syn | Realistic | DK |
+|---|---|---|---|---|---|
+| k = 0 against FedAvg SFT round 4 | 178 / 107, 3.1e-5 | 84 / 62, 0.082 | 104 / 73, 0.024 | 51 / 33, 0.063 | 64 / 24, 2.4e-5 |
+| k = 2 against FedAvg SFT round 4 | 150 / 75, 6.4e-7 | 72 / 46, 0.021 | 86 / 46, 0.0006 | 39 / 25, 0.10 | 46 / 25, 0.017 |
+| k = 0 against centralized SFT epoch 2 | 187 / 138, 0.0077 | 98 / 54, 0.0004 | 107 / 94, 0.40 | 53 / 32, 0.029 | 66 / 31, 0.0005 |
+| k = 2 against centralized SFT epoch 2 | 159 / 106, 0.0014 | 98 / 50, 0.0001 | 91 / 69, 0.097 | 47 / 30, 0.068 | 50 / 34, 0.10 |
+| k = 2 on-policy against fixed pairs | 58 / 54, 0.78 | 38 / 23, 0.072 | 48 / 25, 0.0095 | 15 / 16, 1 | 16 / 11, 0.44 |
+| FedAvg SFT round 4 against the base student | 235 / 92, 1.4e-15 | 114 / 50, 6.3e-7 | 106 / 82, 0.093 | 49 / 36, 0.19 | 44 / 47, 0.83 |
+
+- Against FedAvg SFT, 7 of the 10 tests of the two lines are under 0.05;
+  at a Bonferroni bar of 0.005 over the 10, four hold (Spider test for
+  both lines, Syn for k = 2, DK for k = 0). Realistic and DK have 64 to
+  88 discordant questions each.
+- FedAvg SFT round 4 is not separated from the base student on Syn,
+  Realistic and DK; both method lines are above FedAvg SFT there.
+- On-policy rounds against fixed pairs separate on Syn alone.
 
 Hint probe (owner: yes, 2026-11-21; code `40ae6bce`, 534 tests pass):
 `scripts/hint_probe.py` takes the all-wrong questions of one round, puts
