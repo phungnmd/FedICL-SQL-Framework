@@ -179,7 +179,8 @@ DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
 estimate).
 
 Added after the reading by difficulty (chat, 2026-11-21; not approved);
-the order above stands. The round with the hint is read with a control
+the order of "After the probe" above stands. The round with the hint is
+read with a control
 on the same samples, the one-loss form: the 8,840 pairs of
 `bird_k0/round_2` unchanged and NLL on the gold SQL of its 3,017
 all-wrong questions, no preference term on them (training only, about
@@ -196,11 +197,7 @@ without gold SQL labelled by vote, as a secondary experiment, after a
 CPU probe of the vote labels.
 
 Reading: a difference of about 0.2 EX is what running the same training
-again gives. Open for the owner: a probe of a table-and-column hint for
-the questions without a correct sample on BIRD (proposed in chat,
-2026-11-21; not approved, needs code; sampling and labels of the 3,017
-questions of `bird_k0/round_2`, about 30 min on a free card, estimate);
-round 2 of federated DPO as published
+again gives. Open for the owner: round 2 of federated DPO as published
 (no NLL, fixed pairs, fixed reference) for the baseline row, from the
 start the method ends up with; on BIRD, the 350 golds that fail (kept
 for FedAvg SFT as released) and the 184 on the 30 s budget (the relabel); a
