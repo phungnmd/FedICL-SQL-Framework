@@ -2,8 +2,12 @@
 
 ## Status
 
-Updated 2026-11-21 11:05 (Asia/Ho_Chi_Minh). Last result:
+Updated 2026-11-21 12:45 (Asia/Ho_Chi_Minh). Last result:
 `bird_k0_gold/round_1` on BIRD dev, 39.24, published 2026-11-21 06:58.
+From the owner's console at 12:25, not committed: after one DPO + NLL
+round on BIRD 3,017 of the 9,428 questions have no correct sample (4,035
+before it, 3,220 after one FedAvg SFT round), and round 2 trains on
+8,840 pairs (round 1: 9,714).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
 Queued last (owner, 11:15): six Spider rows on Spider dev, Spider-Syn,
@@ -28,7 +32,8 @@ first, on-policy rounds over fixed pairs (78.20 against 78.02, with
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
-student, 34% after one SFT round). BIRD dev so far:
+student, 34% after one SFT round, 32% after one DPO + NLL round). BIRD
+dev so far:
 
 | Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) | k = 0 with gold |
 |---|---|---|---|---|
@@ -50,12 +55,14 @@ are SQL run again alone after meeting the 30 s under load, on clients 1,
 2 and 5 (`LAB_LOG.md`, 2026-11-21). From code `0910b84f` a label step
 runs them after its other questions, 4 at a time (labels about 1.5 h,
 estimate). The server has that code: the result commit of 06:50 sits on
-it, and `bird_k0/round_2` started after it.
+it, and `bird_k0/round_2` started after it. The label time of that round
+is read from its `timing.json` when it is published; the console of
+12:25 does not show it.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_k0/round_2` (samples, labels, trains): its EX about 13:30 (estimate). | owner, chat, 11:00; no log line of the task seen |
-| 1 | `bird_fixed/round_2` has finished; its round record and its EX are not published (remote at `ff917437` of 06:58, read 11:00). Whether a worker is still on the card is not known. | owner, chat, 11:00 |
+| 0 | Worker on `bird_k0/round_2` since 10:33: pairs built at 11:07, clients 1 to 3 trained, client 4 in its DPO updates at 12:25, client 5 left (2,630 pairs). EX about 14:45 (estimate). Before it, on the same card: `bird_fixed/round_2`, 06:58 to 10:33. | status output and task log, owner's console, 12:25 |
+| 1 | No worker. `bird_fixed/publish_round_2`, `bird_fixed/eval_2` and rows 8 to 10 are ready and wait; with GPU 0 alone they start after the evaluation of `bird_k0/round_2`, about 14:50 (estimate). | status output, owner's console, 12:25 |
 
 ## Run now
 
@@ -67,21 +74,22 @@ it, and `bird_k0/round_2` started after it.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. When GPU 1 has no worker: the same line with `--gpu 1` and the hour
-   it has to stop. It takes what is left of `bird_fixed` (the evaluation
-   of round 2 and the two publications), then rows 8 to 10.
+2. GPU 1 has no worker (12:25). If the card is free: the check of step 5
+   first (seconds), then the same line with `--gpu 1` and the hour it
+   has to stop. It takes what is left of `bird_fixed` (the evaluation of
+   round 2 and the two publications: its EX in about 15 min), then rows
+   8 to 10 (about 1 h, estimate).
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
 3. Send back, when they come:
-   - now: the output of the status line (Reference), and the EX line of
-     `bird_fixed/round_2` if its evaluation has run;
-   - now, from the log of `bird_k0/round_2`: the five lines with
-     `pairs from` (pairs, mixed, all wrong and all correct questions per
-     client after one DPO round on BIRD; 4,035 were all wrong before it);
-   - from the log of `bird_k0/round_2`: the five lines that start with
+   - the EX lines of `bird_fixed/round_2` and `bird_k0/round_2`, or a
+     word that they are published (they are then read from the remote,
+     with the round's times and its `questions_gold_timeout`);
+   - from the log of `bird_k0/round_2`
+     (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
      alone, seconds of each);
    - the EX line of each later BIRD round;
@@ -114,17 +122,17 @@ it, and `bird_k0/round_2` started after it.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | 8 h on the code before `0910b84f`, about 6.5 h on it (estimates; samples and labels again) | running on GPU 0 since about 07:00 (inferred), on code `0910b84f` |
-| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 | 3 h 40 min (estimate; `bird_k0/round_1` trained 3 h 30 min) | trained (owner, chat, 11:00); evaluation and publications not seen |
+| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | training about 3 h 25 min for its 8,840 pairs (estimate from round 1's seconds per pair) | running on GPU 0 since 10:33 on code `0910b84f`; client 4 of 5 in training at 12:25 |
+| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 (8,840 new pairs there) | evaluation about 10 min | trained on GPU 0 in 3 h 35 min, ended 10:33; publication and evaluation ready, no worker free |
 | 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
 | 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
 | 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
 
 Expected with GPU 0 alone (estimates, from the measured times of
-`bird_k1/round_1` and `bird_k0/round_1`): `bird_k0/round_2` by about
-13:30. Rows 9 and 10 need
-no earlier task: a card with no BIRD task ready takes them, otherwise
-they run after row 7.
+`bird_k0/round_1`): the EX of `bird_k0/round_2` by about 14:45, that of
+`bird_fixed/round_2` about 15:00, rows 8 to 10 by about 16:00. With a
+worker on GPU 1 from now: the EX of `bird_fixed/round_2` in about 15
+min, rows 8 to 10 an hour later. Rows 9 and 10 need no earlier task.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):
@@ -150,7 +158,11 @@ without gold SQL labelled by vote, as a secondary experiment, after a
 CPU probe of the vote labels.
 
 Reading: a difference of about 0.2 EX is what running the same training
-again gives. Open for the owner: round 2 of federated DPO as published
+again gives. Open for the owner: a probe of a table-and-column hint for
+the questions without a correct sample on BIRD (proposed in chat,
+2026-11-21; not approved, needs code; sampling and labels of the 3,017
+questions of `bird_k0/round_2`, about 30 min on a free card, estimate);
+round 2 of federated DPO as published
 (no NLL, fixed pairs, fixed reference) for the baseline row, from the
 start the method ends up with; on BIRD, the 350 golds that fail (kept
 for FedAvg SFT as released) and the 184 on the 30 s budget (the relabel); a

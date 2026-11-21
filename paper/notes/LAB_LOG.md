@@ -4,6 +4,48 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: `bird_k0/round_2`, the questions after one DPO + NLL round on BIRD: 3,017 without a correct sample (owner's console, 12:25, not committed)
+
+The status output and the five `pairs from` lines of the task log, pasted
+in chat. At 12:25 the round was in the DPO updates of client 4 (update 11
+of 35); nothing of it is published.
+
+| BIRD train, 9,428 questions, 10 samples each | All correct | Mixed | All wrong | No label | Pairs | Sample accuracy |
+|---|---|---|---|---|---|---|
+| Base student (`bird_k0/round_1`, committed) | 156 | 4,857 | 4,035 | 380 | 9,714 | 0.198 |
+| After 1 FedAvg SFT round (`bird_k1/round_1`, committed) | 196 | 5,612 | 3,220 | 400 | 11,224 | 0.259 |
+| After 1 DPO + NLL round (`bird_k0/round_2`, console) | 1,569 | 4,420 | 3,017 | 422 | 8,840 | 0.416 |
+
+"No label" is the gold that fails or meets the budget; the log line does
+not print it, so the last row has 9,428 minus the three kinds. All wrong
+per client: base 822 / 741 / 929 / 324 / 1,219; after the SFT round 642 /
+629 / 716 / 309 / 924; after the DPO round 625 / 595 / 641 / 284 / 872.
+
+- One DPO + NLL round takes 1,018 questions (net, 25%) out of all wrong,
+  one FedAvg SFT round 815 (20%), and the DPO round is lower on every
+  client. Round 1 trained on no pair of those questions; FedAvg SFT
+  trained on their gold SQL. 32% of the questions still give no pair.
+- The pairs hold on BIRD: 8,840 in round 2 against 9,714 in round 1
+  (91%). Spider, k = 0: 4,566 against 8,908 (51%), and the all-wrong
+  questions there went 1,074, 902, 886, 860 over the four rounds.
+- No label: 422 against 400 (`bird_k1/round_1`, labels before `0910b84f`)
+  and 380 (the base samples labelled again on CPU). The rise is on client
+  2 (20; 10 and 8 before) and client 5 (375; 361 and 360), the clients
+  with most second runs. To read from the published
+  `client_*_pairs_stats.json` (`questions_gold_timeout`) and the
+  `SQL budget` lines: do more golds end on the 30 s budget when the
+  second runs go 4 at a time?
+- Label time on code `0910b84f`: not in this output. The pairs came 34
+  min after the task started on GPU 0 (10:33), less than the sampling
+  and the labels of a BIRD round without any second run (27 and 64 min in
+  `bird_k1/round_1`), so an earlier call did part of the step;
+  `timing.json` counts every call.
+- Queue at 12:25: one worker, on GPU 0. `bird_fixed/round_2` trained
+  there in 3 h 35 min (06:58 to 10:33); its publication and its
+  evaluation are ready and wait, as do the Spider dev rows: no worker on
+  GPU 1. `bird_k0/round_2`: EX about 14:45 (estimate; client 5 is left
+  with 2,630 pairs, and it took 2.65 s per pair in round 1).
+
 ## 2026-11-21: `bird_k0_gold/round_1`, gold as chosen for the all-wrong questions on BIRD: 39.24, below the line without gold
 
 Results `0c5258a9` (round, published 06:50), `ff917437` (BIRD dev). Same
