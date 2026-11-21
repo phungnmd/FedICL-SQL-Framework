@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-21 15:50 (Asia/Ho_Chi_Minh). Last results (published
+Updated 2026-11-21 15:30 (Asia/Ho_Chi_Minh). Last results (published
 12:57 to 15:07): `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2`
 40.81, the six Spider rows on Spider dev. After one DPO + NLL round on
 BIRD 3,017 of the 9,428 questions have no correct sample (4,035 before
@@ -133,7 +133,7 @@ its log say whether the second runs 4 at a time cost them.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | running on both cards at 15:14 |
-| 11 | `bird_sft/round_3`, `bird_sft/round_4`, each with its evaluation and publications | FedAvg SFT on BIRD to 4 rounds: the baseline of the BIRD table and the starts of the lines with an SFT stage; does it pass the DPO lines at 3 rounds? | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | queued 15:35 (code `62e56a32`), not started |
+| 11 | `bird_sft/round_3`, `bird_sft/round_4`, each with its evaluation and publications | FedAvg SFT on BIRD to 4 rounds: the baseline of the BIRD table and the starts of the lines with an SFT stage; does it pass the DPO lines at 3 rounds? | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | queued 15:10 (code `62e56a32`), not started |
 
 Expected (estimates): `bird_sft/round_3` evaluated about 3 h after a
 worker takes it, round 4 3 h later.
@@ -149,10 +149,14 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 | `bird_k0_gold/round_1` above `bird_k0/round_1` (41.85) and `bird_sft/round_1` (38.85) | its round 2 is queued (on Spider the gold line fell there) | read: 39.24, 2.61 below `bird_k0/round_1` (p 0.007), 0.39 above `bird_sft/round_1` (p 0.76). Gold as chosen is not kept; the one-loss form below is the next try |
 
 Not queued yet, the owner's choice after the reads above (the gain over
-FedAvg SFT on BIRD is not separated at 2 rounds): `bird_k1/round_2`
-against `bird_sft/round_3`; `bird_k0/round_3`; DPO from the best
-`bird_sft` round, 1 to 2 rounds (owner's expectation of the highest
-level); one local loss with
+FedAvg SFT on BIRD is not separated at 2 rounds). Proposed order for the
+card that does not train `bird_sft` (chat, 2026-11-21; waits for the
+owner's yes): first the hint probe (`RESEARCH_STATE.md`, section 4, item
+12d; needs code; about 30 min, estimate), then, by its result, one round
+with the hint against `bird_k0/round_2` or DPO from `bird_sft` round 2
+(k = 2) against `bird_sft/round_3`. Also open: `bird_k1/round_2`;
+`bird_k0/round_3`; DPO from the best `bird_sft` round, 1 to 2 rounds
+(owner's expectation of the highest level); one local loss with
 DPO + NLL on the mixed questions and NLL on the gold SQL for the
 all-wrong ones (needs code: a preference weight per row); centralized
 DPO + NLL on Spider as the upper reference of the method (about 8.5 h,

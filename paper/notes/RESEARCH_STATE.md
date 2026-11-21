@@ -360,6 +360,8 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
     | b | Each question trained on the signal it has, in one local loss: DPO + NLL on the mixed questions, NLL on the gold SQL for the all-wrong ones, nothing for the all-correct ones | a part of the method that differs from CodeLutra (which drops those questions) and stays in the story: execution where the model already has a correct SQL, gold where it has none | none; gold as the chosen side is not this (no preference term on the gold here). All-wrong questions: Spider 1,074, 902, 886, 860 over rounds 1-4, BIRD 4,035 of 9,428 (round 1 from the base student). Gold as the chosen side on BIRD at 1 round: 39.24 against 41.85 without it, p 0.007 | only if the BIRD reads ask for it (`PIPELINE_NEXT.md`); code: a preference weight per row | code and one round, about half a day |
     | c | Questions without gold SQL, labelled by the vote over the execution results of the model's own samples; a secondary experiment, not a part of the method (owner, 2026-11-20: hiding gold is an assumption the datasets do not make) | whether the execution signal still helps when labels are scarce: EX against the share of questions that keep their gold, for FedAvg SFT, the method on the labelled questions, and the method with vote labels | none of ours. CodeLutra without gold (executable against non-executable): BIRD 22.3 to 30.9 against 43.1 with gold; ScPO on GSM8K 63.91 without labels against 64.29 (`DPO_RESEARCH.md`, 2.5) | CPU only, on the Spider round 1 samples on the server: per client, the share of questions whose most voted execution result equals the gold result (script not written). A low share drops the direction | a few minutes for the probe; then 8.5 h per setting on Spider and an SFT baseline with pseudo-labels, without which FedAvg SFT loses by construction |
 
+    | d | A hint for the questions no sample solves (proposed 2026-11-21, not approved; the owner sees it as the part with the highest value for the method if it works): the client samples those questions again with a line that names the tables and columns of its own gold SQL; a sample whose result equals the gold result becomes the chosen side, under the prompt without the hint; nothing changes at test time | a part of the method that is not in CodeLutra, aimed at the errors neither SFT nor DPO removes | for: 68% to 75% of the wrong results on Spider test and BIRD dev differ from gold in tables or columns (chat analysis, not committed); 32% of the BIRD questions give no pair in round 2. Against: gold as the chosen side for the same questions is 2.61 below on BIRD (p 0.007); one DPO + NLL round already takes 25% of them out of all wrong by itself | a probe without training: the 3,017 all-wrong questions of `bird_k0/round_2`, sampled from the round 1 adapter with the hint and labelled; the direction is dropped under 25% of them with a correct sample | 30 min for the probe, then about 4 h for one round against `bird_k0/round_2` (43.02) |
+
     Also read in the same pass, without training: the five client
     adapters of a DPO round aggregated again with pair, equal, question
     and step-normalised weights (section 3.8; 10 min of evaluation each).
@@ -378,6 +380,42 @@ Spider test EX, 2,147 rows, greedy. Details in `LAB_LOG.md`.
 The two prompts do not differ (exact McNemar p = 0.47). FedAvg SFT round 1
 (results `d6bfc763`) is above the untrained student with prompt A: 165 rows
 fixed, 71 broken, exact McNemar p = 8.5e-10.
+
+### 5.0 Where the method stands (2026-11-21, one seed)
+
+EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
+
+| Rounds | Spider test, FedAvg SFT | Spider test, DPO + NLL from the base student (k = 0) | BIRD dev, FedAvg SFT | BIRD dev, k = 0 | BIRD dev, 1 SFT round then DPO (k = 1) |
+|---|---|---|---|---|---|
+| 1 | 72.43 | 75.87 | 38.85 | 41.85 | |
+| 2 | 74.10 | 77.18 | 42.70 | 43.02 | 44.26 |
+| 3 | 74.71 | 77.69 | | | |
+| 4 | 74.71 | 78.02 | | | |
+
+- Spider: the method is 3.3 to 3.5 above FedAvg SFT at 4 rounds on
+  Spider test (k = 2: 78.20), and 2.12 (k = 0, p 0.08) and 2.51 (k = 2,
+  p 0.02) above on Spider dev, where no round or setting was chosen.
+- BIRD: +3.00 at 1 round (p 0.005), +0.32 at 2 rounds (p 0.80); with one
+  SFT round first +1.56 (p 0.13). Not separated at 2 rounds.
+- The DPO rounds add about the same on both sets: the first about +3
+  over an SFT round from the same start (+3.44, +3.00), the second +1.31
+  and +1.17. The SFT rounds differ: the second adds 1.67 on Spider and
+  3.85 on BIRD, the third 0.61 on Spider. FedAvg SFT has not flattened
+  on BIRD at 2 rounds; `bird_sft` rounds 3 and 4 say where it does.
+- One DPO round after SFT adds 3.36 on Spider (from round 2) and 5.41 on
+  BIRD (from round 1). The read still to make on BIRD: DPO from
+  `bird_sft` round 2 (k = 2, the k of the best Spider line) against
+  `bird_sft` round 3.
+- The DPO rounds remove execution errors and leave the wrong results;
+  SFT does the reverse (BIRD at 2 rounds: 285 and 593 for FedAvg SFT,
+  120 and 727 for k = 1).
+
+| Part | Spider | BIRD |
+|---|---|---|
+| On-policy rounds against fixed pairs | test 78.20 against 78.02; dev +1.45 (p 0.07) | +2.21 (p 0.008), kept |
+| FedAvg SFT stage | no difference (k = 0, 2, 3: 78.02, 78.20, 77.97) | k = 1 is 1.24 above k = 0 (p 0.19) |
+| Gold as the chosen side | falls at round 2 | -2.61 (p 0.007) |
+| Nearest pairs, wrong-result rejects first | no gain | not run |
 
 ### 5.1 Published numbers for this student (reference, read 2026-11-20)
 
