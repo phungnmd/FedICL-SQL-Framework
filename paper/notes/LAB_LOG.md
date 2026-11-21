@@ -116,6 +116,39 @@ plus NLL on the gold SQL of its 3,017 all-wrong questions, no preference
 term on them (the form of ReLIFT and SuperRL). The reads are by level:
 challenging at the FedAvg SFT level, no loss on simple.
 
+## 2026-11-21: the six Spider rows on Spider-Syn, Spider-Realistic and Spider-DK; the hint probe is queued
+
+Results `ca8c3a18` (and `5a8b7c8f` for the rows that finished with Spider
+dev). EX, greedy, the adapters of the Spider table; nothing was chosen on
+these sets. Exact McNemar tests on them: not run yet.
+
+| Row | Spider test | Spider dev | Syn (1,034) | Realistic (508) | DK (535) |
+|---|---|---|---|---|---|
+| Base student | 68.05 | 68.96 | 56.77 | 65.16 | 60.19 |
+| FedAvg SFT round 4 | 74.71 | 75.15 | 59.09 | 67.72 | 59.63 |
+| Centralized SFT epoch 2 | 75.73 | 73.02 | 60.83 | 67.13 | 60.56 |
+| DPO + NLL from the base student, round 4 (k = 0) | 78.02 | 77.27 | 62.09 | 71.26 | 67.10 |
+| 2 SFT rounds then 2 DPO + NLL rounds (k = 2) | 78.20 | 77.66 | 62.96 | 70.47 | 63.55 |
+| the same on fixed pairs, fixed reference | 78.02 | 76.21 | 60.74 | 70.67 | 62.62 |
+
+- Over FedAvg SFT: k = 0 is +3.00, +3.54 and +7.47 on Syn, Realistic and
+  DK; k = 2 is +3.87, +2.75 and +3.92. The method is above FedAvg SFT and
+  centralized SFT on all five Spider sets.
+- On-policy against fixed pairs (k = 2): +2.22 on Syn, -0.20 on
+  Realistic, +0.93 on DK.
+- FedAvg SFT is below the base student on DK (59.63 against 60.19).
+
+Hint probe (owner: yes, 2026-11-21; code `40ae6bce`, 534 tests pass):
+`scripts/hint_probe.py` takes the all-wrong questions of one round, puts
+one line after the question with the tables and columns of the client's
+gold SQL (sqlglot, per query scope; every one of the 9,428 BIRD and 8,659
+Spider training golds gives a hint), samples them again from the model
+the round sampled (10 at T 1.0, another seed) and labels them as the
+round does. Queued as `hint/probe` for `bird_k0/round_2` (3,017
+questions), before `bird_sft/round_3`. Not trained on; the prompt without
+a hint is byte for byte as before (prompt tests). Read: the share of the
+3,017 with a correct sample; 25% or more goes on to one training round.
+
 ## 2026-11-21: BIRD at 2 rounds: `bird_k0/round_2` 43.02, level with FedAvg SFT; fixed pairs 40.81; the six Spider rows on Spider dev
 
 Results `77079f67`, `b16a365a` (`bird_fixed/round_2`), `40dc6a3c`,
