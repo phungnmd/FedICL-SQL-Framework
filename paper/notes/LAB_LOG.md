@@ -35,6 +35,16 @@ in one line after the question (2.1 tables and 5.0 columns on average).
 - Time: 1 h 36 min (generation step 17 min, labels 1 h 19 min; 24, 25, 5,
   4 and 21 min for clients 1 to 5), with the gold-row round training on
   the other card. The estimate of 30 min was wrong.
+- Estimate of the share a second draw gives without a hint, until the
+  control is read (script run in chat on the Mac, not committed): a Beta
+  distribution of the per-question chance of a correct sample, fitted to
+  the round's committed counts (9,006 questions with a gold result: 33.5%
+  with 0 of 10 correct, 17.4% with 10 of 10, mean 43.6%), with or without
+  a share of questions at chance 0. It gives 11 to 16% of the all-wrong
+  questions a correct sample in ten more draws, at a sample accuracy near
+  2%. Against that the probe has 32.6% and 13.2%: about 17 to 21 points
+  of questions from the hint (500 to 650 questions), under the 25 points
+  proposed as the bar. A model, not a measurement.
 
 ## 2026-11-21: the hint probe runs; a control without the hint is queued (code `7e8a9a2e`)
 
