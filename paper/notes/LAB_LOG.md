@@ -4,6 +4,85 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: `bird_k0_goldnll/round_2`, NLL on the gold SQL of the all-wrong questions next to the pairs: 42.37, not above the round without it
+
+Run `eval_arms__s0__20261121T154802__f90b5cf8d781__dd596c44cd1a4904be3aa733fdbaf809`,
+result commits `d69684ea` (round, 22:40) and `1a75d23e` (evaluation,
+22:48), arm `fedpref_bird_base_p2_goldnll_dpo_ddl_a01_r2_vllm_inproc`.
+Round 2 from `bird_k0/round_1` on the 8,840 pairs of `bird_k0/round_2`
+plus one row with the gold SQL and the NLL term alone for each of its
+3,017 all-wrong questions (pairs + gold rows per client: 1,992 + 625,
+1,516 + 595, 2,150 + 641, 552 + 284, 2,630 + 872; FedAvg weights by
+rows).
+
+BIRD dev (1,534 rows), by official difficulty:
+
+| Row | EX | Simple (925) | Moderate (464) | Challenging (145) |
+|---|---|---|---|---|
+| FedAvg SFT round 2 | 42.70 | 50.49 | 31.25 | 29.66 |
+| `bird_k0/round_1`, the parent | 41.85 | 50.16 | 31.25 | 22.76 |
+| `bird_k0/round_2`, the same pairs without gold rows | 43.02 | 50.70 | 35.13 | 19.31 |
+| `bird_k0_goldnll/round_2` | 42.37 | 49.73 | 33.41 | 24.14 |
+| `bird_k1/round_1` (1 SFT round, then DPO + NLL) | 44.26 | 50.38 | 37.07 | 28.28 |
+
+Exact McNemar (questions only the gold-row round has / only the other):
+
+| Against | All | Simple | Moderate | Challenging |
+|---|---|---|---|---|
+| `bird_k0/round_2` | 59 / 69, -0.65, p 0.43 | 32 / 41, 0.35 | 19 / 27, 0.30 | 8 / 1, 0.039 |
+| FedAvg SFT round 2 | 118 / 123, -0.33, p 0.80 | 66 / 73, 0.61 | 43 / 33, 0.30 | 9 / 17, 0.17 |
+| `bird_k1/round_1` | 83 / 112, -1.89, p 0.045 | 54 / 60, 0.64 | 22 / 39, 0.040 | 7 / 13, 0.26 |
+| its parent | 89 / 81, +0.52, p 0.59 | 47 / 51, 0.76 | 32 / 22, 0.22 | 10 / 8, 0.81 |
+
+- From the shared parent (642 correct answers) the round without gold
+  rows fixes 85 and breaks 67, 28 of them into execution errors; with the
+  gold rows 89 and 81, 41 into execution errors. Execution errors
+  (`exec_errors` of the results, timeouts included): 219 at the parent,
+  250 without the gold rows, 298 with them.
+- The gold rows do what they were added for on the challenging level (8
+  questions against 1), half way to FedAvg SFT, and lose more on the two
+  other levels. Against the rule of the queue table (above 43.02, the
+  challenging level near 29.66, the simple one not below 50.70): no on
+  each. The one-loss form is not kept.
+- At the same total rounds the line with an SFT stage (k = 1) is 1.89
+  above it. Gold SQL helps as a stage before the DPO rounds; inside a DPO
+  round it has not helped in either form tried on BIRD (chosen side of a
+  pair -2.61, NLL rows -0.65).
+- Spider: no round with gold rows was run and none is queued.
+- Measured (`round.json`, `client_*_train.json`): training 4 h 52 min
+  for 743 updates (reference pass 1 h 07 min, updates 3 h 44 min; the
+  estimate was 4.5 h), 6 calls, started 16:08 and published 22:40; peak
+  reserved 17.72 / 17.14 / 17.79 / 17.43 / 18.96 GiB for clients 1 to 5,
+  budget never lowered; evaluation 7 min.
+- Cards (owner, chat, about 22:20): one card only. Nothing of
+  `bird_sft/round_3` is published at 23:30, and a round takes 2 h 50
+  min: it did not run through on GPU 0 from 18:06, as the status of
+  18:25 assumed. The worker takes `bird_sft/round_3`, `bird_k2/round_1`
+  and `bird_sft/round_4` in file order; not confirmed after 22:48.
+
+Proposed in chat, not decided (owner):
+
+1. Gold rows for every question (part 2 of what the reviewers signed,
+   entry below) are not written. Their reason was fewer broken answers,
+   and here the gold rows raised them (81 against 67).
+2. After `bird_k2/round_1`: above `bird_sft/round_3` without a
+   separation, `bird_k2/round_2` runs before any new part (the method at
+   4 rounds; its fixed-pair twin later); separated, the card goes to a
+   second model on Spider; below, stop and read.
+3. The hinted round stays open. For it: the queue table names it as the
+   remaining form. Against it: the gold rows covered all 3,017 all-wrong
+   questions and moved the challenging level by 7 questions net, the hint
+   reaches about a third of them, and with an SFT stage that level is
+   already at 28.28 against 29.66.
+
+Estimates given in chat of a gain separated on BIRD dev (about 2.1 EX, p
+below 0.05), judgement and not measurement: the method as it stands at 3
+rounds 50%, at 4 rounds 55%, either of the two 60 to 65%; on-policy
+rounds over fixed pairs from an SFT start 55%; the hinted round 10 to
+15%; gold rows for every question 10 to 15%; verified positives 15%.
+Before this result the gold rows for the all-wrong questions were given
+30%, the same for every question 30% and the hint 25%.
+
 ## 2026-11-21: test-suite accuracy of the Spider rows: the line from the base student keeps no gain, the line with an SFT stage does; what a DPO round breaks (no new run)
 
 Read on the Mac from the committed predictions; none of it is a committed

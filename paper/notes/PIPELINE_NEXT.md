@@ -2,16 +2,20 @@
 
 ## Status
 
-Updated 2026-11-21 18:25 (Asia/Ho_Chi_Minh). Hint probe and control are
-published (17:21, 18:05): on clients 1, 3 and 4, 31.7% of the all-wrong
-questions of `bird_k0/round_2` hold a correct sample with the hint and
-10.4% without it; the hint adds 21.4 points (interval 19.0 to 23.7; 378
-questions with the hint only against 47 without it only), and 65% have
-none in either draw. GPU 0 should be on `bird_sft/round_3` (resumed)
-since 18:06, not confirmed. GPU 1 runs `bird_k0_goldnll/round_2` since
-16:08. `bird_k2` stands before `bird_sft/round_4`.
+Updated 2026-11-21 23:34 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+about 22:20). `bird_k0_goldnll/round_2` is published (22:40, evaluation
+22:48): 42.37 on BIRD dev, 0.65 below the same round without the gold
+rows (p 0.43); the one-loss form is not kept. The worker takes
+`bird_sft/round_3` next, then `bird_k2/round_1` and `bird_sft/round_4`,
+in file order: not confirmed after 22:48, and nothing of
+`bird_sft/round_3` is published yet. Hint probe and control (17:21,
+18:05): on clients 1, 3 and 4, 31.7% of the all-wrong questions of
+`bird_k0/round_2` hold a correct sample with the hint and 10.4% without
+it; the hint adds 21.4 points (interval 19.0 to 23.7), and 65% have none
+in either draw.
 Last results:
-`bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2` 40.81 (15:07);
+`bird_k0_goldnll/round_2` on BIRD dev 42.37 (22:48);
+`bird_k0/round_2` 43.02, `bird_fixed/round_2` 40.81 (15:07);
 the six Spider rows on Spider dev, Syn, Realistic and DK (15:33). After
 one DPO + NLL round on BIRD 3,017 of the 9,428 questions have no correct
 sample (4,035 before it, 3,220 after one FedAvg SFT round), and round 2
@@ -51,25 +55,32 @@ no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
 student, 34% after one SFT round, 32% after one DPO + NLL round). BIRD
 dev so far:
 
-| Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) | k = 0, round 2 on fixed pairs | k = 0 with gold |
-|---|---|---|---|---|---|
-| 0 | 29.47 | | | | |
-| 1 | 38.85 | | 41.85 | | 39.24 |
-| 2 | 42.70 | 44.26 | 43.02 | 40.81 | |
+| Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) | k = 0, round 2 on fixed pairs | k = 0, gold as the chosen side | k = 0, round 2 with NLL rows on the gold SQL |
+|---|---|---|---|---|---|---|
+| 0 | 29.47 | | | | | |
+| 1 | 38.85 | | 41.85 | | 39.24 | |
+| 2 | 42.70 | 44.26 | 43.02 | 40.81 | | 42.37 |
 
 At 2 rounds no line is separated from FedAvg SFT: k = 0 is +0.32 (p
 0.80), k = 1 +1.56 (p 0.13), and k = 0 is 1.24 below k = 1 (p 0.19). The
 second DPO round adds 1.17 where the second SFT round adds 3.85.
 On-policy rounds are 2.21 above fixed pairs (p 0.008), kept by the rule;
-the fixed line falls from its round 1.
+the fixed line falls from its round 1. NLL rows on the gold SQL of the
+3,017 all-wrong questions, in the same round as the pairs, are 0.65
+below the round without them (59 questions fixed, 69 broken, p 0.43)
+and 1.89 below k = 1 (p 0.045): not kept. On BIRD the gold SQL has
+helped as an SFT stage before the DPO rounds and in neither form tried
+inside them.
 
 By official difficulty at 2 rounds (simple 925, moderate 464,
 challenging 145; read from the committed predictions, `LAB_LOG.md`,
 2026-11-21): FedAvg SFT 50.49 / 31.25 / 29.66, k = 0 50.70 / 35.13 /
-19.31, k = 1 50.38 / 37.07 / 28.28. k = 0 is below FedAvg SFT on the
+19.31, k = 1 50.38 / 37.07 / 28.28, k = 0 with the gold rows 49.73 /
+33.41 / 24.14. k = 0 is below FedAvg SFT on the
 challenging questions (3 against 18 questions, p 0.0015); k = 1 is above
 it on the moderate ones (51 against 24, p 0.0024) and level on the
-others.
+others. The gold rows bring back part of the challenging level (8
+against 1 question over k = 0, p 0.039) and lose on the two others.
 
 k = 0 at 1 round is 3.00 above FedAvg SFT, exact McNemar p 0.005 (152
 questions fixed, 106 broken): kept by the rule, as on Spider (+3.44 at 1
@@ -93,12 +104,12 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | `bird_sft/round_3`, going on from its checkpoints, since the control ended at 18:05 | remote, read 18:25: the control is published; the round itself not confirmed |
-| 1 | `bird_k0_goldnll/round_2`, training, since 16:08 | worker log in chat, 16:08 |
+| the one card that runs (which of the two was not said) | `bird_sft/round_3`, going on from its checkpoints, expected since 22:48 | owner in chat, about 22:20: one card only; remote, read 23:30: `bird_k0_goldnll/round_2` published at 22:40 and 22:48, nothing of `bird_sft/round_3` yet |
+| the other | not available | owner in chat |
 
 ## Run now
 
-1. Nothing to start: both workers take the rows below in file order.
+1. Nothing to start: the worker takes the rows below in file order.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -109,8 +120,7 @@ its log say whether the second runs 4 at a time cost them.
    ```
 
 3. Send back, when they come:
-   - from `bird_k0_goldnll/round_2`: a `DPO update` line of client 1
-     with its `peak reserved` and `left`;
+   - which card runs, and the task its worker shows now;
    - from the log of `bird_k0/round_2`
      (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
@@ -136,24 +146,34 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 12 | `bird_k0_goldnll/reuse_samples`, `round_2`, `eval_2`, publications | one loss for both kinds of question: the 8,840 pairs of `bird_k0/round_2` unchanged, plus NLL on the gold SQL of its 3,017 all-wrong questions (one row each, no preference term), from `bird_k0/round_1`. Does it keep the challenging level without a loss on the simple one? Against `bird_k0/round_2` (43.02), `bird_k1/round_1` (44.26), `bird_sft/round_2` (42.70) | about 4.5 h, training only (estimate), 10 min evaluation | running on GPU 1 since 16:08: 8,840 pairs and 3,017 gold rows |
-| 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | stopped on GPU 1 about 16:08 for row 12 (owner); goes on from its checkpoints on GPU 0 after row 11 |
-| 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | more than 5 h (estimate: sampling, labels, training) | queued 16:01 (code `38610a58`), not pulled yet; ready after row 13 on the same card, or on the card of row 12 if it ends first |
+| 13 | `bird_sft/round_3` with its evaluation and publications | FedAvg SFT on BIRD at 3 rounds: the baseline of the BIRD table | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | stopped about 16:08 for the gold-row round (owner); goes on from its checkpoints on the one card, expected since 22:48, not confirmed |
+| 14 | `bird_k2/round_1`, `eval_1`, publications | DPO + NLL round 1 from FedAvg SFT round 2: the method at 3 rounds, against `bird_sft/round_3` | 6.5 to 8 h (estimate: `bird_k1/round_1` took 7 h 50 min with 3 h 06 min of labels, before the label change of `0910b84f`) | queued 16:01 (code `38610a58`); after row 13 on the same card |
 | 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 15:10; after rows 13 and 14 in the file |
 
-Expected (estimates): `bird_sft/round_3` is read about 20:45; row 12
-about 20:50; `bird_k2/round_1` starts on GPU 0 after row 13 and is read
-about 5.5 h later; `bird_sft/round_4` goes to GPU 1 after row 12.
+Expected on one card (estimates): `bird_sft/round_3` is read by about
+01:45, sooner by what its checkpoints hold; `bird_k2/round_1` 6.5 to 8 h
+after it, about 08:30 to 10:00; `bird_sft/round_4` about 3 h after that.
 
-After the probe (owner's choice): the hint adds 21.4 points of
-all-wrong questions with a correct sample over a second draw without
-it, under the 25 proposed as the bar and far from 0. A training round
-with the hinted pairs from `bird_k0/round_1` (about 4 h of training and
-1 h 36 min of sampling and labels already done for round 2; needs code:
-the pairs of the hinted samples joined to the round's) is not written
-until row 12 is read: the gold rows cover all 3,017 questions without a
-second sampling, and the hint is worth the round only if row 12 leaves
-the challenging level low.
+The slot after `bird_k2/round_1` (proposed in chat, 2026-11-21; owner's
+choice): if it is above `bird_sft/round_3` without a separation,
+`bird_k2/round_2` goes before `bird_sft/round_4` and before any new part
+(the method at 4 rounds, about 8 h, estimate); if it is separated, the
+card goes to FedAvg SFT of a second model on Spider; if it is below,
+nothing is queued before the rows are read.
+
+The hinted round (owner's choice, not written): the hint adds 21.4
+points of all-wrong questions with a correct sample over a second draw
+without it, under the 25 proposed as the bar. The gold-row round is
+read and did not keep the challenging level (24.14 against 29.66 for
+FedAvg SFT), so by the table below the hint is the remaining form
+inside a DPO round. One round with the hinted pairs from
+`bird_k0/round_1` is about 4 h of training (estimate; sampling and
+labels are done). It needs code (the pairs of the hinted samples joined
+to the round's, trained under the prompt without the hint) and the
+owner's yes to a second sampling prompt. Against it: the gold rows
+covered all 3,017 questions and moved the challenging level by 7
+questions net, the hint reaches about a third of them, and with an SFT
+stage that level is already 28.28.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):
@@ -164,21 +184,24 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 | `bird_k0/round_2` at least equal to `bird_k1/round_1` | no SFT stage: the method is k = 0 on both datasets | read: 43.02 against 44.26, p 0.19, a no without a separation. The method on BIRD keeps an SFT stage, k as a value; which k is open until `bird_sft` rounds 3 and 4 are read |
 | `bird_k0/round_2` above `bird_fixed/round_2` | on-policy rounds are a part of the method with a measured gain | read: 43.02 against 40.81, p 0.008: yes |
 | `bird_k0_gold/round_1` above `bird_k0/round_1` (41.85) and `bird_sft/round_1` (38.85) | its round 2 is queued (on Spider the gold line fell there) | read: 39.24, 2.61 below `bird_k0/round_1` (p 0.007), 0.39 above `bird_sft/round_1` (p 0.76). Gold as chosen is not kept; the one-loss form below is the next try |
-| `bird_k0_goldnll/round_2` above `bird_k0/round_2` (43.02), with the challenging level near that of FedAvg SFT (29.66; `bird_k0/round_2` 19.31) and the simple one not below 50.70 | the method routes a question by its samples in one loss: DPO + NLL where they are mixed, NLL on the gold SQL where all are wrong; rows after it run in that form, and whether it still needs an SFT stage is read against `bird_k1/round_1` (44.26) | the SFT stage stays the way gold enters (k as a value); the hint, if the probe passes, is the remaining form |
+| `bird_k0_goldnll/round_2` above `bird_k0/round_2` (43.02), with the challenging level near that of FedAvg SFT (29.66; `bird_k0/round_2` 19.31) and the simple one not below 50.70 | the method routes a question by its samples in one loss: DPO + NLL where they are mixed, NLL on the gold SQL where all are wrong; rows after it run in that form, and whether it still needs an SFT stage is read against `bird_k1/round_1` (44.26) | read: 42.37, 0.65 below `bird_k0/round_2` (p 0.43); simple 49.73, moderate 33.41, challenging 24.14; 1.89 below `bird_k1/round_1` (p 0.045): a no. The SFT stage stays the way gold enters (k as a value); the hint is the remaining form inside a round |
 | `bird_k2/round_1` above `bird_sft/round_3` | the method holds at 3 rounds from an SFT start | read with `bird_k1/round_1` against `bird_sft/round_2`: no gain over FedAvg SFT separated on BIRD at equal rounds |
 
 Not queued yet, the owner's choice after the reads above. Open:
-`bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs (after
-the probe); centralized DPO + NLL on Spider as the upper reference of
-the method (about 8.5 h, estimate). Every BIRD row is read by official
-difficulty as well as overall (simple 925, moderate 464, challenging
-145).
+`bird_k2/round_2` and its twin on fixed pairs (the method at 4 rounds,
+and federated DPO as published from an SFT start; about 8 h and 4.5 h,
+estimates); FedAvg SFT of a second and a third model on Spider (every
+language-model paper read at CMC has three or more, `JOURNAL_BAR.md`);
+`bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
+centralized DPO + NLL on Spider as the upper reference of the method
+(about 8.5 h, estimate). Not proposed any more: gold rows for every
+question (`LAB_LOG.md`, 2026-11-21: the gold rows raised the broken
+answers). Every BIRD row is read by official difficulty as well as
+overall (simple 925, moderate 464, challenging 145).
 
 After the method is settled (owner, 2026-11-20; `RESEARCH_STATE.md`,
 section 4, item 12): centralized DPO + NLL with the federated against
-centralized gap; questions
-without gold SQL labelled by vote, as a secondary experiment, after a
-CPU probe of the vote labels.
+centralized gap.
 
 Reading: a difference of about 0.2 EX is what running the same training
 again gives. Open for the owner: round 2 of federated DPO as published

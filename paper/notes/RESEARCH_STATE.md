@@ -1,9 +1,10 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-17. On this date the owner set the project up again from
-clean: a new prompt, refactored code (package `fedls_sql`) and every result
-produced again. This file says what is fixed, what the method is and what
-is open. Runs and decisions are in `LAB_LOG.md`.
+Updated 2026-11-21; where the method stands is in section 5.0. On
+2026-11-17 the owner set the project up again from clean: a new prompt,
+refactored code (package `fedls_sql`) and every result produced again.
+This file says what is fixed, what the method is and what is open. Runs
+and decisions are in `LAB_LOG.md`.
 
 ## 1. Question
 
@@ -29,15 +30,15 @@ that clearly beats the federated baselines and reports good numbers.
 | Part | Choice | State |
 |---|---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
-| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
+| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | not part of the method (owner, 2026-11-17); a research direction, section 4 |
 | Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
-| Metric | Spider test EX (2,147 rows) through vLLM. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); the lab log records what was chosen on which set, and the paper does not call such a number held-out | fixed |
+| Metric | Spider test EX (2,147 rows) through vLLM; BIRD dev EX (1,534 rows) for the BIRD clients. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); the lab log records what was chosen on which set, and the paper does not call such a number held-out | fixed |
 | Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
 | Length | `--max-len 7168`, no truncation (a longer row stops the run); 256 new tokens | fixed |
-| Training recipe of the SFT baselines | LoRA SFT at lr 2e-4, FedAvg rounds of 1 local epoch, as many as the gain rule allows (more than 0.5 EX point over the best round, patience 2, at most 8); the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs | running from 2026-11-17 |
-| Compute | RTX A5000 24 GB under WDDM; GPU 1 is in use by another user | fixed |
+| Training recipe of the SFT baselines | LoRA SFT at lr 2e-4, FedAvg rounds of 1 local epoch, as many as the gain rule allows (more than 0.5 EX point over the best round, patience 2, at most 4 since 2026-11-18); the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs | run on Spider (FedAvg SFT 4 rounds, centralized SFT 3 epochs); on BIRD 2 rounds read, rounds 3 and 4 queued |
+| Compute | RTX A5000 24 GB under WDDM, two cards; one card available from the evening of 2026-11-21 (owner) | fixed |
 
 Data rules: train and test never share a database; test data never becomes
 training, retrieval or teacher data; privacy is structural data isolation,
@@ -51,8 +52,8 @@ clients, built to beat the federated baselines. It is the owner's own
 design, not CodeLutra applied to federated learning. CodeLutra, found
 later, runs a similar loop centrally; the paper cites it as the closest
 work and says what differs (3.6), and the settings taken from it are said
-to follow it. Nothing has run yet; the parts of 3.3 are candidates, each
-kept only on a measured gain.
+to follow it. What has run is in section 5.0; the parts of 3.3 are
+candidates, each kept only on a measured gain.
 
 | Part | Where | Supervision | Place |
 |---|---|---|---|
@@ -153,10 +154,21 @@ better than a stack of small ones.
 | I2 | Execution-aware pairs (main candidate): a wrong-result sample is paired with its nearest correct sample, an execution-error sample with any correct one; optionally the rejected side counted only on the tokens that differ | random pairs teach mostly that SQL should run; labels on empty results say nothing about meaning, and their share differs by client | pair read (2026-11-17): gold result empty for 1% to 5% of the questions at clients 1, 2, 3, 5 and 41% at client 4, from seven Spider databases without rows; earlier setup (reference only): DPO cut execution errors 211 to 58 while about 440 executable wrong-result rows on Spider test did not move | random pairs (plain form) |
 | I3 | A FedAvg SFT stage of k rounds before the DPO rounds (owner, 2026-11-17): the method is k SFT rounds, then DPO + NLL rounds, k stated as a value; k is swept (0, 2, the best FedAvg round) | from the base student the all-wrong questions (12% here) and the questions on databases without rows (20%) give no useful pair, while gold SQL teaches them; the longer the SFT stage, the more training questions the student gets right in all 10 samples, so the fewer pairs are left (expected, not measured) | earlier setup (reference only): every DPO run there started after FedAvg SFT, +3.87 EX over FedAvg round 3 (pooled +3.91, interval +2.82 to +5.01), +2.3 to +2.75 without the repetition penalty; more SFT rounds instead gave +0.84 and then fell. Against it in the papers: SFT then plain DPO gives about zero (`DPO_RESEARCH.md`, 2.1), with an offline loss and no NLL term | k = 0 (DPO rounds from the base student); the control for the same total rounds is the FedAvg SFT line itself, continued |
 
+Measured since (section 5.0, one seed): I1 is kept on BIRD (on-policy
+rounds 2.21 above fixed pairs, p 0.008) and makes no difference on Spider
+test. I2 (nearest pairs, wrong-result rejects first) gave no gain on
+Spider and was not run on BIRD. I3: on Spider no difference on test EX,
+and on test-suite accuracy k = 2 is above k = 0 and above FedAvg SFT on
+dev, Syn and Realistic (read on the Mac, not committed); on BIRD k = 1 is
+1.24 above k = 0 (p 0.19). The proposal of 2026-11-21 is to keep the SFT
+stage in the method with k = 0 as an ablation row (not decided).
+
 Smaller choices, not improvements of their own: FedAvg weights by pair
 count (pairs per client run from 5,110 to 26,290 at 10 per question), and
 the gold SQL of an all-wrong question in the NLL term (never as the
-chosen side), which I3 would make unneeded.
+chosen side), which I3 would make unneeded. Run on BIRD (2026-11-21,
+`bird_k0_goldnll/round_2`): 42.37 against 43.02 without it, not kept
+(section 4, item 12b).
 
 Settings for every DPO line (owner, 2026-11-17): 2 pairs per question
 (10, as in CodeLutra, gives 59,510 pairs a round here, about 13-15 h of
@@ -169,7 +181,7 @@ does this by default (`9dd4adce`).
 
 | Row | What it is | Role |
 |---|---|---|
-| FedAvg SFT | gold SQL, FedAvg | federated baseline; running |
+| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 2, rounds 3 and 4 queued) |
 | FedProx, FedNTD | gold SQL, other aggregators | federated baselines (item 6 of section 4) |
 | Federated DPO as published | pairs from the base student's samples made once, reference fixed for all rounds (OpenFedLLM's FedDPO); same loss, same pair count | federated DPO baseline |
 | Method | DPO + NLL rounds with the improvements kept | the row of the paper |
@@ -177,7 +189,9 @@ does this by default (`9dd4adce`).
 | Centralized SFT, local SFT | the union of the clients; each client alone | upper and lower reference |
 
 Columns: EX, easy, medium, hard, extra, execution errors, executable SQL
-with a wrong result. Not run yet; the order is decided after FedAvg SFT.
+with a wrong result. Run so far: section 5.0. Not run: FedProx, FedNTD
+and local SFT; the row of federated DPO as published past its first
+round is open for the owner (`PIPELINE_NEXT.md`).
 
 ### 3.5 Pre-training at the server
 
@@ -295,7 +309,7 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
    that a question whose samples are all wrong still gives a pair, with
    execution deciding whether the repair is kept? (`DPO_RESEARCH.md`,
    section 3.7.)
-6. Baselines with the new prompt: FedAvg (running), FedProx, FedNTD,
+6. Baselines with the new prompt: FedAvg (run), FedProx, FedNTD,
    federated DPO as published (section 3.4), centralized and local SFT.
 7. The client split. In `alpha_0.1/k5` the share of hard and extra
    questions runs from 20% to 60% across the clients, and the clients
@@ -357,10 +371,10 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
     | # | Direction | What it would show | Evidence so far | First step | Cost (estimate) |
     |---|---|---|---|---|---|
     | a | A finding on federation: centralized DPO + NLL (the same loop on the union of the clients) next to the federated method, with the gap between federated and centralized for SFT and for DPO, and the drift of the client updates | whether the execution-preference objective keeps the centralized level under non-IID data where SFT does not; centralized SFT is no longer the upper reference (epochs 1-3: 75.08, 75.73, 75.03; method 75.87, 77.18, 77.69) | FedAvg SFT against centralized SFT at the same count: -2.65, -1.63 (p 0.030), -0.32 (p 0.69) at 1, 2, 3, so SFT is slower under this split, not lower; the method at 3 rounds is 2.66 above centralized SFT epoch 3 (p 0.0015); pairwise cosine of client updates 0.24-0.46 in DPO round 1, about 0 in FedAvg SFT rounds 2-3 (0.013-0.055 in DPO round 2) | centralized DPO + NLL on Spider, 4 iterations | 8.5 h on Spider, about 20 h on BIRD |
-    | b | Each question trained on the signal it has, in one local loss: DPO + NLL on the mixed questions, NLL on the gold SQL for the all-wrong ones, nothing for the all-correct ones | a part of the method that differs from CodeLutra (which drops those questions) and stays in the story: execution where the model already has a correct SQL, gold where it has none | none; gold as the chosen side is not this (no preference term on the gold here). All-wrong questions: Spider 1,074, 902, 886, 860 over rounds 1-4, BIRD 4,035 of 9,428 (round 1 from the base student). Gold as the chosen side on BIRD at 1 round: 39.24 against 41.85 without it, p 0.007 | queued 2026-11-21 (owner: yes): `bird_k0_goldnll/round_2`, round 2 of `bird_k0` on its own pairs plus one NLL row per all-wrong question (`--gold-nll`, code `38610a58`), against `bird_k0/round_2` 43.02, overall and by BIRD difficulty | about 4.5 h, training only (estimate) |
+    | b | Each question trained on the signal it has, in one local loss: DPO + NLL on the mixed questions, NLL on the gold SQL for the all-wrong ones, nothing for the all-correct ones | a part of the method that differs from CodeLutra (which drops those questions) and stays in the story: execution where the model already has a correct SQL, gold where it has none | read 2026-11-21, not kept: `bird_k0_goldnll/round_2` is 42.37 on BIRD dev, 0.65 below `bird_k0/round_2` on the same pairs (p 0.43) and 1.89 below `bird_k1/round_1` (p 0.045); the challenging level comes part of the way back (24.14 against 19.31, p 0.039; FedAvg SFT 29.66), the simple and moderate ones fall, and from the shared parent the round breaks 81 answers against 67 without the gold rows. Not run on Spider. Gold as the chosen side is not this (no preference term on the gold here). All-wrong questions: Spider 1,074, 902, 886, 860 over rounds 1-4, BIRD 4,035 of 9,428 (round 1 from the base student). Gold as the chosen side on BIRD at 1 round: 39.24 against 41.85 without it, p 0.007 | run 2026-11-21 (owner: yes): `bird_k0_goldnll/round_2`, round 2 of `bird_k0` on its own pairs plus one NLL row per all-wrong question (`--gold-nll`, code `38610a58`), against `bird_k0/round_2` 43.02, overall and by BIRD difficulty | 4 h 52 min of training (measured) |
     | c | Questions without gold SQL, labelled by the vote over the execution results of the model's own samples; a secondary experiment, not a part of the method (owner, 2026-11-20: hiding gold is an assumption the datasets do not make; 2026-11-21: skipped, a client without gold SQL would have no questions either) | whether the execution signal still helps when labels are scarce: EX against the share of questions that keep their gold, for FedAvg SFT, the method on the labelled questions, and the method with vote labels | none of ours. CodeLutra without gold (executable against non-executable): BIRD 22.3 to 30.9 against 43.1 with gold; ScPO on GSM8K 63.91 without labels against 64.29 (`DPO_RESEARCH.md`, 2.5) | CPU only, on the Spider round 1 samples on the server: per client, the share of questions whose most voted execution result equals the gold result (script not written). A low share drops the direction | a few minutes for the probe; then 8.5 h per setting on Spider and an SFT baseline with pseudo-labels, without which FedAvg SFT loses by construction |
 
-    | d | A hint for the questions no sample solves (proposed 2026-11-21, not approved; the owner sees it as the part with the highest value for the method if it works): the client samples those questions again with a line that names the tables and columns of its own gold SQL; a sample whose result equals the gold result becomes the chosen side, under the prompt without the hint; nothing changes at test time | a part of the method that is not in CodeLutra, aimed at the errors neither SFT nor DPO removes | for: 68% to 75% of the wrong results on Spider test and BIRD dev differ from gold in tables or columns (chat analysis, not committed); 32% of the BIRD questions give no pair in round 2. Against: gold as the chosen side for the same questions is 2.61 below on BIRD (p 0.007); one DPO + NLL round already takes 25% of them out of all wrong by itself | a probe without training: the 3,017 all-wrong questions of `bird_k0/round_2`, sampled from the round 1 adapter with the hint and labelled; the direction is dropped under 25% of them with a correct sample | 30 min for the probe, then about 4 h for one round against `bird_k0/round_2` (43.02) |
+    | d | A hint for the questions no sample solves (proposed 2026-11-21, not approved; the owner sees it as the part with the highest value for the method if it works): the client samples those questions again with a line that names the tables and columns of its own gold SQL; a sample whose result equals the gold result becomes the chosen side, under the prompt without the hint; nothing changes at test time | a part of the method that is not in CodeLutra, aimed at the errors neither SFT nor DPO removes | for: 68% to 75% of the wrong results on Spider test and BIRD dev differ from gold in tables or columns (chat analysis, not committed); 32% of the BIRD questions give no pair in round 2. Against: gold as the chosen side for the same questions is 2.61 below on BIRD (p 0.007); one DPO + NLL round already takes 25% of them out of all wrong by itself. Probe and control (2026-11-21): with the hint 32.6% of the 3,017 questions hold a correct sample (8.9% of the correct samples equal the gold SQL); on clients 1, 3 and 4, 31.7% with the hint and 10.4% in a second draw without it, so the hint adds 21.4 points (interval 19.0 to 23.7), under the 25 of the first step, and 65% have none in either draw. NLL rows on the gold SQL of the same questions (12b) were not kept and moved the challenging level by 7 questions net; with an SFT stage that level is already 28.28 against 29.66 for FedAvg SFT. No round with hinted pairs is written; it needs the owner's yes to a second sampling prompt | a probe without training: the 3,017 all-wrong questions of `bird_k0/round_2`, sampled from the round 1 adapter with the hint and labelled; the direction is dropped under 25% of them with a correct sample | 30 min for the probe, then about 4 h for one round against `bird_k0/round_2` (43.02) |
 
     Also read in the same pass, without training: the five client
     adapters of a DPO round aggregated again with pair, equal, question
@@ -397,6 +411,11 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
   p 0.02) above on Spider dev, where no round or setting was chosen.
 - BIRD: +3.00 at 1 round (p 0.005), +0.32 at 2 rounds (p 0.80); with one
   SFT round first +1.56 (p 0.13). Not separated at 2 rounds.
+- Gold SQL on BIRD: as an SFT stage before the DPO rounds it is on the
+  method's side (k = 1 is 1.24 above k = 0, p 0.19); inside a DPO round
+  it has not helped in either form tried (chosen side of a pair -2.61,
+  NLL rows for the all-wrong questions -0.65), and k = 1 is 1.89 above
+  the round with the NLL rows (p 0.045).
 - The DPO rounds add about the same on both sets: the first about +3
   over an SFT round from the same start (+3.44, +3.00), the second +1.31
   and +1.17. The SFT rounds differ: the second adds 1.67 on Spider and
@@ -415,6 +434,7 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 | On-policy rounds against fixed pairs | test 78.20 against 78.02; dev +1.45 (p 0.07) | +2.21 (p 0.008), kept |
 | FedAvg SFT stage | test EX: no difference (k = 0, 2, 3: 78.02, 78.20, 77.97); test-suite accuracy on dev, Syn, Realistic: k = 2 above k = 0 (p 0.010, 0.0014, 0.0067) and above FedAvg SFT, k = 0 level with FedAvg SFT (`LAB_LOG.md`, 2026-11-21; not committed) | k = 1 is 1.24 above k = 0 (p 0.19) |
 | Gold as the chosen side | falls at round 2 | -2.61 (p 0.007) |
+| NLL rows on the gold SQL of the all-wrong questions, in the round of the pairs | not run | -0.65 (p 0.43), not kept; 1.89 below k = 1 (p 0.045) |
 | Nearest pairs, wrong-result rejects first | no gain | not run |
 
 ### 5.1 Published numbers for this student (reference, read 2026-11-20)
