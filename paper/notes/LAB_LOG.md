@@ -4,6 +4,71 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-21: BIRD at 2 rounds: `bird_k0/round_2` 43.02, level with FedAvg SFT; fixed pairs 40.81; the six Spider rows on Spider dev
+
+Results `77079f67`, `b16a365a` (`bird_fixed/round_2`), `40dc6a3c`,
+`d246d243` (`bird_k0/round_2`), `5a8b7c8f` (Spider dev), `20b43a92`
+(record of the centralized SFT curve: 3 epochs, best epoch 2).
+
+| BIRD dev, 2 total rounds | EX | Execution errors | Wrong results | Cut outputs |
+|---|---|---|---|---|
+| FedAvg SFT | 42.70 | 285 | 593 | 1 |
+| DPO + NLL from the base student (k = 0) | 43.02 | 247 | 624 | 3 |
+| the same, round 2 on the round 1 pairs, fixed reference | 40.81 | 162 | 725 | 21 |
+| FedAvg SFT round 1, then one DPO + NLL round (k = 1) | 44.26 | 120 | 727 | 8 |
+
+- k = 0 against FedAvg SFT: +0.32, exact McNemar p 0.80 (133 questions
+  fixed, 128 broken). The +3.00 of round 1 (p 0.005) is not there at
+  round 2: the second DPO round adds 1.17 (41.85 to 43.02, p 0.17), the
+  second SFT round 3.85.
+- k = 0 against k = 1: -1.24, p 0.19 (84 fixed, 103 broken). By the read
+  in `PIPELINE_NEXT.md` (k = 0 at least equal to k = 1): no; the method
+  on BIRD keeps an SFT stage, with k as a value. Neither line is
+  separated from FedAvg SFT at 2 rounds (k = 1: +1.56, p 0.13).
+- On-policy rounds against fixed pairs: +2.21, p 0.008 (94 fixed, 60
+  broken): kept by the rule, the first set where it separates (Spider
+  test: 78.20 against 78.02). The fixed line falls from its round 1
+  (41.85 to 40.81, p 0.17) and is 1.89 below FedAvg SFT (p 0.09).
+- Round 2 of k = 0 removes wrong results (673 to 624) and gives back
+  execution errors (211 to 247). Its pairs reject a wrong result in 61%
+  (5,352 of 8,840; round 1: 24%); its samples: 41.6% correct, 17.0%
+  execution errors, 35.3% wrong results (round 1: 19.8%, 50.0%, 17.0%).
+- Committed question kinds of round 2 as in the entry below. Golds on
+  the 30 s budget: 72 (1 / 14 / 22 / 0 / 35 per client) against 50 in
+  `bird_k1/round_1` and 30 for the base samples labelled on CPU; samples
+  on the budget 439 against 165 and 164.
+- Times of `bird_k0/round_2`: training 3 h 51 min (reference 51 min,
+  updates 3 h 00 min; client 5 alone 2 h 30 min for 2,630 pairs). The
+  sampling ran in three calls (03:04, 05:24, 10:33; two were stopped), so
+  its total is not complete: the label calls that finished add up to 2 h
+  13 min. Client 1 was labelled before code `0910b84f` (committed 04:55)
+  in 62 min, clients 3 and 4 after it in 7.6 and 3.0 min (4.5 and 1.9
+  min in `bird_k1/round_1`, with 43% of the samples failing against 17%
+  here). The effect of the held-back second runs is not measured by
+  this round; the `SQL budget` lines of the log were not seen.
+- `bird_fixed/round_2`: training 3 h 32 min on the 9,714 pairs of round 1.
+
+| Spider, same six adapters | Spider dev (1,034) | Spider test (2,147) |
+|---|---|---|
+| Base student | 68.96 | 68.05 |
+| FedAvg SFT round 4 | 75.15 | 74.71 |
+| Centralized SFT epoch 2 | 73.02 | 75.73 |
+| DPO + NLL from the base student, round 4 (k = 0) | 77.27 | 78.02 |
+| 2 SFT rounds then 2 DPO + NLL rounds (k = 2) | 77.66 | 78.20 |
+| the same on fixed pairs, fixed reference | 76.21 | 78.02 |
+
+- On Spider dev, where no round or setting was chosen, the gain over
+  FedAvg SFT is +2.12 for k = 0 (p 0.08; 84 fixed, 62 broken) and +2.51
+  for k = 2 (p 0.02; 72 fixed, 46 broken); on Spider test +3.31 and
+  +3.49. The fixed-pair line is +1.06 (p 0.38).
+- On-policy against fixed pairs on Spider dev: +1.45, p 0.07 (38 fixed,
+  23 broken). k = 0 against centralized SFT: +4.25, p 0.0004; FedAvg SFT
+  is 2.13 above centralized SFT there (p 0.06).
+- Spider-Syn, Spider-Realistic and Spider-DK: not published at 15:07.
+- Queued (code `de56e3cd`): `bird_sft` rounds 3 and 4, needed by every
+  outcome (the baseline to 4 rounds and the starts of the lines with an
+  SFT stage); about 2 h 50 min a round.
+
 ## 2026-11-21: `bird_k0/round_2`, the questions after one DPO + NLL round on BIRD: 3,017 without a correct sample (owner's console, 12:25, not committed)
 
 The status output and the five `pairs from` lines of the task log, pasted

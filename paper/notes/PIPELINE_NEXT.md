@@ -2,12 +2,12 @@
 
 ## Status
 
-Updated 2026-11-21 12:45 (Asia/Ho_Chi_Minh). Last result:
-`bird_k0_gold/round_1` on BIRD dev, 39.24, published 2026-11-21 06:58.
-From the owner's console at 12:25, not committed: after one DPO + NLL
-round on BIRD 3,017 of the 9,428 questions have no correct sample (4,035
-before it, 3,220 after one FedAvg SFT round), and round 2 trains on
-8,840 pairs (round 1: 9,714).
+Updated 2026-11-21 15:40 (Asia/Ho_Chi_Minh). Last results (published
+12:57 to 15:07): `bird_k0/round_2` on BIRD dev 43.02, `bird_fixed/round_2`
+40.81, the six Spider rows on Spider dev. After one DPO + NLL round on
+BIRD 3,017 of the 9,428 questions have no correct sample (4,035 before
+it, 3,220 after one FedAvg SFT round), and round 2 trains on 8,840 pairs
+(round 1: 9,714).
 Centralized SFT ends at 3 epochs (owner, 10:55): 75.08, 75.73, 75.03;
 epoch 4 was stopped in training and is not used.
 Queued last (owner, 11:15): six Spider rows on Spider dev, Spider-Syn,
@@ -29,17 +29,26 @@ against 77.46). No gain on Spider: nearest pairs, wrong-result rejects
 first, on-policy rounds over fixed pairs (78.20 against 78.02, with
 3,354 pairs against 8,026), the FedAvg SFT stage (k = 0, 2, 3: 78.02,
 78.20, 77.97), gold as chosen (round 2 falls: 75.73 against 77.18).
+On Spider dev (1,034 rows, no round or setting chosen there) the same
+adapters give FedAvg SFT 75.15, k = 0 77.27 (+2.12, p 0.08), k = 2 77.66
+(+2.51, p 0.02), the fixed-pair line 76.21, centralized SFT 73.02.
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
 student, 34% after one SFT round, 32% after one DPO + NLL round). BIRD
 dev so far:
 
-| Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) | k = 0 with gold |
-|---|---|---|---|---|
-| 0 | 29.47 | | | |
-| 1 | 38.85 | | 41.85 | 39.24 |
-| 2 | 42.70 | 44.26 | running | |
+| Total rounds | FedAvg SFT | 1 SFT round then DPO (k = 1) | DPO from the base student (k = 0) | k = 0, round 2 on fixed pairs | k = 0 with gold |
+|---|---|---|---|---|---|
+| 0 | 29.47 | | | | |
+| 1 | 38.85 | | 41.85 | | 39.24 |
+| 2 | 42.70 | 44.26 | 43.02 | 40.81 | |
+
+At 2 rounds no line is separated from FedAvg SFT: k = 0 is +0.32 (p
+0.80), k = 1 +1.56 (p 0.13), and k = 0 is 1.24 below k = 1 (p 0.19). The
+second DPO round adds 1.17 where the second SFT round adds 3.85.
+On-policy rounds are 2.21 above fixed pairs (p 0.008), kept by the rule;
+the fixed line falls from its round 1.
 
 k = 0 at 1 round is 3.00 above FedAvg SFT, exact McNemar p 0.005 (152
 questions fixed, 106 broken): kept by the rule, as on Spider (+3.44 at 1
@@ -55,44 +64,45 @@ are SQL run again alone after meeting the 30 s under load, on clients 1,
 2 and 5 (`LAB_LOG.md`, 2026-11-21). From code `0910b84f` a label step
 runs them after its other questions, 4 at a time (labels about 1.5 h,
 estimate). The server has that code: the result commit of 06:50 sits on
-it, and `bird_k0/round_2` started after it. The label time of that round
-is read from its `timing.json` when it is published; the console of
-12:25 does not show it.
+it. `bird_k0/round_2` does not measure the change: its sampling ran in
+three calls, two of them stopped, and client 1 was labelled on the code
+before it (`LAB_LOG.md`, 2026-11-21). Golds on the 30 s budget in that
+round: 72, against 50 in `bird_k1/round_1`; the `SQL budget` lines of
+its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| 0 | Worker on `bird_k0/round_2` since 10:33: pairs built at 11:07, clients 1 to 3 trained, client 4 in its DPO updates at 12:25, client 5 left (2,630 pairs). EX about 14:45 (estimate). Before it, on the same card: `bird_fixed/round_2`, 06:58 to 10:33. | status output and task log, owner's console, 12:25 |
-| 1 | No worker. `bird_fixed/publish_round_2`, `bird_fixed/eval_2` and rows 8 to 10 are ready and wait; with GPU 0 alone they start after the evaluation of `bird_k0/round_2`, about 14:50 (estimate). | status output, owner's console, 12:25 |
+| 0 | Published the evaluation of `bird_k0/round_2` at 15:07. What it runs now is not known: nothing of its queue was left but row 10, if GPU 1 has not run it. | remote, read 15:08 |
+| 1 | A worker ran here from about 12:30 (`bird_fixed`, the centralized record, Spider dev at 13:49). Row 10 is not published at 15:08: whether the worker still runs, stopped at its hour or failed is not known. | remote, read 15:08 |
 
 ## Run now
 
-1. Nothing to start on GPU 0: its worker runs the BIRD rounds in the
-   order of the table below. If it stops, the same line continues it
-   (it pulls first):
+1. On the server, the status line (Reference) first; send its output
+   back. Then, on each card without a worker, this line (it pulls code
+   `62e56a32` with `bird_sft` rounds 3 and 4; a worker that still runs
+   takes them after a `git fetch origin` and `git merge --ff-only
+   origin/main` in another window). GPU 0:
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. GPU 1 has no worker (12:25). If the card is free: the check of step 5
-   first (seconds), then the same line with `--gpu 1` and the hour it
-   has to stop. It takes what is left of `bird_fixed` (the evaluation of
-   round 2 and the two publications: its EX in about 15 min), then rows
-   8 to 10 (about 1 h, estimate).
+2. GPU 1, when it is free: the same line with `--gpu 1` and the hour it
+   has to stop. One card trains `bird_sft/round_3` (row 11); the other
+   takes row 10 if it is not done.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --until HH:MM; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
 3. Send back, when they come:
-   - the EX lines of `bird_fixed/round_2` and `bird_k0/round_2`, or a
-     word that they are published (they are then read from the remote,
-     with the round's times and its `questions_gold_timeout`);
+   - the output of the status line, now;
    - from the log of `bird_k0/round_2`
      (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
      alone, seconds of each);
-   - the EX line of each later BIRD round;
+   - a word when `bird_sft/round_3` is published (about 3 h after it
+     starts; it is then read from the remote);
    - a `STOP queue` line, if one comes.
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
@@ -108,7 +118,7 @@ is read from its `timing.json` when it is published; the console of
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Any time, CPU only (seconds), before the Spider dev rows start: are
+5. Any time, CPU only (seconds), if row 10 has not run: are
    the databases of the four sets and the five adapters on the server?
    Send back its last line, or the paths it lists. A missing path fails
    the evaluation task, and a failed task stops its worker. Not run
@@ -122,17 +132,11 @@ is read from its `timing.json` when it is published; the console of
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 6 | `bird_k0/round_2` | DPO from the base student at 2 rounds, against `bird_sft` round 2 (42.70) and `bird_k1/round_1` (44.26) | training about 3 h 25 min for its 8,840 pairs (estimate from round 1's seconds per pair) | running on GPU 0 since 10:33 on code `0910b84f`; client 4 of 5 in training at 12:25 |
-| 7 | `bird_fixed/round_2` | on-policy rounds on BIRD: round 2 on the round 1 pairs with a fixed reference, against row 6 (8,840 new pairs there) | evaluation about 10 min | trained on GPU 0 in 3 h 35 min, ended 10:33; publication and evaluation ready, no worker free |
-| 8 | `refs/central_sft` | the record of the centralized SFT curve: 3 epochs, best epoch 2 (75.73); trains nothing | seconds | queued |
-| 9 | `spider_dev/*` (6 evaluations, one publication) | Spider dev (1,034 rows) for the base student, FedAvg SFT round 4, centralized SFT epoch 2, k = 0 round 4, k = 2 round 2 and its fixed-pair line: does the gain over FedAvg SFT hold on the set most papers report, where no round or setting was chosen? | 20 min (estimate; a Spider test evaluation took 2.5 to 5.5 min) | queued, no training |
-| 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | queued last, no training |
+| 10 | `spider_variants/*` (6 evaluations, one publication) | the same six rows on Spider-Syn (1,034), Spider-Realistic (508) and Spider-DK (535) | 40 min (estimate) | not published at 15:08; state not known |
+| 11 | `bird_sft/round_3`, `bird_sft/round_4`, each with its evaluation and publications | FedAvg SFT on BIRD to 4 rounds: the baseline of the BIRD table and the starts of the lines with an SFT stage; does it pass the DPO lines at 3 rounds? | 2 h 50 min a round and 10 min an evaluation (measured on rounds 1 and 2) | queued 15:35 (code `62e56a32`), not started |
 
-Expected with GPU 0 alone (estimates, from the measured times of
-`bird_k0/round_1`): the EX of `bird_k0/round_2` by about 14:45, that of
-`bird_fixed/round_2` about 15:00, rows 8 to 10 by about 16:00. With a
-worker on GPU 1 from now: the EX of `bird_fixed/round_2` in about 15
-min, rows 8 to 10 an hour later. Rows 9 and 10 need no earlier task.
+Expected (estimates): `bird_sft/round_3` evaluated about 3 h after a
+worker takes it, round 4 3 h later.
 
 How the reads settle the method (BIRD dev, same total rounds, kept at
 0.5 EX or more with McNemar p below 0.05):
@@ -140,12 +144,15 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 | Read | If yes | If no |
 |---|---|---|
 | `bird_k1/round_1` above `bird_sft/round_2` | the method holds on BIRD from an SFT start; the line runs on, and the start from the best SFT round is queued | read: 44.26 against 42.70, p 0.13, a no by the rule with the difference on the method's side. Rows 4 to 6 decide; the line is not dropped |
-| `bird_k0/round_2` at least equal to `bird_k1/round_1` | no SFT stage: the method is k = 0 on both datasets | the method is k SFT rounds, then DPO + NLL, k as a value |
+| `bird_k0/round_2` at least equal to `bird_k1/round_1` | no SFT stage: the method is k = 0 on both datasets | read: 43.02 against 44.26, p 0.19, a no without a separation. The method on BIRD keeps an SFT stage, k as a value; which k is open until `bird_sft` rounds 3 and 4 are read |
+| `bird_k0/round_2` above `bird_fixed/round_2` | on-policy rounds are a part of the method with a measured gain | read: 43.02 against 40.81, p 0.008: yes |
 | `bird_k0_gold/round_1` above `bird_k0/round_1` (41.85) and `bird_sft/round_1` (38.85) | its round 2 is queued (on Spider the gold line fell there) | read: 39.24, 2.61 below `bird_k0/round_1` (p 0.007), 0.39 above `bird_sft/round_1` (p 0.76). Gold as chosen is not kept; the one-loss form below is the next try |
 
-Not queued yet, each decided on the reads above: the winning BIRD line
-and `bird_sft` to 4 rounds; DPO from the best `bird_sft` round, 1 to 2
-rounds (owner's expectation of the highest level); one local loss with
+Not queued yet, the owner's choice after the reads above (the gain over
+FedAvg SFT on BIRD is not separated at 2 rounds): `bird_k1/round_2`
+against `bird_sft/round_3`; `bird_k0/round_3`; DPO from the best
+`bird_sft` round, 1 to 2 rounds (owner's expectation of the highest
+level); one local loss with
 DPO + NLL on the mixed questions and NLL on the gold SQL for the
 all-wrong ones (needs code: a preference weight per row); centralized
 DPO + NLL on Spider as the upper reference of the method (about 8.5 h,
