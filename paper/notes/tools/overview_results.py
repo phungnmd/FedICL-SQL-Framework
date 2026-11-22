@@ -6,8 +6,8 @@ prediction CSV (execution error incl. cut output, wrong result), computes the
 exact McNemar test of every row against FedAvg SFT at the same round, and of the
 pairs in TESTS, and writes the result as JSON between the RESULTS markers of the
 page. A new evaluation needs one line in ARMS; a new model or seed is picked up
-from the metrics file. The page draws Spider test and BIRD dev (DATASET_OF_SET);
-evaluations of other sets are left out.
+from the metrics file. The page draws the sets of DATASET_OF_SET: Spider test, Spider
+dev, Spider-Syn, Spider-Realistic, Spider-DK and BIRD dev (by official difficulty).
 
     python3 paper/notes/tools/overview_results.py          # write the page
     python3 paper/notes/tools/overview_results.py --check  # print, write nothing
@@ -59,6 +59,11 @@ ARMS = {
     "fedavg_bird_ddl_a01_r1": ("fedavg", 1),
     "fedavg_bird_ddl_a01_r2": ("fedavg", 2),
     "fedpref_bird_base_p2_dpo_ddl_a01_r1": ("k0", 1),
+    "fedavg_bird_ddl_a01_r3": ("fedavg", 3),
+    "fedpref_bird_base_p2_dpo_ddl_a01_r2": ("k0", 2),
+    "fedpref_bird_base_p2_goldrule_dpo_ddl_a01_r1": ("k0gold", 1),
+    "fedpref_bird_base_p2_goldnll_dpo_ddl_a01_r2": ("k0goldnll", 2),
+    "fedpref_bird_base_p2_fixed_dpo_ddl_a01_r2": ("fixed", 2),
     "fedpref_bird_sftr1_p2_dpo_ddl_a01_r1": ("k1", 2),
 }
 SKIP = {"zs_ddl_values"}  # prompt B, kept in the notes only
@@ -85,14 +90,36 @@ TESTS = [
     ("bird", "fedavg", 1, "k1", 2),
     ("spider", "central", 3, "k0", 3),
     ("spider", "central", 2, "central", 3),
-]
+    ("bird", "fedavg", 2, "fedavg", 3),
+    ("bird", "fedavg", 3, "k1", 2),
+    ("bird", "k0", 1, "k0", 2),
+    ("bird", "k0", 2, "k1", 2),
+    ("bird", "fixed", 2, "k0", 2),
+    ("bird", "k0", 1, "k0gold", 1),
+    ("bird", "k0", 2, "k0goldnll", 2),
+    ("bird", "k1", 2, "k0goldnll", 2),
+] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
+    (ds, "base", 0, "fedavg", 4),
+    (ds, "fixed", 4, "k2", 4),
+    (ds, "k0", 4, "k2", 4),
+    (ds, "central", 2, "k0", 4),
+    (ds, "central", 2, "k2", 4),
+)]
 
-# the sets the page draws (the `eval_set` of a metrics file); an arm evaluated on another
-# set as well (Spider dev, Syn, Realistic, DK) keeps its name there and is left out here
+# the sets the page draws (the `eval_set` of a metrics file); an arm keeps its name on every set
 DATASET_OF_SET = {
     "processed_data/SPIDER_TEST/test.csv": "spider",
+    "processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/centralized/test.csv": "spiderdev",
+    "processed_data/SPIDER_SYN/test.csv": "syn",
+    "processed_data/SPIDER_REALISTIC/test.csv": "realistic",
+    "processed_data/SPIDER_DK/test.csv": "dk",
     "processed_data/protocol_v2/BIRD/original_train9428_dev1534/centralized/test.csv": "bird",
 }
+# BIRD dev is read by its official difficulty (dev.json, same row order as the evaluation
+# file; row_id is the index), the Spider sets by the Spider hardness of the prediction CSV
+BIRD_DEV_JSON = CODE / "data" / "raw" / "bird" / "dev_20240627" / "dev.json"
+LEVELS = {"bird": (("simple", "s"), ("moderate", "mo"), ("challenging", "c"))}
+SPIDER_LEVELS = (("easy", "e"), ("medium", "m"), ("hard", "h"), ("extra", "x"))
 MODEL_SHORT = {"Qwen/Qwen2.5-Coder-1.5B-Instruct": "qwen15"}
 
 
@@ -125,8 +152,13 @@ def commit_of(path: Path) -> str:
     return out[:8]
 
 
+def bird_difficulty() -> list[str]:
+    return [q["difficulty"] for q in json.loads(BIRD_DEV_JSON.read_text(encoding="utf-8"))]
+
+
 def load() -> tuple[list[dict], dict]:
     runs, rows_of = [], {}
+    bird_dev = None
     for metrics in sorted(RESULTS.glob("*/metrics.json")):
         d = json.loads(metrics.read_text(encoding="utf-8"))
         ds = DATASET_OF_SET.get(Path(d.get("eval_set", "")).as_posix())
@@ -148,10 +180,17 @@ def load() -> tuple[list[dict], dict]:
             ex = round(100 * sum(int(row["ex"]) for row in rows.values()) / n, 2)
             if abs(ex - 100 * a["ex"]) > 0.006:
                 raise SystemExit(f"{arm}: EX {ex} from the CSV against {a['ex']} in metrics.json")
+            if ds == "bird":
+                bird_dev = bird_dev or bird_difficulty()
+                if len(bird_dev) != n:
+                    raise SystemExit(f"{arm}: {n} rows against {len(bird_dev)} in dev.json")
+                level_of = {i: bird_dev[int(i)] for i in rows}
+            else:
+                level_of = {i: row.get("hardness") for i, row in rows.items()}
             hard = {}
-            for h_ in ("easy", "medium", "hard", "extra"):
-                sub = [row for row in rows.values() if row.get("hardness") == h_]
-                hard[h_[0] if h_ != "extra" else "x"] = round(100 * sum(int(x["ex"]) for x in sub) / len(sub), 2) if sub else None
+            for name, key in LEVELS.get(ds, SPIDER_LEVELS):
+                sub = [rows[i] for i in rows if level_of[i] == name]
+                hard[key] = round(100 * sum(int(x["ex"]) for x in sub) / len(sub), 2) if sub else None
             run = {"ds": ds, "model": model, "seed": int(d.get("seed", 0)), "line": line, "r": r, "n": n, "ex": ex,
                    **hard,
                    "err": sum(k in ("exec_error", "cut") for k in kinds), "cut": sum(k == "cut" for k in kinds),
@@ -193,7 +232,7 @@ def build() -> dict:
                 t = test(rows_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
                 if t:
                     tests.append(t)
-    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k2", "k3", "fixed", "feddpo", "rft",
+    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "fixed", "feddpo", "rft",
                                           "nearest", "goldchosen", "wrfirst", "central"])}
     runs.sort(key=lambda x: (x["ds"], x["model"], order.get(x["line"], 99), x["r"], x["seed"]))
     return {"runs": runs, "tests": tests}
