@@ -1,6 +1,6 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-21; where the method stands is in section 5.0. On
+Updated 2026-11-22; where the method stands is in section 5.0. On
 2026-11-17 the owner set the project up again from clean: a new prompt,
 refactored code (package `fedls_sql`) and every result produced again.
 This file says what is fixed, what the method is and what is open. Runs
@@ -181,7 +181,7 @@ does this by default (`9dd4adce`).
 
 | Row | What it is | Role |
 |---|---|---|
-| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 2, rounds 3 and 4 queued) |
+| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 3, round 4 queued) |
 | FedProx, FedNTD | gold SQL, other aggregators | federated baselines (item 6 of section 4) |
 | Federated DPO as published | pairs from the base student's samples made once, reference fixed for all rounds (OpenFedLLM's FedDPO); same loss, same pair count | federated DPO baseline |
 | Method | DPO + NLL rounds with the improvements kept | the row of the paper |
@@ -395,7 +395,7 @@ The two prompts do not differ (exact McNemar p = 0.47). FedAvg SFT round 1
 (results `d6bfc763`) is above the untrained student with prompt A: 165 rows
 fixed, 71 broken, exact McNemar p = 8.5e-10.
 
-### 5.0 Where the method stands (2026-11-21, one seed)
+### 5.0 Where the method stands (2026-11-22, one seed)
 
 EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 
@@ -403,14 +403,15 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 |---|---|---|---|---|---|
 | 1 | 72.43 | 75.87 | 38.85 | 41.85 | |
 | 2 | 74.10 | 77.18 | 42.70 | 43.02 | 44.26 |
-| 3 | 74.71 | 77.69 | | | |
+| 3 | 74.71 | 77.69 | 43.68 | | |
 | 4 | 74.71 | 78.02 | | | |
 
 - Spider: the method is 3.3 to 3.5 above FedAvg SFT at 4 rounds on
   Spider test (k = 2: 78.20), and 2.12 (k = 0, p 0.08) and 2.51 (k = 2,
   p 0.02) above on Spider dev, where no round or setting was chosen.
 - BIRD: +3.00 at 1 round (p 0.005), +0.32 at 2 rounds (p 0.80); with one
-  SFT round first +1.56 (p 0.13). Not separated at 2 rounds.
+  SFT round first +1.56 (p 0.13). Not separated at 2 rounds. FedAvg SFT
+  at 3 rounds is 43.68: k = 1 at 2 rounds is 0.59 above it (p 0.61).
 - Gold SQL on BIRD: as an SFT stage before the DPO rounds it is on the
   method's side (k = 1 is 1.24 above k = 0, p 0.19); inside a DPO round
   it has not helped in either form tried (chosen side of a pair -2.61,
@@ -419,12 +420,14 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 - The DPO rounds add about the same on both sets: the first about +3
   over an SFT round from the same start (+3.44, +3.00), the second +1.31
   and +1.17. The SFT rounds differ: the second adds 1.67 on Spider and
-  3.85 on BIRD, the third 0.61 on Spider. FedAvg SFT has not flattened
-  on BIRD at 2 rounds; `bird_sft` rounds 3 and 4 say where it does.
+  3.85 on BIRD, the third 0.61 on Spider and 0.98 on BIRD (p 0.11).
+  FedAvg SFT slows on BIRD at round 3 as it did on Spider; round 4 is
+  queued.
 - One DPO round after SFT adds 3.36 on Spider (from round 2) and 5.41 on
   BIRD (from round 1). The read still to make on BIRD: DPO from
   `bird_sft` round 2 (k = 2, the k of the best Spider line) against
-  `bird_sft` round 3; queued 2026-11-21 as `bird_k2/round_1`.
+  `bird_sft` round 3 (43.68; a separated gain is about 45.8); queued
+  2026-11-21 as `bird_k2/round_1`.
 - The DPO rounds remove execution errors and leave the wrong results;
   SFT does the reverse (BIRD at 2 rounds: 285 and 593 for FedAvg SFT,
   120 and 727 for k = 1).

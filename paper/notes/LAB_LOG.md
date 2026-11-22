@@ -4,6 +4,59 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: `bird_sft/round_3`, FedAvg SFT on BIRD at 3 rounds: 43.68, 0.98 above round 2
+
+Run `eval_arms__s0__20261121T183455__16c32a3b85ca__8893c69d683e424a84065861a15f57d1`,
+arm `fedavg_bird_ddl_a01_r3_vllm_inproc`, round record
+`federated__fedavg__s0__7ecd649662f3__5e43d16b__r3`; round `94c2966f`
+(01:28), evaluation `f5b4eba2` (01:35). Read on the Mac from the
+committed predictions at 08:35. Errors are the committed `exec_errors`
+field (timeouts included).
+
+| Row | Rounds | BIRD dev EX | Simple (925) | Moderate (464) | Challenging (145) | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 1 | 1 | 38.85 | 46.16 | 28.66 | 24.83 | 372 | 566 |
+| FedAvg SFT round 2 | 2 | 42.70 | 50.49 | 31.25 | 29.66 | 286 | 593 |
+| FedAvg SFT round 3 | 3 | 43.68 | 51.57 | 32.54 | 28.97 | 276 | 588 |
+| k = 0 round 2 | 2 | 43.02 | 50.70 | 35.13 | 19.31 | 250 | 624 |
+| k = 1 | 2 | 44.26 | 50.38 | 37.07 | 28.28 | 127 | 728 |
+
+Exact McNemar, FedAvg SFT round 3 against:
+
+| Row | Only round 3 right | Only the other right | Difference | p |
+|---|---|---|---|---|
+| FedAvg SFT round 2 (its start) | 45 | 30 | +0.98 | 0.11 |
+| FedAvg SFT round 1 | 126 | 52 | +4.82 | below 0.0001 |
+| k = 1 (2 rounds) | 117 | 126 | -0.59 | 0.61 |
+| k = 0 round 2 | 141 | 131 | +0.65 | 0.59 |
+
+- FedAvg SFT slows on BIRD: +9.38, +3.85, +0.98 over rounds 1 to 3. On
+  Spider test it added +1.67, +0.61 and 0 after round 1. By difficulty
+  the third round moves the simple questions by 27 against 17, the
+  moderate by 15 against 9, the challenging by 3 against 4.
+- k = 1 at 2 rounds is level with FedAvg SFT at 3 rounds, on the
+  method's side (0.59, p 0.61); on the moderate questions it is above
+  (50 against 29, p 0.024), level on the simple (65 against 76) and the
+  challenging (11 against 12). Against k = 0 round 2, FedAvg SFT round 3
+  is above on the challenging questions (18 against 4, p 0.0043).
+- The bar of `bird_k2/round_1` (one DPO + NLL round from FedAvg SFT
+  round 2, 3 rounds in all) is 43.68; a separated gain is about 45.8.
+  The round has to add about 3.1 to its start (42.70). One DPO + NLL
+  round added 5.41 from FedAvg SFT round 1 on BIRD and 3.36 from round
+  2 on Spider.
+- Measured: rounds 1 and 2 took 2 h 54 min and 2 h 48 min (round wall
+  time); round 3 was stopped for the gold-row round and continued, its
+  last call ran 2 h 40 min with client 1 from row 1,040 (the record
+  marks the time as not that of the round). Peak reserved 19.84 GiB in
+  rounds 1 and 2 and 19.86 GiB in round 3, on client 5. Evaluation 6
+  min. Written into `fedicl-sql/docs/A5000_RUN_CONFIG.md`.
+- Card: `bird_k2/round_1` is next in file order, so since about 01:36;
+  not confirmed, and nothing of it was on the remote at 08:35 (6.5 to 8
+  h, estimate: read between 08:15 and 09:45).
+- Session estimate after this read (judgement): `bird_k2/round_1` above
+  `bird_sft/round_3` 90%, separated 50 to 55% (85% and 50% before it:
+  the baseline moved less than a point).
+
 ## 2026-11-22: a third reviewer's independent proposal, a plan line before the SQL (not decided); the read behind it checked (no new run)
 
 Owner's request (00:10): a third reviewer agent with an independent
