@@ -33,6 +33,68 @@ delegated agent and read here before the push.
 - Read as: under about a third of the questions mixed at f = 0.5 above
   the control, form 3 is dropped.
 
+## 2026-11-23: reading on a server part for the method (owner: the method is too simple; no run, nothing decided)
+
+Owner's question: which direction makes the method more than "FedAvg SFT
+rounds, then a DPO + NLL round", for example a distillation round at the
+server. Read: the notes, the earlier setup (reference only) and two
+papers through a page-fetch agent, not by eye.
+
+What the earlier setup measured for a server stage (old prompt,
+repetition penalty, two seeds pooled; reference only, never a result):
+
+- Teacher soft targets on BIRD before FedAvg: +2.12 on Spider test
+  before the DPO rounds and +1.40 after them (p 0.01); after DPO +3.53
+  on Spider dev, +4.11 on DK, +2.03 on Syn.
+- The teacher's own part against gold SQL on the same BIRD rows: +0.98
+  after DPO (p 0.04), +0.23 before.
+- The 7B teacher without training (77.22) was right on 129 of the
+  method's 442 wrong results; the soft-target stage did not pass those
+  rows on.
+
+Nothing of this is measured since the reset: no server stage, no
+teacher row. The server preference round with the teacher's SQL as the
+chosen side (`srvx_s0`, `srvt_s0`) was queued on 2026-11-17 and never
+read.
+
+Papers:
+
+- FedCoLLM (arXiv 2411.11707 v3): after every aggregation the server
+  trains the small model and its own LLM on labelled auxiliary data
+  with cross-entropy plus mutual KL. Table 2, client model, FedAvg to
+  FedCoLLM: CQA 58.6 to 60.8 and OBQA 27.2 to 29.2 (OPT-1.3B), ARC-E
+  59.97 to 60.01. The FedAvg baseline has no auxiliary data and no row
+  removes the KL term, so the gain mixes the teacher with the extra
+  labelled data. The server LLM is trained, not frozen.
+- PubSwap (arXiv 2604.12160 v1): federated GRPO where the clients take
+  steps on shared public prompts and a client with few correct
+  responses gets correct ones of the other clients. Qwen3-1.7B on
+  DeepMath, 10 / 40 / 90 / 120 local steps: +2.2 / +0.3 / +2.9 / +5.1
+  over FedAvg-GRPO; on MATH -0.9 / +1.1 / +1.4 / +0.7. No teacher, no
+  SQL or code task, and no baseline that also trains on the public set.
+
+Proposal (not decided): a server part with the same loss as the
+clients. On the public data the student samples, execution labels the
+samples, and where no sample is correct the teacher's SQL is the chosen
+side when it returns the gold result. Controls: the stage with gold SQL
+only, and gold as the chosen side for the same questions (on the BIRD
+clients gold as chosen was 2.61 below, p 0.007).
+
+Reads before any training, none queued:
+
+1. The adapters trained on the BIRD clients (`bird_sft/round_3`,
+   `bird_k0/round_1`, `bird_k2/round_1`) evaluated on Spider test, and
+   the Spider adapters on BIRD dev: what training on the public set
+   gives the other set with this prompt, with gold and with the
+   execution loss (evaluation only; a federated adapter stands in for a
+   server stage).
+2. The 7B teacher without training on Spider test and BIRD dev with the
+   present prompt, and the share of the method's wrong results it gets
+   right.
+3. CPU only: of the base student's 4,035 all-wrong BIRD train
+   questions, the share where the stored teacher SQL returns the gold
+   result.
+
 ## 2026-11-23: reading on one loss for gold SQL and execution preference (literature and committed audits, no run, nothing decided)
 
 Owner's question: the method flattens after its first DPO + NLL round
