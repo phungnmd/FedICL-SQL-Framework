@@ -4,6 +4,77 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: the Spider line queued on two more student models, Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B (owner)
+
+Owner in chat this morning, on the session's proposal; queue commit
+`05cf77cc` (10:29). Nothing of it has run.
+
+- Why these two: Qwen2.5-Coder-0.5B-Instruct is the same family one size
+  down (hidden 896, 24 layers, 14 heads; apache-2.0) and
+  deepseek-coder-1.3b-instruct another family at about the size of the
+  1.5B (hidden 2,048, 24 layers, 16 heads); both are open and ship
+  `model.safetensors` (configs and file lists read on Hugging Face).
+  Qwen2.5-Coder-3B was left out on a memory estimate by parameter count
+  (26 to 32 GiB); by the scaling below it would need about 18.5 GiB
+  allocated (estimate), so a probe could settle it if a third Qwen size
+  is wanted.
+- What runs: for each model the line of Qwen2.5-Coder-1.5B with the
+  model changed and nothing else. FedAvg SFT rounds 1 to 4 (lr 2e-4,
+  batch 1 x 16, length limit 7,168), DPO + NLL rounds 1 and 2 from
+  FedAvg SFT round 2 (10 samples at T 1.0, 2 random pairs per mixed
+  question, beta 0.1, lr 5e-5), prompt `ddl_rows` through the model's own
+  chat template, greedy evaluation of 256 new tokens on Spider test.
+  k = 2 is the k of the 1.5B and is not chosen again per model. Plain
+  tasks, not curves, so the four FedAvg SFT rounds run whatever their
+  gain.
+- Names: tags `qwen05b` and `dsc13b`. Roots
+  `fedavg_<tag>_base_ddlrows_alpha01_s0` and
+  `fedpref_<tag>_sftr2_p2_ddlrows_alpha01_s0`, stage labels
+  `fedavg_<tag>_ddl_rows_a01_r{k}_s0`, arms `zs_<tag>_ddl_rows_vllm_inproc`,
+  `fedavg_<tag>_ddl_rows_a01_r{k}_vllm_inproc` and
+  `fedpref_<tag>_sftr2_p2_dpo_ddl_rows_a01_r{k}_vllm_inproc`.
+- Order in the queue, after `bird_sft/round_4`: the probe of each model
+  (it downloads the model, which the vLLM tasks then read from the cache
+  only, and runs two training steps on each of the 4 longest rows,
+  failing above 21.5 GiB reserved), the base model of each on Spider
+  test, the 0.5B line, the DeepSeek line. Inside a line: FedAvg SFT
+  rounds 1 and 2, DPO + NLL round 1, FedAvg SFT round 3 (the read at 3
+  rounds), DPO + NLL round 2, FedAvg SFT round 4 (the read at 4 rounds).
+
+Checked on the Mac before queuing:
+
+| Check | Result |
+|---|---|
+| Resolved commands against the 1.5B line (FedAvg SFT rounds 1 and 3, DPO rounds 1 and 2, their evaluations, the base row) | only the model, the stage label, the roots and the arm names differ; `--model` is on every command, the evaluations included |
+| The 54 new commands through their own argument parsers | all parse |
+| The 161 tasks and 8 curves already in the file | resolve to the same commands as before (`SFT` is now the model plus `SFT_RECIPE`) |
+| Rendered prompt and target, 0.5B | the ChatML template and system line of the 1.5B; the target ends with `<|im_end|>` |
+| Rendered prompt and target, DeepSeek | its template: the begin-of-sentence token, its own system sentence ("You are an AI programming assistant, utilizing the Deepseek Coder model, ..."), `### Instruction:`, the prompt, `### Response:`; the target ends with `<|EOT|>` (32021); the prompt ids of the template equal those of the rendered text, which is what sampling sends |
+| Training guards of `_assemble` (prompt is a prefix, answer ends with EOS) | pass on all 8,659 Spider client rows with both tokenizers |
+| Lengths as training renders them, 8,659 rows | Qwen tokenizer: longest 6,927 (`train:3698`, `baseball_1`), median 821; DeepSeek: longest 6,070, median 909; none above 7,168. Longest per client 1 to 5: 2,658 / 3,900 / 6,927 / 3,082 / 3,638 and 2,974 / 4,339 / 6,070 / 3,405 / 3,967 |
+| Test suite of the code repository | 541 passed |
+
+Not checked, and where it shows: memory and time of both models (the
+probes, then each round's record); that the server downloads the models
+(the probes); that vLLM in WSL loads DeepSeek (its base row) and its
+LoRA adapters (`dsc13b_sft/eval_1`). A failed task stops the worker,
+the other model's line included.
+
+Memory before the probes (estimate): at batch 1 the 1.5B's need on a
+long row is carried by the float32 attention tensors, heads x length
+squared (`A5000_RUN_CONFIG.md`: 14.4 GiB allocated at 7,601 tokens, and
+the out-of-memory pass of 2 rows x 12 heads x 7,290 squared). One tensor
+at the longest row: 1.5B 12 x 6,927 squared, 2.14 GiB; 0.5B 14 heads,
+2.50 GiB; DeepSeek 16 x 6,070 squared, 2.20 GiB. With about 4.4 such
+tensors and the weights, all three come to about 12 to 12.5 GiB
+allocated. The 0.5B is therefore not below the 1.5B (peak reserved
+19.83 GiB, which includes the allocator's cache).
+
+Time (estimate, nothing measured): the 0.5B about 1 h per FedAvg SFT
+round and 1.5 to 2 h per DPO round, about 8 h for the line; DeepSeek
+about 2 h and 3 h, about 15 h. The 1.5B's client training took 2.04,
+2.09, 2.11 and 2.19 h in rounds 1 to 4 (`metrics.json` of the rounds).
+
 ## 2026-11-22: `bird_k2/round_1`, one DPO + NLL round from FedAvg SFT round 2 on BIRD: 46.22, 2.54 above FedAvg SFT at 3 rounds (p 0.0087)
 
 Run `eval_arms__s0__20261122T023449__df23a1e4c235__f80957af63534196bb45a975405e3a61`,

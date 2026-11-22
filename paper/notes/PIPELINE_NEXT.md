@@ -2,8 +2,11 @@
 
 ## Status
 
-Updated 2026-11-22 09:56 (Asia/Ho_Chi_Minh). One card only (owner, chat,
-2026-11-21 about 22:20). `bird_k2/round_1` is published (09:28,
+Updated 2026-11-22 10:31 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+2026-11-21 about 22:20). Queued at 10:29 (owner, code `05cf77cc`): the
+Spider line on two more student models, Qwen2.5-Coder-0.5B-Instruct and
+deepseek-coder-1.3b-instruct, after `bird_sft/round_4`; the worker gets
+the rows when it publishes that round. `bird_k2/round_1` is published (09:28,
 evaluation 09:34): one DPO + NLL round from FedAvg SFT round 2 is 46.22
 on BIRD dev, 2.54 above FedAvg SFT at 3 rounds (125 questions against
 86, p 0.0087) and 3.52 above its start (p 0.0003): the first gain over
@@ -126,12 +129,15 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| the one card that runs (which of the two was not said) | `bird_sft/round_4`, expected since 09:35 | owner in chat, 2026-11-21 about 22:20: one card only; remote, read 09:53: `bird_k2/round_1` published at 09:28 and 09:34, nothing of `bird_sft/round_4` yet |
+| the one card that runs (which of the two was not said) | `bird_sft/round_4`, expected since 09:35; then rows 16 to 20 | owner in chat, 2026-11-21 about 22:20: one card only; remote, read 10:29: `bird_k2/round_1` published at 09:28 and 09:34, nothing of `bird_sft/round_4` yet |
 | the other | not available | owner in chat |
 
 ## Run now
 
-1. Nothing to start: the worker takes the rows below in file order.
+1. Nothing to start while the worker runs: its publication of
+   `bird_sft/round_4` pulls the new rows, and it takes them in file
+   order. If the worker had already ended (`DONE queue`) or stopped,
+   start it with the line of step 2.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -149,7 +155,11 @@ its log say whether the second runs 4 at a time cost them.
      alone, seconds of each);
    - a word when `bird_sft/round_4` is published (it is then read from
      the remote);
-   - a `STOP queue` line, if one comes.
+   - a look at the worker about 13:00 (estimate), when row 16 should be
+     done: the task it shows, or its `STOP queue` line. Row 16 is where
+     a new model fails if it fails: a download that does not come, a
+     probe above 21.5 GiB, a model vLLM does not load;
+   - a `STOP queue` line, whenever one comes.
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
    of the base student's round 1 samples by rejected outcome, and the
@@ -168,19 +178,36 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 2026-11-21 15:10; next in file order since 09:35, not confirmed; the last queued row |
+| 15 | `bird_sft/round_4` with its evaluation and publications | FedAvg SFT on BIRD at 4 rounds | 2 h 50 min and 10 min | queued 2026-11-21 15:10; next in file order since 09:35, not confirmed |
+| 16 | `models/probe_qwen05b`, `models/probe_dsc13b`, `models/base_qwen05b`, `models/base_dsc13b` with their publications | do the two models download, fit in memory and decode; their rows without training on Spider test | 25 min | queued 2026-11-22 10:29 |
+| 17 | `qwen05b_sft/round_1` and `round_2`, `qwen05b_k2/round_1`, `qwen05b_sft/round_3`, each with its evaluation and publications | Qwen2.5-Coder-0.5B on Spider: the method at 3 rounds (2 SFT rounds, 1 DPO + NLL round) against FedAvg SFT at 3 rounds | 5 h | queued 2026-11-22 10:29 |
+| 18 | `qwen05b_k2/round_2`, `qwen05b_sft/round_4` | the same at 4 rounds | 3 h | queued 2026-11-22 10:29 |
+| 19 | `dsc13b_sft/round_1` and `round_2`, `dsc13b_k2/round_1`, `dsc13b_sft/round_3` | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 10 h | queued 2026-11-22 10:29 |
+| 20 | `dsc13b_k2/round_2`, `dsc13b_sft/round_4` | the same at 4 rounds | 5.5 h | queued 2026-11-22 10:29 |
 
-Expected on one card (estimate): `bird_sft/round_4` is read about 3 h
-after 09:35, about 12:35. The card is free after it.
+Expected on one card (estimates; no round of either model is measured):
+`bird_sft/round_4` is read about 12:35, row 16 about 13:00, the 0.5B at
+3 rounds about 18:00 and at 4 rounds about 21:00, DeepSeek at 3 rounds
+about 07:00 on 2026-11-23 and at 4 rounds about 12:30.
 
-The slot after `bird_sft/round_4` (owner's choice, nothing queued):
-`bird_k2/round_1` is separated from `bird_sft/round_3`, so by the
-proposal of 2026-11-21 the card goes to FedAvg SFT of a second model on
-Spider. The two reviewers' order runs `bird_k2/round_2` (the method at
-4 rounds, about 8 h) and its twin on fixed pairs (federated DPO as
-published from an SFT start, about 4.5 h) first. Both are rows of the
-paper; the choice is the order. The second model needs its name from
-the owner and a memory check before it is queued.
+Rows 16 to 20 (owner, 2026-11-22): each model runs the line of
+Qwen2.5-Coder-1.5B with the model changed and nothing else: prompt
+`ddl_rows` through the model's own chat template, the SFT recipe, FedAvg
+SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from FedAvg SFT round 2
+(k = 2, the k of the 1.5B, not chosen again per model), Spider test.
+They are read as the 1.5B rows: the method against FedAvg SFT at 3 and
+at 4 rounds, exact McNemar. Checked before queuing (`LAB_LOG.md`,
+2026-11-22): the resolved commands against the 1.5B line, the rendered
+prompt and target of both models, the lengths (longest training
+sequence 6,927 tokens with the Qwen tokenizer, 6,070 with DeepSeek's).
+Not measured: memory and time. A long row's memory follows heads times
+length squared, which puts both models near the 1.5B's peak (19.83
+GiB), and the probes of row 16 read it before any round. A task that
+fails stops the worker, the other model's line included.
+
+Open after these rows, not queued: `bird_k2/round_2` (the method at 4
+rounds on BIRD, about 8 h) and its twin on fixed pairs (federated DPO
+as published from an SFT start, about 4.5 h).
 
 The hinted round (owner's choice, not written): the hint adds 21.4
 points of all-wrong questions with a correct sample over a second draw
@@ -211,9 +238,8 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 Not queued yet, the owner's choice after the reads above. Open:
 `bird_k2/round_2` and its twin on fixed pairs (the method at 4 rounds,
 and federated DPO as published from an SFT start; about 8 h and 4.5 h,
-estimates); FedAvg SFT of a second and a third model on Spider (every
-language-model paper read at CMC has three or more, `JOURNAL_BAR.md`);
-`bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
+estimates); the two more models on BIRD, if the paper's BIRD table is
+to carry them; `bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
 centralized DPO + NLL on Spider as the upper reference of the method
 (about 8.5 h, estimate). Not proposed any more: gold rows for every
 question (`LAB_LOG.md`, 2026-11-21: the gold rows raised the broken
