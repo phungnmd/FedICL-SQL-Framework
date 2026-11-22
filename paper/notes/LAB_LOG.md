@@ -4,6 +4,79 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: Qwen2.5-Coder-0.5B at 4 rounds on Spider test: the method 66.19, FedAvg SFT 64.09 (+2.10, p 0.0056), the second DPO + NLL round adds 0.33; DeepSeek-Coder-1.3B FedAvg SFT rounds 1 and 2: 64.00, 69.82
+
+Runs `eval_arms__s0__20261122T161428__496e40c7a502__fbade66ddd2e48b1a61b76c86f2e70f0`
+(arm `fedpref_qwen05b_sftr2_p2_dpo_ddl_rows_a01_r2_vllm_inproc`,
+`ef7ad11a`, 2026-11-22 23:14; round `23014ad3`, 23:10),
+`eval_arms__s0__20261122T180749__1425448d52e5__ddf45ad48a96446abff05c0b9fa6a459`
+(arm `fedavg_qwen05b_ddl_rows_a01_r4_vllm_inproc`, `7f9a6d77`, 01:08;
+round `590caaa2`, 01:04),
+`eval_arms__s0__20261122T195618__218de81d1cd2__4f0e69eca87e462d9f903211292cdea9`
+(arm `fedavg_deepseek13b_ddl_rows_a01_r1_vllm_inproc`, `036a2735`,
+02:56; round `315adef7`, 02:50) and
+`eval_arms__s0__20261122T214336__4f772a0ad960__e1ec55cb6dca4f5fb74af4fd7631042a`
+(arm `fedavg_deepseek13b_ddl_rows_a01_r2_vllm_inproc`, `311385de`,
+04:43; round `6ee53886`, 04:39). Read on the Mac at 05:15; comparisons
+with `scripts.compare_predictions`.
+
+| Row | Spider test EX | Easy | Medium | Hard | Extra | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| 0.5B FedAvg SFT round 3 | 62.69 | 82.55 | 66.86 | 51.62 | 40.90 | 392 | 409 |
+| 0.5B FedAvg SFT round 4 | 64.09 | 84.47 | 69.08 | 50.11 | 43.42 | 365 | 406 |
+| 0.5B k = 2, DPO + NLL round 1 (3 rounds) | 65.86 | 84.04 | 70.71 | 54.43 | 45.10 | 304 | 429 |
+| 0.5B k = 2, DPO + NLL round 2 (4 rounds) | 66.19 | 84.04 | 70.95 | 55.08 | 45.66 | 268 | 458 |
+| DeepSeek 1.3B without training | 55.85 | 73.40 | 61.84 | 42.76 | 35.29 | 152 | 796 |
+| DeepSeek 1.3B FedAvg SFT round 1 | 64.00 | 82.98 | 68.49 | 53.78 | 41.46 | 340 | 433 |
+| DeepSeek 1.3B FedAvg SFT round 2 | 69.82 | 87.45 | 73.05 | 57.88 | 54.34 | 218 | 430 |
+
+- 0.5B at 4 rounds: the method is 2.10 above FedAvg SFT (149 questions
+  right only with the method, 104 only with FedAvg SFT, exact McNemar p
+  0.0056); by hardness -0.43, +1.87, +4.97, +2.24. At 3 rounds the gap
+  was 3.17. The 1.5B: 2.75 at 3 rounds, 3.49 at 4.
+- FedAvg SFT round 4 adds 1.40 (71 against 41, p 0.0059). Its rounds
+  give +3.73, +2.47, +2.09, +1.40: slower each round, not flat.
+- The second DPO + NLL round adds 0.33 (77 against 70, p 0.62): level
+  with the first. Execution errors fall again (304 to 268) and wrong
+  results rise (429 to 458). The 1.5B's second round added 0.74.
+- The method at 3 rounds is 1.77 above FedAvg SFT at 4 rounds (142
+  against 104, p 0.018).
+- Round 2 of the method: 4,810 pairs (538 / 916 / 1,384 / 1,434 / 538;
+  round 1: 8,328), 2,300 rejected sides execution errors and 2,510
+  wrong results. Of the 8,659 questions 3,353 are mixed, 4,135 all
+  correct, 1,168 all wrong (13.5%; before round 1: 14.2%); 71.3% of the
+  samples are correct (56.1%). Client updates: cosine 0.02 to 0.09
+  (round 1: 0.27 to 0.34), norms 0.63 to 0.99. The 1.5B shows the same
+  from round 1 to round 2: 8,026 to 3,354 pairs, cosine 0.24 to 0.32
+  down to 0.01 to 0.05. One round removes most of what the pairs carry,
+  and it does not reach the all-wrong questions.
+- What this means for the 0.5B row of the paper: the gain at equal
+  rounds holds at 3 and at 4 rounds, and it narrows, because the method
+  is flat after its first DPO + NLL round while FedAvg SFT still adds
+  1.4 a round. Where FedAvg SFT ends is not measured; at this pace it
+  could be near 66 after two or three more rounds. Two rows would
+  settle it, neither queued: FedAvg SFT rounds 5 and 6 (about 1 h 55
+  min each with evaluation), and one DPO + NLL round from FedAvg SFT
+  round 4 (about 2.5 h), which is compared with round 5 at equal rounds
+  and says whether the DPO + NLL gain adds to a later SFT start.
+- Time and memory, 0.5B: the DPO + NLL round 1 h 40 min (sampling 34
+  min, labels 2 min, reference 14 min, updates 49 min), peak reserved
+  14.14 / 17.88 / 19.33 / 17.63 / 17.53 GiB; FedAvg SFT round 4 was
+  published 1 h 50 min after the publication before it.
+- DeepSeek-Coder-1.3B: FedAvg SFT round 1 adds 8.15 over the model
+  without training (393 against 218, p 1.4e-12) and round 2 another
+  5.82 (195 against 70, p 8.1e-15). Round 1 moves the model to the form
+  of the gold SQL (exact match 15.37 to 51.14; only 1.3% of its SQL
+  strings are the same as before): wrong results fall from 796 to 433
+  and execution errors rise from 152 to 340, then fall to 218 in round
+  2. At 2 rounds it is 9.22 above the 0.5B and 4.28 below the 1.5B. A
+  round is published 1 h 42 min after the one before it; peak reserved
+  9.80 GiB in both rounds.
+- Next in the queue: `deepseek13b_k2/round_1`, then
+  `deepseek13b_sft/round_3`. DeepSeek's FedAvg SFT is far from flat at
+  the start of the DPO + NLL round (+5.82 in round 2), more so than the
+  0.5B (+2.47).
+
 ## 2026-11-22: Qwen2.5-Coder-0.5B at 3 rounds on Spider test: the method 65.86, FedAvg SFT 62.69 (+3.17, p 1.3e-05); FedAvg SFT still rises on this model
 
 Run `eval_arms__s0__20261122T142818__250a2b8b0707__65a91f9784904247bad026834d4b75a3`
