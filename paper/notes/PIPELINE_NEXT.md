@@ -2,17 +2,22 @@
 
 ## Status
 
-Updated 2026-11-22 16:15 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+Updated 2026-11-22 20:15 (Asia/Ho_Chi_Minh). One card only (owner, chat,
 2026-11-21 about 22:20). The card runs the Spider line of
-Qwen2.5-Coder-0.5B: without training 54.40 on Spider test, FedAvg SFT
-round 1 58.13 (14:45); round 2 is expected since 14:45, not confirmed.
+Qwen2.5-Coder-0.5B: FedAvg SFT round 2 is 60.60 on Spider test (16:46)
+and one DPO + NLL round from it 65.86 (19:22), 5.26 above its start
+(187 questions against 74, p 1.9e-12). FedAvg SFT at 3 rounds, the row
+the method is compared with, is the next task (`qwen05b_sft/round_3`):
+expected to run since 19:22, not confirmed.
 `bird_sft/round_4` is read (12:40): 42.57 on BIRD dev, 1.11 below round
 3 (p 0.068), and the method at 3 rounds is 3.65 above it (p 0.0001).
 DeepSeek-Coder-1.3B: its first probe and base row (EX 0.00, 12:55) ran
 with a tokenizer that dropped every space and newline and are not
 results. Fixed in code `58cd89f7`; the line is queued again as
 `deepseek13b` (`e694b9fe`, 16:12) with its tokenizer from the model's
-`tokenizer.json` and a length limit of 8,704. `bird_k2/round_1` is published (09:28,
+`tokenizer.json` and a length limit of 8,704; on that code its row
+without training is 55.85 (16:41) and its 4 longest rows train in 8.29
+GiB reserved. `bird_k2/round_1` is published (09:28,
 evaluation 09:34): one DPO + NLL round from FedAvg SFT round 2 is 46.22
 on BIRD dev, 2.54 above FedAvg SFT at 3 rounds (125 questions against
 86, p 0.0087) and 3.52 above its start (p 0.0003): the first gain over
@@ -28,8 +33,10 @@ one-loss form is not kept. Hint probe and control (17:21,
 it; the hint adds 21.4 points (interval 19.0 to 23.7), and 65% have none
 in either draw.
 Last results:
-Qwen2.5-Coder-0.5B FedAvg SFT round 1 on Spider test 58.13 (2026-11-22,
-14:45), without training 54.40 (12:55);
+Qwen2.5-Coder-0.5B on Spider test, DPO + NLL round 1 from FedAvg SFT
+round 2 65.86 (2026-11-22, 19:22), FedAvg SFT round 2 60.60 (16:46),
+round 1 58.13 (14:45), without training 54.40 (12:55);
+DeepSeek-Coder-1.3B without training 55.85 (16:41);
 `bird_sft/round_4` on BIRD dev 42.57 (12:40);
 `bird_k2/round_1` on BIRD dev 46.22 (2026-11-22, 09:34);
 `bird_sft/round_3` 43.68 (01:35);
@@ -74,12 +81,19 @@ the k of the 1.5B, not chosen again):
 
 | Total rounds | Qwen 0.5B, FedAvg SFT | Qwen 0.5B, 2 SFT rounds then DPO (k = 2) | DeepSeek 1.3B, FedAvg SFT | DeepSeek 1.3B, k = 2 |
 |---|---|---|---|---|
-| 0 | 54.40 | | | |
+| 0 | 54.40 | | 55.85 | |
 | 1 | 58.13 | | | |
+| 2 | 60.60 | | | |
+| 3 | | 65.86 | | |
 
 The 0.5B is 13.7 below the 1.5B without training and 14.3 below after
 one round (+3.73 for the round, p 7e-6; the 1.5B +4.38). Its execution
-errors do not fall in round 1 (469 to 476; the 1.5B 287 to 215).
+errors do not fall in round 1 (469 to 476; the 1.5B 287 to 215). Round
+2 adds 2.47 (p 6.2e-5). The DPO + NLL round from round 2 adds 5.26
+(p 1.9e-12; the same step on the 1.5B 3.36), on every hardness level,
+with execution errors from 429 to 304 and wrong results from 417 to
+429. FedAvg SFT at 3 rounds is not read, so the gain at equal rounds is
+open; it would need 5.26 in its third round to reach 65.86.
 
 Open, read on BIRD: what the method does with the questions that have
 no correct sample (Spider 12%, BIRD 42.8% of the questions for the base
@@ -155,15 +169,14 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| the one card that runs (which of the two was not said) | `qwen05b_sft/round_2`, expected since 14:45; then the rows below | owner in chat, 2026-11-21 about 22:20: one card only; remote, read 16:00: `qwen05b_sft/round_1` published at 14:39 and 14:45, nothing after it yet |
+| the one card that runs (which of the two was not said) | `qwen05b_sft/round_3`, expected since 19:22; then the rows below | owner in chat, 2026-11-21 about 22:20: one card only; remote, read 20:10: `qwen05b_k2/round_1` published at 19:18 and 19:22, nothing after it yet |
 | the other | not available | owner in chat |
 
 ## Run now
 
-1. Nothing to start while the worker runs: its next publication
-   (`qwen05b_sft/round_2`) pulls the code and the queue of 16:12, and it
-   takes the rows in file order. If the worker has stopped, start it
-   with the line of step 2.
+1. Nothing to start while the worker runs: it has the code and the
+   queue of 16:12 and takes the rows in file order. If the worker has
+   stopped, start it with the line of step 2.
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -179,11 +192,6 @@ its log say whether the second runs 4 at a time cost them.
      (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
      alone, seconds of each);
-   - a look at the worker about 17:00 (estimate): after it publishes
-     `qwen05b_sft/round_2` it runs row 21, the probe and the base row of
-     DeepSeek on the fixed code (about 10 min). The task it shows then,
-     or its `STOP queue` line. This is the first run of the fix on the
-     server (the engine returning token ids, the decode on Windows);
    - a `STOP queue` line, whenever one comes.
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
@@ -203,16 +211,15 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 17 | `qwen05b_sft/round_1` and `round_2`, `qwen05b_k2/round_1`, `qwen05b_sft/round_3`, each with its evaluation and publications | Qwen2.5-Coder-0.5B on Spider: the method at 3 rounds (2 SFT rounds, 1 DPO + NLL round) against FedAvg SFT at 3 rounds | 1 h 45 min a FedAvg round (round 1, measured), 2 to 2.5 h for the DPO round (estimate) | round 1 read (58.13); round 2 expected since 14:45, not confirmed |
-| 21 | `models/probe_deepseek13b`, `models/base_deepseek13b` and their publication | does DeepSeek-Coder-1.3B train and decode with the tokenizer of its `tokenizer.json`: memory on its 4 longest rows (8,143 to 8,238 tokens), its row without training on Spider test | 10 min | queued 2026-11-22 16:12, before the rest of row 17: next at the task boundary after `qwen05b_sft/round_2` is published |
+| 17 | `qwen05b_sft/round_1` and `round_2`, `qwen05b_k2/round_1`, `qwen05b_sft/round_3`, each with its evaluation and publications | Qwen2.5-Coder-0.5B on Spider: the method at 3 rounds (2 SFT rounds, 1 DPO + NLL round) against FedAvg SFT at 3 rounds | 1 h 45 min a FedAvg round (round 1, measured), 2 h 29 min for the DPO round (measured) | rounds 1 and 2 and `qwen05b_k2/round_1` read (58.13, 60.60, 65.86); `qwen05b_sft/round_3` expected since 19:22, not confirmed |
 | 18 | `qwen05b_k2/round_2`, `qwen05b_sft/round_4` | the 0.5B at 4 rounds | 4 to 4.5 h | queued 2026-11-22 10:29 |
-| 22 | `deepseek13b_sft/round_1` and `round_2`, `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3` | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | not measured; 7 to 9 h (estimate) | queued 2026-11-22 16:12, after row 18; needs row 21 |
+| 22 | `deepseek13b_sft/round_1` and `round_2`, `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3` | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | not measured; 7 to 9 h (estimate) | queued 2026-11-22 16:12, after row 18; its probe and base row are read (55.85) |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 
 Expected on one card (estimates): the 0.5B at 3 rounds is read about
 21:15 and at 4 rounds about 01:45 on 2026-11-23; DeepSeek at 3 rounds
 about 09:30 and at 4 rounds about 14:00. No DeepSeek round is measured;
-row 21 gives its seconds a step.
+its probe gives 3.6 s a step on its 4 longest rows (the 0.5B 5.19 s).
 
 Rows 17 to 23 (owner, 2026-11-22): each model runs the line of
 Qwen2.5-Coder-1.5B with the model changed: prompt `ddl_rows` through

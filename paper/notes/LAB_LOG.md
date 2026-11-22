@@ -4,6 +4,57 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: Qwen2.5-Coder-0.5B on Spider test: one DPO + NLL round from FedAvg SFT round 2 gives 65.86 against 60.60 (p 1.9e-12); DeepSeek-Coder-1.3B without training 55.85
+
+Runs `eval_arms__s0__20261122T094629__61c7ecba9979__96f811b706ca45189c0a7498ce6b606a`
+(arm `fedavg_qwen05b_ddl_rows_a01_r2_vllm_inproc`, `689a7d93`, 16:46;
+round `5d0dc3b9`, 16:33),
+`eval_arms__s0__20261122T122229__c902f1d1e2c1__5f81b731568445878dbded12f0f81912`
+(arm `fedpref_qwen05b_sftr2_p2_dpo_ddl_rows_a01_r1_vllm_inproc`,
+`1085d38e`, 19:22; round `51b4a288`, 19:18) and
+`eval_arms__s0__20261122T094130__9e150ac7941f__78cae2fa685d43e8b387380a73ea3dc9`
+(arm `zs_deepseek13b_ddl_rows_vllm_inproc`, `12c4ccd3`, 16:41). Read on
+the Mac at 20:10.
+
+| Row | Spider test EX | Easy | Medium | Hard | Extra | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| 0.5B FedAvg SFT round 1 | 58.13 | 83.40 | 62.31 | 46.22 | 30.25 | 476 | 423 |
+| 0.5B FedAvg SFT round 2 | 60.60 | 82.55 | 64.29 | 49.68 | 36.97 | 429 | 417 |
+| 0.5B DPO + NLL round 1 from FedAvg SFT round 2 (3 rounds) | 65.86 | 84.04 | 70.71 | 54.43 | 45.10 | 304 | 429 |
+| DeepSeek-Coder-1.3B without training | 55.85 | 73.40 | 61.84 | 42.76 | 35.29 | 152 | 796 |
+
+- FedAvg SFT round 2 adds 2.47 over round 1 (112 questions fixed, 59
+  broken, exact McNemar p 6.2e-5).
+- The DPO + NLL round adds 5.26 over its start (187 fixed, 74 broken,
+  p 1.9e-12), on every hardness level. The same step on the 1.5B added
+  3.36 (74.10 to 77.46).
+- As on the 1.5B the gain is in execution errors (429 to 304; the 1.5B
+  183 to 99) and the wrong results do not fall (417 to 429; the 1.5B 373
+  to 385).
+- Not read yet: FedAvg SFT at 3 rounds for this model
+  (`qwen05b_sft/round_3`, the next row of the queue). The method is
+  judged at equal rounds, so the row above is a gain over its start
+  only. FedAvg SFT would need 5.26 in its third round to reach 65.86;
+  its second added 2.47.
+- The round: 8,328 pairs (1,022 / 1,726 / 2,410 / 2,258 / 912; the 1.5B
+  8,026), 4,702 rejected sides execution errors and 3,626 wrong results.
+  Of the 8,659 questions 5,532 are mixed, 1,891 all correct, 1,233 all
+  wrong (14.2%) and 3 have a gold error; 56.1% of the samples are
+  correct. Client updates: cosine 0.27 to 0.34 (the 1.5B 0.24 to 0.32),
+  norms 0.98 to 1.57.
+- Measured: 2 h 29 min (sampling 35 min, labels 2 min, reference 23
+  min, updates 1 h 29 min); peak reserved 11.50 / 18.37 / 19.33 / 17.46
+  / 17.59 GiB. FedAvg SFT round 2: peak reserved 20.25 GiB, as round 1.
+- DeepSeek-Coder-1.3B with the tokenizer of its `tokenizer.json`: 55.85
+  without training, 1.45 above the 0.5B and 12.2 below the 1.5B. The
+  path that was not checked in the entry below (the engine returning
+  token ids, the decode on Windows) works on the server. Its errors are
+  wrong results (796) more than execution errors (152), and its exact
+  match is 15.37 (the 0.5B 43.27): it writes SQL in another form than
+  the gold. Probe on the 4 longest rows (8,158 to 8,238 tokens): peak
+  reserved 8.29 GiB with gradient checkpointing, 3.6 s a step
+  (`audits/protocol_v2/model_probes/deepseek13b_spider_ddl_rows.json`).
+
 ## 2026-11-22: direction scan for a Q2 method (literature only, no run, nothing decided)
 
 Owner's request: a method direction for a Q2 journal searched from the
