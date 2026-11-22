@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-22 08:45 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+Updated 2026-11-22 08:38 (Asia/Ho_Chi_Minh). One card only (owner, chat,
 2026-11-21 about 22:20). `bird_sft/round_3` is published (01:28,
 evaluation 01:35): FedAvg SFT at 3 rounds is 43.68 on BIRD dev, 0.98
 above round 2 (p 0.11) and 0.59 below k = 1 at 2 rounds (p 0.61). The
