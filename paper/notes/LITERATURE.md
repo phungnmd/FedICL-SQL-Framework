@@ -196,7 +196,7 @@ OmniSQL, BASE-SQL and the BIRD mini-dev README.
 
 | Paper | Method | Sizes | Data | Key numbers | Closest point / main difference | Read |
 |---|---|---|---|---|---|---|
-| DistiLLM-2, Ko et al., ICML 2025 ([arXiv 2503.07067](https://arxiv.org/abs/2503.07067)) | Contrastive: skew KL up on teacher responses, skew reverse KL down on student responses | Qwen2.5-Coder-7B-Instruct -> Qwen2.5-Coder-1.5B (our exact pair) | WizardCoder prompts; HumanEval, MBPP | HumanEval / MBPP: student 30.7 / 60.8, GKD 40.9 / 61.9, DistiLLM-2 42.2 / 62.7 | Same model pair; training prompts differ from test distribution. Code, not SQL; unclear whether the student was the Instruct checkpoint | full |
+| DistiLLM-2, Ko et al., ICML 2025 ([arXiv 2503.07067](https://arxiv.org/abs/2503.07067)) | Contrastive: skew KL up on teacher responses, skew reverse KL down on student responses | Qwen2.5-Coder-7B-Instruct -> Qwen2.5-Coder-1.5B (our exact pair) | WizardCoder prompts; HumanEval, MBPP | HumanEval / MBPP: student 30.7 / 60.8, GKD 40.9 / 61.9, DistiLLM-2 42.2 / 62.7 | Same model pair; training prompts differ from test distribution. Code, not SQL; the student row is the student after SFT on the gold responses (Appendix C.2, checked 2026-11-23), named without "Inst" in Table 4 | full |
 | KID, Zhong et al., Findings EMNLP 2024 ([arXiv 2410.11371](https://arxiv.org/abs/2410.11371)) | Token-level KD on ground-truth SQL with simulated inference errors | LLaMA2-7B -> TinyLLaMA-1.1B, LoRA | Spider, BIRD, Spider variants | Average over 5 sets: SFT 46.9, reverse-KL KD 48.8 (1.4x time), GKD 49.0 (8.3x), KID 51.8 (1.5x) | White-box KD for Text-to-SQL at ~1B: on-policy KD gains little for its cost. Teacher trained on the same data, no domain shift | full |
 | GKD, Agarwal et al., ICLR 2024 ([arXiv 2306.13649](https://arxiv.org/abs/2306.13649)) | On-policy KD on student samples with teacher token distributions | T5 77M-800M students | XSum, WMT, GSM8K | ~2x the gain of offline KD | Standard on-policy KD baseline | full |
 | MiniLLM, Gu et al., ICLR 2024 ([arXiv 2306.08543](https://arxiv.org/abs/2306.08543)) | Reverse KL on student samples | OPT-13B -> 1.3B, others | Dolly | GPT-4 score 60.7 vs SFT 52.6 | Word-level KD and SeqKD about equal to SFT at 1.3B | full |
@@ -214,9 +214,12 @@ Also relevant to pair sources: Iterative RPO, Pang et al., NeurIPS 2024
 pairs labelled by answer correctness, DPO + NLL, gold added as chosen when no
 sample is correct. Llama-2-70B GSM8K greedy 73.1 -> 78.0 -> 81.1 -> 81.6 over
 four rounds; twice the pairs in one round gives 74.8; without NLL 61.8.
-Step-DPO ([arXiv 2406.18629](https://arxiv.org/abs/2406.18629), abstract)
-reports self-generated pairs beat GPT-4-generated ones, which are out of
-distribution for the policy.
+Step-DPO ([arXiv 2406.18629](https://arxiv.org/abs/2406.18629), Table 4,
+checked 2026-11-23): on MATH from Qwen2-7B-SFT at 54.8, chosen steps
+corrected by GPT-4 (out of distribution for the policy) give 55.1 and
+self-generated chosen steps 55.8; the rejected step is the model's own
+wrong step in the paper's pipeline, and the page does not say so for the
+GPT-4 row.
 
 ### 1.6 Token- and clause-level preference and RL for SQL and code
 
@@ -260,7 +263,7 @@ Collected for `DIRECTION.md` section 6. "Read" names what was checked.
 
 | Paper | Number | What it says for us | Read |
 |---|---|---|---|
-| DistiLLM-2 ([2503.07067](https://arxiv.org/abs/2503.07067)) | Table 4, Coder 7B -> 1.5B: HumanEval 30.73 -> 42.24, GKD 40.85; LoRA r16, 4x A100-80GB. Appendix D.1 (GPT-2, Dolly, ROUGE-L): on-policy 26.37, batched 26.20, off-policy 26.13 | The student is most likely the base checkpoint (30.7 vs the official base 43.9 and Instruct 70.7 in the Qwen2.5-Coder report); this is inferred, the paper does not say. On-policy adds little over off-policy | tables |
+| DistiLLM-2 ([2503.07067](https://arxiv.org/abs/2503.07067)) | Table 4, Coder 7B -> 1.5B: HumanEval 30.73 -> 42.24, GKD 40.85; LoRA r16, 4x A100-80GB. Appendix D.1 (GPT-2, Dolly, ROUGE-L): on-policy 26.37, batched 26.20, off-policy 26.13 | The student is most likely the base checkpoint (30.7 vs the official base 43.9 and Instruct 70.7 in the Qwen2.5-Coder report); the checkpoint is inferred. Appendix C.2: every student is first trained with SFT on the gold responses and then distilled, so 30.73 is the row after gold SFT (checked 2026-11-23). On-policy adds little over off-policy | tables |
 | KID ([2410.11371](https://arxiv.org/abs/2410.11371)) | Spider dev EX, Qwen1.5-0.5B with a 7B teacher: SFT 57.8, forward KL 57.3, reverse KL 61.5, GKD 64.3 (13.9x SFT time). TinyLLaMA: SFT 63.0, reverse KL 66.0, GKD 64.8, KID 68.1 | The teacher is fine-tuned on Spider (in-domain). Forward KL is about equal to SFT; reverse KL helps | tables |
 | Reasoning-SQL ([2503.23157](https://arxiv.org/abs/2503.23157)) | Table 5, 7B Spider: base 77.85, BIRD gold SFT 68.08, GRPO 78.72 | Gold SFT on BIRD hurts Spider; execution RL on BIRD does not. Dev or test not stated | table |
 | Think2SQL ([2504.15077](https://arxiv.org/abs/2504.15077)) | Table 4, 3B Spider 72.5 -> 77.0 | Needs both R1-reasoning SFT on 913 BIRD rows and QATCH-reward RL (T=0.7, 40 h on 8x H100); no 1.5B result | table |

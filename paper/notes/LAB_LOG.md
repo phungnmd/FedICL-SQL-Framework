@@ -33,6 +33,83 @@ delegated agent and read here before the push.
 - Read as: under about a third of the questions mixed at f = 0.5 above
   the control, form 3 is dropped.
 
+## 2026-11-23: a scout report on the server part and its review (no run, nothing decided)
+
+Owner's request: one research agent on the server part, reviewed by the
+session. The report is `archive/scan_2026-11-23/R1_server_part.md` (the
+owner's Mac, outside Git). Six of its tables were read again through a
+page-fetch agent.
+
+The report's ranking, with its own odds of at least +1 EX on Spider test
+after the client round over the method without the part:
+
+1. A server round after FedAvg SFT round 2 with the clients' loss on
+   BIRD, plus a reverse-KL term to the frozen teacher on the student's
+   own samples of the questions with no correct sample: 35% (the
+   teacher's own part over the same round without it: 20%).
+2. The proposal of the entry below (the teacher's SQL as the chosen side
+   when it returns the gold result): 25%. Its SQL is kept only when it
+   matches the gold result, so it carries no more of the answer than
+   gold; what is left is that it may be closer to the student's own
+   SQL, which no paper measures for SQL.
+3. A frozen model that scores the student's wrong SQL next to the gold
+   SQL and pushes down only the tokens it disfavours: 15%.
+
+Checked on the pages and confirmed: KID Table 3 (average of 5 sets
+against SFT 43.85; forward KL -0.86 / -0.08 / -0.42, reverse KL on the
+student's samples +3.09 / +4.62 / +4.35, at 10.9 to 13.9 times the SFT
+time; teachers fine-tuned on the same training set); Step-DPO Table 4
+(54.8, 55.1 with GPT-4 chosen steps, 55.8 with self-generated ones);
+DistiLLM-2 (Appendix C.2: the student row 30.73 is after SFT on gold);
+OmniSQL Table 4, greedy (Qwen2.5-Coder 7B: Spider test 82.2, BIRD dev
+50.9; 14B: 86.6, 61.5); Reasoning-SQL Table 5 (7B on Spider: 77.85
+without training, 68.08 after SFT on BIRD train, 78.72 after GRPO on
+it; Gemini schema linking first, split not named).
+
+Where the report is wrong or goes past its source:
+
+- CodeLutra's 76.6 on Spider is iteration 3; iteration 4 is 76.3.
+- OmniSQL's sentence on training sets names "some open-source LLMs
+  (e.g., Qwen2.5-Coder-32B-Instruct ...)" and says "likely"; it does
+  not name the 7B.
+- The page does not say what prompt OmniSQL's baseline rows get, so
+  82.2 and 86.6 are not numbers for our prompt.
+- KID's page does not say that its row on student samples carries the
+  term on gold.
+
+The session's review of design 1:
+
+- Its teacher term has no execution check and acts on the questions
+  where the teacher is weakest. If it is run, only on the questions
+  where the teacher's own SQL returns the gold result; the count of
+  those decides designs 1 and 2 alike.
+- Its evidence is from teachers fine-tuned on the task and tested in
+  the same domain; no SQL result has a frozen teacher on other data.
+- Its stop rule (1.0 above the gold stage before the client round)
+  would have dropped the teacher in the earlier setup, where it was
+  +0.23 before the DPO rounds and +0.98 after. A read at the stage
+  level does not settle it; the full arms do (about 36 h, the report's
+  estimate).
+- A stage after FedAvg SFT round 2 moves the model toward BIRD just
+  before the client round. The earlier measurement is for a stage
+  before the rounds.
+- With BIRD clients and Spider as the public set the student has no
+  correct sample for 12% of the public questions, so a teacher term has
+  little to act on there; the part may show on one dataset only.
+
+Proposed order (not decided, nothing queued): the three reads of the
+entry below, with the 14B teacher next to the 7B; then the stage
+without a teacher, from adapters that exist: the Spider line (two FedAvg
+SFT rounds, one DPO + NLL round) started from `bird_k2/round_1` and from
+`bird_sft/round_3`, against the k = 2 line (77.46 at 3 rounds), about
+8 h a line (estimate; whether a line can start from an adapter of
+another split is not checked in the code); a teacher term only if the
+stage adds 1 EX after the client round. Session's odds: 40% for the
+stage, 20 to 25% for a teacher's own part.
+
+Notes corrected from the checked pages: `DPO_RESEARCH.md` 2.7 (the
+CodeLutra row), `LITERATURE.md` 1.5 and 1.7 (DistiLLM-2, Step-DPO).
+
 ## 2026-11-23: reading on a server part for the method (owner: the method is too simple; no run, nothing decided)
 
 Owner's question: which direction makes the method more than "FedAvg SFT
