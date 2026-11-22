@@ -65,8 +65,20 @@ ARMS = {
     "fedpref_bird_base_p2_goldnll_dpo_ddl_a01_r2": ("k0goldnll", 2),
     "fedpref_bird_base_p2_fixed_dpo_ddl_a01_r2": ("fixed", 2),
     "fedpref_bird_sftr1_p2_dpo_ddl_a01_r1": ("k1", 2),
+    "fedpref_bird_sftr2_p2_dpo_ddl_a01_r1": ("k2", 3),
+    "fedpref_bird_sftr2_p2_dpo_ddl_a01_r2": ("k2", 4),
+    "fedavg_bird_ddl_a01_r4": ("fedavg", 4),
 }
-SKIP = {"zs_ddl_values"}  # prompt B, kept in the notes only
+# the other student models on Spider test: the line of the 1.5B with the model changed
+for _m in ("qwen05b", "deepseek13b"):
+    ARMS[f"zs_{_m}_ddl_rows"] = ("base", 0)
+    for _r in (1, 2, 3, 4):
+        ARMS[f"fedavg_{_m}_ddl_rows_a01_r{_r}"] = ("fedavg", _r)
+    ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r1"] = ("k2", 3)
+    ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r2"] = ("k2", 4)
+# prompt B, kept in the notes only; zs_dsc13b: DeepSeek with a tokenizer that dropped
+# every space and newline (fixed in code 58cd89f7), not a result
+SKIP = {"zs_ddl_values", "zs_dsc13b_ddl_rows"}
 
 # extra pairs (dataset, line a, round a, line b, round b): b measured against a
 TESTS = [
@@ -98,6 +110,15 @@ TESTS = [
     ("bird", "k0", 1, "k0gold", 1),
     ("bird", "k0", 2, "k0goldnll", 2),
     ("bird", "k1", 2, "k0goldnll", 2),
+    ("bird", "fedavg", 3, "fedavg", 4),
+    ("bird", "fedavg", 4, "k2", 3),
+    ("bird", "fedavg", 2, "k2", 3),
+    ("bird", "k1", 2, "k2", 3),
+    ("bird", "k0", 2, "k2", 3),
+    ("spider", "base", 0, "fedavg", 1),
+    ("spider", "fedavg", 1, "fedavg", 2),
+    ("spider", "fedavg", 2, "fedavg", 3),
+    ("spider", "fedavg", 2, "k2", 3),
 ] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
     (ds, "base", 0, "fedavg", 4),
     (ds, "fixed", 4, "k2", 4),
@@ -120,7 +141,8 @@ DATASET_OF_SET = {
 BIRD_DEV_JSON = CODE / "data" / "raw" / "bird" / "dev_20240627" / "dev.json"
 LEVELS = {"bird": (("simple", "s"), ("moderate", "mo"), ("challenging", "c"))}
 SPIDER_LEVELS = (("easy", "e"), ("medium", "m"), ("hard", "h"), ("extra", "x"))
-MODEL_SHORT = {"Qwen/Qwen2.5-Coder-1.5B-Instruct": "qwen15"}
+MODEL_SHORT = {"Qwen/Qwen2.5-Coder-1.5B-Instruct": "qwen15", "Qwen/Qwen2.5-Coder-0.5B-Instruct": "qwen05",
+               "deepseek-ai/deepseek-coder-1.3b-instruct": "dsc13"}
 
 
 def mcnemar(wins: int, losses: int) -> float:
