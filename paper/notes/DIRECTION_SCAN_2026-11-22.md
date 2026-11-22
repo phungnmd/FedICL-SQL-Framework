@@ -53,9 +53,11 @@ again. A number goes into the paper only after a check against the paper.
    count 74.71): NLL on the model's own correct samples 75.87, the
    preference term alone 73.59, both 77.46.
 4. Why the papers disagree about DPO on execution labels. On top of a
-   converged SFT model of 7B or more, SQL-only DPO gives -0.8 to +0.3 on
-   BIRD dev (Liu et al. 2502.11656, Table 1) and +1.2 with an added SFT
-   loss (Table 7). From the base model with the NLL term it is large
+   converged SFT model of 6.7B to 15B, plain SQL-only DPO moves ten
+   models by -1.3 to +0.8 on BIRD dev, six of them down (Liu et al.
+   2502.11656, Table 1); with an added SFT loss the same DPO gives +1.2
+   (Table 7). The project's row without the NLL term agrees: 73.59
+   against its start 74.10 on Spider test. From the base model with the NLL term it is large
    (CodeLutra). The 1.5B student here gains more from an SFT start than
    those 7B models: +2.54 on BIRD dev at 3 rounds, +3.5 on Spider test at
    4 rounds (k = 2).
