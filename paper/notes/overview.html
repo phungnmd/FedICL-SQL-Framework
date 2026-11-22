@@ -558,6 +558,17 @@ footer { padding-block: 24px 40px; }
 .dpos { color: var(--ok); font-weight: 600; }
 .dneg { color: var(--bad); font-weight: 600; }
 tr.plan td { color: var(--muted); font-style: italic; }
+table.mx th, table.mx td { padding: 8px 12px; }
+table.mx th.grp-h { text-align: center; border-bottom: 2px solid var(--line); color: var(--ink); }
+table.mx th small { display: block; font-size: 0.68rem; text-transform: none; letter-spacing: 0; }
+table.mx td.c { text-align: right; white-space: nowrap; }
+table.mx td.c b { font-weight: 600; }
+table.mx td.c .dl { display: block; font-size: 0.74rem; color: var(--muted); }
+table.mx td.sep, table.mx th.sep { border-left: 2px solid var(--line); }
+table.mx td.best b::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-left: 5px; vertical-align: 2px; }
+table.mx td.best::after { display: none; }
+table.mx td.nm { min-width: 210px; }
+table.mx tr.me td { background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
 
 @media (max-width: 980px) {
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1031,12 +1042,28 @@ tr.plan td { color: var(--muted); font-style: italic; }
   <div class="wrap">
     <div class="sec-head">
       <h2><span class="ic-tile"><svg class="ic" aria-hidden="true"><use href="#i-monitoring"/></svg></span>Kết quả</h2>
-      <p>Chọn bộ đo, model và seed; mọi biểu đồ và bảng bên dưới đổi theo. R là tổng số round federated, kể cả round SFT.</p>
+      <p>Hai setting: client là Spider train, hoặc client là BIRD train. Bảng đầu gom mọi bộ đo của cả hai; phần dưới theo round của setting đang chọn. R là tổng số round federated, kể cả round SFT.</p>
     </div>
-    <div class="panel resbar" aria-label="Chọn kết quả">
-      <div class="fg"><span class="fl">Bộ đo</span><div class="seg" id="sel-ds" role="group" aria-label="Bộ đo"></div></div>
+    <div class="panel resbar" aria-label="Chọn model và seed">
       <div class="fg"><span class="fl">Model</span><div class="seg" id="sel-model" role="group" aria-label="Model"></div></div>
       <div class="fg"><span class="fl">Seed</span><div class="seg" id="sel-seed" role="group" aria-label="Seed"></div></div>
+      <p class="res-setting" id="res-seednote"></p>
+    </div>
+
+    <div class="panel tblpanel" style="margin-top:14px">
+      <h3><span class="ic-tile sm"><svg class="ic" aria-hidden="true"><use href="#i-test"/></svg></span>Tổng quan: EX trên mọi bộ đo</h3>
+      <p class="read" id="mx-read"></p>
+      <div class="tbl-wrap">
+        <table class="mx num">
+          <thead id="mx-h"></thead>
+          <tbody id="mx-b"></tbody>
+        </table>
+      </div>
+      <p class="muted" style="font-size:0.8rem">Mỗi ô: EX, và chênh lệch so với FedAvg SFT cùng cột (số nhỏ là McNemar p). Chấm xanh: cao nhất của cột. Spider dev, Syn, Realistic, DK chỉ eval, không chọn round hay setting nào trên đó; Syn và Realistic viết lại câu hỏi của Spider dev (cùng database và gold), DK cần domain knowledge. Centralized SFT dùng epoch 2, epoch tốt nhất trên Spider test; trên BIRD chưa chạy.</p>
+    </div>
+
+    <div class="panel resbar" style="margin-top:28px" aria-label="Chọn setting">
+      <div class="fg"><span class="fl">Theo round, setting</span><div class="seg" id="sel-ds" role="group" aria-label="Setting"></div></div>
       <p class="res-setting" id="res-setting"></p>
     </div>
     <p class="read" id="res-read" style="margin-top:14px"></p>
@@ -1113,11 +1140,6 @@ tr.plan td { color: var(--muted); font-style: italic; }
         <p>k = 0: DPO + NLL on-policy từ student chưa train. k = 1: 1 round FedAvg SFT rồi DPO + NLL; k = 2: 2 round FedAvg SFT rồi DPO + NLL (R3 đang chạy). Fixed + NLL: R2 train lại trên pairs của R1, reference giữ ở base student. k = 0, gold chosen: thêm 2 pairs với gold làm chosen cho mỗi câu all-wrong (17,784 pairs thay vì 9,714). k = 0, dòng NLL gold: R2 trên đúng 8,840 pairs của k = 0 R2, thêm một dòng NLL trên gold SQL cho mỗi câu trong 3,017 câu all-wrong, không preference term trên gold.</p>
         <p>Giữa các line: k = 1 so với k = 0 ở R2 +1.24 (p 0.19); k = 0 R2 so với R1 +1.17 (p 0.17); on-policy so với fixed +2.21 (sửa 94, làm sai 60, p 0.008); gold chosen so với k = 0 R1 &minus;2.61 (sửa 86, làm sai 126, p 0.007); dòng NLL gold so với k = 0 R2 &minus;0.65 (p 0.43) và so với k = 1 &minus;1.89 (p 0.045). FedAvg SFT R3 so với R2 +0.98 (sửa 45, làm sai 30, p 0.11); k = 1 ở 2 round so với FedAvg SFT R3 +0.59 (p 0.61).</p>
         <p>Theo độ khó: dòng NLL gold lấy lại một phần challenging của k = 0 (24.14 so với 19.31; đúng riêng 8 câu, sai riêng 1, p 0.039) và mất ở simple, moderate. Gold chosen cắt lỗi chạy (không tính output bị cắt: 76 so với 211) và tăng sai kết quả (827 so với 673); 29 output bị cắt, so với 8.</p>
-      </details>
-      <details class="more" data-ds="spiderdev syn realistic dk">
-        <summary>Các hàng trên Spider dev, Syn, Realistic, DK</summary>
-        <p>Sáu adapter của bảng Spider, eval lại: student chưa train, FedAvg SFT R4, centralized SFT epoch 2, k = 0 R4, k = 2 R4, fixed + NLL R4. Không chọn round hay setting nào trên bốn bộ này. Spider dev là bộ dev gốc; Syn và Realistic viết lại câu hỏi của dev (database và gold như dev); DK cần domain knowledge.</p>
-        <p>So với FedAvg SFT R4, 7 trong 10 test của hai line method có p dưới 0.05; ở mức Bonferroni 0.005 trên 10 test còn 4 (Spider test cho cả hai line, Syn cho k = 2, DK cho k = 0). Realistic và DK chỉ có 64 đến 88 câu khác nhau giữa hai hàng.</p>
       </details>
     </div>
     <div class="panel tblpanel" data-ds="bird" style="margin-top:14px">
@@ -1401,7 +1423,7 @@ tr.plan td { color: var(--muted); font-style: italic; }
   <div class="wrap foot">
     <details class="more"><summary>Lịch sử cập nhật</summary>
     <ul class="updates">
-      <li><time>2026-11-22 09:45</time><span>Cập nhật toàn trang. BIRD dev: FedAvg SFT R3 43.68, k = 0 R2 43.02, pairs cố định R2 40.81, gold chosen R1 39.24, dòng NLL gold R2 42.37 (results <code>f5b4eba2</code>, <code>d246d243</code>, <code>b16a365a</code>, <code>ff917437</code>, <code>1a75d23e</code>); bốn bộ Spider phụ (dev, Syn, Realistic, DK) thành lựa chọn trong tab Kết quả (<code>5a8b7c8f</code>, <code>d246d243</code>, <code>ca8c3a18</code>). Kết quả BIRD đọc theo độ khó chính thức (simple, moderate, challenging) thay cho luật hardness của Spider. On-policy rounds (I1) thành phần được giữ (BIRD); stage SFT (I3) ghi là đề xuất giữ, chờ owner; gold trong round DPO và probe hint vào Đã thử. Tổng quan: thẻ Spider, BIRD, phần được giữ, câu all-wrong; biểu đồ gain cho cả Spider test và BIRD dev. Tiến độ, Hướng tiếp và Paper theo một card, <code>bird_k2/round_1</code> đang chạy (suy ra) và <code>bird_sft/round_4</code> queued, ghi nhận 2026-11-22 09:31.</span></li>
+      <li><time>2026-11-22 09:45</time><span>Cập nhật toàn trang. BIRD dev: FedAvg SFT R3 43.68, k = 0 R2 43.02, pairs cố định R2 40.81, gold chosen R1 39.24, dòng NLL gold R2 42.37 (results <code>f5b4eba2</code>, <code>d246d243</code>, <code>b16a365a</code>, <code>ff917437</code>, <code>1a75d23e</code>); tab Kết quả chia theo hai setting (client Spider, client BIRD), với một bảng tổng quan EX trên mọi bộ đo (Spider test, dev, Syn, Realistic, DK, BIRD dev) (<code>5a8b7c8f</code>, <code>d246d243</code>, <code>ca8c3a18</code>). Kết quả BIRD đọc theo độ khó chính thức (simple, moderate, challenging) thay cho luật hardness của Spider. On-policy rounds (I1) thành phần được giữ (BIRD); stage SFT (I3) ghi là đề xuất giữ, chờ owner; gold trong round DPO và probe hint vào Đã thử. Tổng quan: thẻ Spider, BIRD, phần được giữ, câu all-wrong; biểu đồ gain cho cả Spider test và BIRD dev. Tiến độ, Hướng tiếp và Paper theo một card, <code>bird_k2/round_1</code> đang chạy (suy ra) và <code>bird_sft/round_4</code> queued, ghi nhận 2026-11-22 09:31.</span></li>
       <li><time>2026-11-21 05:30</time><span>Centralized SFT epoch 3 75.03, dừng ở 3 epoch; BIRD dev FedAvg SFT R2 42.70, DPO + NLL k = 0 R1 41.85, k = 1 R2 44.26 (results <code>16f82c69</code>, <code>53c7bee1</code>, <code>2dceb56f</code>, <code>2913db0c</code>); pairs BIRD sau relabel và sau FedAvg R1 (<code>144a8a78</code>, <code>7e0d032f</code>). Bỏ dải "SFT trong papers" khỏi biểu đồ EX (SPFT-SQL không còn dùng làm mốc). Thẻ kết quả chính và còn mở có số BIRD; Spider dev, Syn, Realistic, DK trong Hướng tiếp và queue. Trạng thái GPU và queue theo ghi nhận 2026-11-21 02:45.</span></li>
       <li><time>2026-11-20 10:05</time><span>BIRD dev FedAvg SFT R1 38.85 (results <code>91e5fcdd</code>). Tab Kết quả sinh từ một khối dữ liệu do <code>paper/notes/tools/overview_results.py</code> đọc từ mọi evaluation đã commit (EX, độ khó, lỗi chạy và sai kết quả đếm lại từ predictions, McNemar so với FedAvg SFT cùng round); chọn bộ đo, model, seed (seed thứ hai trở đi thêm lựa chọn trung bình). Biểu đồ: EX theo round (đường, ẩn hiện từng line), gain so với FedAvg (cột, nhạt khi p &ge; 0.05), mỗi câu test ra sao (thanh 100%), theo độ khó (dumbbell); hàng đang chạy và queued hiện trong bảng. k = 3: lỗi chạy 112, sai kết quả 361 (1 output bị cắt trước đây tính vào sai kết quả). Trạng thái GPU và queue theo ghi nhận 2026-11-20 09:55.</span></li>
       <li><time>2026-11-20 06:41</time><span>k = 3 ở 4 round 77.97, gold rule R2 75.73, centralized SFT epoch 1 và 2 (75.08, 75.73), BIRD dev base student 29.47, pair read trên 5 client BIRD (52.4% câu có SQL đúng, 9,566 pairs), wall time 4 round (results <code>b3075597</code>, <code>1abec88c</code>, <code>8a66fad2</code>, <code>0643b48c</code>, <code>bfa497a8</code>, <code>55b883c9</code>, <code>799543a1</code>, <code>b2aeef14</code>, <code>5aa73a62</code>): k = 3 trên hai biểu đồ, hàng mới trong bảng kết quả, panel BIRD, I3 và gold rule trong Đã thử, queue và trạng thái GPU theo ghi nhận 2026-11-20 06:38.</span></li>
@@ -1762,24 +1784,35 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
 
   // Datasets as evaluated. lv: difficulty levels of the set [key, name]; nh: questions per level.
   var HL = [["e", "easy"], ["m", "medium"], ["h", "hard"], ["x", "extra"]];
-  var VAR_SETTING = "Cùng adapter của các hàng Spider, chỉ eval. Không chọn round hay setting nào trên bộ này. Prompt A (ddl_rows), greedy, evaluator Spider.";
   var DS = {
     spider: { name: "Spider test", n: 2147, lv: HL, nh: { e: 470, m: 857, h: 463, x: 357 },
       setting: "Client: Spider train, 5 client, alpha 0.1 (alpha_0.1/k5). Prompt A (ddl_rows), greedy, evaluator Spider (60 s mỗi query). Round và setting được chọn trên bộ này.",
       read: "Ở mọi số round, DPO + NLL hơn FedAvg SFT khoảng 3 EX, có hay không stage SFT trước (k = 0, 2, 3), và các line đến cùng mức ở R4 (77.97 đến 78.20 so với 74.71). FedDPO as published (không NLL) dưới FedAvg SFT. Centralized SFT trên dữ liệu gộp dừng ở 75.0 đến 75.7 qua 3 epoch; DPO + NLL federated cao hơn ở mọi số epoch. Gain đến từ lỗi chạy (287 khi chưa train, 164 đến 215 với FedAvg SFT, 57 đến 112 với DPO + NLL); SQL chạy được nhưng sai kết quả ở 342 đến 444 trong mọi hàng." },
-    spiderdev: { name: "Spider dev", n: 1034, lv: HL, nh: { e: 248, m: 446, h: 174, x: 166 }, setting: VAR_SETTING,
-      read: "Trên bộ không chọn gì, gain còn nhưng nhỏ hơn trên test: k = 2 hơn FedAvg SFT 2.51 (sửa 72, làm sai 46, p 0.021), k = 0 hơn 2.12 (p 0.082). Hai line DPO + NLL cách nhau 0.39 (p 0.80). On-policy hơn pairs cố định 1.45 (p 0.072). Centralized SFT ở đây thấp hơn FedAvg SFT (73.02 so với 75.15), cả hai line method hơn nó trên 4 điểm (p dưới 0.001). Gain nằm ở hard và extra." },
-    syn: { name: "Spider-Syn", n: 1034, lv: HL, nh: { e: 248, m: 440, h: 177, x: 169 }, setting: VAR_SETTING + " Câu hỏi của Spider dev, viết lại bằng từ đồng nghĩa.",
-      read: "FedAvg SFT gần như không hơn student chưa train (59.09 so với 56.77, p 0.093). Cả hai line method hơn FedAvg SFT: k = 2 +3.87 (p 0.0006), k = 0 +3.00 (p 0.024). On-policy hơn pairs cố định 2.22 (p 0.0095), bộ duy nhất ngoài BIRD mà khác biệt này tách được." },
-    realistic: { name: "Spider-Realistic", n: 508, lv: HL, nh: { e: 109, m: 203, h: 99, x: 97 }, setting: VAR_SETTING + " Câu hỏi của Spider dev, bỏ tên cột lộ trong câu.",
-      read: "k = 0 hơn FedAvg SFT 3.54 (p 0.063), k = 2 hơn 2.75 (p 0.10): cùng hướng, không tách được ở 508 câu. FedAvg SFT không tách khỏi student chưa train (p 0.19)." },
-    dk: { name: "Spider-DK", n: 535, lv: HL, nh: { e: 110, m: 246, h: 74, x: 105 }, setting: VAR_SETTING + " Câu hỏi cần domain knowledge.",
-      read: "FedAvg SFT dưới student chưa train (59.63 so với 60.19). k = 0 hơn FedAvg SFT 7.47 (sửa 64, làm sai 24, p 2.4e-5), k = 2 hơn 3.92 (p 0.017); đây là bộ duy nhất mà k = 0 hơn k = 2 (p 0.032)." },
+    spiderdev: { name: "Spider dev", n: 1034, lv: HL },
+    syn: { name: "Syn", n: 1034, lv: HL },
+    realistic: { name: "Realistic", n: 508, lv: HL },
+    dk: { name: "DK", n: 535, lv: HL },
     bird: { name: "BIRD dev", n: 1534, lv: [["s", "simple"], ["mo", "moderate"], ["c", "challenging"]], nh: { s: 925, mo: 464, c: 145 },
       setting: "Client: BIRD train, 5 client, alpha 0.1. Prompt ddl với evidence, greedy, evaluator BIRD (30 s cho cặp prediction và gold). Độ khó là nhãn chính thức của BIRD dev.",
       read: "Ở 1 round, DPO + NLL từ base student (k = 0) hơn FedAvg SFT 3.00 (p 0.005), như trên Spider. Ở 2 round chưa line nào tách khỏi FedAvg SFT: k = 1 (1 round SFT rồi DPO + NLL) +1.56 (p 0.13), k = 0 +0.32 (p 0.80); k = 0 mất ở challenging (19.31 so với 29.66), k = 1 hơn ở moderate (37.07 so với 31.25). FedAvg SFT chậm lại ở R3 (43.68, +0.98); k = 1 ở 2 round vẫn hơn nó 0.59 (p 0.61). On-policy hơn pairs cố định 2.21 (p 0.008). Gold trong round DPO thấp hơn round không có gold ở cả hai cách: gold làm chosen −2.61 (p 0.007), dòng NLL trên gold −0.65 (p 0.43). Round DPO cắt lỗi chạy và tăng SQL sai kết quả. Đang chạy: k = 2 R3, so với FedAvg SFT R3." }
   };
   var MODELS = { qwen15: "Qwen2.5-Coder-1.5B" };
+  // Two settings: who the clients are. evals: the sets read for the overview table; the first is the main set.
+  var SETTINGS = {
+    spider: { name: "Client Spider", evals: ["spider", "spiderdev", "syn", "realistic", "dk"] },
+    bird:   { name: "Client BIRD", evals: ["bird"] }
+  };
+  // Rows of the overview table: [line, round] per setting, at the rounds where the method rows are read.
+  var MX_R = { spider: 4, bird: 2 };
+  var MX = [
+    { name: "Chưa train", c: { spider: ["base", 0], bird: ["base", 0] } },
+    { name: "FedAvg SFT", sub: "federated baseline", c: { spider: ["fedavg", 4], bird: ["fedavg", 2] } },
+    { name: "Centralized SFT", sub: "dữ liệu 5 client gộp, epoch 2", c: { spider: ["central", 2] } },
+    { name: "DPO + NLL từ student chưa train", sub: "k = 0", c: { spider: ["k0", 4], bird: ["k0", 2] }, me: true },
+    { name: "DPO + NLL sau stage FedAvg SFT", sub: "Spider: 2 round SFT (k = 2); BIRD: 1 round (k = 1)", c: { spider: ["k2", 4], bird: ["k1", 2] }, me: true },
+    { name: "Pairs cố định + NLL", sub: "đối chứng của on-policy; Spider từ FedAvg R2, BIRD từ k = 0 R1", c: { spider: ["fixed", 4], bird: ["fixed", 2] } }
+  ];
+  var MX_READ = "Trên cả năm bộ đo của setting Spider, hai line DPO + NLL cao hơn FedAvg SFT và centralized SFT; trên Spider dev, nơi không chọn gì, +2.12 (k = 0) và +2.51 (k = 2). Trên BIRD ở 2 round chưa line nào tách khỏi FedAvg SFT (k = 1 +1.56, p 0.13); FedAvg SFT R3 là 43.68, k = 2 R3 đang chạy để so cùng 3 round. On-policy hơn pairs cố định trên BIRD (p 0.008) và Syn (p 0.0095), ngang trên Spider test.";
   function LV(ds) { return (DS[ds] && DS[ds].lv) || HL; }
 
   // Lines. table: main or more (the details table); chart: drawn in the EX chart; gain: has a bar
@@ -2109,6 +2142,42 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
     document.getElementById("res-more-sum").textContent = more.length + " hàng đổi một setting của method";
   }
 
+  // Overview table: every set of both settings, the rows of MX.
+  function drawMatrix(model, seed) {
+    var cols = [];
+    Object.keys(SETTINGS).forEach(function (st) {
+      SETTINGS[st].evals.forEach(function (ds, i) {
+        if (DATA.runs.some(function (x) { return x.ds === ds && x.model === model; })) cols.push({ st: st, ds: ds, first: i === 0, V: pick(ds, model, seed) });
+      });
+    });
+    var h1 = '<tr><th rowspan="2">Hàng</th>', h2 = '<tr>';
+    Object.keys(SETTINGS).forEach(function (st) {
+      var cs = cols.filter(function (c) { return c.st === st; });
+      if (!cs.length) return;
+      h1 += '<th class="grp-h sep" colspan="' + cs.length + '">' + SETTINGS[st].name + ', ' + MX_R[st] + ' round</th>';
+      cs.forEach(function (c, i) { h2 += '<th class="r' + (i === 0 ? ' sep' : '') + '">' + DS[c.ds].name + '<small>' + fmt(DS[c.ds].n) + ' câu</small></th>'; });
+    });
+    document.getElementById("mx-h").innerHTML = h1 + '</tr>' + h2 + '</tr>';
+    var best = cols.map(function (c) {
+      return Math.max.apply(null, MX.map(function (row) { var k = row.c[c.st], o = k && get(c.V, k[0], k[1]); return o ? o.ex : -1; }));
+    });
+    document.getElementById("mx-b").innerHTML = MX.map(function (row) {
+      var tds = cols.map(function (c, j) {
+        var k = row.c[c.st], o = k && get(c.V, k[0], k[1]), cls = 'c' + (c.first ? ' sep' : '');
+        if (!o) return '<td class="' + cls + '"><span class="muted">–</span></td>';
+        var fk = MX[1].c[c.st], fa = get(c.V, fk[0], fk[1]), dl = "";
+        if (fa && ["base", "fedavg"].indexOf(k[0]) < 0) {
+          var d = o.ex - fa.ex, t = test(c.ds, model, seed, "fedavg", fk[1], k[0], k[1]);
+          dl = '<span class="dl"><span class="' + (d >= 0 ? "dpos" : "dneg") + '">' + sg(d) + '</span>' + (t ? ' p ' + t.p : '') + '</span>';
+        }
+        if (Math.abs(o.ex - best[j]) < 1e-9) cls += ' best';
+        return '<td class="' + cls + '"><b>' + f2(o.ex) + '</b>' + dl + '</td>';
+      }).join("");
+      return '<tr' + (row.me ? ' class="me"' : '') + '><td class="nm"><b>' + row.name + '</b>' + (row.sub ? '<span class="sub">' + row.sub + '</span>' : '') + '</td>' + tds + '</tr>';
+    }).join("");
+    document.getElementById("mx-read").textContent = model === "qwen15" && seed !== "all" ? MX_READ : "Trung bình trên các seed đã có.";
+  }
+
   // State and controls.
   var sel = { ds: "spider", model: "qwen15", seed: "0" }, hidden = {};
   ORDER.forEach(function (l) { if (LINES[l].off) hidden[l] = true; });
@@ -2126,19 +2195,20 @@ var DATA = {"runs":[{"ds":"bird","model":"qwen15","seed":0,"line":"base","r":0,"
     });
   }
   function render() {
-    var DSORDER = ["spider", "bird", "spiderdev", "syn", "realistic", "dk"];
-    var dss = uniq(DATA.runs.map(function (x) { return x.ds; })).sort(function (a, b) { return DSORDER.indexOf(a) - DSORDER.indexOf(b); });
+    var dss = Object.keys(SETTINGS).filter(function (st) { return DATA.runs.some(function (x) { return x.ds === st; }); });
     if (dss.indexOf(sel.ds) < 0) sel.ds = dss[0];
-    var models = uniq(DATA.runs.filter(function (x) { return x.ds === sel.ds; }).map(function (x) { return x.model; }));
+    var models = uniq(DATA.runs.map(function (x) { return x.model; }));
     if (models.indexOf(sel.model) < 0) sel.model = models[0];
-    var seeds = uniq(DATA.runs.filter(function (x) { return x.ds === sel.ds && x.model === sel.model; }).map(function (x) { return String(x.seed); })).sort();
+    var seeds = uniq(DATA.runs.filter(function (x) { return x.model === sel.model; }).map(function (x) { return String(x.seed); })).sort();
     if (sel.seed !== "all" && seeds.indexOf(sel.seed) < 0) sel.seed = seeds[0];
     if (sel.seed === "all" && seeds.length < 2) sel.seed = seeds[0];
-    seg(document.getElementById("sel-ds"), dss.map(function (d) { return { v: d, t: DS[d] ? DS[d].name : d, n: DS[d] ? fmt(DS[d].n) : null }; }), sel.ds, function (v) { sel.ds = v; save(); render(); });
+    seg(document.getElementById("sel-ds"), dss.map(function (d) { return { v: d, t: SETTINGS[d].name, n: "đo trên " + DS[d].name }; }), sel.ds, function (v) { sel.ds = v; save(); render(); });
     seg(document.getElementById("sel-model"), models.map(function (m) { return { v: m, t: MODELS[m] || m }; }), sel.model, function (v) { sel.model = v; save(); render(); });
     seg(document.getElementById("sel-seed"), seeds.map(function (s) { return { v: s, t: s }; }).concat(seeds.length > 1 ? [{ v: "all", t: "trung bình" }] : []), sel.seed, function (v) { sel.seed = v; save(); render(); });
     var D = DS[sel.ds] || { name: sel.ds, setting: "", read: "" };
-    document.getElementById("res-setting").textContent = D.setting + (seeds.length < 2 ? " Mới có seed " + seeds[0] + "." : "");
+    document.getElementById("res-setting").textContent = D.setting;
+    document.getElementById("res-seednote").textContent = seeds.length < 2 ? "Mới có seed " + seeds[0] + "; seed thứ hai trở đi thêm lựa chọn trung bình." : "";
+    drawMatrix(sel.model, sel.seed);
     document.getElementById("res-read").textContent = sel.model === "qwen15" && sel.seed !== "all" ? D.read : "Trung bình trên " + seeds.length + " seed; chấm trên cột gain là từng seed.";
     var V = pick(sel.ds, sel.model, sel.seed), show = function (l) { return !hidden[l]; };
     // legend toggles
