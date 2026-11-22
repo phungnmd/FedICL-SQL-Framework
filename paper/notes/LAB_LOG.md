@@ -4,6 +4,71 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: `bird_k2/round_1`, one DPO + NLL round from FedAvg SFT round 2 on BIRD: 46.22, 2.54 above FedAvg SFT at 3 rounds (p 0.0087)
+
+Run `eval_arms__s0__20261122T023449__df23a1e4c235__f80957af63534196bb45a975405e3a61`,
+arm `fedpref_bird_sftr2_p2_dpo_ddl_a01_r1_vllm_inproc`, round record
+`audits/protocol_v2/fedpref_bird_sftr2_p2_ddl_alpha01_s0/dpo/round_1/`;
+round `bc0837cb` (09:28), evaluation `7e36808c` (09:34). Read on the Mac
+from the committed predictions at 09:53. k = 2 was the k of the best
+Spider line and was set before this read (queued 2026-11-21); no round
+or setting of this row was chosen on BIRD dev.
+
+| Row | Rounds | BIRD dev EX | Simple (925) | Moderate (464) | Challenging (145) | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 2 (its start) | 2 | 42.70 | 50.49 | 31.25 | 29.66 | 286 | 593 |
+| FedAvg SFT round 3 | 3 | 43.68 | 51.57 | 32.54 | 28.97 | 276 | 588 |
+| k = 0 round 2 | 2 | 43.02 | 50.70 | 35.13 | 19.31 | 250 | 624 |
+| k = 1 | 2 | 44.26 | 50.38 | 37.07 | 28.28 | 127 | 728 |
+| k = 2 (`bird_k2/round_1`) | 3 | 46.22 | 53.08 | 36.85 | 32.41 | 102 | 723 |
+
+Exact McNemar, k = 2 against:
+
+| Row | Only k = 2 right | Only the other right | Difference | p | Simple | Moderate | Challenging |
+|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 3 (equal rounds) | 125 | 86 | +2.54 | 0.0087 | 71 / 57, p 0.25 | 41 / 21, p 0.015 | 13 / 8, p 0.38 |
+| FedAvg SFT round 2 (its start) | 135 | 81 | +3.52 | 0.0003 | 75 / 51, p 0.040 | 46 / 20, p 0.0019 | 14 / 10, p 0.54 |
+| k = 1 (2 rounds) | 106 | 76 | +1.96 | 0.031 | 62 / 37, p 0.015 | 32 / 33 | 12 / 6, p 0.24 |
+| k = 0 round 2 (2 rounds) | 151 | 102 | +3.19 | 0.0025 | 78 / 56, p 0.069 | 51 / 43, p 0.47 | 22 / 3, p 0.0002 |
+
+- The read of the table in `PIPELINE_NEXT.md` ("`bird_k2/round_1` above
+  `bird_sft/round_3`"): yes by the rule (0.5 EX or more, p below 0.05).
+  The first gain over FedAvg SFT at equal rounds from an SFT start that
+  is separated on BIRD; the method stands at k = 2 on both datasets
+  (Spider test 78.20 against 74.71 at 4 rounds).
+- All three difficulty levels are above FedAvg SFT round 3, the
+  moderate one separated. The challenging level, which fell from the
+  base start (19.31 at k = 0 round 2), is 32.41.
+- From the same start the DPO + NLL round fixes 135 answers and breaks
+  81, the SFT round 45 and 30. As before, the round removes execution
+  errors (286 to 102) and leaves more wrong results (593 to 723).
+- Tables and columns against the gold's (session read, as in the entry
+  below): predictions on the gold's tables and columns 718 (FedAvg SFT
+  round 3: 715), EX on those 74.5 (74.8); predictions on the gold's
+  tables 1,081 (1,020); EX on the rest 21.3 (16.5). The gain over
+  FedAvg SFT is again in right answers on other tables or columns.
+- The round: 11,754 pairs (2,726 / 1,922 / 2,758 / 782 / 3,566; the
+  rejected side an execution error in 6,616 and a wrong result in
+  5,138), 737 updates. Of the 9,428 questions 5,877 are mixed, 2,698
+  have no correct sample (3,220 after one SFT round, 3,017 after one
+  DPO round from the base student), 416 have only correct ones, 437
+  have a gold that does not run. 87 golds met the 30 s budget (50 in
+  `bird_k1/round_1`, 72 in `bird_k0/round_2`). Sample accuracy 32.7%.
+- Measured: 7 h 50 min (sampling 28 min, labels 2 h 39 min in 5 calls,
+  reference 1 h 01 min, updates 3 h 41 min); peak reserved 17.39 / 12.74
+  / 17.39 / 17.45 / 18.90 GiB; evaluation 6 min. The labels took 2 h 39
+  min, not the 1.5 h estimated after code `0910b84f`. Written into
+  `fedicl-sql/docs/A5000_RUN_CONFIG.md`.
+- Card: `bird_sft/round_4` is next in file order, so since about 09:35;
+  not confirmed (about 3 h, estimate).
+- Session estimates after this read (judgement): the method above
+  FedAvg SFT at 4 rounds on BIRD 90%, separated 65%. For the paper the
+  largest open item is now the gain on a second and a third model.
+- Not decided (owner): the slot after `bird_sft/round_4`. The session's
+  earlier proposal for a separated read sends the card to FedAvg SFT of
+  a second model on Spider; the two reviewers' order runs
+  `bird_k2/round_2` and its fixed-pair twin first.
+
 ## 2026-11-22: `bird_sft/round_3`, FedAvg SFT on BIRD at 3 rounds: 43.68, 0.98 above round 2
 
 Run `eval_arms__s0__20261121T183455__16c32a3b85ca__8893c69d683e424a84065861a15f57d1`,

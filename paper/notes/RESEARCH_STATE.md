@@ -399,19 +399,24 @@ fixed, 71 broken, exact McNemar p = 8.5e-10.
 
 EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 
-| Rounds | Spider test, FedAvg SFT | Spider test, DPO + NLL from the base student (k = 0) | BIRD dev, FedAvg SFT | BIRD dev, k = 0 | BIRD dev, 1 SFT round then DPO (k = 1) |
-|---|---|---|---|---|---|
-| 1 | 72.43 | 75.87 | 38.85 | 41.85 | |
-| 2 | 74.10 | 77.18 | 42.70 | 43.02 | 44.26 |
-| 3 | 74.71 | 77.69 | 43.68 | | |
-| 4 | 74.71 | 78.02 | | | |
+| Rounds | Spider test, FedAvg SFT | Spider test, DPO + NLL from the base student (k = 0) | Spider test, 2 SFT rounds then DPO (k = 2) | BIRD dev, FedAvg SFT | BIRD dev, k = 0 | BIRD dev, 1 SFT round then DPO (k = 1) | BIRD dev, 2 SFT rounds then DPO (k = 2) |
+|---|---|---|---|---|---|---|---|
+| 1 | 72.43 | 75.87 | | 38.85 | 41.85 | | |
+| 2 | 74.10 | 77.18 | | 42.70 | 43.02 | 44.26 | |
+| 3 | 74.71 | 77.69 | 77.46 | 43.68 | | | 46.22 |
+| 4 | 74.71 | 78.02 | 78.20 | | | | |
 
 - Spider: the method is 3.3 to 3.5 above FedAvg SFT at 4 rounds on
   Spider test (k = 2: 78.20), and 2.12 (k = 0, p 0.08) and 2.51 (k = 2,
   p 0.02) above on Spider dev, where no round or setting was chosen.
-- BIRD: +3.00 at 1 round (p 0.005), +0.32 at 2 rounds (p 0.80); with one
-  SFT round first +1.56 (p 0.13). Not separated at 2 rounds. FedAvg SFT
-  at 3 rounds is 43.68: k = 1 at 2 rounds is 0.59 above it (p 0.61).
+- BIRD: with two SFT rounds first (k = 2, the k of the best Spider
+  line, set before the read) the method is 2.54 above FedAvg SFT at 3
+  rounds (46.22 against 43.68, 125 questions against 86, p 0.0087) and
+  above it on every difficulty level (53.08 / 36.85 / 32.41 against
+  51.57 / 32.54 / 28.97). It is 1.96 above k = 1 at 2 rounds (p 0.031).
+  From the base start: +3.00 at 1 round (p 0.005), +0.32 at 2 rounds (p
+  0.80); with one SFT round first +1.56 at 2 rounds (p 0.13). k = 2
+  stands on both datasets.
 - Gold SQL on BIRD: as an SFT stage before the DPO rounds it is on the
   method's side (k = 1 is 1.24 above k = 0, p 0.19); inside a DPO round
   it has not helped in either form tried (chosen side of a pair -2.61,
@@ -423,19 +428,26 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
   3.85 on BIRD, the third 0.61 on Spider and 0.98 on BIRD (p 0.11).
   FedAvg SFT slows on BIRD at round 3 as it did on Spider; round 4 is
   queued.
-- One DPO round after SFT adds 3.36 on Spider (from round 2) and 5.41 on
-  BIRD (from round 1). The read still to make on BIRD: DPO from
-  `bird_sft` round 2 (k = 2, the k of the best Spider line) against
-  `bird_sft` round 3 (43.68; a separated gain is about 45.8); queued
-  2026-11-21 as `bird_k2/round_1`.
+- One DPO round after SFT adds 3.36 on Spider (from round 2) and, on
+  BIRD, 5.41 from round 1 and 3.52 from round 2 (`bird_k2/round_1`),
+  where a third SFT round adds 0.98. Still to read on BIRD: the method
+  at 4 rounds (`bird_k2/round_2` against `bird_sft` round 4) and its
+  twin on fixed pairs; neither is queued.
 - The DPO rounds remove execution errors and leave the wrong results;
   SFT does the reverse (BIRD at 2 rounds: 285 and 593 for FedAvg SFT,
-  120 and 727 for k = 1).
+  120 and 727 for k = 1; at 3 rounds, with timeouts counted as errors:
+  276 and 588 for FedAvg SFT, 102 and 723 for k = 2).
+- Where the gain sits (session read of the committed predictions,
+  `LAB_LOG.md`, 2026-11-22): at 3 rounds k = 2 and FedAvg SFT have as
+  many predictions on the gold's tables and columns (718 and 715) and
+  the same EX on them (74.5 and 74.8); the method is ahead on the
+  others (21.3 against 16.5), right answers written with other tables
+  or columns than the gold's.
 
 | Part | Spider | BIRD |
 |---|---|---|
 | On-policy rounds against fixed pairs | test 78.20 against 78.02; dev +1.45 (p 0.07) | +2.21 (p 0.008), kept |
-| FedAvg SFT stage | test EX: no difference (k = 0, 2, 3: 78.02, 78.20, 77.97); test-suite accuracy on dev, Syn, Realistic: k = 2 above k = 0 (p 0.010, 0.0014, 0.0067) and above FedAvg SFT, k = 0 level with FedAvg SFT (`LAB_LOG.md`, 2026-11-21; not committed) | k = 1 is 1.24 above k = 0 (p 0.19) |
+| FedAvg SFT stage | test EX: no difference (k = 0, 2, 3: 78.02, 78.20, 77.97); test-suite accuracy on dev, Syn, Realistic: k = 2 above k = 0 (p 0.010, 0.0014, 0.0067) and above FedAvg SFT, k = 0 level with FedAvg SFT (`LAB_LOG.md`, 2026-11-21; not committed) | k = 1 is 1.24 above k = 0 at 2 rounds (p 0.19); k = 2 at 3 rounds is 3.19 above k = 0 at 2 rounds (p 0.0025) and 1.96 above k = 1 at 2 rounds (p 0.031), rows of unequal length |
 | Gold as the chosen side | falls at round 2 | -2.61 (p 0.007) |
 | NLL rows on the gold SQL of the all-wrong questions, in the round of the pairs | not run | -0.65 (p 0.43), not kept; 1.89 below k = 1 (p 0.045) |
 | Nearest pairs, wrong-result rejects first | no gain | not run |
@@ -455,8 +467,8 @@ and BIRD dev, greedy.
 | Spider | best with a method | ours 78.02 (k = 0, 4 rounds), 78.20 (k = 2) | SQL-Factory 76.5 (synthetic data); SLM-SQL test 79.06 (916K rows, vote of 16) |
 | Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | CodeS-1B SFT: 66.5 / 70.9 / 64.7 (another base model, value retrieval, beam) |
 | BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6 |
-| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70 (rounds 1, 2) | SQL-Factory 39.2 (3 epochs) |
-| BIRD dev | with a method, added inputs or voting | 44.26 (1 FedAvg SFT round, then 1 DPO + NLL round; 2 rounds in all) | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70, 43.68 (rounds 1 to 3) | SQL-Factory 39.2 (3 epochs) |
+| BIRD dev | with a method, added inputs or voting | 46.22 (2 FedAvg SFT rounds, then 1 DPO + NLL round; 3 rounds in all) | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
 
 SPFT-SQL (arXiv 2509.03937) is not used as a reference (owner,
 2026-11-20). Its row for this student without training is 40.6 on BIRD
