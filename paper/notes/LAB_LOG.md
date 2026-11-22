@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: gold-prefix probe queued (code `49f7adff`, queue `d2e9e3df`)
+
+Owner (chat): the probe of form 3 of the entry below, written by a
+delegated agent and read here before the push.
+
+- `scripts/prefix_probe.py`: the all-wrong questions of one round are
+  sampled again from the model that round sampled; the model input is
+  the round's prompt token ids followed by the first round(f * n) token
+  ids of the training target of the gold SQL, so it is the start of
+  that question's training sequence. The SQL of a sample is the prefix
+  and the continuation decoded together from their token ids, labelled
+  as the round labels. f = 0 is the control, a second draw without a
+  prefix. Counts per fraction: questions mixed, all correct, all wrong,
+  correct samples equal to the gold SQL, and each question against the
+  control.
+- Queued as `prefix/probe` and `prefix/publish_probe` at the end of the
+  queue: `qwen05b_k2` round 2 (1,168 all-wrong questions, the round 1
+  global adapter), f = 0, 0.25, 0.5, 0.75, 10 samples at T 1.0 as the
+  round. About 35 min (estimate).
+- Checked: the prompt part equals the ids the round's sampling sends to
+  the engine, and prompt plus prefix is a prefix of the training
+  sequence (0.5B tokenizer, question `train:345`, 4 of 7 gold tokens:
+  the input ends `<|im_start|>assistant\nSELECT name , `). Tests: 72
+  passed, 2 skipped on the files touched; the agent reports 555 passed,
+  2 skipped on the whole suite. Not run: the vLLM path of the script on
+  the server.
+- Read as: under about a third of the questions mixed at f = 0.5 above
+  the control, form 3 is dropped.
+
 ## 2026-11-23: reading on one loss for gold SQL and execution preference (literature and committed audits, no run, nothing decided)
 
 Owner's question: the method flattens after its first DPO + NLL round

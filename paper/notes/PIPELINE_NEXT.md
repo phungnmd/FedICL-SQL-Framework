@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-23 05:30 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+Updated 2026-11-23 05:55 (Asia/Ho_Chi_Minh). One card only (owner, chat,
 2026-11-21 about 22:20). The Spider line of Qwen2.5-Coder-0.5B is
 finished: at 4 rounds the method is 66.19 on Spider test and FedAvg SFT
 64.09 (01:08), 2.10 above it (149 questions against 104, p 0.0056); at
@@ -237,6 +237,7 @@ its log say whether the second runs 4 at a time cost them.
 | --- | --- | --- | --- | --- |
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82); `deepseek13b_k2/round_1` expected since 04:43, not confirmed |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
+| 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
 
 Expected on one card (estimates): DeepSeek at 3 rounds is read about
 09:30 (`deepseek13b_k2/round_1` about 07:40) and at 4 rounds about
