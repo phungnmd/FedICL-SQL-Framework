@@ -30,7 +30,7 @@ that clearly beats the federated baselines and reports good numbers.
 | Part | Choice | State |
 |---|---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
-| Other student models (owner, 2026-11-22) | Qwen2.5-Coder-0.5B-Instruct and deepseek-coder-1.3b-instruct run the Spider line of the 1.5B with the model changed and nothing else (FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from FedAvg SFT round 2), each through its own chat template | queued 2026-11-22, nothing read |
+| Other student models (owner, 2026-11-22) | Qwen2.5-Coder-0.5B-Instruct and deepseek-coder-1.3b-instruct run the Spider line of the 1.5B with the model changed (FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from FedAvg SFT round 2), each through its own chat template. DeepSeek's tokenizer is loaded from its `tokenizer.json` and gives longer sequences (up to 8,238 tokens), so its length limit is 8,704; no row is cut or refused for any model | 0.5B running: 54.40 without training, 58.13 after FedAvg SFT round 1 (Spider test). DeepSeek queued as `deepseek13b`, nothing read (its first base row, EX 0.00, came from a tokenizer that dropped whitespace and is not a result; `LAB_LOG.md`, 2026-11-22) |
 | Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | not part of the method (owner, 2026-11-17); a research direction, section 4 |
 | Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
@@ -182,7 +182,7 @@ does this by default (`9dd4adce`).
 
 | Row | What it is | Role |
 |---|---|---|
-| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 3, round 4 queued) |
+| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 4 rounds) |
 | FedProx, FedNTD | gold SQL, other aggregators | federated baselines (item 6 of section 4) |
 | Federated DPO as published | pairs from the base student's samples made once, reference fixed for all rounds (OpenFedLLM's FedDPO); same loss, same pair count | federated DPO baseline |
 | Method | DPO + NLL rounds with the improvements kept | the row of the paper |
@@ -405,7 +405,7 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 | 1 | 72.43 | 75.87 | | 38.85 | 41.85 | | |
 | 2 | 74.10 | 77.18 | | 42.70 | 43.02 | 44.26 | |
 | 3 | 74.71 | 77.69 | 77.46 | 43.68 | | | 46.22 |
-| 4 | 74.71 | 78.02 | 78.20 | | | | |
+| 4 | 74.71 | 78.02 | 78.20 | 42.57 | | | |
 
 - Spider: the method is 3.3 to 3.5 above FedAvg SFT at 4 rounds on
   Spider test (k = 2: 78.20), and 2.12 (k = 0, p 0.08) and 2.51 (k = 2,
@@ -427,8 +427,10 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
   over an SFT round from the same start (+3.44, +3.00), the second +1.31
   and +1.17. The SFT rounds differ: the second adds 1.67 on Spider and
   3.85 on BIRD, the third 0.61 on Spider and 0.98 on BIRD (p 0.11).
-  FedAvg SFT slows on BIRD at round 3 as it did on Spider; round 4 is
-  queued.
+  FedAvg SFT slows on BIRD at round 3 as it did on Spider, and round 4
+  falls back to the level of round 2 (42.57, 1.11 below round 3, p
+  0.068): its best round is 3, and the method at 3 rounds is 3.65 above
+  FedAvg SFT at 4 rounds (p 0.0001).
 - One DPO round after SFT adds 3.36 on Spider (from round 2) and, on
   BIRD, 5.41 from round 1 and 3.52 from round 2 (`bird_k2/round_1`),
   where a third SFT round adds 0.98. Still to read on BIRD: the method

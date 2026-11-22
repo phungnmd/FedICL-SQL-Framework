@@ -142,7 +142,8 @@ deviate.
   `PIPELINE_NEXT.md` and given in chat; push when that file changes.
 - Before queuing a new line, compare its resolved commands with the line it
   is compared against (prompt, decoding, length limit, training recipe),
-  and print one rendered prompt and read it. Decoding uses no repetition
+  and print one rendered prompt, decoded from its token ids, and read
+  it. Decoding uses no repetition
   penalty; no setting is inherited from a model's generation config.
 - Run an experiment on the setup it stands for. A cut version is fine for a
   quick read; say what is cut and report the result as partial.

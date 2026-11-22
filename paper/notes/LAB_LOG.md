@@ -49,6 +49,132 @@ against prior work and cost, 2 assessments of late directions. Result:
 - Owner, during the scan: delegated work runs on the cheaper model, the
   larger one is for the main session only (cost; `AGENTS.md`, Defaults).
 
+## 2026-11-22: DeepSeek-Coder-1.3B ran with a tokenizer that dropped whitespace; its base row (EX 0.00) is not a result; fixed and queued again
+
+Found at 16:00 when the base row came back at 0 of 2,147 (run
+`eval_arms__s0__20261122T055518__3517edc2c415__fbb93282e1894ef394dff2f3235329d3`,
+arm `zs_dsc13b_ddl_rows_vllm_inproc`, commit `db26468f`). Every
+prediction carried the byte-level markers of its tokens
+(`ĊSELECTĠCOUNT(*)ĠFROMĠclub`) and failed as a syntax error.
+
+- Cause: Transformers 5 (5.10.2 in the lock file) builds a tokenizer
+  class from that class's own pipeline and takes only the vocabulary from
+  `tokenizer.json` (its migration guide: "tokenizer behavior is now fully
+  determined by the class definition or `tokenizer.json`"). The config of
+  deepseek-coder names `LlamaTokenizerFast` over a byte-level BPE file,
+  so `AutoTokenizer` gave a Metaspace tokenizer on that vocabulary: every
+  space and newline of a prompt was dropped
+  (`CREATETABLE"club"("Club_ID"int);Question:Howmany...`), and the engine
+  joined its output tokens without decoding them. The model still wrote
+  the right tokens for simple questions from such a prompt.
+- What is not a result: the base row above; the lengths of the first
+  probe (`audits/protocol_v2/model_probes/dsc13b_spider_ddl_rows.json`,
+  longest 6,070); the lengths and the "prompt and target read" row for
+  DeepSeek in the entry below. Its memory reading stands as a reading at
+  6,070 tokens: 7.55 GiB reserved, 4.52 GiB allocated, 2.35 s a step. No
+  training ran on that tokenizer: the line was taken out of the queue
+  before its first round (`2c1d5ef2`, 16:05).
+- The check before queuing did not see it: the rendered prompt was read
+  as text before tokenization, and the template's ids were compared with
+  the ids of that text, two paths through the same tokenizer. The rule is
+  now to read a prompt decoded from its token ids (both `AGENTS.md`).
+- Fix (`58cd89f7`): `fedls_sql.models.tokenizer.load_tokenizer` replaces
+  every direct `AutoTokenizer` load. It encodes a probe text with
+  `AutoTokenizer` and with the shipped `tokenizer.json`, loads the file
+  as shipped when they differ, and refuses a tokenizer that does not
+  give the text back. For such a model the vLLM side returns the output
+  token ids and the Windows side decodes them. Qwen 1.5B, 0.5B: the
+  loader returns the `AutoTokenizer` object as before (same ids on the
+  probe, same template text), and the engine's text is used as before.
+  A test builds the same mismatch from a small tokenizer; 548 tests pass.
+- With the right tokenizer (Mac, 8,659 Spider client rows): longest
+  training sequence 8,238 tokens (`train:3698`, `baseball_1`), median
+  1,030 (Qwen: 6,927 and 821); 82 rows above 7,168, all on client 3, 2
+  above 8,192, none above 8,704. Longest per client: 3,266 / 4,853 /
+  8,238 / 3,845 / 4,502. One example read from its ids: one
+  begin-of-sentence token, the model's system sentence, `### Instruction:`,
+  the prompt with its spaces and newlines, `### Response:`, the SQL, a
+  newline and `<|EOT|>`.
+- Queued again (`e694b9fe`, 16:12) under the tag `deepseek13b`, since
+  the names of the first pass are taken by rows that are not results:
+  roots `fedavg_deepseek13b_base_ddlrows_alpha01_s0` and
+  `fedpref_deepseek13b_sftr2_p2_ddlrows_alpha01_s0`, arms
+  `zs_deepseek13b_...`, `fedavg_deepseek13b_...`,
+  `fedpref_deepseek13b_sftr2_p2_dpo_...`. The line of the 1.5B with the
+  model and the length limit changed: `--max-len 8704`, under which no
+  row is cut or refused, as for the Qwen models under 7,168. Its probe
+  and base row stand before the rest of the 0.5B line, so the fix is
+  read at the next task boundary; the line itself runs after the 0.5B
+  line.
+- Not checked: the token-id path on the server (vLLM returning ids, the
+  decode on Windows); the base row of `models/base_deepseek13b` shows it.
+- Seen on the way, not looked into: at about the same length DeepSeek
+  takes 2.35 s and 4.5 GiB allocated a training step where the 0.5B
+  takes 5.19 s and 11.5 GiB, so the cost of a long row in the Qwen
+  models comes from their attention path, not from their size.
+
+## 2026-11-22: Qwen2.5-Coder-0.5B on Spider test: base 54.40, FedAvg SFT round 1 58.13
+
+Runs `eval_arms__s0__20261122T055046__75cca4be6dce__f2fc8b0a8932410fb2f116593052842d`
+(arm `zs_qwen05b_ddl_rows_vllm_inproc`, `db26468f`, 12:55) and
+`eval_arms__s0__20261122T074501__f057588d0c63__bc20a8f4bc1c48d89f5b1304c818b40b`
+(arm `fedavg_qwen05b_ddl_rows_a01_r1_vllm_inproc`, `4d62bf81`, 14:45);
+round `af7182a3` (14:39). Read on the Mac at 16:00.
+
+| Row | Spider test EX | Easy | Medium | Hard | Extra | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| 0.5B without training | 54.40 | 80.43 | 60.09 | 40.60 | 24.37 | 469 | 510 |
+| 0.5B FedAvg SFT round 1 | 58.13 | 83.40 | 62.31 | 46.22 | 30.25 | 476 | 423 |
+| 1.5B without training | 68.05 | 87.45 | 71.41 | 59.18 | 45.94 | 287 | 399 |
+| 1.5B FedAvg SFT round 1 | 72.43 | 89.15 | 75.26 | 63.71 | 54.90 | 215 | 377 |
+
+- Round 1 adds 3.73 (196 questions fixed, 116 broken, exact McNemar p
+  7e-6); on the 1.5B it added 4.38 (165 against 71).
+- The 0.5B is 13.7 below the 1.5B without training and 14.3 below after
+  one round. Its execution errors do not fall in round 1 (469 to 476),
+  where the 1.5B's did (287 to 215).
+- Memory and time: probe 19.25 GiB reserved, 11.53 GiB allocated, 5.19 s
+  a step on the 4 longest rows
+  (`audits/protocol_v2/model_probes/qwen05b_spider_ddl_rows.json`,
+  `6efc1909`). Round 1: 1.72 h of client training (the 1.5B: 2.04 h),
+  12:55 to 14:39 on the clock; peak reserved 20.25 GiB on client 3,
+  above the 1.5B's 19.83 (clients 1 to 5: 7.91 / 18.16 / 20.25 / 14.56 /
+  18.11). The estimate of the entry below (about 12 GiB allocated, peak
+  near the 1.5B's) held for this model; the hour per round did not.
+
+## 2026-11-22: `bird_sft/round_4`, FedAvg SFT on BIRD at 4 rounds: 42.57, 1.11 below round 3
+
+Run `eval_arms__s0__20261122T053951__87bb97ea8b37__64d8e9a9ae374ea6b8f193d343f70729`,
+arm `fedavg_bird_ddl_a01_r4_vllm_inproc`; round `5b2a72bf` (12:32),
+evaluation `0603f35a` (12:40). Read on the Mac from the committed
+predictions at 16:00.
+
+| Row | Rounds | BIRD dev EX | Simple (925) | Moderate (464) | Challenging (145) | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 2 | 2 | 42.70 | 50.49 | 31.25 | 29.66 | 286 | 593 |
+| FedAvg SFT round 3 | 3 | 43.68 | 51.57 | 32.54 | 28.97 | 276 | 588 |
+| FedAvg SFT round 4 | 4 | 42.57 | 51.35 | 29.96 | 26.90 | 268 | 613 |
+| k = 2 (`bird_k2/round_1`) | 3 | 46.22 | 53.08 | 36.85 | 32.41 | 102 | 723 |
+
+Exact McNemar, FedAvg SFT round 4 against:
+
+| Row | Only round 4 right | Only the other right | Difference | p |
+|---|---|---|---|---|
+| FedAvg SFT round 3 | 30 | 47 | -1.11 | 0.068 |
+| FedAvg SFT round 2 | 60 | 62 | -0.13 | 0.93 |
+| k = 2 at 3 rounds | 77 | 133 | -3.65 | 0.0001 |
+| k = 1 at 2 rounds | 115 | 141 | -1.69 | 0.12 |
+
+- FedAvg SFT on BIRD has its best round at 3 (43.68) and is back at the
+  level of round 2 at round 4; the fall from round 3 is on the moderate
+  questions (5 fixed, 17 broken, p 0.017).
+- The method at 3 rounds is 3.65 above FedAvg SFT at 4 rounds (p
+  0.0001), on the moderate questions 50 against 18 (p 0.0001): the
+  baseline does not reach it with one more round. The row of the method
+  at 4 rounds (`bird_k2/round_2`) is not queued.
+- Time and memory (`metrics.json`): 2.95 h of client training (1,545 /
+  1,255 / 1,912 / 740 / 5,177 s), peak reserved 19.84 GiB on client 5.
+
 ## 2026-11-22: the Spider line queued on two more student models, Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B (owner)
 
 Owner in chat this morning, on the session's proposal; queue commit
@@ -85,6 +211,11 @@ Owner in chat this morning, on the session's proposal; queue commit
   test, the 0.5B line, the DeepSeek line. Inside a line: FedAvg SFT
   rounds 1 and 2, DPO + NLL round 1, FedAvg SFT round 3 (the read at 3
   rounds), DPO + NLL round 2, FedAvg SFT round 4 (the read at 4 rounds).
+
+Corrected the same day (entry above): the DeepSeek rows of this entry
+(prompt and target, lengths, memory and time estimates) came from a
+tokenizer that dropped whitespace and do not hold; the tag `dsc13b` is
+not used for results.
 
 Checked on the Mac before queuing:
 
