@@ -151,6 +151,9 @@ deviate.
   `fedicl-sql/AGENTS.md`, Defaults).
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
+- Delegated work (subagents) runs on the cheaper model; the larger model
+  is for the main session only (owner, 2026-11-22: cost). In Claude Code
+  that is Opus for subagents.
 - `paper/notes/overview.html` is the owner's project page. Update it only
   when the owner asks, from committed results; each update sets its
   `Cập nhật` stamp and adds a line to its update log at the bottom. Its
