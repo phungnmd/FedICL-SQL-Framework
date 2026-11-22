@@ -4,6 +4,48 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-22: Qwen2.5-Coder-0.5B at 3 rounds on Spider test: the method 65.86, FedAvg SFT 62.69 (+3.17, p 1.3e-05); FedAvg SFT still rises on this model
+
+Run `eval_arms__s0__20261122T142818__250a2b8b0707__65a91f9784904247bad026834d4b75a3`
+(arm `fedavg_qwen05b_ddl_rows_a01_r3_vllm_inproc`, `102fcb99`, 21:28;
+round `370bd7fa`, 21:23). Read on the Mac at 22:20; comparisons with
+`scripts.compare_predictions`.
+
+| Row | Spider test EX | Easy | Medium | Hard | Extra | Execution errors | Wrong results |
+|---|---|---|---|---|---|---|---|
+| 0.5B FedAvg SFT round 2 (start of the two rows below) | 60.60 | 82.55 | 64.29 | 49.68 | 36.97 | 429 | 417 |
+| 0.5B FedAvg SFT round 3 | 62.69 | 82.55 | 66.86 | 51.62 | 40.90 | 392 | 409 |
+| 0.5B k = 2, DPO + NLL round 1 (3 rounds) | 65.86 | 84.04 | 70.71 | 54.43 | 45.10 | 304 | 429 |
+
+- At 3 rounds the method is 3.17 above FedAvg SFT (154 questions right
+  only with the method, 86 only with FedAvg SFT, exact McNemar p
+  1.3e-05), on every hardness level (+1.49, +3.85, +2.81, +4.20). The
+  1.5B at 3 rounds: +2.75 (77.46 against 74.71).
+- FedAvg SFT round 3 adds 2.09 over round 2 (83 questions against 38, p
+  5.3e-05). FedAvg SFT has not flattened on this model: +3.73, +2.47,
+  +2.09 a round, where the 1.5B gave +4.38, +1.67, +0.61, 0.
+- From the same start the DPO + NLL round adds 5.26 and the SFT round
+  2.09. Both take their gain from execution errors (429 to 304, 429 to
+  392); wrong results go to 429 and to 409.
+- 6 answers of the method's row end at the output length limit (FedAvg
+  SFT round 2: 1, round 3: 0).
+- The start at round 2 while FedAvg SFT still rises (owner's question).
+  The comparison is at equal rounds and the DPO + NLL round carries the
+  NLL term, so no round of supervised training is given up. Every start
+  measured so far gives the same picture, the DPO + NLL round above the
+  SFT round from the same start: 0.5B from round 2 +3.17; 1.5B from the
+  base +3.44, from round 2 +2.75, from round 3 +3.26; BIRD from the base
+  +3.00, from round 1 +1.56, from round 2 +2.54. On the 1.5B a later
+  start changed nothing at 4 rounds (k = 0, 2, 3: 78.02, 78.20, 77.97).
+  Not measured: a start at round 3 on the 0.5B.
+- Open on this model: 4 rounds do not show where FedAvg SFT flattens.
+  On the 1.5B the method (78.20) is above the flat FedAvg SFT (74.71)
+  and above centralized SFT (75.73); on the 0.5B that reading needs
+  FedAvg SFT run until it stops rising (rounds 5 and 6, about 2 h each
+  with evaluation). Not queued; read round 4 first.
+- Time: round 3 was published 2 h 01 min after the publication before
+  it (19:22 to 21:23), its evaluation 5 min later.
+
 ## 2026-11-22: Qwen2.5-Coder-0.5B on Spider test: one DPO + NLL round from FedAvg SFT round 2 gives 65.86 against 60.60 (p 1.9e-12); DeepSeek-Coder-1.3B without training 55.85
 
 Runs `eval_arms__s0__20261122T094629__61c7ecba9979__96f811b706ca45189c0a7498ce6b606a`
