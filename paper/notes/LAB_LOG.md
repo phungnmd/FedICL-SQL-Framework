@@ -4,6 +4,91 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: reading on one loss for gold SQL and execution preference (literature and committed audits, no run, nothing decided)
+
+Owner's question: the method flattens after its first DPO + NLL round
+while FedAvg SFT still rises on the 0.5B; is there a form with one
+story instead of "SFT, then DPO + NLL". Papers read through a page-fetch
+agent, not by eye; parts the agent had only as a summary are marked.
+
+Papers:
+
+- SRFT (arXiv 2506.19767, listed at ICLR 2026). One stage: NLL on
+  demonstrations, policy gradient on the model's own rollouts, both
+  weighted by the policy entropy. Qwen2.5-Math-7B, five maths
+  benchmarks: SFT 47.3, RL 49.4, SFT then RL 52.5 (54.5 in its Table
+  2), SRFT 59.5; with either weight fixed to 1, 55.1 and 56.2.
+  Demonstrations are DeepSeek-R1 traces, not gold. No number for the
+  plain sum of the two losses.
+- Fernando et al. (arXiv 2410.15483 v4). SFT and DPO on two different
+  datasets; sequential training forgets the first one. The plain
+  weighted sum ("Mix") is as good as their alternating schemes and costs
+  over 50% more run time; Llama3-8b numbers from the agent's summary of
+  the appendix.
+- ReLIFT (arXiv 2506.07527 v3), Table 1, Qwen2.5-Math-7B: SFT 49.0, RL
+  46.9, RL with an SFT loss on all questions 48.6, SFT then RL 50.7 and
+  50.8, ReLIFT 52.6. A fine-tuning step after every RL step on the same
+  batch collapses (23.8, "conflicting optimization objectives"). SFT
+  targets are DeepSeek-R1 solutions.
+- UFT (arXiv 2505.16984 v2, NeurIPS 2025). The rollout starts from a
+  prefix of the gold solution; the prefix length is annealed to zero and
+  an NLL term trains the prefix. Table 8, average of nine sets, SFT /
+  RFT / SFT then RFT / UFT: Qwen2.5-0.5B 4.46 / 3.25 / 7.28 / 9.45;
+  1.5B 9.36 / 16.08 / 11.70 / 22.23; 3B 15.25 / 32.15 / 17.34 / 30.93.
+  Maths, Countdown and logic with GRPO.
+- Federated DPO: Distributed DPO (arXiv 2605.20696, listed at ICML
+  2026) and FedPDPO (arXiv 2603.19741) both train on fixed pairs
+  labelled by people, with a frozen reference and no likelihood term,
+  on DistilGPT-2 (FedPDPO also TinyLlama-1.1B); no pairs sampled from
+  the current model, no task with an executable check. FedPDPO's
+  federated DPO baseline is FedDPO (Ye et al. 2024).
+
+None of them is Text-to-SQL, federated with on-policy pairs, or DPO on
+SQL-only output; all the SFT + RL papers train reasoning chains with
+GRPO.
+
+From the committed audits (`delta_stats` of each round): cosine between
+client updates, lowest to highest pair.
+
+| Line | FedAvg SFT round 1 | round 2 | round 3 | round 4 | first DPO + NLL round from round 2 | second |
+|---|---|---|---|---|---|---|
+| 1.5B, Spider | 0.13 to 0.33 | 0.01 to 0.05 | -0.01 to 0.02 | -0.02 to 0.01 | 0.24 to 0.32 | 0.01 to 0.05 |
+| 0.5B, Spider | 0.21 to 0.46 | 0.01 to 0.06 | -0.01 to 0.02 | -0.03 to 0.01 | 0.27 to 0.34 | 0.02 to 0.09 |
+| 1.5B, BIRD | 0.19 to 0.25 | 0.03 to 0.04 | 0.00 to 0.02 | -0.02 to 0.01 | 0.27 to 0.34 | not run |
+| DeepSeek 1.3B, Spider | 0.45 to 0.69 | 0.05 to 0.10 | | | | |
+
+From round 2 the FedAvg SFT updates of the clients are orthogonal; the
+first DPO + NLL round from the same start gives updates the clients
+share, and its second round does not. The 0.5B still gains 2.09 and
+1.40 in SFT rounds with cosine near 0, so the cosine does not say when
+FedAvg SFT stops gaining and is no rule for k.
+
+Three forms, by what supports them:
+
+1. FedAvg SFT rounds, then one DPO + NLL round as the last round. All
+   7 starts measured are above the SFT round from the same start. Two
+   stages.
+2. One loss each round: NLL on the gold SQL of every question next to
+   DPO + NLL on the pairs. Proposed on 2026-11-21 and dropped after
+   `bird_k0_goldnll/round_2` (entry of that day); not run. Papers: for
+   (SRFT, Fernando et al.) and against (ReLIFT's row and collapse), all
+   in other settings.
+3. Samples that start from a prefix of the gold SQL (UFT's mechanism
+   with DPO + NLL and execution labels): the same prompt, the prefix as
+   the start of the answer; chosen and rejected share the prefix, so
+   the pair differs only in what the model wrote. Prefix as long as the
+   gold SQL is SFT, prefix of length 0 is the present round. It gives
+   pairs for questions with no correct sample without a second prompt
+   (the hint of item 12d needed one). Against it: gold rows for the
+   all-wrong questions did not raise EX on BIRD. Not run, no code.
+
+Probes proposed, none queued: adding the updates of
+`qwen05b_sft/round_3` and `qwen05b_k2/round_1` to their parent and
+evaluating (form 2, evaluation only); sampling the 1,168 all-wrong
+questions of the 0.5B from 25%, 50% and 75% of the gold SQL and
+counting the questions that become mixed (form 3, sampling and labels
+only).
+
 ## 2026-11-23: Qwen2.5-Coder-0.5B at 4 rounds on Spider test: the method 66.19, FedAvg SFT 64.09 (+2.10, p 0.0056), the second DPO + NLL round adds 0.33; DeepSeek-Coder-1.3B FedAvg SFT rounds 1 and 2: 64.00, 69.82
 
 Runs `eval_arms__s0__20261122T161428__496e40c7a502__fbade66ddd2e48b1a61b76c86f2e70f0`
