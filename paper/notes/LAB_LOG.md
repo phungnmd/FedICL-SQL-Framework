@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: gold-prefix probe on the 0.5B: a correct sample for 57% to 88% of the all-wrong questions, mostly the gold SQL (results `9fb6bb66`)
+
+`prefix/probe`: the 1,168 all-wrong questions of `qwen05b_k2/round_2`
+sampled again from the round 1 global adapter, 10 samples at T 1.0,
+the input ending with the first part of the gold SQL tokens.
+
+| Gold prefix | With a correct sample | Mixed | All correct | All wrong | Correct samples equal to the gold SQL | Sample accuracy |
+|---|---|---|---|---|---|---|
+| 0 (control, second draw) | 175 (15.0%) | 175 | 0 | 993 | 22.4% | 2.4% |
+| 25% (12 tokens on average) | 666 (57.0%) | 375 | 291 | 502 | 61.2% | 40.9% |
+| 50% | 895 (76.6%) | 332 | 563 | 273 | 66.6% | 65.0% |
+| 75% | 1,027 (87.9%) | 274 | 753 | 141 | 76.2% | 80.0% |
+
+- Against the control, question by question: at 25%, 530 questions get
+  a correct sample only with the prefix and 39 only without it; at 50%
+  737 and 17; at 75% 859 and 7.
+- What it says: pairs can be made for these questions (the round's 10
+  wrong samples as rejected, a prefix sample as chosen): 666 questions
+  at 25%, next to 3,353 mixed questions in that round. What it does
+  not say: whether training on them helps. The chosen side is the gold
+  SQL in 61% to 76% of the correct samples (similarity to gold 0.96 to
+  0.99), and gold as the chosen side was 2.61 below on BIRD (p 0.007),
+  gold NLL rows for the all-wrong questions 0.65 below (p 0.43).
+- The hint probe on BIRD (2026-11-21) gave fewer questions a correct
+  sample (31.7% against 10.4% without the hint) but only 8.9% of its
+  correct samples were the gold SQL.
+- No decision. A training round with these pairs is not in code.
+- The second card started at about 17:07 (the probe's timing file).
+
 ## 2026-11-23: the 0.5B rows on Spider dev queued (queue `2c62fbb2`)
 
 Owner (chat): whether to read Spider dev. Queued here on that question,

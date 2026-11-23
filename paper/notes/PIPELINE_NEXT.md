@@ -2,11 +2,14 @@
 
 ## Status
 
-Updated 2026-11-23 17:25 (Asia/Ho_Chi_Minh). GPU 1 is free again
-(owner, chat, about 17:00): step 1 with `--gpu 1` starts a second
-worker, which takes the first ready task in file order (the prefix
-probe, the pair read, the 0.5B rows on Spider dev of row 29, then
-`pooled_k2`). FedAvg SFT round 7 of the
+Updated 2026-11-23 17:55 (Asia/Ho_Chi_Minh). Two workers run: the
+second card started at about 17:07 (the prefix probe's timing file)
+and took the prefix probe, read at 17:30: of the 1,168 all-wrong
+questions of `qwen05b_k2/round_2`, 15.0% get a correct sample in a
+second plain draw and 57.0%, 76.6%, 87.9% from the first 25%, 50%, 75%
+of the gold SQL tokens; 61% to 76% of those correct samples are the
+gold SQL itself. Next on that card: the pair read of row 27, the 0.5B
+rows on Spider dev (row 29), then `pooled_k2`. FedAvg SFT round 7 of the
 0.5B is read (16:53): 64.32, 0.23 below round 6 (p 0.69), so rounds 4
 to 7 are 64.09, 64.18, 64.56, 64.32; `qwen05b_k6/round_1` (65.44) is
 1.12 above it at equal rounds (p 0.097), the method from round 2 at 4
@@ -217,7 +220,7 @@ its log say whether the second runs 4 at a time cost them.
 | GPU | State | Known from |
 |---|---|---|
 | GPU 0 (the card that ran alone; which of the two was not said) | `qwen05b_k4/round_1`, expected since 16:53, not confirmed | remote, read 17:05: `qwen05b_sft/round_7` published at 16:49 and 16:53 |
-| GPU 1 | free (owner in chat, about 17:00); the line of step 1 with `--gpu 1`, not confirmed as started | owner in chat |
+| GPU 1 | `public_start/read`, expected since 17:30, not confirmed | remote, read 17:50: the prefix probe ran 17:07 to 17:30 and is published |
 
 ## Run now
 
@@ -263,7 +266,6 @@ its log say whether the second runs 4 at a time cost them.
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
 | 25b | `qwen05b_k4/round_1` with its evaluation and publications | the start between the two measured ones: one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds | about 2.5 h (estimate) | queued 2026-11-23 (`7bb8b06d`), after row 26 since `2a79a22e` |
-| 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
 | 27 | `public_start/read`, `public_start/publish_read` | no training: would a stage on public data (BIRD) before the client rounds leave the DPO rounds more questions with pairs? The 8,659 questions of the Spider clients sampled (10 at T 1.0, `ddl_rows`) from the adapter of `bird_sft/round_3`, which stands in for that stage, and labelled; mixed, all correct and all wrong per client against the base student (5,951 / 1,631 / 1,074) and the start of the k = 2 line (5,192 / 2,891 / 573) | about 25 min (estimate from the base read, 1,358 s) | queued 2026-11-23 10:03 at the end of the file (code `392b5e6f`, queue `c0e4802d`); the server gets it at its next publication |
 | 29 | `qwen05b_dev/*`: the base 0.5B, FedAvg SFT rounds 3 to 7, DPO + NLL rounds 1 and 2 from round 2, round 1 from round 6, round 1 from round 4 (after its round) | the 0.5B rows on Spider dev (1,034 rows), where no round or setting was chosen: a second read of the start of the DPO + NLL rounds, which Spider test does not separate (65.44, 65.86, 66.19), and of the method against the level FedAvg SFT reaches | about 30 min, no training (estimate) | queued 2026-11-23 17:20 (`2c62fbb2`), before row 28 |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`) |
