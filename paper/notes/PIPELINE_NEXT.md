@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-23 19:25 (Asia/Ho_Chi_Minh). Two workers run. Read
+Updated 2026-11-23 21:15 (Asia/Ho_Chi_Minh). New: step 5 of `Run now` (CPU only). Two workers run. Read
 since 17:30 (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
@@ -252,6 +252,21 @@ its log say whether the second runs 4 at a time cost them.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   ```
+
+5. Any time, CPU only, in a third terminal (35 to 70 min at 12
+   processes on the Mac's rate, an estimate; here 8 SQL workers, so
+   longer): the label noise of the DPO round 1 samples of the k = 2
+   line, read on 10 generated variants of each client's databases
+   (`LAB_LOG.md`, 2026-11-23). It reads the stored samples and writes
+   only its own folder and `db_fuzz_cache/`. A stop is safe: the same
+   line continues. If it stops at once on a missing sample file, send
+   the names under `audits/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0/samples`.
+   Send back: the last lines it prints, or nothing if the publication
+   went through.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0'; $s='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.db_fuzz_label_noise --audit-root $a --round 1 --policy b8ef182062ef43dd --split-dir $s --score-workers 8 --gen-workers 4; if ($LASTEXITCODE -ne 0) { throw 'db_fuzz_label_noise failed (run the same line again to continue)' }; uv run --no-sync python -m scripts.publish_results --message 'results: label noise of the DPO round 1 samples read on fuzzed variants of the client databases' --paths audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
 ## Running and queued
