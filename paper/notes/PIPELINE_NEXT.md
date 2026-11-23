@@ -2,9 +2,11 @@
 
 ## Status
 
-Updated 2026-11-23 08:35 (Asia/Ho_Chi_Minh). One card only (owner, chat,
-2026-11-21 about 22:20). `deepseek13b_k2/round_1` is published (remote,
-08:29); its evaluation is not published at 08:31. Row 25 is queued
+Updated 2026-11-23 08:50 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+2026-11-21 about 22:20). `deepseek13b_k2/round_1` is read (08:34): 75.08 on Spider test, 5.26
+above its start, FedAvg SFT round 2 (192 questions against 79, p 5.0e-12);
+FedAvg SFT round 3 of this model, the row at equal rounds, runs next
+(expected, not confirmed). Row 25 is queued
 after the DeepSeek line and the prefix probe (code `7bb8b06d`): on the
 0.5B, one DPO + NLL round from FedAvg SFT round 4 and FedAvg SFT round 5. The Spider line of Qwen2.5-Coder-0.5B is
 finished: at 4 rounds the method is 66.19 on Spider test and FedAvg SFT

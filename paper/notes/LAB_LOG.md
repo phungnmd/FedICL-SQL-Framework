@@ -33,6 +33,24 @@ delegated agent and read here before the push.
 - Read as: under about a third of the questions mixed at f = 0.5 above
   the control, form 3 is dropped.
 
+## 2026-11-23: DeepSeek-Coder-1.3B on Spider test: one DPO + NLL round from FedAvg SFT round 2 gives 75.08 against 69.82
+
+Run `eval_arms__s0__20261123T013433__615e83f81ab3__2865d8ab97b247bf9a92b88b62949ec0`
+(arm `fedpref_deepseek13b_sftr2_p2_dpo_ddl_rows_a01_r1_vllm_inproc`,
+`bb0c505b`, 08:34; round `6802090e`, 08:29). Read on the Mac at 08:50
+with `scripts.compare_predictions`.
+
+- The DPO + NLL round adds 5.26 over its start (192 questions fixed, 79
+  broken, exact McNemar p 5.0e-12); by hardness 86.60 / 80.98 / 67.39 /
+  55.74. The same step added 5.26 on the 0.5B and 3.36 on the 1.5B.
+- Execution errors 218 to 110; wrong results 430 to 425 (2 outputs end
+  at the length limit). Of the 192 fixes, 100 were execution errors and
+  92 wrong results; of the 79 breaks, 29 and 50.
+- Not read yet: FedAvg SFT round 3 of this model
+  (`deepseek13b_sft/round_3`, next in the queue). The method is judged
+  at equal rounds; FedAvg SFT would need 5.26 in its third round, and
+  its second added 5.82.
+
 ## 2026-11-23: the 0.5B from a later start queued: one DPO + NLL round from FedAvg SFT round 4, and FedAvg SFT round 5 (owner; queue `7bb8b06d`)
 
 Owner's question: why the DPO + NLL rounds start at round 2 and not at
