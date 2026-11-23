@@ -2,14 +2,14 @@
 
 ## Status
 
-Updated 2026-11-23 09:45 (Asia/Ho_Chi_Minh). The 0.5B is read first
-(owner, chat, about 09:30): the queue (`447f8423`) holds its rows, row
-25 and the new row 26, before the pending DeepSeek rows, and a worker
-takes the first ready task in file order, so both cards go to the 0.5B
-and the DeepSeek rows fill the time in which no 0.5B task is ready.
-Two cards are free (owner, chat, about 09:00); which worker runs is not
-confirmed, and nothing is published since 08:34. A running worker gets
-the new order at its next publication. `deepseek13b_k2/round_1` is read
+Updated 2026-11-23 09:40 (Asia/Ho_Chi_Minh). One card only (owner,
+chat, about 09:35), and the 0.5B is read first (owner, about 09:30).
+The queue (`2a79a22e`) is in the order the card runs it: FedAvg SFT
+rounds 5 and 6 of the 0.5B, one DPO + NLL round from round 6, FedAvg
+SFT round 7, the DPO + NLL round from round 4, then the DeepSeek rows
+and the prefix probe. Which task the worker shows is not confirmed, and
+nothing is published since 08:34. A running worker gets the new order
+at its next publication. `deepseek13b_k2/round_1` is read
 (08:34): 75.08 on Spider test, 5.26 above its start, FedAvg SFT round 2
 (192 questions against 79, p 5.0e-12); FedAvg SFT round 3 of this
 model, the row at equal rounds, is not published. The Spider line of Qwen2.5-Coder-0.5B is
@@ -202,27 +202,24 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| GPU 0 | not confirmed: free, or its worker in `deepseek13b_sft/round_3`; the line of step 1 if free | owner in chat, 2026-11-23 about 09:00: two cards are free; remote, read 09:29: nothing published after `deepseek13b_k2/round_1` (08:34) |
-| GPU 1 | not confirmed: free, or the worker for the phases `qwen05b_k4` and `qwen05b_sft` given at 09:10; the line of step 1 with `--gpu 1` if free | owner in chat |
+| the one card that runs (which of the two was not said) | not confirmed; the line of step 1 if no worker runs on it | owner in chat, 2026-11-23 about 09:35: one card only; remote, read 09:34: nothing published after `deepseek13b_k2/round_1` (08:34) |
 
 ## Run now
 
-1. Each free card: the worker line, which pulls first (queue
-   `447f8423`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
-   The first card takes `qwen05b_k4/round_1`, the second
-   `qwen05b_sft/round_5`.
+1. The card, if no worker runs on it: the worker line, which pulls
+   first (queue `2a79a22e`). GPU 0 as written, the other card with
+   `--gpu 1`; no `--phase`. It starts with `qwen05b_sft/round_5`.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. A card whose worker is running: nothing to do. It gets the new order
-   at its next publication and takes the 0.5B rows from then on. A
-   worker started at 09:10 with `--phase qwen05b_k4 qwen05b_sft` may
-   stay; it does not take row 26's `qwen05b_k6`, which the other card
-   takes. To move a card out of a DeepSeek task at once: Ctrl+C in its
-   window, then the line of step 1 (the task continues later from where
-   it stopped; no number changes).
+2. If a worker already runs: it gets the new order at its next
+   publication. To get the order now, Ctrl+C in its window and the line
+   of step 1 (the stopped task continues later from where it stopped;
+   no number changes). A worker started with `--phase qwen05b_k4
+   qwen05b_sft` is stopped the same way: it would run the round 4 start
+   first and never take `qwen05b_k6`.
 
 3. Send back, when they come:
    - which card runs, and the task its worker shows now;
@@ -249,20 +246,20 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 25 | `qwen05b_k4/round_1`, `qwen05b_sft/round_5`, `qwen05b_sft/round_6`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4: does a DPO + NLL round still add over an SFT round from a later start (one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds from 64.09, exact McNemar), and the level FedAvg SFT reaches (rounds 5 and 6) | about 2.5 h, then about 1 h 55 min a FedAvg SFT round (estimates from `qwen05b_k2/round_1` and the FedAvg SFT rounds) | queued 2026-11-23 (code `7bb8b06d`, round 6 `9b2ecca2`), first in file order since `447f8423`; not confirmed as started |
-| 26 | `qwen05b_k6/round_1`, `qwen05b_sft/round_7`, each with its evaluation and publications | the same question at a later start: one DPO + NLL round from FedAvg SFT round 6 against FedAvg SFT round 7, both at 7 rounds; with rows 17, 18 and 25 the gain of one DPO + NLL round at three starts (rounds 2, 4, 6) next to the FedAvg SFT curve to round 7 | about 2.5 h and about 1 h 55 min (estimates, as row 25) | queued 2026-11-23 09:40 (code `447f8423`); both wait for `qwen05b_sft/round_6` |
+| 25a | `qwen05b_sft/round_5`, `qwen05b_sft/round_6`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4 (64.09): the level FedAvg SFT reaches, against the method's 65.86 and 66.19 | about 1 h 55 min a round (estimate from rounds 1 to 4) | queued 2026-11-23 (`7bb8b06d`, `9b2ecca2`), first in file order since `2a79a22e`; not confirmed as started |
+| 26 | `qwen05b_k6/round_1`, then `qwen05b_sft/round_7`, each with its evaluation and publications | does a DPO + NLL round still add when FedAvg SFT has levelled off: one DPO + NLL round from FedAvg SFT round 6, against its start and against FedAvg SFT round 7 (both at 7 rounds, exact McNemar) | about 2.5 h and about 1 h 55 min (estimates) | queued 2026-11-23 09:31 (`447f8423`); both wait for `qwen05b_sft/round_6` |
+| 25b | `qwen05b_k4/round_1` with its evaluation and publications | the start between the two measured ones: one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds | about 2.5 h (estimate) | queued 2026-11-23 (`7bb8b06d`), after row 26 since `2a79a22e` |
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
 
-Expected with two cards from about 09:45 (estimates): `qwen05b_sft/round_5`
-about 11:40 and `qwen05b_k4/round_1` about 12:15, the first read (the
-method against FedAvg SFT at 5 rounds); `qwen05b_sft/round_6` about
-13:35; `qwen05b_sft/round_7` and `qwen05b_k6/round_1` about 16:00, the
-second read (at 7 rounds). The card that ends row 25's DPO + NLL round
-takes `deepseek13b_sft/round_3` while round 6 trains; the other
-DeepSeek rows follow row 26. The DPO + NLL round of DeepSeek took 2 h
-50 min with its evaluation (between the publications of 04:43 and
+Expected on one card from about 09:45 (estimates): `qwen05b_sft/round_5`
+about 11:40 and `round_6` about 13:35, the level FedAvg SFT reaches;
+`qwen05b_k6/round_1` about 16:05, the method from round 6 against its
+start; `qwen05b_sft/round_7` about 18:00, the same at equal rounds;
+`qwen05b_k4/round_1` about 20:30; then `deepseek13b_sft/round_3` about
+22:20 and the other DeepSeek rows. The DPO + NLL round of DeepSeek took
+2 h 50 min with its evaluation (between the publications of 04:43 and
 08:34).
 
 Rows 17 to 23 (owner, 2026-11-22; rows 17 and 18, the 0.5B line, are

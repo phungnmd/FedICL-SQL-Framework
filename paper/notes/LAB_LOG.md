@@ -4,6 +4,23 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: one card; the 0.5B rows in the order they answer (queue `2a79a22e`)
+
+Owner (chat, about 09:35): one card only, which row first. The entry
+below was written for two cards.
+
+- Order in the queue file now: `qwen05b_sft/round_5`, `round_6`,
+  `qwen05b_k6/round_1`, `qwen05b_sft/round_7`, `qwen05b_k4/round_1`,
+  then the DeepSeek rows and the prefix probe. No command changed.
+- Why: the question is whether the method ends above the level FedAvg
+  SFT reaches. Rounds 5 and 6 (about 3 h 50 min) say whether FedAvg
+  SFT alone passes the method's 65.86 and 66.19; the DPO + NLL round
+  from round 6 says whether a round still adds from there. The start
+  from round 4 is a point between two measured starts and waits.
+- Expected (estimates, from about 09:45): FedAvg SFT round 6 about
+  13:35, DPO + NLL from round 6 about 16:05, FedAvg SFT round 7 about
+  18:00.
+
 ## 2026-11-23: the 0.5B first; DPO + NLL from FedAvg SFT round 6 and FedAvg SFT round 7 queued (queue `447f8423`)
 
 Owner (chat, about 09:30): know the 0.5B early, DeepSeek waits.
