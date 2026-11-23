@@ -6,7 +6,8 @@ prediction CSV (execution error incl. cut output, wrong result), computes the
 exact McNemar test of every row against FedAvg SFT at the same round, and of the
 pairs in TESTS, and writes the result as JSON between the RESULTS markers of the
 page. A new evaluation needs one line in ARMS; a new model or seed is picked up
-from the metrics file. The page draws the sets of DATASET_OF_SET: Spider test, Spider
+from the metrics file. Test-suite accuracy is read from the committed audits under
+audits/protocol_v2/test_suite (field ts of a run, tsfixed/tsbroke/tsp of a test). The page draws the sets of DATASET_OF_SET: Spider test, Spider
 dev, Spider-Syn, Spider-Realistic, Spider-DK and BIRD dev (by official difficulty).
 
     python3 paper/notes/tools/overview_results.py          # write the page
@@ -76,9 +77,16 @@ for _m in ("qwen05b", "deepseek13b"):
         ARMS[f"fedavg_{_m}_ddl_rows_a01_r{_r}"] = ("fedavg", _r)
     ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r1"] = ("k2", 3)
     ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r2"] = ("k2", 4)
-# the 0.5B from a later start: one DPO + NLL round from FedAvg SFT round 4 against round 5
-ARMS["fedavg_qwen05b_ddl_rows_a01_r5"] = ("fedavg", 5)
+# the 0.5B from later starts: one DPO + NLL round from FedAvg SFT round 4 and round 6,
+# and FedAvg SFT to round 7
+for _r in (5, 6, 7):
+    ARMS[f"fedavg_qwen05b_ddl_rows_a01_r{_r}"] = ("fedavg", _r)
 ARMS["fedpref_qwen05b_sftr4_p2_dpo_ddl_rows_a01_r1"] = ("k4", 5)
+ARMS["fedpref_qwen05b_sftr6_p2_dpo_ddl_rows_a01_r1"] = ("k6", 7)
+# the two DPO + NLL rounds of k = 2 with the five clients pooled into one (no aggregation)
+ARMS["fedpref_pooled_sftr2_p2_dpo_ddl_rows_r1"] = ("pooled", 3)
+ARMS["fedpref_pooled_sftr2_p2_dpo_ddl_rows_r2"] = ("pooled", 4)
+ARMS["fedpref_sftr2_nearest_dpo_ddl_rows_a01_r2"] = ("nearest", 4)
 # prompt B, kept in the notes only; zs_dsc13b: DeepSeek with a tokenizer that dropped
 # every space and newline (fixed in code 58cd89f7), not a result
 SKIP = {"zs_ddl_values", "zs_dsc13b_ddl_rows"}
@@ -126,6 +134,19 @@ TESTS = [
     ("spider", "k2", 3, "k2", 4),
     ("spider", "fedavg", 4, "fedavg", 5),
     ("spider", "fedavg", 4, "k4", 5),
+    ("spider", "fedavg", 6, "k6", 7),
+    ("spider", "fedavg", 6, "fedavg", 7),
+    ("spider", "fedavg", 6, "k2", 4),
+    ("spider", "fedavg", 7, "k2", 4),
+    ("spider", "k2", 3, "k4", 5),
+    ("spider", "k2", 4, "k6", 7),
+    ("spider", "k2", 3, "pooled", 3),
+    ("spider", "k2", 4, "pooled", 4),
+    ("spiderdev", "fedavg", 4, "k4", 5),
+    ("spiderdev", "fedavg", 6, "k6", 7),
+    ("spiderdev", "k2", 3, "k2", 4),
+    ("spiderdev", "k0", 4, "k2", 4),
+    ("spiderdev", "central", 2, "k2", 4),
 ] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
     (ds, "base", 0, "fedavg", 4),
     (ds, "fixed", 4, "k2", 4),
@@ -148,6 +169,9 @@ DATASET_OF_SET = {
 BIRD_DEV_JSON = CODE / "data" / "raw" / "bird" / "dev_20240627" / "dev.json"
 LEVELS = {"bird": (("simple", "s"), ("moderate", "mo"), ("challenging", "c"))}
 SPIDER_LEVELS = (("easy", "e"), ("medium", "m"), ("hard", "h"), ("extra", "x"))
+# test-suite accuracy (Zhong et al., EMNLP 2020), scored on the Mac from the committed predictions:
+# each summary.json names the prediction file of every row it scored
+TEST_SUITE = CODE / "audits" / "protocol_v2" / "test_suite"
 MODEL_SHORT = {"Qwen/Qwen2.5-Coder-1.5B-Instruct": "qwen15", "Qwen/Qwen2.5-Coder-0.5B-Instruct": "qwen05",
                "deepseek-ai/deepseek-coder-1.3b-instruct": "dsc13"}
 
@@ -185,9 +209,29 @@ def bird_difficulty() -> list[str]:
     return [q["difficulty"] for q in json.loads(BIRD_DEV_JSON.read_text(encoding="utf-8"))]
 
 
-def load() -> tuple[list[dict], dict]:
-    runs, rows_of = [], {}
+def test_suite() -> dict:
+    """(results dir, prediction CSV name) -> {row_id: 0 or 1}, test-suite correct."""
+    out = {}
+    for summary in sorted(TEST_SUITE.glob("*/summary.json")):
+        d = json.loads(summary.read_text(encoding="utf-8"))
+        with open(summary.parent / "per_question.csv", encoding="utf-8", newline="") as h:
+            table = list(csv.DictReader(h))
+        for name, src in d["sources"].items():
+            path = Path(src["path"])
+            key = (path.parts[-3], path.name)
+            if key in out:
+                raise SystemExit(f"two test-suite scores for {key}")
+            out[key] = {row["row_id"]: int(row[f"{name}_ts"]) for row in table}
+            ts = round(100 * sum(out[key].values()) / len(out[key]), 2)
+            if abs(ts - d["accuracy"][name]["ts_ex"]) > 0.006:
+                raise SystemExit(f"{summary.parent.name} {name}: TS {ts} against {d['accuracy'][name]['ts_ex']}")
+    return out
+
+
+def load() -> tuple[list[dict], dict, dict]:
+    runs, rows_of, ts_of = [], {}, {}
     bird_dev = None
+    suite = test_suite()
     for metrics in sorted(RESULTS.glob("*/metrics.json")):
         d = json.loads(metrics.read_text(encoding="utf-8"))
         ds = DATASET_OF_SET.get(Path(d.get("eval_set", "")).as_posix())
@@ -228,11 +272,19 @@ def load() -> tuple[list[dict], dict]:
             if key in rows_of:
                 raise SystemExit(f"two evaluations for {key}")
             rows_of[key] = rows
+            ts = suite.pop((metrics.parent.name, f"{arm}.csv"), None)
+            if ts is not None:
+                if set(ts) != set(rows):
+                    raise SystemExit(f"{arm}: test-suite rows differ from the predictions")
+                run["ts"] = round(100 * sum(ts.values()) / n, 2)
+                ts_of[key] = ts
             runs.append(run)
-    return runs, rows_of
+    if suite:
+        print(f"test-suite scores of unmapped rows, left out: {sorted(suite)}", file=sys.stderr)
+    return runs, rows_of, ts_of
 
 
-def test(rows_of: dict, a: tuple, b: tuple) -> dict | None:
+def test(rows_of: dict, ts_of: dict, a: tuple, b: tuple) -> dict | None:
     if a not in rows_of or b not in rows_of:
         return None
     ra, rb = rows_of[a], rows_of[b]
@@ -241,27 +293,34 @@ def test(rows_of: dict, a: tuple, b: tuple) -> dict | None:
     fixed = sum(1 for i in ra if not int(ra[i]["ex"]) and int(rb[i]["ex"]))
     broke = sum(1 for i in ra if int(ra[i]["ex"]) and not int(rb[i]["ex"]))
     p = mcnemar(fixed, broke)
-    return {"ds": a[0], "model": a[1], "seed": a[2], "a": a[3], "ra": a[4], "b": b[3], "rb": b[4],
-            "fixed": fixed, "broke": broke, "p": p_text(p), "pv": float(f"{p:.3g}")}
+    t = {"ds": a[0], "model": a[1], "seed": a[2], "a": a[3], "ra": a[4], "b": b[3], "rb": b[4],
+         "fixed": fixed, "broke": broke, "p": p_text(p), "pv": float(f"{p:.3g}")}
+    if a in ts_of and b in ts_of:
+        ta, tb = ts_of[a], ts_of[b]
+        fixed = sum(1 for i in ta if not ta[i] and tb[i])
+        broke = sum(1 for i in ta if ta[i] and not tb[i])
+        p = mcnemar(fixed, broke)
+        t.update({"tsfixed": fixed, "tsbroke": broke, "tsp": p_text(p)})
+    return t
 
 
 def build() -> dict:
-    runs, rows_of = load()
+    runs, rows_of, ts_of = load()
     tests = []
     for (ds, model, seed, line, r) in sorted(rows_of):
         if line in ("fedavg", "base", "central"):
             continue
-        t = test(rows_of, (ds, model, seed, "fedavg", r), (ds, model, seed, line, r))
+        t = test(rows_of, ts_of, (ds, model, seed, "fedavg", r), (ds, model, seed, line, r))
         if t:
             tests.append(t)
     seeds = sorted({(x["ds"], x["model"], x["seed"]) for x in runs})
     for ds, la, ra, lb, rb in TESTS:
         for d_, model, seed in seeds:
             if d_ == ds:
-                t = test(rows_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
+                t = test(rows_of, ts_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
                 if t:
                     tests.append(t)
-    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "k4", "fixed", "feddpo", "rft",
+    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "k4", "k6", "pooled", "fixed", "feddpo", "rft",
                                           "nearest", "goldchosen", "wrfirst", "central"])}
     runs.sort(key=lambda x: (x["ds"], x["model"], order.get(x["line"], 99), x["r"], x["seed"]))
     return {"runs": runs, "tests": tests}
