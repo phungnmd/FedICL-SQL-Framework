@@ -2,12 +2,16 @@
 
 ## Status
 
-Updated 2026-11-24 01:41 (Asia/Ho_Chi_Minh). One card is free for a few
+Updated 2026-11-24 01:52 (Asia/Ho_Chi_Minh). One card is free for a few
 hours (owner): step 0 of `Run now` runs, the trial row of the
 extension; its labels are done and published and `strict/round_1`
-trains (owner, in chat). New: step 5, CPU only, beside it. Apart from it nothing runs since the evening of 2026-11-23,
-and what the sections below call running stopped where it was. Step 6 follows step 5 on the
-Mac. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
+trains (owner, in chat). It trains on about 9,600 pairs against the
+8,026 of its reference, 1,560 of them on databases without rows
+(counted from the committed labels, `LAB_LOG.md`). The label noise
+under the rule `differs` and its comparison with the official suite
+are done and logged. Apart from the trial row nothing runs since the
+evening of 2026-11-23, and what the sections below call running
+stopped where it was. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
 above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
@@ -272,30 +276,13 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Now or any time, CPU only, in a second terminal while the round
-   trains (about 2 min; the first run took 1 min 54 s): the label
-   noise of the same round 1 samples read again under the rule
-   `differs` for the databases without rows (`LAB_LOG.md`, 2026-11-24).
-   It reuses the variants and writes its own folder. Send back: nothing
-   if the publication went through.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0'; $s='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.db_fuzz_label_noise --audit-root $a --round 1 --policy b8ef182062ef43dd --split-dir $s --empty-rule differs --score-workers 8 --gen-workers 4; if ($LASTEXITCODE -ne 0) { throw 'db_fuzz_label_noise failed (run the same line again to continue)' }; uv run --no-sync python -m scripts.publish_results --message 'results: label noise of the DPO round 1 samples under the rule differs for the databases without rows' --paths audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd_differs; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
-   ```
-
-6. After step 5 is published, on the Mac (CPU, under a minute): the
-   labels under the rule `differs` against the official test-suite
-   databases, as was done for the rule `rows`
-   (`audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1`). Nothing to
-   send back.
-
-   ```bash
-   cd fedicl-sql && git pull --ff-only && uv run --no-sync python -m scripts.db_fuzz_empty_vs_suite --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5 --candidates audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd_differs/candidates.csv --empty-rule differs --score-workers 8 --out-dir audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1_differs
-   ```
-
-   Not queued, waiting for the row of step 0: the same row under the
-   rule `differs`, and the row with strict labels on the databases
-   with rows only, which splits the two effects.
+5. Not queued, the owner's choice once the row of step 0 is read:
+   the same row under the rule `differs` (712 questions paired on the
+   databases without rows instead of 780, 9.96% of their accepted
+   labels wrong by the official suite instead of 17.2%), and the row
+   with strict labels on the databases with rows only, which splits
+   the cleaner labels from the new pairs and the larger weight of
+   client 4 (`LAB_LOG.md`, 2026-11-24).
 
 ## Running and queued
 

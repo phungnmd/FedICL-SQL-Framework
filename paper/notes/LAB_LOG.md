@@ -4,6 +4,63 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: rule `differs` against the suite, committed: 9.96% of accepted labels wrong (rule `rows` 17.2%); what the trial row trains on (results `e0ab0170`, `74df3af8`)
+
+The label-noise run under `--empty-rule differs` ran on the server
+beside `strict/round_1` (started 01:43:48, CPU only: variants reused
+in 0.9 s, gold pass 15 s, verdicts 68 s; its own folder
+`..._r1_b8ef182062ef43dd_differs`). It wrote nothing the round reads:
+the round's labels were fixed by `strict/relabel` before training, the
+variants were reused, and the rule `rows` keeps its identity under the
+pulled code `37a90342`. The training time of the round is not read yet.
+
+Against the official suite on the Mac
+(`audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1_differs`; suite
+databases counted by the same rule, 4,736 distinct candidates judged
+by both):
+
+| Labels on the databases without rows | Accepted | The suite rejects | Share | By samples | Agreement |
+|---|---|---|---|---|---|
+| Correct on the original (no rows), the 4,736 of the rule `differs` | 3,539 | 2,411 | 68.1% | 58.7% | |
+| 10 variants, rule `rows` (`empty_vs_suite_r1`, 6,095 judged) | 1,880 | 323 | 17.2% | 15.9% | 90.4% |
+| 10 variants, rule `differs` | 1,205 | 120 | **9.96%** | 12.4% | **96.3%** |
+
+By database under `differs`: academic 5.5%, geo 11.2%, imdb 14.6%,
+restaurants 7.7%, scholar 9.7%, yelp 13.2%; 55 candidates the variants
+reject and the suite accepts (51 on `geo`). Questions with a variant
+that counts: 1,239 (client 3: 102 of 111, client 4: 1,137 of 1,648);
+with the label rule of training 712 of them are mixed (rule `rows`:
+780 of 1,308).
+
+What the trial row (rule `rows`) trains on against `dpo_k2/round_1`,
+counted from the committed `candidates.csv` with the label rule of
+training and 2 pairs per mixed question; the row's own
+`client_*_pairs_stats.json` is not published yet:
+
+| Client | Pairs, `dpo_k2/round_1` | Pairs, trial row | Of them on databases without rows | FedAvg weight |
+|---|---|---|---|---|
+| 1 | 914 | 906 | 0 | 11.4% to 9.4% |
+| 2 | 1,642 | 1,740 | 0 | 20.5% to 18.1% |
+| 3 | 2,248 | 2,372 | 124 | 28.0% to 24.7% |
+| 4 | 2,356 | 3,718 | 1,436 | 29.4% to 38.7% |
+| 5 | 866 | 864 | 0 | 10.8% to 9.0% |
+| All | 8,026 | 9,600 (+19.6%) | 1,560 | |
+
+- Databases with rows: 3,744 questions stay mixed, 2,772 of them with
+  no label changed (the pair draw is seeded per question, so their
+  5,544 pairs are those of the reference: 69% of its pairs, 58% of the
+  row's) and 972 with a correct sample turned wrong (1,944 pairs drawn
+  again); 276 questions come in from all correct (552 pairs), 269 go
+  out to all wrong (538 pairs); 4,441 samples turn wrong.
+- Databases without rows: 780 questions paired (1,560 pairs: 495 mixed
+  on the original, 285 all correct there); 5,224 samples correct on
+  the original turn wrong; 451 questions without a variant that counts
+  and 528 all correct or all wrong stay without a pair.
+- The row therefore differs from its reference in three ways at once:
+  cleaner chosen sides, 1,560 new pairs, and client 4 at 38.7% of the
+  average instead of 29.4%. The row with the databases with rows only
+  separates the first from the two others.
+
 ## 2026-11-24: 15.9% of the chosen sides are lucky; on the databases without rows the variants cut wrong accepted labels from 59.5% to 17.2%, and a gold that counts leaves a hole (results `0a4a3102`, `7f951bde`, `60f40279`; code `37a90342`)
 
 `strict/label_noise` ran on the server in 1 min 54 s (not the hour
@@ -54,15 +111,10 @@ row in training keeps the rule `rows`): on a database without rows a
 variant counts only where the gold result also differs from its result
 on the original. Gold pass on the Mac
 (`spider_train_alpha01_k5_gold_differs`): 1,239 of 1,759 questions
-keep a variant that counts at 10 variants (1,308 under `rows`). A
-scratch read of the committed verdicts with the Mac's variants (their
-gold row counts equal the server's on every cell; not committed): with
-the suite filtered the same way, the share of accepted candidates the
-suite rejects goes from 21.5% under `rows` to 10.0% under `differs`
-(18.3% to 12.4% by samples), agreement 92.8% to 96.3%. The committed
-number waits for the label-noise run under the rule on the server
-(step 5 of `PIPELINE_NEXT.md`, 2 min of CPU), since the first
-candidates file holds no result digests.
+keep a variant that counts at 10 variants (1,308 under `rows`). The
+committed comparison with the suite under this rule is in the entry
+above (9.96% of accepted candidates the suite rejects); the scratch
+read made here before it gave the same (10.0%, agreement 96.3%).
 
 The row in training stands as the first read: its new pairs carry
 about 18% of wrong chosen sides by the filtered suite, against 54 to
