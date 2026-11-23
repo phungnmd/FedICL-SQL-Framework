@@ -4,6 +4,41 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: test-suite accuracy of the 0.5B rows on Spider dev: the method keeps 3.5 to 3.9 over FedAvg SFT (results `0ebd7daf`)
+
+Scored on the Mac from the committed Spider dev predictions
+(`scripts/score_test_suite.py`; correct on the original database and on
+every suite database of the db_id), committed under
+`audits/protocol_v2/test_suite/qwen05b_spider_dev`.
+
+| Row (0.5B, Spider dev) | Total rounds | EX | Test-suite accuracy |
+|---|---|---|---|
+| No training | 0 | 55.22 | 47.78 |
+| FedAvg SFT round 3 | 3 | 58.99 | 52.61 |
+| FedAvg SFT round 4 | 4 | 59.77 | 53.19 |
+| FedAvg SFT round 5 | 5 | 59.48 | 52.90 |
+| FedAvg SFT round 6 | 6 | 59.28 | 53.09 |
+| FedAvg SFT round 7 | 7 | 58.03 | 52.03 |
+| DPO + NLL from round 2, round 1 | 3 | 63.35 | 56.09 |
+| DPO + NLL from round 2, round 2 | 4 | 65.09 | 56.87 |
+| DPO + NLL from round 4, round 1 | 5 | 63.15 | 56.09 |
+| DPO + NLL from round 6, round 1 | 7 | 62.57 | 55.90 |
+
+- Test-suite accuracy, the method against FedAvg SFT at equal rounds:
+  +3.48 at 3 rounds (75 questions against 39, p 0.00096), +3.68 at 4
+  (76 against 38, p 0.00048), +3.19 at 5 (from round 4, p 0.0061),
+  +3.87 at 7 (from round 6, p 0.00017). Against FedAvg SFT round 6 the
+  row at 4 rounds is 3.77 above (p 0.0010).
+- The gain on EX (4.35 to 5.32) is larger than on the suite: part of
+  it is SQL that returns the gold result on the one dev database only.
+- The start does not matter on the suite either: after one DPO + NLL
+  round 56.09, 56.09, 55.90 from rounds 2, 4, 6. The second round from
+  round 2 adds 0.77 (34 against 26, p 0.37), not separated; on EX it
+  added 1.74 (p 0.047).
+- FedAvg SFT against no training: +5.42 on the suite (p 6.5e-05).
+- Running on the Mac: the same for the six 1.5B rows on dev, Syn,
+  Realistic and DK (the reading of 2026-11-21, not committed then).
+
 ## 2026-11-23: the rows of the tables on Spider dev and on Syn, Realistic and DK queued (queue `e425fa42`)
 
 Owner (chat): evaluate the rounds that are needed in full, on dev and
