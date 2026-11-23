@@ -4,6 +4,18 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: FedAvg SFT round 7 of the 0.5B is 64.32; a second card (results `b21754a0`, `94a7f115`)
+
+- FedAvg SFT round 7 of Qwen2.5-Coder-0.5B on Spider test: 64.32, 0.23
+  below round 6 (49 questions against 54, p 0.69). Rounds 4 to 7:
+  64.09, 64.18, 64.56, 64.32.
+- At 7 rounds the DPO + NLL round from round 6 (65.44) is 1.12 above
+  it (108 against 84, p 0.097). The method from round 2 at 4 rounds
+  (66.19) is 1.86 above round 7 (151 against 111, p 0.016).
+- GPU 1 is free again (owner, chat, about 17:00): a second worker
+  without `--phase` takes the probes and `pooled_k2` while the first
+  card runs `qwen05b_k4/round_1`.
+
 ## 2026-11-23: reads that can change the method first; DPO + NLL with the clients pooled queued (queue `c92b0dd3`)
 
 Owner (chat, about 16:25): yes to the order below.

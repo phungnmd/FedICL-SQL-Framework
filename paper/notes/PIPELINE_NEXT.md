@@ -2,8 +2,14 @@
 
 ## Status
 
-Updated 2026-11-23 16:40 (Asia/Ho_Chi_Minh). One card only (owner,
-chat, about 09:35), and the 0.5B is read first. `qwen05b_k6/round_1`
+Updated 2026-11-23 17:10 (Asia/Ho_Chi_Minh). GPU 1 is free again
+(owner, chat, about 17:00): step 1 with `--gpu 1` starts a second
+worker, which takes the first ready task in file order (the prefix
+probe, the pair read, then `pooled_k2`). FedAvg SFT round 7 of the
+0.5B is read (16:53): 64.32, 0.23 below round 6 (p 0.69), so rounds 4
+to 7 are 64.09, 64.18, 64.56, 64.32; `qwen05b_k6/round_1` (65.44) is
+1.12 above it at equal rounds (p 0.097), the method from round 2 at 4
+rounds 1.86 above (p 0.016). `qwen05b_k6/round_1`
 is read (15:03): one DPO + NLL round from FedAvg SFT round 6 of the
 0.5B is 65.44 on Spider test, 0.88 above its start (64.56; 97
 questions against 78, p 0.17) and not above the rows from round 2
@@ -209,13 +215,15 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| the one card that runs (which of the two was not said) | `qwen05b_sft/round_7`, expected since 15:03, not confirmed | remote, read 15:26: `qwen05b_k6/round_1` published at 14:57 and 15:03 |
+| GPU 0 (the card that ran alone; which of the two was not said) | `qwen05b_k4/round_1`, expected since 16:53, not confirmed | remote, read 17:05: `qwen05b_sft/round_7` published at 16:49 and 16:53 |
+| GPU 1 | free (owner in chat, about 17:00); the line of step 1 with `--gpu 1`, not confirmed as started | owner in chat |
 
 ## Run now
 
-1. The card, if no worker runs on it: the worker line, which pulls
-   first (queue `2a79a22e`). GPU 0 as written, the other card with
-   `--gpu 1`; no `--phase`. It starts with `qwen05b_sft/round_5`.
+1. A free card: the worker line, which pulls first (queue
+   `c92b0dd3`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
+   It takes the first ready task in file order that no other worker
+   holds.
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -253,7 +261,6 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 26 | `qwen05b_sft/round_7` with its evaluation and publications | FedAvg SFT at 7 rounds, the row at equal rounds for `qwen05b_k6/round_1` (65.44, read) | about 1 h 48 min (rounds 5 and 6) | `qwen05b_k6/round_1` read 15:03; round 7 expected since 15:03, not confirmed |
 | 25b | `qwen05b_k4/round_1` with its evaluation and publications | the start between the two measured ones: one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds | about 2.5 h (estimate) | queued 2026-11-23 (`7bb8b06d`), after row 26 since `2a79a22e` |
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
 | 27 | `public_start/read`, `public_start/publish_read` | no training: would a stage on public data (BIRD) before the client rounds leave the DPO rounds more questions with pairs? The 8,659 questions of the Spider clients sampled (10 at T 1.0, `ddl_rows`) from the adapter of `bird_sft/round_3`, which stands in for that stage, and labelled; mixed, all correct and all wrong per client against the base student (5,951 / 1,631 / 1,074) and the start of the k = 2 line (5,192 / 2,891 / 573) | about 25 min (estimate from the base read, 1,358 s) | queued 2026-11-23 10:03 at the end of the file (code `392b5e6f`, queue `c0e4802d`); the server gets it at its next publication |
@@ -261,13 +268,13 @@ its log say whether the second runs 4 at a time cost them.
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 
-Expected (estimates): `qwen05b_sft/round_7` about 16:50;
-`qwen05b_k4/round_1` about 18:40; the prefix probe about 19:20 and the
-pair read about 19:45; `pooled_k2/round_1` about 21:50 and `round_2`
-about 23:55; then `deepseek13b_sft/round_3` and the other DeepSeek
-rows. Measured between publications: a FedAvg SFT round of the 0.5B
-with its evaluation 1 h 48 min (rounds 5 and 6), `qwen05b_k6/round_1`
-with its evaluation 1 h 51 min.
+Expected with two cards (estimates, GPU 1 from about 17:15):
+`qwen05b_k4/round_1` about 18:40 on the first card, then the DeepSeek
+rows there; on GPU 1 the prefix probe about 17:50, the pair read about
+18:15, `pooled_k2/round_1` about 20:20 and `round_2` about 22:25.
+Measured between publications: a FedAvg SFT round of the 0.5B with its
+evaluation 1 h 48 min, `qwen05b_k6/round_1` with its evaluation 1 h
+51 min.
 
 Rows 17 to 23 (owner, 2026-11-22; rows 17 and 18, the 0.5B line, are
 finished and logged): each model runs the line of
