@@ -4,6 +4,30 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the start of the DPO + NLL rounds on the dev sets; the 1.5B rows by round on Spider dev queued (queue `185d41cd`)
+
+Owner (chat): read k on dev. What the committed rows hold, EX:
+
+| Set | FedAvg SFT | k = 0 | k = 1 | k = 2 | Later start |
+|---|---|---|---|---|---|
+| Spider dev, 1.5B, 4 rounds | 75.15 | 77.27 | | 77.66 | k = 3 not evaluated on dev |
+| Spider dev, 0.5B | 59.77 (round 4, its best) | not run | | 63.35 at 3 rounds, 65.09 at 4 | k = 4: 63.15 at 5 rounds; k = 6: 62.57 at 7 |
+| BIRD dev, 1.5B | 43.68 (round 3, its best) | 43.02 at 2 rounds | 44.26 at 2 rounds | 46.22 at 3 rounds | |
+
+- 1.5B on Spider dev: k = 2 is 2.51 above FedAvg SFT (72 questions
+  against 46, p 0.021), k = 0 2.13 above (p 0.082), k = 2 against
+  k = 0 +0.39 (p 0.80).
+- On each dev set k = 2 is the highest row or level with it, and no
+  later start is above it. The sets do not separate k = 0 from k = 2
+  on the 1.5B Spider rows.
+- Queued, evaluations only (about 25 min, estimate): FedAvg SFT rounds
+  1 to 3, DPO + NLL rounds 1 to 3 from the base student, round 1 from
+  FedAvg SFT round 2 and round 1 from round 3 (k = 3), all 1.5B on
+  Spider dev. Each command is the row's Spider test evaluation with
+  the set changed. Not run on any set: k = 0 on the 0.5B.
+- Note for reading the result files: Spider dev and Spider-Syn both
+  have 1,034 rows; a row's set is `test_csv` in its `config.json`.
+
 ## 2026-11-23: the 0.5B on Spider dev and from round 4: an early start is at least as good; the pair read from a BIRD-trained start (results `a4c114ec`, `d4ccba13`, `8a8974d2`, `12f109f0`, `5dffc203`)
 
 Qwen2.5-Coder-0.5B, EX. Spider dev is the set on which no round or
