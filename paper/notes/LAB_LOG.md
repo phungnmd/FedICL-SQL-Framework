@@ -20,8 +20,8 @@ Owner (chat, about 09:30): know the 0.5B early, DeepSeek waits.
   to round 7.
 - The two questions run side by side, not one after the other: the
   FedAvg SFT rounds on one card, the DPO + NLL rounds on the other.
-  Waiting for FedAvg SFT to level off before any DPO + NLL round would
-  give the same reads about 4 h later (estimate).
+  Waiting for FedAvg SFT to level off before any DPO + NLL round puts
+  that round, about 2.5 h, after the last FedAvg SFT round (estimate).
 - Checked before the push: resolved commands of `qwen05b_k6/round_1`
   against `qwen05b_k4/round_1` differ in the parent stage and the
   output directory only; `qwen05b_sft/round_7` against `round_6` in the
