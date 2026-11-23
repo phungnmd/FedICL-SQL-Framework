@@ -4,6 +4,40 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: published Spider numbers for the 0.5B and DeepSeek-Coder-1.3B (reading)
+
+Owner (chat): what the two small students reach on Spider elsewhere, to
+judge a start of DPO + NLL from a converged FedAvg SFT. A delegated
+agent read the sources; its report is
+`archive/scan_2026-11-23/R2_small_models_spider.md` (outside Git). The
+rows below are as the report gives them, not opened again here.
+
+- No paper has a greedy row for either model after SFT on Spider train
+  alone, so no published number is the baseline of our setup.
+- Qwen2.5-Coder-0.5B: SLM-SQL (arXiv 2507.22478, Table 3), Spider test
+  with a vote of 16: 42.23 without training, 67.26 after SFT on 916K
+  rows, 70.42 after GRPO on BIRD on top. FINER-SQL (arXiv 2605.03465):
+  Spider dev 70.2 with a schema ranker and a vote of 30. A community
+  repository (not citable), Spider test, greedy, LoRA r 16, lr 2e-4,
+  2 centralized epochs: 48.3 to 63.5 (its 1.5B: 66.4 to 75.4).
+- DeepSeek-Coder-1.3B: SQL-Factory 50.2 without training, 70.7 after
+  SFT on Spider train (3 epochs; split and base or instruct not named).
+  SLM-SQL, Spider test with a vote of 16: 49.09, 75.13 after SFT, 77.05
+  after GRPO.
+- RL after a converged SFT in SLM-SQL (Spider test, vote of 16): +3.16
+  at 0.5B, +1.92 at DeepSeek 1.3B, +1.07 at 1.5B.
+- The agent's estimate of where FedAvg SFT levels off in our setup:
+  0.5B 64 to 68, DeepSeek 71.5 to 74.5 (estimates, from the gap to the
+  1.5B in the papers that train both). Our rows: 0.5B 64.09 at round 4
+  and still rising, method 65.86 and 66.19; DeepSeek 69.82 at round 2,
+  method 75.08.
+- Not kept from the report: that one FedAvg round moves the model as
+  far as a fifth of a centralized epoch. On the 1.5B, FedAvg SFT
+  against centralized SFT at the same count is -2.65, -1.63, -0.32 at
+  1, 2, 3, so a round is close to an epoch here.
+- Read that settles it for the 0.5B: `qwen05b_k4/round_1` against
+  `qwen05b_sft/round_5`, then `round_6` (queued, row 25).
+
 ## 2026-11-23: gold-prefix probe queued (code `49f7adff`, queue `d2e9e3df`)
 
 Owner (chat): the probe of form 3 of the entry below, written by a
