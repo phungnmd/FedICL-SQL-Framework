@@ -4,6 +4,71 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: 15.9% of the chosen sides are lucky; on the databases without rows the variants cut wrong accepted labels from 59.5% to 17.2%, and a gold that counts leaves a hole (results `0a4a3102`, `7f951bde`, `60f40279`; code `37a90342`)
+
+`strict/label_noise` ran on the server in 1 min 54 s (not the hour
+estimated) and `strict/round_1` trains (owner, in chat, about 01:35).
+
+Label noise of the round 1 samples of the k = 2 root, 10 variants
+(`audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd`):
+
+| Databases with rows | 1 variant | 2 | 5 | 10 |
+|---|---|---|---|---|
+| Correct samples the variants reject (48,082) | 5.35% | 6.43% | 8.25% | 9.24% |
+| The same in the mixed questions, mean over questions | 8.93% | 11.00% | 14.33% | **15.91%** |
+| Mixed questions (4,013 on the original) | 4,041 | 4,058 | 4,026 | 4,020 |
+
+- The mean over the mixed questions is the expected share of lucky
+  chosen sides under random pairing: 15.91% at 10 variants, by client
+  16.2 / 11.0 / 12.9 / 23.2 / 13.0%. The stop line of the direction was
+  5%. The number of mixed questions hardly moves (276 gained from all
+  correct, 269 lost to all wrong), so the pairs change in content, not
+  in count.
+- Databases without rows, 10 variants: 1,308 of 1,759 questions have a
+  variant that counts; under the script's read (variants alone) 785
+  are mixed, 178 all correct, 345 all wrong. Of the samples correct on
+  the original 5,224 of 10,586 turn wrong.
+
+The labels on the databases without rows against the official suite
+databases of the same six schemas, same scorer and rule, on the Mac
+(`scripts/db_fuzz_empty_vs_suite.py`,
+`audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1`; 6,095 distinct
+candidates judged by both):
+
+| Label | Accepted | The suite rejects | Share |
+|---|---|---|---|
+| Correct on the original (no rows) | 4,470 | 2,660 | 59.5% |
+| Accepted by the 10 variants | 1,880 | 323 | **17.2%** (15.9% by samples) |
+
+Agreement 90.4%; 260 candidates the variants reject and the suite
+accepts. A read of a sample of both kinds (scratch, not committed):
+the suite accepts where the gold is a COUNT that returns 0 on every
+suite database (a literal in another letter case then matches), and
+the variants accept for the same reason where the gold counts 0 on
+every variant. So "the gold returns rows" does not hold a gold that
+counts: it returns one row on the database without rows too.
+
+Rule `differs` (code `37a90342`; `--strict-empty-rule differs`,
+`--empty-rule differs` of the two scripts; its own identity key, the
+row in training keeps the rule `rows`): on a database without rows a
+variant counts only where the gold result also differs from its result
+on the original. Gold pass on the Mac
+(`spider_train_alpha01_k5_gold_differs`): 1,239 of 1,759 questions
+keep a variant that counts at 10 variants (1,308 under `rows`). A
+scratch read of the committed verdicts with the Mac's variants (their
+gold row counts equal the server's on every cell; not committed): with
+the suite filtered the same way, the share of accepted candidates the
+suite rejects goes from 21.5% under `rows` to 10.0% under `differs`
+(18.3% to 12.4% by samples), agreement 92.8% to 96.3%. The committed
+number waits for the label-noise run under the rule on the server
+(step 5 of `PIPELINE_NEXT.md`, 2 min of CPU), since the first
+candidates file holds no result digests.
+
+The row in training stands as the first read: its new pairs carry
+about 18% of wrong chosen sides by the filtered suite, against 54 to
+68% for labels on the original alone, and its pairs on the databases
+with rows are cleaned from 15.9%.
+
 ## 2026-11-24: one trial row of the extension queued (phase `strict`, queue `e47906b1`)
 
 Owner: one card is free for a few hours; which run gives a signal. One
