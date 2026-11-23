@@ -76,6 +76,9 @@ for _m in ("qwen05b", "deepseek13b"):
         ARMS[f"fedavg_{_m}_ddl_rows_a01_r{_r}"] = ("fedavg", _r)
     ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r1"] = ("k2", 3)
     ARMS[f"fedpref_{_m}_sftr2_p2_dpo_ddl_rows_a01_r2"] = ("k2", 4)
+# the 0.5B from a later start: one DPO + NLL round from FedAvg SFT round 4 against round 5
+ARMS["fedavg_qwen05b_ddl_rows_a01_r5"] = ("fedavg", 5)
+ARMS["fedpref_qwen05b_sftr4_p2_dpo_ddl_rows_a01_r1"] = ("k4", 5)
 # prompt B, kept in the notes only; zs_dsc13b: DeepSeek with a tokenizer that dropped
 # every space and newline (fixed in code 58cd89f7), not a result
 SKIP = {"zs_ddl_values", "zs_dsc13b_ddl_rows"}
@@ -119,6 +122,10 @@ TESTS = [
     ("spider", "fedavg", 1, "fedavg", 2),
     ("spider", "fedavg", 2, "fedavg", 3),
     ("spider", "fedavg", 2, "k2", 3),
+    ("spider", "fedavg", 3, "fedavg", 4),
+    ("spider", "k2", 3, "k2", 4),
+    ("spider", "fedavg", 4, "fedavg", 5),
+    ("spider", "fedavg", 4, "k4", 5),
 ] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
     (ds, "base", 0, "fedavg", 4),
     (ds, "fixed", 4, "k2", 4),
@@ -254,7 +261,7 @@ def build() -> dict:
                 t = test(rows_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
                 if t:
                     tests.append(t)
-    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "fixed", "feddpo", "rft",
+    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "k4", "fixed", "feddpo", "rft",
                                           "nearest", "goldchosen", "wrfirst", "central"])}
     runs.sort(key=lambda x: (x["ds"], x["model"], order.get(x["line"], 99), x["r"], x["seed"]))
     return {"runs": runs, "tests": tests}
