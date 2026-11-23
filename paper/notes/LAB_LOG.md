@@ -4,6 +4,32 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: the trial row moves to the rule `differs` (phase `strict_d`, queue `240f7bba`)
+
+Owner (about 01:55): `strict/round_1` is only a short way into
+training, so stop it and run the more exact labels. Queued as its own
+phase and root (`fedpref_sftr2_strict10ed_ddlrows_alpha01_s0`); the
+root of the rule `rows` is not touched and continues from its
+checkpoint if `--phase strict` is run again. One card and a few hours
+hold one row: the rule `differs` is the one the method would keep
+(9.96% of accepted labels wrong on the databases without rows against
+17.2%).
+
+- Resolved commands: `strict_d/round_1` differs from `strict/round_1`
+  in `--out` and `--strict-empty-rule differs` only, and from
+  `dpo_k2/round_1` in `--out` and the four strict flags; the relabel
+  differs in `--dst`, the rule and the candidates file (the one of
+  `e0ab0170`); the evaluations in arm name and adapter. The prompt
+  path is that of `strict/round_1`, read then from token ids; the rule
+  changes labels only, so no prompt was rendered again.
+- Pairs, counted from the committed labels (2 per mixed question):
+  906 / 1,740 / 2,362 / 3,592 / 864 by client, 9,464 in all (8,040 on
+  databases with rows, 1,424 on the others); client 4 at 38.0% of the
+  average (29.4% in `dpo_k2/round_1`).
+- Not verified on the Mac: `strict_d/relabel` on the server's samples
+  (they exist only there); the tests cover the relabel from a
+  candidates file under the rule.
+
 ## 2026-11-24: rule `differs` against the suite, committed: 9.96% of accepted labels wrong (rule `rows` 17.2%); what the trial row trains on (results `e0ab0170`, `74df3af8`)
 
 The label-noise run under `--empty-rule differs` ran on the server
