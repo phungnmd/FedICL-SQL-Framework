@@ -4,6 +4,27 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: FedAvg SFT of the 0.5B levels off at about 64.1 to 64.6 on Spider test (results `417bfd96`, `49346171`)
+
+- FedAvg SFT rounds 4, 5, 6 of Qwen2.5-Coder-0.5B on Spider test:
+  64.09, 64.18, 64.56. Round 5 against round 4: +0.09 (49 questions
+  against 47, p 0.92); round 6 against round 5: +0.37 (53 against 45,
+  p 0.48); round 6 against round 4: +0.47 (71 against 61, p 0.43). No
+  round adds more than 0.5 over round 4, so the gain rule (more than
+  0.5 over the best round, patience 2) stops the line with round 4 as
+  its best round.
+- The method's rows from FedAvg SFT round 2 against round 6: DPO + NLL
+  round 2 (66.19, 4 rounds) is 1.63 above (142 against 107, p 0.031),
+  round 1 (65.86, 3 rounds) 1.30 above (142 against 114, p 0.091).
+  Against round 5: +2.00 (p 0.0063) and +1.68 (p 0.024). So on the 0.5B
+  the method at 4 rounds is above what FedAvg SFT reaches in 6, not
+  only ahead of it at equal rounds.
+- The level off is below the estimate of the reading entry of this
+  morning (64 to 68, likely 65 to 67).
+- Exact McNemar computed here from the committed prediction files.
+  Next: `qwen05b_k6/round_1` (DPO + NLL from round 6), expected about
+  15:45 (estimate).
+
 ## 2026-11-23: pair read from a start trained on BIRD queued, a stand-in for a public stage (code `392b5e6f`, queue `c0e4802d`)
 
 Owner (chat): if the SFT stage helps the DPO + NLL rounds, would a

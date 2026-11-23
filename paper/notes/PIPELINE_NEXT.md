@@ -2,16 +2,18 @@
 
 ## Status
 
-Updated 2026-11-23 10:03 (Asia/Ho_Chi_Minh). One card only (owner,
-chat, about 09:35), and the 0.5B is read first (owner, about 09:30).
-The queue (`c0e4802d`) is in the order the card runs it: FedAvg SFT
-rounds 5 and 6 of the 0.5B, one DPO + NLL round from round 6, FedAvg
+Updated 2026-11-23 13:20 (Asia/Ho_Chi_Minh). One card only (owner,
+chat, about 09:35), and the 0.5B is read first. FedAvg SFT rounds 5
+and 6 of the 0.5B are read (11:24, 13:12): 64.18 and 64.56 on Spider
+test after 64.09 at round 4 (+0.09, p 0.92; +0.37, p 0.48), so FedAvg
+SFT has levelled off at about 64.1 to 64.6 and its gain rule (more
+than 0.5 over the best round, patience 2) stops it. The method's rows
+from round 2 are above round 6: 66.19 at 4 rounds by 1.63 (142
+questions against 107, p 0.031), 65.86 at 3 rounds by 1.30 (p 0.091).
+Next in the queue (`c0e4802d`): `qwen05b_k6/round_1`, the DPO + NLL
+round from round 6 (expected to run since 13:12, not confirmed), FedAvg
 SFT round 7, the DPO + NLL round from round 4, then the DeepSeek rows,
-the prefix probe and, new at the end (row 27), a pair read on the
-Spider clients from the adapter of FedAvg SFT round 3 on BIRD (no
-training, about 25 min, estimate). Which task the worker shows is not confirmed, and
-nothing is published since 08:34. A running worker gets the new order
-at its next publication. `deepseek13b_k2/round_1` is read
+the prefix probe and the pair read of row 27. `deepseek13b_k2/round_1` is read
 (08:34): 75.08 on Spider test, 5.26 above its start, FedAvg SFT round 2
 (192 questions against 79, p 5.0e-12); FedAvg SFT round 3 of this
 model, the row at equal rounds, is not published. The Spider line of Qwen2.5-Coder-0.5B is
@@ -204,7 +206,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| the one card that runs (which of the two was not said) | not confirmed; the line of step 1 if no worker runs on it | owner in chat, 2026-11-23 about 09:35: one card only; remote, read 09:34: nothing published after `deepseek13b_k2/round_1` (08:34) |
+| the one card that runs (which of the two was not said) | `qwen05b_k6/round_1`, expected since 13:12, not confirmed | remote, read 13:14: `qwen05b_sft/round_6` published at 13:07 and 13:12 |
 
 ## Run now
 
@@ -248,7 +250,6 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 25a | `qwen05b_sft/round_5`, `qwen05b_sft/round_6`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4 (64.09): the level FedAvg SFT reaches, against the method's 65.86 and 66.19 | about 1 h 55 min a round (estimate from rounds 1 to 4) | queued 2026-11-23 (`7bb8b06d`, `9b2ecca2`), first in file order since `2a79a22e`; not confirmed as started |
 | 26 | `qwen05b_k6/round_1`, then `qwen05b_sft/round_7`, each with its evaluation and publications | does a DPO + NLL round still add when FedAvg SFT has levelled off: one DPO + NLL round from FedAvg SFT round 6, against its start and against FedAvg SFT round 7 (both at 7 rounds, exact McNemar) | about 2.5 h and about 1 h 55 min (estimates) | queued 2026-11-23 09:31 (`447f8423`); both wait for `qwen05b_sft/round_6` |
 | 25b | `qwen05b_k4/round_1` with its evaluation and publications | the start between the two measured ones: one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds | about 2.5 h (estimate) | queued 2026-11-23 (`7bb8b06d`), after row 26 since `2a79a22e` |
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |
@@ -256,14 +257,12 @@ its log say whether the second runs 4 at a time cost them.
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
 | 27 | `public_start/read`, `public_start/publish_read` | no training: would a stage on public data (BIRD) before the client rounds leave the DPO rounds more questions with pairs? The 8,659 questions of the Spider clients sampled (10 at T 1.0, `ddl_rows`) from the adapter of `bird_sft/round_3`, which stands in for that stage, and labelled; mixed, all correct and all wrong per client against the base student (5,951 / 1,631 / 1,074) and the start of the k = 2 line (5,192 / 2,891 / 573) | about 25 min (estimate from the base read, 1,358 s) | queued 2026-11-23 10:03 at the end of the file (code `392b5e6f`, queue `c0e4802d`); the server gets it at its next publication |
 
-Expected on one card from about 09:45 (estimates): `qwen05b_sft/round_5`
-about 11:40 and `round_6` about 13:35, the level FedAvg SFT reaches;
-`qwen05b_k6/round_1` about 16:05, the method from round 6 against its
-start; `qwen05b_sft/round_7` about 18:00, the same at equal rounds;
-`qwen05b_k4/round_1` about 20:30; then `deepseek13b_sft/round_3` about
-22:20 and the other DeepSeek rows. The DPO + NLL round of DeepSeek took
-2 h 50 min with its evaluation (between the publications of 04:43 and
-08:34).
+Expected (estimates): `qwen05b_k6/round_1` about 15:45, the method
+from the levelled-off FedAvg SFT against its start (64.56);
+`qwen05b_sft/round_7` about 17:40; `qwen05b_k4/round_1` about 20:10;
+then `deepseek13b_sft/round_3` about 22:00 and the other DeepSeek rows.
+A FedAvg SFT round of the 0.5B with its evaluation took 1 h 48 min
+(rounds 5 and 6, between publications).
 
 Rows 17 to 23 (owner, 2026-11-22; rows 17 and 18, the 0.5B line, are
 finished and logged): each model runs the line of
