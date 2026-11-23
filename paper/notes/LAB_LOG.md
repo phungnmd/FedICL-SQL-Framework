@@ -4,6 +4,47 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: the trial row of the extension is 1.40 below its reference on Spider test (p 0.0046), level on dev (results `86c23233`, `0ee1ff52`, `ba607804`)
+
+`strict_d/round_1` ran from about 01:57 to 05:16 (the owner stopped
+`strict/round_1` and started it), evaluations published 05:27. One DPO
++ NLL round from FedAvg SFT round 2 on the stored round 1 samples,
+strict labels on 10 variants, rule `differs` on the databases without
+rows, against `dpo_k2/round_1` on the same samples.
+
+| Row (1.5B, 3 rounds in all) | Spider test EX | Spider dev EX | Spider dev test-suite accuracy |
+|---|---|---|---|
+| `dpo_k2/round_1` (labels on the original database) | **77.46** | **75.05** | 68.47 |
+| `strict_d/round_1` (strict labels, databases without rows paired) | 76.06 | 74.85 | **69.05** |
+| Difference | -1.40 (38 fixed, 68 broken, p 0.0046) | -0.20 (33, 35, p 0.90) | +0.58 (41, 35, p 0.57) |
+
+- Spider test by hardness, reference then the row: easy 91.49 / 89.79,
+  medium 80.63 / 79.11, hard 71.06 / 70.19, extra 59.66 / 58.26.
+  Execution errors 99 to 128 (`no such column` 54 to 76), wrong
+  results 385 to 386. The broken answers read (8 of them): a join
+  left out, or a column taken from the wrong table.
+- Spider dev: rows correct on the dev database and wrong on the suite
+  68 to 60. Test-suite accuracy scored on the Mac
+  (`audits/protocol_v2/test_suite/strict10ed_spider_dev`).
+- Pairs 9,464 as counted beforehand (906 / 1,740 / 2,362 / 3,592 /
+  864; 1,424 on databases without rows: 114 at client 3, 1,310 at
+  client 4). Client 4: weight 29.4% to 38.0%, update norm 2.09 to
+  2.56, lowest cosine between two client updates 0.244 to 0.202.
+- Time and memory: 3 h 19 min over the five clients, peak reserved
+  18.92 GiB (client 3).
+- Reading: the row changes three things at once (cleaner chosen sides,
+  the new pairs, the weight of client 4), so it does not say which one
+  costs the 1.40. By the rule of the method (a part is kept on a
+  measured gain) the extension as run is not kept: no gain on test or
+  dev EX, and the gain on the suite is not separated.
+- Queued and not run (`strict_r`, queue `ba607804`): strict labels on
+  the databases with rows only, about 8,040 pairs on the questions of
+  the reference, client 4 at 28.4%; about 2.8 h (estimate). It says
+  whether cleaner chosen sides alone help. Resolved round command:
+  that of `dpo_k2/round_1` with `--out` and `--strict-variants 10
+  --strict-variant-seed 0`; the prompts are those of the reference
+  (no new question), so none was rendered again. Owner's decision.
+
 ## 2026-11-24: the trial row moves to the rule `differs` (phase `strict_d`, queue `240f7bba`)
 
 Owner (about 01:55): `strict/round_1` is only a short way into

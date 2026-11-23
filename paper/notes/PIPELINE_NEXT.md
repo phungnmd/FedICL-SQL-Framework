@@ -2,16 +2,17 @@
 
 ## Status
 
-Updated 2026-11-24 01:55 (Asia/Ho_Chi_Minh). One card is free for a few
-hours (owner). `strict/round_1` (rule `rows`) was a short way into
-training (owner, in chat); the owner's question is to stop it and run
-the row under the rule `differs` instead: step 0 of `Run now`, queued
-as the phase `strict_d` (`240f7bba`). It trains on about 9,460 pairs
-against the 8,026 of its reference, 1,424 of them on databases without
-rows (counted from the committed labels, `LAB_LOG.md`). Whether the
-switch was made is not confirmed. Apart from the trial row nothing
-runs since the evening of 2026-11-23, and what the sections below
-call running stopped where it was. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
+Updated 2026-11-24 06:55 (Asia/Ho_Chi_Minh). No task is known to run:
+the trial row of the extension ended at 05:27 with its publications.
+`strict_d/round_1` (strict labels on 10 variants, rule `differs` on
+the databases without rows) is 76.06 on Spider test, 1.40 below
+`dpo_k2/round_1` (38 questions fixed, 68 broken, p 0.0046); on Spider
+dev 74.85 against 75.05 (p 0.90) and 69.05 against 68.47 on test-suite
+accuracy (p 0.57). The extension as run is not kept (`LAB_LOG.md`,
+2026-11-24). Open, the owner's choice: step 0, the row with strict
+labels on the databases with rows only. Apart from the trial row
+nothing ran since the evening of 2026-11-23, and what the sections
+below call running stopped where it was. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
 above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
@@ -225,22 +226,20 @@ its log say whether the second runs 4 at a time cost them.
 
 ## Run now
 
-0. Now, on the free card (GPU 0 as written, `--gpu 1` for the other;
-   about 3.3 h in all, an estimate: the relabel under a minute, 3 h of
-   training, 15 min of evaluation): the trial row of the extension
-   under the rule `differs`, phase `strict_d` alone. First Ctrl+C in
-   the window of the worker that trains `strict/round_1`; its root
-   stays as it is and the row continues from its checkpoint if
-   `--phase strict` is run again. Then the line below: one DPO + NLL
-   round from FedAvg SFT round 2 on the stored round 1 samples with
-   strict labels on 10 variants, the databases without rows under the
-   rule `differs`, against `dpo_k2/round_1` (77.46 on Spider test). To
-   stop at a set time add `--until HH:MM` after `--phase strict_d`;
-   the same line continues later. Send back: nothing if it ends with
-   the publications; else its last lines.
+0. If the owner wants the split (a free card, about 3 h, an estimate:
+   2.8 h of training, 15 min of evaluation): the row with strict
+   labels on the databases with rows only, phase `strict_r` alone.
+   One DPO + NLL round from FedAvg SFT round 2 on the stored round 1
+   samples; about 8,040 pairs on the questions of `dpo_k2/round_1`,
+   no pair on a database without rows. Read against `dpo_k2/round_1`
+   (77.46 on Spider test, 75.05 on dev): above it, cleaner chosen
+   sides help and the loss of `strict_d/round_1` came from the pairs
+   on the databases without rows; level or below, the direction is
+   closed. Send back: nothing if it ends with the publications; else
+   its last lines.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase strict_d; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase strict_r; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
 1. A free card: the worker line, which pulls first (queue
@@ -280,13 +279,8 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Not queued, the owner's choice once the row of step 0 is read:
-   the row with strict labels on the databases with rows only, which
-   splits the cleaner labels from the new pairs and the larger weight
-   of client 4 (`LAB_LOG.md`, 2026-11-24). `strict/round_1` (rule
-   `rows`: 780 questions paired on the databases without rows instead
-   of 712, 17.2% of their accepted labels wrong by the official suite
-   instead of 9.96%) stays queued and stopped.
+5. Stopped and not needed: `strict/round_1` (rule `rows`), a short
+   way into training; its root stays on the server as it is.
 
 ## Running and queued
 
