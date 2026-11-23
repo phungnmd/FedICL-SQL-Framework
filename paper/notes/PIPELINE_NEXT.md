@@ -2,12 +2,14 @@
 
 ## Status
 
-Updated 2026-11-23 09:40 (Asia/Ho_Chi_Minh). One card only (owner,
+Updated 2026-11-23 10:03 (Asia/Ho_Chi_Minh). One card only (owner,
 chat, about 09:35), and the 0.5B is read first (owner, about 09:30).
-The queue (`2a79a22e`) is in the order the card runs it: FedAvg SFT
+The queue (`c0e4802d`) is in the order the card runs it: FedAvg SFT
 rounds 5 and 6 of the 0.5B, one DPO + NLL round from round 6, FedAvg
-SFT round 7, the DPO + NLL round from round 4, then the DeepSeek rows
-and the prefix probe. Which task the worker shows is not confirmed, and
+SFT round 7, the DPO + NLL round from round 4, then the DeepSeek rows,
+the prefix probe and, new at the end (row 27), a pair read on the
+Spider clients from the adapter of FedAvg SFT round 3 on BIRD (no
+training, about 25 min, estimate). Which task the worker shows is not confirmed, and
 nothing is published since 08:34. A running worker gets the new order
 at its next publication. `deepseek13b_k2/round_1` is read
 (08:34): 75.08 on Spider test, 5.26 above its start, FedAvg SFT round 2
@@ -252,6 +254,7 @@ its log say whether the second runs 4 at a time cost them.
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
+| 27 | `public_start/read`, `public_start/publish_read` | no training: would a stage on public data (BIRD) before the client rounds leave the DPO rounds more questions with pairs? The 8,659 questions of the Spider clients sampled (10 at T 1.0, `ddl_rows`) from the adapter of `bird_sft/round_3`, which stands in for that stage, and labelled; mixed, all correct and all wrong per client against the base student (5,951 / 1,631 / 1,074) and the start of the k = 2 line (5,192 / 2,891 / 573) | about 25 min (estimate from the base read, 1,358 s) | queued 2026-11-23 10:03 at the end of the file (code `392b5e6f`, queue `c0e4802d`); the server gets it at its next publication |
 
 Expected on one card from about 09:45 (estimates): `qwen05b_sft/round_5`
 about 11:40 and `round_6` about 13:35, the level FedAvg SFT reaches;

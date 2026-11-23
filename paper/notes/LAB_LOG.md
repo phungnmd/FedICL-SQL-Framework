@@ -4,6 +4,57 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: pair read from a start trained on BIRD queued, a stand-in for a public stage (code `392b5e6f`, queue `c0e4802d`)
+
+Owner (chat): if the SFT stage helps the DPO + NLL rounds, would a
+stage on public data help them more. The task was written by a
+delegated agent and read here before the push.
+
+- `public_start/read` and `public_start/publish_read`, at the end of
+  the queue: the pair read of the base student
+  (`pairread/base_ddl_rows`) with the start changed to the global
+  adapter of `bird_sft/round_3`. The Spider clients sample their 8,659
+  questions from it (10 at T 1.0, `ddl_rows`) and label them. No
+  training. About 25 min (estimate; the base read took 1,358 s).
+- What it stands in for, and where it differs: a federated adapter on
+  the BIRD clients for a server stage on BIRD; it was trained on the
+  `ddl` text with evidence and is sampled here with the Spider
+  `ddl_rows` prompt.
+- The two starts it is compared with, from the committed pair counts
+  (`fedpref_base_p2_ddlrows_alpha01_s0` and
+  `fedpref_sftr2_ddlrows_alpha01_s0`, `dpo/round_1`), of 8,659
+  questions:
+
+  | Start | Mixed | All correct | All wrong | Mixed on databases with rows |
+  |---|---|---|---|---|
+  | Base student | 5,951 | 1,631 | 1,074 | 4,454 |
+  | FedAvg SFT round 2 on Spider (k = 2) | 5,192 | 2,891 | 573 | 4,013 |
+
+  Two FedAvg SFT rounds on the clients' own questions take 501
+  questions out of all wrong and put 1,260 more into all correct: the
+  start of the k = 2 line has 441 fewer questions with pairs than the
+  base student.
+- Read as: mixed on databases with rows at or under 4,013, the stage
+  gives the DPO rounds no more than the SFT stage does and the
+  direction is dropped; above it with all wrong under 1,074, the next
+  step is one line from a start trained on public data (not queued).
+- Checked before the push: the resolved command differs from the base
+  read in `--from-base` against `--parent-stage
+  fedavg_bird_ddl_a01_r3_s0` and in `--out`
+  (`fedpref_birdsftr3_ddlrows_alpha01_s0`); one prompt decoded from its
+  token ids read (client 1, `train:361`, 690 tokens); the parent row is
+  committed (`federated__fedavg__s0__7ecd649662f3__5e43d16b__r3`), 1.5B
+  and LoRA r 16 as the read; alpha 32 is the code default of that run,
+  the adapter's own config is on the server and was not read.
+- No guard compares the dataset or split of a parent row with the
+  line's: a Spider line can start from a BIRD row. Used here on
+  purpose, not changed.
+- Code: the pair read now also writes the questions on databases
+  without rows, per client and by kind; only the read uses those keys.
+  Tests on the files touched: 57 passed, 2 skipped (run here); the
+  agent reports 557 passed, 2 skipped on the whole suite.
+- Not run: the read itself (GPU, server only).
+
 ## 2026-11-23: one card; the 0.5B rows in the order they answer (queue `2a79a22e`)
 
 Owner (chat, about 09:35): one card only, which row first. The entry
