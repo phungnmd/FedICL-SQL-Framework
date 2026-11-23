@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: labels from the variants alone are cleaner than labels from the original database; the questions DPO skips sit on one client (results `40bf693d`)
+
+Read from committed files on the Mac, no new SQL run.
+
+Labels with the original database left out
+(`scripts/db_fuzz_variant_only.py`,
+`audits/protocol_v2/db_fuzz_probe/variant_only`): a prediction is
+accepted when every usable one of the first N variants accepts it
+(usable: the gold returns rows there and the order rule keeps it).
+16,544 predictions on Spider dev (16 prediction files), three seeds.
+
+| Variants | No usable variant | Wrong among accepted, variants only | Wrong among accepted, original only (same rows) | Agreement with the official suite |
+|---|---|---|---|---|
+| 1 | 15.9 to 19.8% | 7.6 to 9.1% | 10.4 to 10.8% | 94.1 to 95.0% |
+| 2 | 8.3 to 11.1% | 5.1 to 5.5% | 10.7 to 11.4% | 96.4 to 96.8% |
+| 5 | 3.5 to 4.0% | 2.2 to 3.1% | 11.2 to 11.4% | 98.1 to 98.6% |
+| 10 | 2.0 to 2.7% | **1.8 to 2.1%** | 11.1 to 11.3% | **98.6 to 98.9%** |
+
+Suite-correct predictions rejected: 16 or 17 at 10 variants. The dev
+databases hold rows and the fuzzer draws its values from them; on a
+database without rows it has only the literals of the gold SQL, so the
+table is an upper bound for that case (on the training databases without
+rows the gold returns rows on a variant for 53.26% of the cells and 451
+of 1,759 questions have no usable variant, entry of the gold pass).
+
+Where the skipped questions are (committed `pairs_stats` of
+`fedpref_sftr2_ddlrows_alpha01_s0`, DPO round 1): the pair rule skips
+every question on a database without rows, 1,759 of 8,659. Client 4
+holds 1,648 of them out of its 3,479 questions (1,098 with mixed
+samples), client 3 holds 111, the other three none. The round built
+8,026 pairs from 4,013 questions.
+
+CoRE-DB was read in its repository (`LITERATURE.md`, section 1.20a):
+central build with the gold SQL of all databases and an external LLM;
+the paper itself was not found.
+
 ## 2026-11-23: what the lucky SQL is: DPO on one-database labels raises joins written as a scalar subquery; strict labels are an option of the rounds (code `0157fda6`..`fc50995a`, results `c9c42696`)
 
 Both done on the Mac by delegated agents while the server is off

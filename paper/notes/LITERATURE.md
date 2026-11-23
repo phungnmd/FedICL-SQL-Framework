@@ -654,6 +654,56 @@ direct boundary-operator substitutions among the executable wrong answers
 of either FedAvg R4 or DPO R2 on Spider test. The training cause of those
 wrong answers remains unknown.
 
+### 1.20a CoRE-DB as built, from its repository (read 2026-11-23)
+
+Read: the README and the build, reward and evaluation source of
+[thanhdath/core-db](https://github.com/thanhdath/core-db) (Apache-2.0).
+Not read: the paper. Its title in the README is "Boosting Small Language
+Models for Text-to-SQL with Cost-Efficient Reinforcement Environment
+against Spurious Correctness"; no preprint under that title was found.
+arXiv 2605.03465 (FINER-SQL, the trainer it reuses) has no test-suite
+metric and no enriched database, and names spurious correctness once, for
+empty results only. The gains below are the README's words, not checked in
+a table.
+
+- Problem: a wrong SQL that returns the gold's result on the training
+  database gets a positive execution reward ("spurious correctness").
+  Claim: training on CoRE-DB raises execution and test-suite accuracy by
+  1 to 4% and trains 1.51 times faster. The RL algorithm is unchanged
+  (GRPO, 32 rollouts for one prompt, learning rate 8e-6); only the
+  databases behind the reward change.
+- Build, per training database (215: all of Spider train and BIRD train,
+  the Spider databases without rows among them), five steps. (1) A compact
+  database that keeps the rows the gold queries need. (2) Gold and
+  neighbor pairs: neighbors from the grammar mutations of the Spider
+  test-suite generator (dropped spans; a token replaced inside its family:
+  aggregate, comparison, order direction, AND/OR, column name, literal)
+  and from 30 samples at temperature 1.0 of a Text-to-SQL model; at most
+  five per gold and source; only golds that return a non-NULL value on
+  the original. (3) Value filling: three LLM agents (Designer, Engineer,
+  Reviewer, an external model through an API) write one Python generation
+  program per database; the program appends rows to copies of the compact
+  database with no LLM call: values from observed columns and from the
+  literals of the queries, perturbed (numbers by 1 or 2, strings with
+  near variants), ties, duplicates, NULLs at the share of the source,
+  parents without children, keys and constraints kept. (4) Separation:
+  for each pair that agrees on the original, which instances tell gold
+  from neighbor. (5) A greedy set cover picks the fewest instances that
+  separate every separable pair.
+- Verdict of a sample: accepted only when it matches the gold on every
+  instance where the gold's result is informative (not empty, not all
+  NULL); ORDER BY at the top level compares rows in order.
+- Measured in the repository: a set of 800 gold and prediction pairs on
+  100 BIRD and 100 Spider training questions with hand labels (152
+  spurious), on which CoRE-DB still accepts 10.1% of the spurious ones
+  (14.7% in the paper, per the README).
+- Against our setting: the build is central, needs the gold SQL of every
+  database in one place and sends schema, column values and statistics
+  to an external LLM. A client cannot do that under data isolation. What
+  carries over is the principle (more than one database instance behind a
+  label, a sample accepted only when it matches on all informative ones)
+  and the content rules a fixed program can apply without an LLM.
+
 ### 1.21 Training databases without rows, and content for them (2026-11-19)
 
 Read by a research agent through page fetches and on downloaded copies,
