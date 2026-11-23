@@ -2,11 +2,12 @@
 
 ## Status
 
-Updated 2026-11-24 00:45 (Asia/Ho_Chi_Minh). The server is off since the
-evening of 2026-11-23 (owner, for now): nothing runs, and what the
-sections below call running stopped where it was. When it is back:
-step 1, then step 5; step 6 follows on the Mac. New: step 6. Read
-between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
+Updated 2026-11-24 (Asia/Ho_Chi_Minh). One card is free for a few
+hours (owner): step 0 of `Run now` first, the trial row of the
+extension. Apart from it nothing runs since the evening of 2026-11-23,
+and what the sections below call running stopped where it was. Step 5
+is now a task of step 0 (`strict/label_noise`); step 6 follows on the
+Mac. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
 above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
@@ -220,6 +221,20 @@ its log say whether the second runs 4 at a time cost them.
 
 ## Run now
 
+0. Now, on the free card (GPU 0 as written, `--gpu 1` for the other;
+   about 4.5 h in all, an estimate: 1 h of labels on CPU, 3 h of
+   training, 15 min of evaluation): the trial row of the extension,
+   phase `strict` alone. One DPO + NLL round from FedAvg SFT round 2 on
+   the stored round 1 samples with strict labels on 10 variants,
+   databases without rows included, against `dpo_k2/round_1` (77.46 on
+   Spider test). To stop at a set time add `--until HH:MM` after
+   `--phase strict`; the same line continues later. Send back: nothing
+   if it ends with the publications; else its last lines.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase strict; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
 1. A free card: the worker line, which pulls first (queue
    `c92b0dd3`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
    It takes the first ready task in file order that no other worker
@@ -257,7 +272,8 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Any time, CPU only, in a third terminal (35 to 70 min at 12
+5. Only if step 0 is not run (its first task is this command with 16
+   SQL workers). Any time, CPU only, in a third terminal (35 to 70 min at 12
    processes on the Mac's rate, an estimate; here 8 SQL workers, so
    longer): the label noise of the DPO round 1 samples of the k = 2
    line, read on 10 generated variants of each client's databases
@@ -283,11 +299,8 @@ its log say whether the second runs 4 at a time cost them.
    cd fedicl-sql && git pull --ff-only && uv run --no-sync python -m scripts.db_fuzz_empty_vs_suite --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5 --candidates audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd/candidates.csv --score-workers 8 --out-dir audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1
    ```
 
-   Not queued, waiting for steps 5 and 6: two trial rows, each one
-   DPO + NLL round from FedAvg SFT round 2 on the stored round 1
-   samples relabelled (no new sampling), against `dpo_k2/round_1`
-   (77.46 on Spider test): strict labels on 10 variants, and the same
-   with `--strict-empty-databases`.
+   Not queued: the row with strict labels on the databases with rows
+   only, which splits the two effects once the row of step 0 is read.
 
 ## Running and queued
 

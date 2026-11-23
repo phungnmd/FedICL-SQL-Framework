@@ -4,6 +4,32 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: one trial row of the extension queued (phase `strict`, queue `e47906b1`)
+
+Owner: one card is free for a few hours; which run gives a signal. One
+row carries the whole extension, so one result says whether it moves
+anything: DPO + NLL round 1 from FedAvg SFT round 2 on the stored
+round 1 samples of the k = 2 root, relabelled with strict labels on 10
+variants, databases without rows included
+(`fedpref_sftr2_strict10e_ddlrows_alpha01_s0`), against
+`dpo_k2/round_1` (77.46 on Spider test) on Spider test and dev; dev
+also for test-suite accuracy on the Mac. The row with the databases
+with rows only is not queued; it splits the two effects afterwards.
+
+- Before queuing: the resolved round command differs from
+  `dpo_k2/round_1` in `--out` and the three strict flags only; the
+  resolved setup differs in `strict_labels` only and the reference
+  resolves to its committed `setup.json`. One training example of a
+  question on `restaurants` was decoded from its token ids and read:
+  the prompt of the SFT stage, with the header of the example rows and
+  no row under it.
+- Memory: the added pairs are short (client 4, databases without rows:
+  846 tokens at the median, 1,141 at most, against 2,948 for its
+  databases with rows), so the 18.93 GiB peak of `dpo_k2/round_1` is
+  expected to hold (`A5000_RUN_CONFIG.md`).
+- Chosen on: nothing yet. The row is read on Spider test and on
+  test-suite accuracy of Spider dev.
+
 ## 2026-11-24: strict labels reach the databases without rows (option of the rounds); the official suite as their reference (code `a1592b3b`..`de3193ca`)
 
 Owner, 2026-11-24: go ahead with the second half of the extension. One
