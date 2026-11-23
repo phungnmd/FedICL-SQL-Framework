@@ -4,6 +4,67 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the 0.5B on Spider dev and from round 4: an early start is at least as good; the pair read from a BIRD-trained start (results `a4c114ec`, `d4ccba13`, `8a8974d2`, `12f109f0`, `5dffc203`)
+
+Qwen2.5-Coder-0.5B, EX. Spider dev is the set on which no round or
+setting was chosen; exact McNemar computed here from the committed
+prediction files.
+
+| Row | Total rounds | Spider test | Spider dev |
+|---|---|---|---|
+| No training | 0 | 54.40 | 55.22 |
+| FedAvg SFT round 3 | 3 | 62.69 | 58.99 |
+| FedAvg SFT round 4 | 4 | 64.09 | 59.77 |
+| FedAvg SFT round 5 | 5 | 64.18 | 59.48 |
+| FedAvg SFT round 6 | 6 | 64.56 | 59.28 |
+| FedAvg SFT round 7 | 7 | 64.32 | 58.03 |
+| DPO + NLL from round 2, round 1 | 3 | 65.86 | 63.35 |
+| DPO + NLL from round 2, round 2 | 4 | 66.19 | 65.09 |
+| DPO + NLL from round 4, round 1 | 5 | 65.49 | 63.15 |
+| DPO + NLL from round 6, round 1 | 7 | 65.44 | 62.57 |
+
+- `qwen05b_k4/round_1` on Spider test: 65.49, 1.40 above its start
+  (132 questions against 102, p 0.058), 1.30 above FedAvg SFT at 5
+  rounds (p 0.075), 0.37 below the round from round 2 (p 0.62).
+- Spider dev, the method against FedAvg SFT at equal rounds: +4.35 at
+  3 rounds (p 3.3e-05), +5.32 at 4 (91 against 36, p 1.1e-06), +3.68
+  at 5 (from round 4, p 0.0015), +4.55 at 7 (from round 6, p 2.0e-05).
+  Against the best FedAvg SFT round on dev (round 4, 59.77) the row
+  from round 2 at 4 rounds is 5.32 above; against round 6, 5.80 (p
+  6.1e-07).
+- One DPO + NLL round over its start on dev: +3.38 from round 4 (p
+  0.0028), +3.29 from round 6 (p 0.00099). On Spider test these were
+  +1.40 and +0.88, so the small gain of a late start is a reading of
+  Spider test, not of both sets.
+- The level after one DPO + NLL round does not depend on the start:
+  dev 63.35, 63.15, 62.57 and test 65.86, 65.49, 65.44 from rounds 2,
+  4, 6 (no pair differs: p 0.92, 0.58 on dev). The second DPO + NLL
+  round from round 2 adds 1.74 on dev (46 against 28, p 0.047) and 0.33
+  on test (p 0.62); on dev it is 2.51 above the round from round 6 (p
+  0.020).
+- FedAvg SFT on dev does not rise after round 4 and round 7 is 1.74
+  below it (p 0.085).
+- Read: the start does not have to wait for FedAvg SFT to level off,
+  and more SFT rounds before the DPO + NLL rounds buy nothing on either
+  set. The threshold set in chat for a later start (67.2 on Spider
+  test from round 4) is not met: k = 2 stands for the 0.5B.
+
+`public_start/read` (1.5B, 10 samples at T 1.0 on the Spider clients,
+`ddl_rows`), the start being FedAvg SFT round 3 on the BIRD clients:
+
+| Start | Mixed questions | All correct | All wrong | Samples correct |
+|---|---|---|---|---|
+| Base student | 5,951 | 1,631 | 1,074 | 56.1% |
+| FedAvg SFT round 3 on BIRD | 5,864 | 1,819 | 973 | 60.6% |
+| FedAvg SFT round 2 on Spider | 5,192 | 2,891 | 573 | 71.4% |
+
+- A start trained on BIRD samples on the Spider clients like the base
+  student: about as many mixed questions and 101 fewer all-wrong ones.
+  The SFT rounds on Spider halve the all-wrong questions. As a stand-in
+  for a public stage in place of the SFT stage it gives no more pairs
+  than no stage; a stage on top of the SFT rounds is not what it
+  measures.
+
 ## 2026-11-23: gold-prefix probe on the 0.5B: a correct sample for 57% to 88% of the all-wrong questions, mostly the gold SQL (results `9fb6bb66`)
 
 `prefix/probe`: the 1,168 all-wrong questions of `qwen05b_k2/round_2`

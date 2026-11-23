@@ -2,31 +2,24 @@
 
 ## Status
 
-Updated 2026-11-23 17:55 (Asia/Ho_Chi_Minh). Two workers run: the
-second card started at about 17:07 (the prefix probe's timing file)
-and took the prefix probe, read at 17:30: of the 1,168 all-wrong
-questions of `qwen05b_k2/round_2`, 15.0% get a correct sample in a
-second plain draw and 57.0%, 76.6%, 87.9% from the first 25%, 50%, 75%
-of the gold SQL tokens; 61% to 76% of those correct samples are the
-gold SQL itself. Next on that card: the pair read of row 27, the 0.5B
-rows on Spider dev (row 29), then `pooled_k2`. FedAvg SFT round 7 of the
-0.5B is read (16:53): 64.32, 0.23 below round 6 (p 0.69), so rounds 4
-to 7 are 64.09, 64.18, 64.56, 64.32; `qwen05b_k6/round_1` (65.44) is
-1.12 above it at equal rounds (p 0.097), the method from round 2 at 4
-rounds 1.86 above (p 0.016). `qwen05b_k6/round_1`
-is read (15:03): one DPO + NLL round from FedAvg SFT round 6 of the
-0.5B is 65.44 on Spider test, 0.88 above its start (64.56; 97
-questions against 78, p 0.17) and not above the rows from round 2
-(65.86 at 3 rounds, 66.19 at 4; p 0.61 and 0.35). From round 2 the
-round added 5.26 over its start. FedAvg SFT rounds 5 and 6 (11:24,
-13:12): 64.18 and 64.56 after 64.09 at round 4, levelled off; the
-method from round 2 at 4 rounds is 1.63 above round 6 (p 0.031).
-The reads that can change the method now stand before the pending
-DeepSeek rows (owner, chat, about 16:25; queue `c92b0dd3`). Order: FedAvg
-SFT round 7 of the 0.5B (expected to run since 15:03, not confirmed),
-`qwen05b_k4/round_1`, the prefix probe (row 24), the pair read of row
-27, the two DPO + NLL rounds of the 1.5B with the clients pooled (row
-28, new), then the DeepSeek rows. `deepseek13b_k2/round_1` is read
+Updated 2026-11-23 18:40 (Asia/Ho_Chi_Minh). Two workers run. Read
+since 17:30 (`LAB_LOG.md`, 2026-11-23):
+`qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
+start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
+above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
+dev (18:12, 18:25): FedAvg SFT rounds 3 to 7 are 58.99, 59.77, 59.48,
+59.28, 58.03; the method from round 2 is 63.35 and 65.09, 5.32 above
+FedAvg SFT at 4 rounds (p 1.1e-06) and 5.80 above round 6; one DPO +
+NLL round from round 4 gives 63.15 and from round 6 62.57. An early
+start is at least as good as a late one on both sets, so k = 2 stands
+for the 0.5B. The pair read from the BIRD-trained start (17:50): on
+the Spider clients it samples like the base student (5,864 mixed and
+973 all-wrong questions; base 5,951 and 1,074; FedAvg SFT round 2 on
+Spider 5,192 and 573). The prefix probe (17:30): 57% to 88% of the
+all-wrong questions get a correct sample, mostly the gold SQL. Running
+(expected, not confirmed): `pooled_k2/round_1` on GPU 1 since about
+18:12, `deepseek13b_sft/round_3` on the other card since about 18:25.
+FedAvg SFT round 7 of the 0.5B (16:53): 64.32 on Spider test. `deepseek13b_k2/round_1` is read
 (08:34): 75.08 on Spider test, 5.26 above its start, FedAvg SFT round 2
 (192 questions against 79, p 5.0e-12); FedAvg SFT round 3 of this
 model, the row at equal rounds, is not published. The Spider line of Qwen2.5-Coder-0.5B is
@@ -219,8 +212,8 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| GPU 0 (the card that ran alone; which of the two was not said) | `qwen05b_k4/round_1`, expected since 16:53, not confirmed | remote, read 17:05: `qwen05b_sft/round_7` published at 16:49 and 16:53 |
-| GPU 1 | `public_start/read`, expected since 17:30, not confirmed | remote, read 17:50: the prefix probe ran 17:07 to 17:30 and is published |
+| GPU 0 (the card that ran alone; which of the two was not said) | `deepseek13b_sft/round_3`, expected since about 18:25, not confirmed | remote, read 18:25: `qwen05b_k4/round_1` published at 18:19, 18:22 and 18:25 |
+| GPU 1 | `pooled_k2/round_1`, expected since about 18:12, not confirmed | remote: the prefix probe 17:30, the pair read 17:50, the 0.5B rows on Spider dev 18:12 |
 
 ## Run now
 
@@ -265,21 +258,16 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 25b | `qwen05b_k4/round_1` with its evaluation and publications | the start between the two measured ones: one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds | about 2.5 h (estimate) | queued 2026-11-23 (`7bb8b06d`), after row 26 since `2a79a22e` |
-| 27 | `public_start/read`, `public_start/publish_read` | no training: would a stage on public data (BIRD) before the client rounds leave the DPO rounds more questions with pairs? The 8,659 questions of the Spider clients sampled (10 at T 1.0, `ddl_rows`) from the adapter of `bird_sft/round_3`, which stands in for that stage, and labelled; mixed, all correct and all wrong per client against the base student (5,951 / 1,631 / 1,074) and the start of the k = 2 line (5,192 / 2,891 / 573) | about 25 min (estimate from the base read, 1,358 s) | queued 2026-11-23 10:03 at the end of the file (code `392b5e6f`, queue `c0e4802d`); the server gets it at its next publication |
-| 29 | `qwen05b_dev/*`: the base 0.5B, FedAvg SFT rounds 3 to 7, DPO + NLL rounds 1 and 2 from round 2, round 1 from round 6, round 1 from round 4 (after its round) | the 0.5B rows on Spider dev (1,034 rows), where no round or setting was chosen: a second read of the start of the DPO + NLL rounds, which Spider test does not separate (65.44, 65.86, 66.19), and of the method against the level FedAvg SFT reaches | about 30 min, no training (estimate) | queued 2026-11-23 17:20 (`2c62fbb2`), before row 28 |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`) |
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 
-Expected with two cards (estimates, GPU 1 from about 17:15):
-`qwen05b_k4/round_1` about 18:40 on the first card, then the DeepSeek
-rows there; on GPU 1 the prefix probe about 17:50, the pair read about
-18:15, the 0.5B rows on Spider dev about 18:45, `pooled_k2/round_1`
-about 20:50 and `round_2` about 22:55.
-Measured between publications: a FedAvg SFT round of the 0.5B with its
-evaluation 1 h 48 min, `qwen05b_k6/round_1` with its evaluation 1 h
-51 min.
+Expected (estimates): `pooled_k2/round_1` about 20:15 and `round_2`
+about 22:20 on GPU 1; `deepseek13b_sft/round_3` about 20:15 on the
+other card, then `deepseek13b_k2/round_2` and `deepseek13b_sft/round_4`.
+Measured between publications: `qwen05b_k4/round_1` with its
+evaluation 1 h 29 min, a FedAvg SFT round of the 0.5B with its
+evaluation 1 h 48 min.
 
 Rows 17 to 23 (owner, 2026-11-22; rows 17 and 18, the 0.5B line, are
 finished and logged): each model runs the line of
