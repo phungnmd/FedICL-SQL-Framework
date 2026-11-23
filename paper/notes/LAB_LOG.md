@@ -4,6 +4,31 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: on the 0.5B a DPO + NLL round from the levelled-off FedAvg SFT adds 0.88 (results `fc09dc79`, `ca57b242`)
+
+- `qwen05b_k6/round_1`, one DPO + NLL round from FedAvg SFT round 6, on
+  Spider test: 65.44 against its start 64.56, +0.88 (97 questions
+  against 78, p 0.17). By hardness 84.47 / 70.25 / 50.32 / 48.46
+  against 83.40 / 69.43 / 50.11 / 46.78. Predictions with an execution
+  error 332 against 366, executable with a wrong result 410 against
+  395 (counted here from the prediction files).
+- Against the rows from FedAvg SFT round 2: 0.42 below DPO + NLL round
+  1 (65.86, 3 rounds; p 0.61) and 0.75 below round 2 (66.19, 4 rounds;
+  p 0.35). The later start reaches no higher level with 3 more rounds.
+- The round's gain over its start by start round: +5.26 from round 2
+  (p 1.9e-12), +0.88 from round 6. FedAvg SFT round 7, the row at equal
+  rounds, is not read.
+- The pairs are not what is short: 7,340 pairs from 4,734 mixed
+  questions (round 1 from round 2: 8,328 from 5,532); 659 all-wrong
+  questions (1,233); 70.6% of the samples correct (56.1%).
+- The 1.5B differs: from FedAvg SFT round 3, the first round after
+  which FedAvg SFT stops gaining, one DPO + NLL round gave 77.97
+  against 74.71 (+3.26). Round 6 of the 0.5B is two rounds past that
+  point (round 4), so `qwen05b_k4/round_1` is the matching row; queued
+  after FedAvg SFT round 7, expected about 18:40 (estimate).
+- Read so far: a start from the levelled-off FedAvg SFT is not a better
+  definition of the method on the 0.5B. No decision.
+
 ## 2026-11-23: FedAvg SFT of the 0.5B levels off at about 64.1 to 64.6 on Spider test (results `417bfd96`, `49346171`)
 
 - FedAvg SFT rounds 4, 5, 6 of Qwen2.5-Coder-0.5B on Spider test:
