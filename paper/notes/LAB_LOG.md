@@ -4,6 +4,24 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the 0.5B rows on Spider dev queued (queue `2c62fbb2`)
+
+Owner (chat): whether to read Spider dev. Queued here on that question,
+not on a yes; the rows are evaluations only and can be taken out.
+
+- `qwen05b_dev`: ten adapters of the 0.5B on Spider dev (1,034 rows):
+  no training, FedAvg SFT rounds 3 to 7, DPO + NLL rounds 1 and 2 from
+  round 2, round 1 from round 6, round 1 from round 4 (when its round
+  is done). About 30 min (estimate). Before `pooled_k2` in the file.
+- Why: rounds and settings were read on Spider test, and its numbers
+  do not separate the starts of the DPO + NLL rounds (65.44, 65.86,
+  66.19). Spider dev is a set on which nothing was chosen, and the set
+  most papers at this size report.
+- Checked: each command is the row's Spider test evaluation with the
+  set changed (`--sets spider` for `--sets spider_test --allow-test`),
+  as the `spider_dev` rows of the 1.5B. Queue tests: 45 passed, 2
+  skipped.
+
 ## 2026-11-23: FedAvg SFT round 7 of the 0.5B is 64.32; a second card (results `b21754a0`, `94a7f115`)
 
 - FedAvg SFT round 7 of Qwen2.5-Coder-0.5B on Spider test: 64.32, 0.23
