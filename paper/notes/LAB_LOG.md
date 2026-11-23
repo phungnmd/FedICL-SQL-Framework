@@ -4,6 +4,32 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the rows of the tables on Spider dev and on Syn, Realistic and DK queued (queue `e425fa42`)
+
+Owner (chat): evaluate the rounds that are needed in full, on dev and
+on the other Spider measures.
+
+- Queued, evaluations only, after `pooled_k2` and before the DeepSeek
+  rounds (about 2 h, estimate): the two ablation rounds of the 1.5B on
+  Spider dev (no NLL term; NLL on the correct samples alone); the 1.5B
+  rows by round on Syn, Realistic and DK (FedAvg SFT rounds 1 to 3,
+  k = 0 rounds 1 to 3, k = 2 round 1, k = 3 round 1); the ten 0.5B rows
+  on Syn, Realistic and DK; the pooled rounds on Spider dev.
+- Queued after the DeepSeek rounds (about 1 h, estimate): the seven
+  DeepSeek rows (no training, FedAvg SFT rounds 1 to 4, DPO + NLL
+  rounds 1 and 2) on Spider dev and on the three other sets.
+- Checked: 33 of the new commands are the row's Spider test evaluation
+  with the set changed (`--sets spider`, or `--sets syn realistic dk`);
+  the three FedAvg SFT rows of the 1.5B have no queued test command
+  (the curve ran them) and follow `spider_variants/fedavg_r4`. Queue
+  tests: 45 passed, 2 skipped.
+- Test-suite accuracy needs no GPU: it is scored on the Mac from the
+  committed dev, Syn and Realistic predictions
+  (`scripts/score_test_suite.py`) and committed under
+  `audits/protocol_v2/test_suite/`.
+- Not queued: the dropped parts (nearest pairs, gold as the chosen
+  side) on the other sets.
+
 ## 2026-11-23: the start of the DPO + NLL rounds on the dev sets; the 1.5B rows by round on Spider dev queued (queue `185d41cd`)
 
 Owner (chat): read k on dev. What the committed rows hold, EX:
