@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the generator on Spider dev with seeds 1 and 2: 86.6% to 89.2% of the lucky SQL caught at 10 variants; server off, sampling on the Mac not usable (results `7f9c72f2`)
+
+The dev probe of the entry of step 1 below, run again on the Mac with
+two more seeds (`audits/protocol_v2/db_fuzz_probe/spider_dev_s1`,
+`_s2`). Lucky rows caught under the order rule, and rows accepted by
+the official suite that the variants reject:
+
+| Variants | Seed 0 | Seed 1 | Seed 2 | Rejected though accepted by the suite (seeds 0 / 1 / 2) |
+|---|---|---|---|---|
+| 1 | 41.39% | 53.06% | 45.78% | 15 / 11 / 15 |
+| 2 | 57.37% | 67.47% | 66.23% | 16 / 11 / 16 |
+| 5 | 84.52% | 83.77% | 83.69% | 16 / 16 / 16 |
+| 10 | 87.83% | 86.59% | 89.16% | 16 / 16 / 17 |
+
+- From 5 variants on the seed no longer matters (83.7% to 84.5% at 5,
+  86.6% to 89.2% at 10); with 1 or 2 variants it does (41% to 53%).
+- The rejections of seeds 1 and 2 under the rule were not read by hand
+  (those of seed 0 were all SQL that differs from gold).
+
+The owner switched the server off (2026-11-23, evening; for how long
+is not known here). The label-noise read of the round 1 samples (step
+5 of `Run now`), `pooled_k2`, the DeepSeek rounds and the queued
+evaluations wait for it. A sampling read of the base 1.5B on the Mac
+(`read --from-base --engine hf`, MPS, 8 questions per client) did not
+finish its first batch of 2 prompts with 10 samples in 9.5 minutes and
+was stopped; nothing of it is kept besides two near-empty folders
+`artifacts/protocol_v2/macprobe_*` on the Mac. Only the 1.5B weights
+are on the Mac.
+
 ## 2026-11-23: variants of the clients' training databases: the gold SQL runs on all of them; 451 of the 1,759 questions on databases without rows get no usable variant (code `a33f8cdd`, `4d156b0a`; results `c9f856dc`)
 
 Step 2 of the direction below, the part that needs no samples (Mac,
