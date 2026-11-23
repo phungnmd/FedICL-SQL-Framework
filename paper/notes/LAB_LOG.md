@@ -4,6 +4,34 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: the 0.5B first; DPO + NLL from FedAvg SFT round 6 and FedAvg SFT round 7 queued (queue `447f8423`)
+
+Owner (chat, about 09:30): know the 0.5B early, DeepSeek waits.
+
+- The 0.5B rows (`qwen05b_k4/round_1`, `qwen05b_sft/round_5` and
+  `round_6`) now stand before the pending DeepSeek rows in the queue
+  file. A worker takes the first ready task in file order, so both
+  cards go to the 0.5B without `--phase`, and a DeepSeek row runs only
+  when no 0.5B task is ready. No command of an existing task changed.
+- New, row 26: `qwen05b_k6/round_1` (one DPO + NLL round from FedAvg
+  SFT round 6) and `qwen05b_sft/round_7`, each with its evaluation.
+  With `qwen05b_k2` and `qwen05b_k4` that is the gain of one DPO + NLL
+  round at three starts (rounds 2, 4, 6) next to the FedAvg SFT curve
+  to round 7.
+- The two questions run side by side, not one after the other: the
+  FedAvg SFT rounds on one card, the DPO + NLL rounds on the other.
+  Waiting for FedAvg SFT to level off before any DPO + NLL round would
+  give the same reads about 4 h later (estimate).
+- Checked before the push: resolved commands of `qwen05b_k6/round_1`
+  against `qwen05b_k4/round_1` differ in the parent stage and the
+  output directory only; `qwen05b_sft/round_7` against `round_6` in the
+  round, the stage name and the start adapter; the two evaluations in
+  the arm name and the adapter. Prompt: the one rendered for
+  `qwen05b_k4` this morning, no code change since. Queue tests: 44
+  passed, 2 skipped.
+- Expected (estimates, two cards from about 09:45): the read at 5
+  rounds about 12:15, the read at 7 rounds about 16:00.
+
 ## 2026-11-23: published Spider numbers for the 0.5B and DeepSeek-Coder-1.3B (reading)
 
 Owner (chat): what the two small students reach on Spider elsewhere, to
