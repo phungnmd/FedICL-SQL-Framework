@@ -2,8 +2,11 @@
 
 ## Status
 
-Updated 2026-11-23 20:51 (Asia/Ho_Chi_Minh). New: step 5 of `Run now` (CPU only). Two workers run. Read
-since 17:30 (`LAB_LOG.md`, 2026-11-23):
+Updated 2026-11-24 00:45 (Asia/Ho_Chi_Minh). The server is off since the
+evening of 2026-11-23 (owner, for now): nothing runs, and what the
+sections below call running stopped where it was. When it is back:
+step 1, then step 5; step 6 follows on the Mac. New: step 6. Read
+between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
 above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
@@ -268,6 +271,23 @@ its log say whether the second runs 4 at a time cost them.
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; $a='audits/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0'; $s='processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5'; uv run --no-sync python -m scripts.db_fuzz_label_noise --audit-root $a --round 1 --policy b8ef182062ef43dd --split-dir $s --score-workers 8 --gen-workers 4; if ($LASTEXITCODE -ne 0) { throw 'db_fuzz_label_noise failed (run the same line again to continue)' }; uv run --no-sync python -m scripts.publish_results --message 'results: label noise of the DPO round 1 samples read on fuzzed variants of the client databases' --paths audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
+
+6. After step 5 is published, on the Mac (CPU; a few minutes, an
+   estimate): the labels the variants give on the databases without
+   rows, compared with the official test-suite databases of the same
+   six schemas (`LAB_LOG.md`, 2026-11-24). It needs
+   `data/raw/spider_test_suite`, which only the Mac holds. Nothing to
+   send back.
+
+   ```bash
+   cd fedicl-sql && git pull --ff-only && uv run --no-sync python -m scripts.db_fuzz_empty_vs_suite --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5 --candidates audits/protocol_v2/db_fuzz_probe/fedpref_sftr2_ddlrows_alpha01_s0_r1_b8ef182062ef43dd/candidates.csv --score-workers 8 --out-dir audits/protocol_v2/db_fuzz_probe/empty_vs_suite_r1
+   ```
+
+   Not queued, waiting for steps 5 and 6: two trial rows, each one
+   DPO + NLL round from FedAvg SFT round 2 on the stored round 1
+   samples relabelled (no new sampling), against `dpo_k2/round_1`
+   (77.46 on Spider test): strict labels on 10 variants, and the same
+   with `--strict-empty-databases`.
 
 ## Running and queued
 

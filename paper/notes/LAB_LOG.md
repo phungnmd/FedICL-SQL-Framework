@@ -4,6 +4,57 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: strict labels reach the databases without rows (option of the rounds); the official suite as their reference (code `a1592b3b`..`de3193ca`)
+
+Owner, 2026-11-24: go ahead with the second half of the extension. One
+mechanism, two effects: a client's generated variants reject the
+samples that match by accident, and give labels on its databases
+without rows, which DPO skips today (1,759 questions, 1,648 of them at
+client 4).
+
+- Generator: unchanged, the fuzzer after Zhong, Yu and Klein (EMNLP
+  2020, section 4). On a database without rows it has the schema and
+  the literals of the client's gold SQL. That paper notes a sampled
+  database "might be useful when occasional errors are tolerable (e.g.
+  denotation based training)" and does not try it. No published work
+  was found that fills such databases with a fixed program at the data
+  owner (`LITERATURE.md`, section 1.21: Arctic-Text2SQL-R1 drops the
+  Spider questions with an empty gold result and has an LLM write rows
+  elsewhere; CoRE-DB has an LLM write a program per database).
+- Rule (`--strict-empty-databases`, with `--strict-variants N`; off by
+  default and absent from the identity when off): the rule of the
+  databases with rows, with one difference: on a database without rows
+  a variant counts only where the gold returns rows. A sample correct
+  on the original stays correct only if every counted variant accepts
+  it; a sample wrong on the original stays wrong. The pair step pairs
+  a question that a variant labelled and skips the others as before
+  (no counted variant: 451 of 1,759 at 10 variants; or no sample
+  correct on the original). Full test suite: 596 passed, 2 skipped.
+- Reference for those labels: the official test-suite release holds
+  databases for six of the seven schemas (the classical datasets;
+  `geography` for `geo`, none for `music_2`).
+  `scripts/db_fuzz_empty_vs_suite.py` judges the same candidates on
+  them with the same scorer and rule. Its gold pass ran on the Mac
+  (`audits/protocol_v2/db_fuzz_probe/empty_vs_suite_gold`): the
+  Spider gold returns rows on at least one suite database that counts
+  for 1,122 of the 1,659 questions.
+
+| Database | Questions | Suite databases | A suite database counts | A generated variant counts (10) |
+|---|---|---|---|---|
+| academic | 181 | 412 | 98.9% | 89.5% |
+| geo | 564 | 109 | 69.1% | 97.2% |
+| imdb | 109 | 201 | 95.4% | 44.0% |
+| restaurants | 125 | 91 | 96.8% | 9.6% |
+| scholar | 569 | 208 | 38.7% | 58.3% |
+| yelp | 111 | 283 | 97.3% | 97.3% |
+| music_2 | 100 | none | | 98.0% |
+
+The suite stays a reference and does not enter the method: the client
+generates its own content. Open, waiting for the server: the label
+noise of the stored round 1 samples (step 5 of `PIPELINE_NEXT.md`,
+which already writes the candidates of these databases), then the
+comparison with the suite on the Mac (step 6), then the two trial rows.
+
 ## 2026-11-23: labels from the variants alone are cleaner than labels from the original database; the questions DPO skips sit on one client (results `40bf693d`)
 
 Read from committed files on the Mac, no new SQL run.
