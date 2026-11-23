@@ -4,6 +4,45 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: test-suite accuracy of the six 1.5B rows on Spider dev, Syn, Realistic: the SFT warm-up shows here, k = 2 is 3.2 to 5.1 above k = 0 (results `c99b7bf4`)
+
+Scored on the Mac from the committed predictions, committed under
+`audits/protocol_v2/test_suite/qwen15b_spider_dev`, `_syn`,
+`_realistic`. Each cell is EX / test-suite accuracy.
+
+| Row (1.5B, 4 total rounds) | Spider dev (1,034) | Spider-Syn (1,034) | Spider-Realistic (508) |
+|---|---|---|---|
+| No training | 68.96 / 58.32 | 56.77 / 46.23 | 65.16 / 51.18 |
+| FedAvg SFT round 4 | 75.15 / 67.99 | 59.09 / 51.84 | 67.72 / 58.86 |
+| Centralized SFT epoch 2 | 73.02 / 66.44 | 60.83 / 53.09 | 67.13 / 58.86 |
+| DPO + NLL from the base student (k = 0), round 4 | 77.27 / 67.21 | 62.09 / 51.35 | 71.26 / 57.09 |
+| DPO + NLL from round 2 (k = 2), round 2 | 77.66 / 70.41 | 62.96 / 55.51 | 70.47 / 62.20 |
+| Fixed pairs from round 2, round 2 | 76.21 / 69.44 | 60.74 / 54.06 | 70.67 / 61.22 |
+
+- k = 2 against FedAvg SFT on the suite: +2.42 on dev (72 questions
+  against 47, p 0.027), +3.68 on Syn (75 against 37, p 0.0004), +3.35
+  on Realistic (38 against 21, p 0.036).
+- k = 0 against FedAvg SFT on the suite: -0.77 (p 0.58), -0.48
+  (p 0.76), -1.77 (p 0.40). Its gain on EX (+2.13, +3.00, +3.54) does
+  not hold on the suite: 104, 111 and 72 of its rows are right on the
+  one database only, against 75, 77 and 42 for k = 2.
+- k = 2 against k = 0 on the suite: +3.19 on dev (95 against 62,
+  p 0.010), +4.16 on Syn (109 against 66, p 0.0014), +5.12 on Realistic
+  (56 against 30, p 0.0067). On EX the two are level (+0.39, +0.87,
+  -0.79). This is the measured effect of the FedAvg SFT stage before
+  the rounds on the 1.5B.
+- k = 2 against fixed pairs on the suite: +0.97 (p 0.25), +1.45
+  (p 0.082), +0.98 (p 0.47); same sign on the three sets, not
+  separated on any.
+- k = 2 against centralized SFT on the suite: +3.97 on dev (p 0.0011),
+  +2.42 on Syn (p 0.057), +3.35 on Realistic (p 0.068).
+- Spider-DK is not scored on the suite: 127 of its 535 rows use
+  databases outside the 20 dev databases of the suite (the first is
+  `new_concert_singer`), and `score_test_suite` stops on them. DK stays
+  an EX column.
+- These numbers equal the reading of 2026-11-21 that was not committed
+  then.
+
 ## 2026-11-23: test-suite accuracy of the 0.5B rows on Spider dev: the method keeps 3.5 to 3.9 over FedAvg SFT (results `0ebd7daf`)
 
 Scored on the Mac from the committed Spider dev predictions
@@ -36,8 +75,6 @@ every suite database of the db_id), committed under
   round 2 adds 0.77 (34 against 26, p 0.37), not separated; on EX it
   added 1.74 (p 0.047).
 - FedAvg SFT against no training: +5.42 on the suite (p 6.5e-05).
-- Running on the Mac: the same for the six 1.5B rows on dev, Syn,
-  Realistic and DK (the reading of 2026-11-21, not committed then).
 
 ## 2026-11-23: the rows of the tables on Spider dev and on Syn, Realistic and DK queued (queue `e425fa42`)
 
