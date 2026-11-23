@@ -4,6 +4,37 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: reads that can change the method first; DPO + NLL with the clients pooled queued (queue `c92b0dd3`)
+
+Owner (chat, about 16:25): yes to the order below.
+
+- Order after `qwen05b_k4/round_1`: `prefix/probe`, `public_start/read`
+  (1 h together, no training), the new `pooled_k2` rounds 1 and 2, then
+  the pending DeepSeek rows. A row that depends on the method is run
+  after these reads; rows that do not (FedAvg SFT of DeepSeek, FedProx,
+  local-only) may fill the card at any time.
+- `pooled_k2`: the two DPO + NLL rounds of `dpo_k2` (1.5B, from FedAvg
+  SFT round 2, 74.10) with `--pooled --n-clients 1` on the centralized
+  `train.csv`, so no aggregation. Read against 77.46 and 78.20. It
+  separates two readings of the small second round (+0.74): the
+  federation thins the client updates (pairwise cosine 0.013 to 0.055
+  in DPO round 2), or the signal is used up after one round.
+- The start is FedAvg SFT round 2, not centralized SFT: the runner
+  takes a federated or a stage row as parent, and a row of
+  `client_train` is refused (`stage_chain.resolve_parent`). The row
+  from centralized SFT epoch 2, the reference of the paper's table,
+  needs that change in code and is not queued.
+- Checked before the push: resolved commands against `dpo_k2` differ in
+  the split directory, `--pooled --n-clients 1` and the output root;
+  the evaluations in the arm name and the adapter. The pooled setup
+  reads 8,659 questions, as the five clients together, and the prompt
+  of a row is the text of the same row in its client; one training
+  sequence read from its token ids (1.5B tokenizer, 278 prompt tokens,
+  target `SELECT count(*) FROM list<|im_end|>`). The samples are a new
+  draw (the sampling seed is per round and client). Queue tests: 45
+  passed, 2 skipped. Not checked: a run of the pooled round on the
+  server; memory is expected as `dpo_k2` (peak reserved 18.93 GiB).
+
 ## 2026-11-23: on the 0.5B a DPO + NLL round from the levelled-off FedAvg SFT adds 0.88 (results `fc09dc79`, `ca57b242`)
 
 - `qwen05b_k6/round_1`, one DPO + NLL round from FedAvg SFT round 6, on
