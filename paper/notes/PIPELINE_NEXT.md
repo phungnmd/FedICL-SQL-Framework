@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-23 21:15 (Asia/Ho_Chi_Minh). New: step 5 of `Run now` (CPU only). Two workers run. Read
+Updated 2026-11-23 20:51 (Asia/Ho_Chi_Minh). New: step 5 of `Run now` (CPU only). Two workers run. Read
 since 17:30 (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
