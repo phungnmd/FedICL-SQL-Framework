@@ -33,6 +33,29 @@ delegated agent and read here before the push.
 - Read as: under about a third of the questions mixed at f = 0.5 above
   the control, form 3 is dropped.
 
+## 2026-11-23: the 0.5B from a later start queued: one DPO + NLL round from FedAvg SFT round 4, and FedAvg SFT round 5 (owner; queue `7bb8b06d`)
+
+Owner's question: why the DPO + NLL rounds start at round 2 and not at
+the best FedAvg SFT round. On the 1.5B the start does not matter at 4
+rounds on Spider test (k = 0, 2, 3: 78.02, 78.20, 77.97; round 3 is the
+best FedAvg SFT round there). It is not measured where FedAvg SFT still
+rises: the 0.5B adds 1.40 at round 4.
+
+- Queued after the DeepSeek line and the prefix probe:
+  `qwen05b_k4/round_1` (root `fedpref_qwen05b_sftr4_p2_ddlrows_alpha01_s0`,
+  arm `fedpref_qwen05b_sftr4_p2_dpo_ddl_rows_a01_r1_vllm_inproc`) and
+  `qwen05b_sft/round_5` (arm `fedavg_qwen05b_ddl_rows_a01_r5_vllm_inproc`),
+  each evaluated on Spider test and published.
+- Read: the two rows against each other at 5 rounds, from the same
+  start (64.09), exact McNemar; and against the k = 2 line (65.86 at 3
+  rounds, 66.19 at 4).
+- Checked before queuing: the resolved commands differ from
+  `qwen05b_k2/round_1` only in the parent stage and the root, and from
+  `qwen05b_sft/round_4` only in the round, the stage label and the start
+  adapter; one training sequence of the 0.5B read from its token ids
+  (508 prompt tokens, target `SELECT * FROM people<|im_end|>`).
+- About 2.5 h and 1 h 55 min (estimates).
+
 ## 2026-11-23: a scout report on the server part and its review (no run, nothing decided)
 
 Owner's request: one research agent on the server part, reviewed by the

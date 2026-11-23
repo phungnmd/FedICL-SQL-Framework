@@ -2,8 +2,11 @@
 
 ## Status
 
-Updated 2026-11-23 05:55 (Asia/Ho_Chi_Minh). One card only (owner, chat,
-2026-11-21 about 22:20). The Spider line of Qwen2.5-Coder-0.5B is
+Updated 2026-11-23 08:35 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+2026-11-21 about 22:20). `deepseek13b_k2/round_1` is published (remote,
+08:29); its evaluation is not published at 08:31. Row 25 is queued
+after the DeepSeek line and the prefix probe (code `7bb8b06d`): on the
+0.5B, one DPO + NLL round from FedAvg SFT round 4 and FedAvg SFT round 5. The Spider line of Qwen2.5-Coder-0.5B is
 finished: at 4 rounds the method is 66.19 on Spider test and FedAvg SFT
 64.09 (01:08), 2.10 above it (149 questions against 104, p 0.0056); at
 3 rounds 65.86 against 62.69 (+3.17, p 1.3e-05). The gap narrows: the
@@ -238,6 +241,7 @@ its log say whether the second runs 4 at a time cost them.
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82); `deepseek13b_k2/round_1` expected since 04:43, not confirmed |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
+| 25 | `qwen05b_k4/round_1`, `qwen05b_sft/round_5`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4: does a DPO + NLL round still add over an SFT round from a later start? One DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds from 64.09, exact McNemar | about 2.5 h and about 1 h 55 min (estimates from `qwen05b_k2/round_1` and the FedAvg SFT rounds) | queued 2026-11-23 08:35 after row 24 (code `7bb8b06d`); the server gets it at its next publication |
 
 Expected on one card (estimates): DeepSeek at 3 rounds is read about
 09:30 (`deepseek13b_k2/round_1` about 07:40) and at 4 rounds about
@@ -261,11 +265,9 @@ model's line included.
 Open after these rows, not queued: `bird_k2/round_2` (the method at 4
 rounds on BIRD, about 8 h) and its twin on fixed pairs (federated DPO
 as published from an SFT start, about 4.5 h). For the 0.5B, where FedAvg
-SFT still rises in round 4 (+1.40) and the method is flat after its
-first DPO + NLL round: FedAvg SFT rounds 5 and 6 (about 1 h 55 min
-each), to read the method against the level FedAvg SFT reaches on that
-model, and one DPO + NLL round from FedAvg SFT round 4 (about 2.5 h,
-estimate), compared with round 5 at equal rounds (owner's choice).
+SFT still rises in round 4 (+1.40): FedAvg SFT round 6 (about 1 h 55
+min), if round 5 of row 25 still rises, to read the level FedAvg SFT
+reaches on that model.
 
 The hinted round (owner's choice, not written): the hint adds 21.4
 points of all-wrong questions with a correct sample over a second draw
