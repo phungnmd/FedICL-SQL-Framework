@@ -4,6 +4,79 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-23: what the lucky SQL is: DPO on one-database labels raises joins written as a scalar subquery; strict labels are an option of the rounds (code `0157fda6`..`fc50995a`, results `c9c42696`)
+
+Both done on the Mac by delegated agents while the server is off
+(owner: the Mac work, without the draft); the counts below were
+recounted here from `lucky_rows.csv`, the full test suite run here
+(593 passed, 2 skipped).
+
+Lucky predictions (EX-correct, rejected by the official suite) by the
+kind of difference from the gold SQL, from a structural comparison
+(`scripts/lucky_sql.py`, `audits/protocol_v2/test_suite/lucky_sql`):
+2,049 over the six 1.5B rows on dev, Syn, Realistic and the ten 0.5B
+rows on dev, 1,253 distinct (question, SQL) pairs. Of the distinct
+pairs 55% differ in tables or joins, 15% in the GROUP BY key, 9% in a
+filter, 8% in a set operation against boolean logic.
+
+| Kind (1.5B, Spider dev, lucky rows) | No training | FedAvg SFT round 4 | k = 0 round 4 | k = 2 round 2 |
+|---|---|---|---|---|
+| Tables or joins, all | 72 | 28 | 60 | 35 |
+| of them: a literal in place of a join | 31 | 10 | 8 | 6 |
+| of them: a join written as a subquery | 15 | 7 | 43 | 16 |
+| GROUP BY key | 18 | 17 | 14 | 12 |
+| Set operation | 11 | 10 | 9 | 12 |
+| Filter | 3 | 9 | 8 | 7 |
+| All | 110 | 74 | 104 | 75 |
+
+- DPO from the base student raises the join written as a subquery:
+  15 to 43 on dev, 5 to 27 on Syn, 4 to 23 on Realistic; FedAvg SFT
+  does not (7, 3, 7). On dev 24 of the 43 are `= (SELECT ...)`, which
+  keeps one row where several match, and 18 are `IN (SELECT ...)`.
+  k = 2 carries 16 on dev against 7 for FedAvg SFT, 13 of them
+  `= (SELECT ...)`; the 0.5B goes from 6 at FedAvg SFT round 4 to 16
+  at k = 2 round 2.
+- DPO removes the literal in place of a join as well as SFT does (31
+  to 8 against 31 to 10). Neither training lowers the set-operation
+  kind; both raise the filter kind (3 to 8 or 9).
+- Of the base student's 110 lucky questions on dev, FedAvg SFT turns 51
+  test-suite correct and adds 27 new lucky ones; DPO from the base
+  student turns 33 and adds 39. Same direction on Syn (44 and 33
+  against 30 and 50) and Realistic (29 and 12 against 15 and 25).
+- The lucky share of the EX-correct predictions rises with hardness:
+  no training on dev 2.7% (easy) to 31.3% (extra), k = 2 0.9% to 17.3%.
+- Limits: the kinds are differences in the SQL text, no prediction was
+  run to show that the difference is what the suite rejects; primary
+  kind read by hand on 80 predictions by the agent alone (79 the same).
+
+Strict labels in the rounds (step 3 of the direction, code only):
+`--strict-variants N` (`--strict-variant-seed`, default 0; 0 = off) on
+the commands of `experiments/federated_pref/run.py`. A sample correct
+on the original database stays correct only if it matches gold on the
+first N variants of that client's database that count for the question
+(the rule and the variant cache of `scripts/db_fuzz_label_noise.py`);
+one a variant rejects becomes a wrong-result sample, so it can be the
+rejected side of a pair and never the chosen one. Databases with rows
+only: the seven without rows keep today's handling, so a gain reads as
+label precision and not as new pairs. The setting is in `setup.json`
+and in the sample identity only when on; a test checks that the
+resolved setup of `fedpref_sftr2_ddlrows_alpha01_s0` is byte-identical
+to its committed `setup.json`. `scripts/relabel_samples.py
+--strict-variants N [--candidates <csv>]` makes stored samples strict
+without sampling again (from the verdicts of the label-noise read, or
+by running the variants); a test checks that the two ways and the
+label step of a round give identical records. The pair counts of a
+round record what the variants changed.
+- Not exercised: sampling through vLLM followed by strict labels, DPO
+  training and aggregation of a strict line, Windows, run time with 10
+  variants on the five clients.
+- Trial line (not queued; after the label-noise read, step 5 of
+  `Run now`): `fedpref_sftr2_strict10_ddlrows_alpha01_s0`, round 1 from
+  FedAvg SFT round 2 on the stored round 1 samples of
+  `fedpref_sftr2_ddlrows_alpha01_s0` made strict, against
+  `dpo_k2/round_1` (77.46 on Spider test), read on test-suite accuracy
+  of Spider dev and on the join-as-subquery count.
+
 ## 2026-11-23: the generator on Spider dev with seeds 1 and 2: 86.6% to 89.2% of the lucky SQL caught at 10 variants; server off, sampling on the Mac not usable (results `7f9c72f2`)
 
 The dev probe of the entry of step 1 below, run again on the Mac with
