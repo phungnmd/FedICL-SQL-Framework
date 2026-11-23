@@ -2,7 +2,7 @@
 
 ## Status
 
-Updated 2026-11-23 08:50 (Asia/Ho_Chi_Minh). One card only (owner, chat,
+Updated 2026-11-23 09:10 (Asia/Ho_Chi_Minh). One card only (owner, chat,
 2026-11-21 about 22:20). `deepseek13b_k2/round_1` is read (08:34): 75.08 on Spider test, 5.26
 above its start, FedAvg SFT round 2 (192 questions against 79, p 5.0e-12);
 FedAvg SFT round 3 of this model, the row at equal rounds, runs next
@@ -199,13 +199,20 @@ its log say whether the second runs 4 at a time cost them.
 | GPU | State | Known from |
 |---|---|---|
 | the one card that runs (which of the two was not said) | `deepseek13b_k2/round_1`, expected since 04:43; then the rows below | owner in chat, 2026-11-21 about 22:20: one card only; remote, read 05:15: `deepseek13b_sft/round_2` published at 04:39 and 04:43, nothing after it yet |
-| the other | not available | owner in chat |
+| the other (GPU 1) | free (owner in chat, 2026-11-23 about 09:00); the worker of step 1 for the 0.5B phases, not confirmed as started | owner in chat |
 
 ## Run now
 
-1. Nothing to start while the worker runs: it has the code and the
-   queue of 16:12 and takes the rows in file order. If the worker has
-   stopped, start it with the line of step 2.
+1. GPU 1 (owner, 2026-11-23 about 09:00: a second card is free): a
+   worker for the two 0.5B phases only, row 25. It pulls first (queue
+   `9b2ecca2`) and runs `qwen05b_k4/round_1`, `qwen05b_sft/round_5` and
+   `qwen05b_sft/round_6`, each with its evaluation and publications,
+   about 6 h 20 min in all (estimate). The worker of GPU 0 keeps the
+   other rows; if it has stopped, start it with the line of step 2.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 1 --phase qwen05b_k4 qwen05b_sft; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
 
 2. Only for a card whose worker has stopped: the worker line, which
    pulls first. GPU 0 as written; GPU 1 with `--gpu 1` and, if it has
@@ -243,7 +250,7 @@ its log say whether the second runs 4 at a time cost them.
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82); `deepseek13b_k2/round_1` expected since 04:43, not confirmed |
 | 23 | `deepseek13b_k2/round_2`, `deepseek13b_sft/round_4` | the same at 4 rounds | 4 to 5 h (estimate) | queued 2026-11-22 16:12 |
 | 24 | `prefix/probe`, `prefix/publish_probe` | no training: the 1,168 all-wrong questions of `qwen05b_k2/round_2` sampled again from the first 0%, 25%, 50% and 75% of the gold SQL tokens (0% is the control); how many get correct and wrong samples, so pairs | about 35 min (estimate) | queued 2026-11-23 05:53 at the end of the file (code `d2e9e3df`); the server gets it at its next publication |
-| 25 | `qwen05b_k4/round_1`, `qwen05b_sft/round_5`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4: does a DPO + NLL round still add over an SFT round from a later start? One DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds from 64.09, exact McNemar | about 2.5 h and about 1 h 55 min (estimates from `qwen05b_k2/round_1` and the FedAvg SFT rounds) | queued 2026-11-23 08:35 after row 24 (code `7bb8b06d`); the server gets it at its next publication |
+| 25 | `qwen05b_k4/round_1`, `qwen05b_sft/round_5`, `qwen05b_sft/round_6`, each with its evaluation and publications | Qwen2.5-Coder-0.5B, where FedAvg SFT still rises at round 4: does a DPO + NLL round still add over an SFT round from a later start (one DPO + NLL round from FedAvg SFT round 4 against FedAvg SFT round 5, both at 5 rounds from 64.09, exact McNemar), and the level FedAvg SFT reaches (rounds 5 and 6) | about 2.5 h, then about 1 h 55 min a FedAvg SFT round (estimates from `qwen05b_k2/round_1` and the FedAvg SFT rounds) | queued 2026-11-23 (code `7bb8b06d`, round 6 `9b2ecca2`); for GPU 1 with `--phase qwen05b_k4 qwen05b_sft` (step 1), not confirmed as started |
 
 Expected on one card (estimates): DeepSeek at 3 rounds is read about
 09:30 (`deepseek13b_k2/round_1` about 07:40) and at 4 rounds about
@@ -266,10 +273,10 @@ model's line included.
 
 Open after these rows, not queued: `bird_k2/round_2` (the method at 4
 rounds on BIRD, about 8 h) and its twin on fixed pairs (federated DPO
-as published from an SFT start, about 4.5 h). For the 0.5B, where FedAvg
-SFT still rises in round 4 (+1.40): FedAvg SFT round 6 (about 1 h 55
-min), if round 5 of row 25 still rises, to read the level FedAvg SFT
-reaches on that model.
+as published from an SFT start, about 4.5 h). For the 0.5B: FedAvg SFT round 7 and a
+DPO + NLL round from the best FedAvg SFT round, only if round 6 of row
+25 still rises or `qwen05b_k4/round_1` is not above the level FedAvg SFT
+reaches.
 
 The hinted round (owner's choice, not written): the hint adds 21.4
 points of all-wrong questions with a correct sample over a second draw

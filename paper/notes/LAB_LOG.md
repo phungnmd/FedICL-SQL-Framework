@@ -73,6 +73,10 @@ rises: the 0.5B adds 1.40 at round 4.
   adapter; one training sequence of the 0.5B read from its token ids
   (508 prompt tokens, target `SELECT * FROM people<|im_end|>`).
 - About 2.5 h and 1 h 55 min (estimates).
+- 09:10 (owner): a second card is free and runs the 0.5B phases alone
+  (`run --gpu 1 --phase qwen05b_k4 qwen05b_sft`); `qwen05b_sft/round_6`
+  added behind round 5 (queue `9b2ecca2`), to read the level FedAvg SFT
+  reaches on this model.
 
 ## 2026-11-23: a scout report on the server part and its review (no run, nothing decided)
 
