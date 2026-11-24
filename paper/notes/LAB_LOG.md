@@ -29,8 +29,21 @@ rows. Read against `dpo_k2/round_1` from the committed predictions
   With `strict_d` (-1.40, p 0.0046), the loss there came from the pairs
   on the databases without rows or the weight they gave client 4. By
   the rule set before the run (level or below closes the direction),
-  strict labels are not a part of the method. Test-suite accuracy of
-  this row on dev not scored.
+  strict labels are not a part of the method.
+- Test-suite accuracy on Spider dev (Mac, `test_suite/strict10_spider_dev`):
+  68.96 against 68.47 (+0.48, 40 against 35 questions, not separated);
+  EX-only rows 68 to 62. `strict_d`: 69.05 (+0.58).
+- Why EX does not move: (1) the change is small: 9.24% of the correct
+  samples on databases with rows turn wrong, about 16% of the chosen
+  sides, and 69% of the pairs equal the reference's; (2) a lucky SQL
+  is also scored correct by EX on the one test database, so cleaner
+  chosen sides can show only on the suite, where the gain is +0.5 and
+  6 fewer EX-only rows; (3) the pair mix shifts: rejected sides with an
+  execution error 4,087 to 3,303 (50.9% to 41.1%), wrong results 3,939
+  to 4,737, and the test errors follow (99 to 136, wrong results 385
+  to 352). The preference term's gain sits in execution errors (RFT,
+  2026-11-18), so the pairs lost there cost about what the cleaner
+  side brings.
 
 ## 2026-11-24: the trial row of the extension is 1.40 below its reference on Spider test (p 0.0046), level on dev (results `86c23233`, `0ee1ff52`, `ba607804`)
 
