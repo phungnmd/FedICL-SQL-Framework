@@ -4,10 +4,28 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
-## 2026-11-25: `bird_k2/round_2` trained, evaluation next (results `ad80c598`)
+## 2026-11-25: the method at 4 rounds on BIRD dev is 48.76, 6.19 above FedAvg SFT round 4 (results `ad80c598`, `7fec4eae`)
 
-The second DPO + NLL round of k = 2 on BIRD (sequential code, before
-`609ee6da`): generation 28 min, labels 2 h 48, training about 3 h 10.
+`bird_k2/round_2`, exact McNemar from the committed predictions
+(`scripts.compare_predictions`); BIRD difficulty from `dev.json`.
+
+| Row (BIRD dev, 1,534) | EX | Simple / moderate / challenging | Errors / wrong results |
+|---|---|---|---|
+| FedAvg SFT round 3 | 43.68 | 51.57 / 32.54 / 28.97 | 276 / 588 |
+| FedAvg SFT round 4 | 42.57 | 51.35 / 29.96 / 26.90 | 268 / 613 |
+| Method, k = 2, 3 rounds | 46.22 | 53.08 / 36.85 / 32.41 | 102 / 723 |
+| Method, k = 2, 4 rounds | **48.76** | **56.00** / **39.66** / 31.72 | 128 / 658 |
+
+- At 4 rounds the method is 6.19 above FedAvg SFT round 4 (153 / 58,
+  p 4.6e-11) and 5.08 above its best round 3 (141 / 63, p 4.9e-08).
+- The second DPO + NLL round adds 2.54 over the first (73 / 34,
+  p 0.0002); on Spider it added 0.74 on test and 2.61 on dev. Unlike
+  the first round, it cuts wrong results (723 to 658) and adds a few
+  errors (102 to 128; errors count timeouts).
+- Challenging stays level (31.72 against 32.41, 145 questions).
+
+The round itself (sequential code, before `609ee6da`): generation
+28 min, labels 2 h 48, training about 3 h 10.
 
 | Read on the clients' 9,428 questions | Round 1 (from FedAvg SFT round 2) | Round 2 (from round 1) |
 |---|---|---|
@@ -16,8 +34,8 @@ The second DPO + NLL round of k = 2 on BIRD (sequential code, before
 | Pairs | 11,754 | 7,066 |
 
 - Pairwise cosine of the client updates 0.03 to 0.09.
-- Read next: `bird_k2/eval_2` against FedAvg SFT round 4 (42.57) and
-  round 3 (43.68); then `bird_k2_fixed/round_2`.
+- Read next: `bird_k2_fixed/round_2`, the same round on the pairs of
+  round 1 with the reference fixed.
 
 ## 2026-11-25: BIRD labels: where the time goes; labels now run while the clients train (code `609ee6da`)
 
