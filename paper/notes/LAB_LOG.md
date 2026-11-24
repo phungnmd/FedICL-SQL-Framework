@@ -4,6 +4,25 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: BIRD rows first in the queue (owner; queue `75a4f266`)
+
+Owner: BIRD shows the effect most clearly (+6.19 over FedAvg SFT at 4
+rounds against +3.49 on Spider test), so BIRD runs more. After
+`bird_k2_fixed`, before the Spider rows (`feddpo/round_2` onward):
+
+- `bird_feddpo` rounds 1 and 2, moved up from the end: federated DPO
+  as published on the round 1 samples of `bird_k2`; its round 1 is also
+  the row without the NLL term.
+- `bird_rft/round_1`, new: NLL on the correct samples alone, on the same
+  samples, against `bird_k2/round_1` (46.22).
+- `bird_central/sft`, new: centralized SFT on the union of the BIRD
+  clients (9,428 rows, checked equal), 3 epochs as on Spider, the
+  recipe of the BIRD FedAvg rounds; about 8.5 h with evaluations
+  (estimate).
+
+None of them samples or labels. Commands resolved and read
+(`scripts.curve plan`); queue tests and the full suite pass.
+
 ## 2026-11-25: the method at 4 rounds on BIRD dev is 48.76, 6.19 above FedAvg SFT round 4 (results `ad80c598`, `7fec4eae`)
 
 `bird_k2/round_2`, exact McNemar from the committed predictions
