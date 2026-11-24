@@ -4,6 +4,20 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: FedAvg SFT round 5 falls on test and dev: the baseline peaks at round 4 (results `d2f08bc3`, `1e6c9737`, `26af69db`; test-suite on the Mac `sft_r5_spider_dev`)
+
+| Row (1.5B) | Spider test EX | Spider dev EX | Spider dev TS |
+|---|---|---|---|
+| FedAvg SFT round 4 | 74.71 | 75.15 | 67.99 |
+| FedAvg SFT round 5 | 73.92 (-0.79, 34 / 51, p 0.082) | 74.18 (-0.97, 25 / 35, p 0.25) | 67.21 (-0.77) |
+| Method, k = 2, 4 rounds | **78.20** (+4.29 over round 5, p 2.3e-09) | **77.66** (+3.48, 77 / 41, p 0.0012) | **70.41** (+3.19) |
+
+- The rise on dev from round 3 to 4 (+1.94) does not go on: round 5
+  is below round 4 on test, dev EX and dev TS. Execution errors on
+  test 173 to 188. FedAvg SFT's best round is 4 on dev and 3 to 4 on
+  test (74.71 at both); more rounds do not reach the method.
+- Round 6 (`sft_more/round_6`) still runs as queued, for the curve.
+
 ## 2026-11-24: the FedAvg weights of a DPO round do not matter: pair counts kept (results `9f4d00bf`, `4f230532`, `7196832a`)
 
 `reagg/*`: the client adapters of `dpo_k2/round_1` (Spider) and
