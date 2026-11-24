@@ -13,12 +13,9 @@ code, GPU and server rules live there.
 
 - The aim is a paper that reads well and can be accepted at the target
   journals: a method with a clear story and a visible effect.
-- Rules, defaults and earlier decisions in these files and the notes are
-  working defaults, not constraints (owner, 2026-11-24). The target is a
-  paper that reviewers find good; where a rule stands in the way of that,
-  set it aside and say so. What stays fixed: no number invented or
-  changed, no false sentence in the paper, the data roles, and the
-  server's storage and memory limits.
+- Rules, defaults and earlier decisions here and in the notes are
+  working defaults, not constraints (owner, 2026-11-24). A choice only
+  has to be not false, help the paper and look sound to a reviewer.
 - Use your judgement as a researcher on this project would. Where this file
   says nothing, do what makes the paper better and say what you did.
 - The bar is what the target journals require. Read what they publish and
