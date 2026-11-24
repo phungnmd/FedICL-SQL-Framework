@@ -226,7 +226,7 @@ its log say whether the second runs 4 at a time cost them.
 ## Run now
 
 1. A free card: the worker line, which pulls first (queue
-   `c92b0dd3`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
+   `7ef3d5a1`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
    It takes the first ready task in file order that no other worker
    holds.
 
@@ -261,9 +261,6 @@ its log say whether the second runs 4 at a time cost them.
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
-
-5. Stopped and not needed: `strict/round_1` (rule `rows`), a short
-   way into training; its root stays on the server as it is.
 
 ## Running and queued
 
