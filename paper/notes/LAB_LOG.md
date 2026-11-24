@@ -4,6 +4,34 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: strict labels on the databases with rows only are level with the reference (results `b5793e8e`, `6382f8d8`); the direction is closed
+
+`strict_r/round_1` (owner started it after the read of `strict_d`):
+one DPO + NLL round from FedAvg SFT round 2 on the stored round 1
+samples, strict labels on 10 variants, no pair on a database without
+rows. Read against `dpo_k2/round_1` from the committed predictions
+(exact McNemar, session read).
+
+| Row (1.5B, 3 rounds in all) | Spider test EX | Spider dev EX | Execution errors (test) | Wrong results (test) |
+|---|---|---|---|---|
+| `dpo_k2/round_1` (labels on the original database) | **77.46** | **75.05** | **99** | 385 |
+| `strict_r/round_1` (strict labels, databases with rows only) | 77.27 | 74.95 | 136 | **352** |
+| Difference | -0.19 (46 fixed, 50 broken, p 0.76) | -0.10 (35, 36, p 1) | | |
+
+- Spider test by hardness, reference then the row: easy 91.49 /
+  90.43, medium 80.63 / 79.93, hard 71.06 / 72.57, extra 59.66 /
+  59.66. Spider dev: 89.11 / 89.52, 78.25 / 79.15, 64.37 / 64.94,
+  56.63 / 52.41.
+- Pairs 8,040 as counted beforehand (906 / 1,740 / 2,248 / 2,282 /
+  864; client 4 at 28.4%).
+- Reading: cleaner chosen sides alone move EX by nothing measurable;
+  they trade execution errors for wrong results (+37, -33 on test).
+  With `strict_d` (-1.40, p 0.0046), the loss there came from the pairs
+  on the databases without rows or the weight they gave client 4. By
+  the rule set before the run (level or below closes the direction),
+  strict labels are not a part of the method. Test-suite accuracy of
+  this row on dev not scored.
+
 ## 2026-11-24: the trial row of the extension is 1.40 below its reference on Spider test (p 0.0046), level on dev (results `86c23233`, `0ee1ff52`, `ba607804`)
 
 `strict_d/round_1` ran from about 01:57 to 05:16 (the owner stopped

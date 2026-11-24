@@ -2,17 +2,16 @@
 
 ## Status
 
-Updated 2026-11-24 06:55 (Asia/Ho_Chi_Minh). No task is known to run:
-the trial row of the extension ended at 05:27 with its publications.
-`strict_d/round_1` (strict labels on 10 variants, rule `differs` on
-the databases without rows) is 76.06 on Spider test, 1.40 below
-`dpo_k2/round_1` (38 questions fixed, 68 broken, p 0.0046); on Spider
-dev 74.85 against 75.05 (p 0.90) and 69.05 against 68.47 on test-suite
-accuracy (p 0.57). The extension as run is not kept (`LAB_LOG.md`,
-2026-11-24). Open, the owner's choice: step 0, the row with strict
-labels on the databases with rows only. Apart from the trial row
-nothing ran since the evening of 2026-11-23, and what the sections
-below call running stopped where it was. Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
+Updated 2026-11-24 12:10 (Asia/Ho_Chi_Minh). No task is known to run:
+`strict_r/round_1` ended at 11:59 with its publications (`6382f8d8`).
+Strict labels on the databases with rows only are 77.27 on Spider test
+against 77.46 for `dpo_k2/round_1` (46 fixed, 50 broken, p 0.76) and
+74.95 against 75.05 on dev (p 1): level, so the strict-label direction
+is closed (`LAB_LOG.md`, 2026-11-24). `strict_d/round_1` was 1.40
+below on test (p 0.0046). Nothing else ran since the evening of
+2026-11-23; `pooled_k2/round_1` and `deepseek13b_sft/round_3` stopped
+where they were and continue from there when a worker takes them.
+Read between 17:30 and the stop (`LAB_LOG.md`, 2026-11-23):
 `qwen05b_k4/round_1` (18:22): 65.49 on Spider test, 1.40 above its
 start (p 0.058) and 1.30 above FedAvg SFT at 5 rounds (p 0.075), not
 above the rows from round 2 (65.86, 66.19). The 0.5B rows on Spider
@@ -221,26 +220,10 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| GPU 0 (the card that ran alone; which of the two was not said) | `deepseek13b_sft/round_3`, expected since about 18:25, not confirmed | remote, read 18:25: `qwen05b_k4/round_1` published at 18:19, 18:22 and 18:25 |
-| GPU 1 | `pooled_k2/round_1`, expected since about 18:12, not confirmed | remote: the prefix probe 17:30, the pair read 17:50, the 0.5B rows on Spider dev 18:12 |
+| GPU 0 | idle; `strict_r/round_1` ended 11:59 | its publications `b5793e8e`, `6382f8d8` |
+| GPU 1 | idle since the evening of 2026-11-23 (owner) | no publication after 18:25 |
 
 ## Run now
-
-0. If the owner wants the split (a free card, about 3 h, an estimate:
-   2.8 h of training, 15 min of evaluation): the row with strict
-   labels on the databases with rows only, phase `strict_r` alone.
-   One DPO + NLL round from FedAvg SFT round 2 on the stored round 1
-   samples; about 8,040 pairs on the questions of `dpo_k2/round_1`,
-   no pair on a database without rows. Read against `dpo_k2/round_1`
-   (77.46 on Spider test, 75.05 on dev): above it, cleaner chosen
-   sides help and the loss of `strict_d/round_1` came from the pairs
-   on the databases without rows; level or below, the direction is
-   closed. Send back: nothing if it ends with the publications; else
-   its last lines.
-
-   ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase strict_r; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
-   ```
 
 1. A free card: the worker line, which pulls first (queue
    `c92b0dd3`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
