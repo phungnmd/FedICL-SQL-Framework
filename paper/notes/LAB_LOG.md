@@ -4,6 +4,36 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: k on Spider dev at 4 rounds is 2 under EX and test-suite accuracy; DPO from the base student gains on dev through lucky SQL (results `68c38e28`, test-suite on the Mac `k_by_round_spider_dev`)
+
+The rows by round on Spider dev (1,034), published by the server at
+the end of `spider_dev/*`; test-suite accuracy scored on the Mac
+(`audits/protocol_v2/test_suite/k_by_round_spider_dev`).
+
+| Total rounds | FedAvg SFT EX / TS | k = 0 EX / TS | k = 2 EX / TS | k = 3 EX / TS |
+|---|---|---|---|---|
+| 1 | 71.18 / 63.73 | 77.85 / 65.96 | | |
+| 2 | 72.73 / 65.76 | 77.76 / 66.83 | | |
+| 3 | 73.21 / 66.15 | **80.08** / 69.25 | 75.05 / 68.47 | |
+| 4 | 75.15 / 67.99 | 77.27 / 67.21 | **77.66** / **70.41** | 76.50 / 69.92 |
+
+- At 4 rounds, the length of every line in the tables, k = 2 is the
+  highest on both metrics: EX +0.39 over k = 0 (69 / 65, p 0.80) and
+  +1.16 over k = 3 (47 / 35, p 0.22); TS +3.19 over k = 0 (95 / 62,
+  p 0.010) and +0.48 over k = 3 (42 / 37, p 0.65). Against FedAvg SFT
+  round 4: TS +2.42 (72 / 47, p 0.027). So "k is chosen on Spider dev
+  from {0, 2, 3} at 4 rounds" is true and gives k = 2, the value
+  already in use; the paper can say so.
+- k = 0 leads on dev EX at 1 to 3 rounds (80.08 at 3 rounds, 5.03 above
+  k = 2 at 3 rounds, p < 1e-4) but much less on TS (+0.77, p 0.58).
+  Its EX-only rows (correct on the dev database, rejected by the suite)
+  are 104 to 123 against 68 to 77 for FedAvg SFT, k = 2 and k = 3: DPO
+  from the base student learns SQL that passes one database. With the
+  SFT warm start the count stays at the FedAvg SFT level. A finding for
+  the paper on why the warm start is part of the method.
+- The dev EX of k = 0 moves by 2.8 between rounds 3 and 4 (80.08 to
+  77.27); Spider test moves by 0.33 (77.69 to 78.02).
+
 ## 2026-11-24: strict labels on the databases with rows only are level with the reference (results `b5793e8e`, `6382f8d8`); the direction is closed
 
 `strict_r/round_1` (owner started it after the read of `strict_d`):
