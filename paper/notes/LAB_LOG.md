@@ -23,7 +23,9 @@ workers; not committed):
 - Change: with vLLM the labels run in a thread after the generation,
   and each client trains as soon as its own labels are done. Samples,
   pairs and adapters are unchanged (tests). Estimate for a BIRD round:
-  about 7h30 down to about 5h45, training then waits only on client 5's labels.
+  about 7h30 down to about 5h45 (estimate): the card waits for client
+  1's labels (about 44 min) and briefly for client 2's, then trains
+  without a gap.
 - Next if BIRD labels still matter: the second-run phase (more
   second-run workers, rerun only the SQL short of CPU, connection reuse
   per database), not a cache.
