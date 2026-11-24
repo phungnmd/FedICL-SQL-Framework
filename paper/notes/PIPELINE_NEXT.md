@@ -4,7 +4,8 @@
 
 Updated 2026-11-25 (Asia/Ho_Chi_Minh). `bird_k2/round_2` is read:
 48.76 on BIRD dev, 6.19 above FedAvg SFT round 4 (p 4.6e-11). Queue
-`75a4f266` puts the BIRD rows first: `bird_k2_fixed/round_2`, then
+`75a4f266` puts the BIRD rows first: `bird_k2_fixed/round_2`, then the
+two ablation rounds on Spider dev (no NLL, RFT; evaluations only), then
 `bird_feddpo` rounds 1 and 2, `bird_rft/round_1` and centralized SFT on
 BIRD (`bird_central/sft`, 3 epochs), then the Spider rows as before. A
 worker gets the new order at its next publication. Which task each card
