@@ -22,7 +22,7 @@ rounds against +3.49 on Spider test), so BIRD runs more. After
 
 Owner, the same day: the two ablation rounds on Spider dev
 (`spider_sets_dev/nonll_r1`, `rft_r1`, evaluations only) moved up
-right after `bird_k2_fixed` (queue below `75a4f266`).
+right after `bird_k2_fixed` (queue `6b65e177`).
 
 None of them samples or labels. Commands resolved and read
 (`scripts.curve plan`); queue tests and the full suite pass.
