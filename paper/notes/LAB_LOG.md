@@ -4,6 +4,28 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: the FedAvg weights of a DPO round do not matter: pair counts kept (results `9f4d00bf`, `4f230532`, `7196832a`)
+
+`reagg/*`: the client adapters of `dpo_k2/round_1` (Spider) and
+`bird_k2/round_1` (BIRD) averaged again; the pair weights give the
+rounds' own global adapters again (checked by hash). Read against them
+(exact McNemar, session read of the committed predictions).
+
+| Weights | Spider test | Spider dev | BIRD dev |
+|---|---|---|---|
+| Pairs (the rounds) | 77.46 | 75.05 | 46.22 |
+| Questions | 77.78 (+0.33, 18 / 11, p 0.26) | 74.76 (-0.29, p 0.61) | 46.22 (10 / 10, p 1) |
+| Equal | 76.94 (-0.51, 12 / 23, p 0.09) | 75.44 (+0.39, p 0.54) | 46.02 (-0.20, p 0.79) |
+
+- Normalised weights, Spider: pairs 0.11 / 0.20 / 0.28 / 0.29 / 0.11,
+  questions 0.10 / 0.18 / 0.23 / 0.40 / 0.08; BIRD: pairs 0.23 / 0.16 /
+  0.23 / 0.07 / 0.30, questions 0.21 / 0.17 / 0.22 / 0.07 / 0.32.
+- No weighting is separated from the pair counts on any set (all within
+  0.51). The method keeps pair-count weights; the paper can state the
+  weights and that question and equal weights give the same level.
+- `pooled_k2/round_1` trained (8,024 pairs; `57d47c3d`); its evaluation
+  waits behind the rows in file order.
+
 ## 2026-11-24: FedAvg SFT rounds 5 and 6 of the 1.5B queued (owner; queue `d6aa4ad7`)
 
 On Spider dev FedAvg SFT round 4 gained 1.94 over round 3 (33 / 13,
