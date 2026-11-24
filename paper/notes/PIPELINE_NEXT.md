@@ -6,7 +6,7 @@ Updated 2026-11-24 (Asia/Ho_Chi_Minh). The workers run (owner): the
 Spider dev rows by round are published (`68c38e28`). At 4 rounds k = 2
 is the highest on Spider dev under EX (77.66) and test-suite accuracy
 (70.41), so k is chosen on dev (`LAB_LOG.md`, 2026-11-24). Queued
-`9976390e`, the method rows first: re-aggregation, `bird_k2/round_2`
+`9976390e` and `d6aa4ad7`, the method rows first: re-aggregation, FedAvg SFT rounds 5 and 6, `bird_k2/round_2`
 and its fixed twin, federated DPO as published at 4 rounds, RFT round 2;
 then the pooled line, the other sets and DeepSeek as before; last the
 BIRD federated DPO baseline and the IID line. A worker started before
@@ -228,7 +228,7 @@ its log say whether the second runs 4 at a time cost them.
 ## Run now
 
 1. A free card: the worker line, which pulls first (queue
-   `9976390e`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
+   `d6aa4ad7`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
    It takes the first ready task in file order that no other worker
    holds.
 
@@ -270,6 +270,7 @@ its log say whether the second runs 4 at a time cost them.
 | --- | --- | --- | --- | --- |
 | 30 | `spider_dev/fedavg_r1` to `r3`, `spider_dev/k0_r1` to `r3`, `spider_dev/k2_r1`, `spider_dev/k3_r1`, `spider_dev/publish_rounds` | the 1.5B rows by round on Spider dev, so that the start of the DPO + NLL rounds (k = 0, 2, 3) reads on dev at every count of rounds; dev holds k = 0 and k = 2 at 4 rounds only (77.27, 77.66) | about 25 min, no training (estimate) | queued 2026-11-23 18:55 (`185d41cd`), first in the file. With `spider_dev/k3_r1` k is read on Spider dev at 4 rounds (k = 0, 2, 3); test-suite accuracy on the Mac after its publication |
 | 33 | `reagg/*` | the FedAvg weights of a DPO round: `dpo_k2/round_1` (Spider) and `bird_k2/round_1` (BIRD) aggregated again by questions and equally from the saved client adapters (pairs: the round itself, a check); read against 77.46 / 75.05 and 46.22 | about 45 min, no training (estimate) | queued 2026-11-24 (`9976390e`) |
+| 40 | `sft_more/round_5`, `round_6`, each with its evaluations (test, dev) | does FedAvg SFT reach the method with more rounds: on Spider dev round 4 still gained 1.94 over round 3 (p 0.0045; on test 74.71 at both); read against the method at 4 rounds (78.20 test, 77.66 dev) | about 3 h (estimate) | queued 2026-11-24 (`d6aa4ad7`), after `reagg/*` |
 | 34 | `bird_k2/round_2` with its evaluation | the method at 4 rounds on BIRD, against `bird_sft/round_4` (42.57) and round 3 (43.68) | about 8 h (estimate, round 1: 7 h 50 min) | queued 2026-11-24 (`9976390e`) |
 | 35 | `bird_k2_fixed/round_2` with its evaluation | the on-policy part from an SFT start on BIRD: round 2 on round 1's pairs and reference, NLL kept, against `bird_k2/round_2`; continues `bird_k2`, samples nothing | about 4 h (estimate: `bird_fixed/round_2` trained 3 h 32 min) | queued 2026-11-24 (`9976390e`) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`) |

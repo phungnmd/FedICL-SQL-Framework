@@ -4,6 +4,23 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-24: FedAvg SFT rounds 5 and 6 of the 1.5B queued (owner; queue `d6aa4ad7`)
+
+On Spider dev FedAvg SFT round 4 gained 1.94 over round 3 (33 / 13,
+p 0.0045) while Spider test stayed at 74.71. Rounds 5 and 6 say whether
+the baseline reaches the method (77.66 dev, 78.20 test) with more
+rounds. Commands: the step of the curve `fedavg_base_ddlrows_alpha01_s0/sft`
+with k = 5, 6 (resolved and compared; only `--round`, `--stage` and
+`--init-adapter` change); evaluated on Spider test and dev. After
+`reagg/*`, before `bird_k2/round_2`.
+
+Also read from the dev rows (same results as the entry below): the
+second DPO + NLL round of k = 2 adds 2.61 on dev (42 / 15, p 0.0005;
+test +0.74); at 3 rounds k = 2 is 1.84 above FedAvg SFT on dev (68 /
+49, p 0.096). At 4 rounds the method is above FedAvg SFT by 5.2 on hard
+and 10.3 on extra (easy and medium level); execution errors 52 against
+80, wrong results 179 against 177.
+
 ## 2026-11-24: k on Spider dev at 4 rounds is 2 under EX and test-suite accuracy; DPO from the base student gains on dev through lucky SQL (results `68c38e28`, test-suite on the Mac `k_by_round_spider_dev`)
 
 The rows by round on Spider dev (1,034), published by the server at
