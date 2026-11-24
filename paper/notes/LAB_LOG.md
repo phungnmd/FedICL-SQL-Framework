@@ -4,6 +4,30 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: BIRD labels: where the time goes; labels now run while the clients train (code `609ee6da`)
+
+Server log of `bird_k2` rounds 1 and 2 (`SQL budget` lines, 16 SQL
+workers; not committed):
+
+| Round 2 client | Label wall | Of it: second runs (short of CPU) | SQL met budget | Timeouts kept |
+|---|---|---|---|---|
+| 1 | 43:47 | 33 min (54 jobs, 30 alone) | 135 | 17 |
+| 2 | 54:46 | 35 min (139 jobs, 10 alone) | 278 | 151 |
+| 3 | 5:55 | 1 min | 60 | 60 |
+| 4 | 4:30 | 0 | 9 | 9 |
+| 5 | 58:48 | 46 min (145 jobs, 28 alone) | 225 | 87 |
+
+- About 1h54 of the 2h48 of labels is the second-run phase: jobs whose
+  SQL met the 30 s budget on less than 80% CPU, run again 4 at a time
+  and then alone. Round 1 is the same (2h39).
+- Change: with vLLM the labels run in a thread after the generation,
+  and each client trains as soon as its own labels are done. Samples,
+  pairs and adapters are unchanged (tests). Estimate for a BIRD round:
+  about 7h30 down to about 5h45, training then waits only on client 5's labels.
+- Next if BIRD labels still matter: the second-run phase (more
+  second-run workers, rerun only the SQL short of CPU, connection reuse
+  per database), not a cache.
+
 ## 2026-11-24: FedAvg SFT round 5 falls on test and dev: the baseline peaks at round 4 (results `d2f08bc3`, `1e6c9737`, `26af69db`; test-suite on the Mac `sft_r5_spider_dev`)
 
 | Row (1.5B) | Spider test EX | Spider dev EX | Spider dev TS |
