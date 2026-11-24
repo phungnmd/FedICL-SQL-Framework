@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: `bird_k2/round_2` trained, evaluation next (results `ad80c598`)
+
+The second DPO + NLL round of k = 2 on BIRD (sequential code, before
+`609ee6da`): generation 28 min, labels 2 h 48, training about 3 h 10.
+
+| Read on the clients' 9,428 questions | Round 1 (from FedAvg SFT round 2) | Round 2 (from round 1) |
+|---|---|---|
+| Correct samples | 32.7% | 53.4% |
+| All correct / mixed / all wrong | 416 / 5,877 / 2,698 | 3,016 / 3,533 / 2,437 |
+| Pairs | 11,754 | 7,066 |
+
+- Pairwise cosine of the client updates 0.03 to 0.09.
+- Read next: `bird_k2/eval_2` against FedAvg SFT round 4 (42.57) and
+  round 3 (43.68); then `bird_k2_fixed/round_2`.
+
 ## 2026-11-25: BIRD labels: where the time goes; labels now run while the clients train (code `609ee6da`)
 
 Server log of `bird_k2` rounds 1 and 2 (`SQL budget` lines, 16 SQL
