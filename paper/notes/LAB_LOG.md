@@ -16,7 +16,7 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   is below round 4 on test, dev EX and dev TS. Execution errors on
   test 173 to 188. FedAvg SFT's best round is 4 on dev and 3 to 4 on
   test (74.71 at both); more rounds do not reach the method.
-- Round 6 (`sft_more/round_6`) still runs as queued, for the curve.
+- Round 6 dropped (owner, 2026-11-24; queue `c6d9720b`): the cards go to the method rows.
 
 ## 2026-11-24: the FedAvg weights of a DPO round do not matter: pair counts kept (results `9f4d00bf`, `4f230532`, `7196832a`)
 
