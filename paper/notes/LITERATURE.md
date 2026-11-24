@@ -178,6 +178,26 @@ without rows, evidence, greedy, LoRA):
 - No paper found reports a greedy, single-sample, plain-DDL LoRA SFT of
   this model on BIRD with all four settings stated.
 
+Second, short search (2026-11-25, search agent, numbers read in each
+paper's table): no new 0.5B to 3B row on BIRD dev with plain CREATE TABLE
+text, evidence, greedy and one sample. What it adds:
+
+| Paper | Model | Setting | BIRD dev EX |
+|---|---|---|---|
+| ReSQL, ACL Findings 2026, Table 2 | Qwen2.5-1.5B-Instruct (general model) | LoRA SFT on BIRD train; schema with example rows and evidence; every row after two error-correction iterations | zero-shot 13.82, SFT 17.28 |
+| KID ([arXiv 2410.11371](https://arxiv.org/abs/2410.11371), Table 3) | Qwen1.5-0.5B | LoRA SFT on BIRD train, CodeS-style prompt | 16.36 without evidence, 30.51 with; distillation up to 36.11 |
+| SQL-R1 ([arXiv 2504.08600](https://arxiv.org/abs/2504.08600), Table 7) | Qwen2.5-Coder-3B | GRPO; column descriptions, CoT, vote of 8 | 50.5 to 54.6 |
+| [arXiv 2606.29733](https://arxiv.org/abs/2606.29733), Table 2 | Qwen2.5-Coder-7B-Instruct | no training; table and column names plus evidence, greedy | 42.63 |
+| OmniSQL ([arXiv 2503.02240](https://arxiv.org/abs/2503.02240), Table 4) | Qwen2.5-Coder-7B-Instruct | no training; descriptions and values, greedy | 50.9 |
+| [arXiv 2607.22622](https://arxiv.org/abs/2607.22622), Table 1 | Qwen3-Coder-30B-A3B | LoRA SFT, then on-policy DPO (reference = SFT); filtered schema and matched contents; greedy | SFT 56.91, SFT + DPO 57.64 |
+
+- The 1.5B levels stay those above: zero-shot 28.6 (SQL-Factory), SFT
+  39.2 (SQL-Factory) and 44.3 (SPFT-SQL).
+- No greedy single-sample DPO or RL row exists below 7B; the one greedy
+  DPO-after-SFT row on BIRD dev gains 0.73 at 30B.
+- No federated Text-to-SQL result on BIRD found again; OmniSQL, ExCoT,
+  Alpha-SQL and the other recent SQL RL papers start at 6.7B or above.
+
 Federated: no federated result on BIRD was found at any model size, and
 no federated Text-to-SQL paper besides Zhang et al. (section 1.2; T5-base,
 8 single-domain datasets as clients, exact match: centralized 70.32 /
