@@ -75,9 +75,10 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
   public data for the Spider clients. Another model or setting may be
   proposed.
 - Datasets (owner, 2026-11-25): BIRD is the main dataset of the paper
-  (the main rows and the ablations of the parts); Spider carries the
-  breadth rows (other models, heterogeneity, further baselines, the
-  variant sets, test-suite accuracy). `RESEARCH_STATE.md`, section 3.4.
+  (the main rows, every baseline, the ablations of the parts, a second
+  student model); Spider carries the breadth rows (other models, the
+  federated setups, the variant sets, test-suite accuracy). The rows the
+  paper needs are listed in `RESEARCH_STATE.md`, section 3.4.
 - Prompt, training recipe and decoding follow what widely used papers do,
   checked in the paper or its code (`LITERATURE.md`, section 1.19). One
   prompt serves training, sampling and evaluation, and the paper prints

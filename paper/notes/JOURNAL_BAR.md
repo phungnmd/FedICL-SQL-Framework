@@ -85,6 +85,16 @@ Not there yet, by how often the read papers have it:
 Not needed by this evidence: more seeds, standard deviations,
 differential privacy.
 
+Federated papers at JIIS, by title (Crossref, title search for
+"federated" in ISSN 1573-7675, 2026-11-25): six from 2024 to 2026, four
+on recommendation (FedRKG among them), one on intrusion detection in
+vehicular networks, one on multi-source data analysis; none on a
+language model. Their full texts were not read (Springer refused
+automated requests), so their client counts and non-IID levels are not
+known here. The setups of federated LoRA papers are in
+`FEDERATED_DATA_SETUP.md`, section 2.5; the paper's five setups follow
+its section 4.2 (`RESEARCH_STATE.md`, section 3.4).
+
 Fit:
 
 - JIIS is the closer home for the topic (at least 7 Text-to-SQL papers

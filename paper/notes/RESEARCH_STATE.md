@@ -1,7 +1,7 @@
 # FedLS-SQL: research state
 
 Updated 2026-11-25; where the method stands is in section 5.0, the role
-of each dataset in section 3.4. On
+of each dataset and the list of rows the paper needs in section 3.4. On
 2026-11-17 the owner set the project up again from clean: a new prompt,
 refactored code (package `fedls_sql`) and every result produced again.
 This file says what is fixed, what the method is and what is open. Runs
@@ -32,7 +32,7 @@ that clearly beats the federated baselines and reports good numbers.
 |---|---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
 | Other student models (owner, 2026-11-22) | Qwen2.5-Coder-0.5B-Instruct and deepseek-coder-1.3b-instruct run the Spider line of the 1.5B with the model changed (FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from FedAvg SFT round 2), each through its own chat template. DeepSeek's tokenizer is loaded from its `tokenizer.json` and gives longer sequences (up to 8,238 tokens), so its length limit is 8,704; no row is cut or refused for any model | 0.5B running (Spider test): 54.40 without training, 58.13 and 60.60 after FedAvg SFT rounds 1 and 2, 65.86 after one DPO + NLL round from round 2 (5.26 above its start, p 1.9e-12; the 1.5B 3.36), 62.69 after FedAvg SFT round 3: at 3 rounds the method is 3.17 above FedAvg SFT (p 1.3e-05; the 1.5B 2.75). At 4 rounds 66.19 against 64.09 (+2.10, p 0.0056; the 1.5B 3.49): the second DPO + NLL round adds 0.33 (p 0.62) and FedAvg SFT still rises (+1.40 in round 4, p 0.0059), so the gap narrows and the level FedAvg SFT reaches is not measured. DeepSeek running as `deepseek13b`: 55.85 without training on the fixed tokenizer, 64.00 and 69.82 after FedAvg SFT rounds 1 and 2, no DPO + NLL round read (its first base row, EX 0.00, came from a tokenizer that dropped whitespace and is not a result; `LAB_LOG.md`, 2026-11-22) |
-| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev. BIRD is the main dataset of the paper and Spider carries the breadth rows (owner, 2026-11-25; section 3.4) | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
+| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev. BIRD is the main dataset of the paper and Spider carries the breadth rows (owner, 2026-11-25; section 3.4). The paper has five federated setups (section 3.4): these two, and on Spider `iid/k5`, `alpha_0.5/k5` and `alpha_0.5/k10`, all three built | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | not part of the method (owner, 2026-11-17); a research direction, section 4 |
 | Public data | for the Spider clients, BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it. For the BIRD clients it would be Spider train (section 4, item 10); no server stage has run | fixed for the Spider clients |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
@@ -180,33 +180,84 @@ gives no pair; a question whose gold result is empty on a database with
 rows keeps its pairs (owner: drop the empty databases only). The code
 does this by default (`9dd4adce`).
 
-### 3.4 Rows of the paper (plan)
+### 3.4 Rows of the paper (plan, revised 2026-11-25)
 
-| Row | What it is | Role |
+BIRD is the main dataset (owner, 2026-11-25): the abstract and the main
+table lead with it, and every baseline and every ablation of the parts
+is read on it. Spider carries the breadth rows. The list below was
+revised on 2026-11-25 (owner; `LAB_LOG.md`): local SFT, FedProx, the k
+rows at equal rounds and a second student model move to BIRD, and two
+federated setups are added on Spider. GPU hours are estimates.
+
+Baselines (main table, BIRD dev first, Spider test next to it):
+
+| Row | What it is | BIRD | Spider |
+|---|---|---|---|
+| Student without training | no adapter | run | run |
+| Local SFT | each client alone; mean, minimum and maximum over the 5 clients | not queued, about 10 h for 3 epochs | curve defined, not queued; when a card is free |
+| Centralized SFT | the union of the clients, 3 epochs | queued (`bird_central`) | run |
+| FedAvg SFT | gold SQL, FedAvg, rounds 1 to 4 | run | run |
+| FedProx SFT | gold SQL, proximal term at the clients, 4 rounds | not queued, about 11.5 h; the code has the term, mu not set | when a card is free |
+| Federated DPO as published | pairs from the first DPO round's samples made once, reference fixed for all rounds, no NLL term (OpenFedLLM's FedDPO); same pair count | queued (`bird_feddpo`) | round 2 queued (`feddpo`) |
+| Method | 2 FedAvg SFT rounds, then 2 DPO + NLL rounds | run (48.76) | run (78.20) |
+
+FedNTD is no longer planned: neither OpenFedLLM nor Zhang et al. runs
+it, and with FedProx and federated DPO the table has five baselines, the
+count of LESFT (`JOURNAL_BAR.md`).
+
+Ablations (BIRD dev, 4 rounds in all, from FedAvg SFT round 2; the
+Spider rows next to them are run or queued):
+
+| Row | State on BIRD |
+|---|---|
+| Without on-policy rounds (round 1's pairs and reference) | run: 46.15 against 48.76 |
+| Without the preference term (RFT) | round 1 run (44.39 at 3 rounds), round 2 queued |
+| Without the NLL term | queued as round 1 of `bird_feddpo`, read at 3 rounds; an on-policy round 2 without NLL (about 7 h) only if round 1 does not fall below its start, as it did on Spider (73.59 from 74.10) |
+| The SFT stage, k = 0 at 4 rounds | `bird_k0` has 2 rounds; rounds 3 and 4 not queued, about 14 h. Until they are read the BIRD rows compare k = 2 at 4 rounds with k = 0 at 2 |
+| The SFT stage, k = 3 | one DPO + NLL round from `bird_sft/round_3`, not queued, about 7 h |
+| FedAvg weights of a DPO round | run (within 0.20) |
+
+Breadth:
+
+| Row | Set | State |
 |---|---|---|
-| FedAvg SFT | gold SQL, FedAvg | federated baseline; run (Spider 4 rounds, BIRD 4 rounds) |
-| FedProx, FedNTD | gold SQL, other aggregators | federated baselines (item 6 of section 4) |
-| Federated DPO as published | pairs from the base student's samples made once, reference fixed for all rounds (OpenFedLLM's FedDPO); same loss, same pair count | federated DPO baseline |
-| Method | DPO + NLL rounds with the improvements kept | the row of the paper |
-| Ablations | the method without each kept improvement | show what each adds |
-| Centralized SFT, local SFT | the union of the clients; each client alone | upper and lower reference |
+| A second student model, DeepSeek-Coder-1.3B: FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from round 2 | BIRD | not queued, about 30 h; its memory on BIRD is not measured |
+| The method at 5 rounds (`bird_k2/round_3`), with `bird_sft/round_5` if the row is used | BIRD | not queued, about 7 h and 3 h |
+| Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B | Spider | 0.5B run; DeepSeek FedAvg SFT rounds 3 and 4 and DPO + NLL round 2 queued |
+| DPO + NLL with the clients pooled | Spider | queued (`pooled_k2`) |
+| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider | 1.5B run; the test-suite numbers are not committed |
+
+Federated setups: five, each with two rows (FedAvg SFT at 4 rounds, the
+method at 3 and 4 rounds). They give three heterogeneity levels at 5
+clients and two client counts at alpha 0.5; every client joins every
+round.
+
+| Set | Clients | Split | State |
+|---|---|---|---|
+| BIRD | 5 | `alpha_0.1/k5` | run |
+| Spider | 5 | `alpha_0.1/k5` | run |
+| Spider | 5 | `iid/k5` | queued (`iid_sft`, `iid_k2`), about 13 h |
+| Spider | 5 | `alpha_0.5/k5` | split built, not queued, about 13 h |
+| Spider | 10 | `alpha_0.5/k10` | split built, not queued, about 13 h |
+
+Without a GPU: a cost table (client time per round for sampling, labels
+and training, and communication by adapter size, from the logs); a Holm
+or Bonferroni correction over the McNemar tests the paper prints; the
+error breakdown, EX by difficulty, pair counts and the cosine of the
+client updates by round, which exist and go into tables.
+
+Order of the rows not queued: `bird_k0` rounds 3 and 4 (the read can
+change k on BIRD); local SFT and FedProx on BIRD; `bird_k2/round_3`;
+DeepSeek-Coder-1.3B on BIRD; the two Spider setups at alpha 0.5; k = 3
+on BIRD. About 108 GPU hours (BIRD 82, Spider 26).
+
+Not planned: a second seed, partial participation, 20 or more clients, a
+heterogeneity sweep on BIRD, the server pre-training, pooled DPO + NLL
+on BIRD, one federation over the BIRD and the Spider clients.
 
 Columns: EX, easy, medium, hard, extra, execution errors, executable SQL
 with a wrong result; on BIRD the official difficulty levels (simple,
-moderate, challenging). Run so far: section 5.0. Not run and not queued:
-FedProx, FedNTD and local SFT. Queued: federated DPO as published on
-both sets and centralized SFT on BIRD (`PIPELINE_NEXT.md`).
-
-Datasets (owner, 2026-11-25). BIRD is the main dataset: the abstract
-and the main table lead with it, and the ablations of the parts are read
-on it. Spider carries the breadth rows.
-
-| Part of the paper | Read on |
-|---|---|
-| Main rows: the method against the baselines, by round | BIRD dev and Spider test, BIRD first |
-| Ablations of the parts (on-policy rounds, the NLL term, the preference term, fixed pairs, k) | BIRD dev, with the Spider rows next to them |
-| Other student models, the second heterogeneity level (IID), further federated baselines, local SFT | Spider |
-| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider |
+moderate, challenging). Run so far: section 5.0.
 
 Why BIRD leads: the gain at 4 rounds is 6.19 against 3.49 on Spider
 test; the parts separate there (on-policy rounds +2.61, p 0.0006, against
@@ -216,9 +267,7 @@ SFT rounds, 12% on Spider for the base student); and k = 2 was set on
 Spider before the BIRD rows were read. Why Spider stays: it has a dev
 set apart from its test set (k is chosen on dev, the row read on test),
 the three student models, the variant sets and the test suites, and its
-rounds cost about 3 h against 6 to 8 h on BIRD. Open, not queued: one
-more student model on BIRD, so that the BIRD table does not stand on one
-model (about 30 h, estimate, not measured).
+rounds cost about 3 h against 6 to 8 h on BIRD.
 
 ### 3.5 Pre-training at the server
 
@@ -255,6 +304,10 @@ are GPU wall clock on one card (estimates).
 | 1, about 1 day | FedAvg SFT (running) until its rule stops it. Early read of the switch round: one DPO + NLL round from FedAvg round 2 (k = 2), against FedAvg round 3, with the pair counts per client at that start (queued first, `46509f1e`). Then DPO + NLL rounds from the best FedAvg round (k = best). Every DPO line: 10 samples at T 1.0, 2 random pairs per question, no pair from a database without rows, rule 0.5 / patience 2 / at most 6 rounds; control: the FedAvg line at the same total rounds | k = 2 at least 1 EX above FedAvg round 3: the line from k = 2 continues and k becomes an axis of the paper (EX and pairs against k); about 0: read the pair counts before the long line (start earlier, more pairs per question, or gold as the chosen side of all-wrong questions); below: stop and look. The story: a gain of 1.5 EX or more with exact McNemar p < 0.05 at the same total rounds goes on to phase 2 |
 | 2, about 2-3 days | from the same start and for the same rounds: federated DPO as published (pairs fixed from round 1, reference fixed), RFT (NLL on correct samples only), DPO + NLL from the base student (k = 0), I2 if (a) shows wrong-result pairs are scarce; client drift of SFT and DPO updates and pairs per client by round, from the saved adapters | the main table and the ablations |
 | 3, about 4-6 days | BIRD as a second set of clients; alpha 0.5 and IID for FedAvg and the method; FedProx and FedNTD; centralized and local SFT; a second seed of the main rows; the server pre-training last | breadth for a Q2 journal, a chance at Q1 |
+
+The list of rows the paper needs now is in section 3.4 (revised
+2026-11-25); where it differs from phase 3 (no FedNTD, no second seed,
+no server pre-training), section 3.4 holds.
 
 Not in the plan now: the teacher, unlabelled questions, 10 pairs per
 question. A switch rule computed by the clients (switch when the share
@@ -336,8 +389,9 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
    that a question whose samples are all wrong still gives a pair, with
    execution deciding whether the repair is kept? (`DPO_RESEARCH.md`,
    section 3.7.)
-6. Baselines with the new prompt: FedAvg (run), FedProx, FedNTD,
-   federated DPO as published (section 3.4), centralized and local SFT.
+6. Baselines with the new prompt: section 3.4. Open in it: mu of
+   FedProx (0.0001 in Zhang et al. by our notes, not checked in the
+   paper again) and the epochs of local SFT (3, as centralized SFT).
 7. The client split. In `alpha_0.1/k5` the share of hard and extra
    questions runs from 20% to 60% across the clients, and the clients
    hold 734 to 3,479 questions (table in `LAB_LOG.md`, 2026-11-17). No
@@ -364,9 +418,10 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
 10. Datasets: settled (owner, 2026-11-25). BIRD is the main dataset and
     Spider carries the breadth rows (section 3.4). The method was tried
     on Spider first (owner, 2026-11-17) and BIRD joined as a second set
-    of clients on 2026-11-19. Open under it: one more student model on
-    BIRD (about 30 h, estimate, not measured), and Spider train as the
-    public data of the BIRD clients if a server stage is run.
+    of clients on 2026-11-19. A second student model on BIRD
+    (DeepSeek-Coder-1.3B) is in the list of section 3.4; Spider train
+    would be the public data of the BIRD clients if a server stage were
+    run.
 11. Content generated by the clients for their databases (recorded
     2026-11-19; owner: optional, taken up later if wanted; if it is
     tried, before the runs over seeds and alphas). The DPO rounds

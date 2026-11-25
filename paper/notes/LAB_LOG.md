@@ -4,6 +4,50 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: the rows the paper needs, revised for BIRD as the main dataset; five federated setups (owner; no run)
+
+A read of the notes, the queue and `JOURNAL_BAR.md` against the dataset
+roles set earlier today. The plan had local SFT, FedProx and the other
+models on Spider only, and the k rows on BIRD at unequal rounds. The
+owner took the revised list; it is in `RESEARCH_STATE.md`, section 3.4,
+and the rows not queued are in `PIPELINE_NEXT.md` in queue order.
+
+- Moved to BIRD: local SFT per client (about 10 h) and FedProx SFT, 4
+  rounds (about 11.5 h); on Spider they run when a card is free. The
+  code has the FedProx term; mu is not set (0.0001 in Zhang et al. by
+  our notes, not checked in the paper again).
+- k on BIRD at 4 rounds: `bird_k0` rounds 3 and 4 (about 14 h) and one
+  DPO + NLL round from `bird_sft/round_3` (about 7 h). Today 48.76 (k =
+  2, 4 rounds) stands next to 43.02 (k = 0, 2 rounds), so the SFT stage
+  is not read at equal rounds on BIRD. If k = 0 reaches k = 2 there, the
+  method on BIRD is written with k = 0.
+- A second student model on BIRD, DeepSeek-Coder-1.3B (about 30 h; its
+  memory on BIRD is not measured), and `bird_k2/round_3` (about 7 h),
+  since the second DPO + NLL round still added 2.54 (p 0.0002).
+- Federated setups: five. BIRD `alpha_0.1/k5`; Spider `alpha_0.1/k5`,
+  `iid/k5` (queued), and new `alpha_0.5/k5` and `alpha_0.5/k10` (both
+  built, about 13 h each): three heterogeneity levels at 5 clients and
+  two client counts at alpha 0.5, the sensitivity plan of
+  `FEDERATED_DATA_SETUP.md`, section 4.2.
+- FedNTD leaves the plan (neither OpenFedLLM nor Zhang et al. runs it).
+  Not planned: a second seed, partial participation, 20 or more clients,
+  a heterogeneity sweep on BIRD, the server pre-training, pooled DPO +
+  NLL on BIRD, one federation over the BIRD and the Spider clients.
+- Search behind the setups (2026-11-25). Crossref, titles with
+  "federated" in JIIS: six from 2024 to 2026, four on recommendation,
+  none on a language model; full texts not read (Springer refused
+  automated requests). From search result summaries only, not read:
+  RoLoRA (arXiv 2502.01755; client counts up to 50, Dirichlet 0.5 and
+  1.0), FedHL (arXiv 2505.18494; 10 clients, alpha 0.3, 15% and 30%
+  participation), FLoRIST (arXiv 2506.09199; 100 clients, 10 a round),
+  FedAttr (arXiv 2605.06596; 10 clients, all join). No evidence that the
+  federated setups decide at JIIS; its closest Text-to-SQL paper
+  (GradeSQL) rests on models, datasets and McNemar tests.
+- New rows about 108 GPU hours (BIRD 82, Spider 26), estimates. No queue
+  line is written yet. Also changed: `JOURNAL_BAR.md` (the JIIS titles),
+  both `AGENTS.md` (dataset roles), the plan in the advisor email.
+  `overview.html` is not changed.
+
 ## 2026-11-25: federated Text-to-SQL scan (owner's request; no run)
 
 arXiv API, OpenAlex, the 9 citing papers of FL4SP on Semantic Scholar, web

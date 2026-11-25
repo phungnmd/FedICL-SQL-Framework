@@ -13,10 +13,12 @@ A worker gets the new order at its next start or publication. Which
 task each card runs now is not known here.
 
 Dataset roles (owner, 2026-11-25; `RESEARCH_STATE.md`, section 3.4):
-BIRD is the main dataset (the main rows and the ablations of the parts),
-Spider carries the breadth rows (the other models, the IID split,
-further federated baselines, the variant sets, test-suite accuracy). A
-new row is queued on the set its role names.
+BIRD is the main dataset (the main rows, every baseline, the ablations
+of the parts, a second student model), Spider carries the breadth rows
+(the other models, the federated setups, the variant sets, test-suite
+accuracy). A new row is queued on the set its role names. The rows the
+paper still needs and are not queued are listed under the table of
+`Running and queued`.
 
 Earlier status (2026-11-24): The workers run (owner): the
 Spider dev rows by round are published (`68c38e28`). At 4 rounds k = 2
@@ -350,13 +352,27 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 | `bird_k0_goldnll/round_2` above `bird_k0/round_2` (43.02), with the challenging level near that of FedAvg SFT (29.66; `bird_k0/round_2` 19.31) and the simple one not below 50.70 | the method routes a question by its samples in one loss: DPO + NLL where they are mixed, NLL on the gold SQL where all are wrong; rows after it run in that form, and whether it still needs an SFT stage is read against `bird_k1/round_1` (44.26) | read: 42.37, 0.65 below `bird_k0/round_2` (p 0.43); simple 49.73, moderate 33.41, challenging 24.14; 1.89 below `bird_k1/round_1` (p 0.045): a no. The SFT stage stays the way gold enters (k as a value); the hint is the remaining form inside a round |
 | `bird_k2/round_1` above `bird_sft/round_3` (43.68) | read: 46.22, 2.54 above (125 questions against 86, p 0.0087): yes. The method holds at 3 rounds from an SFT start, at the k of the best Spider line (k = 2) | no gain over FedAvg SFT separated on BIRD at equal rounds |
 
-Not queued yet, the owner's choice. Open under the dataset roles: on
-Spider, local SFT per client and FedProx (not run, `RESEARCH_STATE.md`,
-section 3.4); on BIRD, one more student model, so that its table does
-not stand on one model (about 30 h, estimate, not measured). Also open:
-`bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
-centralized DPO + NLL on Spider as the upper reference of the method
-(about 8.5 h, estimate). Not proposed any more: gold rows for every
+Not queued yet: the rows the paper needs (owner, 2026-11-25;
+`RESEARCH_STATE.md`, section 3.4), in the order to queue them. Hours
+are estimates; each needs its queue lines and the check of its resolved
+commands before it runs.
+
+| # | Rows | Set | What it answers | About |
+| --- | --- | --- | --- | --- |
+| 1 | `bird_k0` rounds 3 and 4 | BIRD | k = 0 against k = 2 at 4 rounds; the read can change k on BIRD | 14 h |
+| 2 | local SFT of each client, 3 epochs | BIRD | does federating pay: mean, minimum and maximum of the 5 clients against FedAvg SFT | 10 h |
+| 3 | FedProx SFT, rounds 1 to 4 (mu to set) | BIRD | a second federated SFT baseline in the main table | 11.5 h |
+| 4 | `bird_k2/round_3`, with `bird_sft/round_5` if the row is used | BIRD | where the method stops rising | 7 h and 3 h |
+| 5 | DeepSeek-Coder-1.3B: FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from round 2 | BIRD | the BIRD table on a second model; memory on BIRD to measure first | 30 h |
+| 6 | FedAvg SFT rounds 1 to 4 and the method at 3 and 4 rounds on `alpha_0.5/k5` | Spider | a third heterogeneity level | 13 h |
+| 7 | the same on `alpha_0.5/k10` | Spider | 10 clients against 5 at the same alpha | 13 h |
+| 8 | one DPO + NLL round from `bird_sft/round_3` (k = 3) | BIRD | k = 3 at 4 rounds | 7 h |
+
+On Spider, local SFT per client and FedProx run when a card is free.
+An on-policy round 2 without the NLL term on BIRD (about 7 h) only if
+round 1 of `bird_feddpo` does not fall below its start. Also open, the
+owner's choice: `bird_k1/round_2`; the round with hinted pairs. Not
+proposed any more: gold rows for every
 question (`LAB_LOG.md`, 2026-11-21: the gold rows raised the broken
 answers). Every BIRD row is read by official difficulty as well as
 overall (simple 925, moderate 464, challenging 145).
