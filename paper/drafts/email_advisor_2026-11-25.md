@@ -29,7 +29,7 @@ stage trên Spider test (pooled 2 seed):
 Em để KD làm future work.
 
 **Kết quả.** Em so method với hai baseline, trên hai dataset và qua các
-student model: FedAvg SFT là federated baseline ở cùng số round,
+model: FedAvg SFT là federated baseline ở cùng số round,
 centralized SFT là reference không federated (train trên data của mọi
 client). Metric: execution accuracy (EX); 5 client non-IID; 4 round.
 
@@ -56,7 +56,7 @@ Spider test:
   execution error giảm từ 268 xuống 128.
 
 **Kế hoạch thực nghiệm của bài.** Setup chung: 5 client non-IID
-(Dirichlet alpha 0.1), student fine-tune bằng LoRA, EX trên BIRD dev và
+(Dirichlet alpha 0.1), model fine-tune bằng LoRA, EX trên BIRD dev và
 Spider test, một seed, McNemar test. BIRD là dataset chính, Spider cho
 phần mở rộng.
 
@@ -83,7 +83,7 @@ Ablation:
 
 Thực nghiệm mở rộng, trên Spider:
 
-- Student model khác: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B (chờ
+- Model khác: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B (chờ
   round 3 và 4)
 - Data heterogeneity: Dirichlet alpha 0.1 (xong), IID (chờ chạy)
 - Pooled DPO: các round DPO trên data gộp, không aggregation, so với

@@ -2,11 +2,11 @@
      role="img" aria-labelledby="method-overview-title method-overview-desc"
      font-family="Arial" font-size="23" fill="#252b31">
   <title id="method-overview-title">Federated Text-to-SQL method overview</title>
-  <desc id="method-overview-desc">Five clients warm up the student with FedAvg SFT, then repeatedly sample and execute SQL locally, train LoRA on preference pairs, and return adapters for pair-weighted aggregation before student deployment.</desc>
+  <desc id="method-overview-desc">Five clients warm up the model with FedAvg SFT, then repeatedly sample and execute SQL locally, train LoRA on preference pairs, and return adapters for pair-weighted aggregation before the global model is deployed.</desc>
 
   <rect width="1440" height="810" fill="#fff"/>
   <path d="M30 68 H1410" stroke="#d1d6da" stroke-width="1.5"/>
-  <text x="30" y="49" font-weight="bold">Student: Qwen2.5-Coder-1.5B + LoRA</text>
+  <text x="30" y="49" font-weight="bold">Model: Qwen2.5-Coder-1.5B + LoRA</text>
   <text x="1410" y="49" text-anchor="end" fill="#46505a">K = 5 clients (organisations)</text>
 
   <g font-size="25" font-weight="bold">
@@ -54,7 +54,7 @@
   <g fill="#285685" font-size="24" font-weight="bold">
     <text x="49" y="162">Server</text>
     <text x="490" y="162">Server</text>
-    <text x="1269" y="167" text-anchor="middle">Deploy student only</text>
+    <text x="1269" y="167" text-anchor="middle">Deploy global model</text>
   </g>
   <text x="49" y="192">FedAvg averages the adapters</text>
   <g aria-label="FedAvg, weighted by number of pairs → θ_{t+1}">
@@ -78,7 +78,7 @@
     <text x="491" y="349">Client k</text>
   </g>
   <rect x="48" y="367" width="362" height="90" rx="6" fill="#fff" stroke="#cfbb9f" stroke-width="1.5"/>
-  <text x="66" y="403">Fine-tune the student</text>
+  <text x="66" y="403">Fine-tune the model</text>
   <text x="66" y="432">on gold SQL</text>
 
   <!-- Four other organisations repeat the same local workflow. -->

@@ -186,6 +186,10 @@ deviate.
   full command and what to send back), `Running and queued` (one table in
   queue order), `Reference`. No history in it; finished steps leave once
   they are logged; estimates are marked as estimates.
+- The paper, its figures and anything sent out call the trained model
+  "the model" (or by its name), not "the student" (owner, 2026-11-25):
+  the method has no teacher. The notes and the code keep "student" as
+  an internal name.
 - Reports for the advisor: tables carry the numbers and the text says what
   they mean in plain words; the best value of each column is highlighted;
   lab-process detail stays out.
