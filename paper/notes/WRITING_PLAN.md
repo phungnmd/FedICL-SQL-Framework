@@ -12,12 +12,12 @@ What the paper claims and which rows exist is in `RESEARCH_STATE.md`
 | Format | LaTeX, written to the JIIS shape first (25 pages, the tighter of the two). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file, not a rewrite (section 9) |
 | Class | Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst` |
 | Place | `paper/manuscript/` in the paper repository; one commit per section |
-| Who writes | the main session drafts every section, so the paper has one voice. Subagents (Opus) build the bibliography, audit claims and read the PDF cold |
+| Who writes | a writer subagent, started fresh for each section and given only that section's packet (section 7). The main session prepares the packets and runs the checks; it does not draft, because it carries the lab's vocabulary, history and rules. Other subagents build the bibliography, audit claims and read the PDF cold |
 | Numbers | no result number is typed. A script writes macros and tables from the committed evaluations (section 5) |
 | Names | the method is `\method` and the paper says "the model", so the title can change without touching the text |
-| What a writer reads | `CLAIMS.md` (step W3), the notes section named for its section in section 4, the generated tables. Not `LAB_LOG.md` |
+| What a writer reads | `WRITER.md` (its role and reader), `voice/` (profile and exemplar passages), the packet of its section, the sections already accepted. Not the notes, not `AGENTS.md`, not the checks of section 8 |
 
-Three things to check by hand before step W5; they could not be read
+Three things to check by hand before step W7; they could not be read
 on 2026-11-26 because Springer sends automated requests to a login page:
 
 1. The JIIS submission guidelines: the class it names (`JOURNAL_BAR.md`
@@ -42,7 +42,12 @@ on 2026-11-26 because Springer sends automated requests to a login page:
 | `/ars-citation-check` | reference metadata against DOI and arXiv | installed |
 | `/ars-reviewer` | cold read of the PDF as a journal reviewer | installed |
 | `/ars-disclosure` | the AI-use statement | installed |
-| `humanizer` | last pass on the prose | installed |
+| `humanizer` | last pass on the prose, with an exemplar passage as its voice sample; it edits style and keeps every claim, so it does not remove content that should not be there | installed |
+| ARS `shared/style_calibration_protocol.md` | the voice profile, extracted from the exemplar papers instead of the author's past papers | installed |
+| ARS `references/intro_title_rhetoric_guide.md`, `abstract_writing_guide.md` | the moves of the introduction and the abstract, used when their packets are built | installed |
+| ARS `references/writing_quality_check.md` | list for the edit pass (openers that say nothing, meta-commentary, triples, synonym cycling) | installed |
+| `doc-coauthoring`, stage 3 | the reader test: a fresh subagent reads the PDF and answers set questions | installed |
+| `write-course-term-paper`: `references/writing.md`, `scripts/audit_reader_facing_prose.py` | the model for the leak rules of `tools/lint.py` (internal files, commands, defensive provenance, defence of a rejected method, text that certifies a requirement), rewritten for English and LaTeX | installed |
 
 Install, not yet run:
 
@@ -51,8 +56,13 @@ tlmgr --usermode install sttools threeparttable appendix ncctools algorithms
 ```
 
 Not used: `/ars-full` and `/ars-plan` (they start from a literature
-search and a dialogue and know nothing of the committed results), Word,
-Overleaf.
+search and a dialogue and know nothing of the committed results); the
+ARS draft writer (a general template: a fixed paragraph scheme, a list
+of hedging verbs, sections it must include, a self-score against its
+contract); `write-course-term-paper` as a skill (it is scoped to course
+papers and asks for their voice); Word, Overleaf. No installed skill
+drafts a machine learning journal paper well; the writer is a role of
+our own (section 7).
 
 ## 3. Folder
 
@@ -66,7 +76,11 @@ paper/manuscript/
   figures/              fig_*.pdf (copied from paper/figures and the chart script)
   references.bib
   sn-jnl.cls  sn-basic.bst
-  CLAIMS.md             thesis, contributions, claims with their keys, terms and notation
+  CLAIMS.md             thesis, contributions, claims with their keys and wording strength,
+                        the limitations the paper states, terms and notation
+  WRITER.md             the writer's role and reader
+  voice/                profile.md, exemplar passages by section type
+  packets/              one file per section: what the writer is given
   tools/paper_numbers.py  tools/charts.py  tools/lint.py
   Makefile
 ```
@@ -131,31 +145,128 @@ estimates.
 | W0 | the three checks of section 1 | answers written into section 1 | owner, 15 min |
 | W1 | TeX packages, the folder of section 3, `main.tex` with empty sections | `make` gives a PDF | a few minutes of install |
 | W2 | `paper_numbers.py`, the eight table files, `charts.py` for Fig. 2 and 3 | every cell equals the overview page; `missing.txt` equals the missing rows of section 5 | none |
-| W3 | `CLAIMS.md`: the thesis in one sentence, 4 contributions, each claim with the macros that carry it and the sets it is stated for, the terms and the notation | owner approves | owner, 30 min |
+| W3 | `CLAIMS.md`: the thesis in one sentence, 4 contributions, each claim with the macros that carry it, the sets it is stated for and the verb it is stated with, the limitations the paper states, the terms and the notation | owner approves | owner, 30 min |
 | W4 | `references.bib`: a subagent takes the papers of `LITERATURE.md` and `DPO_RESEARCH.md` section 7 that the outline cites, fetches each entry from its DOI or arXiv id, prefers the published version, and records how far the paper was read (full or abstract) | `/ars-citation-check` clean; no entry typed by hand | none |
-| W5 | Method, Algorithm 1, Experimental setup, appendix A and B | per-section loop below | owner, 30 min each |
-| W6 | Related work, Table 1 | same | owner, 30 min |
-| W7 | Results, part by part as `missing.txt` empties; Ablation study | same; a part is not written around `--` cells | waits for the GPU rows |
-| W8 | Discussion and limitations, Conclusion, Introduction, abstract, title, keywords | same | owner, 1 h |
-| W9 | whole paper: cold read of the PDF (`/ars-reviewer`), claim audit of the full text, `humanizer`, page count against 25 | owner and advisor read | advisor's time |
-| W10 | declarations, AI-use statement (`/ars-disclosure`), public repository with code, splits and predictions, cover letter | submission files compile from a clean copy | owner, 1 h |
+| W5 | `WRITER.md` and `voice/`: exemplar passages by section type from GradeSQL, CodeLutra and two JIIS papers of `JOURNAL_BAR.md`, and the profile extracted from them | owner reads the profile | owner, 15 min |
+| W6 | pilot: the packet of section 3.4 (a preference round), drafted from the same packet by the writer on Opus and on the session model | owner reads both without the names and picks the model; the draft is read for the failures of section 7 and the packet format is corrected | owner, 20 min |
+| W7 | Method, Algorithm 1, Experimental setup, appendix A and B | per-section loop below | owner, 30 min each |
+| W8 | Related work, Table 1 | same | owner, 30 min |
+| W9 | Results, part by part as `missing.txt` empties; Ablation study | same; a part is not written around `--` cells | waits for the GPU rows |
+| W10 | Discussion and limitations, Conclusion, Introduction, abstract, title, keywords | same | owner, 1 h |
+| W11 | whole paper: one edit pass for consistency, `humanizer`, the reader test, `/ars-reviewer`, claim audit of the full text, page count against 25 | owner and advisor read | advisor's time |
+| W12 | declarations, AI-use statement (`/ars-disclosure`), public repository with code, splits and predictions, cover letter | submission files compile from a clean copy | owner, 1 h |
 
-W1 to W6 need no result that is missing and can start now. When an
+W1 to W8 need no result that is missing and can start now. When an
 evaluation is committed later: one line in `ARMS`, `make numbers`,
 `make`, and the claim audit runs again for the claims that use that row.
 
-Per-section loop (W5 to W8):
+Per-section loop (W7 to W10):
 
-1. Draft from `CLAIMS.md`, the notes of section 4 and the generated
-   tables.
-2. `make` and `make lint`.
-3. Claim audit: a subagent with all the notes (`RESEARCH_STATE.md`,
+1. The main session writes the packet (section 7.2).
+2. A fresh writer drafts the section from the packet.
+3. `make` and `make lint`.
+4. Claim audit: a subagent with all the notes (`RESEARCH_STATE.md`,
    `LAB_LOG.md`) looks for a committed result that contradicts each
    sentence. It reports false or overstated sentences only; it does not
    ask for caveats or for the story of how a value was chosen.
-4. Fix, owner reads, commit.
+5. The main session turns what the checks found into editor's notes
+   (section 7.4) and the same writer revises once. A second round at
+   most; what is left the owner edits by hand.
+6. Owner reads, commit.
 
-## 7. Rules for the text
+## 7. The writer
+
+The failures to expect from a writing agent in this workspace have one
+cause: what the agent has read. An agent that has read the lab's rules
+writes to satisfy them, one that has read the lab's notes writes in
+their voice and tells their history, and one that knows every result
+reports every result. So the writer is given a role, a reader and the
+material of one section, and the rules are applied by other steps after
+the draft.
+
+### 7.1 Role (`WRITER.md`)
+
+The writer is the author of the paper, a researcher in Text-to-SQL and
+federated learning presenting finished work to the readers of the
+journal. Its reader is a reviewer who knows the field and has never
+seen this project. It is told what a section is for and what the reader
+should know at its end; it is not told what to avoid. `WRITER.md` holds
+no project rule, no honesty rule, no list of forbidden words and no
+list of objections a reviewer might raise.
+
+`AGENTS.md` is loaded into every agent of the workspace. Whether a
+subagent receives it has not been checked; `WRITER.md` therefore opens
+by saying that the workspace files are the operating rules of the
+experiment agents and that the writer's material is its packet.
+
+### 7.2 Packet (one file per section)
+
+Written by the main session from `CLAIMS.md` and the notes, in the
+paper's terms. This is the step where lab language becomes paper
+language, once, and the owner can read it before any prose exists.
+
+- What the section is for, what the reader knows before it and has to
+  know after it.
+- The points to make, in order, each with the evidence that carries it
+  (a table, a figure, a citation) and the verb it is stated with
+  (from `CLAIMS.md`: "outperforms", "improves", "is level with").
+- The facts as values, in tables and lists, never in prose the writer
+  could copy: settings, counts, formulas checked against the code.
+- The generated tables, and each macro with its value beside it, so the
+  writer chooses the numbers that make its point.
+- Citation keys, each with one line on what the paper did.
+- The length in words, and one or two exemplar passages of the same
+  section type.
+
+Not in a packet: dates, names of runs, what was tried and dropped, how
+a value was chosen, results the paper does not print, limitations
+(they are in the packet of the Discussion alone, as the list approved
+in `CLAIMS.md`).
+
+### 7.3 Failures and what guards against each
+
+| Failure | Where it comes from | Guard |
+|---|---|---|
+| Stiff, simplified prose | the notes and `AGENTS.md` are written in plain short sentences for the owner, and a writer takes the voice of its sources; lists of rules make it cautious | the packet holds no prose; voice comes from `voice/` (exemplars of the journal's register) |
+| Process in the text ("we first", "was then selected", dates, run names, how k was set) | the notes are a history | the packet carries values without history; the writer cannot open the notes; `tools/lint.py` |
+| Writing for the rules: sentences that certify ("all numbers come from", "no test data was used"), that defend a choice nobody questioned, that answer a reviewer in advance | the writer has read rules, checklists and reviewer objections and treats them as its audience | none of them reaches the writer; the checks run after the draft and speak to it only through editor's notes |
+| Too much disclosed: results that weaken the paper, every negative finding, a caveat after each number | a model's default, made stronger by honesty rules and by sources that list everything measured | what the paper prints is decided in `CLAIMS.md` and the tables; a packet holds only that; limitations have one place and a fixed list |
+| Hedging ("may", "appears to", "it is worth noting") | default register of a model; the ARS writer asks for it | the verb of each claim is given; significance is a mark in the table and one paragraph of the setup, not a p-value per sentence; the edit pass removes the rest |
+| A results section that reads the table aloud, or gives each row equal space | the notes report every row | the packet names one point per paragraph and which result leads |
+| Flat or timid introduction and contributions | the same caution | the packet states the contributions in the wording approved in `CLAIMS.md`; the moves of the introduction follow the rhetoric guide |
+| Promotional words, the opposite failure | default register | `humanizer`, claim audit |
+| Lab words ("student", "line", "row", "arm", "read", "k2") | the notes and the code | the terms of `CLAIMS.md` in every packet; `tools/lint.py` |
+| Formulas and settings from memory | the writer knows DPO in general | formulas and values come from the packet, checked against the code |
+| Citations from memory | same | only keys given in the packet |
+| Checkers that add caveats back | an auditor with all the notes sees every exception | the auditor reports false sentences only; the main session filters its findings before they become notes |
+| Bland prose after many rounds | each pass removes what stands out | two revision rounds at most; one edit pass over the whole paper |
+
+### 7.4 Editor's notes
+
+What a check finds goes back to the writer as a note a human editor
+would write, about the reader and the sentence: "the reader does not
+need to know how this value was reached; state the value", "this
+paragraph makes two points; the second belongs to section 6". A note
+never cites a rule, a lint name or a project file.
+
+## 8. Checks
+
+These are applied to the draft and are not shown to the writer.
+
+| Check | Tool | Fails on |
+|---|---|---|
+| Build | `make` | undefined reference or citation, overfull table |
+| Numbers | `tools/lint.py` | a digit with a decimal point or a percent sign in sections 5 to 7 that is not a macro |
+| Words | `tools/lint.py` | student, owner, queued, held-out, run names, em dash |
+| Leaks | `tools/lint.py` | file paths and commands, "we first", "initially", "was then chosen", "after trying", sentences that certify ("all numbers", "no test data", "strictly", "it should be noted", "we acknowledge") |
+| Hedges | `tools/lint.py`, reported as a count per section | "may", "might", "appears to", "seems", "potentially", "to some extent" outside the limitations |
+| Bibliography | `tools/lint.py`, `/ars-citation-check` | entry without DOI or arXiv id, uncited entry, citation of a preprint that has a published version |
+| Claims | subagent, section 6 | a sentence a committed result contradicts |
+| Reader | reader test (`doc-coauthoring`, stage 3): a fresh subagent reads the PDF and states the problem, the method, the main result and what the paper seemed to defend or explain about its own making | a wrong answer to the first three; anything named in the fourth |
+| Review | `/ars-reviewer` on the PDF alone | reported to the owner; a comment is acted on when the paper gets better, not because it was made |
+| Length | `pdftotext`, page count | more than 25 pages; abstract outside 150 to 250 words |
+
+What the audits hold the text to:
 
 - The setup is given as values. How a seed, a round, k or a setting was
   picked is not told. No sentence is false: a number chosen on Spider
@@ -163,26 +274,12 @@ Per-section loop (W5 to W8):
 - A claim names the set it holds on. Example: on-policy rounds are
   above fixed pairs on BIRD; on Spider test the two are level, so the
   paper does not say "on both datasets".
-- "The model", never "the student"; no arm names, queue names, dates or
-  "we first tried".
 - A statement about another paper comes from a section of
   `LITERATURE.md` or `DPO_RESEARCH.md`; a paper read by abstract is
   cited only for what its abstract states. External result rows name
   their prompt, decoding and training data, or are left out.
 - Numbered citations; an acronym is defined at first use in the
-  abstract and again in the text; no em dash.
-
-## 8. Checks
-
-| Check | Tool | Fails on |
-|---|---|---|
-| Build | `make` | undefined reference or citation, overfull table |
-| Numbers | `tools/lint.py` | a digit with a decimal point or a percent sign in sections 5 to 7 that is not a macro |
-| Words | `tools/lint.py` | student, owner, queued, held-out, arm names, em dash |
-| Bibliography | `tools/lint.py`, `/ars-citation-check` | entry without DOI or arXiv id, uncited entry, citation of a preprint that has a published version |
-| Claims | subagent, section 6 | a sentence a committed result contradicts |
-| Reader | `/ars-reviewer` on the PDF alone | reported to the owner; a comment is acted on when the paper gets better, not because it was made |
-| Length | `pdftotext`, page count | more than 25 pages; abstract outside 150 to 250 words |
+  abstract and again in the text.
 
 ## 9. A CMC version
 
