@@ -12,6 +12,12 @@ on BIRD (`bird_central/sft`, 3 epochs), then the Spider rows as before.
 A worker gets the new order at its next start or publication. Which
 task each card runs now is not known here.
 
+Dataset roles (owner, 2026-11-25; `RESEARCH_STATE.md`, section 3.4):
+BIRD is the main dataset (the main rows and the ablations of the parts),
+Spider carries the breadth rows (the other models, the IID split,
+further federated baselines, the variant sets, test-suite accuracy). A
+new row is queued on the set its role names.
+
 Earlier status (2026-11-24): The workers run (owner): the
 Spider dev rows by round are published (`68c38e28`). At 4 rounds k = 2
 is the highest on Spider dev under EX (77.66) and test-suite accuracy
@@ -281,8 +287,8 @@ its log say whether the second runs 4 at a time cost them.
 | 30 | `spider_dev/fedavg_r1` to `r3`, `spider_dev/k0_r1` to `r3`, `spider_dev/k2_r1`, `spider_dev/k3_r1`, `spider_dev/publish_rounds` | the 1.5B rows by round on Spider dev, so that the start of the DPO + NLL rounds (k = 0, 2, 3) reads on dev at every count of rounds; dev holds k = 0 and k = 2 at 4 rounds only (77.27, 77.66) | about 25 min, no training (estimate) | queued 2026-11-23 18:55 (`185d41cd`), first in the file. With `spider_dev/k3_r1` k is read on Spider dev at 4 rounds (k = 0, 2, 3); test-suite accuracy on the Mac after its publication |
 | 33 | `reagg/*` | the FedAvg weights of a DPO round: `dpo_k2/round_1` (Spider) and `bird_k2/round_1` (BIRD) aggregated again by questions and equally from the saved client adapters (pairs: the round itself, a check); read against 77.46 / 75.05 and 46.22 | about 45 min, no training (estimate) | read 2026-11-24: no weighting separated from pair counts (within 0.51 on Spider test, dev and BIRD dev); pair counts kept |
 | 40 | `sft_more/round_5`, `round_6`, each with its evaluations (test, dev) | does FedAvg SFT reach the method with more rounds: on Spider dev round 4 still gained 1.94 over round 3 (p 0.0045; on test 74.71 at both); read against the method at 4 rounds (78.20 test, 77.66 dev) | about 3 h (estimate) | round 5 read: 73.92 test, 74.18 dev, below round 4 on both; round 6 dropped by the owner (`c6d9720b`) |
-| 34 | `bird_k2/round_2` with its evaluation | the method at 4 rounds on BIRD, against `bird_sft/round_4` (42.57) and round 3 (43.68) | about 8 h (estimate, round 1: 7 h 50 min) | queued 2026-11-24 (`9976390e`) |
-| 35 | `bird_k2_fixed/round_2` with its evaluation | the on-policy part from an SFT start on BIRD: round 2 on round 1's pairs and reference, NLL kept, against `bird_k2/round_2`; continues `bird_k2`, samples nothing | about 4 h (estimate: `bird_fixed/round_2` trained 3 h 32 min) | queued 2026-11-24 (`9976390e`) |
+| 34 | `bird_k2/round_2` with its evaluation | the method at 4 rounds on BIRD, against `bird_sft/round_4` (42.57) and round 3 (43.68) | about 8 h (estimate, round 1: 7 h 50 min) | read 2026-11-25: 48.76, 6.19 above `bird_sft/round_4` (p 4.6e-11) and 5.08 above round 3 (p 4.9e-08) |
+| 35 | `bird_k2_fixed/round_2` with its evaluation | the on-policy part from an SFT start on BIRD: round 2 on round 1's pairs and reference, NLL kept, against `bird_k2/round_2`; continues `bird_k2`, samples nothing | about 4 h (estimate: `bird_fixed/round_2` trained 3 h 32 min) | read 2026-11-25: 46.15, 2.61 below `bird_k2/round_2` (p 0.0006) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`) |
 | 37 | `rft/round_2` with its evaluations (test, dev) | RFT at 4 rounds, on-policy (samples drawn again from RFT round 1, 75.87): the method without its preference term | about 3.5 h (estimate) | queued 2026-11-24 (`9976390e`) |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`) |
@@ -314,9 +320,7 @@ any model. The 0.5B's memory is measured (peak reserved 20.25 GiB on
 client 3 in round 1). A task that fails stops the worker, the other
 model's line included.
 
-Open after these rows, not queued: `bird_k2/round_2` (the method at 4
-rounds on BIRD, about 8 h) and its twin on fixed pairs (federated DPO
-as published from an SFT start, about 4.5 h). For the 0.5B: FedAvg SFT round 8 and a
+Open after these rows, not queued, for the 0.5B: FedAvg SFT round 8 and a
 DPO + NLL round from a later round, only if round 7 of row 26 still
 rises by more than 0.5 EX point.
 
@@ -346,11 +350,11 @@ How the reads settle the method (BIRD dev, same total rounds, kept at
 | `bird_k0_goldnll/round_2` above `bird_k0/round_2` (43.02), with the challenging level near that of FedAvg SFT (29.66; `bird_k0/round_2` 19.31) and the simple one not below 50.70 | the method routes a question by its samples in one loss: DPO + NLL where they are mixed, NLL on the gold SQL where all are wrong; rows after it run in that form, and whether it still needs an SFT stage is read against `bird_k1/round_1` (44.26) | read: 42.37, 0.65 below `bird_k0/round_2` (p 0.43); simple 49.73, moderate 33.41, challenging 24.14; 1.89 below `bird_k1/round_1` (p 0.045): a no. The SFT stage stays the way gold enters (k as a value); the hint is the remaining form inside a round |
 | `bird_k2/round_1` above `bird_sft/round_3` (43.68) | read: 46.22, 2.54 above (125 questions against 86, p 0.0087): yes. The method holds at 3 rounds from an SFT start, at the k of the best Spider line (k = 2) | no gain over FedAvg SFT separated on BIRD at equal rounds |
 
-Not queued yet, the owner's choice after the reads above. Open:
-`bird_k2/round_2` and its twin on fixed pairs (the method at 4 rounds,
-and federated DPO as published from an SFT start; about 8 h and 4.5 h,
-estimates); the two more models on BIRD, if the paper's BIRD table is
-to carry them; `bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
+Not queued yet, the owner's choice. Open under the dataset roles: on
+Spider, local SFT per client and FedProx (not run, `RESEARCH_STATE.md`,
+section 3.4); on BIRD, one more student model, so that its table does
+not stand on one model (about 30 h, estimate, not measured). Also open:
+`bird_k1/round_2`; `bird_k0/round_3`; the round with hinted pairs;
 centralized DPO + NLL on Spider as the upper reference of the method
 (about 8.5 h, estimate). Not proposed any more: gold rows for every
 question (`LAB_LOG.md`, 2026-11-21: the gold rows raised the broken

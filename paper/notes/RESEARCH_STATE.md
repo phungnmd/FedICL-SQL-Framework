@@ -1,6 +1,7 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-22; where the method stands is in section 5.0. On
+Updated 2026-11-25; where the method stands is in section 5.0, the role
+of each dataset in section 3.4. On
 2026-11-17 the owner set the project up again from clean: a new prompt,
 refactored code (package `fedls_sql`) and every result produced again.
 This file says what is fixed, what the method is and what is open. Runs
@@ -31,9 +32,9 @@ that clearly beats the federated baselines and reports good numbers.
 |---|---|---|
 | Student (deployed alone) | Qwen2.5-Coder-1.5B-Instruct with LoRA, SQL-only output | fixed |
 | Other student models (owner, 2026-11-22) | Qwen2.5-Coder-0.5B-Instruct and deepseek-coder-1.3b-instruct run the Spider line of the 1.5B with the model changed (FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from FedAvg SFT round 2), each through its own chat template. DeepSeek's tokenizer is loaded from its `tokenizer.json` and gives longer sequences (up to 8,238 tokens), so its length limit is 8,704; no row is cut or refused for any model | 0.5B running (Spider test): 54.40 without training, 58.13 and 60.60 after FedAvg SFT rounds 1 and 2, 65.86 after one DPO + NLL round from round 2 (5.26 above its start, p 1.9e-12; the 1.5B 3.36), 62.69 after FedAvg SFT round 3: at 3 rounds the method is 3.17 above FedAvg SFT (p 1.3e-05; the 1.5B 2.75). At 4 rounds 66.19 against 64.09 (+2.10, p 0.0056; the 1.5B 3.49): the second DPO + NLL round adds 0.33 (p 0.62) and FedAvg SFT still rises (+1.40 in round 4, p 0.0059), so the gap narrows and the level FedAvg SFT reaches is not measured. DeepSeek running as `deepseek13b`: 55.85 without training on the fixed tokenizer, 64.00 and 69.82 after FedAvg SFT rounds 1 and 2, no DPO + NLL round read (its first base row, EX 0.00, came from a tokenizer that dropped whitespace and is not a result; `LAB_LOG.md`, 2026-11-22) |
-| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
+| Clients | 5 clients on Spider train (8,659 rows, 146 databases), split `federated/alpha_0.1/k5` (split seed 42): every database whole at one client, Dirichlet (alpha 0.1) over four complexity tiers of the databases; private rows never leave a client. A second set since 2026-11-19: 5 clients on BIRD train with evidence (9,428 rows), split `federated/alpha_0.1/k5`, read on BIRD dev. BIRD is the main dataset of the paper and Spider carries the breadth rows (owner, 2026-11-25; section 3.4) | built 2026-11-17 after `FEDERATED_DATA_SETUP.md`; whether it poses a problem is open, section 4 |
 | Teacher | Qwen2.5-Coder-7B-Instruct, frozen, at the server, on public data only | not part of the method (owner, 2026-11-17); a research direction, section 4 |
-| Public data | BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it | fixed |
+| Public data | for the Spider clients, BIRD train with evidence (9,428 rows); SynSQL-2.5M may replace or join it. For the BIRD clients it would be Spider train (section 4, item 10); no server stage has run | fixed for the Spider clients |
 | Decoding | greedy, no repetition penalty (the code sets 1.0 and never reads the model's generation config) | fixed |
 | Metric | Spider test EX (2,147 rows) through vLLM; BIRD dev EX (1,534 rows) for the BIRD clients. Rounds, steps and settings may be chosen on Spider test (owner, 2026-11-17); the lab log records what was chosen on which set, and the paper does not call such a number held-out | fixed |
 | Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
@@ -156,13 +157,14 @@ better than a stack of small ones.
 | I3 | A FedAvg SFT stage of k rounds before the DPO rounds (owner, 2026-11-17): the method is k SFT rounds, then DPO + NLL rounds, k stated as a value; k is swept (0, 2, the best FedAvg round) | from the base student the all-wrong questions (12% here) and the questions on databases without rows (20%) give no useful pair, while gold SQL teaches them; the longer the SFT stage, the more training questions the student gets right in all 10 samples, so the fewer pairs are left (expected, not measured) | earlier setup (reference only): every DPO run there started after FedAvg SFT, +3.87 EX over FedAvg round 3 (pooled +3.91, interval +2.82 to +5.01), +2.3 to +2.75 without the repetition penalty; more SFT rounds instead gave +0.84 and then fell. Against it in the papers: SFT then plain DPO gives about zero (`DPO_RESEARCH.md`, 2.1), with an offline loss and no NLL term | k = 0 (DPO rounds from the base student); the control for the same total rounds is the FedAvg SFT line itself, continued |
 
 Measured since (section 5.0, one seed): I1 is kept on BIRD (on-policy
-rounds 2.21 above fixed pairs, p 0.008) and makes no difference on Spider
-test. I2 (nearest pairs, wrong-result rejects first) gave no gain on
-Spider and was not run on BIRD. I3: on Spider no difference on test EX,
-and on test-suite accuracy k = 2 is above k = 0 and above FedAvg SFT on
-dev, Syn and Realistic (read on the Mac, not committed); on BIRD k = 1 is
-1.24 above k = 0 (p 0.19). The proposal of 2026-11-21 is to keep the SFT
-stage in the method with k = 0 as an ablation row (not decided).
+rounds above fixed pairs by 2.21 at k = 0, p 0.008, and by 2.61 at k = 2
+and 4 rounds, p 0.0006) and makes no difference on Spider test. I2
+(nearest pairs, wrong-result rejects first) gave no gain on Spider and
+was not run on BIRD. I3: on Spider no difference on test EX, and on
+test-suite accuracy k = 2 is above k = 0 and above FedAvg SFT on dev, Syn
+and Realistic; on BIRD k = 1 is 1.24 above k = 0 (p 0.19). On Spider dev
+at 4 rounds k = 2 is the highest of k = 0, 2, 3 under EX and test-suite
+accuracy (`LAB_LOG.md`, 2026-11-24), and the BIRD rows use that k.
 
 Smaller choices, not improvements of their own: FedAvg weights by pair
 count (pairs per client run from 5,110 to 26,290 at 10 per question), and
@@ -190,9 +192,33 @@ does this by default (`9dd4adce`).
 | Centralized SFT, local SFT | the union of the clients; each client alone | upper and lower reference |
 
 Columns: EX, easy, medium, hard, extra, execution errors, executable SQL
-with a wrong result. Run so far: section 5.0. Not run: FedProx, FedNTD
-and local SFT; the row of federated DPO as published past its first
-round is open for the owner (`PIPELINE_NEXT.md`).
+with a wrong result; on BIRD the official difficulty levels (simple,
+moderate, challenging). Run so far: section 5.0. Not run and not queued:
+FedProx, FedNTD and local SFT. Queued: federated DPO as published on
+both sets and centralized SFT on BIRD (`PIPELINE_NEXT.md`).
+
+Datasets (owner, 2026-11-25). BIRD is the main dataset: the abstract
+and the main table lead with it, and the ablations of the parts are read
+on it. Spider carries the breadth rows.
+
+| Part of the paper | Read on |
+|---|---|
+| Main rows: the method against the baselines, by round | BIRD dev and Spider test, BIRD first |
+| Ablations of the parts (on-policy rounds, the NLL term, the preference term, fixed pairs, k) | BIRD dev, with the Spider rows next to them |
+| Other student models, the second heterogeneity level (IID), further federated baselines, local SFT | Spider |
+| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider |
+
+Why BIRD leads: the gain at 4 rounds is 6.19 against 3.49 on Spider
+test; the parts separate there (on-policy rounds +2.61, p 0.0006, against
+78.20 and 78.02 on Spider test; the second DPO + NLL round +2.54 against
++0.74); more questions are left without a correct sample (28.6% after two
+SFT rounds, 12% on Spider for the base student); and k = 2 was set on
+Spider before the BIRD rows were read. Why Spider stays: it has a dev
+set apart from its test set (k is chosen on dev, the row read on test),
+the three student models, the variant sets and the test suites, and its
+rounds cost about 3 h against 6 to 8 h on BIRD. Open, not queued: one
+more student model on BIRD, so that the BIRD table does not stand on one
+model (about 30 h, estimate, not measured).
 
 ### 3.5 Pre-training at the server
 
@@ -335,15 +361,12 @@ cosine of client updates in SFT and DPO rounds measures it (phase 2).
    precedent, Iterative RPO on GSM8K (section 2.9). Code needed before the
    runs: the pair rule of I2 and a fixed reference for the published
    federated DPO baseline (fixed samples exist, `samples_from_round`).
-10. BIRD as a second set of clients. The method is tried on Spider first
-    (owner, 2026-11-17). On Spider about 4 points are left above the SFT
-    of this student in the papers (77 to 78, highest published 82.3; 78.0
-    and 82.3 are SPFT-SQL's, not used as a reference since 2026-11-20,
-    section 5.1); on
-    BIRD CodeLutra is 7.5 points above its SFT. Decided after the first
-    read of the DPO rounds against FedAvg SFT on Spider. Needed for it: a
-    client split of BIRD train by database, the prompt lengths on BIRD,
-    and Spider train as the public data in that setting.
+10. Datasets: settled (owner, 2026-11-25). BIRD is the main dataset and
+    Spider carries the breadth rows (section 3.4). The method was tried
+    on Spider first (owner, 2026-11-17) and BIRD joined as a second set
+    of clients on 2026-11-19. Open under it: one more student model on
+    BIRD (about 30 h, estimate, not measured), and Spider train as the
+    public data of the BIRD clients if a server stage is run.
 11. Content generated by the clients for their databases (recorded
     2026-11-19; owner: optional, taken up later if wanted; if it is
     tried, before the runs over seeds and alphas). The DPO rounds
@@ -396,20 +419,28 @@ The two prompts do not differ (exact McNemar p = 0.47). FedAvg SFT round 1
 (results `d6bfc763`) is above the untrained student with prompt A: 165 rows
 fixed, 71 broken, exact McNemar p = 8.5e-10.
 
-### 5.0 Where the method stands (2026-11-22, one seed)
+### 5.0 Where the method stands (2026-11-25, one seed)
 
 EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
+BIRD is the main dataset (section 3.4).
 
 | Rounds | Spider test, FedAvg SFT | Spider test, DPO + NLL from the base student (k = 0) | Spider test, 2 SFT rounds then DPO (k = 2) | BIRD dev, FedAvg SFT | BIRD dev, k = 0 | BIRD dev, 1 SFT round then DPO (k = 1) | BIRD dev, 2 SFT rounds then DPO (k = 2) |
 |---|---|---|---|---|---|---|---|
 | 1 | 72.43 | 75.87 | | 38.85 | 41.85 | | |
 | 2 | 74.10 | 77.18 | | 42.70 | 43.02 | 44.26 | |
 | 3 | 74.71 | 77.69 | 77.46 | 43.68 | | | 46.22 |
-| 4 | 74.71 | 78.02 | 78.20 | 42.57 | | | |
+| 4 | 74.71 | 78.02 | 78.20 | 42.57 | | | 48.76 |
 
+- BIRD at 4 rounds (2026-11-25): the method (k = 2) is 48.76, 6.19
+  above FedAvg SFT round 4 (153 questions against 58, p 4.6e-11) and
+  5.08 above its best round 3 (p 4.9e-08); by difficulty 56.00 / 39.66 /
+  31.72 against 51.35 / 29.96 / 26.90. The second DPO + NLL round adds
+  2.54 (p 0.0002) and cuts wrong results (723 to 658). The same round on
+  the pairs and reference of round 1 gives 46.15, 2.61 below (p 0.0006).
 - Spider: the method is 3.3 to 3.5 above FedAvg SFT at 4 rounds on
   Spider test (k = 2: 78.20), and 2.12 (k = 0, p 0.08) and 2.51 (k = 2,
-  p 0.02) above on Spider dev, where no round or setting was chosen.
+  p 0.02) above on Spider dev. FedAvg SFT round 5 falls on both (73.92
+  test, 74.18 dev), so more rounds do not reach the method.
 - BIRD: with two SFT rounds first (k = 2, the k of the best Spider
   line, set before the read) the method is 2.54 above FedAvg SFT at 3
   rounds (46.22 against 43.68, 125 questions against 86, p 0.0087) and
@@ -433,9 +464,8 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
   FedAvg SFT at 4 rounds (p 0.0001).
 - One DPO round after SFT adds 3.36 on Spider (from round 2) and, on
   BIRD, 5.41 from round 1 and 3.52 from round 2 (`bird_k2/round_1`),
-  where a third SFT round adds 0.98. Still to read on BIRD: the method
-  at 4 rounds (`bird_k2/round_2` against `bird_sft` round 4) and its
-  twin on fixed pairs; neither is queued.
+  where a third SFT round adds 0.98. Still to read on BIRD: RFT at 4
+  rounds, federated DPO as published and centralized SFT (queued).
 - The DPO rounds remove execution errors and leave the wrong results;
   SFT does the reverse (BIRD at 2 rounds: 285 and 593 for FedAvg SFT,
   120 and 727 for k = 1; at 3 rounds, with timeouts counted as errors:
@@ -449,11 +479,15 @@ EX by total rounds; every row is in `LAB_LOG.md` with its result commit.
 
 | Part | Spider | BIRD |
 |---|---|---|
-| On-policy rounds against fixed pairs | test 78.20 against 78.02; dev +1.45 (p 0.07) | +2.21 (p 0.008), kept |
+| On-policy rounds against fixed pairs | test 78.20 against 78.02; dev +1.45 (p 0.07) | k = 0: +2.21 (p 0.008); k = 2 at 4 rounds: +2.61 (p 0.0006); kept |
+| The NLL term (DPO without it, round 1 from FedAvg SFT round 2) | test 73.59 against 77.46; dev 72.53 against 75.05 (p 0.019) | queued (`bird_feddpo` round 1) |
+| The preference term on top of NLL (against RFT, round 1 from FedAvg SFT round 2) | test +1.59 (p 0.015); dev +0.39 (p 0.78) | +1.83 (p 0.057); execution errors 91 against 247; round 2 queued on both sets |
 | FedAvg SFT stage | test EX: no difference (k = 0, 2, 3: 78.02, 78.20, 77.97); test-suite accuracy on dev, Syn, Realistic: k = 2 above k = 0 (p 0.010, 0.0014, 0.0067) and above FedAvg SFT, k = 0 level with FedAvg SFT (`LAB_LOG.md`, 2026-11-21; not committed) | k = 1 is 1.24 above k = 0 at 2 rounds (p 0.19); k = 2 at 3 rounds is 3.19 above k = 0 at 2 rounds (p 0.0025) and 1.96 above k = 1 at 2 rounds (p 0.031), rows of unequal length |
 | Gold as the chosen side | falls at round 2 | -2.61 (p 0.007) |
 | NLL rows on the gold SQL of the all-wrong questions, in the round of the pairs | not run | -0.65 (p 0.43), not kept; 1.89 below k = 1 (p 0.045) |
 | Nearest pairs, wrong-result rejects first | no gain | not run |
+| Strict labels on database variants | 77.27 against 77.46 on test (p 0.76), closed | not run |
+| FedAvg weights of a DPO round (pairs, questions, equal) | within 0.51, pair counts kept | within 0.20 |
 
 ### 5.1 Published numbers for this student (reference, read 2026-11-20)
 
@@ -470,8 +504,8 @@ and BIRD dev, greedy.
 | Spider | best with a method | ours 78.02 (k = 0, 4 rounds), 78.20 (k = 2) | SQL-Factory 76.5 (synthetic data); SLM-SQL test 79.06 (916K rows, vote of 16) |
 | Spider-Syn / Realistic / DK | without training; SFT; method | queued (`spider_variants`) | CodeS-1B SFT: 66.5 / 70.9 / 64.7 (another base model, value retrieval, beam) |
 | BIRD dev | without training | 29.47 | Think2SQL 27.5; SLM-SQL 28.40; SQL-Factory 28.6 |
-| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70, 43.68 (rounds 1 to 3) | SQL-Factory 39.2 (3 epochs) |
-| BIRD dev | with a method, added inputs or voting | 46.22 (2 FedAvg SFT rounds, then 1 DPO + NLL round; 3 rounds in all) | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
+| BIRD dev | SFT on BIRD train | FedAvg 38.85, 42.70, 43.68, 42.57 (rounds 1 to 4) | SQL-Factory 39.2 (3 epochs) |
+| BIRD dev | with a method, added inputs or voting | 48.76 (2 FedAvg SFT rounds, then 2 DPO + NLL rounds; 4 rounds in all) | Think2SQL RL 44.2 (gold tables); CodeS-1B 50.46 (value retrieval, beam); SLM-SQL 54.17 SFT with a vote of 64, 67.08 full; FINER-SQL 59.4 SFT, 63.17 full (schema ranker, vote of 30) |
 
 SPFT-SQL (arXiv 2509.03937) is not used as a reference (owner,
 2026-11-20). Its row for this student without training is 40.6 on BIRD

@@ -4,6 +4,33 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: BIRD is the main dataset of the paper, Spider carries the breadth rows (owner; no run)
+
+Decided after a review of the project against the bar of the target
+journals (session read of the notes, no new result).
+
+| Part of the paper | Read on |
+|---|---|
+| Main rows: the method against the baselines, by round | BIRD dev and Spider test, BIRD first |
+| Ablations of the parts (on-policy rounds, the NLL term, the preference term, fixed pairs, k) | BIRD dev, with the Spider rows next to them |
+| Other student models, the IID split, further federated baselines, local SFT | Spider |
+| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider |
+
+- For BIRD: the gain at 4 rounds is 6.19 (5.08 over the best FedAvg SFT
+  round) against 3.49 on Spider test; on-policy rounds separate there
+  (+2.61, p 0.0006; Spider test 78.20 against 78.02); the second DPO +
+  NLL round adds 2.54 against 0.74 on Spider test; k = 2 was set on
+  Spider before the BIRD rows were read.
+- For keeping Spider: a dev set apart from the test set, the three
+  student models, the variant sets and the test suites, and rounds of
+  about 3 h against 6 to 8 h on BIRD.
+- Open, not queued: local SFT per client and FedProx on Spider; one more
+  student model on BIRD (about 30 h, estimate, not measured).
+- Written into `RESEARCH_STATE.md` (sections 2, 3.4, 4 item 10; section
+  5.0 brought up to the reads of 2026-11-24 and 2026-11-25),
+  `PIPELINE_NEXT.md`, `AGENTS.md` and `fedicl-sql/AGENTS.md` (setup
+  line). `overview.html` is not changed.
+
 ## 2026-11-25: `bird_rft/round_2` queued first, before `rft/round_2` (owner; queues `ea4d7ee3`, `684723d7`)
 
 RFT round 2 on the BIRD clients, samples drawn again from RFT round 1,

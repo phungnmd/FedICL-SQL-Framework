@@ -69,16 +69,24 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
   is a secondary part. The teacher is not part of the method; it is a
   research direction. The story is in `RESEARCH_STATE.md`, section 3, the
   papers behind it in `DPO_RESEARCH.md`.
-- Default setup: Qwen2.5-Coder-1.5B-Instruct student, 5 Spider clients
-  (`alpha_0.1/k5`), Qwen2.5-Coder-7B-Instruct teacher, BIRD train (or
-  SynSQL-2.5M) as public data. Another model or setting may be proposed.
+- Default setup: Qwen2.5-Coder-1.5B-Instruct student, 5 clients on BIRD
+  train and 5 on Spider train (`alpha_0.1/k5` each),
+  Qwen2.5-Coder-7B-Instruct teacher, BIRD train (or SynSQL-2.5M) as
+  public data for the Spider clients. Another model or setting may be
+  proposed.
+- Datasets (owner, 2026-11-25): BIRD is the main dataset of the paper
+  (the main rows and the ablations of the parts); Spider carries the
+  breadth rows (other models, heterogeneity, further baselines, the
+  variant sets, test-suite accuracy). `RESEARCH_STATE.md`, section 3.4.
 - Prompt, training recipe and decoding follow what widely used papers do,
   checked in the paper or its code (`LITERATURE.md`, section 1.19). One
   prompt serves training, sampling and evaluation, and the paper prints
   the prompt the model saw.
 - Compute: RTX A5000 cards with 24 GB; a direction has to fit in memory and
   run time.
-- Spider numbers are Spider test (2,147 rows). Rounds, steps and settings
+- BIRD numbers are BIRD dev (1,534 rows); its test set is not public, and
+  the k of the BIRD rows was set on Spider. Spider numbers are Spider
+  test (2,147 rows). Rounds, steps and settings
   may be chosen on Spider test (owner, 2026-11-17). The notes record what
   was chosen on which set; the paper does not call such a number held-out.
 - Novelty: a published mechanism adapted to this setting is acceptable.
