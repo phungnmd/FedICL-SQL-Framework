@@ -55,10 +55,10 @@ Spider test:
   difficulty level, rõ nhất ở moderate (39.66 so với 29.96), và số
   execution error giảm từ 268 xuống 128.
 
-**Kế hoạch thực nghiệm của bài.** Setup chung: 5 client non-IID
+**Kế hoạch thực nghiệm của bài.** Setup chính: 5 client non-IID
 (Dirichlet alpha 0.1), model fine-tune bằng LoRA, EX trên BIRD dev và
-Spider test, một seed, McNemar test. BIRD là dataset chính, Spider cho
-phần mở rộng.
+Spider test, một seed, McNemar test. BIRD là dataset chính: mọi baseline
+và ablation đều có trên BIRD. Spider cho phần mở rộng.
 
 Baseline, trên BIRD và Spider:
 
@@ -86,8 +86,9 @@ Thực nghiệm mở rộng:
 - Model khác, trên Spider: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B
   (chờ round 3 và 4)
 - Model thứ hai trên BIRD: DeepSeek-Coder-1.3B (dự kiến)
-- Federated setup, trên Spider: 5 client với Dirichlet alpha 0.1 (xong),
-  IID (chờ chạy), alpha 0.5 (dự kiến); 10 client với alpha 0.5 (dự kiến)
+- Federated setup, trên Spider, mỗi setup gồm FedAvg SFT và method: 5
+  client với Dirichlet alpha 0.1 (xong), IID (chờ chạy), alpha 0.5 (dự
+  kiến); 10 client với alpha 0.5 (dự kiến)
 - Method thêm một round DPO trên BIRD (dự kiến)
 - Pooled DPO, trên Spider: các round DPO trên data gộp, không
   aggregation, so với federated (chờ chạy)
@@ -102,6 +103,7 @@ Phân tích:
 - Client update: số pair và cosine similarity theo round (xong)
 - Cost: client compute time mỗi round, communication cost theo kích thước
   adapter (dự kiến)
+- Multiple-testing correction (Holm) cho các McNemar test (dự kiến)
 
 **Research gap.** Federated Text-to-SQL mới có một bài (Zhang et al., ACL
 2023: T5-base, chỉ SFT). CodeLutra (TMLR 2025) có vòng sample, execution
