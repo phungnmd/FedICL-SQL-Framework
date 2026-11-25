@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="468" height="192" viewBox="0 0 468 192" role="img" aria-labelledby="fig-template-title fig-template-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="337" height="236" viewBox="0 0 337 236" role="img" aria-labelledby="fig-template-title fig-template-desc">
   <title id="fig-template-title">Figure style sheet</title>
-  <desc id="fig-template-desc">The surfaces, chips, marks, icons, connectors and text styles every diagram of the paper is built from.</desc>
+  <desc id="fig-template-desc">The surfaces, cards, chips, marks, icons, connectors and text styles every diagram of the paper is built from.</desc>
 
   <!-- Copy this style block and the defs into every figure, unchanged. -->
   <style>
@@ -11,113 +11,141 @@
     .sub { font-size: 6px; }
     .mid { text-anchor: middle; }
     .end { text-anchor: end; }
-    .server { fill: #E2E8F0; }
-    .client { fill: #F1F5F9; }
-    .boundary { fill: none; stroke: #475569; stroke-width: 0.75; stroke-dasharray: 3 2; }
+    .blue { fill: #E8F0FE; stroke: #2563EB; stroke-width: 0.75; }
+    .violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.75; }
+    .plain { fill: #F1F5F9; stroke: #94A3B8; stroke-width: 0.5; }
+    .client { fill: #FFF7E6; }
+    .boundary { fill: none; stroke: #B45309; stroke-width: 0.75; stroke-dasharray: 3 2; }
     .card { fill: #FFFFFF; }
-    .card-line { fill: none; stroke: #94A3B8; stroke-width: 0.5; }
-    .band { fill: #E2E8F0; }
-    .badge { fill: #CBD5E1; }
-    .accent { fill: #E4EEFD; }
-    .accent-line { fill: none; stroke: #2F6FDE; stroke-width: 0.75; }
-    .accent-band { fill: #DCE9FC; }
-    .accent-badge { fill: #B6D0F8; }
+    .card-band { fill: #E9DFFD; }
+    .card-line { fill: none; stroke: #7C3AED; stroke-width: 0.75; }
+    .card-badge { fill: #CDBBFA; }
     .chip { fill: #FFFFFF; stroke: #94A3B8; stroke-width: 0.5; }
+    .chip-blue { fill: #FFFFFF; stroke: #2563EB; stroke-width: 0.5; }
+    .chip-violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.5; }
     .chip-ok { fill: #DDF3EB; stroke: #009E73; stroke-width: 0.5; }
     .chip-bad { fill: #FBE5D8; stroke: #D55E00; stroke-width: 0.5; }
     .flow { fill: none; stroke: #334155; stroke-width: 0.75; marker-end: url(#arrow); }
-    .comm { fill: none; stroke: #334155; stroke-width: 1.25; marker-end: url(#arrow-comm); }
-    .icon { fill: none; stroke: #334155; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
-    .icon .dot { fill: #FFFFFF; }
+    .comm { fill: none; stroke: #2563EB; stroke-width: 1.25; marker-end: url(#arrow-comm); }
+    .ic { stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+    .ic-blue { stroke: #1D4ED8; fill: #C9DCFC; }
+    .ic-violet { stroke: #6D28D9; fill: #DDD0FC; }
+    .ic-amber { stroke: #B45309; fill: #FBDFA6; }
     .ok { fill: none; stroke: #009E73; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
     .bad { fill: none; stroke: #D55E00; stroke-width: 1.25; stroke-linecap: round; }
     .legend { fill: #F1F5F9; }
-    .rule { stroke: #94A3B8; stroke-width: 0.5; }
+    .sw-blue { fill: #2563EB; }
+    .sw-violet { fill: #7C3AED; }
+    .sw-amber { fill: #D98A0B; }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
       <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#334155"/>
     </marker>
     <marker id="arrow-comm" viewBox="0 0 6 6" refX="5.2" refY="3" markerWidth="5.5" markerHeight="5.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#334155"/>
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#2563EB"/>
     </marker>
-    <g id="icon-doc" class="icon"><path d="M2 1 H8 L11 4 V13 H2 Z M8 1 V4 H11 M4.5 7 H8.5 M4.5 10 H8.5"/></g>
-    <g id="icon-db" class="icon"><ellipse cx="6.5" cy="3" rx="5" ry="2"/><path d="M1.5 3 V11 A5 2 0 0 0 11.5 11 V3 M1.5 7 A5 2 0 0 0 11.5 7"/></g>
-    <g id="icon-model" class="icon">
-      <path d="M2 2.5 L6.5 6.5 L11 2.5 M2 10.5 L6.5 6.5 L11 10.5"/>
-      <circle class="dot" cx="2" cy="2.5" r="1.6"/><circle class="dot" cx="2" cy="10.5" r="1.6"/>
-      <circle class="dot" cx="11" cy="2.5" r="1.6"/><circle class="dot" cx="11" cy="10.5" r="1.6"/>
-      <circle class="dot" cx="6.5" cy="6.5" r="1.9"/>
+    <!-- two-tone icons: line and tint come from the class on <use> -->
+    <g id="icon-model" class="ic">
+      <path fill="none" d="M3 4 L11 11 L19 4 M3 18 L11 11 L19 18 M3 4 V18 M19 4 V18"/>
+      <circle cx="3" cy="4" r="2.6"/><circle cx="3" cy="18" r="2.6"/>
+      <circle cx="19" cy="4" r="2.6"/><circle cx="19" cy="18" r="2.6"/>
+      <circle cx="11" cy="11" r="3.4"/>
+    </g>
+    <g id="icon-db" class="ic">
+      <path d="M1 4 V18 A8 3 0 0 0 17 18 V4 Z"/>
+      <ellipse cx="9" cy="4" rx="8" ry="3"/>
+      <path fill="none" d="M1 11 A8 3 0 0 0 17 11"/>
+    </g>
+    <g id="icon-server" class="ic">
+      <rect x="1" y="2" width="18" height="7" rx="1.5"/>
+      <rect x="1" y="11" width="18" height="7" rx="1.5"/>
+      <path fill="none" d="M4.5 5.5 H5 M4.5 14.5 H5 M10 5.5 H15.5 M10 14.5 H15.5"/>
+    </g>
+    <g id="icon-doc" class="ic">
+      <path d="M1 1 H9 L13 5 V17 H1 Z"/>
+      <path fill="none" d="M9 1 V5 H13 M4 9 H10 M4 12.5 H10"/>
+    </g>
+    <g id="icon-lock" class="ic">
+      <rect x="1" y="5" width="8" height="6.5" rx="1"/>
+      <path fill="none" d="M3 5 V3.5 A2 2 0 0 1 7 3.5 V5"/>
     </g>
     <path id="icon-ok" class="ok" d="M0 3.5 L2.8 6.3 L7.5 0.5"/>
     <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
   </defs>
 
-  <!-- surfaces: flat fills, no outline unless it carries meaning -->
-  <text class="h" x="1" y="9">Surfaces</text>
+  <!-- surfaces: one colour per role, pale fill with a line of the same colour -->
+  <text class="h" x="1" y="9">Surfaces and cards</text>
 
-  <rect class="server" x="1" y="16" width="84" height="44" rx="4"/>
+  <rect class="blue" x="1" y="16" width="76" height="46" rx="4"/>
   <text class="h" x="9" y="35">Server</text>
-  <text x="9" y="47">Anything central</text>
+  <text x="9" y="47">Federated side</text>
 
-  <rect class="client" x="96" y="16" width="84" height="44" rx="4"/>
-  <rect class="boundary" x="96" y="16" width="84" height="44" rx="4"/>
-  <text class="h" x="104" y="35">Client</text>
-  <text x="104" y="47">Privacy boundary</text>
+  <rect class="violet" x="87" y="16" width="76" height="46" rx="4"/>
+  <text class="h" x="95" y="35">Method</text>
+  <text x="95" y="47">What is ours</text>
 
-  <rect class="card" x="191" y="16" width="84" height="44" rx="4"/>
-  <path class="band" d="M191 34 V20 A4 4 0 0 1 195 16 H271 A4 4 0 0 1 275 20 V34 Z"/>
-  <rect class="card-line" x="191" y="16" width="84" height="44" rx="4"/>
-  <circle class="badge" cx="203" cy="25" r="6"/>
-  <text class="b mid" x="203" y="28">4</text>
-  <text class="b" x="214" y="28">Step</text>
-  <text x="199" y="49">A known step</text>
+  <rect class="client" x="173" y="16" width="76" height="46" rx="4"/>
+  <rect class="boundary" x="173" y="16" width="76" height="46" rx="4"/>
+  <text class="h" x="181" y="35">Client</text>
+  <text x="181" y="47">Private side</text>
 
-  <rect class="card" x="286" y="16" width="84" height="44" rx="4"/>
-  <path class="accent-band" d="M286 34 V20 A4 4 0 0 1 290 16 H366 A4 4 0 0 1 370 20 V34 Z"/>
-  <rect class="accent-line" x="286" y="16" width="84" height="44" rx="4"/>
-  <circle class="accent-badge" cx="298" cy="25" r="6"/>
-  <text class="b mid" x="298" y="28">1</text>
-  <text class="b" x="309" y="28">Step</text>
-  <text x="294" y="49">What is new</text>
+  <rect class="card" x="259" y="16" width="77" height="46" rx="4"/>
+  <path class="card-band" d="M259 34 V20 A4 4 0 0 1 263 16 H332 A4 4 0 0 1 336 20 V34 Z"/>
+  <rect class="card-line" x="259" y="16" width="77" height="46" rx="4"/>
+  <circle class="card-badge" cx="271" cy="25" r="6"/>
+  <text class="b mid" x="271" y="28">1</text>
+  <text class="b" x="282" y="28">Step</text>
+  <text x="267" y="50">A step card</text>
 
-  <rect class="accent" x="381" y="16" width="86" height="44" rx="4"/>
-  <text class="h" x="389" y="35">Highlight</text>
-  <text x="389" y="47">The part in focus</text>
+  <!-- chips and marks -->
+  <text class="h" x="1" y="81">Chips and marks</text>
+  <rect class="chip" x="1" y="89" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="16" y="97.3">SQL 1</text>
+  <rect class="chip-ok" x="37" y="89" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="52" y="97.3">SQL 1</text>
+  <rect class="chip-bad" x="73" y="89" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="88" y="97.3">SQL 2</text>
+  <rect class="chip-violet" x="109" y="88.5" width="30" height="12" rx="2.5"/>
+  <text class="mid" x="124" y="97.3">LoRA</text>
+  <rect class="chip-blue" x="145" y="88.5" width="22" height="12" rx="2.5"/>
+  <text class="mid" x="156" y="97"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">k</tspan></text>
+  <use href="#icon-ok" x="190" y="91"/>
+  <text x="202" y="97.3">correct</text>
+  <use href="#icon-bad" x="244" y="91"/>
+  <text x="255" y="97.3">wrong</text>
 
-  <!-- chips, marks, icons -->
-  <text class="h" x="1" y="79">Chips, marks and icons</text>
-  <rect class="chip" x="1" y="87" width="38" height="11" rx="2.5"/>
-  <text class="mid" x="20" y="95.3">SQL 1</text>
-  <rect class="chip-ok" x="46" y="87" width="38" height="11" rx="2.5"/>
-  <text class="mid" x="65" y="95.3">SQL 1</text>
-  <rect class="chip-bad" x="91" y="87" width="38" height="11" rx="2.5"/>
-  <text class="mid" x="110" y="95.3">SQL 2</text>
-  <use href="#icon-ok" x="146" y="89"/>
-  <text x="158" y="95.3">correct</text>
-  <use href="#icon-bad" x="196" y="89"/>
-  <text x="207" y="95.3">wrong</text>
-  <use href="#icon-doc" x="250" y="85.5"/>
-  <text x="267" y="95.3">Text, SQL</text>
-  <use href="#icon-db" x="320" y="85.5"/>
-  <text x="337" y="95.3">Database</text>
-  <use href="#icon-model" x="392" y="86"/>
-  <text x="409" y="95.3">Model</text>
+  <!-- icons -->
+  <text class="h" x="1" y="121">Icons</text>
+  <use href="#icon-model" class="ic-violet" x="1" y="128"/>
+  <text x="27" y="142">Model</text>
+  <use href="#icon-db" class="ic-amber" x="66" y="128"/>
+  <text x="88" y="142">Database</text>
+  <use href="#icon-server" class="ic-blue" x="138" y="129"/>
+  <text x="162" y="142">Server</text>
+  <use href="#icon-doc" class="ic-amber" x="204" y="130"/>
+  <text x="222" y="142">Text, SQL</text>
+  <use href="#icon-lock" class="ic-amber" x="274" y="132"/>
+  <text x="288" y="142">Private</text>
 
-  <!-- connectors -->
-  <text class="h" x="1" y="121">Connectors</text>
-  <path class="flow" d="M1 134 H61"/>
-  <text x="1" y="148">Flow inside one party</text>
-  <path class="comm" d="M130 134 H190"/>
-  <text x="130" y="148">Sent between parties</text>
+  <!-- connectors and text -->
+  <text class="h" x="1" y="169">Connectors</text>
+  <path class="flow" d="M1 182 H51"/>
+  <text x="1" y="196">Flow inside one party</text>
+  <path class="comm" d="M96 182 H146"/>
+  <text x="96" y="196">Sent between parties</text>
 
-  <!-- text -->
-  <text class="h" x="286" y="121">Text</text>
-  <text class="h" x="286" y="133">Name or heading, 9 pt bold</text>
-  <text x="286" y="144">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
-  <text x="286" y="155"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
+  <text class="h" x="196" y="169">Text</text>
+  <text class="h" x="196" y="181">Name or heading, 9 pt bold</text>
+  <text x="196" y="192">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
+  <text x="196" y="203"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
 
-  <!-- legend strip -->
-  <rect class="legend" x="1" y="170" width="466" height="20" rx="4"/>
-  <text x="9" y="183"><tspan class="b">Legend strip:</tspan> one line at the bottom, for the contrast the figure makes</text>
+  <!-- colour key -->
+  <rect class="legend" x="1" y="214" width="335" height="20" rx="4"/>
+  <rect class="sw-blue" x="9" y="220" width="8" height="8" rx="2"/>
+  <text x="21" y="227">Federated side</text>
+  <rect class="sw-violet" x="115" y="220" width="8" height="8" rx="2"/>
+  <text x="127" y="227">The method</text>
+  <rect class="sw-amber" x="221" y="220" width="8" height="8" rx="2"/>
+  <text x="233" y="227">Private data</text>
 </svg>
