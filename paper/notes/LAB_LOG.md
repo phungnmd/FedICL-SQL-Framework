@@ -4,6 +4,13 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: `bird_rft/round_2` queued after `rft/round_2` (owner; queue `ea4d7ee3`)
+
+RFT round 2 on the BIRD clients, samples drawn again from RFT round 1,
+against `bird_k2/round_2` (48.76). It reads the preference term at the
+method's round count on BIRD, where round 1 gave p 0.057. Before
+`bird_feddpo`. Queue tests pass.
+
 ## 2026-11-25: `bird_rft/round_1`, the chosen-only control on BIRD: 44.39, 1.83 below DPO + NLL at round 1 (p 0.057); the preference term cuts execution errors from 247 to 91 (results `30788754`, `62b41303`)
 
 Round 1 from FedAvg SFT round 2 on the BIRD clients, the samples and

@@ -2,17 +2,15 @@
 
 ## Status
 
-Updated 2026-11-25 (Asia/Ho_Chi_Minh). `bird_k2/round_2` is read:
-48.76 on BIRD dev, 6.19 above FedAvg SFT round 4 (p 4.6e-11). Queue
-`df0d9f95` runs the rows that read the preference term first:
-`bird_rft/round_1` (RFT on the round 1 samples of `bird_k2`, against
-46.22) and `rft/round_2` (Spider, against 78.20 test and 77.66 dev);
-then `bird_feddpo` rounds 1 and 2 (round 1 was stopped by the owner
-while running and resumes from its saved state), centralized SFT on BIRD
-(`bird_central/sft`, 3 epochs), then the Spider rows as before. Done
-since: `bird_k2_fixed/round_2` (46.15) and the two ablation rounds on
-Spider dev. A worker gets the new order at its next start or
-publication. Which task each card runs now is not known here.
+Updated 2026-11-25 (Asia/Ho_Chi_Minh). `bird_rft/round_1` is read:
+44.39 on BIRD dev, 1.83 below DPO + NLL round 1 (p 0.057); execution
+errors 247 against 91. Queue `ea4d7ee3`: `rft/round_2` (Spider, against
+78.20 test and 77.66 dev), then `bird_rft/round_2` (BIRD, against
+48.76; about 6 h with its evaluation, estimate), then `bird_feddpo`
+rounds 1 and 2 (round 1 resumes from its saved state), centralized SFT
+on BIRD (`bird_central/sft`, 3 epochs), then the Spider rows as before.
+A worker gets the new order at its next start or publication. Which
+task each card runs now is not known here.
 
 Earlier status (2026-11-24): The workers run (owner): the
 Spider dev rows by round are published (`68c38e28`). At 4 rounds k = 2
