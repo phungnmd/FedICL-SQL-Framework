@@ -46,6 +46,8 @@ on 2026-11-26 because Springer sends automated requests to a login page:
 | ARS `shared/style_calibration_protocol.md` | the voice profile, extracted from the exemplar papers instead of the author's past papers | installed |
 | ARS `references/intro_title_rhetoric_guide.md`, `abstract_writing_guide.md` | the moves of the introduction and the abstract, used when their packets are built | installed |
 | ARS `references/writing_quality_check.md` | list for the edit pass (openers that say nothing, meta-commentary, triples, synonym cycling) | installed |
+| PaperOrchestra port (`github.com/Ar9av/PaperOrchestra`, MIT, read at `fcf8a38`): `skills/shared/section_rhetoric.md` | paragraph roles by section, used when a packet is built: the abstract templates, the introduction's chain from the limit of prior work and its cause to why the method works, design then motivation then advantage in a method subsection, the three questions of the experiments, limitations stated as the scope of the setting | not installed; the file is copied into `voice/` |
+| PaperOrchestra port: `reverse_outline.py`, `table_lint.py` | checks: the first sentences of the paragraphs read as the argument of a section; booktabs rules, metric direction in the header, decimals | not installed; the two scripts are copied into `tools/` |
 | `doc-coauthoring`, stage 3 | the reader test: a fresh subagent reads the PDF and answers set questions | installed |
 | `write-course-term-paper`: `references/writing.md`, `scripts/audit_reader_facing_prose.py` | the model for the leak rules of `tools/lint.py` (internal files, commands, defensive provenance, defence of a rejected method, text that certifies a requirement), rewritten for English and LaTeX | installed |
 
@@ -60,7 +62,12 @@ search and a dialogue and know nothing of the committed results); the
 ARS draft writer (a general template: a fixed paragraph scheme, a list
 of hedging verbs, sections it must include, a self-score against its
 contract); `write-course-term-paper` as a skill (it is scoped to course
-papers and asks for their voice); Word, Overleaf. No installed skill
+papers and asks for their voice); the PaperOrchestra pipeline as a
+whole (its writer gets the full experimental log in one call and is
+told to analyse what did not work, its literature agent searches for
+new citations and must use 90% of them, its tables are typed by the
+model from the log, and its refinement loop accepts a revision by the
+score of a simulated reviewer); Word, Overleaf. No installed skill
 drafts a machine learning journal paper well; the writer is a role of
 our own (section 7).
 
@@ -261,7 +268,9 @@ These are applied to the draft and are not shown to the writer.
 | Leaks | `tools/lint.py` | file paths and commands, "we first", "initially", "was then chosen", "after trying", sentences that certify ("all numbers", "no test data", "strictly", "it should be noted", "we acknowledge") |
 | Hedges | `tools/lint.py`, reported as a count per section | "may", "might", "appears to", "seems", "potentially", "to some extent" outside the limitations |
 | Bibliography | `tools/lint.py`, `/ars-citation-check` | entry without DOI or arXiv id, uncited entry, citation of a preprint that has a published version |
-| Claims | subagent, section 6 | a sentence a committed result contradicts |
+| Claims | subagent, section 6 | a sentence a committed result contradicts; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of section 5.0 have moved on |
+| Argument | `tools/reverse_outline.py`, read by the main session | a section whose first sentences do not make its argument; a paragraph with two points |
+| Tables | `tools/table_lint.py` | rules outside booktabs, a metric without its direction, uneven decimals |
 | Reader | reader test (`doc-coauthoring`, stage 3): a fresh subagent reads the PDF and states the problem, the method, the main result and what the paper seemed to defend or explain about its own making | a wrong answer to the first three; anything named in the fourth |
 | Review | `/ars-reviewer` on the PDF alone | reported to the owner; a comment is acted on when the paper gets better, not because it was made |
 | Length | `pdftotext`, page count | more than 25 pages; abstract outside 150 to 250 words |
