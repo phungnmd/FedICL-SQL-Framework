@@ -4,6 +4,37 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: `bird_rft/round_1`, the chosen-only control on BIRD: 44.39, 1.83 below DPO + NLL at round 1 (p 0.057); the preference term cuts execution errors from 247 to 91 (results `30788754`, `62b41303`)
+
+Round 1 from FedAvg SFT round 2 on the BIRD clients, the samples and
+pairs of `bird_k2/round_1`, `preference_weight` 0 (arm
+`fedpref_bird_sftr2_p2_rft_ddl_a01_r1_vllm_inproc`). BIRD dev, exact
+McNemar, `scripts/error_breakdown.py`:
+
+| Row | EX | Exec error | Wrong result | Cut | Simple | Moderate | Challenging |
+|---|---|---|---|---|---|---|---|
+| FedAvg SFT round 2 (start) | 42.70 | 285 | 593 | 1 | 53.61 | 50.34 | 33.33 |
+| RFT round 1 | 44.39 | 247 | 605 | 1 | **55.67** | 51.58 | 36.63 |
+| DPO + NLL round 1 | **46.22** | **91** | 723 | 11 | 54.12 | **54.75** | **37.62** |
+
+(Hardness columns are the eval's `easy`, `medium`, `hard`; `extra` is
+28.06 RFT, 29.68 DPO + NLL, 27.10 start.)
+
+- RFT against the start: +1.69 (62 / 36, p 0.011). DPO + NLL against
+  RFT: +1.83 (115 / 87, p 0.057), short of 0.05.
+- The preference term on three sets at round 1: Spider test +1.59
+  (p 0.015), Spider dev +0.39 (p 0.78), BIRD dev +1.83 (p 0.057). Same
+  sign on all three, significant on one.
+- Execution errors at round 1, RFT against DPO + NLL: Spider test 153
+  against 99, Spider dev 87 against 61, BIRD dev 247 against 91. RFT
+  keeps most of the start's execution errors on BIRD (285 to 247); the
+  preference term removes two thirds of them, and part of those rows
+  become wrong results (605 to 723). This is the consistent effect of the
+  preference term.
+- Open: `rft/round_2` on Spider is next in the queue. `bird_rft/round_2`
+  is not queued (about 6 h, estimate); it reads the term at the
+  method's round count on BIRD (DPO + NLL round 2: 48.76).
+
 ## 2026-11-25: the RFT rows first in the queue (owner; queue `df0d9f95`)
 
 The preference term on top of NLL is read on Spider test only (+1.59 at
