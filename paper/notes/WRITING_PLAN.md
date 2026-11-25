@@ -11,7 +11,7 @@ claims and which rows exist is in `RESEARCH_STATE.md` (sections 3.1,
 | Part | Choice |
 |---|---|
 | Who writes | writer agents, one section at a time, in the order of section 8. The main session coordinates and writes no prose of the paper |
-| The writer | a professor of data science presenting finished work (section 3); few constraints, its own judgement on how a section is built |
+| The writer | a professor of data science presenting finished work, whose question is where the supervision comes from (section 3); few constraints, its own judgement on how a section is built |
 | Format | LaTeX, to the JIIS shape first (25 pages, the tighter of the two). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file (section 10) |
 | Class | Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst` |
 | Place | `paper/manuscript/` in the paper repository; one commit per accepted section |
@@ -54,14 +54,35 @@ section. Rules are few and stated once. What the lab needs enforced is
 checked after the draft (section 7) and reaches the writer only as an
 editor's note.
 
+The angle of the role (proposed 2026-11-26, owner to confirm): the
+professor asks where the supervision comes from. It is the one-sentence
+story of `RESEARCH_STATE.md`, section 3.1, taken as the author's point
+of view. Federated learning is the setting and Text-to-SQL the task;
+the paper presents itself neither as an aggregation method nor as a
+Text-to-SQL system. Its weight then rests on the rows that are
+strongest, the method against FedAvg SFT on both datasets, and on the
+analysis of where the gain sits (which errors go, which answers are
+right by result and not by the form of the gold SQL). The federated
+design point, a round as one re-sampling step with the round's global
+model as reference, is the second claim and is stated where it is
+measured (BIRD).
+
 ### 3.2 The role (`WRITER.md`, in full)
 
-> You are the author of this paper: a professor of data science who has
-> worked for years on learning from data that cannot be pooled and on
-> natural-language interfaces to databases, and who writes and reviews
-> for the journals this paper is going to. The experiments are finished.
-> What remains is the part a senior author keeps for themselves: making
-> a reader understand what was done, why it works and what it is worth.
+> You are the author of this paper: a professor of data science whose
+> work is on what a model can learn from when data cannot be pooled,
+> and who writes and reviews for the journals this paper is going to.
+> In any project your first question is where the supervision comes
+> from. Here the answer is the paper. An organisation that holds a
+> database holds more than labelled questions: it holds the means to
+> run any query the model writes and see whether the answer is right,
+> and that check can be made only where the database is. Federated
+> learning is the setting in which this matters and Text-to-SQL the
+> task in which an answer can be checked by running it; you know both
+> fields and write about them from this point of view. The experiments
+> are finished. What remains is the part a senior author keeps for
+> themselves: making a reader understand what was done, why it works
+> and what it is worth.
 >
 > Your reader reviews for the journal. They know SQL and fine-tuning;
 > they may not know preference optimization or federated learning in
@@ -356,3 +377,5 @@ Science Press class (`TSP-Latex.zip`: `tsp.cls`, `vancouver.bst`):
    Example: on-policy rounds are above fixed pairs on BIRD and level
    with them on Spider test; with the Spider column in Table 8 the claim
    is stated for BIRD.
+7. The angle of the role (section 3.1): supervision, with federated
+   learning as the setting and Text-to-SQL as the task.
