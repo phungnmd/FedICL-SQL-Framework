@@ -38,8 +38,8 @@ Spider test:
 | Model | Chưa train | Centralized SFT | FedAvg SFT | Method | Gain so với FedAvg SFT |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Qwen2.5-Coder-1.5B | 68.05 | 75.73 | 74.71 | **78.20** | +3.49 |
-| Qwen2.5-Coder-0.5B | 54.40 | dự kiến | 64.09 | **66.19** | +2.10 |
-| DeepSeek-Coder-1.3B | 55.85 | dự kiến | 69.82 (round 2) | **75.08** (round 3) | +5.26 |
+| Qwen2.5-Coder-0.5B | 54.40 | chưa chạy | 64.09 | **66.19** | +2.10 |
+| DeepSeek-Coder-1.3B | 55.85 | chưa chạy | 69.82 (round 2) | **75.08** (round 3) | +5.26 |
 
 - Method hơn FedAvg SFT trên cả hai dataset và cả ba model; với model
   1.5B trên Spider test, method hơn cả centralized SFT.
@@ -49,46 +49,45 @@ Spider test:
   mức độ khó, rõ nhất ở moderate (39.66 so với 29.96), và số SQL lỗi khi
   chạy giảm từ 268 xuống 128.
 
-**Kế hoạch thực nghiệm của bài.** Setup chung: 5 client, mỗi database
-nằm trọn ở một client, non-IID (Dirichlet alpha 0.1); student train bằng
-LoRA; đo EX trên BIRD dev và Spider test; một seed, kiểm định McNemar trên
-từng câu hỏi. BIRD là dataset chính, Spider dùng cho phần mở rộng.
+**Kế hoạch thực nghiệm của bài.** Setup chung: 5 client non-IID
+(Dirichlet alpha 0.1), student train bằng LoRA, EX trên BIRD dev và Spider
+test, một seed, kiểm định McNemar. BIRD là dataset chính, Spider cho phần
+mở rộng.
 
-Baseline (model 1.5B):
+Baseline:
 
-| Baseline | Là gì | BIRD | Spider |
-| --- | --- | --- | --- |
-| Chưa train | student gốc | xong | xong |
-| Local SFT | mỗi client tự train trên data của mình | không chạy | dự kiến |
-| Centralized SFT | SFT trên data gộp của mọi client | chờ chạy | xong |
-| FedAvg SFT | SFT trên gold SQL, FedAvg | xong | xong |
-| FedProx SFT | như trên, với FedProx | không chạy | dự kiến |
-| FedDPO (OpenFedLLM) | DPO trong FedAvg: cặp tạo một lần, reference cố định, không có NLL | chờ chạy | chờ chạy |
+- Chưa train (xong)
+- Local SFT, mỗi client tự train (Spider, dự kiến)
+- Centralized SFT (Spider xong, BIRD chờ chạy)
+- FedAvg SFT (xong)
+- FedProx SFT (Spider, dự kiến)
+- FedDPO của OpenFedLLM: cặp và reference cố định, không NLL (chờ chạy)
 
-Ablation (method bỏ từng phần):
+Ablation, method bỏ từng phần:
 
-| Phần bỏ đi | Hàng so sánh | BIRD | Spider |
-| --- | --- | --- | --- |
-| Sample lại mỗi round | các round sau dùng lại cặp và reference của round DPO đầu | xong | xong |
-| NLL term | DPO thuần | chờ chạy | xong |
-| Thành phần preference | chỉ NLL trên các sample đúng | round đầu xong, 4 round chờ chạy | round đầu xong, 4 round chờ chạy |
-| 2 round SFT đầu | số round SFT trước DPO: k = 0, 1, 2, 3 | k = 2 xong; k = 0, 1 mới đến 2 round | k = 0, 2, 3 xong |
-| Trọng số FedAvg | theo số cặp, theo số câu hỏi, đều nhau | xong | xong |
+- Bỏ sample lại mỗi round (xong)
+- Bỏ NLL term (Spider xong, BIRD chờ chạy)
+- Bỏ thành phần preference, chỉ NLL trên sample đúng (round đầu xong, 4
+  round chờ chạy)
+- Số round SFT trước DPO: k = 0, 2, 3 trên Spider, k = 0, 1, 2 trên BIRD (xong)
+- Trọng số FedAvg: theo số cặp, số câu hỏi, đều nhau (xong)
 
-Thực nghiệm mở rộng và phân tích:
+Thực nghiệm mở rộng, trên Spider:
 
-| Thực nghiệm | Nội dung | Dataset | Trạng thái |
-| --- | --- | --- | --- |
-| Student model khác | Qwen2.5-Coder-0.5B, DeepSeek-Coder-1.3B: FedAvg SFT, method, centralized SFT | Spider | 0.5B xong; DeepSeek chờ round 3 và 4; centralized SFT dự kiến |
-| Mức non-IID | alpha 0.1 và IID, FedAvg SFT và method | Spider | alpha 0.1 xong; IID chờ chạy |
-| Federated so với gộp client | các round DPO trên data gộp, không aggregation | Spider | chờ chạy |
-| FedAvg SFT chạy thêm round | baseline có đuổi kịp method không | Spider | xong |
-| Robustness | Spider-Syn, Spider-Realistic, Spider-DK | Spider | 1.5B xong; hai model kia chờ chạy |
-| Test-suite accuracy | SQL đúng trên nhiều bản database, không chỉ một | Spider dev | 1.5B và 0.5B xong |
-| Loại lỗi theo round | execution error và wrong result | cả hai | xong |
-| Kết quả theo độ khó | BIRD: simple, moderate, challenging; Spider: easy đến extra | cả hai | xong |
-| Client update | số cặp theo round và client, cosine giữa các client update | cả hai | xong |
-| Chi phí | thời gian mỗi round ở client (sample, chạy SQL, train), dung lượng adapter gửi đi | cả hai | dự kiến, lấy từ log |
+- Student model khác: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B (chờ
+  round 3 và 4)
+- Mức non-IID: alpha 0.1 (xong), IID (chờ chạy)
+- Các round DPO trên data gộp, so với federated (chờ chạy)
+- FedAvg SFT chạy thêm round (xong)
+- Spider-Syn, Realistic, DK (1.5B xong)
+- Test-suite accuracy (xong)
+
+Phân tích:
+
+- Loại lỗi theo round: execution error, wrong result (xong)
+- Kết quả theo độ khó (xong)
+- Số cặp và cosine giữa các client update theo round (xong)
+- Chi phí: thời gian mỗi round ở client, dung lượng adapter (dự kiến)
 
 **Khoảng trống.** Federated Text-to-SQL mới có một bài (Zhang et al., ACL
 2023: T5-base, chỉ SFT). CodeLutra (TMLR 2025) có vòng sample, execution
