@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="468" height="200" viewBox="0 0 468 200" role="img" aria-labelledby="fig-template-title fig-template-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="192" viewBox="0 0 468 192" role="img" aria-labelledby="fig-template-title fig-template-desc">
   <title id="fig-template-title">Figure style sheet</title>
-  <desc id="fig-template-desc">The roles, connectors, marks and text styles every diagram of the paper is built from.</desc>
+  <desc id="fig-template-desc">The surfaces, chips, marks, icons, connectors and text styles every diagram of the paper is built from.</desc>
 
   <!-- Copy this style block and the defs into every figure, unchanged. -->
   <style>
@@ -11,110 +11,113 @@
     .sub { font-size: 6px; }
     .mid { text-anchor: middle; }
     .end { text-anchor: end; }
-    .server { fill: #E5F1F8; stroke: #0072B2; stroke-width: 0.75; }
-    .server-band { fill: #C9E2F1; }
-    .client { fill: #FDF4E1; stroke: #B87A00; stroke-width: 0.75; }
-    .client-band { fill: #F8E3B5; }
-    .model { fill: #F7EAF2; stroke: #A8507F; stroke-width: 0.75; }
-    .model-band { fill: #EDCFE0; }
-    .data { fill: #F2F2F2; stroke: #595959; stroke-width: 0.75; }
-    .data-band { fill: #DEDEDE; }
-    .node { fill: #FFFFFF; stroke: #595959; stroke-width: 0.75; }
-    .outline { fill: none; }
-    .boundary { fill: none; stroke-dasharray: 3 2; }
-    .stack { stroke-width: 0.5; }
-    .flow { fill: none; stroke: #333333; stroke-width: 0.75; marker-end: url(#arrow); }
-    .comm { fill: none; stroke: #A8507F; stroke-width: 1.25; marker-end: url(#arrow-model); }
-    .icon { fill: none; stroke: #333333; stroke-width: 0.9; stroke-linecap: round; stroke-linejoin: round; }
-    .ok { fill: none; stroke: #009E73; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    .bad { fill: none; stroke: #D55E00; stroke-width: 1.5; stroke-linecap: round; }
-    .legend { fill: #F2F2F2; }
-    .rule { stroke: #595959; stroke-width: 0.5; }
+    .server { fill: #E2E8F0; }
+    .client { fill: #F1F5F9; }
+    .boundary { fill: none; stroke: #475569; stroke-width: 0.75; stroke-dasharray: 3 2; }
+    .card { fill: #FFFFFF; }
+    .card-line { fill: none; stroke: #94A3B8; stroke-width: 0.5; }
+    .band { fill: #E2E8F0; }
+    .badge { fill: #CBD5E1; }
+    .accent { fill: #E4EEFD; }
+    .accent-line { fill: none; stroke: #2F6FDE; stroke-width: 0.75; }
+    .accent-band { fill: #DCE9FC; }
+    .accent-badge { fill: #B6D0F8; }
+    .chip { fill: #FFFFFF; stroke: #94A3B8; stroke-width: 0.5; }
+    .chip-ok { fill: #DDF3EB; stroke: #009E73; stroke-width: 0.5; }
+    .chip-bad { fill: #FBE5D8; stroke: #D55E00; stroke-width: 0.5; }
+    .flow { fill: none; stroke: #334155; stroke-width: 0.75; marker-end: url(#arrow); }
+    .comm { fill: none; stroke: #334155; stroke-width: 1.25; marker-end: url(#arrow-comm); }
+    .icon { fill: none; stroke: #334155; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+    .icon .dot { fill: #FFFFFF; }
+    .ok { fill: none; stroke: #009E73; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+    .bad { fill: none; stroke: #D55E00; stroke-width: 1.25; stroke-linecap: round; }
+    .legend { fill: #F1F5F9; }
+    .rule { stroke: #94A3B8; stroke-width: 0.5; }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#333333"/>
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#334155"/>
     </marker>
-    <marker id="arrow-model" viewBox="0 0 6 6" refX="5.2" refY="3" markerWidth="5.5" markerHeight="5.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#A8507F"/>
+    <marker id="arrow-comm" viewBox="0 0 6 6" refX="5.2" refY="3" markerWidth="5.5" markerHeight="5.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#334155"/>
     </marker>
     <g id="icon-doc" class="icon"><path d="M2 1 H8 L11 4 V13 H2 Z M8 1 V4 H11 M4.5 7 H8.5 M4.5 10 H8.5"/></g>
     <g id="icon-db" class="icon"><ellipse cx="6.5" cy="3" rx="5" ry="2"/><path d="M1.5 3 V11 A5 2 0 0 0 11.5 11 V3 M1.5 7 A5 2 0 0 0 11.5 7"/></g>
-    <g id="icon-model" class="icon"><path d="M6.5 1 L12 3.8 L6.5 6.6 L1 3.8 Z M1 7 L6.5 9.8 L12 7 M1 10.2 L6.5 13 L12 10.2"/></g>
+    <g id="icon-model" class="icon">
+      <path d="M2 2.5 L6.5 6.5 L11 2.5 M2 10.5 L6.5 6.5 L11 10.5"/>
+      <circle class="dot" cx="2" cy="2.5" r="1.6"/><circle class="dot" cx="2" cy="10.5" r="1.6"/>
+      <circle class="dot" cx="11" cy="2.5" r="1.6"/><circle class="dot" cx="11" cy="10.5" r="1.6"/>
+      <circle class="dot" cx="6.5" cy="6.5" r="1.9"/>
+    </g>
     <path id="icon-ok" class="ok" d="M0 3.5 L2.8 6.3 L7.5 0.5"/>
     <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
   </defs>
 
-  <!-- roles: one hue per role, tint fill, darker stroke, a band for a container name -->
-  <text class="h" x="1" y="9">Roles</text>
+  <!-- surfaces: flat fills, no outline unless it carries meaning -->
+  <text class="h" x="1" y="9">Surfaces</text>
 
-  <rect class="server" x="1" y="16" width="84" height="44" rx="3"/>
-  <path class="server-band" d="M1 32 V19 A3 3 0 0 1 4 16 H82 A3 3 0 0 1 85 19 V32 Z"/>
-  <rect class="server outline" x="1" y="16" width="84" height="44" rx="3"/>
-  <text class="h" x="9" y="27.5">Server</text>
-  <text x="9" y="44">Aggregation,</text>
-  <text x="9" y="54">anything central</text>
+  <rect class="server" x="1" y="16" width="84" height="44" rx="4"/>
+  <text class="h" x="9" y="35">Server</text>
+  <text x="9" y="47">Anything central</text>
 
-  <rect class="client" x="96" y="16" width="84" height="44" rx="3"/>
-  <path class="client-band" d="M96 32 V19 A3 3 0 0 1 99 16 H177 A3 3 0 0 1 180 19 V32 Z"/>
-  <rect class="client outline" x="96" y="16" width="84" height="44" rx="3"/>
-  <text class="h" x="104" y="27.5">Client</text>
-  <text x="104" y="44">Local steps,</text>
-  <text x="104" y="54">private side</text>
+  <rect class="client" x="96" y="16" width="84" height="44" rx="4"/>
+  <rect class="boundary" x="96" y="16" width="84" height="44" rx="4"/>
+  <text class="h" x="104" y="35">Client</text>
+  <text x="104" y="47">Privacy boundary</text>
 
-  <rect class="model" x="191" y="16" width="84" height="44" rx="3"/>
-  <path class="model-band" d="M191 32 V19 A3 3 0 0 1 194 16 H272 A3 3 0 0 1 275 19 V32 Z"/>
-  <rect class="model outline" x="191" y="16" width="84" height="44" rx="3"/>
-  <text class="h" x="199" y="27.5">Model</text>
-  <text x="199" y="44">Parameters,</text>
-  <text x="199" y="54">adapters, outputs</text>
+  <rect class="card" x="191" y="16" width="84" height="44" rx="4"/>
+  <path class="band" d="M191 34 V20 A4 4 0 0 1 195 16 H271 A4 4 0 0 1 275 20 V34 Z"/>
+  <rect class="card-line" x="191" y="16" width="84" height="44" rx="4"/>
+  <circle class="badge" cx="203" cy="25" r="6"/>
+  <text class="b mid" x="203" y="28">4</text>
+  <text class="b" x="214" y="28">Step</text>
+  <text x="199" y="49">A known step</text>
 
-  <rect class="data" x="286" y="16" width="84" height="44" rx="3"/>
-  <path class="data-band" d="M286 32 V19 A3 3 0 0 1 289 16 H367 A3 3 0 0 1 370 19 V32 Z"/>
-  <rect class="data outline" x="286" y="16" width="84" height="44" rx="3"/>
-  <text class="h" x="294" y="27.5">Data</text>
-  <text x="294" y="44">Questions, SQL,</text>
-  <text x="294" y="54">databases</text>
+  <rect class="card" x="286" y="16" width="84" height="44" rx="4"/>
+  <path class="accent-band" d="M286 34 V20 A4 4 0 0 1 290 16 H366 A4 4 0 0 1 370 20 V34 Z"/>
+  <rect class="accent-line" x="286" y="16" width="84" height="44" rx="4"/>
+  <circle class="accent-badge" cx="298" cy="25" r="6"/>
+  <text class="b mid" x="298" y="28">1</text>
+  <text class="b" x="309" y="28">Step</text>
+  <text x="294" y="49">What is new</text>
 
-  <rect class="node" x="381" y="16" width="86" height="44" rx="3"/>
-  <circle class="client" cx="393" cy="38" r="6.5"/>
-  <text class="b mid" x="393" y="41">1</text>
-  <text x="405" y="36">A step inside</text>
-  <text x="405" y="46">a container</text>
+  <rect class="accent" x="381" y="16" width="86" height="44" rx="4"/>
+  <text class="h" x="389" y="35">Highlight</text>
+  <text x="389" y="47">The part in focus</text>
+
+  <!-- chips, marks, icons -->
+  <text class="h" x="1" y="79">Chips, marks and icons</text>
+  <rect class="chip" x="1" y="87" width="38" height="11" rx="2.5"/>
+  <text class="mid" x="20" y="95.3">SQL 1</text>
+  <rect class="chip-ok" x="46" y="87" width="38" height="11" rx="2.5"/>
+  <text class="mid" x="65" y="95.3">SQL 1</text>
+  <rect class="chip-bad" x="91" y="87" width="38" height="11" rx="2.5"/>
+  <text class="mid" x="110" y="95.3">SQL 2</text>
+  <use href="#icon-ok" x="146" y="89"/>
+  <text x="158" y="95.3">correct</text>
+  <use href="#icon-bad" x="196" y="89"/>
+  <text x="207" y="95.3">wrong</text>
+  <use href="#icon-doc" x="250" y="85.5"/>
+  <text x="267" y="95.3">Text, SQL</text>
+  <use href="#icon-db" x="320" y="85.5"/>
+  <text x="337" y="95.3">Database</text>
+  <use href="#icon-model" x="392" y="86"/>
+  <text x="409" y="95.3">Model</text>
 
   <!-- connectors -->
-  <text class="h" x="1" y="79">Connectors</text>
-  <path class="flow" d="M1 96 H61"/>
-  <text x="1" y="110">Flow inside one party</text>
-  <path class="comm" d="M120 96 H180"/>
-  <text x="120" y="110">Sent between parties</text>
-  <rect class="client boundary" x="239" y="88" width="60" height="14" rx="3"/>
-  <text x="239" y="114">Privacy boundary</text>
-  <rect class="client stack" x="366" y="92" width="52" height="14" rx="3"/>
-  <rect class="client stack" x="362" y="88" width="52" height="14" rx="3"/>
-  <rect class="client" x="358" y="84" width="52" height="14" rx="3"/>
-  <text x="358" y="118">Several of the same kind</text>
-
-  <!-- marks and icons -->
-  <text class="h" x="1" y="137">Marks and icons</text>
-  <use href="#icon-ok" x="1" y="146"/>
-  <text x="13" y="153">correct</text>
-  <use href="#icon-bad" x="52" y="146"/>
-  <text x="63" y="153">wrong</text>
-  <use href="#icon-doc" x="120" y="143"/>
-  <text x="138" y="153">Text, SQL</text>
-  <use href="#icon-db" x="191" y="143"/>
-  <text x="209" y="153">Database</text>
-  <use href="#icon-model" x="264" y="143"/>
-  <text x="282" y="153">Model</text>
+  <text class="h" x="1" y="121">Connectors</text>
+  <path class="flow" d="M1 134 H61"/>
+  <text x="1" y="148">Flow inside one party</text>
+  <path class="comm" d="M130 134 H190"/>
+  <text x="130" y="148">Sent between parties</text>
 
   <!-- text -->
-  <text class="h" x="341" y="137">Text</text>
-  <text class="h" x="341" y="149">Name or heading, 9 pt bold</text>
-  <text x="341" y="160">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
-  <text x="341" y="171"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
+  <text class="h" x="286" y="121">Text</text>
+  <text class="h" x="286" y="133">Name or heading, 9 pt bold</text>
+  <text x="286" y="144">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
+  <text x="286" y="155"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
 
   <!-- legend strip -->
-  <rect class="legend" x="1" y="180" width="466" height="20" rx="3"/>
-  <text x="9" y="193"><tspan class="b">Legend strip:</tspan> one line at the bottom, for the contrast the figure makes</text>
+  <rect class="legend" x="1" y="170" width="466" height="20" rx="4"/>
+  <text x="9" y="183"><tspan class="b">Legend strip:</tspan> one line at the bottom, for the contrast the figure makes</text>
 </svg>
