@@ -11,18 +11,31 @@ FedAvg SFT, sau đó là các round DPO. Mỗi round, client sample SQL từ mod
 global, chạy trên database của mình để gán nhãn đúng hay sai, rồi train
 DPO + NLL trên các cặp đúng và sai đó.
 
-**Lý do bỏ KD.** Khi đo riêng từng bước (setup cũ), teacher chỉ thêm
-khoảng 1 điểm EX so với train gold SQL trên cùng public data, còn DPO ở
-client thêm 3 đến 4 điểm. Em để KD làm hướng mở rộng sau.
+**Lý do bỏ KD.** Gain nhỏ so với compute phải chạy. Ở setup cũ em đo
+riêng từng bước trên Spider test (gộp 2 seed):
 
-**Kết quả** (EX, Qwen2.5-Coder-1.5B, 5 client non-IID, 4 round)
+| Bước | Gain EX | Compute trên một card A5000 |
+| --- | ---: | --- |
+| Cả bước public (KD trên BIRD) | +1.40 | chạy teacher 7B trên 9,428 câu: khoảng 14 giờ (ước tính từ 5.5 giây mỗi câu); KD: 3.3 đến 3.6 giờ mỗi epoch |
+| Riêng teacher, so với train gold SQL trên cùng data | +0.98 (p = 0.04) | như trên; train gold SQL không cần teacher: 2.7 giờ mỗi epoch |
+| DPO ở client | **+3.19 đến +3.91** | khoảng 3 giờ mỗi round |
 
-| | FedAvg SFT | Method | Gain |
-| --- | ---: | ---: | ---: |
-| BIRD dev | 42.57 | **48.76** | +6.19 |
-| Spider test | 74.71 | **78.20** | +3.49 |
+Em để KD làm hướng mở rộng sau.
 
-Round tốt nhất của FedAvg SFT trên BIRD là 43.68.
+**Kết quả** (EX, 5 client non-IID, 4 round, Qwen2.5-Coder-1.5B nếu không
+ghi khác)
+
+| | Chưa train | FedAvg SFT | Method | Gain |
+| --- | ---: | ---: | ---: | ---: |
+| BIRD dev | 29.47 | 42.57 | **48.76** | +6.19 |
+| Spider test | 68.05 | 74.71 | **78.20** | +3.49 |
+| Spider-Syn / Realistic / DK | 56.77 / 65.16 / 60.19 | 59.09 / 67.72 / 59.63 | **62.96 / 70.47 / 63.55** | +3.87 / +2.75 / +3.92 |
+| Spider test, model 0.5B | 54.40 | 64.09 | **66.19** | +2.10 |
+
+- Trên BIRD, method hơn ở cả ba mức độ khó, rõ nhất ở moderate (39.66 so
+  với 29.96); số SQL lỗi khi chạy giảm từ 268 xuống 128.
+- Trên Spider test, method hơn cả centralized SFT (75.73).
+- Round tốt nhất của FedAvg SFT trên BIRD là 43.68.
 
 **Baseline.** FedAvg SFT, FedDPO của OpenFedLLM (cặp và reference cố
 định), centralized SFT; em cân nhắc thêm FedProx và local SFT.
