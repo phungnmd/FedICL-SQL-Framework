@@ -4,6 +4,16 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: the RFT rows first in the queue (owner; queue `df0d9f95`)
+
+The preference term on top of NLL is read on Spider test only (+1.59 at
+round 1, p 0.015; Spider dev +0.39, p 0.78). Owner: stopped
+`bird_feddpo/round_1` while it ran and put the rows that read it first:
+`bird_rft/round_1` (no sampling, against `bird_k2/round_1`, 46.22) and
+`rft/round_2` (Spider, samples drawn again from RFT round 1, against
+`dpo_k2/round_2`: 78.20 test, 77.66 dev). `bird_feddpo` and
+`bird_central` follow. Queue tests pass.
+
 ## 2026-11-25: on-policy rounds hold on BIRD at k = 2; on Spider dev the NLL term holds and the preference term at round 1 does not separate (results `b5b48a32`, `7f68fe95`, `7e5ab4e7`, `393f5ab6`)
 
 `bird_k2_fixed/round_2` (round 2 on the round 1 pairs, reference FedAvg
