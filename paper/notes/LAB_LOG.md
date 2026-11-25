@@ -4,6 +4,17 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: federated Text-to-SQL scan (owner's request; no run)
+
+arXiv API, OpenAlex, the 9 citing papers of FL4SP on Semantic Scholar, web
+search in English and Chinese. FL4SP is still the only federated
+Text-to-SQL training paper. Added: KGRFL (federated BART parser to
+SPARQL, IEEE TCSS 2023) as the second federated semantic parsing paper;
+RAG-SQL and Ownership-Aware Routing (inference over federated or siloed
+databases, no training); the TMLR survey that lists BIRD as a federated
+benchmark; federated code translation, LaDa, Fed-SE, SemFed, Fed-ICL as
+adjacent work. `LITERATURE.md`, section 1.22.
+
 ## 2026-11-25: BIRD is the main dataset of the paper, Spider carries the breadth rows (owner; no run)
 
 Decided after a review of the project against the bar of the target
