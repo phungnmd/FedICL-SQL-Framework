@@ -60,37 +60,40 @@ Spider test:
 Spider test, một seed, McNemar test. BIRD là dataset chính, Spider cho
 phần mở rộng.
 
-Baseline:
+Baseline, trên BIRD và Spider:
 
 - Zero-shot (xong)
-- Local SFT: mỗi client fine-tune riêng (Spider, dự kiến)
+- Local SFT: mỗi client fine-tune riêng (dự kiến)
 - Centralized SFT (Spider xong, BIRD chờ chạy)
 - FedAvg SFT (xong)
-- FedProx SFT (Spider, dự kiến)
+- FedProx SFT (dự kiến)
 - FedDPO của OpenFedLLM: fixed pairs, fixed reference model, không NLL
   (chờ chạy)
 
-Ablation:
+Ablation, trên BIRD và Spider:
 
 - Không on-policy sampling: dùng lại pair và reference của round DPO đầu
   (xong)
 - Không NLL term: DPO loss thuần (Spider xong, BIRD chờ chạy)
 - Không preference term: chỉ NLL trên sample đúng (round đầu xong, 4 round
   chờ chạy)
-- Số round SFT warm-up: k = 0, 2, 3 trên Spider, k = 0, 1, 2 trên BIRD
-  (xong)
+- Số round SFT warm-up, ở cùng tổng 4 round: k = 0, 2, 3 (Spider xong;
+  BIRD có k = 2, k = 0 và k = 3 dự kiến)
 - Aggregation weight: theo số pair, theo số câu hỏi, uniform (xong)
 
-Thực nghiệm mở rộng, trên Spider:
+Thực nghiệm mở rộng:
 
-- Model khác: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B (chờ
-  round 3 và 4)
-- Data heterogeneity: Dirichlet alpha 0.1 (xong), IID (chờ chạy)
-- Pooled DPO: các round DPO trên data gộp, không aggregation, so với
-  federated (chờ chạy)
-- FedAvg SFT thêm round (xong)
+- Model khác, trên Spider: Qwen2.5-Coder-0.5B (xong), DeepSeek-Coder-1.3B
+  (chờ round 3 và 4)
+- Model thứ hai trên BIRD: DeepSeek-Coder-1.3B (dự kiến)
+- Federated setup, trên Spider: 5 client với Dirichlet alpha 0.1 (xong),
+  IID (chờ chạy), alpha 0.5 (dự kiến); 10 client với alpha 0.5 (dự kiến)
+- Method thêm một round DPO trên BIRD (dự kiến)
+- Pooled DPO, trên Spider: các round DPO trên data gộp, không
+  aggregation, so với federated (chờ chạy)
+- FedAvg SFT thêm round, trên Spider (xong)
 - Robustness: Spider-Syn, Spider-Realistic, Spider-DK (1.5B xong)
-- Test-suite accuracy (xong)
+- Test-suite accuracy, trên Spider (xong)
 
 Phân tích:
 
