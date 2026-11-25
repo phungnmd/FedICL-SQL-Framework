@@ -22,20 +22,31 @@ riêng từng bước trên Spider test (gộp 2 seed):
 
 Em để KD làm hướng mở rộng sau.
 
-**Kết quả** (EX, 5 client non-IID, 4 round, Qwen2.5-Coder-1.5B nếu không
-ghi khác)
+**Kết quả.** Em so method với hai baseline, trên hai dataset và qua các
+student model: FedAvg SFT là baseline federated ở cùng số round, centralized
+SFT là mức tham chiếu khi gộp data của mọi client. EX, 5 client non-IID, 4
+round.
 
-| | Chưa train | FedAvg SFT | Method | Gain |
-| --- | ---: | ---: | ---: | ---: |
-| BIRD dev | 29.47 | 42.57 | **48.76** | +6.19 |
-| Spider test | 68.05 | 74.71 | **78.20** | +3.49 |
-| Spider-Syn / Realistic / DK | 56.77 / 65.16 / 60.19 | 59.09 / 67.72 / 59.63 | **62.96 / 70.47 / 63.55** | +3.87 / +2.75 / +3.92 |
-| Spider test, model 0.5B | 54.40 | 64.09 | **66.19** | +2.10 |
+BIRD dev (dataset chính):
 
-- Trên BIRD, method hơn ở cả ba mức độ khó, rõ nhất ở moderate (39.66 so
-  với 29.96); số SQL lỗi khi chạy giảm từ 268 xuống 128.
-- Trên Spider test, method hơn cả centralized SFT (75.73).
-- Round tốt nhất của FedAvg SFT trên BIRD là 43.68.
+| Model | Chưa train | Centralized SFT | FedAvg SFT | Method | Gain so với FedAvg SFT |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen2.5-Coder-1.5B | 29.47 | chờ chạy | 42.57 | **48.76** | +6.19 |
+
+Spider test:
+
+| Model | Chưa train | Centralized SFT | FedAvg SFT | Method | Gain so với FedAvg SFT |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen2.5-Coder-1.5B | 68.05 | 75.73 | 74.71 | **78.20** | +3.49 |
+| Qwen2.5-Coder-0.5B | 54.40 | chưa chạy | 64.09 | **66.19** | +2.10 |
+| DeepSeek-Coder-1.3B | 55.85 | chưa chạy | 69.82 (2 round) | **75.08** (3 round) | chờ FedAvg SFT round 3 |
+
+- Method hơn FedAvg SFT trên cả hai dataset và trên hai model đã chạy đủ
+  4 round; với model 1.5B trên Spider test, method hơn cả centralized SFT.
+- Trên BIRD, round tốt nhất của FedAvg SFT là 43.68. Method hơn ở cả ba
+  mức độ khó, rõ nhất ở moderate (39.66 so với 29.96), và số SQL lỗi khi
+  chạy giảm từ 268 xuống 128.
+- Hai model còn lại chưa chạy trên BIRD.
 
 **Baseline.** FedAvg SFT, FedDPO của OpenFedLLM (cặp và reference cố
 định), centralized SFT; em cân nhắc thêm FedProx và local SFT.
