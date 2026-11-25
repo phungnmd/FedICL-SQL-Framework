@@ -64,12 +64,26 @@ ARMS = {
     "fedpref_bird_base_p2_dpo_ddl_a01_r2": ("k0", 2),
     "fedpref_bird_base_p2_goldrule_dpo_ddl_a01_r1": ("k0gold", 1),
     "fedpref_bird_base_p2_goldnll_dpo_ddl_a01_r2": ("k0goldnll", 2),
-    "fedpref_bird_base_p2_fixed_dpo_ddl_a01_r2": ("fixed", 2),
+    "fedpref_bird_base_p2_fixed_dpo_ddl_a01_r2": ("k0fixed", 2),
     "fedpref_bird_sftr1_p2_dpo_ddl_a01_r1": ("k1", 2),
     "fedpref_bird_sftr2_p2_dpo_ddl_a01_r1": ("k2", 3),
     "fedpref_bird_sftr2_p2_dpo_ddl_a01_r2": ("k2", 4),
     "fedavg_bird_ddl_a01_r4": ("fedavg", 4),
+    # round 2 of bird_k2 on round 1's pairs and reference (the on-policy ablation at k = 2)
+    "fedpref_bird_sftr2_p2_fixed_dpo_ddl_a01_r2": ("fixed", 4),
+    # NLL on the correct samples alone, round 1 from FedAvg SFT round 2 (the preference-term ablation)
+    "fedpref_bird_sftr2_p2_rft_ddl_a01_r1": ("rft", 3),
+    "fedavg_ddl_rows_a01_r5": ("fedavg", 5),
+    # strict labels on 10 database variants: databases with rows only (strict), and with the
+    # databases without rows paired under the rule `differs` (strictd)
+    "fedpref_sftr2_strict10_dpo_ddl_rows_a01_r1": ("strict", 3),
+    "fedpref_sftr2_strict10ed_dpo_ddl_rows_a01_r1": ("strictd", 3),
 }
+# the client adapters of the first DPO + NLL round of k = 2 averaged again by question count
+# (reaggq) and with equal weights (reagge); the round itself is weighted by pair count
+for _w, _l in (("questions", "reaggq"), ("equal", "reagge")):
+    ARMS[f"fedpref_sftr2_reagg_{_w}_dpo_ddl_rows_a01_r1"] = (_l, 3)
+    ARMS[f"fedpref_bird_sftr2_p2_reagg_{_w}_dpo_ddl_a01_r1"] = (_l, 3)
 # the other student models on Spider test: the line of the 1.5B with the model changed
 for _m in ("qwen05b", "deepseek13b"):
     ARMS[f"zs_{_m}_ddl_rows"] = ("base", 0)
@@ -117,7 +131,7 @@ TESTS = [
     ("bird", "fedavg", 3, "k1", 2),
     ("bird", "k0", 1, "k0", 2),
     ("bird", "k0", 2, "k1", 2),
-    ("bird", "fixed", 2, "k0", 2),
+    ("bird", "k0fixed", 2, "k0", 2),
     ("bird", "k0", 1, "k0gold", 1),
     ("bird", "k0", 2, "k0goldnll", 2),
     ("bird", "k1", 2, "k0goldnll", 2),
@@ -147,7 +161,36 @@ TESTS = [
     ("spiderdev", "k2", 3, "k2", 4),
     ("spiderdev", "k0", 4, "k2", 4),
     ("spiderdev", "central", 2, "k2", 4),
-] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
+    # the paper tables: the method against its ablations and against FedAvg SFT at other rounds
+    ("bird", "fixed", 4, "k2", 4),
+    ("bird", "k2", 3, "k2", 4),
+    ("bird", "fedavg", 3, "k2", 4),
+    ("bird", "rft", 3, "k2", 3),
+    ("bird", "feddpo", 3, "k2", 3),
+    ("bird", "feddpo", 4, "k2", 4),
+    ("bird", "rft", 4, "k2", 4),
+    ("bird", "central", 3, "k2", 4),
+    ("spider", "feddpo", 4, "k2", 4),
+    ("spider", "rft", 4, "k2", 4),
+    ("spider", "k3", 4, "k2", 4),
+    ("spider", "fedavg", 5, "k2", 4),
+    ("spider", "central", 3, "k2", 4),
+    ("spiderdev", "fedavg", 4, "fedavg", 5),
+    ("spiderdev", "fedavg", 5, "k2", 4),
+    ("spiderdev", "k3", 4, "k2", 4),
+    ("spiderdev", "rft", 3, "k2", 3),
+    ("spiderdev", "feddpo", 3, "k2", 3),
+    ("spiderdev", "feddpo", 4, "k2", 4),
+    ("spiderdev", "rft", 4, "k2", 4),
+    ("spiderdev", "fedavg", 2, "rft", 3),
+    ("spiderdev", "fedavg", 2, "feddpo", 3),
+] + [t for ds in ("spider", "spiderdev", "bird") for t in (
+    (ds, "k2", 3, "reaggq", 3),
+    (ds, "k2", 3, "reagge", 3),
+)] + [t for ds in ("spider", "spiderdev") for t in (
+    (ds, "k2", 3, "strict", 3),
+    (ds, "k2", 3, "strictd", 3),
+)] + [t for ds in ("spiderdev", "syn", "realistic", "dk") for t in (
     (ds, "base", 0, "fedavg", 4),
     (ds, "fixed", 4, "k2", 4),
     (ds, "k0", 4, "k2", 4),
@@ -184,8 +227,6 @@ def mcnemar(wins: int, losses: int) -> float:
 
 
 def p_text(p: float) -> str:
-    if p < 1e-6:
-        return "<1e-6"
     if p < 1e-3:
         return f"{p:.1e}".replace("e-0", "e-")
     return f"{p:.2g}" if p < 0.1 else f"{p:.2f}"
@@ -219,9 +260,11 @@ def test_suite() -> dict:
         for name, src in d["sources"].items():
             path = Path(src["path"])
             key = (path.parts[-3], path.name)
-            if key in out:
-                raise SystemExit(f"two test-suite scores for {key}")
-            out[key] = {row["row_id"]: int(row[f"{name}_ts"]) for row in table}
+            score = {row["row_id"]: int(row[f"{name}_ts"]) for row in table}
+            # one prediction file may be scored in several audits; the scores must agree
+            if key in out and out[key] != score:
+                raise SystemExit(f"two different test-suite scores for {key}")
+            out[key] = score
             ts = round(100 * sum(out[key].values()) / len(out[key]), 2)
             if abs(ts - d["accuracy"][name]["ts_ex"]) > 0.006:
                 raise SystemExit(f"{summary.parent.name} {name}: TS {ts} against {d['accuracy'][name]['ts_ex']}")
@@ -320,8 +363,8 @@ def build() -> dict:
                 t = test(rows_of, ts_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
                 if t:
                     tests.append(t)
-    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k1", "k2", "k3", "k4", "k6", "pooled", "fixed", "feddpo", "rft",
-                                          "nearest", "goldchosen", "wrfirst", "central"])}
+    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k0fixed", "k1", "k2", "k3", "k4", "k6", "pooled", "fixed", "feddpo", "rft",
+                                          "nearest", "goldchosen", "wrfirst", "strict", "strictd", "reaggq", "reagge", "central"])}
     runs.sort(key=lambda x: (x["ds"], x["model"], order.get(x["line"], 99), x["r"], x["seed"]))
     return {"runs": runs, "tests": tests}
 
