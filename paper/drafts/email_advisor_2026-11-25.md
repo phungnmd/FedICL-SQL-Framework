@@ -41,7 +41,7 @@ BIRD dev (primary benchmark):
 
 | Backbone | Zero-shot | Centralized SFT | FedAvg SFT | Method | Gain vs. FedAvg SFT |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Qwen2.5-Coder-1.5B | 29.47 | queued | 42.57 | **48.76** | +6.19 |
+| Qwen2.5-Coder-1.5B | 29.47 | pending | 42.57 | **48.76** | +6.19 |
 
 Spider test:
 
@@ -63,56 +63,50 @@ Spider test:
 (Dirichlet α = 0.1), full participation, LoRA fine-tuning, EX trên BIRD
 dev và Spider test, single seed, significance bằng McNemar test. BIRD là
 primary benchmark: mọi baseline và ablation đều chạy trên BIRD. Spider
-dùng cho các extended experiment. Trạng thái: done, queued (đã vào GPU
-queue), planned (chưa queue).
+dùng cho các extended experiment.
 
 Baseline, trên BIRD và Spider:
 
-- Zero-shot (done)
+- Zero-shot
 - Local SFT: không aggregation; report mean, min, max qua các client
-  (planned)
-- Centralized SFT (Spider done, BIRD queued)
-- FedAvg SFT (done)
-- FedProx SFT (planned)
+- Centralized SFT
+- FedAvg SFT
+- FedProx SFT
 - FedDPO của OpenFedLLM: fixed preference pairs, fixed reference model,
-  không NLL term (queued)
+  không NLL term
 
 Ablation study, trên BIRD và Spider:
 
 - w/o on-policy sampling: giữ preference pair và reference model của DPO
-  round đầu (done)
-- w/o NLL term: DPO loss only (Spider done, BIRD queued)
-- w/o preference term: chỉ NLL loss trên correct sample (round đầu done,
-  4 round queued)
-- Số SFT warm-up round k, cùng total budget 4 round: k = 0, 2, 3 (Spider
-  done; BIRD: k = 2 done, k = 0 và k = 3 planned)
+  round đầu
+- w/o NLL term: DPO loss only
+- w/o preference term: chỉ NLL loss trên correct sample
+- Số SFT warm-up round k, cùng total budget 4 round: k = 0, 2, 3
 - Aggregation weight: theo số preference pair, theo số question, uniform
-  (done)
 
 Extended experiment:
 
-- Backbone khác, trên Spider: Qwen2.5-Coder-0.5B (done),
-  DeepSeek-Coder-1.3B (round 3 và 4 queued)
-- Backbone thứ hai trên BIRD: DeepSeek-Coder-1.3B (planned)
+- Backbone khác, trên Spider: Qwen2.5-Coder-0.5B, DeepSeek-Coder-1.3B
+- Backbone thứ hai trên BIRD: DeepSeek-Coder-1.3B
 - Federated setup, trên Spider, mỗi setup gồm FedAvg SFT và method. Data
-  heterogeneity với K = 5: Dirichlet α = 0.1 (done), IID (queued),
-  α = 0.5 (planned). Số client: K = 10 với α = 0.5 (planned)
-- Thêm một DPO round trên BIRD, total 5 round (planned)
+  heterogeneity với K = 5: Dirichlet α = 0.1, α = 0.5, IID. Số client:
+  K = 10 với α = 0.5
+- Thêm một DPO round trên BIRD, total 5 round
 - Pooled DPO, trên Spider: DPO round trên pooled data, không aggregation,
-  so với federated (queued)
-- FedAvg SFT với nhiều communication round hơn, trên Spider (done)
-- Robustness: Spider-Syn, Spider-Realistic, Spider-DK (1.5B done)
-- Test-suite accuracy, trên Spider (done)
+  so với federated
+- FedAvg SFT với nhiều communication round hơn, trên Spider
+- Robustness: Spider-Syn, Spider-Realistic, Spider-DK
+- Test-suite accuracy, trên Spider
 
 Analysis:
 
-- Error analysis theo round: execution error, wrong-result error (done)
-- EX theo difficulty level (done)
+- Error analysis theo round: execution error, wrong-result error
+- EX theo difficulty level
 - Client update: số preference pair và cosine similarity giữa các client
-  update theo round (done)
+  update theo round
 - Cost analysis: client compute time mỗi round, communication cost theo
-  adapter size (planned)
-- Multiple-comparison correction (Holm) cho các McNemar test (planned)
+  adapter size
+- Multiple-comparison correction (Holm) cho các McNemar test
 
 **Research gap.** Prior work về federated Text-to-SQL mới có một bài
 (Zhang et al., ACL 2023: T5-base, SFT only). CodeLutra (TMLR 2025) có
