@@ -4,6 +4,46 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-25: on-policy rounds hold on BIRD at k = 2; on Spider dev the NLL term holds and the preference term at round 1 does not separate (results `b5b48a32`, `7f68fe95`, `7e5ab4e7`, `393f5ab6`)
+
+`bird_k2_fixed/round_2` (round 2 on the round 1 pairs, reference FedAvg
+SFT round 2), BIRD dev, exact McNemar:
+
+| Row | EX | Against the on-policy round 2 (48.76) |
+|---|---|---|
+| On-policy, round 1 (shared) | 46.22 | |
+| Fixed pairs and reference, round 2 | 46.15 | -2.61 (45 / 85, p 0.0006) |
+| On-policy, round 2 | **48.76** | |
+
+- The fixed round 2 adds nothing over round 1 (47 / 48, p 1.0); it is
+  still 3.58 above FedAvg SFT round 4 (p 0.0004). On-policy rounds are
+  a part of the method on BIRD at the method's k (at k = 0: +2.21,
+  p 0.008); on Spider test they made no difference (78.20 against
+  78.02).
+
+The two ablation rounds on Spider dev (1,034), round 1 from FedAvg SFT
+round 2 on the same 8,026 pairs; test-suite accuracy on the Mac
+(`audits/protocol_v2/test_suite/ablations_r1_spider_dev`):
+
+| Row | EX | TS | Errors / wrong results (EX) |
+|---|---|---|---|
+| Start, FedAvg SFT round 2 | 72.73 | 65.76 | 95 / 187 |
+| DPO without NLL | 72.53 | 64.12 | 77 / 207 |
+| RFT (NLL on the correct samples alone) | 74.66 | 67.70 | 87 / 175 |
+| DPO + NLL (`dpo_k2/round_1`) | **75.05** | **68.47** | 61 / 197 |
+
+- The NLL term holds on dev: without it DPO is level with its start
+  (EX 93 / 95, p 0.94) and 2.51 EX and 4.35 TS below the method
+  (70 / 44, p 0.019; TS 85 / 40, p 7e-05).
+- The preference term on top of NLL does not separate on dev at round
+  1: +0.39 EX (57 / 53, p 0.78), +0.77 TS (56 / 48, p 0.49). On Spider
+  test the same contrast is +1.59 (110 / 76, p 0.015). What it changes
+  on both sets is the error type: execution errors 61 against 87 on
+  dev (99 against 153 on test), wrong results 197 against 175.
+- RFT gains over its start on dev (+1.93, 34 / 14, p 0.0055).
+- Still to read: RFT at 4 rounds (`rft/round_2`, Spider test and dev)
+  and on BIRD (`bird_rft/round_1`).
+
 ## 2026-11-25: BIRD rows first in the queue (owner; queue `75a4f266`)
 
 Owner: BIRD shows the effect most clearly (+6.19 over FedAvg SFT at 4
