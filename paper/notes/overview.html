@@ -466,7 +466,7 @@ var CONST = {
     { part: "Hint bảng và cột của gold", idea: "Sample lại câu all-wrong với một dòng nêu bảng và cột của gold SQL; sample đúng thành chosen, train dưới prompt không hint", state: ["open", "round có hint: chờ owner"],
       text: "BIRD, câu all-wrong của k = 0 R2 ở client 1, 3, 4: có sample đúng 31.7% với hint, 10.4% khi sample lại không hint; hint thêm 21.4 điểm (19.0 đến 23.7), dưới mức 25 đặt trước.", src: "từ notes: LAB_LOG 2026-11-21" },
     { part: "Prefix của gold SQL", idea: "Sample lại câu all-wrong sau phần đầu của gold SQL", state: ["no", "không theo"],
-      text: "Qwen 0.5B, Spider, 1,168 câu all-wrong sau round DPO thứ hai: có sample đúng 15.0% không prefix, 57.0%, 76.6%, 87.9% với 25%, 50%, 75% token đầu của gold; 61% đến 76% sample đúng chính là gold SQL.", src: "từ notes: LAB_LOG 2026-11-23" }
+      text: "Qwen 0.5B, Spider, 1,168 câu all-wrong của round DPO thứ hai (k = 2), sample lại từ adapter sau round DPO thứ nhất: có sample đúng 15.0% không prefix, 57.0%, 76.6%, 87.9% với 25%, 50%, 75% token đầu của gold; 61% đến 76% sample đúng chính là gold SQL.", src: "từ notes: LAB_LOG 2026-11-23" }
   ]
 };
 </script>
