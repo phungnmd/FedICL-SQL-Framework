@@ -168,12 +168,12 @@ deviate.
   that is Opus for subagents.
 - `paper/notes/overview.html` is the owner's project page. Update it only
   when the owner asks, from committed results; each update sets its
-  `Cập nhật` stamp and adds a line to its update log at the bottom. Its
-  results tab is drawn from a data block that
+  `Cập nhật` stamp and adds a line to its update log at the bottom. Every
+  measured number on it is drawn from a data block that
   `paper/notes/tools/overview_results.py` writes from the committed
   evaluations; a new evaluation needs one line in that script's `ARMS`,
-  a new line or queued row an entry in the page's `LINES`, `START` or
-  `PLAN`.
+  a new line an entry in the page's `LINES` and `START`, a queued task
+  one in `PLAN`, a new paper cell one in `TABLES`.
 
 ## Writing
 
