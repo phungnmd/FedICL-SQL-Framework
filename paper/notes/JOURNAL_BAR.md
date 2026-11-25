@@ -82,8 +82,13 @@ Not there yet, by how often the read papers have it:
    printed (GradeSQL).
 6. For JIIS: a limitations part and released code and predictions.
 
-Not needed by this evidence: more seeds, standard deviations,
-differential privacy.
+Not needed by this evidence: standard deviations, differential privacy.
+
+Seeds (revised 2026-11-26): GradeSQL has one fixed seed, and two of the
+four JIIS full texts report the mean of 5 runs. A McNemar test measures
+the test questions, not the difference between two training runs. The
+paper runs a second training seed of the two main rows on BIRD
+(`RESEARCH_STATE.md`, section 3.4); the other rows keep one seed.
 
 Federated papers at JIIS, by title (Crossref, title search for
 "federated" in ISSN 1573-7675, 2026-11-25): six from 2024 to 2026, four

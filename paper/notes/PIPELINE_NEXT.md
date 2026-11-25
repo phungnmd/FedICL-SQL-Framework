@@ -362,11 +362,12 @@ commands before it runs.
 | 1 | `bird_k0` rounds 3 and 4 | BIRD | k = 0 against k = 2 at 4 rounds; the read can change k on BIRD | 14 h |
 | 2 | local SFT of each client, 3 epochs | BIRD | does federating pay: mean, minimum and maximum of the 5 clients against FedAvg SFT | 10 h |
 | 3 | FedProx SFT, rounds 1 to 4 (mu to set) | BIRD | a second federated SFT baseline in the main table | 11.5 h |
-| 4 | `bird_k2/round_3`, with `bird_sft/round_5` if the row is used | BIRD | where the method stops rising | 7 h and 3 h |
-| 5 | DeepSeek-Coder-1.3B: FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from round 2 | BIRD | the BIRD table on a second model; memory on BIRD to measure first | 30 h |
-| 6 | FedAvg SFT rounds 1 to 4 and the method at 3 and 4 rounds on `alpha_0.5/k5` | Spider | a third heterogeneity level | 13 h |
-| 7 | the same on `alpha_0.5/k10` | Spider | 10 clients against 5 at the same alpha | 13 h |
-| 8 | one DPO + NLL round from `bird_sft/round_3` (k = 3) | BIRD | k = 3 at 4 rounds | 7 h |
+| 4 | seed 1 of the two main rows: FedAvg SFT rounds 1 to 4 and the method (DPO + NLL rounds 1 and 2 from its round 2); the client split unchanged | BIRD | does the gain at 4 rounds (6.19 on seed 0) hold on a second training seed | 25 h |
+| 5 | `bird_k2/round_3`, with `bird_sft/round_5` if the row is used | BIRD | where the method stops rising | 7 h and 3 h |
+| 6 | DeepSeek-Coder-1.3B: FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from round 2 | BIRD | the BIRD table on a second model; memory on BIRD to measure first | 30 h |
+| 7 | FedAvg SFT rounds 1 to 4 and the method at 3 and 4 rounds on `alpha_0.5/k5` | Spider | a third heterogeneity level | 13 h |
+| 8 | the same on `alpha_0.5/k10` | Spider | 10 clients against 5 at the same alpha | 13 h |
+| 9 | one DPO + NLL round from `bird_sft/round_3` (k = 3) | BIRD | k = 3 at 4 rounds | 7 h |
 
 On Spider, local SFT per client and FedProx run when a card is free.
 An on-policy round 2 without the NLL term on BIRD (about 7 h) only if

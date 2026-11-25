@@ -240,6 +240,13 @@ round.
 | Spider | 5 | `alpha_0.5/k5` | split built, not queued, about 13 h |
 | Spider | 10 | `alpha_0.5/k10` | split built, not queued, about 13 h |
 
+Seeds (owner, 2026-11-26): the two main rows on BIRD, FedAvg SFT at 4
+rounds and the method, run on a second training seed (the shuffle of
+the SFT rounds and the sampling of the DPO + NLL rounds; the client
+split keeps its seed 42), about 25 h, not queued. Every other row keeps
+one seed with McNemar tests. A third seed only if the gain of the
+second differs from 6.19 by more than about 1.5 points.
+
 Without a GPU: a cost table (client time per round for sampling, labels
 and training, and communication by adapter size, from the logs); a Holm
 or Bonferroni correction over the McNemar tests the paper prints; the
@@ -247,13 +254,15 @@ error breakdown, EX by difficulty, pair counts and the cosine of the
 client updates by round, which exist and go into tables.
 
 Order of the rows not queued: `bird_k0` rounds 3 and 4 (the read can
-change k on BIRD); local SFT and FedProx on BIRD; `bird_k2/round_3`;
-DeepSeek-Coder-1.3B on BIRD; the two Spider setups at alpha 0.5; k = 3
-on BIRD. About 108 GPU hours (BIRD 82, Spider 26).
+change k on BIRD); local SFT and FedProx on BIRD; the second seed of
+the two main rows on BIRD; `bird_k2/round_3`; DeepSeek-Coder-1.3B on
+BIRD; the two Spider setups at alpha 0.5; k = 3 on BIRD. About 133 GPU
+hours (BIRD 107, Spider 26).
 
-Not planned: a second seed, partial participation, 20 or more clients, a
-heterogeneity sweep on BIRD, the server pre-training, pooled DPO + NLL
-on BIRD, one federation over the BIRD and the Spider clients.
+Not planned: a second seed of the other rows, partial participation, 20
+or more clients, a heterogeneity sweep on BIRD, the server
+pre-training, pooled DPO + NLL on BIRD, one federation over the BIRD
+and the Spider clients.
 
 Columns: EX, easy, medium, hard, extra, execution errors, executable SQL
 with a wrong result; on BIRD the official difficulty levels (simple,
@@ -306,8 +315,8 @@ are GPU wall clock on one card (estimates).
 | 3, about 4-6 days | BIRD as a second set of clients; alpha 0.5 and IID for FedAvg and the method; FedProx and FedNTD; centralized and local SFT; a second seed of the main rows; the server pre-training last | breadth for a Q2 journal, a chance at Q1 |
 
 The list of rows the paper needs now is in section 3.4 (revised
-2026-11-25); where it differs from phase 3 (no FedNTD, no second seed,
-no server pre-training), section 3.4 holds.
+2026-11-25); where it differs from phase 3 (no FedNTD, no server
+pre-training, a second seed on BIRD only), section 3.4 holds.
 
 Not in the plan now: the teacher, unlabelled questions, 10 pairs per
 question. A switch rule computed by the clients (switch when the share

@@ -4,6 +4,31 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: a second training seed for the two main rows on BIRD (owner; no run)
+
+The list of 2026-11-25 left a second seed out, after the line "more
+seeds: not needed" of `JOURNAL_BAR.md`. That line was too strong for
+JIIS: of its four full texts read, GradeSQL has one fixed seed and two
+report the mean of 5 runs.
+
+- A McNemar test measures the test questions, not the difference between
+  two training runs, and the method samples at temperature 1.0, so the
+  seed changes the pairs as well as the order of training.
+- The only run-to-run number so far is one DPO + NLL round on Spider run
+  again with the same settings: 0.2 EX, 24 questions flipped
+  (2026-11-18). It is not another seed.
+- The main gains (6.19 on BIRD, 3.49 on Spider test) are far above that;
+  the ablation gaps of 1 to 2 points are not covered by it.
+- Decided: seed 1 of FedAvg SFT rounds 1 to 4 and of the method (DPO +
+  NLL rounds 1 and 2 from its round 2) on the BIRD clients, the client
+  split unchanged, about 25 h (estimate), after local SFT and FedProx.
+  The other rows keep one seed with McNemar tests. A third seed only if
+  the gain of seed 1 differs from 6.19 by more than about 1.5 points.
+- Written into `RESEARCH_STATE.md` (section 3.4), `PIPELINE_NEXT.md`,
+  `JOURNAL_BAR.md` and the setup line of the advisor email. New rows now
+  about 133 GPU hours (BIRD 107, Spider 26), estimates. No queue line is
+  written yet.
+
 ## 2026-11-25: the rows the paper needs, revised for BIRD as the main dataset; five federated setups (owner; no run)
 
 A read of the notes, the queue and `JOURNAL_BAR.md` against the dataset
