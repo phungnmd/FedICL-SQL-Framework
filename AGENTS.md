@@ -166,6 +166,10 @@ deviate.
 - Delegated work (subagents) runs on the cheaper model; the larger model
   is for the main session only (owner, 2026-11-22: cost). In Claude Code
   that is Opus for subagents.
+- Diagrams of the paper follow `paper/figures/STYLE.md`: a new figure
+  starts from `paper/figures/template.svg`, is rendered with
+  `paper/figures/render.py`, and its PNG is opened and checked before it
+  is committed.
 - `paper/notes/overview.html` is the owner's project page. Update it only
   when the owner asks, from committed results; each update sets its
   `Cập nhật` stamp and adds a line to its update log at the bottom. Every

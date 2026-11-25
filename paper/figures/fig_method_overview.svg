@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="300" viewBox="0 0 468 300" role="img" aria-labelledby="fig-method-title fig-method-desc">
+  <title id="fig-method-title">Method overview</title>
+  <desc id="fig-method-desc">Clients warm up the model with two FedAvg SFT rounds. In every later round each client samples SQL from the global model, executes it on its private databases, builds preference pairs from correct and wrong samples, trains LoRA with DPO + NLL and returns its adapter to the server.</desc>
+
+  <!-- style block of paper/figures/template.svg, unchanged -->
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; font-size: 8px; fill: #000; }
+    .h { font-size: 9px; font-weight: bold; }
+    .b { font-weight: bold; }
+    .i { font-style: italic; }
+    .sub { font-size: 6px; }
+    .mid { text-anchor: middle; }
+    .end { text-anchor: end; }
+    .server { fill: #E5F1F8; stroke: #0072B2; stroke-width: 0.75; }
+    .server-band { fill: #C9E2F1; }
+    .client { fill: #FDF4E1; stroke: #B87A00; stroke-width: 0.75; }
+    .client-band { fill: #F8E3B5; }
+    .model { fill: #F7EAF2; stroke: #A8507F; stroke-width: 0.75; }
+    .model-band { fill: #EDCFE0; }
+    .data { fill: #F2F2F2; stroke: #595959; stroke-width: 0.75; }
+    .data-band { fill: #DEDEDE; }
+    .node { fill: #FFFFFF; stroke: #595959; stroke-width: 0.75; }
+    .outline { fill: none; }
+    .boundary { fill: none; stroke-dasharray: 3 2; }
+    .stack { stroke-width: 0.5; }
+    .flow { fill: none; stroke: #333333; stroke-width: 0.75; marker-end: url(#arrow); }
+    .comm { fill: none; stroke: #A8507F; stroke-width: 1.25; marker-end: url(#arrow-model); }
+    .icon { fill: none; stroke: #333333; stroke-width: 0.9; stroke-linecap: round; stroke-linejoin: round; }
+    .ok { fill: none; stroke: #009E73; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .bad { fill: none; stroke: #D55E00; stroke-width: 1.5; stroke-linecap: round; }
+    .legend { fill: #F2F2F2; }
+    .rule { stroke: #595959; stroke-width: 0.5; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#333333"/>
+    </marker>
+    <marker id="arrow-model" viewBox="0 0 6 6" refX="5.2" refY="3" markerWidth="5.5" markerHeight="5.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#A8507F"/>
+    </marker>
+    <g id="icon-doc" class="icon"><path d="M2 1 H8 L11 4 V13 H2 Z M8 1 V4 H11 M4.5 7 H8.5 M4.5 10 H8.5"/></g>
+    <g id="icon-db" class="icon"><ellipse cx="6.5" cy="3" rx="5" ry="2"/><path d="M1.5 3 V11 A5 2 0 0 0 11.5 11 V3 M1.5 7 A5 2 0 0 0 11.5 7"/></g>
+    <g id="icon-model" class="icon"><path d="M6.5 1 L12 3.8 L6.5 6.6 L1 3.8 Z M1 7 L6.5 9.8 L12 7 M1 10.2 L6.5 13 L12 10.2"/></g>
+    <path id="icon-ok" class="ok" d="M0 3.5 L2.8 6.3 L7.5 0.5"/>
+    <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
+  </defs>
+
+  <!-- stage headings -->
+  <text class="h" x="1" y="9">Stage 1: SFT warm-up</text>
+  <text x="1" y="20">2 FedAvg rounds</text>
+  <text class="h" x="135" y="9">Stage 2: On-policy DPO rounds</text>
+  <text x="135" y="20">Repeated in every round <tspan class="i">t</tspan></text>
+
+  <!-- connectors drawn before the boxes they join -->
+  <path class="flow" d="M119 45 H135"/>
+  <path class="flow" d="M383 45 H399"/>
+  <path class="comm" d="M29 62 V102"/>
+  <path class="comm" d="M91 102 V62"/>
+
+  <!-- stage 1 -->
+  <rect class="server" x="1" y="28" width="118" height="34" rx="3"/>
+  <text class="h" x="9" y="41">Server</text>
+  <text x="9" y="54">FedAvg of the adapters</text>
+  <text x="35" y="80">Global model</text>
+  <text class="end" x="85" y="94">Adapters</text>
+
+  <rect class="client" x="1" y="102" width="118" height="56" rx="3"/>
+  <path class="client-band" d="M1 118 V105 A3 3 0 0 1 4 102 H116 A3 3 0 0 1 119 105 V118 Z"/>
+  <rect class="client outline" x="1" y="102" width="118" height="56" rx="3"/>
+  <text class="h" x="9" y="113.5">Clients</text>
+  <rect class="node" x="9" y="124" width="102" height="28" rx="3"/>
+  <text x="17" y="135">Fine-tune the model</text>
+  <text x="17" y="145">on gold SQL</text>
+
+  <rect class="data" x="1" y="172" width="118" height="92" rx="3"/>
+  <path class="data-band" d="M1 188 V175 A3 3 0 0 1 4 172 H116 A3 3 0 0 1 119 175 V188 Z"/>
+  <rect class="data outline" x="1" y="172" width="118" height="92" rx="3"/>
+  <text class="h" x="9" y="183.5">At every client</text>
+  <use href="#icon-doc" x="9" y="193"/>
+  <text x="29" y="200">Questions with</text>
+  <text x="29" y="210">gold SQL</text>
+  <use href="#icon-db" x="9" y="217"/>
+  <text x="29" y="227">Private databases</text>
+  <use href="#icon-model" x="9" y="237"/>
+  <text x="29" y="244">Qwen2.5-Coder-1.5B</text>
+  <text x="29" y="254">+ LoRA adapter</text>
+
+  <!-- stage 2: server and deployment -->
+  <rect class="server" x="135" y="28" width="248" height="34" rx="3"/>
+  <text class="h" x="143" y="41">Server</text>
+  <text x="143" y="54">FedAvg weighted by number of pairs → <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
+  <rect class="model" x="399" y="28" width="68" height="34" rx="3"/>
+  <text class="h" x="407" y="41">Deploy</text>
+  <text x="407" y="54">global model</text>
+
+  <!-- stage 2: client k, with the other clients stacked behind -->
+  <rect class="client stack" x="143" y="110" width="320" height="162" rx="3"/>
+  <rect class="client stack" x="139" y="106" width="320" height="162" rx="3"/>
+  <rect class="client" x="135" y="102" width="320" height="162" rx="3" stroke="none"/>
+  <path class="client-band" d="M135 118 V105 A3 3 0 0 1 138 102 H452 A3 3 0 0 1 455 105 V118 Z"/>
+  <rect class="client boundary" x="135" y="102" width="320" height="162" rx="3"/>
+  <text class="h" x="143" y="113.5">Client <tspan class="i">k</tspan></text>
+  <text class="end" x="447" y="113.5"><tspan class="i">K</tspan> = 5 clients</text>
+
+  <!-- communication between server and client k -->
+  <path class="comm" d="M216 62 V126"/>
+  <path class="comm" d="M374 126 V62"/>
+  <text class="end" x="209" y="86"><tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+  <text x="381" y="86"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">k</tspan></text>
+  <text class="mid i" x="295" y="80">Only LoRA adapters travel</text>
+  <text class="mid i" x="295" y="92">Next round samples from <tspan>θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
+
+  <!-- local flow -->
+  <path class="flow" d="M216 156 V164"/>
+  <path class="flow" d="M216 194 V202"/>
+  <path class="flow" d="M289 221 H301"/>
+  <path class="flow" d="M374 202 V194"/>
+  <path class="flow" d="M374 164 V156"/>
+
+  <!-- step 1 -->
+  <rect class="node" x="143" y="126" width="146" height="30" rx="3"/>
+  <circle class="client" cx="155" cy="141" r="6.5"/>
+  <text class="b mid" x="155" y="144">1</text>
+  <text x="167" y="144">Receive global model <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+
+  <!-- step 2 -->
+  <rect class="node" x="143" y="164" width="146" height="30" rx="3"/>
+  <circle class="client" cx="155" cy="179" r="6.5"/>
+  <text class="b mid" x="155" y="182">2</text>
+  <text x="167" y="177">Sample <tspan class="i">N</tspan> = 10 SQL per</text>
+  <text x="167" y="187">question from <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+
+  <!-- step 3 -->
+  <rect class="node" x="143" y="202" width="146" height="38" rx="3"/>
+  <circle class="client" cx="155" cy="221" r="6.5"/>
+  <text class="b mid" x="155" y="224">3</text>
+  <text x="167" y="214">Execute on private</text>
+  <text x="167" y="224">databases: execution label</text>
+  <use href="#icon-ok" x="167" y="228"/>
+  <text x="178" y="235">correct</text>
+  <use href="#icon-bad" x="212" y="228"/>
+  <text x="222" y="235">wrong</text>
+
+  <!-- step 4 -->
+  <rect class="node" x="301" y="202" width="146" height="38" rx="3"/>
+  <circle class="client" cx="313" cy="221" r="6.5"/>
+  <text class="b mid" x="313" y="224">4</text>
+  <text x="325" y="219">Build <tspan class="b">preference pairs</tspan></text>
+  <text x="325" y="229">(correct SQL, wrong SQL)</text>
+
+  <!-- step 5 -->
+  <rect class="node" x="301" y="164" width="146" height="30" rx="3"/>
+  <circle class="client" cx="313" cy="179" r="6.5"/>
+  <text class="b mid" x="313" y="182">5</text>
+  <text x="325" y="177">Train LoRA with <tspan class="b">DPO + NLL</tspan>,</text>
+  <text x="325" y="187">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+
+  <!-- step 6 -->
+  <rect class="node" x="301" y="126" width="146" height="30" rx="3"/>
+  <circle class="client" cx="313" cy="141" r="6.5"/>
+  <text class="b mid" x="313" y="144">6</text>
+  <text x="325" y="144">Send adapter <tspan class="i">Δ</tspan><tspan class="sub" dy="2">k</tspan></text>
+
+  <text x="143" y="255"><tspan class="b">Privacy boundary:</tspan> questions, gold SQL and databases stay local</text>
+
+  <!-- legend strip -->
+  <rect class="legend" x="1" y="280" width="466" height="20" rx="3"/>
+  <text x="9" y="293"><tspan class="b">FedAvg SFT:</tspan> learns from gold SQL only</text>
+  <path class="rule" d="M176 284 V296"/>
+  <text x="186" y="293"><tspan class="b">Ours:</tspan> also learns from executing its own SQL at the client</text>
+</svg>

@@ -12,7 +12,7 @@ round, client sample SQL từ global model, execute trên database của mình
 để lấy execution label (đúng hay sai so với gold SQL), rồi train DPO + NLL
 trên các preference pair (SQL đúng, SQL sai).
 
-![Method overview](figures/method_overview.png)
+![Method overview](../figures/fig_method_overview.png)
 
 Hình 1. Tổng quan method: SFT warm-up, sau đó là các round on-policy DPO
 tại client; chỉ LoRA adapter được gửi giữa server và client.
