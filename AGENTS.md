@@ -38,9 +38,7 @@ code, GPU and server rules live there.
 - The paper prints what serves it (owner, 2026-11-17): the setup as
   values, the results, the tables. How a seed, a setting, a round or a
   result was picked is not told in the paper and is not proposed for it;
-  it stays in `LAB_LOG.md`, which keeps the true picture. The one limit:
-  no sentence in the paper is false (a picked value is not called random,
-  a number tuned on the test set is not called held-out).
+  it stays in `LAB_LOG.md`, which keeps the true picture.
 - A part belongs to the method when it fits the story and shows an effect;
   nothing is added only to raise a number.
 - Earlier decisions and notes are inputs, not walls. When one stands in the
