@@ -232,10 +232,18 @@ the incorrect predictions of each round into the two kinds of
 Section~\ref{sec:pref-round}. After four rounds, \method{} produces
 \nerr{bird}{k2}{4} execution errors on BIRD dev against
 \nerr{bird}{fedavg}{4} for FedAvg SFT and \nerr{spider}{k2}{4} against
-\nerr{spider}{fedavg}{4} on Spider test, and \nwr{bird}{k2}{4}
-incorrect results against \nwr{bird}{fedavg}{4} and \nwr{spider}{k2}{4}
-against \nwr{spider}{fedavg}{4}. On BIRD dev, the two preference rounds
-differ. The first lowers the execution errors from
+\nerr{spider}{fedavg}{4} on Spider test. Both differences are
+significant under the test of Section~\ref{sec:stat-test} applied to
+whether the prediction of a question ends in an execution error
+($p =$~\errpval{bird}{fedavg}{4}{k2}{4} and
+\errpval{spider}{fedavg}{4}{k2}{4}). The incorrect results of \method{}
+number \nwr{bird}{k2}{4} against \nwr{bird}{fedavg}{4} on BIRD dev and
+\nwr{spider}{k2}{4} against \nwr{spider}{fedavg}{4} on Spider test, and
+under the same test neither difference is significant
+($p =$~\wrpval{bird}{fedavg}{4}{k2}{4}, or
+\wrpadj{bird}{fedavg}{4}{k2}{4} after the correction, and
+\wrpval{spider}{fedavg}{4}{k2}{4}). On BIRD dev, the two preference
+rounds differ. The first lowers the execution errors from
 \nerr{bird}{fedavg}{2} to \nerr{bird}{k2}{3} while the incorrect results
 rise from \nwr{bird}{fedavg}{2} to \nwr{bird}{k2}{3}; in the second, the
 incorrect results fall to \nwr{bird}{k2}{4} and the execution errors

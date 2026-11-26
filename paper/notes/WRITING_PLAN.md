@@ -22,6 +22,9 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Place | `paper/manuscript/` in the paper repository; one commit per section. While the paper is being drafted a section is committed when its rounds of editor's notes are done, without waiting for the owner's reading (owner, 2026-11-27); what the owner has to read or decide is in `manuscript/REVIEW_NOTES.md` |
 | Numbers | a script writes macros and tables from the committed evaluations, and the settings from the committed configs (section 6); a result number in the text is a macro |
 | Names | the method is `\method` and the paper says "the model", so the title can change without touching the text |
+| Name and title | "FedLS-SQL" is a working name kept from the earlier version; the owner changes the name and sets the title later (owner, 2026-11-27). The name is one line of `macros.tex`; the title in `main.tex` stays "title to be set" |
+| Draft first | while the paper is a draft it is complete first and trimmed later (owner, 2026-11-27): when what a brief asks for does not fit its upper end, the upper end is raised and nothing is cut to fit; the page limit is handled after the full draft |
+| `CLAIMS.md` | not fixed (owner, 2026-11-27): a line that is false against the numbers is corrected, and the change is recorded in `manuscript/REVIEW_NOTES.md` |
 
 ## 2. Who does what
 

@@ -2,18 +2,20 @@
 
 \subsection{Interpretation of the results}\label{sec:interpretation}
 
-What is tested about the two kinds of incorrect prediction is the
-effect of the preference term in one round: with it, significantly
-fewer predictions end in an execution error and, on BIRD dev,
-significantly more return an incorrect result
-(Section~\ref{sec:ablation}). Against FedAvg SFT after four rounds, the
-execution errors are about half, a difference of counts, and the
-incorrect results are more numerous, \nwr{bird}{k2}{4} against
+Two sets of tests bear on the two kinds of incorrect prediction
+(Sections~\ref{sec:rq4} and~\ref{sec:ablation}). Against FedAvg SFT
+after four rounds, \method{} has about half the execution errors, a
+significant difference on both evaluation sets, whereas its larger
+counts of incorrect results, \nwr{bird}{k2}{4} against
 \nwr{bird}{fedavg}{4} on BIRD dev and \nwr{spider}{k2}{4} against
-\nwr{spider}{fedavg}{4} on Spider test (Section~\ref{sec:rq4}). Part of
-the fall is a shift: on BIRD dev, \fact{moved.bird.error.wrong} of the
-\nerr{bird}{fedavg}{4} execution errors of FedAvg SFT return an
-incorrect result with \method, of which no error warns the user.
+\nwr{spider}{fedavg}{4} on Spider test, are not a significant
+difference. For the preference term in one round, significantly fewer
+predictions end in an execution error with it than without and, on BIRD
+dev, significantly more return an incorrect result. Part of the fall
+against FedAvg SFT is a shift: on BIRD dev,
+\fact{moved.bird.error.wrong} of its \nerr{bird}{fedavg}{4} execution
+errors return an incorrect result with \method, of which no error warns
+the user.
 
 The gain in EX comes from both kinds: of the questions of BIRD dev that
 only \method{} answers correctly, \fact{moved.bird.wrong.correct} had
@@ -64,17 +66,25 @@ five clients, ten in one setup, all take part in every round, are
 simulated from the training set of one benchmark and differ in domain
 and schema; the skew that is varied is query complexity
 (Section~\ref{sec:fed-setups}). Partial participation, more than ten
-clients, clients from different sources and more than two preference
-rounds are not studied. The data remain at the clients, which is data
-isolation and not differential privacy: we make no claim about what an
-adapter or a client's number of pairs reveals.
+clients and clients from different sources are not studied. \method{}
+has \setting{rounds.pref} preference rounds among its
+$T = \setting{rounds.total}$ rounds and is not trained further; only
+the variant without warm-up rounds has more.
 
-An execution label and EX both compare execution results on one
-database, where a query that is not equivalent to the gold SQL query
-can return the same result. How much of the gain rests on such queries
-is known only in part. On BIRD dev, the correct predictions that read
-other tables or columns than the gold SQL query rise from
-\fact{form.bird.fedavg.4.other_right} to
+The data remain at the clients, which is data isolation and not
+differential privacy: we make no claim about what an adapter reveals.
+The number of pairs that a client sends as its weight depends on how
+the model performs on its data, which its number of questions does not;
+with the question counts as weights, EX after one preference round does
+not differ significantly (Section~\ref{sec:ablation}).
+
+An execution label compares execution results on one database: a
+question on a database without rows yields no pair, and a query that is
+not equivalent to the gold SQL query can return the same result. EX
+compares on one database as well, and how much of the gain rests on
+such queries is known only in part. On BIRD dev, the correct
+predictions that read other tables or columns than the gold SQL query
+rise from \fact{form.bird.fedavg.4.other_right} to
 \fact{form.bird.k2.4.other_right} and those that read the same from
 \fact{form.bird.fedavg.4.gold_right} to
 \fact{form.bird.k2.4.gold_right}, whereas on Spider test the second
@@ -90,5 +100,9 @@ with LoRA, SQLite databases and questions in English. The number of
 warm-up rounds is a setting, $T_w = \setting{rounds.warmup}$ for every
 model and dataset outside the variants of Section~\ref{sec:ablation}.
 Most rows rest on one training seed and one draw of the client
-partition; the test of Section~\ref{sec:stat-test} covers only the
-variation over the evaluation questions.
+partition, and the test of Section~\ref{sec:stat-test} covers only the
+variation over the evaluation questions. The additional cost of \method{}
+is computation at the clients: a preference round takes between
+\fact{cost.spider.pref2.ratio} and \fact{cost.bird.pref1.ratio} times
+the client time of a FedAvg SFT round (Table~\ref{tab:cost}), and
+communication is unchanged.

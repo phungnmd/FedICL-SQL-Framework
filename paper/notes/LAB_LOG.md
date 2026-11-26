@@ -4,6 +4,51 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the owner's answers on the full draft; tests of the method against FedAvg SFT on the two kinds of incorrect prediction (no run)
+
+Owner, in chat, on the points of `REVIEW_NOTES.md`:
+
+- The name "FedLS-SQL" is a working name from the earlier version; the
+  name and the title are changed later (A28, A29). Nothing changed.
+- The abstract keeps the gain at the same number of rounds, 6.19 (A30).
+- The halving of the execution errors against FedAvg SFT is tested
+  (A31). `ERR_TESTS` of `paper/manuscript/tools/paper_numbers.py` now
+  holds the method against FedAvg SFT after 4 rounds on both sets.
+  From the committed predictions, exact McNemar test:
+
+  | Set | Execution errors (only FedAvg SFT, only the method) | p | Incorrect results (only the method, only FedAvg SFT) | p | p after Holm |
+  |---|---|---|---|---|---|
+  | BIRD dev | 182, 42 | 5.8e-22 | 156, 111 | 0.007 | 0.077 |
+  | Spider test | 118, 29 | 6.2e-14 | 111, 97 | 0.37 | 0.75 |
+
+  The family of the text has 23 tests instead of 19; its adjusted
+  values rose a little (the gold SQL comparison of Section 6 from
+  0.065 to 0.077) and none changed side against 0.05. Section 5.4
+  reports the tests; Section 7.1 states what is tested.
+- A draft is complete first and trimmed later; the page count (29
+  against 25) is handled later. Section 7.2 has the limitations in
+  full again (the cost, the pair counts as weights, databases without
+  rows); Section 7 prints 894 words, its limit raised to 900.
+- `CLAIMS.md` is corrected where a line is wrong: section 5, item 4,
+  now "More client compute over the rounds" (the second preference
+  round on Spider takes 0.9 times an SFT round); C1 and C2 carry the
+  new tests.
+- A stricter check of the BIRD gain (C43): tried later, and printed if
+  the result is good. Not run. The fuzzer of
+  `fedls_sql/eval/db_fuzz.py` has scripts for Spider only.
+- Whether the abstract should also say that the incorrect results are
+  not fewer (B35): the owner asked whether it is better for the paper;
+  my answer is no (the sentence is true and now tested, and the
+  difference in incorrect results is not significant on either set).
+  The abstract is unchanged.
+
+Also corrected: "more than two preference rounds are not studied" in
+Section 7.2, which came from my brief and did not agree with the
+variant without warm-up rounds (four preference rounds). `tools/lint.py`
+now counts `\errpval`, `\errpadj`, `\wrpval`, `\wrpadj` and
+`\tsgap` as number macros, so the inventory of the whole-paper pass
+lists them (13 uses were not counted).
+
 ## 2026-11-27: Sections 7 and 8 (Discussion and limitations, Conclusion) drafted; two cold reads and two rounds of editor's notes (no run)
 
 - Writer's outline (Section 7 in two subsections, 700 words; Section 8

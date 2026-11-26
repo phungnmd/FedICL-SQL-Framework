@@ -75,8 +75,8 @@ the exact McNemar p.
 
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
-| C1 | The preference rounds halve the execution errors | At 4 rounds, FedAvg SFT against the method: BIRD `\nerr{bird}{fedavg}{4}` 268 against `\nerr{bird}{k2}{4}` 128; Spider 173 against 84 | BIRD dev, Spider test | as stated |
-| C2 | Queries that run and return a wrong result do not become fewer | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384 | BIRD dev, Spider test | The paper says this plainly. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
+| C1 | The preference rounds halve the execution errors | At 4 rounds, FedAvg SFT against the method: BIRD `\nerr{bird}{fedavg}{4}` 268 against `\nerr{bird}{k2}{4}` 128; Spider 173 against 84. Exact McNemar test on whether the prediction of a question ends in an execution error (owner, 2026-11-27): BIRD `\errpval{bird}{fedavg}{4}{k2}{4}` 5.8e-22 (182 questions fail only with FedAvg SFT, 42 only with the method), Spider `\errpval{spider}{fedavg}{4}{k2}{4}` 6.2e-14 (118 and 29); both significant after Holm in the family of the text | BIRD dev, Spider test | as stated |
+| C2 | Queries that run and return a wrong result do not become fewer | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384. The same test on the incorrect results: BIRD `\wrpval{bird}{fedavg}{4}{k2}{4}` 0.007 (156 questions only with the method, 111 only with FedAvg SFT), Holm-adjusted `\wrpadj{bird}{fedavg}{4}{k2}{4}` 0.077; Spider 0.37 (111 and 97). Neither difference is significant after Holm | BIRD dev, Spider test | The paper says this plainly. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
 | C3 | The method finds right answers that are not written like the gold SQL, and FedAvg SFT does not | Right answers that read other tables or columns than the gold SQL: BIRD, FedAvg SFT 136, 135, 136 at rounds 2, 3, 4, the method 174 at round 3 and 191 at round 4; Spider test at 4 rounds 83 against 103 (83 without training). Right answers on the gold SQL's tables and columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against 1,576 | BIRD dev, Spider test | Macros `\fact{form.<set>.<line>.<round>.other_right}` and `.gold_right` (with `.other`, `.gold` for the group sizes), from the committed predictions. On BIRD 55 of the 95 questions of net gain, on Spider 20 of 75: "a large part of the gain on BIRD", never "the gain sits there". A prediction that does not parse counts with the others |
 
 ### D. Breadth (RQ2, RQ3; Tables 4, 5, 6)
@@ -132,7 +132,9 @@ the exact McNemar p.
 2. Five clients (ten in one setup) that all take part in every round.
    Partial participation and many clients are not studied.
 3. Data isolation, not differential privacy.
-4. More client compute per round (E2).
+4. More client compute over the rounds (E2). Not "per round": the
+   second preference round on Spider takes 0.9 times the client time of
+   an SFT round (corrected 2026-11-27).
 5. A label is the match of results on one database: a wrong query can
    match by chance, and a question on a database without rows gives no
    pair. Test-suite accuracy on Spider is the check the paper has.

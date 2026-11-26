@@ -191,3 +191,31 @@ What stays open after the two rounds (each is in `REVIEW_NOTES.md`):
 7. The writer's proposals: two columns in Table 7 for the pairs by the
    kind of their incorrect sample, which would save about 25 words in
    Section 7.1 (C44).
+
+## 9. Revision 3 (owner's decisions, 2026-11-27)
+
+The owner answered the open points on 2026-11-27. Three of them
+changed Section 7; the brief carries them and the same writer was
+continued. Section 8 is unchanged.
+
+| Decision | Brief | Section 7 now |
+|---|---|---|
+| The halving of the execution errors against FedAvg SFT is tested (A31) | statement 3 with the four tests; the generator runs them (`ERR_TESTS`) | 7.1, paragraph 1: against FedAvg SFT after four rounds about half the execution errors, significant on both sets; the larger counts of incorrect results are not a significant difference (BIRD dev p = 0.007, 0.077 after Holm; Spider test 0.37). Then the test of the preference term in one round, as before. No p-value is printed here; Section 5.4 prints them |
+| The draft is complete first and trimmed later (B34) | length about 860 words, 900 at most; rows 3, 4 and 5 of the limitations in full | 7.2 has four paragraphs: the number of pairs depends on the model's performance on a client's data, with the result of Section 6 for question counts as weights; a question on a database without rows yields no pair; the cost as a limitation, 0.9 to 2.7 times the client time of a FedAvg SFT round, communication unchanged |
+| The clause on two preference rounds (B33) | row 2 corrected | "has 2 preference rounds among its T = 4 rounds and is not trained further; only the variant without warm-up rounds has more" |
+
+Checks: Section 7 prints 894 words (833 by the style tool); lint
+without a stop; the build has no undefined reference, 29 pages. Read
+against `generated/numbers.md`: the four statements of paragraph 1
+agree with the tests (execution errors 5.8e-22 and 6.2e-14; incorrect
+results 0.077 and 0.75 after Holm; the preference term in one round
+1.1e-24 and 4.2e-6 on the execution errors, 1.0e-12 on the incorrect
+results of BIRD dev). The inventory of the section gained four
+macros (the two cost ratios, the two round settings) and lost none.
+
+Still out of Section 7: the second seed on BIRD (its rows of Table 3
+are empty) and the time limits as values. The writer's candidates for
+the later trim: the Spider pair counts of the second preference round,
+the sentence on the weights, the cost range (Section 5.4 prints it).
+No cold read was run on this revision; the reader test of the whole
+paper covers it.

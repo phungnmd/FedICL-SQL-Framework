@@ -213,3 +213,23 @@ The two rounds are used. Left for the owner's reading:
 | 5.4, cost | no comparison at equal client time on BIRD (A15) |
 | 5.1 third paragraph, 5.2 second and third | sentences on rows that wait: read again when the rows are in; each then needs its finding |
 | Tables 4 and 5 | they print the main rows again (C24) |
+
+## Revision after the owner's decision (2026-11-27): tests on the two kinds of incorrect prediction
+
+The owner decided that the halving of the execution errors against
+FedAvg SFT is tested (`REVIEW_NOTES.md`, A31). The generator now runs
+the test of Section 4.6 on the execution errors and on the incorrect
+results of the method against FedAvg SFT after four rounds
+(`ERR_TESTS` in `tools/paper_numbers.py`); rows C1 and C2 of the brief
+carry the macros.
+
+- The writer changed the first paragraph of Section 5.4 only: the
+  execution errors differ significantly on both sets
+  (p = 5.8e-22 on BIRD dev, 6.2e-14 on Spider test); the incorrect
+  results do not differ significantly (0.007 on BIRD dev, 0.077 after
+  the correction; 0.37 on Spider test). The adjusted value for BIRD dev
+  is the writer's addition, so that "not significant" does not stand
+  beside 0.007 alone; kept.
+- The family of the text has 23 tests instead of 19. Every adjusted
+  value of that family rose a little; none changed side against 0.05.
+- Lint: no stop. The section prints about 54 words more.

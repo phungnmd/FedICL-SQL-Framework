@@ -369,3 +369,82 @@ What stays open:
    predictions remain in the text only; the proposals above (two
    columns in Table 7) would give them a float.
 6. Section 7 is at 778 words. Anything added needs a cut.
+
+## Revision 3 (owner's decisions, 2026-11-27)
+
+After the brief of 2026-11-27 (statement 3 with its tests, the
+limitations stated in full, row 2 corrected, the length raised).
+Section 7 prints 894 words against the new limit of 900. Section 8 is
+unchanged and prints 198. Both files pass `make lint` and every macro
+prints a value. Where this part and the earlier ones differ, this one
+holds; "What stays open" of Revision 2, point 1, is settled.
+
+What each decision led to:
+
+1. Section 7.1, paragraph 1. The paragraph now opens on "Two sets of
+   tests bear on the two kinds of incorrect prediction" and gives them
+   in turn. Against FedAvg SFT after four rounds: about half the
+   execution errors, "a significant difference on both evaluation
+   sets"; the larger counts of incorrect results (658 against 613, 384
+   against 370) "are not a significant difference". For the
+   preference term in one round: significantly fewer execution errors
+   and, on BIRD dev, significantly more incorrect results. "A
+   difference of counts" is gone. The shift stays as the last
+   sentence (107 of the 268 execution errors of FedAvg SFT on BIRD
+   dev). No p-value is printed: the paragraph refers to Sections 5.4
+   and 6, and Section 5.4 does not report these tests yet, so until it
+   does the reference points to numbers that are not there.
+2. Section 7.2, the limitations in full. Row 3: a second paragraph
+   says that the data remain at the clients (data isolation, no claim
+   about what an adapter reveals) and that the number of pairs a
+   client sends as its weight depends on how the model performs on its
+   data, which its number of questions does not, with the result of
+   Section 6 for the question counts as weights, said to be after one
+   preference round. Row 4: the last paragraph says that the
+   additional cost is computation at the clients, with the range of
+   the four factors (0.9 to 2.7 times a FedAvg SFT round, Table 7) and
+   unchanged communication. Row 5: the label paragraph opens on "a
+   question on a database without rows yields no pair". Section 7.2
+   now has four paragraphs: the clients and the rounds; what leaves a
+   client; the label and the metric; the size of the study and the
+   cost.
+3. Section 7.2, paragraph 1. "More than two preference rounds are not
+   studied" is replaced by "`\method` has 2 preference rounds among
+   its $T = 4$ rounds and is not trained further; only the variant
+   without warm-up rounds has more", which agrees with paragraph 4 of
+   Section 7.1. Both numbers are macros.
+
+Section 8: no sentence became untrue. "About half the execution
+errors" and "the incorrect results are not fewer" hold with the tests,
+and its third direction ("over more preference rounds") agrees with
+the corrected row 2.
+
+Still left out, for the limit of 900 words:
+
+- The second seed of the two main rows on BIRD (row 6). Its rows of
+  Table 3 are empty, and Section 4.5 announces it.
+- The time limits as values; the sentence says "the time limit of the
+  evaluation".
+- The p-values of the four new tests. If one is wanted here, the
+  incorrect results on BIRD dev need the adjusted value
+  (`\wrpadj{bird}{fedavg}{4}{k2}{4}`, 0.077), since the unadjusted one
+  is 0.007 and would read as significant; the lint does not know
+  `\wrpadj` and `\errpadj` yet and prints notes for them.
+
+What stays open:
+
+1. Section 5.4 has to report the four tests before paragraph 1 of
+   Section 7.1 can lean on it. Its opening sentence ("the incorrect
+   results do not become fewer") and its closing "which is why" may
+   need the same wording as here: not a significant difference.
+2. Paragraph 1 holds two statements on the incorrect results that a
+   reader may set against each other: against FedAvg SFT after four
+   rounds they are not significantly more, and with the preference
+   term in one round they are significantly more on BIRD dev. Both are
+   true of different comparisons, and the paragraph names each
+   comparison.
+3. Section 7 is at 894 words, 34 above the target of 860. The first
+   candidates for the later trim are the counts of the pairs of the
+   second preference round on Spider, the sentence on the weights
+   after one preference round, and the range of the cost, which
+   Section 5.4 prints.

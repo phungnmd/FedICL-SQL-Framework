@@ -39,7 +39,7 @@ JOURNALS = {
 }
 TEMPLATE_PACKAGES = {"graphicx", "multirow", "amsmath", "amssymb", "amsfonts", "amsthm", "mathrsfs", "appendix", "xcolor",
                      "textcomp", "manyfoot", "booktabs", "algorithm", "algorithmicx", "algpseudocode", "listings"}
-NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "nfix", "nbrk", "tsgain", "tspval", "fact", "setting")
+NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "errpval", "errpadj", "wrpval", "wrpadj", "nfix", "nbrk", "tsgain", "tsgap", "tspval", "fact", "setting")
 # names that are not abbreviations to define (datasets, models, tools, the language itself)
 KNOWN_NAMES = {"SQL", "BIRD", "SQLITE", "II", "III", "IV", "RQ", "ID", "DDL", "GPU", "CUDA", "MB", "GB", "EX", "TS",
                "IID", "DK", "QWEN", "PEFT", "AI", "JSON", "CSV", "CODELUTRA"}

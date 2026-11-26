@@ -129,3 +129,46 @@ become more useful and less safe at once: after your count it should be
 chosen and worded so that it does not suggest such predictions are
 equivalent to the gold SQL query. If the discussion takes up this
 group, the example belongs there.
+
+## Revision after the owner's decision (2026-11-27)
+
+One change, in the first paragraph of 5.4; nothing else in Section 5 is
+touched.
+
+- After the counts of execution errors after four rounds (BIRD dev and
+  Spider test), a new sentence reports the test of C1: both differences
+  are significant under the test of Section 4.6 applied to whether the
+  prediction of a question ends in an execution error, with
+  `\errpval{bird}{fedavg}{4}{k2}{4}` and
+  `\errpval{spider}{fedavg}{4}{k2}{4}`.
+- The counts of incorrect results now stand in a sentence of their own,
+  each with its set, followed by the test of C2: under the same test
+  neither difference is significant, with
+  `\wrpval{bird}{fedavg}{4}{k2}{4}` and
+  `\wrpval{spider}{fedavg}{4}{k2}{4}`.
+- For the incorrect results on BIRD dev I also print the adjusted value,
+  `\wrpadj{bird}{fedavg}{4}{k2}{4}` (0.077). The unadjusted value is
+  0.007, and a reader who meets "not significant" beside it would stop,
+  although 5.1 says that significance is stated after the correction.
+  The macro is in `generated/numbers.md`; the brief does not name it.
+- The wording follows the passage of Section 6 on the row without the
+  preference term ("under the test of Section 4.6 applied to ...",
+  "under the same test"), so that the two passages read alike.
+
+The opening sentence of the paragraph stands as it was: the execution
+errors are reduced by about half, and the incorrect results do not
+become fewer.
+
+Checks. The text family now has 23 tests. I read the adjusted values
+of every comparison that Section 5 calls significant or not significant
+in the text again, and each statement still holds. The paper compiles
+with the revision: no undefined reference or citation, no overfull box,
+and none of the four new macros prints `??`. `make` stops at its last
+step because the paper now has 29 pages against the limit of 25; that
+comes from the whole paper, not from this change.
+
+Length: 1,788 words by my count (5.4: 680), 54 more than before this
+change and 15 more from an edit in 5.3 that is not mine. My counts ran
+about 45 above yours on the first draft, so this is near the limit of
+1,800 before the waiting sentences of 5.2. The cuts I would make first
+are those listed under "Length" above.

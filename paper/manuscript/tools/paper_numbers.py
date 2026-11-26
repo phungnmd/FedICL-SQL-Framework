@@ -77,6 +77,8 @@ TEXT_TESTS = [
 ERR_TESTS = [
     ("bird", MAIN, "k2", 3, "rft", 3),      # the row without the preference term against the method
     ("spider", MAIN, "k2", 3, "rft", 3),
+    ("bird", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),   # the method against FedAvg SFT
+    ("spider", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),
 ]
 # Curves of Fig. 2 and Fig. 3: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {
