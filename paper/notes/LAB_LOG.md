@@ -47,8 +47,24 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   sentences (8%; 39%). 28% of its words stand in runs of five or more
   words of the brief (35% before), now terms and technical phrases. A
   page of the Method section holds about 500 words, not the 650 the
-  outline assumed. Not yet read by the owner
-  (`paper/manuscript/pilot/3.4_notes_editor.md`).
+  outline assumed (`paper/manuscript/pilot/3.4_notes_editor.md`).
+  Accepted by the owner as the test of the workflow.
+- The workflow was then loosened (owner: rules and word checks that are
+  too rigid make the prose stiff and patched). The guide binds the
+  writer in four things (facts, claims, numbers and names, form) and
+  describes the rest; `TERMS.md` names the defined concepts and leaves
+  ordinary words free; the lint notes only the two earlier labels
+  ("wrong result", "right answer"); the style measures are signals for
+  the editor and never go to the writer. A top-level section is written
+  in one call from one brief, with statements as short entries
+  (`WRITING_PLAN.md`, sections 3, 4 and 7).
+- Pages, measured in the class: running text sets about 600 words a
+  page (3,128 words on 5.2 pages); the 55 references take 5.6 pages
+  (5.5 without the arXiv id of the 31 entries that have a DOI). At the
+  words of the outline with 55 references the paper comes to about 27
+  pages against a limit of 25. Proposed and open with the owner: briefs
+  ask for about 10% fewer words, about 40 references; then about 24.6
+  pages (`WRITING_PLAN.md`, section 5).
 
 ## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
 

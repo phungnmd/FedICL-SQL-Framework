@@ -11,7 +11,7 @@ The script stops when two runs of the paper disagree on a setting.
 Writes, under paper/manuscript/generated/:
   settings.tex       one macro per setting: \\setting{name}
   tab_settings.tex   the tabular of Appendix B
-  settings.md        the same values with their sources (for the Setup packet)
+  settings.md        the same values with their sources (for the Setup brief)
 
     python3 tools/paper_settings.py
 """

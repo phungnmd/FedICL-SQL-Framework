@@ -205,7 +205,7 @@ table. These carry no argument and are assembled by the main session.
 | Section | Claims | Tables and figures | Evidence type |
 |---|---|---|---|
 | 1 | A1, A2, C1; contributions | none | headline results, from the macros |
-| 2 | wording 7 of `CLAIMS.md`, section 4 | Table 1 | earlier work, from the Phase 1 report |
+| 2 | wording 7 of `CLAIMS.md`, section 4 | Table 1 | earlier work, from `bib/report.md` |
 | 3 | E1 (in kind) | Fig. 1, Algorithm 1 | the method as built; settings from `generated/settings.tex` |
 | 4 | none | Table 2; Appendix A, B | datasets, models, baselines, settings |
 | 5.1 | A1 to A6 | Table 3, Fig. 2 | results and paired tests |
@@ -222,18 +222,24 @@ Fig. 1 waits for the owner's decision on the image.
 
 ## Word Count Summary
 
-| Section | Target words | Pages in the plan |
-|---|---:|---:|
-| 1 Introduction | 1,050 | 1.7 |
-| 2 Related work | 900 | 1.8 |
-| 3 Method | 1,650 | 3.7 |
-| 4 Experimental setup | 1,250 | 2.3 |
-| 5 Results | 1,800 | 5.5 |
-| 6 Ablation study | 880 | 1.8 |
-| 7 Discussion and limitations | 780 | 1.2 |
-| 8 Conclusion | 200 | 0.3 |
-| Total | 8,510 | 18.3 |
+| Section | Words, upper end | Words asked in the brief | Pages in the plan |
+|---|---:|---:|---:|
+| 1 Introduction | 1,050 | 950 | 1.7 |
+| 2 Related work | 900 | 810 | 1.8 |
+| 3 Method | 1,650 | 1,490 | 4.0 |
+| 4 Experimental setup | 1,250 | 1,130 | 2.3 |
+| 5 Results | 1,800 | 1,620 | 5.5 |
+| 6 Ablation study | 880 | 790 | 1.8 |
+| 7 Discussion and limitations | 780 | 700 | 1.2 |
+| 8 Conclusion | 200 | 180 | 0.3 |
+| Total | 8,510 | 7,670 | 18.6 |
 
-The words are estimates from the pages of the plan, less the space of
-the floats, at 650 words a page. The limit that binds is 25 pages with
-references, declarations and appendix.
+The words of the first column were set from the pages of the plan, less
+the space of the floats, at 650 words a page. Measured in the class on
+2026-11-26, running text sets about 600 words a page, and the displayed
+equations of the Method section take about 0.4 page. A brief therefore
+gives the first column as the upper end of its section and asks for
+about 10% less (second column), which fits the pages of the plan; the
+subsections share the reduction in proportion. The limit that binds is
+25 pages with references, declarations and appendix
+(`WRITING_PLAN.md`, section 5).

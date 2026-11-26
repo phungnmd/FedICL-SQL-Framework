@@ -7,7 +7,7 @@ the page are one value. A row enters by one line in ARMS of that script.
 
 Writes, under paper/manuscript/generated/:
   numbers.tex   one macro per cell and per test the paper prints
-  numbers.md    the same macros with their values and result commits (for the packets)
+  numbers.md    the same macros with their values and result commits (for the briefs)
   tab_*.tex     the tabular of each table (Tables 2 to 8); captions are the writer's
   missing.txt   the rows a table needs that are not committed
 

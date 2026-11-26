@@ -12,8 +12,9 @@ target journal: GradeSQL (Journal of Intelligent Information Systems,
 (arXiv 2402.06954). Body text only, without abstracts, floats and
 appendices: 52,000 words.
 
-**How it binds**: register and terms are followed; the figures for
-rhythm describe a range and are not targets.
+**How to read it**: as a description of how those papers are written.
+The figures describe a range and are not targets, and no sentence is
+written or reworked to meet one.
 
 **Sentence Length**: mean 21 to 26 words by kind of section
 (introduction 26, related work 23, method 23, experiments 21,

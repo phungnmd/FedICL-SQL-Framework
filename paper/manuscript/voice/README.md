@@ -16,7 +16,7 @@ project. They are not part of the manuscript or of any release.
 | `setup.md` | Tritto et al., GradeSQL (arXiv 2509.01308; the target journal), Experimental Setup. Li et al., CodeS (SIGMOD 2024), Section 9.1 | datasets and metrics stated as facts, with the reason for each choice |
 | `results.md` | Zhong et al., test suites (EMNLP 2020), Section 6.2. Li et al., CodeS (SIGMOD 2024), Section 9.5. Hu et al., LoRA (ICLR 2022), Section 7. Tritto et al., GradeSQL, Results | a number, its table, what it means; an ablation with the cause of each drop; results organised by questions |
 | `discussion.md` | Rafailov et al., DPO (NeurIPS 2023), Section 7 | limits stated as the scope of the work and as open questions |
-| `style_profile.md` | | the register by kind of section and the terms of the field, measured in ten papers (`style_profile_data.md` holds the measures; `tools/style_profile.py` writes them and measures a draft) |
+| `style_profile.md` | | the register by kind of section and the terms of the field, measured in ten papers (`style_profile_data.md` and `style_reference.json` hold the measures, written by `tools/style_profile.py`); a description of a range, not a set of targets |
 | `profile.md` | | what the passages have in common |
 | `section_rhetoric.md` | | paragraph roles by kind of section, offered in the briefs |
 

@@ -15,7 +15,7 @@ A STOP finding stops a section (exit code 1); a note is advice for the main sess
         words of the lab (student, arm, queue, run names), file paths, commands
         sentences that tell the making of the paper or certify it
         hedging outside the limitations; em dashes
-        a word that TERMS.md rules out (wrong, run, candidate); British spelling
+        an earlier label that TERMS.md replaced (wrong result, right answer); British spelling
 
     python3 tools/lint.py --journal jiis          # every section
     python3 tools/lint.py sections/03_method.tex  # one file
@@ -50,14 +50,9 @@ LAB_TRACES = [r"\b[\w/]+\.(?:py|json|csv|toml|md)\b", r"\bpython3? ", r"\bwe fir
               r"\ball numbers come from\b", r"\bno test data was used\b", r"\bit should be noted\b", r"\bwe (?:initially|originally)\b",
               r"\bafter (?:some|several) (?:trials|attempts|experiments)\b", r"\bin an earlier version\b", r"\bwe decided\b",
               r"\bwas (?:selected|picked|tuned) (?:on|after|by looking)\b"]
-# Words that TERMS.md rules out, each with the term the paper uses
-OFF_TERMS = [(r"\bwrong\b", "incorrect"),
-             (r"\bright (?:answers?|quer(?:y|ies)|samples?|results?|predictions?)\b", "correct"),
-             (r"\b(?:does|do|did) not run\b", "fails to execute"),
-             (r"\b(?:runs?|ran|running) (?:the|a|an|each|every|its|their|any) \w*\s?(?:quer|sql|sample)", "execute"),
-             (r"\bwrit(?:es?|ten|ing) (?:the|a|an|its|their)? ?(?:sql|quer)", "generate"),
-             (r"\bcandidates?\b", "sample"),
-             (r"\bground[- ]truth\b", "gold SQL query")]
+# The earlier labels that TERMS.md replaced; ordinary words are not checked
+OFF_TERMS = [(r"\bwrong (?:results?|samples?|quer(?:y|ies)|answers?|predictions?)\b", "incorrect"),
+             (r"\bright (?:answers?|quer(?:y|ies)|samples?|results?|predictions?)\b", "correct")]
 BRITISH = r"\b\w*(?:labell|modell|organis|optimis|minimis|maximis|initialis|normalis|generalis|centralis|summaris|behaviour|favour|neighbour)\w*"
 HEDGES = [r"\bmay\b", r"\bmight\b", r"\bappears? to\b", r"\bseems? to\b", r"\bit is worth noting\b", r"\barguably\b", r"\bsomewhat\b",
           r"\bpotentially\b", r"\bperhaps\b", r"\bto some extent\b", r"\bwe believe\b"]
@@ -159,7 +154,7 @@ def check_text(path: Path, text: str, rep: Report) -> None:
                     rep.add("note", path, i, "hedge", f"'{m.group(0)}'")
         for pat, term in OFF_TERMS:
             for m in re.finditer(pat, low):
-                rep.add("note", path, i, "term", f"'{m.group(0)}': the paper says '{term}' (TERMS.md)")
+                rep.add("note", path, i, "term", f"'{m.group(0)}': the label of the paper is '{term}' (TERMS.md)")
         for m in re.finditer(BRITISH, low):
             rep.add("note", path, i, "spelling", f"'{m.group(0)}': American spelling")
         if "---" in line or "\u2014" in line:

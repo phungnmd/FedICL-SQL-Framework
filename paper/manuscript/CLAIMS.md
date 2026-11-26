@@ -174,7 +174,7 @@ Lab words, which the paper never uses, and what stands for each:
 3. Table 6 has a row for the method without warm-up rounds and its test
    against the method, on every set of the table.
 4. C3 is a result of the paper, written by `paper_numbers.py` from the
-   committed predictions; the Results packet carries it in RQ4.
+   committed predictions; the Results brief carries it in RQ4.
 5. The names of section 6 stand: "warm-up round", "preference round",
    "FedDPO" for the published baseline. The labels and the verbs
    were revised the same day (`TERMS.md`).
