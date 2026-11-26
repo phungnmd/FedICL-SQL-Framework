@@ -4,6 +4,57 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: vote by execution result on BIRD dev queued for the two main rows (owner; code `bc2e4661`, queue `2df1f8b4`; no run)
+
+Owner's question: with a vote or self-consistency at evaluation, does
+the method reach the 1.5B numbers of the papers that vote, and does its
+gain over FedAvg SFT hold.
+
+- Rows: `bird_vote/sft_4` (FedAvg SFT round 4, greedy 42.57) and
+  `bird_vote/k2_2` (the method at 4 rounds, greedy 48.76), BIRD dev,
+  after `bird_rft/round_2`. Arms `fedavg_bird_ddl_a01_r4_vote16_t08`
+  and `fedpref_bird_sftr2_p2_dpo_ddl_a01_r2_vote16_t08`. About 1 h a
+  row (estimate, not measured).
+- Settings, fixed before any read: 16 samples per question at T 0.8, no
+  top-p or top-k cut, 256 new tokens, the prompt of the greedy rows
+  (`ddl`, evidence). T 0.8 is CSC-SQL's sampling temperature (arXiv
+  2505.13271, section 3.1 and appendix D.5, read today in the arXiv
+  HTML: 0.8 and 1.0 differ little there). 16 is the sample count of
+  SLM-SQL's self-consistency rows on Spider (arXiv 2507.22478, Table 3,
+  read today); its default on BIRD is 64 and it reports no gain of
+  plain self-consistency past 16 (appendix D.1). SLM-SQL's text states
+  no temperature and points to its code, which was not opened.
+- Vote rule (`fedls_sql/eval/vote.py`): the samples that ran are
+  grouped by their result (set of rows on BIRD, as its EX compares
+  them), the largest group wins, its first sample is the answer; a tie
+  goes to the group sampled first (neither paper's text states a tie
+  rule). Samples that raise an error, meet the budget, hold no SQL or
+  are cut have no vote. No gold enters the vote.
+- Output: `experiments/pass_at_k/results/<arm>_bird.json` (vote EX,
+  pass@1 to pass@16) and `<arm>_bird_vote.csv`, one row per question in
+  the columns `scripts.compare_predictions` reads, for the McNemar test
+  between the two vote rows and of each against its greedy row.
+- Checked before queuing: the two commands differ in arm and adapter
+  only and read the adapter, set and schema text of their greedy rows
+  (queue test); one BIRD dev prompt rendered through this path and
+  decoded from its token ids reads as the greedy prompt (schema,
+  external-knowledge line, question, answer request); 613 tests pass.
+  The label step of a training round is unchanged: digests are recorded
+  only when a vote asks for them.
+- What the read decides: if the gain holds under the vote, the paper
+  may carry a row "with a vote of 16"; if it shrinks, the vote stays
+  here and the tables keep greedy decoding.
+- Read in SLM-SQL while checking the settings (not in our notes
+  before): its Table 6 gives the 1.5B on BIRD dev without training as
+  46.81 and after SFT on 916K rows as 54.17 (the caption names no
+  sample count; the paper's default is 64 samples); its Table 4 gives
+  61.95 for SFT + RL without the revision model and 52.26 without SFT
+  and RL. The 28.40 of `RESEARCH_STATE.md`, section 5.1, is the number
+  SLM-SQL's Table 2 cites for the plain model, not a row of its own
+  pipeline. So their inference (their prompt, which was not read, and
+  a vote) takes the untrained 1.5B from 28.40 to 46.81; how much of
+  that is the vote is not known, and our base model is at 29.47 greedy.
+
 ## 2026-11-26: a second training seed for the two main rows on BIRD (owner; no run)
 
 The list of 2026-11-25 left a second seed out, after the line "more

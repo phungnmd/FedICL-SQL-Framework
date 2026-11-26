@@ -2,7 +2,19 @@
 
 ## Status
 
-Updated 2026-11-25 (Asia/Ho_Chi_Minh). `bird_rft/round_1` is read:
+Updated 2026-11-26 (Asia/Ho_Chi_Minh). Queue `2df1f8b4` adds the vote
+rows on BIRD dev (owner, 2026-11-26): `bird_vote/sft_4` and
+`bird_vote/k2_2`, each with its publication, after `bird_rft/round_2`
+and before `rft/round_2`. Each samples 16 SQL per question at T 0.8 from
+one adapter (FedAvg SFT round 4, greedy 42.57; the method at 4 rounds,
+greedy 48.76) and takes the largest group of equal execution results;
+no training, about 1 h a row (estimate, not measured). The question:
+does the gain of 6.19 hold under self-consistency. Code `bc2e4661`
+changes the label step only when a vote asks for result digests; a
+round that runs or is queued labels as before, so pulling while it runs
+is safe. Whether `bird_rft/round_2` has finished is not known here.
+
+Status of 2026-11-25: `bird_rft/round_1` is read:
 44.39 on BIRD dev, 1.83 below DPO + NLL round 1 (p 0.057); execution
 errors 247 against 91. Queue `684723d7`: `bird_rft/round_2` first (BIRD, against
 48.76; about 6 h with its evaluation, estimate), then `rft/round_2`
@@ -246,7 +258,7 @@ its log say whether the second runs 4 at a time cost them.
 ## Run now
 
 1. A free card: the worker line, which pulls first (queue
-   `c6d9720b`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
+   `2df1f8b4`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
    It takes the first ready task in file order that no other worker
    holds.
 
@@ -267,7 +279,9 @@ its log say whether the second runs 4 at a time cost them.
      (`.queue_state/logs/bird_k0/round_2.log`): the lines with
      `SQL budget, this call` (jobs run again after the others, jobs
      alone, seconds of each);
-   - a `STOP queue` line, whenever one comes.
+   - a `STOP queue` line, whenever one comes;
+   - nothing for the `bird_vote` rows: the queue publishes their
+     results (`experiments/pass_at_k/results/`).
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
    of the base student's round 1 samples by rejected outcome, and the
@@ -292,6 +306,7 @@ its log say whether the second runs 4 at a time cost them.
 | 34 | `bird_k2/round_2` with its evaluation | the method at 4 rounds on BIRD, against `bird_sft/round_4` (42.57) and round 3 (43.68) | about 8 h (estimate, round 1: 7 h 50 min) | read 2026-11-25: 48.76, 6.19 above `bird_sft/round_4` (p 4.6e-11) and 5.08 above round 3 (p 4.9e-08) |
 | 35 | `bird_k2_fixed/round_2` with its evaluation | the on-policy part from an SFT start on BIRD: round 2 on round 1's pairs and reference, NLL kept, against `bird_k2/round_2`; continues `bird_k2`, samples nothing | about 4 h (estimate: `bird_fixed/round_2` trained 3 h 32 min) | read 2026-11-25: 46.15, 2.61 below `bird_k2/round_2` (p 0.0006) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`) |
+| 41 | `bird_vote/sft_4`, `bird_vote/k2_2`, each with its publication | does the gain hold under self-consistency on BIRD dev: 16 samples per question at T 0.8, vote by execution result, for FedAvg SFT round 4 (greedy 42.57) and the method at 4 rounds (greedy 48.76); also pass@16 of both | about 1 h a row, no training (estimate, not measured) | queued 2026-11-26 (`2df1f8b4`), after `bird_rft/round_2` |
 | 37 | `rft/round_2` with its evaluations (test, dev) | RFT at 4 rounds, on-policy (samples drawn again from RFT round 1, 75.87): the method without its preference term | about 3.5 h (estimate) | queued 2026-11-24 (`9976390e`) |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`) |
 | 31 | `spider_sets_dev/*`, `spider_sets_var/*`, `qwen05b_var/*`, `pooled_dev/*` | evaluations only, the rounds the tables need on the other Spider sets: the two ablation rounds of the 1.5B on Spider dev; the 1.5B rows by round and the ten 0.5B rows on Syn, Realistic and DK; the pooled rounds on Spider dev (each after its round) | about 2 h (estimate: 3 min a row on dev, 6 min on the three sets) | queued 2026-11-23 19:15 (`e425fa42`), after `pooled_k2` and before the DeepSeek rounds |
