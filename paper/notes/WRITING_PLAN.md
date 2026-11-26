@@ -12,7 +12,7 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 
 | Part | Choice |
 |---|---|
-| Who writes | a writer agent, one top-level section in one call, in the order of section 8. The main session coordinates and writes no prose of the paper |
+| Who writes | a writer agent, one top-level section at a time, in the order of section 8: first its outline of the section, then the prose (owner, 2026-11-26: an outline before the writing keeps the text from rambling). The main session coordinates and writes no prose of the paper |
 | The writer | the author presenting finished work, in the register of the published papers of the field; its own judgement on how a section is built. It runs on Fable 5.2 at high effort (owner, 2026-11-26) |
 | Constraints | few (owner, 2026-11-26). Four things bind the writer (section 3.3). Checks of words and of style are signals for the editor, never rules for the writer, and prose is not repaired word by word: rigid rules and word checks make it stiff and patched |
 | When | the whole paper is drafted now (owner, 2026-11-26); a number that waits for its result is written with its macro and prints as `??` until the row is committed |
@@ -37,13 +37,15 @@ accepted, because a later section reads the earlier ones:
 
 ```text
 brief of the section (main session; the owner approves it)
-  -> draft of the whole section (a fresh writer: WRITING_GUIDE.md, TERMS.md, voice/, the brief, the accepted sections)
+  -> outline of the section, one line per paragraph (a fresh writer: WRITING_GUIDE.md, TERMS.md, voice/, the brief, the accepted sections)
+  -> the main session checks the outline against the brief and answers it (section 4.1)
+  -> draft of the whole section (the same writer, from its outline)
   -> build, lint, facts against the code and the committed results; a helper reads the PDF of the section cold (main session, helpers)
   -> at most five editor's notes -> the same writer revises   (two rounds at most)
   -> the owner reads -> commit
 ```
 
-The writer that drafted a section also revises it: it is continued, not
+One writer outlines, drafts and revises a section: it is continued, not
 replaced by a new one. Two writers never run at once; the numbers, the
 charts, the brief of the next section and the audits run beside the
 writer. The tool that starts a subagent attaches `AGENTS.md` and the
@@ -66,9 +68,12 @@ reaches the writer only as an editor's note about the reader.
 
 Three things follow.
 
-- A section is written in one call, from one brief, so that it reads as
-  one piece. A subsection is not drafted on its own; the pilots of
+- A section is written by one writer, from one brief, so that it reads
+  as one piece. A subsection is not drafted on its own; the pilots of
   Section 3.4 were the exception.
+- The writer outlines before it writes (section 4.1). The outline is
+  its own plan, one line per paragraph, and it is what keeps a section
+  to its points; no rule about wording does that.
 - The writer is given no list of words to avoid, no count and no style
   figure. `TERMS.md` names the concepts the paper defines; ordinary
   words stay free.
@@ -165,6 +170,7 @@ pipelines are not (section 9).
 | ARS | Each section answers one question of the reader; a paragraph the paper would not miss goes | the Purpose row of a brief; the guide, "What is yours" |
 | ARS | The moves of an introduction (territory, gap, what the paper does), the title and the abstract | the brief of the Introduction, from `references/intro_title_rhetoric_guide.md` and `abstract_writing_guide.md` of the skill |
 | ARS | A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | the cold read of section 7.2; `bib/report.md` |
+| ARS, PaperOrchestra | An outline before the prose: the points of a section in order, each with the evidence it uses | the writer's outline (section 4.1) |
 | PaperOrchestra | One paragraph, one point, stated in its first sentence; paragraph roles by kind of section | the guide, "How it should read"; `voice/section_rhetoric.md`, through the briefs |
 | PaperOrchestra | One name per concept from abstract to conclusion | `TERMS.md` |
 | PaperOrchestra | The writer sees the tables and figures it describes | a brief names their files (section 4) |
@@ -228,6 +234,35 @@ from `bib/report.md`, which names the sources of each subsection.
 `briefs/3.4_preference_round.md`, the brief of the second pilot, is the
 model for the block of one subsection. The Method brief takes it over
 as its block for Section 3.4.
+
+### 4.1 The outline of a section
+
+`OUTLINE.md` is the outline of the paper: sections, subsections, claims
+and words. The outline of a section goes one level down and is written
+by the writer, before any prose, into the file its brief names
+(`briefs/03_method_outline.md`): one line per paragraph, in order, with
+the point of the paragraph, the statement of the brief it serves, the
+equation, table or figure it carries and its rough length. The lines
+are notes and not sentences of the paper.
+
+The main session checks it against the brief and answers in a few
+lines:
+
+- every statement of the brief has a line, and no line is without a
+  statement or a need of the reader;
+- read alone and in order, the lines make the argument of the section;
+- each equation, table and figure has its place, and nothing is said
+  twice;
+- no line promises more than the ceiling of its statement;
+- the lengths sum to the length of the brief.
+
+The writer then drafts from it. The outline is a plan and not a
+contract: the writer may depart from it and says so in its notes. The
+owner sees the outline with the draft, and is asked before the draft
+only when the outline departs from the brief or from `OUTLINE.md` (a
+statement dropped, subsections reordered, the length exceeded). After
+the draft, the first sentences of its paragraphs
+(`tools/reverse_outline.py`) are read beside the outline.
 
 ## 5. Structure of the paper
 
@@ -349,7 +384,7 @@ The rest is advice for the editor. None of it stops a section.
 | Register | `tools/style_profile.py compare FILE --kind KIND` | measures far outside the range of the same kind of section in the ten papers, as in the first pilot |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF...` | a large share of the draft in runs of five or more words of the brief |
 | Cold read | a helper on Opus that has seen neither the brief nor the notes reads the PDF of the section as a reviewer of the journal would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
-| Argument | `tools/reverse_outline.py` | the first sentences of a section do not make its argument; a paragraph with two points |
+| Argument | `tools/reverse_outline.py`, beside the writer's outline | the first sentences of a section do not make its argument or have left the outline without a reason; a paragraph with two points |
 | Tables | `tools/table_lint.py` | rules outside booktabs, a metric without its direction, uneven decimals; fixed in the generator |
 | Reader | reader test (whole-paper step): a fresh helper reads the PDF and states the problem, the method, the main result, and anything the paper seemed to defend or explain about its own making | a wrong answer to the first three; anything named in the fourth |
 | Review | `/ars-reviewer` on the PDF (whole-paper step) | goes to the owner; a comment is acted on when the paper gets better |
@@ -456,8 +491,9 @@ paper/manuscript/
   TERMS.md              names of the concepts, abbreviations, notation
   voice/                passages, style_profile.md with its data and
                         style_reference.json, profile.md, section_rhetoric.md
-  briefs/               one file per top-level section (3.4_preference_round.md
-                        is the brief of the pilot)
+  briefs/               one brief per top-level section, and the writer's outline
+                        of that section beside it (3.4_preference_round.md is
+                        the brief of the pilot)
   bib/                  report.md: how each entry of references.bib was verified,
                         and the sources of each subsection
   pilot/                the accepted draft of Section 3.4 with the writer's and

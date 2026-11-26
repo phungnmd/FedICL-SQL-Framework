@@ -101,9 +101,24 @@ changes its name, an opening that says nothing, a sentence that repeats
 its neighbor, a paragraph that makes two points, a paragraph the
 section would not miss. Leave a sentence that reads well as it is.
 
+## Outline first
+
+Before any prose, return an outline of the section: one line per
+paragraph, in order, giving the point that paragraph makes. Beside each
+line, name the statement of the brief it serves, any equation, table or
+figure it carries, and its rough length; the lengths sum to the length
+the brief gives. The lines are notes, not sentences of the paper. A
+point that serves no statement of the brief, and that the reader would
+not miss, gets no line.
+
+The editor answers the outline, and you write the section from it. The
+outline is a plan and not a contract: where the writing shows a better
+order, follow it and say so in your notes.
+
 ## What you return
 
-The section as LaTeX and your notes to the editor, each in the file the
-brief names. The notes say what the brief lacked, what you doubt, and
-where you departed from the brief and why. If an example, a table or a
-small figure would serve the reader, propose it there.
+First the outline, then the section as LaTeX and your notes to the
+editor, each in the file the brief names. The notes say what the brief
+lacked, what you doubt, and where you departed from the brief or from
+your outline and why. If an example, a table or a small figure would
+serve the reader, propose it there.

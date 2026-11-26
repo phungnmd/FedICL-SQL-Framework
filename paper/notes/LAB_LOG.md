@@ -75,6 +75,11 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   abstract (briefs); a helper reads each section's PDF cold, as the
   first source of editor's notes (`WRITING_PLAN.md`, sections 3.5 and
   7.2). Draft 1 of the pilot left the tree (it is in commit `cd1ceef`).
+- An outline before the prose (owner: without one the text rambles).
+  The writer returns one line per paragraph with its point, the
+  statement it serves, its floats and its length; the main session
+  checks it against the brief; the same writer then drafts from it
+  (`WRITING_PLAN.md`, section 4.1; the guide, "Outline first").
 
 ## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
 
