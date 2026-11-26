@@ -108,7 +108,9 @@ first preference round, from the round records in
 pretrained model, 3,220 after one warm-up round, 2,698 after two;
 Spider 1,074 of 8,659 from the pretrained model, 573 after two. The
 questions that yield pairs rise on BIRD (4,857 to 5,877) and fall on
-Spider (5,951 to 5,192, as more questions have only correct samples),
+Spider (4,454 to 4,013; the questions with samples of both labels,
+those on databases without rows included, fall from 5,951 to 5,192, as
+more questions have only correct samples),
 so the brief allows "fewer questions without a correct sample" and not
 "more questions yield pairs".
 

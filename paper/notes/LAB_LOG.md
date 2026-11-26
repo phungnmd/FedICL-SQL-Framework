@@ -4,6 +4,37 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: brief of Section 4 (Experimental setup) and the two appendices (no run)
+
+- `paper/manuscript/briefs/04_setup.md` waits for the owner's approval;
+  the writer of Section 4 starts after it.
+- New macros, each read from committed files. Settings
+  (`tools/paper_settings.py`, guarded by checks of the code): the time
+  limits of evaluation (BIRD 30 s for a prediction and its gold SQL
+  query together, Spider 60 s for each query) and of the execution
+  labels (the same), the draw of the samples of a pair, the sample
+  without query text, the truncated sample. Facts
+  (`tools/paper_numbers.py`): the training questions for which no pair
+  is constructed in any round, from the round records of the main
+  rows. Spider train: 1,759 of 8,659 questions are on the 7 databases
+  without rows (academic, geo, imdb, music_2, restaurants, scholar,
+  yelp), and 3 gold SQL queries fail to execute. BIRD train: 350 gold
+  SQL queries fail to execute, and 87 and 92 more exceed the time limit
+  in the first and the second preference round.
+- Appendix A is assembled from the committed predictions (the prompt
+  of BIRD dev row 202 and of Spider test row 1847: the first table of
+  the schema and the lines after the schema); Appendix B is
+  `generated/tab_settings.tex`. The names in the settings table follow
+  `TERMS.md` (warm-up rounds; DeepSeek-Coder-1.3B-Instruct).
+- A count corrected in the notes of Section 3: on Spider the questions
+  that yield pairs at the first preference round are 4,454 from the
+  pretrained model and 4,013 after two warm-up rounds; 5,951 and 5,192
+  are the questions with samples of both labels, those on databases
+  without rows included. No sentence of the paper used the number.
+- The chat format of Qwen2.5-Coder adds its default system message to
+  the one user message of the prompt (rendered with the local
+  tokenizer); the lead-in of Appendix A is to say so.
+
 ## 2026-11-26: Section 3 (Method) written (no run)
 
 - `paper/manuscript/sections/03_method.tex`: Sections 3.1 to 3.5 with
