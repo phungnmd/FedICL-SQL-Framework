@@ -4,6 +4,85 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: Section 6 (Ablation study) drafted; a paired test on execution errors and three count changes in the generator (no run)
+
+- Writer's first draft of Section 6 (874 words, seven paragraphs, Table
+  8), then a cold read by an isolated session
+  (`paper/manuscript/cold_reviews/2026-11-27_0432_section6_1.md`).
+  Its three major findings: the paragraph on the preference term never
+  says what the term adds in EX and rests on untested counts; "the EX
+  gain carries over to TS with two warm-up rounds and does not without
+  them" rests on one significant set of three and on an untested
+  comparison; the row "Fixed pairs and reference" changes two things at
+  once and says nothing on Spider test. Five editor's notes went to the
+  writer with a corrected brief; details in
+  `paper/manuscript/briefs/06_ablation_notes_editor.md`.
+- New in the generator, decided here for the paper (owner may revert,
+  `REVIEW_NOTES.md`, A25): the exact McNemar test of Section 4.6 on
+  whether the prediction of a question ends in an execution error, the
+  row without the preference term (`rft`) against the method at 3
+  rounds. BIRD dev: 36 questions with an error under the method only,
+  182 under the row only, p 1.1e-24 (errors 102 against 248). Spider
+  test: 41 and 95, p 4.2e-6 (99 against 153). Read only, not printed:
+  the row against the model before the round, 77 and 39 on BIRD dev
+  (p 5.3e-4), 45 and 15 on Spider test (p 1.3e-4). The two printed
+  tests join the family of the comparisons of the text.
+- Second cold read (`cold_reviews/2026-11-27_0454_section6r1_1.md`):
+  the execution errors are tested and the difference the other way is
+  not. The same paired test on incorrect results was added (`\wrpval`):
+  BIRD dev 198 questions with an incorrect result under the method
+  only, 80 under the row only, p 1.0e-12 (723 against 605); Spider test
+  89 and 69, p 0.13 (385 against 365). The family of the text has 19
+  tests with these four; the adjusted p of the gold-SQL comparison
+  moves from 0.058 to 0.065, and no adjusted value crosses 0.05.
+- Outcomes question by question, the row without the preference term
+  to the method at 3 rounds (read only, not printed). BIRD dev: of the
+  questions with an execution error under the row, 123 have an
+  incorrect result and 59 a correct one under the method; 75 correct
+  under the row have an incorrect result under the method, 12 an
+  execution error; 56 with an incorrect result under the row are
+  correct under the method, 24 fail to execute. Spider test, in the
+  same order: 36 and 59; 53 and 23; 51 and 18. So at one round the
+  preference term turns execution errors mostly into queries that
+  execute and return another result on BIRD dev, and the net of 28
+  questions (1.83 points) is not significant. The 4-round rows of this
+  variant are queued and decide how claim B4 is read.
+- What the row without the preference term shows in EX, as the cold
+  reader worked it out and as the text now says: from the model after
+  two warm-up rounds (42.70, 74.10) the NLL-only round reaches 44.39 on
+  BIRD dev and 75.87 on Spider test, the round of the method 46.22 and
+  77.46; the differences to the method (-1.83, p 0.057; -1.59, p 0.015)
+  are not significant after the correction.
+- Counts corrected: `warmup.<set>.k<w>.no_correct` no longer includes
+  the questions on databases without rows. Spider 1,016, 557 and 470
+  for 0, 2 and 3 warm-up rounds (the raw `questions_all_wrong` of the
+  round records, logged earlier, are 1,074, 573 and 483, with 58, 16
+  and 13 such questions); BIRD unchanged. The Spider counts of the
+  first preference round now add up to 8,659. On BIRD the counts add up
+  with the 87 gold queries over the time limit, which Section 4 does
+  not mention yet.
+- Two rounds of editor's notes are done (five notes each); the section
+  has 927 words and is committed as a draft. Three waiting rows have no
+  sentence in the text yet: the row without the preference term after
+  four rounds and the rows with no and with three warm-up rounds on
+  BIRD dev.
+- New facts: `pairs.<set>.pref<r>.neg_error`, `.neg_wrong`,
+  `.neg_error_pct`, the pairs of a preference round by the kind of
+  their incorrect sample, for the brief of Section 7. BIRD: 6,616 of
+  11,754 pairs (56%) have an execution error as the incorrect side in
+  the first preference round and 1,788 of 7,066 (25%) in the second;
+  Spider 4,087 of 8,026 (51%) and 1,433 of 3,354 (43%). Read beside
+  the predictions by round on BIRD dev (execution errors 286, 102,
+  128; incorrect results 593, 723, 658): the first preference round
+  removes execution errors, the second lowers the incorrect results.
+- New facts: `train.<set>.with_rows` (Spider 6,900);
+  `weights.<set>.<rule>.max_shift`, the largest change of one client's
+  weight against the weights by pair counts when the adapters of the
+  first preference round are averaged again, from the committed records
+  `reagg_*/r1/*.json`: BIRD 2.1 percentage points (question counts) and
+  13.3 (equal weights), Spider 10.8 and 9.4. The tie on BIRD dev under
+  question counts (46.22 both) goes with weights that barely move.
+
 ## 2026-11-27: brief of Section 6 approved; the gold SQL as the correct side enters the paper as claim B8 (owner; no run)
 
 - Owner: the brief of Section 6 is approved; on the open point A2 the

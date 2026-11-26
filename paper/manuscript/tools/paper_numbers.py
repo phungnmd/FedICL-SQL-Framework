@@ -71,6 +71,13 @@ TEXT_TESTS = [
     ("spider", MAIN, "central", EPOCHS, "k2", 4),
     ("bird", MAIN, "k0", 1, "k0gold", 1),      # gold SQL as the correct side for questions without a correct sample
 ]
+# Comparisons of the kinds of incorrect prediction of two rows, quoted in the text: the same exact
+# test on whether the prediction of a question ends in an execution error, and on whether it is
+# an incorrect result (b against a).
+ERR_TESTS = [
+    ("bird", MAIN, "k2", 3, "rft", 3),      # the row without the preference term against the method
+    ("spider", MAIN, "k2", 3, "rft", 3),
+]
 # Curves of Fig. 2 and Fig. 3: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {
     "bird": {"fedavg": [0, 1, 2, 3, 4], "k2": [3, 4]},
@@ -116,6 +123,7 @@ class Data:
         self.used_tests: dict = {}   # (a, b) -> tables
         self.missing: dict = {}      # key -> tables
         self._tests: dict = {}
+        self.err_tests: dict = {}    # (a, b) -> the paired test on execution errors
         self._pending: list = []     # p cells, written once the Holm family is complete
 
     def defer(self, a: tuple, b: tuple, kind: str) -> str:
@@ -153,6 +161,32 @@ class Data:
         self.used_tests.setdefault((a, b), []).append(where)
         return self._tests[(a, b)]
 
+    def err_test(self, a: tuple, b: tuple) -> dict | None:
+        """The exact McNemar test on the execution errors of two rows: the questions whose
+        prediction ends in an execution error in one row only. None when a row is missing."""
+        if a not in self.rows_of or b not in self.rows_of:
+            return None
+
+        def err(row: dict) -> bool:
+            return row["ex"] != "1" and ov.failure(row) in ("exec_error", "cut")
+
+        def wrong(row: dict) -> bool:
+            return row["ex"] != "1" and not err(row)
+
+        ra, rb = self.rows_of[a], self.rows_of[b]
+        for k, rows in ((a, ra), (b, rb)):
+            if sum(err(x) for x in rows.values()) != self.runs[k]["err"]:
+                raise SystemExit(f"{k}: the execution errors of the predictions differ from the count of the row")
+            if sum(wrong(x) for x in rows.values()) != self.runs[k]["wr"]:
+                raise SystemExit(f"{k}: the incorrect results of the predictions differ from the count of the row")
+        only_a = sum(err(ra[i]) and not err(rb[i]) for i in ra)
+        only_b = sum(err(rb[i]) and not err(ra[i]) for i in ra)
+        wr_a = sum(wrong(ra[i]) and not wrong(rb[i]) for i in ra)
+        wr_b = sum(wrong(rb[i]) and not wrong(ra[i]) for i in ra)
+        self.err_tests[(a, b)] = {"only_a": only_a, "only_b": only_b, "pexact": ov.mcnemar(only_a, only_b),
+                                  "wr_a": wr_a, "wr_b": wr_b, "wrpexact": ov.mcnemar(wr_a, wr_b)}
+        return self.err_tests[(a, b)]
+
     def adjust(self) -> None:
         """Holm inside each table: the tests of a table answer one question and form one family.
 
@@ -166,10 +200,16 @@ class Data:
             ts = [w for w in where if w.endswith(":ts")]
             if "tspexact" in t and ts:
                 families.setdefault(family_of(ts), {})[(a, b, "ts")] = t["tspexact"]
+        for (a, b), t in self.err_tests.items():  # quoted in the text only
+            families.setdefault("text", {})[(a, b, "err")] = t["pexact"]
+            families.setdefault("text", {})[(a, b, "wr")] = t["wrpexact"]
         self.families = {name: len(tests) for name, tests in sorted(families.items())}
         for tests in families.values():
             for (a, b, kind), v in holm(tests).items():
-                self._tests[(a, b)]["padj" if kind == "ex" else "tspadj"] = v
+                if kind in ("err", "wr"):
+                    self.err_tests[(a, b)]["padj" if kind == "err" else "wrpadj"] = v
+                else:
+                    self._tests[(a, b)]["padj" if kind == "ex" else "tspadj"] = v
 
 
 def family_of(where: list[str]) -> str:
@@ -401,7 +441,7 @@ def table_ablation(d: Data) -> str:
              "\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}",
              row(["", "EX", "$\\Delta$", "$p$", "EX", "$\\Delta$", "$p$"])]
     blocks = [
-        (f"{ROUNDS} rounds: {WARMUP} warm-up rounds, {ROUNDS - WARMUP} preference rounds", ROUNDS, [
+        (f"{ROUNDS} rounds", ROUNDS, [
             ("\\method", "k2", None),
             ("Fixed pairs and reference", "fixed", None),
             ("Without the preference term", "rft", None),
@@ -409,7 +449,7 @@ def table_ablation(d: Data) -> str:
             ("Three warm-up rounds", "k3", None),
             ("Clients pooled", "pooled", ("spider",)),
         ]),
-        (f"{ROUNDS - 1} rounds: {WARMUP} warm-up rounds, {ROUNDS - 1 - WARMUP} preference round", ROUNDS - 1, [
+        (f"{ROUNDS - 1} rounds", ROUNDS - 1, [
             ("\\method", "k2", None),
             ("Without the NLL term", "feddpo", None),
             ("Without the preference term", "rft", None),
@@ -417,6 +457,12 @@ def table_ablation(d: Data) -> str:
             ("Averaged with equal weights", "reagge", None),
         ]),
     ]
+    # the model every row but the two on the warm-up rounds starts its preference rounds from: EX only, no test
+    start = [f"FedAvg SFT, {WARMUP} rounds"]
+    for ds in ("bird", "spider"):
+        x = d.run(key(ds, "fedavg", WARMUP), f"Table 8, {SET_NAME[ds]}")
+        start += [f2(x["ex"]) if x else MISSING, "", ""]
+    lines += ["\\midrule", row(start)]
     for label, r, rows in blocks:
         lines += ["\\midrule", row([f"\\multicolumn{{7}}{{@{{}}l}}{{\\textit{{{label}}}}}"]), "\\midrule"]
         for name, line, only in rows:
@@ -514,6 +560,8 @@ def train_facts() -> dict:
         if len({x[:2] for x in per_round}) != 1:
             raise SystemExit(f"{ds}: the questions without rows or with a failing gold SQL query differ between rounds: {per_round}")
         facts[f"train.{ds}.no_rows"] = (per_round[0][0], src)
+        asked = sum(c["pair_stats"]["questions"] for c in rec["clients"].values())
+        facts[f"train.{ds}.with_rows"] = (asked - per_round[0][0], src)
         facts[f"train.{ds}.gold_error"] = (per_round[0][1], src)
         for r, x in enumerate(per_round, 1):
             facts[f"train.{ds}.gold_timeout.pref{r}"] = (x[2], src)
@@ -521,6 +569,44 @@ def train_facts() -> dict:
     if sum(x["questions"] for x in audit.values()) != facts["train.spider.no_rows"][0]:
         raise SystemExit("Spider: the questions on databases without rows differ between the round records and " + NO_ROWS_AUDIT)
     facts["train.spider.no_rows.databases"] = (len(audit), NO_ROWS_AUDIT)
+    return facts
+
+
+def pair_facts() -> dict:
+    """The preference pairs of each preference round of the main rows by the kind of their
+    incorrect sample: an execution error or an incorrect result. From the round records."""
+    facts, src = {}, "round record, pair_stats"
+    for ds in ("bird", "spider"):
+        for r in range(1, ROUNDS - WARMUP + 1):
+            rec = json.loads((CODE / "audits/protocol_v2" / PREF_AUDIT[ds] / "dpo" / f"round_{r}" / "round.json").read_text())
+            stats = [c["pair_stats"] for c in rec["clients"].values()]
+            pairs = sum(s["pairs"] for s in stats)
+            err = sum(s["pairs_rejected_exec_error"] for s in stats)
+            wrong = sum(s["pairs_rejected_wrong_result"] for s in stats)
+            if err + wrong != pairs:
+                raise SystemExit(f"{ds} preference round {r}: the kinds of the incorrect samples do not add up to the pairs")
+            facts[f"pairs.{ds}.pref{r}.neg_error"] = (err, src)
+            facts[f"pairs.{ds}.pref{r}.neg_wrong"] = (wrong, src)
+            facts[f"pairs.{ds}.pref{r}.neg_error_pct"] = (f"{100 * err / pairs:.0f}", src)
+    return facts
+
+
+# The records of the adapters of the first preference round averaged again (rows reaggq, reagge)
+REAGG_AUDIT = {"bird": "reagg_bird_sftr2_p2_ddl_alpha01_s0", "spider": "reagg_sftr2_ddlrows_alpha01_s0"}
+
+
+def weight_facts() -> dict:
+    """How far the weights of the server average move in the rows that average the adapters of
+    the first preference round again: the largest change of one client's weight, in percentage
+    points, from the weights by pair counts to those by question counts and to equal weights."""
+    facts = {}
+    for ds, run in REAGG_AUDIT.items():
+        folder = CODE / "audits/protocol_v2" / run / "r1"
+        norm = {w: json.loads((folder / f"{w}.json").read_text())["normalised_weights"]
+                for w in ("pairs", "questions", "equal")}
+        for w in ("questions", "equal"):
+            shift = max(abs(a - b) for a, b in zip(norm["pairs"], norm[w], strict=True))
+            facts[f"weights.{ds}.{w}.max_shift"] = (f"{100 * shift:.1f}", f"records of {run}, normalised_weights")
     return facts
 
 
@@ -533,7 +619,10 @@ WARMUP_AUDIT = {
 
 def warmup_facts() -> dict:
     """Training questions none of whose samples is labeled correct at the first preference round,
-    by the number of warm-up rounds before it: from the record of that round."""
+    by the number of warm-up rounds before it: from the record of that round. Questions on a
+    database without rows are left out, as in the counts of Table 7, so that the questions that
+    yield pairs, those with only correct samples, those without a correct sample, those on a
+    database without rows and those whose gold SQL query fails add up to the training set."""
     facts = {}
     for ds, runs in WARMUP_AUDIT.items():
         for w, run in runs.items():
@@ -541,7 +630,8 @@ def warmup_facts() -> dict:
             if not path.exists():
                 continue
             stats = [c["pair_stats"] for c in json.loads(path.read_text())["clients"].values()]
-            facts[f"warmup.{ds}.k{w}.no_correct"] = (sum(s["questions_all_wrong"] for s in stats),
+            no_rows = sum(s.get("questions_empty_database_by_kind", {}).get("all_wrong", 0) for s in stats)
+            facts[f"warmup.{ds}.k{w}.no_correct"] = (sum(s["questions_all_wrong"] for s in stats) - no_rows,
                                                      f"round record of {run}, pair_stats")
     return facts
 
@@ -621,9 +711,14 @@ ACCESSORS = r"""%% Written by tools/paper_numbers.py from the committed evaluati
 \newcommand{\gap}[6][qwen15]{\pn@get{gap/#1/#2/#3/#4/#5/#6}}
 \newcommand{\pval}[6][qwen15]{\pn@get{pval/#1/#2/#3/#4/#5/#6}}
 \newcommand{\padj}[6][qwen15]{\pn@get{padj/#1/#2/#3/#4/#5/#6}}
+\newcommand{\errpval}[6][qwen15]{\pn@get{errpval/#1/#2/#3/#4/#5/#6}}
+\newcommand{\errpadj}[6][qwen15]{\pn@get{errpadj/#1/#2/#3/#4/#5/#6}}
+\newcommand{\wrpval}[6][qwen15]{\pn@get{wrpval/#1/#2/#3/#4/#5/#6}}
+\newcommand{\wrpadj}[6][qwen15]{\pn@get{wrpadj/#1/#2/#3/#4/#5/#6}}
 \newcommand{\nfix}[6][qwen15]{\pn@get{nfix/#1/#2/#3/#4/#5/#6}}
 \newcommand{\nbrk}[6][qwen15]{\pn@get{nbrk/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tsgain}[6][qwen15]{\pn@get{tsgain/#1/#2/#3/#4/#5/#6}}
+\newcommand{\tsgap}[6][qwen15]{\pn@get{tsgap/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tspval}[6][qwen15]{\pn@get{tspval/#1/#2/#3/#4/#5/#6}}
 %% a count or a cost: \fact{name}
 \newcommand{\fact}[1]{\pn@get{fact/#1}}
@@ -675,7 +770,20 @@ def macros(d: Data, facts: dict) -> tuple[str, str]:
         put(f"nbrk/{tail}", count(t["broke"]), f"\\nbrk{opt}{arg}", str(t["broke"]), where)
         if "tspadj" in t:
             put(f"tsgain/{tail}", signed(t["dts"]), f"\\tsgain{opt}{arg}", f"{t['dts']:+.2f}", where)
+            put(f"tsgap/{tail}", f2(abs(t["dts"])), f"\\tsgap{opt}{arg}", f2(abs(t["dts"])), where)
             put(f"tspval/{tail}", p_tex(t["tspexact"]), f"\\tspval{opt}{arg}", ov.p_text(t["tspexact"]), where)
+    for (a, b) in sorted(d.err_tests):
+        t = d.err_tests[(a, b)]
+        ds, rid = a[0], run_id(a)
+        opt = "" if rid == MAIN else f"[{rid}]"
+        arg = f"{{{ds}}}{{{a[3]}}}{{{a[4]}}}{{{b[3]}}}{{{b[4]}}}"
+        tail = f"{rid}/{ds}/{a[3]}/{a[4]}/{b[3]}/{b[4]}"
+        where = f"text; execution errors in one row only: {t['only_a']} (a), {t['only_b']} (b)"
+        put(f"errpval/{tail}", p_tex(t["pexact"]), f"\\errpval{opt}{arg}", ov.p_text(t["pexact"]), where)
+        put(f"errpadj/{tail}", p_tex(t["padj"]), f"\\errpadj{opt}{arg}", ov.p_text(t["padj"]), where)
+        where = f"text; incorrect results in one row only: {t['wr_a']} (a), {t['wr_b']} (b)"
+        put(f"wrpval/{tail}", p_tex(t["wrpexact"]), f"\\wrpval{opt}{arg}", ov.p_text(t["wrpexact"]), where)
+        put(f"wrpadj/{tail}", p_tex(t["wrpadj"]), f"\\wrpadj{opt}{arg}", ov.p_text(t["wrpadj"]), where)
     md += ["", "## Counts and costs", "", "| Macro | Value | Source |", "|---|---|---|"]
     for name in sorted(facts):
         v, src = facts[name]
@@ -905,6 +1013,8 @@ def main() -> None:
         a, b = (ds, model, 0, la, ra), (ds, model, 0, lb, rb)
         d.run(a, "text"), d.run(b, "text")
         d.test(a, b, "text")
+    for ds, model, la, ra, lb, rb in ERR_TESTS:
+        d.err_test((ds, model, 0, la, ra), (ds, model, 0, lb, rb))
     curves(d)
     form = form_facts(d)
     d.adjust()
@@ -912,7 +1022,7 @@ def main() -> None:
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts()})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts()})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")

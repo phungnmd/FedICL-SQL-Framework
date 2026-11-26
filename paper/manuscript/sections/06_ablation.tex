@@ -1,1 +1,135 @@
 \section{Ablation study}\label{sec:ablation}
+
+This section examines the parts of \method{} in turn: the renewal of the
+pairs and the reference model, the two terms of the loss, the warm-up
+rounds and the server average. Table~\ref{tab:ablation} reports the
+variants, each tested against \method{} at the same number of rounds:
+three, that is, a single preference round, in the lower block, and four
+in the upper. All but the two with another number of warm-up rounds
+start from the model of the first row, FedAvg SFT after
+\setting{rounds.warmup} rounds. Significance is stated after the
+correction of Section~\ref{sec:stat-test}; a $p$-value is unadjusted
+unless marked as adjusted.
+
+\begin{table}[t]
+\caption{EX (\%) of \method{} and of its variants on BIRD dev and Spider
+test; the first row is the model after the \setting{rounds.warmup}
+warm-up rounds. $\Delta$ is the difference in EX to \method{} of the
+same block, and $p$ the unadjusted $p$-value of the exact McNemar test
+against that row, with an asterisk where the difference is significant
+at the \fact{test.alpha} level after the Holm correction over the
+comparisons of the table. ``Clients pooled'' is run on Spider
+only}\label{tab:ablation}
+\centering
+\input{generated/tab_ablation}
+\end{table}
+
+With the pairs and the reference model held fixed, EX is lower on BIRD
+dev and level on Spider test. In the row ``Fixed pairs and reference'',
+the second preference round trains on the pairs of the first preference
+round, against the reference model of that round; the NLL term is
+retained. FedDPO (Section~\ref{sec:baselines}) and Liu et
+al.~\cite{liu2025cotdpo} likewise keep one set of pairs and one
+reference model throughout training. The row fixes both together and
+does not show from which of the two a difference arises. On BIRD dev, it
+reaches \ex{bird}{fixed}{4}, against \ex{bird}{k2}{4} for \method{}
+after four rounds, a significant difference
+($p =$~\pval{bird}{k2}{4}{fixed}{4}), and \ex{bird}{k2}{3} for \method{}
+after three. On Spider test, the two do not differ
+(\ex{spider}{fixed}{4} against \ex{spider}{k2}{4},
+$p =$~\pval{spider}{k2}{4}{fixed}{4}); there, the second preference
+round of \method{} itself adds \gap{spider}{k2}{3}{k2}{4} points,
+against \gap{bird}{k2}{3}{k2}{4} on BIRD dev (Section~\ref{sec:rq1}).
+
+Without the NLL term, a preference round brings no gain on Spider test.
+The row ``Without the NLL term'' is one preference round with the
+preference term alone, the loss of FedDPO and of Liu et
+al.~\cite{liu2025cotdpo}; in a single round, this is its only difference
+from \method. On Spider test, the row reaches \ex{spider}{feddpo}{3},
+against \ex{spider}{fedavg}{2} for the model before the round, and is
+significantly lower than \method, by \gap{spider}{k2}{3}{feddpo}{3}
+points ($p =$~\pval{spider}{k2}{3}{feddpo}{3}). On BIRD dev, it reaches
+\ex{bird}{feddpo}{3}, against \ex{bird}{fedavg}{2} before the round,
+\gain{bird}{k2}{3}{feddpo}{3} points relative to \method{}
+($p =$~\pval{bird}{k2}{3}{feddpo}{3}).
+CodeLutra~\cite{tao2024codelutra} on Spider and Pang et
+al.~\cite{pang2024irpo} on GSM8K likewise report a lower accuracy with
+the DPO term alone than with both terms.
+
+With the preference term, fewer predictions end in an execution error; a
+difference in EX is not established on either dataset. The row ``Without
+the preference term'' trains with the NLL term alone on the correct
+sample of each pair, in an otherwise unchanged preference round. After
+one such round, its EX is \gap{bird}{k2}{3}{rft}{3} points below that of
+\method{} on BIRD dev and \gap{spider}{k2}{3}{rft}{3} on Spider test,
+neither difference being significant (adjusted
+$p =$~\padj{bird}{k2}{3}{rft}{3} and \padj{spider}{k2}{3}{rft}{3}). It
+leaves \nerr{bird}{rft}{3} execution errors on BIRD dev and
+\nerr{spider}{rft}{3} on Spider test, against \nerr{bird}{k2}{3} and
+\nerr{spider}{k2}{3} for \method{} and \nerr{bird}{fedavg}{2} and
+\nerr{spider}{fedavg}{2} before the round, both differences to \method{}
+being significant under the test of Section~\ref{sec:stat-test} applied
+to execution errors ($p =$~\errpval{bird}{k2}{3}{rft}{3} and
+\errpval{spider}{k2}{3}{rft}{3}). \method{} has more incorrect results,
+\nwr{bird}{k2}{3} against \nwr{bird}{rft}{3} on BIRD dev
+($p =$~\wrpval{bird}{k2}{3}{rft}{3} under the same test, significant)
+and \nwr{spider}{k2}{3} against \nwr{spider}{rft}{3} on Spider test
+($p =$~\wrpval{spider}{k2}{3}{rft}{3}, not significant).
+
+At the same total of four rounds, EX on Spider test is level with no,
+two and three warm-up rounds (\ex{spider}{k0}{4}, \ex{spider}{k2}{4} and
+\ex{spider}{k3}{4}; neither difference to \method{} is significant);
+what differs is test-suite accuracy and the number of training questions
+without a correct sample. Without warm-up rounds, the model is above
+FedAvg SFT in EX on Spider dev, Spider-Syn and Spider-Realistic and
+below it in TS on all three (\ts{spiderdev}{k0}{4} against
+\ts{spiderdev}{fedavg}{4} on Spider dev; Table~\ref{tab:robust}),
+whereas \method{} is above FedAvg SFT in both metrics
+(Section~\ref{sec:rq3}). This is a comparison of values; the tested one
+is with \method, against which the lower TS of this variant is
+significant on Spider-Syn only (\tsgap{syn}{k0}{4}{k2}{4} points,
+$p =$~\tspval{syn}{k0}{4}{k2}{4}). On Spider-DK, the EX of the variant
+is \gap{dk}{k0}{4}{k2}{4} points above that of \method, which is not significant (adjusted
+$p =$~\padj{dk}{k0}{4}{k2}{4}).
+
+In training, the warm-up rounds leave fewer questions without a correct
+sample, that is, with none of the $N$ samples of the first preference
+round labeled correct (Section~\ref{sec:warmup}). Of the
+\fact{cost.bird.pref1.questions} training questions of BIRD,
+\fact{warmup.bird.k0.no_correct} are such questions with samples from
+the pretrained model and \fact{warmup.bird.k2.no_correct} after two
+warm-up rounds; of the \fact{train.spider.with_rows} questions of Spider
+on databases with rows, \fact{warmup.spider.k0.no_correct},
+\fact{warmup.spider.k2.no_correct} and
+\fact{warmup.spider.k3.no_correct} with no, two and three warm-up
+rounds. \method{} learns from the gold SQL query of such a question in
+the warm-up rounds; an alternative also pairs it, as the correct side,
+with $M$ incorrect samples of the question, drawn as in
+Section~\ref{sec:pref-round}. We evaluate it on BIRD in the variant
+without warm-up rounds, where these questions are most numerous, in one
+preference round on the same samples and labels. With these pairs, EX on
+BIRD dev is \gap{bird}{k0}{1}{k0gold}{1} points lower
+(\ex{bird}{k0gold}{1} against \ex{bird}{k0}{1}), which is not
+significant ($p =$~\pval{bird}{k0}{1}{k0gold}{1}; adjusted,
+\padj{bird}{k0}{1}{k0gold}{1}). Execution errors fall from
+\nerr{bird}{k0}{1} to \nerr{bird}{k0gold}{1}, and incorrect results rise
+from \nwr{bird}{k0}{1} to \nwr{bird}{k0gold}{1}.
+
+Averaging the adapters of the first preference round again with other
+weights leads to no significant difference in EX. With the question
+counts $n_k$ as weights, the weight of a client differs from its weight
+by pair counts by at most \fact{weights.bird.questions.max_shift}
+percentage points on BIRD and \fact{weights.spider.questions.max_shift}
+on Spider; with equal weights, by at most
+\fact{weights.bird.equal.max_shift} and
+\fact{weights.spider.equal.max_shift}. The largest difference in EX to
+\method{} is \gap{spider}{k2}{3}{reagge}{3} points, for equal weights on Spider test
+($p =$~\pval{spider}{k2}{3}{reagge}{3}).
+
+The row ``Clients pooled'' changes the setting and not the method: it
+shows whether the preference rounds lose by running at five clients with
+a server average. Its preference rounds run on the training data of the
+five clients held at one site, as a single client. On Spider test, it
+reaches \ex{spider}{pooled}{4},
+\gain{spider}{k2}{4}{pooled}{4} points relative to \method{}
+($p =$~\pval{spider}{k2}{4}{pooled}{4}).
