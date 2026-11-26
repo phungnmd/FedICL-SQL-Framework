@@ -1,10 +1,14 @@
 \section{The prompt}\label{app:prompt}
 
-%% LEAD-IN (the writer of Section 4)
+Fig.~\ref{fig:prompt} shows the prompt for one question of each
+benchmark. The prompt is the same for every model and is sent as the
+user message in the chat format of the model. For \setting{model}, this
+format also adds the default system message of the model.
 
 \begin{figure}[!ht]
 \lstset{basicstyle=\ttfamily\scriptsize, columns=fullflexible, keepspaces=true,
-  breaklines=true, breakatwhitespace=true, aboveskip=2pt, belowskip=2pt}
+  breaklines=true, breakatwhitespace=true, aboveskip=2pt, belowskip=2pt,
+  literate={`}{{\`{}}}1 {'}{{\char13}}1}
 %% The four listings are written by tools/paper_numbers.py from the committed predictions.
 \noindent\textbf{\footnotesize (a) BIRD}
 \lstinputlisting{generated/prompt_bird_schema.txt}
@@ -15,5 +19,8 @@
 \lstinputlisting{generated/prompt_spider_schema.txt}
 \noindent{\ttfamily\scriptsize [...]}
 \lstinputlisting{generated/prompt_spider_rest.txt}
-\caption{}\label{fig:prompt}
+\caption{The prompt of a question of (a) BIRD dev and (b) Spider test.
+The mark \texttt{[...]} stands for the \texttt{CREATE TABLE} statements
+of the other tables of the database, in (b) each followed by its example
+rows}\label{fig:prompt}
 \end{figure}
