@@ -110,8 +110,13 @@ no icon that stands for nothing in the method.
 
 - The names and symbols of the paper, the same in every figure and in
   the text: "the model" (not "student"), "global model", "adapter",
-  "execution label", "preference pairs", *θ* with the round as
-  subscript, *Δ* with the client as subscript, *K* clients, *N* samples.
+  "execution label", "preference pairs", "correct" and "incorrect",
+  "warm-up rounds" and "preference rounds"; the notation of
+  `paper/manuscript/TERMS.md`: *θ* with the round as superscript and
+  the client as subscript (the global model of round *t* is sent as
+  *θ* with superscript *t*−1 and aggregated into *θ* with superscript
+  *t*), *K* clients, *N* samples. A superscript is set as a subscript
+  is, at 6 pt.
 - Every abbreviation in a figure is spelled out in its caption.
 
 ## Output

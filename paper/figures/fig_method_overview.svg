@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="337" height="351" viewBox="0 0 337 351" role="img" aria-labelledby="fig-method-title fig-method-desc">
   <title id="fig-method-title">Method overview</title>
-  <desc id="fig-method-desc">After two FedAvg SFT rounds, every round each client samples SQL from the global model, executes it on its private databases to label each sample correct or wrong, pairs correct with wrong samples, trains LoRA with DPO + NLL and returns its adapter, which the server averages into the next global model.</desc>
+  <desc id="fig-method-desc">After two warm-up rounds of FedAvg SFT, in every preference round each client samples SQL queries from the global model, executes them on its private databases to label each sample correct or incorrect, pairs correct with incorrect samples, trains its LoRA adapter with the preference term and the NLL term and returns the adapter, which the server averages into the next global model.</desc>
 
   <!-- style block and defs of paper/figures/template.svg, unchanged -->
   <style>
@@ -78,10 +78,10 @@
   <path class="flow" d="M117 15 H133"/>
   <path class="flow" d="M253 15 H269"/>
   <rect class="blue" x="1" y="1" width="116" height="28" rx="4"/>
-  <text class="h" x="9" y="13">Stage 1: SFT warm-up</text>
+  <text class="h" x="9" y="13">Warm-up rounds</text>
   <text x="9" y="23">2 FedAvg rounds, gold SQL</text>
   <rect class="violet" x="133" y="1" width="120" height="28" rx="4"/>
-  <text class="h" x="141" y="13">Stage 2: On-policy DPO</text>
+  <text class="h" x="141" y="13">Preference rounds</text>
   <text x="141" y="23">Every round <tspan class="i">t</tspan>, shown below</text>
   <rect class="plain" x="269" y="1" width="67" height="28" rx="4"/>
   <text class="h" x="277" y="13">Deploy</text>
@@ -93,30 +93,30 @@
   <text class="h" x="36" y="56">Server</text>
   <text x="36" y="68">FedAvg, weighted by number of pairs</text>
   <rect class="chip-blue" x="190" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="201" y="61.5"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">1</tspan></text>
+  <text class="mid" x="201" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">1</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
   <rect class="chip-blue" x="215" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="226" y="61.5"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">2</tspan></text>
+  <text class="mid" x="226" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">2</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
   <text class="mid" x="243" y="61.5">…</text>
   <rect class="chip-blue" x="249" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="260" y="61.5"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">K</tspan></text>
+  <text class="mid" x="260" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">K</tspan><tspan class="sub" dx="-4" dy="-6">t</tspan></text>
   <path class="flow" d="M275 59 H287"/>
   <use href="#icon-model" class="ic-blue" x="290" y="48"/>
-  <text x="315" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
+  <text x="315" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t</tspan></text>
 
   <!-- client k inside its privacy boundary -->
   <rect class="client" x="1" y="118" width="335" height="202" rx="4"/>
   <rect class="boundary" x="1" y="118" width="335" height="202" rx="4"/>
-  <text class="mid" x="168.5" y="132"><tspan class="h">Client </tspan><tspan class="h i">k</tspan><tspan dx="6">(one of </tspan><tspan class="i">K</tspan> = 5 clients)</text>
+  <text class="mid" x="168.5" y="132"><tspan class="h">Client </tspan><tspan class="h i">k</tspan><tspan dx="6">(one of </tspan><tspan class="i">K</tspan> clients)</text>
   <use href="#icon-lock" class="ic-amber" x="9" y="302"/>
   <text x="24" y="312">Questions, gold SQL and databases <tspan class="b">never leave the client</tspan></text>
 
   <!-- what travels between server and client -->
   <path class="comm" d="M85.5 76 V140"/>
   <path class="comm" d="M251.5 140 V76"/>
-  <text class="end" x="79" y="100">Global model <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
-  <text x="258" y="100">Adapter <tspan class="i">Δ</tspan><tspan class="sub" dy="2">k</tspan></text>
+  <text class="end" x="79" y="100">Global model <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
+  <text x="258" y="100">Adapter <tspan class="i">θ</tspan><tspan class="sub" dy="2">k</tspan><tspan class="sub" dx="-3" dy="-6">t</tspan></text>
   <text class="mid i" x="168.5" y="94">Only LoRA adapters travel</text>
-  <text class="mid i" x="168.5" y="106">Next round samples again from θ<tspan class="sub" dy="2">t+1</tspan></text>
+  <text class="mid i" x="168.5" y="106">Next round samples again from θ<tspan class="sub" dy="-3.5">t</tspan></text>
 
   <!-- flow between the four steps: down, across, up -->
   <path class="flow" d="M85.5 211 V227"/>
@@ -142,7 +142,7 @@
   <text class="mid" x="85" y="201.3">SQL 3</text>
   <text x="107" y="178"><tspan class="i">N</tspan> = 10 SQL</text>
   <text x="107" y="188">per question,</text>
-  <text x="107" y="198">from <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+  <text x="107" y="198">from <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
 
   <!-- 2 execute -->
   <rect class="card" x="9" y="227" width="153" height="71" rx="4"/>
@@ -184,7 +184,7 @@
   <text class="mid" x="242" y="282.3">SQL 3</text>
   <text class="b" x="266" y="265">Preference</text>
   <text x="266" y="275"><tspan class="b">pairs:</tspan> correct</text>
-  <text x="266" y="285">over wrong</text>
+  <text x="266" y="285">over incorrect</text>
 
   <!-- 4 train -->
   <rect class="card" x="175" y="140" width="153" height="71" rx="4"/>
@@ -200,7 +200,7 @@
   <text class="mid" x="217" y="201"><tspan class="i">L</tspan> = <tspan class="i">L</tspan><tspan class="sub" dy="2">DPO</tspan><tspan dy="-2"> + </tspan><tspan class="i">L</tspan><tspan class="sub" dy="2">NLL</tspan></text>
   <text class="b" x="262" y="178">DPO + NLL</text>
   <text x="262" y="188">on the pairs,</text>
-  <text x="262" y="198">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="2">t</tspan></text>
+  <text x="262" y="198">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
 
   <!-- colour key -->
   <rect class="legend" x="1" y="329" width="335" height="20" rx="4"/>

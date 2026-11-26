@@ -2,7 +2,8 @@
 #   make            the PDF (build/main.pdf); stops on an undefined reference; a number that
 #                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
 #   make numbers    macros, tables and settings from the committed results and configs
-#   make figures    the result charts (JOURNAL=jiis or cmc)
+#   make figures    the result charts (JOURNAL=jiis or cmc) and a copy of the method diagram
+#                   (drawn in paper/figures, rendered there with render.py)
 #   make floats     every table and figure on its own, for reading the cells
 #   make pilot      a draft subsection on its own page (pilot/harness.tex)
 #   make lint       the checks of tools/lint.py (JOURNAL=jiis or cmc)
@@ -46,6 +47,7 @@ numbers:
 
 figures:
 	$(PLOT_PY) tools/charts.py --journal $(JOURNAL)
+	cp ../figures/fig_method_overview.pdf figures/fig_method_overview.pdf
 
 floats: 
 	@mkdir -p $(BUILD)
