@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: Section 3 (Method) written (no run)
+
+- `paper/manuscript/sections/03_method.tex`: Sections 3.1 to 3.5 with
+  Fig. 1 and Algorithm 1, 1,485 words on about 4.3 pages (planned:
+  4.0; the floats and the four displayed equations take about 1.85
+  pages where 1.5 were planned). One writer (Fable 5.2, high effort)
+  returned the outline, the draft and two revisions; two helpers on
+  Opus each read the PDF cold; two rounds of five editor's notes. The
+  record is `briefs/03_method_notes_editor.md`.
+- The brief changed after its approval where the cold reads found a
+  fact missing or wrong: the length (about 1,420 words, 1,490 at
+  most); what stays at a client is named and "everything derived from
+  the data" is gone, since the adapter and the count are computed from
+  the data; how a sample is read and which samples are executed; the
+  database without rows; the two draws of a pair; the reason for the
+  weights; the differences in kind from CodeLutra and which of them
+  the paper claims.
+- A statement that is new: the warm-up rounds leave fewer questions
+  without a correct sample at the first preference round than the
+  pretrained model does. From the round records under
+  `fedicl-sql/audits/protocol_v2/`: BIRD 4,035 of 9,428 from the
+  pretrained model (`fedpref_bird_base_p2_ddl_alpha01_ev3_s0`), 3,220
+  after one warm-up round, 2,698 after two
+  (`fedpref_bird_sftr2_p2_ddl_alpha01_s0`); Spider 1,074 of 8,659
+  (`fedpref_base_p2_ddlrows_alpha01_s0`) and 573 after two
+  (`fedpref_sftr2_ddlrows_alpha01_s0`). The questions that yield pairs
+  rise on BIRD (4,857 to 5,877) and fall on Spider (5,951 to 5,192).
+  Section 3.3 states it without a number; it is not yet a row of
+  `CLAIMS.md`, and Section 6 has to report the counts.
+- Owner: commit the section; the points of
+  `paper/manuscript/REVIEW_NOTES.md` are reviewed later (the file is
+  kept while the paper is written, `WRITING_PLAN.md`, section 7.4).
+  Open there: the statement above, a sentence on the gold SQL query as
+  the correct side inside a preference round, a label inside Fig. 1
+  that says only adapters travel, the pages of Section 3.
+
 ## 2026-11-26: brief of the Method section; three open points decided (no run)
 
 - `paper/manuscript/briefs/03_method.md` written for Sections 3.1 to

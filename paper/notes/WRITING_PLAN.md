@@ -435,14 +435,16 @@ numbers, tables, settings and charts; `CLAIMS.md`, `TERMS.md` and
 `OUTLINE.md`, approved by the owner; `references.bib` with 55 entries,
 each checked against a fetched record (`bib/report.md`); the voice
 folder; two pilots of Section 3.4, the second accepted by the owner as
-the test of this workflow (`pilot/`).
+the test of this workflow (`pilot/`); Section 3, Method, with Fig. 1
+and Algorithm 1 (step W7: outline, draft, two cold reads and two
+rounds of editor's notes; `briefs/03_method_notes_editor.md`), and
+`REVIEW_NOTES.md` with what the owner reviews later.
 
 Next, in this order. Each step is the loop of section 2; the owner's
 time is an estimate.
 
 | Step | What | Waits on |
 |---|---|---|
-| W7 | Method, Sections 3.1 to 3.5 with Algorithm 1, from `briefs/03_method.md`. The draft of Section 3.4 from the second pilot goes to the writer as an earlier draft of that subsection (owner, 2026-11-26), with the three notes of `pilot/3.4_notes_editor.md`; the writer revises it where the section needs it | the owner approves the brief; 30 min of reading |
 | W8 | Experimental setup; Appendix A and B assembled by the main session | the time limits of the labeling step as setting macros; 30 min |
 | W9 | Results, the four research questions in one call. A sentence on a number that waits states what is compared and leaves the direction and the size to the number | 30 min; the final reading waits for the rows of `generated/missing.txt` |
 | W10 | Ablation study | same |
