@@ -4,6 +4,21 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: briefs of Sections 1, 7 and 8 approved; the owner asks for the draft to be completed (owner; no run)
+
+- Owner: "Duyệt 1,7,8, hoàn thiện bản draft". The briefs
+  `paper/manuscript/briefs/01_intro.md` (Introduction, abstract,
+  keywords, three title candidates) and `briefs/07_discussion.md`
+  (Discussion and limitations, Conclusion) are approved as built, with
+  the points listed for them in `REVIEW_NOTES.md` (A26, A27): the
+  motive for joint training is stated as the setting, C3 is not named
+  among the contributions or interpreted, at most two new references,
+  the pairs by the kind of their incorrect sample as new numbers of
+  Section 7, and Section 1 written without waiting for Sections 7 and
+  8.
+- Two writers started in parallel, one for Section 1 with the front
+  matter and one for Sections 7 and 8, each from its outline.
+
 ## 2026-11-27: Section 6 (Ablation study) drafted; a paired test on execution errors and three count changes in the generator (no run)
 
 - Writer's first draft of Section 6 (874 words, seven paragraphs, Table
