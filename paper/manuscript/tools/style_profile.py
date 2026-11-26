@@ -3,6 +3,7 @@
 
   style_profile.py profile --sources DIR [--out FILE]   measure the reference papers
   style_profile.py compare FILE.tex --sources DIR       one draft section beside them
+  style_profile.py lifted FILE.tex OTHER [OTHER ...]    words of a draft taken over from other files
 
 DIR holds the LaTeX source of each paper in a folder named by its arXiv id (the sources
 are downloaded from arXiv and are not kept in the repository). The measures are those of
@@ -276,6 +277,35 @@ def compare(path: Path, sources: Path, kind: str) -> None:
     print("\neveryday verbs in the draft:", draft.top(EVERYDAY, 12) or "none")
 
 
+def lifted(path: Path, others: list[Path], run: int = 5) -> None:
+    """Share of the draft's words that stand in runs of `run` or more words found in the other files
+    (the brief and the guide the draft was written from)."""
+    def words(text: str) -> list[str]:
+        return re.findall(r"[a-z]+(?:'[a-z]+)?", text.lower())
+    draft = words(detex(strip_floats(re.sub(r"(?m)(?<!\\)%.*$", "", path.read_text(encoding="utf-8")))))
+    grams = set()
+    for other in others:
+        w = words(re.sub(r"`[^`]*`|\$[^$]*\$", " ", other.read_text(encoding="utf-8")))
+        grams.update(tuple(w[i:i + run]) for i in range(len(w) - run + 1))
+    marked = [False] * len(draft)
+    for i in range(len(draft) - run + 1):
+        if tuple(draft[i:i + run]) in grams:
+            marked[i:i + run] = [True] * run
+    share = 100 * sum(marked) / max(len(draft), 1)
+    print(f"{path.name}: {sum(marked)} of {len(draft)} words ({share:.0f}%) stand in runs of {run} or more words "
+          f"found in {', '.join(o.name for o in others)}")
+    i = 0
+    while i < len(draft):
+        if marked[i]:
+            j = i
+            while j < len(draft) and marked[j]:
+                j += 1
+            print("  ", " ".join(draft[i:j]))
+            i = j
+        else:
+            i += 1
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -286,9 +316,14 @@ def main() -> None:
     c.add_argument("file", type=Path)
     c.add_argument("--sources", type=Path, required=True)
     c.add_argument("--kind", choices=KINDS, default="method")
+    lf = sub.add_parser("lifted")
+    lf.add_argument("file", type=Path)
+    lf.add_argument("others", type=Path, nargs="+")
     args = ap.parse_args()
     if args.cmd == "profile":
         profile(args.sources, args.out)
+    elif args.cmd == "lifted":
+        lifted(args.file, args.others)
     else:
         compare(args.file, args.sources, args.kind)
 

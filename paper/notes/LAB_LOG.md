@@ -4,6 +4,52 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: the manuscript gets a writing workflow of its own; terms of the paper revised (no run)
+
+- First pilot of Section 3.4 (a writer on a role file and a packet in
+  the lab's words). Content, formulas and structure were sound, checked
+  against the code and against CodeLutra's source. The register was
+  that of a spoken explanation: 4.4% words of nine letters or more
+  (17.9% in the method sections of ten published papers), 39 everyday
+  verbs per 1,000 words (1.7), "we" in 8% of the sentences (39%), and
+  35% of its words in runs of five or more taken from the packet and
+  the role file. The writer caught one error of the packet: a client
+  sends its adapter and its number of pairs, not the adapter alone.
+- The ARS `academic-paper` pipeline was tried in `full` mode the same
+  day (owner) and dropped (owner): its phases restate `CLAIMS.md` and
+  the plan. Six of its ideas are kept (`WRITING_PLAN.md`, section 3.3).
+- Now in `paper/manuscript/`: `WRITING_GUIDE.md`, `TERMS.md`,
+  `voice/style_profile.md` (ten papers, 52,000 words;
+  `tools/style_profile.py profile`, `compare` and `lifted`), the
+  Methodology of GradeSQL among the method passages, and briefs in the
+  terms of the field with facts as tables. `WRITER.md` and `packets/`
+  are removed. The outline is approved (`OUTLINE.md`, about 8,500 words
+  of body text).
+- Terms (owner): the labels are "correct" and "incorrect", the two
+  kinds of incorrect query "execution error" and "incorrect result";
+  the model generates, a client samples and executes. Fig. 3 and the
+  Pairing row of Appendix B carry them. American spelling.
+- New number macros from the committed round records, the five clients
+  together, first and second preference round
+  (`\fact{cost.<set>.pref<r>.questions|paired|all_correct}`): BIRD 9,428
+  questions, 5,877 then 3,533 yield pairs, 416 then 3,016 have all ten
+  samples correct. Spider 8,659 questions, 4,013 then 1,677 yield
+  pairs, 2,891 then 5,784 have all samples correct (564 of the 2,891 on
+  databases without rows).
+- The whole paper is drafted now (owner): `make` prints a number that
+  waits for its row as `??`, and `make submit` stops on it.
+- Second pilot of Section 3.4 on the new inputs (writer on Fable 5.2 at
+  high effort, one call of 8 minutes): 770 words, 1.6 pages in the
+  class, build and lint clean, every statement in agreement with the
+  code and the brief. No everyday verb (39 per 1,000 words before);
+  11.8% words of nine letters or more (4.4% before, 17.9% in the ten
+  papers); 4.94 letters per word (4.49; 5.58); "we" in 15% of the
+  sentences (8%; 39%). 28% of its words stand in runs of five or more
+  words of the brief (35% before), now terms and technical phrases. A
+  page of the Method section holds about 500 words, not the 650 the
+  outline assumed. Not yet read by the owner
+  (`paper/manuscript/pilot/3.4_notes_editor.md`).
+
 ## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
 
 Owner approved `paper/manuscript/CLAIMS.md` with six decisions (its
