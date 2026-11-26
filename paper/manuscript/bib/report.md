@@ -67,6 +67,7 @@ What each paper did, as the project's notes record it.
 | 4.1 | gan2021spidersyn, deng2021realistic, gan2021spiderdk | Spider-Syn, Spider-Realistic, Spider-DK |
 | 4.1, 7 | zhong2020testsuite | test-suite accuracy; EX on one database has a mean false-positive rate of 6.5% over 21 Spider-dev submissions (Table 2) |
 | 4.2 | hsu2019noniid | the Dirichlet partition by label |
+| 4.2 | li2022niidbench | the label-distribution-skew partition our split follows (per label, client proportions from a Dirichlet); added 2026-11-26 from Crossref and the arXiv API |
 | 4.3 | hui2024qwen25coder, guo2024deepseekcoder | Qwen2.5-Coder (1.5B and 0.5B) and DeepSeek-Coder-1.3B |
 | 4.4 | li2020fedprox | FedProx |
 | 4.5 | loshchilov2019adamw, kwon2023vllm | AdamW; vLLM for decoding |

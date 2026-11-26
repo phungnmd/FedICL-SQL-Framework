@@ -8,10 +8,9 @@ Chi tiết của từng section nằm ở file ghi chép của section đó
 
 Cập nhật: 2026-11-26. Section 3 đã commit (`05c0853`); các mục A1 đến
 A5 và B1 đến B8 của nó chờ bạn review. Brief của Section 4
-(`briefs/04_setup.md`) chờ bạn duyệt; các mục A6 đến A10 là của nó.
-Brief của Section 5 (`briefs/05_results.md`) cũng đã dựng xong để bạn
-duyệt cùng lúc (mục A11, A12); writer của Section 5 chỉ chạy sau khi
-Section 4 được nhận.
+(`briefs/04_setup.md`) đã được bạn duyệt (A6 đến A10, xem "Đã xong");
+writer của Section 4 đang chạy. Brief của Section 5
+(`briefs/05_results.md`) chờ bạn duyệt (mục A11, A12).
 
 ## A. Cần bạn quyết định
 
@@ -22,11 +21,6 @@ Section 4 được nhận.
 | A3 | Section 3, độ dài | Sau bản nháp đầu tôi hạ độ dài brief xin từ 1,490 (trần 1,650) xuống 1,420 (trần 1,490), thấp hơn mức "10% dưới outline" bạn đã quyết. Lý do: Fig. 1, Algorithm 1 và bốn công thức chiếm khoảng 1.85 trang, plan tính 1.5. Section 3 hiện khoảng 4.3 trang, ngân sách 4.0; tổng plan là 24.6 của 25 trang | Chấp nhận khoảng 4.3 trang. Khi biết tổng số trang, lấy phần dư từ Appendix B (0.6 trang, plan đã định chuyển sang supplementary trước tiên) | |
 | A4 | Fig. 1 | Ba chỗ trong hình lệch với văn bản; tôi chưa sửa vì bạn dặn không đụng hình khi chưa quyết. (1) Ghi chú "Only LoRA adapters travel", trong khi Section 3.1 nói adapter và một số nguyên, "and nothing else"; caption không nói gì về điểm này, nên hình và văn bản đang lệch nhau. (2) Bước 4 viết L = L_DPO + L_NLL, không có λ và ký hiệu khác Eq. (4); caption giờ nối hai cách gọi. (3) "2 FedAvg rounds" và "N = 10" là số gõ tay trong hình, không theo macro | Sửa nhãn (1) thành adapter và số pairs. Để (2) và (3) như cũ. Nói "sửa" thì tôi đổi nhãn, không đụng bố cục | |
 | A5 | Section 3.4, M = 2 | Cả hai người đọc muốn một lý do về hiệu quả, không chỉ về chi phí; paper không có ablation theo M (`CLAIMS.md`, mục 7, điểm 8 đã quyết: chỉ nói lý do chi phí) | Giữ như đã quyết. Một preference round với M = 10 trên BIRD tốn khoảng một ngày GPU (ước lượng từ 283 phút training ở M = 2), tôi không đề xuất chạy | |
-| A6 | Section 4.1 (brief) | Section 3.4 nói hai loại câu hỏi không bao giờ sinh pair; người đọc lạnh hỏi số lượng (mục C6). Số từ round records: Spider train có 7 database không có row, 1,759 của 8,659 câu hỏi nằm trên đó (20%), cộng 3 gold SQL lỗi; BIRD train có 350 gold SQL lỗi và 87, rồi 92 gold SQL quá time limit ở hai preference rounds. Đã có macro (`\fact{train.*}`) | In các số này ở Section 4.1, một hai câu: chúng giải thích cột "questions that yield pairs" của Table 7 và người đọc cần để lặp lại thí nghiệm. Nếu bạn không muốn in, tôi bỏ statement 6 khỏi brief | |
-| A7 | Section 4, chỗ đặt bốn research questions | `OUTLINE.md` đặt bốn RQ làm câu chuyển ở cuối Section 4. Brief đặt chúng ở đoạn mở đầu Section 4, trước 4.1: Section 4.1 và 4.2 gọi "RQ2", "RQ3" (chính outline viết vậy), nên RQ phải được nêu trước; một đoạn ở cuối sẽ nằm dưới heading 4.6 "Statistical test" | Giữ ở đoạn mở đầu | |
-| A8 | Appendix A và B | Tôi đã lắp hai appendix. Appendix A in prompt của một câu hỏi BIRD dev và một câu hỏi Spider test, lấy từ predictions đã commit: bảng đầu tiên của schema và các dòng sau schema; `[...]` thay cho các bảng còn lại. Khoảng 0.45 trang, plan tính 0.2. In đủ hai prompt sẽ tốn khoảng 1 trang. Appendix B (bảng settings) khoảng 0.75 trang, plan tính 0.6 | Giữ bản rút gọn. Khi biết tổng số trang, Appendix B sang supplementary trước (plan đã định), prompt đầy đủ cũng có thể vào supplementary | |
-| A9 | Section 4.4 và 4.5 | Section 4 mô tả cả các baseline chưa chạy: local SFT, FedProx SFT (hệ số mu chưa đặt, in `??`), FedDPO; và câu "hai hàng chính trên BIRD được train thêm một seed thứ hai" (chưa queue). Nếu hàng nào bị bỏ thì câu của nó phải bỏ theo | Viết theo plan của các hàng (`RESEARCH_STATE.md`, mục 3.4); đọc lại Section 4.4 và 4.5 khi các hàng về | |
-| A10 | Section 4.2, citation của cách chia client | `references.bib` chỉ có `hsu2019noniid` cho Dirichlet partition. Code của ta theo nhánh `noniid-labeldir` của NIID-Bench (Li et al., ICDE 2022): với mỗi tier rút tỉ lệ của các client từ Dir(alpha), và client đã đủ 1/K số database thì không nhận thêm. Hsu et al. rút phân phối label cho từng client, là chiều ngược lại | Thêm entry NIID-Bench vào `references.bib` (cần bạn hoặc tôi kiểm record: tác giả, DOI) và cite nó cùng `hsu2019noniid`. Chưa làm | |
 | A11 | Section 5 (brief) | Brief theo đúng A1 đến A6, C1 đến C3, D1 đến D4, E1, E2 của `CLAIMS.md`. Hai chỗ tôi thêm ngoài `CLAIMS.md`: (1) một câu ở 5.2 nêu, dưới dạng phỏng đoán, vì sao gain của model 0.5B nhỏ hơn (FedAvg SFT của nó còn đang tăng ở round 4; limitation 8); (2) một câu ở 5.4 về việc labeling trên BIRD chiếm nhiều thời gian (159 và 168 phút, Spider 3 phút), lý do database lớn chỉ được nêu như giải thích, không phải kết quả đo | Giữ cả hai, hoặc bạn bảo bỏ | |
 | A12 | Số liệu mới cho Section 5 | Thêm vào tool: so sánh method với centralized SFT trên Spider (+3.17, p 2.4e-5; claim A5 cần nó), nên family "text" của Holm có 14 test thay vì 13 và các p đã hiệu chỉnh của family đó đổi nhẹ; macro tỉ lệ chi phí của một preference round so với một FedAvg SFT round (BIRD 2.7 và 2.3, Spider 1.6 và 0.9); macro local SFT (mean, min, max), in `??` cho tới khi 5 hàng về | Không cần quyết định; ghi để bạn biết | |
 
@@ -134,4 +128,10 @@ nhau (đổi mỗi iteration, cố định, không nói).
 
 ## Đã xong
 
-Chưa có mục nào.
+| # | Mục | Quyết định (bạn, 2026-11-26: "duyệt" brief Section 4) |
+|---|---|---|
+| A6 | Số câu hỏi không sinh pair ở Section 4.1 | In, như đề xuất (statement 6 của brief) |
+| A7 | Bốn RQ ở đoạn mở đầu Section 4 | Giữ ở đoạn mở đầu |
+| A8 | Appendix A in prompt rút gọn; Appendix B | Giữ bản rút gọn; khi biết tổng số trang thì Appendix B sang supplementary trước |
+| A9 | Baseline chưa chạy và seed thứ hai được mô tả ở Section 4 | Viết theo plan; đọc lại 4.4 và 4.5 khi các hàng về |
+| A10 | Citation NIID-Bench | Đã thêm `li2022niidbench` vào `references.bib` (record từ Crossref và arXiv API) và vào brief |

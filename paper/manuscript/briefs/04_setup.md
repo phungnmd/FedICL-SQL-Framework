@@ -80,7 +80,7 @@ subsections of Section 5 have no labels yet: point to the section.
 |---|---|
 | complexity of a question | the hardness level of its gold SQL query by the criteria of Spider (easy, medium, hard, extra hard); the same criteria applied to the gold SQL queries of BIRD train, which has no levels |
 | tier of a database | one of four, by its share of hard and extra hard questions (quartiles over the databases) |
-| partition | for each tier, client proportions drawn from $\mathrm{Dir}(\alpha)$ and the databases of the tier assigned by them (`hsu2019noniid`: Dirichlet partition by label; here the label is the tier and the unit a database). A client that already holds $1/K$ of the databases receives no more |
+| partition | for each tier, client proportions drawn from $\mathrm{Dir}(\alpha)$ and the databases of the tier assigned by them: the label-distribution-skew partition of `li2022niidbench`, with the tier as the label and a database as the unit (`hsu2019noniid` introduced Dirichlet partitions for non-IID federated data). As in `li2022niidbench`, a client that already holds $1/K$ of the databases receives no more |
 | small clients | the partition is drawn again until every client holds at least 5 databases (3 with ten clients) |
 | IID | databases assigned uniformly at random, the same number to each client |
 | seed of the partitions | `\setting{split.seed}` |
@@ -221,7 +221,8 @@ stays as it is.
 | `yu2018spider` | Spider: a cross-domain Text-to-SQL benchmark; databases disjoint between its training, development and test sets |
 | `gan2021spidersyn`, `deng2021realistic`, `gan2021spiderdk` | Spider-Syn, Spider-Realistic, Spider-DK, as in the facts of 4.1 |
 | `zhong2020testsuite` | test-suite accuracy; its evaluation code is the comparison of execution results used for Spider here |
-| `hsu2019noniid` | the Dirichlet partition by label for non-IID federated data; smaller concentration, more skew |
+| `hsu2019noniid` | Dirichlet distributions to build non-IID federated partitions by label; smaller concentration, more skew |
+| `li2022niidbench` | NIID-Bench, a study of non-IID partitions for federated learning; its label-distribution skew: for each label, the proportions of the clients are drawn from $\mathrm{Dir}(\alpha)$; its released code stops assigning to a client that holds its equal share |
 | `hui2024qwen25coder` | Qwen2.5-Coder, a family of code language models; its released evaluation code holds the Text-to-SQL prompt used here |
 | `guo2024deepseekcoder` | DeepSeek-Coder, a family of code language models |
 | `mcmahan2017fedavg` | FedAvg |
