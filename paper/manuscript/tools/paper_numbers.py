@@ -490,23 +490,28 @@ def minutes(s: float) -> str:
 
 
 def table_cost(c: dict) -> str:
-    """Table 7: time of a round by step and megabytes a client sends."""
+    """Table 7: what the clients train on in a round (questions; in a preference round the
+    questions that yield pairs, and the pairs), its time by step and megabytes a client sends."""
     lines = ["\\toprule",
-             row(["", "", "\\multicolumn{4}{c}{Minutes per round}", ""]),
-             "\\cmidrule(lr){3-6}",
-             row(["Clients' data", "Round", "Sampling", "Labels", "Training", "Total", "Sent (MB)"]),
+             row(["", "", "\\multicolumn{2}{c}{Trained on}", "\\multicolumn{4}{c}{Minutes per round}", ""]),
+             "\\cmidrule(lr){3-4}\\cmidrule(lr){5-8}",
+             row(["Clients' data", "Round", "Questions", "Pairs", "Sampling", "Labels", "Training", "Total",
+                  "Sent (MB)"]),
              "\\midrule"]
     for i, ds in enumerate(("bird", "spider")):
         mb = f"{c[f'cost.{ds}.adapter_bytes'] / 1e6:.1f}"
         t = c[f"cost.{ds}.sft.train"]
-        lines.append(row([TRAIN_NAME[ds] + " train", "FedAvg SFT", "", "", minutes(t), minutes(t), mb]))
+        lines.append(row([TRAIN_NAME[ds] + " train", "FedAvg SFT", count(c[f"cost.{ds}.pref1.questions"]), "",
+                          "", "", minutes(t), minutes(t), mb]))
         for r in range(1, ROUNDS - WARMUP + 1):
             s, la, tr = (c[f"cost.{ds}.pref{r}.{k_}"] for k_ in ("sample", "label", "train"))
-            lines.append(row(["", f"Preference round {r}", minutes(s), minutes(la), minutes(tr), minutes(s + la + tr), mb]))
+            lines.append(row(["", f"Preference round {r}", count(c[f"cost.{ds}.pref{r}.paired"]),
+                              count(c[f"cost.{ds}.pref{r}.pairs"]), minutes(s), minutes(la), minutes(tr),
+                              minutes(s + la + tr), mb]))
         if i == 0:
             lines.append("\\midrule")
     lines.append("\\bottomrule")
-    return tabular("@{}llrrrrr@{}", lines)
+    return tabular("@{}llrrrrrrr@{}", lines, sep="2.5pt")
 
 
 # ---------------------------------------------------------------- macros
