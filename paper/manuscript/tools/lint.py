@@ -4,7 +4,7 @@
 A STOP finding stops a section (exit code 1); a note is advice for the main session.
 
   STOP  a result number or a setting typed by hand (it must be a macro)
-        a \\cite key that is not in references.bib; an entry without DOI or arXiv id
+        a \\cite key that is not in references.bib; an entry without DOI, arXiv id or address
         a \\usepackage outside the packages of the Springer template (TeX Live 2018 at the journal)
         the abstract outside the word range of the journal, in several paragraphs or with a citation
         the keyword count outside the range of the journal
@@ -208,7 +208,10 @@ def check_refs(files: list[tuple[Path, str]], rep: Report, journal: dict) -> Non
     bibpath = MANUSCRIPT / "references.bib"
     for k, body in bib.items():
         if not re.search(r"\b(?:doi|eprint)\s*=", body, flags=re.I):
-            rep.add("STOP", bibpath, 0, "reference", f"'{k}' has no DOI and no arXiv id")
+            if re.search(r"\burl\s*=", body, flags=re.I):
+                rep.add("note", bibpath, 0, "reference", f"'{k}' has an address but no DOI and no arXiv id")
+            else:
+                rep.add("STOP", bibpath, 0, "reference", f"'{k}' has no DOI, no arXiv id and no address")
         if k not in used:
             rep.add("note", bibpath, 0, "reference", f"'{k}' is not cited")
 
