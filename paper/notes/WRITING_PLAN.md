@@ -225,13 +225,12 @@ sets 770 words on 1.6 pages; the reference list takes about 0.10 page
 an entry (the 55 verified entries 5.6 pages, and 5.5 without the arXiv
 id of the 31 entries that also have a DOI). The space of the tables and
 figures is still an estimate; `make` prints the page count once the
-sections exist. Two working defaults follow, proposed by the main
-session and not yet confirmed by the owner (section 11, item 4):
+sections exist. Two choices follow (owner, 2026-11-26):
 
 - a brief gives its section the words of the outline as the upper end
   and about 10% less as its length, which fits the pages below;
 - the reference list holds about 40 entries. With all 55 the paper
-  comes to about 26 pages.
+  would come to about 26 pages.
 
 Appendix B (about 0.6 page) is the first thing to move to the
 supplementary file when the count runs over.
@@ -296,7 +295,7 @@ setting in the text is a macro, like a result number.
 | Table 8 | ablations at 4 rounds, BIRD and Spider | BIRD: without the preference term round 2, without NLL, k = 0 rounds 3 and 4, k = 3. Spider: without the preference term round 2, pooled clients |
 
 The writer may propose another table or figure in its notes; the owner
-decides. Two such proposals are open (section 11, item 6).
+decides. Two such proposals are open (section 11, item 5).
 
 ## 7. Checks
 
@@ -378,7 +377,7 @@ time is an estimate.
 
 | Step | What | Waits on |
 |---|---|---|
-| W7 | Method, Sections 3.1 to 3.5 with Algorithm 1, from `briefs/03_method.md`. The draft of Section 3.4 from the second pilot goes to the writer as an earlier draft of that subsection, with the three notes of `pilot/3.4_notes_editor.md`; the writer revises it where the section needs it | the owner approves the brief; 30 min of reading |
+| W7 | Method, Sections 3.1 to 3.5 with Algorithm 1, from `briefs/03_method.md`. The draft of Section 3.4 from the second pilot goes to the writer as an earlier draft of that subsection (owner, 2026-11-26), with the three notes of `pilot/3.4_notes_editor.md`; the writer revises it where the section needs it | the owner approves the brief; 30 min of reading |
 | W8 | Experimental setup; Appendix A and B assembled by the main session | the time limits of the labeling step as setting macros; 30 min |
 | W9 | Results, the four research questions in one call. A sentence on a number that waits states what is compared and leaves the direction and the size to the number | 30 min; the final reading waits for the rows of `generated/missing.txt` |
 | W10 | Ablation study | same |
@@ -632,28 +631,22 @@ pages), and the owner may send it.
    tool and version. The figure is not regenerated or restyled before
    the owner decides.
 3. Which journal goes first. This plan assumes JIIS.
-4. Pages (section 5). At the words of the outline and with all 55
-   references the paper comes to about 27 pages. Proposed: the briefs
-   ask for about 10% fewer words than the outline, and the reference
-   list holds about 40 entries, which gives about 24.6 pages with
-   Appendix B as the reserve. The briefs use the first default until
-   the owner decides.
-5. Section 3.4 states that the method constructs two pairs per question
+4. Section 3.4 states that the method constructs two pairs per question
    where CodeLutra constructs ten, without a reason. A reviewer may
    ask; the reason is the owner's to give or to leave out.
-6. Two proposals of the writer of Section 3.4: a worked example (one
+5. Two proposals of the writer of Section 3.4: a worked example (one
    question, its gold SQL query, three samples with their labels, the
    two pairs), and a small table of the counts by preference round.
    Both cost space.
-7. Authors, funding and competing interests are not filled in yet; the
+6. Authors, funding and competing interests are not filled in yet; the
    author block, the CRediT statement and the declarations wait for
    them.
-8. `CLAIMS.md`, contribution 2, says "Only the adapter leaves a
+7. `CLAIMS.md`, contribution 2, says "Only the adapter leaves a
    client". A client also sends its number of pairs, the weight of the
    server average, as it sends its number of questions in a FedAvg SFT
    round. Proposed wording: "the adapter and the count that weights
    it".
-9. Two entries of `references.bib` to check by eye (`bib/report.md`):
+8. Two entries of `references.bib` to check by eye (`bib/report.md`):
    the second author of SLM-SQL, where arXiv and the ACL Anthology
    differ, and Holm (1979), which has no DOI and is cited by its JSTOR
    address.

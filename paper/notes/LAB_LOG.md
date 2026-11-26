@@ -62,9 +62,11 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   page (3,128 words on 5.2 pages); the 55 references take 5.6 pages
   (5.5 without the arXiv id of the 31 entries that have a DOI). At the
   words of the outline with 55 references the paper comes to about 27
-  pages against a limit of 25. Proposed and open with the owner: briefs
-  ask for about 10% fewer words, about 40 references; then about 24.6
-  pages (`WRITING_PLAN.md`, section 5).
+  pages against a limit of 25. Decided (owner): briefs ask for about
+  10% fewer words and the list holds about 40 references, which gives
+  about 24.6 pages (`WRITING_PLAN.md`, section 5). The draft of Section
+  3.4 from the second pilot goes to the writer of the Method section as
+  an earlier draft of that subsection (owner).
 
 ## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
 

@@ -239,7 +239,8 @@ the space of the floats, at 650 words a page. Measured in the class on
 2026-11-26, running text sets about 600 words a page, and the displayed
 equations of the Method section take about 0.4 page. A brief therefore
 gives the first column as the upper end of its section and asks for
-about 10% less (second column), which fits the pages of the plan; the
+about 10% less (second column; owner, 2026-11-26), which fits the pages
+of the plan; the
 subsections share the reduction in proportion. The limit that binds is
 25 pages with references, declarations and appendix
 (`WRITING_PLAN.md`, section 5).
