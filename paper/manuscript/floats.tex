@@ -1,0 +1,27 @@
+%% Every generated table and figure on its own, to read the cells (make floats).
+%% Not part of the paper; the captions here are file names.
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\input{macros}
+\input{generated/numbers}
+\input{generated/settings}
+\newcommand{\showtab}[1]{\begin{table}[p]\caption{\texttt{\detokenize{#1}}}\centering\input{generated/#1}\end{table}\clearpage}
+\newcommand{\showfig}[1]{\IfFileExists{figures/#1.pdf}{\begin{figure}[p]\centering\includegraphics{figures/#1.pdf}\caption{\texttt{\detokenize{#1}}}\end{figure}\clearpage}{}}
+\begin{document}
+\showtab{tab_setups}
+\showtab{tab_main}
+\showtab{tab_models}
+\showtab{tab_federated}
+\showtab{tab_robust}
+\showtab{tab_cost}
+\showtab{tab_ablation}
+\showtab{tab_settings}
+\showfig{fig_rounds}
+\showfig{fig_errors}
+Macro check: \ex{bird}{k2}{4}, \gain{bird}{fedavg}{4}{k2}{4}, \pval{bird}{fedavg}{4}{k2}{4}, \padj{bird}{fedavg}{4}{k2}{4},
+\nfix{bird}{fedavg}{4}{k2}{4} against \nbrk{bird}{fedavg}{4}{k2}{4}, \ex[qwen05]{spider}{k2}{4}, \lvl{bird}{k2}{4}{challenging},
+\fact{questions.bird}, \setting{pref.lr}, \setting{max_len}.
+\end{document}

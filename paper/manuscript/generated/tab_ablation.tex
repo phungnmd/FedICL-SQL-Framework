@@ -1,0 +1,26 @@
+%% Written by tools/paper_numbers.py. Do not edit.
+\setlength{\tabcolsep}{2pt}%
+\begin{tabular}{@{}lrrlrrl@{}}
+\toprule
+ & \multicolumn{3}{c}{BIRD dev} & \multicolumn{3}{c}{Spider test} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & EX & $\Delta$ & $p$ & EX & $\Delta$ & $p$ \\
+\midrule
+\multicolumn{7}{@{}l}{\textit{4 rounds: 2 FedAvg SFT rounds, 2 preference rounds}} \\
+\midrule
+\method & 48.76 &  &  & 78.20 &  &  \\
+Fixed pairs and reference & 46.15 & $-$2.61 & $5.7\times10^{-4}$\textsuperscript{*} & 78.02 & $-$0.18 & 0.78 \\
+Without the preference term & -- & -- & -- & -- & -- & -- \\
+No FedAvg SFT round & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
+Three FedAvg SFT rounds & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
+Clients pooled &  &  &  & -- & -- & -- \\
+\midrule
+\multicolumn{7}{@{}l}{\textit{3 rounds: 2 FedAvg SFT rounds, 1 preference round}} \\
+\midrule
+\method & 46.22 &  &  & 77.46 &  &  \\
+Without the NLL term & -- & -- & -- & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\
+Without the preference term & 44.39 & $-$1.83 & 0.057 & 75.87 & $-$1.59 & 0.015 \\
+Averaged by question count & 46.22 & +0.00 & 1.00 & 77.78 & +0.32 & 0.26 \\
+Averaged with equal weights & 46.02 & $-$0.20 & 0.79 & 76.94 & $-$0.52 & 0.09 \\
+\bottomrule
+\end{tabular}

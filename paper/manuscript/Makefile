@@ -41,8 +41,8 @@ figures:
 
 floats: 
 	@mkdir -p $(BUILD)
-	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.out || (tail -30 $(BUILD)/floats.out; exit 1)
-	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.out || (tail -30 $(BUILD)/floats.out; exit 1)
+	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.stdout || (tail -30 $(BUILD)/floats.stdout; exit 1)
+	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.stdout || (tail -30 $(BUILD)/floats.stdout; exit 1)
 	@echo "$(BUILD)/floats.pdf"
 
 lint:

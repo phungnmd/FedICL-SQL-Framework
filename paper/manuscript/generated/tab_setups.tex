@@ -1,0 +1,15 @@
+%% Written by tools/paper_numbers.py. Do not edit.
+\setlength{\tabcolsep}{3.5pt}%
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+ &  &  & \multicolumn{2}{c}{Questions} & \multicolumn{2}{c}{Databases} & Hard or extra \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Clients' data & Partition & Clients & All & Per client & All & Per client & (\%) \\
+\midrule
+BIRD train & $\alpha=0.1$ & 5 & 9{,}428 & 683--3{,}059 & 69 & 5--18 & 25--58 \\
+Spider train & $\alpha=0.1$ & 5 & 8{,}659 & 734--3{,}479 & 146 & 12--42 & 20--60 \\
+Spider train & $\alpha=0.5$ & 5 & 8{,}659 & 1{,}170--3{,}289 & 146 & 16--42 & 22--56 \\
+Spider train & IID & 5 & 8{,}659 & 1{,}298--2{,}028 & 146 & 29--30 & 34--52 \\
+Spider train & $\alpha=0.5$ & 10 & 8{,}659 & 442--1{,}903 & 146 & 8--22 & 19--63 \\
+\bottomrule
+\end{tabular}

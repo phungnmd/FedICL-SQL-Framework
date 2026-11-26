@@ -1,0 +1,42 @@
+# Rows the tables need that are not committed (written by tools/paper_numbers.py)
+# table | set | model | line (ARMS name) | round or epoch
+
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | central | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | feddpo | round 4
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | fedprox | round 4
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | local1 | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | local2 | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | local3 | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | local4 | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | local5 | round 3
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B, seed 1 | fedavg | round 4
+Table 3, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B, seed 1 | k2 | round 4
+
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | feddpo | round 4
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | fedprox | round 4
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | local1 | round 3
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | local2 | round 3
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | local3 | round 3
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | local4 | round 3
+Table 3, Spider test | Spider test | Qwen2.5-Coder-1.5B | local5 | round 3
+
+Table 4 | BIRD dev | DeepSeek-Coder-1.3B | base | round 0
+Table 4 | BIRD dev | DeepSeek-Coder-1.3B | fedavg | round 4
+Table 4 | BIRD dev | DeepSeek-Coder-1.3B | k2 | round 4
+Table 4 | Spider test | DeepSeek-Coder-1.3B | fedavg | round 4
+Table 4 | Spider test | DeepSeek-Coder-1.3B | k2 | round 4
+
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | fedavg_a05 | round 4
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | fedavg_a05k10 | round 4
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | fedavg_iid | round 4
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | k2_a05 | round 4
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | k2_a05k10 | round 4
+Table 5 | Spider test | Qwen2.5-Coder-1.5B | k2_iid | round 4
+
+Table 8, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | feddpo | round 3
+Table 8, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | k0 | round 4
+Table 8, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | k3 | round 4
+Table 8, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | rft | round 4
+
+Table 8, Spider test | Spider test | Qwen2.5-Coder-1.5B | pooled | round 4
+Table 8, Spider test | Spider test | Qwen2.5-Coder-1.5B | rft | round 4

@@ -1,0 +1,62 @@
+%% Written by tools/paper_settings.py. Do not edit.
+\begin{tabular}{@{}p{0.36\linewidth}p{0.58\linewidth}@{}}
+\toprule
+Setting & Value \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Model and adapter}} \\
+Model & Qwen2.5-Coder-1.5B-Instruct \\
+Other models & Qwen2.5-Coder-0.5B-Instruct, deepseek-coder-1.3b-instruct \\
+Adapter & LoRA, rank 16, $\alpha$ 32 \\
+Adapted matrices & \texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}, \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj} \\
+Adapter size & 73.9 MB \\
+Longest sequence & 7{,}168 tokens, no truncation \\
+Longest sequence, deepseek-coder-1.3b-instruct & 8{,}704 tokens \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Federation}} \\
+Clients in a round & all 5 \\
+Rounds & 4: 2 FedAvg SFT rounds, then 2 preference rounds \\
+Training seed & 0 \\
+Seed of the client splits & 42 \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{FedAvg SFT round}} \\
+Local epochs & 1 \\
+Learning rate & $2\times10^{-4}$ \\
+Examples per update & 16 \\
+Optimizer & AdamW, cosine schedule \\
+Warm-up share of the updates & 0.03 \\
+LoRA dropout & 0.05 \\
+Averaging weights & question count \\
+Epochs of centralized SFT & 3 \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Preference round}} \\
+Samples per question & 10 \\
+Sampling temperature, top-$p$ & 1, 1 \\
+New tokens per sample & 256 \\
+Pairs per question & 2 \\
+Pairing & a wrong sample with a correct sample, drawn at random \\
+Questions on a database without rows & give no pair \\
+$\beta$ of the preference term & 0.1 \\
+Weight of the NLL term & 1 \\
+Local epochs & 1 \\
+Learning rate & $5\times10^{-5}$ \\
+Pairs per update & 16 \\
+Optimizer & AdamW, weight decay $10^{-4}$, cosine schedule \\
+Warm-up share of the updates & 0.1 \\
+LoRA dropout & 0 \\
+Averaging weights & pair count \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Evaluation}} \\
+Decoding & greedy, one output \\
+New tokens & 256 \\
+Repetition penalty & none \\
+Time limit of one SQL on BIRD & 30 s \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Software and hardware}} \\
+Python & 3.11.15 (Python Software Foundation) \\
+PyTorch & 2.11.0 (PyTorch Foundation), CUDA 12.8 (NVIDIA) \\
+Transformers & 5.10.2 (Hugging Face) \\
+PEFT & 0.19.1 (Hugging Face) \\
+Generation engine & vLLM 0.33.0 (vLLM project) \\
+GPU & NVIDIA RTX A5000, 24 GB \\
+\bottomrule
+\end{tabular}
