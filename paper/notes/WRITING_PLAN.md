@@ -396,7 +396,7 @@ The rest is advice for the editor. None of it stops a section.
 | Lab words and earlier labels | `tools/lint.py` | student, arm, queued, run names; "wrong result", "right answer"; British spelling |
 | Register | `tools/style_profile.py compare FILE --kind KIND` | measures far outside the range of the same kind of section in the ten papers, as in the first pilot |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF...` | a large share of the draft in runs of five or more words of the brief |
-| Cold read | a helper on Opus that has seen neither the brief nor the notes reads the PDF of the section as a reviewer of the journal would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
+| Cold read | an isolated Opus session that has seen neither the brief nor the notes reads the PDF of the section as a reviewer of the journal would: the `cold-review` skill with its `section` template (owner, 2026-11-27), given the pages of the section and the pages before it | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
 | Argument | `tools/reverse_outline.py`, beside the writer's outline | the first sentences of a section do not make its argument or have left the outline without a reason; a paragraph with two points |
 | Tables | `tools/table_lint.py` | rules outside booktabs, a metric without its direction, uneven decimals; fixed in the generator |
 | Reader | reader test (whole-paper step): a fresh helper reads the PDF and states the problem, the method, the main result, and anything the paper seemed to defend or explain about its own making | a wrong answer to the first three; anything named in the fourth |

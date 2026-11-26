@@ -21,14 +21,18 @@ project, read the PDF and was denied `AGENTS.md`.
    notes, `LAB_LOG.md`, briefs, `REVIEW_NOTES.md`, claims or term sheets unless
    the owner names them.
 2. **Pick the prompt.** Default: the referee template `prompts/review.md`
-   (`-j` sets the journal). For anything else use `-q` with the owner's words
-   copied verbatim. Do not write your own prompt, add context, name the
+   (`-j` sets the journal). For one section read before the rest of the paper
+   is written: `-t section` (`prompts/section.md`, approved by the owner on
+   2026-11-27); the pages under review go in a file whose name starts with
+   `review_`, the pages before them in a second file. For anything else use
+   `-q` with the owner's words copied verbatim. Do not write your own prompt, add context, name the
    weaknesses you expect, or summarize the paper; that is the framing this
    skill exists to remove. If the owner's question needs a new template, show
    it to the owner before using it.
 3. **Run** (in the background; a full review takes several minutes):
    ```bash
    .claude/skills/cold-review/run.sh -n 2 paper/manuscript/build/main.pdf
+   .claude/skills/cold-review/run.sh -t section -l section2 review_section2.pdf before_section2.pdf
    .claude/skills/cold-review/run.sh -q "<owner's words>" paper/figures/x.png
    ```
    `-n 2` or more gives independent reviewers; agreement between them is the

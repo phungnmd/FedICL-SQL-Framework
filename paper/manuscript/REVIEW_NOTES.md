@@ -294,3 +294,4 @@ Thêm từ helper thứ hai (17 paper ngoài Table 1, `briefs/02_related_rows.md
 | A11 | Hai câu thêm ngoài `CLAIMS.md` trong brief Section 5 | Giữ cả hai (bạn, 2026-11-26: "duyệt" lần hai). Brief `briefs/05_results.md` đã duyệt |
 | A12 | Số liệu mới cho Section 5 | Đã biết |
 | A13 | Số trang: Section 4 khoảng 2.75 (plan 2.3), appendix 1.2 (plan 0.8), tổng dự kiến khoảng 25.7 của 25 | Appendix B sang supplementary như plan; quyết khi các section còn lại có số trang thật |
+| | Template `section` của skill cold-review (`.claude/skills/cold-review/prompts/section.md`) | Bạn duyệt 2026-11-27. Từ Section 2, cold read của từng section chạy qua skill này (session Opus cô lập, chỉ thấy các trang của section và các trang trước nó), thay cho helper subagent |
