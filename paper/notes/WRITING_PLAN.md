@@ -416,6 +416,18 @@ leave the rest as it stands. It may disagree in its reply, and a
 disagreement with a reason is settled by the owner. After two rounds
 what is left is edited by the owner.
 
+### 7.4 Notes for the owner's review
+
+While the paper is written, the main session keeps
+`manuscript/REVIEW_NOTES.md` (owner, 2026-11-26), in Vietnamese, for
+the owner to review later: what needs a decision (a new statement, a
+departure from something decided, a figure), passages to read again,
+questions a reviewer is likely to ask and where the paper answers
+them, every change to a brief after its approval, and what a later
+section has to carry. An item is added when it arises, not at the end
+of a section; a decided item moves to the bottom of the file and into
+the file it concerns (`CLAIMS.md`, a brief, this plan).
+
 ## 8. Steps
 
 Done by 2026-11-26: the folder, the class and the build; the generated
