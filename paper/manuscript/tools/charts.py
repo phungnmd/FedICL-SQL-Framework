@@ -2,7 +2,7 @@
 """Draw the result charts of the paper from the committed evaluations.
 
   fig_rounds   Fig. 2: EX by round, FedAvg SFT and the method, BIRD dev and Spider test
-  fig_errors   Fig. 3: wrong answers by round, split into execution errors and wrong results
+  fig_errors   Fig. 3: incorrect predictions by round, split into execution errors and incorrect results
 
 The points come from `curves()` of paper_numbers.py. The figure rules of the two journals
 (paper/figures/STYLE.md, the table of journal limits) are built in:
@@ -108,11 +108,11 @@ def fig_errors(data: dict, j: dict):
         ax.grid(axis="y")
         ax.set_axisbelow(True)
         letter(ax, ch, name)
-    axes[0].set_ylabel("Wrong answers")
+    axes[0].set_ylabel("Incorrect predictions")
     from matplotlib.patches import Patch
-    handles = [Patch(facecolor=SERIES["fedavg"]["fill"], edgecolor=BLUE, linewidth=0.5, label="FedAvg SFT, wrong result"),
+    handles = [Patch(facecolor=SERIES["fedavg"]["fill"], edgecolor=BLUE, linewidth=0.5, label="FedAvg SFT, incorrect result"),
                Patch(facecolor="white", edgecolor=BLUE, linewidth=0.5, hatch="////", label="FedAvg SFT, execution error"),
-               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=VIOLET, linewidth=0.5, label="FedLS-SQL, wrong result"),
+               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=VIOLET, linewidth=0.5, label="FedLS-SQL, incorrect result"),
                Patch(facecolor="white", edgecolor=VIOLET, linewidth=0.5, hatch="////", label="FedLS-SQL, execution error")]
     fig.legend(handles=handles, loc="lower center", ncol=2, handlelength=1.6, columnspacing=1.6, bbox_to_anchor=(0.5, 0.0))
     fig.tight_layout(pad=0.3, w_pad=1.2, rect=(0, 0.16, 1, 1))

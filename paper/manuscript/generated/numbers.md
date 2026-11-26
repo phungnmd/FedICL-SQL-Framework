@@ -589,22 +589,34 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | Macro | Value | Source |
 |---|---|---|
 | `\fact{cost.bird.adapter_mb}` | 73.9 | round record, communication_bytes |
+| `\fact{cost.bird.pref1.all_correct}` | 416 | round record, pair_stats |
 | `\fact{cost.bird.pref1.label_min}` | 159 | round records and queue logs |
+| `\fact{cost.bird.pref1.paired}` | 5877 | round record, pair_stats |
 | `\fact{cost.bird.pref1.pairs}` | 11754 | round record, pair_stats |
+| `\fact{cost.bird.pref1.questions}` | 9428 | round record, pair_stats |
 | `\fact{cost.bird.pref1.sample_min}` | 28 | round records and queue logs |
 | `\fact{cost.bird.pref1.train_min}` | 283 | round records and queue logs |
+| `\fact{cost.bird.pref2.all_correct}` | 3016 | round record, pair_stats |
 | `\fact{cost.bird.pref2.label_min}` | 168 | round records and queue logs |
+| `\fact{cost.bird.pref2.paired}` | 3533 | round record, pair_stats |
 | `\fact{cost.bird.pref2.pairs}` | 7066 | round record, pair_stats |
+| `\fact{cost.bird.pref2.questions}` | 9428 | round record, pair_stats |
 | `\fact{cost.bird.pref2.sample_min}` | 28 | round records and queue logs |
 | `\fact{cost.bird.pref2.train_min}` | 195 | round records and queue logs |
 | `\fact{cost.bird.sft.train_min}` | 173 | FedAvg SFT rounds 1, 2, 4 |
 | `\fact{cost.spider.adapter_mb}` | 73.9 | round record, communication_bytes |
+| `\fact{cost.spider.pref1.all_correct}` | 2891 | round record, pair_stats |
 | `\fact{cost.spider.pref1.label_min}` | 3 | round records and queue logs |
+| `\fact{cost.spider.pref1.paired}` | 4013 | round record, pair_stats |
 | `\fact{cost.spider.pref1.pairs}` | 8026 | round record, pair_stats |
+| `\fact{cost.spider.pref1.questions}` | 8659 | round record, pair_stats |
 | `\fact{cost.spider.pref1.sample_min}` | 18 | round records and queue logs |
 | `\fact{cost.spider.pref1.train_min}` | 182 | round records and queue logs |
+| `\fact{cost.spider.pref2.all_correct}` | 5784 | round record, pair_stats |
 | `\fact{cost.spider.pref2.label_min}` | 3 | round records and queue logs |
+| `\fact{cost.spider.pref2.paired}` | 1677 | round record, pair_stats |
 | `\fact{cost.spider.pref2.pairs}` | 3354 | round record, pair_stats |
+| `\fact{cost.spider.pref2.questions}` | 8659 | round record, pair_stats |
 | `\fact{cost.spider.pref2.sample_min}` | 19 | round records and queue logs |
 | `\fact{cost.spider.pref2.train_min}` | 88 | round records and queue logs |
 | `\fact{cost.spider.sft.train_min}` | 124 | FedAvg SFT rounds 1, 2 |

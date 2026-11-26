@@ -203,7 +203,7 @@ def collect() -> list[tuple]:
     add(g, "Temperature", "pref.t", f"{s['sampling']['temperature']:g}", source=psrc)
     add(g, "New tokens per sample", "pref.tokens", s["sampling"]["max_new_tokens"], source=psrc)
     add(g, "Pairs per question", "pref.pairs", s["pair_rule"]["pairs_per_question"], source=psrc)
-    add(g, "Pairing", "pref.rule", {"random": "a wrong sample with a correct sample, drawn at random"}[s["pair_rule"]["rule"]], source=psrc)
+    add(g, "Pairing", "pref.rule", {"random": "a correct sample with an incorrect sample, drawn at random"}[s["pair_rule"]["rule"]], source=psrc)
     add(g, "Questions on a database without rows", "pref.empty", {True: "give no pair"}[s["pair_rule"]["skip_empty_databases"]], source=psrc)
     add(g, "$\\beta$ of the preference term", "pref.beta", f"{dpo['beta']:g}", source=psrc)
     add(g, "Weight of the NLL term", "pref.nll", f"{dpo['nll_alpha']:g}", source=psrc)

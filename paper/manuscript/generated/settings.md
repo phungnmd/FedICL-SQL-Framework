@@ -33,7 +33,7 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Preference round | Temperature | `\setting{pref.t}` | 1 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | New tokens per sample | `\setting{pref.tokens}` | 256 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Pairs per question | `\setting{pref.pairs}` | 2 | preference round records (setup.json, arm.json, round.json) |
-| Preference round | Pairing | `\setting{pref.rule}` | a wrong sample with a correct sample, drawn at random | preference round records (setup.json, arm.json, round.json) |
+| Preference round | Pairing | `\setting{pref.rule}` | a correct sample with an incorrect sample, drawn at random | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Questions on a database without rows | `\setting{pref.empty}` | give no pair | preference round records (setup.json, arm.json, round.json) |
 | Preference round | beta of the preference term | `\setting{pref.beta}` | 0.1 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Weight of the NLL term | `\setting{pref.nll}` | 1 | preference round records (setup.json, arm.json, round.json) |

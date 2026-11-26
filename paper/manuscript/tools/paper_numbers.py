@@ -473,7 +473,13 @@ def cost_facts() -> dict:
                 if sorted(s["client"] for s in steps if s["step"] == "train") != [1, 2, 3, 4, 5]:
                     raise SystemExit(f"{ds} preference round {r}: a client trained in more than one call")
             out[f"cost.{ds}.pref{r}.sample"], out[f"cost.{ds}.pref{r}.label"], out[f"cost.{ds}.pref{r}.train"] = gen, lab, train
-            out[f"cost.{ds}.pref{r}.pairs"] = sum(c["pair_stats"]["pairs"] for c in rec["clients"].values())
+            stats = [c["pair_stats"] for c in rec["clients"].values()]
+            out[f"cost.{ds}.pref{r}.pairs"] = sum(s["pairs"] for s in stats)
+            out[f"cost.{ds}.pref{r}.questions"] = sum(s["questions"] for s in stats)
+            # a question with correct and incorrect samples yields pairs unless its database holds no rows
+            no_rows = sum(s.get("questions_empty_database_by_kind", {}).get("mixed", 0) for s in stats)
+            out[f"cost.{ds}.pref{r}.paired"] = sum(s["questions_mixed"] for s in stats) - no_rows
+            out[f"cost.{ds}.pref{r}.all_correct"] = sum(s["questions_all_correct"] for s in stats)
     if "cost.spider.adapter_bytes" not in out:  # same model and LoRA shape: one adapter size
         out["cost.spider.adapter_bytes"] = out["cost.bird.adapter_bytes"]
     return out
@@ -600,7 +606,7 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             continue
         if k_.endswith("adapter_bytes"):
             facts[k_.replace("adapter_bytes", "adapter_mb")] = (f"{v / 1e6:.1f}", "round record, communication_bytes")
-        elif k_.endswith(".pairs"):
+        elif k_.rsplit(".", 1)[1] in ("pairs", "questions", "paired", "all_correct"):
             facts[k_] = (v, "round record, pair_stats")
         else:
             src = "round records and queue logs" if ".pref" in k_ else f"FedAvg SFT rounds {cost[k_.rsplit('.', 1)[0] + '.rounds']}"
