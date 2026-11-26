@@ -2,11 +2,13 @@
 """Style measures of published papers by kind of section, and of a draft against them.
 
   style_profile.py profile --sources DIR [--out FILE]   measure the reference papers
-  style_profile.py compare FILE.tex --sources DIR       one draft section beside them
+  style_profile.py compare FILE.tex [--kind method]     one draft section beside them
   style_profile.py lifted FILE.tex OTHER [OTHER ...]    words of a draft taken over from other files
 
 DIR holds the LaTeX source of each paper in a folder named by its arXiv id (the sources
-are downloaded from arXiv and are not kept in the repository). The measures are those of
+are downloaded from arXiv and are not kept in the repository). `profile` also writes the
+measures by kind of section to voice/style_reference.json, which `compare` reads, so a
+draft is measured without the sources. The measures are those of
 the ARS style calibration protocol: sentence length, paragraph length, vocabulary (hedges,
 transitions, reporting verbs, formality), citation integration, modifiers, and how they
 shift between the kinds of section. They describe a register; none of them is a target.
@@ -14,6 +16,7 @@ shift between the kinds of section. They describe a register; none of them is a 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import statistics
 from collections import Counter
@@ -242,8 +245,12 @@ def load(sources: Path) -> tuple[dict, dict, list[str]]:
     return by_kind, by_paper, unmatched
 
 
+REFERENCE = Path(__file__).resolve().parent.parent / "voice" / "style_reference.json"
+
+
 def profile(sources: Path, out: Path | None) -> None:
     by_kind, by_paper, unmatched = load(sources)
+    REFERENCE.write_text(json.dumps({k: by_kind[k].row() for k in KINDS}, indent=1) + "\n", encoding="utf-8")
     lines = ["# Style measures of the reference papers", "",
              "Written by `tools/style_profile.py profile`. Do not edit.", "",
              "Papers: " + "; ".join(f"{n} ({v + ', ' if v else ''}arXiv {a})" for a, (n, v, _m) in PAPERS.items()) + ".", "",
@@ -269,11 +276,11 @@ def profile(sources: Path, out: Path | None) -> None:
         print(text)
 
 
-def compare(path: Path, sources: Path, kind: str) -> None:
-    by_kind, _by_paper, _ = load(sources)
+def compare(path: Path, sources: Path | None, kind: str) -> None:
+    reference = load(sources)[0][kind].row() if sources else json.loads(REFERENCE.read_text(encoding="utf-8"))[kind]
     draft = Measure()
     draft.add(re.sub(r"(?m)(?<!\\)%.*$", "", path.read_text(encoding="utf-8")))
-    print(table([(path.name, draft.row()), (f"reference: {kind}", by_kind[kind].row())]))
+    print(table([(path.name, draft.row()), (f"reference: {kind}", reference)]))
     print("\neveryday verbs in the draft:", draft.top(EVERYDAY, 12) or "none")
 
 
@@ -314,7 +321,7 @@ def main() -> None:
     p.add_argument("--out", type=Path)
     c = sub.add_parser("compare")
     c.add_argument("file", type=Path)
-    c.add_argument("--sources", type=Path, required=True)
+    c.add_argument("--sources", type=Path, help="measure the reference papers again instead of reading the saved measures")
     c.add_argument("--kind", choices=KINDS, default="method")
     lf = sub.add_parser("lifted")
     lf.add_argument("file", type=Path)

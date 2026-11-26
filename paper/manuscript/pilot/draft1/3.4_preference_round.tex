@@ -1,0 +1,39 @@
+\subsection{A preference round}\label{sec:pref-round}
+
+The warm-up rounds (Section~\ref{sec:warmup}) teach the model from the one gold SQL of each question. A preference round uses what a client holds beyond it: the database. The client lets the model write several queries for each of its questions, runs them, and compares each result with the result of the gold SQL. Execution thus turns the one gold SQL of a question into many right and wrong queries of the model's own, and the round trains the model to prefer the right ones. Algorithm~\ref{alg:method} lists the steps. We describe round $t$, with $T_w < t \le T$, at client $k$.
+
+\paragraph{Sampling and execution labels.}
+The server sends the global adapter $\theta^{t-1}$ to all $K$ clients; every client takes part in every round. For each $(q, d, y^\star) \in \mathcal{D}_k$ the client draws $N = \setting{pref.samples}$ samples from $\pi_{\theta^{t-1}}(\cdot \mid x)$ at temperature \setting{pref.t}, with no nucleus or top-k cut and at most \setting{pref.tokens} new tokens, so the samples follow the distribution of the model itself. It then runs the gold SQL once and every sample on $d$. A sample $y$ is \emph{correct} when $\mathrm{exec}(y, d) = \mathrm{exec}(y^\star, d)$, with results compared as the execution accuracy of the benchmark compares them, and \emph{wrong} otherwise. A wrong sample is either an execution error (it does not run, or it exceeds the time limit) or a wrong result (it runs and returns another result); an output with no SQL in it is wrong. A sample cut off at the token limit gets no label. This execution label needs the gold SQL and the database together, so it can be made only at the client.
+
+\paragraph{Preference pairs.}
+A preference pair is two samples of one question, a correct one, $y^{+}$, and a wrong one, $y^{-}$. For a question with at least one sample of each kind the client draws $M = \setting{pref.pairs}$ pairs, taking $y^{+}$ at random from the correct samples and $y^{-}$ at random from the wrong ones. The draw is over the samples as the model produced them: a wrong query sampled three times is three times as likely to be drawn, so the errors the model makes most often are the ones it is corrected on most often. Both sides of a pair are queries the model wrote itself; the gold SQL decides the label and does not enter the pair. A question whose samples are all correct or all wrong gives no pair in this round and is sampled again in the next. Two further cases give no pair: a question whose gold SQL does not run, and a question on a database whose tables hold no rows, where every query that runs returns the gold result and the label would say only whether a query runs. We write $\mathcal{P}_k^{t}$ for the pairs of client $k$ in round $t$.
+
+\paragraph{Local training.}
+The client starts from $\theta^{t-1}$ and trains for \setting{pref.epochs} epoch on $\mathcal{P}_k^{t}$, minimising the mean of a loss with two terms. For a pair $(x, y^{+}, y^{-})$ let
+\begin{equation}
+  m_\theta = \beta \left[ \log \frac{\pi_\theta(y^{+} \mid x)}{\pi_{\mathrm{ref}}(y^{+} \mid x)} - \log \frac{\pi_\theta(y^{-} \mid x)}{\pi_{\mathrm{ref}}(y^{-} \mid x)} \right]
+  \label{eq:margin}
+\end{equation}
+be the margin of the pair. Its loss is
+\begin{equation}
+  \ell(\theta) = -\log \sigma(m_\theta) \; - \; \frac{\lambda}{|y^{+}|} \log \pi_\theta(y^{+} \mid x),
+  \label{eq:loss}
+\end{equation}
+where $\log \pi(y \mid x)$ is the sum of the log-probabilities of the tokens of $y$, $|y^{+}|$ is the number of tokens of $y^{+}$, and $\sigma$ is the logistic function.
+
+The first term is the DPO loss~\cite{rafailov2023dpo}. The margin says how much more the model has raised the correct sample than the wrong one, each measured against a reference model $\pi_{\mathrm{ref}}$, and the term falls as the margin grows; $\beta$ sets how far the model may move from the reference. We take $\pi_{\mathrm{ref}} = \pi_{\theta^{t-1}}$, the global model the round started from. It is fixed during the round, and its log-probabilities of the pairs are computed once, before local training. Two things follow from this choice. Every client measures its change from the same model, so the adapters the server averages were trained against one reference. And the reference is the model whose queries were just sampled: local training starts at $m_\theta = 0$ for every pair and moves the model away from a wrong query it wrote, towards a correct query it also wrote.
+
+The margin depends only on the difference between the two samples, so the first term can fall while the likelihood of $y^{+}$ does not rise. The second term, the mean negative log-likelihood of the tokens of $y^{+}$, keeps the likelihood of the correct sample. We set $\beta = \setting{pref.beta}$ and $\lambda = \setting{pref.nll}$. These two values, the number of samples, the temperature and the random pairing follow CodeLutra~\cite{tao2024codelutra}, which trains with the same two terms on one machine. Section~\ref{sec:ablation} removes each term in turn.
+
+\paragraph{Aggregation.}
+The client sends its adapter $\theta_k^{t}$~\cite{hu2022lora}, \setting{adapter.mb}~MB, to the server, which averages every matrix of the adapter as FedAvg does~\cite{mcmahan2017fedavg}:
+\begin{equation}
+  \theta^{t} = \sum_{k=1}^{K} w_k \, \theta_k^{t},
+  \qquad
+  w_k = \frac{|\mathcal{P}_k^{t}|}{\sum_{j=1}^{K} |\mathcal{P}_j^{t}|}.
+  \label{eq:agg}
+\end{equation}
+A warm-up round weights a client by its number of questions; a preference round weights it by its number of pairs, the data it trained on in that round. The samples, their results, the execution labels and the pairs stay at the client. What leaves it is what leaves it in a FedAvg SFT round: the adapter and the count that weights it.
+
+\paragraph{Sampling again in every round.}
+The next preference round repeats these steps from $\theta^{t}$. Its pairs are built from the queries the new global model writes, and its reference is again the model that wrote them. Pairs built once would describe the model that was sampled then, not the model being trained. The pairs change from round to round accordingly. On BIRD the five clients together form \fact{cost.bird.pref1.pairs} pairs in the first preference round and \fact{cost.bird.pref2.pairs} in the second; on Spider, \fact{cost.spider.pref1.pairs} and \fact{cost.spider.pref2.pairs}. In the second round fewer questions have both a correct and a wrong sample among their $N$. What a round costs is the subject of Section~\ref{sec:cost}.
