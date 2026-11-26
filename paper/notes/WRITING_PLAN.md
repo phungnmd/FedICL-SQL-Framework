@@ -1,8 +1,9 @@
 # FedLS-SQL: writing plan
 
-Written 2026-11-26. How the manuscript is written: who does what, the
-writer and what it is given, the structure of the paper, its tables and
-figures, the checks, the steps in order, the tools. What the paper
+Written 2026-11-26 and revised the same day after the owner's review.
+How the manuscript is written: who does what, the writer and what it is
+given, the structure of the paper, its tables and figures, the checks,
+the steps in order, the tools. What the paper
 claims and which rows exist is in `RESEARCH_STATE.md` (sections 3.1,
 3.4, 5.0); this file does not repeat it.
 
@@ -11,11 +12,12 @@ claims and which rows exist is in `RESEARCH_STATE.md` (sections 3.1,
 | Part | Choice |
 |---|---|
 | Who writes | writer agents, one section at a time, in the order of section 8. The main session coordinates and writes no prose of the paper |
-| The writer | a professor of data science presenting finished work, whose question is where the supervision comes from (section 3); few constraints, its own judgement on how a section is built |
-| Format | LaTeX, to the JIIS shape first (25 pages, the tighter of the two). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file (section 10) |
+| The writer | a professor of data science presenting finished work, whose question is where the supervision comes from (section 3); few constraints, its own judgement on how a section is built. It runs on Fable 5.2 at high effort (owner, 2026-11-26) |
+| Helpers | bibliography, audits and the reader test run on Opus |
+| Format | LaTeX, to the JIIS shape first (25 pages, the tighter of the two; the writers' budgets sum to 23, section 5). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file (section 10) |
 | Class | Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst` |
 | Place | `paper/manuscript/` in the paper repository; one commit per accepted section |
-| Numbers | a script writes macros and tables from the committed evaluations (section 6); a result number in the text is a macro |
+| Numbers | a script writes macros and tables from the committed evaluations, and the settings from the committed configs (section 6); a result number in the text is a macro |
 | Names | the method is `\method` and the paper says "the model", so the title can change without touching the text |
 
 ## 2. Who does what
@@ -24,8 +26,8 @@ claims and which rows exist is in `RESEARCH_STATE.md` (sections 3.1,
 |---|---|---|
 | Owner | approves `CLAIMS.md` and each packet's content, reads each section, decides | |
 | Main session | builds the numbers, the packets and the voice folder; starts the writer; runs the checks; turns what they find into a few editor's notes; makes mechanical fixes itself (a term, a macro, a label) | draft or rewrite sentences of the paper: it carries the lab's vocabulary, history and rules |
-| Writer (subagent) | writes one section from its packet, decides its structure, answers the editor's notes | read the notes of the lab |
-| Helpers (subagents) | build `references.bib`, audit claims, read the PDF cold | talk to the writer |
+| Writer (subagent, Fable 5.2 at high effort) | writes one section from its packet, decides its structure, answers the editor's notes | read the notes of the lab |
+| Helpers (subagents, Opus) | build `references.bib`, audit claims and statements about other papers, read the PDF cold | talk to the writer |
 
 One section moves through this loop, and the next starts when it is
 accepted, because a later section reads the earlier ones:
@@ -38,8 +40,9 @@ packet (main session, owner reads)
   -> owner reads -> commit
 ```
 
-The bibliography, the numbers, the charts and the audits run beside the
-writer; two writers never run at once.
+A writer is given `WRITER.md`, `voice/`, its packet and the accepted
+sections, and nothing else. The bibliography, the numbers, the charts
+and the audits run beside the writer; two writers never run at once.
 
 ## 3. The writer
 
@@ -75,11 +78,13 @@ measured (BIRD).
 > In any project your first question is where the supervision comes
 > from. Here the answer is the paper. An organisation that holds a
 > database holds more than labelled questions: it holds the means to
-> run any query the model writes and see whether the answer is right,
-> and that check can be made only where the database is. Federated
-> learning is the setting in which this matters and Text-to-SQL the
-> task in which an answer can be checked by running it; you know both
-> fields and write about them from this point of view. The experiments
+> run any query the model writes and compare its result with the result
+> of the gold SQL, and that comparison can be made only where the
+> database is. Execution turns the one gold SQL of a question into many
+> right and wrong queries of the model's own. Federated learning is the
+> setting in which this matters and Text-to-SQL the task in which a
+> query can be checked by running it; you know both fields and write
+> about them from this point of view. The experiments
 > are finished. What remains is the part a senior author keeps for
 > themselves: making a reader understand what was done, why it works
 > and what it is worth.
@@ -127,6 +132,11 @@ measured (BIRD).
 Four things bind it, all in the role above: facts, formulas and
 references come from the packet; result numbers are macros; names come
 from the term sheet; the section keeps to its length within a tenth.
+The term sheet states what a label is, in the words of the role: a
+sampled query is correct when its result equals the result of the gold
+SQL on the client's database, so execution turns one gold SQL into many
+right and wrong queries of the model's own. The paper never says that
+execution shows whether an answer is right without the gold SQL.
 
 Everything else is the writer's: how many paragraphs and in what order,
 what leads, which of the available numbers appear in the text, whether
@@ -149,6 +159,10 @@ experiments, GradeSQL for the shape of a JIIS paper. The owner may
 replace any of them, or add passages by an author whose writing the
 paper should resemble.
 
+The pilot (step W4) runs on a minimal folder: two passages, one of a
+method exposition and one of an experimental section, with no profile.
+The full folder follows in step W6, once the pilot reads well.
+
 ## 4. Packets (`packets/`, one file per section)
 
 The packet is where the lab's language becomes the paper's, once, and
@@ -162,10 +176,18 @@ one to two pages.
   strongest wording the evidence carries and the sets it holds on. The
   writer may say less, in other words, in any order.
 - The facts as values, in tables and lists: settings, counts, formulas
-  checked against the code. No prose, so there is none to copy.
+  checked against the code. No prose, so there is none to copy. The
+  settings come from `generated/settings.md`, written from the
+  committed configs (section 6).
 - The tables of the section, and each macro with its value beside it.
 - References: key, and one line on what the paper did.
-- Length in words.
+- For Related work, in place of one line per reference: the facts the
+  comparison needs, one row per fact (the cited paper, what it did or
+  reported as a value, and the locator in that paper: section, table,
+  equation or page, or the file and line of its released code). Every
+  cell of Table 1 is such a row. A sentence about another paper is
+  written from these rows (section 7).
+- Length in words, from the page budget of section 5.
 - Paragraph roles that usually serve this kind of section, as an offer
   (from `voice/section_rhetoric.md`: for an introduction, the limit of
   earlier work with its cause, then why this method removes it; for a
@@ -179,27 +201,30 @@ Discussion, as the list approved in `CLAIMS.md`.
 
 ## 5. Structure of the paper
 
-Budget for 25 pages in `sn-jnl`, references included; it is measured on
-the first build with empty tables in place and corrected then. Results
-follow research questions and the ablations have their own section, as
-in the JIIS papers read (`JOURNAL_BAR.md`).
+The limit is 25 pages in `sn-jnl`, references included. The budgets
+below sum to 23, so two pages are left for what the first full build
+shows; a packet gives its section this budget in words. Appendix B is
+the first thing to move to the supplementary file when the count runs
+over. Results follow research questions and the ablations have their
+own section, as in the JIIS papers read (`JOURNAL_BAR.md`).
 
 | # | Section | Pages | Content | Notes the packet is built from | Can be written |
 |---|---|---:|---|---|---|
 | | Title, abstract, keywords | 0.7 | title as "Name: mechanism for the task in the setting"; abstract of 150 to 250 words with one number (the gain on BIRD); 4 to 6 keywords | `JOURNAL_BAR.md` 3 | last |
-| 1 | Introduction | 1.8 | small models for Text-to-SQL where data cannot be pooled; FedAvg SFT learns from one gold SQL and never uses the databases, federated DPO as published keeps its first pairs and reference; execution is available only at the client; the method in three sentences; headline results; that "federated Text-to-SQL" here means training; 4 contributions, the last the released code, splits and predictions | `RESEARCH_STATE.md` 3.1; `LITERATURE.md` 1.22 | after 5 and 6 |
-| 2 | Related work | 2.0 | 2.1 small models for Text-to-SQL; 2.2 preference optimization and execution feedback for SQL and code; 2.3 federated fine-tuning of language models, federated DPO; 2.4 federated semantic parsing and Text-to-SQL; Table 1 | `LITERATURE.md` 1.2, 1.3, 1.4, 1.22, 2; `DPO_RESEARCH.md` 2, 7; `RESEARCH_STATE.md` 3.6 | now |
-| 3 | Method | 4.0 | 3.1 setting and notation; 3.2 overview, Fig. 1; 3.3 SFT warm-up rounds; 3.4 a preference round: sampling, execution labels, pairs, the DPO + NLL loss with the round's global model as reference, aggregation; Algorithm 1; 3.5 what it costs a client | `RESEARCH_STATE.md` 3.2, 3.3 (settings), 3.8; `DPO_RESEARCH.md` 3.1 to 3.4; the loss in `fedls_sql/training/dpo.py` | now |
-| 4 | Experimental setup | 2.5 | datasets and metrics; federated setups, Table 2; models; the six baselines; implementation (prompt, LoRA, rates, rounds, sampling, decoding, seed, serving); McNemar test with Holm correction | `RESEARCH_STATE.md` 2, 3.4; `FEDERATED_DATA_SETUP.md` 3, 4 | now |
-| 5 | Results | 6.0 | RQ1 against the baselines (Table 3, Fig. 2); RQ2 other models and federated setups (Tables 4, 5); RQ3 perturbed questions and test-suite accuracy (Table 6); RQ4 what changes in the errors and what it costs (Fig. 3, Table 7) | `RESEARCH_STATE.md` 5.0; generated tables | each part when its rows are in |
-| 6 | Ablation study | 2.0 | on-policy rounds, the NLL term, the preference term, the number of warm-up rounds, aggregation weights, pooled clients (Table 8) | `RESEARCH_STATE.md` 5.0, second table | when its rows are in |
-| 7 | Discussion and limitations | 1.3 | why the two kinds of round remove different errors; the scope of the setting: clients hold gold SQL and databases that can be queried, full participation with 5 to 10 clients, isolation of data and not differential privacy, added client compute | `RESEARCH_STATE.md` 3.1, 5.0 | after 5 and 6 |
-| 8 | Conclusion | 0.4 | | | last |
+| 1 | Introduction | 1.7 | small models for Text-to-SQL where data cannot be pooled; FedAvg SFT learns from one gold SQL and never uses the databases, federated DPO as published keeps its first pairs and reference; execution is available only at the client; the method in three sentences; headline results; that "federated Text-to-SQL" here means training; 4 contributions, the last the released code, splits and predictions | `RESEARCH_STATE.md` 3.1; `LITERATURE.md` 1.22 | after 5 and 6 |
+| 2 | Related work | 1.8 | 2.1 small models for Text-to-SQL; 2.2 preference optimization and execution feedback for SQL and code; 2.3 federated fine-tuning of language models, federated DPO; 2.4 federated semantic parsing and Text-to-SQL; Table 1 | `LITERATURE.md` 1.2, 1.3, 1.4, 1.22, 2; `DPO_RESEARCH.md` 2, 7; `RESEARCH_STATE.md` 3.6 | now |
+| 3 | Method | 3.7 | 3.1 setting and notation; 3.2 overview, Fig. 1; 3.3 SFT warm-up rounds; 3.4 a preference round: sampling, execution labels, pairs, the DPO + NLL loss with the round's global model as reference, aggregation; Algorithm 1; 3.5 what it costs a client | `RESEARCH_STATE.md` 3.2, 3.3 (settings), 3.8; `DPO_RESEARCH.md` 3.1 to 3.4; the loss in `fedls_sql/training/dpo.py` | now |
+| 4 | Experimental setup | 2.3 | datasets and metrics; federated setups, Table 2; models; the six baselines; implementation (prompt, LoRA, rates, rounds, sampling, decoding, seed, serving); McNemar test with Holm correction | `RESEARCH_STATE.md` 2, 3.4; `FEDERATED_DATA_SETUP.md` 3, 4 | now |
+| 5 | Results | 5.5 | RQ1 against the baselines (Table 3, Fig. 2); RQ2 other models and federated setups (Tables 4, 5); RQ3 perturbed questions and test-suite accuracy (Table 6); RQ4 what changes in the errors and what it costs (Fig. 3, Table 7) | `RESEARCH_STATE.md` 5.0; generated tables | each part when its rows are in; the parts whose rows are complete (Fig. 2, Fig. 3, Table 7) as soon as the Setup section is accepted |
+| 6 | Ablation study | 1.8 | on-policy rounds, the NLL term, the preference term, the number of warm-up rounds, aggregation weights, pooled clients (Table 8) | `RESEARCH_STATE.md` 5.0, second table | when its rows are in |
+| 7 | Discussion and limitations | 1.2 | why the two kinds of round remove different errors; the scope of the setting: clients hold gold SQL and databases that can be queried, full participation with 5 to 10 clients, isolation of data and not differential privacy, added client compute | `RESEARCH_STATE.md` 3.1, 5.0 | after 5 and 6 |
+| 8 | Conclusion | 0.3 | | | last |
 | | Declarations | 0.4 | funding, competing interests, data availability, code availability, author contributions, use of AI tools | `JOURNAL_BAR.md` 1 | last, by the main session |
-| | References | 3.0 | 45 to 55 entries | | grows with the text |
-| A, B | Appendix | 1.0 | A the prompt as the model saw it; B all settings in one table | `LITERATURE.md` 1.19 | now, by the main session (no prose) |
+| | References | 2.8 | 45 to 55 entries | | grows with the text |
+| A, B | Appendix | 0.8 | A the prompt as the model saw it; B all settings in one table, generated from the committed configs, with each piece of software, its version and its maker | `LITERATURE.md` 1.19; `generated/tab_settings.tex` | now, by the main session (no prose) |
 
-Supplementary file (outside the 25 pages): every McNemar test with its
+Supplementary file (`ESM_1.pdf`, outside the 25 pages): Appendix B if the
+count runs over, every McNemar test with its
 adjusted p, pairs per client and round, cosine of the client updates,
 the per-client statistics of the five splits, EX by round of every line.
 
@@ -212,6 +237,16 @@ table, prints `--` for a row that is not committed and lists those rows
 in `generated/missing.txt`. The Holm correction runs over the tests the
 paper prints. A row enters a table by one line in `ARMS`, as for the
 overview page.
+
+Settings are generated the same way. `tools/paper_settings.py` reads the
+committed records of the runs the paper prints (the `config.json` of
+the FedAvg SFT rounds and of the evaluations, the `setup.json`,
+`arm.json` and `round.json` of the preference rounds) and writes
+`generated/settings.tex` (one macro per setting: LoRA, rates, rounds,
+samples, pairs, decoding, software versions), `generated/tab_settings.tex`
+(Appendix B) and `generated/settings.md` (the same values for the Setup
+packet). It stops when two runs of one line disagree on a setting. A
+setting in the text is a macro, like a result number.
 
 | Item | Content | Rows still missing (2026-11-26) |
 |---|---|---|
@@ -236,14 +271,15 @@ example of a pair, a small diagram); the owner decides.
 Applied to the draft by the main session and the helpers; the writer
 does not see this section.
 
-Five checks stop a section:
+Six checks stop a section:
 
 | Check | Tool | Stops on |
 |---|---|---|
 | Build | `make` | the section does not compile; an undefined reference |
-| Numbers | `tools/lint.py` | a result number that is not a macro |
+| Numbers | `tools/lint.py` | a result number or a setting that is not a macro |
 | References | `tools/lint.py`, `/ars-citation-check` | a key that is not in `references.bib`; an entry without DOI or arXiv id |
 | Truth | claim audit: a helper with all the notes looks for a committed result that contradicts a sentence | a false or overstated sentence; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of `RESEARCH_STATE.md` 5.0 have moved on |
+| Other papers | cited-work audit: a helper lists every sentence that states something about a cited paper, and every cell of Table 1, and finds its row in the packet's facts with the locator; it then opens the paper at that locator | a statement about a cited paper without a row or a locator; a row the paper at its locator does not support. Applies to Section 2 in full and to any such sentence elsewhere |
 | Length | page count | the paper over 25 pages; the abstract outside 150 to 250 words |
 
 The claim audit reports false sentences. It does not ask for caveats,
@@ -279,18 +315,23 @@ Times are the owner's and the machine's, estimates.
 | Step | What | Done when | Time |
 |---|---|---|---|
 | W0 | owner's checks (section 11, items 1 to 3) | answered | owner, 15 min |
-| W1 | TeX packages, the folder of section 9, `main.tex` with empty sections | `make` gives a PDF | a few minutes of install |
-| W2 | `paper_numbers.py`, the eight table files, `charts.py` for Fig. 2 and 3 | every cell equals the overview page; `missing.txt` equals the missing rows of section 6 | none |
-| W3 | `CLAIMS.md`: the thesis in one sentence, 4 contributions, each claim with its macros, the sets it holds on and its ceiling, the limitations the paper states, the term sheet and the notation | owner approves | owner, 30 min |
-| W4 | `references.bib`: a helper takes the papers of `LITERATURE.md` and `DPO_RESEARCH.md` section 7 that the outline cites, fetches each entry from its DOI or arXiv id, prefers the published version, records how far the paper was read | `/ars-citation-check` clean | none |
-| W5 | `WRITER.md` as in section 3.2; `voice/`: passages, profile, `section_rhetoric.md` | owner reads the role and the passages | owner, 20 min |
-| W6 | pilot: the packet of section 3.4 written by the writer on Opus and on the session model | owner reads both without the names and picks the model; role and packet format corrected from what the drafts show | owner, 20 min |
-| W7 | Method and Algorithm 1, then Experimental setup; appendix A and B by the main session | loop of section 2 | owner, 30 min each |
-| W8 | Related work, Table 1 | same | owner, 30 min |
-| W9 | Results, part by part as `missing.txt` empties; Ablation study | same; a part is not written around `--` cells | waits for the GPU rows |
+| W1 | TeX packages, the folder of section 9, `main.tex` with empty sections, the `make submit` target | `make` gives a PDF | a few minutes of install |
+| W2 | `paper_numbers.py`, the eight table files, `paper_settings.py`, `charts.py` for Fig. 2 and 3, `lint.py` | every cell equals the overview page; `missing.txt` equals the missing rows of section 6; every setting traces to a committed config | none |
+| W3 | `CLAIMS.md`: the thesis in one sentence, 4 contributions, each claim with its macros, the sets it holds on and its ceiling, the hedges that must survive revision, the limitations the paper states, the term sheet and the notation | owner approves | owner, 30 min |
+| W4 | pilot: `WRITER.md` as in section 3.2, a minimal `voice/` (section 3.4), and the packet of section 3.4 of the paper written by the writer. It tests the role and the packet, the assumption the whole setup rests on. Before it starts the owner gives the wording of the AI-use statement (section 11, item 8) | owner reads the draft; role and packet format corrected from what it shows | owner, 20 min |
+| W5 | `references.bib`: a helper takes the papers of `LITERATURE.md` and `DPO_RESEARCH.md` section 7 that the outline cites, fetches each entry from its DOI or arXiv id, prefers the published version, records how far the paper was read | `/ars-citation-check` clean | none |
+| W6 | the full `voice/`: passages, profile, `section_rhetoric.md` | owner reads the passages | owner, 20 min |
+| W7 | Method and Algorithm 1, then Experimental setup; appendix A and B by the main session; then the parts of Results whose rows are complete (Fig. 2, Fig. 3, Table 7) | loop of section 2 | owner, 30 min each |
+| W8 | Related work, Table 1, with the cited-work audit | same | owner, 30 min |
+| W9 | the other parts of Results, as `missing.txt` empties; Ablation study | same; a part is not written around `--` cells | waits for the GPU rows |
 | W10 | Discussion and limitations, Conclusion, Introduction, abstract, title, keywords | same | owner, 1 h |
-| W11 | whole paper: one writer reads it end to end and evens it out; `humanizer` with a voice passage as sample; reader test; `/ars-reviewer`; claim audit of the full text; page count | owner and advisor read | advisor's time |
-| W12 | declarations, AI-use statement (`/ars-disclosure`), public repository with code, splits and predictions, cover letter | the submission files compile from a clean copy | owner, 1 h |
+| W11 | whole paper: one writer reads it end to end and evens it out, and the macros and `\cite` keys of every section are listed before and after that pass and compared (`make inventory`), so the pass changes no number and no reference; the `writing_quality_check` of the academic-paper skill as a diagnostic that rewrites nothing; reader test; `/ars-reviewer`; claim audit of the full text; page count | owner and advisor read | advisor's time |
+| W12 | declarations, AI-use statement (`/ars-disclosure`), public repository with code, splits and predictions, cover letter, `make submit` | the submission files compile from a clean copy | owner, 1 h |
+
+The order was revised on 2026-11-26 (owner): the pilot, W6 in the first
+version, runs right after `CLAIMS.md` as W4, and the bibliography and
+the full voice folder (W4 and W5 before) follow it as W5 and W6. No
+text passes through a humanizer.
 
 W1 to W8 need no result that is missing and can start now. When an
 evaluation is committed later: one line in `ARMS`, `make numbers`,
@@ -301,17 +342,18 @@ evaluation is committed later: one line in `ARMS`, `make numbers`,
 | Tool | Use | On the Mac |
 |---|---|---|
 | `pdflatex`, `bibtex` (TeX Live 2026 basic), `make` | build; Springer requires that the source compiles with pdflatex | installed |
-| TeX packages `sttools`, `threeparttable`, `appendix`, `ncctools`, `algorithms` | needed by `sn-jnl.cls` and its template (it stops at `cuted.sty` today) | missing: `tlmgr --usermode install sttools threeparttable appendix ncctools algorithms`, not yet run |
+| TeX packages `sttools`, `threeparttable`, `appendix`, `ncctools`, `algorithms`, `algorithmicx`, `multirow` | needed by `sn-jnl.cls` and its template | installed in the user tree (`~/Library/texmf`) |
 | `paper/notes/tools/overview_results.py` | every committed run and McNemar test, imported by `paper_numbers.py` | exists |
 | `paper/figures/render.py`, `STYLE.md`; matplotlib | diagrams; result charts at 119 mm in Arial 8 pt | exists; installed |
 | PaperOrchestra port (`github.com/Ar9av/PaperOrchestra`, MIT, read at `fcf8a38`) | three files copied: `section_rhetoric.md` into `voice/`, `reverse_outline.py` and `table_lint.py` into `tools/` | not installed as a skill |
 | ARS `shared/style_calibration_protocol.md` | how the voice profile is drawn from the passages | installed |
 | `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | reference metadata; cold review; AI-use statement | installed |
-| `humanizer` | last pass; it edits style and keeps every claim | installed |
+| academic-paper skill, `references/writing_quality_check.md` | a diagnostic in step W11: it lists what it finds and rewrites nothing | installed |
 | `doc-coauthoring`, stage 3 | the reader test | installed |
 | `write-course-term-paper`: `references/writing.md`, `scripts/audit_reader_facing_prose.py` | model for the leak signals of `tools/lint.py`, rewritten for English and LaTeX | installed |
 
-Not used as a writer: the ARS draft writer (a fixed paragraph scheme, a
+Not used: `humanizer` (owner, 2026-11-26: no pass that rewrites the
+text after the writers). Not used as a writer: the ARS draft writer (a fixed paragraph scheme, a
 list of hedging verbs, sections it must include, a self-score), the
 PaperOrchestra pipeline (its writer gets the whole experimental log in
 one call and is told to analyse what did not work; its literature agent
@@ -326,7 +368,8 @@ paper/manuscript/
   sections/             01_intro 02_related 03_method 04_setup 05_results
                         06_ablation 07_discussion 08_conclusion 90_declarations
                         A_prompt B_settings
-  generated/            numbers.tex, tab_*.tex, missing.txt
+  generated/            numbers.tex, tab_*.tex, missing.txt,
+                        settings.tex, tab_settings.tex, settings.md
   figures/              fig_*.pdf
   references.bib
   sn-jnl.cls  sn-basic.bst
@@ -335,9 +378,22 @@ paper/manuscript/
   WRITER.md             the role of section 3.2
   voice/                passages, profile.md, section_rhetoric.md
   packets/              one file per section
-  tools/                paper_numbers.py charts.py lint.py reverse_outline.py table_lint.py
-  Makefile
+  tools/                paper_numbers.py paper_settings.py charts.py lint.py
+                        flatten.py reverse_outline.py table_lint.py
+  Makefile              make, make numbers, make figures, make lint,
+                        make inventory, make submit
 ```
+
+Where each requirement of sections 10 and 10.1 is built in:
+
+| Requirement | Tool |
+|---|---|
+| Abstract length and form (JIIS 150 to 250 words, CMC 200 to 400; one paragraph, no citation, no undefined abbreviation), keyword count, an abbreviation defined at first use, headings of at most three levels, a footnote that is only a citation, more than 5 references in one bracket (CMC), a reference without DOI or arXiv id, a caption ending in a full stop (JIIS) | `tools/lint.py --journal jiis` or `cmc` |
+| Figure width (119 mm JIIS, at most 165.1 mm CMC) and height (at most 195 mm, 200 mm), Arial or Helvetica of one size from 8 pt, lines of 0.3 pt or more, fonts embedded, vector output, no title inside the figure, panel letters a, b, c (JIIS) or A, B, C (CMC), series told apart by marker and dash | `tools/charts.py --journal jiis` or `cmc` |
+| Software with version and maker, and the run parameters | `tools/paper_settings.py`, Appendix B |
+| Table footnotes under the table with superscript lower-case letters | the table generator (`threeparttable`) |
+| One `.tex` file without `\input`, the `.bbl` pasted in, no subfolders, figures named `Fig1`, `Fig2`, the class and style files beside it, the compiled PDF | `make submit` (`tools/flatten.py`), which also compiles the flat copy |
+| Compiles on TeX Live 2018 (Editorial Manager) | the preamble holds only the packages of the Springer template (`graphicx`, `multirow`, `amsmath`, `amssymb`, `amsfonts`, `amsthm`, `mathrsfs`, `appendix`, `xcolor`, `textcomp`, `manyfoot`, `booktabs`, `algorithm`, `algorithmicx`, `algpseudocode`, `listings`), and `lint.py` stops on any other `\usepackage` |
 
 ## 10. A CMC version
 
@@ -457,16 +513,19 @@ undefined abbreviations or unspecified references; 4 to 6 keywords.
    names both `sn-jnl` and the older macro with `smallcondensed`), and
    the review model. The plan writes in `sn-jnl` without anonymising; a
    question to the editorial office settles both if the owner wants
-   certainty before submission.
+   certainty before submission. Until the owner says otherwise the
+   paper is written in `sn-jnl` and is not anonymised.
 2. Fig. 1 under Springer Nature's rule on images (section 10.1): a
    scientific diagram made with a generative AI tool is not accepted,
    a flow chart without images is outside the rule. Either the owner
    draws the figure, or the owner judges it a flow chart. CMC accepts
    an explanatory image made with an AI tool when its caption names
-   the tool and version.
+   the tool and version. The figure is not regenerated or restyled
+   before the owner decides.
 3. Which journal goes first. This plan assumes JIIS.
-4. The model of the writer: Opus by the rule for subagents, or the
-   session model; step W6 decides.
+4. Closed (owner, 2026-11-26): the writer runs on Fable 5.2 at high
+   effort; helpers and checks stay on Opus. The pilot tests the role
+   and the packet, not two models.
 5. The voice passages of section 3.4: the four proposed sources, or
    others.
 6. Whether the whole experimental picture of a part enters its table.
@@ -475,3 +534,9 @@ undefined abbreviations or unspecified references; 4 to 6 keywords.
    is stated for BIRD.
 7. The angle of the role (section 3.1): supervision, with federated
    learning as the setting and Text-to-SQL as the task.
+8. The wording of the AI-use statement, which the owner takes to the
+   advisor. Both journals require one for a text drafted by an LLM
+   (JIIS: in the Methods section or a suitable alternative part; CMC:
+   in the acknowledgement, with the tool, the purpose and how the
+   authors reviewed the output). The steps up to `CLAIMS.md` do not
+   depend on it; the pilot starts after the owner's answer.
