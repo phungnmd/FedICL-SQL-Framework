@@ -239,9 +239,9 @@ starting from the pretrained model. The contribution of \method{} is to
 bring this execution-based supervision into federated training, where
 only a client can compute it: a federated round is the step that renews
 samples, labels and pairs, with its global model as the reference model
-of every client, and warm-up rounds of FedAvg SFT come first. The rest
-are settings. We follow CodeLutra in $N$, the temperature, $\beta$, the
-uniform pairing and the choice of reference model. We construct fewer
+of every client, and warm-up rounds of FedAvg SFT come first. We follow
+CodeLutra in $N$, the temperature, $\beta$, the uniform pairing and the
+choice of reference model. We construct fewer
 pairs per question (CodeLutra constructs ten) and average the NLL term
 over tokens, where CodeLutra sums it, so that short and long queries are
 on the same scale; the same $\lambda$ then weighs the NLL term less

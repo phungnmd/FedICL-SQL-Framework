@@ -4,6 +4,25 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: the paper credits earlier work and does not grade its own parts (owner; no run)
+
+- Owner: "The rest are settings" in Section 3.4 is more candour than the
+  paper owes. The sentence came from the Method brief ("settings, not
+  the contribution"), which the writer printed.
+- `WRITING_GUIDE.md`: the papers of the field credit earlier work where
+  the method uses it and then state what the method does; they do not
+  rank their own parts, say what the paper does not claim or answer an
+  objection nobody raised. A ceiling is where a sentence stops, not a
+  sentence of the paper.
+- `WRITING_PLAN.md`, section 4: a brief does not grade the method; a
+  ceiling is the strongest wording allowed, not a list of what is not
+  claimed.
+- `briefs/03_method.md`, the CodeLutra row, and Section 3.4: the
+  sentence is out. The credit to CodeLutra and the settings said to
+  follow it stay. The sentence on lambda and the token average
+  (`REVIEW_NOTES.md`, B2 and B9) is of the same kind and waits for the
+  owner.
+
 ## 2026-11-26: brief of Section 4 (Experimental setup) and the two appendices (no run)
 
 - `paper/manuscript/briefs/04_setup.md` waits for the owner's approval;

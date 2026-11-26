@@ -115,7 +115,8 @@ Four things bind it, all in the guide under "What binds":
    from the brief; a gap is named in the notes and not filled.
 2. Claims: a sentence never claims more than the ceiling of its
    statement; a qualifier that bounds a finding stays; novelty is
-   stated against the closest work.
+   stated against the closest work. What lies above a ceiling is left
+   out, not denied in print (section 4).
 3. Numbers and names: results and settings are macros; the names and
    the notation are those of `TERMS.md`; citations and labels are those
    of the brief.
@@ -230,6 +231,18 @@ Discussion, as the list approved in `CLAIMS.md`. The outline
 (`paper/manuscript/OUTLINE.md`, approved 2026-11-26) gives each section
 its content and its claims; a brief is built from its entry there and
 from `bib/report.md`, which names the sources of each subsection.
+
+A brief states what the method does and does not grade it (owner,
+2026-11-26). A ceiling is the strongest wording allowed and the sets it
+holds on. It is not a list of what the paper does not claim, and no
+entry calls a part of the method minor, a setting or "not the
+contribution": the writer prints what it is given. The Method brief
+said that two settings were "not the contribution", and the draft said
+"The rest are settings". What the paper owes its reader is the credit
+to earlier work (what it did, what is taken from it), the qualifiers
+that belong to a claim, and the limitations of the Discussion brief. A
+caution beyond these is the editor's to check in the draft (section 7),
+not an entry of the brief.
 
 `briefs/3.4_preference_round.md`, the brief of the second pilot, is the
 model for the block of one subsection. The Method brief takes it over

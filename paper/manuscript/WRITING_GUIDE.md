@@ -53,6 +53,13 @@ rules:
   with what it means. A cause that was not tested is offered as a
   conjecture; a number read from a table is stated plainly.
 - They describe the method and leave its praise to the results.
+- They do not mark it down either. Earlier work is credited where the
+  method uses it, with what it did and what is taken from it, and from
+  there the authors state what their method does, in the voice of the
+  rest of the section. They do not rank their own parts, say what the
+  paper does not claim, or answer an objection the reader has not
+  raised: once a difference is stated, the reader weighs it. What
+  limits the work is said once, where the brief places it.
 
 The figures in the style profile describe a range found in those
 papers. They are not targets, and a sentence is not reworked to move
@@ -71,7 +78,10 @@ Four things, because the paper has to be true and has to compile.
 2. Claims. Each statement in the brief has a ceiling: the strongest
    wording its evidence supports and the datasets on which it holds. A
    sentence may claim less and never more, and a qualifier that bounds
-   a finding ("on BIRD", "to our knowledge") belongs to the claim.
+   a finding ("on BIRD", "to our knowledge") belongs to the claim. A
+   ceiling tells you where a sentence stops; it is not itself a
+   sentence of the paper, and what lies above it is left out, not
+   denied in print.
    Novelty is stated against the closest work, with the difference. A
    number whose result is not committed yet is written with its macro
    and prints as a placeholder; its sentence states what is compared
