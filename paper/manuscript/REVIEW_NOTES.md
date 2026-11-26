@@ -46,6 +46,8 @@ cơ học.
 | B6 | Section 3.4 | Việc client gửi số pairs lên server giờ chỉ nói ở Section 3.1 ("one integer, its aggregation weight") và ở Algorithm 1, dòng 13; văn bản 3.4 chỉ nói trọng số là số pairs |
 | B7 | Section 3.4 | "Empty sample" không còn được nhắc: nó là sample incorrect theo quy tắc chung. Chi tiết này có thể để ở Appendix B |
 | B8 | Section 3.4 | "CodeLutra constructs ten" viết bằng chữ, không qua macro (là fact của paper được trích, không phải setting của ta) |
+| B9 | Section 3.4, đoạn cuối, "where CodeLutra sums it" | Helper đọc lại CodeLutra (arXiv v3, bản TMLR): Eq. (3) viết log-likelihood của cả response; paper không nói gì về chuẩn hoá theo độ dài. "CodeLutra sums it" là cách ta đọc công thức, không phải điều CodeLutra viết, và code của họ có thể lấy trung bình theo token. Đề xuất đổi thành một câu bám vào công thức, kiểu "where CodeLutra's objective takes the log-likelihood of the whole query (its Eq. 3)", và kiểm code của CodeLutra nếu có công bố. Câu "by a factor of \|y+\|" (mục B2) phụ thuộc điểm này |
+| B10 | Section 3.4, "constructed once, as in FedDPO" | OpenFedLLM viết "each client holds a preference dataset" và không mô tả bước nào sinh lại pairs; reference model "fixed throughout the FL process" thì được viết rõ. "Constructed once" là cách ta đọc; cited-work audit ở bước W11 sẽ xét câu này |
 
 ## C. Câu hỏi reviewer có thể đặt
 
@@ -108,6 +110,27 @@ Từ `paper/notes/WRITING_PLAN.md`, mục 11.
 4. Tác giả, funding, competing interests chưa điền.
 5. Hai entry của `references.bib` cần xem bằng mắt: tác giả thứ hai của
    SLM-SQL; Holm (1979) không có DOI.
+
+## G. Notes lệch với paper gốc (helper Table 1, 2026-11-26)
+
+Helper Opus đọc đủ bốn paper của Table 1; từng ô có trích dẫn và vị trí
+trong `briefs/02_related_table1_rows.md`. Tôi chưa sửa các file notes;
+brief của Related work sẽ dựng từ file đó, không từ notes.
+
+| Notes | Ghi | Paper viết |
+|---|---|---|
+| `LITERATURE.md`, dòng 57 | FL4SP "full fine-tuning" | chỉ "finetune T5-base"; không nói full hay adapter, không in kích thước model |
+| `LITERATURE.md`, dòng 59 | OpenFedLLM: Llama2-7B int8, LoRA r=32 | đó là setup instruction tuning; FedDPO dùng Wizard-Vicuna-7B-Uncensored, LoRA rank 8, alpha 16 |
+| `DPO_RESEARCH.md`, dòng 168 | "every FL algorithm beats local training"; FedDPO là "DPO inside FedAvg" | trên HH-RLHF, FedProx thấp hơn local training về harmlessness (Table 9); bảng FedDPO còn chạy FedProx, SCAFFOLD, FedAvgM |
+| `DPO_RESEARCH.md`, dòng 203 | ExCoT: "5.6k of the 9,428 BIRD train" | ExCoT ghi 9.2k |
+| `DPO_RESEARCH.md`, dòng 56 | CodeLutra: "base model" | bảng checkpoint ghi Llama-3-8B-Instruct (`LITERATURE.md`, dòng 525 đã ghi) |
+| `LITERATURE.md`, dòng 835 đến 837 | FedDPO của OpenFedLLM "all on human preferences" | đúng với HH-RLHF; với UltraFeedback paper không nói ai chấm điểm |
+
+Lưu ý cho Table 1: ExCoT chỉ dùng output của chính model ở các on-policy
+rounds (round DPO đầu và SFT dùng output của GPT-4o), và không viết loss
+thành công thức; FL4SP không có preference stage, các ô về pairs là
+"not applicable"; reference model của ba paper DPO thuộc ba loại khác
+nhau (đổi mỗi iteration, cố định, không nói).
 
 ## Đã xong
 

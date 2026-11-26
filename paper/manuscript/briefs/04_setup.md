@@ -226,7 +226,7 @@ stays as it is.
 | `guo2024deepseekcoder` | DeepSeek-Coder, a family of code language models |
 | `mcmahan2017fedavg` | FedAvg |
 | `li2020fedprox` | FedProx: a proximal term added to the local objective, for heterogeneous clients |
-| `ye2024openfedllm` | OpenFedLLM: federated fine-tuning of language models, among its methods DPO as the local training of FedAvg (FedDPO) on a fixed preference dataset |
+| `ye2024openfedllm` | OpenFedLLM: federated fine-tuning of language models; among its methods FedDPO: DPO as the local training of a federated algorithm (FedAvg and others), on a preference dataset that each client holds, with a reference model fixed for the whole process and no likelihood term (its Section 3.3) |
 | `hu2022lora`, `loshchilov2019adamw`, `kwon2023vllm` | LoRA; AdamW; vLLM |
 | `mcnemar1947note`, `dietterich1998tests`, `holm1979simple` | McNemar's test; its use for comparing two classifiers trained once; the Holm correction |
 | `chang2023prompt` | a study of prompt formats for Text-to-SQL: `CREATE TABLE` text with example rows |

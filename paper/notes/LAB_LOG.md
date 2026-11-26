@@ -42,9 +42,17 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   (BIRD 2.7 and 2.3 times, Spider 1.6 and 0.9) and the facts of the
   local SFT rows, which print `??` until the five rows are in. Tables 3
   and 8 use the names of `TERMS.md` (FedDPO, warm-up round).
-- A helper on Opus reads FL4SP, OpenFedLLM, CodeLutra and ExCoT for
-  the cells of Table 1, each with a quotation and a locator
-  (`briefs/02_related_table1_rows.md`).
+- A helper on Opus read FL4SP, OpenFedLLM, CodeLutra and ExCoT in full
+  (arXiv) for the cells of Table 1, each with a quotation and a
+  locator: `briefs/02_related_table1_rows.md`. Not checked by the main
+  session against the papers; the cited-work audit of step W11 opens
+  them again. It found six places where `LITERATURE.md` and
+  `DPO_RESEARCH.md` differ from the papers (`REVIEW_NOTES.md`, part G;
+  the notes are not corrected yet) and one point on a committed
+  sentence: CodeLutra's Eq. (3) takes the log-likelihood of the whole
+  response and the paper says nothing on normalising it by length, so
+  "where CodeLutra sums it" in Section 3.4 is our reading of the
+  equation (`REVIEW_NOTES.md`, B9).
 
 ## 2026-11-26: Section 3 (Method) written (no run)
 
