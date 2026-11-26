@@ -339,7 +339,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 1, Table 6 14, Table 8 11, text 13).
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 1, Table 6 14, Table 8 11, text 14).
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -370,7 +370,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{3}{k2}{4}` | +5.08 | text |
 | `\gap{bird}{fedavg}{3}{k2}{4}` | 5.08 | text |
 | `\pval{bird}{fedavg}{3}{k2}{4}` | 4.9e-8 | text |
-| `\padj{bird}{fedavg}{3}{k2}{4}` | 5.8e-7 | text |
+| `\padj{bird}{fedavg}{3}{k2}{4}` | 6.3e-7 | text |
 | `\nfix{bird}{fedavg}{3}{k2}{4}` | 141 | text |
 | `\nbrk{bird}{fedavg}{3}{k2}{4}` | 63 | text |
 | `\gain{bird}{fedavg}{4}{base}{0}` | -13.10 | Table 3, BIRD dev |
@@ -449,6 +449,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 4 |
 | `\nfix[qwen05]{spider}{fedavg}{4}{k2}{4}` | 149 | Table 4 |
 | `\nbrk[qwen05]{spider}{fedavg}{4}{k2}{4}` | 104 | Table 4 |
+| `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
+| `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
+| `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | text |
+| `\padj{spider}{central}{3}{k2}{4}` | 2.6e-4 | text |
+| `\nfix{spider}{central}{3}{k2}{4}` | 161 | text |
+| `\nbrk{spider}{central}{3}{k2}{4}` | 93 | text |
 | `\gain{spider}{fedavg}{2}{fedavg}{3}` | +0.61 | text |
 | `\gap{spider}{fedavg}{2}{fedavg}{3}` | 0.61 | text |
 | `\pval{spider}{fedavg}{2}{fedavg}{3}` | 0.25 | text |
@@ -458,7 +464,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{2}{k2}{3}` | +3.36 | text |
 | `\gap{spider}{fedavg}{2}{k2}{3}` | 3.36 | text |
 | `\pval{spider}{fedavg}{2}{k2}{3}` | 1.4e-6 | text |
-| `\padj{spider}{fedavg}{2}{k2}{3}` | 1.5e-5 | text |
+| `\padj{spider}{fedavg}{2}{k2}{3}` | 1.7e-5 | text |
 | `\nfix{spider}{fedavg}{2}{k2}{3}` | 146 | text |
 | `\nbrk{spider}{fedavg}{2}{k2}{3}` | 74 | text |
 | `\gain{spider}{fedavg}{3}{fedavg}{4}` | +0.00 | text |
@@ -500,7 +506,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | text |
 | `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | text |
 | `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | text |
-| `\padj{spider}{fedavg}{5}{k2}{4}` | 3.0e-8 | text |
+| `\padj{spider}{fedavg}{5}{k2}{4}` | 3.3e-8 | text |
 | `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | text |
 | `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | text |
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 8, Spider test |
@@ -594,14 +600,18 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref1.paired}` | 5877 | round record, pair_stats |
 | `\fact{cost.bird.pref1.pairs}` | 11754 | round record, pair_stats |
 | `\fact{cost.bird.pref1.questions}` | 9428 | round record, pair_stats |
+| `\fact{cost.bird.pref1.ratio}` | 2.7 | round records and queue logs |
 | `\fact{cost.bird.pref1.sample_min}` | 28 | round records and queue logs |
+| `\fact{cost.bird.pref1.total_min}` | 470 | round records and queue logs |
 | `\fact{cost.bird.pref1.train_min}` | 283 | round records and queue logs |
 | `\fact{cost.bird.pref2.all_correct}` | 3016 | round record, pair_stats |
 | `\fact{cost.bird.pref2.label_min}` | 168 | round records and queue logs |
 | `\fact{cost.bird.pref2.paired}` | 3533 | round record, pair_stats |
 | `\fact{cost.bird.pref2.pairs}` | 7066 | round record, pair_stats |
 | `\fact{cost.bird.pref2.questions}` | 9428 | round record, pair_stats |
+| `\fact{cost.bird.pref2.ratio}` | 2.3 | round records and queue logs |
 | `\fact{cost.bird.pref2.sample_min}` | 28 | round records and queue logs |
+| `\fact{cost.bird.pref2.total_min}` | 391 | round records and queue logs |
 | `\fact{cost.bird.pref2.train_min}` | 195 | round records and queue logs |
 | `\fact{cost.bird.sft.train_min}` | 173 | FedAvg SFT rounds 1, 2, 4 |
 | `\fact{cost.spider.adapter_mb}` | 73.9 | round record, communication_bytes |
@@ -610,14 +620,18 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.pref1.paired}` | 4013 | round record, pair_stats |
 | `\fact{cost.spider.pref1.pairs}` | 8026 | round record, pair_stats |
 | `\fact{cost.spider.pref1.questions}` | 8659 | round record, pair_stats |
+| `\fact{cost.spider.pref1.ratio}` | 1.6 | round records and queue logs |
 | `\fact{cost.spider.pref1.sample_min}` | 18 | round records and queue logs |
+| `\fact{cost.spider.pref1.total_min}` | 203 | round records and queue logs |
 | `\fact{cost.spider.pref1.train_min}` | 182 | round records and queue logs |
 | `\fact{cost.spider.pref2.all_correct}` | 5784 | round record, pair_stats |
 | `\fact{cost.spider.pref2.label_min}` | 3 | round records and queue logs |
 | `\fact{cost.spider.pref2.paired}` | 1677 | round record, pair_stats |
 | `\fact{cost.spider.pref2.pairs}` | 3354 | round record, pair_stats |
 | `\fact{cost.spider.pref2.questions}` | 8659 | round record, pair_stats |
+| `\fact{cost.spider.pref2.ratio}` | 0.9 | round records and queue logs |
 | `\fact{cost.spider.pref2.sample_min}` | 19 | round records and queue logs |
+| `\fact{cost.spider.pref2.total_min}` | 109 | round records and queue logs |
 | `\fact{cost.spider.pref2.train_min}` | 88 | round records and queue logs |
 | `\fact{cost.spider.sft.train_min}` | 124 | FedAvg SFT rounds 1, 2 |
 | `\fact{form.bird.base.0.gold}` | 459 | committed predictions; tables and columns read by gold_tables_columns |

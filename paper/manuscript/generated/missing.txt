@@ -40,3 +40,5 @@ Table 8, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | rft | round 4
 
 Table 8, Spider test | Spider test | Qwen2.5-Coder-1.5B | pooled | round 4
 Table 8, Spider test | Spider test | Qwen2.5-Coder-1.5B | rft | round 4
+
+text | BIRD dev | Qwen2.5-Coder-1.5B | central | round 3

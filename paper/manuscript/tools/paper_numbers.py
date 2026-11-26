@@ -67,6 +67,8 @@ TEXT_TESTS = [
     ("spider", MAIN, "fedavg", 3, "fedavg", 4),
     ("spider", MAIN, "fedavg", 4, "fedavg", 5),
     ("spider", MAIN, "fedavg", 5, "k2", 4),
+    ("bird", MAIN, "central", EPOCHS, "k2", 4),   # the method against centralized SFT (A5)
+    ("spider", MAIN, "central", EPOCHS, "k2", 4),
 ]
 # Curves of Fig. 2 and Fig. 3: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {
@@ -651,10 +653,21 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             raise SystemExit(f"{ds}: evaluations of different sizes {n}")
         facts[f"questions.{ds}"] = (n.pop(), f"rows of the {name} evaluations")
     facts["test.alpha"] = (f"{ALPHA:g}", "tools/paper_numbers.py, ALPHA: the level of the star in the tables")
+    for ds in ("bird", "spider"):  # local SFT: mean, lowest and highest client, once the five rows are in
+        got = [d.runs.get(key(ds, line, EPOCHS)) for line in LOCAL]
+        if all(got):
+            ex = [x["ex"] for x in got]
+            for name, v in (("mean", sum(ex) / len(ex)), ("min", min(ex)), ("max", max(ex))):
+                facts[f"local.{ds}.{name}"] = (f2(v), f"the local SFT rows of {SET_NAME[ds]}")
     for k_, v in splits.items():
         if k_.endswith((".hard_min", ".hard_max")):
             v = f"{v:.0f}"
         facts[k_] = (v, "split files (clients.csv, meta.json)")
+    for ds in ("bird", "spider"):  # a preference round against a FedAvg SFT round, in client minutes
+        for r in range(1, ROUNDS - WARMUP + 1):
+            total = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "label", "train"))
+            facts[f"cost.{ds}.pref{r}.total_min"] = (minutes(total), "round records and queue logs")
+            facts[f"cost.{ds}.pref{r}.ratio"] = (f"{total / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
     for k_, v in cost.items():
         if k_.endswith(".rounds"):
             continue
