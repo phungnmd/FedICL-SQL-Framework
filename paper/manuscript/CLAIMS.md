@@ -27,7 +27,9 @@ result.
    model, labels them by execution, pairs right with wrong ones and
    trains with a DPO term plus an NLL term. A federated round is one
    re-sampling step, and the round's global model is the reference of
-   the DPO term. Only the adapter leaves a client, as in FedAvg SFT.
+   the DPO term. Only the adapter and the count that weights it (the
+   number of pairs) leave a client, as the adapter and the number of
+   questions do in FedAvg SFT.
 3. The evidence. On BIRD dev and Spider test, at the same number of
    rounds, the model is 6.19 and 3.49 EX points above FedAvg SFT, and
    further FedAvg SFT rounds do not close the gap. The paper shows where
@@ -179,3 +181,12 @@ Lab words, which the paper never uses, and what stands for each:
    "FedDPO" for the published baseline. The labels and the verbs
    were revised the same day (`TERMS.md`).
 6. The first contribution is worded as in section 2.
+7. The second contribution names what leaves a client exactly: the
+   adapter and the count that weights it.
+8. The method constructs two pairs per question where CodeLutra
+   constructs ten, and the paper gives the reason: the number of pairs
+   sets the length of local training. No claim on accuracy at other
+   numbers of pairs; none was run.
+9. The numbers of questions that yield pairs and of pairs per round are
+   columns of Table 7 (E2) and are read in Section 5.4, not in the
+   Method section.

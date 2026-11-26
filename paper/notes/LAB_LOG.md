@@ -4,6 +4,26 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: brief of the Method section; three open points decided (no run)
+
+- `paper/manuscript/briefs/03_method.md` written for Sections 3.1 to
+  3.5, Fig. 1 and Algorithm 1; its facts were read against the code
+  (the loss of `training/dpo.py`, the draw of `preference/pairs.py`,
+  the labels of `preference/sampling.py`, the SFT loss, the averaging
+  of both kinds of round, the LoRA initialisation shared by the
+  clients). Waits for the owner's approval; no writer has run.
+- Decided (owner): the paper gives the reason for two pairs per
+  question (the number of pairs sets the length of local training; the
+  notes hold no run with ten); the counts of questions and pairs per
+  round become two columns of Table 7 and leave Section 3.4
+  (`tools/paper_numbers.py`, `generated/tab_cost.tex`); contribution 2
+  of `CLAIMS.md` says that the adapter and the count that weights it
+  leave a client.
+- Open: the worked example of Section 3.4, and Fig. 1, whose labels
+  differ from `TERMS.md` (it indexes the global model as theta_t and
+  theta_t+1, names the second stage "On-policy DPO" and writes
+  "wrong").
+
 ## 2026-11-26: the manuscript gets a writing workflow of its own; terms of the paper revised (no run)
 
 - First pilot of Section 3.4 (a writer on a role file and a packet in

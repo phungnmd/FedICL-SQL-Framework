@@ -343,11 +343,11 @@ setting in the text is a macro, like a result number.
 | Table 5 | FedAvg SFT and the method in the five setups | IID, alpha 0.5 with 5 clients, alpha 0.5 with 10 clients |
 | Table 6 | Spider dev, Syn, Realistic, DK; EX and test-suite accuracy; FedAvg SFT, the method without warm-up rounds, the method | none (the test-suite numbers are committed) |
 | Fig. 3 | incorrect predictions by round split into execution errors and incorrect results, FedAvg SFT and the method | none |
-| Table 7 | client time per round (sampling, labels, training) and megabytes sent | none, read from the logs (`scripts/log_times.py`) |
+| Table 7 | what the clients train on in a round (questions; in a preference round the questions that yield pairs, and the pairs), client time per round (sampling, labels, training) and megabytes sent | none, read from the round records and the logs (`scripts/log_times.py`) |
 | Table 8 | ablations at 4 rounds, BIRD and Spider | BIRD: without the preference term round 2, without NLL, k = 0 rounds 3 and 4, k = 3. Spider: without the preference term round 2, pooled clients |
 
 The writer may propose another table or figure in its notes; the owner
-decides. Two such proposals are open (section 11, item 5).
+decides. One such proposal is open (section 11, item 5).
 
 ## 7. Checks
 
@@ -679,21 +679,21 @@ pages), and the owner may send it.
    tool and version. The figure is not regenerated or restyled before
    the owner decides.
 3. Which journal goes first. This plan assumes JIIS.
-4. Section 3.4 states that the method constructs two pairs per question
-   where CodeLutra constructs ten, without a reason. A reviewer may
-   ask; the reason is the owner's to give or to leave out.
-5. Two proposals of the writer of Section 3.4: a worked example (one
+4. Decided (owner, 2026-11-26): Section 3.4 gives the reason for two
+   pairs per question where CodeLutra constructs ten: the number of
+   pairs sets the length of local training (`CLAIMS.md`, section 7).
+5. A proposal of the writer of Section 3.4: a worked example (one
    question, its gold SQL query, three samples with their labels, the
-   two pairs), and a small table of the counts by preference round.
-   Both cost space.
+   two pairs). It costs about a quarter of a page, and a real example
+   needs the samples of one question from the server. The writer's
+   other proposal, a table of the counts by preference round, is
+   decided (owner, 2026-11-26): the counts are two columns of Table 7
+   and leave Section 3.4.
 6. Authors, funding and competing interests are not filled in yet; the
    author block, the CRediT statement and the declarations wait for
    them.
-7. `CLAIMS.md`, contribution 2, says "Only the adapter leaves a
-   client". A client also sends its number of pairs, the weight of the
-   server average, as it sends its number of questions in a FedAvg SFT
-   round. Proposed wording: "the adapter and the count that weights
-   it".
+7. Decided (owner, 2026-11-26): `CLAIMS.md`, contribution 2, now says
+   that the adapter and the count that weights it leave a client.
 8. Two entries of `references.bib` to check by eye (`bib/report.md`):
    the second author of SLM-SQL, where arXiv and the ACL Anthology
    differ, and Holm (1979), which has no DOI and is cited by its JSTOR
