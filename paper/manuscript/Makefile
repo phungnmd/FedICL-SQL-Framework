@@ -1,5 +1,6 @@
 # FedLS-SQL manuscript. Run from paper/manuscript.
-#   make            the PDF (build/main.pdf); stops on an undefined reference
+#   make            the PDF (build/main.pdf); stops on an undefined reference; a number that
+#                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
 #   make numbers    macros, tables and settings from the committed results and configs
 #   make figures    the result charts (JOURNAL=jiis or cmc)
 #   make floats     every table and figure on its own, for reading the cells
@@ -10,6 +11,8 @@
 MAIN    := main
 BUILD   := build
 JOURNAL ?= jiis
+# STRICT=1 stops on a number without a committed result; a draft prints it as ??
+STRICT  ?= 0
 PYTHON  ?= python3
 # matplotlib is not in the project environments; uv provides it for the charts
 PLOT_PY ?= uv run --no-project --with matplotlib==3.10.8 python
@@ -29,7 +32,11 @@ $(BUILD)/$(MAIN).pdf: $(SOURCES)
 	@if grep -q '\\citation' $(BUILD)/$(MAIN).aux; then bibtex $(BUILD)/$(MAIN) > $(BUILD)/bibtex.out || (cat $(BUILD)/bibtex.out; exit 1); fi
 	$(LATEX) -output-directory=$(BUILD) $(MAIN).tex > $(BUILD)/pass2.out || (tail -30 $(BUILD)/pass2.out; exit 1)
 	$(LATEX) -output-directory=$(BUILD) $(MAIN).tex > $(BUILD)/pass3.out || (tail -30 $(BUILD)/pass3.out; exit 1)
-	@if grep -n -E "Warning: (Reference|Citation) .* undefined|No committed number" $(BUILD)/$(MAIN).log; then \
+	@n=$$(grep -c "No committed number" $(BUILD)/$(MAIN).log); if [ "$$n" -gt 0 ]; then \
+	   if [ "$(STRICT)" = "1" ]; then grep -n "No committed number" $(BUILD)/$(MAIN).log; \
+	     echo "STOP: $$n numbers have no committed result"; exit 1; \
+	   else echo "draft: $$n numbers wait for a committed result and print as ??"; fi; fi
+	@if grep -n -E "Warning: (Reference|Citation) .* undefined" $(BUILD)/$(MAIN).log; then \
 	   echo "STOP: undefined reference, citation or number (lines above)"; rm -f $@; exit 1; fi
 	@$(PYTHON) tools/pages.py $(BUILD)/$(MAIN).log
 
@@ -63,7 +70,8 @@ inventory:
 	$(PYTHON) tools/lint.py --inventory > $(BUILD)/inventory.txt
 	@echo "$(BUILD)/inventory.txt"
 
-submit: pdf
+submit:
+	$(MAKE) -B pdf STRICT=1
 	$(PYTHON) tools/flatten.py --journal $(JOURNAL)
 
 clean:
