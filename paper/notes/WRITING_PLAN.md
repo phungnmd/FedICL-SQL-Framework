@@ -387,42 +387,77 @@ tools:
   the first and the corresponding author cannot be changed after
   submission.
 
-### 10.1 JIIS: what was checked on 2026-11-26
+### 10.1 JIIS: the submission guidelines
 
-The JIIS guidelines page answers automated requests with a browser
-challenge and was not read; its facts in `JOURNAL_BAR.md` are the
-reading of 2026-11-19 (25 pages, LaTeX, abstract of 150 to 250 words,
-4 to 6 keywords, the three statements). Read today: Springer Nature's
-LaTeX support page and its group page on AI.
+Read on 2026-11-26 from the owner's PDF of the page (saved the same
+day), with Springer Nature's LaTeX support page and its group page on
+AI. The page confirms `JOURNAL_BAR.md`: 25 pages with references,
+tables and figures; LaTeX only; an abstract of 150 to 250 words without
+undefined abbreviations or unspecified references; 4 to 6 keywords.
 
-- Template: the December 2024 package serves "any Springer Nature
-  journal"; the source must compile with pdflatex.
-- Submission source: all files in one directory without subfolders, no
-  custom fonts, and the content of the `.bbl` pasted into the `.tex`.
-  A `make submit` target builds this flat copy from the working folder.
-  The submission systems compile on an older TeX Live (2018 on
-  Editorial Manager, 2021 on the Article Processing Platform; which one
-  JIIS uses is not checked), so the preamble keeps to the packages of
-  the template.
-- AI in the text: use of an LLM "must be documented in the manuscript's
-  Methods section (or equivalent)", and help with preparing the
-  manuscript goes in an AI Use Declaration at the end of the paper. The
-  group page says AI-assisted copy editing "should be declared" as
-  well, which differs from the exemption recorded in `JOURNAL_BAR.md`.
-- AI in images: "Generally no" for generative AI images, scientific
-  diagrams included; tables, flow charts and simple graphs that contain
-  no image are outside the rule. Charts drawn from the data by
-  `charts.py` are outside it. Fig. 1 is the open case (section 11,
-  item 2).
+- Class: the page names two. Its Text part recommends "Springer
+  Nature's LaTeX template" (`sn-jnl`, December 2024, which serves "any
+  Springer Nature journal"); its Author tools part asks for "Springer's
+  LaTeX macro package" with the option "smallcondensed", which belongs
+  to the older `svjour3` class. The format the 25 pages are counted in
+  is not stated. The plan keeps `sn-jnl`.
+- Review model: not stated. The title page carries the authors and
+  nothing asks for an anonymised manuscript.
+- Submission: the source with all style files and figures, and a PDF of
+  the compiled output; no subfolders; figure files named `Fig1`, `Fig2`
+  and so on; no custom fonts; the content of the `.bbl` pasted into the
+  `.tex`. A `make submit` target builds this flat copy from the working
+  folder. The system is Editorial Manager, which compiles on TeX Live
+  2018, so the preamble keeps to the packages of the template and to
+  options that exist in that release.
+- Text: decimal headings of at most three levels; an abbreviation
+  defined at first mention; a footnote is never only a citation.
+- References: numbers in square brackets, `sn-basic.bst`, the DOI as a
+  full link; the list holds works that are published or accepted, so a
+  preprint gives way to its published version where one exists; a
+  dataset is cited with its identifier.
+- Figures: 119 mm wide and at most 195 mm high; Arial or Helvetica of
+  one size between 8 and 12 pt; lines of 0.3 pt or more; fonts
+  embedded; no title inside the figure; parts labelled a, b, c (CMC
+  asks for A, B, C, so `charts.py` takes the journal as an option);
+  series told apart by marker or dash and not by colour alone; a
+  caption without a full stop at its end; a figure in an appendix
+  continues the numbering of the text.
+- Tables: footnotes under the table, marked by superscript lower-case
+  letters.
+- Declarations before the references: funding, competing interests,
+  data availability (required), code availability, author
+  contributions. A submission without them is returned. Author
+  contributions and competing interests are also entered in the
+  submission form.
+- Supplementary file: named `ESM_1.pdf`, cited in the text as "Online
+  Resource 1", and carrying the title, the journal, the authors and the
+  corresponding author's affiliation and e-mail.
+- AI in the text: "Use of an LLM should be properly documented in the
+  Methods section". "AI assisted copy editing" needs no declaration; the
+  page defines it as improvements to human-generated text and says it
+  does "not include generative editorial work and autonomous content
+  creation". A text drafted by the writer is outside this exemption.
+  The group page asks for an AI Use Declaration at the end of the paper
+  and says copy editing "should be declared" as well; the journal's own
+  page is the one followed here.
+- AI in images: the page points to Springer's policy. The group page
+  says "Generally no" for generative AI images, scientific diagrams
+  included; tables, flow charts and simple graphs that contain no image
+  are outside the rule. Charts drawn from the data by `charts.py` are
+  outside it. Fig. 1 is the open case (section 11, item 2).
+- Authors: the author group, its order and the corresponding author
+  are fixed at submission and cannot change after acceptance; ORCID is
+  recommended; suggested reviewers need an institutional e-mail.
 
 ## 11. Open with the owner
 
-1. The JIIS submission guidelines, read in a browser (Springer sends
-   automated requests to a login page): the class it names
-   (`JOURNAL_BAR.md` records the older macro with `smallcondensed`;
-   Springer's LaTeX page says `sn-jnl` serves every Springer Nature
-   journal), the page format the 25 pages are counted in, whether the
-   manuscript is anonymised.
+1. The JIIS submission guidelines were read (section 10.1). Two points
+   the page leaves open: which class the 25 pages are counted in (it
+   names both `sn-jnl` and the older macro with `smallcondensed`), and
+   the review model. The plan writes in `sn-jnl` without anonymising; a
+   question to the editorial office settles both if the owner wants
+   certainty before submission.
 2. Fig. 1 under Springer Nature's rule on images (section 10.1): a
    scientific diagram made with a generative AI tool is not accepted,
    a flow chart without images is outside the rule. Either the owner
