@@ -4,6 +4,53 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: Sections 7 and 8 (Discussion and limitations, Conclusion) drafted; two cold reads and two rounds of editor's notes (no run)
+
+- Writer's outline (Section 7 in two subsections, 700 words; Section 8
+  in two paragraphs, 180 words) matched the brief and `OUTLINE.md`;
+  the draft followed without a question to the owner.
+- Cold read 1 (`cold_reviews/2026-11-27_0526_sections7and8_1.md`),
+  three major findings: the counts of Section 5.4 by tables and
+  columns were not discussed (on BIRD dev, 55 of the net gain of 95
+  questions are correct predictions that read other tables or columns
+  than the gold SQL query, and BIRD has no test suite); the reading
+  "what a preference round changes follows the incorrect samples of
+  its pairs" was not supported (the row "Fixed pairs and reference"
+  goes against it on Spider test and keeps pairs and reference
+  together); the reading of the warm-up rounds was stronger than its
+  tests. The brief was narrowed on all three and Section 7 was written
+  again from it; the fixed row, which I had added as evidence when
+  answering the outline, left the section.
+- Cold read 2 (`cold_reviews/2026-11-27_0538_sections7and8r1_1.md`):
+  the numbers of the two sections agree with Sections 5 and 6; the
+  wording went beyond what is tested (the test is of the preference
+  term in one round); 107 of the 268 execution errors of FedAvg SFT on
+  BIRD dev become incorrect results with the method; the second
+  preference round was told in part. Round 2 took these up.
+- Final: Section 7 prints 778 words (limit 780), Section 8 197 (limit
+  200); lint without a stop, no undefined reference.
+- A check of mine, not in the generator and not in the paper: exact
+  McNemar test on the execution errors, method against FedAvg SFT
+  after 4 rounds, from the committed predictions: BIRD dev 182
+  questions fail only with FedAvg SFT and 42 only with the method,
+  p = 5.8e-22; Spider test 118 and 29, p = 6.2e-14. On the incorrect
+  results: BIRD dev 156 only with the method and 111 only with FedAvg
+  SFT, p = 0.0070; Spider test 111 and 97, p = 0.37.
+- Open for the owner in `REVIEW_NOTES.md`: A31 (whether these tests
+  enter the paper), B33 ("more than two preference rounds are not
+  studied" in Section 7.2 does not agree with the variant without
+  warm-up rounds, which runs four; the clause came from my brief, now
+  corrected; the sentence waits for the pass over the whole paper),
+  B34 (four points of the limitations left out for the word limit),
+  B35 (the abstract gives the halving of the execution errors without
+  the clause on the incorrect results), B36, C43 (the BIRD gain and
+  queries that are not equivalent; the fuzzer of `db_fuzz.py` has not
+  been run on BIRD dev), C44.
+- With this, Sections 1 to 8, the abstract and the appendices exist
+  as drafts: 29 pages against the limit of 25, 48 numbers print as
+  `??`, 34 GPU rows missing, 41 references. The GPU queue was not
+  changed.
+
 ## 2026-11-27: Section 1 (Introduction) drafted with the abstract and the keywords; two cold reads and two rounds of editor's notes (no run)
 
 - Writer's outline (eight paragraphs, 945 words) matched the brief and

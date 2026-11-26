@@ -1,1 +1,22 @@
 \section{Conclusion}\label{sec:conclusion}
+
+We presented \method, a federated training method for Text-to-SQL in
+which the clients use their databases as supervision. After warm-up
+rounds of FedAvg SFT, each client samples queries from the global
+model, labels them by execution on its own databases against the gold
+SQL query, and trains on pairs of a correct and an incorrect sample
+with a preference term and an NLL term. At the same number of rounds,
+the model is above FedAvg SFT on BIRD dev, by
+\gap{bird}{fedavg}{4}{k2}{4} points of EX, and on Spider test, at the
+cost of additional computation at the clients. Its predictions have
+about half the execution errors, but part of the queries that now
+execute return an incorrect result, and the incorrect results are not
+fewer. On BIRD dev, which has no test suite, the gain is measured by EX
+alone.
+
+Three directions follow from these limits. The first is a stricter
+execution label, for example on several instances of a client's
+database. The second is supervision for questions without a gold SQL
+query, for which the present label cannot be computed. The third is
+training with more than ten clients, with partial participation and
+over more preference rounds.

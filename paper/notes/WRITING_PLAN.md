@@ -460,9 +460,9 @@ Section 2 with Table 1 (W11, `d9cad1c`; cited-work audit, two cold reads
 through the `cold-review` skill), Section 6 with Table 8 (W10; two cold
 reads, two rounds; three waiting rows have no sentence yet), Section 1
 with the abstract and the keywords (W13; two cold reads, two rounds;
-the title waits for the owner's choice among three candidates). The
-brief of Sections 7 and 8 (`briefs/07_discussion.md`) was approved on
-2026-11-27 and the two sections are in their second round.
+the title waits for the owner's choice among three candidates),
+Sections 7 and 8 (W12; two cold reads, two rounds). Sections 1 to 8
+now all exist as drafts: 29 pages against the limit of 25.
 
 Next, in this order. Each step is the loop of section 2; the owner's
 time is an estimate.
