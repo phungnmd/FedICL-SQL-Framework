@@ -42,6 +42,18 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\lvl{bird}{fixed}{4}{challenging}` | 29.66 | 7f68fe95 |
 | `\nerr{bird}{fixed}{4}` | 91 | 7f68fe95 |
 | `\nwr{bird}{fixed}{4}` | 735 | 7f68fe95 |
+| `\ex{bird}{k0}{1}` | 41.85 | 2dceb56f |
+| `\lvl{bird}{k0}{1}{simple}` | 50.16 | 2dceb56f |
+| `\lvl{bird}{k0}{1}{moderate}` | 31.25 | 2dceb56f |
+| `\lvl{bird}{k0}{1}{challenging}` | 22.76 | 2dceb56f |
+| `\nerr{bird}{k0}{1}` | 219 | 2dceb56f |
+| `\nwr{bird}{k0}{1}` | 673 | 2dceb56f |
+| `\ex{bird}{k0gold}{1}` | 39.24 | ff917437 |
+| `\lvl{bird}{k0gold}{1}{simple}` | 46.38 | ff917437 |
+| `\lvl{bird}{k0gold}{1}{moderate}` | 29.74 | ff917437 |
+| `\lvl{bird}{k0gold}{1}{challenging}` | 24.14 | ff917437 |
+| `\nerr{bird}{k0gold}{1}` | 105 | ff917437 |
+| `\nwr{bird}{k0gold}{1}` | 827 | ff917437 |
 | `\ex{bird}{k2}{3}` | 46.22 | 7e36808c |
 | `\lvl{bird}{k2}{3}{simple}` | 53.08 | 7e36808c |
 | `\lvl{bird}{k2}{3}{moderate}` | 36.85 | 7e36808c |
@@ -339,7 +351,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 1, Table 6 14, Table 8 11, text 14).
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 1, Table 6 14, Table 8 11, text 15).
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -352,7 +364,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{2}{k2}{3}` | +3.52 | text |
 | `\gap{bird}{fedavg}{2}{k2}{3}` | 3.52 | text |
 | `\pval{bird}{fedavg}{2}{k2}{3}` | 2.9e-4 | text |
-| `\padj{bird}{fedavg}{2}{k2}{3}` | 0.0023 | text |
+| `\padj{bird}{fedavg}{2}{k2}{3}` | 0.0026 | text |
 | `\nfix{bird}{fedavg}{2}{k2}{3}` | 135 | text |
 | `\nbrk{bird}{fedavg}{2}{k2}{3}` | 81 | text |
 | `\gain{bird}{fedavg}{3}{fedavg}{4}` | -1.11 | text |
@@ -370,7 +382,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{3}{k2}{4}` | +5.08 | text |
 | `\gap{bird}{fedavg}{3}{k2}{4}` | 5.08 | text |
 | `\pval{bird}{fedavg}{3}{k2}{4}` | 4.9e-8 | text |
-| `\padj{bird}{fedavg}{3}{k2}{4}` | 6.3e-7 | text |
+| `\padj{bird}{fedavg}{3}{k2}{4}` | 6.8e-7 | text |
 | `\nfix{bird}{fedavg}{3}{k2}{4}` | 141 | text |
 | `\nbrk{bird}{fedavg}{3}{k2}{4}` | 63 | text |
 | `\gain{bird}{fedavg}{4}{base}{0}` | -13.10 | Table 3, BIRD dev |
@@ -385,10 +397,16 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{bird}{fedavg}{4}{k2}{4}` | 1.4e-10 | Table 3, BIRD dev; Table 4; Table 5 |
 | `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4; Table 5 |
 | `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4; Table 5 |
+| `\gain{bird}{k0}{1}{k0gold}{1}` | -2.61 | text |
+| `\gap{bird}{k0}{1}{k0gold}{1}` | 2.61 | text |
+| `\pval{bird}{k0}{1}{k0gold}{1}` | 0.0073 | text |
+| `\padj{bird}{k0}{1}{k0gold}{1}` | 0.058 | text |
+| `\nfix{bird}{k0}{1}{k0gold}{1}` | 86 | text |
+| `\nbrk{bird}{k0}{1}{k0gold}{1}` | 126 | text |
 | `\gain{bird}{k2}{3}{k2}{4}` | +2.54 | text |
 | `\gap{bird}{k2}{3}{k2}{4}` | 2.54 | text |
 | `\pval{bird}{k2}{3}{k2}{4}` | 2.1e-4 | text |
-| `\padj{bird}{k2}{3}{k2}{4}` | 0.0019 | text |
+| `\padj{bird}{k2}{3}{k2}{4}` | 0.0021 | text |
 | `\nfix{bird}{k2}{3}{k2}{4}` | 73 | text |
 | `\nbrk{bird}{k2}{3}{k2}{4}` | 34 | text |
 | `\gain{bird}{k2}{3}{reagge}{3}` | -0.20 | Table 8, BIRD dev |
@@ -452,7 +470,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
 | `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
 | `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | text |
-| `\padj{spider}{central}{3}{k2}{4}` | 2.6e-4 | text |
+| `\padj{spider}{central}{3}{k2}{4}` | 2.8e-4 | text |
 | `\nfix{spider}{central}{3}{k2}{4}` | 161 | text |
 | `\nbrk{spider}{central}{3}{k2}{4}` | 93 | text |
 | `\gain{spider}{fedavg}{2}{fedavg}{3}` | +0.61 | text |
@@ -464,7 +482,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{2}{k2}{3}` | +3.36 | text |
 | `\gap{spider}{fedavg}{2}{k2}{3}` | 3.36 | text |
 | `\pval{spider}{fedavg}{2}{k2}{3}` | 1.4e-6 | text |
-| `\padj{spider}{fedavg}{2}{k2}{3}` | 1.7e-5 | text |
+| `\padj{spider}{fedavg}{2}{k2}{3}` | 1.8e-5 | text |
 | `\nfix{spider}{fedavg}{2}{k2}{3}` | 146 | text |
 | `\nbrk{spider}{fedavg}{2}{k2}{3}` | 74 | text |
 | `\gain{spider}{fedavg}{3}{fedavg}{4}` | +0.00 | text |
@@ -476,7 +494,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{3}{k2}{3}` | +2.75 | text |
 | `\gap{spider}{fedavg}{3}{k2}{3}` | 2.75 | text |
 | `\pval{spider}{fedavg}{3}{k2}{3}` | 5.4e-5 | text |
-| `\padj{spider}{fedavg}{3}{k2}{3}` | 5.4e-4 | text |
+| `\padj{spider}{fedavg}{3}{k2}{3}` | 6.0e-4 | text |
 | `\nfix{spider}{fedavg}{3}{k2}{3}` | 134 | text |
 | `\nbrk{spider}{fedavg}{3}{k2}{3}` | 75 | text |
 | `\gain{spider}{fedavg}{4}{base}{0}` | -6.66 | Table 3, Spider test |
@@ -506,7 +524,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | text |
 | `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | text |
 | `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | text |
-| `\padj{spider}{fedavg}{5}{k2}{4}` | 3.3e-8 | text |
+| `\padj{spider}{fedavg}{5}{k2}{4}` | 3.5e-8 | text |
 | `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | text |
 | `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | text |
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 8, Spider test |

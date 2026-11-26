@@ -43,7 +43,9 @@ result.
 Macro arguments are `{set}{line}{round}`; lines: `fedavg` FedAvg SFT,
 `k2` the method, `fixed` pairs and reference of the first preference
 round, `rft` without the preference term, `feddpo` without the NLL term,
-`k0` and `k3` no and three warm-up rounds. p is the exact McNemar p.
+`k0` and `k3` no and three warm-up rounds, `k0gold` the line `k0` with
+pairs of the gold SQL for the questions without a correct sample. p is
+the exact McNemar p.
 
 ### A. Against FedAvg SFT (RQ1; Table 3, Fig. 2)
 
@@ -67,6 +69,7 @@ round, `rft` without the preference term, `feddpo` without the NLL term,
 | B5 | Warm-up rounds make the gain hold under test-suite accuracy | Spider test EX is level for 0, 2 and 3 warm-up rounds (78.02, 78.20, 77.97). Test-suite accuracy at 4 rounds (Table 6), no warm-up `\ts{...}{k0}{4}` / two warm-up rounds `\ts{...}{k2}{4}` / FedAvg SFT: Spider dev 67.21 / 70.41 / 67.99; Spider-Syn 51.35 / 55.51 / 51.84; Spider-Realistic 57.09 / 62.20 / 58.86. The method against itself without warm-up, `\tsgain{...}{k0}{4}{k2}{4}`: +3.20 (p 0.010), +4.16 (p 0.0014), +5.11 (p 0.0067) | Spider dev, Syn, Realistic; BIRD at equal rounds waits | No claim that warm-up raises EX: on these sets EX is level with and without it, and on Spider-DK, which has no test suite, EX is higher without it (67.10 against 63.55, p 0.032, printed in Table 6). "Without warm-up the method's EX gain does not carry over to test-suite accuracy; with two warm-up rounds it does." After correction the difference is significant on Spider-Syn |
 | B6 | The weights of the server average do not matter | Weights by pairs, by questions, equal: BIRD within 0.20 (`\gain{bird}{k2}{3}{reagge}{3}`, `...{reaggq}{3}`), Spider within 0.52, none significant | BIRD dev, Spider test, at 3 rounds | one sentence |
 | B7 | Clients pooled in the preference rounds | waits (Spider) | | |
+| B8 | For the questions without a correct sample, pairs of the gold SQL with an incorrect sample inside the preference round do not help (owner, 2026-11-27: decided by the main session on the owner's request) | BIRD dev, without warm-up rounds, one preference round on the same samples and labels; the variant adds $M$ = 2 such pairs for each of the 4,035 questions without a correct sample: `\ex{bird}{k0gold}{1}` 39.24 against `\ex{bird}{k0}{1}` 41.85, `\gain{bird}{k0}{1}{k0gold}{1}` -2.61, p 0.0073, Holm-adjusted 0.058 in the family of the text; execution errors `\nerr` 219 to 105, incorrect results `\nwr` 673 to 827 | BIRD dev, from the pretrained model, one round | "does not raise EX: it is 2.61 lower, not significant after the correction; fewer execution errors, more incorrect results". Stated for BIRD and for the variant without warm-up rounds. Nothing is stated for the gold SQL as correct side after warm-up rounds (not run) or for Spider (its run changed three things at once: 76.67 against 75.87 at round 1, p 0.21, lower at round 2; `LAB_LOG.md`, 2026-11-21) |
 
 ### C. What changes in the answers (RQ4; Fig. 3)
 

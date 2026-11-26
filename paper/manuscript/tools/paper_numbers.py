@@ -69,6 +69,7 @@ TEXT_TESTS = [
     ("spider", MAIN, "fedavg", 5, "k2", 4),
     ("bird", MAIN, "central", EPOCHS, "k2", 4),   # the method against centralized SFT (A5)
     ("spider", MAIN, "central", EPOCHS, "k2", 4),
+    ("bird", MAIN, "k0", 1, "k0gold", 1),      # gold SQL as the correct side for questions without a correct sample
 ]
 # Curves of Fig. 2 and Fig. 3: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {

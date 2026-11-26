@@ -4,6 +4,34 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: brief of Section 6 approved; the gold SQL as the correct side enters the paper as claim B8 (owner; no run)
+
+- Owner: the brief of Section 6 is approved; on the open point A2 the
+  owner asked the main session to decide for the paper.
+- Decision: one statement in Section 6, in the part on the warm-up
+  rounds, for BIRD only (`CLAIMS.md`, B8). The variant without warm-up
+  rounds, one preference round on the same samples and labels, with 2
+  pairs of the gold SQL and an incorrect sample for each of the 4,035
+  questions without a correct sample (`bird_k0_gold/round_1`,
+  evaluation `ff917437`): 39.24 against 41.85, -2.61, 86 questions
+  fixed and 126 broken, exact McNemar p 0.0073. In the family of the
+  comparisons of the text (now 15) the Holm-adjusted p is 0.058, so the
+  paper says "does not raise EX", not "significantly lower". Execution
+  errors 219 to 105, incorrect results 673 to 827 (the generator counts
+  a cut output with the execution errors; the entry of 2026-11-21 lists
+  them apart: 211 + 8 and 76 + 29).
+- Why it is printed: both cold readers of Section 3 asked why the gold
+  SQL is not the correct side for these questions, and the warm-up
+  rounds are the paper's answer; the run is clean (only the added pairs
+  differ) and on the main dataset. Where this departs from the notes:
+  `RESEARCH_STATE.md` lists the part as dropped and not printed. Not
+  printed: the Spider run of the same rule (76.67 against 75.87 at
+  round 1, p 0.21, lower at round 2), which changed three things at
+  once, and the NLL rows on the gold SQL (-0.65, p 0.43).
+- Generator: one more comparison in `TEXT_TESTS`. The adjusted p of
+  seven other comparisons of the text rises in the last digit; none
+  crosses 0.05, and no section prints an adjusted p.
+
 ## 2026-11-27: drafts are committed without waiting for the owner's reading (owner; no run)
 
 - Owner: while the paper is being drafted, a section is committed when
