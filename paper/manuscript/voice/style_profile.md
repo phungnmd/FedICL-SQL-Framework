@@ -81,7 +81,3 @@ method sections.
 
 The terms this paper uses, one for each concept, are fixed in
 `TERMS.md`.
-
-**Measuring a draft**: `tools/style_profile.py compare <section>.tex
---sources DIR --kind method` gives the same measures for a drafted
-section beside those of the same kind of section in the ten papers.

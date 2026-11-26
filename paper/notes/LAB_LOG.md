@@ -67,6 +67,14 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   about 24.6 pages (`WRITING_PLAN.md`, section 5). The draft of Section
   3.4 from the second pilot goes to the writer of the Method section as
   an earlier draft of that subsection (owner).
+- The guide and the plan were read against the sources of ARS
+  (`academic-paper` 3.24.2) and PaperOrchestra (`fcf8a38`). Added from
+  them: a paragraph makes one point and states it first (guide); the
+  writer opens the tables and figures it describes, and the brief of
+  the Introduction draws on the ARS guides for introduction, title and
+  abstract (briefs); a helper reads each section's PDF cold, as the
+  first source of editor's notes (`WRITING_PLAN.md`, sections 3.5 and
+  7.2). Draft 1 of the pilot left the tree (it is in commit `cd1ceef`).
 
 ## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
 

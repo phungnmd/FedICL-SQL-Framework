@@ -38,7 +38,7 @@ accepted, because a later section reads the earlier ones:
 ```text
 brief of the section (main session; the owner approves it)
   -> draft of the whole section (a fresh writer: WRITING_GUIDE.md, TERMS.md, voice/, the brief, the accepted sections)
-  -> build, lint, facts against the code and the committed results (main session, helpers)
+  -> build, lint, facts against the code and the committed results; a helper reads the PDF of the section cold (main session, helpers)
   -> at most five editor's notes -> the same writer revises   (two rounds at most)
   -> the owner reads -> commit
 ```
@@ -129,18 +129,6 @@ paragraph roles of a brief are an offer. The writer's notes are read: a
 gap it names goes back into the brief, and a claim it finds weak goes
 to the owner.
 
-Six ideas are kept from the ARS `academic-paper` pipeline, each in the
-place that applies it:
-
-| Idea | Where |
-|---|---|
-| The register follows the conventions of the field and the journal | `voice/`, the guide, "How it should read" |
-| Facts come only from the supplied material; a gap is named, not filled | the guide, "What binds", 1 |
-| The writer reads its section once as the reviewer would | the guide, "What is yours" |
-| A claim never above its ceiling; under revision the sentence changes and the claim stays | the guide, "What binds", 2 |
-| Novelty stated against the closest work, with "to our knowledge" and its scope | the guide, "What binds", 2 |
-| A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | sections 7 and 8; `bib/report.md` |
-
 ### 3.4 Voice (`voice/`)
 
 Voice is shown, not specified. The folder holds passages from published
@@ -162,6 +150,32 @@ describe a range and are not targets. The method section of CodeLutra
 is in the measures and not among the passages: it describes the steps
 this paper describes, and a draft written beside it would follow its
 wording.
+
+### 3.5 What is kept from ARS and PaperOrchestra
+
+Both were read in their sources (the ARS `academic-paper` skill, 3.24.2;
+PaperOrchestra at `fcf8a38`). Their methods of writing are kept; their
+pipelines are not (section 9).
+
+| From | Idea | Where it lives here |
+|---|---|---|
+| ARS | The register follows the conventions of the field and the journal, calibrated on published papers | `voice/`; the guide, "How it should read" |
+| ARS, PaperOrchestra | Facts come only from the supplied material; a gap is named, not filled | the guide, "What binds", 1; numbers as generated macros |
+| ARS | A claim never above its ceiling; under revision the sentence changes and the claim stays; novelty against the closest work, scoped | the guide, "What binds", 2 |
+| ARS | Each section answers one question of the reader; a paragraph the paper would not miss goes | the Purpose row of a brief; the guide, "What is yours" |
+| ARS | The moves of an introduction (territory, gap, what the paper does), the title and the abstract | the brief of the Introduction, from `references/intro_title_rhetoric_guide.md` and `abstract_writing_guide.md` of the skill |
+| ARS | A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | the cold read of section 7.2; `bib/report.md` |
+| PaperOrchestra | One paragraph, one point, stated in its first sentence; paragraph roles by kind of section | the guide, "How it should read"; `voice/section_rhetoric.md`, through the briefs |
+| PaperOrchestra | One name per concept from abstract to conclusion | `TERMS.md` |
+| PaperOrchestra | The writer sees the tables and figures it describes | a brief names their files (section 4) |
+| PaperOrchestra | The failure modes of a generated paper: a method described otherwise than the code, an invented number or reference, a part called essential without its ablation, a framing the results have overtaken | the stops of section 7.1 |
+| PaperOrchestra | A revision changes no number and no reference | `make inventory` before and after the whole-paper pass |
+| PaperOrchestra | The argument read from the first sentences alone; table conventions | `tools/reverse_outline.py`, `tools/table_lint.py` (signals) |
+
+Left out on purpose: a fixed scheme for every paragraph, lists of words
+for the writer, a score the writer gives itself, a loop that accepts a
+revision by the score of a simulated reviewer, and the instruction to
+report what did not work.
 
 ## 4. Briefs (`briefs/`, one file per top-level section)
 
@@ -186,8 +200,10 @@ given, so a brief gives it none.
   checked against the code. The settings come from
   `generated/settings.md`, written from the committed configs
   (section 6).
-- The tables and figures of the section, and each macro with exactly
-  what it prints, unit included.
+- The tables and figures of the section by file
+  (`generated/tab_*.tex`, `figures/fig_*.pdf`), which the writer opens,
+  so that what it says of a figure is what the figure shows; and each
+  macro with exactly what it prints, unit included.
 - References: the key, and the facts about that paper the section may
   use.
 - For Related work, in place of one line per reference: the facts the
@@ -198,7 +214,8 @@ given, so a brief gives it none.
   written from these rows (section 7).
 - The labels the section may refer to.
 - Paragraph roles that usually serve this kind of section, as an offer
-  (from `voice/section_rhetoric.md`).
+  (from `voice/section_rhetoric.md`; for the Introduction, the title
+  and the abstract also from the two guides named in section 3.5).
 
 A brief holds what the paper prints. Dates, names of runs, what was
 tried and dropped, how a value was chosen and results outside the
@@ -331,6 +348,7 @@ The rest is advice for the editor. None of it stops a section.
 | Lab words and earlier labels | `tools/lint.py` | student, arm, queued, run names; "wrong result", "right answer"; British spelling |
 | Register | `tools/style_profile.py compare FILE --kind KIND` | measures far outside the range of the same kind of section in the ten papers, as in the first pilot |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF...` | a large share of the draft in runs of five or more words of the brief |
+| Cold read | a helper on Opus that has seen neither the brief nor the notes reads the PDF of the section as a reviewer of the journal would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
 | Argument | `tools/reverse_outline.py` | the first sentences of a section do not make its argument; a paragraph with two points |
 | Tables | `tools/table_lint.py` | rules outside booktabs, a metric without its direction, uneven decimals; fixed in the generator |
 | Reader | reader test (whole-paper step): a fresh helper reads the PDF and states the problem, the method, the main result, and anything the paper seemed to defend or explain about its own making | a wrong answer to the first three; anything named in the fourth |
@@ -406,25 +424,19 @@ for the claims that use that row.
 | `paper/notes/tools/overview_results.py` | every committed run and McNemar test, imported by `paper_numbers.py` | exists |
 | `paper/figures/render.py`, `STYLE.md`; matplotlib | diagrams; result charts at 119 mm in Arial 8 pt | exists; installed |
 | PaperOrchestra port (`github.com/Ar9av/PaperOrchestra`, MIT, read at `fcf8a38`) | three files copied: `section_rhetoric.md` into `voice/`, `reverse_outline.py` and `table_lint.py` into `tools/` | not installed as a skill |
-| ARS `shared/style_calibration_protocol.md` | how the voice profile is drawn from the passages | installed |
 | `tools/style_profile.py` | `profile`: the measures of the ten papers by kind of section, from their arXiv sources in a folder outside the repository; it also writes `voice/style_reference.json`. `compare`: the same measures for a draft beside that reference, without the sources. `lifted`: the share of a draft in runs of five or more words of other files. All three are signals for the editor (section 7.2) | exists |
 | `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | reference metadata; cold review; AI-use statement | installed |
 | academic-paper skill, `references/writing_quality_check.md` | a diagnostic in the whole-paper step: it lists what it finds and rewrites nothing | installed |
 | `doc-coauthoring`, stage 3 | the reader test | installed |
-| `write-course-term-paper`: `references/writing.md`, `scripts/audit_reader_facing_prose.py` | model for the leak signals of `tools/lint.py`, rewritten for English and LaTeX | installed |
 
-Not used: `humanizer` (owner, 2026-11-26: no pass that rewrites the
-text after the writers). Not used as a writer: the ARS draft writer (a fixed paragraph scheme, a
-list of hedging verbs, sections it must include, a self-score; its
-pipeline was tried on 2026-11-26 and dropped: it starts from a topic,
-and this paper starts from approved claims, generated numbers and a
-plan), the
-PaperOrchestra pipeline (its writer gets the whole experimental log in
-one call and is told to analyse what did not work; its literature agent
-searches for new citations and must use 90% of them; its refinement
-accepts a revision by the score of a simulated reviewer),
-`write-course-term-paper` as a skill (course papers and their voice),
-`/ars-full` and `/ars-plan`.
+Not used: `humanizer` (owner, 2026-11-26: no pass rewrites the text
+after the writer); the ARS pipeline (`/ars-full`, `/ars-plan`: it
+starts from a topic, and this paper starts from approved claims,
+generated numbers and a plan); the PaperOrchestra pipeline (its writer
+gets the whole experimental log in one call, its literature agent
+searches for new citations, its refinement accepts a revision by the
+score of a simulated reviewer). What is kept of the two is in section
+3.5.
 
 ```text
 paper/manuscript/
@@ -448,8 +460,8 @@ paper/manuscript/
                         is the brief of the pilot)
   bib/                  report.md: how each entry of references.bib was verified,
                         and the sources of each subsection
-  pilot/                the two drafts of Section 3.4 with the writer's and the
-                        editor's notes, and the page that sets one (make pilot)
+  pilot/                the accepted draft of Section 3.4 with the writer's and
+                        the editor's notes, and the page that sets it (make pilot)
   tools/                paper_numbers.py paper_settings.py charts.py lint.py
                         style_profile.py flatten.py reverse_outline.py table_lint.py
   Makefile              make, make numbers, make figures, make lint, make pilot,

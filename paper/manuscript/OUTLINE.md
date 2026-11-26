@@ -6,7 +6,7 @@ those of `CLAIMS.md`. The brief of a section is built from its entry
 here. The bibliography keys come from `bib/report.md`, which names the
 sources of each subsection.
 
-## Structure Pattern: IMRaD
+## Structure
 
 Results are organised by research question and the ablations have a
 section of their own, as in the papers of the target journal.
@@ -50,7 +50,6 @@ states the limits of the study.
 
 **Purpose**: state the problem, the gap, the idea and what the paper
 shows.
-**Serves sub-question**: framing.
 **Content** (paragraphs, no subsections):
 
 - Small models for Text-to-SQL are what an organisation can train and
@@ -74,7 +73,6 @@ shows.
 
 **Purpose**: credit each line of work and state the point where it
 stops short of this setting.
-**Serves sub-question**: framing.
 **Content**:
 
 - 2.1 Small models for Text-to-SQL: fine-tuned open models and what
@@ -99,7 +97,6 @@ last row of Table 1; Section 3 defines it.
 
 **Purpose**: define the method so that it can be reimplemented, and
 give the reason for each design choice.
-**Serves sub-question**: all (the object of study).
 **Content**:
 
 - 3.1 Setting and notation (~300): clients, their questions, gold SQL
@@ -122,7 +119,6 @@ give the reason for each design choice.
 
 **Purpose**: everything a reader needs to judge and repeat the
 experiments.
-**Serves sub-question**: all.
 **Content**:
 
 - 4.1 Datasets and metrics: BIRD (dev) and Spider (test) for the main
@@ -168,7 +164,6 @@ from.
 ### 6. Ablation study (~880 words, Table 8)
 
 **Purpose**: show what each part of the method adds.
-**Serves sub-question**: RQ1 and RQ4, by part.
 **Content**: B1 pairs and reference renewed each round against those of
 the first preference round; B2 the second preference round; B3 the NLL
 term; B4 the preference term; B5 the number of warm-up rounds, read

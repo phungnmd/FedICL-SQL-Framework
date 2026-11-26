@@ -43,6 +43,9 @@ rules:
 - A defined concept keeps its name through the paper. `TERMS.md` gives
   the names this paper has chosen for its concepts; ordinary words stay
   free.
+- A paragraph makes one point and its first sentence states it, so a
+  reader who takes only the first sentences can still follow the
+  section.
 - "We" carries what the authors propose, choose and observe; the
   passive serves where the procedure is the subject.
 - The purpose of a formula comes before it and its effect after it.
@@ -95,8 +98,8 @@ the available numbers appear, where an example helps, how one part
 leads to the next. Before you return the section, read it once as the
 reviewer would and smooth whatever would make them stop: a concept that
 changes its name, an opening that says nothing, a sentence that repeats
-its neighbor, a paragraph that makes two points. Leave a sentence that
-reads well as it is.
+its neighbor, a paragraph that makes two points, a paragraph the
+section would not miss. Leave a sentence that reads well as it is.
 
 ## What you return
 
