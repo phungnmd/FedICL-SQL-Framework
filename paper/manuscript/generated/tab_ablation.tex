@@ -6,16 +6,16 @@
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
  & EX & $\Delta$ & $p$ & EX & $\Delta$ & $p$ \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{4 rounds: 2 FedAvg SFT rounds, 2 preference rounds}} \\
+\multicolumn{7}{@{}l}{\textit{4 rounds: 2 warm-up rounds, 2 preference rounds}} \\
 \midrule
 \method & 48.76 &  &  & 78.20 &  &  \\
 Fixed pairs and reference & 46.15 & $-$2.61 & $5.7\times10^{-4}$\textsuperscript{*} & 78.02 & $-$0.18 & 0.78 \\
 Without the preference term & -- & -- & -- & -- & -- & -- \\
-No FedAvg SFT round & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
-Three FedAvg SFT rounds & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
+No warm-up round & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
+Three warm-up rounds & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
 Clients pooled &  &  &  & -- & -- & -- \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{3 rounds: 2 FedAvg SFT rounds, 1 preference round}} \\
+\multicolumn{7}{@{}l}{\textit{3 rounds: 2 warm-up rounds, 1 preference round}} \\
 \midrule
 \method & 46.22 &  &  & 77.46 &  &  \\
 Without the NLL term & -- & -- & -- & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\

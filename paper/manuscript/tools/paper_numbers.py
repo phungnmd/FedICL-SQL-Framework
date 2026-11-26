@@ -248,7 +248,7 @@ def table_main(d: Data) -> str:
             {"name": "Centralized SFT", "key": key(ds, "central", EPOCHS), "ref": True},
             {"name": "FedAvg SFT", "key": fed, "base": True},
             {"name": "FedProx SFT", "key": key(ds, "fedprox", ROUNDS)},
-            {"name": "Federated DPO", "key": key(ds, "feddpo", ROUNDS)},
+            {"name": "FedDPO", "key": key(ds, "feddpo", ROUNDS)},
             {"name": "\\method", "key": key(ds, "k2", ROUNDS)},
         ]
         if ds == "bird":  # the two main rows on a second training seed
@@ -395,15 +395,15 @@ def table_ablation(d: Data) -> str:
              "\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}",
              row(["", "EX", "$\\Delta$", "$p$", "EX", "$\\Delta$", "$p$"])]
     blocks = [
-        (f"{ROUNDS} rounds: {WARMUP} FedAvg SFT rounds, {ROUNDS - WARMUP} preference rounds", ROUNDS, [
+        (f"{ROUNDS} rounds: {WARMUP} warm-up rounds, {ROUNDS - WARMUP} preference rounds", ROUNDS, [
             ("\\method", "k2", None),
             ("Fixed pairs and reference", "fixed", None),
             ("Without the preference term", "rft", None),
-            ("No FedAvg SFT round", "k0", None),
-            ("Three FedAvg SFT rounds", "k3", None),
+            ("No warm-up round", "k0", None),
+            ("Three warm-up rounds", "k3", None),
             ("Clients pooled", "pooled", ("spider",)),
         ]),
-        (f"{ROUNDS - 1} rounds: {WARMUP} FedAvg SFT rounds, {ROUNDS - 1 - WARMUP} preference round", ROUNDS - 1, [
+        (f"{ROUNDS - 1} rounds: {WARMUP} warm-up rounds, {ROUNDS - 1 - WARMUP} preference round", ROUNDS - 1, [
             ("\\method", "k2", None),
             ("Without the NLL term", "feddpo", None),
             ("Without the preference term", "rft", None),
