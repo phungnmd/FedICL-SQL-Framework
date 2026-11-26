@@ -258,7 +258,7 @@ setting in the text is a macro, like a result number.
 | Fig. 2 | EX by round, FedAvg SFT (to round 5) and the method, both datasets | none |
 | Table 4 | three models on Spider, DeepSeek-Coder-1.3B on BIRD | DeepSeek rounds on Spider; all of BIRD |
 | Table 5 | FedAvg SFT and the method in the five setups | IID, alpha 0.5 with 5 clients, alpha 0.5 with 10 clients |
-| Table 6 | Spider-Syn, Realistic, DK; test-suite accuracy | the test-suite numbers are not committed |
+| Table 6 | Spider-Syn, Realistic, DK; test-suite accuracy | none (the test-suite numbers are committed) |
 | Fig. 3 | wrong answers by round split into execution errors and wrong results, FedAvg SFT and the method | none |
 | Table 7 | client time per round (sampling, labels, training) and megabytes sent | none, read from the logs (`scripts/log_times.py`) |
 | Table 8 | ablations at 4 rounds, BIRD and Spider | BIRD: without the preference term round 2, without NLL, k = 0 rounds 3 and 4, k = 3. Spider: without the preference term round 2, pooled clients |
