@@ -5,18 +5,18 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Group | Setting | Macro | Value | Source |
 |---|---|---|---|---|
 | Model and adapter | Model | `\setting{model}` | Qwen2.5-Coder-1.5B-Instruct | FedAvg SFT round records (config.json, train_config) |
-| Model and adapter | Other models | `\setting{models.other}` | Qwen2.5-Coder-0.5B-Instruct, deepseek-coder-1.3b-instruct | FedAvg SFT round records (config.json, train_config) |
+| Model and adapter | Other models | `\setting{models.other}` | Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Adapter | `\setting{lora}` | LoRA, rank 16, alpha 32 | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Adapted matrices | `\setting{lora.modules}` | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Adapter size | `\setting{adapter.mb}` | 73.9 MB | preference round records (setup.json, arm.json, round.json) |
 | Model and adapter | Longest sequence | `\setting{max_len}` | 7168 tokens, no truncation | FedAvg SFT round records (config.json, train_config) |
-| Model and adapter | Longest sequence, deepseek-coder-1.3b-instruct | `\setting{max_len.deepseek-coder-1.3b-instruct}` | 8704 tokens | FedAvg SFT round records (config.json, train_config) |
+| Model and adapter | Longest sequence, DeepSeek-Coder-1.3B-Instruct | `\setting{max_len.deepseek}` | 8704 tokens | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Rank | `\setting{lora.r}` | 16 | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Alpha | `\setting{lora.alpha}` | 32 | FedAvg SFT round records (config.json, train_config) |
 | Federation | Clients in a round | `\setting{clients}` | all 5 | FedAvg SFT round records (config.json, train_config) |
-| Federation | Rounds | `\setting{rounds}` | 4: 2 FedAvg SFT rounds, then 2 preference rounds | queue and round records |
+| Federation | Rounds | `\setting{rounds}` | 4: 2 warm-up rounds, then 2 preference rounds | queue and round records |
 | Federation | Total rounds | `\setting{rounds.total}` | 4 | round records |
-| Federation | FedAvg SFT rounds first | `\setting{rounds.warmup}` | 2 | round records |
+| Federation | Warm-up rounds | `\setting{rounds.warmup}` | 2 | round records |
 | Federation | Preference rounds | `\setting{rounds.pref}` | 2 | round records |
 | Federation | Training seed | `\setting{seed}` | 0 | FedAvg SFT round records (config.json, train_config) |
 | Federation | Seed of the client splits | `\setting{split.seed}` | 42 | split files (meta.json) |
@@ -33,7 +33,9 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Preference round | Temperature | `\setting{pref.t}` | 1 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | New tokens per sample | `\setting{pref.tokens}` | 256 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Pairs per question | `\setting{pref.pairs}` | 2 | preference round records (setup.json, arm.json, round.json) |
-| Preference round | Pairing | `\setting{pref.rule}` | a correct sample with an incorrect sample, drawn at random | preference round records (setup.json, arm.json, round.json) |
+| Preference round | Pairing | `\setting{pref.rule}` | 2 correct and 2 incorrect samples of the question, drawn uniformly and independently, each without replacement when the question has at least 2 samples of that label and with replacement otherwise; paired in the order drawn | preference round records (setup.json, arm.json, round.json); fedls_sql/preference/pairs.py |
+| Preference round | Sample without query text | `\setting{pref.blank}` | labeled incorrect | fedls_sql/preference/sampling.py |
+| Preference round | Sample truncated at the token limit | `\setting{pref.truncated}` | not executed, not labeled | fedls_sql/preference/sampling.py |
 | Preference round | Questions on a database without rows | `\setting{pref.empty}` | give no pair | preference round records (setup.json, arm.json, round.json) |
 | Preference round | beta of the preference term | `\setting{pref.beta}` | 0.1 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Weight of the NLL term | `\setting{pref.nll}` | 1 | preference round records (setup.json, arm.json, round.json) |
@@ -44,10 +46,14 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Preference round | Warm-up share of the updates | `\setting{pref.warmup}` | 0.1 | preference round records (setup.json, arm.json, round.json) |
 | Preference round | LoRA dropout | `\setting{pref.dropout}` | 0 | fedls_sql/federated/pref_rounds.py |
 | Preference round | Averaging weights | `\setting{pref.weights}` | pair count | preference round records (setup.json, arm.json, round.json) |
+| Preference round | Time limit of the execution labels | `\setting{pref.timeout}` | that of evaluation | fedls_sql/eval/metrics.py |
 | Evaluation | Decoding | `\setting{eval.decoding}` | greedy, one output | fedls_sql/models/vllm_student.py |
 | Evaluation | New tokens | `\setting{eval.tokens}` | 256 | fedls_sql/eval/loop.py |
 | Evaluation | Repetition penalty | `\setting{eval.penalty}` | none | evaluation records (config.json, metrics.json) |
-| Evaluation | Time limit of one SQL on BIRD | `\setting{eval.timeout}` | 30 s | evaluation records (config.json, metrics.json) |
+| Evaluation | Time limit on BIRD | `\setting{eval.timeout.bird}` | 30 s for a query and the gold SQL query together | evaluation records (config.json, metrics.json); fedls_sql/eval/sql_exec.py |
+| Evaluation | Time limit on Spider | `\setting{eval.timeout.spider}` | 60 s for each query | evaluation records (config.json, metrics.json); fedls_sql/eval/sql_exec.py |
+| Evaluation | Time limit on BIRD, seconds | `\setting{timeout.bird}` | 30 s | evaluation records (config.json, metrics.json); fedls_sql/eval/sql_exec.py |
+| Evaluation | Time limit on Spider, seconds | `\setting{timeout.spider}` | 60 s | evaluation records (config.json, metrics.json); fedls_sql/eval/sql_exec.py |
 | Software and hardware | Python | `\setting{sw.python}` | 3.11.15 (Python Software Foundation) | evaluation records (config.json, metrics.json) |
 | Software and hardware | PyTorch | `\setting{sw.torch}` | 2.11.0 (PyTorch Foundation), CUDA 12.8 (NVIDIA) | evaluation records (config.json, metrics.json) |
 | Software and hardware | Transformers | `\setting{sw.transformers}` | 5.10.2 (Hugging Face) | uv.lock |

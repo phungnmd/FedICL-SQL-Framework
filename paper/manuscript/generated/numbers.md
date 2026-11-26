@@ -712,3 +712,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{split.spider.iid.k5.q_min}` | 1298 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.iid.k5.questions}` | 8659 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.iid.k5.seed}` | 42 | split files (clients.csv, meta.json) |
+| `\fact{test.alpha}` | 0.05 | tools/paper_numbers.py, ALPHA: the level of the star in the tables |
+| `\fact{train.bird.gold_error}` | 350 | round record, pair_stats |
+| `\fact{train.bird.gold_timeout.pref1}` | 87 | round record, pair_stats |
+| `\fact{train.bird.gold_timeout.pref2}` | 92 | round record, pair_stats |
+| `\fact{train.bird.no_rows}` | 0 | round record, pair_stats |
+| `\fact{train.spider.gold_error}` | 3 | round record, pair_stats |
+| `\fact{train.spider.gold_timeout.pref1}` | 0 | round record, pair_stats |
+| `\fact{train.spider.gold_timeout.pref2}` | 0 | round record, pair_stats |
+| `\fact{train.spider.no_rows}` | 1759 | round record, pair_stats |
+| `\fact{train.spider.no_rows.databases}` | 7 | audits/protocol_v2/db_fuzz_probe/empty_vs_suite_gold/summary.json |

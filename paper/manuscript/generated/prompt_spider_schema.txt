@@ -1,0 +1,13 @@
+CREATE TABLE Movies (
+  Code INTEGER PRIMARY KEY,
+  Title VARCHAR(255) NOT NULL,
+  Rating VARCHAR(255) 
+);
+/*
+3 example rows:
+SELECT * FROM Movies LIMIT 3;
+Code    Title    Rating
+1    Citizen Kane    PG
+2    Singin' in the Rain    G
+3    The Wizard of Oz    G
+*/

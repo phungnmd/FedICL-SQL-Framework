@@ -166,7 +166,7 @@ def collect() -> list[tuple]:
     # ---- the table
     g = "Model and adapter"
     add(g, "Model", "model", t["model_id"].split("/")[-1], source=src)
-    add(g, "Other models", "models.other", ", ".join(n for n, _ in others), source=src)
+    add(g, "Other models", "models.other", ", ".join(PAPER_NAME.get(n, n) for n, _ in others), source=src)
     add(g, "Adapter", "lora", f"LoRA, rank {t['lora_r']}, $\\alpha$ {t['lora_alpha']}", f"LoRA, rank {t['lora_r']}, alpha {t['lora_alpha']}", src)
     add(g, "Adapted matrices", "lora.modules", ", ".join(f"\\texttt{{{m.replace('_', chr(92) + '_')}}}" for m in t["target_modules"]),
         ", ".join(t["target_modules"]), src)
@@ -174,15 +174,15 @@ def collect() -> list[tuple]:
     add(g, "Longest sequence", "max_len", f"{thousands(t['max_len'])} tokens, no truncation", f"{t['max_len']} tokens, no truncation", src)
     for n, mx in others:
         if mx != t["max_len"]:
-            add(g, f"Longest sequence, {n}", f"max_len.{n}", f"{thousands(mx)} tokens", f"{mx} tokens", src)
+            add(g, f"Longest sequence, {PAPER_NAME.get(n, n)}", f"max_len.{n.split('-')[0]}", f"{thousands(mx)} tokens", f"{mx} tokens", src)
     add(g, "Rank", "lora.r", t["lora_r"], source=src)
     add(g, "Alpha", "lora.alpha", t["lora_alpha"], source=src)
 
     g = "Federation"
     add(g, "Clients in a round", "clients", f"all {c['n_clients']}", source=src)
-    add(g, "Rounds", "rounds", f"{ROUNDS}: {WARMUP} FedAvg SFT rounds, then {ROUNDS - WARMUP} preference rounds", source="queue and round records")
+    add(g, "Rounds", "rounds", f"{ROUNDS}: {WARMUP} warm-up rounds, then {ROUNDS - WARMUP} preference rounds", source="queue and round records")
     add(g, "Total rounds", "rounds.total", ROUNDS, source="round records")
-    add(g, "FedAvg SFT rounds first", "rounds.warmup", WARMUP, source="round records")
+    add(g, "Warm-up rounds", "rounds.warmup", WARMUP, source="round records")
     add(g, "Preference rounds", "rounds.pref", ROUNDS - WARMUP, source="round records")
     add(g, "Training seed", "seed", t["seed"], source=src)
     add(g, "Seed of the client splits", "split.seed", split_seed, source="split files (meta.json)")
@@ -203,7 +203,19 @@ def collect() -> list[tuple]:
     add(g, "Temperature", "pref.t", f"{s['sampling']['temperature']:g}", source=psrc)
     add(g, "New tokens per sample", "pref.tokens", s["sampling"]["max_new_tokens"], source=psrc)
     add(g, "Pairs per question", "pref.pairs", s["pair_rule"]["pairs_per_question"], source=psrc)
-    add(g, "Pairing", "pref.rule", {"random": "a correct sample with an incorrect sample, drawn at random"}[s["pair_rule"]["rule"]], source=psrc)
+    m_pairs = s["pair_rule"]["pairs_per_question"]
+    in_code("fedls_sql/preference/pairs.py", r"return rng\.choices\(pool, k=k\) if len\(pool\) < k else rng\.sample\(pool, k\)",
+            "the draw of the samples of a pair")
+    in_code("fedls_sql/preference/pairs.py", r"chosen, rejected = draw\(correct\), draw\(wrong\)", "the two draws of a pair")
+    add(g, "Pairing", "pref.rule",
+        {"random": f"{m_pairs} correct and {m_pairs} incorrect samples of the question, drawn uniformly and independently, "
+                   f"each without replacement when the question has at least {m_pairs} samples of that label and with replacement "
+                   "otherwise; paired in the order drawn"}[s["pair_rule"]["rule"]], source=psrc + "; fedls_sql/preference/pairs.py")
+    in_code("fedls_sql/preference/sampling.py", r"if not norm:\n\s+outcome, error = EMPTY, None", "the label of a sample without query text")
+    add(g, "Sample without query text", "pref.blank", "labeled incorrect", source="fedls_sql/preference/sampling.py")
+    in_code("fedls_sql/preference/sampling.py", r'finished = \[s for s in record\["samples"\] if s\["finish_reason"\] == "eos"\]',
+            "the samples that are executed")
+    add(g, "Sample truncated at the token limit", "pref.truncated", "not executed, not labeled", source="fedls_sql/preference/sampling.py")
     add(g, "Questions on a database without rows", "pref.empty", {True: "give no pair"}[s["pair_rule"]["skip_empty_databases"]], source=psrc)
     add(g, "$\\beta$ of the preference term", "pref.beta", f"{dpo['beta']:g}", source=psrc)
     add(g, "Weight of the NLL term", "pref.nll", f"{dpo['nll_alpha']:g}", source=psrc)
@@ -215,12 +227,23 @@ def collect() -> list[tuple]:
     add(g, "Warm-up share of the updates", "pref.warmup", f"{dpo['warmup_ratio']:g}", source=psrc)
     add(g, "LoRA dropout", "pref.dropout", f"{float(pref_dropout):g}", source="fedls_sql/federated/pref_rounds.py")
     add(g, "Averaging weights", "pref.weights", {"pair_count": "pair count"}[agg[1]], source=psrc)
+    in_code("fedls_sql/eval/metrics.py", r'"kind": "question"[\s\S]{0,200}?"budget": _budget\(evaluator\)',
+            "the time limit of the execution labels")
+    add(g, "Time limit of the execution labels", "pref.timeout", "that of evaluation", source="fedls_sql/eval/metrics.py")
 
     g = "Evaluation"
     add(g, "Decoding", "eval.decoding", "greedy, one output", source="fedls_sql/models/vllm_student.py")
     add(g, "New tokens", "eval.tokens", eval_tokens, source="fedls_sql/eval/loop.py")
     add(g, "Repetition penalty", "eval.penalty", {1.0: "none"}[rep], source=esrc)
-    add(g, "Time limit of one SQL on BIRD", "eval.timeout", f"{timeout} s", source=esrc)
+    bird_s = in_code("fedls_sql/eval/sql_exec.py", r"BIRD_PAIR_TIMEOUT_SECONDS = (\d+)", "the time limit on BIRD")
+    spider_s = in_code("fedls_sql/eval/sql_exec.py", r"SPIDER_QUERY_TIMEOUT_SECONDS = (\d+)", "the time limit on Spider")
+    if bird_s != timeout:
+        raise SystemExit(f"STOP: the BIRD evaluations ran with a time limit of {timeout} s, the code has {bird_s} s")
+    tsrc = esrc + "; fedls_sql/eval/sql_exec.py"
+    add(g, "Time limit on BIRD", "eval.timeout.bird", f"{bird_s} s for a query and the gold SQL query together", source=tsrc)
+    add(g, "Time limit on Spider", "eval.timeout.spider", f"{spider_s} s for each query", source=tsrc)
+    add(g, "Time limit on BIRD, seconds", "timeout.bird", f"{bird_s} s", source=tsrc)
+    add(g, "Time limit on Spider, seconds", "timeout.spider", f"{spider_s} s", source=tsrc)
 
     g = "Software and hardware"
     add(g, "Python", "sw.python", f"{env['python']} ({MAKER['python']})", source=esrc)
@@ -235,7 +258,9 @@ def collect() -> list[tuple]:
 
 
 # rows of Appendix B; the other entries exist as macros only
-IN_TABLE_SKIP = {"lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t"}
+# names of the models as the paper writes them, where the repository name differs
+PAPER_NAME = {"deepseek-coder-1.3b-instruct": "DeepSeek-Coder-1.3B-Instruct"}
+IN_TABLE_SKIP = {"lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
 
 ACCESSOR = r"""%% Written by tools/paper_settings.py from the committed configs. Do not edit.
 \makeatletter

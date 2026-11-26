@@ -1,0 +1,4 @@
+-- Using valid SQLite, answer the following questions for the tables provided above.
+Question: Select the title of all movies.
+
+Please output only the final SQL query, starts with keyword `SELECT`.

@@ -5,16 +5,16 @@
   \textbf{??}\@latex@warning{No committed number for setting \detokenize{#1}}\fi}
 
 \st@def{model}{Qwen2.5-Coder-1.5B-Instruct}
-\st@def{models.other}{Qwen2.5-Coder-0.5B-Instruct, deepseek-coder-1.3b-instruct}
+\st@def{models.other}{Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct}
 \st@def{lora}{LoRA, rank 16, $\alpha$ 32}
 \st@def{lora.modules}{\texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}, \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj}}
 \st@def{adapter.mb}{73.9 MB}
 \st@def{max_len}{7{,}168 tokens, no truncation}
-\st@def{max_len.deepseek-coder-1.3b-instruct}{8{,}704 tokens}
+\st@def{max_len.deepseek}{8{,}704 tokens}
 \st@def{lora.r}{16}
 \st@def{lora.alpha}{32}
 \st@def{clients}{all 5}
-\st@def{rounds}{4: 2 FedAvg SFT rounds, then 2 preference rounds}
+\st@def{rounds}{4: 2 warm-up rounds, then 2 preference rounds}
 \st@def{rounds.total}{4}
 \st@def{rounds.warmup}{2}
 \st@def{rounds.pref}{2}
@@ -33,7 +33,9 @@
 \st@def{pref.t}{1}
 \st@def{pref.tokens}{256}
 \st@def{pref.pairs}{2}
-\st@def{pref.rule}{a correct sample with an incorrect sample, drawn at random}
+\st@def{pref.rule}{2 correct and 2 incorrect samples of the question, drawn uniformly and independently, each without replacement when the question has at least 2 samples of that label and with replacement otherwise; paired in the order drawn}
+\st@def{pref.blank}{labeled incorrect}
+\st@def{pref.truncated}{not executed, not labeled}
 \st@def{pref.empty}{give no pair}
 \st@def{pref.beta}{0.1}
 \st@def{pref.nll}{1}
@@ -44,10 +46,14 @@
 \st@def{pref.warmup}{0.1}
 \st@def{pref.dropout}{0}
 \st@def{pref.weights}{pair count}
+\st@def{pref.timeout}{that of evaluation}
 \st@def{eval.decoding}{greedy, one output}
 \st@def{eval.tokens}{256}
 \st@def{eval.penalty}{none}
-\st@def{eval.timeout}{30 s}
+\st@def{eval.timeout.bird}{30 s for a query and the gold SQL query together}
+\st@def{eval.timeout.spider}{60 s for each query}
+\st@def{timeout.bird}{30 s}
+\st@def{timeout.spider}{60 s}
 \st@def{sw.python}{3.11.15 (Python Software Foundation)}
 \st@def{sw.torch}{2.11.0 (PyTorch Foundation), CUDA 12.8 (NVIDIA)}
 \st@def{sw.transformers}{5.10.2 (Hugging Face)}

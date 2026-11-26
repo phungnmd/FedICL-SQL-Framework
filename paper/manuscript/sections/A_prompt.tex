@@ -1,1 +1,19 @@
 \section{The prompt}\label{app:prompt}
+
+%% LEAD-IN (the writer of Section 4)
+
+\begin{figure}[!ht]
+\lstset{basicstyle=\ttfamily\scriptsize, columns=fullflexible, keepspaces=true,
+  breaklines=true, breakatwhitespace=true, aboveskip=2pt, belowskip=2pt}
+%% The four listings are written by tools/paper_numbers.py from the committed predictions.
+\noindent\textbf{\footnotesize (a) BIRD}
+\lstinputlisting{generated/prompt_bird_schema.txt}
+\noindent{\ttfamily\scriptsize [...]}
+\lstinputlisting{generated/prompt_bird_rest.txt}
+\medskip
+\noindent\textbf{\footnotesize (b) Spider}
+\lstinputlisting{generated/prompt_spider_schema.txt}
+\noindent{\ttfamily\scriptsize [...]}
+\lstinputlisting{generated/prompt_spider_rest.txt}
+\caption{}\label{fig:prompt}
+\end{figure}

@@ -1,0 +1,7 @@
+-- External Knowledge: triple type bonds refers to bond_type = '#'
+
+-- Using valid SQLite and understanding External Knowledge, answer the following questions for the tables provided above.
+
+Question: How many triple type bonds are there?
+
+Please output only the final SQL query, starts with keyword `SELECT`.

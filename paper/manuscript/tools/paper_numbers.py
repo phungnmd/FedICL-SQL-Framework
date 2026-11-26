@@ -485,6 +485,54 @@ def cost_facts() -> dict:
     return out
 
 
+NO_ROWS_AUDIT = "audits/protocol_v2/db_fuzz_probe/empty_vs_suite_gold/summary.json"
+
+
+def train_facts() -> dict:
+    """Training questions for which no preference pair is constructed in any round, from the
+    records of the preference rounds of the main rows: those on a database without rows and
+    those whose gold SQL query fails to execute. A gold SQL query that exceeds the time limit
+    is counted per round, since that count depends on the run."""
+    facts, src = {}, "round record, pair_stats"
+    for ds in ("bird", "spider"):
+        per_round = []
+        for r in range(1, ROUNDS - WARMUP + 1):
+            rec = json.loads((CODE / "audits/protocol_v2" / PREF_AUDIT[ds] / "dpo" / f"round_{r}" / "round.json").read_text())
+            stats = [c["pair_stats"] for c in rec["clients"].values()]
+            late = sum(s.get("questions_gold_timeout", 0) for s in stats)
+            per_round.append((sum(s["questions_empty_database"] for s in stats),
+                              sum(s["questions_gold_error"] for s in stats) - late, late))
+        if len({x[:2] for x in per_round}) != 1:
+            raise SystemExit(f"{ds}: the questions without rows or with a failing gold SQL query differ between rounds: {per_round}")
+        facts[f"train.{ds}.no_rows"] = (per_round[0][0], src)
+        facts[f"train.{ds}.gold_error"] = (per_round[0][1], src)
+        for r, x in enumerate(per_round, 1):
+            facts[f"train.{ds}.gold_timeout.pref{r}"] = (x[2], src)
+    audit = json.loads((CODE / NO_ROWS_AUDIT).read_text())["per_database"]
+    if sum(x["questions"] for x in audit.values()) != facts["train.spider.no_rows"][0]:
+        raise SystemExit("Spider: the questions on databases without rows differ between the round records and " + NO_ROWS_AUDIT)
+    facts["train.spider.no_rows.databases"] = (len(audit), NO_ROWS_AUDIT)
+    return facts
+
+
+PROMPT_ROW = {"bird": "202", "spider": "1847"}  # the evaluation questions whose prompt Appendix A prints
+
+
+def prompt_files(d: Data) -> dict:
+    """The prompt of one question of BIRD dev and of one of Spider test, as the committed predictions
+    hold it (the user message), each cut in two: the first table of the schema, and the lines after
+    the schema. Appendix A prints the two parts and marks the tables left out between them."""
+    out = {}
+    for ds, first_line in (("bird", "-- External Knowledge:"), ("spider", "-- Using valid SQLite")):
+        text = d.rows_of[key(ds, "k2", ROUNDS)][PROMPT_ROW[ds]]["full_prompt"]
+        schema, found, rest = text.partition(first_line)
+        if not found or schema.count("CREATE TABLE") < 2 or "CREATE TABLE" in rest:
+            raise SystemExit(f"{ds}: the prompt of row {PROMPT_ROW[ds]} does not have the expected layout")
+        out[f"prompt_{ds}_schema.txt"] = schema[:schema.index("CREATE TABLE", 1)].rstrip("\n") + "\n"
+        out[f"prompt_{ds}_rest.txt"] = found + rest.rstrip("\n") + "\n"
+    return out
+
+
 def minutes(s: float) -> str:
     return f"{s / 60:.0f}"
 
@@ -602,6 +650,7 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
         if len(n) != 1:
             raise SystemExit(f"{ds}: evaluations of different sizes {n}")
         facts[f"questions.{ds}"] = (n.pop(), f"rows of the {name} evaluations")
+    facts["test.alpha"] = (f"{ALPHA:g}", "tools/paper_numbers.py, ALPHA: the level of the star in the tables")
     for k_, v in splits.items():
         if k_.endswith((".hard_min", ".hard_max")):
             v = f"{v:.0f}"
@@ -771,10 +820,12 @@ def main() -> None:
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **train_facts()})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")
+    for name, text in prompt_files(d).items():
+        (GEN / name).write_text(text, encoding="utf-8")
     families = ", ".join(f"{k} {v}" for k, v in d.families.items())
     print(f"{len(d.used_runs)} rows, {len(d.used_tests)} comparisons (Holm families: {families}), "
           f"{len(d.missing)} rows missing -> {GEN.relative_to(ROOT)}")
