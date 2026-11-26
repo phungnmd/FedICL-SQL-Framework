@@ -615,7 +615,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref2.train_min}` | 195 | round records and queue logs |
 | `\fact{cost.bird.sft.train_min}` | 173 | FedAvg SFT rounds 1, 2, 4 |
 | `\fact{cost.spider.adapter_mb}` | 73.9 | round record, communication_bytes |
-| `\fact{cost.spider.pref1.all_correct}` | 2891 | round record, pair_stats |
+| `\fact{cost.spider.pref1.all_correct}` | 2327 | round record, pair_stats |
 | `\fact{cost.spider.pref1.label_min}` | 3 | round records and queue logs |
 | `\fact{cost.spider.pref1.paired}` | 4013 | round record, pair_stats |
 | `\fact{cost.spider.pref1.pairs}` | 8026 | round record, pair_stats |
@@ -624,8 +624,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.pref1.sample_min}` | 18 | round records and queue logs |
 | `\fact{cost.spider.pref1.total_min}` | 203 | round records and queue logs |
 | `\fact{cost.spider.pref1.train_min}` | 182 | round records and queue logs |
-| `\fact{cost.spider.pref2.all_correct}` | 5784 | round record, pair_stats |
-| `\fact{cost.spider.pref2.label_min}` | 3 | round records and queue logs |
+| `\fact{cost.spider.pref2.all_correct}` | 4623 | round record, pair_stats |
+| `\fact{cost.spider.pref2.label_min}` | 2 | round records and queue logs |
 | `\fact{cost.spider.pref2.paired}` | 1677 | round record, pair_stats |
 | `\fact{cost.spider.pref2.pairs}` | 3354 | round record, pair_stats |
 | `\fact{cost.spider.pref2.questions}` | 8659 | round record, pair_stats |
@@ -670,48 +670,77 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.spider.k2.4.gold_right}` | 1576 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.other}` | 400 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.other_right}` | 103 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{model.dsc13}` | DeepSeek-Coder-1.3B | tools/paper_numbers.py, MODEL_NAME |
+| `\fact{model.qwen05}` | Qwen2.5-Coder-0.5B | tools/paper_numbers.py, MODEL_NAME |
+| `\fact{model.qwen15}` | Qwen2.5-Coder-1.5B | tools/paper_numbers.py, MODEL_NAME |
+| `\fact{moved.bird.correct.correct}` | 595 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.correct.error}` | 9 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.correct.wrong}` | 49 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.error.correct}` | 75 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.error.error}` | 86 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.error.wrong}` | 107 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.wrong.correct}` | 78 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.wrong.error}` | 33 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.bird.wrong.wrong}` | 502 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.correct.correct}` | 1529 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.correct.error}` | 15 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.correct.wrong}` | 60 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.error.correct}` | 67 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.error.error}` | 55 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.error.wrong}` | 51 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.wrong.correct}` | 83 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.wrong.error}` | 14 | committed predictions of FedAvg SFT and the method after the last round |
+| `\fact{moved.spider.wrong.wrong}` | 273 | committed predictions of FedAvg SFT and the method after the last round |
 | `\fact{questions.bird}` | 1534 | rows of the BIRD dev evaluations |
 | `\fact{questions.dk}` | 535 | rows of the Spider-DK evaluations |
 | `\fact{questions.realistic}` | 508 | rows of the Spider-Realistic evaluations |
 | `\fact{questions.spider}` | 2147 | rows of the Spider test evaluations |
 | `\fact{questions.spiderdev}` | 1034 | rows of the Spider dev evaluations |
 | `\fact{questions.syn}` | 1034 | rows of the Spider-Syn evaluations |
+| `\fact{split.bird.a0.1.k5.alpha}` | 0.1 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.clients}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.databases}` | 69 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.db_max}` | 18 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.db_min}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.hard_max}` | 58 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.hard_min}` | 25 | split files (clients.csv, meta.json) |
+| `\fact{split.bird.a0.1.k5.min_dbs}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.q_max}` | 3059 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.q_min}` | 683 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.questions}` | 9428 | split files (clients.csv, meta.json) |
 | `\fact{split.bird.a0.1.k5.seed}` | 42 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.1.k5.alpha}` | 0.1 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.clients}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.databases}` | 146 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.db_max}` | 42 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.db_min}` | 12 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.hard_max}` | 60 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.hard_min}` | 20 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.1.k5.min_dbs}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.q_max}` | 3479 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.q_min}` | 734 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.questions}` | 8659 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.1.k5.seed}` | 42 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.5.k10.alpha}` | 0.5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.clients}` | 10 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.databases}` | 146 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.db_max}` | 22 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.db_min}` | 8 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.hard_max}` | 63 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.hard_min}` | 19 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.5.k10.min_dbs}` | 3 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.q_max}` | 1903 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.q_min}` | 442 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.questions}` | 8659 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k10.seed}` | 42 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.5.k5.alpha}` | 0.5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.clients}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.databases}` | 146 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.db_max}` | 42 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.db_min}` | 16 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.hard_max}` | 56 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.hard_min}` | 22 | split files (clients.csv, meta.json) |
+| `\fact{split.spider.a0.5.k5.min_dbs}` | 5 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.q_max}` | 3289 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.q_min}` | 1170 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.a0.5.k5.questions}` | 8659 | split files (clients.csv, meta.json) |
@@ -736,3 +765,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{train.spider.gold_timeout.pref2}` | 0 | round record, pair_stats |
 | `\fact{train.spider.no_rows}` | 1759 | round record, pair_stats |
 | `\fact{train.spider.no_rows.databases}` | 7 | audits/protocol_v2/db_fuzz_probe/empty_vs_suite_gold/summary.json |
+| `\fact{warmup.bird.k0.no_correct}` | 4035 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k2.no_correct}` | 2698 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.no_correct}` | 1074 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.no_correct}` | 573 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.no_correct}` | 483 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |

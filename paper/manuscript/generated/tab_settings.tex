@@ -6,31 +6,35 @@ Setting & Value \\
 \multicolumn{2}{@{}l}{\textit{Model and adapter}} \\
 Model & Qwen2.5-Coder-1.5B-Instruct \\
 Other models & Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct \\
-Adapter & LoRA, rank 16, $\alpha$ 32 \\
+Adapter & LoRA, rank 16, \texttt{lora\_alpha} 32 \\
 Adapted matrices & \texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}, \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj} \\
 Adapter size & 73.9 MB \\
-Longest sequence & 7{,}168 tokens, no truncation \\
-Longest sequence, DeepSeek-Coder-1.3B-Instruct & 8{,}704 tokens \\
+Limit on a training sequence & 7{,}168 tokens; no sequence is truncated \\
+Limit for DeepSeek-Coder-1.3B & 8{,}704 tokens \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{Federation}} \\
-Clients in a round & all 5 \\
+Clients in a round & all clients of the setup \\
+Optimizer and schedule & new at every client in every round \\
 Rounds & 4: 2 warm-up rounds, then 2 preference rounds \\
 Training seed & 0 \\
+The training seed sets & the initialization of the adapter, the order of the training examples, the sampling and the pairing of the preference rounds \\
 Seed of the client splits & 42 \\
+Fewest databases of a client & 5 (3 with ten clients); the partition is drawn again until every client holds as many \\
+Hardness of training questions & Spider train: the evaluation script of Spider; BIRD train: its criteria on the query parsed by sqlglot \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{FedAvg SFT round}} \\
 Local epochs & 1 \\
 Learning rate & $2\times10^{-4}$ \\
 Examples per update & 16 \\
-Optimizer & AdamW, cosine schedule \\
-Warm-up share of the updates & 0.03 \\
+Optimizer & AdamW, weight decay 0.01, cosine schedule \\
+Learning-rate warm-up & 0.03 of the updates \\
 LoRA dropout & 0.05 \\
 Averaging weights & question count \\
 Epochs of centralized SFT & 3 \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{Preference round}} \\
 Samples per question & 10 \\
-Sampling temperature, top-$p$ & 1, 1 \\
+Sampling & temperature 1, top-$p$ 1, no top-$k$ \\
 New tokens per sample & 256 \\
 Pairs per question & 2 \\
 Pairing & 2 correct and 2 incorrect samples of the question, drawn uniformly and independently, each without replacement when the question has at least 2 samples of that label and with replacement otherwise; paired in the order drawn \\
@@ -38,15 +42,15 @@ Sample without query text & labeled incorrect \\
 Sample truncated at the token limit & not executed, not labeled \\
 Questions on a database without rows & give no pair \\
 $\beta$ of the preference term & 0.1 \\
-Weight of the NLL term & 1 \\
+Weight $\lambda$ of the NLL term & 1 \\
 Local epochs & 1 \\
 Learning rate & $5\times10^{-5}$ \\
 Pairs per update & 16 \\
 Optimizer & AdamW, weight decay $10^{-4}$, cosine schedule \\
-Warm-up share of the updates & 0.1 \\
+Learning-rate warm-up & 0.1 of the updates \\
 LoRA dropout & 0 \\
 Averaging weights & pair count \\
-Time limit of the execution labels & that of evaluation \\
+Time limit of the execution labels & the time limit of evaluation on the benchmark \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{Evaluation}} \\
 Decoding & greedy, one output \\
@@ -60,7 +64,8 @@ Python & 3.11.15 (Python Software Foundation) \\
 PyTorch & 2.11.0 (PyTorch Foundation), CUDA 12.8 (NVIDIA) \\
 Transformers & 5.10.2 (Hugging Face) \\
 PEFT & 0.19.1 (Hugging Face) \\
-Generation engine & vLLM 0.33.0 (vLLM project) \\
+SQL parser & sqlglot 30.9.0 (sqlglot project) \\
+Generation engine & vLLM 0.33.0 (vLLM project), for sampling and evaluation \\
 GPU & NVIDIA RTX A5000, 24 GB \\
 \bottomrule
 \end{tabular}

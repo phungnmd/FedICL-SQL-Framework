@@ -36,7 +36,7 @@ OTHER = {"Qwen/Qwen2.5-Coder-0.5B-Instruct": ("federated__fedavg__s0__70273d9625
          "deepseek-ai/deepseek-coder-1.3b-instruct": ("federated__fedavg__s0__61430860915d__c5bb4004",
                                                       "fedpref_deepseek13b_sftr2_p2_ddlrows_alpha01_s0")}
 MAKER = {"python": "Python Software Foundation", "torch": "PyTorch Foundation", "transformers": "Hugging Face",
-         "peft": "Hugging Face", "vllm": "vLLM project", "cuda": "NVIDIA"}
+         "peft": "Hugging Face", "vllm": "vLLM project", "cuda": "NVIDIA", "sqlglot": "sqlglot project"}
 
 
 def load(path: Path) -> dict:
@@ -150,7 +150,7 @@ def collect() -> list[tuple]:
             "greedy decoding of an evaluation")
     timeout = same([re.search(r"timeout(\d+)", e).group(1) for _, e in evaluators if "timeout" in e], "the SQL timeout")
     lock = (CODE / "uv.lock").read_text(encoding="utf-8")
-    ver = {n: re.search(rf'name = "{n}"\nversion = "([^"]+)"', lock).group(1) for n in ("transformers", "peft")}
+    ver = {n: re.search(rf'name = "{n}"\nversion = "([^"]+)"', lock).group(1) for n in ("transformers", "peft", "sqlglot")}
 
     # ---- the splits and the centralized reference
     split_seed = same([load(m)["seed"] for m in sorted((CODE / "processed_data/protocol_v2").glob("*/*/federated/*/*/meta.json"))],
@@ -166,40 +166,75 @@ def collect() -> list[tuple]:
     # ---- the table
     g = "Model and adapter"
     add(g, "Model", "model", t["model_id"].split("/")[-1], source=src)
+    size = re.search(r"-(\d+(?:\.\d+)?)B-", t["model_id"])
+    if not size:
+        raise SystemExit(f"STOP: no parameter count in the name of the model {t['model_id']}")
+    add(g, "Parameters of the model", "model.size", f"{size.group(1)} billion", source="the name of the model")
     add(g, "Other models", "models.other", ", ".join(PAPER_NAME.get(n, n) for n, _ in others), source=src)
-    add(g, "Adapter", "lora", f"LoRA, rank {t['lora_r']}, $\\alpha$ {t['lora_alpha']}", f"LoRA, rank {t['lora_r']}, alpha {t['lora_alpha']}", src)
+    # "LoRA alpha" in words: in Section 4 the symbol alpha is the concentration of the client partition
+    add(g, "Adapter", "lora", f"LoRA, rank {t['lora_r']}, \\texttt{{lora\\_alpha}} {t['lora_alpha']}",
+        f"LoRA, rank {t['lora_r']}, lora_alpha {t['lora_alpha']}", src)
     add(g, "Adapted matrices", "lora.modules", ", ".join(f"\\texttt{{{m.replace('_', chr(92) + '_')}}}" for m in t["target_modules"]),
         ", ".join(t["target_modules"]), src)
     add(g, "Adapter size", "adapter.mb", f"{bytes_ / 1e6:.1f} MB", source=psrc)
-    add(g, "Longest sequence", "max_len", f"{thousands(t['max_len'])} tokens, no truncation", f"{t['max_len']} tokens, no truncation", src)
+    if t["truncation_policy"] != "error":
+        raise SystemExit("STOP: the trainer no longer refuses a sequence over the length limit")
+    add(g, "Limit on a training sequence", "max_len", f"{thousands(t['max_len'])} tokens; no sequence is truncated",
+        f"{t['max_len']} tokens; no sequence is truncated", src)
     for n, mx in others:
         if mx != t["max_len"]:
-            add(g, f"Longest sequence, {PAPER_NAME.get(n, n)}", f"max_len.{n.split('-')[0]}", f"{thousands(mx)} tokens", f"{mx} tokens", src)
+            add(g, f"Limit for {PAPER_NAME.get(n, n).removesuffix('-Instruct')}", f"max_len.{n.split('-')[0]}", f"{thousands(mx)} tokens", f"{mx} tokens", src)
     add(g, "Rank", "lora.r", t["lora_r"], source=src)
     add(g, "Alpha", "lora.alpha", t["lora_alpha"], source=src)
 
     g = "Federation"
-    add(g, "Clients in a round", "clients", f"all {c['n_clients']}", source=src)
+    add(g, "Clients in a round", "clients", "all clients of the setup", source=src)
+    add(g, "Optimizer and schedule", "optimizer.state", "new at every client in every round", source="fedls_sql/training/lora_trainer.py; fedls_sql/training/dpo.py")
     add(g, "Rounds", "rounds", f"{ROUNDS}: {WARMUP} warm-up rounds, then {ROUNDS - WARMUP} preference rounds", source="queue and round records")
     add(g, "Total rounds", "rounds.total", ROUNDS, source="round records")
     add(g, "Warm-up rounds", "rounds.warmup", WARMUP, source="round records")
     add(g, "Preference rounds", "rounds.pref", ROUNDS - WARMUP, source="round records")
     add(g, "Training seed", "seed", t["seed"], source=src)
+    # what the seed sets: seed_everything before the adapter is created and the examples are ordered; the sampling
+    # and the pairing of a preference round derive their seeds from it
+    in_code("fedls_sql/training/lora_trainer.py", r"seed_everything\(config\.seed\)", "the seeding of local training")
+    in_code("fedls_sql/preference/sampling.py", r'key = f"fedpref-sample:\{seed\}:\{round_num\}"', "the sampling seed of a round")
+    add(g, "The training seed sets", "seed.role",
+        "the initialization of the adapter, the order of the training examples, the sampling and the pairing of the preference rounds",
+        source="fedls_sql/training/lora_trainer.py; fedls_sql/preference/sampling.py; fedls_sql/federated/pref_rounds.py")
     add(g, "Seed of the client splits", "split.seed", split_seed, source="split files (meta.json)")
+    metas = [load(m) for m in sorted((CODE / "processed_data/protocol_v2").glob("*/*/federated/*/*/meta.json"))]
+    fewest = sorted({(m["n_clients"], m["min_client_dbs"]) for m in metas if m["min_client_dbs"] is not None})
+    if fewest != [(5, 5), (10, 3)]:
+        raise SystemExit(f"STOP: the fewest databases of a client changed: {fewest}")
+    add(g, "Fewest databases of a client", "split.min_dbs",
+        "5 (3 with ten clients); the partition is drawn again until every client holds as many", source="split files (meta.json)")
+    # the hardness levels behind the tiers: Spider's evaluator on Spider train; its criteria on the sqlglot parse on BIRD train
+    tiers = {ds: load(CODE / "processed_data/protocol_v2" / rel / "db_tiers.json")["method"] for ds, rel in
+             (("bird", "BIRD/original_train9428_dev1534"), ("spider", "SPIDER/processed_train8659_dev1034"))}
+    if tiers != {"bird": "spider_hardness_rules_sqlglot_share_tiers", "spider": "spider_hardness_share_tiers"}:
+        raise SystemExit(f"STOP: the hardness levels of the client splits are computed another way: {tiers}")
+    add(g, "Hardness of training questions", "split.hardness",
+        "Spider train: the evaluation script of Spider; BIRD train: its criteria on the query parsed by sqlglot",
+        source="processed_data/protocol_v2/*/db_tiers.json; fedls_sql/data/hardness.py")
 
     g = "FedAvg SFT round"
     add(g, "Local epochs", "sft.epochs", c["local_epochs"], source=src)
     add(g, "Learning rate", "sft.lr", sci(t["lr"]), f"{t['lr']:g}", src)
     add(g, "Examples per update", "sft.batch", t["batch_size"] * t["grad_accum"], source=src)
-    add(g, "Optimizer", "sft.optimizer", "AdamW, cosine schedule", source="fedls_sql/training/lora_trainer.py")
-    add(g, "Warm-up share of the updates", "sft.warmup", f"{t['warmup_ratio']:g}", source=src)
+    in_code("fedls_sql/training/lora_trainer.py", r"torch\.optim\.AdamW\(\(p for p in model\.parameters\(\) if p\.requires_grad\), lr=config\.lr\)",
+            "the SFT optimizer (no weight decay given, so the 0.01 of PyTorch)")
+    add(g, "Optimizer", "sft.optimizer", "AdamW, weight decay 0.01, cosine schedule", source="fedls_sql/training/lora_trainer.py")
+    add(g, "Learning-rate warm-up", "sft.warmup", f"{t['warmup_ratio']:g} of the updates", source=src)
     add(g, "LoRA dropout", "sft.dropout", f"{t['lora_dropout']:g}", source=src)
     add(g, "Averaging weights", "sft.weights", "question count", source="FedAvg SFT round records (aggregation)")
     add(g, "Epochs of centralized SFT", "central.epochs", central_epochs, source="centralized SFT records")
 
     g = "Preference round"
     add(g, "Samples per question", "pref.samples", s["sampling"]["k"], source=psrc)
-    add(g, "Sampling temperature, top-$p$", "pref.temperature", f"{s['sampling']['temperature']:g}, {s['sampling']['top_p']:g}", source=psrc)
+    in_code("fedls_sql/models/vllm_student.py", r'"top_k": "disabled"', "top-k in sampling")
+    add(g, "Sampling", "pref.temperature", f"temperature {s['sampling']['temperature']:g}, top-$p$ {s['sampling']['top_p']:g}, no top-$k$",
+        f"temperature {s['sampling']['temperature']:g}, top-p {s['sampling']['top_p']:g}, no top-k", psrc + "; fedls_sql/models/vllm_student.py")
     add(g, "Temperature", "pref.t", f"{s['sampling']['temperature']:g}", source=psrc)
     add(g, "New tokens per sample", "pref.tokens", s["sampling"]["max_new_tokens"], source=psrc)
     add(g, "Pairs per question", "pref.pairs", s["pair_rule"]["pairs_per_question"], source=psrc)
@@ -218,18 +253,18 @@ def collect() -> list[tuple]:
     add(g, "Sample truncated at the token limit", "pref.truncated", "not executed, not labeled", source="fedls_sql/preference/sampling.py")
     add(g, "Questions on a database without rows", "pref.empty", {True: "give no pair"}[s["pair_rule"]["skip_empty_databases"]], source=psrc)
     add(g, "$\\beta$ of the preference term", "pref.beta", f"{dpo['beta']:g}", source=psrc)
-    add(g, "Weight of the NLL term", "pref.nll", f"{dpo['nll_alpha']:g}", source=psrc)
+    add(g, "Weight $\\lambda$ of the NLL term", "pref.nll", f"{dpo['nll_alpha']:g}", source=psrc)
     add(g, "Local epochs", "pref.epochs", dpo["epochs"], source=psrc)
     add(g, "Learning rate", "pref.lr", sci(dpo["lr"]), f"{dpo['lr']:g}", psrc)
     add(g, "Pairs per update", "pref.batch", dpo["grad_accum"], source=psrc)
     add(g, "Optimizer", "pref.optimizer", f"AdamW, weight decay {sci(dpo['weight_decay'])}, cosine schedule",
         f"AdamW, weight decay {dpo['weight_decay']:g}, cosine schedule", psrc)
-    add(g, "Warm-up share of the updates", "pref.warmup", f"{dpo['warmup_ratio']:g}", source=psrc)
+    add(g, "Learning-rate warm-up", "pref.warmup", f"{dpo['warmup_ratio']:g} of the updates", source=psrc)
     add(g, "LoRA dropout", "pref.dropout", f"{float(pref_dropout):g}", source="fedls_sql/federated/pref_rounds.py")
     add(g, "Averaging weights", "pref.weights", {"pair_count": "pair count"}[agg[1]], source=psrc)
     in_code("fedls_sql/eval/metrics.py", r'"kind": "question"[\s\S]{0,200}?"budget": _budget\(evaluator\)',
             "the time limit of the execution labels")
-    add(g, "Time limit of the execution labels", "pref.timeout", "that of evaluation", source="fedls_sql/eval/metrics.py")
+    add(g, "Time limit of the execution labels", "pref.timeout", "the time limit of evaluation on the benchmark", source="fedls_sql/eval/metrics.py")
 
     g = "Evaluation"
     add(g, "Decoding", "eval.decoding", "greedy, one output", source="fedls_sql/models/vllm_student.py")
@@ -251,8 +286,10 @@ def collect() -> list[tuple]:
     add(g, "PyTorch", "sw.torch", f"{torch_v} ({MAKER['torch']}), CUDA {cuda} ({MAKER['cuda']})", source=esrc)
     add(g, "Transformers", "sw.transformers", f"{ver['transformers']} ({MAKER['transformers']})", source="uv.lock")
     add(g, "PEFT", "sw.peft", f"{ver['peft']} ({MAKER['peft']})", source="uv.lock")
-    add(g, "Generation engine", "sw.engine", f"{ {'vllm': 'vLLM'}[engine['name']] } {engine['version']} ({MAKER['vllm']})".replace("  ", " "),
-        source=esrc)
+    add(g, "SQL parser", "sw.sqlglot", f"sqlglot {ver['sqlglot']} ({MAKER['sqlglot']})", source="uv.lock")
+    add(g, "Generation engine", "sw.engine",
+        f"{ {'vllm': 'vLLM'}[engine['name']] } {engine['version']} ({MAKER['vllm']})".replace("  ", " ") + ", for sampling and evaluation",
+        source=esrc + "; preference round records (command)")
     add(g, "GPU", "hw.gpu", f"{same(env['gpu_names'], 'the GPU')}, 24 GB", source=esrc)
     return out
 
@@ -260,7 +297,7 @@ def collect() -> list[tuple]:
 # rows of Appendix B; the other entries exist as macros only
 # names of the models as the paper writes them, where the repository name differs
 PAPER_NAME = {"deepseek-coder-1.3b-instruct": "DeepSeek-Coder-1.3B-Instruct"}
-IN_TABLE_SKIP = {"lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
+IN_TABLE_SKIP = {"model.size", "lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
 
 ACCESSOR = r"""%% Written by tools/paper_settings.py from the committed configs. Do not edit.
 \makeatletter

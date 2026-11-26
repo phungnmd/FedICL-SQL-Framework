@@ -314,8 +314,11 @@ def split_facts(split: str) -> dict:
     hard = [100 * (int(c["hard"]) + int(c["extra"])) / int(c["questions"]) for c in clients]
     if len(clients) != meta["n_clients"] or sum(dbs) != len(meta["db_client"]):
         raise SystemExit(f"{split}: clients.csv and meta.json disagree")
-    return {"clients": len(clients), "questions": sum(q), "q_min": min(q), "q_max": max(q), "databases": sum(dbs),
-            "db_min": min(dbs), "db_max": max(dbs), "hard_min": min(hard), "hard_max": max(hard), "seed": meta["seed"]}
+    out = {"clients": len(clients), "questions": sum(q), "q_min": min(q), "q_max": max(q), "databases": sum(dbs),
+           "db_min": min(dbs), "db_max": max(dbs), "hard_min": min(hard), "hard_max": max(hard), "seed": meta["seed"]}
+    if meta["alpha"] is not None:  # the Dirichlet partitions: the concentration and the fewest databases of a client
+        out["alpha"], out["min_dbs"] = f"{meta['alpha']:g}", meta["min_client_dbs"]
+    return out
 
 
 def table_setups() -> tuple[str, dict]:
@@ -481,7 +484,10 @@ def cost_facts() -> dict:
             # a question with correct and incorrect samples yields pairs unless its database holds no rows
             no_rows = sum(s.get("questions_empty_database_by_kind", {}).get("mixed", 0) for s in stats)
             out[f"cost.{ds}.pref{r}.paired"] = sum(s["questions_mixed"] for s in stats) - no_rows
-            out[f"cost.{ds}.pref{r}.all_correct"] = sum(s["questions_all_correct"] for s in stats)
+            # the same holds for a question whose samples are all correct: on a database without rows
+            # every sample that executes returns the empty result of the gold SQL query
+            no_rows = sum(s.get("questions_empty_database_by_kind", {}).get("all_correct", 0) for s in stats)
+            out[f"cost.{ds}.pref{r}.all_correct"] = sum(s["questions_all_correct"] for s in stats) - no_rows
     if "cost.spider.adapter_bytes" not in out:  # same model and LoRA shape: one adapter size
         out["cost.spider.adapter_bytes"] = out["cost.bird.adapter_bytes"]
     return out
@@ -517,6 +523,28 @@ def train_facts() -> dict:
     return facts
 
 
+# The run of the method with 0, 2 and 3 warm-up rounds; a run without a committed record is left out
+WARMUP_AUDIT = {
+    "bird": {0: "fedpref_bird_base_p2_ddl_alpha01_ev3_s0", 2: PREF_AUDIT["bird"]},
+    "spider": {0: "fedpref_base_p2_ddlrows_alpha01_s0", 2: PREF_AUDIT["spider"], 3: "fedpref_sft_ddlrows_alpha01_s0"},
+}
+
+
+def warmup_facts() -> dict:
+    """Training questions none of whose samples is labeled correct at the first preference round,
+    by the number of warm-up rounds before it: from the record of that round."""
+    facts = {}
+    for ds, runs in WARMUP_AUDIT.items():
+        for w, run in runs.items():
+            path = CODE / "audits/protocol_v2" / run / "dpo" / "round_1" / "round.json"
+            if not path.exists():
+                continue
+            stats = [c["pair_stats"] for c in json.loads(path.read_text())["clients"].values()]
+            facts[f"warmup.{ds}.k{w}.no_correct"] = (sum(s["questions_all_wrong"] for s in stats),
+                                                     f"round record of {run}, pair_stats")
+    return facts
+
+
 PROMPT_ROW = {"bird": "202", "spider": "1847"}  # the evaluation questions whose prompt Appendix A prints
 
 
@@ -539,6 +567,17 @@ def minutes(s: float) -> str:
     return f"{s / 60:.0f}"
 
 
+def minutes_of_steps(steps: list[float]) -> list[str]:
+    """The steps of a round in whole minutes that add up to the rounded total of the round
+    (largest remainders), so that a reader who adds the columns of Table 7 gets its total."""
+    exact = [x / 60 for x in steps]
+    whole = [int(x) for x in exact]
+    left = round(sum(exact)) - sum(whole)
+    for i in sorted(range(len(exact)), key=lambda i: exact[i] - whole[i], reverse=True)[:left]:
+        whole[i] += 1
+    return [str(x) for x in whole]
+
+
 def table_cost(c: dict) -> str:
     """Table 7: what the clients train on in a round (questions; in a preference round the
     questions that yield pairs, and the pairs), its time by step and megabytes a client sends."""
@@ -556,7 +595,7 @@ def table_cost(c: dict) -> str:
         for r in range(1, ROUNDS - WARMUP + 1):
             s, la, tr = (c[f"cost.{ds}.pref{r}.{k_}"] for k_ in ("sample", "label", "train"))
             lines.append(row(["", f"Preference round {r}", count(c[f"cost.{ds}.pref{r}.paired"]),
-                              count(c[f"cost.{ds}.pref{r}.pairs"]), minutes(s), minutes(la), minutes(tr),
+                              count(c[f"cost.{ds}.pref{r}.pairs"]), *minutes_of_steps([s, la, tr]),
                               minutes(s + la + tr), mb]))
         if i == 0:
             lines.append("\\midrule")
@@ -678,6 +717,13 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
         else:
             src = "round records and queue logs" if ".pref" in k_ else f"FedAvg SFT rounds {cost[k_.rsplit('.', 1)[0] + '.rounds']}"
             facts[k_ + "_min"] = (minutes(v), src)
+    for ds in ("bird", "spider"):  # the steps of a preference round, as Table 7 prints them
+        for r in range(1, ROUNDS - WARMUP + 1):
+            steps = ("sample", "label", "train")
+            for step, v in zip(steps, minutes_of_steps([cost[f"cost.{ds}.pref{r}.{k_}"] for k_ in steps])):
+                facts[f"cost.{ds}.pref{r}.{step}_min"] = (v, "round records and queue logs")
+    for m, name in MODEL_NAME.items():  # the names of the models, as Table 4 prints them
+        facts[f"model.{m}"] = (name, "tools/paper_numbers.py, MODEL_NAME")
     return facts
 
 
@@ -731,6 +777,38 @@ def form_facts(d: Data) -> dict:
             n[group + "_right"] += x["ex"] == "1"
         for name, v in n.items():
             facts[f"form.{ds}.{line}.{r}.{name}"] = (v, src)
+    return facts
+
+
+# ---------------------------------------------------------------- where the predictions move
+def moved_facts(d: Data) -> dict:
+    """The questions of an evaluation set by their outcome with FedAvg SFT and with the method,
+    both after the last round: correct, execution error (`error`) or incorrect result (`wrong`).
+    `moved.<set>.<with FedAvg SFT>.<with the method>`. The questions correct with one row only
+    are those of `\nfix` and `\nbrk`."""
+    facts = {}
+    names = ("correct", "error", "wrong")
+
+    def outcome(row: dict) -> str:
+        if row["ex"] == "1":
+            return "correct"
+        return "error" if ov.failure(row) in ("exec_error", "cut") else "wrong"
+
+    for ds in ("bird", "spider"):
+        a, b = key(ds, "fedavg", ROUNDS), key(ds, "k2", ROUNDS)
+        if a not in d.rows_of or b not in d.rows_of:
+            continue
+        ra, rb = d.rows_of[a], d.rows_of[b]
+        n = {(x, y): 0 for x in names for y in names}
+        for i in ra:
+            n[(outcome(ra[i]), outcome(rb[i]))] += 1
+        for x in ("error", "wrong"):  # the counts agree with the rows of Fig. 3
+            if sum(n[(x, y)] for y in names) != d.runs[a]["err" if x == "error" else "wr"]:
+                raise SystemExit(f"{ds}: the outcomes of FedAvg SFT do not add up to its {x} count")
+            if sum(n[(y, x)] for y in names) != d.runs[b]["err" if x == "error" else "wr"]:
+                raise SystemExit(f"{ds}: the outcomes of the method do not add up to its {x} count")
+        for (x, y), v in n.items():
+            facts[f"moved.{ds}.{x}.{y}"] = (v, "committed predictions of FedAvg SFT and the method after the last round")
     return facts
 
 
@@ -833,7 +911,7 @@ def main() -> None:
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **train_facts()})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts()})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")
