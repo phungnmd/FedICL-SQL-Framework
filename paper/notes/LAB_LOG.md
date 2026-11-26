@@ -4,6 +4,44 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: Section 1 (Introduction) drafted with the abstract and the keywords; two cold reads and two rounds of editor's notes (no run)
+
+- Writer's outline (eight paragraphs, 945 words) matched the brief and
+  `OUTLINE.md`; the draft followed without a question to the owner.
+  First draft: 971 words, abstract 236 words, six keywords, three
+  title candidates in `paper/manuscript/briefs/01_intro_notes.md`.
+- Brief corrected against the numbers before the draft: "a preference
+  round takes more client compute than an SFT round" is false for the
+  second preference round on Spider (0.9 times an SFT round); the
+  clause is now that of Section 5.4 (no communication beyond FedAvg
+  SFT, the additional cost is computation at the clients). Over the
+  four rounds the method takes more client time on both datasets
+  (BIRD 1,207 against 692 minutes, Spider 560 against 496; computed
+  from the cost facts, not printed in the paper).
+- Cold read 1 (`cold_reviews/2026-11-27_0521_section1_1.md`), three
+  major findings: the method reads as CodeLutra's loop inside FedAvg;
+  the comparison behind the headline number cannot be judged (the
+  federation, the split of the rounds, the test, the baseline's best
+  round); the premise is asserted. Round 1 took all three up; the
+  Introduction now gives the highest EX of FedAvg SFT on BIRD dev
+  (43.68 at round 3, 5.08 points below the method).
+- Cold read 2 (`cold_reviews/2026-11-27_0533_section1r1_1.md`): the
+  differences to CodeLutra and FedDPO were described without their
+  reasons; the fall in execution errors is larger than the gain in
+  correct answers and the section did not say that the incorrect
+  results are not fewer; OmniSQL was cited for a size it does not
+  have. Round 2 took these up: each part of the method has its reason
+  (Sections 3.3 and 3.4) and the two findings of Section 6 on what
+  FedDPO lacks; the results paragraph says where the gain arises and
+  gives the cost as a range (0.9 to 2.7 times an SFT round).
+- Final: about 1,000 words by the style tool (1,047 by the writer's
+  count in the PDF; limit 1,050), abstract 241 words, 41 references.
+  The contributions were regrouped by the writer (the method joined to
+  the observation). Open points for the owner in `REVIEW_NOTES.md`:
+  A28 (title), A29 (what "LS" stands for), A30 (6.19 or 5.08 in the
+  abstract), B29 to B32, C39 to C42.
+- Editor's file: `paper/manuscript/briefs/01_intro_notes_editor.md`.
+
 ## 2026-11-27: briefs of Sections 1, 7 and 8 approved; the owner asks for the draft to be completed (owner; no run)
 
 - Owner: "Duyệt 1,7,8, hoàn thiện bản draft". The briefs

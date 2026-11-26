@@ -458,11 +458,11 @@ later: Section 4 with Appendices A and B (W8, commit `715db32`),
 Section 5 (W9, `42b2baf`; 34 rows wait, 42 numbers print as `??`),
 Section 2 with Table 1 (W11, `d9cad1c`; cited-work audit, two cold reads
 through the `cold-review` skill), Section 6 with Table 8 (W10; two cold
-reads, two rounds; three waiting rows have no sentence yet). The briefs
-of Section 1 with the front matter (`briefs/01_intro.md`) and of
-Sections 7 and 8 (`briefs/07_discussion.md`) are built and wait for the
-owner's approval; Section 1 may be written before Sections 7 and 8,
-since it rests on `CLAIMS.md` and Sections 2 to 6 only.
+reads, two rounds; three waiting rows have no sentence yet), Section 1
+with the abstract and the keywords (W13; two cold reads, two rounds;
+the title waits for the owner's choice among three candidates). The
+brief of Sections 7 and 8 (`briefs/07_discussion.md`) was approved on
+2026-11-27 and the two sections are in their second round.
 
 Next, in this order. Each step is the loop of section 2; the owner's
 time is an estimate.

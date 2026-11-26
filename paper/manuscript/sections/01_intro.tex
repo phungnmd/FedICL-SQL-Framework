@@ -1,1 +1,118 @@
 \section{Introduction}\label{sec:intro}
+
+Text-to-SQL translates a natural language question about a database into
+a SQL query. Systems that prompt a proprietary model such as
+GPT-4~\cite{pourreza2023dinsql,gao2024dailsql} send the question and the
+schema through an API to its provider, whereas an open model fine-tuned
+for the task can be trained and served by the organization that holds
+the data. CodeS~\cite{li2024codes} names data privacy among its
+motivations, and SLM-SQL~\cite{sheng2025slmsql} extends this line to
+models of 0.5B to 1.5B parameters.
+
+Fine-tuning such a model requires questions with their gold SQL queries
+and the databases to which they refer, whose schemas enter the prompt.
+An organization, for example a hospital or a bank, holds such data for
+its own few databases and cannot pool them with those of others, since
+the databases and the questions asked of them are internal. Alone, it
+could train on these few databases only, whereas the model is to serve
+all the organizations, on questions and databases beyond those that any
+one holds. Federated learning~\cite{mcmahan2017fedavg} trains one model
+across them without moving the data: each organization is a client, and
+in each round every client trains the global model on its own data and
+returns only a model update, which the server aggregates by federated
+averaging (FedAvg). We refer to this training as federated Text-to-SQL;
+only the resulting global model is deployed.
+
+For Text-to-SQL, federated fine-tuning has so far learned from the gold
+SQL query alone, as in Zhang et al.~\cite{zhang2023fl4sp}. Language
+models are commonly fine-tuned across
+clients~\cite{kuang2024fsllm,ye2024openfedllm} by FedAvg with low-rank
+adaptation (LoRA)~\cite{hu2022lora}, in which the model update is an
+adapter that each client trains by supervised fine-tuning (SFT). SFT
+takes the one gold SQL query of a question as its target, and no query
+is executed during training: the databases at the clients serve only to
+construct the prompt.
+
+Execution provides what the gold SQL query alone does not: an execution
+label for any query sampled from the model, correct if its execution
+result on the database of its question equals that of the gold SQL query
+and incorrect otherwise. Where one site holds all the data,
+execution already trains models, as a reward in reinforcement
+learning~\cite{sheng2025slmsql,papicchio2025think2sql,yao2026arctic} and
+as the label of the pairs in direct preference optimization
+(DPO)~\cite{rafailov2023dpo}, which learns from pairs of a preferred and
+a dispreferred output and measures the change of the model against a
+reference model. The closest work to ours,
+CodeLutra~\cite{tao2024codelutra}, a method for code generation
+evaluated on Text-to-SQL, constructs such pairs anew in every iteration,
+from correct and failed samples of the current model, and trains with
+the DPO loss and a negative log-likelihood (NLL) term.
+
+In federated training, an execution label can be computed only where the
+database is, at a client, whereas CodeLutra assumes a single party
+holding all the data. DPO has been used across clients, in the FedDPO of
+OpenFedLLM~\cite{ye2024openfedllm}, but each client holds a preference
+dataset, for helpfulness or harmlessness, so that the pairs
+are fixed in advance and are not outputs of the model being trained;
+FedDPO also keeps one reference model for all rounds, and its loss has
+no NLL term.
+
+We propose \method, in which execution on the databases of a client
+turns the one gold SQL query of a question into many correct and
+incorrect queries of the model's own. Training begins with warm-up
+rounds, which are rounds of FedAvg SFT, because pairs require a correct
+and an incorrect sample of the same question and the pretrained model
+leaves more questions without a correct sample. Preference rounds follow, in
+each of which every client samples several queries per question from the
+current global model, labels them by execution on its own databases,
+pairs correct with incorrect samples and trains on the pairs with a
+preference term, the DPO loss, and an NLL term on the correct sample. Only the adapter and the number of pairs that weights it leave a
+client, as the adapter and the number of questions do in FedAvg SFT.
+
+Since the global model changes with every round, the pairs are
+constructed anew from its samples and reflect the errors that it
+currently makes; as the model with which every client starts the round,
+it is also the reference model, so that the preference term measures the
+change made by local training. Both this renewal and the NLL term are
+absent from FedDPO; in our ablation study, holding the pairs and the
+reference model fixed lowers execution accuracy (EX) on
+BIRD~\cite{li2023bird} dev, and without the NLL term, a preference round
+brings no gain on Spider~\cite{yu2018spider} test.
+
+At the same number of rounds, \method{} is above FedAvg SFT on
+BIRD and on Spider. We simulate
+five clients by assigning each database of a training set, with all its
+questions, to one client, train a model of \setting{model.size}
+parameters and evaluate it on databases that no client holds. After
+\setting{rounds.total} rounds (\setting{rounds.warmup} warm-up and
+\setting{rounds.pref} preference rounds for \method), it reaches an EX
+of \ex{bird}{k2}{4}\% on BIRD dev against \ex{bird}{fedavg}{4}\% for
+FedAvg SFT, a gain of \gap{bird}{fedavg}{4}{k2}{4} points, and
+\ex{spider}{k2}{4}\% against \ex{spider}{fedavg}{4}\% on Spider test, a
+gain of \gap{spider}{fedavg}{4}{k2}{4} points, both significant under
+the exact McNemar test. FedAvg SFT does not improve after round~3 on
+either dataset: on BIRD dev, its EX of \ex{bird}{fedavg}{3}\% at that
+round does not differ significantly from that at round~4 and is
+\gap{bird}{fedavg}{3}{k2}{4} points below \method. The gain comes with
+about half the execution errors (\nerr{bird}{k2}{4} against
+\nerr{bird}{fedavg}{4} on BIRD dev, \nerr{spider}{k2}{4} against
+\nerr{spider}{fedavg}{4} on Spider test), whereas the predictions that
+execute and return an incorrect result do not become fewer. A preference
+round takes \fact{cost.spider.pref2.ratio} to
+\fact{cost.bird.pref1.ratio} times the client time of a FedAvg SFT
+round.
+
+Our contributions are as follows:
+\begin{itemize}
+\item We observe that the databases of a client are supervision that
+  federated fine-tuning leaves unused, and we propose \method{}
+  (Section~\ref{sec:method}), to our knowledge the first method for the
+  federated training of Text-to-SQL models that uses it.
+\item We show that \method{} exceeds FedAvg SFT at the same number of
+  rounds on BIRD and Spider, and analyze where the gain arises and what
+  a round costs a client (Section~\ref{sec:results}).
+\item We ablate \method{} against variants without the preference term,
+  without the NLL term and with fixed pairs and reference model
+  (Section~\ref{sec:ablation}).
+\item We release the code, the client splits and all predictions.
+\end{itemize}
