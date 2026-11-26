@@ -359,6 +359,62 @@ Science Press class (`TSP-Latex.zip`: `tsp.cls`, `vancouver.bst`):
 - the class needs `CJKutf8`, `verse`, `bbm` and `mathcomp`, not
   installed.
 
+From the same page, read in full on 2026-11-26, and not yet in the
+tools:
+
+- figures at most 20 cm high; the panels of a figure in one file,
+  lettered A, B, C at the top left; no citation of the form "[n]"
+  inside a figure; line art as vector or at 900 dpi or more
+  (`charts.py`);
+- the abstract is one paragraph without citations; an abbreviation is
+  defined at first use in the abstract, in the text and at the first
+  figure or table (`tools/lint.py`);
+- Vancouver references with the DOI where one exists; at most 5
+  references in one bracket (`tools/lint.py`);
+- the setup names each piece of software with its version and maker,
+  and the run parameters (Appendix B);
+- the AI disclosure in the acknowledgement names the tool, the purpose
+  and how the authors reviewed the output;
+- back matter in this order: acknowledgement, funding statement, author
+  contributions (CRediT wording), availability of data and materials
+  (one of the journal's template sentences, with the code link), ethics
+  approval ("Not applicable"), conflicts of interest; then the
+  appendices; then the references;
+- submission: one ZIP with all sources and images, under 200 MB; a
+  cover letter that states the work is original, unpublished and not
+  under review elsewhere, that all authors approved it, any ethics,
+  copyright or conflict issue, and the commitment to pay the charge;
+  the first and the corresponding author cannot be changed after
+  submission.
+
+### 10.1 JIIS: what was checked on 2026-11-26
+
+The JIIS guidelines page answers automated requests with a browser
+challenge and was not read; its facts in `JOURNAL_BAR.md` are the
+reading of 2026-11-19 (25 pages, LaTeX, abstract of 150 to 250 words,
+4 to 6 keywords, the three statements). Read today: Springer Nature's
+LaTeX support page and its group page on AI.
+
+- Template: the December 2024 package serves "any Springer Nature
+  journal"; the source must compile with pdflatex.
+- Submission source: all files in one directory without subfolders, no
+  custom fonts, and the content of the `.bbl` pasted into the `.tex`.
+  A `make submit` target builds this flat copy from the working folder.
+  The submission systems compile on an older TeX Live (2018 on
+  Editorial Manager, 2021 on the Article Processing Platform; which one
+  JIIS uses is not checked), so the preamble keeps to the packages of
+  the template.
+- AI in the text: use of an LLM "must be documented in the manuscript's
+  Methods section (or equivalent)", and help with preparing the
+  manuscript goes in an AI Use Declaration at the end of the paper. The
+  group page says AI-assisted copy editing "should be declared" as
+  well, which differs from the exemption recorded in `JOURNAL_BAR.md`.
+- AI in images: "Generally no" for generative AI images, scientific
+  diagrams included; tables, flow charts and simple graphs that contain
+  no image are outside the rule. Charts drawn from the data by
+  `charts.py` are outside it. Fig. 1 is the open case (section 11,
+  item 2).
+
 ## 11. Open with the owner
 
 1. The JIIS submission guidelines, read in a browser (Springer sends
@@ -367,7 +423,12 @@ Science Press class (`TSP-Latex.zip`: `tsp.cls`, `vancouver.bst`):
    Springer's LaTeX page says `sn-jnl` serves every Springer Nature
    journal), the page format the 25 pages are counted in, whether the
    manuscript is anonymised.
-2. Springer Nature's rule on figures made with AI tools, for Fig. 1.
+2. Fig. 1 under Springer Nature's rule on images (section 10.1): a
+   scientific diagram made with a generative AI tool is not accepted,
+   a flow chart without images is outside the rule. Either the owner
+   draws the figure, or the owner judges it a flow chart. CMC accepts
+   an explanatory image made with an AI tool when its caption names
+   the tool and version.
 3. Which journal goes first. This plan assumes JIIS.
 4. The model of the writer: Opus by the rule for subagents, or the
    session model; step W6 decides.
