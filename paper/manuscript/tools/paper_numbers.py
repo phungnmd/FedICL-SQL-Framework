@@ -151,17 +151,28 @@ class Data:
         return self._tests[(a, b)]
 
     def adjust(self) -> None:
-        """Holm over every test the paper prints: EX tests, and test-suite tests where printed."""
-        family = {}
+        """Holm inside each table: the tests of a table answer one question and form one family.
+
+        A test is counted once, in the first table that prints it (the main rows come back in
+        Tables 4 and 5); the comparisons quoted in the text only form a family of their own.
+        A test-suite test belongs to the table that prints it."""
+        families: dict = {}
         for (a, b), where in self.used_tests.items():
             t = self._tests[(a, b)]
-            family[(a, b, "ex")] = t["pexact"]
-            if "tspexact" in t and any(w.endswith(":ts") for w in where):
-                family[(a, b, "ts")] = t["tspexact"]
-        adj = holm(family)
-        self.family = len(family)
-        for (a, b, kind), v in adj.items():
-            self._tests[(a, b)]["padj" if kind == "ex" else "tspadj"] = v
+            families.setdefault(family_of(where), {})[(a, b, "ex")] = t["pexact"]
+            ts = [w for w in where if w.endswith(":ts")]
+            if "tspexact" in t and ts:
+                families.setdefault(family_of(ts), {})[(a, b, "ts")] = t["tspexact"]
+        self.families = {name: len(tests) for name, tests in sorted(families.items())}
+        for tests in families.values():
+            for (a, b, kind), v in holm(tests).items():
+                self._tests[(a, b)]["padj" if kind == "ex" else "tspadj"] = v
+
+
+def family_of(where: list[str]) -> str:
+    """The first table that prints a test; "text" for a comparison no table carries."""
+    tables = sorted({w.removesuffix(":ts").split(",")[0] for w in where if w.startswith("Table")})
+    return tables[0] if tables else "text"
 
 
 def key(ds: str, line: str, r: int, model: str = MAIN, seed: int = 0) -> tuple:
@@ -350,7 +361,8 @@ def table_robust(d: Data) -> str:
              "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}\\cmidrule(lr){8-8}",
              row([""] + ["EX" if m == "ex" else "TS" for _, m in cols]),
              "\\midrule"]
-    rows = [("No training", "base", 0), ("FedAvg SFT", "fedavg", ROUNDS), ("\\method", "k2", ROUNDS)]
+    rows = [("No training", "base", 0), ("FedAvg SFT", "fedavg", ROUNDS), ("\\method, no warm-up", "k0", ROUNDS),
+            ("\\method", "k2", ROUNDS)]
     for name, line, r in rows:
         cells = []
         for ds, m in cols:
@@ -359,17 +371,19 @@ def table_robust(d: Data) -> str:
             if x is not None and x.get(m) is None:
                 d.missing.setdefault(key(ds, line, r), []).append(f"Table 6, {SET_NAME[ds]}, test-suite accuracy")
         lines.append(row([name] + cells))
-    lines.append("\\midrule")
-    deltas, ps = [], []
-    for ds, m in cols:
-        a, b = key(ds, "fedavg", ROUNDS), key(ds, "k2", ROUNDS)
-        t = d.test(a, b, f"Table 6, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
-        if t is None or (m == "ts" and "dts" not in t):
-            deltas.append(MISSING), ps.append(MISSING)
-        else:
-            deltas.append(signed(t["d"] if m == "ex" else t["dts"])), ps.append(d.defer(a, b, m))
-    lines.append(row(["$\\Delta$"] + deltas))
-    lines.append(row(["$p$"] + ps))
+    # the method against FedAvg SFT, and against itself without the warm-up rounds
+    for label, other in (("against FedAvg SFT", "fedavg"), ("against no warm-up", "k0")):
+        deltas, ps = [], []
+        for ds, m in cols:
+            a, b = key(ds, other, ROUNDS), key(ds, "k2", ROUNDS)
+            t = d.test(a, b, f"Table 6, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
+            if t is None or (m == "ts" and "dts" not in t):
+                deltas.append(MISSING), ps.append(MISSING)
+            else:
+                deltas.append(signed(t["d"] if m == "ex" else t["dts"])), ps.append(d.defer(a, b, m))
+        lines.append("\\midrule")
+        lines.append(row(["$\\Delta$ " + label] + deltas))
+        lines.append(row(["$p$"] + ps))
     lines.append("\\bottomrule")
     return tabular("@{}lrrrrrrr@{}", lines)
 
@@ -542,7 +556,8 @@ def macros(d: Data, facts: dict) -> tuple[str, str]:
         if x.get("ts") is not None:
             put(f"ts/{rid}/{ds}/{line}/{r}", f2(x["ts"]), f"\\ts{opt}{arg}", f2(x["ts"]), x["sha"])
     md += ["", "## Comparisons (b against a)", "",
-           f"`\\pval` is the exact McNemar p, `\\padj` its Holm-adjusted value over the {d.family} tests the paper prints.", "",
+           "`\\pval` is the exact McNemar p, `\\padj` its Holm-adjusted value inside the table that prints the test "
+           "(tests per family: " + ", ".join(f"{k} {v}" for k, v in d.families.items()) + ").", "",
            "| Macro | Value | Used in |", "|---|---|---|"]
     for (a, b) in sorted(d.used_tests):
         t = d._tests[(a, b)]
@@ -590,6 +605,59 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
         else:
             src = "round records and queue logs" if ".pref" in k_ else f"FedAvg SFT rounds {cost[k_.rsplit('.', 1)[0] + '.rounds']}"
             facts[k_ + "_min"] = (minutes(v), src)
+    return facts
+
+
+# ---------------------------------------------------------------- the form of the answers
+# Rows whose predictions are split by form: does a prediction read the tables and the
+# table.column names of the gold SQL, or others (CLAIMS.md, C3).
+FORM = [("bird", "base", 0), ("bird", "fedavg", 2), ("bird", "fedavg", 3), ("bird", "fedavg", 4), ("bird", "k2", 3),
+        ("bird", "k2", 4), ("spider", "base", 0), ("spider", "fedavg", 4), ("spider", "k2", 4)]
+
+
+def prompt_schema(prompt: str) -> dict:
+    """Table -> columns of a database, from the CREATE TABLE statements of the prompt the model saw."""
+    import sqlglot
+    from sqlglot import exp
+
+    out = {}
+    for m in re.finditer(r"CREATE TABLE.*?\);", prompt, flags=re.S):
+        table = sqlglot.parse_one(m.group(0), read="sqlite").this
+        out[table.this.name] = [c.this.name for c in table.expressions if isinstance(c, exp.ColumnDef)]
+    if not out:
+        raise SystemExit("no CREATE TABLE statement in a prompt")
+    return out
+
+
+def form_facts(d: Data) -> dict:
+    """Predictions of each row of FORM that read the gold SQL's tables and columns, and the others,
+    with the right answers of each group. The names a query reads come from the parser of the
+    preference rounds (`gold_tables_columns`, sqlglot, per query scope); a prediction that does
+    not parse counts with the others. Needs sqlglot (the environment of the code repository)."""
+    sys.path.insert(0, str(CODE))
+    from fedls_sql.preference.hints import gold_tables_columns
+
+    facts, schemas, gold = {}, {}, {}
+    src = "committed predictions; tables and columns read by gold_tables_columns"
+    for ds, line, r in FORM:
+        k = key(ds, line, r)
+        if d.run(k, "Section 5, form of the answers") is None:
+            continue
+        n = {"gold": 0, "gold_right": 0, "other": 0, "other_right": 0}
+        for row_id, x in d.rows_of[k].items():
+            if (ds, x["db_id"]) not in schemas:
+                schemas[(ds, x["db_id"])] = prompt_schema(x["full_prompt"])
+            schema = schemas[(ds, x["db_id"])]
+            if (ds, row_id) not in gold:
+                gold[(ds, row_id)] = gold_tables_columns(x["gold"], schema)
+            g = gold[(ds, row_id)]
+            p = gold_tables_columns(x["predicted"], schema) if x["predicted"].strip() else None
+            same = g is not None and p is not None and set(g[0]) == set(p[0]) and set(g[1]) == set(p[1])
+            group = "gold" if same else "other"
+            n[group] += 1
+            n[group + "_right"] += x["ex"] == "1"
+        for name, v in n.items():
+            facts[f"form.{ds}.{line}.{r}.{name}"] = (v, src)
     return facts
 
 
@@ -686,16 +754,18 @@ def main() -> None:
         d.run(a, "text"), d.run(b, "text")
         d.test(a, b, "text")
     curves(d)
+    form = form_facts(d)
     d.adjust()
     GEN.mkdir(exist_ok=True)
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, all_facts(d, splits, cost))
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")
-    print(f"{len(d.used_runs)} rows, {len(d.used_tests)} comparisons ({d.family} tests in the Holm family), "
+    families = ", ".join(f"{k} {v}" for k, v in d.families.items())
+    print(f"{len(d.used_runs)} rows, {len(d.used_tests)} comparisons (Holm families: {families}), "
           f"{len(d.missing)} rows missing -> {GEN.relative_to(ROOT)}")
     if args.check:
         check_page(d)
