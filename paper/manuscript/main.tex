@@ -1,0 +1,65 @@
+%% FedLS-SQL manuscript: wrapper for the Journal of Intelligent Information
+%% Systems (Springer Nature sn-jnl, version 3.1, December 2024).
+%% The section bodies are in sections/ and use no command of this class.
+%% `make submit` writes the single-file source the journal asks for.
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+
+%% Only the packages of the Springer template (the journal compiles on TeX Live 2018).
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+\input{macros}
+\input{generated/numbers}
+\input{generated/settings}
+
+%% Headings of the declarations; the CMC wrapper maps them to its own commands.
+\newcommand{\declhead}[1]{\bmhead{#1}}
+
+\raggedbottom
+
+\begin{document}
+
+\title[\method]{\method: title to be set}
+
+\author*[1]{\fnm{First} \sur{Author}}\email{first.author@example.org}
+\affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\city{City}, \country{Country}}}
+
+\abstract{\input{sections/00_abstract}}
+
+\keywords{\input{sections/00_keywords}}
+
+\maketitle
+
+\input{sections/01_intro}
+\input{sections/02_related}
+\input{sections/03_method}
+\input{sections/04_setup}
+\input{sections/05_results}
+\input{sections/06_ablation}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
+
+\backmatter
+
+\input{sections/90_declarations}
+
+\begin{appendices}
+\input{sections/A_prompt}
+\input{sections/B_settings}
+\end{appendices}
+
+\bibliography{references}
+
+\end{document}
