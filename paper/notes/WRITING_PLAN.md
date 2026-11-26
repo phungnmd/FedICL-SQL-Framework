@@ -347,7 +347,7 @@ setting in the text is a macro, like a result number.
 | Table 8 | ablations at 4 rounds, BIRD and Spider | BIRD: without the preference term round 2, without NLL, k = 0 rounds 3 and 4, k = 3. Spider: without the preference term round 2, pooled clients |
 
 The writer may propose another table or figure in its notes; the owner
-decides. One such proposal is open (section 11, item 5).
+decides.
 
 ## 7. Checks
 
@@ -676,19 +676,20 @@ pages), and the owner may send it.
    flow chart without images is outside the rule. Either the owner
    draws the figure, or the owner judges it a flow chart. CMC accepts
    an explanatory image made with an AI tool when its caption names the
-   tool and version. The figure is not regenerated or restyled before
-   the owner decides.
+   tool and version. The figure is not redrawn or restyled before the
+   owner decides; its labels were brought to the names and the notation
+   of `TERMS.md` on 2026-11-26 (owner: fix what is needed).
 3. Which journal goes first. This plan assumes JIIS.
 4. Decided (owner, 2026-11-26): Section 3.4 gives the reason for two
    pairs per question where CodeLutra constructs ten: the number of
    pairs sets the length of local training (`CLAIMS.md`, section 7).
-5. A proposal of the writer of Section 3.4: a worked example (one
-   question, its gold SQL query, three samples with their labels, the
-   two pairs). It costs about a quarter of a page, and a real example
-   needs the samples of one question from the server. The writer's
-   other proposal, a table of the counts by preference round, is
-   decided (owner, 2026-11-26): the counts are two columns of Table 7
-   and leave Section 3.4.
+5. Decided (2026-11-26): the two proposals of the writer of Section
+   3.4. No worked example (left to the main session by the owner):
+   steps 2 and 3 of Fig. 1 draw three samples, their labels and the
+   two pairs, an example in the text would cost about a quarter of a
+   page, and a real one needs the samples of a question from the
+   server. The counts by preference round are two columns of Table 7
+   and leave Section 3.4 (owner).
 6. Authors, funding and competing interests are not filled in yet; the
    author block, the CRediT statement and the declarations wait for
    them.

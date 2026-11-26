@@ -11,7 +11,7 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   (the loss of `training/dpo.py`, the draw of `preference/pairs.py`,
   the labels of `preference/sampling.py`, the SFT loss, the averaging
   of both kinds of round, the LoRA initialisation shared by the
-  clients). Waits for the owner's approval; no writer has run.
+  clients). Approved by the owner.
 - Decided (owner): the paper gives the reason for two pairs per
   question (the number of pairs sets the length of local training; the
   notes hold no run with ten); the counts of questions and pairs per
@@ -19,10 +19,20 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   (`tools/paper_numbers.py`, `generated/tab_cost.tex`); contribution 2
   of `CLAIMS.md` says that the adapter and the count that weights it
   leave a client.
-- Open: the worked example of Section 3.4, and Fig. 1, whose labels
-  differ from `TERMS.md` (it indexes the global model as theta_t and
-  theta_t+1, names the second stage "On-policy DPO" and writes
-  "wrong").
+- No worked example in Section 3.4 (the owner left it to the main
+  session): Fig. 1 draws the samples, labels and pairs, and the page
+  count is at 24.6 of 25.
+- Fig. 1 (owner: fix what is needed): only its labels changed, to the
+  names and the notation of `TERMS.md`. The global model of a round is
+  theta with superscript t-1 and its aggregate theta with superscript
+  t (before: subscripts t and t+1), a client's adapter theta_k with
+  superscript t (before: Delta_k), the stages are "Warm-up rounds" and
+  "Preference rounds" (before: "Stage 1: SFT warm-up", "Stage 2:
+  On-policy DPO"), "incorrect" for "wrong", "one of K clients" for
+  "K = 5". Layout, colours and icons are untouched. `STYLE.md` names
+  this notation, and `make figures` copies the rendered PDF into
+  `paper/manuscript/figures/`. Whether the figure may go to JIIS under
+  Springer's rule on images is still the owner's decision.
 
 ## 2026-11-26: the manuscript gets a writing workflow of its own; terms of the paper revised (no run)
 
