@@ -19,7 +19,7 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Helpers | audits, look-ups and the reader test run on Opus |
 | Format | LaTeX, to the JIIS shape first (25 pages, the tighter of the two; section 5). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file (section 10) |
 | Class | Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst`; not anonymised |
-| Place | `paper/manuscript/` in the paper repository; one commit per accepted section, after the owner has read it |
+| Place | `paper/manuscript/` in the paper repository; one commit per section. While the paper is being drafted a section is committed when its rounds of editor's notes are done, without waiting for the owner's reading (owner, 2026-11-27); what the owner has to read or decide is in `manuscript/REVIEW_NOTES.md` |
 | Numbers | a script writes macros and tables from the committed evaluations, and the settings from the committed configs (section 6); a result number in the text is a macro |
 | Names | the method is `\method` and the paper says "the model", so the title can change without touching the text |
 
@@ -27,7 +27,7 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 
 | Role | Does | Does not |
 |---|---|---|
-| Owner | has approved `CLAIMS.md`, `TERMS.md` and the outline; approves each brief, reads each section before its commit, decides | |
+| Owner | has approved `CLAIMS.md`, `TERMS.md` and the outline; approves each brief, reads the sections and the points of `manuscript/REVIEW_NOTES.md` when the owner chooses (a draft is committed before that reading; owner, 2026-11-27), decides | |
 | Main session | builds the numbers, the briefs and the voice folder; starts the writer; runs the checks; turns what they find into a few editor's notes; fixes what is mechanical itself (a macro, a label, a citation key, one of the earlier labels that `TERMS.md` replaced) | draft or rewrite sentences of the paper: it carries the lab's vocabulary, history and rules |
 | Writer (subagent, Fable 5.2 at high effort) | writes one section from the guide, the term sheet, the voice folder and its brief; decides its structure; answers the editor's notes | read the notes of the lab |
 | Helpers (subagents, Opus) | audit claims and statements about other papers, look up records, read the PDF cold | talk to the writer |
@@ -42,7 +42,7 @@ brief of the section (main session; the owner approves it)
   -> draft of the whole section (the same writer, from its outline)
   -> build, lint, facts against the code and the committed results; a helper reads the PDF of the section cold (main session, helpers)
   -> at most five editor's notes -> the same writer revises   (two rounds at most)
-  -> the owner reads -> commit
+  -> commit (draft) -> the owner reads it later, with REVIEW_NOTES.md
 ```
 
 One writer outlines, drafts and revises a section: it is continued, not
@@ -452,6 +452,13 @@ the test of this workflow (`pilot/`); Section 3, Method, with Fig. 1
 and Algorithm 1 (step W7: outline, draft, two cold reads and two
 rounds of editor's notes; `briefs/03_method_notes_editor.md`), and
 `REVIEW_NOTES.md` with what the owner reviews later.
+
+Done by 2026-11-27, each as a committed draft that the owner reads
+later: Section 4 with Appendices A and B (W8, commit `715db32`),
+Section 5 (W9, `42b2baf`; 34 rows wait, 42 numbers print as `??`),
+Section 2 with Table 1 (W11, `d9cad1c`; cited-work audit, two cold reads
+through the `cold-review` skill). The brief of Section 6 is built and
+waits for the owner's approval (`briefs/06_ablation.md`).
 
 Next, in this order. Each step is the loop of section 2; the owner's
 time is an estimate.

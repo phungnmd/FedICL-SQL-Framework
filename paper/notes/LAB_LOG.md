@@ -4,6 +4,184 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: drafts are committed without waiting for the owner's reading (owner; no run)
+
+- Owner: while the paper is being drafted, a section is committed when
+  its rounds are done; the reading and the points of
+  `paper/manuscript/REVIEW_NOTES.md` come later. `WRITING_PLAN.md`,
+  sections 1, 2 and 8, says so.
+- Committed as drafts: the generated numbers (`40e1cb7`), Section 4 with
+  Appendices A and B (`715db32`), Section 5 (`42b2baf`), Section 2
+  (`d9cad1c`). The entries below that say "waits for the owner's
+  reading" were written before this decision.
+
+## 2026-11-27: brief of Section 6 (Ablation study); the questions without a correct sample as macros (no run)
+
+- `briefs/06_ablation.md`, built from `CLAIMS.md` part B, `OUTLINE.md`
+  and the sentences of Sections 2.2, 3.3, 3.4, 4.4, 4.6, 5.1 and 5.3
+  that point to Section 6. It waits for the owner's approval
+  (`REVIEW_NOTES.md`, A24); the writer is not started.
+- New facts in `tools/paper_numbers.py` (`warmup_facts`,
+  `\fact{warmup.<set>.k<w>.no_correct}`): training questions none of
+  whose samples is labeled correct at the first preference round, from
+  the round records. BIRD: 4,035 of 9,428 without warm-up rounds
+  (`fedpref_bird_base_p2_ddl_alpha01_ev3_s0`), 2,698 after two. Spider:
+  1,074 of 8,659 (`fedpref_base_p2_ddlrows_alpha01_s0`), 573 after two,
+  483 after three (`fedpref_sft_ddlrows_alpha01_s0`). BIRD with three
+  warm-up rounds has no record yet. Section 3.3 states that Section 6
+  reports these counts.
+- Checked for the brief, from the committed records: the row without
+  the preference term trains on the same pairs as the preference round
+  (same `pairs_sha256`) with the same server weights; the rows with
+  other server weights average the adapters of the first preference
+  round again and train nothing; the row with fixed pairs runs its
+  first preference round again on the same pairs (delta norms differ
+  in the third decimal), so it is not the same model as the method
+  after 3 rounds and is compared at 4 rounds only.
+
+## 2026-11-27: Section 2 (Related work) written, two rounds; waits for the owner's reading (no run)
+
+- Brief approved by the owner (`briefs/02_related.md`, commit
+  `85464fa`), with the facts about the 21 cited papers as rows with
+  quotations and locators (`briefs/02_related_rows.md`,
+  `briefs/02_related_table1_rows.md`), read from the papers by Opus
+  helpers.
+- Draft, cited-work audit (37 statements: 33 supported, 4 imprecise,
+  all parts of Table 1 supported; `briefs/02_related_audit.md`), two
+  cold reads with the `cold-review` skill and its `section` template
+  (`cold_reviews/2026-11-27_0338_section2_1.md`,
+  `cold_reviews/2026-11-27_0351_section2r1_1.md`) and two rounds of
+  editor's notes; the record is
+  `paper/manuscript/briefs/02_related_notes_editor.md`. Revision 2: 893
+  words (900 at most), about 2.0 pages, build of 23 pages, lint 0
+  stops, 39 references.
+- The brief was corrected after the owner's approval, in thirteen
+  places (after the audit and after each cold read); the list is in
+  `REVIEW_NOTES.md`, part D.
+- Both cold readers, independently: Table 1 leaves out the federated
+  works with verifiable rewards (PubSwap, Fed-GRPO), and one adds Liu
+  et al.; no reason is given for pairs instead of a reward at the
+  clients; the method reads as CodeLutra inside FedAvg; averaging LoRA
+  adapters is presented as settled. These wait for the owner
+  (`REVIEW_NOTES.md`, A22, A23, C26, C27).
+- The sentence under "to our knowledge" in revision 2 no longer names
+  Text-to-SQL as its scope, against `CLAIMS.md`, rule 7 (B21); not
+  changed by the editor, for the owner's reading.
+- Not cited in the end: Lanchantin et al. (kept for Section 6), SKT-SQL
+  (the paper could not be read).
+
+## 2026-11-26: Section 5 (Results) drafted; the method corrects as many incorrect results as execution errors (no run; counts from the committed predictions)
+
+- Draft of Section 5, two cold reads on Opus and two rounds of editor's
+  notes; the record is
+  `paper/manuscript/briefs/05_results_notes_editor.md`. Revision 2:
+  1,676 words (1,800 at most), about 5.4 pages (plan 5.5), build of 19
+  pages, lint 0 stops, 42 numbers wait for their rows. It waits for the
+  owner's reading.
+- Outcome of each question with FedAvg SFT and with the method, both
+  after 4 rounds (`tools/paper_numbers.py`, `moved_facts`; macros
+  `\fact{moved.<set>.<a>.<b>}`). Rows: FedAvg SFT; columns: the method,
+  as correct, execution error, incorrect result.
+
+  | With FedAvg SFT | BIRD dev | Spider test |
+  |---|---|---|
+  | correct | 595, 9, 49 | 1,529, 15, 60 |
+  | execution error | 75, 86, 107 | 67, 55, 51 |
+  | incorrect result | 78, 33, 502 | 83, 14, 273 |
+
+  Of the 153 questions correct only with the method on BIRD dev, 75 had
+  an execution error with FedAvg SFT and 78 an incorrect result (Spider
+  test: 67 and 83). The incorrect results do not become fewer (613 to
+  658, 370 to 384) because former execution errors join them (107, 51).
+  From the common model after round 2 on BIRD dev, the two preference
+  rounds turn 90 execution errors and 67 incorrect results correct and
+  break 64; two more SFT rounds turn 31 and 29 correct and break 62.
+  "The gain comes from queries that now execute" (the brief of Section
+  5, not `CLAIMS.md`) does not hold at the level of questions; the
+  brief carries the counts now. Section 7 is to be read against this
+  table.
+- Two numbers of Section 5.4 corrected in the generator: the questions
+  whose samples are all correct no longer include those on databases
+  without rows (Spider: 2,891 and 5,784 became 2,327 and 4,623; on
+  such a database 564 and 1,161 questions had only "correct" samples);
+  the steps of a round in Table 7 are rounded so that they add up to
+  its total (Spider, second preference round: 19, 2, 88, 109).
+- Facts found wrong in the brief and corrected: the row without
+  warm-up rounds is 3.55 points above the method on Spider-DK
+  (unadjusted p 0.032), not "level"; on BIRD the labels do not take
+  most of the added time in the second preference round (training 195
+  of 391 minutes); the comparison at more client time for FedAvg SFT
+  exists on Spider only (five rounds about 620 minutes against 560):
+  on BIRD the four rounds of the method take 1,207 minutes, about seven
+  FedAvg SFT rounds, and FedAvg SFT is run to round 4.
+- No correct prediction of the rows quoted in Section 5.4 fails to
+  parse (unparsed predictions: 10 of the method and 7 of FedAvg SFT on
+  BIRD dev, 2 each on Spider test, all incorrect).
+- Claim C3 against the test suite (counts from the committed
+  predictions and test-suite scores; the groups by
+  `gold_tables_columns`, as in `form_facts`). Correct predictions that
+  read other tables or columns than the gold SQL mostly fail the test
+  suite on Spider dev, for every row; those that read the same pass it.
+
+  | Spider dev, 1,034 questions | Same tables and columns: EX-correct, of them TS-correct | Other: EX-correct, of them TS-correct |
+  |---|---|---|
+  | No training | 625, 586 | 88, 17 |
+  | FedAvg SFT, round 4 | 728, 689 | 49, 14 |
+  | Method without warm-up, round 4 | 746, 679 | 53, 16 |
+  | Method, round 4 | 755, 711 | 48, 17 |
+
+  Spider-Syn and Spider-Realistic show the same (other group, method:
+  18 of 53 and 10 of 35 pass; FedAvg SFT: 12 of 45 and 11 of 42). On
+  Spider dev the TS gain of the method over FedAvg SFT (+25 questions)
+  comes from the first group (+22), and the other group is no larger
+  with the method (48 against 49), unlike Spider test (103 against 83)
+  and BIRD dev (191 against 136), which have no test suite. So the
+  TS result of Section 5.3 is no evidence for the second group, and
+  what share of that group is right beyond the evaluation database on
+  BIRD dev is not known. By paired questions the net gain on BIRD dev
+  (95) is 60 in the first group (101 correct only with the method, 41
+  only with FedAvg SFT) and 35 in the other (52 and 17); the "55 of
+  95" of `CLAIMS.md` is the change of the group sizes, and about 20
+  questions that both rows answer correctly change group. Not run: a
+  check of the other group on BIRD dev (its databases are on the Mac;
+  the variant tooling scores with the Spider evaluator only).
+- Open for the owner: `REVIEW_NOTES.md`, A15 to A17, C17 to C24.
+
+## 2026-11-26: Section 4 (Experimental setup) written, two rounds; waits for the owner's reading (no run)
+
+- Draft, two cold reads on Opus and two rounds of editor's notes; the
+  record is `paper/manuscript/briefs/04_setup_notes_editor.md`.
+  Revision 2: 1,337 words (1,250 at most), about 3.1 pages (plan 2.3),
+  build of 14 pages, lint 0 stops.
+- Facts found wrong in the brief and corrected: the ablation with
+  pooled clients runs on Spider only; DeepSeek-Coder has a longer limit
+  on a training sequence (8,704 tokens); the rule on 1/K of the
+  databases is applied per tier, so a client can end above it
+  (`fedls_sql/data/federated.py`); the levels of BIRD train are the
+  criteria of Spider on the sqlglot parse (`fedls_sql/data/hardness.py`),
+  those of Spider train come from its evaluation script; the tests of
+  Table 6 have two reference rows and the Local SFT row has none.
+- Sources of the two recipes, checked in the papers on 2026-11-26:
+  SPFT-SQL (arXiv 2509.03937v2, appendix A.4: LoRA, AdamW, batch 64,
+  learning rate 2e-4, three epochs, Qwen2.5-Coder-1.5B among the
+  models) for the SFT learning rate and the 3 epochs; CodeLutra (arXiv
+  2411.05199v3, Table 4, data query: 1 epoch, learning rate 5e-5, batch
+  16, weight decay 1e-4, LoRA rank 8, beta 0.1, lambda 1.0) for the
+  preference rounds. Section 4.5 names both.
+- Table B1 (`tools/paper_settings.py`, 62 settings): weight decay of
+  the SFT rounds (0.01, the default of PyTorch), no top-k, the
+  optimizer and schedule new at every client in every round, what the
+  training seed sets, the fewest databases of a client, the hardness
+  levels and sqlglot 30.9.0; "all clients of the setup" for "all 5".
+  Fig. A1 prints backticks and straight quotes.
+- After the owner's rule of the entry below, the ceilings of the briefs
+  of Sections 4 and 5 were rewritten as the strongest wording allowed.
+- Owner, 2026-11-26: the brief of Section 5 is approved; Appendix B
+  goes to the supplementary file when the page count is known.
+- Not measured: the share of BIRD train queries that the parser of
+  Spider rejects (the databases of BIRD train are not on the Mac); the
+  code records 85% for BIRD dev.
+
 ## 2026-11-26: the paper credits earlier work and does not grade its own parts (owner; no run)
 
 - Owner: "The rest are settings" in Section 3.4 is more candour than the

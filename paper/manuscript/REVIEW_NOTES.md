@@ -6,24 +6,18 @@ vào cột "Quyết định"; mục đã xong được chuyển xuống phần "
 Chi tiết của từng section nằm ở file ghi chép của section đó
 (Section 3: `briefs/03_method_notes_editor.md`).
 
-Cập nhật: 2026-11-27. Section 3 đã commit (`05c0853`); các mục A1 đến
-A5 và B1 đến B8 của nó chờ bạn review. Brief của Section 4
-(`briefs/04_setup.md`) đã được bạn duyệt (A6 đến A10, xem "Đã xong").
-Section 4: hai round sửa đã xong, chờ bạn đọc trước khi commit; ghi
-chép ở `briefs/04_setup_notes_editor.md`; mục của nó là A14, B11 đến
-B14, C10 đến C16 và phần D. Brief của Section 5 (`briefs/05_results.md`) đã được bạn
-duyệt (A11 đến A13, xem "Đã xong"); outline của writer đã về và được
-nhận (`briefs/05_results_outline.md`), draft đang viết; mục của nó là
-A15 đến A17, C17 đến C24 và danh sách brief Section 5 trong phần D; ghi
-chép ở `briefs/05_results_notes_editor.md`. Section 5: hai round sửa
-đã xong (1,676 từ, khoảng 5.4 trang, 42 số chờ GPU), chờ bạn đọc
-trước khi commit; mục câu chữ của nó là B15 đến B17. Brief của Section 2
-(`briefs/02_related.md`) đã được bạn duyệt (2026-11-27; A18 đến A20, xem
-"Đã xong"); Section 2: audit cited-work, hai cold read và hai round sửa
-đã xong (893 từ, khoảng 2 trang, 39 references), chờ bạn đọc trước khi
-commit (`briefs/02_related_notes_editor.md`); còn mở: A21 đến A23, B18
-đến B23, C26 đến C28. Brief của Section 6 (`briefs/06_ablation.md`) đã
-dựng, chờ bạn duyệt (A24); writer chưa khởi động.
+Cập nhật: 2026-11-27. Từ 2026-11-27 draft của một section được commit
+ngay khi xong hai round sửa, không chờ bạn đọc (bạn quyết định
+2026-11-27); các mục dưới đây vẫn chờ bạn review.
+
+| Section | Trạng thái | Mục của nó | Ghi chép |
+|---|---|---|---|
+| 3, Method | commit `05c0853` | A1 đến A5, B1 đến B8 | `briefs/03_method_notes_editor.md` |
+| 4, Experimental setup, Appendix A và B | draft, commit `715db32` | A14, B11 đến B14, C10 đến C16, phần D | `briefs/04_setup_notes_editor.md` |
+| 5, Results | draft, commit `42b2baf`; 1,676 từ, 42 số chờ GPU | A15 đến A17, B15 đến B17, C17 đến C25, phần D | `briefs/05_results_notes_editor.md` |
+| 2, Related work | draft, commit `d9cad1c`; 893 từ, 39 references | A21 đến A23, B18 đến B23, C26 đến C28, phần D | `briefs/02_related_notes_editor.md` |
+| 6, Ablation study | brief đã dựng (`briefs/06_ablation.md`), chờ bạn duyệt; writer chưa khởi động | A24, A1, A2 | |
+| 7 và 8, 1 và abstract | chưa có brief | phần E | |
 
 ## A. Cần bạn quyết định
 
