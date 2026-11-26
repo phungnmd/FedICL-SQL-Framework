@@ -34,6 +34,17 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 - The chat format of Qwen2.5-Coder adds its default system message to
   the one user message of the prompt (rendered with the local
   tokenizer); the lead-in of Appendix A is to say so.
+- `paper/manuscript/briefs/05_results.md` is built as well and waits
+  for the owner's approval. For it the generator gained the test of
+  the method against centralized SFT (Spider test: +3.17, p 2.4e-5; the
+  Holm family of the comparisons quoted in the text now has 14 tests),
+  the client time of a preference round against a FedAvg SFT round
+  (BIRD 2.7 and 2.3 times, Spider 1.6 and 0.9) and the facts of the
+  local SFT rows, which print `??` until the five rows are in. Tables 3
+  and 8 use the names of `TERMS.md` (FedDPO, warm-up round).
+- A helper on Opus reads FL4SP, OpenFedLLM, CodeLutra and ExCoT for
+  the cells of Table 1, each with a quotation and a locator
+  (`briefs/02_related_table1_rows.md`).
 
 ## 2026-11-26: Section 3 (Method) written (no run)
 
