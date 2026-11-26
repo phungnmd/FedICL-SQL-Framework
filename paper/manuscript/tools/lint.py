@@ -57,6 +57,8 @@ BRITISH = r"\b\w*(?:labell|modell|organis|optimis|minimis|maximis|initialis|norm
 HEDGES = [r"\bmay\b", r"\bmight\b", r"\bappears? to\b", r"\bseems? to\b", r"\bit is worth noting\b", r"\barguably\b", r"\bsomewhat\b",
           r"\bpotentially\b", r"\bperhaps\b", r"\bto some extent\b", r"\bwe believe\b"]
 LIMITATION_FILES = {"07_discussion.tex"}
+# Related work types the numbers of other papers (model sizes, counts); the cited-work audit checks them against the brief
+CITED_NUMBER_FILES = {"02_related.tex"}
 
 
 def strip_comment(line: str) -> str:
@@ -123,7 +125,9 @@ def check_numbers(path: Path, text: str, rep: Report) -> None:
                 continue
             decimal = "." in tok or "%" in tok or "e" in tok
             value = float(re.sub(r"[^\d.]", "", tok.split("e")[0]) or 0)
-            if decimal or value >= 10:
+            if path.name in CITED_NUMBER_FILES and (decimal or value >= 10):
+                rep.add("note", path, i, "number", f"'{tok}': a number of a cited paper has a row in the brief (cited-work audit); one of ours is a macro")
+            elif decimal or value >= 10:
                 rep.add("STOP", path, i, "number", f"'{tok}' is typed by hand; a result or a setting is a macro")
             elif value >= 2:
                 rep.add("note", path, i, "number", f"'{tok}': a count or a setting? then a macro")
