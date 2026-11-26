@@ -6,11 +6,20 @@ vào cột "Quyết định"; mục đã xong được chuyển xuống phần "
 Chi tiết của từng section nằm ở file ghi chép của section đó
 (Section 3: `briefs/03_method_notes_editor.md`).
 
-Cập nhật: 2026-11-26. Section 3 đã commit (`05c0853`); các mục A1 đến
+Cập nhật: 2026-11-27. Section 3 đã commit (`05c0853`); các mục A1 đến
 A5 và B1 đến B8 của nó chờ bạn review. Brief của Section 4
-(`briefs/04_setup.md`) đã được bạn duyệt (A6 đến A10, xem "Đã xong");
-writer của Section 4 đang chạy. Brief của Section 5
-(`briefs/05_results.md`) chờ bạn duyệt (mục A11, A12).
+(`briefs/04_setup.md`) đã được bạn duyệt (A6 đến A10, xem "Đã xong").
+Section 4: hai round sửa đã xong, chờ bạn đọc trước khi commit; ghi
+chép ở `briefs/04_setup_notes_editor.md`; mục của nó là A14, B11 đến
+B14, C10 đến C16 và phần D. Brief của Section 5 (`briefs/05_results.md`) đã được bạn
+duyệt (A11 đến A13, xem "Đã xong"); outline của writer đã về và được
+nhận (`briefs/05_results_outline.md`), draft đang viết; mục của nó là
+A15 đến A17, C17 đến C24 và danh sách brief Section 5 trong phần D; ghi
+chép ở `briefs/05_results_notes_editor.md`. Section 5: hai round sửa
+đã xong (1,676 từ, khoảng 5.4 trang, 42 số chờ GPU), chờ bạn đọc
+trước khi commit; mục câu chữ của nó là B15 đến B17. Brief của Section 2
+(`briefs/02_related.md`) đã dựng xong và chờ bạn duyệt: mục A18 đến A21,
+B18 đến B20; writer chưa chạy.
 
 ## A. Cần bạn quyết định
 
@@ -21,8 +30,14 @@ writer của Section 4 đang chạy. Brief của Section 5
 | A3 | Section 3, độ dài | Sau bản nháp đầu tôi hạ độ dài brief xin từ 1,490 (trần 1,650) xuống 1,420 (trần 1,490), thấp hơn mức "10% dưới outline" bạn đã quyết. Lý do: Fig. 1, Algorithm 1 và bốn công thức chiếm khoảng 1.85 trang, plan tính 1.5. Section 3 hiện khoảng 4.3 trang, ngân sách 4.0; tổng plan là 24.6 của 25 trang | Chấp nhận khoảng 4.3 trang. Khi biết tổng số trang, lấy phần dư từ Appendix B (0.6 trang, plan đã định chuyển sang supplementary trước tiên) | |
 | A4 | Fig. 1 | Ba chỗ trong hình lệch với văn bản; tôi chưa sửa vì bạn dặn không đụng hình khi chưa quyết. (1) Ghi chú "Only LoRA adapters travel", trong khi Section 3.1 nói adapter và một số nguyên, "and nothing else"; caption không nói gì về điểm này, nên hình và văn bản đang lệch nhau. (2) Bước 4 viết L = L_DPO + L_NLL, không có λ và ký hiệu khác Eq. (4); caption giờ nối hai cách gọi. (3) "2 FedAvg rounds" và "N = 10" là số gõ tay trong hình, không theo macro | Sửa nhãn (1) thành adapter và số pairs. Để (2) và (3) như cũ. Nói "sửa" thì tôi đổi nhãn, không đụng bố cục | |
 | A5 | Section 3.4, M = 2 | Cả hai người đọc muốn một lý do về hiệu quả, không chỉ về chi phí; paper không có ablation theo M (`CLAIMS.md`, mục 7, điểm 8 đã quyết: chỉ nói lý do chi phí) | Giữ như đã quyết. Một preference round với M = 10 trên BIRD tốn khoảng một ngày GPU (ước lượng từ 283 phút training ở M = 2), tôi không đề xuất chạy | |
-| A11 | Section 5 (brief) | Brief theo đúng A1 đến A6, C1 đến C3, D1 đến D4, E1, E2 của `CLAIMS.md`. Hai chỗ tôi thêm ngoài `CLAIMS.md`: (1) một câu ở 5.2 nêu, dưới dạng phỏng đoán, vì sao gain của model 0.5B nhỏ hơn (FedAvg SFT của nó còn đang tăng ở round 4; limitation 8); (2) một câu ở 5.4 về việc labeling trên BIRD chiếm nhiều thời gian (159 và 168 phút, Spider 3 phút), lý do database lớn chỉ được nêu như giải thích, không phải kết quả đo | Giữ cả hai, hoặc bạn bảo bỏ | |
-| A12 | Số liệu mới cho Section 5 | Thêm vào tool: so sánh method với centralized SFT trên Spider (+3.17, p 2.4e-5; claim A5 cần nó), nên family "text" của Holm có 14 test thay vì 13 và các p đã hiệu chỉnh của family đó đổi nhẹ; macro tỉ lệ chi phí của một preference round so với một FedAvg SFT round (BIRD 2.7 và 2.3, Spider 1.6 và 0.9); macro local SFT (mean, min, max), in `??` cho tới khi 5 hàng về | Không cần quyết định; ghi để bạn biết | |
+| A14 | Section 4, độ dài | Sau hai round, Section 4 có 1,337 từ (trần 1,250 theo rule "số từ của outline là mức trên") và khoảng 3.1 trang (plan 2.3). Hai cold read đòi thêm fact: quy tắc partition, hardness của BIRD train, nguồn của hai recipe, hàng nào được test. Writer liệt kê sáu chỗ cắt (81 từ) trong `briefs/04_setup_notes.md` | Cắt ba chỗ không mất nội dung (khoảng 50 từ, còn khoảng 1,290): vai trò của seed và quy tắc rút lại partition đã có trong Table B1, câu về Table 6 thì chính bảng đã ghi hai hàng tham chiếu. Giữ ba chỗ còn lại (IID vẫn khác cỡ; alpha nhỏ thì lệch mạnh; tên các level). Chấp nhận vượt trần khoảng 40 từ | |
+| A15 | Section 5.4, so sánh cùng compute trên BIRD | Brief bạn duyệt viết: A2 và A4 là câu trả lời cho "FedAvg SFT với cùng compute". Writer chỉ ra điều này chỉ đúng trực tiếp trên Spider: bốn round của method tốn 2 x 124 + 203 + 109 = 560 phút client time, năm round FedAvg SFT tốn khoảng 620 và EX thấp hơn 4.28. Trên BIRD bốn round của method tốn 2 x 173 + 470 + 391 = 1,207 phút, bằng khoảng bảy round FedAvg SFT, còn FedAvg SFT chỉ chạy tới round 4. Tôi đã sửa brief: câu nối chỉ nói FedAvg SFT không tăng sau round 3, so sánh trực tiếp chỉ nêu cho Spider, không in tổng phút. Nếu muốn có so sánh cùng client time trên BIRD: thêm FedAvg SFT round 5 đến 7 trên BIRD (ước lượng 173 phút mỗi round, khoảng 8.7 giờ train, chưa kể evaluation). Queue tôi không đổi | |
+| A16 | Section 5.4, số mới ngoài `CLAIMS.md` | Cold read hỏi: câu "the gain comes from queries that now execute" chỉ dựa trên tổng. Tôi tính bảng chuyển outcome từ predictions đã commit (FedAvg SFT so với method, cùng 4 rounds; macro `\fact{moved.*}`). BIRD dev: trong 153 câu chỉ method đúng, 75 câu trước là execution error và 78 câu là incorrect result (Spider test: 67 và 83). Trong 268 execution error của FedAvg SFT trên BIRD, 107 câu giờ chạy được nhưng trả kết quả sai (Spider: 51 của 173). Tức là method sửa incorrect result cũng nhiều như sửa execution error; incorrect result không giảm vì execution error cũ chuyển sang. Câu cũ trong brief là của tôi, vượt C2 của `CLAIMS.md`; tôi đã sửa brief và đưa các số này cho writer. Bạn quyết định: giữ các số này trong 5.4 và ghi vào `CLAIMS.md`, hay bỏ. Section 7 ("hai loại round bỏ hai loại lỗi khác nhau") nên đọc lại theo bảng này | |
+| A17 | Claim C3 (Section 5.4, đoạn hai) | Tôi đối chiếu C3 với test suite trên Spider dev (từ predictions và điểm TS đã commit; chi tiết ở `LAB_LOG.md`, 2026-11-26). Prediction đúng theo EX nhưng đọc table/column khác gold phần lớn bị test suite loại, ở mọi hàng: method 17 qua của 48, FedAvg SFT 14 của 49; nhóm đọc cùng table/column thì qua 711 của 755 và 689 của 728. Trên Spider dev gain theo TS của method (+25 câu) đến từ nhóm thứ nhất (+22), và nhóm thứ hai không lớn hơn với method (48 so với 49). Nhóm thứ hai chỉ lớn lên trên Spider test (103 so với 83) và BIRD dev (191 so với 136), hai set không có test suite. Vậy: (1) kết quả TS của 5.3 không đỡ được C3, câu nối tôi xin ở note 5 round 1 phải bỏ; (2) trên BIRD dev chưa biết bao nhiêu phần của nhóm thứ hai là đúng thật. Tính theo cặp câu hỏi, gain 95 câu trên BIRD gồm 60 câu ở nhóm thứ nhất và 35 câu ở nhóm thứ hai ("55 của 95" trong `CLAIMS.md` là thay đổi kích thước nhóm, khoảng 20 câu cả hai hàng đều đúng nhưng đổi nhóm). Đề xuất: không in C3 như một điểm mạnh cho tới khi có kiểm chứng trên BIRD dev; kiểm chứng rẻ nhất là đọc một mẫu của 52 câu chỉ method đúng thuộc nhóm thứ hai (database BIRD dev có trên Mac). Nếu phần lớn đúng thật, C3 quay lại kèm bằng chứng; nếu không, ta biết cỡ thật của gain trên BIRD (ít nhất 60 câu, 3.9 điểm, ở nhóm thứ nhất). Bạn quyết định: giữ C3 kèm số kiểm chứng của Spider dev, bỏ C3 khỏi paper, hay kiểm chứng trên BIRD trước | |
+| A18 | Brief của Section 2 (`briefs/02_related.md`), chờ bạn duyệt | Brief dựng từ hai fact sheet có quotation và locator: `briefs/02_related_table1_rows.md` (4 paper của Table 1) và `briefs/02_related_rows.md` (17 paper còn lại, helper Opus đọc paper gốc trên arXiv, 2026-11-26). Dài 810 từ, trần 900. Section 2 thêm 17 key mới, tổng reference list là 40 | Duyệt brief; writer chỉ chạy sau khi bạn duyệt | |
+| A19 | Table 1, các cột | `OUTLINE.md` ghi năm property: federated, Text-to-SQL, labels from execution, pairs of the model's own outputs, pairs made again each round. `WRITING_PLAN.md` mục 6 ghi bộ khác: federated, execution labels, on-policy pairs, NLL term, model size. Brief theo `OUTLINE.md`. Với năm cột này CodeLutra chỉ khác \method ở cột federated, đúng với câu "the same loop, run centrally" | Giữ năm cột của outline. Không thêm cột model size: T5-base của Zhang et al. nhỏ hơn model của ta, cột này không tách được gì. Cột NLL term chỉ nên thêm nếu bạn muốn Table 1 nối với hàng FedDPO của Table 8 | |
+| A20 | Section 2.2, kết quả của Liu et al. (ACL 2025) | Paper này là kết quả gần nhất đi ngược hướng: DPO trên pairs gán nhãn bằng execution, output chỉ có SQL, EX trên BIRD dev giảm ở 6 trong 10 model (6.7B đến 15B, greedy). Cách làm của họ khác ta ở ba điểm đã kiểm tra trong paper: pairs dựng một lần từ SFT model, loss chỉ có DPO term, reference là SFT model cố định. Brief cho writer nêu kết quả này như kết quả của họ, không giải thích | Giữ một câu. Reviewer biết paper này; bỏ nó đi là giấu kết quả gần nhất. Phần giải thích (NLL term, pairs dựng lại mỗi round) để Section 6 nói bằng hàng ablation của ta | |
+| A21 | SKT-SQL (JIIS 2025, `yi2025sktsql`) | Không đọc được bài: Springer chặn, các API không trả abstract; chỉ có abstract của một preprint khác tên. Tôi để paper này ngoài brief. JIIS hiện chỉ còn GradeSQL trong Section 2 (đọc bản arXiv) | Nếu bạn muốn cite thêm bài của JIIS, gửi tôi PDF của SKT-SQL, tôi thêm một hàng fact. KGRFL (IEEE, `xu2024kgrfl`) cũng chỉ đọc được abstract; brief giới hạn nó ở một mệnh đề | |
 
 ## B. Cần bạn đọc lại câu chữ
 
@@ -32,7 +47,7 @@ cơ học.
 
 | # | Ở đâu | Đọc để kiểm gì |
 |---|---|---|
-| B1 | Section 3.4, đoạn cuối (CodeLutra) | Câu "The contribution of FedLS-SQL is to bring this execution-based supervision into federated training, where only a client can compute it", rồi "The rest are settings". Đây là chỗ Method nói paper nhận cái gì là của mình; kiểm xem có đúng ý bạn và có khớp contribution 1 trong `CLAIMS.md` không. "First" và "to our knowledge" để dành cho Section 1 |
+| B1 | Section 3.4, đoạn cuối (CodeLutra) | Câu "The contribution of FedLS-SQL is to bring this execution-based supervision into federated training, where only a client can compute it". Đây là chỗ Method nói paper nhận cái gì là của mình; kiểm xem có đúng ý bạn và có khớp contribution 1 trong `CLAIMS.md` không. "First" và "to our knowledge" để dành cho Section 1. Câu "The rest are settings" đã bỏ (bạn, 2026-11-26: trung thực quá mức cần thiết); xem mục D, điểm 9 |
 | B2 | Section 3.4, đoạn cuối | Câu "the same λ then weighs the NLL term less against the preference term than in CodeLutra, by a factor of \|y+\|". Đúng về số học; người đọc thứ hai coi việc không nói là nói quá mức độ theo CodeLutra. λ không còn trong danh sách "We follow CodeLutra in" |
 | B3 | Section 3.1, đoạn cuối | Cái gì ở lại client, giờ được gọi tên (samples, execution results, execution labels, preference pairs). Các từ này xuất hiện ở 3.1 trước khi 3.4 định nghĩa chúng. So với contribution 2 trong `CLAIMS.md` |
 | B4 | Section 3.3, đoạn cuối | Câu mới về lý do warm-up: "which leaves fewer questions without a correct sample than the pretrained model does", và "Section 6 reports these counts" (mục A1) |
@@ -42,6 +57,16 @@ cơ học.
 | B8 | Section 3.4 | "CodeLutra constructs ten" viết bằng chữ, không qua macro (là fact của paper được trích, không phải setting của ta) |
 | B9 | Section 3.4, đoạn cuối, "where CodeLutra sums it" | Helper đọc lại CodeLutra (arXiv v3, bản TMLR): Eq. (3) viết log-likelihood của cả response; paper không nói gì về chuẩn hoá theo độ dài. "CodeLutra sums it" là cách ta đọc công thức, không phải điều CodeLutra viết, và code của họ có thể lấy trung bình theo token. Đề xuất đổi thành một câu bám vào công thức, kiểu "where CodeLutra's objective takes the log-likelihood of the whole query (its Eq. 3)", và kiểm code của CodeLutra nếu có công bố. Câu "by a factor of \|y+\|" (mục B2) phụ thuộc điểm này |
 | B10 | Section 3.4, "constructed once, as in FedDPO" | OpenFedLLM viết "each client holds a preference dataset" và không mô tả bước nào sinh lại pairs; reference model "fixed throughout the FL process" thì được viết rõ. "Constructed once" là cách ta đọc; cited-work audit ở bước W11 sẽ xét câu này |
+| B11 | Section 4.2, đoạn cuối | "A preference round constructs no pair for some of them: ..." Bản round 1 viết "in any round"; bỏ đi thì hai loại câu hỏi này đọc như là tất cả các câu hỏi không sinh pair, trong khi câu hỏi có sample toàn đúng hoặc toàn sai cũng không sinh pair ở round đó. Đề xuất: thêm lại "in any round" |
+| B12 | Section 4.2, "Its parser cannot read most queries of BIRD train" | Code ghi tỉ lệ cho BIRD dev (85%); database của BIRD train không có trên Mac nên tỉ lệ trên BIRD train chưa đo. Đếm query có cú pháp ngoài grammar của Spider (backtick, CAST, CASE, IIF...) được 2,319 của 9,428, chỉ là cận dưới. Đề xuất: viết "many queries of BIRD", hoặc đo trên server (script CPU, không đụng GPU queue) |
+| B13 | Section 4.2, setup IID | "assigns each client the same number of databases", còn Table 2 in 29 đến 30 (146 database, 5 client). Đề xuất: "an equal share" hoặc để nguyên |
+| B14 | Section 4.5, vai trò của seed | Câu nói seed quyết định thứ tự training example và sampling; seed còn quyết định khởi tạo adapter và việc ghép pair. Table B1 đã có đủ bốn thứ. Đề xuất: cắt mệnh đề này (writer cũng đề nghị cắt cho độ dài) |
+| B15 | Section 5.4, đoạn về hai nhóm prediction đúng (C3) | Bản round 2 chỉ còn: tiêu chí, bốn cặp số đếm, câu "The counts are taken for each method separately..." (writer thêm, để reader không tự trừ ra 55 của 95), và câu "EX establishes correctness on the evaluation database only". Đoạn kết ở một giới hạn của bằng chứng, không có gì đỡ. Số phận của đoạn theo quyết định ở A17 |
+| B16 | Section 5.4, đoạn đầu | Trên BIRD dev execution errors tăng ở preference round thứ hai (102 lên 128); text nêu số, không nói vì sao. Bảng chuyển outcome round 3 sang round 4 có (723 incorrect result: 56 thành đúng, 54 thành execution error) nhưng chưa là macro. Muốn in thì tôi thêm macro |
+| B17 | Section 5.1, đoạn cuối | "a fifth round, which we train on Spider only and use in Section 5.4": round 5 của FedAvg SFT được giới thiệu ở Results; Section 4.4 nói mọi hàng federated có T = 4. Đề xuất: khi Section 4 sửa lần cuối, thêm một mệnh đề ở 4.4 và bỏ mệnh đề ở 5.1 |
+| B18 | Tên "FL4SP" | Paper của Zhang et al. không tự gọi là FL4SP (từ này không xuất hiện trong paper); đó là tên trong notes, `CLAIMS.md` và `OUTLINE.md`. Brief Section 2 yêu cầu viết "Zhang et al." và gọi re-weighting của họ là Lorar | Giữ như brief; Section 1 cũng viết "Zhang et al." | |
+| B19 | `CLAIMS.md`, wording rule 7: "federated DPO for human preferences (OpenFedLLM)" | Đúng với HH-RLHF. Với UltraFeedback paper chỉ nói "the response with the highest score" trong bốn response của các LLM, không nói ai chấm. Brief viết "preference datasets for helpfulness and harmlessness" | Giữ như brief; Section 1 dùng cùng cách nói | |
+| B20 | Table 1, ô "pairs constructed anew" của FedDPO | Brief ghi "no: each client holds its preference dataset". OpenFedLLM không viết câu nào nói pairs không được dựng lại; paper chỉ không mô tả bước sinh hay gán nhãn lại trong các round. Cùng gốc với B10 | Giữ "no" kèm lý do trong ô hoặc table note | |
 
 ## C. Câu hỏi reviewer có thể đặt
 
@@ -59,6 +84,22 @@ section sau có câu trả lời.
 | C7 | FedDPO baseline chạy sau 2 warm-up rounds và dùng pairs từ execution labels; FedDPO "nguyên bản" từ pretrained model thì sao? | Section 4.4 nói rõ cái gì lấy từ OpenFedLLM (pairs cố định, reference cố định, không NLL) và cái gì là của ta khi chạy nó. Hàng không warm-up của method (Table 8) là so sánh gần nhất; không có hàng FedDPO từ pretrained model |
 | C8 | 20% câu hỏi train của Spider không sinh pair: preference rounds có bỏ qua các domain đó không? | Chưa trả lời. Các câu hỏi đó vẫn được học ở warm-up rounds; Section 7 (limitation 5 của `CLAIMS.md`) nói về database không có row |
 | C9 | McNemar với một seed chỉ nói về mẫu câu hỏi test, không nói về độ biến thiên giữa các lần train | Section 4.6 nói test là gì; seed thứ hai cho hai hàng chính trên BIRD (chưa chạy); Section 7 nêu limitation |
+| C10 | (Cold read Section 4, major) Không có validation split: T, T_w, learning rate được chọn trên dữ liệu nào, và baseline có được tune kỹ như method không? | Cả hai người đọc lạnh của Section 4 đều nêu là major. Paper không kể cách chọn setting (rule của bạn, 2026-11-17), nhưng nêu nguồn thì được: sau round 2, Section 4.5 nói learning rate của SFT và 3 epoch của centralized và local SFT là của recipe LoRA mà SPFT-SQL báo cho model này (appendix A.4: lr 2e-4, 3 epoch, đã kiểm trong paper), còn learning rate, 16 pairs mỗi update, 1 epoch và weight decay của preference round là của CodeLutra (Table 4, đã kiểm). T = 4 và T_w = 2 vẫn không có nguồn; người đọc thứ hai hỏi thêm FedAvg SFT có được thử learning rate thấp hơn ở round 3 và 4 không |
+| C11 | FedDPO: round thứ hai train lại trên cùng pairs với cùng reference; baseline có thể yếu vì lịch train chứ không vì thiếu on-policy | Đó là FedDPO như đã công bố (dataset và reference cố định). Hàng "Fixed pairs and reference" của Table 8 (giữ NLL): BIRD thấp hơn 2.61, Spider ngang. Hàng FedDPO chưa chạy |
+| C12 | Local SFT và centralized SFT train 3 epochs, FedAvg SFT 4 rounds mỗi round 1 epoch: ngân sách train khác nhau | Chưa trả lời. Section 4.4 nêu số epoch, không nêu lý do |
+| C13 | 87 và 92 gold SQL của BIRD train quá time limit ở hai preference round: label phụ thuộc thời gian chạy của máy. 350 gold SQL của BIRD train lỗi khi chạy, không có lời giải thích | Chưa trả lời. Các con số in ở Section 4.1; nguyên nhân của 350 lỗi chưa được phân loại |
+| C14 | Setup IID vẫn lệch: tỉ lệ câu hỏi hard 34 đến 52% (alpha 0.5: 22 đến 56%), cỡ client 1,298 đến 2,028; ba setup trên Spider có thể khác nhau ít hơn tên gọi | Section 4.2 (sau round 1) nói IID vẫn khác nhau về cỡ vì database khác cỡ; Table 2 in các khoảng |
+| C15 | Mỗi setup chỉ là một lần rút partition (split seed 42); độ biến thiên theo partition không được xét | Chưa trả lời; nếu nêu thì ở Section 7 cùng limitation một seed (C9) |
+| C16 | Bảng in p chưa hiệu chỉnh nhưng dấu sao theo p đã hiệu chỉnh: người đọc không kiểm được dấu sao từ bảng | Supplementary liệt kê mọi test với p đã hiệu chỉnh (`WRITING_PLAN.md`, mục 5) |
+| C17 | Table 7 cho thấy bốn round của method tốn client time gấp khoảng 1.75 lần bốn round FedAvg SFT trên BIRD (1,207 so với 692 phút); FedAvg SFT thêm round thì sao? | Section 5.1 (A2): FedAvg SFT không tăng sau round 3; Section 5.4: so sánh trực tiếp trên Spider. Trên BIRD chưa có round 5 trở đi (mục A15) |
+| C18 | Model 0.5B: margin nhỏ hơn (+2.10 so với +3.49); vì sao? | Paper không nêu lý do. Notes có số: FedAvg SFT của model này còn tăng ở round 4 (62.69 lên 64.09, p 0.0059), nên mức FedAvg SFT đạt tới chưa đo. Brief cũ cho phép một conjecture; tôi bỏ vì paper không in số nào đỡ nó, và in số round 3 thì mở ra câu hỏi về các round sau |
+| C19 | Table 6, Spider-DK: method không warm-up (67.10) cao hơn method (63.55), chênh 3.55, p chưa hiệu chỉnh 0.032, không significant sau Holm | Bảng in ô này. Section 5.3 viết "no difference in EX is significant after the correction" và trỏ sang Section 6; brief cũ viết "EX is level with" là sai ở Spider-DK, đã sửa |
+| C20 | (Cold read Section 5, major) Trên BIRD 55 của 95 câu gain đọc table hoặc column khác gold; BIRD so kết quả theo set of rows và không có test suite, nên có thể là trùng kết quả ngẫu nhiên. Table 6 cho thấy preference round có thể tăng EX mà không tăng TS (hàng không warm-up) | Spider: Section 5.3, gain theo TS gần bằng gain theo EX; trên Spider dev số prediction đúng EX nhưng sai TS là 74 với FedAvg SFT và 75 với method (tính từ Table 6). BIRD: chưa có kiểm chứng. Có thể làm: đọc tay một mẫu của nhóm thứ hai trên BIRD, hoặc trên Spider dev đếm nhóm thứ hai có bao nhiêu câu qua TS |
+| C21 | (Cold read Section 5, major) T = 4 được chọn thế nào; method không được chạy quá round 4 dù hai đường còn tăng; FedAvg SFT có round 5 chỉ trên Spider | Chưa trả lời (cùng C10). Text giờ nói round 5 ở đâu ra |
+| C22 | Số câu hỏi mà cả mười sample đều đúng trên BIRD nhảy từ 416 lên 3,016 sau một preference round: sample ở temperature 1 có mất đa dạng không? | Chưa trả lời; có thể đo số sample khác nhau trên mỗi câu hỏi ở hai round từ file samples |
+| C23 | Client time là tổng năm client chạy lần lượt; wall-clock của một round federated là client chậm nhất | Caption Table 7 nói rõ là tổng. Chưa in thời gian theo client |
+| C24 | Hàng của model chính in ba lần (Tables 3, 4, 5); với giới hạn 25 trang đây là chỗ tiết kiệm rõ nhất | Do thiết kế bảng (brief: hai hàng đầu của Table 5 là hàng chính). Bạn quyết định khi tính số trang cuối |
+| C25 | (Cold read 2 Section 5, major) Preference round dùng learning rate 5e-5, SFT round dùng 2e-4, và FedAvg SFT giảm sau round 3: FedAvg SFT round 3 và 4 ở learning rate thấp có lấy lại một phần gap không? Control tự nhiên là SFT trên các sample đúng của chính client, nhưng nó nằm ở Section 6, không ở Table 3 | Section 6: hàng train trên correct samples không có preference term (cùng settings của preference round, kể cả learning rate) trả lời cả hai; hàng này chờ GPU (Table 8, `rft`). Chưa có hàng FedAvg SFT ở learning rate 5e-5. Reader thứ hai cũng xin vòng sample, label, DPO trên dữ liệu gộp làm cận trên (hàng `pooled` của Table 8, Spider) |
 
 ## D. Brief của Section 3 đã đổi sau khi bạn duyệt
 
@@ -81,6 +122,107 @@ Bạn duyệt `briefs/03_method.md` ở commit `3638801`. Các thay đổi sau �
    đã train trong round) và con trỏ tới Section 6.
 8. Hàng CodeLutra: khác biệt về bản chất, cái nào là đóng góp, hệ quả
    của trung bình theo token đối với λ.
+9. Hàng CodeLutra (bạn, 2026-11-26): bỏ câu "The number of pairs and
+   the token average are settings, not the contribution", là nguồn của
+   câu "The rest are settings" trong bản nháp; ceiling viết lại thành
+   mức nói mạnh nhất được phép, không còn liệt kê điều paper không
+   nhận. Rule chung nằm ở `WRITING_GUIDE.md` ("How it should read",
+   "What binds" điểm 2) và `WRITING_PLAN.md`, mục 4. Cùng kiểu, chưa
+   sửa, chờ bạn: câu về λ và `|y+|` (B2, B9).
+
+Brief của Section 4 (`briefs/04_setup.md`, bạn duyệt 2026-11-26, commit
+`3ebf681`) đổi mười chỗ: bốn chỗ sau khi writer trả outline, hai chỗ
+(5, 6) sau khi đọc draft, bốn chỗ (7 đến 10) sau cold read:
+
+1. Section 4.1: thêm một mệnh đề giới thiệu difficulty levels của hai
+   tập evaluation, vì Table 3 báo EX theo level.
+2. Section 4.2: quy tắc "client đã đủ 1/K số database thì không nhận
+   thêm" là của code NIID-Bench, không có trong paper của nó; brief
+   yêu cầu ghi nguồn là implementation hoặc nêu như quy tắc của ta.
+3. Section 4.3: model 0.5B chạy trên Spider, DeepSeek-Coder trên Spider
+   và BIRD; RQ2 không chỉ nằm trên Spider.
+4. Appendix A: system message mặc định là fact của chat format của
+   model chính (đã kiểm với Qwen2.5-Coder-1.5B), không nói cho mọi
+   model.
+5. Section 4.1: brief viết "mọi baseline và mọi ablation chạy trên
+   BIRD". Sai: ablation "Clients pooled" của Table 8 chỉ chạy trên
+   Spider. Brief đã sửa.
+6. Section 4.4, FedDPO: thêm fact còn thiếu là các round của FedDPO
+   dùng settings của preference round, với λ = 0 (cùng lệnh, thêm
+   `--nll-alpha 0 --samples-from-round 1 --fixed-reference`).
+7. Mọi ceiling viết lại thành mức nói mạnh nhất được phép, theo rule
+   của bạn ở commit `0a90b1b`; không ô nào còn liệt kê điều paper không
+   nhận (ví dụ "not realistic", "does not report variance over seeds",
+   "no state of the art"). Bản nháp đầu không in câu phủ định nào thuộc
+   loại này.
+8. Section 4.1: cách đọc query viết thành ba bước theo đúng thứ tự của
+   code (`extract_sql`); Section 4.3: "cùng settings cho ba model" sai
+   ở một điểm, giới hạn độ dài training sequence của DeepSeek-Coder là
+   8,704 token (7,168 ở model chính).
+9. Section 4.2: thêm lý do lệch theo query complexity (với database
+   nguyên vẹn, client ở setup nào cũng khác nhau về domain và schema;
+   cấu trúc SQL là thứ mang sang được database chưa thấy, và EX được
+   báo theo đúng các level đó; từ `FEDERATED_DATA_SETUP.md`, 3.3) và
+   nhận xét rằng client của setup IID vẫn khác nhau về cỡ.
+10. Section 4.4 và 4.6: hàng Local SFT cho K model, mỗi model chấm trên
+    cả tập evaluation, in mean kèm client thấp nhất và cao nhất; mỗi
+    hàng được test với hàng tham chiếu của bảng (FedAvg SFT ở các bảng
+    của Section 5, method ở bảng của Section 6), hai hàng của seed thứ
+    hai được test với nhau.
+
+Sau cold read lần hai (round 2), thêm bốn chỗ:
+
+11. Section 4.2: quy tắc 1/K được áp theo từng tier (client đã đủ 1/K
+    khi tới lượt một tier thì không nhận database của tier đó), nên một
+    client có thể vượt 1/K; bản trước đọc như giới hạn cứng và mâu
+    thuẫn với Table 2 (18 của 69 database). Hardness của BIRD train:
+    parser của Spider không đọc được phần lớn query của BIRD, nên dùng
+    cùng tiêu chí trên query do sqlglot parse (đã kiểm trong code).
+12. Section 4.5: thêm hàng "where the recipes come from" (SPFT-SQL và
+    CodeLutra, mục C10). Đây là nội dung mới so với brief bạn đã duyệt.
+13. Section 4.6: câu "FedAvg SFT là hàng tham chiếu ở Section 5" sai với
+    Table 6 (còn test method với bản không warm-up) và hàng Local SFT
+    không có test; brief nêu lại đúng.
+14. Lý do thứ hai của việc lệch theo complexity ("EX báo theo cùng
+    level") chỉ đúng trên Spider; đã bỏ. Writer phát hiện.
+
+Brief của Section 5 (`briefs/05_results.md`, bạn duyệt 2026-11-26) đổi
+mười hai chỗ: hai chỗ khi Section 4 xong, bốn chỗ sau khi writer trả
+outline, sáu chỗ (7 đến 12) sau draft và cold read:
+
+1. Section 5.1: hàng "No training" là pretrained model, nói trong một
+   mệnh đề (Section 4 không còn nói).
+2. Caption của các bảng giải thích dấu sao và p chưa hiệu chỉnh.
+3. D1 (model 0.5B): bỏ conjecture về margin nhỏ hơn (mục C18).
+4. Section 5.3, hàng không warm-up: "EX is level with" đổi thành "no
+   difference in EX is significant after the correction; TS thấp hơn
+   trên cả ba set" (mục C19). Writer phát hiện.
+5. E2: câu "more SFT rounds do not reach it" thu lại thành câu nối với
+   A2 và so sánh trực tiếp trên Spider (mục A15). Writer phát hiện.
+6. Table 6: các hàng là model của setup chính trên Spider (các hàng
+   Spider của Table 3, và method không warm-up train trong cùng setup);
+   caption nói điều đó. Brief cũ thiếu fact này.
+7. E2: "labels chiếm phần lớn thời gian thêm sau training" sai ở
+   preference round 2 trên BIRD (training 195 của 391 phút); đổi thành
+   "training trên pairs là phần lớn nhất ở mọi preference round".
+   Writer phát hiện.
+8. C2: câu "the gain comes from queries that now execute and are
+   correct" thay bằng các số của bảng chuyển outcome (mục A16).
+9. A2: FedAvg SFT có round 5 chỉ trên Spider và text phải nói; round
+   cao nhất của FedAvg SFT trên Spider là round 3 và 4.
+10. Hàng không warm-up: thêm định nghĩa (T_w = 0, bốn preference round
+    từ pretrained model); Section 3 và 4 không định nghĩa nó.
+11. Số câu hỏi "all correct" không còn tính các câu trên database không
+    có row (Spider 2,891 và 5,784 thành 2,327 và 4,623).
+12. C3: bỏ quy tắc cho prediction không parse được (không prediction
+    đúng nào trong các hàng được trích là không parse được).
+
+Outline của writer khác `OUTLINE.md` ở thứ tự trong 5.1 (Table 3 đọc
+trước: A1, A3, A5 và A6; rồi Fig. 2: A4 trước A2) và ở heading của 5.4
+("Analysis of the predictions and cost of a round (RQ4)"); nội dung
+không đổi. Thêm một mệnh đề ngoài brief ở 5.1: gain của preference
+round thứ hai (BIRD +2.54, significant; Spider +0.74, không
+significant), đặt cạnh việc FedAvg SFT không tăng sau round 3.
 
 ## E. Việc chuyển sang các section sau
 
@@ -88,9 +230,11 @@ Bạn duyệt `briefs/03_method.md` ở commit `3638801`. Các thay đổi sau �
 |---|---|
 | 4 | Cách đọc query từ output của model và cách so execution results (Section 3.4 trỏ tới đây); số câu hỏi trên database không có row và số gold SQL lỗi. Đã vào brief `briefs/04_setup.md` (Section 4.1) |
 | Appendix B | Time limit, cấu hình adapter, settings của local training, và quy tắc replacement nếu Section 3.4 bỏ nó. Đã có trong `generated/tab_settings.tex` (các hàng Pairing, Time limit) |
-| 5 | Thời gian ở Table 7 là tổng của các client chạy lần lượt trên một card (Section 4.5 chỉ nói simulation trên một GPU) |
+| Appendix B, khi các hàng GPU về | Thêm vào Table B1: settings của FedDPO, hệ số của FedProx, số epoch của Local SFT, training seed thứ hai (cold read Section 4 thấy thiếu; các run đó chưa commit) |
+| 5 | Hàng "No training" không còn được giải thích ở Section 4: 5.1 nói nó là pretrained model. Caption của các bảng kết quả giải thích dấu sao và p chưa hiệu chỉnh (Section 4.6 đã bỏ câu đó). Cả hai đã vào brief. Thời gian ở Table 7 là tổng của các client chạy lần lượt trên một card (Section 4.5 chỉ nói simulation trên một GPU). Các ceiling của brief `briefs/05_results.md` đã viết lại theo rule của commit `0a90b1b` (15 ô; không còn "not robust", "no state of the art", "never ..."); nội dung claim không đổi |
 | 6 | Số câu hỏi không có sample đúng, có và không có warm-up (mục A1); so sánh trọng số; câu về gold SQL trong preference round nếu bạn đồng ý mục A2 |
-| 7 | Client phải chạy được SQL trên database của mình (Section 3.5 không còn nói) |
+| 7 | Client phải chạy được SQL trên database của mình (Section 3.5 không còn nói). Một training seed và một lần rút partition là limitation nêu ở đây, một lần (C9, C15) |
+| 6 (thêm, từ fact sheet Section 2) | Bốn kết quả đã công bố về likelihood term trong DPO, có locator trong `briefs/02_related_rows.md`, để đặt hàng "without the NLL term" của Table 8 vào đúng bối cảnh: CodeLutra, Table 2 (Spider 17.2 khi chỉ có DPO term, 76.6 với loss đủ); Pang et al., Table 1 (GSM8K 61.8 so với 73.1, một round); Liu et al., App. A, Table 7 (thêm SFT term trên output chỉ có SQL: 58.8 lên 60.0, họ gọi là gain hạn chế); Lanchantin et al., Sec. 4.2 (thêm NLL term không có lợi trong task của họ). Hai kết quả cuối không ủng hộ NLL term; brief Section 6 phải mang cả bốn |
 
 ## F. Còn mở từ trước
 
@@ -126,6 +270,18 @@ thành công thức; FL4SP không có preference stage, các ô về pairs là
 "not applicable"; reference model của ba paper DPO thuộc ba loại khác
 nhau (đổi mỗi iteration, cố định, không nói).
 
+Thêm từ helper thứ hai (17 paper ngoài Table 1, `briefs/02_related_rows.md`, 2026-11-26):
+
+| Notes | Ghi | Paper viết |
+|---|---|---|
+| `LITERATURE.md` 1.4, Liu et al. | "SQL-only DPO lowers EX for 6 of 10 models" | đúng với greedy và Maj@16; với Pass@1 cả 10 model tăng (Table 1). Pairs dựng một lần từ SFT model, DPO 8 epoch, không có NLL term |
+| `bib/report.md`, Lanchantin et al. | chỉ ghi offline, semi-online, online | paper còn ghi thêm NLL term không có lợi (Sec. 4.2) |
+| `LITERATURE.md` 1.4, Think2SQL | "GRPO with EX or partial rewards" | model tốt nhất dùng partial reward (trọng số 0.85) cộng hai format term; bản arXiv v5 trỏ sang một paper TMLR mới hơn, khác tên. Entry trong `references.bib` là preprint |
+| `LITERATURE.md` 1.4, Arctic | reward 1 và 0.1 | đúng; abstract của paper lại viết "solely execution correctness". Model cuối bắt đầu từ checkpoint OmniSQL |
+| `bib/report.md`, SPFT-SQL | "verified synthesis plus self-play" | execution chỉ kiểm tra output của model so với SQL tổng hợp; paper không nói SQL tổng hợp được chạy trước khi dùng. Loss của self-play theo kiểu SPIN, không phải DPO |
+| `LITERATURE.md` 1.22, KGRFL | "an RL-based fusion weights client models" | đúng theo abstract; abstract không nói rõ BART parser là model được train federated |
+| CodeLutra (mọi notes) | gain so với SFT | paper viết "16.9% after four iterations"; Table 1 của chính nó cho 76.6 (iteration 3) so với SFT 67.9, tức 8.7 điểm |
+
 ## Đã xong
 
 | # | Mục | Quyết định (bạn, 2026-11-26: "duyệt" brief Section 4) |
@@ -135,3 +291,6 @@ nhau (đổi mỗi iteration, cố định, không nói).
 | A8 | Appendix A in prompt rút gọn; Appendix B | Giữ bản rút gọn; khi biết tổng số trang thì Appendix B sang supplementary trước |
 | A9 | Baseline chưa chạy và seed thứ hai được mô tả ở Section 4 | Viết theo plan; đọc lại 4.4 và 4.5 khi các hàng về |
 | A10 | Citation NIID-Bench | Đã thêm `li2022niidbench` vào `references.bib` (record từ Crossref và arXiv API) và vào brief |
+| A11 | Hai câu thêm ngoài `CLAIMS.md` trong brief Section 5 | Giữ cả hai (bạn, 2026-11-26: "duyệt" lần hai). Brief `briefs/05_results.md` đã duyệt |
+| A12 | Số liệu mới cho Section 5 | Đã biết |
+| A13 | Số trang: Section 4 khoảng 2.75 (plan 2.3), appendix 1.2 (plan 0.8), tổng dự kiến khoảng 25.7 của 25 | Appendix B sang supplementary như plan; quyết khi các section còn lại có số trang thật |
