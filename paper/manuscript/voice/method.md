@@ -64,3 +64,40 @@
 > denotation as the gold, on a particular database. In contrast, exact
 > string match might produce false negatives: Figure [n] prediction 2 is
 > semantically equivalent to the gold but differs in logical form.
+
+## Tritto et al., GradeSQL, Journal of Intelligent Information Systems 2026 (arXiv 2509.01308), Methodology
+
+> Given a Text-to-SQL dataset D = {(q_i, y_gold_i)}, where q_i is a
+> natural language question and y_gold_i its corresponding gold SQL
+> query, our framework (Figure [n]) comprises three stages: (i)
+> Candidates generation, (ii) Data labeling, and (iii) Supervised
+> Fine-Tuning (SFT). The overall objective is to train an Outcome
+> Reward Model (ORM) tailored to the target dataset.
+>
+> **Stage 1: Candidate Generation.** For each question q_i, we employ
+> an LLM, referred to as the generator G, to produce a set of N
+> candidate SQL queries (the prompt is provided in Appendix [n]).
+> Formally, let q_i denote a natural language question and Σ_i the
+> corresponding database schema. The generator G(q_i, Σ_i) produces N
+> candidate SQL queries: [the set]
+>
+> **Stage 2: Data Labeling.** Once candidates are generated, the next
+> step is to determine which of them correctly capture the intent of
+> q_i. Let R(c_j) denote the execution result of a query c_j, i.e., the
+> set of tuples returned when c_j is executed on the target database. A
+> candidate c_j is labeled as correct if its result set matches that of
+> the gold query y_gold_i, i.e., R(c_j) = R(y_gold_i). Candidates are
+> labeled as incorrect if they fail to capture the intended semantics.
+> This may occur in two cases: (1) Semantic mismatch: The query
+> executes successfully but returns a different result set from the
+> gold query, i.e., R(c_j) ≠ R(y_gold_i). (2) Execution error: The
+> query contains syntactic or runtime errors that cause the database
+> management system (DBMS) to fail during execution. [...]
+>
+> **Stage 3: Supervised Fine-tuning.** [...] We fine-tune the causal LM
+> head as a verifier using Low-Rank Adaptation (LoRA) [ref] under the
+> causal language modeling objective [ref]. Given the input x =
+> Prompt(Σ, q, c), we append the label l ∈ {Yes, No} to obtain the
+> target sequence s = [x; l]. During training, the model conditions on
+> s and is optimized to minimize the negative log-likelihood: [the
+> loss]

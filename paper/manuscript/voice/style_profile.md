@@ -1,10 +1,10 @@
-# Style Profile
+# Style profile
 
-Schema 10 of ARS, attached to the Paper Configuration Record. The
-measures behind it are in `style_profile_data.md`, written by
-`tools/style_profile.py`.
+The register of the paper, measured in published papers of the field
+and of the target journal. The measures behind it are in
+`style_profile_data.md`, written by `tools/style_profile.py`.
 
-**Calibration Source**: ten published papers of the field and of the
+**Sources**: ten published papers of the field and of the
 target journal: GradeSQL (Journal of Intelligent Information Systems,
 2026), CodeS (SIGMOD 2024), BIRD (NeurIPS 2023), the test-suite paper
 (EMNLP 2020), CodeLutra (arXiv 2411.05199), DPO (NeurIPS 2023), LoRA
@@ -12,13 +12,8 @@ target journal: GradeSQL (Journal of Intelligent Information Systems,
 (arXiv 2402.06954). Body text only, without abstracts, floats and
 appendices: 52,000 words.
 
-**Sample Count**: 10
-
-**Standing**: ARS builds this profile from the author's own papers and
-applies it as a soft guide. Here it is built from papers of the field,
-at the owner's decision, so it describes the conventions of the
-discipline and the journal. Register and terms are followed; the
-figures for rhythm describe a range and are not targets.
+**How it binds**: register and terms are followed; the figures for
+rhythm describe a range and are not targets.
 
 **Sentence Length**: mean 21 to 26 words by kind of section
 (introduction 26, related work 23, method 23, experiments 21,
@@ -83,10 +78,9 @@ method sections.
 | federated roles | client, server, global model, local training, communication round, aggregation |
 | adapting the model | fine-tuning, training |
 
-**Conflicts**: ARS defaults to the third person; the papers of the
-field use "we", and the convention of the discipline has priority.
+The terms this paper uses, one for each concept, are fixed in
+`TERMS.md`.
 
-**Use**: the drafting agent reads this profile and the passages in
-`voice/` as examples. `tools/style_profile.py compare <section>.tex`
-gives the same measures for a drafted section beside those of the same
-kind of section in the ten papers.
+**Measuring a draft**: `tools/style_profile.py compare <section>.tex
+--sources DIR --kind method` gives the same measures for a drafted
+section beside those of the same kind of section in the ten papers.

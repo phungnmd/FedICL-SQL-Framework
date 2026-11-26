@@ -1,10 +1,9 @@
-# Paper Outline
+# Paper outline
 
-Phase 2 of the ARS `academic-paper` run. Status: waits for the owner's
-approval; Phase 3 (the argument blueprint) starts after it. Built from
-`WRITING_PLAN.md`, section 5, and the approved `CLAIMS.md`; claim
-numbers (A1 to E2) are those of `CLAIMS.md`. The bibliography keys come
-from the Phase 1 report (`ars/phase1_research/`), which names the
+Approved by the owner on 2026-11-26. Built from `WRITING_PLAN.md`,
+section 5, and the approved `CLAIMS.md`; claim numbers (A1 to E2) are
+those of `CLAIMS.md`. The brief of a section is built from its entry
+here. The bibliography keys come from `bib/report.md`, which names the
 sources of each subsection.
 
 ## Structure Pattern: IMRaD
@@ -28,13 +27,6 @@ holds on perturbed questions and under test-suite accuracy, and what
 changes in the answers and at what cost. The ablation study takes the
 method apart. The discussion interprets the two kinds of round and
 states the limits of the study.
-
-## Review Criteria Coverage Plan
-
-`criteria_binding_unavailable`: no review-target context was resolved
-for this run, so the outline makes no claim of alignment with a venue's
-review criteria. What the target journals expect is recorded in
-`paper/notes/JOURNAL_BAR.md` and was used when the plan was made.
 
 ## Research questions
 

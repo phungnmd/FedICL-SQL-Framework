@@ -1,7 +1,7 @@
 # FedLS-SQL: what the paper claims
 
 Approved by the owner on 2026-11-26, with the decisions of section 7.
-Every packet is built from this file: a section may say less than a
+Every brief is built from this file: a section may say less than a
 claim's ceiling, in its own words, and never more. Values are those of
 `generated/numbers.md` (one training seed); a claim whose rows are not
 committed is marked "waits" and gets its values when the rows are in.
@@ -139,47 +139,29 @@ round, `rft` without the preference term, `feddpo` without the NLL term,
 
 ## 6. Term sheet and notation
 
-The paper's word on the left; the lab's word, which the paper never
-uses, on the right.
+The terms and the notation of the paper are in `TERMS.md`. The owner
+revised them on 2026-11-26 to the terms of the field: the labels are
+"correct" and "incorrect", the two kinds of incorrect query are
+"execution error" and "incorrect result", the model generates a query,
+a client samples and executes. Sections 1 to 5 above keep the words
+they were approved in; a brief states them in the terms of `TERMS.md`.
 
-| Paper | Meaning | Lab word |
-|---|---|---|
-| the model | the trained model (Qwen2.5-Coder-1.5B-Instruct with a LoRA adapter unless named) | student |
-| the pretrained model, "no training" | the model before any round | base student |
-| FedLS-SQL | the method (`\method`) | k2, FedPref |
-| FedAvg SFT | supervised fine-tuning on gold SQL with federated averaging; the main baseline | fedavg, bird_sft |
-| warm-up round | a FedAvg SFT round of the method (two) | SFT stage, k |
-| preference round | a round of sampling, execution labels, pairs, and training with the DPO + NLL loss (two) | DPO + NLL round |
-| sample | a query the model writes for a training question at temperature 1 (ten per question) | |
-| execution label | correct: the query's result equals the gold SQL's result on the client's database; wrong: otherwise | |
-| execution error / wrong result | a wrong query that does not run (time-outs included) / one that runs and returns another result | err, wr |
-| preference pair | a correct and a wrong sample of the same question, both the model's own (two pairs per question) | |
-| reference model | the model the DPO term measures the change against: the global model the round started from | |
-| on-policy pairs | pairs made again in each round from that round's global model | I1 |
-| FedDPO | federated DPO as published in OpenFedLLM: pairs made once, one reference for all rounds, no NLL term | feddpo |
-| the preference term, the NLL term | the two terms of the loss | RFT = without the preference term |
-| client, server, global model, round, adapter | as usual in federated learning | arm, line |
-| EX, TS | execution accuracy, test-suite accuracy | |
-| BIRD dev, Spider test, Spider dev, Spider-Syn, Spider-Realistic, Spider-DK | the evaluation sets | bird, spider, syn, ... |
+Lab words, which the paper never uses, and what stands for each:
 
-Abbreviations given in full at first use: SFT, FedAvg, DPO, NLL, LoRA,
-EX, TS, non-IID.
-
-Notation (the formulas are checked against the code when the Method
-packet is built):
-
-| Symbol | Meaning |
+| Lab word | Paper |
 |---|---|
-| $K$, $k$ | number of clients, a client |
-| $\mathcal{D}_k$ | the questions of client $k$: question $q$, database $d$, gold SQL $y^\star$ |
-| $n_k$ | number of questions of client $k$ |
-| $T$, $T_w$ | rounds in all (4), warm-up rounds (2) |
-| $\theta^{t}$ | the global adapter after round $t$ |
-| $N$, $M$ | samples per question (10), pairs per question (2) |
-| $\mathrm{exec}(y, d)$ | the result of query $y$ on database $d$ |
-| $y^{+}$, $y^{-}$ | the correct and the wrong sample of a pair |
-| $\mathcal{P}_k^{t}$ | the pairs of client $k$ in round $t$ |
-| $\beta$, $\lambda$ | the scale of the DPO term (0.1), the weight of the NLL term (1) |
+| student | the model |
+| base student | the pretrained model |
+| k2, FedPref | `\method` |
+| fedavg, bird_sft | FedAvg SFT |
+| SFT stage, k | warm-up rounds |
+| DPO + NLL round | preference round |
+| err, wr | execution error, incorrect result |
+| I1 | on-policy pairs |
+| feddpo | FedDPO |
+| RFT | the method without the preference term |
+| arm, line | a row of a table (no term) |
+| bird, spider, syn, ... | the evaluation sets by name |
 
 ## 7. Decided (owner, 2026-11-26)
 
@@ -194,5 +176,6 @@ packet is built):
 4. C3 is a result of the paper, written by `paper_numbers.py` from the
    committed predictions; the Results packet carries it in RQ4.
 5. The names of section 6 stand: "warm-up round", "preference round",
-   "FedDPO" for the published baseline.
+   "FedDPO" for the published baseline. The labels and the verbs
+   were revised the same day (`TERMS.md`).
 6. The first contribution is worded as in section 2.
