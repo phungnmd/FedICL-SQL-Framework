@@ -41,7 +41,7 @@ TEMPLATE_PACKAGES = {"graphicx", "multirow", "amsmath", "amssymb", "amsfonts", "
 NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "nfix", "nbrk", "tsgain", "tspval", "fact", "setting")
 # names that are not abbreviations to define (datasets, models, tools, the language itself)
 KNOWN_NAMES = {"SQL", "BIRD", "SQLITE", "II", "III", "IV", "RQ", "ID", "DDL", "GPU", "CUDA", "MB", "GB", "EX", "TS",
-               "IID", "DK", "QWEN", "PEFT", "AI", "JSON", "CSV"}
+               "IID", "DK", "QWEN", "PEFT", "AI", "JSON", "CSV", "CODELUTRA"}
 LAB_WORDS = [r"\bstudents?\b", r"\bteachers?\b", r"\barms?\b", r"\bqueued?\b", r"\bk[0-9]\b", r"\bbird_[a-z0-9_]+", r"\bfeddpo\b",
              r"\brft\b", r"\bfedpref\b", r"\bsftr\d\b", r"\bablations? row\b", r"\bbaseline row\b", r"\bthe lab\b", r"\bpacket\b",
              r"\bowner\b", r"\bprotocol_v2\b", r"\bseed 0\b"]
@@ -124,6 +124,14 @@ def check_numbers(path: Path, text: str, rep: Report) -> None:
                 rep.add("note", path, i, "number", f"'{tok}': a count or a setting? then a macro")
 
 
+def setting_values() -> dict:
+    """What each \\setting{name} prints, from generated/settings.tex."""
+    source = MANUSCRIPT / "generated" / "settings.tex"
+    if not source.exists():
+        return {}
+    return dict(re.findall(r"\\st@def\{([^}]+)\}\{(.*)\}\s*$", source.read_text(encoding="utf-8"), flags=re.M))
+
+
 def check_text(path: Path, text: str, rep: Report) -> None:
     p = prose(text)
     lines = p.split("\n")
@@ -142,7 +150,13 @@ def check_text(path: Path, text: str, rep: Report) -> None:
         if "---" in line or "\u2014" in line:
             rep.add("note", path, i, "dash", "an em dash")
     raw = [strip_comment(l) for l in text.split("\n")]
+    values = setting_values()
     for i, line in enumerate(raw, 1):
+        for m in re.finditer(r"\\setting\{([^}]+)\}(?:~|\\[,; ]|\s)*([A-Za-z%]+)", line):
+            printed = values.get(m.group(1), "").split()
+            if len(printed) > 1 and printed[-1] == m.group(2):
+                rep.add("STOP", path, i, "unit", f"\\setting{{{m.group(1)}}} prints '{values[m.group(1)]}'; "
+                                                 f"the '{m.group(2)}' after it is printed twice")
         if re.search(r"\\(?:paragraph|subparagraph)\*?\{", line):
             rep.add("STOP", path, i, "heading", "a heading below the third level")
         if re.search(r"\\footnote\{\s*\\cite[tp]?\{[^{}]*\}\s*\.?\s*\}", line):

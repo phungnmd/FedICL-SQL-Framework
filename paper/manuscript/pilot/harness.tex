@@ -1,0 +1,51 @@
+%% Pilot of Section 3.4 on its own page, in the class and preamble of main.tex.
+%% Run from paper/manuscript:  make pilot
+%% The labels of the parts that are not written yet are set by hand below.
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+\input{macros}
+\input{generated/numbers}
+\input{generated/settings}
+
+\raggedbottom
+
+\begin{document}
+
+\title[\method]{Pilot: Section 3.4}
+\author*[1]{\fnm{First} \sur{Author}}\email{first.author@example.org}
+\affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\city{City}, \country{Country}}}
+\abstract{Draft of one subsection, shown in the page layout of the manuscript. Sections 3.3, 3.5, 4 and 6, Algorithm 1 and Fig. 1 are referred to and not shown.}
+\maketitle
+
+\makeatletter
+\def\pilotlabel#1#2{{\def\@currentlabel{#2}\label{#1}}}
+\makeatother
+\pilotlabel{sec:warmup}{3.3}
+\pilotlabel{sec:cost}{3.5}
+\pilotlabel{sec:setup}{4}
+\pilotlabel{sec:ablation}{6}
+\pilotlabel{alg:method}{1}
+\pilotlabel{fig:overview}{1}
+
+\setcounter{section}{3}
+\setcounter{subsection}{3}
+\input{pilot/3.4_preference_round}
+
+\bibliography{references}
+
+\end{document}
