@@ -164,7 +164,9 @@ deviate.
   conventional messages.
 - Delegated work (subagents) runs on the cheaper model; the larger model
   is for the main session only (owner, 2026-11-22: cost). In Claude Code
-  that is Opus for subagents.
+  that is Opus for subagents. One exception (owner, 2026-11-26): the
+  writer subagent of the manuscript runs on Fable 5.2 at high effort;
+  helpers and checks stay on Opus.
 - Diagrams of the paper follow `paper/figures/STYLE.md`: a new figure
   starts from `paper/figures/template.svg`, is rendered with
   `paper/figures/render.py`, and its PNG is opened and checked before it
