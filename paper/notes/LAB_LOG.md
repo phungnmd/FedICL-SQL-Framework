@@ -4,6 +4,38 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-26: claims of the manuscript approved; two reads of committed predictions at 4 rounds (no run)
+
+Owner approved `paper/manuscript/CLAIMS.md` with six decisions (its
+section 7). What changes how results are shown:
+
+- Holm correction inside each table instead of over all tests of the
+  paper. Only one star differs: the 0.5B row on Spider test (p 0.0056;
+  0.13 over the 37 tests of the whole paper).
+- Table 6 gets the method without warm-up rounds (k = 0 at 4 rounds).
+  Test-suite accuracy, k = 0 / k = 2 / FedAvg SFT: Spider dev 67.21 /
+  70.41 / 67.99, Syn 51.35 / 55.51 / 51.84, Realistic 57.09 / 62.20 /
+  58.86; k = 2 against k = 0 p 0.010, 0.0014, 0.0067. EX is level on
+  these three sets, and on Spider-DK (no test suite) k = 0 is higher:
+  67.10 against 63.55, p 0.032. The row is printed with the DK cell.
+- Right answers by the form of the query, now written by
+  `paper_numbers.py` (same parser and same split as the read of
+  2026-11-22, schema taken from the prompt; the counts of that read are
+  reproduced: 459, 690, 715, 718). Right answers on other tables or
+  columns than the gold SQL's: BIRD dev, FedAvg SFT 136, 135, 136 at
+  rounds 2, 3, 4, the method 174 at 3 rounds and 191 at 4; Spider test
+  at 4 rounds 83 against 103 (base 83). On the gold's tables and
+  columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against
+  1,576. So at 4 rounds 55 of the 95 questions of net gain on BIRD are
+  in the first group and 20 of 75 on Spider; at 3 rounds on BIRD it was
+  all of the gain. Spider k = 0 at 4 rounds has 141 such right answers
+  (session read, not a macro), in line with its lower test-suite
+  accuracy.
+- Against the story of 2026-11-17: executable SQL with a wrong result
+  does not fall against FedAvg SFT at 4 rounds (BIRD 613 and 658,
+  Spider 370 and 384); execution errors halve (268 to 128, 173 to 84).
+  The paper says so (`CLAIMS.md`, C2).
+
 ## 2026-11-26: vote by execution result on BIRD dev queued for the two main rows (owner; code `bc2e4661`, queue `2df1f8b4`; no run)
 
 Owner's question: with a vote or self-consistency at evaluation, does

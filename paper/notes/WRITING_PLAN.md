@@ -148,20 +148,22 @@ packet, and a claim it finds weak goes to the owner.
 
 ### 3.4 Voice (`voice/`)
 
-Voice is shown, not specified. The folder holds four to six passages,
-one or two per kind of section, from papers that are written the way
-the role describes, and a half-page profile drawn from them (sentence
-length, how a result is introduced, how a claim is worded, how earlier
-work is named). Proposed sources, to be fetched and read in step W5:
-the DPO paper (Rafailov et al.) for the exposition of a method, FedProx
-(Li et al.) for federated framing and analysis, CodeS for Text-to-SQL
-experiments, GradeSQL for the shape of a JIIS paper. The owner may
-replace any of them, or add passages by an author whose writing the
-paper should resemble.
-
-The pilot (step W4) runs on a minimal folder: two passages, one of a
-method exposition and one of an experimental section, with no profile.
-The full folder follows in step W6, once the pilot reads well.
+Voice is shown, not specified. The folder holds passages from papers
+that are written the way the role describes, one file per kind of
+section, and a half-page profile drawn from them (sentence length, how
+a result is introduced, how a claim is worded, how earlier work is
+named). The owner asked for more sources, from well-regarded papers
+(2026-11-26), so the folder was built in full before the pilot, from
+seven papers read in their arXiv sources: LoRA (ICLR 2022), FedProx
+(MLSys 2020) and FedAvg (AISTATS 2017) for introductions and related
+work; DPO (NeurIPS 2023), FedAvg and the test-suite paper (EMNLP 2020)
+for the exposition of a method; CodeS (SIGMOD 2024), the test-suite
+paper, LoRA and GradeSQL (JIIS 2026) for setup, results, ablations and
+the shape of a JIIS paper; DPO for limitations. `voice/README.md` lists
+each passage with its section. The owner may replace any of them, or
+add passages by an author whose writing the paper should resemble.
+`voice/section_rhetoric.md` does not go to the writer; its paragraph
+roles reach it through the packet.
 
 ## 4. Packets (`packets/`, one file per section)
 
@@ -234,9 +236,13 @@ the per-client statistics of the five splits, EX by round of every line.
 `paper/notes/tools/overview_results.py`, writes one macro per cell
 (`\ex{bird}{k2}{4}`, `\gain{...}`, `\pval{...}`) and one `tab_*.tex` per
 table, prints `--` for a row that is not committed and lists those rows
-in `generated/missing.txt`. The Holm correction runs over the tests the
-paper prints. A row enters a table by one line in `ARMS`, as for the
-overview page.
+in `generated/missing.txt`. The Holm correction runs inside each table
+(owner, 2026-11-26): a test is counted once, in the first table that
+prints it, and the comparisons quoted only in the text form a family of
+their own. A row enters a table by one line in `ARMS`, as for the
+overview page. The same script writes, from the committed predictions,
+the right answers by the form of the query (`\fact{form...}`, claim C3
+of `CLAIMS.md`).
 
 Settings are generated the same way. `tools/paper_settings.py` reads the
 committed records of the runs the paper prints (the `config.json` of
@@ -258,7 +264,7 @@ setting in the text is a macro, like a result number.
 | Fig. 2 | EX by round, FedAvg SFT (to round 5) and the method, both datasets | none |
 | Table 4 | three models on Spider, DeepSeek-Coder-1.3B on BIRD | DeepSeek rounds on Spider; all of BIRD |
 | Table 5 | FedAvg SFT and the method in the five setups | IID, alpha 0.5 with 5 clients, alpha 0.5 with 10 clients |
-| Table 6 | Spider-Syn, Realistic, DK; test-suite accuracy | none (the test-suite numbers are committed) |
+| Table 6 | Spider dev, Syn, Realistic, DK; EX and test-suite accuracy; FedAvg SFT, the method without warm-up rounds, the method | none (the test-suite numbers are committed) |
 | Fig. 3 | wrong answers by round split into execution errors and wrong results, FedAvg SFT and the method | none |
 | Table 7 | client time per round (sampling, labels, training) and megabytes sent | none, read from the logs (`scripts/log_times.py`) |
 | Table 8 | ablations at 4 rounds, BIRD and Spider | BIRD: without the preference term round 2, without NLL, k = 0 rounds 3 and 4, k = 3. Spider: without the preference term round 2, pooled clients |
@@ -331,7 +337,9 @@ Times are the owner's and the machine's, estimates.
 The order was revised on 2026-11-26 (owner): the pilot, W6 in the first
 version, runs right after `CLAIMS.md` as W4, and the bibliography and
 the full voice folder (W4 and W5 before) follow it as W5 and W6. No
-text passes through a humanizer.
+text passes through a humanizer. The voice folder was then built in
+full before the pilot (section 3.4), so W6 is what the owner changes in
+it after reading the passages.
 
 W1 to W8 need no result that is missing and can start now. When an
 evaluation is committed later: one line in `ARMS`, `make numbers`,
@@ -526,17 +534,45 @@ undefined abbreviations or unspecified references; 4 to 6 keywords.
 4. Closed (owner, 2026-11-26): the writer runs on Fable 5.2 at high
    effort; helpers and checks stay on Opus. The pilot tests the role
    and the packet, not two models.
-5. The voice passages of section 3.4: the four proposed sources, or
-   others.
-6. Whether the whole experimental picture of a part enters its table.
-   Example: on-policy rounds are above fixed pairs on BIRD and level
-   with them on Spider test; with the Spider column in Table 8 the claim
-   is stated for BIRD.
+5. Closed (owner, 2026-11-26): more voice sources, from well-regarded
+   papers; the folder of section 3.4.
+6. Closed (owner, 2026-11-26; `CLAIMS.md`, section 7): Table 8 keeps a
+   BIRD block and a Spider block until the BIRD rows are read, and the
+   claim on on-policy rounds is worded for BIRD.
 7. The angle of the role (section 3.1): supervision, with federated
    learning as the setting and Text-to-SQL as the task.
-8. The wording of the AI-use statement, which the owner takes to the
-   advisor. Both journals require one for a text drafted by an LLM
-   (JIIS: in the Methods section or a suitable alternative part; CMC:
-   in the acknowledgement, with the tool, the purpose and how the
-   authors reviewed the output). The steps up to `CLAIMS.md` do not
-   depend on it; the pilot starts after the owner's answer.
+8. Closed (owner, 2026-11-26): the AI-use statement follows what
+   published papers commonly write. Read for it: the template most
+   statements follow (Elsevier's, "During the preparation of this work
+   the author(s) used [tool] in order to [reason]. After using this
+   tool, the author(s) reviewed and edited the content as needed and
+   take(s) full responsibility for the content"); the template of Tech
+   Science Press, on the CMC author page and in its policy for all
+   journals ("Acknowledgement: During the preparation of this
+   manuscript, the author(s) used [NAME OF TOOL/SERVICE] for [PURPOSE].
+   The author(s) subsequently reviewed and revised the relevant content
+   and accept(s) full responsibility for the article."); the statement
+   of GradeSQL (JIIS 2026, arXiv version: "This paper used a generative
+   AI tool (ChatGPT) for language refinement and LaTeX formatting
+   assistance only. All ideas, analysis, and results are original.");
+   and two studies of such statements (arXiv 2611.11174: 3.7% of
+   engineering articles of 2025 carry one, most in the template form;
+   a study of medical education journals: a statement names the tool
+   and affirms the authors' responsibility). The form is one or two
+   sentences: tool and version, purpose, the authors' review, their
+   responsibility.
+   - JIIS: in the Declarations, `sections/90_declarations.tex`, under
+     "Use of AI tools" (the journal asks for the Methods section or a
+     suitable alternative part).
+   - CMC: in the Acknowledgement: "During the preparation of this
+     manuscript, the authors used Claude (Anthropic; model Claude Fable
+     5.2) for drafting and revising the text from the authors' results,
+     analyses and outline, and for assistance in writing the code of
+     the experiments. The authors subsequently reviewed and revised the
+     relevant content and accept full responsibility for the article."
+   The purpose is stated as it is: the text is drafted with the tool,
+   so "language editing only", the most common purpose in such
+   statements, would not be true here. A search result reports a newer
+   Springer Nature guidance that asks for an "AI Use Declaration"
+   pointing to the Methods section; the page was not opened (Springer
+   pages), and the owner may send it.
