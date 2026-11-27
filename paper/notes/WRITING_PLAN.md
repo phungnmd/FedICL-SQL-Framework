@@ -445,6 +445,30 @@ decides.
 Applied to the draft by the main session and the helpers; the writer
 does not see this section.
 
+### 7.0 Kinds of finding
+
+A review finds things of different kinds, and each kind has its own
+place and its own life (owner, 2026-11-27: the part on wording and the
+part on checks are kept apart). The review of the first drafts kept
+them in one list: a remark on a sentence stood beside a fact about a
+cited paper, and when the drafts were set aside the facts could not be
+told from the remarks.
+
+| Kind | What it is | Where it is kept | How long | Does it reach the writer |
+|---|---|---|---|---|
+| Check | what stays true whatever a draft says: a number, a setting, what the code does, what a cited paper really states, the strength and the scope of a claim, a result that waits | `briefs/NN_checks.md`, one file a section, four fixed parts: facts about our work; facts about cited papers; claims (strength, scope, what waits); what the section carries for other sections | until submission | never as a file. Through the brief, as a fact or as the strength of a statement; when a draft breaks one, as an editor's note |
+| Wording | how one draft reads: a sentence read twice, a paragraph with two points, an order, the register, a term that changes | the editor's notes of that round, `briefs/NN_notes_editor.md` | it dies with its draft: the file is removed when the section is accepted or written again | yes, as at most five editor's notes a round (section 7.3) |
+| Decision | what only the owner can choose: a claim, a figure, an experiment to queue, a citation to add | `manuscript/REVIEW_NOTES.md`, part A; decided items move to its last part | until decided | no |
+| Reviewer question | what a referee will ask, and where the paper answers | `manuscript/REVIEW_NOTES.md`, part C | until submission | no |
+| Done | what was changed, and when | `LAB_LOG.md` and the commits | history | no |
+
+Each finding is put into its kind when it arises. One remark of a cold
+read often holds two: "this sentence overstates what OpenFedLLM says"
+is a check (what the paper states) and a wording note (the sentence).
+The check is written into the checks file at once, because the note
+will be gone with the draft. A check is stated as the fact, with its
+source, and not as an instruction about a sentence.
+
 ### 7.1 Stops
 
 Six checks stop a section. Each is about truth or about the build, and
@@ -501,6 +525,10 @@ too rigid make the prose stiff and patched):
 
 ### 7.3 Editor's notes
 
+Editor's notes are the wording kind of section 7.0, and
+`briefs/NN_notes_editor.md` holds nothing else: no fact that is not
+also in the checks file of the section, no decision for the owner.
+
 At most five notes a round, the ones that matter most, written as an
 editor would write them: about the reader and the content. A fact that
 is wrong, a reason the reader will ask for, a paragraph that makes two
@@ -518,13 +546,16 @@ what is left is edited by the owner.
 
 While the paper is written, the main session keeps
 `manuscript/REVIEW_NOTES.md` (owner, 2026-11-26), in Vietnamese, for
-the owner to review later: what needs a decision (a new statement, a
-departure from something decided, a figure), passages to read again,
-questions a reviewer is likely to ask and where the paper answers
-them, every change to a brief after its approval, and what a later
-section has to carry. An item is added when it arises, not at the end
-of a section; a decided item moves to the bottom of the file and into
-the file it concerns (`CLAIMS.md`, a brief, this plan).
+the owner to review later. It holds two kinds only (section 7.0): what
+needs a decision (part A: a new statement, a departure from something
+decided, a figure, an experiment, a citation) and the questions a
+reviewer is likely to ask, with where the paper answers them (part C).
+An item is added when it arises, not at the end of a section; a decided
+item moves to the bottom of the file and into the file it concerns
+(`CLAIMS.md`, a brief, a checks file, this plan). A passage the owner
+should read is named in part A with what to decide about it; remarks on
+wording do not go into this file. A change to a brief after its
+approval is in the commit that makes it.
 
 ## 8. Steps
 
@@ -561,12 +592,16 @@ tables and the figures stay.
 | V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
 | V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract; `make register`, `make overlap`, a cold read, the claim audit beside `CLAIMS.md`, and the `writing_quality_check` of the academic-paper skill as a list of inflated words (a confident register drifts to "comprehensive", "robust", "leverages"; the list is read by the main session and rewrites nothing) | the owner reads the pilot beside the tag; 30 min |
 | V3 | The pilot holds: the briefs and the drafts of Sections 5, 6, 7 and 8, then 2 and 4, in the same form. It does not: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
-| V4 | The editor's notes of the first drafts (`briefs/NN_*_notes_editor.md`) and sections B and D of `REVIEW_NOTES.md` leave once the `NN_checks.md` of their section holds what they found about facts; the three referee reports and the three reads on fit and novelty in `cold_reviews/` stay | none |
+| V4 | When a brief is rewritten, the limits of its Ceiling column move into part 3 of its checks file | none |
 
 Removed on 2026-11-27, all at the tag: the writer's outlines and notes
-of the first drafts, the audit of Section 2, the pilot of Section 3.4
-with its brief and its `make` target, the eight cold reads of single
-sections.
+of the first drafts, the editor's notes of the first drafts, the audit
+of Section 2, the pilot of Section 3.4 with its brief and its `make`
+target, the eight cold reads of single sections, and parts B, D, E, F
+and G of `REVIEW_NOTES.md`. What they held about facts and claims is in
+`briefs/01_checks.md` to `07_checks.md`; what needs the owner is in
+`REVIEW_NOTES.md`, A33 to A39. The three referee reports and the three
+reads on fit and novelty stay in `cold_reviews/`.
 
 Then, in this order. Each step is the loop of section 2; the owner's
 time is an estimate.
@@ -636,8 +671,9 @@ paper/manuscript/
   .sources/             arXiv sources of the closest papers for make overlap
                         (2411.05199, 2402.06954); outside Git
   briefs/               one brief per top-level section, and the writer's outline
-                        of that section beside it; NN_checks.md holds the editor's
-                        checks of a section, which the writer does not read
+                        of that section beside it; NN_checks.md holds the checks
+                        of a section and NN_notes_editor.md the wording notes of
+                        its current draft (section 7.0); the writer reads neither
   bib/                  report.md: how each entry of references.bib was verified,
                         and the sources of each subsection
   tools/                paper_numbers.py paper_settings.py charts.py lint.py

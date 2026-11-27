@@ -66,6 +66,25 @@ Changed (no section rewritten yet):
   table above.
 - The drafts as they are: tag `draft-v1-2026-11-27`.
 
+Later the same day (owner: remove what is set aside; keep the kinds of
+review finding apart):
+
+- Removed, all at the tag: the writer's outlines and notes and the
+  editor's notes of the first drafts, the audit of Section 2, the pilot
+  of Section 3.4 with its brief and `make pilot`, eight cold reads of
+  single sections. The sections of the first drafts stay in
+  `sections/` until each is written again, and are not material for
+  the writer of another section.
+- Findings are kept by kind (`WRITING_PLAN.md`, section 7.0): checks
+  (facts and the bounds of claims) in `briefs/NN_checks.md`, wording in
+  the editor's notes of the current draft, decisions and reviewer
+  questions in `REVIEW_NOTES.md`. The seven checks files are written
+  from the review of the first drafts; `REVIEW_NOTES.md` went from 90
+  to 47 KB (parts B, D, E, F, G gone; A33 to A39 new).
+- From the writing references of the ARS skill, read again: confidence
+  is put into the formulation and not into the claim, and the claim
+  audit reads each claim beside its line of `CLAIMS.md`.
+
 Not checked: which similarity tool CMC uses and its threshold.
 
 Open with the owner: the names of the components and the headings of

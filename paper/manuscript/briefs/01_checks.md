@@ -1,0 +1,34 @@
+# Checks: Section 1, Introduction, abstract, keywords
+
+For the editor (main session and helpers). The writer does not read this
+file. It holds what stays true whatever the draft says: facts and the
+bounds of claims. Notes on the wording of a draft are not kept here
+(`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
+of the first drafts (tag `draft-v1-2026-11-27`); the limits that the
+brief of this section still carries in its Ceiling column move into
+part 3 when the brief is rewritten.
+
+## 1. Facts about our work
+
+- Cost. A single preference round does not always take more client time than an SFT round: the ratios are 2.7 and 2.3 on BIRD, 1.6 and 0.9 on Spider (`\fact{cost.spider.pref2.ratio}` prints 0.9). True: no communication beyond that of FedAvg SFT; over the four rounds the method takes more client time on both datasets (BIRD 1,207 against 692 min, Spider 560 against 496). (v1 B29)
+- The headline number of the abstract is the gain on BIRD dev at equal rounds (6.19); the gain over the highest round of FedAvg SFT (5.08) is given in Section 1 and Section 5.1. (owner, 2026-11-27, A30)
+
+## 2. Facts about cited papers
+
+- Zhang et al. do not call their work FL4SP; the paper is cited by its authors. Their re-weighting is named Lorar. (v1 B18)
+- FedDPO (OpenFedLLM): "preference datasets for helpfulness and harmlessness". Not "human preferences": for UltraFeedback the paper says only "the response with the highest score" among four responses of LLMs. (v1 B19)
+- OpenFedLLM states that the reference model is "fixed throughout the FL process". It does not describe any step that constructs pairs again; "constructed once" is our reading of "each client holds a preference dataset". (v1 B10, B20)
+
+## 3. Claims: strength, scope, what waits
+
+- "First" holds with "to our knowledge" and in the scope of federated training of Text-to-SQL models (`CLAIMS.md`, rule 7). (v1 B21, B30)
+- Execution errors fall by about half against FedAvg SFT at 4 rounds, tested and significant on both sets (BIRD dev p = 5.8e-22, Spider test p = 6.2e-14). The incorrect results are not fewer, and their difference is not significant after correction. The abstract may state the first without the second (owner, 2026-11-27, B35).
+- An ablation result named in the Introduction names its set: fixed pairs and reference lower EX on BIRD dev (level on Spider test); without the NLL term a preference round brings no gain on Spider test (the BIRD row is not committed). (v1 B31)
+- The method is a contribution of its own in the list of four (owner, 2026-11-27, B40): supervision left unused; the framework; results, analysis, cost and ablation; release.
+
+## 4. What the section carries for other sections
+
+- SFT, FedAvg, DPO, NLL, LoRA and EX in full at first use; Spider and BIRD cited at first mention; "execution label", "global model", "warm-up round", "preference round", "NLL term", "reference model" each understandable where first used. (v1 E)
+- Why several organizations train one model together. (v1 C28)
+- "Federated Text-to-SQL" means federated training of the model, said once.
+- "non-IID" is not introduced here; its expansion belongs to Section 4.2.
