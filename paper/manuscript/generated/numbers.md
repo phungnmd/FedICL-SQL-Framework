@@ -12,78 +12,91 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\lvl{bird}{base}{0}{challenging}` | 17.24 | bfa497a8 |
 | `\nerr{bird}{base}{0}` | 646 | bfa497a8 |
 | `\nwr{bird}{base}{0}` | 436 | bfa497a8 |
+| `\ts{bird}{base}{0}` | 24.45 | bfa497a8 |
 | `\ex{bird}{fedavg}{1}` | 38.85 | 91e5fcdd |
 | `\lvl{bird}{fedavg}{1}{simple}` | 46.16 | 91e5fcdd |
 | `\lvl{bird}{fedavg}{1}{moderate}` | 28.66 | 91e5fcdd |
 | `\lvl{bird}{fedavg}{1}{challenging}` | 24.83 | 91e5fcdd |
 | `\nerr{bird}{fedavg}{1}` | 372 | 91e5fcdd |
 | `\nwr{bird}{fedavg}{1}` | 566 | 91e5fcdd |
+| `\ts{bird}{fedavg}{1}` | 32.99 | 91e5fcdd |
 | `\ex{bird}{fedavg}{2}` | 42.70 | 53c7bee1 |
 | `\lvl{bird}{fedavg}{2}{simple}` | 50.49 | 53c7bee1 |
 | `\lvl{bird}{fedavg}{2}{moderate}` | 31.25 | 53c7bee1 |
 | `\lvl{bird}{fedavg}{2}{challenging}` | 29.66 | 53c7bee1 |
 | `\nerr{bird}{fedavg}{2}` | 286 | 53c7bee1 |
 | `\nwr{bird}{fedavg}{2}` | 593 | 53c7bee1 |
+| `\ts{bird}{fedavg}{2}` | 36.11 | 53c7bee1 |
 | `\ex{bird}{fedavg}{3}` | 43.68 | f5b4eba2 |
 | `\lvl{bird}{fedavg}{3}{simple}` | 51.57 | f5b4eba2 |
 | `\lvl{bird}{fedavg}{3}{moderate}` | 32.54 | f5b4eba2 |
 | `\lvl{bird}{fedavg}{3}{challenging}` | 28.97 | f5b4eba2 |
 | `\nerr{bird}{fedavg}{3}` | 276 | f5b4eba2 |
 | `\nwr{bird}{fedavg}{3}` | 588 | f5b4eba2 |
+| `\ts{bird}{fedavg}{3}` | 37.22 | f5b4eba2 |
 | `\ex{bird}{fedavg}{4}` | 42.57 | 0603f35a |
 | `\lvl{bird}{fedavg}{4}{simple}` | 51.35 | 0603f35a |
 | `\lvl{bird}{fedavg}{4}{moderate}` | 29.96 | 0603f35a |
 | `\lvl{bird}{fedavg}{4}{challenging}` | 26.90 | 0603f35a |
 | `\nerr{bird}{fedavg}{4}` | 268 | 0603f35a |
 | `\nwr{bird}{fedavg}{4}` | 613 | 0603f35a |
+| `\ts{bird}{fedavg}{4}` | 36.70 | 0603f35a |
 | `\ex{bird}{fixed}{4}` | 46.15 | 7f68fe95 |
 | `\lvl{bird}{fixed}{4}{simple}` | 53.51 | 7f68fe95 |
 | `\lvl{bird}{fixed}{4}{moderate}` | 36.64 | 7f68fe95 |
 | `\lvl{bird}{fixed}{4}{challenging}` | 29.66 | 7f68fe95 |
 | `\nerr{bird}{fixed}{4}` | 91 | 7f68fe95 |
 | `\nwr{bird}{fixed}{4}` | 735 | 7f68fe95 |
+| `\ts{bird}{fixed}{4}` | 39.05 | 7f68fe95 |
 | `\ex{bird}{k0}{1}` | 41.85 | 2dceb56f |
 | `\lvl{bird}{k0}{1}{simple}` | 50.16 | 2dceb56f |
 | `\lvl{bird}{k0}{1}{moderate}` | 31.25 | 2dceb56f |
 | `\lvl{bird}{k0}{1}{challenging}` | 22.76 | 2dceb56f |
 | `\nerr{bird}{k0}{1}` | 219 | 2dceb56f |
 | `\nwr{bird}{k0}{1}` | 673 | 2dceb56f |
+| `\ts{bird}{k0}{1}` | 33.51 | 2dceb56f |
 | `\ex{bird}{k0gold}{1}` | 39.24 | ff917437 |
 | `\lvl{bird}{k0gold}{1}{simple}` | 46.38 | ff917437 |
 | `\lvl{bird}{k0gold}{1}{moderate}` | 29.74 | ff917437 |
 | `\lvl{bird}{k0gold}{1}{challenging}` | 24.14 | ff917437 |
 | `\nerr{bird}{k0gold}{1}` | 105 | ff917437 |
 | `\nwr{bird}{k0gold}{1}` | 827 | ff917437 |
+| `\ts{bird}{k0gold}{1}` | 31.36 | ff917437 |
 | `\ex{bird}{k2}{3}` | 46.22 | 7e36808c |
 | `\lvl{bird}{k2}{3}{simple}` | 53.08 | 7e36808c |
 | `\lvl{bird}{k2}{3}{moderate}` | 36.85 | 7e36808c |
 | `\lvl{bird}{k2}{3}{challenging}` | 32.41 | 7e36808c |
 | `\nerr{bird}{k2}{3}` | 102 | 7e36808c |
 | `\nwr{bird}{k2}{3}` | 723 | 7e36808c |
+| `\ts{bird}{k2}{3}` | 39.05 | 7e36808c |
 | `\ex{bird}{k2}{4}` | 48.76 | 7fec4eae |
 | `\lvl{bird}{k2}{4}{simple}` | 56.00 | 7fec4eae |
 | `\lvl{bird}{k2}{4}{moderate}` | 39.66 | 7fec4eae |
 | `\lvl{bird}{k2}{4}{challenging}` | 31.72 | 7fec4eae |
 | `\nerr{bird}{k2}{4}` | 128 | 7fec4eae |
 | `\nwr{bird}{k2}{4}` | 658 | 7fec4eae |
+| `\ts{bird}{k2}{4}` | 41.59 | 7fec4eae |
 | `\ex{bird}{reagge}{3}` | 46.02 | 7196832a |
 | `\lvl{bird}{reagge}{3}{simple}` | 52.32 | 7196832a |
 | `\lvl{bird}{reagge}{3}{moderate}` | 37.50 | 7196832a |
 | `\lvl{bird}{reagge}{3}{challenging}` | 33.10 | 7196832a |
 | `\nerr{bird}{reagge}{3}` | 112 | 7196832a |
 | `\nwr{bird}{reagge}{3}` | 716 | 7196832a |
+| `\ts{bird}{reagge}{3}` | 38.92 | 7196832a |
 | `\ex{bird}{reaggq}{3}` | 46.22 | 7196832a |
 | `\lvl{bird}{reaggq}{3}{simple}` | 53.30 | 7196832a |
 | `\lvl{bird}{reaggq}{3}{moderate}` | 37.07 | 7196832a |
 | `\lvl{bird}{reaggq}{3}{challenging}` | 30.34 | 7196832a |
 | `\nerr{bird}{reaggq}{3}` | 105 | 7196832a |
 | `\nwr{bird}{reaggq}{3}` | 720 | 7196832a |
+| `\ts{bird}{reaggq}{3}` | 39.31 | 7196832a |
 | `\ex{bird}{rft}{3}` | 44.39 | 62b41303 |
 | `\lvl{bird}{rft}{3}{simple}` | 51.78 | 62b41303 |
 | `\lvl{bird}{rft}{3}{moderate}` | 34.70 | 62b41303 |
 | `\lvl{bird}{rft}{3}{challenging}` | 28.28 | 62b41303 |
 | `\nerr{bird}{rft}{3}` | 248 | 62b41303 |
 | `\nwr{bird}{rft}{3}` | 605 | 62b41303 |
+| `\ts{bird}{rft}{3}` | 37.35 | 62b41303 |
 | `\ex{dk}{base}{0}` | 60.19 | d246d243 |
 | `\lvl{dk}{base}{0}{easy}` | 80.00 | d246d243 |
 | `\lvl{dk}{base}{0}{medium}` | 62.60 | d246d243 |
@@ -640,6 +653,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref1.gpu_ratio}` | 1.8 | round records and queue logs |
 | `\fact{cost.bird.pref1.label_min}` | 159 | round records and queue logs |
 | `\fact{cost.bird.pref1.paired}` | 5877 | round record, pair_stats |
+| `\fact{cost.bird.pref1.paired_pct}` | 62.3 | round record, pair_stats |
 | `\fact{cost.bird.pref1.pairs}` | 11754 | round record, pair_stats |
 | `\fact{cost.bird.pref1.questions}` | 9428 | round record, pair_stats |
 | `\fact{cost.bird.pref1.sample_min}` | 28 | round records and queue logs |
@@ -649,6 +663,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref2.gpu_ratio}` | 1.3 | round records and queue logs |
 | `\fact{cost.bird.pref2.label_min}` | 168 | round records and queue logs |
 | `\fact{cost.bird.pref2.paired}` | 3533 | round record, pair_stats |
+| `\fact{cost.bird.pref2.paired_pct}` | 37.5 | round record, pair_stats |
 | `\fact{cost.bird.pref2.pairs}` | 7066 | round record, pair_stats |
 | `\fact{cost.bird.pref2.questions}` | 9428 | round record, pair_stats |
 | `\fact{cost.bird.pref2.sample_min}` | 28 | round records and queue logs |
@@ -660,6 +675,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.pref1.gpu_ratio}` | 1.6 | round records and queue logs |
 | `\fact{cost.spider.pref1.label_min}` | 3 | round records and queue logs |
 | `\fact{cost.spider.pref1.paired}` | 4013 | round record, pair_stats |
+| `\fact{cost.spider.pref1.paired_pct}` | 46.3 | round record, pair_stats |
 | `\fact{cost.spider.pref1.pairs}` | 8026 | round record, pair_stats |
 | `\fact{cost.spider.pref1.questions}` | 8659 | round record, pair_stats |
 | `\fact{cost.spider.pref1.sample_min}` | 18 | round records and queue logs |
@@ -669,6 +685,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.pref2.gpu_ratio}` | 0.9 | round records and queue logs |
 | `\fact{cost.spider.pref2.label_min}` | 3 | round records and queue logs |
 | `\fact{cost.spider.pref2.paired}` | 1677 | round record, pair_stats |
+| `\fact{cost.spider.pref2.paired_pct}` | 19.4 | round record, pair_stats |
 | `\fact{cost.spider.pref2.pairs}` | 3354 | round record, pair_stats |
 | `\fact{cost.spider.pref2.questions}` | 8659 | round record, pair_stats |
 | `\fact{cost.spider.pref2.sample_min}` | 18 | round records and queue logs |
@@ -676,28 +693,52 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.sft.train_min}` | 124 | FedAvg SFT rounds 1, 2 |
 | `\fact{form.bird.base.0.gold}` | 459 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.base.0.gold_right}` | 333 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.base.0.gold_right_ts}` | 296 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.base.0.gold_ts_fail_pct}` | 11.1 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.base.0.other}` | 1075 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.base.0.other_right}` | 119 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.base.0.other_right_ts}` | 79 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.base.0.other_ts_fail_pct}` | 33.6 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.2.gold}` | 690 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.gold_right}` | 519 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.2.gold_right_ts}` | 470 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.2.gold_ts_fail_pct}` | 9.4 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.2.other}` | 844 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.other_right}` | 136 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.2.other_right_ts}` | 84 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.2.other_ts_fail_pct}` | 38.2 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.3.gold}` | 715 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.gold_right}` | 535 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.3.gold_right_ts}` | 490 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.3.gold_ts_fail_pct}` | 8.4 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.3.other}` | 819 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.other_right}` | 135 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.3.other_right_ts}` | 81 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.3.other_ts_fail_pct}` | 40.0 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.4.gold}` | 706 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.gold_right}` | 517 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.4.gold_right_ts}` | 477 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.4.gold_ts_fail_pct}` | 7.7 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.4.other}` | 828 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.other_right}` | 136 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.fedavg.4.other_right_ts}` | 86 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.4.other_ts_fail_pct}` | 36.8 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.3.gold}` | 718 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.gold_right}` | 535 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.k2.3.gold_right_ts}` | 482 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.3.gold_ts_fail_pct}` | 9.9 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.3.other}` | 816 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.other_right}` | 174 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.k2.3.other_right_ts}` | 117 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.3.other_ts_fail_pct}` | 32.8 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.4.gold}` | 731 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.gold_right}` | 557 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.k2.4.gold_right_ts}` | 506 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.4.gold_ts_fail_pct}` | 9.2 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.4.other}` | 803 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.other_right}` | 191 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.bird.k2.4.other_right_ts}` | 132 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.4.other_ts_fail_pct}` | 30.9 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.spider.base.0.gold}` | 1551 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.gold_right}` | 1378 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.other}` | 596 | committed predictions; tables and columns read by gold_tables_columns |

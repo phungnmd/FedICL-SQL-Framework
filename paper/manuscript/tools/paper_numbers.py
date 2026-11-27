@@ -822,6 +822,10 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             gpu = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "train"))
             facts[f"cost.{ds}.pref{r}.gpu_min"] = (minutes(gpu), "round records and queue logs")
             facts[f"cost.{ds}.pref{r}.gpu_ratio"] = (f"{gpu / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
+            # the questions that yield pairs as a share of the questions asked (on Spider these include
+            # the questions on databases without rows, which yield none)
+            share = 100 * cost[f"cost.{ds}.pref{r}.paired"] / cost[f"cost.{ds}.pref{r}.questions"]
+            facts[f"cost.{ds}.pref{r}.paired_pct"] = (f"{share:.1f}", "round record, pair_stats")
     for k_, v in cost.items():
         if k_.endswith(".rounds"):
             continue
@@ -867,7 +871,10 @@ def form_facts(d: Data) -> dict:
     """Predictions of each row of FORM that read the gold SQL's tables and columns, and the others,
     with the right answers of each group. The names a query reads come from the parser of the
     preference rounds (`gold_tables_columns`, sqlglot, per query scope); a prediction that does
-    not parse counts with the others. Needs sqlglot (the environment of the code repository)."""
+    not parse counts with the others. Where the row has test-suite scores, the right answers of
+    each group that are also correct under the test suite (`_right_ts`) and the share of the right
+    answers that the suite rejects (`_ts_fail_pct`). Needs sqlglot (the environment of the code
+    repository)."""
     sys.path.insert(0, str(CODE))
     from fedls_sql.preference.hints import gold_tables_columns
 
@@ -878,6 +885,9 @@ def form_facts(d: Data) -> dict:
         if d.run(k, "Section 5, form of the answers") is None:
             continue
         n = {"gold": 0, "gold_right": 0, "other": 0, "other_right": 0}
+        ts = d.ts_of.get(k)
+        if ts is not None:
+            n.update(gold_right_ts=0, other_right_ts=0)
         for row_id, x in d.rows_of[k].items():
             if (ds, x["db_id"]) not in schemas:
                 schemas[(ds, x["db_id"])] = prompt_schema(x["full_prompt"])
@@ -890,8 +900,17 @@ def form_facts(d: Data) -> dict:
             group = "gold" if same else "other"
             n[group] += 1
             n[group + "_right"] += x["ex"] == "1"
+            if ts is not None:
+                if ts[row_id] and x["ex"] != "1":
+                    raise SystemExit(f"{k}, row {row_id}: correct under the test suite and not under EX")
+                n[group + "_right_ts"] += ts[row_id]
         for name, v in n.items():
-            facts[f"form.{ds}.{line}.{r}.{name}"] = (v, src)
+            facts[f"form.{ds}.{line}.{r}.{name}"] = (v, src + ("; test-suite scores" if name.endswith("_ts") else ""))
+        if ts is not None:
+            for group in ("gold", "other"):
+                right = n[group + "_right"]
+                facts[f"form.{ds}.{line}.{r}.{group}_ts_fail_pct"] = (
+                    f"{100 * (right - n[group + '_right_ts']) / right:.1f}", src + "; test-suite scores")
     return facts
 
 
