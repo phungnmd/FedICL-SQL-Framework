@@ -4,6 +4,19 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Fig. 2 draws the framework whole (owner)
+
+- `fig_method_overview` redrawn, 468 x 298 pt: the server with both
+  weightings (questions in a warm-up round, pairs in a preference
+  round); client k in front of the K clients; inside it a row of the
+  warm-up rounds (t = 1 to T_w, NLL on the gold SQL query as in FedAvg
+  SFT) and a row of the preference rounds (t = T_w + 1 to T, the four
+  steps). Each component of Section 3.3 is now a part of the figure; the
+  top row of the run and the hand-typed number of warm-up rounds are
+  gone. About 40% of page 6 in the build.
+- The caption describes the earlier figure; the note for the writer is
+  in `briefs/03_notes_editor.md`.
+
 ## 2026-11-28: figures redrawn for CMC at 1:1 and with colours that survive colour blindness; Fig. 1 from the BIRD round 1 samples (owner: carry out)
 
 - Review against the built page and published figures: the diagrams

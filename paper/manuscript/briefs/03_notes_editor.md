@@ -81,3 +81,20 @@ papers, 24% of the words in runs of five or more words of the brief,
 Left for the owner to edit: 3.6, "queries of different meaning return
 the same result" over a database without rows is stated without "can"
 (a count and a column of names still differ there).
+
+## After the drafts: Fig. 2 redrawn (2026-11-28)
+
+The figure now draws the framework whole; the caption describes the
+earlier figure and has to be written again. What the figure shows:
+
+| Part | In the figure | In the section |
+|---|---|---|
+| Server | FedAvg of the adapters into the global model, weighted by the number of questions in a warm-up round and of pairs in a preference round | 3.7, Eq. (aggregation) |
+| Between server and client | the global model down, the adapter and one count up; preference rounds sample again from each new global model | 3.1, 3.6 |
+| Client k | one of K clients, drawn in front of the others; questions, gold SQL and databases never leave it | 3.1 |
+| Warm-up rounds, t = 1 to T_w | prompt, model, NLL on the gold SQL query, "as in FedAvg SFT: gold SQL is the training target" | 3.4 |
+| Preference rounds, t = T_w + 1 to T | steps 1 and 2 (labeling), 3 (pairs), 4 (training on L_DPO + lambda L_NLL, reference the global model of t - 1); "gold SQL is the reference for the labels, not a target" | 3.5, 3.6, 3.7 |
+
+No longer in the figure: the top row (order of a run, deploy) and the
+number of warm-up rounds; N = 10 stays in step 1. The sentence of the
+caption on the weighting of a warm-up round is now in the figure.

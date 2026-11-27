@@ -110,8 +110,12 @@ picture would not carry it. Nothing decorative: no gradients, shadows,
 - A 4 unit grid: padding 8 inside a surface or card, 8 to 16 between
   cards and rows.
 - Reading order is left to right, then top to bottom. Steps in sequence
-  sit in one row; a loop closes through the party that receives and
-  sends (down into the first step, up from the last).
+  sit in one row; a loop closes through the other party, its arrows
+  ending on the panel of the party they reach.
+- Several parties of one kind (the K clients) are one panel with two
+  copies of its frame offset by 4 behind it.
+- Kinds of round that share the exchange with the server are rows of
+  one client panel, each named with its rounds (t = 1, ..., T_w).
 - About six cards and twelve arrows at most. More than that is two
   panels or two figures.
 - Panels are lettered with bold capitals (A, B) at the top left of each
