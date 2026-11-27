@@ -4,6 +4,20 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Section 1, a third round of notes for the redrawn Fig. 1 and the voice (owner; the commit of this entry)
+
+- Caption of Fig. 1 written again for the new example (BIRD
+  `train:5744`, `language_corpus`; 8 correct, 1 incorrect result, 1
+  execution error; the table prints the samples of the two pairs the
+  round built). The four phrases left open after round 2 are corrected
+  (30.9% scoped to the answers on other tables or columns; no pointer
+  from FedDPO to the fixed-pairs row; FedDPO alone in the abstract;
+  "every preference round"). "We" is the subject of the components and
+  the findings.
+- Draft 4: 1,007 words, 29.5 words per sentence (reference 26.3), 46%
+  "we" sentences (43.6); build, lint and overlap clean. Notes and
+  outcome: `briefs/01_notes_editor.md`.
+
 ## 2026-11-28: Section 1 (Introduction) with the abstract drafted by the writer, two rounds of editor's notes; caption of Fig. 2 written again (the commit of this entry)
 
 - Writer: the Antigravity agent, one conversation for Section 1

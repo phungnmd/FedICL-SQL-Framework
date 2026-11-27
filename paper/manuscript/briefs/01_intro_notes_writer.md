@@ -1,27 +1,15 @@
-# Writer's Notes: Section 1 (Introduction), Abstract, and Keywords (Round 2 Revision)
+# Writer's Notes: Section 1 (Introduction), Abstract, and Keywords (Round 3 Revision)
 
-## 1. Summary of Round 2 revisions
-1. **Paragraph 3 and Paragraph 5 (`01_intro.tex`)**:
-   - Replaced the opening of Paragraph 3 with the shared factual statement that neither FedAvg SFT nor existing federated preference alignment executes model queries on client databases, and each has a distinct limitation for Text-to-SQL.
-   - Scoped the limitation of static pairs and a fixed reference model explicitly to `FedDPO as published`, noting that even with execution-labeled initial pairs it cannot track errors of updated global models (`Section~\ref{sec:ablation}`).
-   - Separated pair renewal (`on-policy pair construction`, Paragraph 5) from reference-model renewal (`preference objective`, Paragraph 5).
-   - Trimmed the final sentence of Paragraph 3 to state concisely that centralized methods exploit execution feedback on pooled data whereas under federation only each client holds its databases.
-2. **Paragraph 6 (`01_intro.tex`)**:
-   - Standardized every $p$-value in Paragraph 6 to Holm-adjusted exact McNemar $p$-values (`\padj`, `\errpadj`, `\wrpadj`), defined once at the top of the results sentences.
-   - Named round three explicitly as the peak round of FedAvg SFT on BIRD dev (`\ex{bird}{fedavg}{3}`\%).
-   - Paired FedAvg SFT's fifth-round Spider test score (`\ex{spider}{fedavg}{5}`\%) with its comparison against four-round `\method` (`\gain{spider}{fedavg}{5}{k2}{4}`, `$p = {}$\padj{spider}{fedavg}{5}{k2}{4}`).
-3. **Contribution 3 (`01_intro.tex`)**:
-   - Split the single 82-word item into three concise sentences and framed predictions on other tables or columns clearly as *alternative queries that return the gold result and pass the test suite* (`\fact{form.bird.k2.4.other_right_ts}` vs.\ `\fact{form.bird.fedavg.4.other_right_ts}`, after the generated suite rejects `\fact{form.bird.k2.4.other_ts_fail_pct}`\% of EX matches in that group).
-4. **Smaller facts (`01_intro.tex` and `00_abstract.tex`)**:
-   - Removed "without query execution" from Paragraph 4 (avoiding both the Spider prompt-row inaccuracy and a fourth repetition of FedAvg SFT's limitation).
-   - Replaced "prevailing paradigm" in Paragraph 2 with OpenFedLLM's computational and communication motivation for training LoRA adapters under FedAvg SFT.
-   - Matched `sheng2025slmsql` in Paragraph 1 to fast inference and suitability for edge deployment, and `li2024codes` to deployment on local machines.
-   - Specified the NLL term as acting `on the correct sample of each pair` in both the abstract and Paragraph 5 (with `weight~\setting{pref.nll}` in Paragraph 5).
-   - Expanded `direct preference optimization (DPO)` at first occurrence in `00_abstract.tex` and compressed the FedAvg SFT sentence there so it does not repeat Paragraph 3.
-5. **Length, sentence length, and repetition**:
-   - Reduced `01_intro.tex` from 1,059 words to ~955 rendered words (excluding the Fig. 1 caption and `itemize` markup), with ~24 words per sentence across 41 sentences (matching the reference papers' ~26-word average).
-   - Reduced `00_abstract.tex` to ~253 rendered words across 8 sentences (~31 words per sentence).
-   - Eliminated cross-paragraph repetition of FedAvg SFT's defect, FedDPO's static pairs/fixed reference, the adapter-plus-weight upload, and the appositive phrase introducing `\method`.
+## 1. Summary of Round 3 revisions
+1. **Caption of Fig. 1 (`01_intro.tex`)**: Updated to match the redrawn `figures/fig_idea.pdf` (`paper/figures/fig_idea.svg`) on the BIRD database `\texttt{language\_corpus}`: `$N = {}$\setting{pref.samples}` samples from the global model in the first preference round after `\setting{rounds.warmup}` warm-up rounds yield eight correct samples, one incorrect result, and one execution error; the table displays the samples of the `$M = {}$\setting{pref.pairs}` preference pairs built for this question beside the gold execution result, where two distinct correct samples with identical SQL text (first row) are paired against the incorrect result and the execution error (second and third rows) under the DPO plus NLL loss. Removed all traces of the earlier `student_loan` example.
+2. **Contribution 3 (`01_intro.tex`)**: Scoped `\fact{form.bird.k2.4.other_ts_fail_pct}`\% explicitly to `\method's EX-correct answers on other tables or columns` rather than all EX matches.
+3. **Paragraph 3 (`01_intro.tex`)**: Removed `"even with execution-labeled initial pairs"` and the `(Section~\ref{sec:ablation})` pointer on FedDPO, stating only the published design fact (`each client trains on a fixed dataset of external pairs under one reference model fixed throughout federation, so training never targets the outputs or evolving errors of updated global models`).
+4. **Scope corrections (`00_abstract.tex` and `01_intro.tex`)**:
+   - In `00_abstract.tex`, replaced `"existing federated alignment methods based on DPO, such as FedDPO"` with `federated direct preference optimization (FedDPO), which applies direct preference optimization (DPO) to general preference alignment`.
+   - In Paragraph 5 of `01_intro.tex`, changed `"so every round forms one resampling step"` to `so every preference round forms one resampling step`.
+5. **Voice (`01_intro.tex`)**: Restored active first-person `"we"` where design choices are introduced and findings reported, specifically across the four components of Paragraph 5 (`we run`, `we address`, `we draw`, `we renew ... and add`), the findings of Paragraph 6 (`We observe that \method{} outperforms...`, `we find that preference rounds halve...`), Paragraph 3 (`which we formulate`), Paragraph 4 (`We observe that...`), and Contribution 3 (`We further show that...`), raising `"we"` sentences to 19 of 41 sentences (~46%). Left the abstract and caption in their own registers and left all other passages unchanged.
 
-## 2. Sources
-- Web sources: None used; all cited-work statements trace to `briefs/02_related_rows.md`, `briefs/02_related_table1_rows.md`, and `.sources/abstracts.json`.
+## 2. Lengths and sources
+- `sections/00_abstract.tex`: ~255 rendered words, zero citations, zero typed digits.
+- `sections/01_intro.tex`: ~975 rendered words excluding the Fig. 1 caption and `itemize` markup (~24 words per sentence across 41 sentences), zero typed digits.
+- Web sources: None used.

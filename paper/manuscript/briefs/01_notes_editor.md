@@ -143,3 +143,27 @@ Open after round 2 (no third round without the owner):
   round forms one resampling step": the preference rounds.
 - Fig. 1 is being redrawn with the pairs the run built (a new example
   question); the caption follows the committed figure.
+
+## Draft 3, round 3 (added on the owner's request, 2026-11-28)
+
+Fig. 1 was redrawn from the pairs the round built (BIRD `train:5744`,
+`language_corpus`; 8 correct, 1 incorrect result, 1 execution error);
+the owner asked for the caption and the voice.
+
+| # | Place | The note | Source |
+|---|---|---|---|
+| 1 | Caption of Fig. 1 | The new example: question, database, model and round, 8, 1 and 1, the table as the samples of the two pairs built, two correct samples with the same SQL text as chosen sides; every mention of the former example goes | owner; figure example file |
+| 2 | Contribution 3 | "30.9% of EX matches" is of the answers on other tables or columns; of all EX matches 110 of 748 | open item of round 2 |
+| 3 | Paragraph 3 | The pointer to Section 5.3 for FedDPO: the row keeps the NLL term, BIRD only | open item of round 2 |
+| 4 | Abstract, paragraph 5 | "existing ... methods ... such as FedDPO"; "every round forms one resampling step" | open items of round 2 |
+| 5 | Section | Voice: component names and results as the recurring subject; 28% "we" sentences against 44% | owner; register |
+
+What the writer did: all five carried out. The caption describes the
+new example and the pairs as printed; contribution 3 scopes the 30.9%;
+the FedDPO sentence keeps the published design fact without the
+pointer; the abstract names FedDPO alone; "every preference round";
+"we" is the subject of the components and the findings.
+
+Draft 4: build passes; lint no stop; no overlap; 7% of the section and
+12% of the abstract in runs of the brief. Register: 1,007 words; 29.5
+words per sentence (reference 26.3); 46% "we" sentences (43.6).
