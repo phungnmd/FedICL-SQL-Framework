@@ -122,14 +122,14 @@ from the committed rows; no new result.
 | The second preference round | +2.54 (p 2.1e-4) | +0.74 (p 0.093) |
 | The preference term over training on correct samples, 3 rounds | +1.83 (p 0.057) | +1.59 (p 0.015, 0.14 after Holm) |
 | Warm-up rounds, 0 / 2 / 3 at 4 rounds | not read at equal rounds | 78.02 / 78.20 / 77.97 |
-| FedAvg SFT at the method's client time | not run: the method takes 1,207 min, 7 SFT rounds; 4 are run | run: the method takes 560 min, 5 SFT rounds take 620; 78.20 against 73.92 |
+| FedAvg SFT at the method's GPU time (sampling and training; corrected below) | one round short: the method takes 879 min, 5 SFT rounds take 865; 4 are run | run: the method takes 555 min, 5 SFT rounds take 620; 78.20 against 73.92 |
 | Settings chosen on the set | none (k from Spider) | rounds and settings on test, k on dev |
 | Baselines run, of centralized, local, FedProx, FedDPO | none | centralized; FedDPO at 3 rounds |
 | Models | one | 0.5B run, DeepSeek-Coder-1.3B to 3 rounds |
 | GPU hours to the rows of section 3.4 (estimates) | about 137: 30 queued, 107 not queued | about 59: 33 queued (the IID setup among them), 26 for the two setups at alpha 0.5 |
 
-- Reading: BIRD stays the main dataset. Spider as main would cost
-  about 100 GPU hours less, and its ablation table would show that
+- Reading: BIRD stays the main dataset. With Spider as main the
+  ablation table would show that
   nothing beyond one DPO + NLL round matters there (on-policy pairs,
   the second preference round and the warm-up rounds are all level),
   which is the objection of all three referee reports; the headline
@@ -141,17 +141,51 @@ from the committed rows; no new result.
   have (seeds stated in 1 of 7, at least 3 models in each, 4 to 5
   baselines; `JOURNAL_BAR.md`) and 72 of the 107 hours: the second
   seed (25 h), DeepSeek-Coder-1.3B on BIRD (30 h; Spider has the three
-  models), k = 3 (7 h), the method at 5 rounds (10 h). Asked by all
-  three reports and not in the list: FedAvg SFT rounds 5 to 7 on BIRD
-  (10 h), the comparison at equal client time that Spider already has.
+  models), k = 3 (7 h), the method at 5 rounds (10 h).
 - Proposed order when a card is free, BIRD first: `bird_rft/round_2`,
-  `bird_feddpo`, `bird_central/sft` (queued), FedAvg SFT rounds 5 to 7,
-  `bird_k0` rounds 3 and 4, local SFT, FedProx: about 68 h; then the
-  Spider rows; the four rows above last, or at the revision.
+  `bird_feddpo`, `bird_central/sft` (queued), `bird_k0` rounds 3 and
+  4, local SFT, FedProx; then the Spider rows; the four rows above
+  last, or at the revision.
 
-Open for the owner: the proposed order and the four rows moved to the
-end. Section 3.4 of `RESEARCH_STATE.md` and the queue are unchanged
-until then.
+Corrected the same day (owner): BIRD is slow because of the SQL run on
+the CPU, not because of training, and the rows are compared at equal
+rounds, not at equal compute. My first version of this entry counted
+the label step as compute (1,207 min, 7 SFT rounds) and asked for
+FedAvg SFT rounds 5 to 7 on BIRD; that was wrong in size.
+
+| Minutes, five clients on one card | FedAvg SFT round | Preference round 1 | Preference round 2 |
+|---|---|---|---|
+| BIRD, sampling and training (GPU) | 173 | 310 (1.8 times) | 223 (1.3 times) |
+| BIRD, labels (SQL on the CPU) | | 159 | 168 |
+| Spider, sampling and training (GPU) | 124 | 201 (1.6 times) | 106 (0.9 times) |
+| Spider, labels | | 3 | 2 |
+
+- The labels are 327 of the 1,207 min of the method on BIRD, and about
+  two thirds of a label step is SQL that met the 30 s limit while the
+  CPU was shared and was run again (entry of 2026-11-25, 1 h 54 min of
+  2 h 48 min): a cost of this harness more than of a client. Since
+  code `609ee6da` the labels run beside the training.
+- Without the labels the method takes 879 min on BIRD and 5 FedAvg SFT
+  rounds take 865. The row that answers the three referee reports is
+  one round, `bird_sft/round_5` (about 3 h, already in section 3.4 as
+  an option), not three; FedAvg SFT is already 1.11 lower at round 4
+  than at round 3.
+- The comparison of the paper is at equal rounds, the same
+  communication. What gave the reports their figure is the paper's
+  own "client time", which adds the label step to the training
+  (2.7 and 2.3 times on BIRD, in the introduction, Section 5.4 and
+  Section 7.2). New facts for the rewrite, the old ones unchanged:
+  `\fact{cost.<set>.pref<r>.gpu_min}` and `.gpu_ratio`
+  (`tools/paper_numbers.py`). `briefs/05_checks.md` and item A15 of
+  `REVIEW_NOTES.md` carry it.
+- The read of the main dataset does not rest on compute: BIRD leads
+  by what its rows show (the table above), and the hours are no
+  reason for or against it.
+
+Open for the owner: whether Table 7 and the three sentences on cost
+print the GPU time and the label time apart (A15); the four rows
+moved to the end of the BIRD list. Section 3.4 of `RESEARCH_STATE.md`
+and the queue are unchanged until then.
 
 ## 2026-11-27: three referee reports on the CMC draft (owner: full review, all effort on CMC; no run)
 

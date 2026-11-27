@@ -818,6 +818,10 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             total = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "label", "train"))
             facts[f"cost.{ds}.pref{r}.total_min"] = (minutes(total), "round records and queue logs")
             facts[f"cost.{ds}.pref{r}.ratio"] = (f"{total / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
+            # the same without the label step: sampling and training run on the GPU, the labels are SQL run on the CPU
+            gpu = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "train"))
+            facts[f"cost.{ds}.pref{r}.gpu_min"] = (minutes(gpu), "round records and queue logs")
+            facts[f"cost.{ds}.pref{r}.gpu_ratio"] = (f"{gpu / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
     for k_, v in cost.items():
         if k_.endswith(".rounds"):
             continue

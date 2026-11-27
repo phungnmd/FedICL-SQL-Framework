@@ -636,6 +636,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 |---|---|---|
 | `\fact{cost.bird.adapter_mb}` | 73.9 | round record, communication_bytes |
 | `\fact{cost.bird.pref1.all_correct}` | 416 | round record, pair_stats |
+| `\fact{cost.bird.pref1.gpu_min}` | 310 | round records and queue logs |
+| `\fact{cost.bird.pref1.gpu_ratio}` | 1.8 | round records and queue logs |
 | `\fact{cost.bird.pref1.label_min}` | 159 | round records and queue logs |
 | `\fact{cost.bird.pref1.paired}` | 5877 | round record, pair_stats |
 | `\fact{cost.bird.pref1.pairs}` | 11754 | round record, pair_stats |
@@ -645,6 +647,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref1.total_min}` | 470 | round records and queue logs |
 | `\fact{cost.bird.pref1.train_min}` | 283 | round records and queue logs |
 | `\fact{cost.bird.pref2.all_correct}` | 3016 | round record, pair_stats |
+| `\fact{cost.bird.pref2.gpu_min}` | 223 | round records and queue logs |
+| `\fact{cost.bird.pref2.gpu_ratio}` | 1.3 | round records and queue logs |
 | `\fact{cost.bird.pref2.label_min}` | 168 | round records and queue logs |
 | `\fact{cost.bird.pref2.paired}` | 3533 | round record, pair_stats |
 | `\fact{cost.bird.pref2.pairs}` | 7066 | round record, pair_stats |
@@ -656,6 +660,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.sft.train_min}` | 173 | FedAvg SFT rounds 1, 2, 4 |
 | `\fact{cost.spider.adapter_mb}` | 73.9 | round record, communication_bytes |
 | `\fact{cost.spider.pref1.all_correct}` | 2327 | round record, pair_stats |
+| `\fact{cost.spider.pref1.gpu_min}` | 201 | round records and queue logs |
+| `\fact{cost.spider.pref1.gpu_ratio}` | 1.6 | round records and queue logs |
 | `\fact{cost.spider.pref1.label_min}` | 3 | round records and queue logs |
 | `\fact{cost.spider.pref1.paired}` | 4013 | round record, pair_stats |
 | `\fact{cost.spider.pref1.pairs}` | 8026 | round record, pair_stats |
@@ -665,6 +671,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.spider.pref1.total_min}` | 203 | round records and queue logs |
 | `\fact{cost.spider.pref1.train_min}` | 182 | round records and queue logs |
 | `\fact{cost.spider.pref2.all_correct}` | 4623 | round record, pair_stats |
+| `\fact{cost.spider.pref2.gpu_min}` | 106 | round records and queue logs |
+| `\fact{cost.spider.pref2.gpu_ratio}` | 0.9 | round records and queue logs |
 | `\fact{cost.spider.pref2.label_min}` | 2 | round records and queue logs |
 | `\fact{cost.spider.pref2.paired}` | 1677 | round record, pair_stats |
 | `\fact{cost.spider.pref2.pairs}` | 3354 | round record, pair_stats |
