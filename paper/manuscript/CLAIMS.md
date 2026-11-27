@@ -50,7 +50,9 @@ Macro arguments are `{set}{line}{round}`; lines: `fedavg` FedAvg SFT,
 round, `rft` without the preference term, `feddpo` without the NLL term,
 `k0` and `k3` no and three warm-up rounds, `k0gold` the line `k0` with
 pairs of the gold SQL for the questions without a correct sample. p is
-the exact McNemar p.
+the exact McNemar p. The section, table and figure numbers in the
+headings and rows below are those of the outline of 2026-11-26;
+`OUTLINE.md` maps them to the present outline.
 
 ### A. Against FedAvg SFT (RQ1; Table 3, Fig. 2)
 
@@ -82,7 +84,8 @@ the exact McNemar p.
 |---|---|---|---|---|
 | C1 | The preference rounds halve the execution errors | At 4 rounds, FedAvg SFT against the method: BIRD `\nerr{bird}{fedavg}{4}` 268 against `\nerr{bird}{k2}{4}` 128; Spider 173 against 84. Exact McNemar test on whether the prediction of a question ends in an execution error (owner, 2026-11-27): BIRD `\errpval{bird}{fedavg}{4}{k2}{4}` 5.8e-22 (182 questions fail only with FedAvg SFT, 42 only with the method), Spider `\errpval{spider}{fedavg}{4}{k2}{4}` 6.2e-14 (118 and 29); both significant after Holm in the family of the text | BIRD dev, Spider test | as stated |
 | C2 | Queries that run and return a wrong result do not become fewer | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384. The same test on the incorrect results: BIRD `\wrpval{bird}{fedavg}{4}{k2}{4}` 0.007 (156 questions only with the method, 111 only with FedAvg SFT), Holm-adjusted `\wrpadj{bird}{fedavg}{4}{k2}{4}` 0.077; Spider 0.37 (111 and 97). Neither difference is significant after Holm | BIRD dev, Spider test | The paper says this plainly. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
-| C3 | The method finds right answers that are not written like the gold SQL, and FedAvg SFT does not | Right answers that read other tables or columns than the gold SQL: BIRD, FedAvg SFT 136, 135, 136 at rounds 2, 3, 4, the method 174 at round 3 and 191 at round 4; Spider test at 4 rounds 83 against 103 (83 without training). Right answers on the gold SQL's tables and columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against 1,576 | BIRD dev, Spider test | Macros `\fact{form.<set>.<line>.<round>.other_right}` and `.gold_right` (with `.other`, `.gold` for the group sizes), from the committed predictions. On BIRD 55 of the 95 questions of net gain, on Spider 20 of 75: "a large part of the gain on BIRD", never "the gain sits there". A prediction that does not parse counts with the others |
+| C3 | The method finds right answers that are not written like the gold SQL, and FedAvg SFT does not; on BIRD this holds under test-suite accuracy (owner, 2026-11-27) | Right answers that read other tables or columns than the gold SQL, under EX: BIRD, FedAvg SFT 136, 135, 136 at rounds 2, 3, 4, the method 174 at round 3 and 191 at round 4; Spider test at 4 rounds 83 against 103 (83 without training). Right answers on the gold SQL's tables and columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against 1,576. The same answers that are also correct under the generated test suite of BIRD dev (C4): other tables or columns, FedAvg SFT 84, 81, 86 at rounds 2, 3, 4, the method 117 at round 3 and `\fact{form.bird.k2.4.other_right_ts}` 132 at round 4; the gold SQL's tables and columns at 4 rounds 477 against 506. The suite rejects `\fact{form.bird.k2.4.other_ts_fail_pct}` 30.9% of the method's right answers on other tables or columns and 36.8% of those of FedAvg SFT, against `\fact{form.bird.k2.4.gold_ts_fail_pct}` 9.2% and 7.7% of those on the gold SQL's (without training 33.6% and 11.1%) | BIRD dev (EX and the generated suite), Spider test (EX; it has no test suite) | Macros `\fact{form.<set>.<line>.<round>.other_right}` and `.gold_right` (with `.other`, `.gold` for the group sizes), and on BIRD `.other_right_ts`, `.gold_right_ts`, `.other_ts_fail_pct`, `.gold_ts_fail_pct`, from the committed predictions and test-suite scores. On BIRD 55 of the 95 questions of net gain under EX and 46 of the 75 under the suite, on Spider 20 of 75: "a large part of the gain on BIRD, under EX and under test-suite accuracy", never "the gain sits there". Where the paper gives the EX count of these answers on BIRD it gives the test-suite count beside it: about a third of them fail the suite in every row, so the EX count alone overstates them. May say that a right answer on other tables or columns fails the suite more often than one on the gold SQL's (about a third against about a tenth). No claim that the method's fail less often than those of FedAvg SFT (30.9% against 36.8%, no test). A prediction that does not parse counts with the others |
+| C4 | The gain on BIRD dev holds under test-suite accuracy | BIRD has no official test suite; a suite of 100 variants of each database was generated (`LAB_LOG.md`, 2026-11-27). `\ts{bird}{fedavg}{4}` 36.70 against `\ts{bird}{k2}{4}` 41.59: +4.89 (131 questions against 56, exact p 4.2e-8), against +6.19 under EX. Predictions correct under EX that the suite rejects: 90 for FedAvg SFT, 110 for the method | BIRD dev | Added with the outline of 2026-11-27 and waits for the owner: the wording, and the table that prints the test, which sets its Holm family; there is no `\tsgain` macro for BIRD until then, and the paper types no "+4.89". The suite is ours: the Setup section says how it was generated and how far it agrees with the official suite on Spider dev (99.54% of 30,026 predictions at 100 variants) |
 
 ### D. Breadth (RQ2, RQ3; Tables 4, 5, 6)
 
@@ -118,10 +121,11 @@ the exact McNemar p.
 7. "To our knowledge" on the first contribution, and its scope is
    federated training for Text-to-SQL. FL4SP is the earlier federated
    Text-to-SQL work (SFT). Verifier-driven federated training exists
-   for math and code, federated DPO for human preferences (OpenFedLLM),
+   for math and code, federated DPO on fixed preference datasets
+   (OpenFedLLM),
    and the same sample, label and DPO + NLL loop centrally (CodeLutra):
    the paper says so once, in Section 2.2 and Table 1, cites CodeLutra
-   at the objective in Section 3.6, and names in Section 4.5 the
+   at the objective in the Method section, and names in Section 4.5 the
    settings of the preference rounds that follow it. No other section
    compares the method with CodeLutra: its novelty is stated against
    FedAvg SFT and federated DPO as published, and the paper does not
@@ -148,7 +152,9 @@ the exact McNemar p.
    (corrected 2026-11-27).
 5. A label is the match of results on one database: a wrong query can
    match by chance, and a question on a database without rows gives no
-   pair. Test-suite accuracy on Spider is the check the paper has.
+   pair. Test-suite accuracy is the check the paper has: the official
+   suites of Spider dev, Spider-Syn and Spider-Realistic, and a
+   generated suite on BIRD dev (C3, C4).
 6. One training seed for most rows.
 7. Models of 0.5 to 1.5 billion parameters with LoRA, on SQLite
    benchmarks in English.
@@ -198,7 +204,9 @@ Lab words, which the paper never uses, and what stands for each:
 3. Table 6 has a row for the method without warm-up rounds and its test
    against the method, on every set of the table.
 4. C3 is a result of the paper, written by `paper_numbers.py` from the
-   committed predictions; the Results brief carries it in RQ4.
+   committed predictions; the Results brief carries it in RQ4
+   (Section 5.2 of the outline of 2026-11-27, with its counts under
+   the test suite).
 5. The names of section 6 stand: "warm-up round", "preference round",
    "FedDPO" for the published baseline. The labels and the verbs
    were revised the same day (`TERMS.md`).
@@ -212,4 +220,8 @@ Lab words, which the paper never uses, and what stands for each:
    on accuracy at other numbers of pairs; none was run.
 9. The numbers of questions that yield pairs and of pairs per round are
    columns of Table 7 (E2) and are read in Section 5.4, not in the
-   Method section.
+   Method section. Changed with the outline of 2026-11-27 (owner): the
+   Method section states once the share of questions with correct and
+   incorrect samples at the first preference round
+   (`\fact{cost.bird.pref1.paired_pct}` 62.3% on BIRD); the counts by
+   round stay in the cost table.

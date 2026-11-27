@@ -4,6 +4,36 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the outline has seven sections and no research questions; C3 carries its test-suite counts (owner; `bf5c9e3` and the commit of this entry)
+
+After a read of the structure of 18 papers (nine federated, the three
+federated papers of CMC, six on Text-to-SQL and preference
+optimization; section trees and captions of all, text of parts of
+six), a second agent's proposal on the order of Section 5, and the
+cross-tab below.
+
+- `OUTLINE.md`: seven sections; the ablation study and the cost are
+  subsections of Section 5, ordered main results, analysis of the
+  predictions, ablation, other models and federated setups, perturbed
+  questions, cost; a new 3.2 (Execution-Derived Supervision) with the
+  share of questions that give both kinds of sample; Fig. 1 in the
+  introduction; 2.3 names federated reinforcement learning with
+  verifiable rewards beside FedDPO and FL4SP; the sentence on FedDPO
+  follows its fact rows. Tables and figures are renumbered there, with
+  the map to the numbers the other files still carry.
+- `paper_numbers.py`: `form.<set>.<line>.<round>.other_right_ts`,
+  `.gold_right_ts`, `.other_ts_fail_pct`, `.gold_ts_fail_pct` for the
+  rows with test-suite scores, and `cost.<set>.pref<r>.paired_pct`.
+  The regenerated files only gain lines (these, and the `\ts` values of
+  the BIRD rows, which the committed suite now supplies).
+- `CLAIMS.md`: C3 with its counts under the suite; C4 (the gain on BIRD
+  dev under the suite) added and waiting for the owner; limitation 5,
+  wording 7 and decisions 4 and 9 follow.
+- Not done: the section files, checks files, `pack.py`,
+  `WRITING_GUIDE.md` and the web rule of `AGENTS.md` still follow the
+  eight sections; `paper_numbers.py --check` stops because
+  `overview.html` has no test-suite scores for BIRD.
+
 ## 2026-11-27: C3 against the generated BIRD suite: the share of the gain on other tables or columns holds under test-suite accuracy (owner; CPU on the Mac; no macro yet)
 
 Each BIRD dev prediction split as in C3 (the tables and columns of the
