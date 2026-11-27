@@ -57,6 +57,15 @@ What changed:
 - Removed from Git: `paper/notes/tools/__pycache__` (a compiled file
   that was tracked).
 
+- The paper counts as not yet written (owner: "sao lại là viết lại? bài
+  chưa viết mà"). The plan, the checks files, the section stubs and
+  `REVIEW_NOTES.md` no longer speak of a first draft, of writing again
+  or of its tag; the marks "v1" are gone from the checks files,
+  `briefs/inventory_v1.txt` is `briefs/inventory.txt`, part 5 of
+  `03_checks.md` lists the approved headings and labels, and items A1,
+  A3 and A14 of `REVIEW_NOTES.md` (about the text and the length of
+  that draft) are removed. This log keeps the history.
+
 Not done, left for the owner: the JIIS wrapper and the `jiis` branches
 of the tools (wired into the `Makefile`, `lint.py`, `flatten.py`,
 `charts.py`); `paper/references/` (the library of the earlier ICL

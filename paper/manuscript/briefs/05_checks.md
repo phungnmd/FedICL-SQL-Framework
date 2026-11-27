@@ -3,16 +3,13 @@
 For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
 bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
-of the first drafts (tag `draft-v1-2026-11-27`); the first
-brief of this section is at the same tag, and its facts and the limits
-of its Ceiling column are read from there when the new brief is built.
+(`WRITING_PLAN.md`, section 7.0).
 
 ## 1. Facts about our work
 
-- BIRD dev, execution errors by round of the method: they rise in the second preference round (102 to 128). The transition from round 3 to round 4 (of 723 incorrect results, 56 become correct and 54 become execution errors) is not a macro yet. (v1 B16)
-- Correct predictions by the form of the query (claim C3): the counts are taken for each method separately; EX establishes correctness on the evaluation database only. (v1 B15, A17)
-- Comparison at equal client time. The rows of the paper are compared at equal rounds. Spider: run (the method takes 560 min, 5 SFT rounds 620; 78.20 against 73.92). BIRD: 1,207 min with the label step, about 7 SFT rounds; 4 are run. The label step is SQL executed on the CPU (159 and 168 min on BIRD, 3 and 2 on Spider); sampling and training, the GPU part, take 310 and 223 min on BIRD against 173 for an SFT round (`\fact{cost.bird.pref1.gpu_min}`, `.gpu_ratio`: 1.8 and 1.3; Spider 1.6 and 0.9), so the method takes 879 min and 5 SFT rounds 865 (owner, 2026-11-27: BIRD is slow in the SQL execution, not in training). (v1 A15, C42)
+- BIRD dev, execution errors by round of the method: they rise in the second preference round (102 to 128). The transition from round 3 to round 4 (of 723 incorrect results, 56 become correct and 54 become execution errors) is not a macro yet.
+- Correct predictions by the form of the query (claim C3): the counts are taken for each method separately; EX establishes correctness on the evaluation database only.
+- Comparison at equal client time. The rows of the paper are compared at equal rounds. Spider: run (the method takes 560 min, 5 SFT rounds 620; 78.20 against 73.92). BIRD: 1,207 min with the label step, about 7 SFT rounds; 4 are run. The label step is SQL executed on the CPU (159 and 168 min on BIRD, 3 and 2 on Spider); sampling and training, the GPU part, take 310 and 223 min on BIRD against 173 for an SFT round (`\fact{cost.bird.pref1.gpu_min}`, `.gpu_ratio`: 1.8 and 1.3; Spider 1.6 and 0.9), so the method takes 879 min and 5 SFT rounds 865 (owner, 2026-11-27: BIRD is slow in the SQL execution, not in training).
 - Cost: as in `01_checks.md`.
 - "No training" is the pretrained model; Section 5.1 says so. The captions of the result tables explain the asterisk and the unadjusted p.
 - The second training seed on BIRD: its rows of Table 3 wait.
@@ -32,10 +29,10 @@ None beyond the baselines' sources in Section 4.
 
 - The tests on the two kinds of incorrect prediction (execution error, incorrect result) of the method against FedAvg SFT at 4 rounds are reported here; Section 7 interprets them.
 
-## 5. Structure of the first draft (labels, floats, formulas)
+## 5. Labels, floats and formulas
 
 Other sections and the generated tables refer to these labels. The macros and
-citation keys each section used are in `inventory_v1.txt`.
+citation keys by section are in `inventory.txt`.
 
 ### `sections/05_results.tex`
 

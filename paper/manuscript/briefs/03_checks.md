@@ -3,24 +3,21 @@
 For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
 bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
-of the first drafts (tag `draft-v1-2026-11-27`); the first
-brief of this section is at the same tag, and its facts and the limits
-of its Ceiling column are read from there when the new brief is built.
+(`WRITING_PLAN.md`, section 7.0).
 
 ## 1. Facts about our work
 
-- What leaves a client in a round: the adapter and one integer, its aggregation weight (the number of questions in a warm-up round, the number of pairs in a preference round), and nothing else. Samples, execution results, execution labels and preference pairs stay at the client. (v1 B3, B6; `CLAIMS.md`, contribution 2)
-- The NLL term is averaged over the tokens of the correct sample. With the same lambda it weighs less against the preference term than a summed log-likelihood would, by a factor of the length of the sample. (v1 B2)
-- An empty sample is an incorrect sample under the general rule; it needs no rule of its own in the text. (v1 B7)
-- The reason for warm-up rounds, in counts: questions without a correct sample when the first preference round samples are, on BIRD, 4,035 of 9,428 with the pretrained model and 2,698 after 2 warm-up rounds. On Spider, of the questions on databases with rows: 1,016, then 557. "More questions yield pairs" holds on BIRD only (4,857 to 5,877); on Spider the questions that yield pairs fall (4,454 to 4,013). (v1 A1, B25)
-- Two pairs per question: the reason given is that the number of pairs sets the length of local training; the paper has no ablation over M. (owner, 2026-11-26; v1 A5)
-- Fig. 1 differs from the text in three places, not changed until the owner decides: "Only LoRA adapters travel" (the text: the adapter and one integer); step 4 writes L = L_DPO + L_NLL without lambda; "2 FedAvg rounds" and "N = 10" are typed in the figure. (v1 A4)
+- What leaves a client in a round: the adapter and one integer, its aggregation weight (the number of questions in a warm-up round, the number of pairs in a preference round), and nothing else. Samples, execution results, execution labels and preference pairs stay at the client. (`CLAIMS.md`, contribution 2)
+- The NLL term is averaged over the tokens of the correct sample. With the same lambda it weighs less against the preference term than a summed log-likelihood would, by a factor of the length of the sample.
+- An empty sample is an incorrect sample under the general rule; it needs no rule of its own in the text.
+- The reason for warm-up rounds, in counts: questions without a correct sample when the first preference round samples are, on BIRD, 4,035 of 9,428 with the pretrained model and 2,698 after 2 warm-up rounds. On Spider, of the questions on databases with rows: 1,016, then 557. "More questions yield pairs" holds on BIRD only (4,857 to 5,877); on Spider the questions that yield pairs fall (4,454 to 4,013).
+- Two pairs per question: the reason given is that the number of pairs sets the length of local training; the paper has no ablation over M. (owner, 2026-11-26)
+- Fig. 1 differs from the text in three places, not changed until the owner decides: "Only LoRA adapters travel" (the text: the adapter and one integer); step 4 writes L = L_DPO + L_NLL without lambda; "2 FedAvg rounds" and "N = 10" are typed in the figure.
 
 ## 2. Facts about cited papers
 
 - This section states no fact about CodeLutra: it cites it once, at the objective, and compares nothing. The facts about it are in `02_checks.md` and `04_checks.md`.
-- The NLL term of Pang et al. is also length-normalized (fact row K.1 of `02_related_rows.md`). (v1 E)
+- The NLL term of Pang et al. is also length-normalized (fact row K.1 of `02_related_rows.md`).
 - OpenFedLLM on pairs and the reference model: as in `02_checks.md`.
 
 ## 3. Claims: strength, scope, what waits
@@ -35,28 +32,30 @@ of its Ceiling column are read from there when the new brief is built.
 - The time limit, the adapter configuration, the settings of local training and the replacement rule of pairing are in Appendix B.
 - That a client must be able to execute SQL on its databases is said in Section 7 if not here.
 
-## 5. Structure of the first draft (labels, floats, formulas)
+## 5. Labels, floats and formulas
 
 Other sections and the generated tables refer to these labels. The macros and
-citation keys each section used are in `inventory_v1.txt`.
+citation keys by section are in `inventory.txt`.
 
 ### `sections/03_method.tex`
 
-Headings and labels:
+Headings and labels (`OUTLINE.md`, approved):
 
 - `\section{Method}` `sec:method`
-- `\subsection{Setting and notation}` `sec:setting`
-- `\subsection{Overview}` `sec:overview`
-- `\subsection{Warm-up rounds}` `sec:warmup`
-- `\subsection{A preference round}` `sec:pref-round`
-- `\subsection{What a round costs a client}` `sec:cost`
+- `\subsection{Problem Formulation}` `sec:formulation`
+- `\subsection{Framework Overview}` `sec:overview`
+- `\subsection{Supervised Warm-Up}` `sec:warmup`
+- `\subsection{Client-Side Execution Labeling}` `sec:labeling`
+- `\subsection{On-Policy Preference Pair Construction}` `sec:pairs`
+- `\subsection{Preference Optimization Objective}` `sec:objective`
+- `\subsection{Aggregation and Client Cost}` `sec:aggregation`
 
 Floats:
 
 - figure `fig:overview`, from `figures/fig_method_overview.pdf`
 - algorithm `alg:method`
 
-Equations, as checked against the code for the first draft:
+Equations, as checked against the code:
 
 ```latex
 \begin{equation}
@@ -94,7 +93,7 @@ Equations, as checked against the code for the first draft:
 \end{equation}
 ```
 
-Algorithm, as checked against the code for the first draft:
+Algorithm, as checked against the code:
 
 ```latex
 \begin{algorithm}[t]

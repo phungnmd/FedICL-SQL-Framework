@@ -96,9 +96,9 @@ framework, the baselines, the main results on BIRD dev and Spider test,
 the claims that have numbers and those that wait, and the step of
 section 8 it will take, and waits for the owner's yes.
 
-It does not start from the first drafts or their reviews. The drafts
-are at the tag `draft-v1-2026-11-27`; the brief of a section is read
-there once the new brief is complete, to find a missing fact.
+No section is written yet: `sections/01` to `08` hold a heading and its
+label. A brief is built from the files of section 4, and no earlier
+text is its starting point.
 
 ## 3. The writer
 
@@ -214,8 +214,7 @@ A new brief is built from this form, from `CLAIMS.md`, `OUTLINE.md`,
 the checks file of the section (its part 5 has the labels, floats,
 formulas and Algorithm 1 as checked against the code),
 `generated/numbers.md` and `settings.md`, `bib/report.md`, and
-`briefs/inventory_v1.txt` (the macros and citation keys each section
-used).
+`briefs/inventory.txt` (macros and citation keys by section).
 
 ### 4.1 The outline of a section
 
@@ -257,8 +256,9 @@ The draft is trimmed toward the pages of the fee after it is complete.
 | 7, 8 | Discussion and limitations; Conclusion | `CLAIMS.md` 5; `RESEARCH_STATE.md` 3.1, 5.0 |
 | A, B | Appendix: the prompt; all settings | generated; written by the main session, no prose |
 
-Order of writing: 3, then 1 as the pilot; then 4, 5, 6, 7 with 8, 2;
-then 1 again with the abstract, the keywords and the title candidates.
+Order of writing: 3 and 1 first, as the pilot; then 4, 5, 6, 7 with 8,
+2; last, the Introduction is brought up to date, with the abstract, the
+keywords and the title candidates.
 The body goes in the order of the paper because a writer takes the
 terms of the accepted sections: 4 defines the statistical protocol that
 5 to 7 rely on, 5 and 6 give 7 its findings, and the Introduction
@@ -388,13 +388,12 @@ not go into it.
 State (2026-11-27): the build, the generated numbers, tables, settings
 and charts, `CLAIMS.md`, `TERMS.md`, `OUTLINE.md`, `references.bib` (55
 entries, each verified; `bib/report.md`), the two guides and the checks
-files exist. `sections/01` to `08` hold a heading and its label until
-their section is written; the appendices and the statements stay. The
-first full draft and its briefs are at the tag `draft-v1-2026-11-27`.
+files exist. No section is written yet: `sections/01` to `08` hold a
+heading and its label; the appendices and the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|
-| V2 | Pilot: the briefs of Sections 3 and 1 in the form of section 4; the writer drafts Section 3, then Section 1 with the abstract; all checks of section 7 | the owner approves each brief, then reads the pilot beside the tag |
+| V2 | Pilot: the briefs of Sections 3 and 1 in the form of section 4; the writer drafts Section 3, then Section 1 with the abstract; all checks of section 7 | the owner approves each brief, then reads the pilot |
 | V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the inputs are corrected (section 3.4) and the pilot is written again | the owner; a brief to approve per section |
 | W14 | Whole paper: one writer reads it end to end and evens it out, with `make inventory` before and after so that no number and no reference changes; reader test; `/ars-reviewer`; claim audit of the full text; page count | the owner and the advisor read |
 | W15 | Statements, AI-use statement (section 10), public repository with code, splits and predictions, cover letter, `make submit` | authors, funding and competing interests from the owner |
@@ -430,7 +429,7 @@ paper/manuscript/
   figures/         fig_*.pdf
   CLAIMS.md  OUTLINE.md  TERMS.md  WRITING_GUIDE.md  VOICE_GUIDE.md  REVIEW_NOTES.md
   briefs/          NN_name.md (brief), NN_name_outline.md, NN_checks.md,
-                   NN_notes_editor.md, the fact rows of Section 2, inventory_v1.txt
+                   NN_notes_editor.md, the fact rows of Section 2, inventory.txt
   bib/report.md    how each reference was verified; the sources of each subsection
   voice/           the editor's calibration
   cold_reviews/    reports of the cold-review skill
@@ -440,8 +439,8 @@ paper/manuscript/
 
 `main_jiis.tex`, `sn-jnl.cls`, `sn-basic.bst`, `sections/90_declarations.tex`
 and the `jiis` branches of the tools are the JIIS fallback, not kept up.
-The JIIS submission guidelines as read on 2026-11-26 are in this file at
-the tag `draft-v1-2026-11-27`, section 10.1.
+The JIIS submission guidelines as read on 2026-11-26 are in the Git
+history of this file (its section 10.1 before 2026-11-27).
 
 ## 10. CMC requirements
 

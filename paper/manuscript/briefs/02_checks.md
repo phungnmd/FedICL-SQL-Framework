@@ -3,15 +3,12 @@
 For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
 bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
-of the first drafts (tag `draft-v1-2026-11-27`); the first
-brief of this section is at the same tag, and its facts and the limits
-of its Ceiling column are read from there when the new brief is built.
+(`WRITING_PLAN.md`, section 7.0).
 
 ## 1. Facts about our work
 
-- Section 6 holds the pairs and the reference model fixed together, in one row; the DPO loss alone is a separate row. A sentence of Section 2 that points to Section 6 says "varies these choices", not "all three". (v1 B23)
-- The scale of the preference term, beta, is described in the same words here and in Section 3. (v1 B22)
+- Section 6 holds the pairs and the reference model fixed together, in one row; the DPO loss alone is a separate row. A sentence of Section 2 that points to Section 6 says "varies these choices", not "all three".
+- The scale of the preference term, beta, is described in the same words here and in Section 3.
 
 ## 2. Facts about cited papers
 
@@ -36,13 +33,13 @@ Every cell of Table 1 and every sentence about a cited paper has its row and loc
 
 The reference models of the three DPO papers of Table 1 are of three kinds: renewed each iteration, fixed, not stated.
 
-SKT-SQL (`yi2025sktsql`) could not be read (the publisher blocks it; only an abstract of a preprint under another title). (v1 A21)
+SKT-SQL (`yi2025sktsql`) could not be read (the publisher blocks it; only an abstract of a preprint under another title).
 
 SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, three of which this paper also uses (Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct, Qwen2.5-Coder-1.5B-Instruct). Its inference votes over 64 samples and its SFT uses 916K synthetic rows; our rows are greedy and train on the benchmark training sets.
 
 ## 3. Claims: strength, scope, what waits
 
-- "To our knowledge" in Section 2.4: the approved scope is federated training of Text-to-SQL models (`CLAIMS.md`, rule 7). The first draft widened it to "no earlier method combines federated training with execution labels and renewed pairs of the model's own outputs", which the fact rows support for the works read (FedDPO: pairs from a dataset; Wu et al.: pairs generated once at the server; PubSwap, Fed-GRPO: a reward, no pairs), but our search covered federated fine-tuning of language models, not all federated work on code. Open with the owner (`REVIEW_NOTES.md`, A33).
+- "To our knowledge" in Section 2.4: the approved scope is federated training of Text-to-SQL models (`CLAIMS.md`, rule 7). A wider wording, "no earlier method combines federated training with execution labels and renewed pairs of the model's own outputs", which the fact rows support for the works read (FedDPO: pairs from a dataset; Wu et al.: pairs generated once at the server; PubSwap, Fed-GRPO: a reward, no pairs), but our search covered federated fine-tuning of language models, not all federated work on code. Open with the owner (`REVIEW_NOTES.md`, A33).
 - Liu et al.: their result may be reported with their decoding and model sizes, not explained (owner, A20).
 - The comparison with CodeLutra is made in this section and nowhere else (owner, 2026-11-27): one paragraph in 2.2 and its row of Table 1, at full size: the same loop of sampling, execution labels and DPO with an NLL term, run centrally by one holder of the data; here the labels are computed at each client on databases the server never sees, a federated round is the re-sampling step, and the round's global model is the reference model of every client. What CodeLutra does with questions that yield no pair is not stated in its paper and is not written.
 
@@ -51,10 +48,10 @@ SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLM
 - Section 2 uses the abbreviations and the terms that Section 1 introduces; it expands none.
 - The four published results on a likelihood term in DPO go to Section 6 (`06_checks.md`).
 
-## 5. Structure of the first draft (labels, floats, formulas)
+## 5. Labels, floats and formulas
 
 Other sections and the generated tables refer to these labels. The macros and
-citation keys each section used are in `inventory_v1.txt`.
+citation keys by section are in `inventory.txt`.
 
 ### `sections/02_related.tex`
 
