@@ -4,6 +4,96 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: test-suite accuracy on BIRD dev from a generated suite: the gain of the method holds, 4.89 against 6.19 under EX (owner; CPU on the Mac; code `3f61aebb`, `1585118e`, results `242b7e97`, `6fd0e35f`, not pushed)
+
+BIRD has no official test suite, so one was generated: 100 variants of
+each of the 11 databases of BIRD dev, seed 0, from the fuzzer of
+`db_fuzz.py` (unchanged), seeded with the BIRD dev gold SQL. Evaluation
+data only. Run by a delegated agent; the tables below were read here
+from the committed summaries.
+
+- Rule, set before any prediction was scored: a prediction is
+  test-suite correct when it is EX-correct on the original database and
+  equals the gold result on every variant that counts; a variant counts
+  for a question when the gold runs there, returns rows and is not cut
+  by a LIMIT through tied ORDER BY keys. BIRD comparison and its 30 s
+  budget. A question with no counted variant keeps its EX verdict.
+- Coverage: 1,452 of 1,534 questions have a counted variant (579 on all
+  100; 82 on none, most in `card_games` 21, `formula_1` 20,
+  `debit_card_specializing` 18). No gold failed on a variant. EX on the
+  originals reproduced every committed `ex`.
+- N was set on Spider dev against the official suite, by a rule fixed
+  before the run (highest pooled agreement at seed 0 among 10, 20, 50,
+  100): 29 committed prediction files, 30,026 rows, 2,267 of them
+  EX-correct and rejected by the official suite
+  (`audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0`,
+  `_s1`, `_s2`).
+
+  | N | Agreement with the official suite | Official rejections also rejected | Rejected by ours only (of 18,710) | TS, generated / official |
+  |---:|---:|---:|---:|---:|
+  | 10 | 99.03 | 88.84 | 38 | 63.11 / 62.40 |
+  | 20 | 99.33 | 92.94 | 42 | 62.79 / 62.40 |
+  | 50 | 99.53 | 96.56 | 62 | 62.45 / 62.40 |
+  | 100 | 99.54 | 96.65 | 62 | 62.44 / 62.40 |
+
+  Seeds 1 and 2 at N = 100: 95.63 and 95.68 of the official rejections.
+  The 62 rows rejected by ours only are 12 questions (agent's read, not
+  checked here): 16 rows are correct SQL whose gold has a LIMIT tie
+  inside a subquery, which the order rule does not see; the others
+  differ from the gold and pass the official suite.
+- BIRD dev (`audits/protocol_v2/test_suite/qwen15b_bird_dev`), all 17
+  committed rows scored; the rows the paper uses:
+
+  | Row | EX | Test-suite accuracy | EX-correct, fails the suite |
+  |---|---:|---:|---:|
+  | No training | 29.47 | 24.45 | 77 |
+  | FedAvg SFT, round 3 | 43.68 | 37.22 | 99 |
+  | FedAvg SFT, round 4 | 42.57 | 36.70 | 90 |
+  | Method, 3 rounds | 46.22 | 39.05 | 110 |
+  | Method, 4 rounds | 48.76 | 41.59 | 110 |
+  | Without warm-up, 1 round | 41.85 | 33.51 | 128 |
+  | Without warm-up, 2 rounds | 43.02 | 35.27 | 119 |
+  | Fixed pairs and reference, 4 rounds | 46.15 | 39.05 | 109 |
+  | RFT, 3 rounds | 44.39 | 37.35 | 108 |
+
+  | Contrast | EX (wins/losses, p) | Test-suite accuracy (wins/losses, p) |
+  |---|---|---|
+  | Method against FedAvg SFT, 4 rounds | +6.19 (153/58, 4.6e-11) | +4.89 (131/56, 4.2e-08) |
+  | Method against FedAvg SFT, 3 rounds | +2.54 (125/86, 0.0087) | +1.83 (109/81, 0.050) |
+  | Method, 4 rounds, against without warm-up, 2 rounds | +5.74 (168/80, 2.4e-08) | +6.32 (172/75, 6.1e-10) |
+  | Method, 4 rounds, against fixed pairs and reference | +2.61 (85/45, 5.7e-4) | +2.54 (82/43, 6.2e-4) |
+  | Method against RFT, 3 rounds | +1.83 (115/87, 0.057) | +1.69 (103/77, 0.062) |
+
+- Reading. The gain over FedAvg SFT at 4 rounds holds under the suite
+  and is 1.30 smaller than under EX: the method has 110 EX-correct rows
+  that fail the suite against 90. At 3 rounds the gain is at p 0.050.
+  The rows without warm-up lose the most to the suite (128 and 119
+  rows), as on Spider; they stop at 2 rounds, so no contrast with the
+  method at equal total rounds exists on BIRD.
+- The open point of claim C3 (the entry of 2026-11-27 on the counts by
+  tables and columns), from a script in the session's scratch folder,
+  not committed; 191 and 136 reproduce:
+
+  | BIRD dev | Same tables and columns: EX-correct, of them TS-correct | Other: EX-correct, of them TS-correct |
+  |---|---|---|
+  | No training | 333, 296 | 119, 79 |
+  | FedAvg SFT, round 4 | 517, 477 | 136, 86 |
+  | Method, 4 rounds | 557, 506 | 191, 132 |
+  | Without warm-up, 2 rounds | 469, 407 | 191, 134 |
+
+  In the other group 132 of 191 pass the suite for the method (69%) and
+  86 of 136 for FedAvg SFT (63%); on Spider dev under the official
+  suite about a third passed. Of the 75 more test-suite-correct
+  questions of the method, 29 are in the first group and 46 in the
+  other (group counts, not paired).
+- Limits: how many wrong predictions the suite misses is measured on
+  Spider dev only; BIRD gold SQL returns no row on 31.4% of the
+  (gold, variant) cells, so those cells do not test a prediction.
+- Not done: `CLAIMS.md` (B5 "BIRD at equal rounds waits", D4, C3) and
+  the tables of the manuscript do not carry these numbers yet;
+  `paper_numbers.py` already reads a `ts` value for every BIRD dev row
+  from the audit (agent's read).
+
 ## 2026-11-27: the writer can ask the main session (owner; no run)
 
 Owner: the writer and the main session should interact; while writing,
