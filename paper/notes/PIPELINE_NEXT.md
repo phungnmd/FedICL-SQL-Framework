@@ -307,16 +307,15 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
-5. Any time, CPU only (a few minutes): the pairs of the example of
-   Fig. 1. The BIRD candidates of the figure again, now with the two
-   pairs each question gave in round 1, read from
-   `dpo/round_1/client_<n>_pairs.jsonl` and checked against the
-   `pairs_sha256` its training recorded. Nothing to send back: the line
-   publishes the file. If it stops on "pairs_sha256 differs" or "does not
-   exist", send the line it prints.
+5. Now, CPU only (a few minutes): the pairs of the example of Fig. 1.
+   The first try wrote over the published example file, so its
+   publication stopped on "tracked files changed", and so would the next
+   publication of a worker. The line puts that file back as committed
+   first, then writes the pairs to a file of their own and publishes it.
+   Nothing to send back.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.figure_example --audit audits/protocol_v2/fedpref_bird_sftr2_p2_ddl_alpha01_s0 --round 1 --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'BIRD example failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: the round 1 pairs of the Fig. 1 candidates, BIRD' --paths audits/protocol_v2/figure_examples/fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1.json; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; $f='audits/protocol_v2/figure_examples/fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1.json'; git checkout -- $f; if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.figure_example --audit audits/protocol_v2/fedpref_bird_sftr2_p2_ddl_alpha01_s0 --round 1 --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'BIRD example failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: the round 1 pairs of the Fig. 1 candidates, BIRD' --paths audits/protocol_v2/figure_examples/fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1_dpo.json; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
 ## Running and queued
