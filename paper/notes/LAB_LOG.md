@@ -4,6 +4,19 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Fig. 2 draws the K clients as a row (owner: carry out)
+
+- The K clients behind client k were two frames offset by 4 pt, about
+  1.4 mm in print, so the figure read as one server and one client.
+  FedCO and LESFT (CMC) both draw several clients.
+- Redrawn at the same 468 x 298 pt: a row Client 1, ..., Client k, ...,
+  Client K, each with its own databases and its own pair of arrows to
+  the server; client k is a tab that opens into the panel of both kinds
+  of round. The two sentences between server and client are gone (one
+  repeated the arrow label and the lock line, the other step 1).
+- `STYLE.md` and the note for the writer follow; the caption still has
+  to be written again.
+
 ## 2026-11-28: Fig. 2 draws the framework whole (owner)
 
 - `fig_method_overview` redrawn, 468 x 298 pt: the server with both

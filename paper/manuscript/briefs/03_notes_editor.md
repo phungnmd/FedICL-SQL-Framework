@@ -90,11 +90,15 @@ earlier figure and has to be written again. What the figure shows:
 | Part | In the figure | In the section |
 |---|---|---|
 | Server | FedAvg of the adapters into the global model, weighted by the number of questions in a warm-up round and of pairs in a preference round | 3.7, Eq. (aggregation) |
-| Between server and client | the global model down, the adapter and one count up; preference rounds sample again from each new global model | 3.1, 3.6 |
-| Client k | one of K clients, drawn in front of the others; questions, gold SQL and databases never leave it | 3.1 |
+| Clients | a row Client 1, ..., Client k, ..., Client K, each with its own databases; client k opens into the panel below | 3.1 |
+| Between server and each client | the global model down, the adapter and one count up; labelled once, at client k | 3.1 |
+| Panel of client k | questions, gold SQL and databases never leave it | 3.1 |
 | Warm-up rounds, t = 1 to T_w | prompt, model, NLL on the gold SQL query, "as in FedAvg SFT: gold SQL is the training target" | 3.4 |
 | Preference rounds, t = T_w + 1 to T | steps 1 and 2 (labeling), 3 (pairs), 4 (training on L_DPO + lambda L_NLL, reference the global model of t - 1); "gold SQL is the reference for the labels, not a target" | 3.5, 3.6, 3.7 |
 
-No longer in the figure: the top row (order of a run, deploy) and the
-number of warm-up rounds; N = 10 stays in step 1. The sentence of the
+No longer in the figure: the top row (order of a run, deploy), the
+number of warm-up rounds, and the sentences between server and client
+("only the adapter and one count leave a client"; "preference rounds
+sample again from each new global model", now carried by "from
+θ^{t-1}" in step 1); N = 10 stays in step 1. The sentence of the
 caption on the weighting of a warm-up round is now in the figure.
