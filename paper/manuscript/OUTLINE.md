@@ -99,19 +99,32 @@ last row of Table 1; Section 3 defines it.
 give the reason for each design choice.
 **Content**:
 
-- 3.1 Setting and notation (~300): clients, their questions, gold SQL
-  and databases; the prompt; the adapter and the global model; rounds;
-  what is and is not shared.
-- 3.2 Overview (~200, Fig. 1): the two stages and the flow of one
-  round.
-- 3.3 Warm-up rounds (~200): FedAvg SFT on the gold SQL; why the
-  preference rounds do not start from the pretrained model.
-- 3.4 A preference round (~750): sampling from the round's global
-  model; execution labels; preference pairs; the loss with its two
-  terms and the round's global model as reference; aggregation
-  weighted by pair counts; what leaves a client. Algorithm 1.
-- 3.5 What a round costs a client (~200): the added steps in kind;
-  communication is unchanged (E1). The measured times are in 5.4.
+The section is told by component of the framework, not by the stages of
+a training run (owner, 2026-11-27); Fig. 1 and Algorithm 1 carry the
+order of a run.
+
+- 3.1 Problem Formulation (`sec:formulation`, ~300): clients, their
+  questions, gold SQL and databases; the prompt; the adapter and the
+  global model; rounds; what is and is not shared.
+- 3.2 Framework Overview (`sec:overview`, ~200, Fig. 1): the
+  components and the role of each; the two kinds of round.
+- 3.3 Supervised Warm-Up (`sec:warmup`, ~200): FedAvg SFT on the gold
+  SQL; why the preference rounds do not start from the pretrained
+  model.
+- 3.4 Client-Side Execution Labeling (`sec:labeling`, ~250): sampling
+  from the round's global model; execution on the client's databases;
+  the execution label.
+- 3.5 On-Policy Preference Pair Construction (`sec:pairs`, ~200):
+  pairs of a correct and an incorrect sample of the same question,
+  constructed anew in each preference round; questions that yield no
+  pair.
+- 3.6 Preference Optimization Objective (`sec:objective`, ~300): the
+  preference term and the NLL term; the round's global model as the
+  reference model.
+- 3.7 Aggregation and Client Cost (`sec:aggregation`, ~200): the
+  average weighted by pair counts; what leaves a client; Algorithm 1;
+  the added steps in kind, communication unchanged (E1). The measured
+  times are in 5.4.
 
 **Transition to next**: the questions the experiments answer.
 

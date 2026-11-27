@@ -54,6 +54,35 @@ brief of the section (main session; the owner approves it)
   -> commit (draft) -> the owner reads it later, with REVIEW_NOTES.md
 ```
 
+### 2.1 Starting the writer
+
+The writer is started with the text below and nothing else, on Fable
+5.2 at high effort. The text is itself in the register of the paper,
+since the writer reads it. `N`, the title and the file name are filled
+in.
+
+```text
+You are drafting Section N (TITLE) of a machine learning research
+manuscript prepared for Computers, Materials & Continua. Your drafting
+materials are, in this order: paper/manuscript/WRITING_GUIDE.md,
+paper/manuscript/VOICE_GUIDE.md, paper/manuscript/TERMS.md, the brief
+paper/manuscript/briefs/NN_NAME.md, and the accepted sections that the
+brief designates. Consult no other file of the workspace: the remaining
+files, including the project instructions attached to this session, are
+laboratory records and constitute neither content nor stylistic
+precedent for the manuscript.
+
+First deliverable: the outline specified in Section 5 of the writing
+guide, written to the file that the brief designates. Return the outline
+and await the editor's response before drafting.
+```
+
+The same writer is continued with two further messages: the editor's
+answer to the outline, ending in "Draft the section and write your
+notes to the file that the brief designates"; and, per round, "Editor's
+notes, round K of at most two", followed by the notes and "Revise what
+the notes concern and leave the remainder of the section unchanged."
+
 One writer outlines, drafts and revises a section: it is continued, not
 replaced by a new one. Two writers never run at once; the numbers, the
 charts, the brief of the next section and the audits run beside the
@@ -383,7 +412,7 @@ supplementary file when the count runs over.
 | | Title, abstract, keywords | 0.7 | title as "Name: mechanism for the task in the setting"; abstract of 150 to 250 words with one number (the gain on BIRD); 4 to 6 keywords | `JOURNAL_BAR.md` 3 | last |
 | 1 | Introduction | 1.7 | small models for Text-to-SQL where data cannot be pooled; FedAvg SFT learns from one gold SQL and never uses the databases, federated DPO as published keeps its first pairs and reference; execution is available only at the client; the method in three sentences; headline results; that "federated Text-to-SQL" here means training; 4 contributions, the last the released code, splits and predictions | `RESEARCH_STATE.md` 3.1; `LITERATURE.md` 1.22 | after 7 |
 | 2 | Related work | 1.8 | 2.1 small models for Text-to-SQL; 2.2 preference optimization and execution feedback for SQL and code; 2.3 federated fine-tuning of language models, federated DPO; 2.4 federated semantic parsing and Text-to-SQL; Table 1 | `LITERATURE.md` 1.2, 1.3, 1.4, 1.22, 2; `DPO_RESEARCH.md` 2, 7; `RESEARCH_STATE.md` 3.6; `bib/report.md` | after 6 |
-| 3 | Method | 4.0 | 3.1 setting and notation; 3.2 overview, Fig. 1; 3.3 SFT warm-up rounds; 3.4 a preference round: sampling, execution labels, pairs, the DPO + NLL loss with the round's global model as reference, aggregation; Algorithm 1; 3.5 what it costs a client | `RESEARCH_STATE.md` 3.2, 3.3 (settings), 3.8; `DPO_RESEARCH.md` 3.1 to 3.4; the loss in `fedls_sql/training/dpo.py` | first |
+| 3 | Method | 4.0 | by component (owner, 2026-11-27): 3.1 problem formulation; 3.2 framework overview, Fig. 1; 3.3 supervised warm-up; 3.4 client-side execution labeling; 3.5 on-policy preference pair construction; 3.6 preference optimization objective (the DPO + NLL loss with the round's global model as reference); 3.7 aggregation and client cost, Algorithm 1 | `RESEARCH_STATE.md` 3.2, 3.3 (settings), 3.8; `DPO_RESEARCH.md` 3.1 to 3.4; the loss in `fedls_sql/training/dpo.py` | first |
 | 4 | Experimental setup | 2.3 | datasets and metrics; federated setups, Table 2; models; the six baselines; implementation (prompt, LoRA, rates, rounds, sampling, decoding, seed, serving); McNemar test with Holm correction | `RESEARCH_STATE.md` 2, 3.4; `FEDERATED_DATA_SETUP.md` 3, 4 | after 3 |
 | 5 | Results | 5.5 | RQ1 against the baselines (Table 3, Fig. 2); RQ2 other models and federated setups (Tables 4, 5); RQ3 perturbed questions and test-suite accuracy (Table 6); RQ4 what changes in the errors and what it costs (Fig. 3, Table 7) | `RESEARCH_STATE.md` 5.0; generated tables | after 4; a number that waits prints as `??` and its sentence is read again when the row is in |
 | 6 | Ablation study | 1.8 | on-policy rounds, the NLL term, the preference term, the number of warm-up rounds, aggregation weights, pooled clients (Table 8) | `RESEARCH_STATE.md` 5.0, second table | after 5; read again when its rows are in |
@@ -599,7 +628,7 @@ complete, to find a fact that is missing, never as its starting text.
 
 | Step | What | Waits on |
 |---|---|---|
-| V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
+| V1 | Done (owner, 2026-11-27): `TERMS.md` has the names of the components; `OUTLINE.md` has Section 3 by component, with its labels | none |
 | V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract (the two sections where the voice shows most: the method by component, and the limitation, the insight and the novelty of the Introduction); `make register`, `make overlap`, a cold read, the claim audit beside `CLAIMS.md`, and the `writing_quality_check` of the academic-paper skill as a list of inflated words (a confident register drifts to "comprehensive", "robust", "leverages"; the list is read by the main session and rewrites nothing) | the owner reads the pilot beside the tag; 30 min |
 | V3 | The pilot holds: the other sections in the order 4, 5, 6, 7 with 8, 2, then 1 again with the abstract, the keywords and the title candidates. The body goes in the order of the paper, because a writer reads the accepted sections before its own and takes their terms: 4 defines the statistical protocol that 5 to 7 rely on, 5 and 6 give 7 its findings. Related work comes after the ablation it points to and before the Introduction, whose gap it supplies. The Introduction of the pilot is written again last, from the same brief brought up to date, since it promises what Sections 5 to 7 then say; the abstract follows it. The pilot does not hold: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
 | V4 | When a brief is built, the limits that the Ceiling column of the first brief held (read at the tag) go into part 3 of its checks file | none |
