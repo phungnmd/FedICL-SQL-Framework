@@ -223,8 +223,8 @@ deviate.
   not a result: it goes into no note, results table, page or message
   as one, and `make submit` stops while a placeholder or a guess is
   left. When the row is committed the number's macro replaces it and
-  its sentence is read again; `paper/manuscript/REVIEW_NOTES.md` lists
-  the guesses.
+  its sentence is read again; the checks file of its section
+  (`paper/manuscript/briefs/NN_checks.md`, part 3) lists the guesses.
 - `PIPELINE_NEXT.md` answers two questions on its first screen: what to run
   now and what is running. Four sections in this order: `Status` (what each
   GPU does and how that is known), `Run now` (numbered steps, each with one
