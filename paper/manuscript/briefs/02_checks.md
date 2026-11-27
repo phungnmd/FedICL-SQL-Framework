@@ -38,7 +38,7 @@ The reference models of the three DPO papers of Table 1 are of three kinds: rene
 
 SKT-SQL (`yi2025sktsql`) could not be read (the publisher blocks it; only an abstract of a preprint under another title). (v1 A21)
 
-SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, two of them ours (Qwen2.5-Coder-0.5B-Instruct, Qwen2.5-Coder-1.5B-Instruct) and DeepSeek-Coder-1.3B-Instruct. Its inference votes over 64 samples and its SFT uses 916K synthetic rows; our rows are greedy and train on the benchmark training sets.
+SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, three of which this paper also uses (Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct, Qwen2.5-Coder-1.5B-Instruct). Its inference votes over 64 samples and its SFT uses 916K synthetic rows; our rows are greedy and train on the benchmark training sets.
 
 ## 3. Claims: strength, scope, what waits
 
