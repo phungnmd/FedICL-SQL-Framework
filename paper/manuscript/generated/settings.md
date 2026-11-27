@@ -52,6 +52,7 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Preference round | LoRA dropout | `\setting{pref.dropout}` | 0 | fedls_sql/federated/pref_rounds.py |
 | Preference round | Averaging weights | `\setting{pref.weights}` | pair count | preference round records (setup.json, arm.json, round.json) |
 | Preference round | Time limit of the execution labels | `\setting{pref.timeout}` | the time limit of evaluation on the benchmark | fedls_sql/eval/metrics.py |
+| Preference round | Threads of the execution labels | `\setting{pref.label_threads}` | 16 | queues/active.toml |
 | Evaluation | Decoding | `\setting{eval.decoding}` | greedy, one output | fedls_sql/models/vllm_student.py |
 | Evaluation | New tokens | `\setting{eval.tokens}` | 256 | fedls_sql/eval/loop.py |
 | Evaluation | Repetition penalty | `\setting{eval.penalty}` | none | evaluation records (config.json, metrics.json) |

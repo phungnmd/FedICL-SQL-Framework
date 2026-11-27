@@ -15,7 +15,7 @@ bounds of claims. Notes on the wording of a draft are not kept here
 - Every federated row has T = 4. FedAvg SFT has a fifth round on Spider only, used in the comparison at more GPU time for the baseline; Section 4.4 says so, not Section 5.1.
 - Settings that follow CodeLutra, named once, in the implementation subsection: number of samples, temperature, beta, learning rate, pairs per update, epochs, weight decay. Lambda is not in the list: the NLL term here is averaged over tokens. (owner, 2026-11-27)
 - The optimizer of the preference rounds differs from that of the SFT rounds; no control row exists yet. (referee reports; open, A34)
-- The times of Table 8 are totals of the clients run one after another on one card: GPU minutes (sampling, training, their total) and, apart, the CPU minutes of the label step.
+- The times of Table 8 are totals of the clients run one after another on one card: GPU minutes (sampling, training, their total) and, apart, the minutes of the label step (elapsed time of SQL execution on 16 CPU threads, not CPU time).
 - Appendix A prints the shortened prompt; Appendix B goes to the supplementary file first if the pages run over (owner, A8).
 - Scope of model size: every experiment uses a model of 0.5B to 1.5B parameters (the main model `\setting{model.size}`; the others `\setting{models.other}`), with LoRA. No larger model is evaluated. The section states the range once.
 

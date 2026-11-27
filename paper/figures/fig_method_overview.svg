@@ -115,7 +115,7 @@
   <path class="comm" d="M251.5 140 V76"/>
   <text class="end" x="79" y="100">Global model <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
   <text x="258" y="100">Adapter <tspan class="i">θ</tspan><tspan class="sub" dy="2">k</tspan><tspan class="sub" dx="-3" dy="-6">t</tspan></text>
-  <text class="mid i" x="168.5" y="94">Only LoRA adapters travel</text>
+  <text class="mid i" x="168.5" y="94">Only adapters and pair counts travel</text>
   <text class="mid i" x="168.5" y="106">Next round samples again from θ<tspan class="sub" dy="-3.5">t</tspan></text>
 
   <!-- flow between the four steps: down, across, up -->
@@ -197,7 +197,7 @@
   <text class="b mid" x="212" y="176">+</text>
   <rect class="chip-violet" x="219" y="167" width="32" height="12" rx="2.5"/>
   <text class="mid" x="235" y="175.8">LoRA</text>
-  <text class="mid" x="217" y="201"><tspan class="i">L</tspan> = <tspan class="i">L</tspan><tspan class="sub" dy="2">DPO</tspan><tspan dy="-2"> + </tspan><tspan class="i">L</tspan><tspan class="sub" dy="2">NLL</tspan></text>
+  <text class="mid" x="217" y="201"><tspan class="i">L</tspan> = <tspan class="i">L</tspan><tspan class="sub" dy="2">DPO</tspan><tspan dy="-2"> + </tspan><tspan class="i">λL</tspan><tspan class="sub" dy="2">NLL</tspan></text>
   <text class="b" x="262" y="178">DPO + NLL</text>
   <text x="262" y="188">on the pairs,</text>
   <text x="262" y="198">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>

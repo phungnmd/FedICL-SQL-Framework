@@ -1,10 +1,11 @@
 %% Written by tools/paper_numbers.py. Do not edit.
 \setlength{\tabcolsep}{2.5pt}%
+\small
 \begin{tabular}{@{}llrrrrrrr@{}}
 \toprule
- &  & \multicolumn{2}{c}{Trained on} & \multicolumn{3}{c}{GPU minutes} & CPU minutes &  \\
+ &  & \multicolumn{2}{c}{Trained on} & \multicolumn{3}{c}{GPU minutes} & Labeling &  \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-7}\cmidrule(lr){8-8}
-Clients' data & Round & Questions & Pairs & Sampling & Training & Total & Labels & Sent (MB) \\
+Clients' data & Round & Questions & Pairs & Sampling & Training & Total & Minutes & Sent (MB) \\
 \midrule
 BIRD train & FedAvg SFT & 9{,}428 &  &  & 173 & 173 &  & 73.9 \\
  & Preference round 1 & 5{,}877 & 11{,}754 & 28 & 282 & 310 & 159 & 73.9 \\

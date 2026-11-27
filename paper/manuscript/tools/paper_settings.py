@@ -266,6 +266,11 @@ def collect() -> list[tuple]:
     in_code("fedls_sql/eval/metrics.py", r'"kind": "question"[\s\S]{0,200}?"budget": _budget\(evaluator\)',
             "the time limit of the execution labels")
     add(g, "Time limit of the execution labels", "pref.timeout", "the time limit of evaluation on the benchmark", source="fedls_sql/eval/metrics.py")
+    # the label step executes SQL on several threads; its time in Table 8 is elapsed time
+    queue = (CODE / "queues/active.toml").read_text(encoding="utf-8")
+    threads = same([re.search(rf'^{name} = ".*--score-workers (\d+)', queue, re.M).group(1)
+                    for name in ("DPO2_ROUND", "BIRD_K2")], "threads of the label step")
+    add(g, "Threads of the execution labels", "pref.label_threads", threads, source="queues/active.toml")
 
     g = "Evaluation"
     add(g, "Decoding", "eval.decoding", "greedy, one output", source="fedls_sql/models/vllm_student.py")

@@ -513,9 +513,11 @@ entries, each verified; `bib/report.md`), the two guides, the checks
 files, the isolated runner and the tool that assembles a pack exist.
 `WRITING_GUIDE.md` and `TERMS.md` are in the form of the pack; the
 abstracts of 54 of the 56 references and two example papers are in
-`.sources/`. No brief and no section is written
-yet: `sections/01` to `08` hold a heading and its label; the appendices
-and the statements exist.
+`.sources/`. The brief of Section 3 is written and its pack is built
+(`build/pack_03/`, outside Git; `make pack S=03` builds it again); the
+owner starts its writer (2026-11-27). No section is written yet:
+`sections/01` to `07` hold a heading and its label; the appendices and
+the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|

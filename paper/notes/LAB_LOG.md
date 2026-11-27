@@ -50,6 +50,25 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   comparison, a CPU count of the share of chosen sides the variants
   reject, then about 5 h of training, estimate).
 
+## 2026-11-27: what the read of the brief left open is corrected; the writer of Section 3 starts in a new session (owner; the commit of this entry)
+
+- `AGENTS.md`: FedAvg SFT "never executes a query on the databases a
+  client also holds (they enter training only as text of the prompt)",
+  in place of "never uses the databases".
+- Fig. 2 (`paper/figures/fig_method_overview.svg`, rendered and read):
+  "Only adapters and pair counts travel" in place of "Only LoRA
+  adapters travel"; the loss is printed with lambda. "2 FedAvg rounds"
+  and "N = 10" stay: they are the default configuration.
+- Table 8: the label column is headed "Labeling, Minutes" in place of
+  "CPU minutes". Its figure is the elapsed time of the label step on 16
+  threads (`--score-workers 16` in the queue lines of the main rows),
+  not CPU time; new setting `\setting{pref.label_threads}`, printed in
+  Appendix B. The table is set at `\small`: 438 pt wide in the CMC
+  class against a text width of 470 pt (475 pt before).
+- Brief of Section 3: the BIRD prompt includes the external knowledge
+  of the question; said in the materials.
+- Pack of Section 3 built again; `make pdf` builds.
+
 ## 2026-11-27: brief of Section 3 corrected after a second read; the headline gain stays +6.19 (owner; the commit of this entry)
 
 - Owner: the headline number is the gain at equal rounds, +6.19 EX on

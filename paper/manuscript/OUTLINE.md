@@ -319,9 +319,6 @@ Numbered in the order of first mention.
    Spider-Syn, Spider-Realistic), which the reader meets in 5.5.
 2. No baseline of federated reinforcement learning with verifiable
    rewards is planned; 2.3 and Table 1 state the difference in kind.
-3. `tab_cost` is 498 pt wide in the CMC class, against a text width of
-   470 pt; it has to be narrowed before the section that prints it is
-   written.
 
 ## Word Count Summary
 

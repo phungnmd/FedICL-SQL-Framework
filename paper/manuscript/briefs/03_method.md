@@ -117,7 +117,9 @@ Notation as in `terms.md`. Further facts:
   $t$ starts from $\theta^{t-1}$ with a newly initialized optimizer.
 - The prompt $x$ contains the question $q$ and the schema of $d$ as
   `CREATE TABLE` statements; on Spider each table is followed by up to
-  three of its rows. The same prompt serves training, sampling and
+  three of its rows, and on BIRD the prompt includes the external
+  knowledge that the benchmark attaches to the question. The same
+  prompt serves training, sampling and
   evaluation. Its exact form is printed in Appendix A (`fig:prompt`).
 - Default configuration: $T$ = `\setting{rounds.total}`, $T_w$ =
   `\setting{rounds.warmup}`, $N$ = `\setting{pref.samples}`, $M$ =

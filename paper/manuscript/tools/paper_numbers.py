@@ -697,11 +697,12 @@ def table_cost(c: dict) -> str:
     """Table 8: what the clients train on in a round (questions; in a preference round the
     questions that yield pairs, and the pairs), its time by step and megabytes a client sends.
     Sampling and training run on the GPU and have a total; the labels are SQL executed on the
-    CPU and stand apart (owner, 2026-11-27)."""
+    CPU and stand apart (owner, 2026-11-27). The label time is the elapsed time of that step,
+    run on the threads of `\\setting{pref.label_threads}`, not CPU time."""
     lines = ["\\toprule",
-             row(["", "", "\\multicolumn{2}{c}{Trained on}", "\\multicolumn{3}{c}{GPU minutes}", "CPU minutes", ""]),
+             row(["", "", "\\multicolumn{2}{c}{Trained on}", "\\multicolumn{3}{c}{GPU minutes}", "Labeling", ""]),
              "\\cmidrule(lr){3-4}\\cmidrule(lr){5-7}\\cmidrule(lr){8-8}",
-             row(["Clients' data", "Round", "Questions", "Pairs", "Sampling", "Training", "Total", "Labels",
+             row(["Clients' data", "Round", "Questions", "Pairs", "Sampling", "Training", "Total", "Minutes",
                   "Sent (MB)"]),
              "\\midrule"]
     for i, ds in enumerate(("bird", "spider")):
@@ -717,7 +718,7 @@ def table_cost(c: dict) -> str:
         if i == 0:
             lines.append("\\midrule")
     lines.append("\\bottomrule")
-    return tabular("@{}llrrrrrrr@{}", lines, sep="2.5pt")
+    return tabular("@{}llrrrrrrr@{}", lines, sep="2.5pt", size="\\small")
 
 
 # ---------------------------------------------------------------- macros

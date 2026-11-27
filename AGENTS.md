@@ -47,7 +47,8 @@ built or checked for it now.
 - Topic: federated Text-to-SQL. Organizations train one small language
   model together, and only that model is deployed.
 - Method. Federated SFT learns from the gold SQL of each question and
-  never uses the databases a client also holds. The method uses them:
+  never executes a query on the databases a client also holds (they
+  enter training only as text of the prompt). The method uses them:
   after warm-up rounds of FedAvg SFT, in each preference round a client
   samples queries from the round's global model, executes them on its
   own databases, labels them against the gold result, pairs correct with
