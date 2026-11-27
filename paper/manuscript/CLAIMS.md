@@ -115,8 +115,9 @@ the exact McNemar p.
    Text-to-SQL work (SFT). Verifier-driven federated training exists
    for math and code, federated DPO for human preferences (OpenFedLLM),
    and the same sample, label and DPO + NLL loop centrally (CodeLutra):
-   the paper says so, and says that its sampling and loss settings
-   follow CodeLutra.
+   the paper says so, and names once, in Section 4.5, the settings of
+   the preference rounds that follow CodeLutra. It does not say that
+   the method takes its parts from CodeLutra (owner, 2026-11-27).
 8. Privacy is that data stay at the client. No claim about differential
    privacy or about what an adapter reveals.
 9. No "state of the art". Every comparison is inside one setup: the

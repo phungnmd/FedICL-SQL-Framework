@@ -53,15 +53,12 @@ The closest work to ours is CodeLutra~\cite{tao2024codelutra}, a method
 for code generation evaluated on Text-to-SQL and on data-science code.
 It applies this iterative scheme at one site, with execution labels:
 each iteration pairs a correct with a failed sample of the current
-model. \method{} takes from
-CodeLutra its sampling settings, the scale of the DPO term, the uniform
-pairing and the choice of reference model, and
-Section~\ref{sec:pref-round} states where the two differ. In \method{},
-the loop runs across clients: a federated round takes the place of the
-iteration, and each client samples from the global model of the round,
-which no single party trained, and labels the samples on its own
-databases. Warm-up rounds of FedAvg SFT come first, fewer pairs are
-constructed, and the NLL term is averaged over tokens.
+model. In \method{}, training runs across clients that cannot pool
+their data: a federated round takes the place of the iteration; each
+client samples from the global model of the round, which no single
+party trained, and labels the samples on its own databases; and warm-up
+rounds of FedAvg SFT come first. Section~\ref{sec:pref-round} compares
+the two methods.
 
 \subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
 

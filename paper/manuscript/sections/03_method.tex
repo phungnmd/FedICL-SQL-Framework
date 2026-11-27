@@ -232,21 +232,16 @@ constructed once, as in FedDPO~\cite{ye2024openfedllm}, cannot follow
 the model as it changes. Section~\ref{sec:ablation} ablates the
 on-policy pairs, the two terms of the loss and the aggregation weights.
 
-CodeLutra~\cite{tao2024codelutra} runs this loop of sampling,
-execution-based labeling and training with a DPO and an NLL term
-centrally, at one party that holds all the data and the databases,
-starting from the pretrained model. The contribution of \method{} is to
-bring this execution-based supervision into federated training, where
-only a client can compute it: a federated round is the step that renews
-samples, labels and pairs, with its global model as the reference model
-of every client, and warm-up rounds of FedAvg SFT come first. We follow
-CodeLutra in $N$, the temperature, $\beta$, the uniform pairing and the
-choice of reference model. We construct fewer
-pairs per question (CodeLutra constructs ten) and average the NLL term
-over tokens, where CodeLutra sums it, so that short and long queries are
-on the same scale; the same $\lambda$ then weighs the NLL term less
-against the preference term than in CodeLutra, by a factor of
-$\lvert y^{+} \rvert$.
+CodeLutra~\cite{tao2024codelutra} also trains on correct and failed
+samples of the current model with a DPO and an NLL term, centrally, at
+one party that holds all the data and the databases, and starting from
+the pretrained model. In \method{}, the data and the databases stay
+with the clients, and an execution label can be computed only where the
+database is: a federated round renews samples, labels and pairs, its
+global model is the reference model of every client, and warm-up rounds
+of FedAvg SFT come first. Within a round, we construct fewer pairs per
+question (CodeLutra constructs ten) and average the NLL term over
+tokens, so that short and long queries are on the same scale.
 
 \subsection{What a round costs a client}\label{sec:cost}
 

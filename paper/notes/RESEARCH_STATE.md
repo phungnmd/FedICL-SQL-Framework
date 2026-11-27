@@ -548,7 +548,7 @@ BIRD is the main dataset (section 3.4).
 | FedAvg SFT stage | test EX: no difference (k = 0, 2, 3: 78.02, 78.20, 77.97); test-suite accuracy on dev, Syn, Realistic: k = 2 above k = 0 (p 0.010, 0.0014, 0.0067) and above FedAvg SFT, k = 0 level with FedAvg SFT (`LAB_LOG.md`, 2026-11-21; not committed) | k = 1 is 1.24 above k = 0 at 2 rounds (p 0.19); k = 2 at 3 rounds is 3.19 above k = 0 at 2 rounds (p 0.0025) and 1.96 above k = 1 at 2 rounds (p 0.031), rows of unequal length |
 | Gold as the chosen side | falls at round 2 | -2.61 (p 0.007) |
 | NLL rows on the gold SQL of the all-wrong questions, in the round of the pairs | not run | -0.65 (p 0.43), not kept; 1.89 below k = 1 (p 0.045) |
-| Nearest pairs, wrong-result rejects first | no gain | not run |
+| Nearest pairs, wrong-result rejects first | no gain; wrong-result rejects trade the two kinds of error about one for one (342 and 146 against 385 and 99) | wrong-result rejects first queued 2026-11-27 (`bird_wrfirst`), nearest not run |
 | Strict labels on database variants | 77.27 against 77.46 on test (p 0.76), closed | not run |
 | FedAvg weights of a DPO round (pairs, questions, equal) | within 0.51, pair counts kept | within 0.20 |
 

@@ -2,6 +2,15 @@
 
 ## Status
 
+Updated 2026-11-27. Queue `c2d80f57` adds `bird_wrfirst` (owner,
+2026-11-27): DPO + NLL round 1 on the BIRD clients with the rejected
+side from wrong results first, on the copied samples of `bird_k2` round
+1, with its evaluation on BIRD dev; after `rft/round_2`, about 5 h
+(estimate). Read against `bird_k2/round_1`: EX 46.22, execution errors
+102, wrong results 723. On Spider the rule traded the two kinds of
+error about one for one at the same EX. A worker gets it at its next
+start or publication.
+
 Updated 2026-11-26 (Asia/Ho_Chi_Minh). Queue `2df1f8b4` adds the vote
 rows on BIRD dev (owner, 2026-11-26): `bird_vote/sft_4` and
 `bird_vote/k2_2`, each with its publication, after `bird_rft/round_2`
@@ -308,6 +317,7 @@ its log say whether the second runs 4 at a time cost them.
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`) |
 | 41 | `bird_vote/sft_4`, `bird_vote/k2_2`, each with its publication | does the gain hold under self-consistency on BIRD dev: 16 samples per question at T 0.8, vote by execution result, for FedAvg SFT round 4 (greedy 42.57) and the method at 4 rounds (greedy 48.76); also pass@16 of both | about 1 h a row, no training (estimate, not measured) | queued 2026-11-26 (`2df1f8b4`), after `bird_rft/round_2` |
 | 37 | `rft/round_2` with its evaluations (test, dev) | RFT at 4 rounds, on-policy (samples drawn again from RFT round 1, 75.87): the method without its preference term | about 3.5 h (estimate) | queued 2026-11-24 (`9976390e`) |
+| 42 | `bird_wrfirst/reuse_samples`, `bird_wrfirst/round_1` with its evaluation and publications | the rejected side on BIRD: `bird_k2` round 1 with `--pair-rule wrong_result_first` on the same samples; does BIRD show the trade of Spider (wrong results down, execution errors up, EX level), read against 46.22 / 102 / 723 | about 5 h, training and evaluation only (estimate) | queued 2026-11-27 (`c2d80f57`) |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`) |
 | 31 | `spider_sets_dev/*`, `spider_sets_var/*`, `qwen05b_var/*`, `pooled_dev/*` | evaluations only, the rounds the tables need on the other Spider sets: the two ablation rounds of the 1.5B on Spider dev; the 1.5B rows by round and the ten 0.5B rows on Syn, Realistic and DK; the pooled rounds on Spider dev (each after its round) | about 2 h (estimate: 3 min a row on dev, 6 min on the three sets) | queued 2026-11-23 19:15 (`e425fa42`), after `pooled_k2` and before the DeepSeek rounds |
 | 22 | `deepseek13b_k2/round_1`, `deepseek13b_sft/round_3`, each with its evaluation and publications | DeepSeek-Coder-1.3B on Spider: the method at 3 rounds against FedAvg SFT at 3 rounds | 1 h 48 min a FedAvg round with its evaluation (rounds 1 and 2, between publications); the DPO round not measured, 2.5 to 3 h (estimate) | FedAvg SFT rounds 1 and 2 read (64.00, 69.82), `deepseek13b_k2/round_1` read (75.08); `deepseek13b_sft/round_3` not published, after the 0.5B rows in file order since `447f8423` |

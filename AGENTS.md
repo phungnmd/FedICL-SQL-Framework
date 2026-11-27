@@ -60,8 +60,9 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
   DPO as published: fixed pairs, fixed reference). It is the owner's own
   design, not CodeLutra applied to federated learning. CodeLutra (arXiv
   2411.05199) was found later to run a similar sample, label and DPO + NLL
-  loop centrally; it is cited as the closest work, with what differs, and
-  the settings taken from it are said to follow it. Candidate parts, each
+  loop centrally; it is cited as the closest work, and the settings taken
+  from it are said to follow it, once, in the implementation section
+  (Writing, "Credit"). Candidate parts, each
   kept only on a measured gain: on-policy rounds, execution-aware pairs, a
   FedAvg SFT stage before the rounds. Pre-training at the server with the same loss on public data
   is a secondary part. The teacher is not part of the method; it is a
@@ -88,8 +89,6 @@ Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
   test (2,147 rows). Rounds, steps and settings
   may be chosen on Spider test (owner, 2026-11-17). The notes record what
   was chosen on which set; the paper does not call such a number held-out.
-- Novelty: a published mechanism adapted to this setting is acceptable.
-  Cite the closest work and say what differs.
 
 ## Read first
 
@@ -182,9 +181,29 @@ deviate.
 
 ## Writing
 
-- The owner works alone and is learning ML: plain words, short documents,
-  progress told by runnable step and result. Replies in Vietnamese keep
-  common technical terms in English. No emojis, no em dashes.
+- The owner works alone and is learning ML: in notes, reports and
+  replies, plain words, short documents, progress told by runnable step
+  and result. Replies in Vietnamese keep common technical terms in
+  English. No emojis, no em dashes.
+- The manuscript has its own writing workflow (owner, 2026-11-26), in
+  `paper/manuscript/`: the drafting agent works from `WRITING_GUIDE.md`,
+  `TERMS.md`, the `voice/` folder and the brief of its section. The
+  published papers of the field set the prose of the paper: their
+  register and their terms, as the passages in `voice/` show them and
+  `voice/style_profile.md` describes them. The plain words of the rule
+  above are not for the manuscript, and an older writing rule of the
+  owner gives way where it works against that register. What still
+  binds the manuscript: the hard rules, the approved claims and their
+  ceilings, numbers written with the generated macros, the limits of
+  the journal, "the model" for the trained model, no emojis and no em
+  dashes. Beyond that the drafting agent is bound by little (owner,
+  2026-11-26): rigid rules and word checks make the prose stiff and
+  patched, so checks of words and of style are signals for the main
+  session, never rules or word lists for the drafting agent, and a
+  draft is not repaired word by word. The workflow is in
+  `paper/notes/WRITING_PLAN.md`. The ARS skills serve single checks
+  (citations, a cold review of the PDF); the paper is not run through
+  their pipeline.
 - `PIPELINE_NEXT.md` answers two questions on its first screen: what to run
   now and what is running. Four sections in this order: `Status` (what each
   GPU does and how that is known), `Run now` (numbered steps, each with one
@@ -195,6 +214,14 @@ deviate.
   "the model" (or by its name), not "the student" (owner, 2026-11-25):
   the method has no teacher. The notes and the code keep "student" as
   an internal name.
+- Credit: the paper does not own up to more than is the case (owner,
+  2026-11-27). It cites the closest work and says what that work does
+  and where ours differs; it does not say that the method takes its
+  parts from another paper, or that its contribution is to bring
+  another paper's loop into this setting. The method is presented as
+  ours. Settings whose values follow a paper are named once, in the
+  implementation section, as following it. A debt or a weakness is
+  stated at the size the evidence gives it, and once.
 - Reports for the advisor: tables carry the numbers and the text says what
   they mean in plain words; the best value of each column is highlighted;
   lab-process detail stays out.

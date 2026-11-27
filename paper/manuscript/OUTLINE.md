@@ -79,8 +79,8 @@ stops short of this setting.
   they are trained on.
 - 2.2 Preference optimization and execution feedback for SQL and code:
   DPO; training on a model's own outputs labelled by execution;
-  CodeLutra as the closest centralized work, with the settings taken
-  from it.
+  CodeLutra as the closest centralized work (the settings that follow
+  it are named in 4.5 only).
 - 2.3 Federated fine-tuning of language models: FedAvg with LoRA;
   federated DPO (OpenFedLLM) on fixed human-preference pairs;
   verifier-driven federated training for math and code.

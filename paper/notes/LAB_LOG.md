@@ -4,6 +4,58 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: three outside reviews of the full draft; credit to CodeLutra cut to its size; wrong-result rejects queued on BIRD (owner; queue `c2d80f57`; no run)
+
+Owner's question: is the paper, once complete, enough for CMC and JIIS,
+judged on novelty. Three isolated reviewers read the PDF with the
+owner's words as the prompt: two Opus sessions (cold-review skill) and
+one Codex session (gpt-6.2-astra, high effort, fresh directory, user
+config and memories off). Files:
+`paper/manuscript/cold_reviews/2026-11-27_0703_fit_novelty_{1,2}.md`
+and `2026-11-27_0706_fit_novelty_codex_1.md`.
+
+- All three: enough for CMC; JIIS at the threshold, major revision
+  likely. The first-of-its-kind claim holds in its narrow form; the
+  algorithm reads as CodeLutra's loop under FedAvg, and all three quote
+  the paper's own sentences of Sections 2.2 and 3.4 for it.
+- Raised by two or more: the preference term is not separated in EX
+  after one round (1.83, p 0.057; 1.59, adjusted 0.14); nothing
+  specific to federation shows an effect; the comparison at equal
+  rounds is not at equal client time on BIRD; ExeSQL is not cited; no
+  federated GRPO baseline. One reviewer each: selection by execution at
+  inference may remove the gain; RFT as a full baseline; the prose of
+  Sections 5 to 7 is dense with numbers.
+- My reading for the owner: more runs repair evidence, not the kind of
+  the contribution. Each pair of the three ingredients is published
+  (FL4SP; CodeLutra, ExCoT, ExeSQL; FedDPO; federated training on
+  verified samples outside SQL, `scholar_scan_2026-11-27.md`). In
+  values the preference term is the larger part of the gain over
+  FedAvg SFT at 3 rounds (1.83 of 2.54 on BIRD dev, 1.59 of 2.75 on
+  Spider test). Rows that decide how a reviewer reads the paper and
+  are queued: `bird_rft/round_2`, `rft/round_2`, `pooled_k2`, the two
+  `bird_vote` rows. Not queued: FedAvg SFT rounds 5 to 7 on BIRD (the
+  method's client time, 1,207 min, is that of 7 FedAvg SFT rounds).
+- Owner: the design is ours and DPO ran here before CodeLutra was
+  known; the paper must not own up to more than is the case. Rule added
+  to `AGENTS.md` (Writing, "Credit"). Sections 2.2 and 3.4 no longer
+  say that the method takes its settings from CodeLutra or that its
+  contribution is to bring that loop into federated training; they say
+  what CodeLutra does and where a preference round differs. Section
+  4.5 is the one place that names the settings that follow CodeLutra
+  (samples per question, temperature, beta, learning rate, pairs per
+  update, epoch, weight decay). Lambda is left out of that list: the
+  NLL term it weights is averaged over tokens here. Briefs, outline
+  and `CLAIMS.md` follow. Edited by the main session, not by a writer.
+- No sweep of other settings: other values do not make another method,
+  and every dependent row would be trained again.
+- Queued with the owner's yes: `bird_wrfirst/round_1`. I proposed it
+  as the pair rule not yet run on BIRD and said Spider had nothing for
+  it to repair. That was wrong: `decide/wrfirst` (2026-11-19) cut wrong
+  results on Spider from 385 to 342 and raised execution errors from
+  99 to 146 at the same EX. The expectation on BIRD is the same trade,
+  not a gain in EX; the run says whether the rejected side decides the
+  kind of error on the main dataset too.
+
 ## 2026-11-27: the novelty line removed from the agent guide (owner; no run)
 
 Two cold readers of Section 1 wrote that the method reads as

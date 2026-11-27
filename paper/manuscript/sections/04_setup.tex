@@ -161,12 +161,11 @@ training uses AdamW~\cite{loshchilov2019adamw} with a cosine schedule.
 The learning rate of SFT, \setting{sft.lr}, and the
 \setting{central.epochs} epochs of centralized and local SFT are those
 of the LoRA fine-tuning that SPFT-SQL~\cite{zhang2025spftsql} reports
-for this model. The preference rounds take their learning rate,
-\setting{pref.lr}, their \setting{pref.batch} pairs per update, their
-single epoch and their weight decay from
-CodeLutra~\cite{tao2024codelutra}, like $\beta$ and $\lambda$
-(Section~\ref{sec:pref-round}). Appendix~\ref{app:settings} lists all
-settings.
+for this model. The settings of the preference rounds follow
+CodeLutra~\cite{tao2024codelutra}: the number of samples per question
+and their temperature, $\beta$, the learning rate, \setting{pref.lr},
+the \setting{pref.batch} pairs per update, the single epoch and the
+weight decay. Appendix~\ref{app:settings} lists all settings.
 
 Predictions are generated with vLLM~\cite{kwon2023vllm} by greedy
 decoding, and the federation is simulated on one GPU
