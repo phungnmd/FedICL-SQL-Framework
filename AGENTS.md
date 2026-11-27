@@ -1,8 +1,9 @@
 # FedLS-SQL paper workspace: agent guide
 
-The instruction file for every coding agent in this workspace (Codex, Claude
-Code, and others); `CLAUDE.md` imports it. Durable rules and lessons go here,
-and they are kept few and general on purpose.
+The instruction file for every coding agent in this workspace (Codex,
+Claude Code, and others); `CLAUDE.md` imports it. Rules are few and
+general on purpose: a new rule replaces or merges with an old one, and
+detail lives in the note it points to.
 
 The nested `fedicl-sql/` directory is a separate Git repository (code and
 committed results, Python package `fedls_sql`) with its own
@@ -12,86 +13,76 @@ code, GPU and server rules live there.
 ## How to work
 
 - The aim is a paper that reads well and can be accepted at the target
-  journals: a method with a clear story and a visible effect.
-- Rules, defaults and earlier decisions here and in the notes are
-  working defaults, not constraints (owner, 2026-11-24). A choice only
-  has to be not false, help the paper and look sound to a reviewer.
-- Use your judgement as a researcher on this project would. Where this file
-  says nothing, do what makes the paper better and say what you did.
-- The bar is what the target journals require. Read what they publish and
-  accept (kind of contribution, baselines, datasets, seeds, size of the
-  gain) and work to that; do not put demands of our own on top of it. What
-  published papers do (models, baselines, data, voting, benchmarks) is open
-  to us, and a part of the method is not argued away because some reviewer
-  might object. Before a proposal rests on "papers do this", name the paper
-  and check it in the paper or its code; say so when it was not checked. A
-  choice also has to be sound on its own: one that only lowers the
-  baselines, or that the closest papers do not make, is not a way to a
-  larger gain.
-- The paper shows the method where its effect shows (owner, 2026-11-17).
-  Among sound choices, the setup, model, prompt, comparisons and tables are
-  picked for the gain over the baselines in the same setup, not for the
-  highest level. A prompt or an inference step that lifts every row and
-  shrinks the gain, or a comparison that does not make the paper better,
-  stays in the notes and out of the paper. Each claim is worded so that it
-  is true against everything the notes hold.
-- The paper prints what serves it (owner, 2026-11-17): the setup as
-  values, the results, the tables. How a seed, a setting, a round or a
-  result was picked is not told in the paper and is not proposed for it;
-  it stays in `LAB_LOG.md`, which keeps the true picture.
-- A part belongs to the method when it fits the story and shows an effect;
-  nothing is added only to raise a number.
-- Earlier decisions and notes are inputs, not walls. When one stands in the
-  way of a better paper, say so with the numbers and ask.
-- Look for ideas from the task itself, not only around what is already
-  built, and put a short run that settles a direction before long ones.
+  journal: a method with a clear story and a visible effect.
+- Rules, defaults and earlier decisions are working defaults, not walls
+  (owner, 2026-11-24). A choice has to be not false, help the paper and
+  look sound to a reviewer. When a decision stands in the way of a
+  better paper, say so with the numbers and ask.
+- The bar is what the target journal requires and publishes; no demand
+  of our own goes on top. What published papers do is open to us once
+  it is checked in the paper or its code (name the paper; say when it
+  was not checked), and the choice has to be sound on its own: not one
+  that only lowers the baselines.
+- The paper shows the method where its effect shows (owner,
+  2026-11-17): setup, model, prompt, comparisons and tables are picked
+  for the gain over the baselines in the same setup, not for the highest
+  level. It prints what serves it (the setup as values, the results, the
+  tables); how a seed, a setting, a round or a result was picked stays
+  in `LAB_LOG.md`.
+- A part belongs to the method when it fits the story and shows an
+  effect; nothing is added only to raise a number.
+- An assessment of the paper is impartial (owner, 2026-11-27): a rule or
+  a note of this project is never the reason a weakness is acceptable.
+- Look for ideas from the task itself, and put a short run that settles
+  a direction before long ones.
 
 ## The project
 
-Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
-(target: CMC, owner, 2026-11-27). The manuscript is written for CMC
-alone: its template, its conventions and what its papers have
-(`paper/notes/JOURNAL_BAR.md`). JIIS is a later fallback; nothing is
-built, trimmed or checked for it now. The current state is in
-`paper/notes/RESEARCH_STATE.md`.
+Paper: *FedLS-SQL* (working name; the owner sets the name and the title
+later), a journal paper written for CMC alone (owner, 2026-11-27;
+`paper/notes/JOURNAL_BAR.md`). JIIS is a later fallback; nothing is
+built or checked for it now.
 
-- Topic: federated Text-to-SQL. Clients train a small model together and
-  only that model is deployed.
-- Method (owner, 2026-11-17, revised the same day): a federated learning
-  method for Text-to-SQL that uses DPO with execution labels at the
-  clients, built to beat the federated baselines (FedAvg SFT, and federated
-  DPO as published: fixed pairs, fixed reference). It is the owner's own
-  design, not CodeLutra applied to federated learning. CodeLutra (arXiv
-  2411.05199) was found later to run a similar sample, label and DPO + NLL
-  loop centrally; it is cited as the closest work, and the settings taken
-  from it are said to follow it, once, in the implementation section
-  (Writing, "Credit"). Candidate parts, each
-  kept only on a measured gain: on-policy rounds, execution-aware pairs, a
-  FedAvg SFT stage before the rounds. Pre-training at the server with the same loss on public data
-  is a secondary part. The teacher is not part of the method; it is a
-  research direction. The story is in `RESEARCH_STATE.md`, section 3, the
-  papers behind it in `DPO_RESEARCH.md`.
-- Default setup: Qwen2.5-Coder-1.5B-Instruct student, 5 clients on BIRD
-  train and 5 on Spider train (`alpha_0.1/k5` each),
-  Qwen2.5-Coder-7B-Instruct teacher, BIRD train (or SynSQL-2.5M) as
-  public data for the Spider clients. Another model or setting may be
-  proposed.
-- Datasets (owner, 2026-11-25): BIRD is the main dataset of the paper
-  (the main rows, every baseline, the ablations of the parts, a second
-  student model); Spider carries the breadth rows (other models, the
-  federated setups, the variant sets, test-suite accuracy). The rows the
-  paper needs are listed in `RESEARCH_STATE.md`, section 3.4.
-- Prompt, training recipe and decoding follow what widely used papers do,
+- Topic: federated Text-to-SQL. Organizations train one small language
+  model together, and only that model is deployed.
+- Method. Federated SFT learns from the gold SQL of each question and
+  never uses the databases a client also holds. The method uses them:
+  after warm-up rounds of FedAvg SFT, in each preference round a client
+  samples queries from the round's global model, executes them on its
+  own databases, labels them against the gold result, pairs correct with
+  incorrect samples and trains with a DPO term plus an NLL term; the
+  server averages the adapters. It is judged against the federated
+  baselines (FedAvg SFT, and federated DPO as published: fixed pairs,
+  fixed reference, no NLL term), and its novelty is stated against them.
+  A part is kept on a measured gain. Pre-training at the server with the
+  same loss is a secondary part; a teacher is a research direction, not
+  part of the method. Story: `RESEARCH_STATE.md`, section 3. Claims:
+  `paper/manuscript/CLAIMS.md`.
+- Closest centralized work: CodeLutra (arXiv 2411.05199), cited. It is
+  not the frame of the method (owner, 2026-11-27): no note, brief or
+  section defines the method or its contributions as differences from
+  it. Its places are fixed: `RESEARCH_STATE.md`, section 3.6, in the
+  notes; in the paper, Section 2.2 with Table 1 (what it does and where
+  ours differs, once), a citation at the objective, and one sentence in
+  Section 4.5 on the settings that follow it.
+- Default setup: Qwen2.5-Coder-1.5B-Instruct, 5 clients on BIRD train
+  and 5 on Spider train (`alpha_0.1/k5` each). Another model or setting
+  may be proposed.
+- Datasets (owner, 2026-11-25): BIRD is the main dataset (the main rows,
+  every baseline, the ablations, a second model); Spider carries the
+  breadth rows (other models, federated setups, variant sets, test-suite
+  accuracy). The rows the paper needs: `RESEARCH_STATE.md`, section 3.4.
+- BIRD numbers are BIRD dev (1,534 rows; its test set is not public, and
+  the k of the BIRD rows was set on Spider). Spider numbers are Spider
+  test (2,147 rows); rounds, steps and settings may be chosen on it
+  (owner, 2026-11-17). The notes record what was chosen on which set;
+  the paper calls no number held-out.
+- Prompt, training recipe and decoding follow widely used papers,
   checked in the paper or its code (`LITERATURE.md`, section 1.19). One
   prompt serves training, sampling and evaluation, and the paper prints
-  the prompt the model saw.
-- Compute: RTX A5000 cards with 24 GB; a direction has to fit in memory and
-  run time.
-- BIRD numbers are BIRD dev (1,534 rows); its test set is not public, and
-  the k of the BIRD rows was set on Spider. Spider numbers are Spider
-  test (2,147 rows). Rounds, steps and settings
-  may be chosen on Spider test (owner, 2026-11-17). The notes record what
-  was chosen on which set; the paper does not call such a number held-out.
+  it.
+- Compute: RTX A5000 cards with 24 GB; a direction has to fit in memory
+  and run time.
 
 ## Read first
 
@@ -99,50 +90,48 @@ built, trimmed or checked for it now. The current state is in
    results show, what is open.
 2. `paper/notes/PIPELINE_NEXT.md`: what to run now and what is running.
 3. `paper/notes/LAB_LOG.md`: runs, results and decisions, newest first.
+4. For work on the manuscript: `paper/notes/WRITING_PLAN.md`.
 
 Add another note only when the work needs it.
 
 ## Earlier work
 
-The project was set up again from clean on 2026-11-17 (owner): the prompt
-of every earlier adapter carried a sentence left from an ICL project, and
-most rows were decoded with a repetition penalty nobody had set. Both
-repositories as they were are at the tag `archive/pre-reset-2026-11-17`
-and, on the owner's Mac, in `archive/reset_2026-11-17/` (ignored by Git,
-not on the server; start at its `OVERVIEW.md`). Older material from the
-restart of 2026-11-05 is in the same `archive/` folder.
+The project was set up again from clean on 2026-11-17 (owner): the
+prompt of every earlier adapter carried a sentence left from another
+project, and most rows were decoded with a repetition penalty nobody had
+set. Both repositories as they were are at the tag
+`archive/pre-reset-2026-11-17` and in the local `archive/` folder
+(ignored by Git, not on the server).
 
-- Everything measured before 2026-11-17 is reference only. It may be read
-  to see what was tried; it is never quoted as a result, and a new claim is
-  not built on it.
-- Do not read or reason from material older than 2026-11-05 unless the
-  owner asks.
-- Processed data and teacher outputs on BIRD may be reused freely.
-  Starting from an earlier adapter needs the owner's yes.
-- The new code keeps no branch, field or default for the sake of an old
-  result (no "historical bytes", no frozen identities).
+- Everything measured before 2026-11-17 is reference only: never quoted
+  as a result, and no claim is built on it. Material older than
+  2026-11-05 is not read unless the owner asks.
+- Processed data and teacher outputs on BIRD may be reused. Starting
+  from an earlier adapter needs the owner's yes.
+- The code keeps no branch, field or default for the sake of an old
+  result.
 
 ## Hard rules
 
 Few, and each prevents a real failure.
 
 - Honesty: we always know the true picture. Every number traces to a
-  committed result (config, seed, predictions, Git SHA) and names its set,
-  the notes record what each control really showed, and no number is
-  invented or changed. How the paper presents its results follows what the
-  target journals expect. Cite the closest work. Privacy here is data
-  isolation, not differential privacy.
-- Data roles: client data never leaves a client; the teacher runs only at
-  the server on public data; test data never becomes training, retrieval or
-  teacher data.
+  committed result (config, seed, predictions, Git SHA) and names its
+  set, the notes record what each control really showed, and no number
+  is invented or changed. Each claim is true against everything the
+  notes hold. The closest work is cited. Privacy here is data isolation,
+  not differential privacy.
+- Data roles: client data never leaves a client; a teacher runs only at
+  the server on public data; test data never becomes training, retrieval
+  or teacher data.
 - Server and GPU: follow `fedicl-sql/AGENTS.md`. In short: drive D only;
   nothing under `artifacts/` is deleted, moved or overwritten; peak VRAM
-  stays under about 21.5 GiB; server commands are PowerShell on one line;
-  result commits are never rebased there.
+  stays under about 21.5 GiB; server commands are PowerShell on one
+  line; result commits are never rebased there.
 - Git: two separate histories (paper here, code and results in
-  `fedicl-sql/`); work on `main` in the owner's checkouts; commit messages
-  never mention AI tools; never change the author settings; never commit
-  adapters, weights, caches or `artifacts/`.
+  `fedicl-sql/`); work on `main` in the owner's checkouts; commit
+  messages never mention AI tools; never change the author settings;
+  never commit adapters, weights, caches or `artifacts/`.
 
 ## Defaults
 
@@ -152,97 +141,62 @@ deviate.
 - GPU work goes into `fedicl-sql/queues/active.toml` and is drained by
   `scripts/gpu_worker.py`. The commands the owner runs are written in
   `PIPELINE_NEXT.md` and given in chat; push when that file changes.
-- Before queuing a new line, compare its resolved commands with the line it
-  is compared against (prompt, decoding, length limit, training recipe),
-  and print one rendered prompt, decoded from its token ids, and read
-  it. Decoding uses no repetition
-  penalty; no setting is inherited from a model's generation config.
-- Run an experiment on the setup it stands for. A cut version is fine for a
-  quick read; say what is cut and report the result as partial.
+- Before queuing a new line, compare its resolved commands with the line
+  it is compared against (prompt, decoding, length limit, training
+  recipe), and print one rendered prompt, decoded from its token ids,
+  and read it. Decoding uses no repetition penalty; no setting is
+  inherited from a model's generation config.
+- Run an experiment on the setup it stands for. A cut version is fine
+  for a quick read; say what is cut and report the result as partial.
 - A new line reuses the finished rounds it shares with an existing line
-  and does not train them again (owner, 2026-11-18;
-  `fedicl-sql/AGENTS.md`, Defaults).
+  and does not train them again (owner, 2026-11-18).
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
-- Delegated work (subagents) runs on the cheaper model; the larger model
-  is for the main session only (owner, 2026-11-22: cost). In Claude Code
-  that is Opus for subagents. One exception (owner, 2026-11-26): the
-  writer subagent of the manuscript runs on Fable 5.2 at high effort;
-  helpers and checks stay on Opus.
-- Diagrams of the paper follow `paper/figures/STYLE.md`: a new figure
-  starts from `paper/figures/template.svg`, is rendered with
-  `paper/figures/render.py`, and its PNG is opened and checked before it
-  is committed.
-- `paper/notes/overview.html` is the owner's project page. Update it only
-  when the owner asks, from committed results; each update sets its
-  `Cập nhật` stamp and adds a line to its update log at the bottom. Every
-  measured number on it is drawn from a data block that
-  `paper/notes/tools/overview_results.py` writes from the committed
-  evaluations; a new evaluation needs one line in that script's `ARMS`,
-  a new line an entry in the page's `LINES` and `START`, a queued task
-  one in `PLAN`, a new paper cell one in `TABLES`.
+- Subagents run on Opus; the larger model is for the main session
+  (owner, 2026-11-22: cost). One exception: the writer subagent of the
+  manuscript runs on Fable 5.2 at high effort (owner, 2026-11-26).
+- Diagrams follow `paper/figures/STYLE.md`: start from `template.svg`,
+  render with `render.py`, open and check the PNG before committing.
+- `paper/notes/overview.html` is the owner's project page. It is updated
+  only when the owner asks, from committed results, through
+  `paper/notes/tools/overview_results.py`; each update sets its
+  `Cập nhật` stamp and adds a line to its update log.
 
 ## Writing
 
-- The owner works alone and is learning ML: in notes, reports and
-  replies, plain words, short documents, progress told by runnable step
-  and result. Replies in Vietnamese keep common technical terms in
-  English. No emojis, no em dashes.
-- The manuscript has its own writing workflow (owner, 2026-11-26), in
-  `paper/manuscript/`: the drafting agent works from `WRITING_GUIDE.md`,
-  `VOICE_GUIDE.md`, `TERMS.md` and the brief of its section. Its voice
-  is academic (owner, 2026-11-27): dense, in the terms of the field,
-  assertive at the strength of the evidence, with the novelty said
-  plainly, the method told by component and the results by finding and
-  mechanism; it does not explain in everyday language and does not
-  tell the logic of the research in sequence. The plain words of the
-  rule above are not for the manuscript, and an older writing rule of
-  the owner gives way where it works against that register. A drafting
-  agent takes its register from what it reads, so every file it is
-  given (the two guides, the brief) is itself written in the register
-  of the paper, a brief gives each statement the strength to write it
-  at and not a list of what to leave unsaid, and no passage of a
-  published paper is given to it: the method is close to CodeLutra, and
-  `make overlap` stops a draft that shares a run of words with the
-  closest papers. What still binds the manuscript: the hard rules, the
-  approved claims at their strength and scope, numbers written with
-  the generated macros, the limits of the journal, "the model" for the
-  trained model, no emojis and no em dashes. Beyond that the drafting
-  agent is bound by little (owner, 2026-11-26): rigid rules and word
-  checks make the prose stiff and patched, so checks of words and of
-  style are signals for the main session, never rules or word lists
-  for the drafting agent, and a draft is not repaired word by word.
-  The workflow is in `paper/notes/WRITING_PLAN.md`. The ARS skills
-  serve single checks (citations, a cold review of the PDF); the paper
-  is not run through their pipeline.
-- The draft does not wait for the results (owner, 2026-11-27). A
-  number whose row is not committed stays a placeholder: `??` from its
-  macro, `--` in a generated table. A guess may stand in its place
-  when it is marked as waiting: `\expect{value}` prints `value??`, and
-  the sentence around it may be worded for that outcome. A guess is
-  not a result: it goes into no note, results table, page or message
-  as one, and `make submit` stops while a placeholder or a guess is
-  left. When the row is committed the number's macro replaces it and
-  its sentence is read again; the checks file of its section
-  (`paper/manuscript/briefs/NN_checks.md`, part 3) lists the guesses.
-- `PIPELINE_NEXT.md` answers two questions on its first screen: what to run
-  now and what is running. Four sections in this order: `Status` (what each
-  GPU does and how that is known), `Run now` (numbered steps, each with one
-  full command and what to send back), `Running and queued` (one table in
-  queue order), `Reference`. No history in it; finished steps leave once
-  they are logged; estimates are marked as estimates.
-- The paper, its figures and anything sent out call the trained model
-  "the model" (or by its name), not "the student" (owner, 2026-11-25):
-  the method has no teacher. The notes and the code keep "student" as
-  an internal name.
-- Credit: the paper does not own up to more than is the case (owner,
-  2026-11-27). It cites the closest work and says what that work does
-  and where ours differs; it does not say that the method takes its
-  parts from another paper, or that its contribution is to bring
-  another paper's loop into this setting. The method is presented as
-  ours. Settings whose values follow a paper are named once, in the
-  implementation section, as following it. A debt or a weakness is
-  stated at the size the evidence gives it, and once.
-- Reports for the advisor: tables carry the numbers and the text says what
-  they mean in plain words; the best value of each column is highlighted;
-  lab-process detail stays out.
+- Notes, reports and replies: the owner works alone and is learning ML.
+  Plain words, short documents, progress told by runnable step and
+  result. Replies in Vietnamese keep common technical terms in English.
+  No emojis, no em dashes.
+- The manuscript (`paper/manuscript/`; workflow in
+  `paper/notes/WRITING_PLAN.md`) has an academic voice (owner,
+  2026-11-27): dense, in the terms of the field, assertive at the
+  strength of the evidence. The plain-words rule above is not for it.
+  The main session coordinates and writes no sentence of the paper; a
+  writer subagent drafts one section from `WRITING_GUIDE.md`,
+  `VOICE_GUIDE.md`, `TERMS.md` and its brief, and is given nothing else:
+  no note of the lab and no passage of a published paper. What binds the
+  text: the hard rules, the claims of `CLAIMS.md` at their strength and
+  scope (not above, not below), numbers as generated macros, the limits
+  of the journal. Checks of words and style are signals for the main
+  session, never rules for the writer; a draft far from the register is
+  written again from corrected inputs, not patched.
+- The draft does not wait for the results (owner, 2026-11-27). A number
+  without a committed row prints `??` (`--` in a generated table), or
+  stands as a marked guess, `\expect{value}`. A guess is never quoted as
+  a result anywhere, and `make submit` stops on either.
+- The paper, its figures and anything sent out say "the model", not
+  "the student" (owner, 2026-11-25); the notes and the code keep
+  "student".
+- Credit (owner, 2026-11-27): the method is presented as ours. The paper
+  never says that it takes its parts from another paper or brings
+  another paper's loop into this setting; the closest work is credited
+  at its fixed places (The project). A debt or a weakness is stated at
+  the size the evidence gives it, and once.
+- `PIPELINE_NEXT.md` answers on its first screen what to run now and
+  what is running: `Status`, `Run now` (numbered steps, one full command
+  each, what to send back), `Running and queued`, `Reference`. No
+  history in it; estimates are marked as estimates.
+- Reports for the advisor: tables carry the numbers and the text says
+  what they mean in plain words; the best value of each column is
+  highlighted; lab-process detail stays out.

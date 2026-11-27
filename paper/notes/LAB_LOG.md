@@ -4,6 +4,68 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the closest work gets fixed places; the rules and the writing plan are cut down (owner; no run)
+
+Owner, in chat, after a new main session summarized the project as
+"like CodeLutra / different from CodeLutra" and took the differences
+for the contribution: from the logs and the files an agent always reads
+the paper as CodeLutra plus what differs, and overdoes the difference.
+Then: update, and clean the project of surplus files and of rules that
+are too many.
+
+Where the frame came from: the start prompt of that session asked for
+the comparison; the Method paragraph of `AGENTS.md` was half about
+CodeLutra and opened with a denial ("not CodeLutra applied to federated
+learning"); `briefs/03_checks.md` named CodeLutra six times and told
+Section 3 to say where ours differs; `CLAIMS.md` 7.8 put "two pairs
+where CodeLutra constructs ten" into the Method section.
+
+What changed:
+
+- The method and each component are described and judged against the
+  federated baselines (FedAvg SFT, federated DPO as published). The
+  comparison with CodeLutra has one place in the notes
+  (`RESEARCH_STATE.md`, 3.6) and three in the paper: Section 2.2 with
+  Table 1 (what it does, where ours differs, once), a citation at the
+  objective in Section 3.6, one sentence in Section 4.5 (the settings
+  that follow it, and its ten pairs beside our two). `AGENTS.md`,
+  `CLAIMS.md` (4.7, 7.8), `OUTLINE.md`, `briefs/01` to `04_checks.md`.
+- `briefs/03_checks.md`, part 3, lists the evidence each component has
+  (A1 and A4; B4; B3; B1; B5; B6), so that a brief does not read "only
+  on-policy pairs have an effect on EX" as the whole of it.
+- The header of `CLAIMS.md` said "a section may say less than a claim's
+  ceiling ... and never more", left from the direction of 2026-11-26.
+  It now says: at the strength of the row, not above and not below; the
+  bounds of the Ceiling column go to the checks files.
+- `AGENTS.md`: 2,366 to 1,776 words. The Method paragraph is written
+  from the problem and the mechanism; the paragraph on the manuscript
+  points to the plan; no decision of the owner was dropped.
+- `WRITING_PLAN.md`: 11,675 to about 4,800 words. Out: the history of
+  the pilots and of the first draft (it is in the entries below), the
+  table of what was taken from ARS and PaperOrchestra, the page budgets
+  set for JIIS, the JIIS submission guidelines (at the tag
+  `draft-v1-2026-11-27`, section 10.1), the list of decided items. In:
+  section 2.2, what a new main session reads and reports before it
+  builds a brief. Open items of its old section 11 are in
+  `REVIEW_NOTES.md` (A4, A37, A40).
+- A correction to the notes: section 3.6 said CodeLutra "filters no
+  training question", section 4 (12b) that it "drops" the questions
+  without a correct sample, `DPO_RESEARCH.md` 2.3 that the paper does
+  not say. 3.6 now says: no filter on the training questions, and what
+  happens to a question that yields no pair is not stated; its code was
+  not checked.
+- Removed from Git: `paper/notes/tools/__pycache__` (a compiled file
+  that was tracked).
+
+Not done, left for the owner: the JIIS wrapper and the `jiis` branches
+of the tools (wired into the `Makefile`, `lint.py`, `flatten.py`,
+`charts.py`); `paper/references/` (the library of the earlier ICL
+direction); `paper/templates/iajit_template.md` and the Springer zip;
+`SESSION_2026-11-21.md` and `DIRECTION_SCAN_2026-11-22.md`; the
+cold reads of the first draft; `fedicl-sql/AGENTS.md`; the two files
+of `paper/drafts/` that are deleted in the working tree and not
+committed (not deleted by this session).
+
 ## 2026-11-27: the voice of the manuscript is set again: academic, by a voice guide; the first drafts are to be written again (owner; no run)
 
 Owner, in chat, after reading the draft of Sections 1 to 8 beside

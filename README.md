@@ -9,6 +9,8 @@ Start here:
 1. `paper/notes/RESEARCH_STATE.md`: question, setup, method, what is open.
 2. `paper/notes/PIPELINE_NEXT.md`: what to run now and what is running.
 3. `paper/notes/LAB_LOG.md`: runs, results and decisions, newest first.
+4. `paper/notes/WRITING_PLAN.md`: how the manuscript in
+   `paper/manuscript/` is written.
 
 Also: `paper/notes/LITERATURE.md` (related work), `paper/references/`
 (private source library), `paper/templates/` (venue templates).
