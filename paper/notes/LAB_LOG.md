@@ -4,6 +4,52 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the cards are free; the queue is ordered by the rows the tables lack and holds the two alpha 0.5 setups (owner; queue `4a962ced`, pushed with the four test-suite commits)
+
+- Order of what is left (owner approved it in chat): `bird_rft/round_2`;
+  `bird_feddpo` rounds 1 and 2; `feddpo/round_2` and `rft/round_2`;
+  `pooled_k2` with `pooled_dev`; the DeepSeek rounds on Spider and
+  their rows on the other sets; the IID line; `bird_vote`;
+  `bird_wrfirst`; `a05_*`; `a05k10_*`; `bird_central/sft`. About 87 GPU
+  hours (estimate). `bird_vote` and `bird_wrfirst` fill no cell of a
+  table and moved from second and fourth place to after the IID line.
+  `pooled_k2` was not in the order shown to the owner; it keeps its
+  place before the DeepSeek rows (one cell of Table 4, about 4 h).
+- New lines `a05_sft`, `a05_k2`, `a05k10_sft`, `a05k10_k2` (Table 6):
+  the IID line with the split, the stage labels, the roots and the arm
+  names changed, `--n-clients 10` on `alpha_0.5/k10`. Checked before
+  queuing: the resolved commands of the three setups differ from the
+  alpha 0.1 line in those values only, and the resolved setup of the
+  DPO + NLL round in `split_dir` (and `n_clients`) only
+  (`tests/test_active_queue.py`, a new test; 623 passed); one training
+  row of `alpha_0.5/k5` client 3 read from its token ids (schema with
+  three rows per table, the SQLite line, the question, the closing
+  sentence, the target without `;` and the end-of-turn token), the same
+  ids as the row has in `alpha_0.1/k5`; each split holds the same 8,659
+  rows. Memory not measured on these splits: expected at the 19.83 GiB
+  of the client that holds `baseball_1` (`docs/A5000_RUN_CONFIG.md`).
+- Pushed to `fedicl-sql`: `3f61aebb`, `1585118e`, `242b7e97`,
+  `6fd0e35f` and the queue commit. The change to `sql_exec.py` in them
+  adds an order rule with the earlier one as default; `run_question`,
+  which scores evaluations and labels, is unchanged.
+- Not queued, new order in `PIPELINE_NEXT.md`: local SFT and FedProx on
+  BIRD, `bird_k0` rounds 3 and 4, k = 3, seed 1, DeepSeek on BIRD,
+  `bird_k2/round_3`.
+- Asked by the owner, answered from the committed numbers, nothing run:
+  do the BIRD test-suite results reopen strict labels (training labels
+  checked on fuzzed variants of the client database)? Not for EX: an
+  answer that matches by coincidence is EX-correct on the one dev
+  database, and on Spider strict labels moved EX by -0.19 (test) and
+  test-suite accuracy by +0.48 (dev, not separated). On BIRD dev the
+  method has 110 EX-correct answers the suite rejects (14.7% of its
+  EX-correct answers; FedAvg SFT 90, 13.8%; no training 17.0%; without
+  warm-up, 1 round 19.9%), against 68 on Spider dev (8.8%): 7.2 and 6.6
+  points of the set. Open, the owner's choice: one sentence in Section
+  6 on the Spider result (a new claim), and one round with strict
+  labels on BIRD on the samples of `bird_k2/round_1` (code for the BIRD
+  comparison, a CPU count of the share of chosen sides the variants
+  reject, then about 5 h of training, estimate).
+
 ## 2026-11-27: brief of Section 3 written, pack built; the writer waits for the owner's approval of the brief (the commit of this entry)
 
 - `briefs/03_method.md` follows the outline in seven sections: seven
