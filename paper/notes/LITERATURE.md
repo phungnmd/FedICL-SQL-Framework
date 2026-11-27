@@ -13,7 +13,8 @@ and section 1.17 (a gap scan for the added mechanism: synthesis at the
 clients, other clients' models as helpers, vote labels), and section 1.18
 (training on perturbed schemas); updated 2026-11-17 with section 1.19
 (prompt, training and decoding practice, for the clean setup); updated
-2026-11-25 with section 1.22 (federated Text-to-SQL scan). Sections
+2026-11-25 with section 1.22 (federated Text-to-SQL scan); updated
+2026-11-27 with section 1.23 (related-work scan, FedParsing). Sections
 written before 2026-11-17 compare with the earlier setup and its numbers.
 
 How to read this file:
@@ -54,7 +55,7 @@ gains over FedAvg are 1-3 points; the large gains are on the server LLM side.
 
 | Paper | Setting | Sizes | Data | Key numbers | Closest point / main difference | Read |
 |---|---|---|---|---|---|---|
-| FL for Semantic Parsing (FL4SP, Lorar), Zhang et al., ACL 2023 ([arXiv 2305.17221](https://arxiv.org/abs/2305.17221)) | 8 clients, each a whole single-domain Text-to-SQL dataset; full fine-tuning | T5-base | Advising, ATIS, GeoQuery, Restaurants, Scholar, Academic, IMDB, Yelp | MacroAvg EM: centralized 70.3, per-client 62.8, FedAvg 40.0, FedProx 41.7, FedOPT 58.3, FedOPT+Lorar 62.6 | The only federated Text-to-SQL paper found. Exact match, small seq2seq model, no teacher, no Spider | full |
+| FL for Semantic Parsing (FL4SP, Lorar), Zhang et al., ACL 2023 ([arXiv 2305.17221](https://arxiv.org/abs/2305.17221)) | 8 clients, each a whole single-domain Text-to-SQL dataset; full fine-tuning | T5-base | Advising, ATIS, GeoQuery, Restaurants, Scholar, Academic, IMDB, Yelp | MacroAvg EM: centralized 70.3, per-client 62.8, FedAvg 40.0, FedProx 41.7, FedOPT 58.3, FedOPT+Lorar 62.6 | The only peer-reviewed federated Text-to-SQL paper found (an earlier unpublished submission, FedParsing, is in section 1.23). Exact match, small seq2seq model, no teacher, no Spider | full |
 | FederatedScope-LLM, Kuang et al., 2023 ([arXiv 2309.00363](https://arxiv.org/abs/2309.00363)) | LoRA FL benchmark | LLaMA-7B | Fed-CodeAlpaca (9 clients by language), Dolly, GSM8K | HumanEval: centralized 13.54, FedAvg 13.29, local 10.99 | Code clients split by language: FedAvg near centralized. Venue not verified | full |
 | OpenFedLLM, Ye et al., 2024 ([arXiv 2402.06954](https://arxiv.org/abs/2402.06954)) | FL instruction tuning and FedDPO framework, 7 FL algorithms | Llama2-7B int8, LoRA r=32 | Alpaca-GPT4, CodeAlpaca, finance | Code HumanEval: FedAvg 0.165, FedProx 0.146, SCAFFOLD 0.140, local 0.116 | Drift corrections give no consistent gain. Venue not verified | full |
 | FedLLM-Bench, Ye et al., 2024 ([arXiv 2406.04845](https://arxiv.org/abs/2406.04845)) | Naturally partitioned FL datasets | Llama2-7B, LoRA | chat, IT, preference | Fed-ChatbotIT: FedAvg 5.51, FedProx 5.49, SCAFFOLD 5.34 | Same conclusion on drift corrections. Venue not verified | full |
@@ -820,10 +821,68 @@ EHR models without SQL generation), FlowerTune and the Sherpa.ai
 cross-domain benchmark (arXiv 2605.13936; no SQL task in either).
 
 For the paper: "the only earlier federated Text-to-SQL work is FL4SP"
-still holds; KGRFL can be cited beside it as federated semantic parsing to
+holds only for peer-reviewed work (section 1.23, FedParsing); KGRFL can be cited beside it as federated semantic parsing to
 SPARQL. The term "federated Text-to-SQL" is also used for querying
 federated databases (RAG-SQL), so the introduction should say that here
 it means federated training of the model.
+
+### 1.23 Related-work scan of 2026-11-27 (FedParsing)
+
+Sources: web search over arXiv, ACL Anthology, OpenReview, PMLR, AAAI and
+ResearchGate, and the reference lists of FL4SP, PubSwap, Fed-GRPO and
+KGRFL. Google Scholar could not be reached (browser host failed; no
+CAPTCHA seen), so its "Cited by" lists were not read. The full table,
+queries and quotations are in `scholar_scan_2026-11-27.md`; that file was
+compiled by an automated scan, and its rows are abstract-level unless
+marked otherwise. Papers already in this file (FedMOA, FGRPO, FedGRPO of
+Zhu et al., Fed-SE, SemFed, PubSwap, Fed-GRPO, KGRFL, OpenFedLLM) are not
+repeated.
+
+**FedParsing.** "FedParsing: a Semi-Supervised Federated Learning Model on
+Semantic Parsing", anonymous, ACL Rolling Review submission of November
+2021 ([OpenReview](https://openreview.net/forum?id=Oeikp9N4fzi); listing on
+[SOTAVerified](https://sotaverified.org/papers/fedparsing-a-semi-supervised-federated)).
+Semi-supervised federated semantic parsing on WikiSQL: clients learn from
+unlabeled questions through a Mean Teacher with EMA updates and a
+consistency loss; decoders are averaged; reported to beat a supervised
+model and a standard semi-supervised FL model. Checked on 2026-11-27: no
+published version found (not in the ACL Anthology, no arXiv version, no
+named authors in any record). FL4SP, peer-reviewed at ACL 2023, writes
+"To the best of our knowledge, we are the first to study federated
+learning for semantic parsing" (contributions and conclusions) and does
+not cite it. The OpenReview forum and PDF return a browser challenge to
+automated fetches, so the decision status and the model were not read by
+us; the description above comes from the listing abstract and the scan's
+reading of the PDF. For the paper: "the only earlier work" must be
+limited to peer-reviewed work, or FedParsing cited as an unpublished
+submission. WikiSQL is single-table, sketch-style SQL, and the setup is
+semi-supervised with no execution labels, so the other half of the
+novelty claim (execution labels, on-policy pairs renewed each round) is
+untouched.
+
+Also found, not a paper: the GitHub repository RESDSQL-fed documents a
+federated T5-base fine-tuning command on Spider; no paper or result
+attached.
+
+| Paper | What it does | Relation to our setup | Read |
+|---|---|---|---|
+| Chen et al., **Is Decentralized LLM Agent RL Robust to Heterogeneity? An Asymmetric Tale (FedAgent)**, NeurIPS 2026 per the authors ([project page](https://fed-agent.github.io/)) | Federated RL (GRPO or PPO) for language agents; each client rolls out its current policy in its own environment; WebShop and ALFWorld; includes Qwen2.5-1.5B | Closest federated precedent for on-policy rollouts on private data inside rounds, at our model size; RL with environment reward, not DPO, no SQL. Cite in 2.3 next to PubSwap and Fed-GRPO | scan: full text; venue not verified |
+| Hou et al., **POPri: Private Federated Learning using Preference-Optimized Synthetic Data**, ICML 2025 ([PMLR](https://proceedings.mlr.press/v267/hou25g.html)) | Server generates synthetic text, clients score it against private data (DP-aggregated), server runs DPO on pairs rebuilt each round with a fixed reference | Iterative DPO with decentralized feedback, but the policy is trained at the server and the goal is DP synthetic data | scan: full text |
+| Zhang et al., **PLUM: Improving Code LMs with Execution-Guided On-Policy Preference Learning Driven by Synthetic Test Cases**, arXiv 2024 ([2406.06887](https://arxiv.org/abs/2406.06887)), venue not verified | Generates tests from instructions, executes current-policy code samples, builds preference pairs, trains the policy; HumanEval, MBPP, LiveCodeBench | Centralized execution-labelled on-policy preference learning for code, a second precedent beside CodeLutra for 2.2 | abstract |
+| Ngo et al., **Not All Verifiable Preference Pairs Are Equal: Support-Aware Filtering for Stable Iterative DPO**, IJCNLP-AACL 2026 short ([ACL](https://aclanthology.org/2026.aacl-short.51/)) | Separates pairs with two on-policy outputs from fallback pairs whose chosen side is the dataset answer; filters each type; GSM8K, MATH-500, 0.5B to 3B | Bears on our pair construction when no sample of a question is correct | abstract |
+| Chen et al., **F-CodeLLM: A Federated Adaptive LLM Fine-Tuning Framework for Software Development**, IEEE Trans. Services Computing 19(1) 2026 ([DOI](https://doi.org/10.1109/TSC.2025.3623626)) | Federated fine-tuning of code models across organizations with communication-adaptive training; near centralized | Federated code SFT, journal venue; optional for 2.3 | abstract |
+| Srewa et al., **APPA**, arXiv 2026 ([2604.04261](https://arxiv.org/abs/2604.04261)); Koo et al., **Federated Variational Preference Alignment**, arXiv 2026 ([2605.30873](https://arxiv.org/abs/2605.30873)) | Federated RLHF with group reweighting (APPA); personalized preference prototypes on HH-RLHF | Federated alignment on human preferences, like FedPDPO in section 1.3; no verifier | abstract (APPA scan: full text) |
+| Bappy and Seneviratne, **FedV-KGQA**, ISWC 2026 ([2608.24846](https://arxiv.org/abs/2608.24846)) | Multi-hop KGQA over vertically partitioned graphs; embeddings and answer ranking, no parser | Not a semantic parser; not for 2.4 | scan: full text |
+| Nguyen, Phan and Piccardi, **Fine-tuning text-to-SQL models with reinforcement-learning training objectives**, Natural Language Processing Journal 10, 2025 ([PDF](https://opus.lib.uts.edu.au/rest/bitstreams/56c2c672-5579-4a3d-a74c-e04b21f61fda/retrieve)) | Policy-gradient fine-tuning of BART and T5 with a reward matched to SQL metrics | Older seq2seq RL for SQL; optional | abstract |
+| Dai et al., **ReEx-SQL**, ACL 2026 ([ACL](https://aclanthology.org/2026.acl-long.35/)); Hua et al., **SQL-Trail**, ACL 2026 ([ACL](https://aclanthology.org/2026.acl-long.1677/)); Zhou et al., **EvoSQL**, Findings EMNLP 2026 ([ACL](https://aclanthology.org/2026.findings-emnlp.717/)) | Execution feedback inside RL rollouts (ReEx-SQL, 7B), multi-turn RL with database interaction (SQL-Trail), critic-generator co-evolution with execution-aware supervision (EvoSQL) | Recent centralized execution-feedback training for Text-to-SQL; optional in 2.1 or 2.2 | abstract |
+| Hu et al., **OpenSQL**, PVLDB 19(7) 2026 ([author copy](https://dbgroup.cs.tsinghua.edu.cn/ligl/papers/VLDB26-OpenSQL.pdf)); Gao et al., **MSI-SQL**, Findings EMNLP 2026 ([ACL](https://aclanthology.org/2026.findings-emnlp.2390/)) | Intermediate supervision synthesized from question-SQL pairs (OpenSQL); verification-based iterative data generation with masked SQL completion (MSI-SQL) | Fine-tuned open models for Text-to-SQL; optional in 2.1 | abstract |
+| Chan and Kuo, **Leveraging Open-Source Language Models for Privacy-Preserving Text-to-SQL Generation in Electronic Health Records**, ROCLING 2026 ([ACL](https://aclanthology.org/2026.rocling-main.1/)) | Domain fine-tuning of open models for clinical Text-to-SQL so data stay in the deployment | Privacy motive for local open models, single site; optional | abstract |
+
+For the paper: in 2.4 the "only earlier work" sentence needs the
+peer-reviewed limit or a FedParsing citation; in 2.3 FedAgent (and
+optionally Fed-SE) belongs beside PubSwap and Fed-GRPO; in 2.2 PLUM
+belongs beside CodeLutra. Each needs a fact-sheet row in
+`paper/manuscript/briefs/02_related_rows.md` before it enters the text.
 
 ## 2. What already exists
 
@@ -844,7 +903,9 @@ it means federated training of the model.
   Reasoning-SQL, Think2SQL, SLM-SQL) mostly on 8-64 large GPUs.
 - Text-to-SQL distillation into ~1B students (KID) and code distillation with
   our exact model pair (DistiLLM-2).
-- One federated Text-to-SQL paper (FL4SP), with T5-base and exact match.
+- One peer-reviewed federated Text-to-SQL paper (FL4SP), with T5-base and
+  exact match, and one unpublished ARR submission (FedParsing, WikiSQL,
+  semi-supervised; section 1.23).
 - Label-free preference training through self-consistency (ScPO),
   self-generated code/tests (CodeDPO, DSTC), and execution-success pairs for
   SQL dialects (ExeSQL). SQL-Zero supplies a separate self-play precedent.
