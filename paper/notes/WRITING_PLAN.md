@@ -346,7 +346,7 @@ Advice for the editor; none stops a section.
 | Strength | the cold read; `tools/reverse_outline.py` | a reader who cannot say what is new and against what; a statement below the strength of its brief; a finding told as a list of values; a weakness outside the limitations or said twice |
 | The lab showing through | `make lint` | file paths, "we first", sentences that certify, a choice defended that nobody questioned, lab words |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF` | a large share of the draft in runs of five or more words of the brief |
-| Cold read | the `cold-review` skill, `section` template: an isolated session reads the PDF of the section as a reviewer would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
+| Cold read | the `cold-session` skill, `section` template: an isolated session reads the PDF of the section as a reviewer would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
 | Inflated words | `writing_quality_check` of the academic-paper skill, read by the main session | "comprehensive", "robust", "leverages" where the evidence does not carry them |
 | Tables | `tools/table_lint.py` | fixed in the generator |
 
@@ -417,7 +417,7 @@ its locators, the supplementary file.
 | `make register`, `make overlap` | `tools/style_profile.py compare` for every section; `lifted` against the closest papers |
 | `make submit` | the flat source the journal asks for, compiled (`tools/flatten.py`); stops on a placeholder or a guess |
 | `tools/reverse_outline.py`, `tools/table_lint.py` | first sentences of a section; table conventions (from PaperOrchestra, MIT) |
-| `cold-review` skill; `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
+| `cold-session` skill; `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
 | TeX | TeX Live 2026 basic with the packages of `tsp.cls` in the user tree; the `Makefile` puts the `l3` folders of the system tree first on `TEXINPUTS` |
 
 ```text
@@ -432,7 +432,7 @@ paper/manuscript/
                    NN_notes_editor.md, the fact rows of Section 2, inventory.txt
   bib/report.md    how each reference was verified; the sources of each subsection
   voice/           the editor's calibration
-  cold_reviews/    reports of the cold-review skill
+  cold_reviews/    reports of the cold-session skill
   .sources/        arXiv sources for make overlap (outside Git)
   tools/
 ```

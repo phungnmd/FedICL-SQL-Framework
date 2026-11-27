@@ -4,6 +4,30 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the isolated runner takes other tasks than a review (owner; no run)
+
+Owner: make the cold-review skill serve more than reviews. The skill is
+now `cold-session` (`.claude/skills/cold-session/`); the review calls
+are unchanged. New in `run.sh`: a prompt from a file (`-f`), a pack
+directory copied with its paths (`-d`), a session kept over several
+turns (`-k`, `-r HANDLE`, `-c`), a write mode in which the session
+writes only inside its own directory and the files it wrote are copied
+out (`-w`), and web access switched off (`-N`).
+
+Every session now also runs with `--restricted`: `--safe-mode` alone
+still loaded the user settings, which list `/tmp` as an extra working
+directory. Tested with real sessions in each mode (a helper, then the
+main session again): no instruction or memory file in context,
+`AGENTS.md` denied, no write under `/Users` or elsewhere in
+`/private/tmp`, the second turn remembers the first, and closing leaves
+no directory and no transcript. The session still sees a block with the
+account of the user.
+
+The reason is the writer of the manuscript: started as a subagent it
+inherits `AGENTS.md` and the memory index. `WRITING_PLAN.md` still
+starts it as a subagent; changing that, and what the writer is given,
+waits for the owner.
+
 ## 2026-11-27: the method is named FedExec-SQL and the title is set (owner; no run)
 
 Owner, in chat: the method is FedExec-SQL and the title is "FedExec-SQL:
