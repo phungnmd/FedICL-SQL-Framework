@@ -157,8 +157,10 @@ the exact McNemar p.
 
 ## 6. Term sheet and notation
 
-The terms and the notation of the paper are in `TERMS.md`. The owner
-revised them on 2026-11-26 to the terms of the field: the labels are
+The terms and the notation of the paper are in `TERMS.md`, a glossary
+that goes to the writer as it is and so holds no lab word, date or
+decision (2026-11-27); those are here. The owner
+revised the terms on 2026-11-26 to the terms of the field: the labels are
 "correct" and "incorrect", the two kinds of incorrect query are
 "execution error" and "incorrect result", the model generates a query,
 a client samples and executes. Sections 1 to 5 above keep the words
@@ -170,6 +172,10 @@ Lab words, which the paper never uses, and what stands for each:
 |---|---|
 | student | the model |
 | base student | the pretrained model |
+| small model | small language model (SLM), with its parameter count at first use; not in the title or the name of the method |
+| right, wrong | correct, incorrect |
+| wrong result | incorrect result |
+| DPO round | preference round |
 | k2, FedPref | `\method` |
 | fedavg, bird_sft | FedAvg SFT |
 | SFT stage, k | warm-up rounds |

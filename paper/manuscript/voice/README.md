@@ -1,10 +1,10 @@
 # Calibration material (for the editor)
 
 Nothing in this folder is given to the writer. The writer's voice comes
-from `../VOICE_GUIDE.md` and from the register of the brief itself
-(owner, 2026-11-27); the passages from published papers that stood here
-until that day were removed, and no text of a published paper reaches
-the writer.
+from `../VOICE_GUIDE.md`, from the register of the brief itself and from
+the example papers of its pack (owner, 2026-11-27;
+`paper/notes/WRITING_PLAN.md`, section 3.2). No passage of CodeLutra or
+OpenFedLLM reaches the writer.
 
 | File | What it is for |
 |---|---|

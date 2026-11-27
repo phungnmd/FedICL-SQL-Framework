@@ -156,20 +156,22 @@ work in full and builds the argument freely. So (owner, 2026-11-27):
 
 ### 3.2 The pack
 
-One directory per section, assembled by the main session in
-`build/pack_NN/` (outside Git). Every file in it is in the register of
-the paper.
+One directory per section, assembled in `build/pack_NN/` (outside Git)
+by `make pack S=NN` (`tools/pack.py`), which also writes the start
+prompt, `build/start_NN.md`. Every file in it is in the register of the
+paper.
 
 | In the pack | Holds | Built from |
 |---|---|---|
 | `README.md` | one line per file of the pack | written with the pack |
-| `paper.md` | the paper on one page: problem, gap, idea, the method in a few lines, the main findings, the contributions. The same for every section | `WRITING_GUIDE.md`, part 1 |
-| `guide.md` | how to work: the readers, what binds (section 3.3), the outline, the deliverables; then the register and the organization of this kind of section | `WRITING_GUIDE.md`, part 2; `VOICE_GUIDE.md`, section 1 and the part for this kind |
+| `paper.md` | the paper on one page: setting, limitation, key observation, framework, findings, contributions, organization. The same for every section | `WRITING_GUIDE.md`, "The paper" |
+| `guide.md` | how to work: the readers, the materials, what binds (section 3.3), the outline, the deliverables | `WRITING_GUIDE.md`, "Working guide" |
+| `voice.md` | the register, and the organization of every kind of section | `VOICE_GUIDE.md` |
 | `terms.md` | the glossary: term, meaning, symbol | `TERMS.md` |
 | `brief.md` | this section (section 4) | `briefs/NN_name.md` |
-| `results/` | every table as it prints, with its tests; the figures; the settings; each macro with exactly what it prints. All of them, not only those of the section | `generated/`, `figures/`, `make floats` |
-| `related/` | for each reference the brief lists: its fact rows and its abstract | `briefs/02_related_rows.md`; the abstract copied from the source that `bib/report.md` names for the entry |
-| `examples/` | one or two published papers far from ours in content, as examples of how a paper of this kind is built and reads | chosen with the owner |
+| `results/` | every table as it prints, with its tests; the figures; the settings; each macro with what it prints and the names of its arguments. All of them, not only those of the section; result commits and source files are left out | `generated/`, `figures/`, `make floats` |
+| `related/` | for each citation key that stands in the brief: the abstract and the fact rows, without the quotations and the reading record | `briefs/02_related_rows.md`, `02_related_table1_rows.md`; `.sources/abstracts.json`, written by `tools/abstracts.py` (outside Git) |
+| `examples/` | one or two published papers far from ours in content, as examples of how a paper of this kind is built and reads | `.sources/examples/` (outside Git) |
 | `sections/` | the accepted sections, and the file of this section with its heading | `sections/` |
 
 The method reaches the writer of Section 3 through its brief (the
@@ -185,15 +187,17 @@ about what not to say; the full text of CodeLutra and of OpenFedLLM
 `make overlap` and the claim audit read the draft for what that
 leaves.
 
-Example papers: one from CMC and one widely read method paper (LESFT
-and LoRA are the candidates), never CodeLutra, OpenFedLLM, GradeSQL or
-a DPO paper. `README.md` names them as examples of form; no fact is
+Example papers: one from CMC and one widely read method paper, never
+CodeLutra, OpenFedLLM, GradeSQL or a DPO paper. In place now: LESFT
+(CMC 87(1)) and LoRA (arXiv 2106.09685), the main session's choice;
+the owner may change it. `README.md` names them as examples of form; no fact is
 taken from them, and `make overlap` reads the draft against them too.
 
-Before the start the main session reads the pack once from the first
-file to the last, as the writer will, and searches it for dates,
-"owner" and the lab words of `CLAIMS.md`, section 6. What it finds is
-removed at the source file, not in the copy.
+`tools/pack.py` searches the pack for dates, "owner", pointers to
+files of the lab and the lab words of `tools/lint.py`, and stops when
+it finds one. Before the start the main session also reads the pack
+once from the first file to the last, as the writer will. What is
+found is removed at the source file, not in the copy.
 
 ### 3.3 What binds the writer
 
@@ -221,7 +225,7 @@ reads the draft for a sentence that goes against it.
 
 ### 3.4 Voice
 
-`guide.md` describes the register, and the example papers show it from
+`voice.md` describes the register, and the example papers show it from
 the first session on. If a pilot is still far from the range of the
 papers (`make register`), the cause is looked for in the pack. `voice/`
 holds the editor's calibration only (`voice/README.md`).
@@ -281,7 +285,7 @@ formulas and Algorithm 1 as checked against the code),
 ### 4.1 The outline of a section
 
 Written by the writer before any prose, into `notes/outline.md`: one
-line per paragraph with its function (as the guide names it), its
+line per paragraph with its function (as `voice.md` names it), its
 point, the equation, table or figure it carries, and its rough length.
 The main session answers in a few lines, on these questions only:
 
@@ -454,14 +458,16 @@ not go into it.
 State (2026-11-27): the build, the generated numbers, tables, settings
 and charts, `CLAIMS.md`, `TERMS.md`, `OUTLINE.md`, `references.bib` (55
 entries, each verified; `bib/report.md`), the two guides, the checks
-files and the isolated runner exist. The guides and `TERMS.md` are
-still in their form of before the pack (step V1). No section is written
+files, the isolated runner and the tool that assembles a pack exist.
+`WRITING_GUIDE.md` and `TERMS.md` are in the form of the pack; the
+abstracts of 54 of the 56 references and two example papers are in
+`.sources/`. No brief and no section is written
 yet: `sections/01` to `08` hold a heading and its label; the appendices
 and the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|
-| V1 | The inputs in the form of the pack: `WRITING_GUIDE.md` as two parts (the paper on one page; how to work) with no word about other files or the lab; `TERMS.md` as a glossary, its lab column moved to `CLAIMS.md`, section 6; the example papers; a tool that assembles `build/pack_NN/` | the owner approves the page on the paper and the example papers |
+| V1 | Done 2026-11-27: `WRITING_GUIDE.md` as two parts (the paper on one page; how to work); `TERMS.md` as a glossary, its lab words in `CLAIMS.md`, section 6; the abstracts; the example papers; `tools/pack.py` | the owner reads the page on the paper (`WRITING_GUIDE.md`, "The paper") and may change the example papers |
 | V2 | Pilot: the briefs of Sections 3 and 1 in the form of section 4; the writer drafts Section 3, then Section 1 with the abstract; all checks of section 7 | the owner approves each brief, then reads the pilot |
 | V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the pack is corrected (section 3.1) and the pilot is written again | the owner; a brief to approve per section |
 | W14 | Whole paper: one writer reads it end to end and evens it out, with `make inventory` before and after so that no number and no reference changes; reader test; `/ars-reviewer`; claim audit of the full text; page count | the owner and the advisor read |
@@ -472,9 +478,7 @@ numbers`, `make`, and the claim audit runs again for the claims that
 use that row; its `\expect` guesses are replaced and their sentences
 read again.
 
-Still to build in the tools: the assembly of the pack (step V1), the
-example papers among the sources of `make overlap`, the abstracts of
-the cited papers (none is stored yet), the time limits of the labeling step as
+Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),
 the test of the method against centralized SFT (claim A5), Table 1 with
 its locators, the supplementary file.
@@ -485,7 +489,8 @@ its locators, the supplementary file.
 |---|---|
 | `make`, `make numbers`, `make figures`, `make floats` | the PDF (`build/main.pdf`); macros, tables and settings; charts; every float on its own |
 | `make lint`, `make inventory` | `tools/lint.py`: numbers, references, journal form, lab words; macros and keys of every section |
-| `make register`, `make overlap` | `tools/style_profile.py compare` for every section; `lifted` against the closest papers |
+| `make register`, `make overlap` | `tools/style_profile.py compare` for every section; `lifted` against the closest papers and the example papers |
+| `make pack S=NN [ALSO=..] [ACCEPTED=".."]`, `tools/abstracts.py` | what the writer of a section reads, with its start prompt; the abstracts of the references |
 | `make submit` | the flat source the journal asks for, compiled (`tools/flatten.py`); stops on a placeholder or a guess |
 | `tools/reverse_outline.py`, `tools/table_lint.py` | first sentences of a section; table conventions (from PaperOrchestra, MIT) |
 | `cold-session` skill | isolated sessions: the writer (section 2.1) and the cold reads |
@@ -507,7 +512,8 @@ paper/manuscript/
   cold_reviews/    reports of the cold reads
   build/           outside Git: the PDF; pack_NN/ (what the writer of a section reads),
                    writer_NN/ (what it wrote, and the log of its session)
-  .sources/        arXiv sources for make overlap (outside Git)
+  .sources/        outside Git: arXiv sources for make overlap, abstracts.json,
+                   examples/ (the example papers)
   tools/
 ```
 

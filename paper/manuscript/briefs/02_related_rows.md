@@ -97,7 +97,7 @@ Version read: arXiv 2411.05199v3 (TMLR 06/2025), the PDF of `02_related_table1_r
 |---|---|---|---|
 | 1. Ablation with the DPO term alone: numbers on Spider and BIRD, table, sentence | The ablation is on Spider and DS-1000, not BIRD. Table 2: L_DPO alone 17.2 (Spider), 12.4 (DS-1000); full loss 76.6 and 48.6. The paper writes the Spider drop of 59.4 points as "↓59.4%". | "Notably, omitting optimizing the SFT loss on the correct solutions results in a marked decline in model performance, e.g., ↓59.4% on Spider." | Sec. 5.3, "Importance of SFT regularization during preference optimization", Table 2, p. 9. |
 | 2. Table 1: base, SFT baseline, method by iteration (Spider, BIRD) | Llama-3-8B, EX (EM): base 59.3 (55.1) Spider, 22.3 (19.5) BIRD. SFT ("Fine-tuned LLMs" row) 67.9 (64.7), 35.6 (30.7). Iterations 1 to 4, Spider EX: 67.8, 72.4, 76.6, 76.3; BIRD EX: 37.8, 40.8, 43.1, 42.6. Best is iteration 3 on both. | "on the more challenging BIRD dataset, after three iterations, CodeLutra significantly improved the EX of the base model from 22.3 to 43.1, achieving performance very close to GPT-4." | Table 1, p. 8; Sec. 5.2, p. 8. |
-| Models | Llama-3-8B (main), Gemma-7B and StarCoder-7B (Table 3); see `02_related_table1_rows.md`, row 7. | "For main results, we apply our framework to the Llama-3-8B base model (Dubey et al., 2024), denoted as π0" | Sec. 5.1, p. 7. |
+| Models | Llama-3-8B (main), Gemma-7B and StarCoder-7B (Table 3); see row 7 of the property table of this paper. | "For main results, we apply our framework to the Llama-3-8B base model (Dubey et al., 2024), denoted as π0" | Sec. 5.1, p. 7. |
 
 ## J. Liu et al. 2025, CoT and DPO for Text-to-SQL (`liu2025cotdpo`)
 
@@ -164,7 +164,7 @@ Version read: arXiv 2402.06954v1, the PDF of `02_related_table1_rows.md`, Secs. 
 |---|---|---|---|
 | 1. Federated instruction tuning: algorithms, base model, LoRA | Seven FL algorithms (FedAvg, FedProx, SCAFFOLD, FedAvgM, FedAdagrad, FedYogi, FedAdam) plus local training as reference. Instruction tuning: Llama2-7B, int8, LoRA rank 32, alpha 64, 200 rounds, 10 local steps per round. | "we implement 7 representative FL baselines in OpenFedLLM. Specifically, we integrate FedAvg [20], FedProx [49], SCAFFOLD [50], FedAvgM [44], FedAdagrad, FedYogi, and FedAdam [54]." | Sec. 4.1, "Baselines", p. 7; training details: Sec. 4.1, p. 8. |
 | 2. Code task (HumanEval): FedAvg, FedProx, SCAFFOLD, local | Code domain (CodeAlpaca, 20k samples, 10 clients, 2 per round), Table 7, HumanEval Pass@1: local 0.116, FedAvg 0.165, FedProx 0.146, SCAFFOLD 0.140 (FedAdagrad best, 0.183). HumanEval also appears in the general-purpose table (Alpaca-GPT4, Table 4): local 9.15, FedAvg 14.02, FedProx 14.63, SCAFFOLD 17.68. | "During training, we set the client number as 10, where we randomly sample 2 clients to be available for each round. These clients hold 20k data samples in total." | Sec. 4.5, p. 11; Table 7, p. 10; Table 4, p. 9. |
-| Models | Llama2-7B for instruction tuning; Wizard-Vicuna-7B-Uncensored for FedDPO (see `02_related_table1_rows.md`, row 7). | "We use the pre-trained Llama2-7B [4] as the base model and run 200 communication rounds of FL." | Sec. 4.1, p. 8. |
+| Models | Llama2-7B for instruction tuning; Wizard-Vicuna-7B-Uncensored for FedDPO (see row 7 of the property table of this paper). | "We use the pre-trained Llama2-7B [4] as the base model and run 200 communication rounds of FL." | Sec. 4.1, p. 8. |
 
 ## Q. Wu et al. 2025, FedBis and FedBiscuit (`wu2025fedbiscuit`)
 
@@ -201,7 +201,7 @@ Version read: arXiv 2305.17221v1, the PDF of `02_related_table1_rows.md`, Secs. 
 |---|---|---|---|
 | 1. MacroAvg EM: centralized, FedAvg, best federated variant | Table 2, MacroAvg EM: centralized 70.32; individual finetuning 62.78; FedAvg 40.03; FedAvg + Lorar 60.16; FedProx 41.67, + Lorar 58.39; FedOPT 58.32, + Lorar 62.55 (best federated). MicroAvg: centralized 74.21, FedOPT + Lorar 69.39, FedAvg 57.89. | "by equipping them with our proposed Lorar, we can reduce the gap by 4-20 points (i.e., absolute difference under MacroAvg)." | Table 2, p. 7; Sec. 6.1, "FL vs. Finetuning/Centralized", p. 6. |
 | 2. What Lorar is | Aggregation weight of client i in round t proportional to its training-set size times its training-loss reduction in that round: p_i^t = \|D_i\| dL_i^t / sum_i \|D_i\| dL_i^t. Applied to FedAvg, FedOPT, FedProx. | "we use the training loss reduction to adjust the weight of each client, so as to reschedule its contribution to the global model update." | Sec. 4.2, Eq. (6), p. 5. |
-| Models | T5-base (see `02_related_table1_rows.md`, row 7). | "Specifically, we adopt T5-base as our backbone semantic parser in the FL paradigm" | Sec. 1, p. 2. |
+| Models | T5-base (see row 7 of the property table of this paper). | "Specifically, we adopt T5-base as our backbone semantic parser in the FL paradigm" | Sec. 1, p. 2. |
 
 ## U. Xu et al. 2024, KGRFL (`xu2024kgrfl`)
 

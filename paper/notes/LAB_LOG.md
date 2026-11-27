@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the inputs of the writer are in the form of the pack (owner: go; no run)
+
+Step V1 of the writing plan.
+
+- `WRITING_GUIDE.md` has two parts: "The paper" (one page: setting,
+  limitation, key observation, framework, findings at the strength of
+  `CLAIMS.md`, contributions, organization, limitations) and "Working
+  guide". Neither names a file outside the pack. The page on the paper
+  is written by the main session and waits for the owner's reading.
+- `TERMS.md` is a glossary of two columns; the lab words it replaced
+  are in `CLAIMS.md`, section 6.
+- `tools/abstracts.py` fetched the abstracts of 54 of the 56 references
+  (arXiv API, Crossref, Semantic Scholar) into `.sources/abstracts.json`;
+  none for `holm1979simple` and `yi2025sktsql`.
+- Example papers in `.sources/examples/`: LESFT (CMC 87(1), from the
+  publisher's file server) and LoRA (arXiv 2106.09685). The main
+  session's choice. `make overlap` reads the drafts against them too.
+- `tools/pack.py` (`make pack S=NN`) assembles `build/pack_NN/` and the
+  start prompt. It leaves out the result commits, the source column of
+  the settings, the quotations and the reading record of the fact rows,
+  and stops on a date, "owner", a pointer to a lab file or a lab word.
+  Its first run found four pointers to lab files in the fact rows of
+  CodeLutra, OpenFedLLM and FL4SP; they are corrected in the rows.
+- Checked with a dummy brief (packs of Sections 2, 5, 7 with 8): the
+  search is clean, and an isolated session on the pack of Section 2
+  (Haiku, read only) read the page, a macro value and an example PDF and
+  named no file, rule or person outside the directory. No writer has
+  run: no brief exists yet.
+
 ## 2026-11-27: the writer runs isolated, knows the work in full and is freer (owner; no run)
 
 Owner, in chat: the writer knows the internals of the project and the

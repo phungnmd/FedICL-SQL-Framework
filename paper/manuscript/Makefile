@@ -10,6 +10,9 @@
 #   make inventory  macros and \cite keys of every section, for a before/after diff
 #   make overlap    runs of five or more words that a section shares with the closest papers
 #                   (their arXiv sources in .sources/, outside Git: 2411.05199, 2402.06954)
+#                   and with the example papers of the writer's pack (.sources/examples/)
+#   make pack S=03 [ALSO=08] [ACCEPTED="03 04"]   what the writer of section S reads
+#                   (build/pack_S/, build/start_S.md); abstracts come from tools/abstracts.py
 #   make register   the style measures of every section beside the reference papers
 #   make submit     the flat one-directory source the journal asks for, compiled
 # The target journal is CMC (owner, 2026-11-27): main.tex on the Tech Science Press class in
@@ -37,7 +40,7 @@ LATEX   := pdflatex -interaction=nonstopmode -halt-on-error -file-line-error
 SOURCES := $(MAIN).tex macros.tex references.bib $(wildcard sections/*.tex) \
            $(wildcard generated/*.tex) $(wildcard figures/*.pdf) $(STYLE)
 
-.PHONY: all pdf numbers figures floats lint inventory overlap register submit clean
+.PHONY: all pdf numbers figures floats lint inventory overlap pack register submit clean
 
 all: pdf
 
@@ -78,10 +81,18 @@ inventory:
 	$(PYTHON) tools/lint.py --inventory > $(BUILD)/inventory.txt
 	@echo "$(BUILD)/inventory.txt"
 
-CLOSEST := $(shell find .sources -name '*.tex' 2>/dev/null)
-overlap:
+CLOSEST  := $(shell find .sources -name '*.tex' 2>/dev/null)
+# the example papers of the writer's pack, as text
+EXAMPLES := $(patsubst %.pdf,%.txt,$(wildcard .sources/examples/*.pdf))
+.sources/examples/%.txt: .sources/examples/%.pdf
+	pdftotext $< $@
+overlap: $(EXAMPLES)
 	@test -n "$(CLOSEST)" || (echo "STOP: no sources in .sources/ (arXiv 2411.05199 and 2402.06954)"; exit 1)
-	@for f in sections/0*.tex; do $(PYTHON) tools/style_profile.py lifted $$f $(CLOSEST) | sed 's/ found in .*//'; done
+	@for f in sections/0*.tex; do $(PYTHON) tools/style_profile.py lifted $$f $(CLOSEST) $(EXAMPLES) | sed 's/ found in .*//'; done
+
+# what the writer of section S reads: build/pack_S/ and build/start_S.md (tools/pack.py)
+pack: floats
+	$(PYTHON) tools/pack.py $(S) $(if $(ALSO),--also $(ALSO)) $(if $(ACCEPTED),--accepted $(ACCEPTED))
 
 register:
 	@$(PYTHON) tools/style_profile.py compare sections/01_intro.tex --kind introduction | sed -n 3,4p
