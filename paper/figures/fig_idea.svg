@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="468" height="264" viewBox="0 0 468 264" role="img" aria-labelledby="fig-idea-title fig-idea-desc">
   <title id="fig-idea-title">One question, two ways of training</title>
-  <desc id="fig-idea-desc">One BIRD training question of a client, on the database student_loan. (A) FedAvg SFT trains the model on the gold SQL query as the only target; the database is not queried. (B) FedExec-SQL samples ten queries from the model, executes each on the client database and compares its result with that of the gold SQL query: a correct sample, a sample with a wrong result and a sample with an execution error are shown; correct samples are paired with incorrect ones and trained with DPO and NLL.</desc>
+  <desc id="fig-idea-desc">One BIRD training question of a client, on the database language_corpus. (A) FedAvg SFT trains the model on the gold SQL query as the only target; the database is not queried. (B) FedExec-SQL samples ten queries from the model, executes each on the client database and compares its result with that of the gold SQL query. The table shows the samples of the two preference pairs this question gave in the round: a correct query, one with a wrong result and one that fails; each pair is trained with DPO and NLL.</desc>
 
   <!-- Copy this style block and the defs into every figure, unchanged. -->
   <style>
@@ -81,13 +81,13 @@
   <!-- the training example both panels use -->
   <rect class="chip" x="9" y="20" width="450" height="49" rx="2.5"/>
   <text class="b" x="15" y="31">Question</text>
-  <text x="62" y="31">How many students are enrolled in UCLA school?</text>
+  <text x="62" y="31">How many Catalan-language Wikipedia pages are there overall?</text>
   <text class="b" x="15" y="42">Evidence</text>
-  <text x="62" y="42">enrolled in UCLA refers to school = 'ucla';</text>
+  <text x="62" y="42">Catalan-language refers to lang = 'ca';</text>
   <text class="b" x="15" y="53">Gold SQL</text>
-  <text x="62" y="53">SELECT COUNT(name) FROM enrolled WHERE school = 'ucla'</text>
+  <text x="62" y="53">SELECT pages FROM langs WHERE lang = 'ca'</text>
   <text class="b" x="15" y="64">Database</text>
-  <text x="62" y="64">student_loan</text>
+  <text x="62" y="64">language_corpus</text>
 
   <!-- A: FedAvg SFT -->
   <rect class="plain" x="9" y="77" width="450" height="34" rx="4"/>
@@ -120,26 +120,25 @@
   <text x="306" y="165">Result</text>
   <text x="17" y="178">Gold SQL</text>
   <text class="i" x="66" y="178">the result a sample has to match</text>
-  <text x="306" y="178">236</text>
+  <text x="306" y="178">1129144</text>
   <path class="rule" d="M17 183.5 H433"/>
   <text x="17" y="196.3">SQL 1</text>
   <rect class="chip-ok" x="62" y="188" width="234" height="11" rx="2.5"/>
-  <text x="66" y="196.3">SELECT COUNT(*) FROM enrolled WHERE school = 'ucla'</text>
-  <text x="306" y="196.3">236</text>
+  <text x="66" y="196.3">SELECT pages FROM langs WHERE lang = 'ca'</text>
+  <text x="306" y="196.3">1129144</text>
   <use href="#icon-ok" x="424" y="190"/>
   <text x="17" y="211.3">SQL 2</text>
   <rect class="chip-bad" x="62" y="203" width="234" height="11" rx="2.5"/>
-  <text x="66" y="211.3">SELECT COUNT(*) FROM enrolled WHERE school = 'UCLA'</text>
-  <text x="306" y="211.3">0</text>
+  <text x="66" y="211.3">SELECT COUNT(*) FROM langs WHERE lang = 'ca'</text>
+  <text x="306" y="211.3">1</text>
   <use href="#icon-bad" x="424.5" y="205"/>
   <text x="17" y="226.3">SQL 3</text>
   <rect class="chip-bad" x="62" y="218" width="234" height="11" rx="2.5"/>
-  <text x="66" y="226.3">SELECT COUNT(name) FROM person WHERE school = 'ucla'</text>
-  <text x="306" y="226.3">Error: no such column: school</text>
+  <text x="66" y="226.3">SELECT COUNT(tid) FROM langs WHERE lang = 'ca'</text>
+  <text x="306" y="226.3">Error: no such column: tid</text>
   <use href="#icon-bad" x="424.5" y="220"/>
 
   <text x="17" y="244.3">Pairs</text>
-  <path class="flow" d="M222 241.5 H236"/>
   <rect class="chip-ok" x="62" y="236" width="30" height="11" rx="2.5"/>
   <text class="mid" x="77" y="244.3">SQL 1</text>
   <text class="b mid" x="99" y="244.3">&gt;</text>
@@ -150,5 +149,6 @@
   <text class="b mid" x="185" y="244.3">&gt;</text>
   <rect class="chip-bad" x="192" y="236" width="30" height="11" rx="2.5"/>
   <text class="mid" x="207" y="244.3">SQL 3</text>
-  <text class="b" x="240" y="244.6">DPO + NLL</text>
+  <path class="flow" d="M224 241.5 H238"/>
+  <text class="b" x="242" y="244.6">DPO + NLL</text>
 </svg>

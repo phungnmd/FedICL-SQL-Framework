@@ -33,6 +33,28 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   the model's queries are incorrect"); reviewer question C51 (an
   execution filter at inference).
 
+## 2026-11-28: Fig. 1 drawn from the pairs the round built; example train:5744
+
+- Published `fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1_dpo.json` (code
+  `4c080c03`, results `4ff3eb02`): the 25 candidates with the pairs each
+  gave in round 1, read from the pairs files whose SHA-256 matches the
+  training records. The first try wrote over the published `_r1.json`
+  and its publication stopped; the file was put back as committed.
+- train:4462, the old example, was wrong twice: its two pairs have the
+  gold-text sample as chosen and the two `'UCLA'` wrong results as
+  rejected; the execution error is in no pair.
+- New example, train:5744 (BIRD train, client 5, language_corpus): "How
+  many Catalan-language Wikipedia pages are there overall?". 8 correct,
+  1 wrong result, 1 execution error of 10; the pairs are
+  `SELECT pages ...` over `SELECT COUNT(*) ...` (1 against 1129144) and
+  over `SELECT COUNT(tid) ...` (no such column: tid). The two chosen
+  samples are two of the 7 correct samples with that text. Picked for
+  both kinds of incorrect sample among the rejected, short SQL, and a
+  wrong result that reads as a plausible query; train:1079 (MAX against
+  MIN age) also qualified.
+- Panel B now prints the distinct SQL of the pairs and the pairs as
+  built; the figure stays 468 x 264.
+
 ## 2026-11-28: Fig. 1 prints pairs the run cannot have built (owner: fix)
 
 - Panel B shows "SQL 1 > SQL 2" and "SQL 1 > SQL 3". The line pairs at
