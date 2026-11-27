@@ -4,6 +4,69 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the queue is paused; the paper is written for CMC alone; the draft goes on with placeholders and marked guesses; BIRD or Spider as the main dataset read again (owner; no run)
+
+Owner, in chat:
+
+- The queue is paused: the cards are busy with other work, and it runs
+  on later. Nothing in `queues/active.toml` changed (`c2d80f57`). The
+  results repository, fetched today, has no result after
+  `bird_rft/round_1` (`62b41303`, 2026-11-25 17:26).
+  `PIPELINE_NEXT.md` (Status, Run now) says so.
+- The paper is written for CMC alone. JIIS is a later fallback: its
+  wrapper, its 25 pages and its open points bind nothing now
+  (`AGENTS.md`, `RESEARCH_STATE.md`, `JOURNAL_BAR.md`,
+  `WRITING_PLAN.md` sections 1, 5, 10, 11, `OUTLINE.md`).
+- The draft does not wait for the results. A number that waits stays a
+  placeholder (`??`, `--` in a table), or a guess marked as waiting.
+  New: `\expect{value}` in `paper/manuscript/macros.tex` prints
+  `value??` and writes the warning of a pending number, so `make`
+  counts it with the others and `make submit` stops on it; the lint
+  takes it as a number macro. Rule in `AGENTS.md` (Writing),
+  `WRITING_GUIDE.md` and `WRITING_PLAN.md` (section 1). No guess is
+  written yet: `make` still reports 48 pending numbers on 28 pages.
+
+BIRD or Spider as the main dataset, read again on the owner's request
+from the committed rows; no new result.
+
+| | BIRD dev | Spider test |
+|---|---|---|
+| The method over FedAvg SFT at 4 rounds | +6.19 (p 4.6e-11); +5.08 over its best round | +3.49 (p 6.4e-7) |
+| On-policy pairs against the pairs of the first preference round | +2.61 (p 5.7e-4) | 78.20 against 78.02 (p 0.78) |
+| The second preference round | +2.54 (p 2.1e-4) | +0.74 (p 0.093) |
+| The preference term over training on correct samples, 3 rounds | +1.83 (p 0.057) | +1.59 (p 0.015, 0.14 after Holm) |
+| Warm-up rounds, 0 / 2 / 3 at 4 rounds | not read at equal rounds | 78.02 / 78.20 / 77.97 |
+| FedAvg SFT at the method's client time | not run: the method takes 1,207 min, 7 SFT rounds; 4 are run | run: the method takes 560 min, 5 SFT rounds take 620; 78.20 against 73.92 |
+| Settings chosen on the set | none (k from Spider) | rounds and settings on test, k on dev |
+| Baselines run, of centralized, local, FedProx, FedDPO | none | centralized; FedDPO at 3 rounds |
+| Models | one | 0.5B run, DeepSeek-Coder-1.3B to 3 rounds |
+| GPU hours to the rows of section 3.4 (estimates) | about 137: 30 queued, 107 not queued | about 59: 33 queued (the IID setup among them), 26 for the two setups at alpha 0.5 |
+
+- Reading: BIRD stays the main dataset. Spider as main would cost
+  about 100 GPU hours less, and its ablation table would show that
+  nothing beyond one DPO + NLL round matters there (on-policy pairs,
+  the second preference round and the warm-up rounds are all level),
+  which is the objection of all three referee reports; the headline
+  would be 3.49 in place of 6.19. The one part that separates the
+  method from federated DPO as published has its evidence on BIRD
+  only, and BIRD dev is the set on which nothing was chosen.
+- What the read changes is the size of the BIRD list, set on
+  2026-11-25 when JIIS was a target too. Not asked by what CMC papers
+  have (seeds stated in 1 of 7, at least 3 models in each, 4 to 5
+  baselines; `JOURNAL_BAR.md`) and 72 of the 107 hours: the second
+  seed (25 h), DeepSeek-Coder-1.3B on BIRD (30 h; Spider has the three
+  models), k = 3 (7 h), the method at 5 rounds (10 h). Asked by all
+  three reports and not in the list: FedAvg SFT rounds 5 to 7 on BIRD
+  (10 h), the comparison at equal client time that Spider already has.
+- Proposed order when a card is free, BIRD first: `bird_rft/round_2`,
+  `bird_feddpo`, `bird_central/sft` (queued), FedAvg SFT rounds 5 to 7,
+  `bird_k0` rounds 3 and 4, local SFT, FedProx: about 68 h; then the
+  Spider rows; the four rows above last, or at the revision.
+
+Open for the owner: the proposed order and the four rows moved to the
+end. Section 3.4 of `RESEARCH_STATE.md` and the queue are unchanged
+until then.
+
 ## 2026-11-27: three referee reports on the CMC draft (owner: full review, all effort on CMC; no run)
 
 The CMC PDF (28 pages, 48 numbers pending) went to three isolated

@@ -1,6 +1,7 @@
 # FedLS-SQL manuscript. Run from paper/manuscript.
 #   make            the PDF (build/main.pdf); stops on an undefined reference; a number that
 #                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
+#                   and a guess written with \expect{value} prints as value?? and counts the same
 #   make numbers    macros, tables and settings from the committed results and configs
 #   make figures    the result charts (JOURNAL=cmc or jiis) and a copy of the method diagram
 #                   (drawn in paper/figures, rendered there with render.py)
@@ -20,7 +21,8 @@ MAIN    := main
 STYLE   := $(wildcard Definitions/*)
 endif
 BUILD   := build
-# STRICT=1 stops on a number without a committed result; a draft prints it as ??
+# STRICT=1 stops on a number without a committed result; a draft prints it as ??, or as
+# value?? where \expect{value} gives a guess
 STRICT  ?= 0
 PYTHON  ?= python3
 # matplotlib is not in the project environments; uv provides it for the charts

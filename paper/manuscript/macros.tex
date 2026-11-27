@@ -3,3 +3,9 @@
 \newcommand{\method}{FedLS-SQL}
 % The writing tool named in the declaration on the use of AI tools.
 \newcommand{\aitool}{Claude (Anthropic; model Claude Fable~5.2)}
+% A value expected for a number whose result is not committed yet (owner, 2026-11-27): the
+% draft may print a guess, marked like a pending number. It counts as one: `make` reports it
+% and `make submit` stops on it. When the row is committed, the number's macro replaces it.
+\makeatletter
+\newcommand{\expect}[1]{\textbf{#1??}\@latex@warning{No committed number for the expected value #1}}
+\makeatother

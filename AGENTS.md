@@ -49,8 +49,10 @@ code, GPU and server rules live there.
 ## The project
 
 Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
-(target: CMC, owner, 2026-11-27; JIIS is the second choice). The current
-state is in
+(target: CMC, owner, 2026-11-27). The manuscript is written for CMC
+alone: its template, its conventions and what its papers have
+(`paper/notes/JOURNAL_BAR.md`). JIIS is a later fallback; nothing is
+built, trimmed or checked for it now. The current state is in
 `paper/notes/RESEARCH_STATE.md`.
 
 - Topic: federated Text-to-SQL. Clients train a small model together and
@@ -205,6 +207,16 @@ deviate.
   `paper/notes/WRITING_PLAN.md`. The ARS skills serve single checks
   (citations, a cold review of the PDF); the paper is not run through
   their pipeline.
+- The draft does not wait for the results (owner, 2026-11-27). A
+  number whose row is not committed stays a placeholder: `??` from its
+  macro, `--` in a generated table. A guess may stand in its place
+  when it is marked as waiting: `\expect{value}` prints `value??`, and
+  the sentence around it may be worded for that outcome. A guess is
+  not a result: it goes into no note, results table, page or message
+  as one, and `make submit` stops while a placeholder or a guess is
+  left. When the row is committed the number's macro replaces it and
+  its sentence is read again; `paper/manuscript/REVIEW_NOTES.md` lists
+  the guesses.
 - `PIPELINE_NEXT.md` answers two questions on its first screen: what to run
   now and what is running. Four sections in this order: `Status` (what each
   GPU does and how that is known), `Run now` (numbered steps, each with one

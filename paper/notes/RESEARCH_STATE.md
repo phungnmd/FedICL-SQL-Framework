@@ -1,7 +1,9 @@
 # FedLS-SQL: research state
 
-Updated 2026-11-25; where the method stands is in section 5.0, the role
-of each dataset and the list of rows the paper needs in section 3.4. On
+Updated 2026-11-27 (the target journal and the pause of the queue; the
+results are those of 2026-11-25); where the method stands is in section
+5.0, the role of each dataset and the list of rows the paper needs in
+section 3.4. On
 2026-11-17 the owner set the project up again from clean: a new prompt,
 refactored code (package `fedls_sql`) and every result produced again.
 This file says what is fixed, what the method is and what is open. Runs
@@ -23,9 +25,12 @@ Second question: a server usually has public Text-to-SQL data. Does
 pre-training on it help, and does the gain of the main part remain on top
 of it?
 
-Goal: a journal paper at Q3 or above (target: CMC, owner, 2026-11-27;
-JIIS second) with a method
-that clearly beats the federated baselines and reports good numbers.
+Goal: a journal paper at Q3 or above with a method that clearly beats
+the federated baselines and reports good numbers. Target: CMC, and the
+manuscript is written for CMC alone (owner, 2026-11-27); JIIS is a
+later fallback. The draft is completed while results are awaited: a
+number that waits is a placeholder or a marked guess (`AGENTS.md`,
+Writing).
 
 ## 2. Setup
 
@@ -41,7 +46,7 @@ that clearly beats the federated baselines and reports good numbers.
 | Prompt | the Text-to-SQL prompt of the Qwen2.5-Coder evaluation code (schema text, a line naming SQLite, the question, a request for the SQL only), one for training, sampling and evaluation | layout fixed; schema text open between `ddl_rows` and `ddl_values`, section 4 |
 | Length | `--max-len 7168`, no truncation (a longer row stops the run); 256 new tokens | fixed |
 | Training recipe of the SFT baselines | LoRA SFT at lr 2e-4, FedAvg rounds of 1 local epoch, as many as the gain rule allows (more than 0.5 EX point over the best round, patience 2, at most 4 since 2026-11-18); the recipe of SPFT-SQL for this student is lr 2e-4, 3 epochs | run on Spider (FedAvg SFT 4 rounds, centralized SFT 3 epochs); on BIRD 2 rounds read, rounds 3 and 4 queued |
-| Compute | RTX A5000 24 GB under WDDM, two cards; one card available from the evening of 2026-11-21 (owner) | fixed |
+| Compute | RTX A5000 24 GB under WDDM, two cards; one card available from the evening of 2026-11-21 (owner). The queue is paused since 2026-11-27: the cards are busy with other work, and it runs on when they are free (owner) | fixed |
 
 Data rules: train and test never share a database; test data never becomes
 training, retrieval or teacher data; privacy is structural data isolation,

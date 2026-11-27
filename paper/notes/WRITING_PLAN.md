@@ -15,9 +15,9 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Who writes | a writer agent, one top-level section at a time, in the order of section 8: first its outline of the section, then the prose (owner, 2026-11-26: an outline before the writing keeps the text from rambling). The main session coordinates and writes no prose of the paper |
 | The writer | the author presenting finished work, in the register of the published papers of the field; its own judgement on how a section is built. It runs on Fable 5.2 at high effort (owner, 2026-11-26) |
 | Constraints | few (owner, 2026-11-26). Four things bind the writer (section 3.3). Checks of words and of style are signals for the editor, never rules for the writer, and prose is not repaired word by word: rigid rules and word checks make it stiff and patched |
-| When | the whole paper is drafted now (owner, 2026-11-26); a number that waits for its result is written with its macro and prints as `??` until the row is committed |
+| When | the whole paper is drafted now (owner, 2026-11-26) and does not wait for the results (owner, 2026-11-27: the queue is paused while the cards are busy). A number that waits for its result is written with its macro and prints as `??` until the row is committed, `--` in a generated table. A guess may stand in its place, marked: `\expect{value}` (`macros.tex`) prints `value??`, and its sentence may be worded for that outcome. The main session sets a guess, gives it in the brief as expected, and lists it in `manuscript/REVIEW_NOTES.md` with the macro that replaces it; `make` counts placeholders and guesses together, and `make submit` stops on either |
 | Helpers | audits, look-ups and the reader test run on Opus |
-| Format | LaTeX, in the CMC template (owner, 2026-11-27: CMC is the target, JIIS the second choice). Section bodies live in `sections/*.tex` with no class-specific command; each journal has its wrapper (`main.tex` for CMC, `main_jiis.tex` for JIIS; section 10), and `make JOURNAL=jiis` builds the second |
+| Format | LaTeX, in the CMC template. The paper is written for CMC alone (owner, 2026-11-27); JIIS is a later fallback, and its wrapper stays as it was on that day, not kept up. Section bodies live in `sections/*.tex` with no class-specific command; each journal has its wrapper (`main.tex` for CMC, `main_jiis.tex` for JIIS; section 10), and `make JOURNAL=jiis` builds the second |
 | Class | CMC: Tech Science Press `tsp.cls` (`TSP-Latex.zip` of 2024-12-18, in `Definitions/`), `\documentclass[cmc,article,submit,oneauthor,pdftex]{Definitions/tsp}`, BibTeX with `Definitions/vancouver.bst`. JIIS: Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst`. Not anonymised in either |
 | Place | `paper/manuscript/` in the paper repository; one commit per section. While the paper is being drafted a section is committed when its rounds of editor's notes are done, without waiting for the owner's reading (owner, 2026-11-27); what the owner has to read or decide is in `manuscript/REVIEW_NOTES.md` |
 | Numbers | a script writes macros and tables from the committed evaluations, and the settings from the committed configs (section 6); a result number in the text is a macro |
@@ -282,8 +282,10 @@ the draft, the first sentences of its paragraphs
 ## 5. Structure of the paper
 
 CMC has no page limit and its fee covers 15 pages (USD 100 for each
-page above); JIIS limits the paper to 25 pages in `sn-jnl`, references
-included. Results follow
+page above). The 25 pages of JIIS, which set the budgets below, no
+longer bind (owner, 2026-11-27: the paper is written for CMC); the
+draft is trimmed toward the pages of the fee after it is complete.
+Results follow
 research questions and the ablations have their own section, as in the
 JIIS papers read (`JOURNAL_BAR.md`).
 
@@ -474,7 +476,7 @@ time is an estimate.
 | Step | What | Waits on |
 |---|---|---|
 | W8 | Experimental setup; Appendix A and B assembled by the main session | the time limits of the labeling step as setting macros; 30 min |
-| W9 | Results, the four research questions in one call. A sentence on a number that waits states what is compared and leaves the direction and the size to the number | 30 min; the final reading waits for the rows of `generated/missing.txt` |
+| W9 | Results, the four research questions in one call. A sentence on a number that waits states what is compared and leaves the direction and the size to the number, or is worded for a guess written with `\expect` (section 1, "When") | 30 min; the final reading waits for the rows of `generated/missing.txt` |
 | W10 | Ablation study | same |
 | W11 | Related work with Table 1; a helper builds the rows with their locators, and the cited-work audit runs on the draft | 30 min |
 | W12 | Discussion and limitations, Conclusion | 30 min |
@@ -562,6 +564,11 @@ Where each requirement of sections 10 and 10.1 is built in:
 | Compiles on TeX Live 2018 (Editorial Manager) | the preamble holds only the packages of the Springer template (`graphicx`, `multirow`, `amsmath`, `amssymb`, `amsfonts`, `amsthm`, `mathrsfs`, `appendix`, `xcolor`, `textcomp`, `manyfoot`, `booktabs`, `algorithm`, `algorithmicx`, `algpseudocode`, `listings`), and `lint.py --journal jiis` stops on any other `\usepackage`; for CMC the list is what `main.tex` adds to the class (`algorithm`, `algorithmicx`, `algpseudocode`, `listings`, `catchfile`) |
 
 ## 10. The CMC version and the JIIS version
+
+The paper is written for CMC alone (owner, 2026-11-27). The JIIS
+wrapper, section 10.1 and the JIIS branches of the tools stay as they
+were on that day; nothing is built, trimmed or checked for JIIS until
+the owner takes it up again.
 
 The manuscript is built in the CMC template since 2026-11-27: the
 wrapper `main.tex` on the Tech Science Press class (`TSP-Latex.zip`:
@@ -714,7 +721,8 @@ pages), and the owner may send it.
 
 ## 11. Open with the owner
 
-1. JIIS leaves two points open (section 10.1): which class the 25 pages
+1. Not pursued while the paper is written for CMC (owner, 2026-11-27).
+   JIIS leaves two points open (section 10.1): which class the 25 pages
    are counted in (its page names both `sn-jnl` and the older macro
    with `smallcondensed`), and the review model. Until the owner says
    otherwise the paper is written in `sn-jnl` and is not anonymised; a
@@ -727,8 +735,8 @@ pages), and the owner may send it.
    tool and version. The figure is not redrawn or restyled before the
    owner decides; its labels were brought to the names and the notation
    of `TERMS.md` on 2026-11-26 (owner: fix what is needed).
-3. Decided (owner, 2026-11-27): CMC goes first, JIIS is the second
-   choice. The author statements of the CMC wrapper (funding,
+3. Decided (owner, 2026-11-27): the paper is written for CMC alone;
+   JIIS is a later fallback. The author statements of the CMC wrapper (funding,
    contributions, availability of data, conflicts of interest), the
    author block and the title wait for the owner.
 4. Decided (owner, 2026-11-26): Section 3.4 gives the reason for two

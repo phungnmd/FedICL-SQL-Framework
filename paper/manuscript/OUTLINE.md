@@ -236,6 +236,8 @@ equations of the Method section take about 0.4 page. A brief therefore
 gives the first column as the upper end of its section and asks for
 about 10% less (second column; owner, 2026-11-26), which fits the pages
 of the plan; the
-subsections share the reduction in proportion. The limit that binds is
-25 pages with references, declarations and appendix
-(`WRITING_PLAN.md`, section 5).
+subsections share the reduction in proportion. These budgets were set
+for the 25 pages of JIIS. The paper is written for CMC (owner,
+2026-11-27), which has no page limit and charges for each page above
+15; the draft is complete first and trimmed later
+(`WRITING_PLAN.md`, sections 1 and 5).

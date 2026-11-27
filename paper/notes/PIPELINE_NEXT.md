@@ -2,7 +2,20 @@
 
 ## Status
 
-Updated 2026-11-27. Queue `c2d80f57` adds `bird_wrfirst` (owner,
+Paused (owner, 2026-11-27). The cards are busy with other work and no
+worker of this project runs; the queue runs on when a card is free.
+Nothing is running and nothing is to be run now. The queue file is
+unchanged (`c2d80f57`), and a task that was stopped continues from
+where it stopped. The last published result is `bird_rft/round_1`
+(`62b41303`, 2026-11-25 17:26; fetched 2026-11-27); whether
+`bird_rft/round_2` was started is not known here. First in file order
+when a worker starts: `bird_rft/round_2`, the two `bird_vote` rows,
+`rft/round_2`, `bird_wrfirst`, `bird_feddpo`, `bird_central/sft`, then
+the Spider rows (table of `Running and queued`). The manuscript does
+not wait for them: it is completed with placeholders and marked guesses
+(`AGENTS.md`, Writing).
+
+Earlier on 2026-11-27. Queue `c2d80f57` adds `bird_wrfirst` (owner,
 2026-11-27): DPO + NLL round 1 on the BIRD clients with the rejected
 side from wrong results first, on the copied samples of `bird_k2` round
 1, with its evaluation on BIRD dev; after `rft/round_2`, about 5 h
@@ -261,13 +274,16 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| GPU 0 | idle; `strict_r/round_1` ended 11:59 | its publications `b5793e8e`, `6382f8d8` |
-| GPU 1 | idle since the evening of 2026-11-23 (owner) | no publication after 18:25 |
+| GPU 0 | busy with other work; no worker of this project | owner, 2026-11-27 |
+| GPU 1 | busy with other work; no worker of this project | owner, 2026-11-27 |
 
 ## Run now
 
+Nothing now: the queue is paused (Status). The steps below are for
+the day a card is free.
+
 1. A free card: the worker line, which pulls first (queue
-   `2df1f8b4`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
+   `c2d80f57`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
    It takes the first ready task in file order that no other worker
    holds.
 

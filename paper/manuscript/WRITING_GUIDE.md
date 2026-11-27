@@ -84,10 +84,14 @@ Four things, because the paper has to be true and has to compile.
    denied in print.
    A number whose result is not committed yet is written with its macro
    and prints as a placeholder; its sentence states what is compared
-   and leaves the direction and the size to the number.
+   and leaves the direction and the size to the number. Where the brief
+   gives a value expected for such a number, write `\expect{value}` in
+   place of the macro, which prints the value marked as waiting, and
+   word the sentence for that outcome; list these places in your notes.
 3. Numbers and names. Results and settings are macros (`\ex`, `\gain`,
    `\pval`, `\fact`, `\setting`), never typed digits; the brief gives
-   each macro with what it prints. The method is `\method` and the
+   each macro with what it prints. The one typed value is an expected
+   one, inside `\expect`. The method is `\method` and the
    trained model is "the model". Symbols follow the notation of
    `TERMS.md`. Citations are `\cite{key}` with the keys of the brief,
    and references go to the labels the brief lists.
@@ -95,7 +99,7 @@ Four things, because the paper has to be true and has to compile.
    `\subsubsection` (no `\paragraph`); the commands of the class and of
    the preamble of `main.tex`, no new package; a length near the one
    the brief gives and not above its upper end, since the journal
-   limits the pages.
+   charges by the page.
 
 The brief states its facts in shorthand. Treat it as notes, not as
 text: the sentences of the section are yours.

@@ -112,7 +112,9 @@ Fit:
   papers all run several models, and it has one Text-to-SQL paper, an
   evaluation study.
 
-Target (owner, 2026-11-27): CMC. JIIS is the second choice.
+Target (owner, 2026-11-27): CMC. The paper is written for CMC alone,
+and the CMC columns of sections 1 and 2 are its bar; JIIS is a later
+fallback.
 
 How four of the CMC papers name and build their contribution (read
 again 2026-11-27 from the full-text pages of the journal; the last part
