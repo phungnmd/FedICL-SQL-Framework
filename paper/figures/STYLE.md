@@ -140,7 +140,8 @@ picture would not carry it. Nothing decorative: no gradients, shadows,
   is, at 6 pt.
 - Every abbreviation in a figure is spelled out in its caption.
 - A worked example comes from a committed result and is printed as it
-  is there.
+  is there, each step included: the pairs a question gave in the run,
+  never pairs put together from the samples shown.
 
 ## Output
 

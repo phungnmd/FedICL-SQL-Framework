@@ -4,6 +4,24 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Fig. 1 prints pairs the run cannot have built (owner: fix)
+
+- Panel B shows "SQL 1 > SQL 2" and "SQL 1 > SQL 3". The line pairs at
+  random with M = 2 (`dpo/round_1/client_1_pairs_stats.json`), and
+  `_random_pairs` draws from the samples without replacement when a
+  pool holds at least M: train:4462 has 7 correct and 3 incorrect
+  samples, so its two pairs have two different correct samples, and the
+  correct SQL shown occurs once among the 7 (`count` 1). The two pairs
+  cannot both have it as chosen.
+- The committed example keeps the shortest SQL of each outcome only,
+  not the order or the text of the other samples, so the pairs cannot
+  be rebuilt here: the seed gives correct samples 7 and 6 against
+  incorrect samples 3 and 1 in the order of the record.
+- `scripts/figure_example.py` now records the pairs each kept question
+  gave, read from `client_<n>_pairs.jsonl` and checked against the
+  `pairs_sha256` of `client_<n>_train.json` (code `2e46cea2`). Run now,
+  step 5; the figure is drawn again from the published file.
+
 ## 2026-11-28: Fig. 2 draws the K clients as a row (owner: carry out)
 
 - The K clients behind client k were two frames offset by 4 pt, about
