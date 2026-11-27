@@ -6,7 +6,6 @@
 #   make figures    the result charts (JOURNAL=cmc or jiis) and a copy of the method diagram
 #                   (drawn in paper/figures, rendered there with render.py)
 #   make floats     every table and figure on its own, for reading the cells
-#   make pilot      a draft subsection on its own page (pilot/harness.tex)
 #   make lint       the checks of tools/lint.py (JOURNAL=cmc or jiis)
 #   make inventory  macros and \cite keys of every section, for a before/after diff
 #   make overlap    runs of five or more words that a section shares with the closest papers
@@ -38,7 +37,7 @@ LATEX   := pdflatex -interaction=nonstopmode -halt-on-error -file-line-error
 SOURCES := $(MAIN).tex macros.tex references.bib $(wildcard sections/*.tex) \
            $(wildcard generated/*.tex) $(wildcard figures/*.pdf) $(STYLE)
 
-.PHONY: all pdf numbers figures floats pilot lint inventory overlap register submit clean
+.PHONY: all pdf numbers figures floats lint inventory overlap register submit clean
 
 all: pdf
 
@@ -71,16 +70,6 @@ floats:
 	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.stdout || (tail -30 $(BUILD)/floats.stdout; exit 1)
 	$(LATEX) -output-directory=$(BUILD) floats.tex > $(BUILD)/floats.stdout || (tail -30 $(BUILD)/floats.stdout; exit 1)
 	@echo "$(BUILD)/floats.pdf"
-
-pilot:
-	@mkdir -p $(BUILD)
-	$(LATEX) -output-directory=$(BUILD) -jobname=pilot pilot/harness.tex > $(BUILD)/pilot.stdout || (tail -30 $(BUILD)/pilot.stdout; exit 1)
-	bibtex $(BUILD)/pilot > $(BUILD)/pilot.bibtex || (cat $(BUILD)/pilot.bibtex; exit 1)
-	$(LATEX) -output-directory=$(BUILD) -jobname=pilot pilot/harness.tex > $(BUILD)/pilot.stdout || (tail -30 $(BUILD)/pilot.stdout; exit 1)
-	$(LATEX) -output-directory=$(BUILD) -jobname=pilot pilot/harness.tex > $(BUILD)/pilot.stdout || (tail -30 $(BUILD)/pilot.stdout; exit 1)
-	@if grep -n -E "Warning: (Reference|Citation) .* undefined|No committed number" $(BUILD)/pilot.log; then \
-	   echo "STOP: undefined reference, citation or number (lines above)"; exit 1; fi
-	@echo "$(BUILD)/pilot.pdf"
 
 lint:
 	$(PYTHON) tools/lint.py --journal $(JOURNAL)

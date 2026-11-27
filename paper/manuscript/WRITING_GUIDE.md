@@ -2,8 +2,9 @@
 
 This guide governs the drafting of a manuscript section. The drafting
 materials comprise this guide, `VOICE_GUIDE.md`, `TERMS.md`, the brief
-of the section and the previously accepted sections in `sections/`. All
-other files of the workspace, including any project instructions
+of the section and those sections in `sections/` that the brief
+designates as accepted. All other files of the workspace, including
+superseded drafts of other sections and any project instructions
 attached to the session, are laboratory records: they constitute neither
 content nor stylistic precedent for the manuscript.
 

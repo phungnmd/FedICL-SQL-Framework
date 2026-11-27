@@ -132,7 +132,7 @@ gives the writer this angle in its first section.
 | `VOICE_GUIDE.md` | the register (density, compression, assertiveness, the contribution said plainly, person, limitations once) and the organization of each kind of section by rhetorical function; five contrasts from an unrelated domain (section 3.4) |
 | `TERMS.md` | the names of the paper's concepts, the abbreviations, the notation. Its third column lists only the lab words and the earlier labels a defined name replaces |
 | the brief of its section | section 4 |
-| `sections/` | the sections already accepted |
+| `sections/` | the sections its brief lists as accepted. While the first drafts are being replaced (section 8, V2 and V3), a section of `draft-v1` is not among them: 10,000 words in the words of the lab would set the register of the new one. What a section needs from a later or earlier one (a label, a symbol, a number) is in its brief |
 
 Not given to it: the notes of the lab, `CLAIMS.md`, the outline, this
 plan and its checks, the folder `voice/` (measures and paragraph roles
@@ -533,7 +533,7 @@ numbers, tables, settings and charts; `CLAIMS.md`, `TERMS.md` and
 `OUTLINE.md`, approved by the owner; `references.bib` with 55 entries,
 each checked against a fetched record (`bib/report.md`); the voice
 folder; two pilots of Section 3.4, the second accepted by the owner as
-the test of this workflow (`pilot/`); Section 3, Method, with Fig. 1
+the test of this workflow (`pilot/`, removed on 2026-11-27 and kept at the tag `draft-v1-2026-11-27`); Section 3, Method, with Fig. 1
 and Algorithm 1 (step W7: outline, draft, two cold reads and two
 rounds of editor's notes; `briefs/03_method_notes_editor.md`), and
 `REVIEW_NOTES.md` with what the owner reviews later.
@@ -561,20 +561,18 @@ tables and the figures stay.
 | V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
 | V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract; `make register`, `make overlap`, a cold read, the claim audit beside `CLAIMS.md`, and the `writing_quality_check` of the academic-paper skill as a list of inflated words (a confident register drifts to "comprehensive", "robust", "leverages"; the list is read by the main session and rewrites nothing) | the owner reads the pilot beside the tag; 30 min |
 | V3 | The pilot holds: the briefs and the drafts of Sections 5, 6, 7 and 8, then 2 and 4, in the same form. It does not: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
-| V4 | The notes, outlines and audits of the first drafts leave `briefs/`, with `pilot/`; `REVIEW_NOTES.md` loses its items on the wording of the first drafts | none |
+| V4 | The editor's notes of the first drafts (`briefs/NN_*_notes_editor.md`) and sections B and D of `REVIEW_NOTES.md` leave once the `NN_checks.md` of their section holds what they found about facts; the three referee reports and the three reads on fit and novelty in `cold_reviews/` stay | none |
 
-Then, in this order (the steps W8 to W13 below are the first drafts and
-are done). Each step is the loop of section 2; the owner's time is an
-estimate.
+Removed on 2026-11-27, all at the tag: the writer's outlines and notes
+of the first drafts, the audit of Section 2, the pilot of Section 3.4
+with its brief and its `make` target, the eight cold reads of single
+sections.
+
+Then, in this order. Each step is the loop of section 2; the owner's
+time is an estimate.
 
 | Step | What | Waits on |
 |---|---|---|
-| W8 | Experimental setup; Appendix A and B assembled by the main session | the time limits of the labeling step as setting macros; 30 min |
-| W9 | Results, the four research questions in one call. A sentence on a number that waits states what is compared and leaves the direction and the size to the number, or is worded for a guess written with `\expect` (section 1, "When") | 30 min; the final reading waits for the rows of `generated/missing.txt` |
-| W10 | Ablation study | same |
-| W11 | Related work with Table 1; a helper builds the rows with their locators, and the cited-work audit runs on the draft | 30 min |
-| W12 | Discussion and limitations, Conclusion | 30 min |
-| W13 | Introduction; then abstract, title and keywords | 30 min |
 | W14 | Whole paper: one writer reads it end to end and evens it out, and the macros and `\cite` keys of every section are listed before and after that pass and compared (`make inventory`), so the pass changes no number and no reference; the `writing_quality_check` of the academic-paper skill as a diagnostic that rewrites nothing; reader test; `/ars-reviewer`; claim audit of the full text; page count | the owner and the advisor read |
 | W15 | Declarations, AI-use statement (section 10.2), public repository with code, splits and predictions, cover letter, `make submit` | authors, funding and competing interests from the owner; 1 h |
 
@@ -638,16 +636,13 @@ paper/manuscript/
   .sources/             arXiv sources of the closest papers for make overlap
                         (2411.05199, 2402.06954); outside Git
   briefs/               one brief per top-level section, and the writer's outline
-                        of that section beside it (3.4_preference_round.md is
-                        the brief of the pilot); NN_checks.md holds the editor's
+                        of that section beside it; NN_checks.md holds the editor's
                         checks of a section, which the writer does not read
   bib/                  report.md: how each entry of references.bib was verified,
                         and the sources of each subsection
-  pilot/                the accepted draft of Section 3.4 with the writer's and
-                        the editor's notes, and the page that sets it (make pilot)
   tools/                paper_numbers.py paper_settings.py charts.py lint.py
                         style_profile.py flatten.py reverse_outline.py table_lint.py
-  Makefile              make, make numbers, make figures, make lint, make pilot,
+  Makefile              make, make numbers, make figures, make lint,
                         make inventory, make overlap, make register, make submit
 ```
 
