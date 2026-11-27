@@ -7,7 +7,7 @@ bounds of claims. Notes on the wording of a draft are not kept here
 
 ## 1. Facts about our work
 
-- Cost. A single preference round does not always take more client time than an SFT round: the ratios are 2.7 and 2.3 on BIRD, 1.6 and 0.9 on Spider (`\fact{cost.spider.pref2.ratio}` prints 0.9). True: no communication beyond that of FedAvg SFT; over the four rounds the method takes more client time on both datasets (BIRD 1,207 against 692 min, Spider 560 against 496).
+- Cost, as GPU time and label time apart (owner, 2026-11-27; `CLAIMS.md`, E2). A single preference round does not always take more GPU time than an SFT round: the ratios are 1.8 and 1.3 on BIRD, 1.6 and 0.9 on Spider (`\fact{cost.spider.pref2.gpu_ratio}` prints 0.9). The label step is SQL executed on the CPU: 159 and 168 min on BIRD, 3 on Spider. No figure adds the two. True: no communication beyond that of FedAvg SFT; over the four rounds the method takes more GPU time on both datasets (BIRD 879 against 692 min, Spider 555 against 496).
 - The headline number of the abstract is the gain on BIRD dev at equal rounds (6.19); the gain over the highest round of FedAvg SFT (5.08) is given in Section 1 and Section 5.1. (owner, 2026-11-27, A30)
 
 ## 2. Facts about cited papers

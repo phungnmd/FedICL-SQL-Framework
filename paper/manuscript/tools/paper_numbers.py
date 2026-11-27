@@ -673,23 +673,25 @@ def minutes_of_steps(steps: list[float]) -> list[str]:
 
 def table_cost(c: dict) -> str:
     """Table 7: what the clients train on in a round (questions; in a preference round the
-    questions that yield pairs, and the pairs), its time by step and megabytes a client sends."""
+    questions that yield pairs, and the pairs), its time by step and megabytes a client sends.
+    Sampling and training run on the GPU and have a total; the labels are SQL executed on the
+    CPU and stand apart (owner, 2026-11-27)."""
     lines = ["\\toprule",
-             row(["", "", "\\multicolumn{2}{c}{Trained on}", "\\multicolumn{4}{c}{Minutes per round}", ""]),
-             "\\cmidrule(lr){3-4}\\cmidrule(lr){5-8}",
-             row(["Clients' data", "Round", "Questions", "Pairs", "Sampling", "Labels", "Training", "Total",
+             row(["", "", "\\multicolumn{2}{c}{Trained on}", "\\multicolumn{3}{c}{GPU minutes}", "CPU minutes", ""]),
+             "\\cmidrule(lr){3-4}\\cmidrule(lr){5-7}\\cmidrule(lr){8-8}",
+             row(["Clients' data", "Round", "Questions", "Pairs", "Sampling", "Training", "Total", "Labels",
                   "Sent (MB)"]),
              "\\midrule"]
     for i, ds in enumerate(("bird", "spider")):
         mb = f"{c[f'cost.{ds}.adapter_bytes'] / 1e6:.1f}"
         t = c[f"cost.{ds}.sft.train"]
         lines.append(row([TRAIN_NAME[ds] + " train", "FedAvg SFT", count(c[f"cost.{ds}.pref1.questions"]), "",
-                          "", "", minutes(t), minutes(t), mb]))
+                          "", minutes(t), minutes(t), "", mb]))
         for r in range(1, ROUNDS - WARMUP + 1):
             s, la, tr = (c[f"cost.{ds}.pref{r}.{k_}"] for k_ in ("sample", "label", "train"))
             lines.append(row(["", f"Preference round {r}", count(c[f"cost.{ds}.pref{r}.paired"]),
-                              count(c[f"cost.{ds}.pref{r}.pairs"]), *minutes_of_steps([s, la, tr]),
-                              minutes(s + la + tr), mb]))
+                              count(c[f"cost.{ds}.pref{r}.pairs"]), *minutes_of_steps([s, tr]),
+                              minutes(s + tr), minutes(la), mb]))
         if i == 0:
             lines.append("\\midrule")
     lines.append("\\bottomrule")
@@ -813,12 +815,10 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
         if k_.endswith((".hard_min", ".hard_max")):
             v = f"{v:.0f}"
         facts[k_] = (v, "split files (clients.csv, meta.json)")
-    for ds in ("bird", "spider"):  # a preference round against a FedAvg SFT round, in client minutes
+    # A preference round against a FedAvg SFT round in GPU minutes: sampling and training. The label
+    # step is SQL executed on the CPU and is printed apart (owner, 2026-11-27); no fact adds the two.
+    for ds in ("bird", "spider"):
         for r in range(1, ROUNDS - WARMUP + 1):
-            total = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "label", "train"))
-            facts[f"cost.{ds}.pref{r}.total_min"] = (minutes(total), "round records and queue logs")
-            facts[f"cost.{ds}.pref{r}.ratio"] = (f"{total / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
-            # the same without the label step: sampling and training run on the GPU, the labels are SQL run on the CPU
             gpu = sum(cost[f"cost.{ds}.pref{r}.{step}"] for step in ("sample", "train"))
             facts[f"cost.{ds}.pref{r}.gpu_min"] = (minutes(gpu), "round records and queue logs")
             facts[f"cost.{ds}.pref{r}.gpu_ratio"] = (f"{gpu / cost[f'cost.{ds}.sft.train']:.1f}", "round records and queue logs")
@@ -834,7 +834,7 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             facts[k_ + "_min"] = (minutes(v), src)
     for ds in ("bird", "spider"):  # the steps of a preference round, as Table 7 prints them
         for r in range(1, ROUNDS - WARMUP + 1):
-            steps = ("sample", "label", "train")
+            steps = ("sample", "train")  # the two GPU steps add up to the GPU total; the labels are rounded alone
             for step, v in zip(steps, minutes_of_steps([cost[f"cost.{ds}.pref{r}.{k_}"] for k_ in steps])):
                 facts[f"cost.{ds}.pref{r}.{step}_min"] = (v, "round records and queue logs")
     for m, name in MODEL_NAME.items():  # the names of the models, as Table 4 prints them

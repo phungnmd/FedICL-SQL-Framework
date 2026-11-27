@@ -2,16 +2,16 @@
 \setlength{\tabcolsep}{2.5pt}%
 \begin{tabular}{@{}llrrrrrrr@{}}
 \toprule
- &  & \multicolumn{2}{c}{Trained on} & \multicolumn{4}{c}{Minutes per round} &  \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-8}
-Clients' data & Round & Questions & Pairs & Sampling & Labels & Training & Total & Sent (MB) \\
+ &  & \multicolumn{2}{c}{Trained on} & \multicolumn{3}{c}{GPU minutes} & CPU minutes &  \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-7}\cmidrule(lr){8-8}
+Clients' data & Round & Questions & Pairs & Sampling & Training & Total & Labels & Sent (MB) \\
 \midrule
-BIRD train & FedAvg SFT & 9{,}428 &  &  &  & 173 & 173 & 73.9 \\
- & Preference round 1 & 5{,}877 & 11{,}754 & 28 & 159 & 283 & 470 & 73.9 \\
- & Preference round 2 & 3{,}533 & 7{,}066 & 28 & 168 & 195 & 391 & 73.9 \\
+BIRD train & FedAvg SFT & 9{,}428 &  &  & 173 & 173 &  & 73.9 \\
+ & Preference round 1 & 5{,}877 & 11{,}754 & 28 & 282 & 310 & 159 & 73.9 \\
+ & Preference round 2 & 3{,}533 & 7{,}066 & 28 & 195 & 223 & 168 & 73.9 \\
 \midrule
-Spider train & FedAvg SFT & 8{,}659 &  &  &  & 124 & 124 & 73.9 \\
- & Preference round 1 & 4{,}013 & 8{,}026 & 18 & 3 & 182 & 203 & 73.9 \\
- & Preference round 2 & 1{,}677 & 3{,}354 & 19 & 2 & 88 & 109 & 73.9 \\
+Spider train & FedAvg SFT & 8{,}659 &  &  & 124 & 124 &  & 73.9 \\
+ & Preference round 1 & 4{,}013 & 8{,}026 & 18 & 183 & 201 & 3 & 73.9 \\
+ & Preference round 2 & 1{,}677 & 3{,}354 & 18 & 88 & 106 & 3 & 73.9 \\
 \bottomrule
 \end{tabular}

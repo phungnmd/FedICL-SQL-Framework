@@ -98,7 +98,7 @@ the exact McNemar p.
 | # | Claim | Values and macros | Ceiling |
 |---|---|---|---|
 | E1 | No added communication | The same adapter in every round of either kind: `\fact{cost.bird.adapter_mb}` 73.9 MB per client per round. Samples, labels and pairs stay at the client | as stated |
-| E2 | The cost is client compute | Minutes for the five clients of a round on one RTX A5000. BIRD: a FedAvg SFT round `\fact{cost.bird.sft.train_min}` 173; the preference rounds 28 + 159 + 283 = 470 and 28 + 168 + 195 = 391 (sampling, labels, training). Spider: 124; 18 + 3 + 182 = 203 and 19 + 3 + 88 = 109. Pairs fall from the first preference round to the second (BIRD 11,754 to 7,066; Spider 8,026 to 3,354) | "A preference round costs a client about 2.3 to 2.7 times an SFT round on BIRD and 0.9 to 1.6 times on Spider." The times are the five clients one after another on one card, not the wall-clock time of a federation. A2 is the answer to "FedAvg SFT with the same compute" |
+| E2 | The cost is client compute, printed as GPU time and label time apart (owner, 2026-11-27) | Minutes for the five clients of a round on one RTX A5000. GPU time is sampling and training. BIRD: a FedAvg SFT round `\fact{cost.bird.sft.train_min}` 173; the preference rounds 28 + 282 = `\fact{cost.bird.pref1.gpu_min}` 310 and 28 + 195 = 223, `\fact{cost.bird.pref1.gpu_ratio}` 1.8 and 1.3 times an SFT round. Spider: 124; 18 + 183 = 201 and 18 + 88 = 106, 1.6 and 0.9 times. The label step is SQL executed on the CPU: `\fact{cost.bird.pref1.label_min}` 159 and 168 min on BIRD, 3 and 3 on Spider. Over the four rounds the method takes 879 GPU minutes on BIRD against 692 for FedAvg SFT (5 SFT rounds: 865), and 555 against 496 on Spider (5 SFT rounds: 620). Pairs fall from the first preference round to the second (BIRD 11,754 to 7,066; Spider 8,026 to 3,354) | "A preference round takes 1.3 to 1.8 times the GPU time of an SFT round on BIRD and 0.9 to 1.6 times on Spider; executing the sampled queries adds CPU time, 159 and 168 minutes on BIRD and 3 on Spider." No figure adds the label step to the GPU time, and none is called "client time". The times are the five clients one after another on one card, not the wall-clock time of a federation. The rows are compared at equal rounds, that is, equal communication; A2 is the answer to "FedAvg SFT with more rounds", and on Spider the fifth FedAvg SFT round is a comparison at more GPU time for the baseline |
 
 ## 4. Wording that has to survive revision
 
@@ -142,9 +142,10 @@ the exact McNemar p.
 2. Five clients (ten in one setup) that all take part in every round.
    Partial participation and many clients are not studied.
 3. Data isolation, not differential privacy.
-4. More client compute over the rounds (E2). Not "per round": the
-   second preference round on Spider takes 0.9 times the client time of
-   an SFT round (corrected 2026-11-27).
+4. More client compute over the rounds (E2): more GPU time, and the
+   CPU time of the label step. Not "per round": the second preference
+   round on Spider takes 0.9 times the GPU time of an SFT round
+   (corrected 2026-11-27).
 5. A label is the match of results on one database: a wrong query can
    match by chance, and a question on a database without rows gives no
    pair. Test-suite accuracy on Spider is the check the paper has.

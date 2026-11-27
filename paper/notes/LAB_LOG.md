@@ -352,10 +352,25 @@ FedAvg SFT rounds 5 to 7 on BIRD; that was wrong in size.
   by what its rows show (the table above), and the hours are no
   reason for or against it.
 
-Open for the owner: whether Table 7 and the three sentences on cost
-print the GPU time and the label time apart (A15); the four rows
-moved to the end of the BIRD list. Section 3.4 of `RESEARCH_STATE.md`
-and the queue are unchanged until then.
+Decided (owner, the same day): the paper prints the GPU time and the
+label time apart, and the BIRD list of section 3.4 stays as it is; my
+proposal to move four rows to its end is dropped.
+
+- Table 7 (`generated/tab_cost.tex`): GPU minutes (sampling,
+  training, total) and, apart, the CPU minutes of the label step. The
+  facts `total_min` and `ratio`, which added the label step, are
+  removed; `gpu_min` and `gpu_ratio` stand (BIRD 310 and 223 min, 1.8
+  and 1.3 times an SFT round; Spider 201 and 106, 1.6 and 0.9). The
+  two GPU steps are rounded to add up to their total and the labels
+  alone, so three cells moved by one minute (BIRD training 283 to
+  282, Spider training 182 to 183, Spider labels of round 2 from 2 to
+  3).
+- `CLAIMS.md` E2 and limitation 4, `briefs/01_checks.md`,
+  `04_checks.md`, `05_checks.md`; `REVIEW_NOTES.md`: A15 moved to the
+  decided items, C17 and C42 answered with the split. No sentence of
+  the paper is "client time" any more; the sections are headings
+  until they are rewritten.
+- Section 3.4 of `RESEARCH_STATE.md` and the queue are unchanged.
 
 ## 2026-11-27: three referee reports on the CMC draft (owner: full review, all effort on CMC; no run)
 
