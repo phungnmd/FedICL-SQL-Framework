@@ -23,7 +23,8 @@ Second question: a server usually has public Text-to-SQL data. Does
 pre-training on it help, and does the gain of the main part remain on top
 of it?
 
-Goal: a journal paper at Q3 or above (candidates: CMC, JIIS) with a method
+Goal: a journal paper at Q3 or above (target: CMC, owner, 2026-11-27;
+JIIS second) with a method
 that clearly beats the federated baselines and reports good numbers.
 
 ## 2. Setup

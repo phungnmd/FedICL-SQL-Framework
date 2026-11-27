@@ -49,7 +49,8 @@ code, GPU and server rules live there.
 ## The project
 
 Paper: *FedLS-SQL* (working title), a journal paper at Q3 or above
-(candidates: CMC, JIIS). The current state is in
+(target: CMC, owner, 2026-11-27; JIIS is the second choice). The current
+state is in
 `paper/notes/RESEARCH_STATE.md`.
 
 - Topic: federated Text-to-SQL. Clients train a small model together and

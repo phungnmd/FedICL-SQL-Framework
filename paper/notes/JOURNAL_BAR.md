@@ -112,6 +112,26 @@ Fit:
   papers all run several models, and it has one Text-to-SQL paper, an
   evaluation study.
 
+Target (owner, 2026-11-27): CMC. JIIS is the second choice.
+
+How four of the CMC papers name and build their contribution (read
+again 2026-11-27 from the full-text pages of the journal; the last part
+of each page reached the reader only as a summary, so the counts of
+baselines and the gains of LESFT and FedCO below rest on section 2):
+
+| Paper | What it calls itself | Contribution list | Built on |
+|---|---|---|---|
+| LESFT | "a framework"; "a new split federated fine-tuning framework" | three bullets: problem identification, framework design, comprehensive empirical validation | split architecture with LoRA (SplitLoRA) and a published token-weighted loss: "we adopt and extend this paradigm" |
+| FedCO | "a novel optimization framework"; "a novel algorithm" | four bullets: the algorithm, its loss, its aggregation, the experiments | two of its three parts are cited to one earlier paper; the aggregation is the new part |
+| TinySecGPT | no named method; a comparison of six tuned models | five bullets, the first "the first attempt to fine-tune small-parameter large language models for cybersecurity" | LoRA on a published dataset and evaluation protocol |
+| Activation steering and RL | "the proposed approach"; "the proposed activation steering framework" | none | published steering vectors trained with GRPO; the application is the new part |
+
+None of the four states seeds, a standard deviation or a significance
+test. For our paper at CMC: a named framework of known parts with a
+first-of-its-kind claim on the task is the form of the closest paper
+(LESFT); what CMC asks beyond the content is its own template, an
+abstract of 200 to 400 words and the fee by page (15 pages covered).
+
 Writing conventions seen in both:
 
 - Title: "Name: mechanism for the task in the setting".

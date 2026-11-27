@@ -4,6 +4,18 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: CMC is the target journal (owner; no run)
+
+The owner sets CMC as the main target; JIIS is the second choice.
+`AGENTS.md`, `RESEARCH_STATE.md` and `JOURNAL_BAR.md` say so. Four CMC
+papers were read again for how they name their contribution (table in
+`JOURNAL_BAR.md`, section 3): LESFT, the closest one, calls itself a
+framework, lists problem, framework and validation as its
+contributions and says it adopts and extends a published loss; none of
+the four states seeds or tests. Open for the owner: whether the paper
+is named a framework, and when the manuscript moves from the Springer
+template and its limit of 25 pages to the CMC template.
+
 ## 2026-11-27: three outside reviews of the full draft; credit to CodeLutra cut to its size; wrong-result rejects queued on BIRD (owner; queue `c2d80f57`; no run)
 
 Owner's question: is the paper, once complete, enough for CMC and JIIS,
