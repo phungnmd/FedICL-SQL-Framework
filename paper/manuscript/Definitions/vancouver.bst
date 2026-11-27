@@ -90,13 +90,13 @@ INTEGERS { hrefform addeprints adddoiresolver }
 FUNCTION {init.config.constants}
 {
   "Available from: " 'urlintro := % prefix before URL
-  "http://arxiv.org/abs/" 'eprinturl := % prefix to make URL from eprint ref
+  "https://arxiv.org/abs/" 'eprinturl := % prefix to make URL from eprint ref
   "arXiv:" 'eprintprefix := % text prefix printed before eprint ref
-  "http://dx.doi.org/" 'doiurl := % prefix to make URL from DOI
+  "https://doi.org/" 'doiurl := % prefix to make URL from DOI
   "doi:" 'doiprefix := % text prefix printed before DOI ref
-  #0 'addeprints := % 0=no eprints; 1=include eprints
-  #0 'adddoiresolver := % 0=no DOI resolver; 1=include it
-  #0 'hrefform := % 0=no crossrefs; 1=hypertex xrefs; 2=hyperref refs
+  #1 'addeprints := % 0=no eprints; 1=include eprints (set to 1 for this manuscript)
+  #1 'adddoiresolver := % 0=no DOI resolver; 1=include it (set to 1 for this manuscript)
+  #2 'hrefform := % 0=no crossrefs; 1=hypertex xrefs; 2=hyperref refs (set to 2 for this manuscript)
 }
 INTEGERS {
   bracket.state
