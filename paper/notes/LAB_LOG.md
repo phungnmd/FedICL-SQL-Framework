@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: C3 against the generated BIRD suite: the share of the gain on other tables or columns holds under test-suite accuracy (owner; CPU on the Mac; no macro yet)
+
+Each BIRD dev prediction split as in C3 (the tables and columns of the
+gold SQL, or others; `form_facts` of `paper_numbers.py`) and joined
+with `audits/protocol_v2/test_suite/qwen15b_bird_dev/per_question.csv`.
+Computed by a script outside Git; the totals reproduce the committed
+136 / 191, 517 / 557, 90 / 110 and the paired 153 / 58 and 131 / 56.
+Not a claim and not quotable until the counts are facts of
+`paper_numbers.py`.
+
+| Row | Correct, gold's tables and columns: EX / suite / fails the suite | Correct, others: EX / suite / fails the suite |
+|---|---|---|
+| No training | 333 / 296 / 37 (11.1%) | 119 / 79 / 40 (33.6%) |
+| FedAvg SFT, round 3 | 535 / 490 / 45 (8.4%) | 135 / 81 / 54 (40.0%) |
+| FedAvg SFT, round 4 | 517 / 477 / 40 (7.7%) | 136 / 86 / 50 (36.8%) |
+| Method, 3 rounds | 535 / 482 / 53 (9.9%) | 174 / 117 / 57 (32.8%) |
+| Method, 4 rounds | 557 / 506 / 51 (9.2%) | 191 / 132 / 59 (30.9%) |
+
+- At 4 rounds, the method against FedAvg SFT: under EX +40 on the
+  gold's tables and columns and +55 on others (55 of 95); under the
+  suite +29 and +46 (46 of 75). At 3 rounds: EX 0 and +39; suite -8 and
+  +36.
+- A correct answer on other tables or columns fails the suite about
+  four times as often as one on the gold's (a third against a tenth),
+  in every row. The method's share is not above that of FedAvg SFT
+  (30.9% against 36.8%; no test run).
+- The 20 questions of gain lost under the suite: 11 on the gold's
+  tables and columns, 9 on others.
+
 ## 2026-11-27: test-suite accuracy on BIRD dev from a generated suite: the gain of the method holds, 4.89 against 6.19 under EX (owner; CPU on the Mac; code `3f61aebb`, `1585118e`, results `242b7e97`, `6fd0e35f`, not pushed)
 
 BIRD has no official test suite, so one was generated: 100 variants of
