@@ -178,7 +178,9 @@ deviate.
   The writer of a section runs in an isolated session (the
   `cold-session` skill), never as a subagent: a subagent inherits this
   file and the memory, and writes about them (owner, 2026-11-27). It is
-  given a pack and nothing else. The pack holds the work in full as
+  given a pack and nothing else; web search is on for the sections on
+  other work (1, 2 and 7), and what it takes from the web it lists with
+  the URL. The pack holds the work in full as
   science: the paper on one page, the brief of the section, every
   result table with its tests, the fact rows and abstracts of the papers
   the section cites, and one or two published papers far from ours as

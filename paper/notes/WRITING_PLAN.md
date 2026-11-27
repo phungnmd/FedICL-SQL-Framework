@@ -54,16 +54,18 @@ run at once.
 ### 2.1 Starting the writer
 
 The writer is a session of the `cold-session` skill. It loads no
-`CLAUDE.md`, `AGENTS.md`, memory or user settings, has no shell and no
-web access, and reads and writes only inside a temporary directory that
-holds a copy of its pack. A subagent is not used: it inherits the
+`CLAUDE.md`, `AGENTS.md`, memory or user settings, has no shell, and
+reads and writes only inside a temporary directory that holds a copy of
+its pack. Web search is on for Sections 1, 2 and 7, which speak about
+other work, and off (`-N`) for Sections 3 to 6, where everything is in
+the pack (owner, 2026-11-27). A subagent is not used: it inherits the
 project instructions and the memory index, and telling it to disregard
 them does not take them out of what it has read.
 
 ```bash
 r=.claude/skills/cold-session/run.sh
 b=paper/manuscript/build
-$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN
+$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN   # no -N for Sections 1, 2, 7
 $r -r HANDLE -f $b/answer_NN.md            # the answer to the outline
 $r -r HANDLE -f $b/notes_NN_1.md           # editor's notes, round 1; -c on the last turn
 ```
@@ -84,6 +86,14 @@ you need it.
 
 First deliverable: the outline that guide.md describes, written to
 notes/outline.md. Stop there and wait for the editor's response.
+```
+
+For Sections 1, 2 and 7 the start prompt has one more paragraph:
+
+```text
+You may search the web to check a detail of a cited paper or to find
+related work. List in notes/notes.md every fact and every reference you
+take from the web, each with its URL and the place in the source.
 ```
 
 It is continued with two further messages: the answer to the outline,
@@ -171,7 +181,9 @@ plan, the checks files, `voice/`; anything that carries a date, a
 decision of the owner, a claim number, a lab word or an instruction
 about what not to say; the full text of CodeLutra and of OpenFedLLM
 (where a brief lists them, their fact rows and abstracts are in
-`related/`).
+`related/`). With web search on, a writer can reach those two papers;
+`make overlap` and the claim audit read the draft for what that
+leaves.
 
 Example papers: one from CMC and one widely read method paper (LESFT
 and LoRA are the candidates), never CodeLutra, OpenFedLLM, GradeSQL or
@@ -185,8 +197,10 @@ removed at the source file, not in the copy.
 
 ### 3.3 What binds the writer
 
-1. Facts: every fact about our work and about a cited paper comes from
-   the pack; a gap is named in the notes and not filled.
+1. Facts: every fact about our work comes from the pack; a gap is
+   named in the notes and not filled. A fact about a cited paper comes
+   from the pack or, in Sections 1, 2 and 7, from the web, and then
+   stands in the notes with its URL.
 2. Findings: a finding is stated as its table carries it, and its scope
    ("on BIRD", "to our knowledge") is part of it. A writer that finds
    the evidence thin for a point of the brief says so in its notes.
@@ -379,7 +393,7 @@ Each is about truth or the build; none is about style.
 | Numbers | `make lint` | a result number or a setting that is not a macro |
 | References | `make lint`, `/ars-citation-check` | a key not in `references.bib`; an entry with no DOI, arXiv id or stable address |
 | Truth | claim audit: a helper with the notes looks for a committed result that contradicts a sentence and reads each claim beside its line of `CLAIMS.md` | a false sentence; a claim above its line (a cause where the line has a difference, both sets where it has one, "first" without its bound) or with its scope dropped; a part called essential without its ablation row |
-| Other papers | cited-work audit: every sentence about a cited paper and every cell of Table 1 is found in the fact rows and opened at its locator | a statement without a row, or a row the paper does not support |
+| Other papers | cited-work audit: every sentence about a cited paper and every cell of Table 1 is found in the fact rows and opened at its locator. A fact or a reference the writer took from the web is opened at its URL by a helper first, and gets its fact row and its entry in `references.bib` | a statement without a row, or a row the paper does not support |
 | Overlap | `make overlap` (the arXiv sources of CodeLutra and OpenFedLLM in `.sources/`, and the example papers of the pack) | a run of five or more words shared with one of them, other than a stock phrase of the field or a name |
 | Length | `make` | the abstract outside 200 to 400 words; the page count above 15 is printed, not a stop |
 

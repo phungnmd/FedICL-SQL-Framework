@@ -29,6 +29,13 @@ Decided (owner: yes to all three):
    examples of form. Not the full text of CodeLutra or OpenFedLLM. This
    replaces "no passage of a published paper" in `AGENTS.md`.
 
+Later the same day (owner: yes): web search is on for the writers of
+Sections 1, 2 and 7 and off for Sections 3 to 6. A fact or a reference
+taken from the web is listed in the writer's notes with its URL, and a
+helper opens it before it gets a fact row. Known cost: such a writer
+can reach the full text of CodeLutra and OpenFedLLM; `make overlap` and
+the claim audit read the draft.
+
 Changed: `WRITING_PLAN.md` (sections 1 to 4, 7, 8, 9) and the Writing
 and Defaults parts of `AGENTS.md`. Not done yet (step V1 of the plan):
 `WRITING_GUIDE.md` and `TERMS.md` in the new form, the example papers,
