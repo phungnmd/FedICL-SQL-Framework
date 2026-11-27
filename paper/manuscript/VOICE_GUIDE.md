@@ -128,8 +128,9 @@ occupies a subordinate clause.
 
 ### Results
 
-The section is organized by research question, and each paragraph is
-organized around a finding.
+The section is organized into subsections, each of which answers one
+question about the method, and each paragraph is organized around a
+finding.
 
 1. *Finding.* The opening sentence states the result together with its
    magnitude.
@@ -147,10 +148,11 @@ running text indicates significance concisely.
 
 ### Ablation study
 
-Each paragraph isolates one component: the variant that removes or
-replaces it, the resulting change in performance, and the role of the
-component that this change demonstrates. The section concludes by
-relating the components to one another.
+A subsection of the results. Each paragraph isolates one component:
+the variant that removes or replaces it, the resulting change in
+performance, and the role of the component that this change
+demonstrates. The subsection concludes by relating the components to
+one another.
 
 ### Discussion
 

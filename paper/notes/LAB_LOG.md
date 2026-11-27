@@ -4,6 +4,33 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: brief of Section 3 written, pack built; the writer waits for the owner's approval of the brief (the commit of this entry)
+
+- `briefs/03_method.md` follows the outline in seven sections: seven
+  subsections (3.1 to 3.7) with fixed headings and labels, an aim, eight
+  points of the argument, and the materials (settings, four equations,
+  the labeling and pairing rules, counts as macros, Fig. 2,
+  Algorithm 1). Length asked: about 1,530 words, at most 1,700.
+- Four statements of the first draft of the brief were corrected
+  against the record before the pack was built: execution errors
+  without the preference term are given as counts (248 against 102 on
+  BIRD dev, 153 against 99 on Spider test; "more than twice" holds on
+  BIRD only); FedDPO "trains on a fixed set of pairs and retains one
+  reference model for all rounds"; on databases without rows
+  "execution results do not discriminate between queries"; Section 2
+  is cited for "no prior federated training method for Text-to-SQL".
+- `VOICE_GUIDE.md`: the results are subsections that each answer one
+  question about the method, and the ablation study is a subsection of
+  the results (no research questions, as in the outline).
+- `make pack S=03`: 30 files, six cited works, web off; the scan of the
+  pack did not stop, and a read of its text files found no lab word.
+  Register of the brief against the reference method sections: long
+  words 15.3% against 17.9%, everyday verbs 1.6 against 1.7 per 1,000.
+- Not run: the writer. Fig. 2 as drawn differs from the text in three
+  places ("Only LoRA adapters travel" where the pair count travels too;
+  the loss without lambda; "2 FedAvg rounds" and "N = 10" typed as
+  values); the image waits for the owner.
+
 ## 2026-11-27: C4 approved and printed in Table 4; every file follows the seven sections (owner; `f668027` and the commit of this entry)
 
 - C4 (the gain on BIRD dev under the generated test suite) is approved
