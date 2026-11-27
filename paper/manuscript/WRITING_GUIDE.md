@@ -84,27 +84,36 @@ predictions with Holm correction within each table. The folder
 `results/` contains every table and every macro; a cell printed as `--`
 awaits its result.
 
+The principal result:
+
 - Against FedAvg SFT at the same number of rounds: `\gain{bird}{fedavg}{4}{k2}{4}`
   EX on BIRD dev (+6.19) and `\gain{spider}{fedavg}{4}{k2}{4}` on Spider
   test (+3.49), both significant, and higher on every difficulty level.
-- FedAvg SFT stops improving after round 3 on both datasets; additional
-  FedAvg SFT rounds do not close the gap.
-- From the same model, one preference round adds more than a further
-  FedAvg SFT round.
+  FedAvg SFT stops improving after round 3 on both datasets, so that
+  additional FedAvg SFT rounds do not close the gap.
+
+What accounts for it:
+
 - The preference rounds halve the execution errors on both datasets;
   the number of incorrect results does not decrease.
 - A large part of the gain on BIRD consists of correct predictions that
   use other tables or columns than the gold SQL query.
-- Components: on BIRD, on-policy pairs outperform the pairs and the
-  reference model of the first preference round; without the NLL term a
-  preference round lowers accuracy (Spider); the preference term
-  removes execution errors that persist under training on the correct
-  samples alone; with warm-up rounds the gain persists under TS on the Spider
-  sets; the weights of the aggregation are immaterial.
-- Breadth: the 0.5B model also improves over FedAvg SFT, by a smaller
-  margin; the gain persists on the perturbed sets and under TS.
-- Cost: no additional communication; the cost is client computation
-  for sampling, execution and local training.
+- From the same model, one preference round adds more than a further
+  FedAvg SFT round.
+
+Supporting evidence, each item in its own section:
+
+- Components (Section 6): on BIRD, on-policy pairs outperform the pairs
+  and the reference model of the first preference round; without the
+  NLL term a preference round lowers accuracy (Spider); the preference
+  term removes execution errors that persist under training on the
+  correct samples alone; with warm-up rounds the gain persists under TS
+  on the Spider sets; the weights of the aggregation are immaterial.
+- Breadth (Section 5): the 0.5B model also improves over FedAvg SFT, by
+  a smaller margin; the gain persists on the perturbed sets and under
+  TS.
+- Cost (Section 5): no additional communication; the cost is client
+  computation for sampling, execution and local training.
 
 ## Contributions
 
