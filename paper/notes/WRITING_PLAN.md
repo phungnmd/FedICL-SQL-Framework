@@ -132,7 +132,7 @@ gives the writer this angle in its first section.
 | `VOICE_GUIDE.md` | the register (density, compression, assertiveness, the contribution said plainly, person, limitations once) and the organization of each kind of section by rhetorical function; five contrasts from an unrelated domain (section 3.4) |
 | `TERMS.md` | the names of the paper's concepts, the abbreviations, the notation. Its third column lists only the lab words and the earlier labels a defined name replaces |
 | the brief of its section | section 4 |
-| `sections/` | the sections its brief lists as accepted. While the first drafts are being replaced (section 8, V2 and V3), a section of `draft-v1` is not among them: 10,000 words in the words of the lab would set the register of the new one. What a section needs from a later or earlier one (a label, a symbol, a number) is in its brief |
+| `sections/` | the sections its brief lists as accepted. The first drafts are not in the folder (section 8): 10,000 words in the words of the lab would set the register of a new section. What a section needs from a later or earlier one (a label, a symbol, a number) is in its brief |
 
 Not given to it: the notes of the lab, `CLAIMS.md`, the outline, this
 plan and its checks, the folder `voice/` (measures and paragraph roles
@@ -580,25 +580,36 @@ the title waits for the owner's choice among three candidates),
 Sections 7 and 8 (W12; two cold reads, two rounds). Sections 1 to 8
 now all exist as drafts: 29 pages against the limit of 25.
 
-The drafts of 2026-11-27 are in the words of the lab in every section
+The drafts of 2026-11-27 were in the words of the lab in every section
 (`make register`: 8 to 13% long words against 18 to 23% in the papers,
 4 to 10 everyday verbs per 1,000 words against 1 to 3 in six of the
-eight sections) and are kept at the tag `draft-v1-2026-11-27`. They are
-written again from briefs in the new form; the facts, the macros, the
-tables and the figures stay.
+eight sections). They and their briefs were taken out of the working
+tree on the same day (owner: nothing of the old text beside the new,
+so that neither the writer nor the brief clings to it) and are at the
+tag `draft-v1-2026-11-27`. `sections/01` to `08` hold a heading and its
+label until their section is written; the appendices, the statements,
+the generated numbers, tables and figures stay. A new brief is built
+from the form of section 4, and not by editing the old one: from
+`CLAIMS.md`, `OUTLINE.md`, the checks file of the section (its part 5
+has the labels, floats, formulas and Algorithm 1 of the first draft),
+`generated/numbers.md` and `settings.md`, the fact rows of Section 2,
+and `briefs/inventory_v1.txt` (the macros and citation keys each
+section used). The first brief is read at the tag once the new one is
+complete, to find a fact that is missing, never as its starting text.
 
 | Step | What | Waits on |
 |---|---|---|
 | V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
 | V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract (the two sections where the voice shows most: the method by component, and the limitation, the insight and the novelty of the Introduction); `make register`, `make overlap`, a cold read, the claim audit beside `CLAIMS.md`, and the `writing_quality_check` of the academic-paper skill as a list of inflated words (a confident register drifts to "comprehensive", "robust", "leverages"; the list is read by the main session and rewrites nothing) | the owner reads the pilot beside the tag; 30 min |
 | V3 | The pilot holds: the other sections in the order 4, 5, 6, 7 with 8, 2, then 1 again with the abstract, the keywords and the title candidates. The body goes in the order of the paper, because a writer reads the accepted sections before its own and takes their terms: 4 defines the statistical protocol that 5 to 7 rely on, 5 and 6 give 7 its findings. Related work comes after the ablation it points to and before the Introduction, whose gap it supplies. The Introduction of the pilot is written again last, from the same brief brought up to date, since it promises what Sections 5 to 7 then say; the abstract follows it. The pilot does not hold: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
-| V4 | When a brief is rewritten, the limits of its Ceiling column move into part 3 of its checks file | none |
+| V4 | When a brief is built, the limits that the Ceiling column of the first brief held (read at the tag) go into part 3 of its checks file | none |
 
 Removed on 2026-11-27, all at the tag: the writer's outlines and notes
 of the first drafts, the editor's notes of the first drafts, the audit
 of Section 2, the pilot of Section 3.4 with its brief and its `make`
-target, the eight cold reads of single sections, and parts B, D, E, F
-and G of `REVIEW_NOTES.md`. What they held about facts and claims is in
+target, the eight cold reads of single sections, parts B, D, E, F
+and G of `REVIEW_NOTES.md`, the text of Sections 1 to 8 with the
+abstract, and the seven briefs. What they held about facts and claims is in
 `briefs/01_checks.md` to `07_checks.md`; what needs the owner is in
 `REVIEW_NOTES.md`, A33 to A39. The three referee reports and the three
 reads on fit and novelty stay in `cold_reviews/`.

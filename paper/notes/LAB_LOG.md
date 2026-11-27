@@ -81,6 +81,13 @@ review finding apart):
   questions in `REVIEW_NOTES.md`. The seven checks files are written
   from the review of the first drafts; `REVIEW_NOTES.md` went from 90
   to 47 KB (parts B, D, E, F, G gone; A33 to A39 new).
+- The text of Sections 1 to 8, the abstract and the seven briefs are
+  out of the working tree (owner: nothing old for the new text to
+  cling to), at the tag. The section files hold a heading and a label;
+  the build passes at 7 pages. Kept from them as facts: labels, floats,
+  the four equations and Algorithm 1 in part 5 of the checks files, and
+  `briefs/inventory_v1.txt`. The order of the rewrite: 3, 1 as pilot,
+  4, 5, 6, 7 with 8, 2, 1 again with the abstract.
 - From the writing references of the ARS skill, read again: confidence
   is put into the formulation and not into the claim, and the claim
   audit reads each claim beside its line of `CLAIMS.md`.

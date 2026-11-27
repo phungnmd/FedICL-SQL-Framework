@@ -13,22 +13,23 @@ phân loại riêng):
 | Câu hỏi reviewer | điều referee sẽ hỏi và chỗ paper trả lời | file này, phần C | tới khi nộp bài |
 | Việc đã làm | tôi đã sửa gì, khi nào | `paper/notes/LAB_LOG.md` và commit | lịch sử |
 
-Cập nhật: 2026-11-27. Draft của cả tám section đang ở giọng lab và sẽ
-được viết lại từ brief dạng mới; bản hiện tại giữ ở tag
-`draft-v1-2026-11-27`. Các nhận xét về câu chữ của draft đó (phần B cũ,
-bảy file `*_notes_editor.md`) đã bỏ khỏi working tree, còn ở tag. Phần
-sự thật trong chúng đã chuyển vào `briefs/NN_checks.md`; phần cần bạn
-quyết đã chuyển lên phần A (A33 đến A39).
+Cập nhật: 2026-11-27. Draft v1 của tám section, abstract và bảy brief
+cũ đã gỡ khỏi working tree (bạn: không gắn với phần cũ), còn nguyên ở
+tag `draft-v1-2026-11-27`. `sections/01` đến `08` hiện chỉ có heading.
+Phần sự thật của chúng nằm trong `briefs/NN_checks.md` (phần 5 giữ
+label, float, công thức, Algorithm 1) và `briefs/inventory_v1.txt`
+(macro và citation key từng section đã dùng). Các mục A và C bên dưới
+nhắc tới câu chữ hay số section của draft v1 thì đọc theo tag.
 
 | Section | Trạng thái | Check |
 |---|---|---|
-| 1, Introduction, abstract, keywords | draft v1, chờ viết lại (pilot, sau Section 3) | `briefs/01_checks.md` |
-| 2, Related work, Table 1 | draft v1, chờ viết lại | `briefs/02_checks.md` |
-| 3, Method | draft v1, chờ viết lại (pilot đầu tiên); chờ A32 | `briefs/03_checks.md` |
-| 4, Experimental setup, Appendix A và B | draft v1, chờ viết lại | `briefs/04_checks.md` |
-| 5, Results | draft v1, chờ viết lại; 42 số chờ GPU | `briefs/05_checks.md` |
-| 6, Ablation study | draft v1, chờ viết lại; ba hàng chờ GPU | `briefs/06_checks.md` |
-| 7, Discussion and limitations; 8, Conclusion | draft v1, chờ viết lại | `briefs/07_checks.md` |
+| 3, Method | chờ A32, rồi brief mới và pilot | `briefs/03_checks.md` |
+| 1, Introduction, abstract, keywords | pilot sau Section 3; viết lại lần cuối sau Section 2 | `briefs/01_checks.md` |
+| 4, Experimental setup, Appendix A và B | chờ pilot | `briefs/04_checks.md` |
+| 5, Results | chờ pilot; 48 số chờ GPU | `briefs/05_checks.md` |
+| 6, Ablation study | chờ pilot; ba hàng chờ GPU | `briefs/06_checks.md` |
+| 7, Discussion and limitations; 8, Conclusion | chờ pilot | `briefs/07_checks.md` |
+| 2, Related work, Table 1 | chờ pilot | `briefs/02_checks.md` |
 
 ## A. Cần bạn quyết định
 

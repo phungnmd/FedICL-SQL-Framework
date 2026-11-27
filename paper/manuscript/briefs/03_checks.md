@@ -4,9 +4,9 @@ For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
 bounds of claims. Notes on the wording of a draft are not kept here
 (`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
-of the first drafts (tag `draft-v1-2026-11-27`); the limits that the
-brief of this section still carries in its Ceiling column move into
-part 3 when the brief is rewritten.
+of the first drafts (tag `draft-v1-2026-11-27`); the first
+brief of this section is at the same tag, and its facts and the limits
+of its Ceiling column are read from there when the new brief is built.
 
 ## 1. Facts about our work
 
@@ -34,3 +34,101 @@ part 3 when the brief is rewritten.
 - How a query is read from the output of the model and how execution results are compared is in Section 4, to which this section points.
 - The time limit, the adapter configuration, the settings of local training and the replacement rule of pairing are in Appendix B.
 - That a client must be able to execute SQL on its databases is said in Section 7 if not here.
+
+## 5. Structure of the first draft (labels, floats, formulas)
+
+Other sections and the generated tables refer to these labels. The macros and
+citation keys each section used are in `inventory_v1.txt`.
+
+### `sections/03_method.tex`
+
+Headings and labels:
+
+- `\section{Method}` `sec:method`
+- `\subsection{Setting and notation}` `sec:setting`
+- `\subsection{Overview}` `sec:overview`
+- `\subsection{Warm-up rounds}` `sec:warmup`
+- `\subsection{A preference round}` `sec:pref-round`
+- `\subsection{What a round costs a client}` `sec:cost`
+
+Floats:
+
+- figure `fig:overview`, from `figures/fig_method_overview.pdf`
+- algorithm `alg:method`
+
+Equations, as checked against the code for the first draft:
+
+```latex
+\begin{equation}
+  \mathcal{L}_k^{\mathrm{SFT}}(\theta) = \frac{1}{n_k}
+    \sum_{(q, d, y^\star) \in \mathcal{D}_k}
+    -\frac{1}{\lvert y^\star \rvert} \log \pi_\theta(y^\star \mid x).
+  \label{eq:sft}
+\end{equation}
+```
+
+```latex
+\begin{equation}
+  \theta^{t} = \sum_{k=1}^{K} w_k \, \theta_k^{t},
+  \qquad
+  w_k = \frac{n_k}{\sum_{j=1}^{K} n_j},
+  \label{eq:aggregation}
+\end{equation}
+```
+
+```latex
+\begin{equation}
+  m_\theta = \beta \left[
+    \log \frac{\pi_\theta(y^{+} \mid x)}{\pi_{\mathrm{ref}}(y^{+} \mid x)}
+    - \log \frac{\pi_\theta(y^{-} \mid x)}{\pi_{\mathrm{ref}}(y^{-} \mid x)}
+  \right]
+  \label{eq:logratio}
+\end{equation}
+```
+
+```latex
+\begin{equation}
+  \ell(\theta) = -\log \sigma(m_\theta)
+    - \frac{\lambda}{\lvert y^{+} \rvert} \log \pi_\theta(y^{+} \mid x),
+  \label{eq:loss}
+\end{equation}
+```
+
+Algorithm, as checked against the code for the first draft:
+
+```latex
+\begin{algorithm}[t]
+\caption{\method}\label{alg:method}
+\begin{algorithmic}[1]
+\Require training sets $\{\mathcal{D}_k\}_{k=1}^{K}$, pretrained model,
+  $T$, $T_w$, $N$, $M$, $\beta$, $\lambda$
+\Ensure global adapter $\theta^{T}$
+\State initialize the adapter $\theta^{0}$
+\For{$t = 1, \dots, T$}
+  \State the server sends $\theta^{t-1}$ to all $K$ clients
+  \ForAll{clients $k = 1, \dots, K$ in parallel}
+    \If{$t \le T_w$} \Comment{warm-up round}
+      \State $\theta_k^{t} \gets$ local training from $\theta^{t-1}$ on
+        $\mathcal{D}_k$ with the loss of Eq.~\eqref{eq:sft}
+      \State upload $\theta_k^{t}$ and $n_k$
+    \Else \Comment{preference round}
+      \State sample $N$ queries from $\pi_{\theta^{t-1}}(\cdot \mid x)$
+        for each $(q, d, y^\star) \in \mathcal{D}_k$
+      \State label each sample $y$ by comparing $\mathrm{exec}(y, d)$
+        with $\mathrm{exec}(y^\star, d)$
+      \State $\mathcal{P}_k^{t} \gets$ $M$ pairs $(y^{+}, y^{-})$ for
+        each question with samples of both labels
+      \State $\theta_k^{t} \gets$ local training from $\theta^{t-1}$ on
+        $\mathcal{P}_k^{t}$ with the loss of Eq.~\eqref{eq:loss},
+        $\pi_{\mathrm{ref}} = \pi_{\theta^{t-1}}$
+      \State upload $\theta_k^{t}$ and $\lvert\mathcal{P}_k^{t}\rvert$
+    \EndIf
+  \EndFor
+  \State $\theta^{t} \gets \sum_{k=1}^{K} w_k \, \theta_k^{t}$, with
+    $w_k \propto n_k$ if $t \le T_w$ and
+    $w_k \propto \lvert\mathcal{P}_k^{t}\rvert$ otherwise
+\EndFor
+\State \Return $\theta^{T}$
+\end{algorithmic}
+\end{algorithm}
+```

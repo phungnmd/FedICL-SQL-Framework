@@ -4,9 +4,9 @@ For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
 bounds of claims. Notes on the wording of a draft are not kept here
 (`WRITING_PLAN.md`, section 7.0). Items marked "v1" come from the review
-of the first drafts (tag `draft-v1-2026-11-27`); the limits that the
-brief of this section still carries in its Ceiling column move into
-part 3 when the brief is rewritten.
+of the first drafts (tag `draft-v1-2026-11-27`); the first
+brief of this section is at the same tag, and its facts and the limits
+of its Ceiling column are read from there when the new brief is built.
 
 ## 1. Facts about our work
 
@@ -29,3 +29,22 @@ None of its own.
 ## 4. What the section carries for other sections
 
 Nothing.
+
+## 5. Structure of the first draft (labels, floats, formulas)
+
+Other sections and the generated tables refer to these labels. The macros and
+citation keys each section used are in `inventory_v1.txt`.
+
+### `sections/07_discussion.tex`
+
+Headings and labels:
+
+- `\section{Discussion and limitations}` `sec:discussion`
+- `\subsection{Interpretation of the results}` `sec:interpretation`
+- `\subsection{Scope and limitations}` `sec:limitations`
+
+### `sections/08_conclusion.tex`
+
+Headings and labels:
+
+- `\section{Conclusion}` `sec:conclusion`

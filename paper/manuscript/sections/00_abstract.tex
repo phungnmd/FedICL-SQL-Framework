@@ -1,23 +1,2 @@
-%% Abstract: 200 to 400 words (CMC), 150 to 250 (JIIS); one paragraph, no citation.
-Organizations hold questions with gold SQL queries for their own
-databases and cannot pool them to fine-tune a Text-to-SQL model.
-Federated learning trains one model across such organizations, the
-clients, without moving their data. Its common form, federated averaging
-with supervised fine-tuning (FedAvg SFT), learns from the gold SQL query
-alone: no query is executed on the databases at the clients, although
-execution shows whether a generated query is correct. We propose
-\method, a federated learning framework for Text-to-SQL that uses this
-signal. Training begins with warm-up rounds of FedAvg SFT, in which the model learns from the gold SQL query of every
-question. In the preference rounds that
-follow, each client samples queries from the current global model,
-executes them on its own databases, labels each as correct or incorrect
-by comparing its execution result with that of the gold SQL query, and
-trains the model to prefer its correct over its incorrect samples, with
-direct preference optimization (DPO) and a negative log-likelihood (NLL)
-term. As in FedAvg SFT, a client sends the server only the adapter
-weights that it trains and one number that weights them in the average,
-here its number of pairs. With five clients and a model of
-\setting{model.size} parameters, \method{} improves execution accuracy
-on BIRD dev by \gap{bird}{fedavg}{4}{k2}{4} points over FedAvg SFT at
-the same number of rounds. It is also above FedAvg SFT on Spider test,
-and about half as many of its predictions end in an execution error.
+%% Abstract: 200 to 400 words (CMC); one paragraph, no citation. Written last.
+Abstract to be written.
