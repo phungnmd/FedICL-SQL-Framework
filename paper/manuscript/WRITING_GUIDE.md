@@ -162,8 +162,8 @@ compiles.
    statement about a cited work originates from `related/` or, where web
    search is available, from the source itself; such a statement is
    listed in the notes with its address and its location in the source.
-   Where required information is unavailable, the section is completed
-   without it and the omission is reported in the notes.
+   Where required information is unavailable, it is requested from the
+   editor (Section 5); nothing is supplied by conjecture.
 2. **Findings.** A finding is stated as its table supports it, and its
    scope ("on BIRD", "to our knowledge") forms part of the finding. If
    the evidence appears insufficient for a point of the brief, the
@@ -193,7 +193,23 @@ requires. Before the draft is delivered, the section is examined from
 the perspective of a reviewer and revised wherever that reader would
 hesitate.
 
-## 5. Outline before prose
+## 5. Questions to the editor
+
+The editor is one of the researchers of the study and has the complete
+record of the work: the method in every detail, every experiment and
+its outcome, and the cited literature. At any stage (before the outline,
+during drafting, during a revision) a question whose answer the section
+requires and the materials do not provide is addressed to the editor:
+the questions are written to `notes/questions.md`, each with the passage
+it concerns and the reason it is required, and the turn ends there. The
+editor replies with the answers and, where appropriate, with additional
+files. Typical subjects are a property of the method, the configuration
+or the outcome of an experiment, an additional number or comparison,
+the interpretation of a result, and what a cited work states. A question
+is preferable to a conjecture and to an omission; questions on one
+passage are submitted together.
+
+## 6. Outline before prose
 
 An outline precedes the prose and is written to `notes/outline.md`: one
 entry per paragraph, in sequence, stating the rhetorical function of
@@ -207,10 +223,10 @@ The editor responds to the outline, and the section is drafted from it.
 The outline is a plan and not a commitment: a superior organization that
 emerges during drafting is adopted and reported in the notes.
 
-## 6. Deliverables
+## 7. Deliverables
 
 The outline in `notes/outline.md`, the section in LaTeX in its file
-under `sections/`, and the notes to the editor in `notes/notes.md`. The
-notes identify information that the materials lacked, points whose
-evidence appears insufficient, statements and references taken from the
-web, and proposals for an additional example, table or figure.
+under `sections/`, questions in `notes/questions.md`, and the notes to
+the editor in `notes/notes.md`. The notes identify points whose evidence
+appears insufficient, statements and references taken from the web, and
+proposals for an additional example, table or figure.

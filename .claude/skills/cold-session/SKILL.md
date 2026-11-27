@@ -61,7 +61,7 @@ its paths kept) and prompt files (sent verbatim). The runner adds nothing.
 | `-w` | the session may write inside its directory; the files it creates or changes in a turn are copied to `-o OUTDIR` at the same relative paths, unchanged; prompt, replies, model, effort, file hashes, handle and Git SHA go to a `.log` there |
 | `-N` | no WebSearch or WebFetch (the session takes every fact from its pack) |
 | `-k` | keep the session; prints `handle: tmp.XXXXXXXX` |
-| `-r HANDLE` | send the next message (`-f` or `-q`) to a kept session; model, effort, tools and output stay as at the start |
+| `-r HANDLE` | send the next message (`-f` or `-q`) to a kept session; model, effort, tools and output stay as at the start. `-d DIR` and files given with it are copied into the session directory first and named in the message |
 | `-c` | with `-r`: close after this turn, or at once without a message; removes the directory, transcript and scratchpad |
 
 ```bash

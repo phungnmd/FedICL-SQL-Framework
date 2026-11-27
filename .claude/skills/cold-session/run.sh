@@ -5,7 +5,7 @@
 #
 # start:    run.sh [-t TEMPLATE | -q TEXT | -f FILE] [-j JOURNAL] [-d DIR] [-n N]
 #                  [-m MODEL] [-e EFFORT] [-l LABEL] [-o OUTDIR] [-w] [-N] [-k] [FILE...]
-# continue: run.sh -r HANDLE (-q TEXT | -f FILE) [-c]
+# continue: run.sh -r HANDLE (-q TEXT | -f FILE) [-d DIR] [-c] [FILE...]
 # close:    run.sh -r HANDLE -c
 #   -t  prompt template in prompts/ (default: review)
 #   -q  prompt or message text, used verbatim
@@ -23,7 +23,9 @@
 #       when N > 1), and prompt, replies and provenance go to a .log there
 #   -N  no web: WebSearch and WebFetch are off
 #   -k  keep the session for follow-ups; prints its HANDLE
-#   -r  continue the kept session HANDLE (same model, effort, tools, output)
+#   -r  continue the kept session HANDLE (same model, effort, tools, output);
+#       -d DIR and FILE... given with it are copied into the session directory
+#       before the turn, and their names are appended to the message
 #   -c  with -r: close the session after this turn, or at once without a
 #       message (removes its directory and its stored transcript)
 # FILE... are copied flat; their names are appended to a start prompt. A pack
@@ -44,7 +46,7 @@ while getopts "t:q:f:j:d:n:m:e:l:o:wNkr:c" opt; do
     d) pack=$OPTARG ;; n) n=$OPTARG ;; m) model=$OPTARG ;; e) effort=$OPTARG ;;
     l) label=$OPTARG ;; o) outdir=$OPTARG ;; w) write=1 ;; N) web=0 ;; k) keep=1 ;;
     r) handle=$OPTARG ;; c) close=1 ;;
-    *) sed -n '2,30p' "$0"; exit 2 ;;
+    *) sed -n '2,32p' "$0"; exit 2 ;;
   esac
 done
 shift $((OPTIND - 1))
@@ -106,10 +108,26 @@ if [ -n "$handle" ]; then
   [ -f "$state/$handle" ] || die "no kept session $handle"
   . "$state/$handle"
   [ -n "$msg" ] || [ "$close" = 1 ] || die "give a message with -q or -f, or -c to close"
+  for f in "$@"; do [ -f "$f" ] || die "not a file: $f"; done
+  [ -z "$pack" ] || [ -d "$pack" ] || die "not a directory: $pack"
+  [ -n "$msg" ] || { [ $# -eq 0 ] && [ -z "$pack" ]; } || die "files need a message with -q or -f"
   status=0
   if [ -n "$msg" ]; then
     turn=$((turn + 1)); claude_args
-    { echo; echo "<!-- turn $turn | $(date '+%Y-%m-%d %H:%M') | message: $src | paper git: $(gitsha) -->"
+    # files sent with the message: copied in before the snapshot, so they do not count as written
+    added=""
+    for f in "$@"; do cp "$f" "$dir/"; added="$added $(basename "$f")"; done
+    if [ -n "$pack" ]; then
+      cp -RL "$pack/." "$dir/"
+      added="$added $(cd "$pack" && find . -type f | LC_ALL=C sort | sed 's|^\./||' | tr '\n' ' ')"
+    fi
+    [ -z "$added" ] || msg="$msg
+
+Files added to your working directory:$added"
+    { echo; echo "<!-- turn $turn | $(date '+%Y-%m-%d %H:%M') | message: $src | paper git: $(gitsha)"
+      for f in "$@"; do echo "     file: $f sha256 $(sha "$f")"; done
+      [ -z "$pack" ] || echo "     pack: $pack"
+      echo "-->"
       fence "Message (turn $turn)" "$msg"; } >> "$out"
     snap "$dir" > "$state/$handle.snap"
     run_turn "$dir" "$out" "$msg" --resume "$sid" || status=1

@@ -7,10 +7,13 @@ work in full as science and nothing of the lab; after assembling it this tool
 searches it for dates, "owner" and lab words and stops when it finds any.
 
 usage: python3 tools/pack.py NN [--also NN ...] [--accepted NN ...] [--brief FILE]
+       python3 tools/pack.py --check FILE...
   NN          the section to write (01 ... 08)
   --also      further sections the same writer writes (08 with 07, 00 with 01)
   --accepted  the sections already accepted, given to the writer to read
   --brief     the brief, when it is not briefs/NN_name.md
+  --check     search the files (an answer to the writer, editor's notes, a file sent
+              with them) for the same traces, without assembling a pack
 """
 from __future__ import annotations
 
@@ -68,6 +71,10 @@ directory holds the material of the paper; README.md lists it. Read
 README.md, paper.md, guide.md and brief.md first, and open the rest as
 you need it.
 {web}
+The editor is one of the researchers of the study. Whenever the material
+does not settle something you need, write your questions to
+notes/questions.md and stop; the editor answers them.
+
 First deliverable: the outline that guide.md describes, written to
 notes/outline.md. Stop there and wait for the editor's response.
 """
@@ -176,11 +183,11 @@ def related_md(key: str, bib: dict[str, str], abstracts: dict) -> str:
     return "\n".join(lines)
 
 
-def scan(pack: Path) -> list[str]:
-    """Dates, 'owner' and lab words in what the writer will read."""
+def scan(pack: Path, only: list[Path] | None = None) -> list[str]:
+    """Dates, 'owner' and lab words in what the writer will read: a pack, or the files `only`."""
     hits = []
-    for f in sorted(pack.rglob("*")):
-        rel = f.relative_to(pack)
+    for f in only if only is not None else sorted(pack.rglob("*")):
+        rel = f.relative_to(pack) if only is None else Path(f.name)
         if not f.is_file() or f.suffix not in {".md", ".tex", ".txt"} or rel.parts[0] == "examples":
             continue
         patterns = [r"\b20\d\d-\d\d-\d\d\b", r"(?i)\bowner\b", r"(?i)\bread on\b"]
@@ -195,16 +202,23 @@ def scan(pack: Path) -> list[str]:
             if rel.parts[0] == "related":  # a pointer to a file or a note of the lab inside a verified statement
                 found.append(re.search(r"\b[\w/]+\.md\b|for the editor", line))
             hits += [f"{rel}:{i}: '{m.group(0)}'" for m in found if m]
-    return hits
+    return list(dict.fromkeys(hits))
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("section")
+    ap.add_argument("section", nargs="?")
     ap.add_argument("--also", nargs="*", default=[])
     ap.add_argument("--accepted", nargs="*", default=[])
     ap.add_argument("--brief")
+    ap.add_argument("--check", nargs="+", metavar="FILE")
     a = ap.parse_args()
+    if a.check:
+        hits = scan(ROOT, [Path(f) for f in a.check])
+        print("\n".join(hits) if hits else "clean: " + ", ".join(a.check))
+        return 1 if hits else 0
+    if not a.section:
+        ap.error("give the section to write, or --check FILE...")
     nn = a.section
 
     def section_files(numbers: list[str]) -> list[Path]:

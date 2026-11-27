@@ -187,7 +187,10 @@ deviate.
   examples of form. It holds nothing of the lab: no note, rule, date,
   decision, claim number or lab word, and not the full text of
   CodeLutra or OpenFedLLM. The writer decides the structure of its
-  section. What binds the text: the hard rules, the claims of
+  section. The main session is the person of the project and the writer
+  its tool for writing (owner, 2026-11-27): the writer asks it whatever
+  the pack does not settle, at any point, and it answers from the
+  record, with the science and nothing of the lab. What binds the text: the hard rules, the claims of
   `CLAIMS.md` at their strength and scope (not above, not below),
   numbers as generated macros, the limits of the journal; these are
   checked on the draft by the main session and reach the writer as

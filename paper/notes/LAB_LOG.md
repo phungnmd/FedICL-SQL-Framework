@@ -4,6 +4,28 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the writer can ask the main session (owner; no run)
+
+Owner: the writer and the main session should interact; while writing,
+the writer asks for more information when it needs it, and the main
+session is the person of the project, who knows it and uses the writer
+as its tool for writing.
+
+- The writer stops a turn on `notes/questions.md` at any point; the
+  main session answers with a message and, where needed, files
+  (`run.sh -r HANDLE -f reply.md FILE...`; the runner now copies files
+  into a kept session). Question rounds are not limited and do not
+  count as rounds of editor's notes.
+- An answer comes from the record, carries the science and nothing of
+  the lab, stays at the strength of `CLAIMS.md`, holds no sentence for
+  the paper, and passes `tools/pack.py --check` before it is sent. An
+  answer a later writer will need goes into the source of the pack.
+- The guide of the writer has a section on questions, and no longer
+  tells it to complete a section without missing information.
+- `WRITING_PLAN.md`, sections 1, 2, 3.1, 3.3 and the new 3.5;
+  `AGENTS.md`, Writing. Tested on a toy pack (Haiku): the session wrote
+  its questions and stopped; the reply with two files reached it.
+
 ## 2026-11-27: the inputs of the writer are in the form of the pack (owner: go; no run)
 
 Step V1 of the writing plan.
