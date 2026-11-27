@@ -3,7 +3,7 @@
 #                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
 #                   and a guess written with \expect{value} prints as value?? and counts the same
 #   make numbers    macros, tables and settings from the committed results and configs
-#   make figures    the result charts (JOURNAL=cmc or jiis) and a copy of the method diagram
+#   make figures    the result charts (JOURNAL=cmc or jiis) and copies of the diagrams
 #                   (drawn in paper/figures, rendered there with render.py)
 #   make floats     every table and figure on its own, for reading the cells
 #   make lint       the checks of tools/lint.py (JOURNAL=cmc or jiis)
@@ -67,6 +67,7 @@ numbers:
 figures:
 	$(PLOT_PY) tools/charts.py --journal $(JOURNAL)
 	cp ../figures/fig_method_overview.pdf figures/fig_method_overview.pdf
+	cp ../figures/fig_idea.pdf figures/fig_idea.pdf
 
 floats: 
 	@mkdir -p $(BUILD)

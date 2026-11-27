@@ -4,6 +4,41 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: figures redrawn for CMC at 1:1 and with colours that survive colour blindness; Fig. 1 from the BIRD round 1 samples (owner: carry out)
+
+- Review against the built page and published figures: the diagrams
+  were drawn 119 mm wide (JIIS) and scaled by `width=\linewidth` to the
+  CMC text width (165.1 mm, 469.76 pt), so 8 pt labels printed at
+  11.2 pt, above the 11 pt running text, and Fig. 2 took about two
+  thirds of a page (height over width 1.04; five framework figures
+  compared, three in CMC, OmniSQL and DIN-SQL: 0.33 to 0.73). Blue
+  (federated side) and violet (the method) were the same colour under
+  deutan simulation (distance 2 of 255) and in greyscale, so two of the
+  three entries of the colour key looked alike.
+- `STYLE.md`, `template.svg`: canvas 468 pt, a figure goes in at its own
+  size; roles blue (server and what is sent), amber (private), method
+  colour `#A8528A` only for our part beside a baseline (blue against it
+  under deutan: 148); steps and baselines neutral; no colour key. Amber
+  kept: a darker Okabe-Ito orange came closer to vermillion under deutan
+  (9 against 31).
+- Fig. 2 (`fig_method_overview`) redrawn in landscape, 468 x 250 pt, the
+  four steps in one row; about a third of the page in the build. Put in
+  at 1:1 in `sections/03_method.tex`.
+- Fig. 1 (`fig_idea`) redrawn from
+  `fedicl-sql/audits/protocol_v2/figure_examples/fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1.json`
+  (`d261950c`): BIRD train `train:4462`, client 1, `student_loan`, round
+  1 samples of the global model after 2 warm-up rounds; 7 correct, 2
+  wrong results, 1 execution error of 10; the shortest SQL of each is
+  shown (gold 236; samples 236, 0, `no such column: school`). Picked
+  among the 25 kept questions because its correct sample differs from
+  the gold SQL in text and its wrong sample differs from the correct one
+  only in the case of one literal. Fig. 1 has no server and no adapter
+  (Fig. 2 carries them); the brief of Section 1 still says that only the
+  adapter crosses the boundary. The Spider example from a local run of
+  the pretrained model (`paper/figures/fig_idea_source/`) is removed.
+- Charts (`tools/charts.py`): CMC width 165.1 mm and CMC by default;
+  FedAvg SFT slate, FedExec-SQL in the method colour.
+
 ## 2026-11-28: Section 3 (Method) drafted by the writer, two rounds of editor's notes (pilot step V2; the commit of this entry)
 
 - Draft: `paper/manuscript/sections/03_method.tex`, seven subsections,

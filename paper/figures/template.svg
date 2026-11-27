@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="337" height="236" viewBox="0 0 337 236" role="img" aria-labelledby="fig-template-title fig-template-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="208" viewBox="0 0 468 208" role="img" aria-labelledby="fig-template-title fig-template-desc">
   <title id="fig-template-title">Figure style sheet</title>
   <desc id="fig-template-desc">The surfaces, cards, chips, marks, icons, connectors and text styles every diagram of the paper is built from.</desc>
 
@@ -12,31 +12,29 @@
     .mid { text-anchor: middle; }
     .end { text-anchor: end; }
     .blue { fill: #E8F0FE; stroke: #2563EB; stroke-width: 0.75; }
-    .violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.75; }
+    .method { fill: #F8EAF2; stroke: #A8528A; stroke-width: 0.75; }
     .plain { fill: #F1F5F9; stroke: #94A3B8; stroke-width: 0.5; }
     .client { fill: #FFF7E6; }
     .boundary { fill: none; stroke: #B45309; stroke-width: 0.75; stroke-dasharray: 3 2; }
     .card { fill: #FFFFFF; }
-    .card-band { fill: #E9DFFD; }
-    .card-line { fill: none; stroke: #7C3AED; stroke-width: 0.75; }
-    .card-badge { fill: #CDBBFA; }
+    .card-band { fill: #F1F5F9; }
+    .card-line { fill: none; stroke: #94A3B8; stroke-width: 0.75; }
+    .card-badge { fill: #EFD3E3; }
+    .rule { fill: none; stroke: #CBD5E1; stroke-width: 0.5; }
     .chip { fill: #FFFFFF; stroke: #94A3B8; stroke-width: 0.5; }
     .chip-blue { fill: #FFFFFF; stroke: #2563EB; stroke-width: 0.5; }
-    .chip-violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.5; }
+    .chip-method { fill: #F8EAF2; stroke: #A8528A; stroke-width: 0.5; }
     .chip-ok { fill: #DDF3EB; stroke: #009E73; stroke-width: 0.5; }
     .chip-bad { fill: #FBE5D8; stroke: #D55E00; stroke-width: 0.5; }
     .flow { fill: none; stroke: #334155; stroke-width: 0.75; marker-end: url(#arrow); }
     .comm { fill: none; stroke: #2563EB; stroke-width: 1.25; marker-end: url(#arrow-comm); }
     .ic { stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
     .ic-blue { stroke: #1D4ED8; fill: #C9DCFC; }
-    .ic-violet { stroke: #6D28D9; fill: #DDD0FC; }
+    .ic-method { stroke: #8E3F74; fill: #EFD3E3; }
+    .ic-slate { stroke: #475569; fill: #E2E8F0; }
     .ic-amber { stroke: #B45309; fill: #FBDFA6; }
     .ok { fill: none; stroke: #009E73; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
     .bad { fill: none; stroke: #D55E00; stroke-width: 1.25; stroke-linecap: round; }
-    .legend { fill: #F1F5F9; }
-    .sw-blue { fill: #2563EB; }
-    .sw-violet { fill: #7C3AED; }
-    .sw-amber { fill: #D98A0B; }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
@@ -74,59 +72,65 @@
     <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
   </defs>
 
-  <!-- surfaces: one colour per role, pale fill with a line of the same colour -->
+  <!-- surfaces: a role colour only where the role is named; steps are neutral cards -->
   <text class="h" x="1" y="9">Surfaces and cards</text>
 
-  <rect class="blue" x="1" y="16" width="76" height="46" rx="4"/>
+  <rect class="blue" x="1" y="16" width="86" height="46" rx="4"/>
   <text class="h" x="9" y="35">Server</text>
   <text x="9" y="47">Federated side</text>
 
-  <rect class="violet" x="87" y="16" width="76" height="46" rx="4"/>
-  <text class="h" x="95" y="35">Method</text>
-  <text x="95" y="47">What is ours</text>
+  <rect class="method" x="96" y="16" width="86" height="46" rx="4"/>
+  <text class="h" x="104" y="35">Method</text>
+  <text x="104" y="47">Ours, by a baseline</text>
 
-  <rect class="client" x="173" y="16" width="76" height="46" rx="4"/>
-  <rect class="boundary" x="173" y="16" width="76" height="46" rx="4"/>
-  <text class="h" x="181" y="35">Client</text>
-  <text x="181" y="47">Private side</text>
+  <rect class="plain" x="191" y="16" width="86" height="46" rx="4"/>
+  <text class="h" x="199" y="35">Baseline</text>
+  <text x="199" y="47">Neutral part</text>
 
-  <rect class="card" x="259" y="16" width="77" height="46" rx="4"/>
-  <path class="card-band" d="M259 34 V20 A4 4 0 0 1 263 16 H332 A4 4 0 0 1 336 20 V34 Z"/>
-  <rect class="card-line" x="259" y="16" width="77" height="46" rx="4"/>
-  <circle class="card-badge" cx="271" cy="25" r="6"/>
-  <text class="b mid" x="271" y="28">1</text>
-  <text class="b" x="282" y="28">Step</text>
-  <text x="267" y="50">A step card</text>
+  <rect class="client" x="286" y="16" width="86" height="46" rx="4"/>
+  <rect class="boundary" x="286" y="16" width="86" height="46" rx="4"/>
+  <text class="h" x="294" y="35">Client</text>
+  <text x="294" y="47">Private side</text>
+
+  <rect class="card" x="381" y="16" width="86" height="46" rx="4"/>
+  <path class="card-band" d="M381 34 V20 A4 4 0 0 1 385 16 H463 A4 4 0 0 1 467 20 V34 Z"/>
+  <rect class="card-line" x="381" y="16" width="86" height="46" rx="4"/>
+  <circle class="card-badge" cx="393" cy="25" r="6"/>
+  <text class="b mid" x="393" y="28">1</text>
+  <text class="b" x="404" y="28">Step</text>
+  <text x="389" y="50">A step card</text>
 
   <!-- chips and marks -->
   <text class="h" x="1" y="81">Chips and marks</text>
   <rect class="chip" x="1" y="89" width="30" height="11" rx="2.5"/>
   <text class="mid" x="16" y="97.3">SQL 1</text>
-  <rect class="chip-ok" x="37" y="89" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="52" y="97.3">SQL 1</text>
-  <rect class="chip-bad" x="73" y="89" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="88" y="97.3">SQL 2</text>
-  <rect class="chip-violet" x="109" y="88.5" width="30" height="12" rx="2.5"/>
-  <text class="mid" x="124" y="97.3">LoRA</text>
-  <rect class="chip-blue" x="145" y="88.5" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="156" y="97"><tspan class="i">Δ</tspan><tspan class="sub" dy="2">k</tspan></text>
-  <use href="#icon-ok" x="190" y="91"/>
-  <text x="202" y="97.3">correct</text>
-  <use href="#icon-bad" x="244" y="91"/>
-  <text x="255" y="97.3">wrong</text>
+  <rect class="chip-ok" x="39" y="89" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="54" y="97.3">SQL 1</text>
+  <rect class="chip-bad" x="77" y="89" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="92" y="97.3">SQL 2</text>
+  <rect class="chip-blue" x="115" y="88.5" width="34" height="12" rx="2.5"/>
+  <text class="mid" x="132" y="97">Adapter</text>
+  <rect class="chip-method" x="157" y="88.5" width="34" height="12" rx="2.5"/>
+  <text class="mid" x="174" y="97">Ours</text>
+  <use href="#icon-ok" x="209" y="91"/>
+  <text x="221" y="97.3">correct</text>
+  <use href="#icon-bad" x="263" y="91"/>
+  <text x="274" y="97.3">incorrect</text>
 
   <!-- icons -->
   <text class="h" x="1" y="121">Icons</text>
-  <use href="#icon-model" class="ic-violet" x="1" y="128"/>
+  <use href="#icon-model" class="ic-method" x="1" y="128"/>
   <text x="27" y="142">Model</text>
-  <use href="#icon-db" class="ic-amber" x="66" y="128"/>
-  <text x="88" y="142">Database</text>
-  <use href="#icon-server" class="ic-blue" x="138" y="129"/>
-  <text x="162" y="142">Server</text>
-  <use href="#icon-doc" class="ic-amber" x="204" y="130"/>
-  <text x="222" y="142">Text, SQL</text>
-  <use href="#icon-lock" class="ic-amber" x="274" y="132"/>
-  <text x="288" y="142">Private</text>
+  <use href="#icon-model" class="ic-slate" x="66" y="128"/>
+  <text x="92" y="142">Model, baseline</text>
+  <use href="#icon-db" class="ic-amber" x="166" y="128"/>
+  <text x="188" y="142">Database</text>
+  <use href="#icon-server" class="ic-blue" x="238" y="129"/>
+  <text x="262" y="142">Server</text>
+  <use href="#icon-doc" class="ic-amber" x="304" y="130"/>
+  <text x="322" y="142">Text, SQL</text>
+  <use href="#icon-lock" class="ic-amber" x="374" y="132"/>
+  <text x="388" y="142">Private</text>
 
   <!-- connectors and text -->
   <text class="h" x="1" y="169">Connectors</text>
@@ -134,18 +138,11 @@
   <text x="1" y="196">Flow inside one party</text>
   <path class="comm" d="M96 182 H146"/>
   <text x="96" y="196">Sent between parties</text>
+  <path class="rule" d="M191 182 H241"/>
+  <text x="191" y="196">Rule in a table</text>
 
-  <text class="h" x="196" y="169">Text</text>
-  <text class="h" x="196" y="181">Name or heading, 9 pt bold</text>
-  <text x="196" y="192">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
-  <text x="196" y="203"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
-
-  <!-- colour key -->
-  <rect class="legend" x="1" y="214" width="335" height="20" rx="4"/>
-  <rect class="sw-blue" x="9" y="220" width="8" height="8" rx="2"/>
-  <text x="21" y="227">Federated side</text>
-  <rect class="sw-violet" x="115" y="220" width="8" height="8" rx="2"/>
-  <text x="127" y="227">The method</text>
-  <rect class="sw-amber" x="221" y="220" width="8" height="8" rx="2"/>
-  <text x="233" y="227">Private data</text>
+  <text class="h" x="286" y="169">Text</text>
+  <text class="h" x="286" y="181">Name or heading, 9 pt bold</text>
+  <text x="286" y="192">Label, 8 pt, <tspan class="b">key term bold</tspan></text>
+  <text x="286" y="203"><tspan class="i">Note in italic,</tspan> variable <tspan class="i">θ</tspan><tspan class="sub" dy="2">t+1</tspan></text>
 </svg>

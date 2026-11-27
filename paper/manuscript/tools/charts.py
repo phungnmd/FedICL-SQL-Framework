@@ -4,17 +4,17 @@
   fig_rounds   Fig. 3: EX by round, FedAvg SFT and the method, BIRD dev and Spider test
   fig_errors   Fig. 4: incorrect predictions by round, split into execution errors and incorrect results
 
-The points come from `curves()` of paper_numbers.py. The figure rules of the two journals
-(paper/figures/STYLE.md, the table of journal limits) are built in:
+The points come from `curves()` of paper_numbers.py. The figure rules of the journals
+(paper/figures/STYLE.md) are built in:
 
-  JIIS  119 mm wide, at most 195 mm high, parts lettered a, b
-  CMC   119 mm wide (limit 165.1 mm), at most 200 mm high, parts lettered A, B
+  CMC   165.1 mm wide (the text width, printed at 1:1), at most 200 mm high, parts lettered A, B
+  JIIS  119 mm wide, at most 195 mm high, parts lettered a, b (the fallback journal)
 
 and for both: Arial of one size (8 pt), lines of 0.5 pt or more, no title inside the figure,
 series told apart by marker, dash and hatch as well as colour, vector PDF with the fonts
 embedded. The script stops if Arial is not found or a font is not embedded.
 
-    uv run --no-project --with matplotlib==3.10.8 python tools/charts.py --journal jiis
+    uv run --no-project --with matplotlib==3.10.8 python tools/charts.py --journal cmc
 """
 from __future__ import annotations
 
@@ -38,15 +38,16 @@ FIG = HERE.parent / "figures"
 MM = 1 / 25.4
 JOURNALS = {
     "jiis": {"width": 119, "max_height": 195, "letters": "ab", "suffix": ""},
-    "cmc": {"width": 119, "max_height": 200, "letters": "AB", "suffix": "_cmc"},
+    "cmc": {"width": 165.1, "max_height": 200, "letters": "AB", "suffix": "_cmc"},
 }
 FONT, SIZE = "Arial", 8
-BLUE, VIOLET, INK = "#2563EB", "#7C3AED", "#000000"   # federated side, the method (STYLE.md)
-BLUE_FILL, VIOLET_FILL = "#E8F0FE", "#E9DFFD"
+# STYLE.md: the baseline is neutral (slate), the method has the method colour
+SLATE, METHOD, INK = "#475569", "#A8528A", "#000000"
+SLATE_FILL, METHOD_FILL = "#E2E8F0", "#EFD3E3"
 SETS = [("bird", "BIRD dev"), ("spider", "Spider test")]
 SERIES = {
-    "fedavg": {"label": "FedAvg SFT", "color": BLUE, "fill": BLUE_FILL, "marker": "o", "dash": (0, (4, 2))},
-    "k2": {"label": "FedExec-SQL", "color": VIOLET, "fill": VIOLET_FILL, "marker": "s", "dash": "solid"},
+    "fedavg": {"label": "FedAvg SFT", "color": SLATE, "fill": SLATE_FILL, "marker": "o", "dash": (0, (4, 2))},
+    "k2": {"label": "FedExec-SQL", "color": METHOD, "fill": METHOD_FILL, "marker": "s", "dash": "solid"},
 }
 
 
@@ -110,10 +111,10 @@ def fig_errors(data: dict, j: dict):
         letter(ax, ch, name)
     axes[0].set_ylabel("Incorrect predictions")
     from matplotlib.patches import Patch
-    handles = [Patch(facecolor=SERIES["fedavg"]["fill"], edgecolor=BLUE, linewidth=0.5, label="FedAvg SFT, incorrect result"),
-               Patch(facecolor="white", edgecolor=BLUE, linewidth=0.5, hatch="////", label="FedAvg SFT, execution error"),
-               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=VIOLET, linewidth=0.5, label="FedExec-SQL, incorrect result"),
-               Patch(facecolor="white", edgecolor=VIOLET, linewidth=0.5, hatch="////", label="FedExec-SQL, execution error")]
+    handles = [Patch(facecolor=SERIES["fedavg"]["fill"], edgecolor=SLATE, linewidth=0.5, label="FedAvg SFT, incorrect result"),
+               Patch(facecolor="white", edgecolor=SLATE, linewidth=0.5, hatch="////", label="FedAvg SFT, execution error"),
+               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=METHOD, linewidth=0.5, label="FedExec-SQL, incorrect result"),
+               Patch(facecolor="white", edgecolor=METHOD, linewidth=0.5, hatch="////", label="FedExec-SQL, execution error")]
     fig.legend(handles=handles, loc="lower center", ncol=2, handlelength=1.6, columnspacing=1.6, bbox_to_anchor=(0.5, 0.0))
     fig.tight_layout(pad=0.3, w_pad=1.2, rect=(0, 0.16, 1, 1))
     return fig
@@ -138,7 +139,7 @@ def check_pdf(path: Path, j: dict) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--journal", choices=sorted(JOURNALS), default="jiis")
+    ap.add_argument("--journal", choices=sorted(JOURNALS), default="cmc")
     args = ap.parse_args()
     j = JOURNALS[args.journal]
     style()

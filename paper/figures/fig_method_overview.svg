@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="337" height="351" viewBox="0 0 337 351" role="img" aria-labelledby="fig-method-title fig-method-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="250" viewBox="0 0 468 250" role="img" aria-labelledby="fig-method-title fig-method-desc">
   <title id="fig-method-title">Method overview</title>
   <desc id="fig-method-desc">After two warm-up rounds of FedAvg SFT, in every preference round each client samples SQL queries from the global model, executes them on its private databases to label each sample correct or incorrect, pairs correct with incorrect samples, trains its LoRA adapter with the preference term and the NLL term and returns the adapter, which the server averages into the next global model.</desc>
 
-  <!-- style block and defs of paper/figures/template.svg, unchanged -->
+  <!-- Copy this style block and the defs into every figure, unchanged. -->
   <style>
     text { font-family: Arial, Helvetica, sans-serif; font-size: 8px; fill: #000; }
     .h { font-size: 9px; font-weight: bold; }
@@ -12,31 +12,29 @@
     .mid { text-anchor: middle; }
     .end { text-anchor: end; }
     .blue { fill: #E8F0FE; stroke: #2563EB; stroke-width: 0.75; }
-    .violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.75; }
+    .method { fill: #F8EAF2; stroke: #A8528A; stroke-width: 0.75; }
     .plain { fill: #F1F5F9; stroke: #94A3B8; stroke-width: 0.5; }
     .client { fill: #FFF7E6; }
     .boundary { fill: none; stroke: #B45309; stroke-width: 0.75; stroke-dasharray: 3 2; }
     .card { fill: #FFFFFF; }
-    .card-band { fill: #E9DFFD; }
-    .card-line { fill: none; stroke: #7C3AED; stroke-width: 0.75; }
-    .card-badge { fill: #CDBBFA; }
+    .card-band { fill: #F1F5F9; }
+    .card-line { fill: none; stroke: #94A3B8; stroke-width: 0.75; }
+    .card-badge { fill: #EFD3E3; }
+    .rule { fill: none; stroke: #CBD5E1; stroke-width: 0.5; }
     .chip { fill: #FFFFFF; stroke: #94A3B8; stroke-width: 0.5; }
     .chip-blue { fill: #FFFFFF; stroke: #2563EB; stroke-width: 0.5; }
-    .chip-violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.5; }
+    .chip-method { fill: #F8EAF2; stroke: #A8528A; stroke-width: 0.5; }
     .chip-ok { fill: #DDF3EB; stroke: #009E73; stroke-width: 0.5; }
     .chip-bad { fill: #FBE5D8; stroke: #D55E00; stroke-width: 0.5; }
     .flow { fill: none; stroke: #334155; stroke-width: 0.75; marker-end: url(#arrow); }
     .comm { fill: none; stroke: #2563EB; stroke-width: 1.25; marker-end: url(#arrow-comm); }
     .ic { stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
     .ic-blue { stroke: #1D4ED8; fill: #C9DCFC; }
-    .ic-violet { stroke: #6D28D9; fill: #DDD0FC; }
+    .ic-method { stroke: #8E3F74; fill: #EFD3E3; }
+    .ic-slate { stroke: #475569; fill: #E2E8F0; }
     .ic-amber { stroke: #B45309; fill: #FBDFA6; }
     .ok { fill: none; stroke: #009E73; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
     .bad { fill: none; stroke: #D55E00; stroke-width: 1.25; stroke-linecap: round; }
-    .legend { fill: #F1F5F9; }
-    .sw-blue { fill: #2563EB; }
-    .sw-violet { fill: #7C3AED; }
-    .sw-amber { fill: #D98A0B; }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
@@ -74,140 +72,131 @@
     <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
   </defs>
 
-  <!-- stages: the second one is the round drawn below -->
-  <path class="flow" d="M117 15 H133"/>
-  <path class="flow" d="M253 15 H269"/>
-  <rect class="blue" x="1" y="1" width="116" height="28" rx="4"/>
+  <!-- order of a run -->
+  <path class="flow" d="M153 15 H167"/>
+  <path class="flow" d="M341 15 H355"/>
+  <rect class="plain" x="1" y="1" width="152" height="28" rx="4"/>
   <text class="h" x="9" y="13">Warm-up rounds</text>
   <text x="9" y="23">2 FedAvg rounds, gold SQL</text>
-  <rect class="violet" x="133" y="1" width="120" height="28" rx="4"/>
-  <text class="h" x="141" y="13">Preference rounds</text>
-  <text x="141" y="23">Every round <tspan class="i">t</tspan>, shown below</text>
-  <rect class="plain" x="269" y="1" width="67" height="28" rx="4"/>
-  <text class="h" x="277" y="13">Deploy</text>
-  <text x="277" y="23">Global model</text>
+  <rect class="method" x="169" y="1" width="172" height="28" rx="4"/>
+  <text class="h" x="177" y="13">Preference rounds</text>
+  <text x="177" y="23">Every round <tspan class="i">t</tspan>, shown below</text>
+  <rect class="plain" x="357" y="1" width="110" height="28" rx="4"/>
+  <text class="h" x="365" y="13">Deploy</text>
+  <text x="365" y="23">Global model</text>
+
 
   <!-- server -->
-  <rect class="blue" x="1" y="42" width="335" height="34" rx="4"/>
-  <use href="#icon-server" class="ic-blue" x="9" y="49"/>
-  <text class="h" x="36" y="56">Server</text>
-  <text x="36" y="68">FedAvg, weighted by number of pairs</text>
-  <rect class="chip-blue" x="190" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="201" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">1</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
-  <rect class="chip-blue" x="215" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="226" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">2</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
-  <text class="mid" x="243" y="61.5">…</text>
-  <rect class="chip-blue" x="249" y="53" width="22" height="12" rx="2.5"/>
-  <text class="mid" x="260" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">K</tspan><tspan class="sub" dx="-4" dy="-6">t</tspan></text>
-  <path class="flow" d="M275 59 H287"/>
-  <use href="#icon-model" class="ic-blue" x="290" y="48"/>
-  <text x="315" y="61.5"><tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t</tspan></text>
+  <rect class="blue" x="1" y="37" width="466" height="32" rx="4"/>
+  <use href="#icon-server" class="ic-blue" x="9" y="43"/>
+  <text class="h" x="35" y="51">Server</text>
+  <text x="35" y="62">FedAvg, weighted by number of pairs</text>
+  <rect class="chip-blue" x="318" y="47" width="22" height="12" rx="2.5"/>
+  <text class="mid" x="329" y="55.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">1</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
+  <rect class="chip-blue" x="343" y="47" width="22" height="12" rx="2.5"/>
+  <text class="mid" x="354" y="55.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">2</tspan><tspan class="sub" dx="-3.3" dy="-6">t</tspan></text>
+  <text class="mid" x="371" y="55.5">…</text>
+  <rect class="chip-blue" x="377" y="47" width="22" height="12" rx="2.5"/>
+  <text class="mid" x="388" y="55.5"><tspan class="i">θ</tspan><tspan class="sub" dy="2">K</tspan><tspan class="sub" dx="-4" dy="-6">t</tspan></text>
+  <path class="flow" d="M403 53 H415"/>
+  <use href="#icon-model" class="ic-blue" x="418" y="42"/>
+  <text x="443" y="55.5"><tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t</tspan></text>
+
+  <text x="67" y="90">Global model <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
+  <text class="end" x="400" y="90">Adapter <tspan class="i">θ</tspan><tspan class="sub" dy="2">k</tspan><tspan class="sub" dx="-3" dy="-6">t</tspan></text>
+  <text class="mid i" x="234" y="84">Only adapters and pair counts travel</text>
+  <text class="mid i" x="234" y="96">Next round samples again from θ<tspan class="sub" dy="-3.5">t</tspan></text>
 
   <!-- client k inside its privacy boundary -->
-  <rect class="client" x="1" y="118" width="335" height="202" rx="4"/>
-  <rect class="boundary" x="1" y="118" width="335" height="202" rx="4"/>
-  <text class="mid" x="168.5" y="132"><tspan class="h">Client </tspan><tspan class="h i">k</tspan><tspan dx="6">(one of </tspan><tspan class="i">K</tspan> clients)</text>
-  <use href="#icon-lock" class="ic-amber" x="9" y="302"/>
-  <text x="24" y="312">Questions, gold SQL and databases <tspan class="b">never leave the client</tspan></text>
+  <rect class="client" x="1" y="103" width="466" height="146" rx="4"/>
+  <rect class="boundary" x="1" y="103" width="466" height="146" rx="4"/>
+  <!-- what travels between server and client: over the boundary, under the cards -->
+  <path class="comm" d="M61 69 V124"/>
+  <path class="comm" d="M406 124 V69"/>
+  <text class="mid" x="234" y="117"><tspan class="h">Client </tspan><tspan class="h i">k</tspan><tspan dx="6">(one of </tspan><tspan class="i">K</tspan> clients)</text>
+  <use href="#icon-lock" class="ic-amber" x="9" y="232"/>
+  <text x="24" y="242">Questions, gold SQL and databases <tspan class="b">never leave the client</tspan></text>
 
-  <!-- what travels between server and client -->
-  <path class="comm" d="M85.5 76 V140"/>
-  <path class="comm" d="M251.5 140 V76"/>
-  <text class="end" x="79" y="100">Global model <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
-  <text x="258" y="100">Adapter <tspan class="i">θ</tspan><tspan class="sub" dy="2">k</tspan><tspan class="sub" dx="-3" dy="-6">t</tspan></text>
-  <text class="mid i" x="168.5" y="94">Only adapters and pair counts travel</text>
-  <text class="mid i" x="168.5" y="106">Next round samples again from θ<tspan class="sub" dy="-3.5">t</tspan></text>
-
-  <!-- flow between the four steps: down, across, up -->
-  <path class="flow" d="M85.5 211 V227"/>
-  <path class="flow" d="M162 262.5 H175"/>
-  <path class="flow" d="M251.5 227 V211"/>
+  <!-- flow between the four steps -->
+  <path class="flow" d="M113 166 H122"/>
+  <path class="flow" d="M228 166 H237"/>
+  <path class="flow" d="M343 166 H352"/>
 
   <!-- 1 sample -->
-  <rect class="card" x="9" y="140" width="153" height="71" rx="4"/>
-  <path class="card-band" d="M9 158 V144 A4 4 0 0 1 13 140 H158 A4 4 0 0 1 162 144 V158 Z"/>
-  <rect class="card-line" x="9" y="140" width="153" height="71" rx="4"/>
-  <circle class="card-badge" cx="21" cy="149" r="6"/>
-  <text class="b mid" x="21" y="152">1</text>
-  <text class="b" x="32" y="152">Sample</text>
-  <use href="#icon-doc" class="ic-amber" x="17" y="175.5"/>
-  <path class="flow" d="M32.5 184.5 H38"/>
-  <use href="#icon-model" class="ic-violet" x="40" y="173.5"/>
-  <path class="flow" d="M63.5 184.5 H69"/>
-  <rect class="chip" x="71" y="165" width="28" height="11" rx="2.5"/>
-  <text class="mid" x="85" y="173.3">SQL 1</text>
-  <rect class="chip" x="71" y="179" width="28" height="11" rx="2.5"/>
-  <text class="mid" x="85" y="187.3">SQL 2</text>
-  <rect class="chip" x="71" y="193" width="28" height="11" rx="2.5"/>
-  <text class="mid" x="85" y="201.3">SQL 3</text>
-  <text x="107" y="178"><tspan class="i">N</tspan> = 10 SQL</text>
-  <text x="107" y="188">per question,</text>
-  <text x="107" y="198">from <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
+  <rect class="card" x="9" y="124" width="104" height="102" rx="4"/>
+  <path class="card-band" d="M9 142 V128 A4 4 0 0 1 13 124 H109 A4 4 0 0 1 113 128 V142 Z"/>
+  <rect class="card-line" x="9" y="124" width="104" height="102" rx="4"/>
+  <circle class="card-badge" cx="21" cy="133" r="6"/>
+  <text class="b mid" x="21" y="136">1</text>
+  <text class="b" x="32" y="136">Sample</text>
+  <use href="#icon-doc" class="ic-amber" x="17" y="157"/>
+  <path class="flow" d="M33 166 H39"/>
+  <use href="#icon-model" class="ic-method" x="41" y="155"/>
+  <path class="flow" d="M65 166 H71"/>
+  <rect class="chip" x="73" y="149" width="28" height="11" rx="2.5"/>
+  <text class="mid" x="87.0" y="157.3">SQL 1</text>
+  <rect class="chip" x="73" y="161" width="28" height="11" rx="2.5"/>
+  <text class="mid" x="87.0" y="169.3">SQL 2</text>
+  <rect class="chip" x="73" y="173" width="28" height="11" rx="2.5"/>
+  <text class="mid" x="87.0" y="181.3">SQL 3</text>
+  <text x="17" y="200"><tspan class="i">N</tspan> = 10 SQL per</text>
+  <text x="17" y="210">question, from <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
 
   <!-- 2 execute -->
-  <rect class="card" x="9" y="227" width="153" height="71" rx="4"/>
-  <path class="card-band" d="M9 245 V231 A4 4 0 0 1 13 227 H158 A4 4 0 0 1 162 231 V245 Z"/>
-  <rect class="card-line" x="9" y="227" width="153" height="71" rx="4"/>
-  <circle class="card-badge" cx="21" cy="236" r="6"/>
-  <text class="b mid" x="21" y="239">2</text>
-  <text class="b" x="32" y="239">Execute</text>
-  <use href="#icon-db" class="ic-amber" x="17" y="260.5"/>
-  <rect class="chip" x="41" y="252" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="56" y="260.3">SQL 1</text>
-  <use href="#icon-ok" x="76.5" y="254"/>
-  <rect class="chip" x="41" y="266" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="56" y="274.3">SQL 2</text>
-  <use href="#icon-bad" x="77" y="268"/>
-  <rect class="chip" x="41" y="280" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="56" y="288.3">SQL 3</text>
-  <use href="#icon-bad" x="77" y="282"/>
-  <text x="94" y="265">Run on private</text>
-  <text x="94" y="275">databases:</text>
-  <text class="b" x="94" y="285">execution label</text>
+  <rect class="card" x="124" y="124" width="104" height="102" rx="4"/>
+  <path class="card-band" d="M124 142 V128 A4 4 0 0 1 128 124 H224 A4 4 0 0 1 228 128 V142 Z"/>
+  <rect class="card-line" x="124" y="124" width="104" height="102" rx="4"/>
+  <circle class="card-badge" cx="136" cy="133" r="6"/>
+  <text class="b mid" x="136" y="136">2</text>
+  <text class="b" x="147" y="136">Execute</text>
+  <use href="#icon-db" class="ic-amber" x="132" y="155"/>
+  <rect class="chip" x="158" y="149" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="173.0" y="157.3">SQL 1</text>
+  <rect class="chip" x="158" y="161" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="173.0" y="169.3">SQL 2</text>
+  <rect class="chip" x="158" y="173" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="173.0" y="181.3">SQL 3</text>
+  <use href="#icon-ok" x="194" y="151"/>
+  <use href="#icon-bad" x="194.5" y="163"/>
+  <use href="#icon-bad" x="194.5" y="175"/>
+  <text x="132" y="200">Run on private</text>
+  <text x="132" y="210">databases:</text>
+  <text class="b" x="132" y="220">execution label</text>
 
   <!-- 3 pair -->
-  <rect class="card" x="175" y="227" width="153" height="71" rx="4"/>
-  <path class="card-band" d="M175 245 V231 A4 4 0 0 1 179 227 H324 A4 4 0 0 1 328 231 V245 Z"/>
-  <rect class="card-line" x="175" y="227" width="153" height="71" rx="4"/>
-  <circle class="card-badge" cx="187" cy="236" r="6"/>
-  <text class="b mid" x="187" y="239">3</text>
-  <text class="b" x="198" y="239">Pair</text>
-  <rect class="chip-ok" x="183" y="258" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="198" y="266.3">SQL 1</text>
-  <text class="b mid" x="220" y="266.3">&gt;</text>
-  <rect class="chip-bad" x="227" y="258" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="242" y="266.3">SQL 2</text>
-  <rect class="chip-ok" x="183" y="274" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="198" y="282.3">SQL 1</text>
-  <text class="b mid" x="220" y="282.3">&gt;</text>
-  <rect class="chip-bad" x="227" y="274" width="30" height="11" rx="2.5"/>
-  <text class="mid" x="242" y="282.3">SQL 3</text>
-  <text class="b" x="266" y="265">Preference</text>
-  <text x="266" y="275"><tspan class="b">pairs:</tspan> correct</text>
-  <text x="266" y="285">over incorrect</text>
+  <rect class="card" x="239" y="124" width="104" height="102" rx="4"/>
+  <path class="card-band" d="M239 142 V128 A4 4 0 0 1 243 124 H339 A4 4 0 0 1 343 128 V142 Z"/>
+  <rect class="card-line" x="239" y="124" width="104" height="102" rx="4"/>
+  <circle class="card-badge" cx="251" cy="133" r="6"/>
+  <text class="b mid" x="251" y="136">3</text>
+  <text class="b" x="262" y="136">Pair</text>
+  <rect class="chip-ok" x="252" y="154" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="267.0" y="162.3">SQL 1</text>
+  <text class="b mid" x="291" y="162.3">&gt;</text>
+  <rect class="chip-bad" x="298" y="154" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="313.0" y="162.3">SQL 2</text>
+  <rect class="chip-ok" x="252" y="170" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="267.0" y="178.3">SQL 1</text>
+  <text class="b mid" x="291" y="178.3">&gt;</text>
+  <rect class="chip-bad" x="298" y="170" width="30" height="11" rx="2.5"/>
+  <text class="mid" x="313.0" y="178.3">SQL 3</text>
+  <text class="b" x="247" y="200">Preference pairs:</text>
+  <text x="247" y="210">correct over</text>
+  <text x="247" y="220">incorrect</text>
 
   <!-- 4 train -->
-  <rect class="card" x="175" y="140" width="153" height="71" rx="4"/>
-  <path class="card-band" d="M175 158 V144 A4 4 0 0 1 179 140 H324 A4 4 0 0 1 328 144 V158 Z"/>
-  <rect class="card-line" x="175" y="140" width="153" height="71" rx="4"/>
-  <circle class="card-badge" cx="187" cy="149" r="6"/>
-  <text class="b mid" x="187" y="152">4</text>
-  <text class="b" x="198" y="152">Train</text>
-  <use href="#icon-model" class="ic-violet" x="183" y="162"/>
-  <text class="b mid" x="212" y="176">+</text>
-  <rect class="chip-violet" x="219" y="167" width="32" height="12" rx="2.5"/>
-  <text class="mid" x="235" y="175.8">LoRA</text>
-  <text class="mid" x="217" y="201"><tspan class="i">L</tspan> = <tspan class="i">L</tspan><tspan class="sub" dy="2">DPO</tspan><tspan dy="-2"> + </tspan><tspan class="i">λL</tspan><tspan class="sub" dy="2">NLL</tspan></text>
-  <text class="b" x="262" y="178">DPO + NLL</text>
-  <text x="262" y="188">on the pairs,</text>
-  <text x="262" y="198">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
-
-  <!-- colour key -->
-  <rect class="legend" x="1" y="329" width="335" height="20" rx="4"/>
-  <rect class="sw-blue" x="9" y="335" width="8" height="8" rx="2"/>
-  <text x="21" y="342">Federated averaging</text>
-  <rect class="sw-violet" x="115" y="335" width="8" height="8" rx="2"/>
-  <text x="127" y="342">Steps of the method</text>
-  <rect class="sw-amber" x="221" y="335" width="8" height="8" rx="2"/>
-  <text x="233" y="342">Private client data</text>
+  <rect class="card" x="354" y="124" width="104" height="102" rx="4"/>
+  <path class="card-band" d="M354 142 V128 A4 4 0 0 1 358 124 H454 A4 4 0 0 1 458 128 V142 Z"/>
+  <rect class="card-line" x="354" y="124" width="104" height="102" rx="4"/>
+  <circle class="card-badge" cx="366" cy="133" r="6"/>
+  <text class="b mid" x="366" y="136">4</text>
+  <text class="b" x="377" y="136">Train</text>
+  <use href="#icon-model" class="ic-method" x="365" y="148"/>
+  <text class="b mid" x="396" y="162.5">+</text>
+  <rect class="chip-blue" x="403" y="153" width="32" height="12" rx="2.5"/>
+  <text class="mid" x="419" y="161.8">LoRA</text>
+  <text class="mid" x="406" y="184"><tspan class="i">L</tspan> = <tspan class="i">L</tspan><tspan class="sub" dy="2">DPO</tspan><tspan dy="-2"> + </tspan><tspan class="i">λL</tspan><tspan class="sub" dy="2">NLL</tspan></text>
+  <text class="b" x="362" y="200">DPO + NLL</text>
+  <text x="362" y="210">on the pairs,</text>
+  <text x="362" y="220">reference = <tspan class="i">θ</tspan><tspan class="sub" dy="-3.5">t−1</tspan></text>
 </svg>
