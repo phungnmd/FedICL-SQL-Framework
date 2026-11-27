@@ -307,6 +307,18 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.log_times; if ($LASTEXITCODE -ne 0) { throw 'log_times failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: wall times of the finished queue tasks, read from their logs' --paths audits/protocol_v2/run_times; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
    ```
 
+5. Any time, CPU only (a few minutes): the example of Fig. 1. From the
+   round 1 samples of the method on BIRD and on Spider (the global model
+   after 2 warm-up rounds), the questions whose samples hold a correct
+   SQL, a wrong result and an execution error, with what gold and
+   samples return. Nothing to send back: the line publishes the two
+   files (`audits/protocol_v2/figure_examples/`). If it stops on
+   "expected one r1_* directory", send the line it prints.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $env:CUDA_VISIBLE_DEVICES=''; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.figure_example --audit audits/protocol_v2/fedpref_bird_sftr2_p2_ddl_alpha01_s0 --round 1 --split-dir processed_data/protocol_v2/BIRD/original_train9428_dev1534/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'BIRD example failed' }; uv run --no-sync python -m scripts.figure_example --audit audits/protocol_v2/fedpref_sftr2_ddlrows_alpha01_s0 --round 1 --split-dir processed_data/protocol_v2/SPIDER/processed_train8659_dev1034/federated/alpha_0.1/k5; if ($LASTEXITCODE -ne 0) { throw 'Spider example failed' }; uv run --no-sync python -m scripts.publish_results --message 'results: candidate questions for the example of Fig. 1, BIRD and Spider round 1 samples' --paths audits/protocol_v2/figure_examples; if ($LASTEXITCODE -ne 0) { throw 'Publish failed (rerun if the worker was publishing)' } }
+   ```
+
 ## Running and queued
 
 | # | Tasks | What it answers | About | State |
