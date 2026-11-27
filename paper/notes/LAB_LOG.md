@@ -4,6 +4,35 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Section 1 (Introduction) with the abstract drafted by the writer, two rounds of editor's notes; caption of Fig. 2 written again (the commit of this entry)
+
+- Writer: the Antigravity agent, one conversation for Section 1
+  (outline, answer, draft, two rounds of five notes) and a new
+  conversation of Section 3 for the caption of the redrawn Fig. 2 (one
+  round of two notes). Notes and outcomes: `briefs/01_notes_editor.md`,
+  `briefs/03_notes_editor.md`; checks: `briefs/01_checks.md`.
+- Draft 3 of Section 1: abstract about 250 words; 989 words in seven
+  paragraphs, Fig. 1 caption, four contributions. Build 17 pages, lint
+  no stop, no overlap; 28.9 words per sentence (reference 26.3), 28%
+  "we" sentences (44%).
+- Checks on drafts 1 and 2: two cold reads
+  (`cold_reviews/2026-11-28_0128_section1_1.md`, run with the default
+  journal name JIIS of `run.sh`, and `2026-11-28_0143_section1_r1_1.md`,
+  CMC) and two claim audits. They found: the Fig. 1 caption described
+  the earlier Spider figure (the editor's answer to the outline was
+  stale); a cause shared by the two limitations, false for FedDPO;
+  FedDPO presented as Text-to-SQL work; "highest-accuracy" and privacy
+  statements of cited work without a row; the warm-up purpose and
+  contribution 3 above `CLAIMS.md`; raw and adjusted p-values in one
+  paragraph; the reference renewal credited to pair construction.
+- Editor, mechanical: setting `models.size.min` (0.5 billion) in
+  `tools/paper_settings.py` for a typed "0.5".
+- Open: four phrases of draft 3 listed in `01_notes_editor.md` (a third
+  round needs the owner); the Fig. 1 caption follows the redrawn figure
+  once committed; A44 (Section 1 now states "nothing identifies which of
+  the model's queries are incorrect"); reviewer question C51 (an
+  execution filter at inference).
+
 ## 2026-11-28: Fig. 1 prints pairs the run cannot have built (owner: fix)
 
 - Panel B shows "SQL 1 > SQL 2" and "SQL 1 > SQL 3". The line pairs at

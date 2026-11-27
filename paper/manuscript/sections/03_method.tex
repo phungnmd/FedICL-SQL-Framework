@@ -75,20 +75,27 @@ those without labels included.
 \begin{figure}[!t]
 \centering
 \includegraphics{figures/fig_method_overview.pdf}
-\caption{Overview of \method. The top row gives the order of a run, and
-the remainder depicts one preference round $t$ at client $k$. The figure
-shows the default configuration (\setting{rounds.warmup} warm-up rounds,
-$N = {}$\setting{pref.samples}); $T_w$ and $N$ are settings. Steps 1 and
-2 constitute client-side execution labeling
-(Section~\ref{sec:labeling}), in which the samples that are compared
-with the gold result receive an execution label; step 3 is on-policy
-pair construction (Section~\ref{sec:pairs}); step 4 is local training on
-the preference objective (Section~\ref{sec:objective}). ``Global model
-$\theta^{t-1}$'' denotes the global adapter, and $L_{\mathrm{DPO}}$ and
-$\lambda L_{\mathrm{NLL}}$ are the preference term and the NLL term of
-Eq.~\eqref{eq:loss}. The weighting by the number of pairs at the server
-is that of a preference round; a warm-up round is weighted by the number
-of questions.}
+\caption{Overview of \method. At the top, the server aggregates client
+adapters into $\theta^{t}$ by federated averaging
+(Eq.~\eqref{eq:aggregation}, Section~\ref{sec:objective}) and
+communicates with each of clients $1, \dots, K$ via arrows labeled once
+at client~$k$, while client~$k$ opens into the dashed boundary below,
+within which questions, gold SQL queries and client databases remain
+(Section~\ref{sec:formulation}). Inside this panel, the upper row depicts
+supervised warm-up in rounds $t = 1, \dots, T_w$
+(Section~\ref{sec:warmup}, Eq.~\eqref{eq:sft}). In the preference rounds
+$t = T_w + 1, \dots, T$ below, step~1 and step~2 constitute client-side
+execution labeling (Section~\ref{sec:labeling}), step~3 is on-policy pair
+construction (Section~\ref{sec:pairs}) and step~4 is local training on
+the preference objective (Section~\ref{sec:objective},
+Eq.~\eqref{eq:loss}). On the arrows, ``Global model $\theta^{t-1}$''
+denotes the global adapter and ``count'' is $n_k$ (warm-up) or
+$\lvert\mathcal{P}_k^{t}\rvert$ (preference). In step~1 and step~4,
+$\theta^{t-1}$ stands for the model $\pi_{\theta^{t-1}}$, which is
+$\pi_{\mathrm{ref}}$ in Eq.~\eqref{eq:logratio}. Step~1 shows the
+default setting $N = {}$\setting{pref.samples}, and $L_{\mathrm{DPO}}$
+and $\lambda L_{\mathrm{NLL}}$ in step~4 are the preference term and the
+weighted NLL term of Eq.~\eqref{eq:loss}.}
 \label{fig:overview}
 \end{figure}
 

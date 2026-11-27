@@ -7,6 +7,7 @@ Written by `tools/paper_settings.py` from the committed configs.
 | Model and adapter | Model | `\setting{model}` | Qwen2.5-Coder-1.5B-Instruct | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Parameters of the model | `\setting{model.size}` | 1.5 billion | the name of the model |
 | Model and adapter | Other models | `\setting{models.other}` | Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct | FedAvg SFT round records (config.json, train_config) |
+| Model and adapter | Parameters of the smallest model | `\setting{models.size.min}` | 0.5 billion | the names of the models |
 | Model and adapter | Adapter | `\setting{lora}` | LoRA, rank 16, lora_alpha 32 | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Adapted matrices | `\setting{lora.modules}` | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj | FedAvg SFT round records (config.json, train_config) |
 | Model and adapter | Adapter size | `\setting{adapter.mb}` | 73.9 MB | preference round records (setup.json, arm.json, round.json) |

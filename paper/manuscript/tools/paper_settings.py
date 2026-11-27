@@ -172,6 +172,11 @@ def collect() -> list[tuple]:
         raise SystemExit(f"STOP: no parameter count in the name of the model {t['model_id']}")
     add(g, "Parameters of the model", "model.size", f"{size.group(1)} billion", source="the name of the model")
     add(g, "Other models", "models.other", ", ".join(PAPER_NAME.get(n, n) for n, _ in others), source=src)
+    # the lower end of the range of model sizes the paper runs (Section 1 names the range)
+    sizes = [float(m.group(1)) for n in [t["model_id"]] + [n for n, _ in others]
+             if (m := re.search(r"-(\d+(?:\.\d+)?)B-", n, re.I))]
+    add(g, "Parameters of the smallest model", "models.size.min", f"{min(sizes):g} billion",
+        source="the names of the models")
     # "LoRA alpha" in words: in Section 4 the symbol alpha is the concentration of the client partition
     add(g, "Adapter", "lora", f"LoRA, rank {t['lora_r']}, \\texttt{{lora\\_alpha}} {t['lora_alpha']}",
         f"LoRA, rank {t['lora_r']}, lora_alpha {t['lora_alpha']}", src)
@@ -306,7 +311,7 @@ PAPER_NAME = {"deepseek-coder-1.3b-instruct": "DeepSeek-Coder-1.3B-Instruct"}
 # the two tables of Appendix B: one float with every group is longer than a page
 TABLES = {"tab_settings.tex": False, "tab_settings_2.tex": True}
 SECOND_TABLE = {"Preference round", "Evaluation", "Software and hardware"}
-IN_TABLE_SKIP = {"model.size", "lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
+IN_TABLE_SKIP = {"model.size", "models.size.min", "lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
 
 ACCESSOR = r"""%% Written by tools/paper_settings.py from the committed configs. Do not edit.
 \makeatletter

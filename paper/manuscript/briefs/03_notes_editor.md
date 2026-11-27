@@ -102,3 +102,16 @@ number of warm-up rounds, and the sentences between server and client
 sample again from each new global model", now carried by "from
 θ^{t-1}" in step 1); N = 10 stays in step 1. The sentence of the
 caption on the weighting of a warm-up round is now in the figure.
+
+## Caption of Fig. 2 written again (2026-11-28)
+
+A new writer conversation of Section 3 (the Antigravity agent; the
+first writer's session is closed) wrote the caption for the redrawn
+figure from the table above, editing nothing else. Checked against the
+figure and the section: subsections, equations, the count as n_k or
+|P_k^t| and the reference model are right; build, lint and overlap
+clean. One note round, two notes: "(labeled at client k)" read as if
+the clients were labeled at client k; the parenthesis on theta^{t-1}
+read twice. Both carried out: the arrows are "labeled once at client
+k", and the arrow labels, theta^{t-1} as the model and reference, and
+N and the two terms stand in three short sentences.

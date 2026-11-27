@@ -203,3 +203,53 @@ time limit of BIRD are settled by your notes 2 and 3.
   sample and their execution results) would make 3.5 and 3.6 concrete,
   at about 60 words or as a small figure. It is not in the draft: the
   length does not allow it, and Fig. 1 may already serve.
+
+## 9. Caption of Fig. 2 (redrawn figure)
+
+Rewritten for the redrawn `figures/fig_method_overview.pdf` and revised
+after round 1 of the caption notes (replacing note 6 above on the earlier
+figure); the rest of `sections/03_method.tex` is unchanged.
+
+- **Round 1 changes to the caption.** (1) Replaced the ambiguous
+  parenthetical after `clients 1, ..., K` with `communicates with each of
+  clients $1, \dots, K$ via arrows labeled once at client~$k$`, attaching
+  the label note to the per-client arrows rather than to the clients.
+  (2) Split and shortened the notation mappings, removing the nested
+  parenthetical on $\theta^{t-1}$: the arrow labels (`Global model
+  $\theta^{t-1}$` and `count`) stand in one sentence, $\theta^{t-1}$ in
+  steps 1 and 4 stands in its own clause as $\pi_{\theta^{t-1}}$ (which
+  is $\pi_{\mathrm{ref}}$ in `Eq.~\eqref{eq:logratio}`), and step 1's
+  default setting $N = {}$\setting{pref.samples} and step 4's
+  $L_{\mathrm{DPO}}$ and $\lambda L_{\mathrm{NLL}}$ close the caption
+  without repeating the full equation.
+- **What the caption maps.** Server aggregation (`Eq.~\eqref{eq:aggregation}`,
+  `Section~\ref{sec:objective}`), the client row $1, \dots, K$, the
+  per-client arrows labeled once at client $k$, and the dashed boundary
+  of client $k$ within which questions, gold SQL queries and client
+  databases remain (`Section~\ref{sec:formulation}`); inside client $k$,
+  supervised warm-up in $t = 1, \dots, T_w$ (`Section~\ref{sec:warmup}`,
+  `Eq.~\eqref{eq:sft}`) and the preference rounds $t = T_w + 1, \dots, T$
+  with steps 1--2 (`Section~\ref{sec:labeling}`), step 3
+  (`Section~\ref{sec:pairs}`) and step 4 (`Section~\ref{sec:objective}`,
+  `Eq.~\eqref{eq:loss}`); plus the figure's notation and default setting
+  `N = {}$\setting{pref.samples}` as above.
+- **Sentences outside the caption.** Checked throughout
+  `sections/03_method.tex` (including Section 3.3, where
+  `Fig.~\ref{fig:overview}` is cited alongside
+  `Algorithm~\ref{alg:method}` for the two kinds of round and the role
+  of the gold SQL query in each): every sentence outside the caption
+  matches the redrawn figure.
+- **Simplifications that remain in the figure as drawn.** Step 1 prints
+  `N = 10` as fixed text (given by `\setting{pref.samples}` in the
+  caption) and draws three sample chips (`SQL 1`--`SQL 3`), paired into
+  two chips in step 3 without printing $M$; step 2 shows a label mark on
+  every drawn sample, whereas Section 3.5 specifies cases without a
+  label; the server bar shows $\theta_1^{t}, \dots, \theta_K^{t}$ (the
+  general case where no client has an empty $\mathcal{P}_k^{t}$, whereas
+  Section 3.7 and Algorithm 1 state the empty-pair exception); and the
+  preference-round banner uses ``reference'' informally in *``gold SQL is
+  the reference for the labels, not a target''*, whereas the caption ties
+  `reference = $\theta^{t-1}$` in step 4 explicitly to $\pi_{\mathrm{ref}}$.
+  Abbreviations in the figure (`FedAvg`, `SFT`, `NLL`, `DPO`, `LoRA`) are
+  not re-expanded in the caption because Section 1 already defines all
+  five (and Fig. 1 all except `LoRA`).

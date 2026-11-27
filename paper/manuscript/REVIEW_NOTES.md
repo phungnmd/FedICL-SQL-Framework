@@ -113,6 +113,7 @@ section sau có câu trả lời.
 | C48 | (Cold read Section 3) "Renewed in every round" với cấu hình mặc định chỉ là một lần renew (hai preference round) | B2: round thứ hai thêm +2.54 trên BIRD; B1: fixed pairs và reference thấp hơn 2.61 trên BIRD, ngang trên Spider |
 | C49 | (Cold read Section 3) Preference term dùng tổng log-likelihood với β = 0.1, NLL term dùng trung bình theo token với λ = 1: trọng số tương đối của hai term đổi theo độ dài query, không nêu lý do | Chưa có câu trả lời trong paper; record chỉ có: NLL của Pang et al. cũng length-normalized (`03_checks.md`), và A38 |
 | C50 | (Cả hai cold read Section 3, về Table 2 của Section 4) Cột "Hard or extra" áp cho BIRD train, vốn không có nhãn difficulty và dùng thang simple/moderate/challenging; hàng "IID" có 29 đến 30 database mỗi client, tức là chia theo database | Appendix B có `\setting{split.hardness}` (BIRD train: tiêu chí của BIRD trên query parse bằng sqlglot); Section 4.2 cần nói rõ khi viết, và kiểm tra lại tên cột và hàng IID của `tab_setups` |
+| C51 | (Cold read 2 Section 1, major) Phần lớn gain là bớt execution error (BIRD dev: 140 lỗi mất, khoảng 95 thành đúng, 45 thành sai kết quả); một bộ lọc execution lúc inference (chạy query, sinh lại khi lỗi) có lấy lại phần lớn gain mà không cần train không? | Chưa có trong record. Model triển khai ở tổ chức có database của nó, nên câu hỏi hợp lệ. Trả lời được bằng một hàng chỉ evaluate (không train): FedAvg SFT round 4 trên BIRD dev, lấy mẫu đến khi có query chạy được; hoặc nêu ở Section 6 nếu không chạy |
 
 ## Đã xong
 
