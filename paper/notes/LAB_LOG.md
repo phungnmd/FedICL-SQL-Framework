@@ -4,6 +4,30 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the novelty line removed from the agent guide (owner; no run)
+
+Two cold readers of Section 1 wrote that the method reads as
+CodeLutra's loop inside FedAvg with warm-up rounds. Asked for my view,
+I gave as a reason that `AGENTS.md` accepts a published mechanism
+adapted to this setting. The owner had the line removed: a review has
+to be impartial, and the line also forced the paper to say what
+differs. Removed: the bullet "Novelty: ..." and the words "with what
+differs" in the method bullet of `AGENTS.md` (not committed here; the
+owner commits that file); "Novelty is stated against the closest work,
+with the difference" in `WRITING_GUIDE.md`; its two mirrors in
+`WRITING_PLAN.md`; "and says what differs" in `RESEARCH_STATE.md`,
+section 3. The hard rule "Cite the closest work" stays. Sections 1,
+2.2 and 3.4 of the draft were written under the removed demand and
+state differences from CodeLutra; they are unchanged.
+
+The assessment without that line: the loop of a preference round is
+CodeLutra's; of the parts that are ours, none shows an effect on EX
+yet (warm-up rounds: Spider test 78.02, 78.20, 77.97 for 0, 2, 3;
+weights: no significant difference; the rows "Clients pooled",
+federated DPO as published and 0 and 3 warm-up rounds on BIRD wait).
+Limited novelty of the method is the main weakness of the paper as it
+stands.
+
 ## 2026-11-27: the owner's answers on the full draft; tests of the method against FedAvg SFT on the two kinds of incorrect prediction (no run)
 
 Owner, in chat, on the points of `REVIEW_NOTES.md`:

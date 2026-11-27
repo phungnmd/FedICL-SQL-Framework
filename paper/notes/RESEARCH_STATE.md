@@ -53,8 +53,7 @@ method for Text-to-SQL that uses DPO with execution labels at the
 clients, built to beat the federated baselines. It is the owner's own
 design, not CodeLutra applied to federated learning. CodeLutra, found
 later, runs a similar loop centrally; the paper cites it as the closest
-work and says what differs (3.6), and the settings taken from it are said
-to follow it. What has run is in section 5.0; the parts of 3.3 are
+work (3.6), and the settings taken from it are said to follow it. What has run is in section 5.0; the parts of 3.3 are
 candidates, each kept only on a measured gain.
 
 | Part | Where | Supervision | Place |

@@ -117,9 +117,8 @@ Four things bind it, all in the guide under "What binds":
 1. Facts: every fact, formula and statement about a cited paper comes
    from the brief; a gap is named in the notes and not filled.
 2. Claims: a sentence never claims more than the ceiling of its
-   statement; a qualifier that bounds a finding stays; novelty is
-   stated against the closest work. What lies above a ceiling is left
-   out, not denied in print (section 4).
+   statement; a qualifier that bounds a finding stays. What lies above
+   a ceiling is left out, not denied in print (section 4).
 3. Numbers and names: results and settings are macros; the names and
    the notation are those of `TERMS.md`; citations and labels are those
    of the brief.
@@ -170,7 +169,7 @@ pipelines are not (section 9).
 |---|---|---|
 | ARS | The register follows the conventions of the field and the journal, calibrated on published papers | `voice/`; the guide, "How it should read" |
 | ARS, PaperOrchestra | Facts come only from the supplied material; a gap is named, not filled | the guide, "What binds", 1; numbers as generated macros |
-| ARS | A claim never above its ceiling; under revision the sentence changes and the claim stays; novelty against the closest work, scoped | the guide, "What binds", 2 |
+| ARS | A claim never above its ceiling; under revision the sentence changes and the claim stays | the guide, "What binds", 2 |
 | ARS | Each section answers one question of the reader; a paragraph the paper would not miss goes | the Purpose row of a brief; the guide, "What is yours" |
 | ARS | The moves of an introduction (territory, gap, what the paper does), the title and the abstract | the brief of the Introduction, from `references/intro_title_rhetoric_guide.md` and `abstract_writing_guide.md` of the skill |
 | ARS | A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | the cold read of section 7.2; `bib/report.md` |

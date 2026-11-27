@@ -82,8 +82,7 @@ Four things, because the paper has to be true and has to compile.
    ceiling tells you where a sentence stops; it is not itself a
    sentence of the paper, and what lies above it is left out, not
    denied in print.
-   Novelty is stated against the closest work, with the difference. A
-   number whose result is not committed yet is written with its macro
+   A number whose result is not committed yet is written with its macro
    and prints as a placeholder; its sentence states what is compared
    and leaves the direction and the size to the number.
 3. Numbers and names. Results and settings are macros (`\ex`, `\gain`,
