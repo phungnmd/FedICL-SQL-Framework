@@ -39,26 +39,32 @@ a client transmits and what it computes in each kind of round.
 
 1. Formal setting and the supervision of FedAvg SFT. Each client holds
    questions, gold SQL queries and the databases on which they execute;
-   the objective of FedAvg SFT (Eq. `eq:sft`) depends on the pair
-   $(x, y^\star)$ alone, so that a database contributes its schema to
-   the prompt and nothing else. Evidence: the definition itself.
+   the target of the objective of FedAvg SFT (Eq. `eq:sft`) is the gold
+   SQL query alone. A database enters training only as text of the
+   prompt; no query is executed on it, and the model receives no signal
+   about which of its own queries are incorrect. Evidence: the
+   definition itself.
 2. Execution-derived supervision as an unused, client-local signal.
    Execution on $d$ partitions the model's own samples for a question
    into correct and incorrect ones; the partition is computable only
    where $d$ resides. Its prevalence is measured: for the model after
-   two rounds of FedAvg SFT, $N$ samples contain both a correct and an
-   incorrect query for 62.3% of the BIRD training questions. Evidence:
-   the counts under Materials.
+   two rounds of FedAvg SFT, the $N$ samples of a question yield
+   preference pairs for 62.3% of the BIRD training questions, which on
+   BIRD are exactly the questions with both a correct and an incorrect
+   sample. Evidence: the counts under Materials.
 3. The framework as four components and an aggregation rule: supervised
    warm-up, client-side execution labeling, on-policy pair construction
    and the preference objective, organized into two kinds of round.
    Fig. 2 and Algorithm 1 convey the order of a run. Evidence: the
    definitions; the gain of the complete framework over FedAvg SFT is
    reported in Section 5.1 (Table 3).
-4. Supervised warm-up supplies the precondition of the preference
-   rounds. A preference pair requires a correct sample; for the
-   pretrained model 4,035 of the 9,428 BIRD training questions have
-   none, and after two warm-up rounds 2,698. Evidence: the counts under
+4. Supervised warm-up reduces the number of questions that cannot
+   yield a preference pair for lack of a correct sample. A preference
+   pair requires a correct sample; for the pretrained model 4,035 of
+   the 9,428 BIRD training questions have none, and after two warm-up
+   rounds 2,698. Warm-up is not a requirement of the preference rounds:
+   the pretrained model already yields pairs, and $T_w$ is a setting of
+   the framework. Evidence: the counts under
    Materials; the effect of the number of warm-up rounds on accuracy is
    the subject of Section 5.3 and is not anticipated here.
 5. Client-side execution labeling defines the label and its locality.
@@ -81,7 +87,8 @@ a client transmits and what it computes in each kind of round.
    (Eq. `eq:loss`). The preference term raises the likelihood of the
    correct sample relative to the incorrect one, measured against the
    reference model; it constrains only a difference of log-ratios. The
-   NLL term fixes the absolute likelihood of the correct sample.
+   NLL term acts on what that difference leaves undetermined: it raises
+   the log-likelihood of the correct sample itself.
    Evidence, both in Table 4 and Section 5.3: without the NLL term a
    preference round lowers EX below the model it starts from (Spider
    test); without the preference term more predictions end in an
@@ -102,14 +109,16 @@ a client transmits and what it computes in each kind of round.
 
 Notation as in `terms.md`. Further facts:
 
-- The pretrained model is frozen; a LoRA adapter $\theta$ is trained
-  and is the only object that is communicated and aggregated
-  (`\setting{adapter.mb}` per client per round).
+- The pretrained model is frozen; a LoRA adapter $\theta$ is trained,
+  and it is the only set of parameters that is communicated and
+  aggregated (`\setting{adapter.mb}` per client per round). With its
+  adapter a client sends one integer, its aggregation weight.
 - All $K$ clients participate in every round. Local training in round
   $t$ starts from $\theta^{t-1}$ with a newly initialized optimizer.
-- The prompt $x$ contains the question $q$ and the schema of $d$; the
-  same prompt serves training, sampling and evaluation. Its exact form
-  is printed in Appendix A (`fig:prompt`).
+- The prompt $x$ contains the question $q$ and the schema of $d$ as
+  `CREATE TABLE` statements; on Spider each table is followed by up to
+  three of its rows. The same prompt serves training, sampling and
+  evaluation. Its exact form is printed in Appendix A (`fig:prompt`).
 - Default configuration: $T$ = `\setting{rounds.total}`, $T_w$ =
   `\setting{rounds.warmup}`, $N$ = `\setting{pref.samples}`, $M$ =
   `\setting{pref.pairs}`, $\beta$ = `\setting{pref.beta}`, $\lambda$ =
@@ -191,7 +200,10 @@ Properties of these definitions:
   under the comparison of the evaluation metric; incorrect otherwise. A
   sample that fails to execute, exceeds the time limit or contains no
   query is incorrect. A sample that reaches the token limit before
-  completion is not executed and receives no label.
+  completion is not executed and receives no label. On BIRD, where a
+  sample and the gold SQL query share one time limit, a sample that
+  executes but whose comparison with the gold result is not completed
+  within the limit likewise receives no label.
 - Questions without labels: those whose gold SQL query fails to execute
   or exceeds the time limit (their counts are given in Section 4.2).
 - Pair construction: for each question with at least one correct and
@@ -206,6 +218,9 @@ Properties of these definitions:
   contain no rows, where execution results do not discriminate between
   queries. All questions are sampled again in the next preference
   round.
+- A client whose $\mathcal{P}_k^{t}$ is empty performs no local
+  training and sends no update in that round; its aggregation weight
+  is zero.
 - The value of $M$ determines the length of local training, since one
   local epoch passes once over $\mathcal{P}_k^{t}$.
 
@@ -215,13 +230,16 @@ Properties of these definitions:
 |---|---|---|
 | training questions of the clients | `\fact{cost.bird.pref1.questions}` 9,428 | `\fact{cost.spider.pref1.questions}` 8,659 |
 | of these, on databases without rows | `\fact{train.bird.no_rows}` 0 | `\fact{train.spider.no_rows}` 1,759 |
-| first preference round: questions with correct and incorrect samples | `\fact{cost.bird.pref1.paired}` 5,877 (`\fact{cost.bird.pref1.paired_pct}` 62.3%) | `\fact{cost.spider.pref1.paired}` 4,013 (`\fact{cost.spider.pref1.paired_pct}` 46.3%) |
+| first preference round: questions that yield preference pairs | `\fact{cost.bird.pref1.paired}` 5,877 (`\fact{cost.bird.pref1.paired_pct}` 62.3%) | `\fact{cost.spider.pref1.paired}` 4,013 (`\fact{cost.spider.pref1.paired_pct}` 46.3%) |
 | questions without a correct sample, pretrained model | `\fact{warmup.bird.k0.no_correct}` 4,035 | `\fact{warmup.spider.k0.no_correct}` 1,016 |
 | questions without a correct sample, after two warm-up rounds | `\fact{warmup.bird.k2.no_correct}` 2,698 | `\fact{warmup.spider.k2.no_correct}` 557 |
 
-The Spider counts of the last two rows refer to the questions on
-databases with rows. The model of the first preference round is the
-global model after two rounds of FedAvg SFT.
+On BIRD the questions that yield preference pairs are all questions
+with both a correct and an incorrect sample. On Spider the count
+excludes the questions on databases without rows, including those with
+samples of both labels. The Spider counts of the last two rows refer to
+the questions on databases with rows. The model of the first preference
+round is the global model after two rounds of FedAvg SFT.
 
 ### Figure and algorithm
 
@@ -249,10 +267,11 @@ global model after two rounds of FedAvg SFT.
     \Else \Comment{preference round}
       \State sample $N$ queries from $\pi_{\theta^{t-1}}(\cdot \mid x)$
         for each $(q, d, y^\star) \in \mathcal{D}_k$
-      \State label each sample $y$ by comparing $\mathrm{exec}(y, d)$
+      \State label the samples by comparing $\mathrm{exec}(y, d)$
         with $\mathrm{exec}(y^\star, d)$
+        (Section~\ref{sec:labeling})
       \State $\mathcal{P}_k^{t} \gets$ $M$ pairs $(y^{+}, y^{-})$ for
-        each question with samples of both labels
+        each question that yields pairs (Section~\ref{sec:pairs})
       \State $\theta_k^{t} \gets$ local training from $\theta^{t-1}$ on
         $\mathcal{P}_k^{t}$ with the loss of Eq.~\eqref{eq:loss},
         $\pi_{\mathrm{ref}} = \pi_{\theta^{t-1}}$

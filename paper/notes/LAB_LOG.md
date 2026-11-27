@@ -50,6 +50,48 @@ log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
   comparison, a CPU count of the share of chosen sides the variants
   reject, then about 5 h of training, estimate).
 
+## 2026-11-27: brief of Section 3 corrected after a second read; the headline gain stays +6.19 (owner; the commit of this entry)
+
+- Owner: the headline number is the gain at equal rounds, +6.19 EX on
+  BIRD dev (A1); +5.08 against the best FedAvg SFT round (A2) stands
+  beside it in Section 5.1. Section 5.6 states the cost and makes no
+  comparison at equal compute: of the papers read, FedProx reports by
+  rounds, FedCO (CMC 2026) trains every method for the same number of
+  rounds and prints the GPU time of a round in its own subsection,
+  SPFT-SQL and ExCoT print the time beside SFT, and Fed-GRPO reports
+  the best checkpoint of every method. Not read for this: CodeLutra,
+  OpenFedLLM, LESFT.
+- Five findings of another agent on the brief, each checked against the
+  round records, the prompt and the code, all correct:
+  1. Spider, first preference round: 5,192 questions have samples of
+     both labels, 1,179 of them on databases without rows; 4,013
+     (46.3%) yield pairs. The row of the brief is now "questions that
+     yield preference pairs" (on BIRD the two counts are the same,
+     5,877).
+  2. The Spider prompt holds up to three rows of each table, so "a
+     database contributes its schema and nothing else" was false. The
+     line is drawn at the target of the loss: FedAvg SFT never executes
+     a query on the databases. Same wording corrected in
+     `WRITING_GUIDE.md`, `OUTLINE.md` and `03_checks.md`.
+  3. Warm-up is not a precondition (the pretrained model yields pairs);
+     it lowers the questions without a correct sample from 4,035 to
+     2,698 on BIRD. The NLL term raises the log-likelihood of the
+     correct sample; it does not "fix" it.
+  4. Algorithm 1 refers to the rules of Sections 3.5 and 3.6 instead of
+     labeling "each sample" and pairing "each question with both
+     labels". Added rule: on BIRD a sample whose comparison with the
+     gold result does not finish inside the shared time limit gets no
+     label (20 samples in the first preference round, 25 in the second).
+  5. The adapter is the only set of parameters sent; with it a client
+     sends one integer. A client with no pair does no local training
+     and sends no update (weight zero); no client of the main rows had
+     none.
+- Pack of Section 3 built again (30 files, the scan did not stop).
+- Open, for the owner: `AGENTS.md` says FedAvg SFT "never uses the
+  databases a client also holds"; on Spider their rows are in the
+  prompt. Table 8 names the label time "CPU minutes" though it is the
+  elapsed time of the label step, run on several threads.
+
 ## 2026-11-27: brief of Section 3 written, pack built; the writer waits for the owner's approval of the brief (the commit of this entry)
 
 - `briefs/03_method.md` follows the outline in seven sections: seven

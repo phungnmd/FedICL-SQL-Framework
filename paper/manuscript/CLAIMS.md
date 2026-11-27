@@ -219,6 +219,6 @@ Lab words, which the paper never uses, and what stands for each:
 9. The numbers of questions that yield pairs and of pairs per round are
    columns of Table 8 (E2) and are read in Section 5.6. Changed with
    the outline of 2026-11-27 (owner): Section 3.2 states once the share
-   of questions with correct and incorrect samples at the first
+   of questions that yield preference pairs at the first
    preference round (`\fact{cost.bird.pref1.paired_pct}` 62.3% on
    BIRD); the counts by round stay in the cost table.

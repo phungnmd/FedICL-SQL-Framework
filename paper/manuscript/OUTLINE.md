@@ -76,7 +76,7 @@ shows.
   experiments; the paper does not present itself as an SLM Text-to-SQL
   system.
 - The gap. FedAvg SFT learns from the one gold SQL of each question and
-  never uses the databases. FedDPO, the federated preference
+  never executes a query on the databases. FedDPO, the federated preference
   optimization of OpenFedLLM, trains each client on a fixed preference
   dataset whose two sides are responses of that dataset, not outputs of
   the model under training, and keeps one reference model. Whether a
@@ -147,8 +147,9 @@ order of a run.
   client's database adds to the gold SQL. The gold SQL stays necessary:
   its result is what a sampled query is compared with. The measurement,
   one short paragraph: from the model after two rounds of FedAvg SFT,
-  ten samples per question give both a correct and an incorrect query
-  for `\fact{cost.bird.pref1.paired}` 5,877 of the
+  ten samples per question yield preference pairs (on BIRD, both a
+  correct and an incorrect query) for
+  `\fact{cost.bird.pref1.paired}` 5,877 of the
   `\fact{cost.bird.pref1.questions}` 9,428 training questions of BIRD
   (`\fact{cost.bird.pref1.paired_pct}` 62.3%); on Spider 4,013 of
   8,659 (1,759 of the 8,659 are on databases without rows and yield no
