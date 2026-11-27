@@ -12,9 +12,10 @@ paper claims is in `manuscript/CLAIMS.md`, what each section contains in
 | Part | Choice |
 |---|---|
 | Journal | CMC alone (owner, 2026-11-27). LaTeX on the Tech Science Press class in `Definitions/`; requirements in section 10 |
-| Who writes | a writer subagent (Fable 5.2, high effort), one top-level section at a time: its outline first, then the prose. The main session coordinates and writes no sentence of the paper |
-| Voice | academic (owner, 2026-11-27): dense, in the terms of the field, assertive at the strength of the evidence, the novelty said plainly, the method told by component, the results by finding and mechanism. Specified in `manuscript/VOICE_GUIDE.md` and carried by the register of the brief |
-| Constraints | few. Four things bind the writer (section 3.3). Checks of words and style are signals for the editor, never rules for the writer; prose is not repaired word by word |
+| Who writes | a writer in an isolated session (the `cold-session` skill; Fable 5.2, high effort), one top-level section at a time: its outline first, then the prose. It is never a subagent, which inherits `AGENTS.md` and the memory (owner, 2026-11-27). The main session coordinates and writes no sentence of the paper |
+| What the writer knows | the work in full as science, nothing of the lab, and it decides the structure of its section (owner, 2026-11-27; section 3) |
+| Voice | academic (owner, 2026-11-27): dense, in the terms of the field, assertive at the strength of the evidence, the novelty said plainly, the method told by component, the results by finding and mechanism. Specified in `manuscript/VOICE_GUIDE.md`, carried by the register of the brief and shown by the example papers of the pack |
+| Constraints | few. Four things bind the writer (section 3.3). Truth is checked on the draft, not fenced in beforehand; checks of words and style are signals for the editor, never rules for the writer; prose is not repaired word by word |
 | Position | the paper is about supervision: where the training signal comes from. Federated learning is the setting, Text-to-SQL the task. Novelty is stated against FedAvg SFT and federated DPO as published. CodeLutra has fixed places (Section 2.2 with Table 1, a citation at the objective, one sentence in Section 4.5) and is the frame of no brief (`RESEARCH_STATE.md`, section 3.6) |
 | Numbers | results and settings are macros written from the committed evaluations and configs (section 6). A number that waits prints `??` (`--` in a table); a guess is `\expect{value}` and prints `value??`. The main session sets a guess, gives it in the brief and lists it in part 3 of the checks file; `make submit` stops on either |
 | Names | the method is `\method`, the trained model is "the model". Name (FedExec-SQL) and title set by the owner on 2026-11-27; the title is in `main.tex` |
@@ -27,9 +28,9 @@ paper claims is in `manuscript/CLAIMS.md`, what each section contains in
 
 | Role | Does | Does not |
 |---|---|---|
-| Owner | approves each brief; reads the sections and `REVIEW_NOTES.md` when the owner chooses; decides | |
-| Main session | builds the numbers and the briefs; starts the writer; runs the checks; turns findings into a few editor's notes; fixes what is mechanical (a macro, a label, a citation key) | draft or rewrite sentences of the paper: it carries the vocabulary and the history of the lab |
-| Writer | writes one section from the two guides, the term sheet and its brief; decides its structure; answers the editor's notes | read the notes of the lab |
+| Owner | approves each brief and the example papers; reads the sections and `REVIEW_NOTES.md` when the owner chooses; decides | |
+| Main session | builds the numbers, the briefs and the pack; starts the writer; runs the checks; turns findings into a few editor's notes; fixes what is mechanical (a macro, a label, a citation key) | draft or rewrite sentences of the paper: it carries the vocabulary and the history of the lab |
+| Writer | writes one section from its pack; decides its structure; answers the editor's notes | see anything outside its pack |
 | Helpers | audit claims and statements about cited papers, read the PDF cold | talk to the writer |
 
 One section moves through this loop; the next starts when it is
@@ -38,42 +39,57 @@ accepted, because a later section reads the earlier ones.
 ```text
 brief (main session; the owner approves it)
   -> register of the brief measured; a brief in the words of the lab is rewritten
-  -> outline, one line per paragraph (a fresh writer)
+  -> pack assembled, and read once as the writer will read it (section 3.2)
+  -> outline, one line per paragraph (a fresh writer session)
   -> the main session answers the outline (section 4.1)
-  -> draft of the whole section (the same writer)
+  -> draft of the whole section (the same session)
   -> make, lint, register, overlap, claim audit, cold read
-  -> at most five editor's notes -> the same writer revises (two rounds at most)
-  -> commit
+  -> at most five editor's notes -> the same session revises (two rounds at most)
+  -> session closed; commit
 ```
 
-One writer outlines, drafts and revises a section. Two writers never
+One session outlines, drafts and revises a section. Two writers never
 run at once.
 
 ### 2.1 Starting the writer
 
-The writer is started with the text below and nothing else. The text is
-in the register of the paper, since the writer reads it.
+The writer is a session of the `cold-session` skill. It loads no
+`CLAUDE.md`, `AGENTS.md`, memory or user settings, has no shell and no
+web access, and reads and writes only inside a temporary directory that
+holds a copy of its pack. A subagent is not used: it inherits the
+project instructions and the memory index, and telling it to disregard
+them does not take them out of what it has read.
+
+```bash
+r=.claude/skills/cold-session/run.sh
+b=paper/manuscript/build
+$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN
+$r -r HANDLE -f $b/answer_NN.md            # the answer to the outline
+$r -r HANDLE -f $b/notes_NN_1.md           # editor's notes, round 1; -c on the last turn
+```
+
+The files the session writes arrive in `build/writer_NN/` at the paths
+it used; its replies are in the `.log` there. The main session copies
+the section into `sections/` and the outline and the writer's notes
+into `briefs/`.
+
+The start prompt, and nothing else:
 
 ```text
-You are drafting Section N (TITLE) of a machine learning research
-manuscript prepared for Computers, Materials & Continua. Your drafting
-materials are, in this order: paper/manuscript/WRITING_GUIDE.md,
-paper/manuscript/VOICE_GUIDE.md, paper/manuscript/TERMS.md, the brief
-paper/manuscript/briefs/NN_NAME.md, and the accepted sections that the
-brief designates. Consult no other file of the workspace: the remaining
-files, including the project instructions attached to this session, are
-laboratory records and constitute neither content nor stylistic
-precedent for the manuscript.
+You are the author of Section N (TITLE) of a machine learning research
+manuscript prepared for Computers, Materials & Continua. Your working
+directory holds the material of the paper; README.md lists it. Read
+README.md, paper.md, guide.md and brief.md first, and open the rest as
+you need it.
 
-First deliverable: the outline specified in Section 5 of the writing
-guide, written to the file that the brief designates. Return the outline
-and await the editor's response before drafting.
+First deliverable: the outline that guide.md describes, written to
+notes/outline.md. Stop there and wait for the editor's response.
 ```
 
 It is continued with two further messages: the answer to the outline,
-ending in "Draft the section and write your notes to the file that the
-brief designates"; and, per round, "Editor's notes, round K of at most
-two", the notes, and "Revise what the notes concern and leave the
+ending in "Draft the section into sections/NN_NAME.tex and write your
+notes to notes/notes.md"; and, per round, "Editor's notes, round K of at
+most two", the notes, and "Revise what the notes concern and leave the
 remainder of the section unchanged."
 
 ### 2.2 Starting the main session
@@ -104,65 +120,96 @@ text is its starting point.
 
 ### 3.1 The principle
 
-What a writing agent produces follows from what it has read: given the
-notes of the lab it takes their voice and tells their history, and
-given a list of limits it writes below every limit. So everything the
-writer reads is in the register of the paper, a statement comes with
-the strength to write it at, and what the lab needs enforced is checked
-after the draft and reaches the writer only as an editor's note about
-the reader.
+What a writing agent produces follows from what it has read. Given the
+notes of the lab it takes their voice and tells their history; given a
+list of limits it writes below every limit; given a list of claims it
+presents the list. A good section comes from an author who knows the
+work in full and builds the argument freely. So (owner, 2026-11-27):
 
+- The writer knows the science in full: the method, every result with
+  its test, the papers its section cites. Rows that are weak or that
+  wait stand in the tables as they are, and the writer words a finding
+  at what the table carries.
+- The writer knows nothing of the lab: no note, rule, date, decision,
+  dropped direction, claim number or lab word. This holds by how the
+  writer is run (an isolated session, a pack read before use), not by an
+  instruction to ignore something.
+- The writer is free. The brief gives the aim of the section and the
+  points of its argument; structure, emphasis, the choice of numbers
+  and examples are the writer's.
+- What the lab needs enforced is checked on the draft (section 7) and
+  reaches the writer only as an editor's note about the reader.
 - One section, one writer, one brief, so that it reads as one piece.
-- The outline keeps a section to its points; no rule about wording does.
-- The writer gets no list of words, no count and no style figure.
-- A draft far from the register of the field is not repaired sentence
-  by sentence: the cause is in what the writer was given. The input is
-  corrected and the section written again.
+- A draft far from a good paper is not repaired sentence by sentence:
+  the cause is in what the writer was given. The pack is corrected and
+  the section written again.
 
-### 3.2 What the writer is given
+### 3.2 The pack
 
-| File | Holds |
-|---|---|
-| `WRITING_GUIDE.md` | the paper and its readers; the stance of the author; the four things that bind; what is the writer's own; the outline; the deliverables |
-| `VOICE_GUIDE.md` | the register, and the organization of each kind of section by rhetorical function; five contrasts from an unrelated domain |
-| `TERMS.md` | the names of the concepts, the abbreviations, the notation |
-| its brief | section 4 |
-| `sections/` | only the sections its brief lists as accepted |
+One directory per section, assembled by the main session in
+`build/pack_NN/` (outside Git). Every file in it is in the register of
+the paper.
 
-Not given: the notes of the lab, `CLAIMS.md`, `OUTLINE.md`, this plan,
-the checks files, `voice/`, and any text of a published paper. The
-method is close to CodeLutra, and a writer that reads a paper writes
-its sentences.
+| In the pack | Holds | Built from |
+|---|---|---|
+| `README.md` | one line per file of the pack | written with the pack |
+| `paper.md` | the paper on one page: problem, gap, idea, the method in a few lines, the main findings, the contributions. The same for every section | `WRITING_GUIDE.md`, part 1 |
+| `guide.md` | how to work: the readers, what binds (section 3.3), the outline, the deliverables; then the register and the organization of this kind of section | `WRITING_GUIDE.md`, part 2; `VOICE_GUIDE.md`, section 1 and the part for this kind |
+| `terms.md` | the glossary: term, meaning, symbol | `TERMS.md` |
+| `brief.md` | this section (section 4) | `briefs/NN_name.md` |
+| `results/` | every table as it prints, with its tests; the figures; the settings; each macro with exactly what it prints. All of them, not only those of the section | `generated/`, `figures/`, `make floats` |
+| `related/` | for each reference the brief lists: its fact rows and its abstract | `briefs/02_related_rows.md`; the abstract copied from the source that `bib/report.md` names for the entry |
+| `examples/` | one or two published papers far from ours in content, as examples of how a paper of this kind is built and reads | chosen with the owner |
+| `sections/` | the accepted sections, and the file of this section with its heading | `sections/` |
+
+The method reaches the writer of Section 3 through its brief (the
+algorithm, the equations, Fig. 1) and every later writer through the
+accepted Section 3.
+
+Not in the pack: the notes of the lab, `CLAIMS.md`, `OUTLINE.md`, this
+plan, the checks files, `voice/`; anything that carries a date, a
+decision of the owner, a claim number, a lab word or an instruction
+about what not to say; the full text of CodeLutra and of OpenFedLLM
+(where a brief lists them, their fact rows and abstracts are in
+`related/`).
+
+Example papers: one from CMC and one widely read method paper (LESFT
+and LoRA are the candidates), never CodeLutra, OpenFedLLM, GradeSQL or
+a DPO paper. `README.md` names them as examples of form; no fact is
+taken from them, and `make overlap` reads the draft against them too.
+
+Before the start the main session reads the pack once from the first
+file to the last, as the writer will, and searches it for dates,
+"owner" and the lab words of `CLAIMS.md`, section 6. What it finds is
+removed at the source file, not in the copy.
 
 ### 3.3 What binds the writer
 
-1. Facts: every fact, formula and statement about a cited paper comes
-   from the brief; a gap is named in the notes and not filled.
-2. Claims: a statement is written at the strength its brief gives, not
-   above it and not below it; a scope qualifier stays. A writer that
-   finds the evidence thin says so in its notes and does not weaken the
-   sentence on its own.
-3. Numbers and names: macros; the names and notation of `TERMS.md`; the
+1. Facts: every fact about our work and about a cited paper comes from
+   the pack; a gap is named in the notes and not filled.
+2. Findings: a finding is stated as its table carries it, and its scope
+   ("on BIRD", "to our knowledge") is part of it. A writer that finds
+   the evidence thin for a point of the brief says so in its notes.
+3. Numbers and names: macros; the names and notation of `terms.md`; the
    citation keys and labels of the brief.
 4. Form: the headings of the brief, the commands of the class, a length
    near the one the brief gives.
 
-The label needs the gold SQL: a sample is correct when its execution
-result equals that of the gold SQL query on the client's database. The
-paper never says that execution establishes correctness without it.
-
 Everything else is the writer's: paragraphs and their order, emphasis,
 which numbers appear, an example, the transitions. Its notes are read:
-a gap it names goes back into the brief, a claim it finds weak goes to
+a gap it names goes back into the pack, a point it finds weak goes to
 the owner.
+
+A caution of the lab is never a rule in the pack. The pack states the
+fact (a sample is labeled correct when its execution result equals that
+of the gold SQL query on the client's database), and the claim audit
+reads the draft for a sentence that goes against it.
 
 ### 3.4 Voice
 
-`VOICE_GUIDE.md` is the one description of the voice, written in the
-register it asks for; so is every brief. If a pilot written from it is
-still far from the range of the papers (`make register`), passages come
-back as examples, from papers far from ours in content (LESFT, LoRA,
-FedProx), never from CodeLutra, OpenFedLLM, GradeSQL or DPO. `voice/`
+`guide.md` describes the register, and the example papers show it from
+the first session on. If a pilot is still far from the range of the
+papers (`make register`), the cause is looked for in the pack. `voice/`
 holds the editor's calibration only (`voice/README.md`).
 
 ## 4. Briefs (`briefs/NN_name.md`, one per top-level section)
@@ -170,45 +217,46 @@ holds the editor's calibration only (`voice/README.md`).
 The brief is where the language of the lab becomes that of the paper,
 once, and where the owner decides content before any prose exists. It
 is written in the terms of `TERMS.md` and in the register of the paper,
-and holds no sentence that could stand in the paper: statements as
-short entries, facts as tables. `tools/style_profile.py compare` is run
-on it before the writer starts; a brief far below the papers in long
-words, or far above them in everyday verbs, is rewritten.
+and holds no sentence that could stand in the paper. `tools/style_profile.py
+compare` is run on it before the writer starts; a brief far below the
+papers in long words, or far above them in everyday verbs, is rewritten.
 
 - Place in the paper: headings and labels, what stands before and
-  after, the purpose, the length (the words of `OUTLINE.md` as the upper
-  end, about 10% less as the length asked for).
-- Per subsection, two to five statements, each with three cells. Claim:
-  what the reader is to take from it. Evidence: a table, a figure, a
-  reference, the macros. Strength and scope: the wording the evidence
-  carries, as the verb or phrase to reach ("outperforms FedAvg SFT by
-  ... points, significant"; "to our knowledge the first ..."), and the
-  sets it holds on.
-- Facts as values: settings (from `generated/settings.md`), counts,
-  formulas checked against the code.
-- Tables and figures by file, which the writer opens; each macro with
-  exactly what it prints.
-- References: the key and the facts about that paper the section may
-  use. For Related work, one row per fact with its locator in the cited
-  paper (`briefs/02_related_rows.md`); every cell of Table 1 is such a
-  row.
+  after, the length (the words of `OUTLINE.md` as the upper end, about
+  10% less as the length asked for).
+- Aim: what the reader holds at the end of the section, in two or three
+  lines.
+- Points: four to eight for the section, in the order of the argument,
+  one line each: what it says, worded at the strength its evidence
+  carries ("outperforms FedAvg SFT by ... points on both datasets,
+  significant"; "to our knowledge the first ..."), and where the
+  evidence is (a table, a figure, the macros, a reference). They are
+  the points of an argument, not paragraphs to produce: the writer
+  merges, splits and orders them.
+- Materials: the tables and figures of the section by file; facts as
+  values where no table holds them (counts, formulas checked against
+  the code).
+- References: the keys the section cites. Their fact rows and abstracts
+  go into `related/`; every cell of Table 1 is a fact row with its
+  locator in the cited paper (`briefs/02_related_rows.md`).
 - The labels the section may refer to, and the kind of section, which
   names its part of `VOICE_GUIDE.md`.
 
 A brief holds what the paper prints, not dates, run names, what was
 tried, or how a value was chosen. It states what the method does and
-does not grade it: the third cell is a strength to reach, never a list
-of what the paper does not claim, and no entry calls a part minor.
-Every caution (a wording that would be false, a comparison the rows do
-not carry, a result that waits) goes into `briefs/NN_checks.md`, which
-the writer does not read. Limitations are in the brief of the
-Discussion, once.
+does not grade it: no entry lists what the paper does not claim, and no
+entry calls a part minor. Every caution (a wording that would be false,
+a comparison the rows do not carry, a result that waits) goes into
+`briefs/NN_checks.md`, which is not in the pack. Limitations are in the
+brief of the Discussion, once.
 
 Novelty in a brief is located against the federated baselines: what
 federated SFT leaves unused, what federated DPO as published keeps
-fixed. No statement defines the method or a component as a difference
-from CodeLutra; only the briefs of Sections 2 and 4 carry facts about
-it, and the brief of Section 3 its citation key.
+fixed. No point defines the method or a component as a difference from
+CodeLutra. Only the briefs of Sections 2 and 4 list it among their
+references, and the brief of Section 3 its citation key; since
+`related/` follows the references of the brief, no other writer reads
+about it.
 
 A new brief is built from this form, from `CLAIMS.md`, `OUTLINE.md`,
 the checks file of the section (its part 5 has the labels, floats,
@@ -218,24 +266,26 @@ formulas and Algorithm 1 as checked against the code),
 
 ### 4.1 The outline of a section
 
-Written by the writer before any prose, into the file its brief names:
-one line per paragraph with its function (as the voice guide names it),
-its point, the statement it serves, the equation, table or figure it
-carries, and its rough length. The main session checks it and answers
-in a few lines:
+Written by the writer before any prose, into `notes/outline.md`: one
+line per paragraph with its function (as the guide names it), its
+point, the equation, table or figure it carries, and its rough length.
+The main session answers in a few lines, on these questions only:
 
-- every statement of the brief has a line, and no line is without one;
-- read alone and in order, the lines make the argument of the section;
-- the section has the functions the voice guide gives for its kind (an
+- read alone and in order, do the lines make an argument that reaches
+  the aim of the brief;
+- does the section have the functions the guide gives for its kind (an
   introduction without a named limitation, or a method told as stages
   of a run, goes back);
-- each line carries its statement at the strength of the brief;
-- in an introduction, the line that states what the paper does answers
-  the limitation the lines before it establish;
-- nothing is said twice, and the lengths sum to the length of the brief.
+- in an introduction, does the line that states what the paper does
+  answer the limitation the lines before it establish;
+- is anything said twice, and do the lengths sum to the length of the
+  brief.
 
-The outline is a plan and not a contract. The owner is asked before the
-draft only when it departs from the brief or from `OUTLINE.md`.
+The outline is not checked line against point. Whether a point of the
+brief is missing, or stands at another strength, is read on the draft
+and comes back as an editor's note. The outline is a plan and not a
+contract; the owner is asked before the draft only when it departs from
+the aim of the brief or from `OUTLINE.md`.
 
 ## 5. Structure and order
 
@@ -330,7 +380,7 @@ Each is about truth or the build; none is about style.
 | References | `make lint`, `/ars-citation-check` | a key not in `references.bib`; an entry with no DOI, arXiv id or stable address |
 | Truth | claim audit: a helper with the notes looks for a committed result that contradicts a sentence and reads each claim beside its line of `CLAIMS.md` | a false sentence; a claim above its line (a cause where the line has a difference, both sets where it has one, "first" without its bound) or with its scope dropped; a part called essential without its ablation row |
 | Other papers | cited-work audit: every sentence about a cited paper and every cell of Table 1 is found in the fact rows and opened at its locator | a statement without a row, or a row the paper does not support |
-| Overlap | `make overlap` (the arXiv sources of CodeLutra and OpenFedLLM in `.sources/`) | a run of five or more words shared with one of them, other than a stock phrase of the field or a name |
+| Overlap | `make overlap` (the arXiv sources of CodeLutra and OpenFedLLM in `.sources/`, and the example papers of the pack) | a run of five or more words shared with one of them, other than a stock phrase of the field or a name |
 | Length | `make` | the abstract outside 200 to 400 words; the page count above 15 is printed, not a stop |
 
 The claim audit reports false sentences. It does not ask for caveats,
@@ -343,7 +393,7 @@ Advice for the editor; none stops a section.
 | Signal | Tool | Looks for |
 |---|---|---|
 | Register | `make register`; `tools/style_profile.py compare FILE --kind KIND`, on a brief and on its draft | measures far outside the same kind of section in the reference papers: few long words and many everyday verbs are the words of the lab |
-| Strength | the cold read; `tools/reverse_outline.py` | a reader who cannot say what is new and against what; a statement below the strength of its brief; a finding told as a list of values; a weakness outside the limitations or said twice |
+| Strength and coverage | the cold read; `tools/reverse_outline.py`; the draft beside the points of its brief | a reader who cannot say what is new and against what; a point of the brief that is missing or below its strength; a finding told as a list of values; a weakness outside the limitations or said twice |
 | The lab showing through | `make lint` | file paths, "we first", sentences that certify, a choice defended that nobody questioned, lab words |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF` | a large share of the draft in runs of five or more words of the brief |
 | Cold read | the `cold-session` skill, `section` template: an isolated session reads the PDF of the section as a reviewer would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
@@ -360,7 +410,9 @@ How a signal is used:
    brief means the brief holds sentences; a register far from the
    papers means the brief or a guide carried the words of the lab; a
    section that claims little means its brief gave limits and no
-   strength. The input is corrected and the section written again.
+   strength; a section that presents its points one after another means
+   the brief read as a checklist. The input is corrected and the section
+   written again.
 4. Whatever else matters to the reader becomes an editor's note.
 
 ### 7.3 Editor's notes
@@ -387,14 +439,17 @@ not go into it.
 
 State (2026-11-27): the build, the generated numbers, tables, settings
 and charts, `CLAIMS.md`, `TERMS.md`, `OUTLINE.md`, `references.bib` (55
-entries, each verified; `bib/report.md`), the two guides and the checks
-files exist. No section is written yet: `sections/01` to `08` hold a
-heading and its label; the appendices and the statements exist.
+entries, each verified; `bib/report.md`), the two guides, the checks
+files and the isolated runner exist. The guides and `TERMS.md` are
+still in their form of before the pack (step V1). No section is written
+yet: `sections/01` to `08` hold a heading and its label; the appendices
+and the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|
+| V1 | The inputs in the form of the pack: `WRITING_GUIDE.md` as two parts (the paper on one page; how to work) with no word about other files or the lab; `TERMS.md` as a glossary, its lab column moved to `CLAIMS.md`, section 6; the example papers; a tool that assembles `build/pack_NN/` | the owner approves the page on the paper and the example papers |
 | V2 | Pilot: the briefs of Sections 3 and 1 in the form of section 4; the writer drafts Section 3, then Section 1 with the abstract; all checks of section 7 | the owner approves each brief, then reads the pilot |
-| V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the inputs are corrected (section 3.4) and the pilot is written again | the owner; a brief to approve per section |
+| V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the pack is corrected (section 3.1) and the pilot is written again | the owner; a brief to approve per section |
 | W14 | Whole paper: one writer reads it end to end and evens it out, with `make inventory` before and after so that no number and no reference changes; reader test; `/ars-reviewer`; claim audit of the full text; page count | the owner and the advisor read |
 | W15 | Statements, AI-use statement (section 10), public repository with code, splits and predictions, cover letter, `make submit` | authors, funding and competing interests from the owner |
 
@@ -403,7 +458,9 @@ numbers`, `make`, and the claim audit runs again for the claims that
 use that row; its `\expect` guesses are replaced and their sentences
 read again.
 
-Still to build in the tools: the time limits of the labeling step as
+Still to build in the tools: the assembly of the pack (step V1), the
+example papers among the sources of `make overlap`, the abstracts of
+the cited papers (none is stored yet), the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),
 the test of the method against centralized SFT (claim A5), Table 1 with
 its locators, the supplementary file.
@@ -417,7 +474,8 @@ its locators, the supplementary file.
 | `make register`, `make overlap` | `tools/style_profile.py compare` for every section; `lifted` against the closest papers |
 | `make submit` | the flat source the journal asks for, compiled (`tools/flatten.py`); stops on a placeholder or a guess |
 | `tools/reverse_outline.py`, `tools/table_lint.py` | first sentences of a section; table conventions (from PaperOrchestra, MIT) |
-| `cold-session` skill; `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
+| `cold-session` skill | isolated sessions: the writer (section 2.1) and the cold reads |
+| `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
 | TeX | TeX Live 2026 basic with the packages of `tsp.cls` in the user tree; the `Makefile` puts the `l3` folders of the system tree first on `TEXINPUTS` |
 
 ```text
@@ -432,7 +490,9 @@ paper/manuscript/
                    NN_notes_editor.md, the fact rows of Section 2, inventory.txt
   bib/report.md    how each reference was verified; the sources of each subsection
   voice/           the editor's calibration
-  cold_reviews/    reports of the cold-session skill
+  cold_reviews/    reports of the cold reads
+  build/           outside Git: the PDF; pack_NN/ (what the writer of a section reads),
+                   writer_NN/ (what it wrote, and the log of its session)
   .sources/        arXiv sources for make overlap (outside Git)
   tools/
 ```

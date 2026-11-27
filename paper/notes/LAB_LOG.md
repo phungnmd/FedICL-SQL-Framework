@@ -4,6 +4,36 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the writer runs isolated, knows the work in full and is freer (owner; no run)
+
+Owner, in chat: the writer knows the internals of the project and the
+memory, and writes to present those points instead of writing a good
+paper. Three causes found in what the writer was given, not in a draft
+(no section is written): started as a subagent it inherits `AGENTS.md`
+and the memory index; the brief was a list of statements with three
+cells each and the outline was checked line against statement, so the
+writer turned the list into paragraphs; `TERMS.md` and
+`WRITING_GUIDE.md` carry lab words, dates and talk of other files.
+
+Decided (owner: yes to all three):
+
+1. The writer runs in an isolated session of the `cold-session` skill,
+   never as a subagent.
+2. It is given a pack: the work in full as science (the paper on one
+   page, the brief, every result table with its tests) and nothing of
+   the lab. The brief gives the aim of the section and four to eight
+   points of its argument; the outline is read as an argument, and the
+   coverage of the points is read on the draft.
+3. The pack also holds the abstracts and fact rows of the papers the
+   section cites, and one or two published papers far from ours as
+   examples of form. Not the full text of CodeLutra or OpenFedLLM. This
+   replaces "no passage of a published paper" in `AGENTS.md`.
+
+Changed: `WRITING_PLAN.md` (sections 1 to 4, 7, 8, 9) and the Writing
+and Defaults parts of `AGENTS.md`. Not done yet (step V1 of the plan):
+`WRITING_GUIDE.md` and `TERMS.md` in the new form, the example papers,
+the tool that assembles a pack.
+
 ## 2026-11-27: the isolated runner takes other tasks than a review (owner; no run)
 
 Owner: make the cold-review skill serve more than reviews. The skill is

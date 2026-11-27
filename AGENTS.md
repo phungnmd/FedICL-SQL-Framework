@@ -154,8 +154,9 @@ deviate.
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
 - Subagents run on Opus; the larger model is for the main session
-  (owner, 2026-11-22: cost). One exception: the writer subagent of the
-  manuscript runs on Fable 5.2 at high effort (owner, 2026-11-26).
+  (owner, 2026-11-22: cost). One exception: the writer of the
+  manuscript, an isolated session, runs on Fable 5.2 at high effort
+  (owner, 2026-11-26).
 - Diagrams follow `paper/figures/STYLE.md`: start from `template.svg`,
   render with `render.py`, open and check the PNG before committing.
 - `paper/notes/overview.html` is the owner's project page. It is updated
@@ -173,15 +174,24 @@ deviate.
   `paper/notes/WRITING_PLAN.md`) has an academic voice (owner,
   2026-11-27): dense, in the terms of the field, assertive at the
   strength of the evidence. The plain-words rule above is not for it.
-  The main session coordinates and writes no sentence of the paper; a
-  writer subagent drafts one section from `WRITING_GUIDE.md`,
-  `VOICE_GUIDE.md`, `TERMS.md` and its brief, and is given nothing else:
-  no note of the lab and no passage of a published paper. What binds the
-  text: the hard rules, the claims of `CLAIMS.md` at their strength and
-  scope (not above, not below), numbers as generated macros, the limits
-  of the journal. Checks of words and style are signals for the main
-  session, never rules for the writer; a draft far from the register is
-  written again from corrected inputs, not patched.
+  The main session coordinates and writes no sentence of the paper.
+  The writer of a section runs in an isolated session (the
+  `cold-session` skill), never as a subagent: a subagent inherits this
+  file and the memory, and writes about them (owner, 2026-11-27). It is
+  given a pack and nothing else. The pack holds the work in full as
+  science: the paper on one page, the brief of the section, every
+  result table with its tests, the fact rows and abstracts of the papers
+  the section cites, and one or two published papers far from ours as
+  examples of form. It holds nothing of the lab: no note, rule, date,
+  decision, claim number or lab word, and not the full text of
+  CodeLutra or OpenFedLLM. The writer decides the structure of its
+  section. What binds the text: the hard rules, the claims of
+  `CLAIMS.md` at their strength and scope (not above, not below),
+  numbers as generated macros, the limits of the journal; these are
+  checked on the draft by the main session and reach the writer as
+  editor's notes. Checks of words and style are signals for the main
+  session, never rules for the writer; a draft far from a good paper is
+  written again from a corrected pack, not patched.
 - The draft does not wait for the results (owner, 2026-11-27). A number
   without a committed row prints `??` (`--` in a generated table), or
   stands as a marked guess, `\expect{value}`. A guess is never quoted as
