@@ -88,6 +88,15 @@ review finding apart):
   the four equations and Algorithm 1 in part 5 of the checks files, and
   `briefs/inventory_v1.txt`. The order of the rewrite: 3, 1 as pilot,
   4, 5, 6, 7 with 8, 2, 1 again with the abstract.
+- Owner: Section 3 is told by component (seven headings with labels in
+  `OUTLINE.md`; five component names in `TERMS.md`), and the paper
+  names its model a small language model (SLM): as the reason for the
+  setting and the scope of the experiments, in the Introduction, the
+  abstract, Section 2.1, the setup, the limitations and the keywords;
+  not in the title or the name, not as a property of the method (no
+  model above 1.5B was run; +2.10 on Spider test at 0.5B against +3.49
+  at 1.5B), not as a claim on deployment. `OUTLINE.md`, front matter,
+  now has the CMC limits of the abstract and the keywords.
 - From the writing references of the ARS skill, read again: confidence
   is put into the formulation and not into the claim, and the claim
   audit reads each claim beside its line of `CLAIMS.md`.

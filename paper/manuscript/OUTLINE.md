@@ -41,10 +41,13 @@ states the limits of the study.
 
 ### Front matter
 
-- Title: the name, the mechanism, the task and the setting.
-- Abstract: 150 to 250 words, one paragraph, no citation, one number
-  (the gain on BIRD dev).
-- Keywords: 4 to 6.
+- Title: the name, the mechanism, the task and the setting. No "SLM"
+  and no "small" in it: the contribution is the supervision, not the
+  size of the model.
+- Abstract (CMC): 200 to 400 words, one paragraph, no citation, ending
+  with the main numbers; the headline number is the gain on BIRD dev.
+  The model is named a small language model once, with its size.
+- Keywords (CMC): 3 to 10, "small language models" among them.
 
 ### 1. Introduction (~1,050 words)
 
@@ -52,10 +55,18 @@ states the limits of the study.
 shows.
 **Content** (paragraphs, no subsections):
 
-- Small models for Text-to-SQL are what an organisation can train and
-  serve itself; the questions and databases of several organisations
-  cannot be pooled. "Federated Text-to-SQL" here means federated
-  training of the model, said once.
+- From the field to the setting (owner, 2026-11-27: the paper names
+  the small language model). Text-to-SQL systems built on proprietary
+  LLMs send questions and schemas to a provider; a small language model
+  (SLM, 0.5B to 1.5B parameters) is what an organisation can fine-tune
+  and serve on its own hardware, and in this method a client also
+  samples and executes queries with it. One organisation holds few
+  databases, and the questions and databases of several organisations
+  cannot be pooled: hence federated training of one SLM. "Federated
+  Text-to-SQL" here means federated training of the model, said once.
+  The SLM is the reason for the setting and the scope of the
+  experiments; the paper does not present itself as an SLM Text-to-SQL
+  system.
 - The gap. FedAvg SFT learns from the one gold SQL of each question and
   never uses the databases. Federated DPO as published builds its pairs
   once and keeps one reference model. Whether a query returns the gold

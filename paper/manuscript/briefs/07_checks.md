@@ -25,6 +25,7 @@ None of its own.
 - The limitations of `CLAIMS.md`, section 5, each stated once, in the limitations subsection, at the size the evidence gives: added client computation over the rounds; a client's number of pairs depends on the model's performance on its data, and it is sent to the server; questions on databases without rows yield no pair; one training seed and one draw of the partition (the second seed on BIRD when its row is in); clients must be able to execute SQL on their databases; data isolation, not differential privacy; EX alone on BIRD dev, which has no test suite. (v1 B34, C9, C15, C41)
 - The conclusion states the problem, the framework and the principal findings, and adds no qualification that the limitations subsection does not hold (`VOICE_GUIDE.md`).
 - C3 (correct predictions by form of query) is reported, not interpreted (owner, A27).
+- Model size is a boundary of the study (`CLAIMS.md`, section 5, items 7 and 8): models of 0.5B to 1.5B parameters with LoRA, SQLite benchmarks in English; where FedAvg SFT is still improving fast (the 0.5B model) the gain is smaller. Stated once, in the limitations subsection.
 
 ## 4. What the section carries for other sections
 

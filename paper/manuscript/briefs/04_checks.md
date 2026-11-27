@@ -20,6 +20,7 @@ of its Ceiling column are read from there when the new brief is built.
 - The optimizer of the preference rounds differs from that of the SFT rounds; no control row exists yet. (referee reports, v1 B41; open, A34)
 - The times of Table 7 are totals of the clients run one after another on one card.
 - Appendix A prints the shortened prompt; Appendix B goes to the supplementary file first if the pages run over (owner, A8).
+- Scope of model size: every experiment uses a model of 0.5B to 1.5B parameters (the main model `\setting{model.size}`; the others `\setting{models.other}`), with LoRA. No larger model is evaluated. The section states the range once.
 
 ## 2. Facts about cited papers
 

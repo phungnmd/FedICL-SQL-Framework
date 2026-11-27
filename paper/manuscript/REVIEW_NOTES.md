@@ -111,6 +111,10 @@ section sau có câu trả lời.
 
 ## Đã xong
 
+| # | Mục | Quyết định (bạn, 2026-11-27: "đồng ý, cập nhật đi") |
+|---|---|---|
+| | Có gọi model là SLM không | Có, ở vai trò bối cảnh và phạm vi: Introduction (đoạn mở), abstract (một cụm kèm cỡ model), Related work 2.1, Setup và Limitations (phạm vi 0.5B đến 1.5B), keywords. Không đưa vào title hay tên method, không viết method là "cho SLM", không claim hiệu quả triển khai, không định vị bài là hệ SLM Text-to-SQL. `TERMS.md` có dòng "small language model (SLM)"; `OUTLINE.md` mục Front matter và Introduction; `briefs/01`, `02`, `04`, `07_checks.md` |
+
 | # | Mục | Quyết định (bạn, 2026-11-27: "duyệt A32") |
 |---|---|---|
 | A32 | Section 3 theo component; tên component trong `TERMS.md` | Duyệt. Heading: 3.1 Problem Formulation; 3.2 Framework Overview; 3.3 Supervised Warm-Up; 3.4 Client-Side Execution Labeling; 3.5 On-Policy Preference Pair Construction; 3.6 Preference Optimization Objective; 3.7 Aggregation and Client Cost (`OUTLINE.md` có label của từng mục). `TERMS.md` thêm: supervised warm-up, client-side execution labeling, execution-derived supervision, on-policy pair construction, preference objective; cho phép dạng ghép "client databases", "client-side" |
