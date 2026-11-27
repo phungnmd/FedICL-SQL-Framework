@@ -219,6 +219,9 @@ pipelines are not (section 9).
 | ARS | The register follows the conventions of the field and the journal, calibrated on published papers | `VOICE_GUIDE.md`; `voice/style_profile.md` for the editor |
 | ARS, PaperOrchestra | Facts come only from the supplied material; a gap is named, not filled | the guide, "What binds", 1; numbers as generated macros |
 | ARS | A claim never above what its evidence carries; under revision the sentence changes and the claim stays | the guide, Section 3, constraint 2: written at the strength of the brief |
+| ARS (`draft_writer_agent.md`, "Claim-Strength Ladder"; read again 2026-11-27) | When a text is asked to sound more confident, the writing is strengthened and the claim is not: the main result first, the active voice, tighter syntax; no qualifier that bounds a finding is dropped and no claim climbs a rung (an association told as a cause, a result on one set told of both) | `VOICE_GUIDE.md`, Section 1, "Assertiveness"; the Truth stop of section 7.1, which matters most in the rewrite of steps V2 and V3 |
+| ARS ("Search-Bounded Novelty Claims") | "First" only with its bound, and beside it the nearest earlier work with the exact difference | the Strength cell of the statement (section 4); `AGENTS.md`, "Credit" |
+| ARS (`writing_judgment_framework.md`) | Results lead with the finding, not with the statistical test; the purpose sentence of an introduction answers the gap just stated | `VOICE_GUIDE.md`, Section 2; the outline check of section 4.1 |
 | ARS | Each section answers one question of the reader; a paragraph the paper would not miss goes | the Purpose row of a brief; the guide, "What is yours" |
 | ARS | The moves of an introduction (territory, gap, what the paper does), the title and the abstract | the brief of the Introduction, from `references/intro_title_rhetoric_guide.md` and `abstract_writing_guide.md` of the skill |
 | ARS | A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | the cold read of section 7.2; `bib/report.md` |
@@ -336,6 +339,8 @@ lines:
   as a sequence of stages, goes back);
 - each line carries its statement at the strength of the brief, not
   above it and not below it;
+- in an introduction, the line that states what the paper does answers
+  the limitation the lines before it establish;
 - the lengths sum to the length of the brief.
 
 The writer then drafts from it. The outline is a plan and not a
@@ -450,7 +455,7 @@ none is about style.
 | Build | `make` | the section does not compile; an undefined reference |
 | Numbers | `tools/lint.py` | a result number or a setting that is not a macro |
 | References | `tools/lint.py`, `/ars-citation-check` | a key that is not in `references.bib`; an entry with no DOI, no arXiv id and no stable address |
-| Truth | claim audit: a helper with all the notes looks for a committed result that contradicts a sentence | a false or overstated sentence; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of `RESEARCH_STATE.md` 5.0 have moved on |
+| Truth | claim audit: a helper with all the notes looks for a committed result that contradicts a sentence, and reads each claim beside its line of `CLAIMS.md` | a false or overstated sentence; a claim one rung above its line of `CLAIMS.md` (a cause where the line has a difference, both sets where it has one, "first" without its bound) or with its scope dropped; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of `RESEARCH_STATE.md` 5.0 have moved on |
 | Other papers | cited-work audit: a helper lists every sentence that states something about a cited paper, and every cell of Table 1, and finds its row in the brief's facts with the locator; it then opens the paper at that locator | a statement about a cited paper without a row or a locator; a row the paper at its locator does not support. Applies to Section 2 in full and to any such sentence elsewhere |
 | Overlap | `make overlap` (`tools/style_profile.py lifted` against the arXiv sources of CodeLutra and OpenFedLLM in `.sources/`) | a run of five or more words shared with one of the closest papers, other than a stock phrase of the field ("our contributions are as follows") or a name; the passage is written again |
 | Length | page count | CMC: no limit, the count above the 15 pages of the fee is printed; the abstract outside 200 to 400 words. JIIS: the paper over 25 pages; the abstract outside 150 to 250 words |
@@ -554,7 +559,7 @@ tables and the figures stay.
 | Step | What | Waits on |
 |---|---|---|
 | V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
-| V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract; `make register`, `make overlap`, a cold read | the owner reads the pilot beside the tag; 30 min |
+| V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract; `make register`, `make overlap`, a cold read, the claim audit beside `CLAIMS.md`, and the `writing_quality_check` of the academic-paper skill as a list of inflated words (a confident register drifts to "comprehensive", "robust", "leverages"; the list is read by the main session and rewrites nothing) | the owner reads the pilot beside the tag; 30 min |
 | V3 | The pilot holds: the briefs and the drafts of Sections 5, 6, 7 and 8, then 2 and 4, in the same form. It does not: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
 | V4 | The notes, outlines and audits of the first drafts leave `briefs/`, with `pilot/`; `REVIEW_NOTES.md` loses its items on the wording of the first drafts | none |
 

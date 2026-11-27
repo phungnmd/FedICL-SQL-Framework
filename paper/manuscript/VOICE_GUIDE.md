@@ -31,7 +31,9 @@ outperforms, reduces, eliminates, enables, preserves or yields.
 Epistemic qualification is reserved for explanations that the
 experiments do not isolate, which are introduced as attributions or
 hypotheses. A finding supported by a table is never attenuated, and a
-qualification is never repeated.
+qualification is never repeated. Confidence resides in the formulation
+(the principal result first, the active voice, a precise verb) and never
+in an enlargement of the claim or the omission of its scope.
 
 **Contribution orientation.** Wherever the method or one of its
 components is introduced, the sentence identifies what distinguishes it
@@ -77,7 +79,8 @@ specific contribution.
    renders the limitation addressable.
 5. *Proposed framework.* The framework by name, its constituent
    components by name, and the function of each component in relation to
-   the identified challenges.
+   the identified challenges. The statement of purpose answers exactly
+   the limitation established in the third function.
 6. *Empirical validation.* The principal quantitative results,
    including the magnitude of the improvement over the strongest
    relevant baselines.
