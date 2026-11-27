@@ -1,4 +1,4 @@
-# FedLS-SQL: run queue
+# FedExec-SQL: run queue
 
 ## Status
 

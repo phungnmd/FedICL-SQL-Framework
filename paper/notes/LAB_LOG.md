@@ -1,8 +1,30 @@
-# FedLS-SQL: lab log
+# FedExec-SQL: lab log
 
 Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
+
+## 2026-11-27: the method is named FedExec-SQL and the title is set (owner; no run)
+
+Owner, in chat: the method is FedExec-SQL and the title is "FedExec-SQL:
+A Federated Learning Framework for Text-to-SQL with Preference
+Optimization from Client-Side Execution".
+"FedLS" was a working name that no text explained. A web search (three
+queries, not a scan of Scholar or DBLP) found no method named FedExec,
+FedExec-SQL or FedEPO; FedPref is taken by two papers (arXiv 2501.13604,
+2608.16971) and FedEx by one (arXiv 2407.00943).
+
+Changed: `\method` in `macros.tex`, the title in `main.tex` and
+`main_jiis.tex`, the labels of the charts (`tools/charts.py`, charts
+drawn again), and the name in the notes in force. Kept as written: the
+earlier entries of this log, the cold reviews, the direction scan,
+`overview.html` (updated when the owner asks) and the code repository,
+whose package stays `fedls_sql`.
+
+Open: the title names preference optimization, and on BIRD the
+preference term is 1.83 EX above training on the correct samples alone
+at 3 rounds (p 0.057; execution errors 102 against 248). The row at 4
+rounds is queued; the title is read again when it is in.
 
 ## 2026-11-27: the closest work gets fixed places; the rules and the writing plan are cut down (owner; no run)
 

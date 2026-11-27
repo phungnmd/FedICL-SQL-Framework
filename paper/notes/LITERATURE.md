@@ -1,4 +1,4 @@
-# FedLS-SQL: literature
+# FedExec-SQL: literature
 
 Closest published work to the fixed setup in `RESEARCH_STATE.md` (5 non-IID
 Spider clients, Qwen2.5-Coder-1.5B-Instruct student with LoRA, optional frozen

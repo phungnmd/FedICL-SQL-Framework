@@ -1,4 +1,4 @@
-# FedLS-SQL: what the paper claims
+# FedExec-SQL: what the paper claims
 
 Approved by the owner on 2026-11-26, with the decisions of section 7.
 Every brief is built from this file: a section states a claim at the
@@ -13,7 +13,7 @@ committed is marked "waits" and gets its values when the rows are in.
 
 In federated Text-to-SQL a client holds two things, questions with gold
 SQL and the databases to run SQL on; FedAvg SFT learns from the first
-alone, and FedLS-SQL also learns from the second, by running the model's
+alone, and FedExec-SQL also learns from the second, by running the model's
 own queries at the client and training on which of them return the gold
 result.
 
@@ -25,9 +25,9 @@ result.
    wrong queries of the model's own, and this can be done only at the
    client. To our knowledge it is the first federated Text-to-SQL
    training method that uses it.
-2. The framework (owner, 2026-11-27: the paper names FedLS-SQL a
+2. The framework (owner, 2026-11-27: the paper names FedExec-SQL a
    framework where it introduces it; the method and its default
-   configuration are unchanged). FedLS-SQL: warm-up rounds of FedAvg SFT, then preference
+   configuration are unchanged). FedExec-SQL: warm-up rounds of FedAvg SFT, then preference
    rounds in which each client samples queries from the current global
    model, labels them by execution, pairs right with wrong ones and
    trains with a DPO term plus an NLL term. A federated round is one

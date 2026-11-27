@@ -1,4 +1,4 @@
-# FedLS-SQL: research state
+# FedExec-SQL: research state
 
 Updated 2026-11-27 (the target journal and the pause of the queue; the
 results are those of 2026-11-25); where the method stands is in section

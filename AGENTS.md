@@ -1,4 +1,4 @@
-# FedLS-SQL paper workspace: agent guide
+# FedExec-SQL paper workspace: agent guide
 
 The instruction file for every coding agent in this workspace (Codex,
 Claude Code, and others); `CLAUDE.md` imports it. Rules are few and
@@ -38,8 +38,9 @@ code, GPU and server rules live there.
 
 ## The project
 
-Paper: *FedLS-SQL* (working name; the owner sets the name and the title
-later), a journal paper written for CMC alone (owner, 2026-11-27;
+Paper: *FedExec-SQL* (name and title set by the owner, 2026-11-27; the
+title is in `paper/manuscript/main.tex`; the code package keeps its
+name, `fedls_sql`), a journal paper written for CMC alone (owner, 2026-11-27;
 `paper/notes/JOURNAL_BAR.md`). JIIS is a later fallback; nothing is
 built or checked for it now.
 

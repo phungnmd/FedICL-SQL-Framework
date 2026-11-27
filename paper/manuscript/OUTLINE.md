@@ -41,7 +41,8 @@ states the limits of the study.
 
 ### Front matter
 
-- Title: the name, the mechanism, the task and the setting. No "SLM"
+- Title (owner, 2026-11-27): "FedExec-SQL: A Federated Learning Framework for Text-to-SQL with Preference Optimization from Client-Side Execution".
+  The name, the mechanism, the task and the setting. No "SLM"
   and no "small" in it: the contribution is the supervision, not the
   size of the model.
 - Abstract (CMC): 200 to 400 words, one paragraph, no citation, ending

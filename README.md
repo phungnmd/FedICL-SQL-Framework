@@ -1,6 +1,6 @@
-# FedLS-SQL
+# FedExec-SQL
 
-Workspace of the paper *FedLS-SQL* (working title): federated Text-to-SQL
+Workspace of the paper *FedExec-SQL*: federated Text-to-SQL
 where clients train a small model (Qwen2.5-Coder-1.5B-Instruct) on private
 data and only that model is deployed.
 

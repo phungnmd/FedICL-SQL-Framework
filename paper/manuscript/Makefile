@@ -1,4 +1,4 @@
-# FedLS-SQL manuscript. Run from paper/manuscript.
+# FedExec-SQL manuscript. Run from paper/manuscript.
 #   make            the PDF (build/main.pdf); stops on an undefined reference; a number that
 #                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
 #                   and a guess written with \expect{value} prints as value?? and counts the same

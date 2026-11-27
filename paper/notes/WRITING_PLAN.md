@@ -1,4 +1,4 @@
-# FedLS-SQL: writing plan
+# FedExec-SQL: writing plan
 
 How the manuscript is written: who does what, what the writer is given,
 the checks, the steps, the tools. It holds the workflow only. What the
@@ -17,7 +17,7 @@ paper claims is in `manuscript/CLAIMS.md`, what each section contains in
 | Constraints | few. Four things bind the writer (section 3.3). Checks of words and style are signals for the editor, never rules for the writer; prose is not repaired word by word |
 | Position | the paper is about supervision: where the training signal comes from. Federated learning is the setting, Text-to-SQL the task. Novelty is stated against FedAvg SFT and federated DPO as published. CodeLutra has fixed places (Section 2.2 with Table 1, a citation at the objective, one sentence in Section 4.5) and is the frame of no brief (`RESEARCH_STATE.md`, section 3.6) |
 | Numbers | results and settings are macros written from the committed evaluations and configs (section 6). A number that waits prints `??` (`--` in a table); a guess is `\expect{value}` and prints `value??`. The main session sets a guess, gives it in the brief and lists it in part 3 of the checks file; `make submit` stops on either |
-| Names | the method is `\method`, the trained model is "the model". The name and the title are temporary (owner, 2026-11-27) |
+| Names | the method is `\method`, the trained model is "the model". Name (FedExec-SQL) and title set by the owner on 2026-11-27; the title is in `main.tex` |
 | Draft first | the draft is complete first and trimmed later (owner, 2026-11-27): when a brief does not fit its length, the length is raised |
 | Commits | one commit per section when its rounds of editor's notes are done, without waiting for the owner's reading |
 | `CLAIMS.md` | not fixed: a line that is false against the numbers is corrected and the change recorded in `REVIEW_NOTES.md` |

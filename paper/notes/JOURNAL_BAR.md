@@ -1,4 +1,4 @@
-# FedLS-SQL: what the two target journals require and publish
+# FedExec-SQL: what the two target journals require and publish
 
 Read 2026-11-19. Journal facts come from the journals' own pages; the
 bar comes from recent papers of each journal closest to ours. CMC: 7

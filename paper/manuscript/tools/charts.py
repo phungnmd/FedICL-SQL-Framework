@@ -46,7 +46,7 @@ BLUE_FILL, VIOLET_FILL = "#E8F0FE", "#E9DFFD"
 SETS = [("bird", "BIRD dev"), ("spider", "Spider test")]
 SERIES = {
     "fedavg": {"label": "FedAvg SFT", "color": BLUE, "fill": BLUE_FILL, "marker": "o", "dash": (0, (4, 2))},
-    "k2": {"label": "FedLS-SQL", "color": VIOLET, "fill": VIOLET_FILL, "marker": "s", "dash": "solid"},
+    "k2": {"label": "FedExec-SQL", "color": VIOLET, "fill": VIOLET_FILL, "marker": "s", "dash": "solid"},
 }
 
 
@@ -112,8 +112,8 @@ def fig_errors(data: dict, j: dict):
     from matplotlib.patches import Patch
     handles = [Patch(facecolor=SERIES["fedavg"]["fill"], edgecolor=BLUE, linewidth=0.5, label="FedAvg SFT, incorrect result"),
                Patch(facecolor="white", edgecolor=BLUE, linewidth=0.5, hatch="////", label="FedAvg SFT, execution error"),
-               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=VIOLET, linewidth=0.5, label="FedLS-SQL, incorrect result"),
-               Patch(facecolor="white", edgecolor=VIOLET, linewidth=0.5, hatch="////", label="FedLS-SQL, execution error")]
+               Patch(facecolor=SERIES["k2"]["fill"], edgecolor=VIOLET, linewidth=0.5, label="FedExec-SQL, incorrect result"),
+               Patch(facecolor="white", edgecolor=VIOLET, linewidth=0.5, hatch="////", label="FedExec-SQL, execution error")]
     fig.legend(handles=handles, loc="lower center", ncol=2, handlelength=1.6, columnspacing=1.6, bbox_to_anchor=(0.5, 0.0))
     fig.tight_layout(pad=0.3, w_pad=1.2, rect=(0, 0.16, 1, 1))
     return fig
