@@ -33,9 +33,10 @@ query.
 
 - FedAvg SFT derives its training signal exclusively from the single
   gold SQL query of each question. The model receives no signal about
-  which of its own queries are incorrect, and no query is executed on
-  the client databases, which enter training only as text of the
-  prompt.
+  which of its own queries are incorrect: neither the gold SQL query
+  nor any query of the model is executed on the client databases, which
+  contribute only text of the prompt (the schema, and on Spider up to
+  three rows per table).
 - FedDPO, the federated preference optimization of OpenFedLLM, trains
   each client on a fixed preference dataset (UltraFeedback, HH-RLHF)
   whose two sides are responses contained in that dataset, not outputs

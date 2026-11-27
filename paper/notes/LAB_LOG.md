@@ -4,6 +4,62 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: Section 3 (Method) drafted by the writer, two rounds of editor's notes (pilot step V2; the commit of this entry)
+
+- Draft: `paper/manuscript/sections/03_method.tex`, seven subsections,
+  Fig. 2 and Algorithm 1; 1,654 words with the caption (limit 1,700
+  without it). Writer: one isolated session on Fable 5.2 at high effort,
+  web off, pack `build/pack_03/`; outline, five questions, draft, two
+  revisions. Its outline, questions and notes are in `briefs/03_method_*`.
+- Before the start the brief and the checks file were corrected against
+  the record: the counts of questions without a correct sample are the
+  questions whose labeled samples are all incorrect (the questions
+  without labels are apart: 380 and 437 on BIRD); the Fig. 2 line and
+  Algorithm 1 of `03_checks.md` were stale.
+- The first start of the writer produced nothing: `run.sh` writes its
+  log after a `cd` into the session directory, so a relative `-o` path
+  does not resolve. Started again with absolute paths. Not fixed in
+  `run.sh`.
+- Answers to the writer, from the round records and the code: for the
+  pretrained model 4,857 BIRD questions yield pairs (5,877 after two
+  warm-up rounds) and 4,454 Spider questions (4,013 after); the
+  all-correct questions rise 156 to 416 and 1,427 to 2,327. Warm-up
+  lowers the number of pair-yielding questions on Spider, so Section
+  3.4 claims only fewer questions without a correct sample. The adapter
+  starts at the PEFT default, hence the model with the initial adapter
+  is the pretrained model.
+- Checks on draft 1: build and overlap clean; lint one stop (the
+  abstract, expected); 30% of the words in runs of five or more words
+  of the brief (24% at the end); cold read `cold_reviews/2026-11-28_0013_section3_1.md`;
+  claim audit by an Opus helper. The audit found five sentences false
+  or above the record, all corrected in round 1: "no query is executed
+  on the database" (on Spider the prompt reads three rows per table
+  with a SELECT; true is that neither the gold SQL nor a query of the
+  model is executed and no execution result enters the loss); the pair
+  count stated before the exclusion of databases without rows; "2,698
+  remain without a correct sample" without its qualifier; a wrong
+  probability sentence; Algorithm 1 against the text on a client
+  without pairs. The first of these stood in the approved brief, in
+  `WRITING_GUIDE.md` and in the new brief of Section 1; all three are
+  corrected. `AGENTS.md` still has it (`REVIEW_NOTES.md`, A42).
+- Round 2 from a second cold read (`cold_reviews/2026-11-28_0023_section3_r1_1.md`):
+  the role of the gold SQL query in each kind of round, the caption of
+  Fig. 2 as the place that maps the figure to the text, three sentences
+  read twice, two precisions of the labeling, "one resampling step".
+  All carried out. No cold read and no claim audit after round 2
+  (owner: finish the session); the main session read the changed
+  sentences against the code. The notes and what the writer did:
+  `briefs/03_notes_editor.md`.
+- The stubs of Sections 4 and 5 now hold their fixed subsection
+  headings, labels and generated tables (captions "to be written"), so
+  that forward references build.
+- Open, in `REVIEW_NOTES.md`: A41 (Fig. 2 against the text), A42, A43
+  (pair-yielding counts of the pretrained model, both datasets, for
+  Section 5.3), A44 (the sentence "receives no signal about which of
+  its own queries are incorrect"), C45 to C50.
+- `briefs/01_intro.md`: brief of Section 1 with the abstract, written,
+  waits for the owner. Fig. 1 is not drawn.
+
 ## 2026-11-27: the cards are free; the queue is ordered by the rows the tables lack and holds the two alpha 0.5 setups (owner; queue `4a962ced`, pushed with the four test-suite commits)
 
 - Order of what is left (owner approved it in chat): `bird_rft/round_2`;

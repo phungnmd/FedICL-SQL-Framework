@@ -40,9 +40,11 @@ a client transmits and what it computes in each kind of round.
 1. Formal setting and the supervision of FedAvg SFT. Each client holds
    questions, gold SQL queries and the databases on which they execute;
    the target of the objective of FedAvg SFT (Eq. `eq:sft`) is the gold
-   SQL query alone. A database enters training only as text of the
-   prompt; no query is executed on it, and the model receives no signal
-   about which of its own queries are incorrect. Evidence: the
+   SQL query alone. A database contributes only text of the prompt (its
+   schema, and on Spider up to three rows per table, read from the
+   database); neither the gold SQL query nor any query of the model is
+   executed on it, no execution result enters the loss, and the model
+   receives no signal about which of its own queries are incorrect. Evidence: the
    definition itself.
 2. Execution-derived supervision as an unused, client-local signal.
    Execution on $d$ partitions the model's own samples for a question
@@ -60,9 +62,9 @@ a client transmits and what it computes in each kind of round.
    reported in Section 5.1 (Table 3).
 4. Supervised warm-up reduces the number of questions that cannot
    yield a preference pair for lack of a correct sample. A preference
-   pair requires a correct sample; for the pretrained model 4,035 of
-   the 9,428 BIRD training questions have none, and after two warm-up
-   rounds 2,698. Warm-up is not a requirement of the preference rounds:
+   pair requires a correct sample; for the pretrained model the labeled
+   samples of 4,035 of the 9,428 BIRD training questions are all
+   incorrect, and after two warm-up rounds those of 2,698. Warm-up is not a requirement of the preference rounds:
    the pretrained model already yields pairs, and $T_w$ is a setting of
    the framework. Evidence: the counts under
    Materials; the effect of the number of warm-up rounds on accuracy is
@@ -97,9 +99,9 @@ a client transmits and what it computes in each kind of round.
 8. Aggregation and client cost. Federated averaging of the adapters
    with weights proportional to the pair counts; a client transmits the
    adapter and one integer, exactly as in a FedAvg SFT round, so that
-   the communication per round is unchanged. The additional cost is
-   client computation: sampling, execution and local training on the
-   pairs. Evidence: the definitions; the measured times are in
+   the communication per round is unchanged. What a preference round
+   adds in kind is client computation for sampling and execution; local
+   training on the pairs takes the place of the SFT epoch. Evidence: the definitions; the measured times are in
    Section 5.6 (Table 8), and the aggregation weights are immaterial to
    accuracy (Table 4).
 
@@ -113,6 +115,10 @@ Notation as in `terms.md`. Further facts:
   and it is the only set of parameters that is communicated and
   aggregated (`\setting{adapter.mb}` per client per round). With its
   adapter a client sends one integer, its aggregation weight.
+- The adapter has the standard LoRA initialization, under which its
+  update to each adapted matrix is zero: $\pi_{\theta^{0}}$ is the
+  pretrained model. With $T_w = 0$ the first preference round samples
+  from the pretrained model and uses it as reference model.
 - All $K$ clients participate in every round. Local training in round
   $t$ starts from $\theta^{t-1}$ with a newly initialized optimizer.
 - The prompt $x$ contains the question $q$ and the schema of $d$ as
@@ -205,21 +211,35 @@ Properties of these definitions:
   completion is not executed and receives no label. On BIRD, where a
   sample and the gold SQL query share one time limit, a sample that
   executes but whose comparison with the gold result is not completed
-  within the limit likewise receives no label.
+  within the limit likewise receives no label. The limit on BIRD covers
+  the sample followed by the gold SQL query: a sample that reaches it
+  itself is an execution error; a sample that completes while the limit
+  is reached before the gold SQL query completes has no label. On
+  Spider each query has its own limit.
 - Questions without labels: those whose gold SQL query fails to execute
-  or exceeds the time limit (their counts are given in Section 4.2).
+  or exceeds the time limit (their counts are given in Section 4.2,
+  `sec:fed-setups`, which also gives the number of Spider training
+  questions on databases without rows).
 - Pair construction: for each question with at least one correct and
   one incorrect sample, $M$ correct and $M$ incorrect samples are drawn
   uniformly and independently, without replacement when the question
   has at least $M$ samples of that label and with replacement
-  otherwise, and paired in the order drawn. Hence
-  $\lvert\mathcal{P}_k^{t}\rvert = M$ times the number of such
-  questions of client $k$.
+  otherwise, and paired in the order drawn. The two draws are
+  independent of each other. Identical queries among the $N$ samples
+  are not merged: each sample enters the draw as generated.
+  $\lvert\mathcal{P}_k^{t}\rvert = M$ times the number of questions
+  of client $k$ that yield pairs, that is, after the exclusions of the
+  next entry.
+- A question that yields no pair contributes to neither term of the
+  objective in that round.
 - Questions that yield no pair in a round: those whose samples are all
   correct or all incorrect, and those on a database whose tables
   contain no rows, where execution results do not discriminate between
   queries. All questions are sampled again in the next preference
   round.
+- Both sides of every pair are samples. The variant that pairs the gold
+  SQL query with incorrect samples for the questions without a correct
+  sample is reported in Section 5.3 (`sec:ablation`).
 - A client whose $\mathcal{P}_k^{t}$ is empty performs no local
   training and sends no update in that round; its aggregation weight
   is zero.
@@ -241,7 +261,10 @@ with both a correct and an incorrect sample. On Spider the count
 excludes the questions on databases without rows, including those with
 samples of both labels. The Spider counts of the last two rows refer to
 the questions on databases with rows. The model of the first preference
-round is the global model after two rounds of FedAvg SFT.
+round is the global model after two rounds of FedAvg SFT. The last two
+rows count the questions whose labeled samples are all incorrect; a
+question without labels (its gold SQL query fails to execute or exceeds
+the time limit) is in neither row and yields no pair.
 
 ### Figure and algorithm
 
@@ -296,7 +319,7 @@ round is the global model after two rounds of FedAvg SFT.
 | server to client | global adapter | global adapter |
 | client to server | adapter, $n_k$ | adapter, $\lvert\mathcal{P}_k^{t}\rvert$ |
 | remains at the client | questions, gold SQL queries, databases | the same, and the samples, execution results, execution labels and preference pairs |
-| client computation | one epoch over $\mathcal{D}_k$ | generation of $N n_k$ samples; their execution; one epoch over $\mathcal{P}_k^{t}$, each pair scored by the model and by the reference model |
+| client computation | one epoch over $\mathcal{D}_k$ | generation of $N n_k$ samples; their execution; one epoch over $\mathcal{P}_k^{t}$; the log-likelihoods of the reference model are computed once per pair, before the first update |
 
 ## References
 
@@ -310,6 +333,6 @@ round is the global model after two rounds of FedAvg SFT.
 
 ## Labels available for cross-reference
 
-`sec:related`, `sec:setup`, `sec:results`, `sec:main`, `sec:analysis`,
+`sec:related`, `sec:setup`, `sec:fed-setups`, `sec:results`, `sec:main`, `sec:analysis`,
 `sec:ablation`, `sec:cost`, `sec:discussion`, `tab:main`,
-`tab:ablation`, `tab:cost`, `fig:prompt`, `tab:settings`.
+`tab:ablation`, `tab:cost`, `tab:setups`, `fig:prompt`, `tab:settings`.
