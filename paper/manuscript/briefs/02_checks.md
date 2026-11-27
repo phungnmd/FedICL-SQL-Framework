@@ -44,6 +44,7 @@ SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLM
 
 - "To our knowledge" in Section 2.4: the approved scope is federated training of Text-to-SQL models (`CLAIMS.md`, rule 7). The first draft widened it to "no earlier method combines federated training with execution labels and renewed pairs of the model's own outputs", which the fact rows support for the works read (FedDPO: pairs from a dataset; Wu et al.: pairs generated once at the server; PubSwap, Fed-GRPO: a reward, no pairs), but our search covered federated fine-tuning of language models, not all federated work on code. Open with the owner (`REVIEW_NOTES.md`, A33).
 - Liu et al.: their result may be reported with their decoding and model sizes, not explained (owner, A20).
+- The comparison with CodeLutra is made in this section and nowhere else (owner, 2026-11-27): one paragraph in 2.2 and its row of Table 1, at full size: the same loop of sampling, execution labels and DPO with an NLL term, run centrally by one holder of the data; here the labels are computed at each client on databases the server never sees, a federated round is the re-sampling step, and the round's global model is the reference model of every client. What CodeLutra does with questions that yield no pair is not stated in its paper and is not written.
 
 ## 4. What the section carries for other sections
 

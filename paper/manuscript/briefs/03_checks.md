@@ -19,14 +19,14 @@ of its Ceiling column are read from there when the new brief is built.
 
 ## 2. Facts about cited papers
 
-- CodeLutra, Eq. (3), writes the log-likelihood of the whole response. The paper says nothing about normalization by length, and its released code was not checked. "CodeLutra sums it" is our reading of the formula, not a statement of the paper. (v1 B9)
-- CodeLutra constructs ten pairs per question; a fact of the cited paper, typed, not a setting macro. (v1 B8)
+- This section states no fact about CodeLutra: it cites it once, at the objective, and compares nothing. The facts about it are in `02_checks.md` and `04_checks.md`.
 - The NLL term of Pang et al. is also length-normalized (fact row K.1 of `02_related_rows.md`). (v1 E)
 - OpenFedLLM on pairs and the reference model: as in `02_checks.md`.
 
 ## 3. Claims: strength, scope, what waits
 
-- Credit (owner, 2026-11-27; `AGENTS.md`, "Credit"): the method is presented as ours; the section says what CodeLutra does and where ours differs (only a client can compute the labels; a federated round renews samples, labels and pairs, with its global model as the reference model of every client; warm-up rounds of FedAvg SFT come first). No sentence says that the contribution is to bring CodeLutra's loop into federated training, and the settings that follow CodeLutra are named in Section 4.5, not here.
+- Position of the method (owner, 2026-11-27): the framework and each component are motivated against federated SFT and federated DPO as published (FedAvg SFT learns from the gold SQL query alone and never uses the client's databases; FedDPO keeps the pairs and the reference model of its first round and has no NLL term). The section makes no comparison with CodeLutra and does not present a component as a difference from it; the comparison is in Section 2.2 and Table 1, the settings that follow it in Section 4.5.
+- Evidence of each component, for the Evidence cell of the brief (the section reports no result and points to Sections 5 and 6): client-side execution labeling with the preference objective, A1 and A4 (+6.19 and +3.49 over FedAvg SFT; one preference round against one more SFT round); the preference term, B4 (execution errors 248 against 102 on BIRD); the NLL term, B3 (-3.87 EX without it, Spider); on-policy pair construction, B1 (+2.61 on BIRD, level on Spider); supervised warm-up, B5 (test-suite accuracy on Spider, no EX gain); aggregation weights, B6 (no difference). A component is given the property its definition confers; a gain is attributed to it only at the strength of its row.
 - "First" and "to our knowledge" belong to Section 1.
 
 ## 4. What the section carries for other sections

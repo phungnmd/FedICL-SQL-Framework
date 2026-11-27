@@ -25,6 +25,8 @@ of its Ceiling column are read from there when the new brief is built.
 ## 2. Facts about cited papers
 
 - NIID-Bench (`li2022niidbench`) is the source of the partition protocol (A10).
+- CodeLutra constructs ten pairs per question; a fact of the cited paper, typed, not a setting macro. Section 4.5 names it beside the two pairs of the method (owner, 2026-11-27: moved from Section 3). (v1 B8)
+- CodeLutra, Eq. (3), writes the log-likelihood of the whole response. The paper says nothing about normalization by length, and its released code was not checked. "CodeLutra sums it" is our reading of the formula, not a statement of the paper; a sentence keeps to the formula (`REVIEW_NOTES.md`, A38). (v1 B9)
 
 ## 3. Claims: strength, scope, what waits
 

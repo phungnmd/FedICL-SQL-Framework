@@ -90,8 +90,10 @@ stops short of this setting.
   they are trained on.
 - 2.2 Preference optimization and execution feedback for SQL and code:
   DPO; training on a model's own outputs labelled by execution;
-  CodeLutra as the closest centralized work (the settings that follow
-  it are named in 4.5 only).
+  CodeLutra as the closest centralized work: what it does and where
+  this method differs, said here and in Table 1, once for the paper.
+  No other section compares with it (the Method section cites it at
+  the objective; the settings that follow it are named in 4.5).
 - 2.3 Federated fine-tuning of language models: FedAvg with LoRA;
   federated DPO (OpenFedLLM) on fixed human-preference pairs;
   verifier-driven federated training for math and code.
@@ -107,7 +109,8 @@ last row of Table 1; Section 3 defines it.
 ### 3. Method (~1,650 words, Fig. 1, Algorithm 1)
 
 **Purpose**: define the method so that it can be reimplemented, and
-give the reason for each design choice.
+give the reason for each design choice. Each component is motivated
+against federated SFT and federated DPO as published.
 **Content**:
 
 The section is told by component of the framework, not by the stages of
@@ -127,8 +130,8 @@ order of a run.
   the execution label.
 - 3.5 On-Policy Preference Pair Construction (`sec:pairs`, ~200):
   pairs of a correct and an incorrect sample of the same question,
-  constructed anew in each preference round; questions that yield no
-  pair.
+  constructed anew in each preference round; two pairs per question
+  and the reason; questions that yield no pair.
 - 3.6 Preference Optimization Objective (`sec:objective`, ~300): the
   preference term and the NLL term; the round's global model as the
   reference model.
@@ -156,7 +159,9 @@ experiments.
   FedProx SFT, federated DPO as published.
 - 4.5 Implementation: the prompt (Appendix A), LoRA, optimizer and
   rates, rounds, sampling, decoding, seed (Appendix B has every
-  setting).
+  setting); one sentence on the settings of the preference rounds that
+  follow CodeLutra, with its ten pairs per question beside the two
+  here.
 - 4.6 Statistical test: the exact McNemar test on paired predictions,
   Holm correction inside each table.
 

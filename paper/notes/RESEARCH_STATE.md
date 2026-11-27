@@ -56,11 +56,13 @@ not differential privacy.
 
 Direction (owner, 2026-11-17, revised the same day): a federated learning
 method for Text-to-SQL that uses DPO with execution labels at the
-clients, built to beat the federated baselines. It is the owner's own
-design, not CodeLutra applied to federated learning. CodeLutra, found
-later, runs a similar loop centrally; the paper cites it as the closest
-work (3.6), and the settings taken from it are said to follow it. What has run is in section 5.0; the parts of 3.3 are
-candidates, each kept only on a measured gain.
+clients, built to beat the federated baselines (FedAvg SFT, and
+federated DPO as published). The method, each of its parts and its
+novelty are described and judged against those baselines. The closest
+centralized work has one place in these notes, section 3.6, which also
+fixes where the paper mentions it (owner, 2026-11-27). What has run is
+in section 5.0; the parts of 3.3 are candidates, each kept only on a
+measured gain.
 
 | Part | Where | Supervision | Place |
 |---|---|---|---|
@@ -144,8 +146,9 @@ Only the small model's adapter leaves a client.
 
 The plain form of the round (plain loss, pairs drawn at random, nothing
 from a question whose samples are all wrong or all correct) is the
-starting point the parts of 3.3 are measured against; its settings follow
-CodeLutra. The method uses the clients' labelled questions only;
+starting point the parts of 3.3 are measured against; its settings are
+the defaults of the code (section 4, item 3). The method uses the clients'
+labelled questions only;
 unlabelled questions are not part of it.
 
 ### 3.3 Candidate parts (owner, 2026-11-17)
@@ -292,16 +295,35 @@ student has not seen.
 
 ### 3.6 Closest work
 
+This section is the one place in the notes for the comparison with
+CodeLutra (owner, 2026-11-27). Everywhere else, in the notes, the
+briefs and the paper, the method is described on its own terms and
+against the federated baselines: it is not defined as CodeLutra plus
+differences, and its contributions are not a list of those differences.
+
 CodeLutra (arXiv 2411.05199): the closest work, a similar loop run
 centrally at 8B, found after the method was designed. It starts from the base model with no SFT stage (its SFT
 model is a separate baseline), draws 10 samples at T 1.0, draws 10 random
 pairs per question from the model's own correct and wrong samples, and
 trains DPO + SFT with beta 0.1 and lambda 1.0, LoRA r 8, lr 5e-5, one epoch
 per iteration, 4 iterations. It does not mention empty gold results or
-databases without rows and filters no training question. Different here:
+databases without rows and applies no filter to the training questions;
+what it does with a question whose samples are all correct or all
+incorrect is not stated in the paper (`DPO_RESEARCH.md`, 2.3; such a
+question can give no pair), and its code was not checked. Different here:
 a federated method (clients label by execution on their own databases, a
 round is a re-sampling step, the reference is the round's global model),
-at 1.5B, with the parts of 3.3. OpenFedLLM (arXiv
+at 1.5B, with the parts of 3.3.
+
+Where the paper mentions CodeLutra, and nowhere else:
+
+| Place | What |
+|---|---|
+| Section 2.2 and its row of Table 1 | what it does and where this method differs, at full size and once |
+| Section 3.6, at the objective | a citation, no sentence of comparison |
+| Section 4.5 | one sentence: the settings of the preference rounds that follow it, and two pairs per question beside its ten |
+
+OpenFedLLM (arXiv
 2402.06954) runs DPO inside FedAvg with fixed pairs and a reference fixed
 for all rounds. The papers behind each choice are in `DPO_RESEARCH.md`;
 the rest of the map is in `LITERATURE.md`.

@@ -1,8 +1,11 @@
 # FedLS-SQL: what the paper claims
 
 Approved by the owner on 2026-11-26, with the decisions of section 7.
-Every brief is built from this file: a section may say less than a
-claim's ceiling, in its own words, and never more. Values are those of
+Every brief is built from this file: a section states a claim at the
+strength its row carries, in its own words, not above it and not below
+it (owner, 2026-11-27). The Ceiling column gives the strongest wording
+the evidence carries; the bounds written in it go to the checks file of
+the section (`briefs/NN_checks.md`), not into a brief. Values are those of
 `generated/numbers.md` (one training seed); a claim whose rows are not
 committed is marked "waits" and gets its values when the rows are in.
 
@@ -117,9 +120,13 @@ the exact McNemar p.
    Text-to-SQL work (SFT). Verifier-driven federated training exists
    for math and code, federated DPO for human preferences (OpenFedLLM),
    and the same sample, label and DPO + NLL loop centrally (CodeLutra):
-   the paper says so, and names once, in Section 4.5, the settings of
-   the preference rounds that follow CodeLutra. It does not say that
-   the method takes its parts from CodeLutra (owner, 2026-11-27).
+   the paper says so once, in Section 2.2 and Table 1, cites CodeLutra
+   at the objective in Section 3.6, and names in Section 4.5 the
+   settings of the preference rounds that follow it. No other section
+   compares the method with CodeLutra: its novelty is stated against
+   FedAvg SFT and federated DPO as published, and the paper does not
+   say that the method takes its parts from CodeLutra (owner,
+   2026-11-27).
 8. Privacy is that data stay at the client. No claim about differential
    privacy or about what an adapter reveals.
 9. No "state of the art". Every comparison is inside one setup: the
@@ -191,10 +198,11 @@ Lab words, which the paper never uses, and what stands for each:
 6. The first contribution is worded as in section 2.
 7. The second contribution names what leaves a client exactly: the
    adapter and the count that weights it.
-8. The method constructs two pairs per question where CodeLutra
-   constructs ten, and the paper gives the reason: the number of pairs
-   sets the length of local training. No claim on accuracy at other
-   numbers of pairs; none was run.
+8. The method constructs two pairs per question, and the paper gives
+   the reason in Section 3.5: the number of pairs sets the length of
+   local training. The ten pairs of CodeLutra are named beside it in
+   Section 4.5, not in the Method section (owner, 2026-11-27). No claim
+   on accuracy at other numbers of pairs; none was run.
 9. The numbers of questions that yield pairs and of pairs per round are
    columns of Table 7 (E2) and are read in Section 5.4, not in the
    Method section.

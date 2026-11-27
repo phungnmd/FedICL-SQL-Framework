@@ -56,6 +56,7 @@ nhắc tới câu chữ hay số section của draft v1 thì đọc theo tag.
 | A37 | Phần đầu bài và statement của CMC (B39, B40, F cũ) | Chờ bạn: title (ba phương án ở A28 và ba phương án sau khi gọi là framework: (a) "FedLS-SQL: A Federated Learning Framework for Text-to-SQL with Execution-Labeled Preference Optimization"; (b) "FedLS-SQL: Federated Fine-Tuning of Text-to-SQL Models with Execution Feedback from Client Databases"; (c) "A Federated Learning Framework for Text-to-SQL That Learns from Execution on Client Databases"), khối tác giả, bốn statement trong `sections/90_statements_cmc.tex`, caption của Fig. 1 phải ghi tên và version của AI tool nếu hình làm bằng AI tool. Hai entry của `references.bib` cần xem bằng mắt: tác giả thứ hai của SLM-SQL; Holm (1979) không có DOI | | |
 | A38 | Section 3, NLL term của CodeLutra (B9 cũ) | Eq. (3) của CodeLutra viết log-likelihood của cả response, paper không nói có chuẩn hoá theo độ dài không; code của họ chưa được kiểm. NLL term của Pang et al. cũng length-normalized như của ta | Khi viết lại, câu bám vào công thức ("takes the log-likelihood of the whole query"); kiểm code CodeLutra nếu có công bố; có ghi nhận Pang et al. hay không là bạn chọn | |
 | A39 | Section 4.2, parser của test suite (B12 cũ) | "cannot read most queries of BIRD train" chưa có số: 85% đo trên BIRD dev; trên BIRD train chỉ có cận dưới 2,319 của 9,428 | Viết "many queries of BIRD", hoặc đo trên server (script CPU, không đụng GPU queue) | |
+| A40 | Hai entry của `references.bib` cần bạn nhìn bằng mắt (`bib/report.md`) | Tác giả thứ hai của SLM-SQL: arXiv và ACL Anthology ghi khác nhau. Holm (1979) không có DOI, đang cite bằng địa chỉ JSTOR | Bạn xem hai entry và chốt cách ghi | |
 
 ## C. Câu hỏi reviewer có thể đặt
 
@@ -113,6 +114,7 @@ section sau có câu trả lời.
 
 | # | Mục | Quyết định (bạn, 2026-11-27: "đồng ý, cập nhật đi") |
 |---|---|---|
+| | CodeLutra có chỗ cố định trong bài (bạn, 2026-11-27: agent luôn coi bài là CodeLutra cộng phần khác và cố làm rõ phần khác) | Novelty của method và của từng component định vị so với FedAvg SFT và federated DPO. CodeLutra chỉ ở: Section 2.2 và Table 1 (nó làm gì, ta khác ở đâu, một lần), một citation ở objective trong Section 3.6, một câu ở Section 4.5 về setting theo nó. Câu "2 pair, CodeLutra 10" chuyển từ Section 3 sang 4.5 (`CLAIMS.md` 7.8 sửa theo). `AGENTS.md`, `RESEARCH_STATE.md` 3.6, `CLAIMS.md` 4.7, `OUTLINE.md`, `briefs/01` đến `04_checks.md` |
 | | Có gọi model là SLM không | Có, ở vai trò bối cảnh và phạm vi: Introduction (đoạn mở), abstract (một cụm kèm cỡ model), Related work 2.1, Setup và Limitations (phạm vi 0.5B đến 1.5B), keywords. Không đưa vào title hay tên method, không viết method là "cho SLM", không claim hiệu quả triển khai, không định vị bài là hệ SLM Text-to-SQL. `TERMS.md` có dòng "small language model (SLM)"; `OUTLINE.md` mục Front matter và Introduction; `briefs/01`, `02`, `04`, `07_checks.md` |
 
 | # | Mục | Quyết định (bạn, 2026-11-27: "duyệt A32") |
