@@ -299,7 +299,7 @@ Numbered in the order of first mention.
 
 | Number | Content | File |
 |---|---|---|
-| Fig. 1 | one question, two ways of training | to be drawn |
+| Fig. 1 | one question, two ways of training | `fig_idea` |
 | Fig. 2 | framework overview | `fig_method_overview` (to be redrawn) |
 | Fig. 3 | EX by round | `fig_rounds` |
 | Fig. 4 | incorrect predictions by round | `fig_errors` |

@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="337" height="418" viewBox="0 0 337 418" role="img" aria-labelledby="fig-idea-title fig-idea-desc">
+  <title id="fig-idea-title">One question, two ways of training</title>
+  <desc id="fig-idea-desc">One training question of a client on the Spider database party_people. (A) FedAvg SFT trains the model on the gold SQL query as the only target; the database is not queried. (B) FedExec-SQL samples ten queries from the model, executes each on the client database and compares its result with that of the gold SQL query: a correct sample, a sample with a wrong result and a sample with an execution error are shown; correct samples are paired with incorrect ones and trained with DPO and NLL. In both ways only the adapter leaves the client and the server averages the adapters.</desc>
+
+  <!-- Copy this style block and the defs into every figure, unchanged. -->
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; font-size: 8px; fill: #000; }
+    .h { font-size: 9px; font-weight: bold; }
+    .b { font-weight: bold; }
+    .i { font-style: italic; }
+    .sub { font-size: 6px; }
+    .mid { text-anchor: middle; }
+    .end { text-anchor: end; }
+    .blue { fill: #E8F0FE; stroke: #2563EB; stroke-width: 0.75; }
+    .violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.75; }
+    .plain { fill: #F1F5F9; stroke: #94A3B8; stroke-width: 0.5; }
+    .client { fill: #FFF7E6; }
+    .boundary { fill: none; stroke: #B45309; stroke-width: 0.75; stroke-dasharray: 3 2; }
+    .card { fill: #FFFFFF; }
+    .card-band { fill: #E9DFFD; }
+    .card-line { fill: none; stroke: #7C3AED; stroke-width: 0.75; }
+    .card-badge { fill: #CDBBFA; }
+    .chip { fill: #FFFFFF; stroke: #94A3B8; stroke-width: 0.5; }
+    .chip-blue { fill: #FFFFFF; stroke: #2563EB; stroke-width: 0.5; }
+    .chip-violet { fill: #F1EBFE; stroke: #7C3AED; stroke-width: 0.5; }
+    .chip-ok { fill: #DDF3EB; stroke: #009E73; stroke-width: 0.5; }
+    .chip-bad { fill: #FBE5D8; stroke: #D55E00; stroke-width: 0.5; }
+    .flow { fill: none; stroke: #334155; stroke-width: 0.75; marker-end: url(#arrow); }
+    .comm { fill: none; stroke: #2563EB; stroke-width: 1.25; marker-end: url(#arrow-comm); }
+    .ic { stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+    .ic-blue { stroke: #1D4ED8; fill: #C9DCFC; }
+    .ic-violet { stroke: #6D28D9; fill: #DDD0FC; }
+    .ic-amber { stroke: #B45309; fill: #FBDFA6; }
+    .ok { fill: none; stroke: #009E73; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+    .bad { fill: none; stroke: #D55E00; stroke-width: 1.25; stroke-linecap: round; }
+    .legend { fill: #F1F5F9; }
+    .sw-blue { fill: #2563EB; }
+    .sw-violet { fill: #7C3AED; }
+    .sw-amber { fill: #D98A0B; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="4.5" markerHeight="4.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-comm" viewBox="0 0 6 6" refX="5.2" refY="3" markerWidth="5.5" markerHeight="5.5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0.4 L6 3 L0 5.6 Z" fill="#2563EB"/>
+    </marker>
+    <!-- two-tone icons: line and tint come from the class on <use> -->
+    <g id="icon-model" class="ic">
+      <path fill="none" d="M3 4 L11 11 L19 4 M3 18 L11 11 L19 18 M3 4 V18 M19 4 V18"/>
+      <circle cx="3" cy="4" r="2.6"/><circle cx="3" cy="18" r="2.6"/>
+      <circle cx="19" cy="4" r="2.6"/><circle cx="19" cy="18" r="2.6"/>
+      <circle cx="11" cy="11" r="3.4"/>
+    </g>
+    <g id="icon-db" class="ic">
+      <path d="M1 4 V18 A8 3 0 0 0 17 18 V4 Z"/>
+      <ellipse cx="9" cy="4" rx="8" ry="3"/>
+      <path fill="none" d="M1 11 A8 3 0 0 0 17 11"/>
+    </g>
+    <g id="icon-server" class="ic">
+      <rect x="1" y="2" width="18" height="7" rx="1.5"/>
+      <rect x="1" y="11" width="18" height="7" rx="1.5"/>
+      <path fill="none" d="M4.5 5.5 H5 M4.5 14.5 H5 M10 5.5 H15.5 M10 14.5 H15.5"/>
+    </g>
+    <g id="icon-doc" class="ic">
+      <path d="M1 1 H9 L13 5 V17 H1 Z"/>
+      <path fill="none" d="M9 1 V5 H13 M4 9 H10 M4 12.5 H10"/>
+    </g>
+    <g id="icon-lock" class="ic">
+      <rect x="1" y="5" width="8" height="6.5" rx="1"/>
+      <path fill="none" d="M3 5 V3.5 A2 2 0 0 1 7 3.5 V5"/>
+    </g>
+    <path id="icon-ok" class="ok" d="M0 3.5 L2.8 6.3 L7.5 0.5"/>
+    <path id="icon-bad" class="bad" d="M0.5 0.5 L6.5 6.5 M6.5 0.5 L0.5 6.5"/>
+  </defs>
+
+  <!-- client boundary: everything inside stays at the client -->
+  <rect class="client" x="1" y="1" width="321" height="356" rx="4"/>
+  <rect class="boundary" x="1" y="1" width="321" height="356" rx="4"/>
+  <use href="#icon-lock" class="ic-amber" x="9" y="5"/>
+  <text class="h" x="23" y="14">Client <tspan class="i">k</tspan></text>
+
+  <!-- the training example both panels use -->
+  <rect class="chip" x="9" y="20" width="305" height="40" rx="2.5"/>
+  <text class="b" x="15" y="31">Question</text>
+  <text x="58" y="31">Return the minister who left office at the latest time.</text>
+  <text class="b" x="15" y="42">Gold SQL</text>
+  <text x="58" y="42">SELECT minister FROM party ORDER BY left_office DESC LIMIT 1</text>
+  <text class="b" x="15" y="53">Database</text>
+  <text x="58" y="53">party_people (table party)</text>
+
+  <!-- connectors first: adapters leave the client -->
+  <path class="comm" d="M305 96 H329 V364"/>
+  <path class="comm" d="M288 341 V364"/>
+
+  <!-- panel A: FedAvg SFT -->
+  <rect class="plain" x="9" y="68" width="305" height="46" rx="4"/>
+  <text class="h" x="15" y="80">A</text>
+  <text class="h" x="27" y="80">FedAvg SFT</text>
+  <path class="flow" d="M95 96 H107"/>
+  <path class="flow" d="M133 96 H155"/>
+  <rect class="chip" x="17" y="90" width="78" height="12" rx="2.5"/>
+  <text class="mid" x="56" y="98.6">Question + schema</text>
+  <use href="#icon-model" class="ic-blue" x="109" y="85"/>
+  <text class="mid" x="144" y="92">NLL</text>
+  <rect class="chip" x="157" y="90" width="42" height="12" rx="2.5"/>
+  <text class="mid" x="178" y="98.6">Gold SQL</text>
+  <use href="#icon-db" class="ic-amber" x="205" y="85"/>
+  <text x="228" y="94">Database</text>
+  <text x="228" y="104">not queried</text>
+  <rect class="chip-blue" x="274" y="90" width="31" height="12" rx="2.5"/>
+  <text class="mid" x="289.5" y="98.6">Adapter</text>
+
+  <!-- panel B: FedExec-SQL -->
+  <rect class="violet" x="9" y="122" width="305" height="227" rx="4"/>
+  <text class="h" x="15" y="134">B</text>
+  <text class="h" x="27" y="134">FedExec-SQL</text>
+  <path class="flow" d="M95 152 H107"/>
+  <path class="flow" d="M133 152 H145"/>
+  <rect class="chip" x="17" y="146" width="78" height="12" rx="2.5"/>
+  <text class="mid" x="56" y="154.6">Question + schema</text>
+  <use href="#icon-model" class="ic-violet" x="109" y="141"/>
+  <use href="#icon-db" class="ic-amber" x="147" y="141"/>
+  <text x="172" y="150">N = 10 samples of the model,</text>
+  <text x="172" y="160">executed on the client database</text>
+
+  <text x="64" y="180">Sample</text>
+  <text x="224" y="180">Result</text>
+  <text x="17" y="197">Gold SQL</text>
+  <text class="i" x="64" y="197">the result a sample has to match</text>
+  <text x="224" y="192">Ebenezer</text>
+  <text x="224" y="201">Ako-Adjei (MP)</text>
+  <path d="M17 206.5 H305" stroke="#94A3B8" stroke-width="0.5"/>
+
+  <text x="17" y="226">SQL 1</text>
+  <rect class="chip-ok" x="60" y="211" width="158" height="24" rx="2.5"/>
+  <text x="64" y="220.5">SELECT Minister FROM party</text>
+  <text x="64" y="230.5">ORDER BY Left_office DESC LIMIT 1</text>
+  <text x="224" y="221">Ebenezer</text>
+  <text x="224" y="230">Ako-Adjei (MP)</text>
+  <use href="#icon-ok" x="296" y="219.5"/>
+
+  <text x="17" y="259">SQL 2</text>
+  <rect class="chip-bad" x="60" y="239" width="158" height="34" rx="2.5"/>
+  <text x="64" y="248.5">SELECT minister FROM party</text>
+  <text x="64" y="258.5">WHERE left_office =</text>
+  <text x="64" y="268.5">( SELECT min(left_office) FROM party )</text>
+  <text x="224" y="254">Dr. Kwame</text>
+  <text x="224" y="263">Nkrumah (MP)</text>
+  <use href="#icon-bad" x="296.5" y="252.5"/>
+
+  <text x="17" y="302">SQL 3</text>
+  <rect class="chip-bad" x="60" y="277" width="158" height="44" rx="2.5"/>
+  <text x="64" y="286.5">SELECT T1.Minister FROM party AS T1</text>
+  <text x="64" y="296.5">JOIN party AS T2 ON T1.Party_ID =</text>
+  <text x="64" y="306.5">T2.Partition_ID ORDER BY</text>
+  <text x="64" y="316.5">T2.Left_office DESC LIMIT 1</text>
+  <text x="224" y="297">Error: no such</text>
+  <text x="224" y="306">column</text>
+  <use href="#icon-bad" x="296.5" y="295.5"/>
+
+  <path class="flow" d="M163 335 H175"/>
+  <path class="flow" d="M223 335 H269"/>
+  <rect class="chip-ok" x="17" y="329" width="28" height="12" rx="2.5"/>
+  <text class="mid" x="31" y="337.6">SQL 1</text>
+  <text class="b mid" x="50.5" y="337.6">&gt;</text>
+  <rect class="chip-bad" x="56" y="329" width="28" height="12" rx="2.5"/>
+  <text class="mid" x="70" y="337.6">SQL 2</text>
+  <rect class="chip-ok" x="96" y="329" width="28" height="12" rx="2.5"/>
+  <text class="mid" x="110" y="337.6">SQL 1</text>
+  <text class="b mid" x="129.5" y="337.6">&gt;</text>
+  <rect class="chip-bad" x="135" y="329" width="28" height="12" rx="2.5"/>
+  <text class="mid" x="149" y="337.6">SQL 3</text>
+  <text class="b" x="178" y="338">DPO + NLL</text>
+  <rect class="chip-blue" x="271" y="329" width="34" height="12" rx="2.5"/>
+  <text class="mid" x="288" y="337.6">Adapter</text>
+
+  <!-- server -->
+  <rect class="blue" x="1" y="365" width="335" height="24" rx="4"/>
+  <use href="#icon-server" class="ic-blue" x="9" y="367"/>
+  <text class="h" x="35" y="380">Server</text>
+  <text x="70" y="380">FedAvg of the client adapters into the global model</text>
+
+  <!-- colour key -->
+  <rect class="legend" x="1" y="397" width="335" height="20" rx="4"/>
+  <rect class="sw-blue" x="9" y="403" width="8" height="8" rx="2"/>
+  <text x="21" y="410">Sent to the server</text>
+  <rect class="sw-violet" x="115" y="403" width="8" height="8" rx="2"/>
+  <text x="127" y="410">The method</text>
+  <rect class="sw-amber" x="221" y="403" width="8" height="8" rx="2"/>
+  <text x="233" y="410">Private to the client</text>
+</svg>
