@@ -31,41 +31,5 @@ Learning-rate warm-up & 0.03 of the updates \\
 LoRA dropout & 0.05 \\
 Averaging weights & question count \\
 Epochs of centralized SFT & 3 \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Preference round}} \\
-Samples per question & 10 \\
-Sampling & temperature 1, top-$p$ 1, no top-$k$ \\
-New tokens per sample & 256 \\
-Pairs per question & 2 \\
-Pairing & 2 correct and 2 incorrect samples of the question, drawn uniformly and independently, each without replacement when the question has at least 2 samples of that label and with replacement otherwise; paired in the order drawn \\
-Sample without query text & labeled incorrect \\
-Sample truncated at the token limit & not executed, not labeled \\
-Questions on a database without rows & give no pair \\
-$\beta$ of the preference term & 0.1 \\
-Weight $\lambda$ of the NLL term & 1 \\
-Local epochs & 1 \\
-Learning rate & $5\times10^{-5}$ \\
-Pairs per update & 16 \\
-Optimizer & AdamW, weight decay $10^{-4}$, cosine schedule \\
-Learning-rate warm-up & 0.1 of the updates \\
-LoRA dropout & 0 \\
-Averaging weights & pair count \\
-Time limit of the execution labels & the time limit of evaluation on the benchmark \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Evaluation}} \\
-Decoding & greedy, one output \\
-New tokens & 256 \\
-Repetition penalty & none \\
-Time limit on BIRD & 30 s for a query and the gold SQL query together \\
-Time limit on Spider & 60 s for each query \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Software and hardware}} \\
-Python & 3.11.15 (Python Software Foundation) \\
-PyTorch & 2.11.0 (PyTorch Foundation), CUDA 12.8 (NVIDIA) \\
-Transformers & 5.10.2 (Hugging Face) \\
-PEFT & 0.19.1 (Hugging Face) \\
-SQL parser & sqlglot 30.9.0 (sqlglot project) \\
-Generation engine & vLLM 0.33.0 (vLLM project), for sampling and evaluation \\
-GPU & NVIDIA RTX A5000, 24 GB \\
 \bottomrule
 \end{tabular}

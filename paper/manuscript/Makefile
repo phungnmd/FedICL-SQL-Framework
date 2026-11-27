@@ -2,24 +2,36 @@
 #   make            the PDF (build/main.pdf); stops on an undefined reference; a number that
 #                   waits for its result prints as ?? (STRICT=1, used by submit, stops on it)
 #   make numbers    macros, tables and settings from the committed results and configs
-#   make figures    the result charts (JOURNAL=jiis or cmc) and a copy of the method diagram
+#   make figures    the result charts (JOURNAL=cmc or jiis) and a copy of the method diagram
 #                   (drawn in paper/figures, rendered there with render.py)
 #   make floats     every table and figure on its own, for reading the cells
 #   make pilot      a draft subsection on its own page (pilot/harness.tex)
-#   make lint       the checks of tools/lint.py (JOURNAL=jiis or cmc)
+#   make lint       the checks of tools/lint.py (JOURNAL=cmc or jiis)
 #   make inventory  macros and \cite keys of every section, for a before/after diff
 #   make submit     the flat one-directory source the journal asks for, compiled
+# The target journal is CMC (owner, 2026-11-27): main.tex on the Tech Science Press class in
+# Definitions/. JOURNAL=jiis builds the Springer wrapper, main_jiis.tex, into build/main_jiis.pdf.
+JOURNAL ?= cmc
+ifeq ($(JOURNAL),jiis)
+MAIN    := main_jiis
+STYLE   := sn-jnl.cls sn-basic.bst
+else
 MAIN    := main
+STYLE   := $(wildcard Definitions/*)
+endif
 BUILD   := build
-JOURNAL ?= jiis
 # STRICT=1 stops on a number without a committed result; a draft prints it as ??
 STRICT  ?= 0
 PYTHON  ?= python3
 # matplotlib is not in the project environments; uv provides it for the charts
 PLOT_PY ?= uv run --no-project --with matplotlib==3.10.8 python
+# The LaTeX3 files of the distribution go first in the search path: a newer copy in a user
+# tree does not match the format and stops the class (it loads expl3.sty through enotez).
+TEXDIST := $(shell kpsewhich -var-value TEXMFDIST)
+export TEXINPUTS := $(TEXDIST)/tex/latex/l3kernel//:$(TEXDIST)/tex/latex/l3packages//:$(TEXDIST)/tex/latex/l3backend//:$(TEXINPUTS)
 LATEX   := pdflatex -interaction=nonstopmode -halt-on-error -file-line-error
 SOURCES := $(MAIN).tex macros.tex references.bib $(wildcard sections/*.tex) \
-           $(wildcard generated/*.tex) $(wildcard figures/*.pdf) sn-jnl.cls sn-basic.bst
+           $(wildcard generated/*.tex) $(wildcard figures/*.pdf) $(STYLE)
 
 .PHONY: all pdf numbers figures floats pilot lint inventory submit clean
 
@@ -39,7 +51,7 @@ $(BUILD)/$(MAIN).pdf: $(SOURCES)
 	   else echo "draft: $$n numbers wait for a committed result and print as ??"; fi; fi
 	@if grep -n -E "Warning: (Reference|Citation) .* undefined" $(BUILD)/$(MAIN).log; then \
 	   echo "STOP: undefined reference, citation or number (lines above)"; rm -f $@; exit 1; fi
-	@$(PYTHON) tools/pages.py $(BUILD)/$(MAIN).log
+	@$(PYTHON) tools/pages.py $(BUILD)/$(MAIN).log --journal $(JOURNAL)
 
 numbers:
 	$(PYTHON) tools/paper_numbers.py

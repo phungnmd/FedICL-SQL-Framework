@@ -17,12 +17,12 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Constraints | few (owner, 2026-11-26). Four things bind the writer (section 3.3). Checks of words and of style are signals for the editor, never rules for the writer, and prose is not repaired word by word: rigid rules and word checks make it stiff and patched |
 | When | the whole paper is drafted now (owner, 2026-11-26); a number that waits for its result is written with its macro and prints as `??` until the row is committed |
 | Helpers | audits, look-ups and the reader test run on Opus |
-| Format | LaTeX, to the JIIS shape first (25 pages, the tighter of the two; section 5). Section bodies live in `sections/*.tex` with no class-specific command, so a CMC version is a second main file (section 10) |
-| Class | Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst`; not anonymised |
+| Format | LaTeX, in the CMC template (owner, 2026-11-27: CMC is the target, JIIS the second choice). Section bodies live in `sections/*.tex` with no class-specific command; each journal has its wrapper (`main.tex` for CMC, `main_jiis.tex` for JIIS; section 10), and `make JOURNAL=jiis` builds the second |
+| Class | CMC: Tech Science Press `tsp.cls` (`TSP-Latex.zip` of 2024-12-18, in `Definitions/`), `\documentclass[cmc,article,submit,oneauthor,pdftex]{Definitions/tsp}`, BibTeX with `Definitions/vancouver.bst`. JIIS: Springer Nature `sn-jnl` (December 2024 package), `\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}`, BibTeX with `sn-basic.bst`. Not anonymised in either |
 | Place | `paper/manuscript/` in the paper repository; one commit per section. While the paper is being drafted a section is committed when its rounds of editor's notes are done, without waiting for the owner's reading (owner, 2026-11-27); what the owner has to read or decide is in `manuscript/REVIEW_NOTES.md` |
 | Numbers | a script writes macros and tables from the committed evaluations, and the settings from the committed configs (section 6); a result number in the text is a macro |
 | Names | the method is `\method` and the paper says "the model", so the title can change without touching the text |
-| Name and title | "FedLS-SQL" is a working name kept from the earlier version; the owner changes the name and sets the title later (owner, 2026-11-27). The name is one line of `macros.tex`; the title in `main.tex` stays "title to be set" |
+| Name and title | "FedLS-SQL" is a working name kept from the earlier version; the owner changes the name and sets the title later (owner, 2026-11-27). The name is one line of `macros.tex`; the title in the wrappers stays "title to be set" |
 | Draft first | while the paper is a draft it is complete first and trimmed later (owner, 2026-11-27): when what a brief asks for does not fit its upper end, the upper end is raised and nothing is cut to fit; the page limit is handled after the full draft |
 | `CLAIMS.md` | not fixed (owner, 2026-11-27): a line that is false against the numbers is corrected, and the change is recorded in `manuscript/REVIEW_NOTES.md` |
 
@@ -281,7 +281,9 @@ the draft, the first sentences of its paragraphs
 
 ## 5. Structure of the paper
 
-The limit is 25 pages in `sn-jnl`, references included. Results follow
+CMC has no page limit and its fee covers 15 pages (USD 100 for each
+page above); JIIS limits the paper to 25 pages in `sn-jnl`, references
+included. Results follow
 research questions and the ablations have their own section, as in the
 JIIS papers read (`JOURNAL_BAR.md`).
 
@@ -381,7 +383,7 @@ none is about style.
 | References | `tools/lint.py`, `/ars-citation-check` | a key that is not in `references.bib`; an entry with no DOI, no arXiv id and no stable address |
 | Truth | claim audit: a helper with all the notes looks for a committed result that contradicts a sentence | a false or overstated sentence; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of `RESEARCH_STATE.md` 5.0 have moved on |
 | Other papers | cited-work audit: a helper lists every sentence that states something about a cited paper, and every cell of Table 1, and finds its row in the brief's facts with the locator; it then opens the paper at that locator | a statement about a cited paper without a row or a locator; a row the paper at its locator does not support. Applies to Section 2 in full and to any such sentence elsewhere |
-| Length | page count | the paper over 25 pages; the abstract outside 150 to 250 words |
+| Length | page count | CMC: no limit, the count above the 15 pages of the fee is printed; the abstract outside 200 to 400 words. JIIS: the paper over 25 pages; the abstract outside 150 to 250 words |
 
 The claim audit reports false sentences. It does not ask for caveats,
 for results the paper leaves out, or for the story of how a value was
@@ -495,6 +497,7 @@ for the claims that use that row.
 | Tool | Use | On the Mac |
 |---|---|---|
 | `pdflatex`, `bibtex` (TeX Live 2026 basic), `make` | build; Springer requires that the source compiles with pdflatex | installed |
+| TeX packages for `tsp.cls`: `mathcomp`, `cjk`, `bbm`, `bbm-macros`, `verse`, `lastpage`, `soul`, `totcount`, `pbox`, `adjustbox`, `collectbox`, `enotez`, `translations`, `footmisc`, `hyphenat`, `draftwatermark`, `seqsplit`, `frankenstein`, `was`, `palatino`, `mathpazo`, `fpl`, `catchfile` | needed by the class of Tech Science Press and the CMC wrapper | installed in the user tree (`tlmgr --usermode`); the `Makefile` puts the `l3` folders of the system tree first on `TEXINPUTS`, since `enotez` pulls a newer `l3kernel` into the user tree than the format was built with |
 | TeX packages `sttools`, `threeparttable`, `appendix`, `ncctools`, `algorithms`, `algorithmicx`, `multirow` | needed by `sn-jnl.cls` and its template | installed in the user tree (`~/Library/texmf`) |
 | `paper/notes/tools/overview_results.py` | every committed run and McNemar test, imported by `paper_numbers.py` | exists |
 | `paper/figures/render.py`, `STYLE.md`; matplotlib | diagrams; result charts at 119 mm in Arial 8 pt | exists; installed |
@@ -515,12 +518,15 @@ score of a simulated reviewer). What is kept of the two is in section
 
 ```text
 paper/manuscript/
-  main.tex              JIIS wrapper: class, title, abstract, \input of the sections
+  main.tex              CMC wrapper: class, title, abstract, \input of the sections
+  main_jiis.tex         JIIS wrapper (make JOURNAL=jiis)
+  Definitions/          the class of Tech Science Press, as its template ships it
   sections/             01_intro 02_related 03_method 04_setup 05_results
-                        06_ablation 07_discussion 08_conclusion 90_declarations
+                        06_ablation 07_discussion 08_conclusion
+                        90_statements_cmc (CMC) 90_declarations (JIIS)
                         A_prompt B_settings
   generated/            numbers.tex, tab_*.tex, missing.txt,
-                        settings.tex, tab_settings.tex, settings.md
+                        settings.tex, tab_settings.tex, tab_settings_2.tex, settings.md
   figures/              fig_*.pdf
   references.bib
   sn-jnl.cls  sn-basic.bst
@@ -548,17 +554,21 @@ Where each requirement of sections 10 and 10.1 is built in:
 
 | Requirement | Tool |
 |---|---|
-| Abstract length and form (JIIS 150 to 250 words, CMC 200 to 400; one paragraph, no citation, no undefined abbreviation), keyword count, an abbreviation defined at first use, headings of at most three levels, a footnote that is only a citation, more than 5 references in one bracket (CMC), a reference without DOI or arXiv id, a caption ending in a full stop (JIIS) | `tools/lint.py --journal jiis` or `cmc` |
+| Abstract length and form (JIIS 150 to 250 words, CMC 200 to 400; one paragraph, no citation, no undefined abbreviation), keyword count, an abbreviation defined at first use, headings of at most three levels, a footnote that is only a citation, more than 5 references in one bracket (CMC), a reference without DOI or arXiv id, a caption ending in a full stop (JIIS) | `tools/lint.py --journal cmc` or `jiis` |
 | Figure width (119 mm JIIS, at most 165.1 mm CMC) and height (at most 195 mm, 200 mm), Arial or Helvetica of one size from 8 pt, lines of 0.3 pt or more, fonts embedded, vector output, no title inside the figure, panel letters a, b, c (JIIS) or A, B, C (CMC), series told apart by marker and dash | `tools/charts.py --journal jiis` or `cmc` |
 | Software with version and maker, and the run parameters | `tools/paper_settings.py`, Appendix B |
 | Table footnotes under the table with superscript lower-case letters | the table generator (`threeparttable`) |
 | One `.tex` file without `\input`, the `.bbl` pasted in, no subfolders, figures named `Fig1`, `Fig2`, the class and style files beside it, the compiled PDF | `make submit` (`tools/flatten.py`), which also compiles the flat copy |
-| Compiles on TeX Live 2018 (Editorial Manager) | the preamble holds only the packages of the Springer template (`graphicx`, `multirow`, `amsmath`, `amssymb`, `amsfonts`, `amsthm`, `mathrsfs`, `appendix`, `xcolor`, `textcomp`, `manyfoot`, `booktabs`, `algorithm`, `algorithmicx`, `algpseudocode`, `listings`), and `lint.py` stops on any other `\usepackage` |
+| Compiles on TeX Live 2018 (Editorial Manager) | the preamble holds only the packages of the Springer template (`graphicx`, `multirow`, `amsmath`, `amssymb`, `amsfonts`, `amsthm`, `mathrsfs`, `appendix`, `xcolor`, `textcomp`, `manyfoot`, `booktabs`, `algorithm`, `algorithmicx`, `algpseudocode`, `listings`), and `lint.py --journal jiis` stops on any other `\usepackage`; for CMC the list is what `main.tex` adds to the class (`algorithm`, `algorithmicx`, `algpseudocode`, `listings`, `catchfile`) |
 
-## 10. A CMC version
+## 10. The CMC version and the JIIS version
 
-Same sections and tables, a second wrapper `main_cmc.tex` on the Tech
-Science Press class (`TSP-Latex.zip`: `tsp.cls`, `vancouver.bst`):
+The manuscript is built in the CMC template since 2026-11-27: the
+wrapper `main.tex` on the Tech Science Press class (`TSP-Latex.zip`:
+`tsp.cls`, `vancouver.bst`, in `Definitions/`). Three commands of the
+wrappers carry what differs by journal in the section bodies: `\panel`
+(a panel letter in a caption), `\chart` (the file of a result chart)
+and `\kwsep` (between two keywords). What the CMC version holds:
 
 - abstract of 200 to 400 words ending with the main numbers; 3 to 10
   keywords;
@@ -572,11 +582,9 @@ Science Press class (`TSP-Latex.zip`: `tsp.cls`, `vancouver.bst`):
   acknowledgement, and the caption of a diagram prepared with an AI
   tool names the tool and its version (author instructions, read
   2026-11-26);
-- the class needs `CJKutf8`, `verse`, `bbm` and `mathcomp`, not
-  installed.
+- the packages the class needs are installed (section 9).
 
-From the same page, read in full on 2026-11-26, and not yet in the
-tools:
+From the same page, read in full on 2026-11-26:
 
 - figures at most 20 cm high; the panels of a figure in one file,
   lettered A, B, C at the top left; no citation of the form "[n]"
@@ -719,7 +727,10 @@ pages), and the owner may send it.
    tool and version. The figure is not redrawn or restyled before the
    owner decides; its labels were brought to the names and the notation
    of `TERMS.md` on 2026-11-26 (owner: fix what is needed).
-3. Which journal goes first. This plan assumes JIIS.
+3. Decided (owner, 2026-11-27): CMC goes first, JIIS is the second
+   choice. The author statements of the CMC wrapper (funding,
+   contributions, availability of data, conflicts of interest), the
+   author block and the title wait for the owner.
 4. Decided (owner, 2026-11-26): Section 3.4 gives the reason for two
    pairs per question where CodeLutra constructs ten: the number of
    pairs sets the length of local training (`CLAIMS.md`, section 7).

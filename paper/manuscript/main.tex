@@ -1,46 +1,63 @@
-%% FedLS-SQL manuscript: wrapper for the Journal of Intelligent Information
-%% Systems (Springer Nature sn-jnl, version 3.1, December 2024).
+%% FedLS-SQL manuscript: wrapper for Computers, Materials & Continua
+%% (Tech Science Press class tsp.cls, TSP-Latex.zip of 2024-12-18, in Definitions/).
 %% The section bodies are in sections/ and use no command of this class.
-%% `make submit` writes the single-file source the journal asks for.
-\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+%% The wrapper of the second journal is main_jiis.tex (make JOURNAL=jiis).
+\documentclass[cmc,article,submit,oneauthor,pdftex]{Definitions/tsp}
+\input{Definitions/package}
+\input{Definitions/unicode}
 
-%% Only the packages of the Springer template (the journal compiles on TeX Live 2018).
-\usepackage{graphicx}
-\usepackage{multirow}
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{amsthm}
-\usepackage{mathrsfs}
-\usepackage[title]{appendix}
-\usepackage{xcolor}
-\usepackage{textcomp}
-\usepackage{manyfoot}
-\usepackage{booktabs}
+%% Internal commands of the class, as its template sets them.
+\continuouspages{yes}
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{12345}
+\pubyear{2026}
+\copyrightyear{2026}
+\datereceived{Day Month Year}
+\dateaccepted{Day Month Year}
+\datepublished{Day Month Year}
+
+%% Packages the section bodies need beyond those the class loads.
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{listings}
+\usepackage{catchfile}
+%% Scalable monospaced and sans serif fonts in the T1 encoding of the class (the prompt, the line numbers).
+\renewcommand{\ttdefault}{lmtt}
+\renewcommand{\sfdefault}{lmss}
 
 \input{macros}
 \input{generated/numbers}
 \input{generated/settings}
 
-%% Headings of the declarations; the CMC wrapper maps them to its own commands.
-\newcommand{\declhead}[1]{\bmhead{#1}}
+%% What differs by journal in the section bodies.
+\newcommand{\panel}[1]{(\textbf{\MakeUppercase{#1}})}        % a panel of a figure, named in a caption
+\newcommand{\chart}[1]{\includegraphics{figures/#1_cmc.pdf}} % a result chart, lettered A, B
+\newcommand{\kwsep}{; }                                      % between two keywords
 
-\raggedbottom
+\Title{\method: title to be set}
+
+\Author{First Author\textsuperscript{1,*}}
+\AuthorNames{First Author}
+\address[1]{%
+\textsuperscript{1}Department, Organization, City, Postcode, Country
+}
+\corres{Corresponding Author: First Author. Email: first.author@example.org}
+
+%% The class expands the abstract and the keywords (PDF metadata, a test for emptiness), so
+%% their files are read into macros and not passed as \input.
+\CatchFileDef{\abstracttext}{sections/00_abstract.tex}{}
+\CatchFileDef{\keywordtext}{sections/00_keywords.tex}{}
+\abstract{\abstracttext}
+
+\keyword{\keywordtext}
 
 \begin{document}
-
-\title[\method]{\method: title to be set}
-
-\author*[1]{\fnm{First} \sur{Author}}\email{first.author@example.org}
-\affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\city{City}, \country{Country}}}
-
-\abstract{\input{sections/00_abstract}}
-
-\keywords{\input{sections/00_keywords}}
-
-\maketitle
 
 \input{sections/01_intro}
 \input{sections/02_related}
@@ -51,15 +68,15 @@
 \input{sections/07_discussion}
 \input{sections/08_conclusion}
 
-\backmatter
+\input{sections/90_statements_cmc}
 
-\input{sections/90_declarations}
-
-\begin{appendices}
+\appendixstart
+\appendix
 \input{sections/A_prompt}
 \input{sections/B_settings}
-\end{appendices}
 
+\clearpage % the floats of the appendices come before the references
+\reftitle{References}
 \bibliography{references}
 
 \end{document}

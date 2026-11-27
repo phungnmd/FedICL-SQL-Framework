@@ -5,7 +5,7 @@ A STOP finding stops a section (exit code 1); a note is advice for the main sess
 
   STOP  a result number or a setting typed by hand (it must be a macro)
         a \\cite key that is not in references.bib; an entry without DOI, arXiv id or address
-        a \\usepackage outside the packages of the Springer template (TeX Live 2018 at the journal)
+        a \\usepackage outside the package list of the journal (for JIIS, the Springer template)
         the abstract outside the word range of the journal, in several paragraphs or with a citation
         the keyword count outside the range of the journal
         a heading below the third level; a footnote that is only a citation
@@ -17,7 +17,7 @@ A STOP finding stops a section (exit code 1); a note is advice for the main sess
         hedging outside the limitations; em dashes
         an earlier label that TERMS.md replaced (wrong result, right answer); British spelling
 
-    python3 tools/lint.py --journal jiis          # every section
+    python3 tools/lint.py --journal cmc           # every section
     python3 tools/lint.py sections/03_method.tex  # one file
     python3 tools/lint.py --inventory             # macros and cite keys of every section
 """
@@ -37,8 +37,13 @@ JOURNALS = {
     "jiis": {"abstract": (150, 250), "keywords": (4, 6), "max_cite": None, "caption_stop": True},
     "cmc": {"abstract": (200, 400), "keywords": (3, 10), "max_cite": 5, "caption_stop": False},
 }
-TEMPLATE_PACKAGES = {"graphicx", "multirow", "amsmath", "amssymb", "amsfonts", "amsthm", "mathrsfs", "appendix", "xcolor",
-                     "textcomp", "manyfoot", "booktabs", "algorithm", "algorithmicx", "algpseudocode", "listings"}
+# the wrapper of each journal and the packages it may load: for JIIS those of the Springer template, for CMC
+# those added to what the class of Tech Science Press loads itself
+WRAPPERS = {
+    "jiis": ("main_jiis.tex", {"graphicx", "multirow", "amsmath", "amssymb", "amsfonts", "amsthm", "mathrsfs", "appendix", "xcolor",
+                               "textcomp", "manyfoot", "booktabs", "algorithm", "algorithmicx", "algpseudocode", "listings"}),
+    "cmc": ("main.tex", {"algorithm", "algorithmicx", "algpseudocode", "listings", "catchfile"}),
+}
 NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "errpval", "errpadj", "wrpval", "wrpadj", "nfix", "nbrk", "tsgain", "tsgap", "tspval", "fact", "setting")
 # names that are not abbreviations to define (datasets, models, tools, the language itself)
 KNOWN_NAMES = {"SQL", "BIRD", "SQLITE", "II", "III", "IV", "RQ", "ID", "DDL", "GPU", "CUDA", "MB", "GB", "EX", "TS",
@@ -230,20 +235,21 @@ def check_front(rep: Report, journal: dict) -> None:
     kw = SECTIONS / "00_keywords.tex"
     text = "\n".join(strip_comment(l) for l in kw.read_text(encoding="utf-8").split("\n")).strip()
     if text:
-        n = len([k for k in re.split(r",|\\sep", text) if k.strip()])
+        n = len([k for k in re.split(r",|;|\\kwsep|\\sep", text) if k.strip()])
         lo, hi = journal["keywords"]
         if not lo <= n <= hi:
             rep.add("STOP", kw, 1, "keywords", f"{n} keywords (the journal asks for {lo} to {hi})")
 
 
-def check_preamble(rep: Report) -> None:
-    for name in ("main.tex", "macros.tex"):
+def check_preamble(rep: Report, journal_name: str) -> None:
+    wrapper, packages = WRAPPERS[journal_name]
+    for name in (wrapper, "macros.tex"):
         path = MANUSCRIPT / name
         for i, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
             for m in re.finditer(r"\\usepackage(?:\[[^\]]*\])?\{([^{}]*)\}", strip_comment(line)):
                 for pkg in m.group(1).split(","):
-                    if pkg.strip() not in TEMPLATE_PACKAGES:
-                        rep.add("STOP", path, i, "package", f"'{pkg.strip()}' is not a package of the Springer template")
+                    if pkg.strip() not in packages:
+                        rep.add("STOP", path, i, "package", f"'{pkg.strip()}' is not in the package list of this journal (tools/lint.py)")
 
 
 def check_captions(files: list[tuple[Path, str]], rep: Report, journal: dict) -> None:
@@ -275,7 +281,7 @@ def inventory(files: list[tuple[Path, str]]) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="*", help="section files (default: every section)")
-    ap.add_argument("--journal", choices=sorted(JOURNALS), default="jiis")
+    ap.add_argument("--journal", choices=sorted(JOURNALS), default="cmc")
     ap.add_argument("--inventory", action="store_true")
     args = ap.parse_args()
     paths = [Path(f) if Path(f).is_absolute() else MANUSCRIPT / f for f in args.files] or sorted(SECTIONS.glob("*.tex"))
@@ -297,7 +303,7 @@ def main() -> None:
     check_captions(files, rep, journal)
     if not args.files:
         check_front(rep, journal)
-        check_preamble(rep)
+        check_preamble(rep, args.journal)
     sys.exit(rep.show())
 
 

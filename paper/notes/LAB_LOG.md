@@ -4,6 +4,40 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the manuscript is in the CMC template (owner; no run)
+
+Owner: move to the CMC template now. `paper/manuscript/main.tex` is the
+wrapper on the class of Tech Science Press (`TSP-Latex.zip` of
+2024-12-18, sha256 `d9113d00...`, in `Definitions/`); the Springer
+wrapper is `main_jiis.tex` (`make JOURNAL=jiis`). The section bodies
+are shared; `\panel`, `\chart` and `\kwsep` carry what differs
+(panel letters A, B against a, b; the chart files; the keyword
+separator). The statements of CMC are in
+`sections/90_statements_cmc.tex`: the AI disclosure is written, in the
+acknowledgement; funding, author contributions, availability of data
+and conflicts of interest wait for the owner, as do the author block
+and the title.
+
+- `make` (CMC): 28 pages in the submission layout of the class (one
+  column, line numbers), 13 above the 15 pages the fee covers; no
+  overfull box, no float too large, no bitmap font; references in
+  Vancouver style. `make JOURNAL=jiis`: 29 pages, over the limit of 25
+  (the draft is not trimmed yet).
+- Appendix B is two tables now (`tab_settings.tex`,
+  `tab_settings_2.tex`): as one float it was 173 pt longer than a page
+  of the CMC class. The prompt of Appendix A is set in 7 pt so that its
+  longest line fits the text width.
+- `tools/lint.py`, `tools/pages.py` and `tools/flatten.py` take
+  `--journal`, `cmc` by default. `flatten.py` was run for both journals
+  with `??` in place of the 48 pending numbers (it stops on a missing
+  number otherwise): both flat copies compile. Five accessors were
+  missing from it (`tsgap`, `errpval`, `errpadj`, `wrpval`, `wrpadj`).
+- Not done: `floats.tex` and `pilot/harness.tex` still use `sn-jnl`;
+  the cold-review script still names JIIS by default (`-j`).
+- `make lint`: 2 STOP, both older than this change
+  (`01_intro.tex:10`, "0.5B to 1.5B" of SLM-SQL read as a hand-typed
+  result).
+
 ## 2026-11-27: CMC is the target journal (owner; no run)
 
 The owner sets CMC as the main target; JIIS is the second choice.

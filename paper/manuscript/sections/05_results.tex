@@ -73,8 +73,8 @@ differs from \method.
 
 \begin{figure}[t]
   \centering
-  \includegraphics{figures/fig_rounds.pdf}
-  \caption{EX by round on \textbf{a} BIRD dev and \textbf{b} Spider
+  \chart{fig_rounds}
+  \caption{EX by round on \panel{a} BIRD dev and \panel{b} Spider
   test. Round 0 is the pretrained model. \method{} shares its first
   \setting{rounds.warmup} rounds, the warm-up rounds, with FedAvg SFT;
   its rounds 3 and 4 are preference rounds. On Spider, FedAvg SFT is
@@ -269,9 +269,9 @@ Section~\ref{sec:discussion} returns to them.
 
 \begin{figure}[t]
   \centering
-  \includegraphics{figures/fig_errors.pdf}
-  \caption{Incorrect predictions by round on \textbf{a} BIRD dev and
-  \textbf{b} Spider test, divided into incorrect results and execution
+  \chart{fig_errors}
+  \caption{Incorrect predictions by round on \panel{a} BIRD dev and
+  \panel{b} Spider test, divided into incorrect results and execution
   errors. Round 0 is the pretrained model; the bars of \method{} begin
   at round 3, its first preference round}
   \label{fig:errors}

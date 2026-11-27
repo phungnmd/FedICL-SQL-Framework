@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Write the submission copy of the manuscript: one directory, one .tex file.
 
-What the journal asks for (JIIS submission guidelines; the Springer template itself says
-"do not use \\input", "submit as one .tex document"):
+What a journal asks for (JIIS submission guidelines; the Springer template itself says
+"do not use \\input", "submit as one .tex document"; the copy for CMC is made the same way,
+with the Definitions/ folder of the class of Tech Science Press beside the file):
 
   - one .tex file: every \\input is put in, the number and setting macros are replaced by
     their values, comment lines are dropped
   - the reference list pasted in from the .bbl in place of \\bibliography
-  - no subfolders; figure files named Fig1, Fig2, ... in the order they appear
+  - no subfolders of our own; figure files named Fig1, Fig2, ... in the order they appear
   - the class and the reference style beside it, and the compiled PDF
 
 The copy is compiled in its own directory, with nothing else on the TeX path of the
 manuscript, so a file that is missing from it stops the build here and not at the journal.
 
-    python3 tools/flatten.py --journal jiis     # after `make`, which leaves build/main.bbl
+    python3 tools/flatten.py --journal cmc      # after `make`, which leaves build/main.bbl
 """
 from __future__ import annotations
 
@@ -25,13 +26,16 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MANUSCRIPT = HERE.parent
-WRAPPER = {"jiis": ("main.tex", ["sn-jnl.cls", "sn-basic.bst"])}
+# journal -> wrapper, the class files copied beside the flat file, the suffix of its result charts
+WRAPPER = {"jiis": ("main_jiis.tex", ["sn-jnl.cls", "sn-basic.bst"], ""),
+           "cmc": ("main.tex", ["Definitions"], "_cmc")}
 NAME = "manuscript"
 GENERATED_MACROS = ("generated/numbers", "generated/settings")
 # accessor -> (key prefix, number of mandatory arguments); the optional argument is the model
 ACCESSORS = {"ex": ("ex", 3), "lvl": ("lvl", 4), "nerr": ("err", 3), "nwr": ("wr", 3), "ts": ("ts", 3),
              "gain": ("gain", 5), "gap": ("gap", 5), "pval": ("pval", 5), "padj": ("padj", 5), "nfix": ("nfix", 5),
-             "nbrk": ("nbrk", 5), "tsgain": ("tsgain", 5), "tspval": ("tspval", 5)}
+             "nbrk": ("nbrk", 5), "tsgain": ("tsgain", 5), "tsgap": ("tsgap", 5), "tspval": ("tspval", 5),
+             "errpval": ("errpval", 5), "errpadj": ("errpadj", 5), "wrpval": ("wrpval", 5), "wrpadj": ("wrpadj", 5)}
 
 
 def read(path: Path) -> str:
@@ -56,7 +60,9 @@ def inline(text: str, seen: tuple = ()) -> str:
         if path in seen:
             raise SystemExit(f"STOP: {name} includes itself")
         return inline(read(path), seen + (path,)).rstrip("\n")
-    return re.sub(r"\\input\{([^{}]*)\}", put, uncomment(text))
+    text = re.sub(r"\\CatchFileDef\{(\\[A-Za-z]+)\}\{([^{}]*)\}\{\}",
+                  lambda m: f"\\newcommand{{{m.group(1)}}}{{{uncomment(read(MANUSCRIPT / m.group(2))).strip()}}}", uncomment(text))
+    return re.sub(r"\\input\{([^{}]*)\}", put, text)
 
 
 def uncomment(text: str) -> str:
@@ -112,12 +118,29 @@ def figures(text: str, out: Path) -> str:
     return re.sub(r"\\includegraphics(\[[^\]]*\])?\{([^{}]*)\}", put, text)
 
 
+def charts(text: str, suffix: str) -> str:
+    """Write each \\chart{name} of the sections as the file the wrapper of the journal reads."""
+    text = re.sub(r"\\newcommand\{\\chart\}[^\n]*\n", "", text)
+    return re.sub(r"\\chart\{([^{}]*)\}", lambda m: f"\\includegraphics{{figures/{m.group(1)}{suffix}.pdf}}", text)
+
+
+def listings(text: str, out: Path) -> str:
+    """Copy each listing file beside the flat file and point the text at the copy."""
+    def put(m: re.Match) -> str:
+        path = MANUSCRIPT / m.group(1).strip()
+        if not path.exists():
+            raise SystemExit(f"STOP: listing file {m.group(1)} not found")
+        shutil.copyfile(path, out / path.name)
+        return f"\\lstinputlisting{{{path.name}}}"
+    return re.sub(r"\\lstinputlisting\{([^{}]*)\}", put, text)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--journal", choices=sorted(WRAPPER), default="jiis")
+    ap.add_argument("--journal", choices=sorted(WRAPPER), default="cmc")
     ap.add_argument("--out", default="submit")
     args = ap.parse_args()
-    wrapper, style_files = WRAPPER[args.journal]
+    wrapper, style_files, chart_suffix = WRAPPER[args.journal]
     out = MANUSCRIPT / args.out
     if out.exists():
         shutil.rmtree(out)
@@ -131,14 +154,17 @@ def main() -> None:
         text = re.sub(r"\\bibliography\{[^{}]*\}", lambda m: read(bbl).rstrip("\n"), text)
     else:
         text = re.sub(r"\\bibliography\{[^{}]*\}\n?", "", text)
-    text = figures(text, out)
+    text = listings(figures(charts(text, chart_suffix), out), out)
     text = re.sub(r"\n{3,}", "\n\n", text)
     left = re.findall(r"\\(?:input|bibliography)\{[^{}]*\}|\\pn@|\\st@", text)
     if left:
         raise SystemExit(f"STOP: left in the flat file: {sorted(set(left))}")
     (out / f"{NAME}.tex").write_text(text, encoding="utf-8")
     for f in style_files:
-        shutil.copyfile(MANUSCRIPT / f, out / f)
+        if (MANUSCRIPT / f).is_dir():
+            shutil.copytree(MANUSCRIPT / f, out / f)
+        else:
+            shutil.copyfile(MANUSCRIPT / f, out / f)
     for i in range(3):
         run = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error", f"{NAME}.tex"], cwd=out,
                              capture_output=True, text=True, errors="replace")
@@ -150,10 +176,10 @@ def main() -> None:
     for f in out.iterdir():
         if f.suffix in {".aux", ".log", ".out", ".toc", ".blg"}:
             f.unlink()
-    if any(f.is_dir() for f in out.iterdir()):
+    if any(f.is_dir() and f.name not in style_files for f in out.iterdir()):
         raise SystemExit("STOP: a subfolder in the submission copy")
     pages = re.search(r"Output written on .*?\((\d+) pages?", log, flags=re.S).group(1)
-    print(f"{out.relative_to(MANUSCRIPT)}/: " + ", ".join(sorted(f.name for f in out.iterdir())) + f" ({pages} pages)")
+    print(f"{out}/: " + ", ".join(sorted(f.name for f in out.iterdir())) + f" ({pages} pages)")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,8 @@ The script stops when two runs of the paper disagree on a setting.
 
 Writes, under paper/manuscript/generated/:
   settings.tex       one macro per setting: \\setting{name}
-  tab_settings.tex   the tabular of Appendix B
+  tab_settings.tex   the first tabular of Appendix B (model, federation, FedAvg SFT round)
+  tab_settings_2.tex the second (preference round, evaluation, software and hardware)
   settings.md        the same values with their sources (for the Setup brief)
 
     python3 tools/paper_settings.py
@@ -297,6 +298,9 @@ def collect() -> list[tuple]:
 # rows of Appendix B; the other entries exist as macros only
 # names of the models as the paper writes them, where the repository name differs
 PAPER_NAME = {"deepseek-coder-1.3b-instruct": "DeepSeek-Coder-1.3B-Instruct"}
+# the two tables of Appendix B: one float with every group is longer than a page
+TABLES = {"tab_settings.tex": False, "tab_settings_2.tex": True}
+SECOND_TABLE = {"Preference round", "Evaluation", "Software and hardware"}
 IN_TABLE_SKIP = {"model.size", "lora.r", "lora.alpha", "rounds.total", "rounds.warmup", "rounds.pref", "pref.t", "timeout.bird", "timeout.spider"}
 
 ACCESSOR = r"""%% Written by tools/paper_settings.py from the committed configs. Do not edit.
@@ -312,18 +316,18 @@ def main() -> None:
     GEN.mkdir(exist_ok=True)
     tex = [ACCESSOR] + [f"\\st@def{{{name}}}{{{value}}}" for _, _, name, value, _, _ in rows] + ["\\makeatother"]
     (GEN / "settings.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")
-    lines, group = ["\\toprule", "Setting & Value \\\\"], None
-    for g, label, name, value, _, _ in rows:
-        if name in IN_TABLE_SKIP:
-            continue
-        if g != group:
-            lines += ["\\midrule", f"\\multicolumn{{2}}{{@{{}}l}}{{\\textit{{{g}}}}} \\\\"]
-            group = g
-        lines.append(f"{label} & {value} \\\\")
-    lines.append("\\bottomrule")
-    (GEN / "tab_settings.tex").write_text(
-        "%% Written by tools/paper_settings.py. Do not edit.\n\\begin{tabular}{@{}p{0.36\\linewidth}p{0.58\\linewidth}@{}}\n" + "\n".join(lines)
-        + "\n\\end{tabular}\n", encoding="utf-8")
+    head = "%% Written by tools/paper_settings.py. Do not edit.\n\\begin{tabular}{@{}p{0.36\\linewidth}p{0.58\\linewidth}@{}}\n"
+    for fname, second in TABLES.items():
+        lines, group = ["\\toprule", "Setting & Value \\\\"], None
+        for g, label, name, value, _, _ in rows:
+            if name in IN_TABLE_SKIP or (g in SECOND_TABLE) != second:
+                continue
+            if g != group:
+                lines += ["\\midrule", f"\\multicolumn{{2}}{{@{{}}l}}{{\\textit{{{g}}}}} \\\\"]
+                group = g
+            lines.append(f"{label} & {value} \\\\")
+        lines.append("\\bottomrule")
+        (GEN / fname).write_text(head + "\n".join(lines) + "\n\\end{tabular}\n", encoding="utf-8")
     md = ["# Settings of the paper", "", "Written by `tools/paper_settings.py` from the committed configs.", "",
           "| Group | Setting | Macro | Value | Source |", "|---|---|---|---|---|"]
     md += [f"| {g} | {label.replace('$', '').replace(chr(92), '')} | `\\setting{{{name}}}` | {plain} | {source} |"
