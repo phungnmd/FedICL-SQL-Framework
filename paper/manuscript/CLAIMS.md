@@ -22,7 +22,9 @@ result.
    wrong queries of the model's own, and this can be done only at the
    client. To our knowledge it is the first federated Text-to-SQL
    training method that uses it.
-2. The method. FedLS-SQL: warm-up rounds of FedAvg SFT, then preference
+2. The framework (owner, 2026-11-27: the paper names FedLS-SQL a
+   framework where it introduces it; the method and its default
+   configuration are unchanged). FedLS-SQL: warm-up rounds of FedAvg SFT, then preference
    rounds in which each client samples queries from the current global
    model, labels them by execution, pairs right with wrong ones and
    trains with a DPO term plus an NLL term. A federated round is one

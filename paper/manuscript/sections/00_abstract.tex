@@ -6,8 +6,8 @@ clients, without moving their data. Its common form, federated averaging
 with supervised fine-tuning (FedAvg SFT), learns from the gold SQL query
 alone: no query is executed on the databases at the clients, although
 execution shows whether a generated query is correct. We propose
-\method, which uses this signal. Training begins with warm-up rounds of
-FedAvg SFT, in which the model learns from the gold SQL query of every
+\method, a federated learning framework for Text-to-SQL that uses this
+signal. Training begins with warm-up rounds of FedAvg SFT, in which the model learns from the gold SQL query of every
 question. In the preference rounds that
 follow, each client samples queries from the current global model,
 executes them on its own databases, labels each as correct or incorrect

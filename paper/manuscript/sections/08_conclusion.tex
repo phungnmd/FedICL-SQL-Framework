@@ -1,7 +1,7 @@
 \section{Conclusion}\label{sec:conclusion}
 
-We presented \method, a federated training method for Text-to-SQL in
-which the clients use their databases as supervision. After warm-up
+We presented \method, a federated learning framework for Text-to-SQL
+in which the clients use their databases as supervision. After warm-up
 rounds of FedAvg SFT, each client samples queries from the global
 model, labels them by execution on its own databases against the gold
 SQL query, and trains on pairs of a correct and an incorrect sample

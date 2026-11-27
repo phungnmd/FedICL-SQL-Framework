@@ -4,6 +4,18 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: FedLS-SQL is named a framework, light version (owner; no run)
+
+Owner: name the method a framework, light version. The paper says "a
+federated learning framework for Text-to-SQL" where it introduces
+FedLS-SQL (abstract, Section 1 and its contribution list, Section 3.2,
+Section 8) and "the method" elsewhere; the method, its default
+configuration and the tables are unchanged. The contribution list is
+four items again (supervision left unused, the framework, the evidence,
+the release), the form of the brief and of LESFT in CMC. `TERMS.md`,
+`CLAIMS.md` (section 2) and the brief of Section 1 say so. The title
+is still to be set; three candidates are in `REVIEW_NOTES.md` (B40).
+
 ## 2026-11-27: the manuscript is in the CMC template (owner; no run)
 
 Owner: move to the CMC template now. `paper/manuscript/main.tex` is the

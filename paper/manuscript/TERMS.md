@@ -15,7 +15,7 @@ name replaces.
 
 | Term | Meaning | Replaces |
 |---|---|---|
-| `\method` (FedLS-SQL) | the proposed method | |
+| `\method` (FedLS-SQL) | the proposed framework. The paper names it "a federated learning framework for Text-to-SQL" where it introduces it (abstract, Section 1 and its contribution list, Section 3.2, Section 8; owner, 2026-11-27); elsewhere it is `\method` or "the method", and the rows of the tables stay "federated methods" | |
 | the model | the trained model: Qwen2.5-Coder-1.5B-Instruct with a LoRA adapter unless another model is named | the student |
 | the pretrained model | the model before any round; "No training" as the label of its row | the base student |
 | FedAvg SFT | supervised fine-tuning (SFT) on the gold SQL queries with federated averaging; the main baseline | |

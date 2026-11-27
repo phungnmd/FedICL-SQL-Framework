@@ -57,9 +57,10 @@ are fixed in advance and are not outputs of the model being trained;
 FedDPO also keeps one reference model for all rounds, and its loss has
 no NLL term.
 
-We propose \method, in which execution on the databases of a client
-turns the one gold SQL query of a question into many correct and
-incorrect queries of the model's own. Training begins with warm-up
+We propose \method, a federated learning framework for Text-to-SQL in
+which execution on the databases of a client turns the one gold SQL
+query of a question into many correct and incorrect queries of the
+model's own. Training begins with warm-up
 rounds, which are rounds of FedAvg SFT, because pairs require a correct
 and an incorrect sample of the same question and the pretrained model
 leaves more questions without a correct sample. Preference rounds follow, in
@@ -104,15 +105,21 @@ round.
 
 Our contributions are as follows:
 \begin{itemize}
-\item We observe that the databases of a client are supervision that
-  federated fine-tuning leaves unused, and we propose \method{}
-  (Section~\ref{sec:method}), to our knowledge the first method for the
-  federated training of Text-to-SQL models that uses it.
+\item We identify the databases of the clients as supervision that
+  federated fine-tuning for Text-to-SQL leaves unused: execution turns
+  the one gold SQL query of a question into correct and incorrect
+  queries of the model's own, and it is possible only at the client
+  that holds the database.
+\item We propose \method{} (Section~\ref{sec:method}), a federated
+  learning framework in which warm-up rounds of FedAvg SFT are followed
+  by preference rounds on execution-labeled pairs of the model's own
+  samples; to our knowledge, it is the first method for the federated
+  training of Text-to-SQL models that uses this supervision.
 \item We show that \method{} exceeds FedAvg SFT at the same number of
-  rounds on BIRD and Spider, and analyze where the gain arises and what
-  a round costs a client (Section~\ref{sec:results}).
-\item We ablate \method{} against variants without the preference term,
-  without the NLL term and with fixed pairs and reference model
+  rounds on BIRD and Spider, analyze where the gain arises and what a
+  round costs a client (Section~\ref{sec:results}), and measure what
+  each part adds, with variants without the preference term, without
+  the NLL term and with fixed pairs and reference model
   (Section~\ref{sec:ablation}).
 \item We release the code, the client splits and all predictions.
 \end{itemize}
