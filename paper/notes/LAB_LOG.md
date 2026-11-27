@@ -4,6 +4,60 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: three referee reports on the CMC draft (owner: full review, all effort on CMC; no run)
+
+The CMC PDF (28 pages, 48 numbers pending) went to three isolated
+reviewers with the referee prompt of the cold-review skill, journal
+CMC: two Opus sessions and one Codex session (gpt-6.2-astra, high
+effort). Files: `paper/manuscript/cold_reviews/2026-11-27_1009_cmc_full_{1,2}.md`
+and `2026-11-27_1009_cmc_full_codex_1.md`. Codex wrote its full report
+to a PDF in its temporary directory, which the run removed; only its
+final message is kept.
+
+- All three: reject as it stands, because the draft is unfinished
+  (empty cells, title, authors, statements); both Opus reports add
+  that a complete version answering their first four issues "could be
+  a solid contribution to this journal".
+- New in these reports, in both Opus ones: the preference rounds use
+  other optimizer settings than the SFT rounds (learning rate 5e-5
+  against 2e-4, weight decay 1e-4 against 0.01, LoRA dropout 0 against
+  0.05, warm-up 0.1 against 0.03), and FedAvg SFT falls after round 3,
+  so part of the gain could come from the gentler settings. No row of
+  the paper holds the objective at SFT on the gold SQL and changes
+  only these settings. The RFT row (NLL on correct samples, preference
+  settings) and the row without the NLL term (below its start on
+  Spider) bear on it and do not settle it.
+- Repeated from the reviews of the morning: the gain in EX of the
+  preference term over training on the correct samples alone is not
+  established and the row at 4 rounds is missing (all three); no
+  comparison at equal client time on BIRD; one training seed; the
+  pooled row is missing; a federated GRPO baseline is asked for; the
+  prose of Sections 5.4, 6 and 7.1 carries its numbers in the
+  sentences and repeats them.
+- Related work asked for: self-training on verified samples (STaR,
+  RFT, ReST), ExeSQL, FedPDPO and a federated preference paper with
+  pairs from generations (arXiv 2605.30873; the notes hold its
+  abstract only, so that description is not checked here).
+- Checked against the committed results: (1) the 87 questions of BIRD
+  train that one report could not account for are those whose gold SQL
+  exceeds the time limit in the first preference round (92 in the
+  second); Section 4.2 gave only the 350 that fail, and now gives
+  both. (2) The equal EX of the averages by pair count and by question
+  count on BIRD dev (46.22) is not an artifact: the two sets of
+  predictions differ on 20 questions, 10 each way, 709 correct in
+  both.
+- Found while reading the PDF for this review: the reference style of
+  the template printed neither DOI nor arXiv id, so preprints had no
+  source; both are switched on (`Definitions/vancouver.bst`, three
+  constants).
+- The results repository has no `results:` commit since 2026-11-25
+  17:26; whether the workers run is not known here.
+
+Open for the owner: two rows that are not queued and that the reports
+ask for, FedAvg SFT rounds 3 and 4 with the settings of the preference
+rounds on BIRD (about 7 h, estimate) and FedAvg SFT rounds 5 to 7 on
+BIRD (about 10 h, estimate).
+
 ## 2026-11-27: FedLS-SQL is named a framework, light version (owner; no run)
 
 Owner: name the method a framework, light version. The paper says "a

@@ -100,7 +100,10 @@ some of them (Section~\ref{sec:pref-round}): the
 \fact{train.spider.no_rows.databases} databases of Spider train
 distributed without rows, and the questions whose gold SQL query fails
 to execute, \fact{train.spider.gold_error} in Spider train and
-\fact{train.bird.gold_error} in BIRD train.
+\fact{train.bird.gold_error} in BIRD train. In BIRD train, the gold
+SQL query of a further \fact{train.bird.gold_timeout.pref1} questions
+exceeds the time limit in the first preference round, and that of
+\fact{train.bird.gold_timeout.pref2} in the second.
 
 \subsection{Models}\label{sec:models}
 
