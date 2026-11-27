@@ -1,8 +1,8 @@
 # The paper
 
-One page on the manuscript as a whole, identical for every section. It
-orients the author of a section; the brief specifies the section itself.
-The entries below are notes and not sentences of the manuscript.
+The manuscript as a whole, identical for every section. It orients the
+author of a section; the brief specifies the section itself. The entries
+below are notes and not sentences of the manuscript.
 
 **Title.** \method: A Federated Learning Framework for Text-to-SQL with
 Preference Optimization from Client-Side Execution. Prepared for
@@ -11,6 +11,13 @@ Preference Optimization from Client-Side Execution. Prepared for
 **Subject.** Supervision in federated Text-to-SQL, that is, the origin
 of the training signal. Federated learning constitutes the setting and
 Text-to-SQL the task.
+
+**Thesis.** A client in federated Text-to-SQL possesses two resources:
+questions with gold SQL queries, and the databases on which queries
+execute. FedAvg SFT learns from the first alone; \method additionally
+learns from the second, by executing the model's own queries at the
+client and training on which of them return the result of the gold SQL
+query.
 
 ## Setting
 
@@ -28,9 +35,13 @@ Text-to-SQL the task.
   gold SQL query of each question. The model receives no signal about
   which of its own queries are incorrect, and the client databases
   remain unused.
-- FedDPO, the federated preference optimization of OpenFedLLM,
-  constructs its preference pairs once, retains one reference model for
-  all rounds and has no NLL term; it addresses human preference data.
+- FedDPO, the federated preference optimization of OpenFedLLM, trains
+  each client on a fixed preference dataset (UltraFeedback, HH-RLHF)
+  whose two sides are responses contained in that dataset, not outputs
+  of the model under training; it retains one reference model for the
+  whole federated process and uses the DPO loss without an NLL term.
+  As a baseline here, FedDPO receives execution-labeled preference
+  pairs constructed once, at the first preference round.
 
 ## Key observation
 
@@ -64,9 +75,12 @@ Text-to-SQL the task.
 
 Protocol: execution accuracy (EX) on BIRD dev, the principal dataset,
 and on Spider test; Spider dev, Spider-Syn, Spider-Realistic and
-Spider-DK, with test-suite accuracy (TS), for breadth. Five clients
-under a non-IID partition; one training seed; the exact McNemar test on
-paired predictions with Holm correction within each table. The folder
+Spider-DK, with test-suite accuracy (TS), for breadth. Baselines: the
+pretrained model, local SFT, centralized SFT, FedAvg SFT, FedProx SFT
+and FedDPO. Five clients under a non-IID partition; further federated
+setups (IID, a milder non-IID partition, ten clients) await their
+results. One training seed; the exact McNemar test on paired
+predictions with Holm correction within each table. The folder
 `results/` contains every table and every macro; a cell printed as `--`
 awaits its result.
 
@@ -158,7 +172,8 @@ Four constraints ensure that the manuscript is accurate and that it
 compiles.
 
 1. **Facts.** Every statement about the present work (a configuration,
-   a count, a formula, a result) originates from the materials. A
+   a count, a formula, a result) originates from the materials or from
+   an answer of the editor. A
    statement about a cited work originates from `related/` or, where web
    search is available, from the source itself; such a statement is
    listed in the notes with its address and its location in the source.
