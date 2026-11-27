@@ -2,9 +2,13 @@
 
 How the manuscript is written: who does what, what the writer is given,
 the structure of the paper, its tables and figures, the checks, the
-steps in order, the tools. This is the state of 2026-11-26; how it was
-reached (two pilots of Section 3.4, the ARS pipeline tried and dropped)
-is in `LAB_LOG.md` under that date. What the paper claims and which
+steps in order, the tools. This is the state of 2026-11-27, after the
+voice of the paper was set again (owner, 2026-11-27: the first full
+draft explained in plain language and told the logic of the research in
+sequence, where papers of the field are dense, technical and
+assertive); how it was reached (two pilots of Section 3.4, the ARS
+pipeline tried and dropped, the measures of the first draft) is in
+`LAB_LOG.md` under 2026-11-26 and 2026-11-27. What the paper claims and which
 rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 `paper/manuscript/CLAIMS.md`; this file does not repeat it.
 
@@ -13,7 +17,8 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Part | Choice |
 |---|---|
 | Who writes | a writer agent, one top-level section at a time, in the order of section 8: first its outline of the section, then the prose (owner, 2026-11-26: an outline before the writing keeps the text from rambling). The main session coordinates and writes no prose of the paper |
-| The writer | the author presenting finished work, in the register of the published papers of the field; its own judgement on how a section is built. It runs on Fable 5.2 at high effort (owner, 2026-11-26) |
+| The writer | the authors of a machine learning research paper presenting a finished contribution to peers; not a teacher explaining, and not a lab telling how the work went. It runs on Fable 5.2 at high effort (owner, 2026-11-26) |
+| Voice | academic (owner, 2026-11-27): dense, in the terms of the field, assertive at the strength of the evidence, the novelty said plainly, the method told by component, the results by finding and mechanism. It is specified in `manuscript/VOICE_GUIDE.md` and carried by the register of the brief; no passage of a published paper reaches the writer (section 3.4) |
 | Constraints | few (owner, 2026-11-26). Four things bind the writer (section 3.3). Checks of words and of style are signals for the editor, never rules for the writer, and prose is not repaired word by word: rigid rules and word checks make it stiff and patched |
 | When | the whole paper is drafted now (owner, 2026-11-26) and does not wait for the results (owner, 2026-11-27: the queue is paused while the cards are busy). A number that waits for its result is written with its macro and prints as `??` until the row is committed, `--` in a generated table. A guess may stand in its place, marked: `\expect{value}` (`macros.tex`) prints `value??`, and its sentence may be worded for that outcome. The main session sets a guess, gives it in the brief as expected, and lists it in `manuscript/REVIEW_NOTES.md` with the macro that replaces it; `make` counts placeholders and guesses together, and `make submit` stops on either |
 | Helpers | audits, look-ups and the reader test run on Opus |
@@ -31,8 +36,8 @@ rows exist is in `RESEARCH_STATE.md` (sections 3.1, 3.4, 5.0) and
 | Role | Does | Does not |
 |---|---|---|
 | Owner | has approved `CLAIMS.md`, `TERMS.md` and the outline; approves each brief, reads the sections and the points of `manuscript/REVIEW_NOTES.md` when the owner chooses (a draft is committed before that reading; owner, 2026-11-27), decides | |
-| Main session | builds the numbers, the briefs and the voice folder; starts the writer; runs the checks; turns what they find into a few editor's notes; fixes what is mechanical itself (a macro, a label, a citation key, one of the earlier labels that `TERMS.md` replaced) | draft or rewrite sentences of the paper: it carries the lab's vocabulary, history and rules |
-| Writer (subagent, Fable 5.2 at high effort) | writes one section from the guide, the term sheet, the voice folder and its brief; decides its structure; answers the editor's notes | read the notes of the lab |
+| Main session | builds the numbers, the briefs and the voice guide; starts the writer; runs the checks; turns what they find into a few editor's notes; fixes what is mechanical itself (a macro, a label, a citation key, one of the earlier labels that `TERMS.md` replaced) | draft or rewrite sentences of the paper: it carries the lab's vocabulary, history and rules |
+| Writer (subagent, Fable 5.2 at high effort) | writes one section from the guide, the voice guide, the term sheet and its brief; decides its structure; answers the editor's notes | read the notes of the lab |
 | Helpers (subagents, Opus) | audit claims and statements about other papers, look up records, read the PDF cold | talk to the writer |
 
 One section moves through this loop, and the next starts when it is
@@ -40,10 +45,11 @@ accepted, because a later section reads the earlier ones:
 
 ```text
 brief of the section (main session; the owner approves it)
-  -> outline of the section, one line per paragraph (a fresh writer: WRITING_GUIDE.md, TERMS.md, voice/, the brief, the accepted sections)
+  -> register of the brief measured beside the reference papers; a brief in the words of the lab is rewritten first (section 4)
+  -> outline of the section, one line per paragraph (a fresh writer: WRITING_GUIDE.md, VOICE_GUIDE.md, TERMS.md, the brief, the accepted sections)
   -> the main session checks the outline against the brief and answers it (section 4.1)
   -> draft of the whole section (the same writer, from its outline)
-  -> build, lint, facts against the code and the committed results; a helper reads the PDF of the section cold (main session, helpers)
+  -> build, lint, register, overlap with the closest papers, facts against the code and the committed results; a helper reads the PDF of the section cold (main session, helpers)
   -> at most five editor's notes -> the same writer revises   (two rounds at most)
   -> commit (draft) -> the owner reads it later, with REVIEW_NOTES.md
 ```
@@ -64,8 +70,9 @@ lab's rules it writes to satisfy them; given the lab's notes it takes
 their voice and tells their history; knowing every result it reports
 every result; given a long list of things to avoid, or a draft sent
 back to have its words exchanged, it turns stiff and patched. So the
-writer gets a reader, a register shown by published papers, and the
-material of one section. Few things bind it, and each is stated once.
+writer gets a reader, a voice guide and a brief that are themselves
+written in the register of the paper, and the material of one section.
+Few things bind it, and each is stated once.
 What the lab needs enforced is checked after the draft (section 7) and
 reaches the writer only as an editor's note about the reader.
 
@@ -88,6 +95,27 @@ Three things follow.
   register with 35% of its words taken over from them, and the same
   section written from the guide, the term sheet and a brief in the
   terms of the field read as a paper.
+- The writer takes its register from the bulk of what it reads, and
+  the instructions count as much as the examples. The first full draft
+  (2026-11-27) showed it. Its Introduction had 10.7% words of nine
+  letters or more, 2.8 adverbs in -ly and 10.3 everyday verbs per 1,000
+  words; its brief had 9.3%, 1.0 and 9.2, the guide 5.9%, 0.9 and
+  21.9; the passages of the voice folder had 18.3%, 21.3 and 0.0, and
+  the ten reference papers 20.7%, 20.2 and 1.0. About 3,000 words of
+  guide and brief in the words of the lab outweighed 470 words of
+  passages. So everything the writer reads is written in the register
+  of the paper, and the main session measures a brief before the
+  writer starts (section 7.2).
+- A writer told only where a sentence must stop writes below every
+  limit. The guide of 2026-11-26 described the register by restraint
+  ("leave its praise to the results", "may claim less and never
+  more"), each statement of a brief had a ceiling and no strength to
+  reach (47 to 101 words of negation in a brief), and every check
+  pulled down. The draft had no "outperform", no named challenge and
+  no sentence of insight, and a conclusion that ended on three
+  weaknesses. A statement now carries the strength to write it at
+  (section 4), and what the paper must not say is the editor's to
+  check, not the writer's to read.
 
 The angle of the paper is supervision: where the training signal comes
 from. Federated learning is the setting and Text-to-SQL the task; the
@@ -100,15 +128,15 @@ gives the writer this angle in its first section.
 
 | File | Holds |
 |---|---|
-| `WRITING_GUIDE.md` | about 100 lines: the paper and its reader; how it should read, as a description of the published papers and not as a list of rules; the four things that bind; what is the writer's own; what it returns |
+| `WRITING_GUIDE.md` | about 100 lines, in the register of the paper: the paper and its readers (CMC); the stance of the author; the four things that bind; what is the writer's own; the outline; what it returns |
+| `VOICE_GUIDE.md` | the register (density, compression, assertiveness, the contribution said plainly, person, limitations once) and the organization of each kind of section by rhetorical function; five contrasts from an unrelated domain (section 3.4) |
 | `TERMS.md` | the names of the paper's concepts, the abbreviations, the notation. Its third column lists only the lab words and the earlier labels a defined name replaces |
-| `voice/` | passages from published papers by kind of section, and `style_profile.md` (section 3.4) |
 | the brief of its section | section 4 |
 | `sections/` | the sections already accepted |
 
 Not given to it: the notes of the lab, `CLAIMS.md`, the outline, this
-plan and its checks, and `voice/section_rhetoric.md`, whose paragraph
-roles reach the writer through the brief.
+plan and its checks, the folder `voice/` (measures and paragraph roles
+for the editor), and any text of a published paper.
 
 ### 3.3 What binds the writer, and what is its own
 
@@ -116,9 +144,11 @@ Four things bind it, all in the guide under "What binds":
 
 1. Facts: every fact, formula and statement about a cited paper comes
    from the brief; a gap is named in the notes and not filled.
-2. Claims: a sentence never claims more than the ceiling of its
-   statement; a qualifier that bounds a finding stays. What lies above
-   a ceiling is left out, not denied in print (section 4).
+2. Claims: a statement is written at the strength its brief gives,
+   not above it and not below it; a qualifier that bounds a finding
+   stays. A writer that finds the evidence too thin for that strength
+   says so in its notes and does not weaken the sentence on its own
+   (section 4).
 3. Numbers and names: results and settings are macros; the names and
    the notation are those of `TERMS.md`; citations and labels are those
    of the brief.
@@ -132,32 +162,51 @@ without the gold SQL query.
 
 Everything else is the writer's: how many paragraphs and in what order,
 what leads, which of the available numbers appear in the text, whether
-an example or a small figure is proposed, how a transition is made. The
-paragraph roles of a brief are an offer. The writer's notes are read: a
+an example or a small figure is proposed, how a transition is made,
+inside the organization the voice guide gives for that kind of section.
+The writer's notes are read: a
 gap it names goes back into the brief, and a claim it finds weak goes
 to the owner.
 
-### 3.4 Voice (`voice/`)
+### 3.4 Voice (`VOICE_GUIDE.md`)
 
-Voice is shown, not specified. The folder holds passages from published
-papers, one file per kind of section, read from the arXiv sources of
-seven papers: LoRA (ICLR 2022), FedProx (MLSys 2020) and FedAvg
-(AISTATS 2017) for introductions and related work; DPO (NeurIPS 2023),
-FedAvg, the test-suite paper (EMNLP 2020) and the Methodology of
-GradeSQL (JIIS 2026) for the exposition of a method; CodeS (SIGMOD
-2024), the test-suite paper, LoRA and GradeSQL for setup, results and
-ablations; DPO for limitations. `voice/README.md` lists each passage
-with its section. The owner may replace any of them.
+Voice is specified, and carried by the inputs (owner, 2026-11-27). Until
+that day it was shown: the folder `voice/` held passages from seven
+published papers, and the guide told the writer to read them for
+register. The first full draft did not take their register (section
+3.1), and a passage of a paper close to ours is a risk of its own: the
+method of this paper has the steps of CodeLutra, and a writer that
+reads CodeLutra writes its sentences. The passages were removed.
 
-`voice/style_profile.md` describes the register by kind of section,
-measured in ten papers (the seven above, BIRD, CodeLutra and
-OpenFedLLM; 52,000 words of body text): sentence and paragraph length,
-word length, the share of "we" and of passive sentences, hedges,
-citations per paragraph, and the terms the field uses. Its figures
-describe a range and are not targets. The method section of CodeLutra
-is in the measures and not among the passages: it describes the steps
-this paper describes, and a draft written beside it would follow its
-wording.
+- `VOICE_GUIDE.md` is the one description of the voice. Section 1, the
+  register: terms and nominal compounds of the field in place of
+  paraphrase; a sentence states a proposition and never the chronology
+  of the research; findings in the present tense with exact verbs, a
+  qualification only for a cause no experiment isolates; the novelty
+  said where the method is introduced, and located (what is new
+  against which earlier approach); "we" with an active verb; the limits
+  once, in their subsection. Section 2, the organization of each kind
+  of section by function: an introduction that narrows from the field
+  to the contribution through named limitations and one sentence of
+  insight; a method told by component, each from its motive through
+  its definition to what the definition does; results by finding,
+  evidence, mechanism and implication, with the test statistics in the
+  tables; an ablation by component; a discussion of mechanisms; a
+  conclusion without new qualifications. Section 3, five contrasts
+  between an explanatory and a research register, on a domain that is
+  not ours, so that nothing in them can be taken into the paper.
+- The guide is written in the register it asks for, and so is every
+  brief (section 4). It gives no list of words and no figure.
+- No text of a published paper reaches the writer. The main session
+  read LESFT (CMC 2026), OpenFedLLM, CodeS, LoRA and FedProx to draw up
+  the guide; it quotes none of them.
+- `voice/` stays as the editor's calibration: `style_profile.md` and
+  its data (the register of ten papers by kind of section, the terms of
+  the field, on which `TERMS.md` rests) and `section_rhetoric.md`.
+- If a pilot written from the guide and a brief in the right register
+  is still far from the range of the papers, passages come back, from
+  papers far from ours in content (LESFT, LoRA, FedProx), never from
+  CodeLutra, OpenFedLLM, GradeSQL or DPO.
 
 ### 3.5 What is kept from ARS and PaperOrchestra
 
@@ -167,22 +216,23 @@ pipelines are not (section 9).
 
 | From | Idea | Where it lives here |
 |---|---|---|
-| ARS | The register follows the conventions of the field and the journal, calibrated on published papers | `voice/`; the guide, "How it should read" |
+| ARS | The register follows the conventions of the field and the journal, calibrated on published papers | `VOICE_GUIDE.md`; `voice/style_profile.md` for the editor |
 | ARS, PaperOrchestra | Facts come only from the supplied material; a gap is named, not filled | the guide, "What binds", 1; numbers as generated macros |
-| ARS | A claim never above its ceiling; under revision the sentence changes and the claim stays | the guide, "What binds", 2 |
+| ARS | A claim never above what its evidence carries; under revision the sentence changes and the claim stays | the guide, Section 3, constraint 2: written at the strength of the brief |
 | ARS | Each section answers one question of the reader; a paragraph the paper would not miss goes | the Purpose row of a brief; the guide, "What is yours" |
 | ARS | The moves of an introduction (territory, gap, what the paper does), the title and the abstract | the brief of the Introduction, from `references/intro_title_rhetoric_guide.md` and `abstract_writing_guide.md` of the skill |
 | ARS | A review by an agent that has not seen the writing, two rounds at most; every reference verified against a fetched record | the cold read of section 7.2; `bib/report.md` |
 | ARS, PaperOrchestra | An outline before the prose: the points of a section in order, each with the evidence it uses | the writer's outline (section 4.1) |
-| PaperOrchestra | One paragraph, one point, stated in its first sentence; paragraph roles by kind of section | the guide, "How it should read"; `voice/section_rhetoric.md`, through the briefs |
+| PaperOrchestra | One paragraph, one point, stated in its first sentence; paragraph roles by kind of section | `VOICE_GUIDE.md`, Section 2 (`voice/section_rhetoric.md` was one of its sources) |
 | PaperOrchestra | One name per concept from abstract to conclusion | `TERMS.md` |
 | PaperOrchestra | The writer sees the tables and figures it describes | a brief names their files (section 4) |
 | PaperOrchestra | The failure modes of a generated paper: a method described otherwise than the code, an invented number or reference, a part called essential without its ablation, a framing the results have overtaken | the stops of section 7.1 |
 | PaperOrchestra | A revision changes no number and no reference | `make inventory` before and after the whole-paper pass |
 | PaperOrchestra | The argument read from the first sentences alone; table conventions | `tools/reverse_outline.py`, `tools/table_lint.py` (signals) |
 
-Left out on purpose: a fixed scheme for every paragraph, lists of words
-for the writer, a score the writer gives itself, a loop that accepts a
+Left out on purpose: a fixed scheme for every paragraph (the voice
+guide orders a section by function and leaves the paragraphs to the
+writer), lists of words for the writer, a score the writer gives itself, a loop that accepts a
 revision by the score of a simulated reviewer, and the instruction to
 report what did not work.
 
@@ -191,19 +241,28 @@ report what did not work.
 The brief is where the lab's language becomes the paper's, once, and
 where the owner decides content before any prose exists. It covers a
 whole section (`briefs/03_method.md`, `briefs/04_setup.md` and so on),
-with one block per subsection, is written in the terms of `TERMS.md`,
-and holds no sentence that could stand in the paper: statements as
-short entries, facts as tables. A writer takes over the sentences it is
-given, so a brief gives it none.
+with one block per subsection, is written in the terms of `TERMS.md`
+and in the register of the paper (noun phrases and compounds of the
+field, the verbs of a paper: "outperforms", "reduces", "yields"), and
+holds no sentence that could stand in the paper: statements as short
+entries, facts as tables. A writer takes over the words and the
+register of what it is given (section 3.1), so a brief gives it no
+sentence and no word of the lab. Before the writer starts,
+`tools/style_profile.py compare` is run on the brief; one far below the
+range of the papers in long words, or far above it in everyday verbs,
+is rewritten.
 
 - Place in the paper: the headings and their labels, what stands before
   and after the section, its purpose, and its length: the words of the
   outline as the upper end and about 10% less as the length asked for
   (section 5).
 - What each subsection has to establish: two to five statements, each a
-  short entry with its claim, its evidence (a table, a figure, a
-  reference) and its ceiling, the strongest wording the evidence
-  carries and the sets it holds on. The writer may say less, in other
+  short entry with three cells. Claim: what the reader is to take from
+  it. Evidence: a table, a figure, a reference, the macros. Strength
+  and scope: the wording the evidence carries, given as the verb or
+  phrase to reach ("outperforms FedAvg SFT by ... points, significant",
+  "to our knowledge the first ..."), and the sets it holds on, in one
+  clause. The writer writes the statement at that strength, in its own
   words, in any order.
 - The facts as values, in tables and lists: settings, counts, formulas
   checked against the code. The settings come from
@@ -222,9 +281,9 @@ given, so a brief gives it none.
   cell of Table 1 is such a row. A sentence about another paper is
   written from these rows (section 7).
 - The labels the section may refer to.
-- Paragraph roles that usually serve this kind of section, as an offer
-  (from `voice/section_rhetoric.md`; for the Introduction, the title
-  and the abstract also from the two guides named in section 3.5).
+- The kind of section, which names its part of `VOICE_GUIDE.md`,
+  Section 2. For the Method, the headings name the components of the
+  framework and not the stages of a run.
 
 A brief holds what the paper prints. Dates, names of runs, what was
 tried and dropped, how a value was chosen and results outside the
@@ -235,20 +294,23 @@ its content and its claims; a brief is built from its entry there and
 from `bib/report.md`, which names the sources of each subsection.
 
 A brief states what the method does and does not grade it (owner,
-2026-11-26). A ceiling is the strongest wording allowed and the sets it
-holds on. It is not a list of what the paper does not claim, and no
+2026-11-26), and it does not tell the writer what to keep quiet about
+(2026-11-27). The third cell of a statement is a strength to reach and
+its scope. It is not a list of what the paper does not claim, and no
 entry calls a part of the method minor, a setting or "not the
-contribution": the writer prints what it is given. The Method brief
-said that two settings were "not the contribution", and the draft said
-"The rest are settings". What the paper owes its reader is the credit
-to earlier work (what it did, what is taken from it), the qualifiers
-that belong to a claim, and the limitations of the Discussion brief. A
-caution beyond these is the editor's to check in the draft (section 7),
-not an entry of the brief.
+contribution": the writer prints what it is given, and a brief made of
+"no sentence says" and "not a fault of theirs" gives a paper that says
+little. What the paper owes its reader is the credit to earlier work
+(what it did, where ours differs), the qualifiers that belong to a
+claim, and the limitations of the Discussion brief. Every other caution
+(a wording that would be false, a comparison the rows do not carry, a
+part that waits for its result) goes into the editor's checks of that
+section, `briefs/NN_checks.md`, which the writer does not read; the
+claim audit and the editor's notes work from it (section 7).
 
-`briefs/3.4_preference_round.md`, the brief of the second pilot, is the
-model for the block of one subsection. The Method brief takes it over
-as its block for Section 3.4.
+A limitation or a weak result is not a statement of an ordinary section.
+It has its place in the tables or in the limitations subsection, at the
+size the evidence gives it and once (`AGENTS.md`, "Credit").
 
 ### 4.1 The outline of a section
 
@@ -256,8 +318,9 @@ as its block for Section 3.4.
 and words. The outline of a section goes one level down and is written
 by the writer, before any prose, into the file its brief names
 (`briefs/03_method_outline.md`): one line per paragraph, in order, with
-the point of the paragraph, the statement of the brief it serves, the
-equation, table or figure it carries and its rough length. The lines
+the function of the paragraph (as the voice guide names it), its
+point, the statement of the brief it serves, the equation, table or
+figure it carries and its rough length. The lines
 are notes and not sentences of the paper.
 
 The main session checks it against the brief and answers in a few
@@ -268,7 +331,11 @@ lines:
 - read alone and in order, the lines make the argument of the section;
 - each equation, table and figure has its place, and nothing is said
   twice;
-- no line promises more than the ceiling of its statement;
+- the section has the functions the voice guide gives for its kind
+  (an introduction without a limitation named as one, or a method told
+  as a sequence of stages, goes back);
+- each line carries its statement at the strength of the brief, not
+  above it and not below it;
 - the lengths sum to the length of the brief.
 
 The writer then drafts from it. The outline is a plan and not a
@@ -385,6 +452,7 @@ none is about style.
 | References | `tools/lint.py`, `/ars-citation-check` | a key that is not in `references.bib`; an entry with no DOI, no arXiv id and no stable address |
 | Truth | claim audit: a helper with all the notes looks for a committed result that contradicts a sentence | a false or overstated sentence; a part called essential without its ablation row; a framing taken from the story of 2026-11-17 where the results of `RESEARCH_STATE.md` 5.0 have moved on |
 | Other papers | cited-work audit: a helper lists every sentence that states something about a cited paper, and every cell of Table 1, and finds its row in the brief's facts with the locator; it then opens the paper at that locator | a statement about a cited paper without a row or a locator; a row the paper at its locator does not support. Applies to Section 2 in full and to any such sentence elsewhere |
+| Overlap | `make overlap` (`tools/style_profile.py lifted` against the arXiv sources of CodeLutra and OpenFedLLM in `.sources/`) | a run of five or more words shared with one of the closest papers, other than a stock phrase of the field ("our contributions are as follows") or a name; the passage is written again |
 | Length | page count | CMC: no limit, the count above the 15 pages of the fee is printed; the abstract outside 200 to 400 words. JIIS: the paper over 25 pages; the abstract outside 150 to 250 words |
 
 The claim audit reports false sentences. It does not ask for caveats,
@@ -400,7 +468,8 @@ The rest is advice for the editor. None of it stops a section.
 | The lab showing through | `tools/lint.py` | file paths, commands, "we first", "was then chosen", sentences that certify ("all numbers come from", "no test data was used"), a choice defended that nobody questioned |
 | Hedging | `tools/lint.py`, a count per section | "may", "appears to", "it is worth noting" outside the limitations |
 | Lab words and earlier labels | `tools/lint.py` | student, arm, queued, run names; "wrong result", "right answer"; British spelling |
-| Register | `tools/style_profile.py compare FILE --kind KIND` | measures far outside the range of the same kind of section in the ten papers, as in the first pilot |
+| Register | `make register`; `tools/style_profile.py compare FILE --kind KIND`, on a brief before the writer starts and on its draft | measures far outside the range of the same kind of section in the ten papers: few long words and many everyday verbs are the words of the lab; few sentences with "we" and few adverbs go with them |
+| Strength | the cold read, and the first sentences of the section (`tools/reverse_outline.py`) | a reader who cannot say in one sentence what is new and against what; a statement written below the strength of its brief; a finding told as a list of values with no mechanism; a weakness stated outside the limitations or more than once |
 | Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF...` | a large share of the draft in runs of five or more words of the brief |
 | Cold read | an isolated Opus session that has seen neither the brief nor the notes reads the PDF of the section as a reviewer of the journal would: the `cold-review` skill with its `section` template (owner, 2026-11-27), given the pages of the section and the pages before it | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
 | Argument | `tools/reverse_outline.py`, beside the writer's outline | the first sentences of a section do not make its argument or have left the outline without a reason; a paragraph with two points |
@@ -418,8 +487,11 @@ too rigid make the prose stiff and patched):
    earlier label with a fixed replacement, a macro, a label, a key.
 3. A signal that is far off points at what the writer was given. Text
    taken from the brief means the brief holds sentences; a register far
-   from the papers means the brief or the notes carried the lab's
-   words. The input is corrected and the section is written again.
+   from the papers means the brief or the guide carried the lab's
+   words; a section that claims little means its brief gave limits and
+   no strength. The input is corrected and the section is written
+   again. The register signal of the first full draft was far off in
+   every section and was not acted on; it is read for every draft now.
 4. Whatever else matters to the reader becomes an editor's note.
 
 ### 7.3 Editor's notes
@@ -427,7 +499,9 @@ too rigid make the prose stiff and patched):
 At most five notes a round, the ones that matter most, written as an
 editor would write them: about the reader and the content. A fact that
 is wrong, a reason the reader will ask for, a paragraph that makes two
-points, a referent that is unclear, a number the reader does not need.
+points, a referent that is unclear, a number the reader does not need,
+a contribution or a finding stated more weakly than its evidence
+allows.
 A note names no rule, check, measure or project file, and it does not
 ask for a word to be exchanged unless the word would mislead the
 reader. The writer is asked to change what the notes concern and to
@@ -470,8 +544,23 @@ the title waits for the owner's choice among three candidates),
 Sections 7 and 8 (W12; two cold reads, two rounds). Sections 1 to 8
 now all exist as drafts: 29 pages against the limit of 25.
 
-Next, in this order. Each step is the loop of section 2; the owner's
-time is an estimate.
+The drafts of 2026-11-27 are in the words of the lab in every section
+(`make register`: 8 to 13% long words against 18 to 23% in the papers,
+4 to 10 everyday verbs per 1,000 words against 1 to 3 in six of the
+eight sections) and are kept at the tag `draft-v1-2026-11-27`. They are
+written again from briefs in the new form; the facts, the macros, the
+tables and the figures stay.
+
+| Step | What | Waits on |
+|---|---|---|
+| V1 | `TERMS.md`: names for the components of the framework; `OUTLINE.md`: Section 3 by component | the owner's yes on the names and the headings |
+| V2 | Pilot: the briefs of Sections 1 and 3 in the new form (strength and scope, the register of the paper, `01_checks.md` and `03_checks.md` for what leaves them); the writer drafts Section 3, then Section 1 with the abstract; `make register`, `make overlap`, a cold read | the owner reads the pilot beside the tag; 30 min |
+| V3 | The pilot holds: the briefs and the drafts of Sections 5, 6, 7 and 8, then 2 and 4, in the same form. It does not: passages come back as section 3.4 says, and the pilot is written again | the owner; 30 min a section |
+| V4 | The notes, outlines and audits of the first drafts leave `briefs/`, with `pilot/`; `REVIEW_NOTES.md` loses its items on the wording of the first drafts | none |
+
+Then, in this order (the steps W8 to W13 below are the first drafts and
+are done). Each step is the loop of section 2; the owner's time is an
+estimate.
 
 | Step | What | Waits on |
 |---|---|---|
@@ -504,7 +593,7 @@ for the claims that use that row.
 | `paper/notes/tools/overview_results.py` | every committed run and McNemar test, imported by `paper_numbers.py` | exists |
 | `paper/figures/render.py`, `STYLE.md`; matplotlib | diagrams; result charts at 119 mm in Arial 8 pt | exists; installed |
 | PaperOrchestra port (`github.com/Ar9av/PaperOrchestra`, MIT, read at `fcf8a38`) | three files copied: `section_rhetoric.md` into `voice/`, `reverse_outline.py` and `table_lint.py` into `tools/` | not installed as a skill |
-| `tools/style_profile.py` | `profile`: the measures of the ten papers by kind of section, from their arXiv sources in a folder outside the repository; it also writes `voice/style_reference.json`. `compare`: the same measures for a draft beside that reference, without the sources. `lifted`: the share of a draft in runs of five or more words of other files. All three are signals for the editor (section 7.2) | exists |
+| `tools/style_profile.py` | `profile`: the measures of the ten papers by kind of section, from their arXiv sources in a folder outside the repository; it also writes `voice/style_reference.json`. `compare`: the same measures for a draft beside that reference, without the sources. `lifted`: the share of a draft in runs of five or more words of other files. `compare` and `lifted` against the brief are signals for the editor (section 7.2); `lifted` against the closest papers is a stop (`make overlap`, section 7.1), and `make register` prints `compare` for every section | exists |
 | `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | reference metadata; cold review; AI-use statement | installed |
 | academic-paper skill, `references/writing_quality_check.md` | a diagnostic in the whole-paper step: it lists what it finds and rewrites nothing | installed |
 | `doc-coauthoring`, stage 3 | the reader test | installed |
@@ -536,12 +625,17 @@ paper/manuscript/
                         limitations, the map of lab words
   OUTLINE.md            sections with their content, claims and words
   WRITING_GUIDE.md      what the writer works from (section 3.2)
+  VOICE_GUIDE.md        the register and the organization of each kind of
+                        section (section 3.4)
   TERMS.md              names of the concepts, abbreviations, notation
-  voice/                passages, style_profile.md with its data and
-                        style_reference.json, profile.md, section_rhetoric.md
+  voice/                for the editor only: style_profile.md with its data and
+                        style_reference.json, section_rhetoric.md
+  .sources/             arXiv sources of the closest papers for make overlap
+                        (2411.05199, 2402.06954); outside Git
   briefs/               one brief per top-level section, and the writer's outline
                         of that section beside it (3.4_preference_round.md is
-                        the brief of the pilot)
+                        the brief of the pilot); NN_checks.md holds the editor's
+                        checks of a section, which the writer does not read
   bib/                  report.md: how each entry of references.bib was verified,
                         and the sources of each subsection
   pilot/                the accepted draft of Section 3.4 with the writer's and
@@ -549,7 +643,7 @@ paper/manuscript/
   tools/                paper_numbers.py paper_settings.py charts.py lint.py
                         style_profile.py flatten.py reverse_outline.py table_lint.py
   Makefile              make, make numbers, make figures, make lint, make pilot,
-                        make inventory, make submit
+                        make inventory, make overlap, make register, make submit
 ```
 
 Where each requirement of sections 10 and 10.1 is built in:

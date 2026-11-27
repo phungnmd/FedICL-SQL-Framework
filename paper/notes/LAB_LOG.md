@@ -4,6 +4,73 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: the voice of the manuscript is set again: academic, by a voice guide; the first drafts are to be written again (owner; no run)
+
+Owner, in chat, after reading the draft of Sections 1 to 8 beside
+OpenFedLLM and CodeLutra: the draft explains in plain language and
+tells the logic of the research in sequence; the paper has to read as
+a paper of the field (dense, in its terms, confident, novelty clear,
+method by module, results by insight and mechanism). Rules and inputs
+first, then the sections again. No passage of CodeLutra to the writer
+(risk of plagiarism, the method being close to it). Voice as a guide,
+not as passages of papers.
+
+What the committed drafts measure (`make register`; reference: the ten
+papers of `voice/style_profile_data.md`, same kind of section):
+
+| Section | long words % (ref.) | everyday verbs /1k (ref.) | "we" sentences % (ref.) | sentence mean (ref.) |
+|---|---|---|---|---|
+| 1 Introduction | 10.7 (20.7) | 10.3 (1.0) | 25.0 (43.6) | 35.8 (26.3) |
+| 2 Related work | 13.3 (22.7) | 7.3 (0.8) | 10.8 (18.1) | 23.4 (23.0) |
+| 3 Method | 9.7 (17.9) | 5.8 (1.7) | 10.8 (39.0) | 24.0 (22.5) |
+| 4 Setup | 9.2 (18.4) | 8.8 (2.8) | 20.3 (47.3) | 22.8 (21.4) |
+| 5 Results | 8.2 (18.4) | 0.0 (2.8) | 4.2 (47.3) | 30.3 (21.4) |
+| 6 Ablation | 8.1 (18.4) | 4.3 (2.8) | 2.9 (47.3) | 33.6 (21.4) |
+| 7 Discussion | 9.7 (21.3) | 6.0 (1.3) | 7.4 (32.5) | 32.7 (23.6) |
+
+Where it came from, measured the same way: the guide (5.9% long words,
+21.9 everyday verbs per 1,000) and the brief of the Introduction (9.3%,
+9.2) are in the words of the lab, about 3,000 words; the passages of
+the voice folder for introductions (18.3%, 0.0) are 470 words. The
+draft follows the first. In the whole draft: "is above" 6 times,
+"outperform" 0, "novel" 0, "challenge" 0, "insight" 0, "significant"
+38. The briefs hold 45 to 101 words of negation each, in a column
+named Ceiling.
+
+Changed (no section rewritten yet):
+
+- `manuscript/VOICE_GUIDE.md`, new: the register and the organization
+  of each kind of section by function, with five contrasts from an
+  unrelated domain. Drawn up from a reading of LESFT (CMC 2026, read on
+  the journal's page today), OpenFedLLM and CodeLutra (arXiv sources),
+  and the earlier profile; it quotes none. Measured: 25.2% long words,
+  0.9 everyday verbs per 1,000.
+- `manuscript/WRITING_GUIDE.md`, rewritten in that register (16.2%,
+  1.2): the reader is a CMC reviewer (it still said JIIS); the author
+  is one of a research paper, not a teacher; claims are written at the
+  strength of the brief, not above and not below. The paragraph that
+  described the papers by what they refrain from is gone.
+- `manuscript/voice/`: the seven files of passages and `profile.md`
+  removed; the folder holds the editor's measures only.
+- `WRITING_PLAN.md`: sections 1, 2, 3.1 to 3.5, 4, 4.1, 7.1 to 7.3, 8
+  and 9. A brief gives each statement a strength and a scope; what the
+  paper must not say goes to `briefs/NN_checks.md`; a brief is measured
+  before the writer starts; the steps V1 to V4 write the sections
+  again.
+- `AGENTS.md`, Writing: the manuscript rule.
+- `make overlap`: runs of five or more words shared with CodeLutra or
+  OpenFedLLM (sources in `manuscript/.sources/`, outside Git). On the
+  committed drafts: three stock phrases ("each client holds a
+  preference dataset", "instruction tuning and value alignment", "our
+  contributions are as follows"), nothing else. `make register`: the
+  table above.
+- The drafts as they are: tag `draft-v1-2026-11-27`.
+
+Not checked: which similarity tool CMC uses and its threshold.
+
+Open with the owner: the names of the components and the headings of
+Section 3 (`REVIEW_NOTES.md`, A32).
+
 ## 2026-11-27: the queue is paused; the paper is written for CMC alone; the draft goes on with placeholders and marked guesses; BIRD or Spider as the main dataset read again (owner; no run)
 
 Owner, in chat:

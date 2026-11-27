@@ -1,6 +1,6 @@
 # Brief: Section 6, Ablation study
 
-Kind of section: ablation (`voice/results.md`, its ablation passages).
+Kind of section: ablation (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/06_ablation_outline.md`. Draft to:
 `sections/06_ablation.tex`. Notes to: `briefs/06_ablation_notes.md`.
 

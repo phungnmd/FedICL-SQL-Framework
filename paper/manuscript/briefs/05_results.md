@@ -1,6 +1,6 @@
 # Brief: Section 5, Results
 
-Kind of section: results (`voice/results.md`).
+Kind of section: results (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/05_results_outline.md`. Draft to:
 `sections/05_results.tex`. Notes to: `briefs/05_results_notes.md`.
 

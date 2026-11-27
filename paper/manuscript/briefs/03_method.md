@@ -1,6 +1,6 @@
 # Brief: Section 3, Method
 
-Kind of section: method (`voice/method.md`).
+Kind of section: method (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/03_method_outline.md`. Draft to:
 `sections/03_method.tex`. Notes to: `briefs/03_method_notes.md`.
 Earlier draft of Section 3.4: `pilot/3.4_preference_round.tex` (see the

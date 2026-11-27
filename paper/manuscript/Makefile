@@ -9,6 +9,9 @@
 #   make pilot      a draft subsection on its own page (pilot/harness.tex)
 #   make lint       the checks of tools/lint.py (JOURNAL=cmc or jiis)
 #   make inventory  macros and \cite keys of every section, for a before/after diff
+#   make overlap    runs of five or more words that a section shares with the closest papers
+#                   (their arXiv sources in .sources/, outside Git: 2411.05199, 2402.06954)
+#   make register   the style measures of every section beside the reference papers
 #   make submit     the flat one-directory source the journal asks for, compiled
 # The target journal is CMC (owner, 2026-11-27): main.tex on the Tech Science Press class in
 # Definitions/. JOURNAL=jiis builds the Springer wrapper, main_jiis.tex, into build/main_jiis.pdf.
@@ -35,7 +38,7 @@ LATEX   := pdflatex -interaction=nonstopmode -halt-on-error -file-line-error
 SOURCES := $(MAIN).tex macros.tex references.bib $(wildcard sections/*.tex) \
            $(wildcard generated/*.tex) $(wildcard figures/*.pdf) $(STYLE)
 
-.PHONY: all pdf numbers figures floats pilot lint inventory submit clean
+.PHONY: all pdf numbers figures floats pilot lint inventory overlap register submit clean
 
 all: pdf
 
@@ -85,6 +88,18 @@ lint:
 inventory:
 	$(PYTHON) tools/lint.py --inventory > $(BUILD)/inventory.txt
 	@echo "$(BUILD)/inventory.txt"
+
+CLOSEST := $(shell find .sources -name '*.tex' 2>/dev/null)
+overlap:
+	@test -n "$(CLOSEST)" || (echo "STOP: no sources in .sources/ (arXiv 2411.05199 and 2402.06954)"; exit 1)
+	@for f in sections/0*.tex; do $(PYTHON) tools/style_profile.py lifted $$f $(CLOSEST) | sed 's/ found in .*//'; done
+
+register:
+	@$(PYTHON) tools/style_profile.py compare sections/01_intro.tex --kind introduction | sed -n 3,4p
+	@$(PYTHON) tools/style_profile.py compare sections/02_related.tex --kind 'related work' | sed -n 3,4p
+	@$(PYTHON) tools/style_profile.py compare sections/03_method.tex --kind method | sed -n 3,4p
+	@for s in 04_setup 05_results 06_ablation; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind experiments | sed -n 3,4p; done
+	@for s in 07_discussion 08_conclusion; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind 'discussion and conclusion' | sed -n 3,4p; done
 
 submit:
 	$(MAKE) -B pdf STRICT=1

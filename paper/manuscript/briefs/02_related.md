@@ -1,6 +1,6 @@
 # Brief: Section 2, Related work (with Table 1)
 
-Kind of section: related work (`voice/related_work.md`).
+Kind of section: related work (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/02_related_outline.md`. Draft to:
 `sections/02_related.tex`. Notes to: `briefs/02_related_notes.md`.
 

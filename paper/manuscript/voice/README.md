@@ -1,27 +1,26 @@
-# Voice
+# Calibration material (for the editor)
 
-Passages from published papers, read as examples of how a section of
-this kind is written, and two profiles drawn from published papers. They show a
-way of writing; nothing in them is content for this paper, and no
-sentence of theirs is reused.
+Nothing in this folder is given to the writer. The writer's voice comes
+from `../VOICE_GUIDE.md` and from the register of the brief itself
+(owner, 2026-11-27); the passages from published papers that stood here
+until that day were removed, and no text of a published paper reaches
+the writer.
 
-The passages are short excerpts quoted for reference inside the
-project. They are not part of the manuscript or of any release.
+| File | What it is for |
+|---|---|
+| `style_profile.md` | the register of ten published papers by kind of section, and the terms of the field; `TERMS.md` rests on its last table |
+| `style_profile_data.md`, `style_reference.json` | the measures behind it, written by `tools/style_profile.py profile`; `compare` reads the JSON |
+| `section_rhetoric.md` | paragraph roles by kind of section (from PaperOrchestra); one of the sources of `VOICE_GUIDE.md`, kept for the editor |
 
-| File | Passages | Why they are here |
-|---|---|---|
-| `introduction.md` | Hu et al., LoRA (ICLR 2022), Section 1. Li et al., FedProx (MLSys 2020), Section 1. McMahan et al., FedAvg (AISTATS 2017), Section 1 | the limit of earlier work with its cause, then the idea that removes it; a setting defined in three sentences |
-| `method.md` | Rafailov et al., DPO (NeurIPS 2023), Section 4. McMahan et al., FedAvg (AISTATS 2017), Section 2. Zhong et al., test suites (EMNLP 2020), Section 1. Tritto et al., GradeSQL (the target journal), Methodology | the idea before the formula and the meaning after it; a method built up from the plain baseline; a definition given through an example; a procedure of generation, execution-based labelling and fine-tuning in the terms of the field |
-| `related_work.md` | Li et al., FedProx (MLSys 2020), Section 2 | what an earlier line of work did, and exactly where it stops |
-| `setup.md` | Tritto et al., GradeSQL (arXiv 2509.01308; the target journal), Experimental Setup. Li et al., CodeS (SIGMOD 2024), Section 9.1 | datasets and metrics stated as facts, with the reason for each choice |
-| `results.md` | Zhong et al., test suites (EMNLP 2020), Section 6.2. Li et al., CodeS (SIGMOD 2024), Section 9.5. Hu et al., LoRA (ICLR 2022), Section 7. Tritto et al., GradeSQL, Results | a number, its table, what it means; an ablation with the cause of each drop; results organised by questions |
-| `discussion.md` | Rafailov et al., DPO (NeurIPS 2023), Section 7 | limits stated as the scope of the work and as open questions |
-| `style_profile.md` | | the register by kind of section and the terms of the field, measured in ten papers (`style_profile_data.md` and `style_reference.json` hold the measures, written by `tools/style_profile.py`); a description of a range, not a set of targets |
-| `profile.md` | | what the passages have in common |
-| `section_rhetoric.md` | | paragraph roles by kind of section, offered in the briefs |
+How the main session uses it:
 
-Sources (arXiv identifiers of the versions read): LoRA 2106.09685,
-FedProx 1812.06127, FedAvg 1602.05629, DPO 2305.18290, test suites
-2010.02840, CodeS 2402.16347, GradeSQL 2509.01308. Citations inside a
-passage are shown as [ref]; a cut is shown as [...].
-A reference to a table or figure of the source is shown as [n].
+- `tools/style_profile.py compare FILE --kind KIND` on every brief
+  before the writer starts and on every draft after it. A brief far
+  from the range of the papers is rewritten before any prose exists.
+- `make overlap`: the share of each section in runs of five or more
+  words of the closest papers (CodeLutra, OpenFedLLM), whose arXiv
+  sources are kept in `.sources/`, outside Git.
+
+The voice guide was drawn up from a reading of LESFT (CMC 2026),
+OpenFedLLM, CodeS, LoRA, FedProx and the measures above. It quotes none
+of them.

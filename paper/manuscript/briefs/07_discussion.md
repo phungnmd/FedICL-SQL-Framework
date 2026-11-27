@@ -1,6 +1,6 @@
 # Brief: Section 7, Discussion and limitations, and Section 8, Conclusion
 
-Kind of section: discussion and conclusion (`voice/discussion.md`).
+Kind of section: discussion and conclusion (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/07_discussion_outline.md` (both sections). Drafts
 to: `sections/07_discussion.tex` and `sections/08_conclusion.tex`.
 Notes to: `briefs/07_discussion_notes.md`.

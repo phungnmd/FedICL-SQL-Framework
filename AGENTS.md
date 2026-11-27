@@ -190,23 +190,31 @@ deviate.
   English. No emojis, no em dashes.
 - The manuscript has its own writing workflow (owner, 2026-11-26), in
   `paper/manuscript/`: the drafting agent works from `WRITING_GUIDE.md`,
-  `TERMS.md`, the `voice/` folder and the brief of its section. The
-  published papers of the field set the prose of the paper: their
-  register and their terms, as the passages in `voice/` show them and
-  `voice/style_profile.md` describes them. The plain words of the rule
-  above are not for the manuscript, and an older writing rule of the
-  owner gives way where it works against that register. What still
-  binds the manuscript: the hard rules, the approved claims and their
-  ceilings, numbers written with the generated macros, the limits of
-  the journal, "the model" for the trained model, no emojis and no em
-  dashes. Beyond that the drafting agent is bound by little (owner,
-  2026-11-26): rigid rules and word checks make the prose stiff and
-  patched, so checks of words and of style are signals for the main
-  session, never rules or word lists for the drafting agent, and a
-  draft is not repaired word by word. The workflow is in
-  `paper/notes/WRITING_PLAN.md`. The ARS skills serve single checks
-  (citations, a cold review of the PDF); the paper is not run through
-  their pipeline.
+  `VOICE_GUIDE.md`, `TERMS.md` and the brief of its section. Its voice
+  is academic (owner, 2026-11-27): dense, in the terms of the field,
+  assertive at the strength of the evidence, with the novelty said
+  plainly, the method told by component and the results by finding and
+  mechanism; it does not explain in everyday language and does not
+  tell the logic of the research in sequence. The plain words of the
+  rule above are not for the manuscript, and an older writing rule of
+  the owner gives way where it works against that register. A drafting
+  agent takes its register from what it reads, so every file it is
+  given (the two guides, the brief) is itself written in the register
+  of the paper, a brief gives each statement the strength to write it
+  at and not a list of what to leave unsaid, and no passage of a
+  published paper is given to it: the method is close to CodeLutra, and
+  `make overlap` stops a draft that shares a run of words with the
+  closest papers. What still binds the manuscript: the hard rules, the
+  approved claims at their strength and scope, numbers written with
+  the generated macros, the limits of the journal, "the model" for the
+  trained model, no emojis and no em dashes. Beyond that the drafting
+  agent is bound by little (owner, 2026-11-26): rigid rules and word
+  checks make the prose stiff and patched, so checks of words and of
+  style are signals for the main session, never rules or word lists
+  for the drafting agent, and a draft is not repaired word by word.
+  The workflow is in `paper/notes/WRITING_PLAN.md`. The ARS skills
+  serve single checks (citations, a cold review of the PDF); the paper
+  is not run through their pipeline.
 - The draft does not wait for the results (owner, 2026-11-27). A
   number whose row is not committed stays a placeholder: `??` from its
   macro, `--` in a generated table. A guess may stand in its place

@@ -1,6 +1,6 @@
 # Brief: Section 4, Experimental setup (with the text of Appendices A and B)
 
-Kind of section: experimental setup (`voice/setup.md`).
+Kind of section: experimental setup (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/04_setup_outline.md`. Draft to:
 `sections/04_setup.tex`. Notes to: `briefs/04_setup_notes.md`.
 Also yours: the lead-in sentences and the captions of

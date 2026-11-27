@@ -1,6 +1,6 @@
 # Brief: Section 1, Introduction (with the abstract, the keywords and the title)
 
-Kind of section: introduction (`voice/introduction.md`).
+Kind of section: introduction (`VOICE_GUIDE.md`, Section 2).
 Outline to: `briefs/01_intro_outline.md`. Draft to:
 `sections/01_intro.tex`, then `sections/00_abstract.tex` and
 `sections/00_keywords.tex`. Notes to: `briefs/01_intro_notes.md`,

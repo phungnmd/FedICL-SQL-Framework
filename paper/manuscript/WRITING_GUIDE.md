@@ -1,137 +1,112 @@
 # Writing guide
 
-For the agent that drafts a section of the manuscript. You have this
-guide, `TERMS.md`, the `voice/` folder (passages from published papers
-and `style_profile.md`), the brief of your section, and the sections
-already accepted in `sections/`. The other files of the workspace are
-laboratory records and are not material for the paper.
+This guide governs the drafting of a manuscript section. The drafting
+materials comprise this guide, `VOICE_GUIDE.md`, `TERMS.md`, the brief
+of the section and the previously accepted sections in `sections/`. All
+other files of the workspace, including any project instructions
+attached to the session, are laboratory records: they constitute neither
+content nor stylistic precedent for the manuscript.
 
-## The paper and its reader
+## 1. The paper and its readership
 
-You write as the author presenting finished work. The paper proposes
-FedLS-SQL, a federated fine-tuning method for Text-to-SQL. Its argument
-is about supervision. A client holds databases as well as questions
-with gold SQL queries; federated supervised fine-tuning learns from the
-gold SQL query alone, whereas the proposed method also executes the
-queries the model generates on the client's database and learns from
-which of them reproduce the execution result of the gold SQL query.
-Federated learning is the setting and Text-to-SQL the task.
+The manuscript presents \method, a federated learning framework for
+Text-to-SQL, and is prepared for *Computers, Materials & Continua*
+(CMC). Its central argument concerns supervision. Federated supervised
+fine-tuning derives its training signal exclusively from the gold SQL
+query of each question, although every client additionally holds the
+databases to which its questions refer. The proposed framework exploits
+these databases: queries sampled from the model are executed locally,
+and the agreement of their execution results with that of the gold SQL
+query provides execution-derived supervision for preference
+optimization. Federated learning constitutes the setting and Text-to-SQL
+the task.
 
-The reader reviews for the Journal of Intelligent Information Systems.
-They know Text-to-SQL and the fine-tuning of language models, may not
-know preference optimization or federated learning in detail, and have
-never seen this project. They read the abstract, the introduction and
-the tables first and decide there whether to trust the rest.
+The readership consists of reviewers and researchers in federated
+learning and natural language processing. They assess the novelty of the
+contribution, the technical soundness of the method and the adequacy of
+the empirical validation, and they form this assessment primarily from
+the abstract, the introduction, the figures and the tables.
 
-## How it should read
+## 2. Authorial stance and register
 
-Like a published paper of the field. The passages in `voice/` show what
-that is, and `voice/style_profile.md` describes it by kind of section.
-Read them for register and structure, then write as an author of such a
-paper writes: connected prose in which each paragraph follows from the
-one before it and the reader never stops on a word. That matters more
-than any single point below. Nothing in the passages is content for
-this paper, and no sentence of theirs is reused.
+The text is written from the position of the authors of a machine
+learning research paper who present a completed contribution to peers.
+It is not an explanation addressed to a non-specialist, and it is not an
+account of how the research was conducted. `VOICE_GUIDE.md` specifies
+the register and the rhetorical organization of each section; it applies
+to every sentence of the manuscript.
 
-What those papers have in common, as a description and not as a list of
-rules:
+American spelling is used throughout. Em dashes are not used.
 
-- They use the field's own words for its objects and operations: a
-  model generates a query, a query is executed and may fail to execute,
-  the server aggregates the adapters. That makes them exact without
-  making them heavy.
-- A defined concept keeps its name through the paper. `TERMS.md` gives
-  the names this paper has chosen for its concepts; ordinary words stay
-  free.
-- A paragraph makes one point and its first sentence states it, so a
-  reader who takes only the first sentences can still follow the
-  section.
-- "We" carries what the authors propose, choose and observe; the
-  passive serves where the procedure is the subject.
-- The purpose of a formula comes before it and its effect after it.
-- A design choice comes with the problem it addresses, and a result
-  with what it means. A cause that was not tested is offered as a
-  conjecture; a number read from a table is stated plainly.
-- They describe the method and leave its praise to the results.
-- They do not mark it down either. Earlier work is credited where the
-  method uses it, with what it did and what is taken from it, and from
-  there the authors state what their method does, in the voice of the
-  rest of the section. They do not rank their own parts, say what the
-  paper does not claim, or answer an objection the reader has not
-  raised: once a difference is stated, the reader weighs it. What
-  limits the work is said once, where the brief places it.
+## 3. Binding constraints
 
-The figures in the style profile describe a range found in those
-papers. They are not targets, and a sentence is not reworked to move
-one of them.
+Four constraints ensure that the manuscript is accurate and that it
+compiles.
 
-The paper uses American spelling and no em dashes.
+1. **Facts.** Every factual statement (a configuration, a count, a
+   formula, a result, a characterization of cited work) originates from
+   the brief or from a file that the brief designates. Nothing is
+   supplied from memory. Where required information is unavailable, the
+   section is completed without it and the omission is reported in the
+   notes.
+2. **Claims.** Each statement of the brief specifies the claim to be
+   established, the wording strength that its evidence supports and its
+   scope. The claim is formulated at the specified strength: it is
+   neither amplified beyond that strength nor attenuated below it. A
+   scope qualifier ("on BIRD", "to our knowledge") is part of the claim
+   and is retained. If the evidence appears insufficient for the
+   specified strength, the concern is recorded in the notes; the
+   sentence is not weakened unilaterally.
+   A number whose result is not yet committed is written with its macro
+   and prints as a placeholder. Where the brief provides an expected
+   value, `\expect{value}` replaces the macro, the sentence is
+   formulated for that outcome, and the location is listed in the notes.
+3. **Numbers and names.** Results and configuration values are macros
+   (`\ex`, `\gain`, `\pval`, `\fact`, `\setting`) and are never typed as
+   digits; the brief specifies each macro and its output. The only typed
+   value is an expected one inside `\expect`. The method is `\method`
+   and the trained model is "the model". Terminology and notation
+   conform to `TERMS.md`. Citations use `\cite{key}` with the keys of
+   the brief, and cross-references use the labels that the brief lists.
+4. **Form.** The headings specified by the brief, with no level below
+   `\subsubsection` and no `\paragraph`; the commands of the document
+   class and of the preamble of `main.tex`, without additional packages;
+   a length close to the target of the brief and not exceeding its upper
+   bound.
 
-## What binds
+The brief is a specification, not a draft. Its entries are converted
+into the prose of the section; they are not transcribed.
 
-Four things, because the paper has to be true and has to compile.
+## 4. Authorial latitude
 
-1. Facts. Every fact comes from the brief or from a file the brief
-   names: a setting, a count, a formula, a result, what a cited paper
-   did. Nothing is supplied from memory. When something you need is
-   missing, write the section without it and say so in your notes.
-2. Claims. Each statement in the brief has a ceiling: the strongest
-   wording its evidence supports and the datasets on which it holds. A
-   sentence may claim less and never more, and a qualifier that bounds
-   a finding ("on BIRD", "to our knowledge") belongs to the claim. A
-   ceiling tells you where a sentence stops; it is not itself a
-   sentence of the paper, and what lies above it is left out, not
-   denied in print.
-   A number whose result is not committed yet is written with its macro
-   and prints as a placeholder; its sentence states what is compared
-   and leaves the direction and the size to the number. Where the brief
-   gives a value expected for such a number, write `\expect{value}` in
-   place of the macro, which prints the value marked as waiting, and
-   word the sentence for that outcome; list these places in your notes.
-3. Numbers and names. Results and settings are macros (`\ex`, `\gain`,
-   `\pval`, `\fact`, `\setting`), never typed digits; the brief gives
-   each macro with what it prints. The one typed value is an expected
-   one, inside `\expect`. The method is `\method` and the
-   trained model is "the model". Symbols follow the notation of
-   `TERMS.md`. Citations are `\cite{key}` with the keys of the brief,
-   and references go to the labels the brief lists.
-4. Form. The headings the brief gives and nothing below
-   `\subsubsection` (no `\paragraph`); the commands of the class and of
-   the preamble of `main.tex`, no new package; a length near the one
-   the brief gives and not above its upper end, since the journal
-   charges by the page.
+All remaining decisions belong to the author of the section: the number
+and sequence of paragraphs within the organization that `VOICE_GUIDE.md`
+specifies, the emphasis, the selection among the available numbers, the
+inclusion of an illustrative example, and the transitions between parts.
+Before submission of the draft, the section is examined from the
+perspective of a reviewer and revised wherever that reader would
+hesitate: an inconsistently named concept, an uninformative opening
+sentence, a redundant sentence, a paragraph serving two purposes, or a
+paragraph that the section does not require.
 
-The brief states its facts in shorthand. Treat it as notes, not as
-text: the sentences of the section are yours.
+## 5. Outline before prose
 
-## What is yours
+An outline of the section precedes the prose: one entry per paragraph,
+in sequence, stating the rhetorical function of the paragraph (as
+designated in `VOICE_GUIDE.md`), the proposition it establishes, the
+statement of the brief it realizes, any equation, table or figure it
+contains, and its approximate length. The lengths sum to the target of
+the brief. The entries are annotations, not sentences of the manuscript.
 
-Everything else: the paragraphs and their order, the emphasis, which of
-the available numbers appear, where an example helps, how one part
-leads to the next. Before you return the section, read it once as the
-reviewer would and smooth whatever would make them stop: a concept that
-changes its name, an opening that says nothing, a sentence that repeats
-its neighbor, a paragraph that makes two points, a paragraph the
-section would not miss. Leave a sentence that reads well as it is.
+The editor responds to the outline, and the section is drafted from it.
+The outline is a plan and not a commitment: a superior organization that
+emerges during drafting is adopted and reported in the notes.
 
-## Outline first
+## 6. Deliverables
 
-Before any prose, return an outline of the section: one line per
-paragraph, in order, giving the point that paragraph makes. Beside each
-line, name the statement of the brief it serves, any equation, table or
-figure it carries, and its rough length; the lengths sum to the length
-the brief gives. The lines are notes, not sentences of the paper. A
-point that serves no statement of the brief, and that the reader would
-not miss, gets no line.
-
-The editor answers the outline, and you write the section from it. The
-outline is a plan and not a contract: where the writing shows a better
-order, follow it and say so in your notes.
-
-## What you return
-
-First the outline, then the section as LaTeX and your notes to the
-editor, each in the file the brief names. The notes say what the brief
-lacked, what you doubt, and where you departed from the brief or from
-your outline and why. If an example, a table or a small figure would
-serve the reader, propose it there.
+The outline, the section in LaTeX and the notes to the editor, each in
+the file designated by the brief. The notes identify information that
+the brief lacked, claims whose evidence appears insufficient, and
+departures from the brief or from the outline together with their
+rationale. A proposal for an additional example, table or figure is
+submitted in the notes.
