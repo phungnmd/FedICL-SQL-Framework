@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Draw the result charts of the paper from the committed evaluations.
 
-  fig_rounds   Fig. 2: EX by round, FedAvg SFT and the method, BIRD dev and Spider test
-  fig_errors   Fig. 3: incorrect predictions by round, split into execution errors and incorrect results
+  fig_rounds   Fig. 3: EX by round, FedAvg SFT and the method, BIRD dev and Spider test
+  fig_errors   Fig. 4: incorrect predictions by round, split into execution errors and incorrect results
 
 The points come from `curves()` of paper_numbers.py. The figure rules of the two journals
 (paper/figures/STYLE.md, the table of journal limits) are built in:

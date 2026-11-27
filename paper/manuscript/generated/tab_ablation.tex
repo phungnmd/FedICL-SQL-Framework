@@ -1,28 +1,30 @@
 %% Written by tools/paper_numbers.py. Do not edit.
-\setlength{\tabcolsep}{2pt}%
-\begin{tabular}{@{}lrrlrrl@{}}
+\setlength{\tabcolsep}{3pt}%
+\small
+\begin{tabular}{@{}lrrlrrlrrl@{}}
 \toprule
- & \multicolumn{3}{c}{BIRD dev} & \multicolumn{3}{c}{Spider test} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
- & EX & $\Delta$ & $p$ & EX & $\Delta$ & $p$ \\
+ & \multicolumn{6}{c}{BIRD dev} & \multicolumn{3}{c}{Spider test} \\
+\cmidrule(lr){2-7}\cmidrule(lr){8-10}
+ & EX & $\Delta$ & $p$ & TS & $\Delta$ & $p$ & EX & $\Delta$ & $p$ \\
 \midrule
-FedAvg SFT, 2 rounds & 42.70 &  &  & 74.10 &  &  \\
+FedAvg SFT, 2 rounds & 42.70 &  &  & 36.11 &  &  & 74.10 &  &  \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{4 rounds}} \\
+\multicolumn{10}{@{}l}{\textit{4 rounds}} \\
 \midrule
-\method & 48.76 &  &  & 78.20 &  &  \\
-Fixed pairs and reference & 46.15 & $-$2.61 & $5.7\times10^{-4}$\textsuperscript{*} & 78.02 & $-$0.18 & 0.78 \\
-Without the preference term & -- & -- & -- & -- & -- & -- \\
-No warm-up round & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
-Three warm-up rounds & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
-Clients pooled &  &  &  & -- & -- & -- \\
+\method & 48.76 &  &  & 41.59 &  &  & 78.20 &  &  \\
+FedAvg SFT & 42.57 & $-$6.19 & $4.6\times10^{-11}$\textsuperscript{*} & 36.70 & $-$4.89 & $4.2\times10^{-8}$\textsuperscript{*} & 74.71 & $-$3.49 & $6.4\times10^{-7}$\textsuperscript{*} \\
+Fixed pairs and reference & 46.15 & $-$2.61 & $5.7\times10^{-4}$\textsuperscript{*} & 39.05 & $-$2.54 & $6.2\times10^{-4}$\textsuperscript{*} & 78.02 & $-$0.18 & 0.78 \\
+No preference term & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+No warm-up round & -- & -- & -- & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
+Three warm-up rounds & -- & -- & -- & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
+Clients pooled &  &  &  &  &  &  & -- & -- & -- \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{3 rounds}} \\
+\multicolumn{10}{@{}l}{\textit{3 rounds}} \\
 \midrule
-\method & 46.22 &  &  & 77.46 &  &  \\
-Without the NLL term & -- & -- & -- & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\
-Without the preference term & 44.39 & $-$1.83 & 0.057 & 75.87 & $-$1.59 & 0.015 \\
-Averaged by question count & 46.22 & +0.00 & 1.00 & 77.78 & +0.32 & 0.26 \\
-Averaged with equal weights & 46.02 & $-$0.20 & 0.79 & 76.94 & $-$0.52 & 0.09 \\
+\method & 46.22 &  &  & 39.05 &  &  & 77.46 &  &  \\
+No NLL term & -- & -- & -- & -- & -- & -- & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\
+No preference term & 44.39 & $-$1.83 & 0.057 & 37.35 & $-$1.70 & 0.062 & 75.87 & $-$1.59 & 0.015 \\
+Averaged by questions & 46.22 & +0.00 & 1.00 & 39.31 & +0.26 & 0.48 & 77.78 & +0.32 & 0.26 \\
+Averaged equally & 46.02 & $-$0.20 & 0.79 & 38.92 & $-$0.13 & 0.89 & 76.94 & $-$0.52 & 0.09 \\
 \bottomrule
 \end{tabular}

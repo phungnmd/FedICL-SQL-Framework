@@ -80,7 +80,7 @@ ERR_TESTS = [
     ("bird", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),   # the method against FedAvg SFT
     ("spider", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),
 ]
-# Curves of Fig. 2 and Fig. 3: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
+# Curves of Fig. 3 and Fig. 4: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {
     "bird": {"fedavg": [0, 1, 2, 3, 4], "k2": [3, 4]},
     "spider": {"fedavg": [0, 1, 2, 3, 4, 5], "k2": [3, 4]},
@@ -193,7 +193,7 @@ class Data:
         """Holm inside each table: the tests of a table answer one question and form one family.
 
         A test is counted once, in the first table that prints it (the main rows come back in
-        Tables 4 and 5); the comparisons quoted in the text only form a family of their own.
+        Tables 4 to 6); the comparisons quoted in the text only form a family of their own.
         A test-suite test belongs to the table that prints it."""
         families: dict = {}
         for (a, b), where in self.used_tests.items():
@@ -225,8 +225,9 @@ def key(ds: str, line: str, r: int, model: str = MAIN, seed: int = 0) -> tuple:
 
 
 # ---------------------------------------------------------------- tables
-def tabular(spec: str, lines: list[str], sep: str = TABCOLSEP) -> str:
-    return "\\setlength{\\tabcolsep}{" + sep + "}%\n\\begin{tabular}{" + spec + "}\n" + "\n".join(lines) + "\n\\end{tabular}\n"
+def tabular(spec: str, lines: list[str], sep: str = TABCOLSEP, size: str = "") -> str:
+    return ("\\setlength{\\tabcolsep}{" + sep + "}%\n" + (size + "\n" if size else "") + "\\begin{tabular}{" + spec + "}\n"
+            + "\n".join(lines) + "\n\\end{tabular}\n")
 
 
 def row(cells: list[str]) -> str:
@@ -320,8 +321,8 @@ def table_main(d: Data) -> str:
 
 
 def table_models(d: Data) -> str:
-    """Table 4: the other models, FedAvg SFT against the method at ROUNDS rounds."""
-    where = "Table 4"
+    """Table 5: the other models, FedAvg SFT against the method at ROUNDS rounds."""
+    where = "Table 5"
     lines = ["\\toprule", row(["Set", "Model", "No training", "FedAvg SFT", "\\method", "$\\Delta$", "$p$"]), "\\midrule"]
     groups = [("spider", ["qwen15", "qwen05", "dsc13"]), ("bird", ["qwen15", "dsc13"])]
     for gi, (ds, models) in enumerate(groups):
@@ -385,8 +386,8 @@ def table_setups() -> tuple[str, dict]:
 
 
 def table_federated(d: Data) -> str:
-    """Table 5: FedAvg SFT against the method in the five setups at ROUNDS rounds."""
-    where = "Table 5"
+    """Table 6: FedAvg SFT against the method in the five setups at ROUNDS rounds."""
+    where = "Table 6"
     lines = ["\\toprule", row(["Clients' data", "Partition", "Clients", "Evaluated on", "FedAvg SFT", "\\method", "$\\Delta$", "$p$"]),
              "\\midrule"]
     for ds, split, label, la, lb in SETUPS:
@@ -400,7 +401,7 @@ def table_federated(d: Data) -> str:
 
 
 def table_robust(d: Data) -> str:
-    """Table 6: Spider dev and the perturbed sets, EX and test-suite accuracy, at ROUNDS rounds."""
+    """Table 7: Spider dev and the perturbed sets, EX and test-suite accuracy, at ROUNDS rounds."""
     cols = [("spiderdev", "ex"), ("spiderdev", "ts"), ("syn", "ex"), ("syn", "ts"), ("realistic", "ex"), ("realistic", "ts"),
             ("dk", "ex")]
     lines = ["\\toprule",
@@ -414,17 +415,17 @@ def table_robust(d: Data) -> str:
     for name, line, r in rows:
         cells = []
         for ds, m in cols:
-            x = d.run(key(ds, line, r), f"Table 6, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
+            x = d.run(key(ds, line, r), f"Table 7, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
             cells.append(MISSING if x is None or x.get(m) is None else f2(x[m]))
             if x is not None and x.get(m) is None:
-                d.missing.setdefault(key(ds, line, r), []).append(f"Table 6, {SET_NAME[ds]}, test-suite accuracy")
+                d.missing.setdefault(key(ds, line, r), []).append(f"Table 7, {SET_NAME[ds]}, test-suite accuracy")
         lines.append(row([name] + cells))
     # the method against FedAvg SFT, and against itself without the warm-up rounds
     for label, other in (("against FedAvg SFT", "fedavg"), ("against no warm-up", "k0")):
         deltas, ps = [], []
         for ds, m in cols:
             a, b = key(ds, other, ROUNDS), key(ds, "k2", ROUNDS)
-            t = d.test(a, b, f"Table 6, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
+            t = d.test(a, b, f"Table 7, {SET_NAME[ds]}" + (":ts" if m == "ts" else ""))
             if t is None or (m == "ts" and "dts" not in t):
                 deltas.append(MISSING), ps.append(MISSING)
             else:
@@ -437,55 +438,76 @@ def table_robust(d: Data) -> str:
 
 
 def table_ablation(d: Data) -> str:
-    """Table 8: the parts of the method, each row against the method at the same rounds."""
+    """Table 4: the parts of the method, each row against the method at the same rounds. BIRD dev
+    also under test-suite accuracy (a generated suite; Spider test has none). The FedAvg SFT row
+    of the first block is the method without its preference rounds: its EX test is the one of
+    Table 3, printed again, and its test-suite test is printed here only (CLAIMS.md, C4)."""
     lines = ["\\toprule",
-             row(["", "\\multicolumn{3}{c}{BIRD dev}", "\\multicolumn{3}{c}{Spider test}"]),
-             "\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}",
-             row(["", "EX", "$\\Delta$", "$p$", "EX", "$\\Delta$", "$p$"])]
+             row(["", "\\multicolumn{6}{c}{BIRD dev}", "\\multicolumn{3}{c}{Spider test}"]),
+             "\\cmidrule(lr){2-7}\\cmidrule(lr){8-10}",
+             row(["", "EX", "$\\Delta$", "$p$", "TS", "$\\Delta$", "$p$", "EX", "$\\Delta$", "$p$"])]
     blocks = [
         (f"{ROUNDS} rounds", ROUNDS, [
             ("\\method", "k2", None),
+            ("FedAvg SFT", "fedavg", None),
             ("Fixed pairs and reference", "fixed", None),
-            ("Without the preference term", "rft", None),
+            ("No preference term", "rft", None),
             ("No warm-up round", "k0", None),
             ("Three warm-up rounds", "k3", None),
             ("Clients pooled", "pooled", ("spider",)),
         ]),
         (f"{ROUNDS - 1} rounds", ROUNDS - 1, [
             ("\\method", "k2", None),
-            ("Without the NLL term", "feddpo", None),
-            ("Without the preference term", "rft", None),
-            ("Averaged by question count", "reaggq", None),
-            ("Averaged with equal weights", "reagge", None),
+            ("No NLL term", "feddpo", None),
+            ("No preference term", "rft", None),
+            ("Averaged by questions", "reaggq", None),
+            ("Averaged equally", "reagge", None),
         ]),
     ]
-    # the model every row but the two on the warm-up rounds starts its preference rounds from: EX only, no test
+    metrics = {"bird": ("ex", "ts"), "spider": ("ex",)}
+
+    def value(ds: str, k_: tuple, m: str) -> str:
+        where = f"Table 4, {SET_NAME[ds]}" + (":ts" if m == "ts" else "")
+        x = d.run(k_, where)
+        if x is not None and x.get(m) is None:
+            d.missing.setdefault(k_, []).append(f"Table 4, {SET_NAME[ds]}, test-suite accuracy")
+        return MISSING if x is None or x.get(m) is None else f2(x[m])
+
+    def against(ds: str, me: tuple, k_: tuple, m: str) -> list[str]:
+        """The row less the method, and the p of the paired test. The test of the FedAvg SFT row
+        is the one of Table 3 (the method against FedAvg SFT), so its difference changes sign."""
+        where = f"Table 4, {SET_NAME[ds]}" + (":ts" if m == "ts" else "")
+        a_, b_, sign = (k_, me, -1) if k_[3] == "fedavg" else (me, k_, 1)
+        t = d.test(a_, b_, where)
+        if t is None or (m == "ts" and "dts" not in t):
+            return [MISSING, MISSING]
+        return [signed(sign * (t["d"] if m == "ex" else t["dts"])), d.defer(a_, b_, m)]
+
+    # the model every row but the two on the warm-up rounds starts its preference rounds from: no test
     start = [f"FedAvg SFT, {WARMUP} rounds"]
     for ds in ("bird", "spider"):
-        x = d.run(key(ds, "fedavg", WARMUP), f"Table 8, {SET_NAME[ds]}")
-        start += [f2(x["ex"]) if x else MISSING, "", ""]
+        for m in metrics[ds]:
+            start += [value(ds, key(ds, "fedavg", WARMUP), m), "", ""]
     lines += ["\\midrule", row(start)]
     for label, r, rows in blocks:
-        lines += ["\\midrule", row([f"\\multicolumn{{7}}{{@{{}}l}}{{\\textit{{{label}}}}}"]), "\\midrule"]
+        lines += ["\\midrule", row([f"\\multicolumn{{10}}{{@{{}}l}}{{\\textit{{{label}}}}}"]), "\\midrule"]
         for name, line, only in rows:
             cells = [name]
             for ds in ("bird", "spider"):
-                where = f"Table 8, {SET_NAME[ds]}"
-                if only and ds not in only:
-                    cells += ["", "", ""]
-                    continue
-                me, k_ = key(ds, "k2", r), key(ds, line, r)
-                x = d.run(k_, where)
-                if line == "k2":
-                    cells += [f2(x["ex"]) if x else MISSING, "", ""]
-                else:
-                    cells += [f2(x["ex"]) if x else MISSING] + diff_cells(d, me, k_, where)
+                for m in metrics[ds]:
+                    if only and ds not in only:
+                        cells += ["", "", ""]
+                        continue
+                    me, k_ = key(ds, "k2", r), key(ds, line, r)
+                    cells += [value(ds, k_, m)] + (["", ""] if line == "k2" else against(ds, me, k_, m))
             lines.append(row(cells))
     lines.append("\\bottomrule")
-    return tabular("@{}lrrlrrl@{}", lines, sep="2pt")
+    # ten columns: short row names, 3pt padding and the small size the CMC class gives its tables,
+    # so that the table fits the text width (463 pt of 469.8 pt)
+    return tabular("@{}lrrlrrlrrl@{}", lines, sep="3pt", size="\\small")
 
 
-# ---------------------------------------------------------------- cost (Table 7)
+# ---------------------------------------------------------------- cost (Table 8)
 FED_RUN = {"bird": "federated__fedavg__s0__7ecd649662f3__5e43d16b", "spider": "federated__fedavg__s0__2dd4b43f7431__74de6d4f"}
 PREF_AUDIT = {"bird": "fedpref_bird_sftr2_p2_ddl_alpha01_s0", "spider": "fedpref_sftr2_ddlrows_alpha01_s0"}
 PREF_TIMES = {"spider": "dpo_k2"}  # rounds timed from the queue logs (scripts/log_times.py)
@@ -622,7 +644,7 @@ WARMUP_AUDIT = {
 def warmup_facts() -> dict:
     """Training questions none of whose samples is labeled correct at the first preference round,
     by the number of warm-up rounds before it: from the record of that round. Questions on a
-    database without rows are left out, as in the counts of Table 7, so that the questions that
+    database without rows are left out, as in the counts of Table 8, so that the questions that
     yield pairs, those with only correct samples, those without a correct sample, those on a
     database without rows and those whose gold SQL query fails add up to the training set."""
     facts = {}
@@ -662,7 +684,7 @@ def minutes(s: float) -> str:
 
 def minutes_of_steps(steps: list[float]) -> list[str]:
     """The steps of a round in whole minutes that add up to the rounded total of the round
-    (largest remainders), so that a reader who adds the columns of Table 7 gets its total."""
+    (largest remainders), so that a reader who adds the columns of Table 8 gets its total."""
     exact = [x / 60 for x in steps]
     whole = [int(x) for x in exact]
     left = round(sum(exact)) - sum(whole)
@@ -672,7 +694,7 @@ def minutes_of_steps(steps: list[float]) -> list[str]:
 
 
 def table_cost(c: dict) -> str:
-    """Table 7: what the clients train on in a round (questions; in a preference round the
+    """Table 8: what the clients train on in a round (questions; in a preference round the
     questions that yield pairs, and the pairs), its time by step and megabytes a client sends.
     Sampling and training run on the GPU and have a total; the labels are SQL executed on the
     CPU and stand apart (owner, 2026-11-27)."""
@@ -836,12 +858,12 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
         else:
             src = "round records and queue logs" if ".pref" in k_ else f"FedAvg SFT rounds {cost[k_.rsplit('.', 1)[0] + '.rounds']}"
             facts[k_ + "_min"] = (minutes(v), src)
-    for ds in ("bird", "spider"):  # the steps of a preference round, as Table 7 prints them
+    for ds in ("bird", "spider"):  # the steps of a preference round, as Table 8 prints them
         for r in range(1, ROUNDS - WARMUP + 1):
             steps = ("sample", "train")  # the two GPU steps add up to the GPU total; the labels are rounded alone
             for step, v in zip(steps, minutes_of_steps([cost[f"cost.{ds}.pref{r}.{k_}"] for k_ in steps])):
                 facts[f"cost.{ds}.pref{r}.{step}_min"] = (v, "round records and queue logs")
-    for m, name in MODEL_NAME.items():  # the names of the models, as Table 4 prints them
+    for m, name in MODEL_NAME.items():  # the names of the models, as Table 5 prints them
         facts[f"model.{m}"] = (name, "tools/paper_numbers.py, MODEL_NAME")
     return facts
 
@@ -882,7 +904,7 @@ def form_facts(d: Data) -> dict:
     src = "committed predictions; tables and columns read by gold_tables_columns"
     for ds, line, r in FORM:
         k = key(ds, line, r)
-        if d.run(k, "Section 5, form of the answers") is None:
+        if d.run(k, "Section 5.2, form of the answers") is None:
             continue
         n = {"gold": 0, "gold_right": 0, "other": 0, "other_right": 0}
         ts = d.ts_of.get(k)
@@ -936,7 +958,7 @@ def moved_facts(d: Data) -> dict:
         n = {(x, y): 0 for x in names for y in names}
         for i in ra:
             n[(outcome(ra[i]), outcome(rb[i]))] += 1
-        for x in ("error", "wrong"):  # the counts agree with the rows of Fig. 3
+        for x in ("error", "wrong"):  # the counts agree with the rows of Fig. 4
             if sum(n[(x, y)] for y in names) != d.runs[a]["err" if x == "error" else "wr"]:
                 raise SystemExit(f"{ds}: the outcomes of FedAvg SFT do not add up to its {x} count")
             if sum(n[(y, x)] for y in names) != d.runs[b]["err" if x == "error" else "wr"]:
@@ -948,7 +970,7 @@ def moved_facts(d: Data) -> dict:
 
 # ---------------------------------------------------------------- curves, for charts.py
 def curves(d: Data | None = None) -> dict:
-    """EX, execution errors and wrong results by round of the lines Fig. 2 and Fig. 3 draw."""
+    """EX, execution errors and wrong results by round of the lines Fig. 3 and Fig. 4 draw."""
     d = d or Data()
     out = {}
     for ds, lines in CURVES.items():
@@ -956,13 +978,13 @@ def curves(d: Data | None = None) -> dict:
         for line, rounds in lines.items():
             pts = []
             for r in rounds:
-                x = d.run(key(ds, "base" if r == 0 else line, r), f"Fig. 2 and Fig. 3, {SET_NAME[ds]}")
+                x = d.run(key(ds, "base" if r == 0 else line, r), f"Fig. 3 and Fig. 4, {SET_NAME[ds]}")
                 if x is None:
-                    raise SystemExit(f"Fig. 2: no row for {ds} {line} round {r}")
+                    raise SystemExit(f"Fig. 3: no row for {ds} {line} round {r}")
                 pts.append({"r": r, "ex": x["ex"], "err": x["err"], "wr": x["wr"]})
                 out[ds]["n"] = x["n"]
             out[ds][line] = pts
-        start = d.run(key(ds, "fedavg", WARMUP), f"Fig. 2 and Fig. 3, {SET_NAME[ds]}")
+        start = d.run(key(ds, "fedavg", WARMUP), f"Fig. 3 and Fig. 4, {SET_NAME[ds]}")
         out[ds]["k2"].insert(0, {"r": WARMUP, "ex": start["ex"], "err": start["err"], "wr": start["wr"]})
     return out
 

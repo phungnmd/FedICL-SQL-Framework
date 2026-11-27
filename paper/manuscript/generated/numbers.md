@@ -364,7 +364,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 1, Table 6 14, Table 8 11, text 23).
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 5, Table 4 16, Table 5 1, Table 7 14, text 23).
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -404,12 +404,15 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{bird}{fedavg}{4}{base}{0}` | 6.0e-27 | Table 3, BIRD dev |
 | `\nfix{bird}{fedavg}{4}{base}{0}` | 78 | Table 3, BIRD dev |
 | `\nbrk{bird}{fedavg}{4}{base}{0}` | 279 | Table 3, BIRD dev |
-| `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4; Table 5 |
-| `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4; Table 5 |
-| `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4; Table 5 |
-| `\padj{bird}{fedavg}{4}{k2}{4}` | 1.4e-10 | Table 3, BIRD dev; Table 4; Table 5 |
-| `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4; Table 5 |
-| `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4; Table 5 |
+| `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\padj{bird}{fedavg}{4}{k2}{4}` | 1.4e-10 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\tsgain{bird}{fedavg}{4}{k2}{4}` | +4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\tsgap{bird}{fedavg}{4}{k2}{4}` | 4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\tspval{bird}{fedavg}{4}{k2}{4}` | 4.2e-8 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\gain{bird}{k0}{1}{k0gold}{1}` | -2.61 | text |
 | `\gap{bird}{k0}{1}{k0gold}{1}` | 2.61 | text |
 | `\pval{bird}{k0}{1}{k0gold}{1}` | 0.0073 | text |
@@ -422,66 +425,78 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{bird}{k2}{3}{k2}{4}` | 0.0027 | text |
 | `\nfix{bird}{k2}{3}{k2}{4}` | 73 | text |
 | `\nbrk{bird}{k2}{3}{k2}{4}` | 34 | text |
-| `\gain{bird}{k2}{3}{reagge}{3}` | -0.20 | Table 8, BIRD dev |
-| `\gap{bird}{k2}{3}{reagge}{3}` | 0.20 | Table 8, BIRD dev |
-| `\pval{bird}{k2}{3}{reagge}{3}` | 0.79 | Table 8, BIRD dev |
-| `\padj{bird}{k2}{3}{reagge}{3}` | 1.00 | Table 8, BIRD dev |
-| `\nfix{bird}{k2}{3}{reagge}{3}` | 27 | Table 8, BIRD dev |
-| `\nbrk{bird}{k2}{3}{reagge}{3}` | 30 | Table 8, BIRD dev |
-| `\gain{bird}{k2}{3}{reaggq}{3}` | +0.00 | Table 8, BIRD dev |
-| `\gap{bird}{k2}{3}{reaggq}{3}` | 0.00 | Table 8, BIRD dev |
-| `\pval{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 8, BIRD dev |
-| `\padj{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 8, BIRD dev |
-| `\nfix{bird}{k2}{3}{reaggq}{3}` | 10 | Table 8, BIRD dev |
-| `\nbrk{bird}{k2}{3}{reaggq}{3}` | 10 | Table 8, BIRD dev |
-| `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 8, BIRD dev |
-| `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 8, BIRD dev |
-| `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 8, BIRD dev |
-| `\padj{bird}{k2}{3}{rft}{3}` | 0.46 | Table 8, BIRD dev |
-| `\nfix{bird}{k2}{3}{rft}{3}` | 87 | Table 8, BIRD dev |
-| `\nbrk{bird}{k2}{3}{rft}{3}` | 115 | Table 8, BIRD dev |
-| `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 8, BIRD dev |
-| `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 8, BIRD dev |
-| `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 8, BIRD dev |
-| `\padj{bird}{k2}{4}{fixed}{4}` | 0.0057 | Table 8, BIRD dev |
-| `\nfix{bird}{k2}{4}{fixed}{4}` | 45 | Table 8, BIRD dev |
-| `\nbrk{bird}{k2}{4}{fixed}{4}` | 85 | Table 8, BIRD dev |
-| `\gain{dk}{fedavg}{4}{k2}{4}` | +3.92 | Table 6, Spider-DK |
-| `\gap{dk}{fedavg}{4}{k2}{4}` | 3.92 | Table 6, Spider-DK |
-| `\pval{dk}{fedavg}{4}{k2}{4}` | 0.017 | Table 6, Spider-DK |
-| `\padj{dk}{fedavg}{4}{k2}{4}` | 0.15 | Table 6, Spider-DK |
-| `\nfix{dk}{fedavg}{4}{k2}{4}` | 46 | Table 6, Spider-DK |
-| `\nbrk{dk}{fedavg}{4}{k2}{4}` | 25 | Table 6, Spider-DK |
-| `\gain{dk}{k0}{4}{k2}{4}` | -3.55 | Table 6, Spider-DK |
-| `\gap{dk}{k0}{4}{k2}{4}` | 3.55 | Table 6, Spider-DK |
-| `\pval{dk}{k0}{4}{k2}{4}` | 0.032 | Table 6, Spider-DK |
-| `\padj{dk}{k0}{4}{k2}{4}` | 0.19 | Table 6, Spider-DK |
-| `\nfix{dk}{k0}{4}{k2}{4}` | 26 | Table 6, Spider-DK |
-| `\nbrk{dk}{k0}{4}{k2}{4}` | 45 | Table 6, Spider-DK |
-| `\gain{realistic}{fedavg}{4}{k2}{4}` | +2.75 | Table 6, Spider-Realistic |
-| `\gap{realistic}{fedavg}{4}{k2}{4}` | 2.75 | Table 6, Spider-Realistic |
-| `\pval{realistic}{fedavg}{4}{k2}{4}` | 0.10 | Table 6, Spider-Realistic |
-| `\padj{realistic}{fedavg}{4}{k2}{4}` | 0.41 | Table 6, Spider-Realistic |
-| `\nfix{realistic}{fedavg}{4}{k2}{4}` | 39 | Table 6, Spider-Realistic |
-| `\nbrk{realistic}{fedavg}{4}{k2}{4}` | 25 | Table 6, Spider-Realistic |
-| `\tsgain{realistic}{fedavg}{4}{k2}{4}` | +3.34 | Table 6, Spider-Realistic |
-| `\tsgap{realistic}{fedavg}{4}{k2}{4}` | 3.34 | Table 6, Spider-Realistic |
-| `\tspval{realistic}{fedavg}{4}{k2}{4}` | 0.036 | Table 6, Spider-Realistic |
-| `\gain{realistic}{k0}{4}{k2}{4}` | -0.79 | Table 6, Spider-Realistic |
-| `\gap{realistic}{k0}{4}{k2}{4}` | 0.79 | Table 6, Spider-Realistic |
-| `\pval{realistic}{k0}{4}{k2}{4}` | 0.72 | Table 6, Spider-Realistic |
-| `\padj{realistic}{k0}{4}{k2}{4}` | 1.00 | Table 6, Spider-Realistic |
-| `\nfix{realistic}{k0}{4}{k2}{4}` | 32 | Table 6, Spider-Realistic |
-| `\nbrk{realistic}{k0}{4}{k2}{4}` | 36 | Table 6, Spider-Realistic |
-| `\tsgain{realistic}{k0}{4}{k2}{4}` | +5.11 | Table 6, Spider-Realistic |
-| `\tsgap{realistic}{k0}{4}{k2}{4}` | 5.11 | Table 6, Spider-Realistic |
-| `\tspval{realistic}{k0}{4}{k2}{4}` | 0.0067 | Table 6, Spider-Realistic |
-| `\gain[qwen05]{spider}{fedavg}{4}{k2}{4}` | +2.10 | Table 4 |
-| `\gap[qwen05]{spider}{fedavg}{4}{k2}{4}` | 2.10 | Table 4 |
-| `\pval[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 4 |
-| `\padj[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 4 |
-| `\nfix[qwen05]{spider}{fedavg}{4}{k2}{4}` | 149 | Table 4 |
-| `\nbrk[qwen05]{spider}{fedavg}{4}{k2}{4}` | 104 | Table 4 |
+| `\gain{bird}{k2}{3}{reagge}{3}` | -0.20 | Table 4, BIRD dev |
+| `\gap{bird}{k2}{3}{reagge}{3}` | 0.20 | Table 4, BIRD dev |
+| `\pval{bird}{k2}{3}{reagge}{3}` | 0.79 | Table 4, BIRD dev |
+| `\padj{bird}{k2}{3}{reagge}{3}` | 1.00 | Table 4, BIRD dev |
+| `\nfix{bird}{k2}{3}{reagge}{3}` | 27 | Table 4, BIRD dev |
+| `\nbrk{bird}{k2}{3}{reagge}{3}` | 30 | Table 4, BIRD dev |
+| `\tsgain{bird}{k2}{3}{reagge}{3}` | -0.13 | Table 4, BIRD dev |
+| `\tsgap{bird}{k2}{3}{reagge}{3}` | 0.13 | Table 4, BIRD dev |
+| `\tspval{bird}{k2}{3}{reagge}{3}` | 0.89 | Table 4, BIRD dev |
+| `\gain{bird}{k2}{3}{reaggq}{3}` | +0.00 | Table 4, BIRD dev |
+| `\gap{bird}{k2}{3}{reaggq}{3}` | 0.00 | Table 4, BIRD dev |
+| `\pval{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
+| `\padj{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
+| `\nfix{bird}{k2}{3}{reaggq}{3}` | 10 | Table 4, BIRD dev |
+| `\nbrk{bird}{k2}{3}{reaggq}{3}` | 10 | Table 4, BIRD dev |
+| `\tsgain{bird}{k2}{3}{reaggq}{3}` | +0.26 | Table 4, BIRD dev |
+| `\tsgap{bird}{k2}{3}{reaggq}{3}` | 0.26 | Table 4, BIRD dev |
+| `\tspval{bird}{k2}{3}{reaggq}{3}` | 0.48 | Table 4, BIRD dev |
+| `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 4, BIRD dev |
+| `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 4, BIRD dev |
+| `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 4, BIRD dev |
+| `\padj{bird}{k2}{3}{rft}{3}` | 0.63 | Table 4, BIRD dev |
+| `\nfix{bird}{k2}{3}{rft}{3}` | 87 | Table 4, BIRD dev |
+| `\nbrk{bird}{k2}{3}{rft}{3}` | 115 | Table 4, BIRD dev |
+| `\tsgain{bird}{k2}{3}{rft}{3}` | -1.70 | Table 4, BIRD dev |
+| `\tsgap{bird}{k2}{3}{rft}{3}` | 1.70 | Table 4, BIRD dev |
+| `\tspval{bird}{k2}{3}{rft}{3}` | 0.062 | Table 4, BIRD dev |
+| `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 4, BIRD dev |
+| `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 4, BIRD dev |
+| `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 4, BIRD dev |
+| `\padj{bird}{k2}{4}{fixed}{4}` | 0.008 | Table 4, BIRD dev |
+| `\nfix{bird}{k2}{4}{fixed}{4}` | 45 | Table 4, BIRD dev |
+| `\nbrk{bird}{k2}{4}{fixed}{4}` | 85 | Table 4, BIRD dev |
+| `\tsgain{bird}{k2}{4}{fixed}{4}` | -2.54 | Table 4, BIRD dev |
+| `\tsgap{bird}{k2}{4}{fixed}{4}` | 2.54 | Table 4, BIRD dev |
+| `\tspval{bird}{k2}{4}{fixed}{4}` | 6.2e-4 | Table 4, BIRD dev |
+| `\gain{dk}{fedavg}{4}{k2}{4}` | +3.92 | Table 7, Spider-DK |
+| `\gap{dk}{fedavg}{4}{k2}{4}` | 3.92 | Table 7, Spider-DK |
+| `\pval{dk}{fedavg}{4}{k2}{4}` | 0.017 | Table 7, Spider-DK |
+| `\padj{dk}{fedavg}{4}{k2}{4}` | 0.15 | Table 7, Spider-DK |
+| `\nfix{dk}{fedavg}{4}{k2}{4}` | 46 | Table 7, Spider-DK |
+| `\nbrk{dk}{fedavg}{4}{k2}{4}` | 25 | Table 7, Spider-DK |
+| `\gain{dk}{k0}{4}{k2}{4}` | -3.55 | Table 7, Spider-DK |
+| `\gap{dk}{k0}{4}{k2}{4}` | 3.55 | Table 7, Spider-DK |
+| `\pval{dk}{k0}{4}{k2}{4}` | 0.032 | Table 7, Spider-DK |
+| `\padj{dk}{k0}{4}{k2}{4}` | 0.19 | Table 7, Spider-DK |
+| `\nfix{dk}{k0}{4}{k2}{4}` | 26 | Table 7, Spider-DK |
+| `\nbrk{dk}{k0}{4}{k2}{4}` | 45 | Table 7, Spider-DK |
+| `\gain{realistic}{fedavg}{4}{k2}{4}` | +2.75 | Table 7, Spider-Realistic |
+| `\gap{realistic}{fedavg}{4}{k2}{4}` | 2.75 | Table 7, Spider-Realistic |
+| `\pval{realistic}{fedavg}{4}{k2}{4}` | 0.10 | Table 7, Spider-Realistic |
+| `\padj{realistic}{fedavg}{4}{k2}{4}` | 0.41 | Table 7, Spider-Realistic |
+| `\nfix{realistic}{fedavg}{4}{k2}{4}` | 39 | Table 7, Spider-Realistic |
+| `\nbrk{realistic}{fedavg}{4}{k2}{4}` | 25 | Table 7, Spider-Realistic |
+| `\tsgain{realistic}{fedavg}{4}{k2}{4}` | +3.34 | Table 7, Spider-Realistic |
+| `\tsgap{realistic}{fedavg}{4}{k2}{4}` | 3.34 | Table 7, Spider-Realistic |
+| `\tspval{realistic}{fedavg}{4}{k2}{4}` | 0.036 | Table 7, Spider-Realistic |
+| `\gain{realistic}{k0}{4}{k2}{4}` | -0.79 | Table 7, Spider-Realistic |
+| `\gap{realistic}{k0}{4}{k2}{4}` | 0.79 | Table 7, Spider-Realistic |
+| `\pval{realistic}{k0}{4}{k2}{4}` | 0.72 | Table 7, Spider-Realistic |
+| `\padj{realistic}{k0}{4}{k2}{4}` | 1.00 | Table 7, Spider-Realistic |
+| `\nfix{realistic}{k0}{4}{k2}{4}` | 32 | Table 7, Spider-Realistic |
+| `\nbrk{realistic}{k0}{4}{k2}{4}` | 36 | Table 7, Spider-Realistic |
+| `\tsgain{realistic}{k0}{4}{k2}{4}` | +5.11 | Table 7, Spider-Realistic |
+| `\tsgap{realistic}{k0}{4}{k2}{4}` | 5.11 | Table 7, Spider-Realistic |
+| `\tspval{realistic}{k0}{4}{k2}{4}` | 0.0067 | Table 7, Spider-Realistic |
+| `\gain[qwen05]{spider}{fedavg}{4}{k2}{4}` | +2.10 | Table 5 |
+| `\gap[qwen05]{spider}{fedavg}{4}{k2}{4}` | 2.10 | Table 5 |
+| `\pval[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 5 |
+| `\padj[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 5 |
+| `\nfix[qwen05]{spider}{fedavg}{4}{k2}{4}` | 149 | Table 5 |
+| `\nbrk[qwen05]{spider}{fedavg}{4}{k2}{4}` | 104 | Table 5 |
 | `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
 | `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
 | `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | text |
@@ -530,102 +545,102 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{spider}{fedavg}{4}{fedavg}{5}` | 0.57 | text |
 | `\nfix{spider}{fedavg}{4}{fedavg}{5}` | 34 | text |
 | `\nbrk{spider}{fedavg}{4}{fedavg}{5}` | 51 | text |
-| `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4; Table 5 |
-| `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4; Table 5 |
-| `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4; Table 5 |
-| `\padj{spider}{fedavg}{4}{k2}{4}` | 1.3e-6 | Table 3, Spider test; Table 4; Table 5 |
-| `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4; Table 5 |
-| `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4; Table 5 |
+| `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
+| `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
+| `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
+| `\padj{spider}{fedavg}{4}{k2}{4}` | 1.3e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
+| `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
+| `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | text |
 | `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | text |
 | `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | text |
 | `\padj{spider}{fedavg}{5}{k2}{4}` | 4.4e-8 | text |
 | `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | text |
 | `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | text |
-| `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 8, Spider test |
-| `\gap{spider}{k2}{3}{feddpo}{3}` | 3.87 | Table 8, Spider test |
-| `\pval{spider}{k2}{3}{feddpo}{3}` | 7.6e-9 | Table 8, Spider test |
-| `\padj{spider}{k2}{3}{feddpo}{3}` | 8.4e-8 | Table 8, Spider test |
-| `\nfix{spider}{k2}{3}{feddpo}{3}` | 62 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{3}{feddpo}{3}` | 145 | Table 8, Spider test |
+| `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 4, Spider test |
+| `\gap{spider}{k2}{3}{feddpo}{3}` | 3.87 | Table 4, Spider test |
+| `\pval{spider}{k2}{3}{feddpo}{3}` | 7.6e-9 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{feddpo}{3}` | 1.2e-7 | Table 4, Spider test |
+| `\nfix{spider}{k2}{3}{feddpo}{3}` | 62 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{3}{feddpo}{3}` | 145 | Table 4, Spider test |
 | `\gain{spider}{k2}{3}{k2}{4}` | +0.74 | text |
 | `\gap{spider}{k2}{3}{k2}{4}` | 0.74 | text |
 | `\pval{spider}{k2}{3}{k2}{4}` | 0.093 | text |
 | `\padj{spider}{k2}{3}{k2}{4}` | 0.57 | text |
 | `\nfix{spider}{k2}{3}{k2}{4}` | 48 | text |
 | `\nbrk{spider}{k2}{3}{k2}{4}` | 32 | text |
-| `\gain{spider}{k2}{3}{reagge}{3}` | -0.52 | Table 8, Spider test |
-| `\gap{spider}{k2}{3}{reagge}{3}` | 0.52 | Table 8, Spider test |
-| `\pval{spider}{k2}{3}{reagge}{3}` | 0.09 | Table 8, Spider test |
-| `\padj{spider}{k2}{3}{reagge}{3}` | 0.63 | Table 8, Spider test |
-| `\nfix{spider}{k2}{3}{reagge}{3}` | 12 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{3}{reagge}{3}` | 23 | Table 8, Spider test |
-| `\gain{spider}{k2}{3}{reaggq}{3}` | +0.32 | Table 8, Spider test |
-| `\gap{spider}{k2}{3}{reaggq}{3}` | 0.32 | Table 8, Spider test |
-| `\pval{spider}{k2}{3}{reaggq}{3}` | 0.26 | Table 8, Spider test |
-| `\padj{spider}{k2}{3}{reaggq}{3}` | 1.00 | Table 8, Spider test |
-| `\nfix{spider}{k2}{3}{reaggq}{3}` | 18 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{3}{reaggq}{3}` | 11 | Table 8, Spider test |
-| `\gain{spider}{k2}{3}{rft}{3}` | -1.59 | Table 8, Spider test |
-| `\gap{spider}{k2}{3}{rft}{3}` | 1.59 | Table 8, Spider test |
-| `\pval{spider}{k2}{3}{rft}{3}` | 0.015 | Table 8, Spider test |
-| `\padj{spider}{k2}{3}{rft}{3}` | 0.14 | Table 8, Spider test |
-| `\nfix{spider}{k2}{3}{rft}{3}` | 76 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{3}{rft}{3}` | 110 | Table 8, Spider test |
-| `\gain{spider}{k2}{4}{fixed}{4}` | -0.18 | Table 8, Spider test |
-| `\gap{spider}{k2}{4}{fixed}{4}` | 0.18 | Table 8, Spider test |
-| `\pval{spider}{k2}{4}{fixed}{4}` | 0.78 | Table 8, Spider test |
-| `\padj{spider}{k2}{4}{fixed}{4}` | 1.00 | Table 8, Spider test |
-| `\nfix{spider}{k2}{4}{fixed}{4}` | 54 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{4}{fixed}{4}` | 58 | Table 8, Spider test |
-| `\gain{spider}{k2}{4}{k0}{4}` | -0.18 | Table 8, Spider test |
-| `\gap{spider}{k2}{4}{k0}{4}` | 0.18 | Table 8, Spider test |
-| `\pval{spider}{k2}{4}{k0}{4}` | 0.85 | Table 8, Spider test |
-| `\padj{spider}{k2}{4}{k0}{4}` | 1.00 | Table 8, Spider test |
-| `\nfix{spider}{k2}{4}{k0}{4}` | 116 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{4}{k0}{4}` | 120 | Table 8, Spider test |
-| `\gain{spider}{k2}{4}{k3}{4}` | -0.23 | Table 8, Spider test |
-| `\gap{spider}{k2}{4}{k3}{4}` | 0.23 | Table 8, Spider test |
-| `\pval{spider}{k2}{4}{k3}{4}` | 0.74 | Table 8, Spider test |
-| `\padj{spider}{k2}{4}{k3}{4}` | 1.00 | Table 8, Spider test |
-| `\nfix{spider}{k2}{4}{k3}{4}` | 68 | Table 8, Spider test |
-| `\nbrk{spider}{k2}{4}{k3}{4}` | 73 | Table 8, Spider test |
-| `\gain{spiderdev}{fedavg}{4}{k2}{4}` | +2.51 | Table 6, Spider dev |
-| `\gap{spiderdev}{fedavg}{4}{k2}{4}` | 2.51 | Table 6, Spider dev |
-| `\pval{spiderdev}{fedavg}{4}{k2}{4}` | 0.021 | Table 6, Spider dev |
-| `\padj{spiderdev}{fedavg}{4}{k2}{4}` | 0.17 | Table 6, Spider dev |
-| `\nfix{spiderdev}{fedavg}{4}{k2}{4}` | 72 | Table 6, Spider dev |
-| `\nbrk{spiderdev}{fedavg}{4}{k2}{4}` | 46 | Table 6, Spider dev |
-| `\tsgain{spiderdev}{fedavg}{4}{k2}{4}` | +2.42 | Table 6, Spider dev |
-| `\tsgap{spiderdev}{fedavg}{4}{k2}{4}` | 2.42 | Table 6, Spider dev |
-| `\tspval{spiderdev}{fedavg}{4}{k2}{4}` | 0.027 | Table 6, Spider dev |
-| `\gain{spiderdev}{k0}{4}{k2}{4}` | +0.39 | Table 6, Spider dev |
-| `\gap{spiderdev}{k0}{4}{k2}{4}` | 0.39 | Table 6, Spider dev |
-| `\pval{spiderdev}{k0}{4}{k2}{4}` | 0.80 | Table 6, Spider dev |
-| `\padj{spiderdev}{k0}{4}{k2}{4}` | 1.00 | Table 6, Spider dev |
-| `\nfix{spiderdev}{k0}{4}{k2}{4}` | 69 | Table 6, Spider dev |
-| `\nbrk{spiderdev}{k0}{4}{k2}{4}` | 65 | Table 6, Spider dev |
-| `\tsgain{spiderdev}{k0}{4}{k2}{4}` | +3.20 | Table 6, Spider dev |
-| `\tsgap{spiderdev}{k0}{4}{k2}{4}` | 3.20 | Table 6, Spider dev |
-| `\tspval{spiderdev}{k0}{4}{k2}{4}` | 0.01 | Table 6, Spider dev |
-| `\gain{syn}{fedavg}{4}{k2}{4}` | +3.87 | Table 6, Spider-Syn |
-| `\gap{syn}{fedavg}{4}{k2}{4}` | 3.87 | Table 6, Spider-Syn |
-| `\pval{syn}{fedavg}{4}{k2}{4}` | 6.3e-4 | Table 6, Spider-Syn |
-| `\padj{syn}{fedavg}{4}{k2}{4}` | 0.0082 | Table 6, Spider-Syn |
-| `\nfix{syn}{fedavg}{4}{k2}{4}` | 86 | Table 6, Spider-Syn |
-| `\nbrk{syn}{fedavg}{4}{k2}{4}` | 46 | Table 6, Spider-Syn |
-| `\tsgain{syn}{fedavg}{4}{k2}{4}` | +3.67 | Table 6, Spider-Syn |
-| `\tsgap{syn}{fedavg}{4}{k2}{4}` | 3.67 | Table 6, Spider-Syn |
-| `\tspval{syn}{fedavg}{4}{k2}{4}` | 4.2e-4 | Table 6, Spider-Syn |
-| `\gain{syn}{k0}{4}{k2}{4}` | +0.87 | Table 6, Spider-Syn |
-| `\gap{syn}{k0}{4}{k2}{4}` | 0.87 | Table 6, Spider-Syn |
-| `\pval{syn}{k0}{4}{k2}{4}` | 0.54 | Table 6, Spider-Syn |
-| `\padj{syn}{k0}{4}{k2}{4}` | 1.00 | Table 6, Spider-Syn |
-| `\nfix{syn}{k0}{4}{k2}{4}` | 90 | Table 6, Spider-Syn |
-| `\nbrk{syn}{k0}{4}{k2}{4}` | 81 | Table 6, Spider-Syn |
-| `\tsgain{syn}{k0}{4}{k2}{4}` | +4.16 | Table 6, Spider-Syn |
-| `\tsgap{syn}{k0}{4}{k2}{4}` | 4.16 | Table 6, Spider-Syn |
-| `\tspval{syn}{k0}{4}{k2}{4}` | 0.0014 | Table 6, Spider-Syn |
+| `\gain{spider}{k2}{3}{reagge}{3}` | -0.52 | Table 4, Spider test |
+| `\gap{spider}{k2}{3}{reagge}{3}` | 0.52 | Table 4, Spider test |
+| `\pval{spider}{k2}{3}{reagge}{3}` | 0.09 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{reagge}{3}` | 0.81 | Table 4, Spider test |
+| `\nfix{spider}{k2}{3}{reagge}{3}` | 12 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{3}{reagge}{3}` | 23 | Table 4, Spider test |
+| `\gain{spider}{k2}{3}{reaggq}{3}` | +0.32 | Table 4, Spider test |
+| `\gap{spider}{k2}{3}{reaggq}{3}` | 0.32 | Table 4, Spider test |
+| `\pval{spider}{k2}{3}{reaggq}{3}` | 0.26 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, Spider test |
+| `\nfix{spider}{k2}{3}{reaggq}{3}` | 18 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{3}{reaggq}{3}` | 11 | Table 4, Spider test |
+| `\gain{spider}{k2}{3}{rft}{3}` | -1.59 | Table 4, Spider test |
+| `\gap{spider}{k2}{3}{rft}{3}` | 1.59 | Table 4, Spider test |
+| `\pval{spider}{k2}{3}{rft}{3}` | 0.015 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{rft}{3}` | 0.18 | Table 4, Spider test |
+| `\nfix{spider}{k2}{3}{rft}{3}` | 76 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{3}{rft}{3}` | 110 | Table 4, Spider test |
+| `\gain{spider}{k2}{4}{fixed}{4}` | -0.18 | Table 4, Spider test |
+| `\gap{spider}{k2}{4}{fixed}{4}` | 0.18 | Table 4, Spider test |
+| `\pval{spider}{k2}{4}{fixed}{4}` | 0.78 | Table 4, Spider test |
+| `\padj{spider}{k2}{4}{fixed}{4}` | 1.00 | Table 4, Spider test |
+| `\nfix{spider}{k2}{4}{fixed}{4}` | 54 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{4}{fixed}{4}` | 58 | Table 4, Spider test |
+| `\gain{spider}{k2}{4}{k0}{4}` | -0.18 | Table 4, Spider test |
+| `\gap{spider}{k2}{4}{k0}{4}` | 0.18 | Table 4, Spider test |
+| `\pval{spider}{k2}{4}{k0}{4}` | 0.85 | Table 4, Spider test |
+| `\padj{spider}{k2}{4}{k0}{4}` | 1.00 | Table 4, Spider test |
+| `\nfix{spider}{k2}{4}{k0}{4}` | 116 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{4}{k0}{4}` | 120 | Table 4, Spider test |
+| `\gain{spider}{k2}{4}{k3}{4}` | -0.23 | Table 4, Spider test |
+| `\gap{spider}{k2}{4}{k3}{4}` | 0.23 | Table 4, Spider test |
+| `\pval{spider}{k2}{4}{k3}{4}` | 0.74 | Table 4, Spider test |
+| `\padj{spider}{k2}{4}{k3}{4}` | 1.00 | Table 4, Spider test |
+| `\nfix{spider}{k2}{4}{k3}{4}` | 68 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{4}{k3}{4}` | 73 | Table 4, Spider test |
+| `\gain{spiderdev}{fedavg}{4}{k2}{4}` | +2.51 | Table 7, Spider dev |
+| `\gap{spiderdev}{fedavg}{4}{k2}{4}` | 2.51 | Table 7, Spider dev |
+| `\pval{spiderdev}{fedavg}{4}{k2}{4}` | 0.021 | Table 7, Spider dev |
+| `\padj{spiderdev}{fedavg}{4}{k2}{4}` | 0.17 | Table 7, Spider dev |
+| `\nfix{spiderdev}{fedavg}{4}{k2}{4}` | 72 | Table 7, Spider dev |
+| `\nbrk{spiderdev}{fedavg}{4}{k2}{4}` | 46 | Table 7, Spider dev |
+| `\tsgain{spiderdev}{fedavg}{4}{k2}{4}` | +2.42 | Table 7, Spider dev |
+| `\tsgap{spiderdev}{fedavg}{4}{k2}{4}` | 2.42 | Table 7, Spider dev |
+| `\tspval{spiderdev}{fedavg}{4}{k2}{4}` | 0.027 | Table 7, Spider dev |
+| `\gain{spiderdev}{k0}{4}{k2}{4}` | +0.39 | Table 7, Spider dev |
+| `\gap{spiderdev}{k0}{4}{k2}{4}` | 0.39 | Table 7, Spider dev |
+| `\pval{spiderdev}{k0}{4}{k2}{4}` | 0.80 | Table 7, Spider dev |
+| `\padj{spiderdev}{k0}{4}{k2}{4}` | 1.00 | Table 7, Spider dev |
+| `\nfix{spiderdev}{k0}{4}{k2}{4}` | 69 | Table 7, Spider dev |
+| `\nbrk{spiderdev}{k0}{4}{k2}{4}` | 65 | Table 7, Spider dev |
+| `\tsgain{spiderdev}{k0}{4}{k2}{4}` | +3.20 | Table 7, Spider dev |
+| `\tsgap{spiderdev}{k0}{4}{k2}{4}` | 3.20 | Table 7, Spider dev |
+| `\tspval{spiderdev}{k0}{4}{k2}{4}` | 0.01 | Table 7, Spider dev |
+| `\gain{syn}{fedavg}{4}{k2}{4}` | +3.87 | Table 7, Spider-Syn |
+| `\gap{syn}{fedavg}{4}{k2}{4}` | 3.87 | Table 7, Spider-Syn |
+| `\pval{syn}{fedavg}{4}{k2}{4}` | 6.3e-4 | Table 7, Spider-Syn |
+| `\padj{syn}{fedavg}{4}{k2}{4}` | 0.0082 | Table 7, Spider-Syn |
+| `\nfix{syn}{fedavg}{4}{k2}{4}` | 86 | Table 7, Spider-Syn |
+| `\nbrk{syn}{fedavg}{4}{k2}{4}` | 46 | Table 7, Spider-Syn |
+| `\tsgain{syn}{fedavg}{4}{k2}{4}` | +3.67 | Table 7, Spider-Syn |
+| `\tsgap{syn}{fedavg}{4}{k2}{4}` | 3.67 | Table 7, Spider-Syn |
+| `\tspval{syn}{fedavg}{4}{k2}{4}` | 4.2e-4 | Table 7, Spider-Syn |
+| `\gain{syn}{k0}{4}{k2}{4}` | +0.87 | Table 7, Spider-Syn |
+| `\gap{syn}{k0}{4}{k2}{4}` | 0.87 | Table 7, Spider-Syn |
+| `\pval{syn}{k0}{4}{k2}{4}` | 0.54 | Table 7, Spider-Syn |
+| `\padj{syn}{k0}{4}{k2}{4}` | 1.00 | Table 7, Spider-Syn |
+| `\nfix{syn}{k0}{4}{k2}{4}` | 90 | Table 7, Spider-Syn |
+| `\nbrk{syn}{k0}{4}{k2}{4}` | 81 | Table 7, Spider-Syn |
+| `\tsgain{syn}{k0}{4}{k2}{4}` | +4.16 | Table 7, Spider-Syn |
+| `\tsgap{syn}{k0}{4}{k2}{4}` | 4.16 | Table 7, Spider-Syn |
+| `\tspval{syn}{k0}{4}{k2}{4}` | 0.0014 | Table 7, Spider-Syn |
 | `\errpval{bird}{fedavg}{4}{k2}{4}` | 5.8e-22 | text; execution errors in one row only: 182 (a), 42 (b) |
 | `\errpadj{bird}{fedavg}{4}{k2}{4}` | 1.3e-20 | text; execution errors in one row only: 182 (a), 42 (b) |
 | `\wrpval{bird}{fedavg}{4}{k2}{4}` | 0.007 | text; incorrect results in one row only: 111 (a), 156 (b) |
