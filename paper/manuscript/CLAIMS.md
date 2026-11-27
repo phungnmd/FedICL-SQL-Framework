@@ -50,11 +50,10 @@ Macro arguments are `{set}{line}{round}`; lines: `fedavg` FedAvg SFT,
 round, `rft` without the preference term, `feddpo` without the NLL term,
 `k0` and `k3` no and three warm-up rounds, `k0gold` the line `k0` with
 pairs of the gold SQL for the questions without a correct sample. p is
-the exact McNemar p. The section, table and figure numbers in the
-headings and rows below are those of the outline of 2026-11-26;
-`OUTLINE.md` maps them to the present outline.
+the exact McNemar p. Section, table and figure numbers are those of
+`OUTLINE.md` (seven sections, 2026-11-27).
 
-### A. Against FedAvg SFT (RQ1; Table 3, Fig. 2)
+### A. Against FedAvg SFT (Section 5.1; Table 3, Fig. 3)
 
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
@@ -65,29 +64,29 @@ headings and rows below are those of the outline of 2026-11-26;
 | A5 | Against centralized SFT | Spider: centralized SFT 75.03, level with FedAvg SFT (`\gain{spider}{fedavg}{4}{central}{3}` +0.32, p 0.69); the method is 3.17 above it | Spider test; BIRD waits | "above SFT on the pooled data" for Spider. The test of the method against centralized SFT is not yet in the generator |
 | A6 | Against local SFT, FedProx SFT and federated DPO as published | waits (Table 3: both sets) | | no sentence until the rows are in |
 
-### B. The parts (Table 8)
+### B. The parts (Section 5.3; Table 4)
 
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
 | B1 | Pairs sampled again each round, with the round's global model as reference, are better than the pairs and reference of the first preference round | BIRD at 4 rounds: `\ex{bird}{fixed}{4}` 46.15, `\gain{bird}{k2}{4}{fixed}{4}` -2.61, p 5.7e-4. Spider test: 78.02 against 78.20, p 0.78 | BIRD dev | Stated for BIRD. Never "on both datasets", never "essential". On Spider test the two are level |
 | B2 | The second preference round still adds | BIRD `\gain{bird}{k2}{3}{k2}{4}` +2.54 (p 2.1e-4); Spider +0.74 (p 0.093) | BIRD dev | "On BIRD"; on Spider "a smaller, non-significant step" |
 | B3 | The NLL term is needed | Spider at 3 rounds: without it `\ex{spider}{feddpo}{3}` 73.59, `\gain{spider}{k2}{3}{feddpo}{3}` -3.87 (p 7.6e-9), and below the model it started from (74.10) | Spider test, one preference round; BIRD waits | "Without the NLL term the preference round lowers accuracy" on Spider |
-| B4 | The preference term removes execution errors that training on the model's correct samples alone leaves | At 3 rounds, without it: BIRD `\nerr{bird}{rft}{3}` 248 execution errors against `\nerr{bird}{k2}{3}` 102, EX `\gain{bird}{k2}{3}{rft}{3}` -1.83 (p 0.057); Spider 153 against 99, EX -1.59 (p 0.015). The same exact test on whether a prediction ends in an execution error (`\errpval`): BIRD p 1.1e-24, Spider p 4.2e-6. On whether it is an incorrect result (`\wrpval`), more with the method: BIRD 723 against 605, p 1.0e-12; Spider 385 against 365, p 0.13. Both tests were added while Section 6 was written and wait for the owner (`REVIEW_NOTES.md`, A25) | BIRD dev, Spider test, one preference round; the 4-round rows wait | The error counts carry the claim. For EX: "lower on both datasets", not significant after correction |
-| B5 | Warm-up rounds make the gain hold under test-suite accuracy | Spider test EX is level for 0, 2 and 3 warm-up rounds (78.02, 78.20, 77.97). Test-suite accuracy at 4 rounds (Table 6), no warm-up `\ts{...}{k0}{4}` / two warm-up rounds `\ts{...}{k2}{4}` / FedAvg SFT: Spider dev 67.21 / 70.41 / 67.99; Spider-Syn 51.35 / 55.51 / 51.84; Spider-Realistic 57.09 / 62.20 / 58.86. The method against itself without warm-up, `\tsgain{...}{k0}{4}{k2}{4}`: +3.20 (p 0.010), +4.16 (p 0.0014), +5.11 (p 0.0067) | Spider dev, Syn, Realistic; BIRD at equal rounds waits | No claim that warm-up raises EX: on these sets EX is level with and without it, and on Spider-DK, which has no test suite, EX is higher without it (67.10 against 63.55, p 0.032, printed in Table 6). "Without warm-up the method's EX gain does not carry over to test-suite accuracy; with two warm-up rounds it does." After correction the difference is significant on Spider-Syn |
+| B4 | The preference term removes execution errors that training on the model's correct samples alone leaves | At 3 rounds, without it: BIRD `\nerr{bird}{rft}{3}` 248 execution errors against `\nerr{bird}{k2}{3}` 102, EX `\gain{bird}{k2}{3}{rft}{3}` -1.83 (p 0.057); Spider 153 against 99, EX -1.59 (p 0.015). The same exact test on whether a prediction ends in an execution error (`\errpval`): BIRD p 1.1e-24, Spider p 4.2e-6. On whether it is an incorrect result (`\wrpval`), more with the method: BIRD 723 against 605, p 1.0e-12; Spider 385 against 365, p 0.13. Both tests were added while the ablation study was written and wait for the owner (`REVIEW_NOTES.md`, A25) | BIRD dev, Spider test, one preference round; the 4-round rows wait | The error counts carry the claim. For EX: "lower on both datasets", not significant after correction |
+| B5 | Warm-up rounds make the gain hold under test-suite accuracy | Spider test EX is level for 0, 2 and 3 warm-up rounds (78.02, 78.20, 77.97). Test-suite accuracy at 4 rounds (Table 7), no warm-up `\ts{...}{k0}{4}` / two warm-up rounds `\ts{...}{k2}{4}` / FedAvg SFT: Spider dev 67.21 / 70.41 / 67.99; Spider-Syn 51.35 / 55.51 / 51.84; Spider-Realistic 57.09 / 62.20 / 58.86. The method against itself without warm-up, `\tsgain{...}{k0}{4}{k2}{4}`: +3.20 (p 0.010), +4.16 (p 0.0014), +5.11 (p 0.0067) | Spider dev, Syn, Realistic; BIRD at equal rounds waits | No claim that warm-up raises EX: on these sets EX is level with and without it, and on Spider-DK, which has no test suite, EX is higher without it (67.10 against 63.55, p 0.032, printed in Table 7). "Without warm-up the method's EX gain does not carry over to test-suite accuracy; with two warm-up rounds it does." After correction the difference is significant on Spider-Syn |
 | B6 | The weights of the server average do not matter | Weights by pairs, by questions, equal: BIRD within 0.20 (`\gain{bird}{k2}{3}{reagge}{3}`, `...{reaggq}{3}`), Spider within 0.52, none significant | BIRD dev, Spider test, at 3 rounds | one sentence |
 | B7 | Clients pooled in the preference rounds | waits (Spider) | | |
-| B8 | For the questions without a correct sample, pairs of the gold SQL with an incorrect sample inside the preference round do not help (owner, 2026-11-27: decided by the main session on the owner's request) | BIRD dev, without warm-up rounds, one preference round on the same samples and labels; the variant adds $M$ = 2 such pairs for each of the 4,035 questions without a correct sample: `\ex{bird}{k0gold}{1}` 39.24 against `\ex{bird}{k0}{1}` 41.85, `\gain{bird}{k0}{1}{k0gold}{1}` -2.61, p 0.0073, Holm-adjusted 0.058 in the family of the text; execution errors `\nerr` 219 to 105, incorrect results `\nwr` 673 to 827 | BIRD dev, from the pretrained model, one round | "does not raise EX: it is 2.61 lower, not significant after the correction; fewer execution errors, more incorrect results". Stated for BIRD and for the variant without warm-up rounds. Nothing is stated for the gold SQL as correct side after warm-up rounds (not run) or for Spider (its run changed three things at once: 76.67 against 75.87 at round 1, p 0.21, lower at round 2; `LAB_LOG.md`, 2026-11-21) |
+| B8 | For the questions without a correct sample, pairs of the gold SQL with an incorrect sample inside the preference round do not help (owner, 2026-11-27: decided by the main session on the owner's request) | BIRD dev, without warm-up rounds, one preference round on the same samples and labels; the variant adds $M$ = 2 such pairs for each of the 4,035 questions without a correct sample: `\ex{bird}{k0gold}{1}` 39.24 against `\ex{bird}{k0}{1}` 41.85, `\gain{bird}{k0}{1}{k0gold}{1}` -2.61, p 0.0073, Holm-adjusted `\padj{bird}{k0}{1}{k0gold}{1}` 0.077 in the family of the text; execution errors `\nerr` 219 to 105, incorrect results `\nwr` 673 to 827 | BIRD dev, from the pretrained model, one round | "does not raise EX: it is 2.61 lower, not significant after the correction; fewer execution errors, more incorrect results". Stated for BIRD and for the variant without warm-up rounds. Nothing is stated for the gold SQL as correct side after warm-up rounds (not run) or for Spider (its run changed three things at once: 76.67 against 75.87 at round 1, p 0.21, lower at round 2; `LAB_LOG.md`, 2026-11-21) |
 
-### C. What changes in the answers (RQ4; Fig. 3)
+### C. What changes in the answers (Section 5.2; Fig. 4, Table 4)
 
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
 | C1 | The preference rounds halve the execution errors | At 4 rounds, FedAvg SFT against the method: BIRD `\nerr{bird}{fedavg}{4}` 268 against `\nerr{bird}{k2}{4}` 128; Spider 173 against 84. Exact McNemar test on whether the prediction of a question ends in an execution error (owner, 2026-11-27): BIRD `\errpval{bird}{fedavg}{4}{k2}{4}` 5.8e-22 (182 questions fail only with FedAvg SFT, 42 only with the method), Spider `\errpval{spider}{fedavg}{4}{k2}{4}` 6.2e-14 (118 and 29); both significant after Holm in the family of the text | BIRD dev, Spider test | as stated |
 | C2 | Queries that run and return a wrong result do not become fewer | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384. The same test on the incorrect results: BIRD `\wrpval{bird}{fedavg}{4}{k2}{4}` 0.007 (156 questions only with the method, 111 only with FedAvg SFT), Holm-adjusted `\wrpadj{bird}{fedavg}{4}{k2}{4}` 0.077; Spider 0.37 (111 and 97). Neither difference is significant after Holm | BIRD dev, Spider test | The paper says this plainly. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
 | C3 | The method finds right answers that are not written like the gold SQL, and FedAvg SFT does not; on BIRD this holds under test-suite accuracy (owner, 2026-11-27) | Right answers that read other tables or columns than the gold SQL, under EX: BIRD, FedAvg SFT 136, 135, 136 at rounds 2, 3, 4, the method 174 at round 3 and 191 at round 4; Spider test at 4 rounds 83 against 103 (83 without training). Right answers on the gold SQL's tables and columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against 1,576. The same answers that are also correct under the generated test suite of BIRD dev (C4): other tables or columns, FedAvg SFT 84, 81, 86 at rounds 2, 3, 4, the method 117 at round 3 and `\fact{form.bird.k2.4.other_right_ts}` 132 at round 4; the gold SQL's tables and columns at 4 rounds 477 against 506. The suite rejects `\fact{form.bird.k2.4.other_ts_fail_pct}` 30.9% of the method's right answers on other tables or columns and 36.8% of those of FedAvg SFT, against `\fact{form.bird.k2.4.gold_ts_fail_pct}` 9.2% and 7.7% of those on the gold SQL's (without training 33.6% and 11.1%) | BIRD dev (EX and the generated suite), Spider test (EX; it has no test suite) | Macros `\fact{form.<set>.<line>.<round>.other_right}` and `.gold_right` (with `.other`, `.gold` for the group sizes), and on BIRD `.other_right_ts`, `.gold_right_ts`, `.other_ts_fail_pct`, `.gold_ts_fail_pct`, from the committed predictions and test-suite scores. On BIRD 55 of the 95 questions of net gain under EX and 46 of the 75 under the suite, on Spider 20 of 75: "a large part of the gain on BIRD, under EX and under test-suite accuracy", never "the gain sits there". Where the paper gives the EX count of these answers on BIRD it gives the test-suite count beside it: about a third of them fail the suite in every row, so the EX count alone overstates them. May say that a right answer on other tables or columns fails the suite more often than one on the gold SQL's (about a third against about a tenth). No claim that the method's fail less often than those of FedAvg SFT (30.9% against 36.8%, no test). A prediction that does not parse counts with the others |
-| C4 | The gain on BIRD dev holds under test-suite accuracy | BIRD has no official test suite; a suite of 100 variants of each database was generated (`LAB_LOG.md`, 2026-11-27). `\ts{bird}{fedavg}{4}` 36.70 against `\ts{bird}{k2}{4}` 41.59: +4.89 (131 questions against 56, exact p 4.2e-8), against +6.19 under EX. Predictions correct under EX that the suite rejects: 90 for FedAvg SFT, 110 for the method | BIRD dev | Added with the outline of 2026-11-27 and waits for the owner: the wording, and the table that prints the test, which sets its Holm family; there is no `\tsgain` macro for BIRD until then, and the paper types no "+4.89". The suite is ours: the Setup section says how it was generated and how far it agrees with the official suite on Spider dev (99.54% of 30,026 predictions at 100 variants) |
+| C4 | The gain on BIRD dev holds under test-suite accuracy (owner, 2026-11-27) | BIRD has no official test suite; a suite of 100 variants of each database was generated (`LAB_LOG.md`, 2026-11-27). `\ts{bird}{fedavg}{4}` 36.70 against `\ts{bird}{k2}{4}` 41.59: `\tsgain{bird}{fedavg}{4}{k2}{4}` +4.89 (131 questions against 56, `\tspval{bird}{fedavg}{4}{k2}{4}` 4.2e-8), against +6.19 under EX. Predictions correct under EX that the suite rejects: 90 for FedAvg SFT, 110 for the method. The test is printed in Table 4 (the FedAvg SFT row of the block of 4 rounds) and belongs to its Holm family of 16 tests; significant after the correction. The other BIRD rows of Table 4 carry their test-suite accuracy and its test in the same way | BIRD dev | "The gain holds under test-suite accuracy: 4.89 points against 6.19 under EX", significant. Not "robust", and no claim for Spider test, which has no suite. The suite is ours: the Setup section says how it was generated and how far it agrees with the official suite on Spider dev (99.54% of 30,026 predictions at 100 variants) |
 
-### D. Breadth (RQ2, RQ3; Tables 4, 5, 6)
+### D. Breadth (Sections 5.4 and 5.5; Tables 5, 6, 7)
 
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
@@ -96,7 +95,7 @@ headings and rows below are those of the outline of 2026-11-26;
 | D3 | Other federated setups (IID, alpha 0.5 with 5 and with 10 clients) | waits | | until then the paper has two setups, both at alpha 0.1 with 5 clients |
 | D4 | The gain holds on perturbed questions and under test-suite accuracy | EX gain at 4 rounds: Spider dev `\gain{spiderdev}{fedavg}{4}{k2}{4}` +2.51 (p 0.021), Syn +3.87 (p 6.3e-4), Realistic +2.75 (p 0.10), DK +3.92 (p 0.017). Test-suite accuracy: dev `\tsgain{spiderdev}{fedavg}{4}{k2}{4}` +2.42 (p 0.027), Syn +3.67 (p 4.2e-4), Realistic +3.34 (p 0.036) | Spider dev, Syn, Realistic, DK | "Above FedAvg SFT on all four sets and under both metrics"; significant after correction on Spider-Syn only. Not "robust": both models lose about 15 points from Spider dev to Spider-Syn |
 
-### E. Cost (Table 7)
+### E. Cost (Section 5.6; Table 8)
 
 | # | Claim | Values and macros | Ceiling |
 |---|---|---|---|
@@ -199,14 +198,13 @@ Lab words, which the paper never uses, and what stands for each:
    answer one question and form one family. A test is counted once, in
    the first table that prints it, and the comparisons quoted only in
    the text form a family of their own. The Setup section states it.
-2. Table 8 keeps a BIRD block and a Spider block until the BIRD rows of
+2. Table 4 keeps a BIRD block and a Spider block until the BIRD rows of
    B3, B4 and B5 are read. B1 is worded for BIRD either way.
-3. Table 6 has a row for the method without warm-up rounds and its test
+3. Table 7 has a row for the method without warm-up rounds and its test
    against the method, on every set of the table.
 4. C3 is a result of the paper, written by `paper_numbers.py` from the
-   committed predictions; the Results brief carries it in RQ4
-   (Section 5.2 of the outline of 2026-11-27, with its counts under
-   the test suite).
+   committed predictions; the Results brief carries it in Section 5.2,
+   with its counts under the test suite.
 5. The names of section 6 stand: "warm-up round", "preference round",
    "FedDPO" for the published baseline. The labels and the verbs
    were revised the same day (`TERMS.md`).
@@ -214,14 +212,13 @@ Lab words, which the paper never uses, and what stands for each:
 7. The second contribution names what leaves a client exactly: the
    adapter and the count that weights it.
 8. The method constructs two pairs per question, and the paper gives
-   the reason in Section 3.5: the number of pairs sets the length of
+   the reason in Section 3.6: the number of pairs sets the length of
    local training. The ten pairs of CodeLutra are named beside it in
    Section 4.5, not in the Method section (owner, 2026-11-27). No claim
    on accuracy at other numbers of pairs; none was run.
 9. The numbers of questions that yield pairs and of pairs per round are
-   columns of Table 7 (E2) and are read in Section 5.4, not in the
-   Method section. Changed with the outline of 2026-11-27 (owner): the
-   Method section states once the share of questions with correct and
-   incorrect samples at the first preference round
-   (`\fact{cost.bird.pref1.paired_pct}` 62.3% on BIRD); the counts by
-   round stay in the cost table.
+   columns of Table 8 (E2) and are read in Section 5.6. Changed with
+   the outline of 2026-11-27 (owner): Section 3.2 states once the share
+   of questions with correct and incorrect samples at the first
+   preference round (`\fact{cost.bird.pref1.paired_pct}` 62.3% on
+   BIRD); the counts by round stay in the cost table.

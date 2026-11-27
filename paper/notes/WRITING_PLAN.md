@@ -59,8 +59,8 @@ run at once.
 The writer is a session of the `cold-session` skill. It loads no
 `CLAUDE.md`, `AGENTS.md`, memory or user settings, has no shell, and
 reads and writes only inside a temporary directory that holds a copy of
-its pack. Web search is on for Sections 1, 2 and 7, which speak about
-other work, and off (`-N`) for Sections 3 to 6, where everything is in
+its pack. Web search is on for Sections 1, 2 and 6, which speak about
+other work, and off (`-N`) for Sections 3 to 5 and 7, where everything is in
 the pack (owner, 2026-11-27). A subagent is not used: it inherits the
 project instructions and the memory index, and telling it to disregard
 them does not take them out of what it has read.
@@ -68,7 +68,7 @@ them does not take them out of what it has read.
 ```bash
 r=.claude/skills/cold-session/run.sh
 b=paper/manuscript/build
-$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN   # no -N for Sections 1, 2, 7
+$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN   # no -N for Sections 1, 2, 6
 $r -r HANDLE -f $b/answer_NN.md            # the answer to the outline
 $r -r HANDLE -f $b/reply_NN_1.md [FILE...] # answers to the writer's questions, with files if needed
 $r -r HANDLE -f $b/notes_NN_1.md           # editor's notes, round 1; -c on the last turn
@@ -96,7 +96,7 @@ First deliverable: the outline that guide.md describes, written to
 notes/outline.md. Stop there and wait for the editor's response.
 ```
 
-For Sections 1, 2 and 7 the start prompt has one more paragraph, before
+For Sections 1, 2 and 6 the start prompt has one more paragraph, before
 the last one:
 
 ```text
@@ -188,7 +188,7 @@ paper.
 | `sections/` | the accepted sections, and the file of this section with its heading | `sections/` |
 
 The method reaches the writer of Section 3 through its brief (the
-algorithm, the equations, Fig. 1) and every later writer through the
+algorithm, the equations, Fig. 2) and every later writer through the
 accepted Section 3.
 
 Not in the pack: the notes of the lab, `CLAIMS.md`, `OUTLINE.md`, this
@@ -217,7 +217,7 @@ found is removed at the source file, not in the copy.
 1. Facts: every fact about our work comes from the pack or from an
    answer of the main session; a gap is asked about and not filled by a
    guess. A fact about a cited paper comes
-   from the pack or, in Sections 1, 2 and 7, from the web, and then
+   from the pack or, in Sections 1, 2 and 6, from the web, and then
    stands in the notes with its URL.
 2. Findings: a finding is stated as its table carries it, and its scope
    ("on BIRD", "to our knowledge") is part of it. A writer that finds
@@ -366,22 +366,21 @@ The draft is trimmed toward the pages of the fee after it is complete.
 
 | # | Section | Notes the brief is built from |
 |---|---|---|
-| 1 | Introduction, abstract, keywords | `RESEARCH_STATE.md` 3.1; `LITERATURE.md` 1.22 |
+| 1 | Introduction, Fig. 1, abstract, keywords | `RESEARCH_STATE.md` 3.1; `LITERATURE.md` 1.22 |
 | 2 | Related work, Table 1 | `briefs/02_related_rows.md`, `02_related_table1_rows.md`; `LITERATURE.md` 1.2 to 1.4, 1.22, 2; `DPO_RESEARCH.md` 2, 7; `RESEARCH_STATE.md` 3.6 |
-| 3 | Method, Fig. 1, Algorithm 1 | `RESEARCH_STATE.md` 3.2, 3.3; the loss in `fedls_sql/training/dpo.py`; `03_checks.md` part 5 |
+| 3 | Method, Fig. 2, Algorithm 1 | `RESEARCH_STATE.md` 3.2, 3.3; the loss in `fedls_sql/training/dpo.py`; `03_checks.md` part 5 |
 | 4 | Experimental setup, Table 2 | `RESEARCH_STATE.md` 2, 3.4; `FEDERATED_DATA_SETUP.md` 3, 4; `generated/settings.md` |
-| 5 | Results, Tables 3 to 7, Figs. 2 and 3 | `RESEARCH_STATE.md` 5.0; the generated tables |
-| 6 | Ablation study, Table 8 | `RESEARCH_STATE.md` 5.0, second table |
-| 7, 8 | Discussion and limitations; Conclusion | `CLAIMS.md` 5; `RESEARCH_STATE.md` 3.1, 5.0 |
+| 5 | Results and analysis (the ablation study is 5.3), Tables 3 to 8, Figs. 3 and 4 | `RESEARCH_STATE.md` 5.0, both tables; the generated tables |
+| 6, 7 | Discussion and limitations; Conclusion | `CLAIMS.md` 5; `RESEARCH_STATE.md` 3.1, 5.0 |
 | A, B | Appendix: the prompt; all settings | generated; written by the main session, no prose |
 
-Order of writing: 3 and 1 first, as the pilot; then 4, 5, 6, 7 with 8,
+Order of writing: 3 and 1 first, as the pilot; then 4, 5, 6 with 7,
 2; last, the Introduction is brought up to date, with the abstract, the
 keywords and the title candidates.
 The body goes in the order of the paper because a writer takes the
 terms of the accepted sections: 4 defines the statistical protocol that
-5 to 7 rely on, 5 and 6 give 7 its findings, and the Introduction
-promises what 5 to 7 then say.
+5 and 6 rely on, 5 gives 6 its findings, and the Introduction
+promises what 5 and 6 then say.
 
 ## 6. Tables and figures
 
@@ -398,15 +397,17 @@ and stops when two runs of one line disagree.
 
 | Item | Content |
 |---|---|
-| Fig. 1 | framework overview (`paper/figures/fig_method_overview.svg`) |
+| Fig. 1 | one question trained in the two ways (to be drawn) |
+| Fig. 2 | framework overview (`paper/figures/fig_method_overview.svg`) |
 | Algorithm 1 | the method |
 | Table 1 | closest work by property |
 | Table 2 | the federated setups |
-| Table 3, Fig. 2 | main results on BIRD dev and Spider test; EX by round |
-| Tables 4, 5 | other models; other federated setups |
-| Table 6 | Spider dev, Syn, Realistic, DK; EX and test-suite accuracy |
-| Fig. 3, Table 7 | incorrect predictions by kind and round; what a round costs a client |
-| Table 8 | ablations |
+| Table 3, Fig. 3 | main results on BIRD dev and Spider test; EX by round |
+| Fig. 4 | incorrect predictions by kind and round |
+| Table 4 | ablations; BIRD dev also under test-suite accuracy |
+| Tables 5, 6 | other models; other federated setups |
+| Table 7 | Spider dev, Syn, Realistic, DK; EX and test-suite accuracy |
+| Table 8 | what a round costs a client |
 
 Supplementary file: every McNemar test with its adjusted p, pairs per
 client and round, the per-client statistics of the splits, EX by round
@@ -553,7 +554,7 @@ its locators, the supplementary file.
 paper/manuscript/
   main.tex  macros.tex  floats.tex  references.bib  Makefile
   Definitions/     the class of Tech Science Press
-  sections/        01_intro ... 08_conclusion, 90_statements_cmc, A_prompt, B_settings
+  sections/        01_intro ... 07_conclusion, 90_statements_cmc, A_prompt, B_settings
   generated/       numbers, settings, tab_*.tex, missing.txt, the prompts
   figures/         fig_*.pdf
   CLAIMS.md  OUTLINE.md  TERMS.md  WRITING_GUIDE.md  VOICE_GUIDE.md  REVIEW_NOTES.md

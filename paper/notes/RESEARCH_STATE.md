@@ -320,7 +320,7 @@ Where the paper mentions CodeLutra, and nowhere else:
 | Place | What |
 |---|---|
 | Section 2.2 and its row of Table 1 | what it does and where this method differs, at full size and once |
-| Section 3.6, at the objective | a citation, no sentence of comparison |
+| Section 3.7, at the objective | a citation, no sentence of comparison |
 | Section 4.5 | one sentence: the settings of the preference rounds that follow it, and two pairs per question beside its ten |
 
 OpenFedLLM (arXiv

@@ -62,7 +62,7 @@ OFF_TERMS = [(r"\bwrong (?:results?|samples?|quer(?:y|ies)|answers?|predictions?
 BRITISH = r"\b\w*(?:labell|modell|organis|optimis|minimis|maximis|initialis|normalis|generalis|centralis|summaris|behaviour|favour|neighbour)\w*"
 HEDGES = [r"\bmay\b", r"\bmight\b", r"\bappears? to\b", r"\bseems? to\b", r"\bit is worth noting\b", r"\barguably\b", r"\bsomewhat\b",
           r"\bpotentially\b", r"\bperhaps\b", r"\bto some extent\b", r"\bwe believe\b"]
-LIMITATION_FILES = {"07_discussion.tex"}
+LIMITATION_FILES = {"06_discussion.tex"}
 # Related work types the numbers of other papers (model sizes, counts); the cited-work audit checks them against the brief
 CITED_NUMBER_FILES = {"02_related.tex"}
 

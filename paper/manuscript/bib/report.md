@@ -40,17 +40,17 @@ What each paper did, as the project's notes record it.
 | 2.1 | tritto2026gradesql | JIIS: execution-labelled outcome reward models rank SQL candidates; Spider test 87.47 against 85.47 for majority vote at N = 32 (RQ3); McNemar with Bonferroni, fixed seed |
 | 2.1 | yi2025sktsql | JIIS: schema selection, SQL skeleton and T5 slot filling for small models (abstract) |
 | 2.1, 4.5 | chang2023prompt | prompt formats for Text-to-SQL: CREATE TABLE text with example rows (sections 3 to 5, appendix A.1) |
-| 2.2, 3.4 | rafailov2023dpo | the DPO loss; the reference model kept close to the distribution of the pairs |
-| 2.2, 3.4 | tao2024codelutra | on-policy loop: 10 samples at temperature 1.0, execution labels, DPO + SFT (beta 0.1, lambda 1), LoRA r 8, 4 iterations; Spider 59.3 to 76.6, BIRD 22.3 to 43.1 (Table 1); DPO term alone 17.2 (Table 2); non-executable BIRD errors 40% to 11% (section 6) |
-| 2.2, 3.4, 6 | pang2024irpo | self-sampled pairs labelled by correctness, DPO + NLL, gold added as chosen when no sample is correct; GSM8K 73.1 to 81.6 over four rounds, 61.8 without NLL (Table 1) |
+| 2.2, 3.7 | rafailov2023dpo | the DPO loss; the reference model kept close to the distribution of the pairs |
+| 2.2, 3.7 | tao2024codelutra | on-policy loop: 10 samples at temperature 1.0, execution labels, DPO + SFT (beta 0.1, lambda 1), LoRA r 8, 4 iterations; Spider 59.3 to 76.6, BIRD 22.3 to 43.1 (Table 1); DPO term alone 17.2 (Table 2); non-executable BIRD errors 40% to 11% (section 6) |
+| 2.2, 3.7, 5.3 | pang2024irpo | self-sampled pairs labelled by correctness, DPO + NLL, gold added as chosen when no sample is correct; GSM8K 73.1 to 81.6 over four rounds, 61.8 without NLL (Table 1) |
 | 2.2 | liu2025cotdpo | execution-labelled DPO on BIRD for 10 models of 6.7B to 15B; SQL-only DPO lowers EX for 6 of 10 (Table 1) |
 | 2.2 | zhai2025excot | one off-policy and two on-policy DPO rounds; 70B BIRD dev 58.1 to 68.5 (Tables 1 and 2) |
 | 2.2 | yang2024sense | GPT-4 synthetic SFT data, then DPO on pairs from a weak model; the DPO step adds 0.2 to 0.9 on Spider dev (Table 5) |
 | 2.2 | zhang2025exesql | execution success against failure as preference pairs for SQL dialects (Table 9) |
 | 2.2 | zhang2025codedpo | self-generated code and tests ranked for preference training (abstract) |
 | 2.2 | prasad2025scpo | pairs from vote counts, DPO + NLL; GSM8K 63.91 without labels against 64.29 with gold (Table 1) |
-| 2.2, 6 | miao2024aligning | DPO on the model's own samples beats SFT on correct samples; pairs from another model end below the start (Table 1) |
-| 2.2, 3.4 | lanchantin2025bridging | semi-online DPO (sampler synchronised every s steps); Math500 offline 53.7, s = 100 58.9, online 58.7 (Table 1) |
+| 2.2, 5.3 | miao2024aligning | DPO on the model's own samples beats SFT on correct samples; pairs from another model end below the start (Table 1) |
+| 2.2, 3.7 | lanchantin2025bridging | semi-online DPO (sampler synchronised every s steps); Math500 offline 53.7, s = 100 58.9, online 58.7 (Table 1) |
 | 2.2 | ni2023lever, shi2022mbrexec | execution at inference: a learned verifier, Spider dev 75.3 to 81.9 (LEVER, Table 2); execution-result MBR (abstract) |
 | 2.3, 3, 4.4 | mcmahan2017fedavg | FedAvg |
 | 2.3, 4.5 | hu2022lora | LoRA |
@@ -61,11 +61,11 @@ What each paper did, as the project's notes record it.
 | 2.3 | wu2025fedbiscuit | clients train preference selectors and the server runs DPO; FedDPO is its baseline |
 | 2.3 | nayak2026pubswap, guo2026fedgrpo | verifier-driven federated RL: federated GRPO with public prompts, Qwen3-1.7B FedAvg-GRPO 50.7 to 55.8; reward-weighted aggregation, math average FedAvg 37.10, Fed-GRPO 39.06 (Table 4) |
 | 2.3 | wu2026fedsurvey | survey; lists BIRD among the code benchmarks for federated evaluation |
-| 2.4, 4.2 | zhang2023fl4sp | eight single-domain datasets as clients, T5-base; macro-average EM: centralized 70.3, FedAvg 40.0, FedOPT + Lorar 62.6 |
-| 2.4 | xu2024kgrfl | federated BART parser (question to SPARQL) with RL-based fusion of client models (abstract) |
+| 2.3, 4.2 | zhang2023fl4sp | eight single-domain datasets as clients, T5-base; macro-average EM: centralized 70.3, FedAvg 40.0, FedOPT + Lorar 62.6 |
+| 2.3 | xu2024kgrfl | federated BART parser (question to SPARQL) with RL-based fusion of client models (abstract) |
 | 4.1 | li2023bird, yu2018spider | the BIRD and Spider datasets |
 | 4.1 | gan2021spidersyn, deng2021realistic, gan2021spiderdk | Spider-Syn, Spider-Realistic, Spider-DK |
-| 4.1, 7 | zhong2020testsuite | test-suite accuracy; EX on one database has a mean false-positive rate of 6.5% over 21 Spider-dev submissions (Table 2) |
+| 4.1, 6 | zhong2020testsuite | test-suite accuracy; EX on one database has a mean false-positive rate of 6.5% over 21 Spider-dev submissions (Table 2) |
 | 4.2 | hsu2019noniid | the Dirichlet partition by label |
 | 4.2 | li2022niidbench | the label-distribution-skew partition our split follows (per label, client proportions from a Dirichlet); added 2026-11-26 from Crossref and the arXiv API |
 | 4.3 | hui2024qwen25coder, guo2024deepseekcoder | Qwen2.5-Coder (1.5B and 0.5B) and DeepSeek-Coder-1.3B |

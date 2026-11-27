@@ -1,4 +1,4 @@
-# Checks: Section 6, Ablation study, Table 8
+# Checks: Sections 6 and 7, Discussion and limitations, Conclusion
 
 For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
@@ -7,42 +7,43 @@ bounds of claims. Notes on the wording of a draft are not kept here
 
 ## 1. Facts about our work
 
-- Table 8: the blocks are "4 rounds" and "3 rounds"; the first row is FedAvg SFT after 2 rounds (BIRD 42.70, Spider 74.10; EX only, no test), the model from which every row but the two with another number of warm-up rounds starts. "Without the NLL term" on Spider (73.59) is below that starting point.
-- Questions without a correct sample on Spider, on databases with rows: 1,016, 557 and 470 with 0, 2 and 3 warm-up rounds (the raw counts of the round records, 1,074, 573 and 483, include questions on databases without rows). BIRD: 4,035 and 2,698.
-- Without the preference term (the NLL term alone on correct samples): the round still ends above the model before it (44.39 against 42.70 on BIRD dev; 75.87 against 74.10 on Spider test). Against the round with both terms: fewer execution errors with the preference term, significant; a difference in EX is not significant after correction on either dataset. No ranking by "lies between" without a test.
-- Warm-up rounds: at 4 rounds on Spider test, 78.02, 78.20 and 77.97 for 0, 2 and 3. What differs is test-suite accuracy (the variant without warm-up is below FedAvg SFT in TS on all three sets by value, one of three tests significant, on Spider-Syn) and the number of questions without a correct sample.
-- The gold SQL query as the correct side for questions without a correct sample (B8): BIRD dev only, the variant without warm-up, one preference round: 39.24 against 41.85 (-2.61, p 0.0073, 0.077 after Holm in the family of the text). A number of the text, not a row of Table 8; nothing is said for Spider. (owner, A2)
-- Three waiting rows need a sentence when their results are in: without the preference term after 4 rounds; 0 and 3 warm-up rounds on BIRD dev.
+- The method has 2 preference rounds among its T = 4 rounds and is not trained further; only the variant without warm-up rounds has more.
+- Tests against FedAvg SFT at 4 rounds. Execution errors: BIRD dev 182 questions fail only with FedAvg SFT and 42 only with the method (p = 5.8e-22); Spider test 118 and 29 (p = 6.2e-14); both significant after Holm. Incorrect results: BIRD dev p = 0.007, 0.077 after Holm (156 and 111); Spider test p = 0.37 (111 and 97); neither significant after correction. (owner, A31)
+- Cost: as in `01_checks.md`.
+- The counts of pairs by kind of incorrect sample are in no table; two columns of Table 8 are proposed for them (`REVIEW_NOTES.md`, C44).
 
 ## 2. Facts about cited papers
 
-Four published results on a likelihood term in DPO (locators in `02_related_rows.md`); two support the term and two do not, and the section carries all four:
-
-- CodeLutra, Table 2: Spider 17.2 with the DPO term alone, 76.6 with the full loss.
-- Pang et al., Table 1: GSM8K 61.8 against 73.1, one round.
-- Liu et al., App. A, Table 7: an added SFT term on SQL-only output, 58.8 to 60.0, which they call a limited gain.
-- Lanchantin et al., Sec. 4.2: an added NLL term did not help in their task. (Cited only here.)
+None of its own.
 
 ## 3. Claims: strength, scope, what waits
 
-- On-policy pairs against fixed pairs and reference: lower EX on BIRD dev (+2.61 for the method, p 5.7e-4); level on Spider test (78.20 against 78.02, p 0.78).
-- The preference term over training on correct samples at 3 rounds: +1.83 on BIRD dev (p 0.057), +1.59 on Spider test (p 0.015, 0.14 after Holm).
+- The preference term is isolated in one round only; what the second preference round changes is not attributed to its pairs.
+- The limitations of `CLAIMS.md`, section 5, each stated once, in the limitations subsection, at the size the evidence gives: added client computation over the rounds; a client's number of pairs depends on the model's performance on its data, and it is sent to the server; questions on databases without rows yield no pair; one training seed and one draw of the partition (the second seed on BIRD when its row is in); clients must be able to execute SQL on their databases; data isolation, not differential privacy; EX alone on BIRD dev, which has no test suite.
+- The conclusion states the problem, the framework and the principal findings, and adds no qualification that the limitations subsection does not hold (`VOICE_GUIDE.md`).
+- C3 (correct predictions by form of query) is reported, not interpreted (owner, A27).
+- Model size is a boundary of the study (`CLAIMS.md`, section 5, items 7 and 8): models of 0.5B to 1.5B parameters with LoRA, SQLite benchmarks in English; where FedAvg SFT is still improving fast (the 0.5B model) the gain is smaller. Stated once, in the limitations subsection.
 
 ## 4. What the section carries for other sections
 
-- Section 3 points here for the counts behind the warm-up rounds; Section 2.2 points here for the choices varied.
+Nothing.
 
 ## 5. Labels, floats and formulas
 
 Other sections and the generated tables refer to these labels. The macros and
-citation keys by section are in `inventory.txt`.
+citation keys by section are in `inventory.txt` (the file names there are
+those of the eight sections of 2026-11-26).
 
-### `sections/06_ablation.tex`
+### `sections/06_discussion.tex`
 
 Headings and labels:
 
-- `\section{Ablation study}` `sec:ablation`
+- `\section{Discussion and limitations}` `sec:discussion`
+- `\subsection{Interpretation of the results}` `sec:interpretation`
+- `\subsection{Scope and limitations}` `sec:limitations`
 
-Floats:
+### `sections/07_conclusion.tex`
 
-- table `tab:ablation`, from `generated/tab_ablation`
+Headings and labels:
+
+- `\section{Conclusion}` `sec:conclusion`

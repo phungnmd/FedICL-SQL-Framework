@@ -75,7 +75,9 @@ query.
 
 Protocol: execution accuracy (EX) on BIRD dev, the principal dataset,
 and on Spider test; Spider dev, Spider-Syn, Spider-Realistic and
-Spider-DK, with test-suite accuracy (TS), for breadth. Baselines: the
+Spider-DK for breadth. Test-suite accuracy (TS) uses the official
+suites of Spider dev, Spider-Syn and Spider-Realistic and, for BIRD
+dev, a suite generated for this study. Baselines: the
 pretrained model, local SFT, centralized SFT, FedAvg SFT, FedProx SFT
 and FedDPO. Five clients under a non-IID partition; further federated
 setups (IID, a milder non-IID partition, ten clients) await their
@@ -97,22 +99,25 @@ What accounts for it:
 - The preference rounds halve the execution errors on both datasets;
   the number of incorrect results does not decrease.
 - A large part of the gain on BIRD consists of correct predictions that
-  use other tables or columns than the gold SQL query.
+  use other tables or columns than the gold SQL query, under EX and
+  under TS.
+- The gain on BIRD dev persists under TS, by a smaller margin than
+  under EX.
 - From the same model, one preference round adds more than a further
   FedAvg SFT round.
 
 Supporting evidence, each item in its own section:
 
-- Components (Section 6): on BIRD, on-policy pairs outperform the pairs
+- Components (Section 5.3): on BIRD, on-policy pairs outperform the pairs
   and the reference model of the first preference round; without the
   NLL term a preference round lowers accuracy (Spider); the preference
   term removes execution errors that persist under training on the
   correct samples alone; with warm-up rounds the gain persists under TS
   on the Spider sets; the weights of the aggregation are immaterial.
-- Breadth (Section 5): the 0.5B model also improves over FedAvg SFT, by
+- Breadth (Sections 5.4 and 5.5): the 0.5B model also improves over FedAvg SFT, by
   a smaller margin; the gain persists on the perturbed sets and under
   TS.
-- Cost (Section 5): no additional communication; the cost is client
+- Cost (Section 5.6): no additional communication; the cost is client
   computation for sampling, execution and local training.
 
 ## Contributions
@@ -130,16 +135,15 @@ Supporting evidence, each item in its own section:
 
 | Section | Content | Tables and figures |
 |---|---|---|
-| 1 Introduction | problem, limitation, key observation, framework, results, contributions | |
-| 2 Related work | fine-tuned models for Text-to-SQL; preference optimization and execution feedback; federated fine-tuning of language models; federated semantic parsing | Table 1 |
-| 3 Method | problem formulation, framework overview, the components, algorithm and cost | Fig. 1, Algorithm 1 |
+| 1 Introduction | problem, limitation, key observation, framework, results, contributions | Fig. 1 |
+| 2 Related work | fine-tuned models for Text-to-SQL; preference optimization and execution feedback; federated fine-tuning of language models and federated semantic parsing | Table 1 |
+| 3 Method | problem formulation, execution-derived supervision, framework overview, the components, algorithm | Fig. 2, Algorithm 1 |
 | 4 Experimental setup | datasets, federated setups, models, baselines, metrics, implementation, statistical protocol | Table 2 |
-| 5 Results | RQ1 the gain over the baselines; RQ2 other models and federated setups; RQ3 perturbed questions and TS; RQ4 the change in the predictions and the cost | Tables 3 to 7, Figs. 2 and 3 |
-| 6 Ablation study | the contribution of each component | Table 8 |
-| 7 Discussion and limitations | mechanisms and implications; the scope of the study | |
-| 8 Conclusion | synthesis and future work | |
+| 5 Results and analysis | main results; analysis of the predictions; ablation study; other models and federated setups; perturbed questions; computation and communication cost | Tables 3 to 8, Figs. 3 and 4 |
+| 6 Discussion and limitations | mechanisms and implications; the scope of the study | |
+| 7 Conclusion | synthesis and future work | |
 
-The limitations, each stated once in Section 7: gold SQL queries and
+The limitations, each stated once in Section 6: gold SQL queries and
 queryable databases are required at every client; five clients (ten in
 one setup) with full participation; data isolation without differential
 privacy; additional client computation; an execution label rests on one

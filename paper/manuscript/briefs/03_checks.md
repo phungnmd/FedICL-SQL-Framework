@@ -1,4 +1,4 @@
-# Checks: Section 3, Method, Fig. 1, Algorithm 1
+# Checks: Section 3, Method, Fig. 2, Algorithm 1
 
 For the editor (main session and helpers). The writer does not read this
 file. It holds what stays true whatever the draft says: facts and the
@@ -12,7 +12,7 @@ bounds of claims. Notes on the wording of a draft are not kept here
 - An empty sample is an incorrect sample under the general rule; it needs no rule of its own in the text.
 - The reason for warm-up rounds, in counts: questions without a correct sample when the first preference round samples are, on BIRD, 4,035 of 9,428 with the pretrained model and 2,698 after 2 warm-up rounds. On Spider, of the questions on databases with rows: 1,016, then 557. "More questions yield pairs" holds on BIRD only (4,857 to 5,877); on Spider the questions that yield pairs fall (4,454 to 4,013).
 - Two pairs per question: the reason given is that the number of pairs sets the length of local training; the paper has no ablation over M. (owner, 2026-11-26)
-- Fig. 1 differs from the text in three places, not changed until the owner decides: "Only LoRA adapters travel" (the text: the adapter and one integer); step 4 writes L = L_DPO + L_NLL without lambda; "2 FedAvg rounds" and "N = 10" are typed in the figure.
+- Fig. 2 (the overview of the framework) differs from the text in three places, not changed until the owner decides: "Only LoRA adapters travel" (the text: the adapter and one integer); step 4 writes L = L_DPO + L_NLL without lambda; "2 FedAvg rounds" and "N = 10" are typed in the figure.
 
 ## 2. Facts about cited papers
 
@@ -23,14 +23,14 @@ bounds of claims. Notes on the wording of a draft are not kept here
 ## 3. Claims: strength, scope, what waits
 
 - Position of the method (owner, 2026-11-27): the framework and each component are motivated against federated SFT and federated DPO as published (FedAvg SFT learns from the gold SQL query alone and never uses the client's databases; FedDPO keeps the pairs and the reference model of its first round and has no NLL term). The section makes no comparison with CodeLutra and does not present a component as a difference from it; the comparison is in Section 2.2 and Table 1, the settings that follow it in Section 4.5.
-- Evidence of each component, for the Evidence cell of the brief (the section reports no result and points to Sections 5 and 6): client-side execution labeling with the preference objective, A1 and A4 (+6.19 and +3.49 over FedAvg SFT; one preference round against one more SFT round); the preference term, B4 (execution errors 248 against 102 on BIRD); the NLL term, B3 (-3.87 EX without it, Spider); on-policy pair construction, B1 (+2.61 on BIRD, level on Spider); supervised warm-up, B5 (test-suite accuracy on Spider, no EX gain); aggregation weights, B6 (no difference). A component is given the property its definition confers; a gain is attributed to it only at the strength of its row.
+- Evidence of each component, for the Evidence cell of the brief (the section reports no result and points to Section 5): client-side execution labeling with the preference objective, A1 and A4 (+6.19 and +3.49 over FedAvg SFT; one preference round against one more SFT round); the preference term, B4 (execution errors 248 against 102 on BIRD); the NLL term, B3 (-3.87 EX without it, Spider); on-policy pair construction, B1 (+2.61 on BIRD, level on Spider); supervised warm-up, B5 (test-suite accuracy on Spider, no EX gain); aggregation weights, B6 (no difference). A component is given the property its definition confers; a gain is attributed to it only at the strength of its row.
 - "First" and "to our knowledge" belong to Section 1.
 
 ## 4. What the section carries for other sections
 
 - How a query is read from the output of the model and how execution results are compared is in Section 4, to which this section points.
 - The time limit, the adapter configuration, the settings of local training and the replacement rule of pairing are in Appendix B.
-- That a client must be able to execute SQL on its databases is said in Section 7 if not here.
+- That a client must be able to execute SQL on its databases is said in Section 6 if not here.
 
 ## 5. Labels, floats and formulas
 
@@ -43,12 +43,12 @@ Headings and labels (`OUTLINE.md`, approved):
 
 - `\section{Method}` `sec:method`
 - `\subsection{Problem Formulation}` `sec:formulation`
+- `\subsection{Execution-Derived Supervision}` `sec:supervision`
 - `\subsection{Framework Overview}` `sec:overview`
 - `\subsection{Supervised Warm-Up}` `sec:warmup`
 - `\subsection{Client-Side Execution Labeling}` `sec:labeling`
 - `\subsection{On-Policy Preference Pair Construction}` `sec:pairs`
-- `\subsection{Preference Optimization Objective}` `sec:objective`
-- `\subsection{Aggregation and Client Cost}` `sec:aggregation`
+- `\subsection{Preference Objective and Aggregation}` `sec:objective`
 
 Floats:
 

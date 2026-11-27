@@ -4,6 +4,42 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-27: C4 approved and printed in Table 4; every file follows the seven sections (owner; `f668027` and the commit of this entry)
+
+- C4 (the gain on BIRD dev under the generated test suite) is approved
+  and its test is printed in Table 4, the ablation table: a FedAvg SFT
+  row in the block of 4 rounds, and for every BIRD row test-suite
+  accuracy, its difference from the method and the test. Macros
+  `\tsgain`, `\tsgap`, `\tspval` for the five BIRD comparisons that
+  have rows. The Holm family of the table goes from 11 to 16 tests:
+  five adjusted p change (`\padj` of fixed pairs on BIRD 0.0057 to
+  0.008; without the preference term 0.46 to 0.63 on BIRD and 0.14 to
+  0.18 on Spider; without the NLL term 8.4e-8 to 1.2e-7; equal weights
+  on Spider 0.63 to 0.81) and no asterisk moves. No other number
+  changes.
+- The table has ten columns: set at `\small` with 3pt padding and
+  shorter row names ("No preference term", "No NLL term", "Averaged by
+  questions", "Averaged equally") it is 463 pt wide in the CMC class,
+  whose text is 470 pt. `tab_cost` is 498 pt and was already too wide.
+- Tables and figures carry the numbers of the outline in
+  `paper_numbers.py`, `charts.py`, `pack.py`, `CLAIMS.md`, the checks
+  files, `WRITING_GUIDE.md`, `WRITING_PLAN.md` and `bib/report.md`
+  (ablation Table 4, other models 5, federated setups 6, perturbed
+  sets 7, cost 8; Fig. 2 the framework, Figs. 3 and 4 the charts).
+- Section files: `06_ablation.tex` removed (the ablation study is 5.3),
+  `06_discussion.tex`, `07_conclusion.tex`; the checks of the ablation
+  study are in `05_checks.md`, those of the discussion and conclusion
+  in `06_checks.md`. Web search is on for Sections 1, 2 and 6
+  (`pack.py`, `WRITING_PLAN.md`, `AGENTS.md`).
+- `CLAIMS.md`, B8: the Holm-adjusted p was written as 0.058; the
+  generated value is 0.077 (the family of the text had grown), now with
+  its macro.
+- Left as they are: `REVIEW_NOTES.md` and `briefs/inventory.txt`, which
+  record the earlier draft under its numbers. `make lint` has its one
+  stop (no abstract); `make pdf` builds; `paper_numbers.py --check`
+  still stops on `overview.html`, which has no test-suite scores for
+  BIRD.
+
 ## 2026-11-27: the outline has seven sections and no research questions; C3 carries its test-suite counts (owner; `bf5c9e3` and the commit of this entry)
 
 After a read of the structure of 18 papers (nine federated, the three

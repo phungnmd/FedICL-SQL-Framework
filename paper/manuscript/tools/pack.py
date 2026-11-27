@@ -8,8 +8,8 @@ searches it for dates, "owner" and lab words and stops when it finds any.
 
 usage: python3 tools/pack.py NN [--also NN ...] [--accepted NN ...] [--brief FILE]
        python3 tools/pack.py --check FILE...
-  NN          the section to write (01 ... 08)
-  --also      further sections the same writer writes (08 with 07, 00 with 01)
+  NN          the section to write (01 ... 07)
+  --also      further sections the same writer writes (07 with 06, 00 with 01)
   --accepted  the sections already accepted, given to the writer to read
   --brief     the brief, when it is not briefs/NN_name.md
   --check     search the files (an answer to the writer, editor's notes, a file sent
@@ -28,20 +28,20 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import LAB_WORDS  # noqa: E402  (the same list the drafts are read against)
 
-WEB_SECTIONS = {"01", "02", "07"}  # sections on other work: web search is on (plan, section 2.1)
+WEB_SECTIONS = {"01", "02", "06"}  # sections on other work: web search is on (plan, section 2.1)
 NOT_A_BRIEF = re.compile(r"_(checks|outline|notes|notes_editor|rows|table1_rows)\.md$")
 FACT_SHEETS = ("briefs/02_related_rows.md", "briefs/02_related_table1_rows.md")
 FLOATS = {
-    "fig_method_overview.pdf": "Fig. 1, the overview of the framework",
-    "fig_rounds_cmc.pdf": "Fig. 2, EX by round; included with \\chart{fig_rounds}",
-    "fig_errors_cmc.pdf": "Fig. 3, incorrect predictions by kind and round; included with \\chart{fig_errors}",
+    "fig_method_overview.pdf": "Fig. 2, the overview of the framework",
+    "fig_rounds_cmc.pdf": "Fig. 3, EX by round; included with \\chart{fig_rounds}",
+    "fig_errors_cmc.pdf": "Fig. 4, incorrect predictions by kind and round; included with \\chart{fig_errors}",
     "tab_setups.tex": "Table 2, the federated setups",
     "tab_main.tex": "Table 3, main results",
-    "tab_models.tex": "Table 4, other models",
-    "tab_federated.tex": "Table 5, other federated setups",
-    "tab_robust.tex": "Table 6, Spider dev and the perturbed sets, EX and TS",
-    "tab_cost.tex": "Table 7, the cost of a round for a client",
-    "tab_ablation.tex": "Table 8, ablations",
+    "tab_models.tex": "Table 5, other models",
+    "tab_federated.tex": "Table 6, other federated setups",
+    "tab_robust.tex": "Table 7, Spider dev and the perturbed sets, EX and TS",
+    "tab_cost.tex": "Table 8, the cost of a round for a client",
+    "tab_ablation.tex": "Table 4, ablations; BIRD dev also under test-suite accuracy",
     "tab_settings.tex": "Appendix B, settings (first part)",
     "tab_settings_2.tex": "Appendix B, settings (second part)",
 }

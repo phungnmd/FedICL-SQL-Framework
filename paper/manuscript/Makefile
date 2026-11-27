@@ -98,8 +98,8 @@ register:
 	@$(PYTHON) tools/style_profile.py compare sections/01_intro.tex --kind introduction | sed -n 3,4p
 	@$(PYTHON) tools/style_profile.py compare sections/02_related.tex --kind 'related work' | sed -n 3,4p
 	@$(PYTHON) tools/style_profile.py compare sections/03_method.tex --kind method | sed -n 3,4p
-	@for s in 04_setup 05_results 06_ablation; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind experiments | sed -n 3,4p; done
-	@for s in 07_discussion 08_conclusion; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind 'discussion and conclusion' | sed -n 3,4p; done
+	@for s in 04_setup 05_results; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind experiments | sed -n 3,4p; done
+	@for s in 06_discussion 07_conclusion; do $(PYTHON) tools/style_profile.py compare sections/$$s.tex --kind 'discussion and conclusion' | sed -n 3,4p; done
 
 submit:
 	$(MAKE) -B pdf STRICT=1

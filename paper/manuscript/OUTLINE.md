@@ -214,32 +214,36 @@ experiments.
 accounts for it, how far it carries and what it costs.
 **Content**:
 
-- 5.1 Main results (~550; Table 3, Fig. 3). BIRD first, then Spider.
+- 5.1 Main results (`sec:main`, ~550; Table 3, Fig. 3). BIRD first,
+  then Spider.
   A1 the gain at four rounds; A2 FedAvg SFT stops improving after
   round 3; A3 the gain by difficulty level; A4 one preference round
   against one more SFT round; A5 centralized SFT; A6 local SFT,
   FedProx SFT and federated DPO.
-- 5.2 Analysis of the predictions (~450; Fig. 4). Which predictions
-  change, and whether the gain survives a change of the database
-  contents. C1 execution errors halve; C2 incorrect results do not
-  fall; C3 correct answers written otherwise than the gold SQL, with
-  their counts under EX and under the test suite on BIRD; C4 the gain
-  on BIRD dev under test-suite accuracy.
-- 5.3 Ablation study (~880; Table 4). The components in the order of
-  Section 3: B5 the number of warm-up rounds; B1 pairs and reference
+- 5.2 Analysis of the predictions (`sec:analysis`, ~450; Fig. 4,
+  Table 4). Which predictions change, and whether the gain survives a
+  change of the database contents. C1 execution errors halve; C2
+  incorrect results do not fall; C3 correct answers written otherwise
+  than the gold SQL, with their counts under EX and under the test
+  suite on BIRD; C4 the gain on BIRD dev under test-suite accuracy,
+  read from the FedAvg SFT row of Table 4.
+- 5.3 Ablation study (`sec:ablation`, ~880; Table 4). Table 4 gives
+  EX on both datasets and test-suite accuracy on BIRD dev, each row
+  tested against the method. The components in the order of Section 3: B5 the number of warm-up rounds; B1 pairs and reference
   renewed each round against those of the first preference round, B2
   the second preference round and B8 pairs of the gold SQL for the
   questions without a correct sample; B4 the preference term and B3
   the NLL term; B6 the weights of the server average and B7 clients
   pooled in the preference rounds.
-- 5.4 Other models and federated setups (~450; Tables 5, 6). The
+- 5.4 Other models and federated setups (`sec:breadth`, ~450;
+  Tables 5, 6). The
   changes of the training configuration: D1 the 0.5B model; D2
   DeepSeek-Coder; D3 IID and alpha 0.5 with 5 and 10 clients.
-- 5.5 Perturbed questions (~350; Table 7). D4 the gain on Spider dev,
+- 5.5 Perturbed questions (`sec:perturbed`, ~350; Table 7). D4 the gain on Spider dev,
   Spider-Syn, Spider-Realistic and Spider-DK under both metrics, apart
   from the fall of either model when the question is perturbed; the
   row without warm-up rounds (B5).
-- 5.6 Computation and communication cost (~200; Table 8). E1 no added
+- 5.6 Computation and communication cost (`sec:cost`, ~200; Table 8). E1 no added
   communication; E2 GPU time and label time of a round.
 
 **Transition to next**: what the results say about the two kinds of
@@ -276,7 +280,7 @@ table. These carry no argument and are assembled by the main session.
 | 3 | E1 (in kind); decision 9 of `CLAIMS.md`, section 7 | Fig. 2, Algorithm 1 | the method as built; settings from `generated/settings.tex`; the counts of 3.2 and 3.4 from the round records |
 | 4 | none | Table 2; Appendix A, B | datasets, models, baselines, settings |
 | 5.1 | A1 to A6 | Table 3, Fig. 3 | results and paired tests |
-| 5.2 | C1 to C4 | Fig. 4 | error counts, form of the answers, test-suite scores |
+| 5.2 | C1 to C4 | Fig. 4, Table 4 | error counts, form of the answers, test-suite scores |
 | 5.3 | B1 to B8 | Table 4 (and Table 7) | results and paired tests |
 | 5.4 | D1 to D3 | Tables 5, 6 | results and paired tests |
 | 5.5 | D4, B5 | Table 7 | results and paired tests |
@@ -288,47 +292,35 @@ placeholder: A5 on BIRD, A6, the second seed of Table 3, D2, D3, the
 BIRD rows of B3, B4 and B5, B7 (the 34 rows of `generated/missing.txt`).
 Figs. 1 and 2 wait for the owner's decision on the images.
 
-## Tables and figures: numbers of this outline
+## Tables and figures
 
-Numbered in the order of first mention. `CLAIMS.md`, the checks files
-and the labels inside `tools/paper_numbers.py` and `tools/charts.py`
-still carry the numbers of the outline of 2026-11-26.
+Numbered in the order of first mention.
 
-| Here | Content | File | Number of 2026-11-26 |
-|---|---|---|---|
-| Fig. 1 | one question, two ways of training | to be drawn | none |
-| Fig. 2 | framework overview | to be drawn | Fig. 1 |
-| Fig. 3 | EX by round | `fig_rounds` | Fig. 2 |
-| Fig. 4 | incorrect predictions by round | `fig_errors` | Fig. 3 |
-| Table 3 | main rows | `tab_main` | Table 3 |
-| Table 4 | ablation | `tab_ablation` | Table 8 |
-| Table 5 | other models | `tab_models` | Table 4 |
-| Table 6 | federated setups | `tab_federated` | Table 5 |
-| Table 7 | Spider dev and the perturbed sets | `tab_robust` | Table 6 |
-| Table 8 | cost | `tab_cost` | Table 7 |
-
-Sections of 2026-11-26 and where their content is now: 5.1 in 5.1,
-5.2 in 5.4, 5.3 in 5.5, 5.4 in 5.2 (the answers) and 5.6 (the cost), 6
-in 5.3, 7 in 6, 8 in 7. The Holm families
-do not change with the new numbers: the only tests printed in more than
-one table are the two main comparisons, which stay in Table 3.
+| Number | Content | File |
+|---|---|---|
+| Fig. 1 | one question, two ways of training | to be drawn |
+| Fig. 2 | framework overview | `fig_method_overview` (to be redrawn) |
+| Fig. 3 | EX by round | `fig_rounds` |
+| Fig. 4 | incorrect predictions by round | `fig_errors` |
+| Table 1 | the closest methods by property | written with Section 2 |
+| Table 2 | federated setups | `tab_setups` |
+| Table 3 | main rows | `tab_main` |
+| Table 4 | ablation; BIRD dev also under test-suite accuracy | `tab_ablation` |
+| Table 5 | other models | `tab_models` |
+| Table 6 | federated setups, results | `tab_federated` |
+| Table 7 | Spider dev and the perturbed sets | `tab_robust` |
+| Table 8 | cost | `tab_cost` |
 
 ## Open with this outline
 
-1. C4 has no table: the test of the method against FedAvg SFT under the
-   test suite of BIRD dev needs a place that prints it (a test-suite
-   column of Table 3 or of Table 4), which sets its Holm family and its
-   macro.
-2. B5 is read in 5.3 from Table 7, which the reader meets in 5.5. A
-   test-suite column for the BIRD rows of Table 4 would remove the
-   forward reference (the generated suite scored every BIRD row).
-3. The files that still follow the eight sections of 2026-11-26: the
-   section files and checks files (`05` to `08`), `tools/pack.py` (web
-   search for sections 01, 02, 07), `WRITING_GUIDE.md` (Evidence,
-   Organization) and the web rule of `AGENTS.md` (sections 1, 2 and 7;
-   the discussion is now Section 6).
-4. No baseline of federated reinforcement learning with verifiable
+1. B5 on BIRD: the rows without warm-up and with three warm-up rounds
+   at 4 rounds wait, so 5.3 reads B5 from Table 7 (Spider dev,
+   Spider-Syn, Spider-Realistic), which the reader meets in 5.5.
+2. No baseline of federated reinforcement learning with verifiable
    rewards is planned; 2.3 and Table 1 state the difference in kind.
+3. `tab_cost` is 498 pt wide in the CMC class, against a text width of
+   470 pt; it has to be narrowed before the section that prints it is
+   written.
 
 ## Word Count Summary
 
