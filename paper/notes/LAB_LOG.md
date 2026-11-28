@@ -5,6 +5,23 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28 (22:54): the control at 4 rounds on Spider test
+
+- `sft_prefset/round_4` (`3a4a9a32`; FedAvg SFT rounds 3 and 4 at the
+  settings of the preference rounds): 75.08 on Spider test, 175
+  execution errors and 360 incorrect results. Round 3 was 75.45.
+- Against FedAvg SFT round 4 (74.71): 0.37 above, 66 questions against
+  58. Against the method (78.20): 3.12 below, 74 against 141, p 5.7e-6,
+  Holm-adjusted 6.9e-5 in Table 4 (13 tests).
+- Reading: on Spider the settings of the preference rounds do not
+  account for the gain at 4 rounds either; the gap to the control (3.12)
+  is 0.37 under the headline gap (3.49), so the abstract keeps the gap
+  to FedAvg SFT. Every SFT row of Spider test is near 75: FedAvg SFT
+  74.71 at rounds 3 and 4 and 73.92 at round 5, the control 75.45 and
+  75.08, centralized SFT 75.03.
+- Paper: the row of Table 4 and one clause in Section 5.3. BIRD round 4
+  of the control is not published yet.
+
 ## 2026-11-28 (evening): the 1.5B and 0.5B rows on Syn, Realistic and DK parked
 
 - Decision (owner): `spider_sets_var/*` (9 tasks, the 1.5B rows by

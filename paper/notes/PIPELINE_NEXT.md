@@ -7,10 +7,11 @@ at 17:35: `sft_prefset/round_3` is 75.45 on Spider test, 0.74 above
 FedAvg SFT round 3 (p 0.11) and 2.01 below the method at 3 rounds
 (p 0.0036); `bird_sft_prefset/round_3` is 43.16 on BIRD dev (17:42),
 0.52 below FedAvg SFT round 3 (p 0.45) and 3.06 below the method at 3
-rounds (p 0.0014; `LAB_LOG.md`). Round 4: the Spider round is trained
-and GPU 0 trains the BIRD round (owner, 20:10; about 173 min of
-training, estimate); the file then publishes both rounds and runs the
-two evaluations, so no round 4 number is published yet.
+rounds (p 0.0014; `LAB_LOG.md`). Round 4, read at 22:54:
+`sft_prefset/round_4` is 75.08 on Spider test (`3a4a9a32`), 0.37 above
+FedAvg SFT round 4 and 3.12 below the method (p 5.7e-6); the BIRD
+round was training at 20:10 (owner; about 173 min of training,
+estimate) and its number is not published yet.
 The other tasks wait for a card (Run now, step 2). The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
 2026-11-28).
@@ -56,7 +57,7 @@ second card takes the first ready task the other does not hold):
 
 | Order | Tasks | Cells it fills | About |
 |---|---|---|---|
-| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | Table 4: FedAvg SFT at the settings of the DPO + NLL rounds (round 3 printed, round 4 waits) | 10.5 h (both rounds 3 read; Spider round 4 trained, BIRD round 4 training, then the two evaluations: about 3.5 h left) |
+| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | Table 4: FedAvg SFT at the settings of the DPO + NLL rounds (round 3 printed; round 4 printed for Spider, waits for BIRD) | 10.5 h (both rounds 3 and Spider round 4 read; BIRD round 4 training, then its evaluation) |
 | 1 | `feddpo/round_2` with its evaluations (test, dev) | Table 3, Spider: FedDPO | 3 h |
 | 2 | `pooled_k2` rounds 1 and 2 with their evaluations, `pooled_dev/*` (Spider dev) | Table 4, Spider: Clients pooled (the DPO + NLL rounds at one site, no aggregation) | 4 h (round 1 trained, see below) |
 | 3 | `deepseek13b_sft` rounds 3 and 4, `deepseek13b_k2/round_2`, their rows on Spider dev and the variant sets (`deepseek13b_dev/*`, `deepseek13b_var/*`) | Table 5, Spider: DeepSeek-Coder-1.3B, the third model | 8 h |

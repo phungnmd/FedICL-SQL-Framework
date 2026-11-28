@@ -254,6 +254,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\lvl{spider}{fedavgp}{3}{extra}` | 55.74 | 1d85aa58 |
 | `\nerr{spider}{fedavgp}{3}` | 177 | 1d85aa58 |
 | `\nwr{spider}{fedavgp}{3}` | 350 | 1d85aa58 |
+| `\ex{spider}{fedavgp}{4}` | 75.08 | 3a4a9a32 |
+| `\lvl{spider}{fedavgp}{4}{easy}` | 90.43 | 3a4a9a32 |
+| `\lvl{spider}{fedavgp}{4}{medium}` | 78.76 | 3a4a9a32 |
+| `\lvl{spider}{fedavgp}{4}{hard}` | 66.52 | 3a4a9a32 |
+| `\lvl{spider}{fedavgp}{4}{extra}` | 57.14 | 3a4a9a32 |
+| `\nerr{spider}{fedavgp}{4}` | 175 | 3a4a9a32 |
+| `\nwr{spider}{fedavgp}{4}` | 360 | 3a4a9a32 |
 | `\ex{spider}{feddpo}{3}` | 73.59 | f8485b4b |
 | `\lvl{spider}{feddpo}{3}{easy}` | 88.94 | f8485b4b |
 | `\lvl{spider}{feddpo}{3}{medium}` | 75.50 | f8485b4b |
@@ -384,7 +391,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 7, Table 4 12, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 7, Table 4 13, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -644,6 +651,10 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{spider}{fedavg}{4}{central}{3}` | 0.69 | Table 3, Spider test |
 | `\nfix{spider}{fedavg}{4}{central}{3}` | 113 | Table 3, Spider test |
 | `\nbrk{spider}{fedavg}{4}{central}{3}` | 106 | Table 3, Spider test |
+| `\gain{spider}{fedavg}{4}{fedavgp}{4}` | +0.37 | text |
+| `\gap{spider}{fedavg}{4}{fedavgp}{4}` | 0.37 | text |
+| `\nfix{spider}{fedavg}{4}{fedavgp}{4}` | 66 | text |
+| `\nbrk{spider}{fedavg}{4}{fedavgp}{4}` | 58 | text |
 | `\gain{spider}{fedavg}{4}{k0}{4}` | +3.31 | text |
 | `\gap{spider}{fedavg}{4}{k0}{4}` | 3.31 | text |
 | `\nfix{spider}{fedavg}{4}{k0}{4}` | 178 | text |
@@ -673,7 +684,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{feddpo}{3}` | 3.87 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{feddpo}{3}` | 7.6e-9 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{feddpo}{3}` | 9.2e-8 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{feddpo}{3}` | 9.9e-8 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{feddpo}{3}` | 62 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{feddpo}{3}` | 145 | Table 4, Spider test |
 | `\gain{spider}{k2}{3}{k2}{4}` | +0.74 | Table S4, Spider test |
@@ -688,6 +699,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{spider}{k2}{3}{rft}{3}` | 0.061 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{rft}{3}` | 76 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{rft}{3}` | 110 | Table 4, Spider test |
+| `\gain{spider}{k2}{4}{fedavgp}{4}` | -3.12 | Table 4, Spider test |
+| `\gap{spider}{k2}{4}{fedavgp}{4}` | 3.12 | Table 4, Spider test |
+| `\pval{spider}{k2}{4}{fedavgp}{4}` | 5.7e-6 | Table 4, Spider test |
+| `\padj{spider}{k2}{4}{fedavgp}{4}` | 6.9e-5 | Table 4, Spider test |
+| `\nfix{spider}{k2}{4}{fedavgp}{4}` | 74 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{4}{fedavgp}{4}` | 141 | Table 4, Spider test |
 | `\gain{spider}{k2}{4}{fixed}{4}` | -0.18 | Table 4, Spider test |
 | `\gap{spider}{k2}{4}{fixed}{4}` | 0.18 | Table 4, Spider test |
 | `\pval{spider}{k2}{4}{fixed}{4}` | 0.78 | Table 4, Spider test |
