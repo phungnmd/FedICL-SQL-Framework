@@ -216,6 +216,17 @@ Open points on the drafted sections (W3 and W4):
   (row minus FedAvg SFT) and the other result tables (row minus the
   method); each caption says which. A p of 0.010 prints as "0.01".
 - Fig. 2: `REVIEW_NOTES.md`, A41.
+- Section 4, left from the reviewer's second read: what a reader needs
+  to rebuild the generated suite (rows per variant, how values are
+  drawn, its seed, how results are compared on a variant) goes to
+  Appendix B or the supplementary file; the check on Spider dev does
+  not separate our generator from the missing distillation step; the
+  cut at the first semicolon truncates a query whose string literal
+  holds one (count them in the gold SQL queries and the predictions
+  before answering); the chat format of DeepSeek-Coder; whether Local
+  SFT has a TS value on BIRD dev, when its rows are in; "Appendix B
+  lists every setting" while the epochs of Local SFT and the
+  coefficient of FedProx wait for their rows.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),
