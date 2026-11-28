@@ -5,6 +5,46 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: the method run by each BIRD client alone queued, right after local SFT (`bird_local_k2`)
+
+- Why: the kept reviewer and both fresh reads of the full draft read the
+  method as CodeLutra run under FedAvg (`REVIEW_NOTES.md`, A49, C1): a
+  client holds its databases, gold SQL and model and could run the loop
+  alone. This row measures what the federation adds to the method; the
+  text cannot. Owner's order: this row first, clients pooled on BIRD
+  next.
+- Design: each client c runs the two DPO + NLL rounds of `bird_k2` on its
+  own rows and databases, no adapter averaged, from its local SFT epoch 2
+  (`local_bird_c{c}_ddl_a01_e2_s0`). Epoch 2 is fixed by design, not
+  read on BIRD dev: it is the SFT a client trains in two FedAvg SFT
+  rounds, so each client trains as much as in the method at 4 rounds.
+  Read: mean, lowest and highest client on BIRD dev against the method
+  (46.22, 48.76) and local SFT.
+- Code (`fedicl-sql` `ba7932de`): `--local-client C --n-clients 1` trains
+  client C alone on `client_C_train.csv`; a committed `client_train` row
+  can be the parent of the preference rounds (chain: one `C` per epoch
+  through the init adapters), and a local setup requires it to have
+  trained on client C's CSV. The identity of every setup without it is
+  unchanged, so no root of a running or queued line changes; a federated
+  stage still takes no `client_train` parent.
+- Queue (`14992724`): 40 tasks, `bird_local_k2/client_c_round_k` with
+  their publications and evaluations, after the five `bird_local` tasks
+  and before the second seed; round 1 of a client waits for its local
+  SFT. About 18 h (estimate). Memory as a client of `bird_k2`.
+- Checked: a test of the queue holds that each command is the command of
+  `bird_k2` round k with the parent, one client and the root changed,
+  that the setup equals that of `bird_k2` but for those, and that the
+  parent row is the one the local SFT curve writes at epoch 2 on the
+  same client CSV. Full suite: 635 passed, 2 skipped, 1 failed
+  (`test_worker_waits_for_a_task_another_worker_holds`, which passes
+  alone and in three runs of its file, with and without this change).
+  Not checked here: a rendered BIRD prompt (the BIRD train databases are
+  on the server only); the line uses the profile, schema style and code
+  path of `bird_k2`. The one-client path of the preference rounds has
+  not run on a GPU yet (`pooled_k2` is not published).
+- `overview_results.py` maps the new arm names (lines `localk2{c}`, at 3
+  and 4 rounds).
+
 ## 2026-11-28: local SFT on BIRD and seed 1 of the two main BIRD rows queued, after the two Spider rounds
 
 - Owner's order: these two ahead of the breadth rows (DeepSeek on

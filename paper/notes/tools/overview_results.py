@@ -76,6 +76,9 @@ ARMS = {
     # centralized SFT on BIRD train and local SFT of each BIRD client, by epoch
     **{f"central_bird_ddl_e{e}": ("central", e) for e in (1, 2, 3)},
     **{f"local_bird_c{c}_ddl_a01_e{e}": (f"local{c}", e) for c in range(1, 6) for e in (1, 2, 3)},
+    # each BIRD client alone: the two DPO + NLL rounds of k = 2 from its local SFT epoch 2
+    **{f"fedpref_local_bird_c{c}_e2_p2_dpo_ddl_a01_r{r}": (f"localk2{c}", 2 + r)
+       for c in range(1, 6) for r in (1, 2)},
     # FedAvg SFT rounds 3 and 4 at the optimizer settings of the DPO + NLL rounds
     **{f"fedavg_bird_prefset_ddl_a01_r{r}": ("fedavgp", r) for r in (3, 4)},
     **{f"fedavg_prefset_ddl_rows_a01_r{r}": ("fedavgp", r) for r in (3, 4)},
