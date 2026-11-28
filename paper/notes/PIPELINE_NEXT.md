@@ -40,7 +40,7 @@ print beside the method; the paper otherwise has centralized SFT only),
 the third model (DeepSeek-Coder-1.3B on Spider), centralized and local
 SFT on BIRD, then the IID and alpha 0.5 setups; the setup of 10 clients
 is last and optional (its row leaves Table 6 if no card is free for
-it). Six lines are parked in `fedicl-sql/queues/parked.toml`, ready if
+it). Eight lines are parked in `fedicl-sql/queues/parked.toml`, ready if
 a reviewer of the journal asks (list at the end of `Running and
 queued`). The worker reads `queues/active.toml` alone, so parking and
 unparking need no new key and no restart.
@@ -65,10 +65,9 @@ second card takes the first ready task the other does not hold):
 | 6 | `iid_sft` rounds 1 to 4, `iid_k2` rounds 1 and 2 | Table 6: IID | 13 h |
 | 7 | `a05_sft` rounds 1 to 4, `a05_k2` rounds 1 and 2 | Table 6: alpha 0.5, 5 clients | 13 h |
 | 8 | `a05k10_sft` rounds 1 to 4, `a05k10_k2` rounds 1 and 2 (optional: runs only if a card is free) | Table 6: alpha 0.5, 10 clients; the row leaves the table if it does not run | 13 h |
-| 9 | `spider_sets_var/*`, `qwen05b_var/*` (queued 2026-11-23, in neither list of the decision of 2026-11-28; left in the file after row 8 for the owner to place or park) | no cell of a table: the 1.5B rows by round and the 0.5B rows on Syn, Realistic and DK | 2 h |
 
-About 84.5 GPU hours for rows 0 to 8 (estimate; 71.5 without row 8),
-2 more for row 9. The parked lines are 64.5 h. The manuscript does not
+About 84.5 GPU hours for rows 0 to 8 (estimate; 71.5 without row 8).
+The parked lines are 66.5 h. The manuscript does not
 wait for any of them: it is completed with placeholders and marked
 guesses (`AGENTS.md`, Writing).
 
@@ -394,7 +393,7 @@ its log say whether the second runs 4 at a time cost them.
 | 39 | `iid_sft/round_1` to `round_4`, `iid_k2/round_1`, `round_2`, each with its evaluation | the 1.5B line on the IID split (`iid/k5`): FedAvg SFT against the method at 3 and 4 rounds, the second heterogeneity level | about 13 h (estimate) | queued 2026-11-24 (`9976390e`); sixth in the file order of 2026-11-28 |
 | 43 | `a05_sft/round_1` to `round_4`, `a05_k2/round_1`, `round_2`, each with its evaluation | the 1.5B line on `alpha_0.5/k5`: FedAvg SFT against the method at 3 and 4 rounds, a milder non-IID partition | about 13 h (estimate) | queued 2026-11-27 (`4a962ced`); seventh in the file order of 2026-11-28 |
 | 44 | `a05k10_sft/round_1` to `round_4`, `a05k10_k2/round_1`, `round_2`, each with its evaluation | the same on `alpha_0.5/k10`: 10 clients against 5 at the same alpha | about 13 h (estimate; 10 clients over the same 8,659 rows) | queued 2026-11-27 (`4a962ced`); eighth and last in the file order of 2026-11-28, optional: it runs only if a card is free, and its row leaves Table 6 otherwise |
-| 31 | `spider_sets_dev/*`, `spider_sets_var/*`, `qwen05b_var/*` | evaluations only, the rounds on the other Spider sets: the two ablation rounds of the 1.5B on Spider dev; the 1.5B rows by round and the ten 0.5B rows on Syn, Realistic and DK | about 2 h (estimate: 3 min a row on dev, 6 min on the three sets) | queued 2026-11-23 19:15 (`e425fa42`); `spider_sets_dev/*` committed; `spider_sets_var/*` and `qwen05b_var/*` not committed, in neither list of the decision of 2026-11-28, left in the file after row 44 for the owner to place or park; `pooled_dev/*` runs with `pooled_k2` (row 28) |
+| 31 | `spider_sets_dev/*`, `spider_sets_var/*`, `qwen05b_var/*` | evaluations only, the rounds on the other Spider sets: the two ablation rounds of the 1.5B on Spider dev; the 1.5B rows by round and the ten 0.5B rows on Syn, Realistic and DK | about 2 h (estimate: 3 min a row on dev, 6 min on the three sets) | queued 2026-11-23 19:15 (`e425fa42`); `spider_sets_dev/*` committed; `spider_sets_var/*` and `qwen05b_var/*` not committed, parked on the evening of 2026-11-28 (owner: no cell of a table needs them); `pooled_dev/*` runs with `pooled_k2` (row 28) |
 | 30 | `spider_dev/fedavg_r1` to `r3`, `spider_dev/k0_r1` to `r3`, `spider_dev/k2_r1`, `spider_dev/k3_r1`, `spider_dev/publish_rounds` | the 1.5B rows by round on Spider dev, so that the start of the DPO + NLL rounds (k = 0, 2, 3) reads on dev at every count of rounds; dev holds k = 0 and k = 2 at 4 rounds only (77.27, 77.66) | about 25 min, no training (estimate) | queued 2026-11-23 18:55 (`185d41cd`), first in the file. With `spider_dev/k3_r1` k is read on Spider dev at 4 rounds (k = 0, 2, 3); test-suite accuracy on the Mac after its publication |
 | 33 | `reagg/*` | the FedAvg weights of a DPO round: `dpo_k2/round_1` (Spider) and `bird_k2/round_1` (BIRD) aggregated again by questions and equally from the saved client adapters (pairs: the round itself, a check); read against 77.46 / 75.05 and 46.22 | about 45 min, no training (estimate) | read 2026-11-24: no weighting separated from pair counts (within 0.51 on Spider test, dev and BIRD dev); pair counts kept |
 | 40 | `sft_more/round_5`, `round_6`, each with its evaluations (test, dev) | does FedAvg SFT reach the method with more rounds: on Spider dev round 4 still gained 1.94 over round 3 (p 0.0045; on test 74.71 at both); read against the method at 4 rounds (78.20 test, 77.66 dev) | about 3 h (estimate) | round 5 read: 73.92 test, 74.18 dev, below round 4 on both; round 6 dropped by the owner (`c6d9720b`) |
@@ -470,7 +469,9 @@ estimates).
   - `bird_wrfirst/*`: BIRD, wrong-result rejects first, 5 h;
   - `rft/round_2` with its evaluations: Spider, RFT at 4 rounds, 3.5 h;
   - `bird_vote/*`: BIRD dev, a vote of 16 samples for FedAvg SFT round
-    4 and the method, 2 h.
+    4 and the method, 2 h;
+  - `spider_sets_var/*`, `qwen05b_var/*`: Spider-Syn, Realistic and DK,
+    the 1.5B rows by round and the ten 0.5B rows, evaluations only, 2 h.
 - No queue lines yet (each needs its lines and the check of its
   resolved commands before it runs):
   - FedProx SFT on BIRD, rounds 1 to 4 (mu to set), 11.5 h;

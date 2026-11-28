@@ -5,6 +5,18 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28 (evening): the 1.5B and 0.5B rows on Syn, Realistic and DK parked
+
+- Decision (owner): `spider_sets_var/*` (9 tasks, the 1.5B rows by
+  round) and `qwen05b_var/*` (11 tasks, the ten 0.5B rows) move to
+  `queues/parked.toml`, ready if a reviewer asks: no cell of a table
+  needs them. About 2 h (estimate).
+- Check: the blocks moved unchanged; every task entry of the two files
+  equals that of `3b17017b`; no active task needs a parked one; the
+  remaining tasks keep their order. Queue tests: 65 passed, 6 skipped.
+  Open in the queue now: about 84.5 GPU hours with the control (71.5
+  without the setup of 10 clients); parked 66.5 h.
+
 ## 2026-11-28 (evening): the clients pooled on Spider back in the queue, second after the control
 
 - Decision (owner): `pooled_k2/*` with `pooled_dev/*` leave

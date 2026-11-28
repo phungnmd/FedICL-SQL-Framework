@@ -234,7 +234,7 @@ Breadth:
 | Row | Set | State |
 |---|---|---|
 | Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B: with the 1.5B, three models | Spider | 0.5B run; DeepSeek FedAvg SFT rounds 3 and 4 and DPO + NLL round 2 queued, third after the control, with its rows on Spider dev and the variant sets (about 8 h) |
-| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider | 1.5B run at 4 rounds, test-suite accuracy included (`c99b7bf4`). The 1.5B rows by round and the 0.5B rows on the three sets (`spider_sets_var`, `qwen05b_var`, about 2 h) stay queued after the order of 2026-11-28, in no table; the owner places or parks them |
+| Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider | 1.5B run at 4 rounds, test-suite accuracy included (`c99b7bf4`). The 1.5B rows by round and the 0.5B rows on the three sets (`spider_sets_var`, `qwen05b_var`, about 2 h) fill no table: parked on the evening of 2026-11-28 (owner) |
 | A second student model on BIRD (DeepSeek-Coder-1.3B) | BIRD | not planned (about 30 h, ready if a reviewer asks) |
 | The method at 5 rounds (`bird_k2/round_3`, with `bird_sft/round_5`) | BIRD | not planned (about 7 h and 3 h, ready if a reviewer asks) |
 | DPO + NLL with the clients pooled (the centralized run of the method's own rounds) | Spider | queued (`pooled_k2` with `pooled_dev`), second after the control, about 4 h left; round 1 trained and published (`57d47c3d`), not evaluated. Parked and queued again on 2026-11-28 (owner) |
@@ -277,9 +277,10 @@ Parked, ready if a reviewer of the journal asks (2026-11-28; hours in
 the method run by each BIRD client alone (`bird_local_k2`), the second
 seed, the on-policy round without NLL on BIRD (`bird_nonll`), the vote
 of 16 samples (`bird_vote`), wrong-result rejects first on BIRD
-(`bird_wrfirst`), RFT round 2 on Spider; 64.5 h. Without queue lines:
-FedProx SFT on BIRD and on Spider, `bird_k0` rounds 3 and 4, k = 3 on BIRD,
-DeepSeek-Coder-1.3B on BIRD, `bird_k2/round_3` with `bird_sft/round_5`,
+(`bird_wrfirst`), RFT round 2 on Spider, the 1.5B rows by round and the
+0.5B rows on Syn, Realistic and DK (`spider_sets_var`, `qwen05b_var`);
+66.5 h. Without queue lines: FedProx SFT on BIRD and on Spider,
+`bird_k0` rounds 3 and 4, k = 3 on BIRD, DeepSeek-Coder-1.3B on BIRD, `bird_k2/round_3` with `bird_sft/round_5`,
 the clients pooled on BIRD, local SFT on Spider.
 
 Not planned: a second seed of the other rows, partial participation, 20
