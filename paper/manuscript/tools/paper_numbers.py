@@ -157,8 +157,8 @@ class Data:
         def cell(m: re.Match) -> str:
             a, b, kind = self._pending[int(m.group(1))]
             t = self._tests[(a, b)]
-            p, adj = (t["pexact"], t["padj"]) if kind == "ex" else (t["tspexact"], t["tspadj"])
-            return p_tex(p) + ("\\textsuperscript{*}" if adj < ALPHA else "")
+            adj = t["padj"] if kind == "ex" else t["tspadj"]
+            return p_tex(adj) + ("\\textsuperscript{*}" if adj < ALPHA else "")
         return re.sub(r"<<P(\d+)>>", cell, text)
 
     def run(self, key: tuple, where: str) -> dict | None:
@@ -282,7 +282,7 @@ def ex_cells(d: Data, ds: str, rows: list[dict], where: str) -> list[list[str]]:
 
 
 def diff_cells(d: Data, a: tuple, b: tuple, where: str) -> list[str]:
-    """Difference of b over a and the p of the exact McNemar test, starred after Holm."""
+    """Difference of b over a and the Holm-adjusted p of the exact McNemar test, starred below ALPHA."""
     t = d.test(a, b, where)
     if t is None:
         return [MISSING, MISSING]
