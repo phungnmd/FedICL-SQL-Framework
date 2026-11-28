@@ -1,12 +1,16 @@
 \section{Perturbed questions}\label{sup:perturbed}
 
+Table~\ref{tab:robust} gives the accuracy of the models trained in the
+main Spider setup on Spider dev and on the three sets built from it,
+Spider-Syn, Spider-Realistic and Spider-DK, which
+Section~\ref{sec:breadth} of the main paper discusses.
+
 \begin{table}[!ht]
 \caption{EX and TS (\%) on Spider dev and the three sets built from
-Spider, after \setting{rounds.total} rounds, for the models trained in
-the main Spider setup. TS uses the official suite of the Spider dev databases, and Spider-DK
-has none. The lower part gives $\Delta$ and $p$ of \method{} against FedAvg
-SFT and against \method{} without warm-up rounds, with $p$ and the asterisk
-as in Table~\ref{tab:main}.}\label{tab:robust}
+Spider after \setting{rounds.total} rounds. TS uses the official suite of
+the Spider dev databases, and Spider-DK has none. The lower part gives
+$\Delta$ and $p$ of \method{} against FedAvg SFT and against \method{}
+without warm-up rounds, as in Table~\ref{tab:main}.}\label{tab:robust}
 \footnotesize
 \input{generated/tab_robust}
 \end{table}

@@ -1,154 +1,69 @@
 \section{Related work}\label{sec:related}
 
-\subsection{Fine-tuned open models for Text-to-SQL}\label{sec:rel-slm}
+\subsection{Fine-tuned models for Text-to-SQL}\label{sec:rel-slm}
 
-Open models fine-tuned for Text-to-SQL differ above all in what they are
-trained on. CodeS~\cite{li2024codes} continues the pre-training of
-StarCoder models of 1B to 15B parameters on a SQL-centric corpus and then
-fine-tunes all their parameters on the training set of each benchmark.
-OmniSQL~\cite{li2025omnisql} fine-tunes Qwen2.5-Coder-Instruct models of
-7B, 14B and 32B parameters on SynSQL-2.5M, about 2.5 million synthetic
-samples, together with the training sets of Spider and BIRD. SLM-SQL~\cite{sheng2025slmsql} studies the range of
-model sizes of this paper, 0.5B to 1.5B. It fine-tunes on 916K synthetic
-samples, trains further with Group Relative Policy Optimization (GRPO) on
-BIRD train with a reward for a correct execution result, and at inference
-groups 64 samples by their execution results and votes. With its 1.5B
-model it reports 67.08\% EX on BIRD dev. Our models train on the
+Open models for Text-to-SQL are fine-tuned on the training sets of the
+benchmarks, often after further pre-training or with synthetic data.
+CodeS~\cite{li2024codes} continues the pre-training of StarCoder models
+on a SQL-centric corpus before fine-tuning on
+each benchmark, and OmniSQL~\cite{li2025omnisql} fine-tunes
+Qwen2.5-Coder-Instruct models of 7B to 32B parameters on about 2.5
+million synthetic samples together with the training sets of Spider and
+BIRD. SLM-SQL~\cite{sheng2025slmsql} studies the model sizes of this
+paper, 0.5B to 1.5B parameters. It fine-tunes on 916K synthetic samples,
+trains further by reinforcement learning on an execution reward and
+votes over 64 samples, and reports
+67.08\% EX on BIRD dev with its 1.5B model. Our models train on the
 benchmark training sets alone and decode greedily, and their absolute
-levels are well below this figure (Section~\ref{sec:main}).
-SPFT-SQL~\cite{zhang2025spftsql} synthesizes SQL queries from templates
-over the training databases, checks the outputs of the fine-tuned model
-by execution against them, and then fine-tunes the model in self-play
-against a weaker opponent model. SKT-SQL~\cite{yi2025sktsql} guides
-smaller-scale language models with a generated SQL skeleton. Each of
-these models is trained on data held in one place.
+levels are well below this figure. All of these models are trained on
+data held in one place.
 
 \subsection{Preference optimization and execution feedback}\label{sec:rel-pref}
 
-DPO~\cite{rafailov2023dpo} trains a model on pairs of a preferred and a
-dispreferred response without a reward model or reinforcement learning,
-through the negative log-sigmoid of $\beta$ times the difference of
-their log-ratios under the trained model and a reference model, where
-$\beta$ is the scale of the preference term. The reference model is the SFT model
-when one is available.
+Direct preference optimization (DPO)~\cite{rafailov2023dpo} trains a
+model on pairs of a preferred and a dispreferred response without a
+reward model, through the negative log-sigmoid
+of the scaled difference of their log-ratios under the trained model and
+a reference model, usually the SFT model.
 
-Execution first served Text-to-SQL at inference: LEVER~\cite{ni2023lever}
-trains a verifier on the question, a sampled program and its execution
-result to rerank samples, and GradeSQL~\cite{tritto2026gradesql} trains
-reward models on candidates labeled by execution to select among them,
-and neither trains the model that generates the queries. In training,
-Think2SQL~\cite{papicchio2025think2sql} and
-Arctic-Text2SQL-R1~\cite{yao2026arctic} apply GRPO with rewards computed
-by execution, partial scores of the result in Think2SQL, and 1 for a
-matching result and 0.1 for an executable query in Arctic-Text2SQL-R1.
-Kulkarni and Srikumar~\cite{kulkarni2025reinforcing} apply GRPO with
-execution rewards under the weak supervision of question-answer pairs,
-and ExeSQL~\cite{zhang2025exesql} combines execution-based filtering of
-generated queries with preference-based training for SQL dialects.
-Liu et al.~\cite{liu2025cotdpo} and ExCoT~\cite{zhai2025excot} label
-preference pairs by execution. Liu et al.\ sample 16 queries per BIRD
-training question from the SFT model, pair a correct with an incorrect
-sample, and train with DPO alone for eight epochs against the SFT model
-as reference. With
-SQL-only outputs, DPO lowers BIRD dev EX for 6 of their 10 models of
-6.7B to 15B parameters under greedy decoding and majority voting and
-raises it for all ten under Pass@1, and with synthesized chains of
-thought it raises EX for all ten. ExCoT trains Llama-3.1 70B and
-Qwen-2.5-Coder 32B in one DPO round on pairs of GPT-4o outputs and then
-in on-policy rounds on new samples of the model, labeled again by
-execution. Rejection sampling fine-tuning~\cite{yuan2023rft} trains on
-generated outputs without a preference term: it collects the correct
-reasoning paths that supervised models generate for math problems and
-fine-tunes on them.
+Execution first served Text-to-SQL at inference, where
+LEVER~\cite{ni2023lever} reranks sampled programs with a verifier that
+reads their execution results. In training, Group Relative Policy
+Optimization (GRPO) is applied with rewards computed by
+execution~\cite{papicchio2025think2sql,yao2026arctic,kulkarni2025reinforcing}.
+Liu et al.~\cite{liu2025cotdpo} sample 16 queries per BIRD training
+question from the SFT model, pair a correct with an incorrect sample and
+train with DPO alone against the SFT model as reference. With SQL-only
+outputs, this lowers BIRD dev EX under greedy decoding and majority
+voting for 6 of their 10 models. ExCoT~\cite{zhai2025excot} continues
+DPO in on-policy rounds on new samples of the model, labeled again by
+execution, and rejection sampling fine-tuning~\cite{yuan2023rft} trains
+on the correct outputs of the model without a preference term.
 
 For a likelihood term on the preferred response beside the DPO term,
-published results range from a large gain to none. Iterative reasoning preference
-optimization (Iterative RPO)~\cite{pang2024irpo} samples chains of
-thought from the current model, pairs correct with incorrect final
-answers, and trains with the DPO term plus a
-length-normalized NLL term on the preferred response, with the model of
-the previous iteration as reference. After one round on GSM8K, it
-reaches 73.1 with the NLL term and 61.8 with DPO alone, and
-CodeLutra~\cite{tao2024codelutra} reports 76.6\% EX on Spider with its
-full loss against 17.2\% with the DPO term alone, with Llama-3-8B. Liu et al.\ report a limited gain
-from an added SFT term on SQL-only outputs, 58.8 to 60.0 with
-Qwen2.5-7B-Instruct, and Lanchantin et al.~\cite{lanchantin2025bridging}
-report no benefit from an added NLL term in their experiments with
-Llama-3.1-8B-Instruct.
+published results range from a large gain to none. Iterative reasoning
+preference optimization~\cite{pang2024irpo} pairs correct with incorrect
+chains of thought sampled from the current model and trains with the DPO
+term plus a length-normalized NLL term, reaching 73.1 on GSM8K after one
+round against 61.8 with DPO alone. Liu et al.\ report a limited gain from
+an added SFT term on SQL-only outputs, and Lanchantin et
+al.~\cite{lanchantin2025bridging} no benefit from an added NLL term.
 
-CodeLutra is the closest work. From one training set at one site, it
-samples ten outputs per question from the current model, labels each SQL
-query by comparing its execution result with that of the gold query, and
-forms ten pairs per question of a correct and a failed sample.
-It trains with the DPO term, whose reference model is the model of the
-previous iteration, plus $\lambda$ times the log-likelihood of the
-correct sample, over four iterations, so that the pairs and the
-reference model are renewed at every iteration. CodeLutra thus runs the
-loop of sampling, execution labels and DPO with an NLL term centrally,
-by one holder of the data. In \method, the labels are computed at each
-client on databases that the server never sees, and one federated round
-is one iteration for all clients, whose common reference model is the
-global model of the round. The server averages the adapters with weights
-given by the pair counts, the preference rounds start from a model
-trained in FedAvg SFT warm-up rounds, and each question contributes two
-pairs with an NLL term averaged over tokens. Section~\ref{sec:implementation}
-names the settings of the preference rounds that follow CodeLutra.
-
-\subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
-
-FederatedScope-LLM~\cite{kuang2024fsllm} and
-OpenFedLLM~\cite{ye2024openfedllm} provide federated fine-tuning of LLMs
-with LoRA and other parameter-efficient methods, run FedAvg among other
-algorithms, and include code tasks. In federated SFT, a client trains on
-the responses of its dataset, not on outputs of the model. OpenFedLLM
-also introduces FedDPO, in which every client keeps its own preference
-dataset and trains with the DPO loss alone against a reference model fixed
-throughout the federated process. Its runs train
-Wizard-Vicuna-7B-Uncensored with LoRA of rank 8 on UltraFeedback and
-HH-RLHF, with five clients of which two take part in each round.
-FedPDPO~\cite{zhu2026fedpdpo} and pFedDPO~\cite{jiang2026pfeddpo}
-personalize federated DPO for clients whose preferences differ, the
-first with a shared LoRA adapter and client-specific heads, the second
-with LoRA adapters that stay at the clients, and both train on fixed
-preference datasets. In
-FedBis and
-FedBiscuit~\cite{wu2025fedbiscuit}, clients train binary selectors on
-their preference data, and the server aggregates the selectors, labels
-with them pairs that its initial model generates once, and trains the
-LLM with DPO. In federated reinforcement learning with verifiable
-rewards, a client samples from the current model and trains with GRPO on
-a reward for correct answers: PubSwap~\cite{nayak2026pubswap} on math
-and medical questions, with LoRA adapters averaged at the server, and
-Fed-GRPO~\cite{guo2026fedgrpo} on math and code, with clients weighted
-by the standard deviation of their rewards. PubSwap and Fed-GRPO use a
-policy-gradient objective and no pairs, and neither has been applied to
-Text-to-SQL. With a reward from SQL execution, as in the centralized
-GRPO work of Section~\ref{sec:rel-pref}, such a method would be an
-alternative to preference pairs. This paper does not evaluate it.
-
-Averaging the two LoRA factors separately at the server does not average
-their product. FFA-LoRA~\cite{sun2024ffalora} attributes instability to
-this discordance and trains only one of the two factors, and
-FLoRA~\cite{wang2024flora} replaces the average with a stacking of the
-adapters. \method{} and its baselines keep the separate average
-(Section~\ref{sec:formulation}), and the alternatives are not studied
-here.
-
-\subsection{Federated semantic parsing and Text-to-SQL}\label{sec:rel-fedsql}
-
-Zhang et al.~\cite{zhang2023fl4sp} study federated Text-to-SQL with
-eight single-domain datasets as clients. They fine-tune T5-base with
-FedAvg, FedOPT and FedProx on the gold SQL queries of each client,
-weight the clients by their data size and the reduction of their
-training loss, and score predictions by exact match with the gold SQL
-query, without executing any query. Their best federated variant reaches
-62.55 macro-averaged exact match against 70.32 for centralized training.
-KGRFL~\cite{xu2024kgrfl}, which converts questions into SPARQL, fuses
-the client models with a strategy based on reinforcement learning. To
-our knowledge, no earlier method for federated training of Text-to-SQL
-models uses the databases of the clients for execution labels.
-Table~\ref{tab:related} sets the closest methods beside \method, which
-Section~\ref{sec:method} presents.
+The closest work is CodeLutra~\cite{tao2024codelutra}. At one site, it
+samples ten queries per question from the current model, labels each by
+comparing its execution result with that of the gold query, and trains
+for four iterations with the DPO term, whose reference model is the
+model of the previous iteration, plus a likelihood term on the correct
+sample, so that the pairs and the reference model are renewed at every
+iteration. It reports 76.6\% EX on Spider with this loss against 17.2\%
+with the DPO term alone. In \method, the labels are
+computed at each client on databases that the server never sees, one
+federated round is one iteration for all clients with the global model as
+their common reference model, and the server averages the adapters by
+the pair counts. The preference rounds start from a model trained in
+FedAvg SFT warm-up rounds, and each question contributes
+\setting{pref.pairs} pairs with an NLL term averaged over tokens. Table~\ref{tab:related} sets the
+closest methods beside \method.
 
 \begin{table}[!ht]
 \caption{Methods closest to \method. ``Labels from SQL execution'': a
@@ -186,3 +101,37 @@ medical (PubSwap) or code (Fed-GRPO) task is correct.\par
 trains on pairs of GPT-4o outputs.
 \end{minipage}
 \end{table}
+
+\subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
+
+FederatedScope-LLM~\cite{kuang2024fsllm} and
+OpenFedLLM~\cite{ye2024openfedllm} fine-tune LLMs with LoRA under FedAvg
+and other algorithms. In
+federated SFT, a client trains on the responses of its dataset, not on
+outputs of the model. OpenFedLLM also introduces FedDPO, in which every
+client trains with the DPO loss alone on its own preference dataset
+against a reference model fixed throughout the federated process.
+FedPDPO~\cite{zhu2026fedpdpo} and pFedDPO~\cite{jiang2026pfeddpo}
+personalize federated DPO for clients whose preferences differ, and both
+train on fixed preference datasets. In FedBiscuit~\cite{wu2025fedbiscuit},
+clients train binary selectors on their preference data, and the server
+labels with them pairs that its initial model generates once. In
+federated reinforcement learning with verifiable rewards, a client
+samples from the current model and trains with GRPO on a reward for
+correct answers, to math and medical questions in
+PubSwap~\cite{nayak2026pubswap} and to math and code tasks in
+Fed-GRPO~\cite{guo2026fedgrpo}. Neither has been applied to Text-to-SQL,
+and this paper does not evaluate such a policy-gradient method with an
+execution reward.
+Averaging the two LoRA factors separately does not average their
+product~\cite{sun2024ffalora}, and \method{} and its baselines keep the
+separate average.
+
+For federated semantic parsing, Zhang et al.~\cite{zhang2023fl4sp}
+fine-tune T5-base with FedAvg, FedOPT and FedProx on the gold SQL
+queries of eight single-domain clients and score predictions by exact
+match without executing a query, reaching 62.55 macro-averaged exact
+match against 70.32 for centralized training. KGRFL~\cite{xu2024kgrfl}
+fuses client models that translate questions into SPARQL. To our knowledge, no earlier
+method for federated training of Text-to-SQL models uses the databases
+of the clients for execution labels.

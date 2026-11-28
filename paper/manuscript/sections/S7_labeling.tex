@@ -1,0 +1,102 @@
+\section{Execution labels, time limits and the generated test suite}\label{sup:labeling}
+
+\subsection{Reading the query of an output}
+
+Evaluation and execution
+labeling read the SQL query of an output of the model in the same way.
+If the output contains a fenced code block, its body is taken. The text
+is then cut at the first semicolon, and what precedes the first
+\texttt{SELECT} is dropped, except that a query beginning with
+\texttt{WITH} keeps its \texttt{WITH} clause. An output without
+\texttt{SELECT} is executed as it is, and a sample of which nothing
+remains contains no query and is labeled incorrect. Every database is
+opened read-only, so a statement that writes fails.
+
+\subsection{Time limits}
+
+Queries run under the time limit of the
+benchmark's evaluation. On BIRD, one budget of \setting{timeout.bird}
+covers a prediction followed by the gold SQL query, which is executed
+with each prediction, and on Spider each query has
+\setting{timeout.spider}. A query counts as reaching the limit only when
+it used the processor for at least four fifths of the elapsed time. One
+that reached it while waiting for the processor is run once more with no
+other query running, and the outcome of that run counts. At
+\setting{rounds.total} rounds, \fact{timeouts.bird.fedavg.4} predictions
+of FedAvg SFT and \fact{timeouts.bird.k2.4} of \method{} reach the limit
+on BIRD dev, and none on Spider test.
+
+\subsection{Execution labels}
+
+Execution labeling
+(Section~\ref{sec:labeling}) applies the same limits and the same rule
+to the samples of the training questions. A sample that exhausts its
+limit while it runs is an execution error and is labeled incorrect. A
+sample has no label when its result is never compared with the gold
+result. A sample cut at the token limit is not executed
+(\fact{train.bird.truncated.pref1} of the
+\fact{train.bird.samples.pref1} samples of the first preference round on
+BIRD). On BIRD, the time of the gold SQL query, measured once, counts
+toward the budget of every sample of the question, and a completed
+sample whose budget is thereby exceeded has no label. A gold SQL query
+that takes more than half of the budget exceeds the limit for its
+question. Its time is elapsed time, which depends on the load of the
+machine, so the number of questions that the limit leaves without labels
+differs between runs of the labeling step. On Spider, each query has its
+own limit, and a completed sample is always compared with the gold
+result.
+
+\subsection{Questions that yield no pair}
+
+A question whose gold SQL query
+fails to execute or exceeds the time limit has no labeled sample. The
+gold SQL query fails to execute for \fact{train.bird.gold_error}
+questions of BIRD train and \fact{train.spider.gold_error} of Spider
+train. On BIRD, it exceeds the time limit for
+\fact{train.bird.gold_timeout.pref1} questions in the first preference
+round of \method{} and \fact{train.bird.gold_timeout.pref2} in the
+second, and on Spider for none. Spider train has
+\fact{train.spider.no_rows.databases} databases without rows, which hold
+\fact{train.spider.no_rows} questions, and BIRD train has none. On a
+database without rows, queries of different meaning return the same
+result, so its questions yield no pair. No evaluation set contains such
+a database. All of these questions remain training targets in the
+warm-up rounds.
+
+\subsection{The generated test suite of BIRD dev}
+
+BIRD has no official
+test suite, and we generate one for BIRD dev with the fuzzing procedure
+of the test-suite evaluation (Section~\ref{sec:datasets} of the main
+paper cites it), which we reimplement: \fact{suite.variants} variants of
+each of its \fact{suite.bird.databases} databases. A variant keeps the
+schema of its database, and its tables are filled in foreign-key order
+with random values of the column types, mixed with values of the source
+database and with the literals of the gold SQL queries. Without a
+distillation step, every variant is kept. A variant counts for a
+question when the gold SQL query executes on it within the time limit,
+returns at least one row, and has no result made ambiguous by ties under
+\texttt{ORDER BY} with \texttt{LIMIT}. A prediction is correct under TS
+when it is correct under EX on the original database and returns the
+gold result on every variant that counts. Of the \fact{questions.bird}
+questions of BIRD dev, \fact{suite.bird.counted} have at least one
+variant that counts, and the other \fact{suite.bird.none} keep their EX
+verdict.
+
+\subsection{Agreement with an official suite}
+
+On Spider dev, which has an
+official suite, we generated a suite in the same way from its gold SQL
+queries, with the same number of variants, and compared the verdicts of
+the two suites on the predictions of our models on Spider dev
+(\fact{suite.calib.files} sets of predictions). Of these predictions,
+\fact{suite.calib.ex_correct} are correct under EX, and the two suites
+agree on \fact{suite.calib.agreement_ex_correct}\% of them: the generated
+suite rejects \fact{suite.calib.recall}\% of the
+\fact{suite.calib.official_rejected} that the official suite rejects,
+and \fact{suite.calib.ours_only} of the
+\fact{suite.calib.official_accepted} that it accepts. The number of
+variants was chosen among \fact{suite.calib.candidates} as the one with
+the highest agreement on these predictions, so the agreement is measured
+on the data that set it. No official suite exists against which the
+suite of BIRD dev itself could be compared.

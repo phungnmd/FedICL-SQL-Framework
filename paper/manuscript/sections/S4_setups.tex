@@ -1,5 +1,29 @@
 \section{Federated setups}\label{sup:setups}
 
+Each database, with all its questions, is assigned to one client, so that
+a client is an organization that holds its databases. The difficulty of
+a training question is its level under the criteria of the evaluation
+script of Spider: easy, medium, hard or extra hard. For BIRD train, the
+same criteria are applied to the query as parsed by sqlglot, since the
+parser of the Spider script does not read many queries of BIRD.
+
+In the IID setup, the databases are assigned at random in equal shares,
+so the setup is IID over databases, not over questions. In a non-IID
+setup, the databases are grouped into four tiers by the quartiles of
+their share of hard and extra-hard questions. For each tier, the shares
+of the clients are drawn from a Dirichlet distribution with
+concentration $\alpha$, and the databases of the tier are assigned in
+these shares. This is the label-distribution skew of NIID-Bench
+(Section~\ref{sec:fed-setups} of the main paper cites it) with the tier
+as label and the database as unit, including its rule that a client
+that already holds its equal share of the databases when a tier is
+assigned receives none of that tier. A client can thus exceed its equal
+share within one tier. The partition is drawn again until every client
+holds at least \fact{split.spider.a0.1.k5.min_dbs} databases
+(\fact{split.spider.a0.5.k10.min_dbs} with
+\fact{split.spider.a0.5.k10.clients} clients), from split seed
+\setting{split.seed}. Table~\ref{tab:setups} gives the five setups.
+
 \begin{table}[!ht]
 \caption{Federated setups. Each row partitions a training set among its
 clients, IID or with Dirichlet concentration $\alpha$. ``Per client''

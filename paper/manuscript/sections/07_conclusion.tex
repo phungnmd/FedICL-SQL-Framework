@@ -1,28 +1,14 @@
 \section{Conclusion}\label{sec:conclusion}
 
-Federated SFT for Text-to-SQL learns from the gold SQL query of each
-question and never executes a query on the databases that the clients
-hold. \method{} uses these databases: after supervised warm-up rounds,
-each client samples queries from the global model, labels them by
-executing them against the gold result on its own databases, and trains
-with a DPO term and an NLL term on preference pairs constructed anew in
-every round, and the server averages the adapters.
-
-At the same number of rounds, \method{} is above FedAvg SFT by
-\gap{bird}{fedavg}{4}{k2}{4} EX points on BIRD dev and by
-\gap{spider}{fedavg}{4}{k2}{4} on Spider test, with about half as many
-execution errors while incorrect results do not fall. On BIRD dev, it is
-also above FedDPO trained on the fixed execution-labeled pairs of its
-own first preference round, under EX and TS. A preference round sends
-what a FedAvg SFT round sends and adds client computation for sampling,
-labeling and training. These results come from one training run per
-model, with models of at most \setting{model.size} parameters, and from
-comparisons at equal numbers of rounds in which the preference rounds
-and the FedAvg SFT rounds use different training settings
-(Section~\ref{sec:limitations}).
-
-Three directions follow from the scope of the study: federations with
-partial participation and many clients, labels that are checked on
-several contents of a client's database instead of one, and an analysis
-of what the adapter and the pair count reveal about the data of a
-client.
+In \method, after supervised warm-up rounds, each client labels samples
+of the global model by execution on its databases and trains on pairs of
+correct and incorrect samples with a DPO term and an NLL term. At equal
+rounds and communication, it is \gap{bird}{fedavg}{4}{k2}{4} EX points
+above FedAvg SFT on BIRD dev and \gap{spider}{fedavg}{4}{k2}{4} on Spider
+test, with about half as many execution errors while incorrect results
+do not fall, and on BIRD dev it is above FedDPO trained on its own first
+pairs. These results come from one training run per model of at most
+\setting{model.size} parameters, with different training settings in the
+two kinds of round. Partial participation, labels checked on several
+contents of a database, and what an adapter reveals remain to be
+studied.
