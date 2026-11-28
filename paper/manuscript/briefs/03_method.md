@@ -43,8 +43,10 @@ a client transmits and what it computes in each kind of round.
    SQL query alone. A database contributes only text of the prompt (its
    schema, and on Spider up to three rows per table, read from the
    database); neither the gold SQL query nor any query of the model is
-   executed on it, no execution result enters the loss, and the model
-   receives no signal about which of its own queries are incorrect. Evidence: the
+   executed on it, and no execution result enters the loss. The model
+   generates no query during training, so no loss term is computed on a
+   query of its own, and nothing identifies which of its queries are
+   incorrect. Evidence: the
    definition itself.
 2. Execution-derived supervision as an unused, client-local signal.
    Execution on $d$ partitions the model's own samples for a question

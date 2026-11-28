@@ -32,8 +32,9 @@ query.
 ## Limitation of existing federated training
 
 - FedAvg SFT derives its training signal exclusively from the single
-  gold SQL query of each question. The model receives no signal about
-  which of its own queries are incorrect: neither the gold SQL query
+  gold SQL query of each question. The model generates no query during
+  training, so no loss term is computed on a query of its own, and
+  nothing identifies which of its queries are incorrect: neither the gold SQL query
   nor any query of the model is executed on the client databases, which
   contribute only text of the prompt (the schema, and on Spider up to
   three rows per table).
@@ -85,7 +86,7 @@ and FedDPO. Five clients under a non-IID partition; further federated
 setups (IID, a milder non-IID partition, ten clients) await their
 results. One training seed; the exact McNemar test on paired
 predictions with Holm correction within each table. The folder
-`results/` contains every table and every macro; a cell printed as `--`
+`generated/` contains every table and every macro; a cell printed as `--`
 awaits its result.
 
 The principal result:
@@ -166,20 +167,24 @@ the abstract, the introduction, the figures and the tables.
 
 The section is written from the position of the authors of a machine
 learning research paper who present a completed contribution to peers.
-`voice.md` specifies the register and the rhetorical organization of
+`VOICE_GUIDE.md` specifies the register and the rhetorical organization of
 each kind of section. American spelling is used throughout, and em
 dashes are not used.
 
 ## 2. Materials
 
-`README.md` lists the files of the working directory. `brief.md` specifies
-the aim of the section and the points of its argument; `results/`
-contains every table, figure and macro of the paper, not only those of
-the section; `related/` contains the cited works of the section;
+The paths below are relative to `paper/manuscript/`.
+`briefs/NN_NAME.md` specifies the aim of the section and the points of
+its argument; `generated/` contains every table, setting and macro of
+the paper (`numbers.md`, `settings.md` and the `tab_*.tex` files), not
+only those of the section, and `figures/` the figures. The cited works
+are the entries of `references.bib`, with their abstracts in
+`.sources/abstracts.json` and the statements verified in each source in
+`briefs/02_related_rows.md` and `briefs/02_related_table1_rows.md`.
 `sections/` contains the sections already written and the file of the
-present section. The papers in `examples/` illustrate how a paper of
-this kind is constructed and how it reads; they supply neither facts nor
-wording.
+present section. The papers in `.sources/examples/` illustrate how a
+paper of this kind is constructed and how it reads; they supply neither
+facts nor wording.
 
 ## 3. Constraints
 
@@ -189,8 +194,8 @@ compiles.
 1. **Facts.** Every statement about the present work (a configuration,
    a count, a formula, a result) originates from the materials or from
    an answer of the editor. A
-   statement about a cited work originates from `related/` or, where web
-   search is available, from the source itself; such a statement is
+   statement about a cited work originates from the files on cited works
+   (Section 2) or from the source itself; such a statement is
    listed in the notes with its address and its location in the source.
    Where required information is unavailable, it is requested from the
    editor (Section 5); nothing is supplied by conjecture.
@@ -199,7 +204,7 @@ compiles.
    the evidence appears insufficient for a point of the brief, the
    concern is recorded in the notes.
 3. **Numbers and names.** Results and configuration values are macros
-   (`results/macros.md`, `results/settings.md`) and are never typed as
+   (`generated/numbers.md`, `generated/settings.md`) and are never typed as
    digits. A number that awaits its result is written with its macro
    and prints as a placeholder; where the brief provides an expected
    value, `\expect{value}` replaces the macro and the location is listed
@@ -230,7 +235,7 @@ record of the work: the method in every detail, every experiment and
 its outcome, and the cited literature. At any stage (before the outline,
 during drafting, during a revision) a question whose answer the section
 requires and the materials do not provide is addressed to the editor:
-the questions are written to `notes/questions.md`, each with the passage
+the questions are written to `briefs/NN_NAME_questions.md`, each with the passage
 it concerns and the reason it is required, and the turn ends there. The
 editor replies with the answers and, where appropriate, with additional
 files. Typical subjects are a property of the method, the configuration
@@ -241,9 +246,9 @@ passage are submitted together.
 
 ## 6. Outline before prose
 
-An outline precedes the prose and is written to `notes/outline.md`: one
+An outline precedes the prose and is written to `briefs/NN_NAME_outline.md`: one
 entry per paragraph, in sequence, stating the rhetorical function of
-the paragraph (as designated in `voice.md`), the proposition it
+the paragraph (as designated in `VOICE_GUIDE.md`), the proposition it
 establishes, any equation, table or figure it contains, and its
 approximate length. Read in sequence, the entries constitute the
 argument of the section. The entries are annotations, not sentences of
@@ -255,8 +260,8 @@ emerges during drafting is adopted and reported in the notes.
 
 ## 7. Deliverables
 
-The outline in `notes/outline.md`, the section in LaTeX in its file
-under `sections/`, questions in `notes/questions.md`, and the notes to
-the editor in `notes/notes.md`. The notes identify points whose evidence
+The outline in `briefs/NN_NAME_outline.md`, the section in LaTeX in
+`sections/NN_NAME.tex`, questions in `briefs/NN_NAME_questions.md`, and
+the notes to the editor in `briefs/NN_NAME_notes_writer.md`. The notes identify points whose evidence
 appears insufficient, statements and references taken from the web, and
 proposals for an additional example, table or figure.
