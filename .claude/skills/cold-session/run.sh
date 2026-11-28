@@ -10,8 +10,8 @@
 #   -t  prompt template in prompts/ (default: review)
 #   -q  prompt or message text, used verbatim
 #   -f  prompt or message read from a file, used verbatim
-#   -j  journal name put into the template (default: Journal of Intelligent
-#       Information Systems)
+#   -j  journal name put into the template (default: Computers, Materials &
+#       Continua)
 #   -d  pack directory: its tree is copied into the session directory
 #   -n  number of independent sessions, run in parallel (default: 1)
 #   -m  model (default: opus)     -e  effort level (default: CLI default)
@@ -37,7 +37,7 @@ repo="$(cd "$here/../../.." && pwd)"
 state="$HOME/.cache/cold-session"         # kept sessions; outside any session's reach
 scratch="/private/tmp/claude-$(id -u)"    # where the CLI puts per-session scratchpads
 
-template=review; text=""; pfile=""; journal="Journal of Intelligent Information Systems"
+template=review; text=""; pfile=""; journal="Computers, Materials & Continua"
 pack=""; n=1; model=opus; effort=""; label=""; outdir="$repo/paper/manuscript/cold_reviews"
 write=0; web=1; keep=0; handle=""; close=0
 while getopts "t:q:f:j:d:n:m:e:l:o:wNkr:c" opt; do
@@ -150,7 +150,8 @@ if [ -n "$msg" ]; then
 else
   tfile="$here/prompts/$template.md"
   [ -f "$tfile" ] || die "no template $tfile"
-  prompt="$(sed "s|{{JOURNAL}}|$journal|g" "$tfile")"
+  journal_sed=$(printf '%s' "$journal" | sed 's/[&|\\]/\\&/g')  # & | \ are special in a sed replacement
+  prompt="$(sed "s|{{JOURNAL}}|$journal_sed|g" "$tfile")"
   source_desc="template prompts/$template.md (journal: $journal)"; label=${label:-$template}
 fi
 if [ $# -ge 1 ]; then
