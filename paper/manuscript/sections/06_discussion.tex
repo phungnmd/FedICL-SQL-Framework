@@ -70,7 +70,9 @@ difference depends.
 
 A client needs gold SQL queries for its training questions and databases
 on which it can execute queries, and questions without a gold SQL query
-are not used. A question on a database without rows, or one whose gold
+are not used. Training on the answers of questions alone, as Kulkarni
+and Srikumar~\cite{kulkarni2025reinforcing} do centrally, is outside
+the method. A question on a database without rows, or one whose gold
 SQL query fails to execute or exceeds the time limit, yields no pair,
 and the number of questions of the last kind differs between runs of
 the labeling step (Section~\ref{sec:datasets}). On Spider,

@@ -15,7 +15,7 @@ BIRD train with a reward for a correct execution result, and at inference
 groups 64 samples by their execution results and votes. With its 1.5B
 model it reports 67.08\% EX on BIRD dev. Our models train on the
 benchmark training sets alone and decode greedily, and their absolute
-levels are lower (Section~\ref{sec:main}).
+levels are well below this figure (Section~\ref{sec:main}).
 SPFT-SQL~\cite{zhang2025spftsql} synthesizes SQL queries from templates
 over the training databases, checks the outputs of the fine-tuned model
 by execution against them, and then fine-tunes the model in self-play
@@ -88,7 +88,8 @@ is one iteration for all clients, whose common reference model is the
 global model of the round. The server averages the adapters with weights
 given by the pair counts, the preference rounds start from a model
 trained in FedAvg SFT warm-up rounds, and each question contributes two
-pairs with an NLL term averaged over tokens.
+pairs with an NLL term averaged over tokens. Section~\ref{sec:implementation}
+names the settings of the preference rounds that follow CodeLutra.
 
 \subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
 
@@ -96,19 +97,13 @@ FederatedScope-LLM~\cite{kuang2024fsllm} and
 OpenFedLLM~\cite{ye2024openfedllm} provide federated fine-tuning of LLMs
 with LoRA and other parameter-efficient methods, run FedAvg among other
 algorithms, and include code tasks. In federated SFT, a client trains on
-the responses of its dataset, not on outputs of the model. Averaging the
-two LoRA factors separately does not average their product.
-FFA-LoRA~\cite{sun2024ffalora} attributes instability to this
-discordance and trains only one of the two factors, and
-FLoRA~\cite{wang2024flora} replaces the average with a stacking of the
-adapters. \method{} and its baselines keep the separate average
-(Section~\ref{sec:formulation}). OpenFedLLM
+the responses of its dataset, not on outputs of the model. OpenFedLLM
 also introduces FedDPO, in which every client keeps its own preference
 dataset and trains with the DPO loss alone against a reference model fixed
 throughout the federated process. Its runs train
 Wizard-Vicuna-7B-Uncensored with LoRA of rank 8 on UltraFeedback and
-HH-RLHF, with five clients of which two take part in each round, and no
-step that constructs pairs again is described. In FedBis and
+HH-RLHF, with five clients of which two take part in each round. In
+FedBis and
 FedBiscuit~\cite{wu2025fedbiscuit}, clients train binary selectors on
 their preference data, and the server aggregates the selectors, labels
 with them pairs that its initial model generates once, and trains the
@@ -121,9 +116,31 @@ by the standard deviation of their rewards. PubSwap and Fed-GRPO use a
 policy-gradient objective and no pairs, and neither has been applied to
 Text-to-SQL. With a reward from SQL execution, as in the centralized
 GRPO work of Section~\ref{sec:rel-pref}, such a method would be an
-alternative to preference pairs, which this paper does not evaluate.
+alternative to preference pairs. This paper does not evaluate it.
+
+Averaging the two LoRA factors separately at the server does not average
+their product. FFA-LoRA~\cite{sun2024ffalora} attributes instability to
+this discordance and trains only one of the two factors, and
+FLoRA~\cite{wang2024flora} replaces the average with a stacking of the
+adapters. \method{} and its baselines keep the separate average
+(Section~\ref{sec:formulation}), and the alternatives are not studied
+here.
 
 \subsection{Federated semantic parsing and Text-to-SQL}\label{sec:rel-fedsql}
+
+Zhang et al.~\cite{zhang2023fl4sp} study federated Text-to-SQL with
+eight single-domain datasets as clients. They fine-tune T5-base with
+FedAvg, FedOPT and FedProx on the gold SQL queries of each client,
+weight the clients by their data size and the reduction of their
+training loss, and score predictions by exact match with the gold SQL
+query, without executing any query. Their best federated variant reaches
+62.55 macro-averaged exact match against 70.32 for centralized training.
+KGRFL~\cite{xu2024kgrfl}, which converts questions into SPARQL, fuses
+the client models with a strategy based on reinforcement learning. To
+our knowledge, no earlier method for federated training of Text-to-SQL
+models uses the databases of the clients for execution labels.
+Table~\ref{tab:related} sets the closest methods beside \method, which
+Section~\ref{sec:method} presents.
 
 \begin{table}[!ht]
 \caption{Methods closest to \method. ``Labels from SQL execution'': a
@@ -161,17 +178,3 @@ medical (PubSwap) or code (Fed-GRPO) task is correct.\par
 trains on pairs of GPT-4o outputs.
 \end{minipage}
 \end{table}
-
-Zhang et al.~\cite{zhang2023fl4sp} study federated Text-to-SQL with
-eight single-domain datasets as clients. They fine-tune T5-base with
-FedAvg, FedOPT and FedProx on the gold SQL queries of each client,
-weight the clients by their data size and the reduction of their
-training loss, and score predictions by exact match with the gold SQL
-query, without executing any query. Their best federated variant reaches
-62.55 macro-averaged exact match against 70.32 for centralized training.
-KGRFL~\cite{xu2024kgrfl}, which converts questions into SPARQL, fuses
-the client models with a strategy based on reinforcement learning. To
-our knowledge, no earlier method for federated training of Text-to-SQL
-models uses the databases of the clients for execution labels.
-Table~\ref{tab:related} sets the closest methods beside \method, which
-Section~\ref{sec:method} presents.
