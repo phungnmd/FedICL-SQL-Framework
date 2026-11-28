@@ -5,8 +5,9 @@
 A worker on GPU 0 runs the control since 2026-11-28, about 12:37. Read
 at 17:35: `sft_prefset/round_3` is 75.45 on Spider test, 0.74 above
 FedAvg SFT round 3 (p 0.11) and 2.01 below the method at 3 rounds
-(p 0.0036; `LAB_LOG.md`). `bird_sft_prefset/round_3` is trained
-(`472fe7bd`); its BIRD dev evaluation comes next, then round 4 of both.
+(p 0.0036); `bird_sft_prefset/round_3` is 43.16 on BIRD dev (17:42),
+0.52 below FedAvg SFT round 3 (p 0.45) and 3.06 below the method at 3
+rounds (p 0.0014; `LAB_LOG.md`). Round 4 of both runs next.
 The other tasks wait for a card (Run now, step 2). The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
 2026-11-28).
@@ -380,7 +381,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
-| 48 | `sft_prefset/round_3`, `round_4`, `bird_sft_prefset/round_3`, `round_4`, each with its evaluation and publications | how much of the gain over FedAvg SFT comes from the training settings: FedAvg SFT rounds 3 and 4 from FedAvg SFT round 2 at the settings of the DPO + NLL rounds (learning rate 5e-5, weight decay 1e-4, warm-up 0.1, LoRA dropout 0), run as private stages in their own roots (`fedavg_prefset_ddlrows_alpha01_s0`, `fedavg_bird_prefset_ddl_alpha01_s0`); against FedAvg SFT (Spider test 74.71, 74.71; BIRD dev 43.68, 42.57), the method (77.46, 78.20; 46.22, 48.76) and RFT (75.87; 44.39, 45.24) | about 10.5 h (estimate) | running since 2026-11-28 12:37; Spider round 3 read (75.45, `1d85aa58`), BIRD round 3 trained (`472fe7bd`) |
+| 48 | `sft_prefset/round_3`, `round_4`, `bird_sft_prefset/round_3`, `round_4`, each with its evaluation and publications | how much of the gain over FedAvg SFT comes from the training settings: FedAvg SFT rounds 3 and 4 from FedAvg SFT round 2 at the settings of the DPO + NLL rounds (learning rate 5e-5, weight decay 1e-4, warm-up 0.1, LoRA dropout 0), run as private stages in their own roots (`fedavg_prefset_ddlrows_alpha01_s0`, `fedavg_bird_prefset_ddl_alpha01_s0`); against FedAvg SFT (Spider test 74.71, 74.71; BIRD dev 43.68, 42.57), the method (77.46, 78.20; 46.22, 48.76) and RFT (75.87; 44.39, 45.24) | about 10.5 h (estimate) | running since 2026-11-28 12:37; round 3 read: Spider test 75.45 (`1d85aa58`), BIRD dev 43.16 (`2ec3679e`) |
 | 46 | `bird_rft/round_2` with its evaluation | the method without its preference term at 4 rounds on BIRD: RFT round 2, samples drawn again from RFT round 1 (44.39), against `bird_k2/round_2` (48.76) | about 8.1 h (measured) | read 2026-11-28: 45.24, 3.52 below `bird_k2/round_2` (p 5.2e-05), 0.85 above its round 1 (p 0.14) |
 | 38 | `bird_feddpo/*` | federated DPO as published on BIRD from FedAvg SFT round 2: round 1 without NLL on the round 1 samples of `bird_k2` (copied), round 2 on the same pairs and reference; against `bird_k2` at 3 and 4 rounds | about 9.7 h (measured) | read 2026-11-28: round 1 44.98 (1.24 below `bird_k2/round_1`, p 0.17), round 2 45.50 (3.26 below `bird_k2/round_2`, p 0.00014) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`); place in the file order of 2026-11-27 (`4a962ced`): third, with `rft/round_2` |

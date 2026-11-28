@@ -5,6 +5,28 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: the control at 3 rounds on BIRD dev: 43.16, level with FedAvg SFT; the method 3.06 above it (results `2ec3679e`)
+
+- `bird_sft_prefset/round_3`, FedAvg SFT round 3 from FedAvg SFT round 2
+  at the settings of the DPO + NLL rounds: 43.16 on BIRD dev.
+- Against FedAvg SFT round 3 (43.68): 0.52 below, 38 questions against
+  46, p 0.45. Against its start, FedAvg SFT round 2 (42.70): 0.46 above,
+  51 against 44, p 0.54.
+- The method at 3 rounds (46.22) is 3.06 above the control, 128
+  questions against 81, p 0.0014 (2.54 above FedAvg SFT). RFT round 1
+  (44.39) is 1.23 above it (67 against 48, p 0.093), FedDPO round 1
+  (44.98) 1.82 above it (148 against 120, p 0.099).
+- By official difficulty (simple 925, moderate 464, challenging 145): the
+  control 50.92 / 31.68 / 30.34; the method 53.08 / 36.85 / 32.41, above
+  it on all three, separated on the moderate questions (45 against 21,
+  p 0.0043; simple 68 against 48, p 0.077).
+- Errors: the control 251 execution errors and 620 wrong results, the
+  method 91 and 723.
+- Reading: at 3 rounds the settings carry none of the gain on BIRD and
+  0.74 (not separated) on Spider. The read that the claim rests on is at
+  4 rounds, where FedAvg SFT at the SFT recipe fell (42.57); round 4 of
+  the control runs next on both sets.
+
 ## 2026-11-28: the control at 3 rounds on Spider test: 75.45, the method 2.01 above it (results `472fe7bd`, `1d85aa58`)
 
 - `sft_prefset/round_3`, FedAvg SFT round 3 from FedAvg SFT round 2 at
