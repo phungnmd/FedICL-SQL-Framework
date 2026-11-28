@@ -244,7 +244,7 @@ model comes from one training run, with seed \setting{seed} except in
 the rows of Table~\ref{tab:main} marked as a second seed. The seed sets
 \setting{seed.role}. All runs use one type of GPU, the \setting{hw.gpu}, and train the
 clients of a round one after another. The frozen model is held in
-bfloat16, and the adapter is stored and communicated in 32-bit floats.
+bfloat16, and the adapter is stored and communicated in single precision.
 Appendix~\ref{app:settings} lists every setting
 (Tables~\ref{tab:settings} and~\ref{tab:settings-2}) and the software
 versions.
