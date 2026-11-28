@@ -275,6 +275,23 @@ Open points on the drafted sections (W3 and W4):
   in the three other partitions" waits for its rows; the entries cited
   from arXiv alone are checked for a published version before
   submission.
+- From the kept reviewer's read of Sections 5 to 7 after the pass on
+  repeated results (2026-11-28). Done: levels and counts given back
+  where the reader could not follow without them (the two steps of the
+  EX gain and the three error counts in 6.1, the TS of FedDPO, the
+  Spider questions only FedAvg SFT answers, the fall to Spider-Syn).
+  Left: the adjusted p of Table 3 and of the text change when the
+  waiting rows enter their families (FedDPO against FedAvg SFT, 0.014,
+  and the variant without the preference term against FedAvg SFT,
+  0.017, are the nearest to the level); the sizes of the difficulty
+  groups; whether the correct predictions on other tables or columns
+  are other correct queries or matches by chance, and their link to
+  the distance between EX and TS without warm-up; the variant without
+  the preference term set beside FedDPO; "execution error" defined in
+  the text and in the caption of Fig. 4; the caveat on the training
+  settings stands four times (6.1 twice, 6.2, 7); the opening
+  summaries of 5.1 and 5.3 read as repetition to this reviewer and as
+  missing synthesis to the two fresh ones.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),

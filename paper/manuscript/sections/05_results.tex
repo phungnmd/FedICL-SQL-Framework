@@ -67,15 +67,16 @@ three rounds differ by \gap{spider}{fedavg}{3}{k2}{3} points
 more GPU time than the FedAvg SFT round in both setups
 (Section~\ref{sec:cost}).
 
-On Spider test, centralized SFT does not differ significantly from
-FedAvg SFT, and \method{} is \gap{spider}{central}{3}{k2}{4} points above
+On Spider test, centralized SFT after \setting{central.epochs} epochs
+does not differ significantly from FedAvg SFT, and \method{} is \gap{spider}{central}{3}{k2}{4} points above
 it ($p = {}$\padj{spider}{central}{3}{k2}{4}).
 
 FedDPO, trained on the fixed execution-labeled pairs of the first
 preference round of \method, is \gap{bird}{feddpo}{4}{k2}{4} EX points
 ($p = {}$\padj{bird}{feddpo}{4}{k2}{4}) and \tsgap{bird}{feddpo}{4}{k2}{4}
 TS points ($p = {}$\tspadj{bird}{feddpo}{4}{k2}{4}) below \method{} on
-BIRD dev at \setting{rounds.total} rounds. After the first of the two preference
+BIRD dev at \setting{rounds.total} rounds, where its TS is
+\ts{bird}{feddpo}{4}\%. After the first of the two preference
 rounds, FedDPO is below \method{} by a difference that is not
 significant, and its second round adds \gain{bird}{feddpo}{3}{feddpo}{4}
 points ($p = {}$\padj{bird}{feddpo}{3}{feddpo}{4}), less than the second
@@ -127,7 +128,9 @@ and \fact{moved.bird.error.error} remain execution errors. On Spider
 test, \method{} answers \nfix{spider}{fedavg}{4}{k2}{4} questions
 correctly that FedAvg SFT does not, \fact{moved.spider.error.correct}
 from execution errors and \fact{moved.spider.wrong.correct} from
-incorrect results, and of the other execution errors of FedAvg SFT,
+incorrect results, and FedAvg SFT answers
+\nbrk{spider}{fedavg}{4}{k2}{4} that \method{} does not. Of the other
+execution errors of FedAvg SFT,
 \fact{moved.spider.error.wrong} return an incorrect result and
 \fact{moved.spider.error.error} remain.
 
@@ -277,8 +280,9 @@ against \nerr{spider}{k2}{3} on Spider test
 
 The first preference round without the NLL term, which is also the
 first round of FedDPO, is \gap{spider}{k2}{3}{feddpo}{3} EX points below
-\method{} on Spider test after the same round and below the model it
-starts from. On BIRD dev, neither its EX nor its TS differs significantly from that of
+\method{} on Spider test after the same round, and at
+\ex{spider}{feddpo}{3}\% it is below the \ex{spider}{fedavg}{2}\% of
+the model it starts from, a difference that we did not test. On BIRD dev, neither its EX nor its TS differs significantly from that of
 \method{}, and it is \gap{bird}{fedavg}{2}{feddpo}{3} EX points above
 its starting model, also not significantly
 ($p = {}$\padj{bird}{fedavg}{2}{feddpo}{3}). With the pairs and the
@@ -336,8 +340,10 @@ On Spider dev and the three sets built from Spider, \method{} is above
 FedAvg SFT under EX and, where a suite exists, under TS, by
 \tsgap{spiderdev}{fedavg}{4}{k2}{4} to \gap{dk}{fedavg}{4}{k2}{4} points,
 and the differences are significant on Spider-Syn only
-(Table~\ref{tab:robust}). Both models fall from Spider dev to
-Spider-Syn.
+(Table~\ref{tab:robust}). Both models lose EX from Spider dev to
+Spider-Syn, FedAvg SFT from \ex{spiderdev}{fedavg}{4}\% to
+\ex{syn}{fedavg}{4}\% and \method{} from \ex{spiderdev}{k2}{4}\% to
+\ex{syn}{k2}{4}\%.
 
 Without warm-up rounds, the EX gain of \method{} over FedAvg SFT does not
 appear under TS: the variant is above FedAvg SFT under EX on all four
