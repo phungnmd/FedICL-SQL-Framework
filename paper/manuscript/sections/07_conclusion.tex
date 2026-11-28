@@ -1,3 +1,24 @@
 \section{Conclusion}\label{sec:conclusion}
 
-% To be written from the brief of this section.
+Federated SFT for Text-to-SQL learns from the gold SQL query of each
+question and never executes a query on the databases that the clients
+hold. \method{} uses these databases: after supervised warm-up rounds,
+each client samples queries from the global model, labels them by
+executing them against the gold result on its own databases, and trains
+with a DPO term and an NLL term on preference pairs constructed anew in
+every round, and the server averages the adapters. At the same number of
+rounds, \method{} is above FedAvg SFT by \gap{bird}{fedavg}{4}{k2}{4} EX
+points on BIRD dev and by \gap{spider}{fedavg}{4}{k2}{4} on Spider test.
+On BIRD dev, it is also above FedDPO trained on the fixed
+execution-labeled pairs of its own first preference round, by \gap{bird}{feddpo}{4}{k2}{4} EX points and
+\tsgap{bird}{feddpo}{4}{k2}{4} TS points. Against FedAvg SFT, execution
+errors fall by about half, from \nerr{bird}{fedavg}{4} to
+\nerr{bird}{k2}{4} on BIRD dev and from \nerr{spider}{fedavg}{4} to
+\nerr{spider}{k2}{4} on Spider test, while incorrect results do not
+fall. A preference round sends what a FedAvg SFT round sends and adds
+client computation.
+
+Three directions follow from the scope of the study: federations with
+partial participation and many clients, larger models, and an analysis
+of what the adapter and the pair count reveal about the data of a
+client.

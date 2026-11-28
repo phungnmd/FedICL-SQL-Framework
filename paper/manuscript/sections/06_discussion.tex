@@ -1,3 +1,123 @@
 \section{Discussion and limitations}\label{sec:discussion}
 
-% To be written from the brief of this section.
+\subsection{Interpretation of the results}\label{sec:interpretation}
+
+The two kinds of round differ in the supervision they give. A FedAvg SFT
+round raises the likelihood of one gold SQL query per question, the same
+query in every round, whereas a preference round compares queries of the
+current global model that the client has executed, so its training
+signal changes with the model. FedAvg SFT does not improve after its
+third round on either benchmark, while from its model after
+\setting{rounds.warmup} rounds a preference round adds more than a
+further FedAvg SFT round, significantly so on Spider test
+(Section~\ref{sec:main}). We read this as the
+gold SQL queries being exhausted as a training signal sooner than the
+executed queries of the model.
+
+The preference rounds reduce execution errors, not incorrect results
+(Section~\ref{sec:analysis}), and the composition of the pairs is
+consistent with this. The incorrect sample is an execution error in
+\fact{pairs.bird.pref1.neg_error_pct}\% of the pairs of the first
+preference round on BIRD and \fact{pairs.spider.pref1.neg_error_pct}\%
+on Spider, and in \fact{pairs.bird.pref2.neg_error_pct}\% and
+\fact{pairs.spider.pref2.neg_error_pct}\% in the second. We attribute
+the difference between the two kinds of error to what a pair exposes. A
+query that fails to execute differs from the correct sample in a way
+that the pair shows directly, such as a name that does not exist in the
+schema or a malformed clause, whereas a query that returns another
+result can differ from it in its reading of the question.
+
+Most of the reduction comes from the comparison of the two samples and
+not from training on the correct samples of the model. Without the
+preference term, execution errors are more numerous after one preference
+round on both benchmarks and after two on BIRD dev, where the variant
+ends with \nerr{bird}{rft}{4} against \nerr{bird}{fedavg}{4} for FedAvg
+SFT and \nerr{bird}{k2}{4} for \method{}
+(Section~\ref{sec:ablation}). The same variant separates two sources of
+the EX gain on BIRD dev, both of which use the execution labels: training
+on the samples labeled correct puts it \gap{bird}{fedavg}{4}{rft}{4}
+points above FedAvg SFT, and the preference term adds
+\gap{bird}{k2}{4}{rft}{4}. The outcome of each question bounds what the reduction is worth. Of the
+execution errors of FedAvg SFT, more return an incorrect result with
+\method{} than become correct on BIRD dev (\fact{moved.bird.error.wrong}
+against \fact{moved.bird.error.correct}), and fewer on Spider test
+(\fact{moved.spider.error.wrong} against
+\fact{moved.spider.error.correct}). On both benchmarks, correct
+predictions rise by less than execution errors fall. Removing an
+execution error is not the same as answering the question correctly.
+
+On Spider test, EX does not differ significantly across the numbers of
+warm-up rounds tested, but without warm-up the EX gain over FedAvg SFT does not carry to TS on
+the three sets with a suite, and with \setting{rounds.warmup} warm-up
+rounds it does (Section~\ref{sec:perturbed}). An execution label, like
+EX, is a match of results on one database. The suites show that
+preference rounds started from the pretrained model yield more
+predictions that match the gold result on the evaluation database and
+return another result on its content variants. The experiments do not
+show why.
+
+Renewing the pairs and the reference model, like the second preference
+round itself, adds accuracy on BIRD dev and not on Spider test
+(Section~\ref{sec:ablation}). This is consistent with the smaller share
+of training questions that yield pairs on Spider, where fewer questions
+lack a correct sample after warm-up (Section~\ref{sec:warmup}). From the
+first to the second preference round, the share falls from
+\fact{cost.bird.pref1.paired_pct}\% to \fact{cost.bird.pref2.paired_pct}\%
+on BIRD and from \fact{cost.spider.pref1.paired_pct}\% to
+\fact{cost.spider.pref2.paired_pct}\% on Spider.
+
+\subsection{Scope and limitations}\label{sec:limitations}
+
+A client needs gold SQL queries for its training questions and databases
+on which it can execute queries, and questions without a gold SQL query
+are not used. A question on a database without rows, or one whose gold
+SQL query fails to execute or exceeds the time limit, yields no pair,
+and the number of questions of the last kind differs between runs
+(Section~\ref{sec:datasets}).
+
+An execution label is a match of results on one database, so an
+incorrect query can be labeled correct when its result matches by
+chance. TS is the check that the study has: the official suite of
+the Spider dev databases for Spider dev, Spider-Syn and Spider-Realistic,
+and a generated suite on BIRD dev, whose agreement with an official suite
+could be measured on Spider dev only. On BIRD dev, this suite rejects
+about a third of the EX-correct predictions that read other tables or
+columns than the gold SQL query, for FedAvg SFT and for \method{} alike
+(Section~\ref{sec:analysis}), which gives the size of the effect at
+evaluation. We have no such measure for the labels of the training
+samples. Spider test and Spider-DK are judged by EX alone.
+
+Each model comes from one training run, with one seed and one draw of
+the partition, so the tests cover the variation over evaluation
+questions and not the variation between runs.
+
+\method{} needs more client computation over the rounds: in
+\setting{rounds.total} rounds, \fact{cost.bird.k2.gpu_total} against
+\fact{cost.bird.fedavg4.gpu_total} GPU minutes for FedAvg SFT on BIRD
+and \fact{cost.spider.k2.gpu_total} against
+\fact{cost.spider.fedavg4.gpu_total} on Spider, plus the labeling time
+(Section~\ref{sec:cost}). The models are compared at equal numbers of
+rounds, that is, at equal communication, and only on Spider does a
+comparison give the baseline more GPU time, through its fifth round. The
+preference rounds also use a lower learning rate and weight decay than
+the FedAvg SFT rounds (Section~\ref{sec:implementation}). No FedAvg SFT
+run uses these settings, and the variant without the preference term,
+which shares them, is the only control for them.
+
+The setups have \fact{split.bird.a0.1.k5.clients} clients, or
+\fact{split.spider.a0.5.k10.clients} in one setup, and all of them take
+part in every round. Partial participation and federations of many
+clients are not studied. With \setting{rounds.pref} preference rounds,
+the pairs and the reference model are renewed once, and the ablation
+study does not separate the new pairs from the new reference model. The
+number of warm-up rounds is a setting that has to be chosen.
+
+Privacy in this study is data isolation: no differential privacy is
+applied, and what an adapter reveals about the data of a client is not
+analyzed. The pair count that a client sends depends on how the model
+performs on its data.
+
+The models have \setting{models.size.min} to \setting{model.size}
+parameters and are trained with LoRA, and the benchmarks consist of
+SQLite databases with questions in English. With the smaller model, the
+gain over FedAvg SFT is smaller (Section~\ref{sec:breadth}).
