@@ -204,8 +204,8 @@ Baselines (main table, BIRD dev first, Spider test next to it):
 | Row | What it is | BIRD | Spider |
 |---|---|---|---|
 | Student without training | no adapter | run | run |
-| Local SFT | each client alone; mean, minimum and maximum over the 5 clients | queued (`bird_local`, fourth), about 11.5 h | not planned (curves defined; ready if a reviewer asks) |
-| Centralized SFT | the union of the clients, 3 epochs | queued (`bird_central`, third), about 8.5 h | run |
+| Local SFT | each client alone; mean, minimum and maximum over the 5 clients | queued (`bird_local`, fifth), about 11.5 h | not planned (curves defined; ready if a reviewer asks) |
+| Centralized SFT | the union of the clients, 3 epochs | queued (`bird_central`, fourth), about 8.5 h | run |
 | FedAvg SFT | gold SQL, FedAvg, rounds 1 to 4 | run | run |
 | Federated DPO as published | pairs from the first DPO round's samples made once, reference fixed for all rounds, no NLL term (OpenFedLLM's FedDPO); same pair count | run (44.98 at 3 rounds, 45.50 at 4) | round 2 queued (`feddpo`, first after the control) |
 | Method | 2 FedAvg SFT rounds, then 2 DPO + NLL rounds | run (48.76) | run (78.20) |
@@ -233,11 +233,11 @@ Breadth:
 
 | Row | Set | State |
 |---|---|---|
-| Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B: with the 1.5B, three models | Spider | 0.5B run; DeepSeek FedAvg SFT rounds 3 and 4 and DPO + NLL round 2 queued, second after the control, with its rows on Spider dev and the variant sets (about 8 h) |
+| Qwen2.5-Coder-0.5B and DeepSeek-Coder-1.3B: with the 1.5B, three models | Spider | 0.5B run; DeepSeek FedAvg SFT rounds 3 and 4 and DPO + NLL round 2 queued, third after the control, with its rows on Spider dev and the variant sets (about 8 h) |
 | Variant sets (Syn, Realistic, DK) and test-suite accuracy | Spider | 1.5B run at 4 rounds, test-suite accuracy included (`c99b7bf4`). The 1.5B rows by round and the 0.5B rows on the three sets (`spider_sets_var`, `qwen05b_var`, about 2 h) stay queued after the order of 2026-11-28, in no table; the owner places or parks them |
 | A second student model on BIRD (DeepSeek-Coder-1.3B) | BIRD | not planned (about 30 h, ready if a reviewer asks) |
 | The method at 5 rounds (`bird_k2/round_3`, with `bird_sft/round_5`) | BIRD | not planned (about 7 h and 3 h, ready if a reviewer asks) |
-| DPO + NLL with the clients pooled | Spider | parked (`pooled_k2`, about 4 h) |
+| DPO + NLL with the clients pooled (the centralized run of the method's own rounds) | Spider | queued (`pooled_k2` with `pooled_dev`), second after the control, about 4 h left; round 1 trained and published (`57d47c3d`), not evaluated. Parked and queued again on 2026-11-28 (owner) |
 
 Federated setups: four, five with the optional last one, each with two
 rows (FedAvg SFT at 4 rounds, the method at 3 and 4 rounds). They give
@@ -249,8 +249,8 @@ client joins every round.
 |---|---|---|---|
 | BIRD | 5 | `alpha_0.1/k5` | run |
 | Spider | 5 | `alpha_0.1/k5` | run |
-| Spider | 5 | `iid/k5` | queued (`iid_sft`, `iid_k2`), fifth, about 13 h |
-| Spider | 5 | `alpha_0.5/k5` | queued (`a05_sft`, `a05_k2`), sixth, about 13 h |
+| Spider | 5 | `iid/k5` | queued (`iid_sft`, `iid_k2`), sixth, about 13 h |
+| Spider | 5 | `alpha_0.5/k5` | queued (`a05_sft`, `a05_k2`), seventh, about 13 h |
 | Spider | 10 | `alpha_0.5/k10` | queued (`a05k10_sft`, `a05k10_k2`), last and optional, about 13 h: it runs only if a card is free, and its row leaves the table otherwise |
 
 Seeds (owner, 2026-11-26; revised 2026-11-28): every row keeps one
@@ -266,19 +266,19 @@ error breakdown, EX by difficulty, pair counts and the cosine of the
 client updates by round, which exist and go into tables.
 
 Order of the open rows (owner, 2026-11-28; `PIPELINE_NEXT.md`): the
-control; federated DPO as published on Spider; DeepSeek-Coder-1.3B on
+control; federated DPO as published on Spider; the clients pooled on
+Spider (back from parked the same evening); DeepSeek-Coder-1.3B on
 Spider; centralized SFT, then local SFT on BIRD; the IID and alpha 0.5
 setups of 5 clients; the setup of 10 clients last and optional. About
-80.5 GPU hours with the control (67.5 without the last setup).
+84.5 GPU hours with the control (71.5 without the last setup).
 
 Parked, ready if a reviewer of the journal asks (2026-11-28; hours in
 `PIPELINE_NEXT.md`). With queue lines (`fedicl-sql/queues/parked.toml`):
 the method run by each BIRD client alone (`bird_local_k2`), the second
 seed, the on-policy round without NLL on BIRD (`bird_nonll`), the vote
 of 16 samples (`bird_vote`), wrong-result rejects first on BIRD
-(`bird_wrfirst`), RFT round 2 on Spider, the clients pooled on Spider
-(`pooled_k2`, `pooled_dev`); 68.5 h. Without queue lines: FedProx SFT
-on BIRD and on Spider, `bird_k0` rounds 3 and 4, k = 3 on BIRD,
+(`bird_wrfirst`), RFT round 2 on Spider; 64.5 h. Without queue lines:
+FedProx SFT on BIRD and on Spider, `bird_k0` rounds 3 and 4, k = 3 on BIRD,
 DeepSeek-Coder-1.3B on BIRD, `bird_k2/round_3` with `bird_sft/round_5`,
 the clients pooled on BIRD, local SFT on Spider.
 

@@ -5,6 +5,28 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28 (evening): the clients pooled on Spider back in the queue, second after the control
+
+- Decision (owner): `pooled_k2/*` with `pooled_dev/*` leave
+  `queues/parked.toml` and stand in `queues/active.toml` after
+  `feddpo/*`, before the DeepSeek rows. Why: it is the centralized run
+  of the method's own rounds, the row federated papers print beside the
+  method; the paper has centralized SFT only. It reads whether the
+  federated rounds keep the pooled level or the pooled rounds are the
+  upper bound (Table 4, "Clients pooled", Spider test at 4 rounds).
+- State: round 1 trained on 2026-11-23 and is published (`57d47c3d`,
+  8,024 pairs, about 3.5 h); no evaluation of either round is committed
+  and round 2 is not trained. The entry of 2026-11-28 below on local SFT
+  on BIRD says the one-client path "has not run on a GPU yet": round 1
+  of this line ran it. About 4 h left (estimate).
+- Check: the blocks moved unchanged; every task entry of the two files
+  equals that of `d983749d` and `14992724`; no active task needs a
+  parked one; the file order is that of `d983749d` with the 11 pooled
+  tasks between `feddpo/publish_eval_dev_2` and
+  `deepseek13b_sft/round_3`. Queue tests: 65 passed, 6 skipped (the
+  order check now includes `pooled_k2`). Now about 84.5 GPU hours with
+  the control (71.5 without the setup of 10 clients); parked 64.5 h.
+
 ## 2026-11-28: the queue brought to the bar of CMC, seven lines parked
 
 - Decision (owner): the paper meets what CMC publishes, not a stricter
