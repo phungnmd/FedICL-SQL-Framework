@@ -5,6 +5,41 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: manuscript, every section drafted (Sections 2, 5, 6, 7 written; Section 1 and the abstract brought up to date); three tests added to the text family; two points of the reviewer need a decision or a run
+
+- Writer and kept reviewer as before. The reviewer read Sections 5 and
+  6 with 7 twice and Section 2 once so far; its points are in the text,
+  in `checks/`, in `WRITING_PLAN.md` section 6 and in
+  `REVIEW_NOTES.md` (A34, A49, A50). PDF: 31 pages.
+- Generator: GPU totals over the rounds (`\fact{cost.<set>.k2.gpu_total}`,
+  `.fedavg4.gpu_total`, Spider `.fedavg5.gpu_total`), EX-correct
+  predictions that the suite rejects (`\fact{ts.bird.<line>.<r>.rejected}`),
+  predictions the parser cannot read (`\fact{form.*.unparsed}`); a p
+  that rounds onto 0.05 prints a third digit.
+- One test added to the family of the text (34 tests): the variant
+  without the preference term against FedAvg SFT on BIRD dev at 4
+  rounds, +2.67, adjusted p 0.017. The two models at 3 rounds were
+  already tested: BIRD +2.54, adjusted p 0.13; Spider +2.75, 0.0012.
+  The adjusted p of every other text comparison moved with the family;
+  `CLAIMS.md` carries the generated values (A4, B3, B4, B8, C2).
+- Corrected: B4 said the method has more incorrect results than the
+  variant without the preference term, significant after correction
+  (0.048). The generated value is 0.0504: not significant.
+- Reviewer, major, no text can settle them: (1) every comparison with
+  FedAvg SFT is between rounds at different optimizer settings (learning
+  rate 5e-5 against 2e-4, weight decay, learning-rate warm-up, LoRA
+  dropout); only the comparison with the variant without the
+  preference term is at equal settings (3.52 on BIRD dev). Control row
+  of A34 not queued. (2) Against CodeLutra as the paper itself
+  describes it, what the method adds is the federation of the loop
+  (A49). (3) No federated GRPO baseline with an execution reward (A50).
+- Decided by the main session and told to the owner: Table 1 has rows
+  for PubSwap, Fed-GRPO and Liu et al.; its column is "labels from SQL
+  execution"; Section 2.1 prints the BIRD dev level of SLM-SQL (67.08
+  at 1.5B) beside the remark that our levels are lower; FFA-LoRA,
+  FLoRA, ExeSQL and Kulkarni and Srikumar are cited from their
+  abstracts (rows V of `checks/02_related_rows.md`).
+
 ## 2026-11-28: manuscript, Section 3 revised and read twice by the kept reviewer; counts of the warm-up paragraph and of the generated suite are macros
 
 - Writer (one Opus agent, kept): Section 3 revised on nine points of
