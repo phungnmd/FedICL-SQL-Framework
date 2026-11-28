@@ -19,7 +19,7 @@ For the ablation study (5.3):
 - Questions without a correct sample on Spider, on databases with rows: 1,016, 557 and 470 with 0, 2 and 3 warm-up rounds (the raw counts of the round records, 1,074, 573 and 483, include questions on databases without rows). BIRD: 4,035 and 2,698.
 - Without the preference term (the NLL term alone on correct samples): the round still ends above the model before it (44.39 against 42.70 on BIRD dev; 75.87 against 74.10 on Spider test). Against the round with both terms: fewer execution errors with the preference term, significant; a difference in EX is not significant after correction on either dataset. No ranking by "lies between" without a test.
 - Warm-up rounds: at 4 rounds on Spider test, 78.02, 78.20 and 77.97 for 0, 2 and 3. What differs is test-suite accuracy (the variant without warm-up is below FedAvg SFT in TS on all three sets by value, one of three tests significant, on Spider-Syn) and the number of questions without a correct sample.
-- The gold SQL query as the correct side for questions without a correct sample (B8): BIRD dev only, the variant without warm-up, one preference round: 39.24 against 41.85 (-2.61, p 0.0073, 0.077 after Holm in the family of the text). A number of the text, not a row of Table 4; nothing is said for Spider. (owner, A2)
+- The gold SQL query as the correct side for questions without a correct sample (B8): BIRD dev only, the variant without warm-up, one preference round: 39.24 against 41.85 (-2.61, p 0.0073, 0.12 after Holm in the family of the text). A number of the text, not a row of Table 4; nothing is said for Spider. (owner, A2)
 - Three waiting rows need a sentence when their results are in: without the preference term after 4 rounds; 0 and 3 warm-up rounds on BIRD dev.
 
 ## 2. Facts about cited papers
@@ -38,7 +38,7 @@ Section 5 quotes no number of another paper: the published results on a likeliho
 For the ablation study (5.3):
 
 - On-policy pairs against fixed pairs and reference: lower EX on BIRD dev (+2.61 for the method, p 5.7e-4); level on Spider test (78.20 against 78.02, p 0.78).
-- The preference term over training on correct samples at 3 rounds: +1.83 on BIRD dev (p 0.057), +1.59 on Spider test (p 0.015, 0.18 after Holm in the 16 tests of Table 4).
+- The preference term over training on correct samples at 3 rounds: +1.83 on BIRD dev (p 0.057), +1.59 on Spider test (p 0.015, 0.21 after Holm in the 20 tests of Table 4).
 
 ## 4. What the section carries for other sections
 

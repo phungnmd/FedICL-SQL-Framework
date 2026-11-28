@@ -746,7 +746,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\errpval{bird}{k2}{4}{rft}{4}` | 1.6e-14 | text; execution errors in one row only: 38 (a), 138 (b) |
 | `\errpadj{bird}{k2}{4}{rft}{4}` | 4.9e-13 | text; execution errors in one row only: 38 (a), 138 (b) |
 | `\wrpval{bird}{k2}{4}{rft}{4}` | 0.0028 | text; incorrect results in one row only: 137 (a), 91 (b) |
-| `\wrpadj{bird}{k2}{4}{rft}{4}` | 0.05 | text; incorrect results in one row only: 137 (a), 91 (b) |
+| `\wrpadj{bird}{k2}{4}{rft}{4}` | 0.0504 | text; incorrect results in one row only: 137 (a), 91 (b) |
 | `\errpval{spider}{fedavg}{4}{k2}{4}` | 6.2e-14 | text; execution errors in one row only: 118 (a), 29 (b) |
 | `\errpadj{spider}{fedavg}{4}{k2}{4}` | 1.8e-12 | text; execution errors in one row only: 118 (a), 29 (b) |
 | `\wrpval{spider}{fedavg}{4}{k2}{4}` | 0.37 | text; incorrect results in one row only: 97 (a), 111 (b) |
@@ -761,6 +761,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | Macro | Value | Source |
 |---|---|---|
 | `\fact{cost.bird.adapter_mb}` | 73.9 | round record, communication_bytes |
+| `\fact{cost.bird.fedavg4.gpu_total}` | 692 | sum of the GPU minutes of Table 8 |
+| `\fact{cost.bird.k2.gpu_total}` | 879 | sum of the GPU minutes of Table 8 |
 | `\fact{cost.bird.pref1.all_correct}` | 416 | round record, pair_stats |
 | `\fact{cost.bird.pref1.gpu_min}` | 310 | round records and queue logs |
 | `\fact{cost.bird.pref1.gpu_ratio}` | 1.8 | round records and queue logs |
@@ -783,6 +785,9 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{cost.bird.pref2.train_min}` | 195 | round records and queue logs |
 | `\fact{cost.bird.sft.train_min}` | 173 | FedAvg SFT rounds 1, 2, 4 |
 | `\fact{cost.spider.adapter_mb}` | 73.9 | round record, communication_bytes |
+| `\fact{cost.spider.fedavg4.gpu_total}` | 496 | sum of the GPU minutes of Table 8 |
+| `\fact{cost.spider.fedavg5.gpu_total}` | 620 | sum of the GPU minutes of Table 8 |
+| `\fact{cost.spider.k2.gpu_total}` | 555 | sum of the GPU minutes of Table 8 |
 | `\fact{cost.spider.pref1.all_correct}` | 2327 | round record, pair_stats |
 | `\fact{cost.spider.pref1.gpu_min}` | 201 | round records and queue logs |
 | `\fact{cost.spider.pref1.gpu_ratio}` | 1.6 | round records and queue logs |
@@ -999,6 +1004,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{train.spider.truncated.pref1}` | 18 | round record, pair_stats |
 | `\fact{train.spider.truncated.pref2}` | 38 | round record, pair_stats |
 | `\fact{train.spider.with_rows}` | 6900 | round record, pair_stats |
+| `\fact{ts.bird.base.0.rejected}` | 77 | committed predictions correct under EX and not under the test suite |
+| `\fact{ts.bird.fedavg.2.rejected}` | 101 | committed predictions correct under EX and not under the test suite |
+| `\fact{ts.bird.fedavg.3.rejected}` | 99 | committed predictions correct under EX and not under the test suite |
+| `\fact{ts.bird.fedavg.4.rejected}` | 90 | committed predictions correct under EX and not under the test suite |
+| `\fact{ts.bird.k2.3.rejected}` | 110 | committed predictions correct under EX and not under the test suite |
+| `\fact{ts.bird.k2.4.rejected}` | 110 | committed predictions correct under EX and not under the test suite |
 | `\fact{warmup.bird.k0.all_correct}` | 156 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
 | `\fact{warmup.bird.k0.no_correct}` | 4035 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
 | `\fact{warmup.bird.k0.no_label}` | 380 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |

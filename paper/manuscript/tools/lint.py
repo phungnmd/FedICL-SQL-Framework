@@ -44,7 +44,7 @@ WRAPPERS = {
                                "textcomp", "manyfoot", "booktabs", "algorithm", "algorithmicx", "algpseudocode", "listings"}),
     "cmc": ("main.tex", {"algorithm", "algorithmicx", "algpseudocode", "listings", "catchfile"}),
 }
-NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "errpval", "errpadj", "wrpval", "wrpadj", "nfix", "nbrk", "tsgain", "tsgap", "tspval", "fact", "setting",
+NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "errpval", "errpadj", "wrpval", "wrpadj", "nfix", "nbrk", "tsgain", "tsgap", "tspval", "tspadj", "fact", "setting",
                  "expect")  # \expect{value}: a guess for a number that waits, marked in the PDF (macros.tex)
 # names that are not abbreviations to define (datasets, models, tools, the language itself)
 KNOWN_NAMES = {"SQL", "BIRD", "SQLITE", "II", "III", "IV", "RQ", "ID", "DDL", "GPU", "CUDA", "MB", "GB", "EX", "TS",

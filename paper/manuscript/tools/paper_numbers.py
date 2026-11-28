@@ -113,8 +113,15 @@ def signed(d: float) -> str:
     return f"+{d:.2f}" if d >= 0 else f"$-${-d:.2f}"
 
 
-def p_tex(p: float) -> str:
+def p_shown(p: float) -> str:
+    """The p as printed. One that rounds onto the level of the test gets a third digit, so that
+    the printed value shows on which side of the level it lies."""
     s = ov.p_text(p)
+    return f"{p:.3g}" if float(s) == ALPHA and p != ALPHA else s
+
+
+def p_tex(p: float) -> str:
+    s = p_shown(p)
     m = re.fullmatch(r"(\d(?:\.\d)?)e-(\d+)", s)
     return f"${m.group(1)}\\times10^{{-{m.group(2)}}}$" if m else s
 
@@ -852,15 +859,15 @@ def macros(d: Data, facts: dict) -> tuple[str, str]:
         where = "; ".join(sorted(set(w.removesuffix(":ts") for w in d.used_tests[(a, b)])))
         put(f"gain/{tail}", signed(t["d"]), f"\\gain{opt}{arg}", f"{t['d']:+.2f}", where)
         put(f"gap/{tail}", f2(abs(t["d"])), f"\\gap{opt}{arg}", f2(abs(t["d"])), where)
-        put(f"pval/{tail}", p_tex(t["pexact"]), f"\\pval{opt}{arg}", ov.p_text(t["pexact"]), where)
-        put(f"padj/{tail}", p_tex(t["padj"]), f"\\padj{opt}{arg}", ov.p_text(t["padj"]), where)
+        put(f"pval/{tail}", p_tex(t["pexact"]), f"\\pval{opt}{arg}", p_shown(t["pexact"]), where)
+        put(f"padj/{tail}", p_tex(t["padj"]), f"\\padj{opt}{arg}", p_shown(t["padj"]), where)
         put(f"nfix/{tail}", count(t["fixed"]), f"\\nfix{opt}{arg}", str(t["fixed"]), where)
         put(f"nbrk/{tail}", count(t["broke"]), f"\\nbrk{opt}{arg}", str(t["broke"]), where)
         if "tspadj" in t:
             put(f"tsgain/{tail}", signed(t["dts"]), f"\\tsgain{opt}{arg}", f"{t['dts']:+.2f}", where)
             put(f"tsgap/{tail}", f2(abs(t["dts"])), f"\\tsgap{opt}{arg}", f2(abs(t["dts"])), where)
-            put(f"tspval/{tail}", p_tex(t["tspexact"]), f"\\tspval{opt}{arg}", ov.p_text(t["tspexact"]), where)
-            put(f"tspadj/{tail}", p_tex(t["tspadj"]), f"\\tspadj{opt}{arg}", ov.p_text(t["tspadj"]), where)
+            put(f"tspval/{tail}", p_tex(t["tspexact"]), f"\\tspval{opt}{arg}", p_shown(t["tspexact"]), where)
+            put(f"tspadj/{tail}", p_tex(t["tspadj"]), f"\\tspadj{opt}{arg}", p_shown(t["tspadj"]), where)
     for (a, b) in sorted(d.err_tests):
         t = d.err_tests[(a, b)]
         ds, rid = a[0], run_id(a)
@@ -868,11 +875,11 @@ def macros(d: Data, facts: dict) -> tuple[str, str]:
         arg = f"{{{ds}}}{{{a[3]}}}{{{a[4]}}}{{{b[3]}}}{{{b[4]}}}"
         tail = f"{rid}/{ds}/{a[3]}/{a[4]}/{b[3]}/{b[4]}"
         where = f"text; execution errors in one row only: {t['only_a']} (a), {t['only_b']} (b)"
-        put(f"errpval/{tail}", p_tex(t["pexact"]), f"\\errpval{opt}{arg}", ov.p_text(t["pexact"]), where)
-        put(f"errpadj/{tail}", p_tex(t["padj"]), f"\\errpadj{opt}{arg}", ov.p_text(t["padj"]), where)
+        put(f"errpval/{tail}", p_tex(t["pexact"]), f"\\errpval{opt}{arg}", p_shown(t["pexact"]), where)
+        put(f"errpadj/{tail}", p_tex(t["padj"]), f"\\errpadj{opt}{arg}", p_shown(t["padj"]), where)
         where = f"text; incorrect results in one row only: {t['wr_a']} (a), {t['wr_b']} (b)"
-        put(f"wrpval/{tail}", p_tex(t["wrpexact"]), f"\\wrpval{opt}{arg}", ov.p_text(t["wrpexact"]), where)
-        put(f"wrpadj/{tail}", p_tex(t["wrpadj"]), f"\\wrpadj{opt}{arg}", ov.p_text(t["wrpadj"]), where)
+        put(f"wrpval/{tail}", p_tex(t["wrpexact"]), f"\\wrpval{opt}{arg}", p_shown(t["wrpexact"]), where)
+        put(f"wrpadj/{tail}", p_tex(t["wrpadj"]), f"\\wrpadj{opt}{arg}", p_shown(t["wrpadj"]), where)
     md += ["", "## Counts and costs", "", "| Macro | Value | Source |", "|---|---|---|"]
     for name in sorted(facts):
         v, src = facts[name]
@@ -911,6 +918,14 @@ def all_facts(d: Data, splits: dict, cost: dict) -> dict:
             # the questions on databases without rows, which yield none)
             share = 100 * cost[f"cost.{ds}.pref{r}.paired"] / cost[f"cost.{ds}.pref{r}.questions"]
             facts[f"cost.{ds}.pref{r}.paired_pct"] = (f"{share:.1f}", "round record, pair_stats")
+    # GPU minutes over all rounds of a line: sums of the whole minutes Table 8 prints, so that a
+    # reader who adds its cells gets the same figure. A FedAvg SFT round counts with its mean.
+    for ds, sft_rounds in (("bird", (ROUNDS,)), ("spider", (ROUNDS, ROUNDS + 1))):
+        sft = int(minutes(cost[f"cost.{ds}.sft.train"]))
+        pref = sum(int(facts[f"cost.{ds}.pref{r}.gpu_min"][0]) for r in range(1, ROUNDS - WARMUP + 1))
+        facts[f"cost.{ds}.k2.gpu_total"] = (WARMUP * sft + pref, "sum of the GPU minutes of Table 8")
+        for n in sft_rounds:
+            facts[f"cost.{ds}.fedavg{n}.gpu_total"] = (n * sft, "sum of the GPU minutes of Table 8")
     for k_, v in cost.items():
         if k_.endswith(".rounds"):
             continue
@@ -992,6 +1007,9 @@ def form_facts(d: Data) -> dict:
         for name, v in n.items():
             facts[f"form.{ds}.{line}.{r}.{name}"] = (v, src + ("; test-suite scores" if name.endswith("_ts") else ""))
         if ts is not None:
+            facts[f"ts.{ds}.{line}.{r}.rejected"] = (
+                sum(n[g + "_right"] - n[g + "_right_ts"] for g in ("gold", "other")),
+                "committed predictions correct under EX and not under the test suite")
             for group in ("gold", "other"):
                 right = n[group + "_right"]
                 facts[f"form.{ds}.{line}.{r}.{group}_ts_fail_pct"] = (
