@@ -1,4 +1,4 @@
-# Checks: Sections 6 and 7, Discussion and limitations, Conclusion
+# Checks: Sections 6 and 7, Discussion, Conclusion
 
 What stays true whatever the draft says: facts and the bounds of claims.
 It is read before the section is written and when it is checked; remarks
@@ -7,7 +7,7 @@ on the wording of a draft are not kept here.
 ## 1. Facts about our work
 
 - The method has 2 preference rounds among its T = 4 rounds and is not trained further; only the variant without warm-up rounds has more.
-- Tests against FedAvg SFT at 4 rounds. Execution errors: BIRD dev 182 questions fail only with FedAvg SFT and 42 only with the method (p = 5.8e-22); Spider test 118 and 29 (p = 6.2e-14); both significant after Holm. Incorrect results: BIRD dev p = 0.007, 0.12 after Holm (156 and 111); Spider test p = 0.37 (111 and 97); neither significant after correction. (owner, A31)
+- Against FedAvg SFT at 4 rounds, the paper states the counts of execution errors and incorrect results without a test: no table prints it (owner, 2026-11-28). Notes only: execution errors, BIRD dev 182 questions fail only with FedAvg SFT and 42 only with the method (p = 5.8e-22), Spider test 118 and 29 (p = 6.2e-14); incorrect results, BIRD dev p = 0.007 (156 and 111), Spider test p = 0.37 (111 and 97). (owner, A31)
 - Cost: as in `01_checks.md`.
 - The counts of pairs by kind of incorrect sample are in no table; two columns of Table 8 are proposed for them (`REVIEW_NOTES.md`, C44).
 
@@ -20,10 +20,11 @@ None of its own.
 ## 3. Claims: strength, scope, what waits
 
 - The preference term is isolated in one round only; what the second preference round changes is not attributed to its pairs.
-- The limitations of `CLAIMS.md`, section 5, each stated once, in the limitations subsection, at the size the evidence gives: added client computation over the rounds; a client's number of pairs depends on the model's performance on its data, and it is sent to the server; questions on databases without rows yield no pair; one training seed and one draw of the partition (the second seed on BIRD when its row is in); clients must be able to execute SQL on their databases; data isolation, not differential privacy; EX alone on BIRD dev, which has no test suite.
-- The conclusion states the problem, the framework and the principal findings, and adds no qualification that the limitations subsection does not hold (`VOICE_GUIDE.md`).
+- The limitations of `CLAIMS.md`, section 5, in one paragraph of the Discussion, five items, each stated once (owner, 2026-11-28): gold SQL and executable databases at each client; at most ten clients, full participation; data isolation, not differential privacy, nothing on what an adapter or a pair count reveals; one training run and one draw of the partition; an execution label is a match of results on one database, measured at evaluation by test-suite accuracy and not for the training labels.
+- The conclusion states the problem, the framework and the principal findings, and adds no qualification that the limitations paragraph does not hold (`VOICE_GUIDE.md`).
 - C3 (correct predictions by form of query) is reported, not interpreted (owner, A27).
-- Model size is a boundary of the study (`CLAIMS.md`, section 5, items 7 and 8): models of 0.5B to 1.5B parameters with LoRA, SQLite benchmarks in English; where FedAvg SFT is still improving fast (the 0.5B model) the gain is smaller. Stated once, in the limitations subsection.
+- Model size is not stated as a limitation (owner, 2026-11-28): the models are named in Section 4, and the smaller gain of the 0.5B model is stated in Section 5.4.
+- The first paragraph reads the control (B9) only at 3 rounds, where its rows are committed: a further FedAvg SFT round at the settings of the preference rounds adds less than a preference round.
 
 ## 4. What the section carries for other sections
 
@@ -38,9 +39,7 @@ citation keys by section.
 
 Headings and labels:
 
-- `\section{Discussion and limitations}` `sec:discussion`
-- `\subsection{Interpretation of the results}` `sec:interpretation`
-- `\subsection{Scope and limitations}` `sec:limitations`
+- `\section{Discussion}` `sec:discussion` (no subsections (owner, 2026-11-28))
 
 ### `sections/07_conclusion.tex`
 

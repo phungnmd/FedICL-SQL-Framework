@@ -30,18 +30,11 @@ executes and returns another result. Test-suite accuracy
 database of a suite of content variants. The official suite of the
 Spider dev databases serves Spider dev, Spider-Syn and Spider-Realistic,
 whose questions are posed on the same databases, and Spider test and
-Spider-DK, which have none, are reported under EX alone.
-For BIRD dev, which has no official suite, we generate
-\fact{suite.variants} variants of each database with our implementation
-of the fuzzing procedure of the test-suite evaluation, without its
-distillation step, and the \fact{suite.bird.none} questions for which no
-variant counts keep their EX verdict
-(Section~\ref{sup:labeling} of the Supplementary Materials). Generated in the
-same way for Spider dev, such a suite agrees with the official one on
-\fact{suite.calib.agreement_ex_correct}\% of the
-\fact{suite.calib.ex_correct} EX-correct predictions of our models, the
-predictions on which the number of variants was chosen. The suite of
-BIRD dev itself cannot be compared with an official one.
+Spider-DK, which have none, are reported under EX alone. For BIRD dev,
+which has no official suite, Section~\ref{sup:suite} of the
+Supplementary Materials describes a suite that we generate with the
+fuzzing procedure of the test-suite evaluation, and its agreement with
+the official suite on Spider dev.
 
 \subsection{Federated setups}\label{sec:fed-setups}
 
@@ -72,8 +65,8 @@ and \fact{model.dsc13}-Instruct~\cite{guo2024deepseekcoder}, so every model
 has \setting{models.size.min} to \setting{model.size} parameters. All
 models share the adapter configuration, prompt and decoding. \textit{No
 training} is the pretrained model. \textit{Local SFT} trains an adapter
-at each client on its own data alone, and its row gives the mean, the
-lowest and the highest EX over the clients. \textit{Centralized SFT}
+at each client of BIRD on its own data alone, and its row gives the mean,
+the lowest and the highest EX over the clients. \textit{Centralized SFT}
 trains one adapter on the union of the clients' data for
 \setting{central.epochs} epochs. It pools the data that federated
 training keeps apart and serves as a reference, not as a federated
@@ -83,8 +76,7 @@ baseline.
 are the warm-up rounds of \method, so that the two share that model
 exactly. On Spider, it also runs a fifth round, which gives it more GPU
 time than \method{} uses (Section~\ref{sec:cost}).
-\textit{FedProx SFT}~\cite{li2020fedprox} adds a proximal term to its
-local objective. \textit{FedDPO}~\cite{ye2024openfedllm} trains every
+\textit{FedDPO}~\cite{ye2024openfedllm} trains every
 client in every round on one fixed preference dataset against one fixed
 reference model with the DPO loss alone. As the clients hold no
 preference data, we give it the execution-labeled pairs of the first
@@ -108,7 +100,8 @@ preference rounds with \setting{pref.optimizer}, a learning rate of
 \setting{pref.lr}, a learning-rate warm-up over \setting{pref.warmup}
 and LoRA dropout \setting{pref.dropout}. The two kinds of round thus
 differ in learning rate, weight decay, learning-rate warm-up and LoRA
-dropout. An update takes \setting{sft.batch} examples in the
+dropout, and Section~\ref{sec:ablation} trains FedAvg SFT with the values
+of the preference rounds as a control. An update takes \setting{sft.batch} examples in the
 former and \setting{pref.batch} pairs in the latter, and the schedule,
 like the optimizer, starts anew at every client in every round. The
 number of samples per question, the sampling
@@ -118,8 +111,7 @@ follow CodeLutra~\cite{tao2024codelutra}, which constructs ten pairs per
 question where we construct \setting{pref.pairs}. At evaluation, the
 model decodes greedily with at most \setting{eval.tokens} new tokens and
 no repetition penalty. Each model comes from one training run, with
-seed \setting{seed} except in the rows of Table~\ref{tab:main} marked as
-a second seed. The seed sets \setting{seed.role}. All runs use one GPU,
+seed \setting{seed}, which sets \setting{seed.role}. All runs use one GPU,
 an \setting{hw.gpu}, and train the clients of a round one after another.
 Tables~\ref{tab:settings} and~\ref{tab:settings-2} (Section~\ref{sup:settings} of the Supplementary Materials) list every
 setting and the software.
@@ -129,11 +121,9 @@ setting and the software.
 We compare two models on the same evaluation set with the exact McNemar
 test~\cite{mcnemar1947note} on their paired verdicts per question, a
 two-sided binomial test on the questions that exactly one of the two
-models answers correctly, and adjust the $p$-values by the Holm correction~\cite{holm1979simple}
-within each family: the tests of one table, a test printed twice
-counting in the first, and the comparisons quoted only in the text. A difference is significant when its adjusted $p$ is below
-\fact{test.alpha}. Every $p$ we print is adjusted, and the tables mark a
-significant difference with an asterisk. The same test
-compares the execution errors and the incorrect results of two models.
-It covers the variation over evaluation questions, not between training
-runs.
+models answers correctly, and adjust the $p$-values by the Holm
+correction~\cite{holm1979simple} within each table, a test printed in two
+tables counting in the first. A difference is significant when its
+adjusted $p$ is below \fact{test.alpha}. The tables print the adjusted
+$p$ and mark a significant difference with an asterisk. The test covers
+the variation over evaluation questions, not between training runs.

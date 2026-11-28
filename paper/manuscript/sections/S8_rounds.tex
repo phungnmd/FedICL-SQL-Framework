@@ -1,0 +1,17 @@
+\section{EX by round}\label{sup:rounds}
+
+Table~\ref{tab:rounds} gives the EX of FedAvg SFT and of \method{} after
+each round, the values of Fig.~\ref{fig:rounds} of the main paper, each
+tested against \method{} after \setting{rounds.total} rounds. Its tests
+form one family of the Holm correction, except that of FedAvg SFT after
+\setting{rounds.total} rounds, which Table~\ref{tab:main} of the main
+paper prints first.
+
+\begin{table}[!ht]
+\caption{EX (\%) after each round on BIRD dev and Spider test. \method{}
+continues from FedAvg SFT after round~\setting{rounds.warmup}, and FedAvg
+SFT has a fifth round on Spider test only. $\Delta$ and $p$ compare each
+row with \method{} after \setting{rounds.total} rounds.}\label{tab:rounds}
+\footnotesize
+\input{generated/tab_rounds}
+\end{table}

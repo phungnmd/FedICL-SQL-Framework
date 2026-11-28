@@ -41,6 +41,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\nerr{bird}{fedavg}{4}` | 268 | 0603f35a |
 | `\nwr{bird}{fedavg}{4}` | 613 | 0603f35a |
 | `\ts{bird}{fedavg}{4}` | 36.70 | 0603f35a |
+| `\ex{bird}{fedavgp}{3}` | 43.16 | 2ec3679e |
+| `\lvl{bird}{fedavgp}{3}{simple}` | 50.92 | 2ec3679e |
+| `\lvl{bird}{fedavgp}{3}{moderate}` | 31.68 | 2ec3679e |
+| `\lvl{bird}{fedavgp}{3}{challenging}` | 30.34 | 2ec3679e |
+| `\nerr{bird}{fedavgp}{3}` | 252 | 2ec3679e |
+| `\nwr{bird}{fedavgp}{3}` | 620 | 2ec3679e |
 | `\ex{bird}{feddpo}{3}` | 44.98 | 42ad870d |
 | `\lvl{bird}{feddpo}{3}{simple}` | 52.11 | 42ad870d |
 | `\lvl{bird}{feddpo}{3}{moderate}` | 35.34 | 42ad870d |
@@ -62,20 +68,6 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\nerr{bird}{fixed}{4}` | 91 | 7f68fe95 |
 | `\nwr{bird}{fixed}{4}` | 735 | 7f68fe95 |
 | `\ts{bird}{fixed}{4}` | 39.05 | 7f68fe95 |
-| `\ex{bird}{k0}{1}` | 41.85 | 2dceb56f |
-| `\lvl{bird}{k0}{1}{simple}` | 50.16 | 2dceb56f |
-| `\lvl{bird}{k0}{1}{moderate}` | 31.25 | 2dceb56f |
-| `\lvl{bird}{k0}{1}{challenging}` | 22.76 | 2dceb56f |
-| `\nerr{bird}{k0}{1}` | 219 | 2dceb56f |
-| `\nwr{bird}{k0}{1}` | 673 | 2dceb56f |
-| `\ts{bird}{k0}{1}` | 33.51 | 2dceb56f |
-| `\ex{bird}{k0gold}{1}` | 39.24 | ff917437 |
-| `\lvl{bird}{k0gold}{1}{simple}` | 46.38 | ff917437 |
-| `\lvl{bird}{k0gold}{1}{moderate}` | 29.74 | ff917437 |
-| `\lvl{bird}{k0gold}{1}{challenging}` | 24.14 | ff917437 |
-| `\nerr{bird}{k0gold}{1}` | 105 | ff917437 |
-| `\nwr{bird}{k0gold}{1}` | 827 | ff917437 |
-| `\ts{bird}{k0gold}{1}` | 31.36 | ff917437 |
 | `\ex{bird}{k2}{3}` | 46.22 | 7e36808c |
 | `\lvl{bird}{k2}{3}{simple}` | 53.08 | 7e36808c |
 | `\lvl{bird}{k2}{3}{moderate}` | 36.85 | 7e36808c |
@@ -255,6 +247,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\lvl{spider}{fedavg}{5}{extra}` | 51.82 | 1e6c9737 |
 | `\nerr{spider}{fedavg}{5}` | 188 | 1e6c9737 |
 | `\nwr{spider}{fedavg}{5}` | 372 | 1e6c9737 |
+| `\ex{spider}{fedavgp}{3}` | 75.45 | 1d85aa58 |
+| `\lvl{spider}{fedavgp}{3}{easy}` | 90.43 | 1d85aa58 |
+| `\lvl{spider}{fedavgp}{3}{medium}` | 79.46 | 1d85aa58 |
+| `\lvl{spider}{fedavgp}{3}{hard}` | 68.03 | 1d85aa58 |
+| `\lvl{spider}{fedavgp}{3}{extra}` | 55.74 | 1d85aa58 |
+| `\nerr{spider}{fedavgp}{3}` | 177 | 1d85aa58 |
+| `\nwr{spider}{fedavgp}{3}` | 350 | 1d85aa58 |
 | `\ex{spider}{feddpo}{3}` | 73.59 | f8485b4b |
 | `\lvl{spider}{feddpo}{3}{easy}` | 88.94 | f8485b4b |
 | `\lvl{spider}{feddpo}{3}{medium}` | 75.50 | f8485b4b |
@@ -385,172 +384,174 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 6, Table 4 20, Table 5 1, Table 7 14, text 34).
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 6, Table 4 14, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
 
 | Macro | Value | Used in |
 |---|---|---|
+| `\gain{bird}{fedavg}{1}{k2}{4}` | +9.91 | Table S4, BIRD dev |
+| `\gap{bird}{fedavg}{1}{k2}{4}` | 9.91 | Table S4, BIRD dev |
+| `\pval{bird}{fedavg}{1}{k2}{4}` | 8.4e-19 | Table S4, BIRD dev |
+| `\padj{bird}{fedavg}{1}{k2}{4}` | 7.6e-18 | Table S4, BIRD dev |
+| `\nfix{bird}{fedavg}{1}{k2}{4}` | 228 | Table S4, BIRD dev |
+| `\nbrk{bird}{fedavg}{1}{k2}{4}` | 76 | Table S4, BIRD dev |
+| `\tsgain{bird}{fedavg}{1}{k2}{4}` | +8.60 | Table S4, BIRD dev |
+| `\tsgap{bird}{fedavg}{1}{k2}{4}` | 8.60 | Table S4, BIRD dev |
 | `\gain{bird}{fedavg}{2}{fedavg}{3}` | +0.98 | text |
 | `\gap{bird}{fedavg}{2}{fedavg}{3}` | 0.98 | text |
-| `\pval{bird}{fedavg}{2}{fedavg}{3}` | 0.11 | text |
-| `\padj{bird}{fedavg}{2}{fedavg}{3}` | 0.95 | text |
 | `\nfix{bird}{fedavg}{2}{fedavg}{3}` | 45 | text |
 | `\nbrk{bird}{fedavg}{2}{fedavg}{3}` | 30 | text |
+| `\tsgain{bird}{fedavg}{2}{fedavg}{3}` | +1.11 | text |
+| `\tsgap{bird}{fedavg}{2}{fedavg}{3}` | 1.11 | text |
 | `\gain{bird}{fedavg}{2}{feddpo}{3}` | +2.28 | text |
 | `\gap{bird}{fedavg}{2}{feddpo}{3}` | 2.28 | text |
-| `\pval{bird}{fedavg}{2}{feddpo}{3}` | 0.048 | text |
-| `\padj{bird}{fedavg}{2}{feddpo}{3}` | 0.62 | text |
 | `\nfix{bird}{fedavg}{2}{feddpo}{3}` | 165 | text |
 | `\nbrk{bird}{fedavg}{2}{feddpo}{3}` | 130 | text |
+| `\tsgain{bird}{fedavg}{2}{feddpo}{3}` | +2.81 | text |
+| `\tsgap{bird}{fedavg}{2}{feddpo}{3}` | 2.81 | text |
 | `\gain{bird}{fedavg}{2}{k2}{3}` | +3.52 | text |
 | `\gap{bird}{fedavg}{2}{k2}{3}` | 3.52 | text |
-| `\pval{bird}{fedavg}{2}{k2}{3}` | 2.9e-4 | text |
-| `\padj{bird}{fedavg}{2}{k2}{3}` | 0.0058 | text |
 | `\nfix{bird}{fedavg}{2}{k2}{3}` | 135 | text |
 | `\nbrk{bird}{fedavg}{2}{k2}{3}` | 81 | text |
-| `\gain{bird}{fedavg}{3}{fedavg}{4}` | -1.11 | text |
-| `\gap{bird}{fedavg}{3}{fedavg}{4}` | 1.11 | text |
-| `\pval{bird}{fedavg}{3}{fedavg}{4}` | 0.068 | text |
-| `\padj{bird}{fedavg}{3}{fedavg}{4}` | 0.81 | text |
-| `\nfix{bird}{fedavg}{3}{fedavg}{4}` | 30 | text |
-| `\nbrk{bird}{fedavg}{3}{fedavg}{4}` | 47 | text |
-| `\gain{bird}{fedavg}{3}{k2}{3}` | +2.54 | text |
-| `\gap{bird}{fedavg}{3}{k2}{3}` | 2.54 | text |
-| `\pval{bird}{fedavg}{3}{k2}{3}` | 0.0087 | text |
-| `\padj{bird}{fedavg}{3}{k2}{3}` | 0.13 | text |
-| `\nfix{bird}{fedavg}{3}{k2}{3}` | 125 | text |
-| `\nbrk{bird}{fedavg}{3}{k2}{3}` | 86 | text |
-| `\gain{bird}{fedavg}{3}{k2}{4}` | +5.08 | text |
-| `\gap{bird}{fedavg}{3}{k2}{4}` | 5.08 | text |
-| `\pval{bird}{fedavg}{3}{k2}{4}` | 4.9e-8 | text |
-| `\padj{bird}{fedavg}{3}{k2}{4}` | 1.4e-6 | text |
-| `\nfix{bird}{fedavg}{3}{k2}{4}` | 141 | text |
-| `\nbrk{bird}{fedavg}{3}{k2}{4}` | 63 | text |
+| `\tsgain{bird}{fedavg}{2}{k2}{3}` | +2.94 | text |
+| `\tsgap{bird}{fedavg}{2}{k2}{3}` | 2.94 | text |
+| `\gain{bird}{fedavg}{2}{k2}{4}` | +6.06 | Table S4, BIRD dev |
+| `\gap{bird}{fedavg}{2}{k2}{4}` | 6.06 | Table S4, BIRD dev |
+| `\pval{bird}{fedavg}{2}{k2}{4}` | 3.4e-10 | Table S4, BIRD dev |
+| `\padj{bird}{fedavg}{2}{k2}{4}` | 2.3e-9 | Table S4, BIRD dev |
+| `\nfix{bird}{fedavg}{2}{k2}{4}` | 157 | Table S4, BIRD dev |
+| `\nbrk{bird}{fedavg}{2}{k2}{4}` | 64 | Table S4, BIRD dev |
+| `\tsgain{bird}{fedavg}{2}{k2}{4}` | +5.48 | Table S4, BIRD dev |
+| `\tsgap{bird}{fedavg}{2}{k2}{4}` | 5.48 | Table S4, BIRD dev |
+| `\gain{bird}{fedavg}{3}{fedavgp}{3}` | -0.52 | text |
+| `\gap{bird}{fedavg}{3}{fedavgp}{3}` | 0.52 | text |
+| `\nfix{bird}{fedavg}{3}{fedavgp}{3}` | 38 | text |
+| `\nbrk{bird}{fedavg}{3}{fedavgp}{3}` | 46 | text |
+| `\gain{bird}{fedavg}{3}{k2}{3}` | +2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{fedavg}{3}{k2}{3}` | 2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{fedavg}{3}{k2}{3}` | 0.0087 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{fedavg}{3}{k2}{3}` | 0.061 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{fedavg}{3}{k2}{3}` | 125 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{fedavg}{3}{k2}{3}` | 86 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{fedavg}{3}{k2}{3}` | +1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{fedavg}{3}{k2}{3}` | 1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{fedavg}{3}{k2}{3}` | 0.0499 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{fedavg}{3}{k2}{3}` | 0.15 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{fedavg}{3}{k2}{4}` | +5.08 | Table S4, BIRD dev |
+| `\gap{bird}{fedavg}{3}{k2}{4}` | 5.08 | Table S4, BIRD dev |
+| `\pval{bird}{fedavg}{3}{k2}{4}` | 4.9e-8 | Table S4, BIRD dev |
+| `\padj{bird}{fedavg}{3}{k2}{4}` | 1.9e-7 | Table S4, BIRD dev |
+| `\nfix{bird}{fedavg}{3}{k2}{4}` | 141 | Table S4, BIRD dev |
+| `\nbrk{bird}{fedavg}{3}{k2}{4}` | 63 | Table S4, BIRD dev |
+| `\tsgain{bird}{fedavg}{3}{k2}{4}` | +4.37 | Table S4, BIRD dev |
+| `\tsgap{bird}{fedavg}{3}{k2}{4}` | 4.37 | Table S4, BIRD dev |
 | `\gain{bird}{fedavg}{4}{base}{0}` | -13.10 | Table 3, BIRD dev |
 | `\gap{bird}{fedavg}{4}{base}{0}` | 13.10 | Table 3, BIRD dev |
 | `\pval{bird}{fedavg}{4}{base}{0}` | 1.2e-27 | Table 3, BIRD dev |
 | `\padj{bird}{fedavg}{4}{base}{0}` | 7.2e-27 | Table 3, BIRD dev |
 | `\nfix{bird}{fedavg}{4}{base}{0}` | 78 | Table 3, BIRD dev |
 | `\nbrk{bird}{fedavg}{4}{base}{0}` | 279 | Table 3, BIRD dev |
-| `\gain{bird}{fedavg}{4}{feddpo}{4}` | +2.93 | Table 3, BIRD dev; text |
-| `\gap{bird}{fedavg}{4}{feddpo}{4}` | 2.93 | Table 3, BIRD dev; text |
-| `\pval{bird}{fedavg}{4}{feddpo}{4}` | 0.0072 | Table 3, BIRD dev; text |
-| `\padj{bird}{fedavg}{4}{feddpo}{4}` | 0.014 | Table 3, BIRD dev; text |
-| `\nfix{bird}{fedavg}{4}{feddpo}{4}` | 157 | Table 3, BIRD dev; text |
-| `\nbrk{bird}{fedavg}{4}{feddpo}{4}` | 112 | Table 3, BIRD dev; text |
-| `\tsgain{bird}{fedavg}{4}{feddpo}{4}` | +0.91 | Table 3, BIRD dev; text |
-| `\tsgap{bird}{fedavg}{4}{feddpo}{4}` | 0.91 | Table 3, BIRD dev; text |
-| `\tspval{bird}{fedavg}{4}{feddpo}{4}` | 0.42 | Table 3, BIRD dev; text |
-| `\tspadj{bird}{fedavg}{4}{feddpo}{4}` | 1.00 | Table 3, BIRD dev; text |
-| `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\padj{bird}{fedavg}{4}{k2}{4}` | 1.8e-10 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\tsgain{bird}{fedavg}{4}{k2}{4}` | +4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\tsgap{bird}{fedavg}{4}{k2}{4}` | 4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\tspval{bird}{fedavg}{4}{k2}{4}` | 4.2e-8 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
-| `\tspadj{bird}{fedavg}{4}{k2}{4}` | 7.9e-7 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\tsgain{bird}{fedavg}{4}{base}{0}` | -12.25 | Table 3, BIRD dev |
+| `\tsgap{bird}{fedavg}{4}{base}{0}` | 12.25 | Table 3, BIRD dev |
+| `\gain{bird}{fedavg}{4}{feddpo}{4}` | +2.93 | Table 3, BIRD dev |
+| `\gap{bird}{fedavg}{4}{feddpo}{4}` | 2.93 | Table 3, BIRD dev |
+| `\pval{bird}{fedavg}{4}{feddpo}{4}` | 0.0072 | Table 3, BIRD dev |
+| `\padj{bird}{fedavg}{4}{feddpo}{4}` | 0.014 | Table 3, BIRD dev |
+| `\nfix{bird}{fedavg}{4}{feddpo}{4}` | 157 | Table 3, BIRD dev |
+| `\nbrk{bird}{fedavg}{4}{feddpo}{4}` | 112 | Table 3, BIRD dev |
+| `\tsgain{bird}{fedavg}{4}{feddpo}{4}` | +0.91 | Table 3, BIRD dev |
+| `\tsgap{bird}{fedavg}{4}{feddpo}{4}` | 0.91 | Table 3, BIRD dev |
+| `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{fedavg}{4}{k2}{4}` | 1.8e-10 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{fedavg}{4}{k2}{4}` | +4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{fedavg}{4}{k2}{4}` | 4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{fedavg}{4}{k2}{4}` | 4.2e-8 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{fedavg}{4}{k2}{4}` | 2.9e-7 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\gain{bird}{fedavg}{4}{rft}{4}` | +2.67 | text |
 | `\gap{bird}{fedavg}{4}{rft}{4}` | 2.67 | text |
-| `\pval{bird}{fedavg}{4}{rft}{4}` | 9.1e-4 | text |
-| `\padj{bird}{fedavg}{4}{rft}{4}` | 0.017 | text |
 | `\nfix{bird}{fedavg}{4}{rft}{4}` | 94 | text |
 | `\nbrk{bird}{fedavg}{4}{rft}{4}` | 53 | text |
+| `\tsgain{bird}{fedavg}{4}{rft}{4}` | +1.50 | text |
+| `\tsgap{bird}{fedavg}{4}{rft}{4}` | 1.50 | text |
 | `\gain{bird}{feddpo}{3}{feddpo}{4}` | +0.52 | text |
 | `\gap{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
-| `\pval{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
-| `\padj{bird}{feddpo}{3}{feddpo}{4}` | 1.00 | text |
 | `\nfix{bird}{feddpo}{3}{feddpo}{4}` | 64 | text |
 | `\nbrk{bird}{feddpo}{3}{feddpo}{4}` | 56 | text |
+| `\tsgain{bird}{feddpo}{3}{feddpo}{4}` | -1.31 | text |
+| `\tsgap{bird}{feddpo}{3}{feddpo}{4}` | 1.31 | text |
 | `\gain{bird}{feddpo}{4}{fixed}{4}` | +0.65 | text |
 | `\gap{bird}{feddpo}{4}{fixed}{4}` | 0.65 | text |
-| `\pval{bird}{feddpo}{4}{fixed}{4}` | 0.47 | text |
-| `\padj{bird}{feddpo}{4}{fixed}{4}` | 1.00 | text |
 | `\nfix{bird}{feddpo}{4}{fixed}{4}` | 83 | text |
 | `\nbrk{bird}{feddpo}{4}{fixed}{4}` | 73 | text |
-| `\gain{bird}{feddpo}{4}{k2}{4}` | +3.26 | text |
-| `\gap{bird}{feddpo}{4}{k2}{4}` | 3.26 | text |
-| `\pval{bird}{feddpo}{4}{k2}{4}` | 1.4e-4 | text |
-| `\padj{bird}{feddpo}{4}{k2}{4}` | 0.0031 | text |
-| `\nfix{bird}{feddpo}{4}{k2}{4}` | 109 | text |
-| `\nbrk{bird}{feddpo}{4}{k2}{4}` | 59 | text |
-| `\tsgain{bird}{feddpo}{4}{k2}{4}` | +3.98 | text |
-| `\tsgap{bird}{feddpo}{4}{k2}{4}` | 3.98 | text |
-| `\tspval{bird}{feddpo}{4}{k2}{4}` | 6.8e-6 | text |
-| `\tspadj{bird}{feddpo}{4}{k2}{4}` | 1.7e-4 | text |
-| `\gain{bird}{k0}{1}{k0gold}{1}` | -2.61 | text |
-| `\gap{bird}{k0}{1}{k0gold}{1}` | 2.61 | text |
-| `\pval{bird}{k0}{1}{k0gold}{1}` | 0.0073 | text |
-| `\padj{bird}{k0}{1}{k0gold}{1}` | 0.12 | text |
-| `\nfix{bird}{k0}{1}{k0gold}{1}` | 86 | text |
-| `\nbrk{bird}{k0}{1}{k0gold}{1}` | 126 | text |
-| `\gain{bird}{k2}{3}{feddpo}{3}` | -1.24 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{3}{feddpo}{3}` | 1.24 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{3}{feddpo}{3}` | 0.17 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{3}{feddpo}{3}` | 1.00 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{3}{feddpo}{3}` | 75 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{3}{feddpo}{3}` | 94 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{3}{feddpo}{3}` | -0.13 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{3}{feddpo}{3}` | 0.13 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{3}{feddpo}{3}` | 0.94 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{3}{feddpo}{3}` | 1.00 | Table 4, BIRD dev |
-| `\gain{bird}{k2}{3}{k2}{4}` | +2.54 | text |
-| `\gap{bird}{k2}{3}{k2}{4}` | 2.54 | text |
-| `\pval{bird}{k2}{3}{k2}{4}` | 2.1e-4 | text |
-| `\padj{bird}{k2}{3}{k2}{4}` | 0.0043 | text |
-| `\nfix{bird}{k2}{3}{k2}{4}` | 73 | text |
-| `\nbrk{bird}{k2}{3}{k2}{4}` | 34 | text |
-| `\gain{bird}{k2}{3}{reagge}{3}` | -0.20 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{3}{reagge}{3}` | 0.20 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{3}{reagge}{3}` | 0.79 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{3}{reagge}{3}` | 1.00 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{3}{reagge}{3}` | 27 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{3}{reagge}{3}` | 30 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{3}{reagge}{3}` | -0.13 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{3}{reagge}{3}` | 0.13 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{3}{reagge}{3}` | 0.89 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{3}{reagge}{3}` | 1.00 | Table 4, BIRD dev |
-| `\gain{bird}{k2}{3}{reaggq}{3}` | +0.00 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{3}{reaggq}{3}` | 0.00 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{3}{reaggq}{3}` | 10 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{3}{reaggq}{3}` | 10 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{3}{reaggq}{3}` | +0.26 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{3}{reaggq}{3}` | 0.26 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{3}{reaggq}{3}` | 0.48 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
-| `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{3}{rft}{3}` | 0.74 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{3}{rft}{3}` | 87 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{3}{rft}{3}` | 115 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{3}{rft}{3}` | -1.70 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{3}{rft}{3}` | 1.70 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{3}{rft}{3}` | 0.062 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{3}{rft}{3}` | 0.75 | Table 4, BIRD dev |
-| `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{4}{fixed}{4}` | 0.0091 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{4}{fixed}{4}` | 45 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{4}{fixed}{4}` | 85 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{4}{fixed}{4}` | -2.54 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{4}{fixed}{4}` | 2.54 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{4}{fixed}{4}` | 6.2e-4 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{4}{fixed}{4}` | 0.0093 | Table 4, BIRD dev |
-| `\gain{bird}{k2}{4}{rft}{4}` | -3.52 | Table 4, BIRD dev |
-| `\gap{bird}{k2}{4}{rft}{4}` | 3.52 | Table 4, BIRD dev |
-| `\pval{bird}{k2}{4}{rft}{4}` | 5.2e-5 | Table 4, BIRD dev |
-| `\padj{bird}{k2}{4}{rft}{4}` | 9.3e-4 | Table 4, BIRD dev |
-| `\nfix{bird}{k2}{4}{rft}{4}` | 60 | Table 4, BIRD dev |
-| `\nbrk{bird}{k2}{4}{rft}{4}` | 114 | Table 4, BIRD dev |
-| `\tsgain{bird}{k2}{4}{rft}{4}` | -3.39 | Table 4, BIRD dev |
-| `\tsgap{bird}{k2}{4}{rft}{4}` | 3.39 | Table 4, BIRD dev |
-| `\tspval{bird}{k2}{4}{rft}{4}` | 9.0e-5 | Table 4, BIRD dev |
-| `\tspadj{bird}{k2}{4}{rft}{4}` | 0.0015 | Table 4, BIRD dev |
+| `\tsgain{bird}{feddpo}{4}{fixed}{4}` | +1.44 | text |
+| `\tsgap{bird}{feddpo}{4}{fixed}{4}` | 1.44 | text |
+| `\gain{bird}{k2}{3}{fedavgp}{3}` | -3.06 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{3}{fedavgp}{3}` | 3.06 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{3}{fedavgp}{3}` | 0.0014 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{fedavgp}{3}` | 0.013 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{3}{fedavgp}{3}` | 81 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{3}{fedavgp}{3}` | 128 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{k2}{3}{feddpo}{3}` | -1.24 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{3}{feddpo}{3}` | 1.24 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{3}{feddpo}{3}` | 0.17 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{feddpo}{3}` | 0.66 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{3}{feddpo}{3}` | 75 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{3}{feddpo}{3}` | 94 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{k2}{3}{feddpo}{3}` | -0.13 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{k2}{3}{feddpo}{3}` | 0.13 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{k2}{3}{feddpo}{3}` | 0.94 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{k2}{3}{feddpo}{3}` | 0.94 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{k2}{3}{k2}{4}` | +2.54 | Table S4, BIRD dev |
+| `\gap{bird}{k2}{3}{k2}{4}` | 2.54 | Table S4, BIRD dev |
+| `\pval{bird}{k2}{3}{k2}{4}` | 2.1e-4 | Table S4, BIRD dev |
+| `\padj{bird}{k2}{3}{k2}{4}` | 4.1e-4 | Table S4, BIRD dev |
+| `\nfix{bird}{k2}{3}{k2}{4}` | 73 | Table S4, BIRD dev |
+| `\nbrk{bird}{k2}{3}{k2}{4}` | 34 | Table S4, BIRD dev |
+| `\tsgain{bird}{k2}{3}{k2}{4}` | +2.54 | Table S4, BIRD dev |
+| `\tsgap{bird}{k2}{3}{k2}{4}` | 2.54 | Table S4, BIRD dev |
+| `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{rft}{3}` | 0.29 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{3}{rft}{3}` | 87 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{3}{rft}{3}` | 115 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{k2}{3}{rft}{3}` | -1.70 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{k2}{3}{rft}{3}` | 1.70 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{k2}{3}{rft}{3}` | 0.062 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{k2}{3}{rft}{3}` | 0.15 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{k2}{4}{feddpo}{4}` | -3.26 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{4}{feddpo}{4}` | 3.26 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{4}{feddpo}{4}` | 1.4e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{feddpo}{4}` | 0.0016 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{4}{feddpo}{4}` | 59 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{4}{feddpo}{4}` | 109 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{k2}{4}{feddpo}{4}` | -3.98 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{k2}{4}{feddpo}{4}` | 3.98 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{k2}{4}{feddpo}{4}` | 6.8e-6 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{k2}{4}{feddpo}{4}` | 4.1e-5 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{fixed}{4}` | 0.0057 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{4}{fixed}{4}` | 45 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{4}{fixed}{4}` | 85 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{k2}{4}{fixed}{4}` | -2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{k2}{4}{fixed}{4}` | 2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{k2}{4}{fixed}{4}` | 6.2e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{k2}{4}{fixed}{4}` | 0.0025 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gain{bird}{k2}{4}{rft}{4}` | -3.52 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\gap{bird}{k2}{4}{rft}{4}` | 3.52 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\pval{bird}{k2}{4}{rft}{4}` | 5.2e-5 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{rft}{4}` | 6.7e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nfix{bird}{k2}{4}{rft}{4}` | 60 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\nbrk{bird}{k2}{4}{rft}{4}` | 114 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgain{bird}{k2}{4}{rft}{4}` | -3.39 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tsgap{bird}{k2}{4}{rft}{4}` | 3.39 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspval{bird}{k2}{4}{rft}{4}` | 9.0e-5 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\tspadj{bird}{k2}{4}{rft}{4}` | 4.5e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gain{dk}{fedavg}{4}{k2}{4}` | +3.92 | Table 7, Spider-DK |
 | `\gap{dk}{fedavg}{4}{k2}{4}` | 3.92 | Table 7, Spider-DK |
 | `\pval{dk}{fedavg}{4}{k2}{4}` | 0.017 | Table 7, Spider-DK |
@@ -591,34 +592,44 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\nbrk[qwen05]{spider}{fedavg}{4}{k2}{4}` | 104 | Table 5 |
 | `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
 | `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
-| `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | text |
-| `\padj{spider}{central}{3}{k2}{4}` | 5.7e-4 | text |
 | `\nfix{spider}{central}{3}{k2}{4}` | 161 | text |
 | `\nbrk{spider}{central}{3}{k2}{4}` | 93 | text |
+| `\gain{spider}{fedavg}{1}{k2}{4}` | +5.77 | Table S4, Spider test |
+| `\gap{spider}{fedavg}{1}{k2}{4}` | 5.77 | Table S4, Spider test |
+| `\pval{spider}{fedavg}{1}{k2}{4}` | 1.9e-14 | Table S4, Spider test |
+| `\padj{spider}{fedavg}{1}{k2}{4}` | 1.6e-13 | Table S4, Spider test |
+| `\nfix{spider}{fedavg}{1}{k2}{4}` | 196 | Table S4, Spider test |
+| `\nbrk{spider}{fedavg}{1}{k2}{4}` | 72 | Table S4, Spider test |
 | `\gain{spider}{fedavg}{2}{fedavg}{3}` | +0.61 | text |
 | `\gap{spider}{fedavg}{2}{fedavg}{3}` | 0.61 | text |
-| `\pval{spider}{fedavg}{2}{fedavg}{3}` | 0.25 | text |
-| `\padj{spider}{fedavg}{2}{fedavg}{3}` | 1.00 | text |
 | `\nfix{spider}{fedavg}{2}{fedavg}{3}` | 61 | text |
 | `\nbrk{spider}{fedavg}{2}{fedavg}{3}` | 48 | text |
 | `\gain{spider}{fedavg}{2}{k2}{3}` | +3.36 | text |
 | `\gap{spider}{fedavg}{2}{k2}{3}` | 3.36 | text |
-| `\pval{spider}{fedavg}{2}{k2}{3}` | 1.4e-6 | text |
-| `\padj{spider}{fedavg}{2}{k2}{3}` | 3.7e-5 | text |
 | `\nfix{spider}{fedavg}{2}{k2}{3}` | 146 | text |
 | `\nbrk{spider}{fedavg}{2}{k2}{3}` | 74 | text |
-| `\gain{spider}{fedavg}{3}{fedavg}{4}` | +0.00 | text |
-| `\gap{spider}{fedavg}{3}{fedavg}{4}` | 0.00 | text |
-| `\pval{spider}{fedavg}{3}{fedavg}{4}` | 1.00 | text |
-| `\padj{spider}{fedavg}{3}{fedavg}{4}` | 1.00 | text |
-| `\nfix{spider}{fedavg}{3}{fedavg}{4}` | 44 | text |
-| `\nbrk{spider}{fedavg}{3}{fedavg}{4}` | 44 | text |
-| `\gain{spider}{fedavg}{3}{k2}{3}` | +2.75 | text |
-| `\gap{spider}{fedavg}{3}{k2}{3}` | 2.75 | text |
-| `\pval{spider}{fedavg}{3}{k2}{3}` | 5.4e-5 | text |
-| `\padj{spider}{fedavg}{3}{k2}{3}` | 0.0012 | text |
-| `\nfix{spider}{fedavg}{3}{k2}{3}` | 134 | text |
-| `\nbrk{spider}{fedavg}{3}{k2}{3}` | 75 | text |
+| `\gain{spider}{fedavg}{2}{k2}{4}` | +4.10 | Table S4, Spider test |
+| `\gap{spider}{fedavg}{2}{k2}{4}` | 4.10 | Table S4, Spider test |
+| `\pval{spider}{fedavg}{2}{k2}{4}` | 1.9e-9 | Table S4, Spider test |
+| `\padj{spider}{fedavg}{2}{k2}{4}` | 1.2e-8 | Table S4, Spider test |
+| `\nfix{spider}{fedavg}{2}{k2}{4}` | 152 | Table S4, Spider test |
+| `\nbrk{spider}{fedavg}{2}{k2}{4}` | 64 | Table S4, Spider test |
+| `\gain{spider}{fedavg}{3}{fedavgp}{3}` | +0.74 | text |
+| `\gap{spider}{fedavg}{3}{fedavgp}{3}` | 0.74 | text |
+| `\nfix{spider}{fedavg}{3}{fedavgp}{3}` | 51 | text |
+| `\nbrk{spider}{fedavg}{3}{fedavgp}{3}` | 35 | text |
+| `\gain{spider}{fedavg}{3}{k2}{3}` | +2.75 | Table 4, Spider test |
+| `\gap{spider}{fedavg}{3}{k2}{3}` | 2.75 | Table 4, Spider test |
+| `\pval{spider}{fedavg}{3}{k2}{3}` | 5.4e-5 | Table 4, Spider test |
+| `\padj{spider}{fedavg}{3}{k2}{3}` | 6.7e-4 | Table 4, Spider test |
+| `\nfix{spider}{fedavg}{3}{k2}{3}` | 134 | Table 4, Spider test |
+| `\nbrk{spider}{fedavg}{3}{k2}{3}` | 75 | Table 4, Spider test |
+| `\gain{spider}{fedavg}{3}{k2}{4}` | +3.49 | Table S4, Spider test |
+| `\gap{spider}{fedavg}{3}{k2}{4}` | 3.49 | Table S4, Spider test |
+| `\pval{spider}{fedavg}{3}{k2}{4}` | 2.3e-7 | Table S4, Spider test |
+| `\padj{spider}{fedavg}{3}{k2}{4}` | 6.9e-7 | Table S4, Spider test |
+| `\nfix{spider}{fedavg}{3}{k2}{4}` | 142 | Table S4, Spider test |
+| `\nbrk{spider}{fedavg}{3}{k2}{4}` | 67 | Table S4, Spider test |
 | `\gain{spider}{fedavg}{4}{base}{0}` | -6.66 | Table 3, Spider test |
 | `\gap{spider}{fedavg}{4}{base}{0}` | 6.66 | Table 3, Spider test |
 | `\pval{spider}{fedavg}{4}{base}{0}` | 1.4e-15 | Table 3, Spider test |
@@ -631,52 +642,40 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{spider}{fedavg}{4}{central}{3}` | 0.69 | Table 3, Spider test |
 | `\nfix{spider}{fedavg}{4}{central}{3}` | 113 | Table 3, Spider test |
 | `\nbrk{spider}{fedavg}{4}{central}{3}` | 106 | Table 3, Spider test |
-| `\gain{spider}{fedavg}{4}{fedavg}{5}` | -0.79 | text |
-| `\gap{spider}{fedavg}{4}{fedavg}{5}` | 0.79 | text |
-| `\pval{spider}{fedavg}{4}{fedavg}{5}` | 0.082 | text |
-| `\padj{spider}{fedavg}{4}{fedavg}{5}` | 0.90 | text |
-| `\nfix{spider}{fedavg}{4}{fedavg}{5}` | 34 | text |
-| `\nbrk{spider}{fedavg}{4}{fedavg}{5}` | 51 | text |
-| `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\padj{spider}{fedavg}{4}{k2}{4}` | 1.9e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6 |
-| `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | text |
-| `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | text |
-| `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | text |
-| `\padj{spider}{fedavg}{5}{k2}{4}` | 6.8e-8 | text |
-| `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | text |
-| `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | text |
+| `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\padj{spider}{fedavg}{4}{k2}{4}` | 1.9e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | Table S4, Spider test |
+| `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | Table S4, Spider test |
+| `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | Table S4, Spider test |
+| `\padj{spider}{fedavg}{5}{k2}{4}` | 1.2e-8 | Table S4, Spider test |
+| `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | Table S4, Spider test |
+| `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | Table S4, Spider test |
+| `\gain{spider}{k2}{3}{fedavgp}{3}` | -2.01 | Table 4, Spider test |
+| `\gap{spider}{k2}{3}{fedavgp}{3}` | 2.01 | Table 4, Spider test |
+| `\pval{spider}{k2}{3}{fedavgp}{3}` | 0.0036 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{fedavgp}{3}` | 0.029 | Table 4, Spider test |
+| `\nfix{spider}{k2}{3}{fedavgp}{3}` | 83 | Table 4, Spider test |
+| `\nbrk{spider}{k2}{3}{fedavgp}{3}` | 126 | Table 4, Spider test |
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{feddpo}{3}` | 3.87 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{feddpo}{3}` | 7.6e-9 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{feddpo}{3}` | 1.5e-7 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{feddpo}{3}` | 1.1e-7 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{feddpo}{3}` | 62 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{feddpo}{3}` | 145 | Table 4, Spider test |
-| `\gain{spider}{k2}{3}{k2}{4}` | +0.74 | text |
-| `\gap{spider}{k2}{3}{k2}{4}` | 0.74 | text |
-| `\pval{spider}{k2}{3}{k2}{4}` | 0.093 | text |
-| `\padj{spider}{k2}{3}{k2}{4}` | 0.93 | text |
-| `\nfix{spider}{k2}{3}{k2}{4}` | 48 | text |
-| `\nbrk{spider}{k2}{3}{k2}{4}` | 32 | text |
-| `\gain{spider}{k2}{3}{reagge}{3}` | -0.52 | Table 4, Spider test |
-| `\gap{spider}{k2}{3}{reagge}{3}` | 0.52 | Table 4, Spider test |
-| `\pval{spider}{k2}{3}{reagge}{3}` | 0.09 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{reagge}{3}` | 0.98 | Table 4, Spider test |
-| `\nfix{spider}{k2}{3}{reagge}{3}` | 12 | Table 4, Spider test |
-| `\nbrk{spider}{k2}{3}{reagge}{3}` | 23 | Table 4, Spider test |
-| `\gain{spider}{k2}{3}{reaggq}{3}` | +0.32 | Table 4, Spider test |
-| `\gap{spider}{k2}{3}{reaggq}{3}` | 0.32 | Table 4, Spider test |
-| `\pval{spider}{k2}{3}{reaggq}{3}` | 0.26 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, Spider test |
-| `\nfix{spider}{k2}{3}{reaggq}{3}` | 18 | Table 4, Spider test |
-| `\nbrk{spider}{k2}{3}{reaggq}{3}` | 11 | Table 4, Spider test |
+| `\gain{spider}{k2}{3}{k2}{4}` | +0.74 | Table S4, Spider test |
+| `\gap{spider}{k2}{3}{k2}{4}` | 0.74 | Table S4, Spider test |
+| `\pval{spider}{k2}{3}{k2}{4}` | 0.093 | Table S4, Spider test |
+| `\padj{spider}{k2}{3}{k2}{4}` | 0.093 | Table S4, Spider test |
+| `\nfix{spider}{k2}{3}{k2}{4}` | 48 | Table S4, Spider test |
+| `\nbrk{spider}{k2}{3}{k2}{4}` | 32 | Table S4, Spider test |
 | `\gain{spider}{k2}{3}{rft}{3}` | -1.59 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{rft}{3}` | 1.59 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{rft}{3}` | 0.015 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{rft}{3}` | 0.21 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{rft}{3}` | 0.092 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{rft}{3}` | 76 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{rft}{3}` | 110 | Table 4, Spider test |
 | `\gain{spider}{k2}{4}{fixed}{4}` | -0.18 | Table 4, Spider test |
@@ -737,30 +736,6 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgap{syn}{k0}{4}{k2}{4}` | 4.16 | Table 7, Spider-Syn |
 | `\tspval{syn}{k0}{4}{k2}{4}` | 0.0014 | Table 7, Spider-Syn |
 | `\tspadj{syn}{k0}{4}{k2}{4}` | 0.017 | Table 7, Spider-Syn |
-| `\errpval{bird}{fedavg}{4}{k2}{4}` | 5.8e-22 | text; execution errors in one row only: 182 (a), 42 (b) |
-| `\errpadj{bird}{fedavg}{4}{k2}{4}` | 1.9e-20 | text; execution errors in one row only: 182 (a), 42 (b) |
-| `\wrpval{bird}{fedavg}{4}{k2}{4}` | 0.007 | text; incorrect results in one row only: 111 (a), 156 (b) |
-| `\wrpadj{bird}{fedavg}{4}{k2}{4}` | 0.12 | text; incorrect results in one row only: 111 (a), 156 (b) |
-| `\errpval{bird}{k2}{3}{feddpo}{3}` | 0.015 | text; execution errors in one row only: 61 (a), 92 (b) |
-| `\errpadj{bird}{k2}{3}{feddpo}{3}` | 0.21 | text; execution errors in one row only: 61 (a), 92 (b) |
-| `\wrpval{bird}{k2}{3}{feddpo}{3}` | 0.46 | text; incorrect results in one row only: 117 (a), 105 (b) |
-| `\wrpadj{bird}{k2}{3}{feddpo}{3}` | 1.00 | text; incorrect results in one row only: 117 (a), 105 (b) |
-| `\errpval{bird}{k2}{3}{rft}{3}` | 1.1e-24 | text; execution errors in one row only: 36 (a), 182 (b) |
-| `\errpadj{bird}{k2}{3}{rft}{3}` | 3.9e-23 | text; execution errors in one row only: 36 (a), 182 (b) |
-| `\wrpval{bird}{k2}{3}{rft}{3}` | 1.0e-12 | text; incorrect results in one row only: 198 (a), 80 (b) |
-| `\wrpadj{bird}{k2}{3}{rft}{3}` | 3.1e-11 | text; incorrect results in one row only: 198 (a), 80 (b) |
-| `\errpval{bird}{k2}{4}{rft}{4}` | 1.6e-14 | text; execution errors in one row only: 38 (a), 138 (b) |
-| `\errpadj{bird}{k2}{4}{rft}{4}` | 5.0e-13 | text; execution errors in one row only: 38 (a), 138 (b) |
-| `\wrpval{bird}{k2}{4}{rft}{4}` | 0.0028 | text; incorrect results in one row only: 137 (a), 91 (b) |
-| `\wrpadj{bird}{k2}{4}{rft}{4}` | 0.0504 | text; incorrect results in one row only: 137 (a), 91 (b) |
-| `\errpval{spider}{fedavg}{4}{k2}{4}` | 6.2e-14 | text; execution errors in one row only: 118 (a), 29 (b) |
-| `\errpadj{spider}{fedavg}{4}{k2}{4}` | 1.9e-12 | text; execution errors in one row only: 118 (a), 29 (b) |
-| `\wrpval{spider}{fedavg}{4}{k2}{4}` | 0.37 | text; incorrect results in one row only: 97 (a), 111 (b) |
-| `\wrpadj{spider}{fedavg}{4}{k2}{4}` | 1.00 | text; incorrect results in one row only: 97 (a), 111 (b) |
-| `\errpval{spider}{k2}{3}{rft}{3}` | 4.2e-6 | text; execution errors in one row only: 41 (a), 95 (b) |
-| `\errpadj{spider}{k2}{3}{rft}{3}` | 1.1e-4 | text; execution errors in one row only: 41 (a), 95 (b) |
-| `\wrpval{spider}{k2}{3}{rft}{3}` | 0.13 | text; incorrect results in one row only: 89 (a), 69 (b) |
-| `\wrpadj{spider}{k2}{3}{rft}{3}` | 1.00 | text; incorrect results in one row only: 89 (a), 69 (b) |
 
 ## Counts and costs
 
@@ -1056,6 +1031,8 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{warmup.spider.k3.samples}` | 86590 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
 | `\fact{warmup.spider.k3.truncated}` | 21 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
 | `\fact{weights.bird.equal.max_shift}` | 13.3 | records of reagg_bird_sftr2_p2_ddl_alpha01_s0, normalised_weights |
+| `\fact{weights.bird.ex_max}` | 0.20 | the rows reaggq and reagge against k2 after one preference round |
 | `\fact{weights.bird.questions.max_shift}` | 2.1 | records of reagg_bird_sftr2_p2_ddl_alpha01_s0, normalised_weights |
 | `\fact{weights.spider.equal.max_shift}` | 9.4 | records of reagg_sftr2_ddlrows_alpha01_s0, normalised_weights |
+| `\fact{weights.spider.ex_max}` | 0.52 | the rows reaggq and reagge against k2 after one preference round |
 | `\fact{weights.spider.questions.max_shift}` | 10.8 | records of reagg_sftr2_ddlrows_alpha01_s0, normalised_weights |

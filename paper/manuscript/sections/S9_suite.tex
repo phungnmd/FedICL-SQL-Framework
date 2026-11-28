@@ -1,0 +1,88 @@
+\section{The generated test suite of BIRD dev}\label{sup:suite}
+
+\subsection{Generation}
+
+BIRD has no official
+test suite, and we generate one for BIRD dev with the fuzzing procedure
+of the test-suite evaluation (Section~\ref{sec:datasets} of the main
+paper cites it), which we reimplement: \fact{suite.variants} variants of
+each of its \fact{suite.bird.databases} databases. A variant keeps the
+schema of its database, and its tables are filled in foreign-key order
+with random values of the column types, mixed with values of the source
+database and with the literals of the gold SQL queries. Without a
+distillation step, every variant is kept. A variant counts for a
+question when the gold SQL query executes on it within the time limit,
+returns at least one row, and has no result made ambiguous by ties under
+\texttt{ORDER BY} with \texttt{LIMIT}. A prediction is correct under TS
+when it is correct under EX on the original database and returns the
+gold result on every variant that counts. Of the \fact{questions.bird}
+questions of BIRD dev, \fact{suite.bird.counted} have at least one
+variant that counts, and the other \fact{suite.bird.none} keep their EX
+verdict.
+
+\subsection{Agreement with an official suite}
+
+On Spider dev, which has an
+official suite, we generated a suite in the same way from its gold SQL
+queries, with the same number of variants, and compared the verdicts of
+the two suites on the predictions of our models on Spider dev
+(\fact{suite.calib.files} sets of predictions). Of these predictions,
+\fact{suite.calib.ex_correct} are correct under EX, and the two suites
+agree on \fact{suite.calib.agreement_ex_correct}\% of them: the generated
+suite rejects \fact{suite.calib.recall}\% of the
+\fact{suite.calib.official_rejected} that the official suite rejects,
+and \fact{suite.calib.ours_only} of the
+\fact{suite.calib.official_accepted} that it accepts. The number of
+variants was chosen among \fact{suite.calib.candidates} as the one with
+the highest agreement on these predictions, so the agreement is measured
+on the data that set it. No official suite exists against which the
+suite of BIRD dev itself could be compared.
+
+\subsection{Results under the suite}
+
+Table~\ref{tab:ts} gives TS on BIRD dev for the rows of
+Table~\ref{tab:ablation} of the main paper that were run on BIRD dev,
+each tested against \method{} after the same number of rounds. Its tests
+form one family of the Holm correction. After \setting{rounds.total}
+rounds, the suite rejects \fact{ts.bird.fedavg.4.rejected} of the
+EX-correct predictions of FedAvg SFT and \fact{ts.bird.k2.4.rejected} of
+those of \method.
+
+\begin{table}[!ht]
+\caption{EX and TS (\%) on BIRD dev, TS under the generated suite.
+$\Delta$ and $p$ compare the TS of each row with that of \method{} after
+the same number of rounds; the rows are those of
+Table~\ref{tab:ablation} of the main paper.}\label{tab:ts}
+\footnotesize
+\input{generated/tab_ts}
+\end{table}
+
+\subsection{Correct predictions on other tables or columns}\label{sup:form}
+
+A correct prediction reads the tables and columns of the gold SQL query
+when the tables and the columns that sqlglot parses from it, over the
+main query and its subqueries, are those of the gold SQL query, and other
+tables or columns otherwise; a prediction that does not parse counts
+among the latter. Table~\ref{tab:form} gives both kinds under EX and, on
+BIRD dev, under the generated suite. On BIRD dev, FedAvg SFT has about as
+many correct predictions on other tables or columns after its second,
+third and fourth rounds, and \method{} more after each of its preference
+rounds. After \setting{rounds.total} rounds, the suite rejects
+\fact{form.bird.fedavg.4.other_ts_fail_pct}\% of the EX-correct
+predictions of FedAvg SFT on other tables or columns and
+\fact{form.bird.k2.4.other_ts_fail_pct}\% of those of \method, against
+\fact{form.bird.fedavg.4.gold_ts_fail_pct}\% and
+\fact{form.bird.k2.4.gold_ts_fail_pct}\% of those on the tables and
+columns of the gold SQL query, and for the pretrained model
+\fact{form.bird.base.0.other_ts_fail_pct}\% and
+\fact{form.bird.base.0.gold_ts_fail_pct}\%.
+
+\begin{table}[!ht]
+\caption{Correct predictions on the tables and columns of the gold SQL
+query (``Gold SQL's'') and on other tables or columns (``Other''), under
+EX and, on BIRD dev, under the generated suite (TS). On Spider test, the
+predictions are split for the pretrained model and after
+\setting{rounds.total} rounds only.}\label{tab:form}
+\footnotesize
+\input{generated/tab_form}
+\end{table}

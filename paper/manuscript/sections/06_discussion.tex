@@ -1,17 +1,14 @@
 \section{Discussion}\label{sec:discussion}
 
-\subsection{Interpretation of the results}\label{sec:interpretation}
-
 A FedAvg SFT round raises the likelihood of the same gold SQL query in
 every round, whereas a preference round compares executed queries of
 the current global model, so its training signal changes with the
 model. FedAvg SFT stops improving after its third round, while a
 preference round from its model adds more than a further FedAvg SFT
-round (Section~\ref{sec:main}). One reading, which the different
-training settings of the two kinds of round leave untested
-(Section~\ref{sec:limitations}), is that the gold SQL queries are
-exhausted as a training signal sooner than the executed queries of the
-model.
+round (Section~\ref{sec:main}), also when that round is trained with the
+settings of the preference rounds (Section~\ref{sec:ablation}). One
+reading is that the gold SQL queries are exhausted as a training signal
+sooner than the executed queries of the model.
 
 The preference rounds reduce execution errors, not incorrect results
 (Section~\ref{sec:analysis}), although about half of the pairs of the
@@ -24,42 +21,15 @@ shows directly, such as a name absent from the schema, whereas one that
 returns another result can differ from it in its reading of the
 question.
 
-\subsection{Limitations}\label{sec:limitations}
-
-The two kinds of round differ in four training settings
-(Section~\ref{sec:implementation}). The variant without the preference
-term shares those of the preference rounds, so the comparison of
-\method{} with it is free of this difference, and the comparison with
-FedAvg SFT is not. Each model comes from one training run, except the
-rows of Table~\ref{tab:main} marked as a second seed, and all from one
-draw of the partition. An execution label, like EX, is a match of
-results on one database, so an incorrect query is labeled correct when
-its result matches by chance. The generated suite of BIRD dev, whose
-agreement with an official suite could be measured on Spider dev only,
-gives a lower bound on this effect at evaluation
-(Section~\ref{sec:analysis}), and we have no such measure for the labels
-of the training samples. Spider test and Spider-DK are judged by EX
-alone. Under the official suites of the Spider dev databases, the EX
-gain over FedAvg SFT of the variant without warm-up rounds does not
-appear under TS (Section~\ref{sec:breadth}), which is the evidence for
-starting the preference rounds from warm-up rounds. The models are
-compared at equal rounds, that is, at equal communication. \method{}
-needs more client computation, in GPU time and in labeling time, and
-only on Spider does a comparison give the baseline more GPU time
-(Section~\ref{sec:cost}).
-
-A client needs gold SQL queries, and questions without one are not used.
-The evidence on the number of warm-up rounds comes from Spider alone,
-and pairs with the gold SQL query were tried without warm-up rounds
-only. The
-federations have at most \fact{split.spider.a0.5.k10.clients} clients,
-all taking part in every round, and no baseline uses execution through a
-policy-gradient objective (Section~\ref{sec:rel-fed}). Privacy here is
-data isolation, without differential privacy or an analysis of what an
-adapter reveals. The pair count that a client sends depends on how the
-model performs on its data, and weighting by the numbers of questions,
-which sends no pair count, does not change EX significantly after one
-preference round (Section~\ref{sec:ablation}). The models have
-\setting{models.size.min} to \setting{model.size} parameters, with a
-smaller gain for the smaller one, and the benchmarks hold SQLite
-databases and English questions.
+The study has limitations. A client needs a gold SQL query for each
+training question and databases on which it can execute queries, and
+questions without a gold SQL query are not used. The federations have at
+most \fact{split.spider.a0.5.k10.clients} clients, all of which take part
+in every round. Privacy here is data isolation, without differential
+privacy or an analysis of what an adapter or a pair count reveals. Each
+model comes from one training run, and each setup from one draw of the
+partition. An execution label, like EX, is a match of results on one
+database, so an incorrect query whose result matches that of the gold
+SQL query by chance is labeled correct; test-suite accuracy measures
+this at evaluation, and we have no such measure for the labels of the
+training samples.

@@ -1,4 +1,4 @@
-\section{Execution labels, time limits and the generated test suite}\label{sup:labeling}
+\section{Execution labels and time limits}\label{sup:labeling}
 
 \subsection{Reading the query of an output}
 
@@ -62,41 +62,3 @@ database without rows, queries of different meaning return the same
 result, so its questions yield no pair. No evaluation set contains such
 a database. All of these questions remain training targets in the
 warm-up rounds.
-
-\subsection{The generated test suite of BIRD dev}
-
-BIRD has no official
-test suite, and we generate one for BIRD dev with the fuzzing procedure
-of the test-suite evaluation (Section~\ref{sec:datasets} of the main
-paper cites it), which we reimplement: \fact{suite.variants} variants of
-each of its \fact{suite.bird.databases} databases. A variant keeps the
-schema of its database, and its tables are filled in foreign-key order
-with random values of the column types, mixed with values of the source
-database and with the literals of the gold SQL queries. Without a
-distillation step, every variant is kept. A variant counts for a
-question when the gold SQL query executes on it within the time limit,
-returns at least one row, and has no result made ambiguous by ties under
-\texttt{ORDER BY} with \texttt{LIMIT}. A prediction is correct under TS
-when it is correct under EX on the original database and returns the
-gold result on every variant that counts. Of the \fact{questions.bird}
-questions of BIRD dev, \fact{suite.bird.counted} have at least one
-variant that counts, and the other \fact{suite.bird.none} keep their EX
-verdict.
-
-\subsection{Agreement with an official suite}
-
-On Spider dev, which has an
-official suite, we generated a suite in the same way from its gold SQL
-queries, with the same number of variants, and compared the verdicts of
-the two suites on the predictions of our models on Spider dev
-(\fact{suite.calib.files} sets of predictions). Of these predictions,
-\fact{suite.calib.ex_correct} are correct under EX, and the two suites
-agree on \fact{suite.calib.agreement_ex_correct}\% of them: the generated
-suite rejects \fact{suite.calib.recall}\% of the
-\fact{suite.calib.official_rejected} that the official suite rejects,
-and \fact{suite.calib.ours_only} of the
-\fact{suite.calib.official_accepted} that it accepts. The number of
-variants was chosen among \fact{suite.calib.candidates} as the one with
-the highest agreement on these predictions, so the agreement is measured
-on the data that set it. No official suite exists against which the
-suite of BIRD dev itself could be compared.
