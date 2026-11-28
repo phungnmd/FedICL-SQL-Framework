@@ -12,7 +12,6 @@ Cập nhật: 2026-11-28.
 
 | # | Ở đâu | Vấn đề | Đề xuất |
 |---|---|---|---|
-| A46 | Section 3; Section 1 và abstract | Hai bản sửa ngày 2026-11-28 chưa commit. Section 3: sửa giọng văn, dài thêm 15%, 25 trong 83 câu mở bằng trạng từ nối (bản đã commit: 1 trong 69); nội dung chỉ khác ở câu cuối 3.1. Section 1 và abstract: thêm so sánh với FedDPO trên BIRD dev. Cả hai có trong tag `archive/writing-workflow-2026-11-28` | Section 3: quay về bản đã commit, giữ câu cuối 3.1 mới. Section 1 và abstract: giữ |
 | A47 | Section 3.4 | Warm-up là component hay bước khởi tạo? Lý do nêu trong bài là số câu hỏi không có sample đúng (4,035 xuống 2,698 trên BIRD); kết quả đo được là B5: EX không đổi, test-suite accuracy trên các bộ Spider tăng | Giữ là component. Xem lại khi hàng BIRD của B5 về |
 | A48 | Cả bài | Số trang mục tiêu. Abstract, Section 1 và Section 3 đã chiếm 9,5 trang; ước lượng cả bài 25 đến 30 trang; CMC tính USD 100 mỗi trang vượt 15. Appendix cũng tính trang | Bạn cho con số; cắt ở caption, các ý lặp và đoạn kết quả của Introduction |
 | A16 | Section 5.2 | Bảng chuyển outcome (`\fact{moved.*}`), chưa có trong `CLAIMS.md`. BIRD dev: trong 153 câu chỉ method đúng, 75 câu trước là execution error và 78 câu là incorrect result (Spider test: 67 và 83). Trong 268 execution error của FedAvg SFT trên BIRD, 107 câu giờ chạy được nhưng trả kết quả sai (Spider: 51 của 173) | In ở 5.2 và ghi vào `CLAIMS.md`, hoặc bỏ |

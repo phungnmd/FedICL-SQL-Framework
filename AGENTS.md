@@ -173,22 +173,27 @@ deviate.
   `paper/notes/WRITING_PLAN.md`) has an academic voice (owner,
   2026-11-27): dense, in the terms of the field, assertive at the
   strength of the evidence. The plain-words rule above is not for it.
-  One writing session writes and revises it directly (owner,
-  2026-11-28): a session the owner opens for writing, apart from the
-  session that runs the experiments, on one model for the whole paper.
-  There is no separate writer agent and no brief, outline or notes file
-  per section. The state is in the files, so a new session takes over
-  by reading them; it reads the paper as it stands before it writes a
-  section, and the owner's remarks on the text are applied in the text.
+  Three sessions write it (owner, 2026-11-28). The main session has
+  full authority over the writing: it decides what a section says,
+  gives the writer the facts, numbers and files it needs, checks the
+  result, edits the text itself where that is quicker, and commits. The
+  writer is one agent, kept for the whole paper (a subagent on Opus
+  unless the owner names another); it writes and revises the section
+  files on what the main session provides and asks it for what is
+  missing. The reviewer is one isolated session of the `cold-session`
+  skill on Opus, kept through the writing: it sees the PDF alone, reads
+  each part as it is written and reads it again after a revision.
+  There is no brief, outline or notes file per section: what the main
+  session tells the writer is the message itself. The state is in the
+  files, so a new session takes over by reading them.
   The text of the paper carries nothing of the lab: no note, rule,
   date, decision, claim number or lab word; a fact taken from the web
   is recorded with its URL. What binds the text: the hard rules, the
   claims of `CLAIMS.md` at their strength and scope (not above, not
   below), numbers as generated macros, the limits of the journal;
-  `make` and `make lint` check what a tool can. Cold reads stay
-  isolated and on Opus (the `cold-session` skill) and run at
-  milestones: a full draft, before the paper is sent, or when the owner
-  asks. No measure of words or style steers a sentence.
+  `make` and `make lint` check what a tool can. A full draft is also
+  read by a fresh isolated session, since the kept reviewer knows the
+  earlier versions. No measure of words or style steers a sentence.
 - The draft does not wait for the results (owner, 2026-11-27). A number
   without a committed row prints `??` (`--` in a generated table), or
   stands as a marked guess, `\expect{value}`. A guess is never quoted as

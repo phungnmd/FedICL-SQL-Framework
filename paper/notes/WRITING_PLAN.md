@@ -8,25 +8,33 @@ How the manuscript is written. What the paper claims is in
 
 ## 1. How it is written
 
-- One writing session writes and revises the manuscript directly
-  (owner, 2026-11-28). The owner opens it for writing, apart from the
-  session that runs the experiments, and it uses one model for the
-  whole paper. There is no separate writer agent and no brief, outline,
-  questions or notes file per section.
-- The state is in the files. A new session takes over by reading them
-  (section 2); nothing depends on one conversation.
-- Before it writes or revises a section the session reads the paper as
-  it stands, so that a point is made once and a term keeps its meaning.
-- The owner reads the text and remarks in chat; the remark is applied
-  in the text in that turn. A paragraph that reads badly is written
-  again, directly.
+Three sessions, and no others (owner, 2026-11-28):
+
+| Session | Does |
+|---|---|
+| Main session | has full authority over the writing: decides what a section says; gives the writer the facts, the macros and the files it needs; reads the result; edits the text itself where that is quicker than a message; builds, checks and commits; applies the owner's remarks |
+| Writer | one agent, kept for the whole paper: a subagent on Opus (Agent tool, continued with `SendMessage`) unless the owner names another. It writes and revises the section files on what the main session provides, asks it for what is missing, and commits nothing |
+| Reviewer | one isolated session of the `cold-session` skill on Opus, kept through the writing (`run.sh -t section -k`, then `-r HANDLE`). It sees the PDF alone, reads each part as it is written and reads it again after a revision |
+
+- There is no brief, outline, questions or notes file per section:
+  what the main session tells the writer is the message itself. A
+  message may hold facts, a fault of a passage, or a sentence to use.
+- The writer reads the paper as it stands before it writes or revises a
+  section, so that a point is made once and a term keeps its meaning.
+- The state is in the files. A new main session, a new writer or a new
+  reviewer takes over by reading them (section 2); nothing depends on
+  one conversation.
+- The loop of a section: the main session gives the task; the writer
+  writes; `make` and `make lint`; the reviewer reads the PDF; the main
+  session sorts the findings (section 5), fixes or passes on what
+  matters, and commits. The owner reads when the owner chooses.
 - Draft first, trim later: the paper is complete before it is cut
   toward the pages of the fee. A section is committed when it is
   written, without waiting for the owner's reading.
 - Journal: CMC alone, on the Tech Science Press class in `Definitions/`
   (section 8).
 
-## 2. Starting a writing session
+## 2. Starting a main session
 
 Read, in this order:
 
@@ -44,7 +52,10 @@ Read, in this order:
    (`fedicl-sql/fedls_sql/training/dpo.py`,
    `fedicl-sql/fedls_sql/federated/pref_rounds.py`).
 
-It then tells the owner which step of section 6 it takes.
+It then tells the owner which step of section 6 it takes, starts the
+writer with what it has to read (the sections as written, `CLAIMS.md`,
+`TERMS.md`, the generated numbers and tables, section 3 and section 4
+of this plan, the checks file of its section) and starts the reviewer.
 
 ## 3. What binds the text
 
@@ -107,8 +118,9 @@ sentence.
 | Every build | Build | `make` | a section that does not compile; an undefined reference; the abstract outside 200 to 400 words. The page count is printed |
 | Every build | Numbers, references, form | `make lint` | a number or a setting typed by hand; a key not in `references.bib`; an entry without DOI, arXiv id or stable address. Its notes (lab words, hedges, an abbreviation not defined) are read, not obeyed |
 | A section is written | Overlap | `make overlap` | a run of five or more words shared with CodeLutra, OpenFedLLM or an example paper, other than a stock phrase of the field or a name |
-| A full draft; before the paper is sent; when the owner asks | Cold read | the `cold-session` skill: an isolated session on Opus, a fresh one each time, reads the PDF as a reviewer | nothing; its findings are sorted as below |
-| The same | Claim audit | a helper on Opus reads each claim beside its line of `CLAIMS.md` and looks for a committed result that contradicts a sentence | a false sentence; a claim above its line or with its scope dropped |
+| A section is written or revised | Review | the kept reviewer reads the PDF of the section with the pages before it (`cold-session`, template `section`); after a revision it reads the part again | nothing; its findings are sorted as below |
+| A full draft; before the paper is sent | Fresh read | a new isolated session reads the whole PDF (`cold-session`, template `review`): the kept reviewer knows the earlier versions | nothing; the same |
+| A full draft; before the paper is sent; when the owner asks | Claim audit | a helper on Opus reads each claim beside its line of `CLAIMS.md` and looks for a committed result that contradicts a sentence | a false sentence; a claim above its line or with its scope dropped |
 | The same | Cited-work audit | a helper on Opus opens every sentence about a cited paper and every cell of Table 1 at its locator | a statement without a fact row, or a row the paper does not support |
 
 Where a finding goes:
@@ -156,7 +168,7 @@ appendices and the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|
-| W1 | Section 3: the open points below | the owner: `REVIEW_NOTES.md`, A46 |
+| W1 | Section 3, from its committed text: the open points below | |
 | W2 | Sections 4, 5, 6 with 7, then 2, in this order: 4 defines the statistical protocol that 5 and 6 rely on, and 5 gives 6 its findings | the rows that wait print `??` |
 | W3 | Section 1 and the abstract brought up to date with Section 5: the open points below | W2 |
 | W4 | The whole paper read end to end: repetition, terms, pages (`make inventory` before and after, so that no number and no reference changes); cold read, claim audit, cited-work audit | the owner and the advisor read |
@@ -204,7 +216,8 @@ pages run over).
 | `make overlap` | `tools/overlap.py` against the sources in `.sources/` |
 | `make submit` | the flat source the journal asks for, compiled (`tools/flatten.py`); stops on a placeholder or a guess |
 | `tools/abstracts.py`, `tools/table_lint.py`, `tools/pages.py` | abstracts of the references into `.sources/`; table conventions; the page count of a build |
-| `cold-session` skill | isolated sessions on Opus: the cold reads |
+| Agent tool (`model: opus`), `SendMessage` | the writer, one conversation |
+| `cold-session` skill | isolated sessions on Opus: the kept reviewer, the fresh read of a full draft |
 | `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
 | TeX | TeX Live 2026 basic with the packages of `tsp.cls` in the user tree; the `Makefile` puts the `l3` folders of the system tree first on `TEXINPUTS` |
 
