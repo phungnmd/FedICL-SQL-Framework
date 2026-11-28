@@ -250,6 +250,22 @@ Open points on the drafted sections (W3 and W4):
   SFT has a TS value on BIRD dev, when its rows are in; "Appendix B
   lists every setting" while the epochs of Local SFT and the
   coefficient of FedProx wait for their rows.
+- From the two reads of the full draft by fresh reviewers (2026-11-28;
+  decisions for the owner are in `REVIEW_NOTES.md`, A34 and A49 to
+  A54). Done: two federated DPO works and rejection sampling
+  fine-tuning cited, the tables print the adjusted p, question weights
+  send no pair count (6.2), read-only databases (3.5), the header
+  spacing of the class. Left: Algorithm 1 does not say what the server
+  does when no client has pairs; Fig. 3 has two y-ranges; Table 3
+  could carry the discordant counts of its main comparisons; whether
+  dropping the 1,759 Spider questions on databases without rows from
+  the preference rounds shifts the Spider comparison is not discussed;
+  the EX of the gold-pair comparison is in the text and in no table;
+  the seed sentences of Sections 4.5, 6.2 and 7 are aligned once the
+  second-seed rows are in or dropped; "Table 6 repeats the comparison
+  in the three other partitions" waits for its rows; the entries cited
+  from arXiv alone are checked for a published version before
+  submission.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),

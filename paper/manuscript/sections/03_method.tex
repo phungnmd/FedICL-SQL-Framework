@@ -197,7 +197,8 @@ temperature \setting{pref.t}, without nucleus or top-$k$ truncation and
 with at most \setting{pref.tokens} new tokens per sample. It executes
 each sample $y$ and, once per question, the gold SQL query $y^\star$ on
 $d$, under the time limit of the benchmark's evaluation
-(Section~\ref{sec:datasets}). The execution label of $y$ is correct if
+(Section~\ref{sec:datasets}). The databases are opened read-only, so a
+sampled query cannot change them. The execution label of $y$ is correct if
 $\mathrm{exec}(y, d) = \mathrm{exec}(y^\star, d)$ under the comparison of
 the evaluation metric, and incorrect otherwise. A sample that fails to
 execute, reaches the time limit while it runs or contains no query is
