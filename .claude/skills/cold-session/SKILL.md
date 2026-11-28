@@ -49,6 +49,17 @@ in its scratchpad.
 The PDF itself names the method and carries its framing; that is the content
 under review, not a leak.
 
+### The kept reviewer of the manuscript
+
+One reviewer session is kept through the writing (`paper/notes/WRITING_PLAN.md`,
+section 1). Start it on the first part with `-t section -k` and note the handle.
+Every later turn is `-r HANDLE -f MESSAGE review_X.pdf before_X.pdf`, where
+MESSAGE is `prompts/reread.md` (the same part after a revision) or
+`prompts/next.md` (the next part), with `{{REVIEW}}` and `{{BEFORE}}` replaced
+by the two file names and nothing else added. A full draft is read by a fresh
+session as well, with the `review` template: the kept reviewer knows the
+earlier versions.
+
 ## Other uses: the writer, a question, any task
 
 The caller supplies everything the session reads: a pack directory (copied with
