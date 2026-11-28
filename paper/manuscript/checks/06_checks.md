@@ -7,7 +7,7 @@ on the wording of a draft are not kept here.
 ## 1. Facts about our work
 
 - The method has 2 preference rounds among its T = 4 rounds and is not trained further; only the variant without warm-up rounds has more.
-- Tests against FedAvg SFT at 4 rounds. Execution errors: BIRD dev 182 questions fail only with FedAvg SFT and 42 only with the method (p = 5.8e-22); Spider test 118 and 29 (p = 6.2e-14); both significant after Holm. Incorrect results: BIRD dev p = 0.007, 0.077 after Holm (156 and 111); Spider test p = 0.37 (111 and 97); neither significant after correction. (owner, A31)
+- Tests against FedAvg SFT at 4 rounds. Execution errors: BIRD dev 182 questions fail only with FedAvg SFT and 42 only with the method (p = 5.8e-22); Spider test 118 and 29 (p = 6.2e-14); both significant after Holm. Incorrect results: BIRD dev p = 0.007, 0.12 after Holm (156 and 111); Spider test p = 0.37 (111 and 97); neither significant after correction. (owner, A31)
 - Cost: as in `01_checks.md`.
 - The counts of pairs by kind of incorrect sample are in no table; two columns of Table 8 are proposed for them (`REVIEW_NOTES.md`, C44).
 
