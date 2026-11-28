@@ -117,7 +117,9 @@ FedAvg SFT is not.
 The setups have \fact{split.bird.a0.1.k5.clients} clients, or
 \fact{split.spider.a0.5.k10.clients} in one setup, and all of them take
 part in every round. Partial participation and federations of many
-clients are not studied. With \setting{rounds.pref} preference rounds,
+clients are not studied. No baseline uses execution through a
+policy-gradient objective, such as federated GRPO with an execution
+reward (Section~\ref{sec:rel-fed}). With \setting{rounds.pref} preference rounds,
 the pairs and the reference model are renewed once, and the ablation
 study does not separate the new pairs from the new reference model. The
 number of warm-up rounds is a setting, and the evidence for choosing it

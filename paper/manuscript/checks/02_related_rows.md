@@ -212,6 +212,19 @@ Version read: no arXiv version. Abstract from OpenAlex and Semantic Scholar (ide
 | 1. What is trained with FL (BART parser from questions to SPARQL?) and what the RL part does | A multitask semantic parsing model (MSP-BART) identifies the question category and converts the question into SPARQL; the abstract says the approach enables multi-institution joint modeling but does not say in so many words that MSP-BART is the federated model. The RL part is a model fusion (aggregation) strategy that also reduces the effect of low-quality clients; it does not train the parser from rewards. Also a prompt-learning entity disambiguation step. | (1) "We design an end-to-end multitask semantic parsing model [MSP-bidirectional and auto-regressive transformers (BART)] that identifies question categories while converting questions into SPARQL statements" (2) "a reinforcement learning (RL)-based model fusion strategy is proposed to improve the effectiveness of federated learning" | Abstract (OpenAlex / Semantic Scholar records of 10.1109/TCSS.2023.3246795). |
 | Models | BART (variant and size not given in the abstract). | - | Abstract. |
 
+## V. Four works read from their arXiv abstract pages only (2026-11-28)
+
+Each is cited in one clause that stays within its abstract; the papers themselves were not opened.
+
+| Paper | What the abstract says | Quotation | Locator |
+|---|---|---|---|
+| Sun et al. 2024, FFA-LoRA (`sun2024ffalora`), arXiv 2403.12313v1, comments "published at ICLR 2024" | LoRA in federated learning can be unstable; a key factor is that clients optimize the two low-rank matrices jointly and the server aggregates them separately. FFA-LoRA fixes the randomly initialized matrices and fine-tunes only the zero-initialized ones | "the discordance between jointly optimizing the two low-rank matrices by local clients and separately aggregating them"; "fix the randomly initialized non-zero matrices and only fine-tune the zero-initialized matrices" | https://arxiv.org/abs/2403.12313 |
+| Wang et al. 2024, FLoRA (`wang2024flora`), arXiv 2409.05976v1, no venue stated on the page | Standard aggregation of LoRA adapters is mathematically inaccurate; FLoRA aggregates by stacking and supports adapters of different ranks | "These approaches led to mathematically inaccurate aggregation noise"; "through a novel stacking-based aggregation method." | https://arxiv.org/abs/2409.05976 |
+| Zhang et al. 2025, ExeSQL (`zhang2025exesql`), arXiv 2505.17231v1 | For SQL dialects other than SQLite: iterative query generation, execution-based filtering and preference-based training; the abstract names no training algorithm | "iterative query generation, execution-based filtering (e.g., rejection sampling), and preference-based training" | https://arxiv.org/abs/2505.17231 |
+| Kulkarni and Srikumar 2025 (`kulkarni2025reinforcing`), arXiv 2506.06093v1, comments "Under review at EMNLP 2025" | Text-to-SQL tuned with GRPO on scalar rewards from execution, with question-answer pairs as weak supervision; the benchmark is not named in the abstract | "We use the rewards within the Group Relative Policy Optimization (GRPO) framework."; "with only weak supervision in the form of question-answer pairs" | https://arxiv.org/abs/2506.06093 |
+
+"That averaging the two LoRA factors separately does not average their product" is arithmetic and our own sentence, not a statement of either paper. Whether the federated averaging of OpenFedLLM averages the factors separately was not checked; the sentence of Section 2.3 speaks of this paper's method and baselines only.
+
 ## Points for the editor
 
 Statements that were wrong or imprecise:

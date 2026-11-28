@@ -12,8 +12,10 @@ samples, together with the training sets of Spider and BIRD. SLM-SQL~\cite{sheng
 model sizes of this paper, 0.5B to 1.5B. It fine-tunes on 916K synthetic
 samples, trains further with Group Relative Policy Optimization (GRPO) on
 BIRD train with a reward for a correct execution result, and at inference
-groups 64 samples by their execution results and votes, whereas our
-models train on the benchmark training sets alone and decode greedily.
+groups 64 samples by their execution results and votes. With its 1.5B
+model it reports 67.08\% EX on BIRD dev. Our models train on the
+benchmark training sets alone and decode greedily, and their absolute
+levels are lower (Section~\ref{sec:main}).
 SPFT-SQL~\cite{zhang2025spftsql} synthesizes SQL queries from templates
 over the training databases, checks the outputs of the fine-tuned model
 by execution against them, and then fine-tunes the model in self-play
@@ -25,9 +27,9 @@ these models is trained on data held in one place.
 
 DPO~\cite{rafailov2023dpo} trains a model on pairs of a preferred and a
 dispreferred response without a reward model or reinforcement learning,
-through the negative log-sigmoid of the difference of their log-ratios
-under the trained model and a reference model, multiplied by $\beta$,
-the scale of the preference term. The reference model is the SFT model
+through the negative log-sigmoid of $\beta$ times the difference of
+their log-ratios under the trained model and a reference model, where
+$\beta$ is the scale of the preference term. The reference model is the SFT model
 when one is available.
 
 Execution first served Text-to-SQL at inference: LEVER~\cite{ni2023lever}
@@ -39,10 +41,15 @@ Think2SQL~\cite{papicchio2025think2sql} and
 Arctic-Text2SQL-R1~\cite{yao2026arctic} apply GRPO with rewards computed
 by execution, partial scores of the result in Think2SQL, and 1 for a
 matching result and 0.1 for an executable query in Arctic-Text2SQL-R1.
+Kulkarni and Srikumar~\cite{kulkarni2025reinforcing} apply GRPO with
+execution rewards under the weak supervision of question-answer pairs,
+and ExeSQL~\cite{zhang2025exesql} combines execution-based filtering of
+generated queries with preference-based training for SQL dialects.
 Liu et al.~\cite{liu2025cotdpo} and ExCoT~\cite{zhai2025excot} label
 preference pairs by execution. Liu et al.\ sample 16 queries per BIRD
 training question from the SFT model, pair a correct with an incorrect
-sample, and train with DPO against the SFT model as reference. With
+sample, and train with DPO alone for eight epochs against the SFT model
+as reference. With
 SQL-only outputs, DPO lowers BIRD dev EX for 6 of their 10 models of
 6.7B to 15B parameters under greedy decoding and majority voting and
 raises it for all ten under Pass@1, and with synthesized chains of
@@ -51,33 +58,37 @@ Qwen-2.5-Coder 32B in one DPO round on pairs of GPT-4o outputs and then
 in on-policy rounds on new samples of the model, labeled again by
 execution.
 
-A likelihood term on the preferred response beside the DPO term has
-published results in both directions. Iterative reasoning preference
+For a likelihood term on the preferred response beside the DPO term,
+published results range from a large gain to none. Iterative reasoning preference
 optimization (Iterative RPO)~\cite{pang2024irpo} samples chains of
 thought from the current model, pairs correct with incorrect final
 answers, and trains with the DPO term plus a
 length-normalized NLL term on the preferred response, with the model of
 the previous iteration as reference. After one round on GSM8K, it
 reaches 73.1 with the NLL term and 61.8 with DPO alone, and
-CodeLutra~\cite{tao2024codelutra} reports 76.6 on Spider with its full
-loss against 17.2 with the DPO term alone. Liu et al.\ report a limited gain
+CodeLutra~\cite{tao2024codelutra} reports 76.6\% EX on Spider with its
+full loss against 17.2\% with the DPO term alone, with Llama-3-8B. Liu et al.\ report a limited gain
 from an added SFT term on SQL-only outputs, 58.8 to 60.0 with
 Qwen2.5-7B-Instruct, and Lanchantin et al.~\cite{lanchantin2025bridging}
-report no benefit from an added NLL term.
+report no benefit from an added NLL term in their experiments with
+Llama-3.1-8B-Instruct.
 
 CodeLutra is the closest work. From one training set at one site, it
 samples ten outputs per question from the current model, labels each SQL
 query by comparing its execution result with that of the gold query, and
-forms $K$ pairs per question of a correct and a failed sample.
+forms ten pairs per question of a correct and a failed sample.
 It trains with the DPO term, whose reference model is the model of the
 previous iteration, plus $\lambda$ times the log-likelihood of the
-correct sample, over four iterations. With Llama-3-8B, its Spider EX
-reaches 76.6 at the third iteration against 67.9 for SFT. CodeLutra thus
-runs the loop of sampling, execution labels and DPO with an NLL term
-centrally, by one holder of the data. In \method, the labels are
-computed at each client on databases that the server never sees, a
-federated round is the re-sampling step, and the global model of the
-round is the reference model of every client.
+correct sample, over four iterations, so that the pairs and the
+reference model are renewed at every iteration. CodeLutra thus runs the
+loop of sampling, execution labels and DPO with an NLL term centrally,
+by one holder of the data. In \method, the labels are computed at each
+client on databases that the server never sees, and one federated round
+is one iteration for all clients, whose common reference model is the
+global model of the round. The server averages the adapters with weights
+given by the pair counts, the preference rounds start from a model
+trained in FedAvg SFT warm-up rounds, and each question contributes two
+pairs with an NLL term averaged over tokens.
 
 \subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
 
@@ -85,7 +96,13 @@ FederatedScope-LLM~\cite{kuang2024fsllm} and
 OpenFedLLM~\cite{ye2024openfedllm} provide federated fine-tuning of LLMs
 with LoRA and other parameter-efficient methods, run FedAvg among other
 algorithms, and include code tasks. In federated SFT, a client trains on
-the responses of its dataset, not on outputs of the model. OpenFedLLM
+the responses of its dataset, not on outputs of the model. Averaging the
+two LoRA factors separately does not average their product.
+FFA-LoRA~\cite{sun2024ffalora} attributes instability to this
+discordance and trains only one of the two factors, and
+FLoRA~\cite{wang2024flora} replaces the average with a stacking of the
+adapters. \method{} and its baselines keep the separate average
+(Section~\ref{sec:formulation}). OpenFedLLM
 also introduces FedDPO, in which every client keeps its own preference
 dataset and trains with the DPO loss alone against a reference model fixed
 throughout the federated process. Its runs train
@@ -100,30 +117,32 @@ rewards, a client samples from the current model and trains with GRPO on
 a reward for correct answers: PubSwap~\cite{nayak2026pubswap} on math
 and medical questions, with LoRA adapters averaged at the server, and
 Fed-GRPO~\cite{guo2026fedgrpo} on math and code, with clients weighted
-by the standard deviation of their rewards. These two methods use a
-policy-gradient objective and no pairs, and none of the works of this
-subsection addresses Text-to-SQL.
+by the standard deviation of their rewards. PubSwap and Fed-GRPO use a
+policy-gradient objective and no pairs, and neither has been applied to
+Text-to-SQL. With a reward from SQL execution, as in the centralized
+GRPO work of Section~\ref{sec:rel-pref}, such a method would be an
+alternative to preference pairs, which this paper does not evaluate.
 
 \subsection{Federated semantic parsing and Text-to-SQL}\label{sec:rel-fedsql}
 
 \begin{table}[!ht]
-\caption{Methods closest to \method. ``Labels from execution'': a sample
-is labeled by executing it and comparing its result with the gold
-result. ``Preference pairs'': where the pairs of the preference
+\caption{Methods closest to \method. ``Labels from SQL execution'': a
+sampled query is labeled by executing it and comparing its result with
+the gold result. ``Preference pairs'': where the pairs of the preference
 objective come from.}\label{tab:related}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lccccl@{}}
 \toprule
 Method & Federated & Text-to-SQL &
-\begin{tabular}[c]{@{}c@{}}Labels from\\ execution\end{tabular} &
+\begin{tabular}[c]{@{}c@{}}Labels from\\ SQL execution\end{tabular} &
 \begin{tabular}[c]{@{}c@{}}Trains on the\\ model's own outputs\end{tabular} &
 Preference pairs \\
 \midrule
 Zhang et al.~\cite{zhang2023fl4sp} & Yes & Yes & No & No & Not applicable \\
-FedDPO~\cite{ye2024openfedllm} & Yes & No & No & No & From a dataset\textsuperscript{a} \\
-PubSwap~\cite{nayak2026pubswap} & Yes & No & Answer check\textsuperscript{b} & Yes & Not applicable \\
-Fed-GRPO~\cite{guo2026fedgrpo} & Yes & No & Answer check\textsuperscript{b} & Yes & Not applicable \\
+FedDPO, as published~\cite{ye2024openfedllm} & Yes & No & No & No & From a dataset\textsuperscript{a} \\
+PubSwap~\cite{nayak2026pubswap} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
+Fed-GRPO~\cite{guo2026fedgrpo} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
 Liu et al.~\cite{liu2025cotdpo} & No & Yes & Yes & Yes & Once, from the model's outputs \\
 ExCoT~\cite{zhai2025excot} & No & Yes & Yes & Yes\textsuperscript{c} & Anew each round\textsuperscript{c} \\
 CodeLutra~\cite{tao2024codelutra} & No & Yes & Yes & Yes & Anew each round \\
@@ -137,8 +156,7 @@ CodeLutra~\cite{tao2024codelutra} & No & Yes & Yes & Yes & Anew each round \\
 \textsuperscript{a}~Every client keeps its own preference dataset, and
 no step that constructs pairs again is described.\par
 \textsuperscript{b}~The reward checks whether the answer to a math,
-medical (PubSwap) or code (Fed-GRPO) task is correct, and no SQL query
-is executed.\par
+medical (PubSwap) or code (Fed-GRPO) task is correct.\par
 \textsuperscript{c}~Only in the on-policy rounds: the first DPO round
 trains on pairs of GPT-4o outputs.
 \end{minipage}
