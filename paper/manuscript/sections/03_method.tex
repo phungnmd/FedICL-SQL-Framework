@@ -172,7 +172,7 @@ before and \fact{warmup.bird.k2.all_correct} after warm-up) or no label
 (\fact{warmup.bird.k0.no_label} and \fact{warmup.bird.k2.no_label}).
 Of the latter, \fact{train.bird.gold_error} have a gold SQL query that
 fails to execute. For the others it exceeds the time limit, which is
-measured in elapsed time and therefore differs between runs
+measured in elapsed time, so that their number differs between runs
 (Section~\ref{sec:labeling}). On Spider train, where the pretrained
 model is more accurate, warm-up lowers the number of questions without
 a correct sample from \fact{warmup.spider.k0.no_correct} to
@@ -212,7 +212,9 @@ time limit has no labeled sample. On BIRD, the limit is one budget for a
 sample followed by the gold SQL query, as in the benchmark's evaluation:
 the time of the gold SQL query, measured once, counts toward the budget
 of every sample of the question, and a completed sample whose budget is
-thereby exceeded has no label (Section~\ref{sec:datasets}).
+thereby exceeded has no label. A gold SQL query that takes more than
+half of the budget exceeds the limit for its question
+(Section~\ref{sec:datasets}).
 
 \subsection{On-Policy Preference Pair Construction}\label{sec:pairs}
 

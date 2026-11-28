@@ -30,18 +30,25 @@ of the benchmark's evaluation: equality of the sets of rows on BIRD, and
 the result comparison of the test-suite evaluation
 script~\cite{zhong2020testsuite} on Spider. Queries run under the time
 limit of the same evaluation. On BIRD, one budget of
-\setting{timeout.bird} covers a query followed by the gold SQL query,
-and on Spider each query has \setting{timeout.spider}. A prediction that
-reaches the limit is incorrect. A query counts as reaching the limit
-only when it used the processor for most of the elapsed time. One that
-reached it while waiting for the processor is run once more alone. At
+\setting{timeout.bird} covers a prediction followed by the gold SQL
+query, which is executed with each prediction, and on Spider each query
+has \setting{timeout.spider}. A prediction that reaches the limit is
+incorrect. A query counts as reaching the limit only when it used the
+processor for at least four fifths of the elapsed time. One that reached
+it while waiting for the processor is run once more with no other query
+running, and the outcome of that run counts. At
 \setting{rounds.total} rounds, \fact{timeouts.bird.fedavg.4} predictions
 of FedAvg SFT and \fact{timeouts.bird.k2.4} of \method{} reach the limit
 on BIRD dev, and none on Spider test.
 
 Execution labeling (Section~\ref{sec:labeling}) applies the same limits
-and the same rule to the training questions. A sample that exhausts its limit while it runs
-is an execution error and is labeled incorrect. On Spider, each query
+to the training questions, and the same rule to a query that reaches
+its limit. A sample that exhausts its limit while it runs is an
+execution error and is labeled incorrect. The time that a completed
+gold SQL query adds to the budget of a sample on BIRD is its elapsed
+time, which depends on the load of the machine. The number of questions
+that the time limit leaves without labels therefore differs between
+rounds (Section~\ref{sec:fed-setups}). On Spider, each query
 has its own limit, so a completed sample is always compared with the
 gold result, and the completed samples without a label of
 Section~\ref{sec:labeling} occur on BIRD alone.
@@ -49,8 +56,10 @@ Section~\ref{sec:labeling} occur on BIRD alone.
 Test-suite accuracy (TS)~\cite{zhong2020testsuite} counts a prediction as
 correct when its result equals the gold result on the original database
 and on every database of a suite of content variants. We use the
-official suites of Spider dev, Spider-Syn and Spider-Realistic. Spider
-test and Spider-DK have no suite and are reported under EX alone.
+official suite of the databases of Spider dev, which also serves
+Spider-Syn and Spider-Realistic, whose questions are posed on the same
+databases. Spider test and Spider-DK have no suite and are reported
+under EX alone.
 
 BIRD has no official suite, and we generate one for BIRD dev:
 \fact{suite.variants} variants of each of its \fact{suite.bird.databases}
@@ -185,8 +194,7 @@ gives the baseline more GPU time than \method{} uses
 (Section~\ref{sec:cost}). \textit{FedProx SFT}~\cite{li2020fedprox} adds
 a proximal term to the local objective of FedAvg SFT.
 
-\textit{FedDPO}~\cite{ye2024openfedllm}, federated DPO as published,
-trains each client in every round on one fixed preference dataset, with
+\textit{FedDPO}~\cite{ye2024openfedllm} trains each client in every round on one fixed preference dataset, with
 one fixed reference model and the DPO loss alone. The clients hold no
 preference dataset, and we give FedDPO the execution-labeled pairs of
 the first preference round of \method. FedDPO starts from the same
@@ -234,8 +242,9 @@ the model decodes greedily, with one output per question, at most
 \setting{eval.tokens} new tokens and no repetition penalty. Each trained
 model comes from one training run, with seed \setting{seed} except in
 the rows of Table~\ref{tab:main} marked as a second seed. The seed sets
-\setting{seed.role}. All runs use one type of GPU, the \setting{hw.gpu}, with weights in
-bfloat16, and train the clients of a round one after another.
+\setting{seed.role}. All runs use one type of GPU, the \setting{hw.gpu}, and train the
+clients of a round one after another. The frozen model is held in
+bfloat16, and the adapter is stored and communicated in 32-bit floats.
 Appendix~\ref{app:settings} lists every setting
 (Tables~\ref{tab:settings} and~\ref{tab:settings-2}) and the software
 versions.
