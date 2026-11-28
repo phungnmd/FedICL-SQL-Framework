@@ -440,6 +440,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{fedavg}{4}{feddpo}{4}` | +0.91 | Table 3, BIRD dev; text |
 | `\tsgap{bird}{fedavg}{4}{feddpo}{4}` | 0.91 | Table 3, BIRD dev; text |
 | `\tspval{bird}{fedavg}{4}{feddpo}{4}` | 0.42 | Table 3, BIRD dev; text |
+| `\tspadj{bird}{fedavg}{4}{feddpo}{4}` | 1.00 | Table 3, BIRD dev; text |
 | `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
@@ -449,6 +450,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{fedavg}{4}{k2}{4}` | +4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\tsgap{bird}{fedavg}{4}{k2}{4}` | 4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\tspval{bird}{fedavg}{4}{k2}{4}` | 4.2e-8 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\tspadj{bird}{fedavg}{4}{k2}{4}` | 7.9e-7 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\gain{bird}{feddpo}{3}{feddpo}{4}` | +0.52 | text |
 | `\gap{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
 | `\pval{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
@@ -470,6 +472,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{feddpo}{4}{k2}{4}` | +3.98 | text |
 | `\tsgap{bird}{feddpo}{4}{k2}{4}` | 3.98 | text |
 | `\tspval{bird}{feddpo}{4}{k2}{4}` | 6.8e-6 | text |
+| `\tspadj{bird}{feddpo}{4}{k2}{4}` | 1.6e-4 | text |
 | `\gain{bird}{k0}{1}{k0gold}{1}` | -2.61 | text |
 | `\gap{bird}{k0}{1}{k0gold}{1}` | 2.61 | text |
 | `\pval{bird}{k0}{1}{k0gold}{1}` | 0.0073 | text |
@@ -485,6 +488,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{3}{feddpo}{3}` | -0.13 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{3}{feddpo}{3}` | 0.13 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{3}{feddpo}{3}` | 0.94 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{3}{feddpo}{3}` | 1.00 | Table 4, BIRD dev |
 | `\gain{bird}{k2}{3}{k2}{4}` | +2.54 | text |
 | `\gap{bird}{k2}{3}{k2}{4}` | 2.54 | text |
 | `\pval{bird}{k2}{3}{k2}{4}` | 2.1e-4 | text |
@@ -500,6 +504,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{3}{reagge}{3}` | -0.13 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{3}{reagge}{3}` | 0.13 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{3}{reagge}{3}` | 0.89 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{3}{reagge}{3}` | 1.00 | Table 4, BIRD dev |
 | `\gain{bird}{k2}{3}{reaggq}{3}` | +0.00 | Table 4, BIRD dev |
 | `\gap{bird}{k2}{3}{reaggq}{3}` | 0.00 | Table 4, BIRD dev |
 | `\pval{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
@@ -509,6 +514,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{3}{reaggq}{3}` | +0.26 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{3}{reaggq}{3}` | 0.26 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{3}{reaggq}{3}` | 0.48 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{3}{reaggq}{3}` | 1.00 | Table 4, BIRD dev |
 | `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 4, BIRD dev |
 | `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 4, BIRD dev |
 | `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 4, BIRD dev |
@@ -518,6 +524,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{3}{rft}{3}` | -1.70 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{3}{rft}{3}` | 1.70 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{3}{rft}{3}` | 0.062 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{3}{rft}{3}` | 0.75 | Table 4, BIRD dev |
 | `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 4, BIRD dev |
 | `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 4, BIRD dev |
 | `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 4, BIRD dev |
@@ -527,6 +534,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{4}{fixed}{4}` | -2.54 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{4}{fixed}{4}` | 2.54 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{4}{fixed}{4}` | 6.2e-4 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{4}{fixed}{4}` | 0.0093 | Table 4, BIRD dev |
 | `\gain{bird}{k2}{4}{rft}{4}` | -3.52 | Table 4, BIRD dev |
 | `\gap{bird}{k2}{4}{rft}{4}` | 3.52 | Table 4, BIRD dev |
 | `\pval{bird}{k2}{4}{rft}{4}` | 5.2e-5 | Table 4, BIRD dev |
@@ -536,6 +544,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{bird}{k2}{4}{rft}{4}` | -3.39 | Table 4, BIRD dev |
 | `\tsgap{bird}{k2}{4}{rft}{4}` | 3.39 | Table 4, BIRD dev |
 | `\tspval{bird}{k2}{4}{rft}{4}` | 9.0e-5 | Table 4, BIRD dev |
+| `\tspadj{bird}{k2}{4}{rft}{4}` | 0.0015 | Table 4, BIRD dev |
 | `\gain{dk}{fedavg}{4}{k2}{4}` | +3.92 | Table 7, Spider-DK |
 | `\gap{dk}{fedavg}{4}{k2}{4}` | 3.92 | Table 7, Spider-DK |
 | `\pval{dk}{fedavg}{4}{k2}{4}` | 0.017 | Table 7, Spider-DK |
@@ -557,6 +566,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{realistic}{fedavg}{4}{k2}{4}` | +3.34 | Table 7, Spider-Realistic |
 | `\tsgap{realistic}{fedavg}{4}{k2}{4}` | 3.34 | Table 7, Spider-Realistic |
 | `\tspval{realistic}{fedavg}{4}{k2}{4}` | 0.036 | Table 7, Spider-Realistic |
+| `\tspadj{realistic}{fedavg}{4}{k2}{4}` | 0.19 | Table 7, Spider-Realistic |
 | `\gain{realistic}{k0}{4}{k2}{4}` | -0.79 | Table 7, Spider-Realistic |
 | `\gap{realistic}{k0}{4}{k2}{4}` | 0.79 | Table 7, Spider-Realistic |
 | `\pval{realistic}{k0}{4}{k2}{4}` | 0.72 | Table 7, Spider-Realistic |
@@ -566,6 +576,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{realistic}{k0}{4}{k2}{4}` | +5.11 | Table 7, Spider-Realistic |
 | `\tsgap{realistic}{k0}{4}{k2}{4}` | 5.11 | Table 7, Spider-Realistic |
 | `\tspval{realistic}{k0}{4}{k2}{4}` | 0.0067 | Table 7, Spider-Realistic |
+| `\tspadj{realistic}{k0}{4}{k2}{4}` | 0.073 | Table 7, Spider-Realistic |
 | `\gain[qwen05]{spider}{fedavg}{4}{k2}{4}` | +2.10 | Table 5 |
 | `\gap[qwen05]{spider}{fedavg}{4}{k2}{4}` | 2.10 | Table 5 |
 | `\pval[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 5 |
@@ -689,6 +700,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{spiderdev}{fedavg}{4}{k2}{4}` | +2.42 | Table 7, Spider dev |
 | `\tsgap{spiderdev}{fedavg}{4}{k2}{4}` | 2.42 | Table 7, Spider dev |
 | `\tspval{spiderdev}{fedavg}{4}{k2}{4}` | 0.027 | Table 7, Spider dev |
+| `\tspadj{spiderdev}{fedavg}{4}{k2}{4}` | 0.19 | Table 7, Spider dev |
 | `\gain{spiderdev}{k0}{4}{k2}{4}` | +0.39 | Table 7, Spider dev |
 | `\gap{spiderdev}{k0}{4}{k2}{4}` | 0.39 | Table 7, Spider dev |
 | `\pval{spiderdev}{k0}{4}{k2}{4}` | 0.80 | Table 7, Spider dev |
@@ -698,6 +710,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{spiderdev}{k0}{4}{k2}{4}` | +3.20 | Table 7, Spider dev |
 | `\tsgap{spiderdev}{k0}{4}{k2}{4}` | 3.20 | Table 7, Spider dev |
 | `\tspval{spiderdev}{k0}{4}{k2}{4}` | 0.01 | Table 7, Spider dev |
+| `\tspadj{spiderdev}{k0}{4}{k2}{4}` | 0.10 | Table 7, Spider dev |
 | `\gain{syn}{fedavg}{4}{k2}{4}` | +3.87 | Table 7, Spider-Syn |
 | `\gap{syn}{fedavg}{4}{k2}{4}` | 3.87 | Table 7, Spider-Syn |
 | `\pval{syn}{fedavg}{4}{k2}{4}` | 6.3e-4 | Table 7, Spider-Syn |
@@ -707,6 +720,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{syn}{fedavg}{4}{k2}{4}` | +3.67 | Table 7, Spider-Syn |
 | `\tsgap{syn}{fedavg}{4}{k2}{4}` | 3.67 | Table 7, Spider-Syn |
 | `\tspval{syn}{fedavg}{4}{k2}{4}` | 4.2e-4 | Table 7, Spider-Syn |
+| `\tspadj{syn}{fedavg}{4}{k2}{4}` | 0.0059 | Table 7, Spider-Syn |
 | `\gain{syn}{k0}{4}{k2}{4}` | +0.87 | Table 7, Spider-Syn |
 | `\gap{syn}{k0}{4}{k2}{4}` | 0.87 | Table 7, Spider-Syn |
 | `\pval{syn}{k0}{4}{k2}{4}` | 0.54 | Table 7, Spider-Syn |
@@ -716,6 +730,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgain{syn}{k0}{4}{k2}{4}` | +4.16 | Table 7, Spider-Syn |
 | `\tsgap{syn}{k0}{4}{k2}{4}` | 4.16 | Table 7, Spider-Syn |
 | `\tspval{syn}{k0}{4}{k2}{4}` | 0.0014 | Table 7, Spider-Syn |
+| `\tspadj{syn}{k0}{4}{k2}{4}` | 0.017 | Table 7, Spider-Syn |
 | `\errpval{bird}{fedavg}{4}{k2}{4}` | 5.8e-22 | text; execution errors in one row only: 182 (a), 42 (b) |
 | `\errpadj{bird}{fedavg}{4}{k2}{4}` | 1.8e-20 | text; execution errors in one row only: 182 (a), 42 (b) |
 | `\wrpval{bird}{fedavg}{4}{k2}{4}` | 0.007 | text; incorrect results in one row only: 111 (a), 156 (b) |

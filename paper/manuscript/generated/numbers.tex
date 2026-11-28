@@ -23,6 +23,7 @@
 \newcommand{\tsgain}[6][qwen15]{\pn@get{tsgain/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tsgap}[6][qwen15]{\pn@get{tsgap/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tspval}[6][qwen15]{\pn@get{tspval/#1/#2/#3/#4/#5/#6}}
+\newcommand{\tspadj}[6][qwen15]{\pn@get{tspadj/#1/#2/#3/#4/#5/#6}}
 %% a count or a cost: \fact{name}
 \newcommand{\fact}[1]{\pn@get{fact/#1}}
 
@@ -453,6 +454,7 @@
 \pn@def{tsgain/qwen15/bird/fedavg/4/feddpo/4}{+0.91}
 \pn@def{tsgap/qwen15/bird/fedavg/4/feddpo/4}{0.91}
 \pn@def{tspval/qwen15/bird/fedavg/4/feddpo/4}{0.42}
+\pn@def{tspadj/qwen15/bird/fedavg/4/feddpo/4}{1.00}
 \pn@def{gain/qwen15/bird/fedavg/4/k2/4}{+6.19}
 \pn@def{gap/qwen15/bird/fedavg/4/k2/4}{6.19}
 \pn@def{pval/qwen15/bird/fedavg/4/k2/4}{$4.6\times10^{-11}$}
@@ -462,6 +464,7 @@
 \pn@def{tsgain/qwen15/bird/fedavg/4/k2/4}{+4.89}
 \pn@def{tsgap/qwen15/bird/fedavg/4/k2/4}{4.89}
 \pn@def{tspval/qwen15/bird/fedavg/4/k2/4}{$4.2\times10^{-8}$}
+\pn@def{tspadj/qwen15/bird/fedavg/4/k2/4}{$7.9\times10^{-7}$}
 \pn@def{gain/qwen15/bird/feddpo/3/feddpo/4}{+0.52}
 \pn@def{gap/qwen15/bird/feddpo/3/feddpo/4}{0.52}
 \pn@def{pval/qwen15/bird/feddpo/3/feddpo/4}{0.52}
@@ -483,6 +486,7 @@
 \pn@def{tsgain/qwen15/bird/feddpo/4/k2/4}{+3.98}
 \pn@def{tsgap/qwen15/bird/feddpo/4/k2/4}{3.98}
 \pn@def{tspval/qwen15/bird/feddpo/4/k2/4}{$6.8\times10^{-6}$}
+\pn@def{tspadj/qwen15/bird/feddpo/4/k2/4}{$1.6\times10^{-4}$}
 \pn@def{gain/qwen15/bird/k0/1/k0gold/1}{$-$2.61}
 \pn@def{gap/qwen15/bird/k0/1/k0gold/1}{2.61}
 \pn@def{pval/qwen15/bird/k0/1/k0gold/1}{0.0073}
@@ -498,6 +502,7 @@
 \pn@def{tsgain/qwen15/bird/k2/3/feddpo/3}{$-$0.13}
 \pn@def{tsgap/qwen15/bird/k2/3/feddpo/3}{0.13}
 \pn@def{tspval/qwen15/bird/k2/3/feddpo/3}{0.94}
+\pn@def{tspadj/qwen15/bird/k2/3/feddpo/3}{1.00}
 \pn@def{gain/qwen15/bird/k2/3/k2/4}{+2.54}
 \pn@def{gap/qwen15/bird/k2/3/k2/4}{2.54}
 \pn@def{pval/qwen15/bird/k2/3/k2/4}{$2.1\times10^{-4}$}
@@ -513,6 +518,7 @@
 \pn@def{tsgain/qwen15/bird/k2/3/reagge/3}{$-$0.13}
 \pn@def{tsgap/qwen15/bird/k2/3/reagge/3}{0.13}
 \pn@def{tspval/qwen15/bird/k2/3/reagge/3}{0.89}
+\pn@def{tspadj/qwen15/bird/k2/3/reagge/3}{1.00}
 \pn@def{gain/qwen15/bird/k2/3/reaggq/3}{+0.00}
 \pn@def{gap/qwen15/bird/k2/3/reaggq/3}{0.00}
 \pn@def{pval/qwen15/bird/k2/3/reaggq/3}{1.00}
@@ -522,6 +528,7 @@
 \pn@def{tsgain/qwen15/bird/k2/3/reaggq/3}{+0.26}
 \pn@def{tsgap/qwen15/bird/k2/3/reaggq/3}{0.26}
 \pn@def{tspval/qwen15/bird/k2/3/reaggq/3}{0.48}
+\pn@def{tspadj/qwen15/bird/k2/3/reaggq/3}{1.00}
 \pn@def{gain/qwen15/bird/k2/3/rft/3}{$-$1.83}
 \pn@def{gap/qwen15/bird/k2/3/rft/3}{1.83}
 \pn@def{pval/qwen15/bird/k2/3/rft/3}{0.057}
@@ -531,6 +538,7 @@
 \pn@def{tsgain/qwen15/bird/k2/3/rft/3}{$-$1.70}
 \pn@def{tsgap/qwen15/bird/k2/3/rft/3}{1.70}
 \pn@def{tspval/qwen15/bird/k2/3/rft/3}{0.062}
+\pn@def{tspadj/qwen15/bird/k2/3/rft/3}{0.75}
 \pn@def{gain/qwen15/bird/k2/4/fixed/4}{$-$2.61}
 \pn@def{gap/qwen15/bird/k2/4/fixed/4}{2.61}
 \pn@def{pval/qwen15/bird/k2/4/fixed/4}{$5.7\times10^{-4}$}
@@ -540,6 +548,7 @@
 \pn@def{tsgain/qwen15/bird/k2/4/fixed/4}{$-$2.54}
 \pn@def{tsgap/qwen15/bird/k2/4/fixed/4}{2.54}
 \pn@def{tspval/qwen15/bird/k2/4/fixed/4}{$6.2\times10^{-4}$}
+\pn@def{tspadj/qwen15/bird/k2/4/fixed/4}{0.0093}
 \pn@def{gain/qwen15/bird/k2/4/rft/4}{$-$3.52}
 \pn@def{gap/qwen15/bird/k2/4/rft/4}{3.52}
 \pn@def{pval/qwen15/bird/k2/4/rft/4}{$5.2\times10^{-5}$}
@@ -549,6 +558,7 @@
 \pn@def{tsgain/qwen15/bird/k2/4/rft/4}{$-$3.39}
 \pn@def{tsgap/qwen15/bird/k2/4/rft/4}{3.39}
 \pn@def{tspval/qwen15/bird/k2/4/rft/4}{$9.0\times10^{-5}$}
+\pn@def{tspadj/qwen15/bird/k2/4/rft/4}{0.0015}
 \pn@def{gain/qwen15/dk/fedavg/4/k2/4}{+3.92}
 \pn@def{gap/qwen15/dk/fedavg/4/k2/4}{3.92}
 \pn@def{pval/qwen15/dk/fedavg/4/k2/4}{0.017}
@@ -570,6 +580,7 @@
 \pn@def{tsgain/qwen15/realistic/fedavg/4/k2/4}{+3.34}
 \pn@def{tsgap/qwen15/realistic/fedavg/4/k2/4}{3.34}
 \pn@def{tspval/qwen15/realistic/fedavg/4/k2/4}{0.036}
+\pn@def{tspadj/qwen15/realistic/fedavg/4/k2/4}{0.19}
 \pn@def{gain/qwen15/realistic/k0/4/k2/4}{$-$0.79}
 \pn@def{gap/qwen15/realistic/k0/4/k2/4}{0.79}
 \pn@def{pval/qwen15/realistic/k0/4/k2/4}{0.72}
@@ -579,6 +590,7 @@
 \pn@def{tsgain/qwen15/realistic/k0/4/k2/4}{+5.11}
 \pn@def{tsgap/qwen15/realistic/k0/4/k2/4}{5.11}
 \pn@def{tspval/qwen15/realistic/k0/4/k2/4}{0.0067}
+\pn@def{tspadj/qwen15/realistic/k0/4/k2/4}{0.073}
 \pn@def{gain/qwen05/spider/fedavg/4/k2/4}{+2.10}
 \pn@def{gap/qwen05/spider/fedavg/4/k2/4}{2.10}
 \pn@def{pval/qwen05/spider/fedavg/4/k2/4}{0.0056}
@@ -702,6 +714,7 @@
 \pn@def{tsgain/qwen15/spiderdev/fedavg/4/k2/4}{+2.42}
 \pn@def{tsgap/qwen15/spiderdev/fedavg/4/k2/4}{2.42}
 \pn@def{tspval/qwen15/spiderdev/fedavg/4/k2/4}{0.027}
+\pn@def{tspadj/qwen15/spiderdev/fedavg/4/k2/4}{0.19}
 \pn@def{gain/qwen15/spiderdev/k0/4/k2/4}{+0.39}
 \pn@def{gap/qwen15/spiderdev/k0/4/k2/4}{0.39}
 \pn@def{pval/qwen15/spiderdev/k0/4/k2/4}{0.80}
@@ -711,6 +724,7 @@
 \pn@def{tsgain/qwen15/spiderdev/k0/4/k2/4}{+3.20}
 \pn@def{tsgap/qwen15/spiderdev/k0/4/k2/4}{3.20}
 \pn@def{tspval/qwen15/spiderdev/k0/4/k2/4}{0.01}
+\pn@def{tspadj/qwen15/spiderdev/k0/4/k2/4}{0.10}
 \pn@def{gain/qwen15/syn/fedavg/4/k2/4}{+3.87}
 \pn@def{gap/qwen15/syn/fedavg/4/k2/4}{3.87}
 \pn@def{pval/qwen15/syn/fedavg/4/k2/4}{$6.3\times10^{-4}$}
@@ -720,6 +734,7 @@
 \pn@def{tsgain/qwen15/syn/fedavg/4/k2/4}{+3.67}
 \pn@def{tsgap/qwen15/syn/fedavg/4/k2/4}{3.67}
 \pn@def{tspval/qwen15/syn/fedavg/4/k2/4}{$4.2\times10^{-4}$}
+\pn@def{tspadj/qwen15/syn/fedavg/4/k2/4}{0.0059}
 \pn@def{gain/qwen15/syn/k0/4/k2/4}{+0.87}
 \pn@def{gap/qwen15/syn/k0/4/k2/4}{0.87}
 \pn@def{pval/qwen15/syn/k0/4/k2/4}{0.54}
@@ -729,6 +744,7 @@
 \pn@def{tsgain/qwen15/syn/k0/4/k2/4}{+4.16}
 \pn@def{tsgap/qwen15/syn/k0/4/k2/4}{4.16}
 \pn@def{tspval/qwen15/syn/k0/4/k2/4}{0.0014}
+\pn@def{tspadj/qwen15/syn/k0/4/k2/4}{0.017}
 \pn@def{errpval/qwen15/bird/fedavg/4/k2/4}{$5.8\times10^{-22}$}
 \pn@def{errpadj/qwen15/bird/fedavg/4/k2/4}{$1.8\times10^{-20}$}
 \pn@def{wrpval/qwen15/bird/fedavg/4/k2/4}{0.007}

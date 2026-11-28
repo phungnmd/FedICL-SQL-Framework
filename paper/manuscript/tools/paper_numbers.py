@@ -7,8 +7,8 @@ the page are one value. A row enters by one line in ARMS of that script.
 
 Writes, under paper/manuscript/generated/:
   numbers.tex   one macro per cell and per test the paper prints
-  numbers.md    the same macros with their values and result commits (for the briefs)
-  tab_*.tex     the tabular of each table (Tables 2 to 8); captions are the writer's
+  numbers.md    the same macros with their values and result commits (for reading)
+  tab_*.tex     the tabular of each table (Tables 2 to 8); captions are written with the section
   missing.txt   the rows a table needs that are not committed
 
     python3 tools/paper_numbers.py            # write the files
@@ -761,6 +761,7 @@ ACCESSORS = r"""%% Written by tools/paper_numbers.py from the committed evaluati
 \newcommand{\tsgain}[6][qwen15]{\pn@get{tsgain/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tsgap}[6][qwen15]{\pn@get{tsgap/#1/#2/#3/#4/#5/#6}}
 \newcommand{\tspval}[6][qwen15]{\pn@get{tspval/#1/#2/#3/#4/#5/#6}}
+\newcommand{\tspadj}[6][qwen15]{\pn@get{tspadj/#1/#2/#3/#4/#5/#6}}
 %% a count or a cost: \fact{name}
 \newcommand{\fact}[1]{\pn@get{fact/#1}}
 """
@@ -813,6 +814,7 @@ def macros(d: Data, facts: dict) -> tuple[str, str]:
             put(f"tsgain/{tail}", signed(t["dts"]), f"\\tsgain{opt}{arg}", f"{t['dts']:+.2f}", where)
             put(f"tsgap/{tail}", f2(abs(t["dts"])), f"\\tsgap{opt}{arg}", f2(abs(t["dts"])), where)
             put(f"tspval/{tail}", p_tex(t["tspexact"]), f"\\tspval{opt}{arg}", ov.p_text(t["tspexact"]), where)
+            put(f"tspadj/{tail}", p_tex(t["tspadj"]), f"\\tspadj{opt}{arg}", ov.p_text(t["tspadj"]), where)
     for (a, b) in sorted(d.err_tests):
         t = d.err_tests[(a, b)]
         ds, rid = a[0], run_id(a)
