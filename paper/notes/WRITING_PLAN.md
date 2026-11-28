@@ -165,9 +165,10 @@ use that row are read again and its `\expect` guesses replaced.
 State (2026-11-28): Section 3 is revised and read by the kept reviewer
 (handle `tmp.QhmK21oy`, listed in `~/.cache/cold-session/`); Section 1
 with the abstract is drafted and waits for W3; Section 4 is written
-and read by the reviewer; Section 5 is written and with the reviewer;
-Sections 6 and 7 are being written; Section 2 holds a heading and its
-label; the appendices and the statements exist.
+and read by the reviewer; Sections 5, 6 and 7 are written and read
+twice by the reviewer; Section 2 with Table 1 is written and with the
+reviewer; Section 1 and the abstract are being revised (W3); the
+appendices and the statements exist. The PDF has 31 pages.
 
 | Step | What | Waits on |
 |---|---|---|
