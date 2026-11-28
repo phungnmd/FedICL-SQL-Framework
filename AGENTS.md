@@ -76,7 +76,7 @@ built or checked for it now.
   and 5 on Spider train (`alpha_0.1/k5` each). Another model or setting
   may be proposed.
 - Datasets (owner, 2026-11-25): BIRD is the main dataset (the main rows,
-  every baseline, the ablations, a second model); Spider carries the
+  every baseline, the ablations); Spider carries the
   breadth rows (other models, federated setups, variant sets, test-suite
   accuracy). The rows the paper needs: `RESEARCH_STATE.md`, section 3.4.
 - BIRD numbers are BIRD dev (1,534 rows; its test set is not public, and
