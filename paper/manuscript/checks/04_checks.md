@@ -26,6 +26,8 @@ on the wording of a draft are not kept here.
 ## 2. Facts about cited papers
 
 - NIID-Bench (`li2022niidbench`) is the source of the partition protocol (A10).
+- The three sets built from Spider, from the abstracts (read 2026-11-28): Spider-Syn, "NL questions in Spider-Syn are modified from Spider, by replacing their schema-related words with manually selected synonyms" (https://arxiv.org/abs/2106.01065); Spider-Realistic, "based on Spider dev set with explicit mentions of column names removed" (https://arxiv.org/abs/2010.12773); Spider-DK, "NL questions in Spider-DK are selected from Spider, and we modify some samples by adding domain knowledge" (https://arxiv.org/abs/2109.05157). The abstracts of Spider-Syn and Spider-DK do not name the split.
+- The number of variants of the generated suite (100) was chosen among 10, 20, 50 and 100 for the highest agreement with the official suite on the same Spider dev predictions (99.03, 99.33, 99.53, 99.54); Section 4.1 says so in one sentence.
 - CodeLutra constructs ten pairs per question; a fact of the cited paper, typed, not a setting macro. Section 4.5 names it beside the two pairs of the method (owner, 2026-11-27: moved from Section 3).
 - CodeLutra, Eq. (3), writes the log-likelihood of the whole response. The paper says nothing about normalization by length, and its released code was not checked. "CodeLutra sums it" is our reading of the formula, not a statement of the paper; a sentence keeps to the formula (`REVIEW_NOTES.md`, A38).
 

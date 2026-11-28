@@ -965,6 +965,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{suite.bird.databases}` | 11 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{suite.bird.none}` | 82 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{suite.calib.agreement}` | 99.54 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.candidates}` | 10, 20, 50 and 100 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.files}` | 29 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.official_accepted}` | 18710 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.official_rejected}` | 2267 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |

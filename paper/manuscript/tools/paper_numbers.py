@@ -631,6 +631,7 @@ def suite_facts() -> dict:
         "suite.bird.databases": (len(bird["suite"]["databases"]), SUITE_BIRD),
         "suite.bird.counted": (cover["one_or_more"], SUITE_BIRD),
         "suite.bird.none": (cover["none"], SUITE_BIRD),
+        "suite.calib.candidates": (", ".join(str(c) for c in cal["candidates"][:-1]) + f" and {cal['candidates'][-1]}", SUITE_CALIBRATION),
         "suite.calib.files": (len(cal["sources"]), SUITE_CALIBRATION),
         "suite.calib.rows": (at_n["rows"], SUITE_CALIBRATION),
         "suite.calib.agreement": (f2(at_n["agreement"]), SUITE_CALIBRATION),
