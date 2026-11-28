@@ -7,7 +7,10 @@ at 17:35: `sft_prefset/round_3` is 75.45 on Spider test, 0.74 above
 FedAvg SFT round 3 (p 0.11) and 2.01 below the method at 3 rounds
 (p 0.0036); `bird_sft_prefset/round_3` is 43.16 on BIRD dev (17:42),
 0.52 below FedAvg SFT round 3 (p 0.45) and 3.06 below the method at 3
-rounds (p 0.0014; `LAB_LOG.md`). Round 4 of both runs next.
+rounds (p 0.0014; `LAB_LOG.md`). Round 4: the Spider round is trained
+and GPU 0 trains the BIRD round (owner, 20:10; about 173 min of
+training, estimate); the file then publishes both rounds and runs the
+two evaluations, so no round 4 number is published yet.
 The other tasks wait for a card (Run now, step 2). The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
 2026-11-28).
@@ -20,8 +23,10 @@ weight decay 1e-4, warm-up 0.1, LoRA dropout 0) and otherwise as
 FedAvg SFT. It answers how much of the gain over FedAvg SFT at 4 rounds (6.19 on
 BIRD dev, 3.49 on Spider test) comes from those settings and not from
 the DPO + NLL rounds. Run now, step 1, runs these tasks alone. The
-paper has no row for the control yet: the row, its tests and the
-sentences of Sections 5 and 6 on the settings follow the result. The
+paper has the row since 2026-11-28 (the ablation table, claim B9 of
+`CLAIMS.md`): round 3 is printed, the cells of round 4 are placeholders
+that fill when the rows are committed, and the sentence on 4 rounds
+follows the result. The
 BIRD rounds ran longer than estimated (`bird_rft/round_2` about 8.1 h against 6 h), so the hours
 below are likely low.
 
@@ -48,7 +53,7 @@ second card takes the first ready task the other does not hold):
 
 | Order | Tasks | Cells it fills | About |
 |---|---|---|---|
-| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | a row to add to Tables 3 and 4: FedAvg SFT at the settings of the DPO + NLL rounds | 10.5 h (both rounds 3 read; rounds 4 left, about 5 h) |
+| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | Table 4: FedAvg SFT at the settings of the DPO + NLL rounds (round 3 printed, round 4 waits) | 10.5 h (both rounds 3 read; Spider round 4 trained, BIRD round 4 training, then the two evaluations: about 3.5 h left) |
 | 1 | `feddpo/round_2` with its evaluations (test, dev) | Table 3, Spider: FedDPO | 3 h |
 | 2 | `deepseek13b_sft` rounds 3 and 4, `deepseek13b_k2/round_2`, their rows on Spider dev and the variant sets (`deepseek13b_dev/*`, `deepseek13b_var/*`) | Table 5, Spider: DeepSeek-Coder-1.3B, the third model | 8 h |
 | 3 | `bird_central/sft` | Table 3, BIRD: centralized SFT | 8.5 h |
@@ -301,7 +306,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | GPU | State | Known from |
 |---|---|---|
-| GPU 0 | worker with `--phase sft_prefset bird_sft_prefset` since 2026-11-28, about 12:37; rounds 3 read, rounds 4 next | result commits of 2026-11-28 (`1d85aa58`, `2ec3679e`) |
+| GPU 0 | worker with `--phase sft_prefset bird_sft_prefset` since 2026-11-28, about 12:37; rounds 3 read; `bird_sft_prefset/round_4` training at 20:10, after `sft_prefset/round_4` | result commits of 2026-11-28 (`1d85aa58`, `2ec3679e`); owner, 20:10 |
 | GPU 1 | no worker of this queue known; the other tasks wait for a card | Status above |
 
 ## Run now
