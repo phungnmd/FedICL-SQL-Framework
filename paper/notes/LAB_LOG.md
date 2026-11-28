@@ -5,6 +5,31 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28 (night): after DeepSeek, the setups and Local SFT on BIRD first, centralized SFT on BIRD behind them
+
+- Decision (owner): after `feddpo`, `pooled_k2` with `pooled_dev` and
+  the DeepSeek rows on Spider, which keep their places, the file runs
+  `iid_sft`/`iid_k2`, `bird_local/*`, `a05_sft`/`a05_k2`,
+  `bird_central/sft`, and last and optional `a05k10_sft`/`a05k10_k2`.
+- Why: the control is done and held (BIRD dev 43.09 at 4 rounds, the
+  method 5.67 above; Spider test 75.08, 3.12 above; entries below).
+  What can still decide the paper is read first: the IID and alpha 0.5
+  setups (the journal requires them, no number yet) and Local SFT on
+  BIRD (whether federating pays for a client, the premise of the
+  setting). Centralized SFT on BIRD is an upper-bound reference.
+- `bird_local_k2` stays parked; it enters the queue if the best client
+  of Local SFT on BIRD is within about 2 points of FedAvg SFT at 4
+  rounds (42.57).
+- Check: whole blocks moved only; every task entry of `active.toml`
+  and `parked.toml` equals that of `83c9c658`, as text and parsed; no
+  task needs a later or a parked one (`bird_local` needs nothing of
+  `bird_central`); the other tasks keep their positions. The test of
+  local SFT on BIRD no longer requires `bird_central` before
+  `bird_local` (it checks that no `bird_local` task needs it), and the
+  order check of the control holds the new order. Queue tests: 65
+  passed, 6 skipped. About 74 GPU hours left (estimate; 61 without the
+  setup of 10 clients).
+
 ## 2026-11-28 (23:10): the control at 4 rounds on BIRD dev; the main claim holds against it
 
 - `bird_sft_prefset/round_4` (`a87eea60`): 43.09 on BIRD dev, 228

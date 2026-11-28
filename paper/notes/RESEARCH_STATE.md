@@ -205,7 +205,7 @@ Baselines (main table, BIRD dev first, Spider test next to it):
 |---|---|---|---|
 | Student without training | no adapter | run | run |
 | Local SFT | each client alone; mean, minimum and maximum over the 5 clients | queued (`bird_local`, fifth), about 11.5 h | not planned (curves defined; ready if a reviewer asks) |
-| Centralized SFT | the union of the clients, 3 epochs | queued (`bird_central`, fourth), about 8.5 h | run |
+| Centralized SFT | the union of the clients, 3 epochs | queued (`bird_central`, seventh: an upper-bound reference), about 8.5 h | run |
 | FedAvg SFT | gold SQL, FedAvg, rounds 1 to 4 | run | run |
 | Federated DPO as published | pairs from the first DPO round's samples made once, reference fixed for all rounds, no NLL term (OpenFedLLM's FedDPO); same pair count | run (44.98 at 3 rounds, 45.50 at 4) | round 2 queued (`feddpo`, first after the control) |
 | Method | 2 FedAvg SFT rounds, then 2 DPO + NLL rounds | run (48.76) | run (78.20) |
@@ -224,7 +224,7 @@ Spider rows next to them are run, but for RFT round 2, parked):
 | Without on-policy rounds (round 1's pairs and reference) | run: 46.15 against 48.76 |
 | Without the preference term (RFT) | run: 44.39 at 3 rounds, 45.24 at 4 (3.52 below the method, p 5.2e-05) |
 | Without the NLL term | run at 3 rounds as round 1 of `bird_feddpo` (44.98, 1.24 below the method, p 0.17); at 4 rounds the published form (45.50) also fixes the pairs. The on-policy round 2 without NLL (`bird_nonll`, about 8 h) is parked |
-| The settings of the DPO + NLL rounds (the control: FedAvg SFT rounds 3 and 4 at those settings) | round 3 run (43.16, the method 3.06 above it, p 0.0014), round 4 running |
+| The settings of the DPO + NLL rounds (the control: FedAvg SFT rounds 3 and 4 at those settings) | run: round 3 43.16 (the method 3.06 above it, p 0.0014), round 4 43.09 (the method 5.67 above it, p 1.9e-9) |
 | The SFT stage, k = 0 at 4 rounds | `bird_k0` has 2 rounds; rounds 3 and 4 not planned (about 14 h, ready if a reviewer asks). The BIRD rows compare k = 2 at 4 rounds with k = 0 at 2 |
 | The SFT stage, k = 3 | not planned (one DPO + NLL round from `bird_sft/round_3`, about 7 h, ready if a reviewer asks) |
 | FedAvg weights of a DPO round | run (within 0.20) |
@@ -249,8 +249,8 @@ client joins every round.
 |---|---|---|---|
 | BIRD | 5 | `alpha_0.1/k5` | run |
 | Spider | 5 | `alpha_0.1/k5` | run |
-| Spider | 5 | `iid/k5` | queued (`iid_sft`, `iid_k2`), sixth, about 13 h |
-| Spider | 5 | `alpha_0.5/k5` | queued (`a05_sft`, `a05_k2`), seventh, about 13 h |
+| Spider | 5 | `iid/k5` | queued (`iid_sft`, `iid_k2`), fourth, about 13 h |
+| Spider | 5 | `alpha_0.5/k5` | queued (`a05_sft`, `a05_k2`), sixth, about 13 h |
 | Spider | 10 | `alpha_0.5/k10` | queued (`a05k10_sft`, `a05k10_k2`), last and optional, about 13 h: it runs only if a card is free, and its row leaves the table otherwise |
 
 Seeds (owner, 2026-11-26; revised 2026-11-28): every row keeps one
@@ -265,12 +265,14 @@ or Bonferroni correction over the McNemar tests the paper prints; the
 error breakdown, EX by difficulty, pair counts and the cosine of the
 client updates by round, which exist and go into tables.
 
-Order of the open rows (owner, 2026-11-28; `PIPELINE_NEXT.md`): the
-control; federated DPO as published on Spider; the clients pooled on
-Spider (back from parked the same evening); DeepSeek-Coder-1.3B on
-Spider; centralized SFT, then local SFT on BIRD; the IID and alpha 0.5
-setups of 5 clients; the setup of 10 clients last and optional. About
-84.5 GPU hours with the control (71.5 without the last setup).
+Order of the open rows (owner, 2026-11-28, revised that night;
+`PIPELINE_NEXT.md`), the control being done: federated DPO as published
+on Spider; the clients pooled on Spider; DeepSeek-Coder-1.3B on Spider;
+the IID setup; local SFT on BIRD; the alpha 0.5 setup of 5 clients;
+centralized SFT on BIRD (an upper-bound reference); the setup of 10
+clients last and optional. What can still decide the paper comes first:
+the setups the journal requires and Local SFT (whether federating pays
+for a client). About 74 GPU hours (61 without the last setup).
 
 Parked, ready if a reviewer of the journal asks (2026-11-28; hours in
 `PIPELINE_NEXT.md`). With queue lines (`fedicl-sql/queues/parked.toml`):
