@@ -24,6 +24,20 @@ predictions change and whether the gain survives a change of the
 database contents (5.2), which component accounts for it (5.3), then
 breadth (5.4, 5.5) and cost (5.6).
 
+Length (owner, 2026-11-28): about 20 pages; the fee of the journal
+covers 15. The paper was cut from 32 to 21 pages on that day: the body
+has about 6,000 words, and the subsections below are merged where the
+text merges them (3.1 with 3.2, 3.3 with 3.4, 3.5 with 3.6; 4.3 with
+4.4; 5.4 with 5.5). The word counts in the headings are those of the
+text after the cut. What a reader needs only to reproduce is in the
+Supplementary Materials (`supplement.tex`, built by `make` into
+`build/supplement.pdf`): S1 the prompt, S2 the settings and software,
+S3 the federated setups and the partition procedure (Table S3), S4 the
+perturbed questions (Table S4), S5 execution labeling, the time limits
+and the generated suite of BIRD dev. Where an entry below names
+Appendix A or B, or a float that moved, read the section of the
+Supplementary Materials that holds it.
+
 ## Overview
 
 The paper starts from one observation: a client in federated
@@ -56,7 +70,7 @@ limits of the study.
   The model is named a small language model once, with its size.
 - Keywords (CMC): 3 to 10, "small language models" among them.
 
-### 1. Introduction (~1,050 words, Fig. 1)
+### 1. Introduction (~730 words, Fig. 1)
 
 **Purpose**: state the problem, the gap, the idea and what the paper
 shows.
@@ -95,7 +109,7 @@ shows.
 
 **Transition to next**: the lines of work the idea draws on.
 
-### 2. Related work (~900 words, Table 1)
+### 2. Related work (~800 words, Table 1)
 
 **Purpose**: credit each line of work and state the point where it
 stops short of this setting.
@@ -128,7 +142,7 @@ stops short of this setting.
 **Transition to next**: no earlier method has all the properties of the
 last row of Table 1; Section 3 defines it.
 
-### 3. Method (~1,700 words, Fig. 2, Algorithm 1)
+### 3. Method (~1,320 words, Fig. 2, Algorithm 1)
 
 **Purpose**: define the method so that it can be reimplemented, and
 give the reason for each design choice. Each component is motivated
@@ -179,7 +193,7 @@ order of a run.
 
 **Transition to next**: the experiments.
 
-### 4. Experimental setup (~1,350 words, Table 2)
+### 4. Experimental setup (~990 words; the table of setups is Table S3)
 
 **Purpose**: everything a reader needs to judge and repeat the
 experiments.
@@ -208,7 +222,7 @@ experiments.
 
 **Transition to next**: the results, from the gain to its cost.
 
-### 5. Results and analysis (~2,880 words, Tables 3 to 8, Figs. 3 and 4)
+### 5. Results and analysis (~1,600 words, Tables 2 to 6, Figs. 3 and 4; the perturbed sets in Table S4)
 
 **Purpose**: show the gain, what it consists of, which component
 accounts for it, how far it carries and what it costs.
@@ -249,7 +263,7 @@ accounts for it, how far it carries and what it costs.
 **Transition to next**: what the results say about the two kinds of
 round.
 
-### 6. Discussion and limitations (~780 words)
+### 6. Discussion and limitations (~470 words)
 
 **Purpose**: interpret the results and state the scope of the study.
 **Content**:
@@ -259,12 +273,12 @@ round.
 - The scope of the setting and the eight limitations of `CLAIMS.md`,
   section 5.
 
-### 7. Conclusion (~200 words)
+### 7. Conclusion (~130 words)
 
 **Purpose**: the contribution in a few sentences and the open
 directions.
 
-### Declarations, Appendix A, Appendix B
+### Declarations, Supplementary Materials
 
 Declarations: funding, competing interests, data availability, code
 availability, author contributions, use of AI tools. Appendix A: the

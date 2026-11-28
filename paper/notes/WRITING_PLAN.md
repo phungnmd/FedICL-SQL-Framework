@@ -149,7 +149,7 @@ Running text sets about 600 words a page in the class.
 | 4 | Experimental setup | Table 2 (federated setups) |
 | 5 | Results and analysis; the ablation study is 5.3 | Table 3 and Fig. 3 (main results; EX by round), Fig. 4 (incorrect predictions by kind and round), Table 4 (ablations), Tables 5 and 6 (other models; other federated setups), Table 7 (Spider dev, Syn, Realistic, DK), Table 8 (cost) |
 | 6, 7 | Discussion and limitations; Conclusion | |
-| A, B | Appendix: the prompt; all settings | generated, no prose |
+| S1 to S5 | Supplementary Materials: the prompt; all settings; the federated setups; the perturbed questions; labeling and the generated suite | Fig. S1, Tables S1 to S4 |
 
 Numbers and tables: `tools/paper_numbers.py` writes one macro per cell
 and one `tab_*.tex` per table from the committed evaluations (through
@@ -177,9 +177,17 @@ the pass on repeated results is done (Section 5 and its tables are the
 one place of each number and test; the tables print the adjusted p);
 the claims of `CLAIMS.md` were checked against the text of `5e5a9dc`
 and none is lost or stated above its ceiling; 18 works cited by name
-only (datasets, tools, tests) have no row in `checks/`. The PDF has 32
-pages. Left of W4: the trim to the owner's page target (A48), terms,
-the open points below.
+only (datasets, tools, tests) have no row in `checks/`. The trim is done (owner's
+target, 2026-11-28: about 20 pages): 21 pages, a body of about 6,000
+words, 41 references, and the Supplementary Materials as a second
+document of 6 pages (`OUTLINE.md`, Structure; lengths of the published
+papers in `JOURNAL_BAR.md`, section 3b). 23 numbers of the 32-page
+text are printed nowhere now; no claim of `CLAIMS.md` was dropped
+(writer's report, spot-checked in the PDF). Left of W4: the kept
+reviewer's read of the trimmed sections, terms, the open points below.
+For `make submit` (W5): the flat source has to carry the numbers of
+the Supplementary Materials as text, since the manuscript reads them
+through `xr-hyper` while it is drafted.
 
 | Step | What | Waits on |
 |---|---|---|
