@@ -164,8 +164,9 @@ use that row are read again and its `\expect` guesses replaced.
 
 State (2026-11-28): Section 3 is revised and read by the kept reviewer
 (handle `tmp.QhmK21oy`, listed in `~/.cache/cold-session/`); Section 1
-with the abstract is drafted and waits for W3; Section 4 is being
-written; Sections 2 and 5 to 7 hold a heading and its label; the
+with the abstract is drafted and waits for W3; Section 4 is written
+and read by the reviewer; Section 5 is being written; Sections 2, 6
+and 7 hold a heading and its label; the
 appendices and the statements exist.
 
 | Step | What | Waits on |
@@ -203,6 +204,17 @@ Open points on the drafted sections (W3 and W4):
 - Fig. 1: the caption does not say how pairs are built, and panel A
   says "Database not queried" while the Spider prompt holds rows read
   from the database.
+- Section 1 against Section 4: "Following the published protocol" for
+  FedDPO, which Section 4.4 describes as run on the method's first
+  pairs from the warm-up model; "5 fully participating clients per
+  non-IID partition", while Section 4.2 has an IID setup and one with
+  ten clients.
+- Section 4 restates settings of Tables A1 and A2 (optimizer values,
+  sequence limits, the seed entry): one place each in the pass over
+  the whole paper (W4).
+- Tables: the sign of the difference column differs between Table 3
+  (row minus FedAvg SFT) and the other result tables (row minus the
+  method); each caption says which. A p of 0.010 prints as "0.01".
 - Fig. 2: `REVIEW_NOTES.md`, A41.
 
 Still to build in the tools: the time limits of the labeling step as

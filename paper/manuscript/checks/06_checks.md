@@ -11,6 +11,8 @@ on the wording of a draft are not kept here.
 - Cost: as in `01_checks.md`.
 - The counts of pairs by kind of incorrect sample are in no table; two columns of Table 8 are proposed for them (`REVIEW_NOTES.md`, C44).
 
+- From the reviewer's reads of Sections 3 and 4, for the limitations: the generated suite of BIRD dev is compared with an official suite on Spider dev only, since BIRD has none; each row is one training run, so the tests do not cover the variation between runs; a gold SQL query over the time limit leaves a question without labels, and that count differs between runs (30 to 92 of 9,428 on BIRD); a comparison at more GPU time for the baseline exists on Spider only (`REVIEW_NOTES.md`, A34); with two preference rounds the pairs and the reference are renewed once.
+
 ## 2. Facts about cited papers
 
 None of its own.
