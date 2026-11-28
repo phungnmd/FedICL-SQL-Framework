@@ -216,6 +216,26 @@ Open points on the drafted sections (W3 and W4):
   (row minus FedAvg SFT) and the other result tables (row minus the
   method); each caption says which. A p of 0.010 prints as "0.01".
 - Fig. 2: `REVIEW_NOTES.md`, A41.
+- Sections 1 and the abstract against Section 5 (reviewer's reads of
+  Section 5): contribution 2 lists the new pairs and the new reference
+  model as separate features, and the ablation study compares them
+  together; "static external response pairs" and "following the
+  published protocol" for FedDPO, which is trained on the method's own
+  first pairs and differs from the method by the renewal and the NLL
+  term; the Spider result is stated without saying that Spider test
+  has no suite and that on Spider dev, which has one, the gain is not
+  significant after correction; the correct predictions on other
+  tables or columns are presented as a strength, while the suite
+  rejects about a third of them.
+- Section 5, left from the reviewer's reads: sizes of the difficulty
+  groups in Table 3; the TS of FedDPO on BIRD dev is in no table; the
+  labeling minutes are not added to the GPU totals and the processor is
+  not named (`REVIEW_NOTES.md`, A34); the variant without the
+  preference term is not set beside FedDPO; the text family of the
+  Holm correction changes with every comparison added to the text;
+  Table 3 has one line for Local SFT while Section 4.4 announces the
+  mean, the lowest and the highest client; Section 5.6 restates most of
+  Table 8 (trim in W4).
 - Section 4, left from the reviewer's second read: what a reader needs
   to rebuild the generated suite (rows per variant, how values are
   drawn, its seed, how results are compared on a variant) goes to

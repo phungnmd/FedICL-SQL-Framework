@@ -151,7 +151,8 @@ Under both EX and TS, a large part of the gain on BIRD dev consists of
 correct predictions that read other tables or columns than the gold SQL
 query. We parse each query with sqlglot and collect the tables it reads
 and the columns it reads, each with its table, over the main query and
-all its subqueries. A prediction reads other tables or columns when
+all its subqueries, a column written without its table being assigned
+through the schema. A prediction reads other tables or columns when
 either set differs from that of the gold SQL query. A prediction that
 sqlglot cannot parse counts among these, which concerns
 \fact{form.bird.fedavg.4.unparsed} predictions of FedAvg SFT and
@@ -189,8 +190,9 @@ against about a tenth of those on the gold SQL query's tables and
 columns, \fact{form.bird.fedavg.4.gold_ts_fail_pct}\% and
 \fact{form.bird.k2.4.gold_ts_fail_pct}\%. A correct prediction on other
 tables or columns is thus rejected more often than one on those of the
-gold SQL query, for both models, and the share rejected is not higher
-for \method{} than for FedAvg SFT.
+gold SQL query, for both models. Among the former, the share rejected is
+lower for \method{} than for FedAvg SFT, and among the latter it is
+higher.
 
 Under TS, the gain of \method{} over FedAvg SFT on BIRD dev is
 \tsgap{bird}{fedavg}{4}{k2}{4} points (\ts{bird}{k2}{4}\% against
@@ -211,8 +213,9 @@ the start of every variant except those with another number of warm-up
 rounds. ``Fixed pairs and reference'' keeps the preference pairs
 and the reference model of the first preference round. ``Averaged by
 questions'' and ``Averaged equally'' weight the server average by the
-numbers of questions or equally instead of by the pair
-counts.}\label{tab:ablation}
+numbers of questions or equally instead of by the pair counts.
+``Clients pooled'' runs the preference rounds on the union of the
+clients' data.}\label{tab:ablation}
 \footnotesize
 \input{generated/tab_ablation}
 \end{table}
@@ -229,16 +232,17 @@ preference rounds, reaches \ex{spider}{k2}{4}\%. The variant without
 warm-up, with four preference rounds, reaches \ex{spider}{k0}{4}\%
 ($p = {}$\padj{spider}{k2}{4}{k0}{4}), and the variant with three warm-up
 rounds and one preference round \ex{spider}{k3}{4}\%
-($p = {}$\padj{spider}{k2}{4}{k3}{4}). Warm-up changes how many questions
-yield pairs (Section~\ref{sec:warmup}). Without it, TS is lower on the
+($p = {}$\padj{spider}{k2}{4}{k3}{4}). On Spider, warm-up lowers the number of questions that yield pairs, as
+more questions have correct samples only (Section~\ref{sec:warmup}).
+Without it, TS is lower on the
 three sets of Section~\ref{sec:perturbed} that have a suite,
 significantly on Spider-Syn.
 
 Renewing the pairs and the reference model raises EX on BIRD dev. With
 \setting{rounds.pref} preference rounds, the renewal takes place once, at
 the second preference round. The variant with fixed pairs and reference
-trains its second preference round on the pairs and with the reference
-model of the first. \method{} trains it on the
+trains its second preference round on the \fact{cost.bird.pref1.pairs}
+pairs and with the reference model of the first. \method{} trains it on the
 \fact{cost.bird.pref2.pairs} pairs built from new samples, which come
 from fewer questions, with the global model of that round as reference.
 The comparison covers the new pairs and the new reference model together
@@ -265,7 +269,7 @@ on BIRD dev is \ex{bird}{k0gold}{1}\% with them and \ex{bird}{k0}{1}\% without,
 significant ($p = {}$\padj{bird}{k0}{1}{k0gold}{1}). With them,
 execution errors fall from \nerr{bird}{k0}{1} to \nerr{bird}{k0gold}{1},
 and incorrect results rise from \nwr{bird}{k0}{1} to
-\nwr{bird}{k0gold}{1}. We did not run the variant after warm-up rounds.
+\nwr{bird}{k0gold}{1}.
 
 Without the preference term, a preference round trains with the NLL term
 alone, on the correct sample of each pair. The variant still uses the
