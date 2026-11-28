@@ -34,6 +34,9 @@
 \input{macros}
 \input{generated/numbers}
 \input{generated/settings}
+%% The labels of the Supplementary Materials (supplement.tex), read from its .aux file.
+\usepackage{xr-hyper}
+\externaldocument{build/supplement}
 
 %% What differs by journal in the section bodies.
 \newcommand{\panel}[1]{(\textbf{\MakeUppercase{#1}})}        % a panel of a figure, named in a caption
@@ -69,12 +72,6 @@
 
 \input{sections/90_statements_cmc}
 
-\appendixstart
-\appendix
-\input{sections/A_prompt}
-\input{sections/B_settings}
-
-\clearpage % the floats of the appendices come before the references
 \reftitle{References}
 \bibliography{references}
 

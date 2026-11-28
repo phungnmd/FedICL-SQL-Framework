@@ -21,6 +21,9 @@ STYLE   := sn-jnl.cls sn-basic.bst
 else
 MAIN    := main
 STYLE   := $(wildcard Definitions/*)
+# the Supplementary Materials of the CMC manuscript: a PDF of its own (build/supplement.pdf),
+# built with the manuscript because the two read each other's labels (xr)
+SUPP    := supplement
 endif
 BUILD   := build
 # STRICT=1 stops on a number without a committed result; a draft prints it as ??, or as
@@ -43,12 +46,19 @@ all: pdf
 
 pdf: $(BUILD)/$(MAIN).pdf
 
-$(BUILD)/$(MAIN).pdf: $(SOURCES)
+$(BUILD)/$(MAIN).pdf: $(SOURCES) $(addsuffix .tex,$(SUPP))
 	@mkdir -p $(BUILD)
+	$(if $(SUPP),$(LATEX) -output-directory=$(BUILD) $(SUPP).tex > $(BUILD)/supp1.out || (tail -30 $(BUILD)/supp1.out; exit 1))
 	$(LATEX) -output-directory=$(BUILD) $(MAIN).tex > $(BUILD)/pass1.out || (tail -30 $(BUILD)/pass1.out; exit 1)
 	@if grep -q '\\citation' $(BUILD)/$(MAIN).aux; then bibtex $(BUILD)/$(MAIN) > $(BUILD)/bibtex.out || (cat $(BUILD)/bibtex.out; exit 1); fi
 	$(LATEX) -output-directory=$(BUILD) $(MAIN).tex > $(BUILD)/pass2.out || (tail -30 $(BUILD)/pass2.out; exit 1)
+	$(if $(SUPP),$(LATEX) -output-directory=$(BUILD) $(SUPP).tex > $(BUILD)/supp2.out || (tail -30 $(BUILD)/supp2.out; exit 1))
 	$(LATEX) -output-directory=$(BUILD) $(MAIN).tex > $(BUILD)/pass3.out || (tail -30 $(BUILD)/pass3.out; exit 1)
+	$(if $(SUPP),$(LATEX) -output-directory=$(BUILD) $(SUPP).tex > $(BUILD)/supp3.out || (tail -30 $(BUILD)/supp3.out; exit 1))
+	@if [ -n "$(SUPP)" ]; then \
+	   if grep -n -E "Warning: (Reference|Citation) .* undefined" $(BUILD)/$(SUPP).log; then \
+	     echo "STOP: undefined reference or number in the Supplementary Materials (lines above)"; exit 1; fi; \
+	   echo "Supplementary Materials: $$(grep -o 'Output written on .*' $(BUILD)/$(SUPP).log | grep -o '[0-9]* page')s, $(BUILD)/$(SUPP).pdf"; fi
 	@n=$$(grep -c "No committed number" $(BUILD)/$(MAIN).log); if [ "$$n" -gt 0 ]; then \
 	   if [ "$(STRICT)" = "1" ]; then grep -n "No committed number" $(BUILD)/$(MAIN).log; \
 	     echo "STOP: $$n numbers have no committed result"; exit 1; \

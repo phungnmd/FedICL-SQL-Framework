@@ -19,7 +19,7 @@ prompt $x$ contains $q$ and the schema of $d$ as \texttt{CREATE TABLE}
 statements. On Spider each statement is followed by up to three rows of
 its table, and on BIRD the prompt adds the external knowledge that the
 benchmark attaches to the question (Fig.~\ref{fig:prompt},
-Appendix~\ref{app:prompt}). The same prompt serves training, sampling and
+Section~\ref{sup:prompt} of the Supplementary Materials). The same prompt serves training, sampling and
 evaluation. Training runs for $T$ rounds, all $K$ clients participating
 in each. In round $t$, the server sends the global adapter
 $\theta^{t-1}$, client $k$ obtains $\theta_k^{t}$ by local training from
@@ -112,48 +112,9 @@ $N = {}$\setting{pref.samples} and $M = {}$\setting{pref.pairs}, with
 \setting{sft.epochs} local epoch per warm-up round and
 \setting{pref.epochs} per preference round.
 Tables~\ref{tab:settings} and~\ref{tab:settings-2} in
-Appendix~\ref{app:settings} list the remaining settings, and
+Section~\ref{sup:settings} of the Supplementary Materials list the remaining settings, and
 Section~\ref{sec:main} reports the resulting gain over FedAvg SFT
 (Table~\ref{tab:main}).
-
-\begin{algorithm}[t]
-\caption{\method}\label{alg:method}
-\begin{algorithmic}[1]
-\Require training sets $\{\mathcal{D}_k\}_{k=1}^{K}$, pretrained model,
-  $T$, $T_w$, $N$, $M$, $\beta$, $\lambda$
-\Ensure global adapter $\theta^{T}$
-\State initialize the adapter $\theta^{0}$
-\For{$t = 1, \dots, T$}
-  \State the server sends $\theta^{t-1}$ to all $K$ clients
-  \ForAll{clients $k = 1, \dots, K$ in parallel}
-    \If{$t \le T_w$} \Comment{warm-up round}
-      \State $\theta_k^{t} \gets$ local training from $\theta^{t-1}$ on
-        $\mathcal{D}_k$ with the loss of Eq.~\eqref{eq:sft}
-      \State upload $\theta_k^{t}$ and $n_k$
-    \Else \Comment{preference round}
-      \State sample $N$ queries from $\pi_{\theta^{t-1}}(\cdot \mid x)$
-        for each $(q, d, y^\star) \in \mathcal{D}_k$
-      \State label the samples by comparing $\mathrm{exec}(y, d)$
-        with $\mathrm{exec}(y^\star, d)$
-        (Section~\ref{sec:labeling})
-      \State $\mathcal{P}_k^{t} \gets$ $M$ pairs $(y^{+}, y^{-})$ for
-        each question that yields pairs (Section~\ref{sec:pairs})
-      \If{$\mathcal{P}_k^{t} \neq \emptyset$}
-        \Comment{otherwise no update, $w_k = 0$}
-        \State $\theta_k^{t} \gets$ local training from $\theta^{t-1}$
-          on $\mathcal{P}_k^{t}$ with the loss of Eq.~\eqref{eq:loss},
-          $\pi_{\mathrm{ref}} = \pi_{\theta^{t-1}}$
-        \State upload $\theta_k^{t}$ and $\lvert\mathcal{P}_k^{t}\rvert$
-      \EndIf
-    \EndIf
-  \EndFor
-  \State $\theta^{t} \gets \sum_{k=1}^{K} w_k \, \theta_k^{t}$, with
-    $w_k \propto n_k$ if $t \le T_w$ and
-    $w_k \propto \lvert\mathcal{P}_k^{t}\rvert$ otherwise
-\EndFor
-\State \Return $\theta^{T}$
-\end{algorithmic}
-\end{algorithm}
 
 \subsection{Supervised Warm-Up}\label{sec:warmup}
 

@@ -1,0 +1,13 @@
+\section{Incorrect predictions by round}\label{sup:errors}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics{figures/fig_errors_cmc.pdf}
+\caption{Incorrect predictions by round on \panel{a} BIRD dev and
+\panel{b} Spider test, split into incorrect results and execution
+errors. Round~0 is the pretrained model, and \method{} continues from
+FedAvg SFT after round~\setting{rounds.warmup}. An execution error is a
+prediction that fails to execute or reaches the time limit, or an
+incorrect output cut at the token limit.}
+\label{fig:errors}
+\end{figure}

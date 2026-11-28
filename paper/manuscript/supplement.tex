@@ -1,0 +1,70 @@
+%% FedExec-SQL, Supplementary Materials: wrapper for Computers, Materials & Continua
+%% (Tech Science Press class tsp.cls, TSP-Latex.zip of 2024-12-18, in Definitions/).
+%% The section bodies are in sections/ and use no command of this class.
+%% The file is built with the manuscript (make): the two read each other's labels through xr.
+\documentclass[cmc,article,submit,oneauthor,pdftex]{Definitions/tsp}
+\input{Definitions/package}
+\input{Definitions/unicode}
+
+%% Internal commands of the class, as its template sets them.
+\continuouspages{yes}
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{12345}
+\pubyear{2026}
+\copyrightyear{2026}
+\datereceived{Day Month Year}
+\dateaccepted{Day Month Year}
+\datepublished{Day Month Year}
+
+%% Packages the section bodies need beyond those the class loads.
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{catchfile}
+%% Scalable monospaced and sans serif fonts in the T1 encoding of the class (the prompt, the line numbers).
+\renewcommand{\ttdefault}{lmtt}
+\renewcommand{\sfdefault}{lmss}
+
+\input{macros}
+\input{generated/numbers}
+\input{generated/settings}
+
+%% What differs by journal in the section bodies.
+\newcommand{\panel}[1]{(\textbf{\MakeUppercase{#1}})}        % a panel of a figure, named in a caption
+\newcommand{\chart}[1]{\includegraphics{figures/#1_cmc.pdf}} % a result chart, lettered A, B
+\newcommand{\kwsep}{; }                                      % between two keywords
+
+\usepackage{xr-hyper}
+\externaldocument{build/main}
+
+\Title{Supplementary Materials: \method: A Federated Learning Framework for Text-to-SQL with Preference Optimization from Client-Side Execution}
+
+\Author{First Author\textsuperscript{1,*}}
+\AuthorNames{First Author}
+\address[1]{%
+\textsuperscript{1}Department, Organization, City, Postcode, Country
+}
+\corres{Corresponding Author: First Author. Email: first.author@example.org}
+
+\begin{document}
+
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thealgorithm}{S\arabic{algorithm}}
+\renewcommand{\theequation}{S\arabic{equation}}
+
+\input{sections/S1_prompt}
+\input{sections/S2_settings}
+\input{sections/S3_algorithm}
+\input{sections/S4_setups}
+\input{sections/S5_errors}
+\input{sections/S6_perturbed}
+
+\end{document}

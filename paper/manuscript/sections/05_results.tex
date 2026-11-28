@@ -90,18 +90,6 @@ Section~\ref{sec:ablation} gives the effect of each.
 
 \subsection{Analysis of the predictions}\label{sec:analysis}
 
-\begin{figure}[!t]
-\centering
-\includegraphics{figures/fig_errors_cmc.pdf}
-\caption{Incorrect predictions by round on \panel{a} BIRD dev and
-\panel{b} Spider test, split into incorrect results and execution
-errors. Round~0 is the pretrained model, and \method{} continues from
-FedAvg SFT after round~\setting{rounds.warmup}. An execution error is a
-prediction that fails to execute or reaches the time limit, or an
-incorrect output cut at the token limit.}
-\label{fig:errors}
-\end{figure}
-
 The gain over FedAvg SFT comes with about half as many execution errors,
 while incorrect results do not fall (Fig.~\ref{fig:errors}). An
 execution error is an incorrect prediction that fails to execute,
@@ -324,17 +312,6 @@ comparison in the three other partitions of Spider train
 (Section~\ref{sec:fed-setups}).
 
 \subsection{Perturbed questions}\label{sec:perturbed}
-
-\begin{table}[!ht]
-\caption{EX and TS (\%) on Spider dev and the three sets built from
-Spider, after \setting{rounds.total} rounds, for the models trained in
-the main Spider setup. TS uses the official suite of the Spider dev databases, and Spider-DK
-has none. The lower part gives $\Delta$ and $p$ of \method{} against FedAvg
-SFT and against \method{} without warm-up rounds, with $p$ and the asterisk
-as in Table~\ref{tab:main}.}\label{tab:robust}
-\footnotesize
-\input{generated/tab_robust}
-\end{table}
 
 On Spider dev and the three sets built from Spider, \method{} is above
 FedAvg SFT under EX and, where a suite exists, under TS, by
