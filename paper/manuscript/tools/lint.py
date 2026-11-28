@@ -42,7 +42,9 @@ JOURNALS = {
 WRAPPERS = {
     "jiis": ("main_jiis.tex", {"graphicx", "multirow", "amsmath", "amssymb", "amsfonts", "amsthm", "mathrsfs", "appendix", "xcolor",
                                "textcomp", "manyfoot", "booktabs", "algorithm", "algorithmicx", "algpseudocode", "listings"}),
-    "cmc": ("main.tex", {"algorithm", "algorithmicx", "algpseudocode", "listings", "catchfile"}),
+    # xr-hyper reads the labels of the Supplementary Materials while the paper is drafted; the flat source of
+    # make submit has to carry those numbers as text
+    "cmc": ("main.tex", {"algorithm", "algorithmicx", "algpseudocode", "listings", "catchfile", "xr-hyper"}),
 }
 NUMBER_MACROS = ("ex", "lvl", "nerr", "nwr", "ts", "gain", "gap", "pval", "padj", "errpval", "errpadj", "wrpval", "wrpadj", "nfix", "nbrk", "tsgain", "tsgap", "tspval", "tspadj", "fact", "setting",
                  "expect")  # \expect{value}: a guess for a number that waits, marked in the PDF (macros.tex)
