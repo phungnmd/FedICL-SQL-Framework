@@ -5,6 +5,45 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: the queue brought to the bar of CMC, seven lines parked
+
+- Decision (owner): the paper meets what CMC publishes, not a stricter
+  bar. The control (`sft_prefset`, `bird_sft_prefset`, running on GPU 0)
+  and every finished task stay as they are.
+- New file order after the control: `feddpo/round_2`; DeepSeek-Coder-1.3B
+  on Spider, the third model (`deepseek13b_sft` rounds 3 and 4,
+  `deepseek13b_k2/round_2`, `deepseek13b_dev/*`, `deepseek13b_var/*`);
+  `bird_central/sft`; `bird_local/client_1` to `client_5`; `iid_sft`,
+  `iid_k2`; `a05_sft`, `a05_k2`; last and optional `a05k10_sft`,
+  `a05k10_k2` (it runs only if a card is free, and its row leaves
+  Table 6 otherwise). About 80.5 GPU hours with the control (estimate).
+- Parked in `fedicl-sql/queues/parked.toml`, ready if a reviewer of the
+  journal asks: `bird_local_k2/*` (18 h), `bird_sft_s1/*` and
+  `bird_k2_s1/*` (28 h), `bird_nonll/round_2` (8 h), `bird_vote/*`
+  (2 h), `bird_wrfirst/*` (5 h), `rft/round_2` (3.5 h), `pooled_k2/*`
+  with `pooled_dev/*` (4 h); 68.5 h by the estimates of
+  `PIPELINE_NEXT.md`. No longer planned, on the same list: FedProx SFT,
+  `bird_k0` rounds 3 and 4, k = 3 on BIRD, DeepSeek-Coder-1.3B on BIRD,
+  `bird_k2/round_3` with `bird_sft/round_5`, the clients pooled on BIRD,
+  local SFT and FedProx on Spider.
+- Why: CMC language-model papers have three or more models and four to
+  five baselines, and its federated papers vary the number of clients or
+  alpha (`JOURNAL_BAR.md`, sections 2 and 3). One of its seven papers
+  reports seeds and none runs a significance test, so the second seed and
+  the extra controls go past what it asks.
+- How: `scripts/gpu_worker.py` and `scripts/curve.py` read
+  `queues/active.toml` alone, so the parked blocks moved to a second
+  file: no new key, no worker restart. Every task entry of the two files
+  equals that of queue `14992724`; no kept task needs a parked task or
+  reads a root only a parked task writes; the two files load together.
+  Queue tests: 65 passed, 6 skipped (the new skips are the checks of the
+  parked lines, which pass on a scratch copy with the blocks put back);
+  four order checks that held the old order were brought to the new one.
+- Open: `spider_sets_var/*` and `qwen05b_var/*` (queued 2026-11-23,
+  evaluations only, about 2 h, not committed, in no table) are in
+  neither list of the decision. They stay in the file after `a05k10`
+  until the owner places or parks them.
+
 ## 2026-11-28: the control at 3 rounds on BIRD dev: 43.16, level with FedAvg SFT; the method 3.06 above it (results `2ec3679e`)
 
 - `bird_sft_prefset/round_3`, FedAvg SFT round 3 from FedAvg SFT round 2
