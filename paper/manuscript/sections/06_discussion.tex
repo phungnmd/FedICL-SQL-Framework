@@ -12,9 +12,10 @@ third round on either benchmark, while from its model after
 further FedAvg SFT round, significantly so on Spider test
 (Section~\ref{sec:main}). One reading is that the gold SQL queries are
 exhausted as a training signal sooner than the executed queries of the
-model. The preference rounds also use a lower learning rate than the
-FedAvg SFT rounds, and the study has no FedAvg SFT run at that learning
-rate that would separate the two (Section~\ref{sec:limitations}).
+model. The preference rounds also use other optimizer settings than the
+FedAvg SFT rounds, among them a lower learning rate, and the study has
+no FedAvg SFT run at these settings that would separate the two
+(Section~\ref{sec:limitations}).
 
 The preference rounds reduce execution errors, not incorrect results
 (Section~\ref{sec:analysis}). The composition of the pairs does not
@@ -27,24 +28,24 @@ that does not exist in the schema or a malformed clause, whereas a query
 that returns another result can differ from it in its reading of the
 question.
 
-On BIRD dev, most of the reduction comes with the preference term.
-Without it, execution errors are more numerous after one preference
+The reduction comes largely with the preference term. Without it,
+execution errors are more numerous after one preference
 round on both benchmarks and after two on BIRD dev, where the variant
 ends with \nerr{bird}{rft}{4} against \nerr{bird}{fedavg}{4} for FedAvg
 SFT and \nerr{bird}{k2}{4} for \method{}
 (Section~\ref{sec:ablation}). The same variant divides the EX gain on
 BIRD dev: it is \gap{bird}{fedavg}{4}{rft}{4} points above FedAvg SFT,
-and \method{} is \gap{bird}{k2}{4}{rft}{4} points above it. The first
-figure covers both the training on the samples labeled correct and the
-settings of the preference rounds, which the study does not separate.
-The outcome of each question bounds what the reduction is worth. On BIRD
+and \method{} is \gap{bird}{k2}{4}{rft}{4} points above it. The
+difference of the variant from FedAvg SFT covers both the training on
+the samples labeled correct and the settings of the preference rounds,
+which the study does not separate. A removed execution error is not
+always a correct prediction. On BIRD
 dev, \fact{moved.bird.error.wrong} of the execution errors of FedAvg SFT
 return an incorrect result with \method{} and
 \fact{moved.bird.error.correct} become correct, and on Spider test
 \fact{moved.spider.error.wrong} and \fact{moved.spider.error.correct}.
 On both benchmarks, correct predictions rise by less than execution
-errors fall. Removing an execution error is not the same as answering
-the question correctly.
+errors fall.
 
 An execution label, like EX, is a match of results on one database, and
 the suites show what this costs when preference rounds start from the
@@ -56,11 +57,12 @@ above FedAvg SFT on all three, significantly on Spider-Syn
 (Section~\ref{sec:perturbed}). Preference rounds started from the
 pretrained model thus yield more predictions that match the gold result
 on the evaluation database and return another result on its content
-variants. The experiments do not show what in the warm-up rounds
-prevents this.
+variants. The experiments do not identify the cause of this
+difference.
 
 Renewing the pairs and the reference model raises EX significantly on
-BIRD dev and not on Spider test (Section~\ref{sec:ablation}). With two
+BIRD dev, and on Spider test the difference is not significant
+(Section~\ref{sec:ablation}). With two
 benchmarks and one renewal on each, the study cannot say on what this
 difference depends.
 
@@ -104,8 +106,9 @@ and \fact{cost.spider.k2.gpu_total} against
 (Section~\ref{sec:cost}). The models are compared at equal numbers of
 rounds, that is, at equal communication, and only on Spider does a
 comparison give the baseline more GPU time, through its fifth round. The
-preference rounds also use a lower learning rate and weight decay than
-the FedAvg SFT rounds (Section~\ref{sec:implementation}). No FedAvg SFT
+preference rounds also differ from the FedAvg SFT rounds in learning
+rate, weight decay, learning-rate warm-up and LoRA dropout
+(Appendix~\ref{app:settings}). No FedAvg SFT
 run uses these settings. The variant without the preference term shares
 them and is the only control for them, so the comparison of \method{}
 with that variant is free of this difference and the comparison with
@@ -118,7 +121,8 @@ clients are not studied. With \setting{rounds.pref} preference rounds,
 the pairs and the reference model are renewed once, and the ablation
 study does not separate the new pairs from the new reference model. The
 number of warm-up rounds is a setting, and the evidence for choosing it
-is limited to Spider: EX does not depend on it there, and TS favors
+is limited to Spider: EX does not differ significantly with it there,
+and TS favors
 warm-up rounds, significantly on one of three sets. The variant with
 pairs of the gold SQL query was run without warm-up rounds only.
 

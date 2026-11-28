@@ -19,7 +19,8 @@ fall. A preference round sends what a FedAvg SFT round sends and adds
 client computation for sampling, labeling and training. These results
 come from one training run per model, with models of at most
 \setting{model.size} parameters, and from comparisons at equal numbers
-of rounds (Section~\ref{sec:limitations}).
+of rounds in which the preference rounds and the FedAvg SFT rounds use
+different optimizer settings (Section~\ref{sec:limitations}).
 
 Three directions follow from the scope of the study: federations with
 partial participation and many clients, labels that are checked on
