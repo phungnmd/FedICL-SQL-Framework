@@ -37,7 +37,7 @@ on the wording of a draft are not kept here.
 ## 4. What the section carries for other sections
 
 - How a query is read from the output of the model and how execution results are compared is in Section 4, to which this section points.
-- The time limit, the adapter configuration, the settings of local training and the replacement rule of pairing are in Appendix B.
+- The mechanics of the time limit of the labeling step (BIRD: one budget for the sample and the gold SQL query; Spider: one limit per query; part 1) are told in Section 4, to which Section 3.5 points. The values of the time limit, the adapter configuration and the settings of local training are in Appendix B.
 - That a client must be able to execute SQL on its databases is said in Section 6 if not here.
 
 ## 5. Labels, floats and formulas
