@@ -4,6 +4,59 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: `bird_rft/round_2` and `bird_feddpo` rounds 1 and 2 read on BIRD dev: at 4 rounds the method is 3.52 above RFT and 3.26 above FedDPO; without the NLL term the round still rises on BIRD (results `5bcbbb61`, `7dc8e9c3`, `9fa059ac`, `42ad870d`, `a1545568`, `15f9df7d`)
+
+Read on the Mac from the committed predictions: exact McNemar, levels by
+the official difficulty of `dev.json`, execution errors as the
+`exec_error` field of the predictions (the `exec_errors` of the metrics).
+
+| Row (total rounds) | EX | simple / moderate / challenging | exec errors | wrong results | cut at 256 tokens |
+|---|---|---|---|---|---|
+| FedAvg SFT (4) | 42.57 | 51.35 / 29.96 / 26.90 | 268 | 613 | 1 |
+| method, k = 2 (3) | 46.22 | 53.08 / 36.85 / 32.41 | 102 | 723 | 11 |
+| FedDPO (3) | 44.98 | 52.11 / 35.34 / 30.34 | 133 | 711 | 19 |
+| RFT (3) | 44.39 | 51.78 / 34.70 / 28.28 | 248 | 605 | 1 |
+| method, k = 2 (4) | 48.76 | 56.00 / 39.66 / 31.72 | 128 | 658 | 12 |
+| fixed pairs, NLL kept (4) | 46.15 | 53.51 / 36.64 / 29.66 | 90 | 736 | 12 |
+| FedDPO (4) | 45.50 | 52.54 / 35.99 / 31.03 | 138 | 698 | 30 |
+| RFT (4) | 45.24 | 52.11 / 36.64 / 28.97 | 228 | 612 | 3 |
+
+- FedDPO, the published baseline (no NLL, round 1's pairs and
+  reference, from FedAvg SFT round 2 on the pairs of `bird_k2` round 1):
+  the method is 1.24 above it at 3 rounds (94 questions against 75,
+  p 0.17) and 3.26 above at 4 rounds (109 against 59, p 0.00014; simple
+  61 against 29, p 0.00097; moderate 37 against 20, p 0.033; challenging
+  11 against 10). FedDPO's second round adds 0.52 (p 0.52), the
+  method's 2.54. FedDPO is 2.93 above FedAvg SFT at 4 rounds (157
+  against 112, p 0.0072).
+- The NLL term on BIRD: at 3 rounds, same start and same pairs, without
+  it 1.24 lower (p 0.17) and still 2.28 above its start (165 against
+  130, p 0.048); on Spider the same round fell below its start (73.59
+  against 74.10). With round 1's pairs at 4 rounds, the term adds 0.65
+  (46.15 against 45.50, p 0.47). Without it there are more execution
+  errors at 3 rounds (133 against 102; 92 questions against 61, p 0.015)
+  and more outputs cut at 256 tokens (19 and 30 against 11 and 12; 36 of
+  the 49 are three or more nested SELECTs left open). B3 stays a Spider claim;
+  on BIRD the term is not separated in EX.
+- RFT at 4 rounds (samples drawn again from RFT round 1): 0.85 above
+  its round 1 (p 0.14); the method is 3.52 above it (114 against 60,
+  p 5.2e-05; simple 69 against 33, p 0.00047; moderate 35 against 21,
+  p 0.081). Execution errors 228 against 128 (138 questions against 38,
+  p 1.6e-14); wrong results 612 against 658, more with the method (137
+  against 91, p 0.0028). RFT is 2.67 above FedAvg SFT at 4 rounds
+  (p 0.00091). At 4 rounds B4 holds on EX as well, not only in the
+  error counts.
+- FedDPO and RFT at 4 rounds are level (45.50 against 45.24, p 0.85),
+  and both are level with the fixed-pair line (p 0.47, 0.35).
+- Opened by the condition of `PIPELINE_NEXT.md`: round 1 of FedDPO did
+  not fall below its start, so the on-policy round 2 without the NLL
+  term (the clean "no NLL term" cell of Table 4 at 4 rounds) is open;
+  queuing it is the owner's choice.
+- Measured times, against the queue's estimates: `bird_rft/round_2`
+  about 8.1 h (sampling 27 min, labels 2 h 42 min, training 4 h 59 min;
+  estimate 6 h); `bird_feddpo`, two training rounds of about 4 h 45 min
+  each (estimate 8 h for both with the evaluations).
+
 ## 2026-11-28: Section 1, a third round of notes for the redrawn Fig. 1 and the voice (owner; the commit of this entry)
 
 - Caption of Fig. 1 written again for the new example (BIRD
