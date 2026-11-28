@@ -4,6 +4,43 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: `bird_nonll` queued; claims A6, B3, B4 follow the BIRD rows; test-suite accuracy of FedDPO and RFT (owner; code `c52e37ff`, results `8a582a64`)
+
+- Queued (owner): `bird_nonll/round_2`, round 2 of `bird_k2` with NLL
+  weight 0, continuing `bird_feddpo/round_1` (`--continue-from`, not
+  trained again), on-policy, after the Spider round 2 rows and before
+  `pooled_k2`. Its setup equals that of `bird_k2` and `bird_feddpo`
+  (test in `tests/test_active_queue.py`, which also checks that the
+  command differs from `bird_k2/round_2` only in the root, the NLL
+  weight and the continuation); the prompt is that setup's, so none was
+  printed again. Full suite 626 passed.
+- Test-suite accuracy on the generated BIRD dev suite (CPU on the Mac,
+  `audits/protocol_v2/test_suite/qwen15b_bird_dev_feddpo_rft4`): FedDPO
+  38.92 at 3 rounds and 37.61 at 4, RFT 38.20 at 4. At 3 rounds the
+  method without the NLL term is level with it under the suite (-0.13,
+  p 0.94; -1.24 under EX). At 4 rounds the method is 3.98 above FedDPO
+  (121 questions against 60, p 6.8e-06) and 3.39 above RFT (p 9.0e-05).
+  FedDPO is 2.93 above FedAvg SFT under EX and 0.91 under the suite
+  (p 0.42): 121 of its EX-correct predictions fail the suite, against
+  110 for the method and 90 for FedAvg SFT; its second round lowers it
+  by 1.30 under the suite (p 0.08).
+- Generator: the three rows and `nonll` enter `overview_results.py`;
+  Table 4 has a "No NLL term" row in the block of 4 rounds (BIRD only,
+  `--` until the row is in); text tests for FedDPO under EX and under
+  the suite. Holm families now: Table 3 6, Table 4 20, text 33. The
+  paper's counts take a cut output as an execution error, so FedDPO at
+  4 rounds has 139 and 697 there (138 and 698 in the entry below).
+- `CLAIMS.md` (owner's request): A6 filled for FedDPO on BIRD, with
+  the baseline named by its pairs and its test-suite level beside its
+  EX gain over FedAvg SFT; B3 becomes "needed on Spider, not separated
+  on BIRD"; B4 holds on EX at 4 rounds on BIRD; contribution 3 adds the
+  gain over FedDPO. Recorded in `REVIEW_NOTES.md` (A45, C52).
+- Sections 1 and 3 read against the new rows. Section 1 needs two
+  notes (the FedDPO comparison in the results paragraph, contribution 3
+  and the abstract), written in `briefs/01_notes_editor.md` and not
+  sent: the writer is named by the owner. Section 3 needs none; its
+  checks file follows B3 and B4.
+
 ## 2026-11-28: `bird_rft/round_2` and `bird_feddpo` rounds 1 and 2 read on BIRD dev: at 4 rounds the method is 3.52 above RFT and 3.26 above FedDPO; without the NLL term the round still rises on BIRD (results `5bcbbb61`, `7dc8e9c3`, `9fa059ac`, `42ad870d`, `a1545568`, `15f9df7d`)
 
 Read on the Mac from the committed predictions: exact McNemar, levels by

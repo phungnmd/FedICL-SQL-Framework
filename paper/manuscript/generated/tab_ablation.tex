@@ -14,7 +14,8 @@ FedAvg SFT, 2 rounds & 42.70 &  &  & 36.11 &  &  & 74.10 &  &  \\
 \method & 48.76 &  &  & 41.59 &  &  & 78.20 &  &  \\
 FedAvg SFT & 42.57 & $-$6.19 & $4.6\times10^{-11}$\textsuperscript{*} & 36.70 & $-$4.89 & $4.2\times10^{-8}$\textsuperscript{*} & 74.71 & $-$3.49 & $6.4\times10^{-7}$\textsuperscript{*} \\
 Fixed pairs and reference & 46.15 & $-$2.61 & $5.7\times10^{-4}$\textsuperscript{*} & 39.05 & $-$2.54 & $6.2\times10^{-4}$\textsuperscript{*} & 78.02 & $-$0.18 & 0.78 \\
-No preference term & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+No NLL term & -- & -- & -- & -- & -- & -- &  &  &  \\
+No preference term & 45.24 & $-$3.52 & $5.2\times10^{-5}$\textsuperscript{*} & 38.20 & $-$3.39 & $9.0\times10^{-5}$\textsuperscript{*} & -- & -- & -- \\
 No warm-up round & -- & -- & -- & -- & -- & -- & 78.02 & $-$0.18 & 0.85 \\
 Three warm-up rounds & -- & -- & -- & -- & -- & -- & 77.97 & $-$0.23 & 0.74 \\
 Clients pooled &  &  &  &  &  &  & -- & -- & -- \\
@@ -22,7 +23,7 @@ Clients pooled &  &  &  &  &  &  & -- & -- & -- \\
 \multicolumn{10}{@{}l}{\textit{3 rounds}} \\
 \midrule
 \method & 46.22 &  &  & 39.05 &  &  & 77.46 &  &  \\
-No NLL term & -- & -- & -- & -- & -- & -- & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\
+No NLL term & 44.98 & $-$1.24 & 0.17 & 38.92 & $-$0.13 & 0.94 & 73.59 & $-$3.87 & $7.6\times10^{-9}$\textsuperscript{*} \\
 No preference term & 44.39 & $-$1.83 & 0.057 & 37.35 & $-$1.70 & 0.062 & 75.87 & $-$1.59 & 0.015 \\
 Averaged by questions & 46.22 & +0.00 & 1.00 & 39.31 & +0.26 & 0.48 & 77.78 & +0.32 & 0.26 \\
 Averaged equally & 46.02 & $-$0.20 & 0.79 & 38.92 & $-$0.13 & 0.89 & 76.94 & $-$0.52 & 0.09 \\

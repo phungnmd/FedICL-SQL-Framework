@@ -73,6 +73,13 @@ ARMS = {
     "fedpref_bird_sftr2_p2_fixed_dpo_ddl_a01_r2": ("fixed", 4),
     # NLL on the correct samples alone, round 1 from FedAvg SFT round 2 (the preference-term ablation)
     "fedpref_bird_sftr2_p2_rft_ddl_a01_r1": ("rft", 3),
+    "fedpref_bird_sftr2_p2_rft_ddl_a01_r2": ("rft", 4),
+    # federated DPO as published from FedAvg SFT round 2 (no NLL, round 1's pairs and reference);
+    # its round 1 is also the method without the NLL term
+    "fedpref_bird_sftr2_p2_feddpo_dpo_ddl_a01_r1": ("feddpo", 3),
+    "fedpref_bird_sftr2_p2_feddpo_dpo_ddl_a01_r2": ("feddpo", 4),
+    # the method without the NLL term at 4 rounds: on-policy round 2 from bird_feddpo round 1
+    "fedpref_bird_sftr2_p2_nonll_dpo_ddl_a01_r2": ("nonll", 4),
     "fedavg_ddl_rows_a01_r5": ("fedavg", 5),
     # strict labels on 10 database variants: databases with rows only (strict), and with the
     # databases without rows paired under the rule `differs` (strictd)
@@ -169,6 +176,12 @@ TESTS = [
     ("bird", "feddpo", 3, "k2", 3),
     ("bird", "feddpo", 4, "k2", 4),
     ("bird", "rft", 4, "k2", 4),
+    ("bird", "nonll", 4, "k2", 4),
+    ("bird", "fedavg", 2, "feddpo", 3),
+    ("bird", "feddpo", 3, "feddpo", 4),
+    ("bird", "feddpo", 4, "fixed", 4),
+    ("bird", "fedavg", 4, "feddpo", 4),
+    ("bird", "rft", 3, "rft", 4),
     ("bird", "central", 3, "k2", 4),
     ("spider", "feddpo", 4, "k2", 4),
     ("spider", "rft", 4, "k2", 4),
@@ -363,7 +376,7 @@ def build() -> dict:
                 t = test(rows_of, ts_of, (ds, model, seed, la, ra), (ds, model, seed, lb, rb))
                 if t:
                     tests.append(t)
-    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k0fixed", "k1", "k2", "k3", "k4", "k6", "pooled", "fixed", "feddpo", "rft",
+    order = {k: i for i, k in enumerate(["base", "fedavg", "k0", "k0gold", "k0goldnll", "k0fixed", "k1", "k2", "k3", "k4", "k6", "pooled", "fixed", "feddpo", "nonll", "rft",
                                           "nearest", "goldchosen", "wrfirst", "strict", "strictd", "reaggq", "reagge", "central"])}
     runs.sort(key=lambda x: (x["ds"], x["model"], order.get(x["line"], 99), x["r"], x["seed"]))
     return {"runs": runs, "tests": tests}

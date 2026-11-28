@@ -115,3 +115,11 @@ the clients were labeled at client k; the parenthesis on theta^{t-1}
 read twice. Both carried out: the arrows are "labeled once at client
 k", and the arrow labels, theta^{t-1} as the model and reference, and
 N and the two terms stand in three short sentences.
+
+## Draft against the results of 2026-11-28 (no note)
+
+FedDPO on BIRD dev at 3 and 4 rounds and RFT at 4 rounds read against
+the section: it reports no result, and its statements on FedDPO (design
+as published) and on the NLL term (a property of its definition, with a
+pointer to Table 4) stay true. The evidence cell of the checks file
+follows B3 and B4.

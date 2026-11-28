@@ -70,6 +70,17 @@ TEXT_TESTS = [
     ("bird", MAIN, "central", EPOCHS, "k2", 4),   # the method against centralized SFT (A5)
     ("spider", MAIN, "central", EPOCHS, "k2", 4),
     ("bird", MAIN, "k0", 1, "k0gold", 1),      # gold SQL as the correct side for questions without a correct sample
+    ("bird", MAIN, "fedavg", 2, "feddpo", 3),  # the round without the NLL term against its start (B3)
+    ("bird", MAIN, "feddpo", 4, "fixed", 4),   # the NLL term on round 1's pairs at 4 rounds (B3)
+    ("bird", MAIN, "feddpo", 3, "feddpo", 4),  # the second round of FedDPO (A6)
+    ("bird", MAIN, "fedavg", ROUNDS, "feddpo", ROUNDS),  # FedDPO against FedAvg SFT (A6)
+    ("bird", MAIN, "feddpo", ROUNDS, "k2", ROUNDS),      # the method against FedDPO (A6)
+]
+# Text comparisons also quoted under test-suite accuracy (BIRD dev; their tests join the family of
+# the text): FedDPO, which Table 3 prints under EX only (A6).
+TEXT_TS_TESTS = [
+    ("bird", MAIN, "feddpo", ROUNDS, "k2", ROUNDS),
+    ("bird", MAIN, "fedavg", ROUNDS, "feddpo", ROUNDS),
 ]
 # Comparisons of the kinds of incorrect prediction of two rows, quoted in the text: the same exact
 # test on whether the prediction of a question ends in an execution error, and on whether it is
@@ -77,6 +88,8 @@ TEXT_TESTS = [
 ERR_TESTS = [
     ("bird", MAIN, "k2", 3, "rft", 3),      # the row without the preference term against the method
     ("spider", MAIN, "k2", 3, "rft", 3),
+    ("bird", MAIN, "k2", ROUNDS, "rft", ROUNDS),      # the same at 4 rounds (B4)
+    ("bird", MAIN, "k2", 3, "feddpo", 3),     # the row without the NLL term against the method (B3)
     ("bird", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),   # the method against FedAvg SFT
     ("spider", MAIN, "fedavg", ROUNDS, "k2", ROUNDS),
 ]
@@ -451,6 +464,7 @@ def table_ablation(d: Data) -> str:
             ("\\method", "k2", None),
             ("FedAvg SFT", "fedavg", None),
             ("Fixed pairs and reference", "fixed", None),
+            ("No NLL term", "nonll", ("bird",)),
             ("No preference term", "rft", None),
             ("No warm-up round", "k0", None),
             ("Three warm-up rounds", "k3", None),
@@ -1061,6 +1075,8 @@ def main() -> None:
         a, b = (ds, model, 0, la, ra), (ds, model, 0, lb, rb)
         d.run(a, "text"), d.run(b, "text")
         d.test(a, b, "text")
+    for ds, model, la, ra, lb, rb in TEXT_TS_TESTS:
+        d.test((ds, model, 0, la, ra), (ds, model, 0, lb, rb), "text:ts")
     for ds, model, la, ra, lb, rb in ERR_TESTS:
         d.err_test((ds, model, 0, la, ra), (ds, model, 0, lb, rb))
     curves(d)

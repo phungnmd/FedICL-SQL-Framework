@@ -167,3 +167,17 @@ pointer; the abstract names FedDPO alone; "every preference round";
 Draft 4: build passes; lint no stop; no overlap; 7% of the section and
 12% of the abstract in runs of the brief. Register: 1,007 words; 29.5
 words per sentence (reference 26.3); 46% "we" sentences (43.6).
+
+## Draft 4 against the results of 2026-11-28 (notes not sent; the owner names the writer)
+
+FedDPO is committed on BIRD dev at 3 and 4 rounds, RFT at 4 rounds
+(`CLAIMS.md`, A6, B3, B4 as updated). Paragraph 3 sets up FedDPO as the
+second limitation, and the results paragraph answers only the first.
+
+| # | Place | The note | Source |
+|---|---|---|---|
+| 1 | Paragraph of results, contribution 3 | The comparison with FedDPO at 4 rounds on BIRD dev, under EX and test-suite accuracy, with the baseline named as FedDPO's training on the method's own first execution-labeled pairs; Spider prints `??` until its row is in. Not quoted at 3 rounds | A6 |
+| 2 | Abstract | The same comparison in one clause beside the FedAvg SFT numbers, BIRD dev (CMC allows 200 to 400 words; the abstract has about 250) | A6 |
+
+Nothing else of the section changes with these rows: it names no
+result of the NLL term or of the preference term.
