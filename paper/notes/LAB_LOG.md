@@ -5,6 +5,29 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: the control at 3 rounds on Spider test: 75.45, the method 2.01 above it (results `472fe7bd`, `1d85aa58`)
+
+- `sft_prefset/round_3`, FedAvg SFT round 3 from FedAvg SFT round 2 at
+  the settings of the DPO + NLL rounds (learning rate 5e-5, weight decay
+  1e-4, warm-up 0.1, LoRA dropout 0): 75.45 on Spider test.
+- Against FedAvg SFT round 3 (74.71): 0.74 above, 51 questions against
+  35, p 0.11. Against its start, FedAvg SFT round 2 (74.10): 1.35 above,
+  75 against 46, p 0.011 (round 3 at the SFT recipe: +0.61, p 0.25).
+- The method at 3 rounds (77.46) is 2.01 above the control, 126
+  questions against 83, p 0.0036 (2.75 above FedAvg SFT). RFT round 1
+  (75.87) is 0.42 above the control, 68 against 59, p 0.48.
+- Errors: the control 177 execution errors and 350 wrong results,
+  FedAvg SFT round 3 164 and 379, the method 99 and 385; 68 of the 126
+  answers the method fixes over the control were execution errors.
+- Reading: on Spider at 3 rounds the settings give 0.74 of the 2.75 over
+  FedAvg SFT, not separated, and the method stays separated above the
+  control. RFT is level with the control: its 1.16 over FedAvg SFT is
+  within what the settings give.
+- `bird_sft_prefset/round_3` is trained (its row is in `472fe7bd`); its
+  BIRD dev evaluation is next, then round 4 of both. Peak reserved
+  20,363 MB (Spider, client 3) and 20,284 MB (BIRD, client 5), as the
+  FedAvg SFT rounds.
+
 ## 2026-11-28: the method run by each BIRD client alone queued, right after local SFT (`bird_local_k2`)
 
 - Why: the kept reviewer and both fresh reads of the full draft read the
