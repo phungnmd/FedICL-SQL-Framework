@@ -654,6 +654,20 @@ What is common to them:
 - Decoding is greedy or near greedy; none states a repetition penalty.
 - LoRA SFT at this size: lr 2e-4, 3 epochs (SPFT-SQL, the same student).
 
+SFT baseline against a preference stage (checked 2026-11-28 in the full
+text of each; the end of SPFT-SQL's appendix by summary only):
+
+| Paper | SFT baseline | Preference stage | SFT at the method's settings or extra compute | Headline gain against |
+|---|---|---|---|---|
+| CodeLutra ([html v3](https://arxiv.org/html/2411.05199v3)) | App. A.6: 1 epoch, lr 5e-5, batch 16, weight decay 1e-4, LoRA r 8, on the gold solutions | Table 4: the same lr, epochs, batch, weight decay and rank, 4 iterations | neither; Sec. 5.3 iterates the SFT loss on positive samples (figure only) | the base model (abstract); SFT in Sec. 5.2 ("16.9%", Table 1 gives 8.7) |
+| ExCoT ([html](https://arxiv.org/html/2503.19988)) | Sec. 4.1: lr 1e-5, 2 epochs, batch 128 | lr 1e-6, 2 epochs a round, batch 64, 3 rounds | neither | the pre-SFT base (abstract); the CoT SFT row it starts from (58.14, Sec. 4.2), not its best SFT row (62.03) |
+| IRPO ([html](https://arxiv.org/html/2404.19733)) | settings not stated; SFT on gold CoT, SFT on chosen samples | lr 7e-7, batch 16, AdamW | neither; STaR on twice the data | zero-shot (abstract) |
+| SPFT-SQL ([html v2](https://arxiv.org/html/2509.03937v2)) | App. A.4: lr 2e-4, 3 epochs, batch 64 | settings not stated | neither | the SFT row |
+
+None of the four reports an SFT row at the preference stage's settings
+next to a method that changes them, or SFT trained for the method's
+extra stage; CodeLutra avoids the first by using one recipe for both.
+
 ### 1.20 Counterexamples for local preference labels (2026-11-18)
 
 Two SQL queries can return the same rows by accident. Zhong, Yu and Klein
