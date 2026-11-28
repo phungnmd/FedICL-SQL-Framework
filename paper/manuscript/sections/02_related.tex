@@ -35,7 +35,10 @@ question from the SFT model, pair a correct with an incorrect sample and
 train with DPO alone for eight epochs against the SFT model as
 reference. With SQL-only outputs, this lowers BIRD dev EX under greedy
 decoding and majority voting for 6 of their 10 models, and with
-synthesized chains of thought it raises EX for all ten. ExCoT~\cite{zhai2025excot} continues
+synthesized chains of thought it raises EX for all ten.
+ExeSQL~\cite{zhang2025exesql} adapts a model to another SQL dialect with
+preference pairs of queries that execute and queries that fail in that
+dialect. ExCoT~\cite{zhai2025excot} continues
 DPO in on-policy rounds on new samples of the model, labeled again by
 execution, and rejection sampling fine-tuning~\cite{yuan2023rft} trains
 on the correct outputs of the model without a preference term.
