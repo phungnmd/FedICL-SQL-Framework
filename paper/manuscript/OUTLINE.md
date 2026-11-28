@@ -248,12 +248,14 @@ counts.
   A1 the gain at four rounds; A2 FedAvg SFT stops improving after
   round 3, tested in Table S4; A3 the gain by difficulty level; A4 one
   preference round against one more SFT round, two sentences; A5
-  centralized SFT; A6 FedDPO (and local SFT on BIRD when its rows are
+  above centralized SFT on Spider test, a headline claim in its own
+  sentence, tested in the note row of Table 3 (owner, 2026-11-28, third revision); A6 FedDPO (and local SFT on BIRD when its rows are
   in); C4 in one sentence, with FedDPO beside it (Table S5).
 - 5.2 Analysis of the predictions (`sec:analysis`; Fig. 4). C1
   execution errors halve and C2 incorrect results do not fall, as
   counts; C5 in one sentence; C6 the change at every client, three
-  sentences with Table S7 (owner, 2026-11-28); C3 in two sentences, with the counts
+  sentences with Table S7 (owner, 2026-11-28); C7 what execution can
+  label differs by client, two sentences (owner, 2026-11-28, third revision); C3 in two sentences, with the counts
   under EX and under the suite, the detail in S6.4 and Table S6.
 - 5.3 Ablation study (`sec:ablation`; Table 4). EX on both datasets,
   each row tested against the method; TS of the BIRD rows in Table S5.
@@ -261,7 +263,9 @@ counts.
   rounds, at 3 and 4 rounds. Then B1 pairs and reference renewed each
   round, B2 the second preference round (Table S4), B4 the preference
   term, B3 the NLL term, B6 in one sentence. B5 is read in 5.4 from
-  Table 7. B7 and B8 are not in the paper.
+  Table 7. B7, clients pooled, is a row of Table 4 on Spider (waits),
+  with one sentence that says what it is (owner, 2026-11-28, third revision); B8 is not in the
+  paper.
 - 5.4 Other models, federated setups and perturbed questions
   (`sec:breadth`; Tables 5, 6, 7). D1 the 0.5B model and D2
   DeepSeek-Coder, on Spider test only (Table 5); D3 IID and alpha 0.5
@@ -309,15 +313,16 @@ table. These carry no argument and are assembled by the main session.
 | 3 | E1 (in kind); decision 9 of `CLAIMS.md`, section 7 | Fig. 2, Algorithm 1 | the method as built; settings from `generated/settings.tex`; the counts of 3.2 and 3.4 from the round records |
 | 4 | none | Table 2; Appendix A, B | datasets, models, baselines, settings |
 | 5.1 | A1 to A6, C4 | Table 3, Fig. 3; Tables S4, S5 | results and paired tests |
-| 5.2 | C1, C2, C3, C5, C6 | Fig. 4; Tables S6, S7 | error counts, form of the answers, label statistics per client |
-| 5.3 | B1 to B4, B6, B9 | Table 4; Tables S4, S5 | results and paired tests |
+| 5.2 | C1, C2, C3, C5, C6, C7 | Fig. 4; Tables S6, S7 | error counts, form of the answers, label statistics per client |
+| 5.3 | B1 to B4, B6, B7, B9 | Table 4; Tables S4, S5 | results and paired tests |
 | 5.4 | D1 to D4, B5 | Tables 5, 6, 7 | results and paired tests |
 | 5.5 | E1, E2 | Table 8 | measured times |
 | 6 | scope items 1 to 3 | none | interpretation |
 
 Evidence that waits on the GPU, written with its macro and printed as a
 placeholder: A5 on BIRD (centralized SFT), local SFT on BIRD, FedDPO on
-Spider (Tables 3 and 4), the control at 4 rounds (Table 4, and its TS
+Spider (Tables 3 and 4), clients pooled on Spider (B7, Table 4), the
+control at 4 rounds (Table 4, and its TS
 in Table S5), D2, D3 (the rows of `generated/missing.txt`, 2026-11-28).
 Figs. 1 and 2 wait for the owner's decision on the images.
 

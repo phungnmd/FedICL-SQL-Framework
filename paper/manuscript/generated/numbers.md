@@ -384,7 +384,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 6, Table 4 14, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 7, Table 4 14, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -447,7 +447,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{4}{base}{0}` | -13.10 | Table 3, BIRD dev |
 | `\gap{bird}{fedavg}{4}{base}{0}` | 13.10 | Table 3, BIRD dev |
 | `\pval{bird}{fedavg}{4}{base}{0}` | 1.2e-27 | Table 3, BIRD dev |
-| `\padj{bird}{fedavg}{4}{base}{0}` | 7.2e-27 | Table 3, BIRD dev |
+| `\padj{bird}{fedavg}{4}{base}{0}` | 8.4e-27 | Table 3, BIRD dev |
 | `\nfix{bird}{fedavg}{4}{base}{0}` | 78 | Table 3, BIRD dev |
 | `\nbrk{bird}{fedavg}{4}{base}{0}` | 279 | Table 3, BIRD dev |
 | `\tsgain{bird}{fedavg}{4}{base}{0}` | -12.25 | Table 3, BIRD dev |
@@ -463,7 +463,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{4}{k2}{4}` | +6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{fedavg}{4}{k2}{4}` | 6.19 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{fedavg}{4}{k2}{4}` | 4.6e-11 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{fedavg}{4}{k2}{4}` | 1.8e-10 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{fedavg}{4}{k2}{4}` | 2.3e-10 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{fedavg}{4}{k2}{4}` | 153 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{fedavg}{4}{k2}{4}` | 58 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{fedavg}{4}{k2}{4}` | +4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 6; Table S4, BIRD dev; Table S5, BIRD dev |
@@ -590,10 +590,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj[qwen05]{spider}{fedavg}{4}{k2}{4}` | 0.0056 | Table 5 |
 | `\nfix[qwen05]{spider}{fedavg}{4}{k2}{4}` | 149 | Table 5 |
 | `\nbrk[qwen05]{spider}{fedavg}{4}{k2}{4}` | 104 | Table 5 |
-| `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
-| `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
-| `\nfix{spider}{central}{3}{k2}{4}` | 161 | text |
-| `\nbrk{spider}{central}{3}{k2}{4}` | 93 | text |
+| `\gain{spider}{central}{3}{k2}{4}` | +3.17 | Table 3, Spider test |
+| `\gap{spider}{central}{3}{k2}{4}` | 3.17 | Table 3, Spider test |
+| `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | Table 3, Spider test |
+| `\padj{spider}{central}{3}{k2}{4}` | 7.1e-5 | Table 3, Spider test |
+| `\nfix{spider}{central}{3}{k2}{4}` | 161 | Table 3, Spider test |
+| `\nbrk{spider}{central}{3}{k2}{4}` | 93 | Table 3, Spider test |
 | `\gain{spider}{fedavg}{1}{k2}{4}` | +5.77 | Table S4, Spider test |
 | `\gap{spider}{fedavg}{1}{k2}{4}` | 5.77 | Table S4, Spider test |
 | `\pval{spider}{fedavg}{1}{k2}{4}` | 1.9e-14 | Table S4, Spider test |
@@ -633,7 +635,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{4}{base}{0}` | -6.66 | Table 3, Spider test |
 | `\gap{spider}{fedavg}{4}{base}{0}` | 6.66 | Table 3, Spider test |
 | `\pval{spider}{fedavg}{4}{base}{0}` | 1.4e-15 | Table 3, Spider test |
-| `\padj{spider}{fedavg}{4}{base}{0}` | 7.1e-15 | Table 3, Spider test |
+| `\padj{spider}{fedavg}{4}{base}{0}` | 8.6e-15 | Table 3, Spider test |
 | `\nfix{spider}{fedavg}{4}{base}{0}` | 92 | Table 3, Spider test |
 | `\nbrk{spider}{fedavg}{4}{base}{0}` | 235 | Table 3, Spider test |
 | `\gain{spider}{fedavg}{4}{central}{3}` | +0.32 | Table 3, Spider test |
@@ -645,7 +647,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
-| `\padj{spider}{fedavg}{4}{k2}{4}` | 1.9e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\padj{spider}{fedavg}{4}{k2}{4}` | 2.6e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | Table S4, Spider test |
@@ -741,20 +743,72 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 | Macro | Value | Source |
 |---|---|---|
+| `\fact{clients.bird.1.mixed}` | 1{,}363 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.1.mixed_no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.1.no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.1.paired}` | 1{,}363 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.1.questions}` | 2{,}011 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.2.mixed}` | 961 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.2.mixed_no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.2.no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.2.paired}` | 961 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.2.questions}` | 1{,}595 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.3.mixed}` | 1{,}379 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.3.mixed_no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.3.no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.3.paired}` | 1{,}379 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.3.questions}` | 2{,}080 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.4.mixed}` | 391 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.4.mixed_no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.4.no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.4.paired}` | 391 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.4.questions}` | 683 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.5.mixed}` | 1{,}783 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.5.mixed_no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.5.no_rows}` | 0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.5.paired}` | 1{,}783 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
+| `\fact{clients.bird.5.questions}` | 3{,}059 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
 | `\fact{clients.bird.correct_gain_max}` | 22.9 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.correct_gain_min}` | 18.0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.error_fall_max}` | 29.4 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.error_fall_min}` | 23.5 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.n}` | 5 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.no_rows_none}` | 5 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1 |
 | `\fact{clients.bird.rft.correct_gain_max}` | 9.9 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.rft.correct_gain_min}` | 8.8 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.rft.error_fall_max}` | 12.2 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.bird.rft.error_fall_min}` | 9.7 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.1.mixed}` | 457 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.1.mixed_no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.1.no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.1.paired}` | 457 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.1.questions}` | 895 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.2.mixed}` | 821 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.2.mixed_no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.2.no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.2.paired}` | 821 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.2.questions}` | 1{,}542 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.3.mixed}` | 1{,}205 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.3.mixed_no_rows}` | 81 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.3.no_rows}` | 111 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.3.paired}` | 1{,}124 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.3.questions}` | 2{,}009 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.4.mixed}` | 2{,}276 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.4.mixed_no_rows}` | 1{,}098 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.4.no_rows}` | 1{,}648 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.4.paired}` | 1{,}178 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.4.questions}` | 3{,}479 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.5.mixed}` | 433 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.5.mixed_no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.5.no_rows}` | 0 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.5.paired}` | 433 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
+| `\fact{clients.spider.5.questions}` | 734 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
 | `\fact{clients.spider.correct_gain_max}` | 13.8 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.spider.correct_gain_min}` | 10.5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.spider.error_fall_max}` | 12.3 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.spider.error_fall_min}` | 7.5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{clients.spider.n}` | 5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.no_rows_none}` | 3 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1 |
 | `\fact{cost.bird.adapter_mb}` | 73.9 | round record, communication_bytes |
 | `\fact{cost.bird.fedavg4.gpu_total}` | 692 | sum of the GPU minutes of Table 8 |
 | `\fact{cost.bird.k2.gpu_total}` | 879 | sum of the GPU minutes of Table 8 |

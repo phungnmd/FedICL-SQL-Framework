@@ -11,7 +11,10 @@ preference round from its model adds more than a further FedAvg SFT
 round (Section~\ref{sec:main}), also when that round is trained with the
 settings of the preference rounds (Section~\ref{sec:ablation}). One
 reading is that the gold SQL queries are exhausted as a training signal
-sooner than the executed queries of the model.
+sooner than the executed queries of the model. Pooling the gold SQL
+queries of all clients does not change this: on Spider test,
+centralized SFT does not differ significantly from FedAvg SFT, and
+\method{} is above both (Section~\ref{sec:main}).
 
 The preference rounds remove execution errors
 (Section~\ref{sec:analysis}), and on BIRD dev at \setting{rounds.total}

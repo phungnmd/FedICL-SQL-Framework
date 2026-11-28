@@ -50,22 +50,15 @@ an added SFT term on SQL-only outputs, and Lanchantin et
 al.~\cite{lanchantin2025bridging} no benefit from an added NLL term
 with Llama-3.1-8B-Instruct.
 
-The closest work is CodeLutra~\cite{tao2024codelutra}. At one site, it
-samples ten queries per question from the current model, labels each by
-comparing its execution result with that of the gold query, and trains
-for four iterations with the DPO term, whose reference model is the
-model of the previous iteration, plus a likelihood term on the correct
-sample, so that the pairs and the reference model are renewed at every
-iteration. It reports 76.6\% EX on Spider with this loss against 17.2\%
-with the DPO term alone. In \method, the labels are
-computed at each client on databases that the server never sees, one
-federated round is one iteration for all clients with the global model as
-their common reference model, and the server averages the adapters by
-the pair counts. The preference rounds start from a model trained in
-FedAvg SFT warm-up rounds, and each question contributes
-\setting{pref.pairs} pairs with an NLL term averaged over tokens.
-Section~\ref{sec:implementation} names the settings of the preference
-rounds that follow CodeLutra.
+The closest work is CodeLutra~\cite{tao2024codelutra}, which, at one
+site, trains on execution-labeled samples of the current model with a
+DPO term and a likelihood term over several iterations, and reports
+76.6\% EX on Spider with this loss against 17.2\% with the DPO term
+alone. In \method, the labels are computed at each client on databases
+that the server never sees, a communication round is one iteration for
+all clients with the global model as their common reference model, the
+server averages the adapters by the pair counts, and the preference
+rounds start from FedAvg SFT warm-up rounds.
 
 \subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
 

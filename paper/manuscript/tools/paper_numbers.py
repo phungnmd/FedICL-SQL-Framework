@@ -61,8 +61,6 @@ TEXT_DIFFS = [
     ("spider", MAIN, "fedavg", 2, "k2", 3),
     ("bird", MAIN, "fedavg", 2, "fedavg", 3),  # a third FedAvg SFT round against the same start (A4)
     ("spider", MAIN, "fedavg", 2, "fedavg", 3),
-    ("bird", MAIN, "central", EPOCHS, "k2", ROUNDS),    # the method against centralized SFT (A5)
-    ("spider", MAIN, "central", EPOCHS, "k2", ROUNDS),
     ("bird", MAIN, "feddpo", 3, "feddpo", 4),  # the second round of FedDPO (A6)
     ("bird", MAIN, "fedavg", 2, "feddpo", 3),  # the round without the NLL term against its start (B3)
     ("bird", MAIN, "feddpo", ROUNDS, "fixed", ROUNDS),  # the NLL term on the pairs of the first round (B3)
@@ -267,6 +265,9 @@ def table_main(d: Data) -> str:
             {"name": "\\method", "key": key(ds, "k2", ROUNDS)},
         ]
         cells = ex_cells(d, ds, rows, where)
+        # a note row: the method against centralized SFT, the test of the headline claim A5
+        # (owner, 2026-11-28); its EX cells are those of the two rows above
+        note = diff_cells(d, key(ds, "central", EPOCHS), key(ds, "k2", ROUNDS), where)
         lines.append(row([SET_NAME[ds], "EX"] + [name.capitalize() for name, _ in levels] + pad + ["$\\Delta$", "$p$"]))
         lines.append("\\midrule")
         for r_, c in zip(rows, cells):
@@ -279,6 +280,7 @@ def table_main(d: Data) -> str:
             else:
                 tail = diff_cells(d, r_.get("against", fed), r_["key"], where)
             lines.append(row([r_["name"]] + c + pad + tail))
+        lines.append(row(["\\method{} against centralized SFT"] + [""] * (len(cells[0]) + len(pad)) + note))
         lines.append("\\midrule" if ds == "bird" else "\\bottomrule")
     return tabular("@{}lrrrrrrl@{}", lines)
 
@@ -413,6 +415,8 @@ ABLATION = [
         ("No preference term", "rft", ("bird",)),
         ("No warm-up round", "k0", ("spider",)),
         ("Three warm-up rounds", "k3", ("spider",)),
+        # the two preference rounds on the union of the clients' data, without aggregation (B7)
+        ("Clients pooled", "pooled", ("spider",)),
     ]),
     (f"{ROUNDS - 1} rounds", ROUNDS - 1, [
         ("\\method", "k2", None),
@@ -731,6 +735,23 @@ def client_facts(stats: dict) -> dict:
         if "rft" in change and not all(p > q for p, q in zip(change["pref"][0] + change["pref"][1], change["rft"][0] + change["rft"][1])):
             raise SystemExit(f"{ds}: a client gains less with the preference term than without it")
         facts[f"clients.{ds}.n"] = (len(clients), src)
+        # What execution can label differs by client (owner, 2026-11-28): the training questions on
+        # a database without rows, where every query that executes returns the empty result of the
+        # gold SQL query, and those of them with correct and incorrect samples, which give no pair.
+        # From the samples of the first preference round.
+        src1 = f"client pairs_stats of {PREF_AUDIT[ds]}, dpo/round_1"
+        none = 0
+        for c in clients:
+            s = stats[(ds, "start", c)]
+            no_rows = s["questions_empty_database"]
+            mixed_no_rows = s.get("questions_empty_database_by_kind", {}).get("mixed", 0)
+            for k_, v in (("questions", s["questions"]), ("no_rows", no_rows), ("mixed", s["questions_mixed"]),
+                          ("mixed_no_rows", mixed_no_rows), ("paired", s["questions_mixed"] - mixed_no_rows)):
+                facts[f"clients.{ds}.{c}.{k_}"] = (count(v), src1)
+            none += no_rows == 0
+        facts[f"clients.{ds}.no_rows_none"] = (none, src1)
+        if ds == "bird" and none != len(clients):
+            raise SystemExit("BIRD: a client has training questions on a database without rows; Section 5.2 says none has")
     return facts
 
 

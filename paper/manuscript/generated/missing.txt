@@ -14,6 +14,7 @@ Table 4, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | fedavgp | round 4
 
 Table 4, Spider test | Spider test | Qwen2.5-Coder-1.5B | fedavgp | round 4
 Table 4, Spider test | Spider test | Qwen2.5-Coder-1.5B | feddpo | round 4
+Table 4, Spider test | Spider test | Qwen2.5-Coder-1.5B | pooled | round 4
 
 Table 5 | Spider test | DeepSeek-Coder-1.3B | fedavg | round 4
 Table 5 | Spider test | DeepSeek-Coder-1.3B | k2 | round 4
@@ -29,6 +30,5 @@ Table S5, BIRD dev | BIRD dev | Qwen2.5-Coder-1.5B | fedavgp | round 4
 
 Table S5, BIRD dev, test-suite accuracy | BIRD dev | Qwen2.5-Coder-1.5B | fedavgp | round 3
 
-text | BIRD dev | Qwen2.5-Coder-1.5B | central | round 3
 text | BIRD dev | Qwen2.5-Coder-1.5B | fedavgp | round 4
 text | Spider test | Qwen2.5-Coder-1.5B | fedavgp | round 4

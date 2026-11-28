@@ -4,19 +4,21 @@
 \toprule
 BIRD dev & EX & Simple & Moderate & Challenging &  & $\Delta$ & $p$ \\
 \midrule
-No training & 29.47 & 35.89 & 20.47 & 17.24 &  & $-$13.10 & $7.2\times10^{-27}$\textsuperscript{*} \\
+No training & 29.47 & 35.89 & 20.47 & 17.24 &  & $-$13.10 & $8.4\times10^{-27}$\textsuperscript{*} \\
 Local SFT & -- & -- & -- & -- &  & -- & -- \\
 Centralized SFT & -- & -- & -- & -- &  & -- & -- \\
 FedAvg SFT & 42.57 & 51.35 & 29.96 & 26.90 &  &  &  \\
 FedDPO & 45.50 & 52.54 & 35.99 & 31.03 &  & +2.93 & 0.014\textsuperscript{*} \\
-\method & \textbf{48.76} & \textbf{56.00} & \textbf{39.66} & \textbf{31.72} &  & +6.19 & $1.8\times10^{-10}$\textsuperscript{*} \\
+\method & \textbf{48.76} & \textbf{56.00} & \textbf{39.66} & \textbf{31.72} &  & +6.19 & $2.3\times10^{-10}$\textsuperscript{*} \\
+\method{} against centralized SFT &  &  &  &  &  & -- & -- \\
 \midrule
 Spider test & EX & Easy & Medium & Hard & Extra & $\Delta$ & $p$ \\
 \midrule
-No training & 68.05 & 87.45 & 71.41 & 59.18 & 45.94 & $-$6.66 & $7.1\times10^{-15}$\textsuperscript{*} \\
+No training & 68.05 & 87.45 & 71.41 & 59.18 & 45.94 & $-$6.66 & $8.6\times10^{-15}$\textsuperscript{*} \\
 Centralized SFT & 75.03 & 91.06 & 78.30 & 67.17 & 56.30 & +0.32 & 0.69 \\
 FedAvg SFT & 74.71 & 90.64 & 78.18 & 66.74 & 55.74 &  &  \\
 FedDPO & -- & -- & -- & -- & -- & -- & -- \\
-\method & \textbf{78.20} & \textbf{91.91} & \textbf{81.91} & \textbf{71.06} & \textbf{60.50} & +3.49 & $1.9\times10^{-6}$\textsuperscript{*} \\
+\method & \textbf{78.20} & \textbf{91.91} & \textbf{81.91} & \textbf{71.06} & \textbf{60.50} & +3.49 & $2.6\times10^{-6}$\textsuperscript{*} \\
+\method{} against centralized SFT &  &  &  &  &  & +3.17 & $7.1\times10^{-5}$\textsuperscript{*} \\
 \bottomrule
 \end{tabular}

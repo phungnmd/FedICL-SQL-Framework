@@ -7,7 +7,7 @@
 difficulty level, after \setting{rounds.total} rounds (centralized SFT
 after \setting{central.epochs} epochs). $\Delta$ and $p$
 (Section~\ref{sec:stat-test}) compare each model with FedAvg SFT of its
-block. Bold marks the highest value of each column within a block.}\label{tab:main}
+block, and the last row of a block \method{} with centralized SFT. Bold marks the highest value of each column within a block.}\label{tab:main}
 \footnotesize
 \input{generated/tab_main}
 \end{table}
@@ -17,10 +17,13 @@ FedAvg SFT on both benchmarks, by \gap{bird}{fedavg}{4}{k2}{4} EX points
 on BIRD dev and \gap{spider}{fedavg}{4}{k2}{4} on Spider test, and it is
 higher at every difficulty level, most of all on the moderate questions
 of BIRD dev and on the extra-hard questions of Spider test
-(Table~\ref{tab:main}). On Spider test, \method{} is also
-\gap{spider}{central}{3}{k2}{4} points above centralized SFT, which
-trains on the pooled data of the clients and does not differ
-significantly from FedAvg SFT.
+(Table~\ref{tab:main}).
+
+Training at the clients on execution labels also goes beyond pooling
+their data. On Spider test, \method{} is significantly above centralized
+SFT, which trains on the union of the clients' data, by
+\gap{spider}{central}{3}{k2}{4} EX points, while centralized SFT does
+not differ significantly from FedAvg SFT (Table~\ref{tab:main}).
 
 \begin{figure}[!t]
 \centering
@@ -112,6 +115,19 @@ the first by \fact{clients.bird.rft.correct_gain_min} to
 \fact{clients.bird.rft.error_fall_max}
 (Table~\ref{tab:clients} in the Supplementary Materials).
 
+What execution can label also differs by client, and only the client
+sees it. At client~4 of Spider train, \fact{clients.spider.4.no_rows} of
+its \fact{clients.spider.4.questions} training questions are on
+databases without rows, where queries of different meaning return the
+same empty result: of its \fact{clients.spider.4.mixed} questions
+with correct and incorrect samples, \fact{clients.spider.4.mixed_no_rows}
+are on such databases and give no pair, so that
+\fact{clients.spider.4.paired} yield pairs. Client~3 has
+\fact{clients.spider.3.no_rows} such questions, the other
+\fact{clients.spider.no_rows_none} clients none, and no client of BIRD
+train has any. A client thus contributes pairs where execution informs,
+and its weight in the server average, its pair count, reflects this.
+
 On BIRD dev, a large part of the gain, under EX and under the generated
 suite, consists of correct predictions that read other tables or columns
 than the gold SQL query: after \setting{rounds.total} rounds, FedAvg SFT
@@ -150,7 +166,9 @@ pairs and with the reference model of the first, and FedDPO keeps both
 and has no NLL term. Of the \setting{rounds.total} rounds, the variant
 without warm-up has four preference rounds and the one with three
 warm-up rounds has one. The effect of the warm-up rounds shows under TS
-(Section~\ref{sec:breadth}).
+(Section~\ref{sec:breadth}). ``Clients pooled'' runs the two preference
+rounds on the union of the clients' data of Spider train at one site,
+without aggregation.
 
 The training settings of the preference rounds do not account for the
 gain of the first preference round. FedAvg SFT continued from round~\setting{rounds.warmup} with the
