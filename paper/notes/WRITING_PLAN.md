@@ -157,9 +157,9 @@ framework, the baselines, the main results on BIRD dev and Spider test,
 the claims that have numbers and those that wait, and the step of
 section 8 it will take, and waits for the owner's yes.
 
-No section is written yet: `sections/01` to `08` hold a heading and its
-label. A brief is built from the files of section 4, and no earlier
-text is its starting point.
+Section 3 and Section 1 with the abstract are drafted (2026-11-28);
+the other sections hold a heading and its label. A brief is built from
+the files of section 4, and no earlier text is its starting point.
 
 ## 3. The writer
 
@@ -505,17 +505,17 @@ not go into it.
 
 ## 8. Steps
 
-State (2026-11-27): the build, the generated numbers, tables, settings
+State (2026-11-28): the build, the generated numbers, tables, settings
 and charts, `CLAIMS.md`, `TERMS.md`, `OUTLINE.md`, `references.bib` (55
-entries, each verified; `bib/report.md`), the two guides, the checks
-files, the isolated runner and the tool that assembles a pack exist.
-`WRITING_GUIDE.md` and `TERMS.md` are in the form of the pack; the
-abstracts of 54 of the 56 references and two example papers are in
-`.sources/`. The brief of Section 3 is written and its pack is built
-(`build/pack_03/`, outside Git; `make pack S=03` builds it again); the
-owner starts its writer (2026-11-27). No section is written yet:
-`sections/01` to `07` hold a heading and its label; the appendices and
-the statements exist.
+entries, each verified; `bib/report.md`), the two guides and the checks
+files exist; the abstracts of 54 of the 56 references and two example
+papers are in `.sources/`. The writer reads the project (section 2.1);
+`WRITING_GUIDE.md` names the files of the project. The pilot (V2) is
+drafted: Section 3 by an isolated session in two rounds of notes (its
+caption of Fig. 2 written again by the Antigravity agent), Section 1
+with the abstract by the Antigravity agent in three rounds; the owner
+reads it. `sections/02` and `04` to `07` hold a heading and its label;
+the appendices and the statements exist.
 
 | Step | What | Waits on |
 |---|---|---|
@@ -532,8 +532,7 @@ read again.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),
-the test of the method against centralized SFT (claim A5), Table 1 with
-its locators, the supplementary file.
+Table 1 with its locators, the supplementary file.
 
 ## 9. Tools and folder
 
