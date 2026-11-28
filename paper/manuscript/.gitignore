@@ -2,3 +2,9 @@ build/
 submit/
 __pycache__/
 .sources/
+
+# by-products of a LaTeX run outside build/ (make builds into build/)
+*.aux
+*.log
+*.out
+/floats.pdf
