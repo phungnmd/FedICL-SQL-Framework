@@ -2,22 +2,19 @@
 
 ## Status
 
-Two workers run: their result commits of 2026-11-28 overlap in time,
-and each reads the queue before its next task (now `c52e37ff`). The last
-published results are `bird_rft/round_2` (`7dc8e9c3`, 2026-11-28 02:01)
-and `bird_feddpo` round 2 (`15f9df7d`, 08:33), both read
-(`LAB_LOG.md`, 2026-11-28). Next in file order are `feddpo/round_2` and
-`rft/round_2`, expected to run on the two cards since about 02:00 and
-08:33: not confirmed. The BIRD rounds ran longer than estimated
-(`bird_rft/round_2` about 8.1 h against 6 h), so the hours below are
-likely low.
+The queue is paused (owner, 2026-11-28): the cards are busy with other
+work. The last published results are `bird_rft/round_2` (`7dc8e9c3`)
+and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
+2026-11-28). Next the owner runs the two `bird_vote` evaluations only
+(Run now, step 1); every other task waits until the cards are free. The
+BIRD rounds ran longer than estimated (`bird_rft/round_2` about 8.1 h
+against 6 h), so the hours below are likely low.
 
 Queued 2026-11-28 (owner; `c52e37ff`, pushed): `bird_nonll/round_2`,
 the on-policy round 2 without the NLL term on BIRD, the "no NLL term"
-cell of Table 4 at 4 rounds. A worker takes it at its next task, after
-the two Spider rounds; no restart (the queue format is unchanged).
+cell of Table 4 at 4 rounds, after the two Spider rounds.
 
-File order of what is left (hours are estimates; a second card takes the
+File order of what is left when the queue runs again (hours are estimates; a second card takes the
 first ready task the other does not hold):
 
 | Order | Tasks | Cells it fills | About |
@@ -280,33 +277,33 @@ its log say whether the second runs 4 at a time cost them.
 
 ## Run now
 
-1. On each free card: the worker line, which pulls first (queue
-   `4a962ced`). GPU 0 as written, GPU 1 with `--gpu 1`; no `--phase`.
-   It takes the first ready task in file order that no other worker
-   holds.
+1. On one card, the two vote evaluations of BIRD dev and nothing else
+   (`--phase bird_vote`: FedAvg SFT round 4 and the method at 4 rounds,
+   16 samples each at T 0.8, voted by execution result; about 1 h each,
+   estimate; vLLM at 0.80 of the card). GPU 0 as written, GPU 1 with
+   `--gpu 1`. The worker pulls first, publishes each result and stops
+   with `DONE queue` when both are in.
 
    ```powershell
-   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase bird_vote; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. If a worker already runs: it gets the new order at its next
-   publication, and the peak reserved VRAM of round 1 of `a05_sft` and
-   `a05k10_sft` is to be read when they come (expected 19.83 GiB, not
-   measured on these splits). To get the order now, Ctrl+C in its window and the line
-   of step 1 (the stopped task continues later from where it stopped;
-   no number changes). A worker started with `--phase qwen05b_k4
-   qwen05b_sft` is stopped the same way: it would run the round 4 start
-   first and never take `qwen05b_k6`.
+2. When the cards are free again: the same line without `--phase
+   bird_vote` on each free card (GPU 1 with `--gpu 1`). It takes the
+   first ready task in file order that no other worker holds. The peak
+   reserved VRAM of round 1 of `a05_sft` and `a05k10_sft` is to be read
+   when they come (expected 19.83 GiB, not measured on these splits).
 
 3. Send back, when they come:
-   - which card runs, and the task its worker shows now;
+   - the `DONE queue` or `STOP queue` line of the vote worker; nothing
+     else for the `bird_vote` rows: the worker publishes their results
+     (`experiments/pass_at_k/results/`);
+   - when the queue runs again: which card runs, and the task its
+     worker shows;
    - from the log of `bird_k0/round_2`
-     (`.queue_state/logs/bird_k0/round_2.log`): the lines with
-     `SQL budget, this call` (jobs run again after the others, jobs
-     alone, seconds of each);
-   - a `STOP queue` line, whenever one comes;
-   - nothing for the `bird_vote` rows: the queue publishes their
-     results (`experiments/pass_at_k/results/`).
+     (`.queue_state/logs/bird_k0/round_2.log`), if not sent yet: the
+     lines with `SQL budget, this call` (jobs run again after the
+     others, jobs alone, seconds of each).
 
 4. Any time, CPU only (a few minutes each), if not done yet: the pairs
    of the base student's round 1 samples by rejected outcome, and the
