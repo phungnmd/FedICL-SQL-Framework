@@ -75,6 +75,7 @@ TEXT_TESTS = [
     ("bird", MAIN, "feddpo", 3, "feddpo", 4),  # the second round of FedDPO (A6)
     ("bird", MAIN, "fedavg", ROUNDS, "feddpo", ROUNDS),  # FedDPO against FedAvg SFT (A6)
     ("bird", MAIN, "feddpo", ROUNDS, "k2", ROUNDS),      # the method against FedDPO (A6)
+    ("bird", MAIN, "fedavg", ROUNDS, "rft", ROUNDS),     # training on correct samples alone against FedAvg SFT (B4)
 ]
 # Text comparisons also quoted under test-suite accuracy (BIRD dev; their tests join the family of
 # the text): FedDPO, which Table 3 prints under EX only (A6).
@@ -984,7 +985,7 @@ def form_facts(d: Data) -> dict:
         k = key(ds, line, r)
         if d.run(k, "Section 5.2, form of the answers") is None:
             continue
-        n = {"gold": 0, "gold_right": 0, "other": 0, "other_right": 0}
+        n = {"gold": 0, "gold_right": 0, "other": 0, "other_right": 0, "unparsed": 0}
         ts = d.ts_of.get(k)
         if ts is not None:
             n.update(gold_right_ts=0, other_right_ts=0)
@@ -998,6 +999,7 @@ def form_facts(d: Data) -> dict:
             p = gold_tables_columns(x["predicted"], schema) if x["predicted"].strip() else None
             same = g is not None and p is not None and set(g[0]) == set(p[0]) and set(g[1]) == set(p[1])
             group = "gold" if same else "other"
+            n["unparsed"] += p is None  # a prediction without text or that the parser cannot read
             n[group] += 1
             n[group + "_right"] += x["ex"] == "1"
             if ts is not None:

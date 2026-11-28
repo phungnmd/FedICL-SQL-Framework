@@ -385,7 +385,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 6, Table 4 20, Table 5 1, Table 7 14, text 33).
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 6, Table 4 20, Table 5 1, Table 7 14, text 34).
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -404,7 +404,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{2}{k2}{3}` | +3.52 | text |
 | `\gap{bird}{fedavg}{2}{k2}{3}` | 3.52 | text |
 | `\pval{bird}{fedavg}{2}{k2}{3}` | 2.9e-4 | text |
-| `\padj{bird}{fedavg}{2}{k2}{3}` | 0.0055 | text |
+| `\padj{bird}{fedavg}{2}{k2}{3}` | 0.0058 | text |
 | `\nfix{bird}{fedavg}{2}{k2}{3}` | 135 | text |
 | `\nbrk{bird}{fedavg}{2}{k2}{3}` | 81 | text |
 | `\gain{bird}{fedavg}{3}{fedavg}{4}` | -1.11 | text |
@@ -422,7 +422,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{3}{k2}{4}` | +5.08 | text |
 | `\gap{bird}{fedavg}{3}{k2}{4}` | 5.08 | text |
 | `\pval{bird}{fedavg}{3}{k2}{4}` | 4.9e-8 | text |
-| `\padj{bird}{fedavg}{3}{k2}{4}` | 1.3e-6 | text |
+| `\padj{bird}{fedavg}{3}{k2}{4}` | 1.4e-6 | text |
 | `\nfix{bird}{fedavg}{3}{k2}{4}` | 141 | text |
 | `\nbrk{bird}{fedavg}{3}{k2}{4}` | 63 | text |
 | `\gain{bird}{fedavg}{4}{base}{0}` | -13.10 | Table 3, BIRD dev |
@@ -451,6 +451,12 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tsgap{bird}{fedavg}{4}{k2}{4}` | 4.89 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\tspval{bird}{fedavg}{4}{k2}{4}` | 4.2e-8 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
 | `\tspadj{bird}{fedavg}{4}{k2}{4}` | 7.9e-7 | Table 3, BIRD dev; Table 4, BIRD dev; Table 5; Table 6 |
+| `\gain{bird}{fedavg}{4}{rft}{4}` | +2.67 | text |
+| `\gap{bird}{fedavg}{4}{rft}{4}` | 2.67 | text |
+| `\pval{bird}{fedavg}{4}{rft}{4}` | 9.1e-4 | text |
+| `\padj{bird}{fedavg}{4}{rft}{4}` | 0.017 | text |
+| `\nfix{bird}{fedavg}{4}{rft}{4}` | 94 | text |
+| `\nbrk{bird}{fedavg}{4}{rft}{4}` | 53 | text |
 | `\gain{bird}{feddpo}{3}{feddpo}{4}` | +0.52 | text |
 | `\gap{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
 | `\pval{bird}{feddpo}{3}{feddpo}{4}` | 0.52 | text |
@@ -466,13 +472,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{feddpo}{4}{k2}{4}` | +3.26 | text |
 | `\gap{bird}{feddpo}{4}{k2}{4}` | 3.26 | text |
 | `\pval{bird}{feddpo}{4}{k2}{4}` | 1.4e-4 | text |
-| `\padj{bird}{feddpo}{4}{k2}{4}` | 0.003 | text |
+| `\padj{bird}{feddpo}{4}{k2}{4}` | 0.0031 | text |
 | `\nfix{bird}{feddpo}{4}{k2}{4}` | 109 | text |
 | `\nbrk{bird}{feddpo}{4}{k2}{4}` | 59 | text |
 | `\tsgain{bird}{feddpo}{4}{k2}{4}` | +3.98 | text |
 | `\tsgap{bird}{feddpo}{4}{k2}{4}` | 3.98 | text |
 | `\tspval{bird}{feddpo}{4}{k2}{4}` | 6.8e-6 | text |
-| `\tspadj{bird}{feddpo}{4}{k2}{4}` | 1.6e-4 | text |
+| `\tspadj{bird}{feddpo}{4}{k2}{4}` | 1.7e-4 | text |
 | `\gain{bird}{k0}{1}{k0gold}{1}` | -2.61 | text |
 | `\gap{bird}{k0}{1}{k0gold}{1}` | 2.61 | text |
 | `\pval{bird}{k0}{1}{k0gold}{1}` | 0.0073 | text |
@@ -492,7 +498,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{3}{k2}{4}` | +2.54 | text |
 | `\gap{bird}{k2}{3}{k2}{4}` | 2.54 | text |
 | `\pval{bird}{k2}{3}{k2}{4}` | 2.1e-4 | text |
-| `\padj{bird}{k2}{3}{k2}{4}` | 0.0041 | text |
+| `\padj{bird}{k2}{3}{k2}{4}` | 0.0043 | text |
 | `\nfix{bird}{k2}{3}{k2}{4}` | 73 | text |
 | `\nbrk{bird}{k2}{3}{k2}{4}` | 34 | text |
 | `\gain{bird}{k2}{3}{reagge}{3}` | -0.20 | Table 4, BIRD dev |
@@ -586,7 +592,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{central}{3}{k2}{4}` | +3.17 | text |
 | `\gap{spider}{central}{3}{k2}{4}` | 3.17 | text |
 | `\pval{spider}{central}{3}{k2}{4}` | 2.4e-5 | text |
-| `\padj{spider}{central}{3}{k2}{4}` | 5.4e-4 | text |
+| `\padj{spider}{central}{3}{k2}{4}` | 5.7e-4 | text |
 | `\nfix{spider}{central}{3}{k2}{4}` | 161 | text |
 | `\nbrk{spider}{central}{3}{k2}{4}` | 93 | text |
 | `\gain{spider}{fedavg}{2}{fedavg}{3}` | +0.61 | text |
@@ -598,7 +604,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{2}{k2}{3}` | +3.36 | text |
 | `\gap{spider}{fedavg}{2}{k2}{3}` | 3.36 | text |
 | `\pval{spider}{fedavg}{2}{k2}{3}` | 1.4e-6 | text |
-| `\padj{spider}{fedavg}{2}{k2}{3}` | 3.6e-5 | text |
+| `\padj{spider}{fedavg}{2}{k2}{3}` | 3.7e-5 | text |
 | `\nfix{spider}{fedavg}{2}{k2}{3}` | 146 | text |
 | `\nbrk{spider}{fedavg}{2}{k2}{3}` | 74 | text |
 | `\gain{spider}{fedavg}{3}{fedavg}{4}` | +0.00 | text |
@@ -640,7 +646,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | text |
 | `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | text |
 | `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | text |
-| `\padj{spider}{fedavg}{5}{k2}{4}` | 6.5e-8 | text |
+| `\padj{spider}{fedavg}{5}{k2}{4}` | 6.8e-8 | text |
 | `\nfix{spider}{fedavg}{5}{k2}{4}` | 165 | text |
 | `\nbrk{spider}{fedavg}{5}{k2}{4}` | 73 | text |
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 4, Spider test |
@@ -732,7 +738,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\tspval{syn}{k0}{4}{k2}{4}` | 0.0014 | Table 7, Spider-Syn |
 | `\tspadj{syn}{k0}{4}{k2}{4}` | 0.017 | Table 7, Spider-Syn |
 | `\errpval{bird}{fedavg}{4}{k2}{4}` | 5.8e-22 | text; execution errors in one row only: 182 (a), 42 (b) |
-| `\errpadj{bird}{fedavg}{4}{k2}{4}` | 1.8e-20 | text; execution errors in one row only: 182 (a), 42 (b) |
+| `\errpadj{bird}{fedavg}{4}{k2}{4}` | 1.9e-20 | text; execution errors in one row only: 182 (a), 42 (b) |
 | `\wrpval{bird}{fedavg}{4}{k2}{4}` | 0.007 | text; incorrect results in one row only: 111 (a), 156 (b) |
 | `\wrpadj{bird}{fedavg}{4}{k2}{4}` | 0.12 | text; incorrect results in one row only: 111 (a), 156 (b) |
 | `\errpval{bird}{k2}{3}{feddpo}{3}` | 0.015 | text; execution errors in one row only: 61 (a), 92 (b) |
@@ -740,19 +746,19 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\wrpval{bird}{k2}{3}{feddpo}{3}` | 0.46 | text; incorrect results in one row only: 117 (a), 105 (b) |
 | `\wrpadj{bird}{k2}{3}{feddpo}{3}` | 1.00 | text; incorrect results in one row only: 117 (a), 105 (b) |
 | `\errpval{bird}{k2}{3}{rft}{3}` | 1.1e-24 | text; execution errors in one row only: 36 (a), 182 (b) |
-| `\errpadj{bird}{k2}{3}{rft}{3}` | 3.7e-23 | text; execution errors in one row only: 36 (a), 182 (b) |
+| `\errpadj{bird}{k2}{3}{rft}{3}` | 3.9e-23 | text; execution errors in one row only: 36 (a), 182 (b) |
 | `\wrpval{bird}{k2}{3}{rft}{3}` | 1.0e-12 | text; incorrect results in one row only: 198 (a), 80 (b) |
-| `\wrpadj{bird}{k2}{3}{rft}{3}` | 3.0e-11 | text; incorrect results in one row only: 198 (a), 80 (b) |
+| `\wrpadj{bird}{k2}{3}{rft}{3}` | 3.1e-11 | text; incorrect results in one row only: 198 (a), 80 (b) |
 | `\errpval{bird}{k2}{4}{rft}{4}` | 1.6e-14 | text; execution errors in one row only: 38 (a), 138 (b) |
-| `\errpadj{bird}{k2}{4}{rft}{4}` | 4.9e-13 | text; execution errors in one row only: 38 (a), 138 (b) |
+| `\errpadj{bird}{k2}{4}{rft}{4}` | 5.0e-13 | text; execution errors in one row only: 38 (a), 138 (b) |
 | `\wrpval{bird}{k2}{4}{rft}{4}` | 0.0028 | text; incorrect results in one row only: 137 (a), 91 (b) |
 | `\wrpadj{bird}{k2}{4}{rft}{4}` | 0.0504 | text; incorrect results in one row only: 137 (a), 91 (b) |
 | `\errpval{spider}{fedavg}{4}{k2}{4}` | 6.2e-14 | text; execution errors in one row only: 118 (a), 29 (b) |
-| `\errpadj{spider}{fedavg}{4}{k2}{4}` | 1.8e-12 | text; execution errors in one row only: 118 (a), 29 (b) |
+| `\errpadj{spider}{fedavg}{4}{k2}{4}` | 1.9e-12 | text; execution errors in one row only: 118 (a), 29 (b) |
 | `\wrpval{spider}{fedavg}{4}{k2}{4}` | 0.37 | text; incorrect results in one row only: 97 (a), 111 (b) |
 | `\wrpadj{spider}{fedavg}{4}{k2}{4}` | 1.00 | text; incorrect results in one row only: 97 (a), 111 (b) |
 | `\errpval{spider}{k2}{3}{rft}{3}` | 4.2e-6 | text; execution errors in one row only: 41 (a), 95 (b) |
-| `\errpadj{spider}{k2}{3}{rft}{3}` | 1.0e-4 | text; execution errors in one row only: 41 (a), 95 (b) |
+| `\errpadj{spider}{k2}{3}{rft}{3}` | 1.1e-4 | text; execution errors in one row only: 41 (a), 95 (b) |
 | `\wrpval{spider}{k2}{3}{rft}{3}` | 0.13 | text; incorrect results in one row only: 89 (a), 69 (b) |
 | `\wrpadj{spider}{k2}{3}{rft}{3}` | 1.00 | text; incorrect results in one row only: 89 (a), 69 (b) |
 
@@ -817,6 +823,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.base.0.other_right}` | 119 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.base.0.other_right_ts}` | 79 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.base.0.other_ts_fail_pct}` | 33.6 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.base.0.unparsed}` | 22 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.gold}` | 690 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.gold_right}` | 519 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.gold_right_ts}` | 470 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
@@ -825,6 +832,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.fedavg.2.other_right}` | 136 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.2.other_right_ts}` | 84 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.2.other_ts_fail_pct}` | 38.2 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.2.unparsed}` | 2 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.gold}` | 715 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.gold_right}` | 535 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.gold_right_ts}` | 490 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
@@ -833,6 +841,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.fedavg.3.other_right}` | 135 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.3.other_right_ts}` | 81 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.3.other_ts_fail_pct}` | 40.0 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.3.unparsed}` | 4 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.gold}` | 706 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.gold_right}` | 517 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.gold_right_ts}` | 477 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
@@ -841,6 +850,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.fedavg.4.other_right}` | 136 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.fedavg.4.other_right_ts}` | 86 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.fedavg.4.other_ts_fail_pct}` | 36.8 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.fedavg.4.unparsed}` | 7 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.gold}` | 718 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.gold_right}` | 535 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.gold_right_ts}` | 482 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
@@ -849,6 +859,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.k2.3.other_right}` | 174 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.3.other_right_ts}` | 117 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.3.other_ts_fail_pct}` | 32.8 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.3.unparsed}` | 9 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.gold}` | 731 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.gold_right}` | 557 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.gold_right_ts}` | 506 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
@@ -857,18 +868,22 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{form.bird.k2.4.other_right}` | 191 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.bird.k2.4.other_right_ts}` | 132 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
 | `\fact{form.bird.k2.4.other_ts_fail_pct}` | 30.9 | committed predictions; tables and columns read by gold_tables_columns; test-suite scores |
+| `\fact{form.bird.k2.4.unparsed}` | 10 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.gold}` | 1551 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.gold_right}` | 1378 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.other}` | 596 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.base.0.other_right}` | 83 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.spider.base.0.unparsed}` | 0 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.fedavg.4.gold}` | 1678 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.fedavg.4.gold_right}` | 1521 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.fedavg.4.other}` | 469 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.fedavg.4.other_right}` | 83 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.spider.fedavg.4.unparsed}` | 2 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.gold}` | 1747 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.gold_right}` | 1576 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.other}` | 400 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{form.spider.k2.4.other_right}` | 103 | committed predictions; tables and columns read by gold_tables_columns |
+| `\fact{form.spider.k2.4.unparsed}` | 2 | committed predictions; tables and columns read by gold_tables_columns |
 | `\fact{model.dsc13}` | DeepSeek-Coder-1.3B | tools/paper_numbers.py, MODEL_NAME |
 | `\fact{model.qwen05}` | Qwen2.5-Coder-0.5B | tools/paper_numbers.py, MODEL_NAME |
 | `\fact{model.qwen15}` | Qwen2.5-Coder-1.5B | tools/paper_numbers.py, MODEL_NAME |
