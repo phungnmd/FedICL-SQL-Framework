@@ -16,9 +16,13 @@ errors fall by about half, from \nerr{bird}{fedavg}{4} to
 \nerr{bird}{k2}{4} on BIRD dev and from \nerr{spider}{fedavg}{4} to
 \nerr{spider}{k2}{4} on Spider test, while incorrect results do not
 fall. A preference round sends what a FedAvg SFT round sends and adds
-client computation.
+client computation for sampling, labeling and training. These results
+come from one training run per model, with models of at most
+\setting{model.size} parameters, and from comparisons at equal numbers
+of rounds (Section~\ref{sec:limitations}).
 
 Three directions follow from the scope of the study: federations with
-partial participation and many clients, larger models, and an analysis
+partial participation and many clients, labels that are checked on
+several contents of a client's database instead of one, and an analysis
 of what the adapter and the pair count reveal about the data of a
 client.

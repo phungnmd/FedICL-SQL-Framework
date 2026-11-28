@@ -147,6 +147,16 @@ that only \method{} answers correctly on BIRD dev,
 \nfix{spider}{fedavg}{4}{k2}{4} on Spider test,
 \fact{moved.spider.error.correct} and \fact{moved.spider.wrong.correct}.
 
+The pairs that the clients train on contain both kinds of incorrect
+query. The incorrect sample of a pair is a query that fails to execute
+or exceeds the time limit in \fact{pairs.bird.pref1.neg_error_pct}\% of
+the pairs of the first preference round on BIRD and in
+\fact{pairs.spider.pref1.neg_error_pct}\% on Spider, and in
+\fact{pairs.bird.pref2.neg_error_pct}\% and
+\fact{pairs.spider.pref2.neg_error_pct}\% of those of the second. In the
+other pairs, it executes and returns another result than the gold SQL
+query.
+
 Under both EX and TS, a large part of the gain on BIRD dev consists of
 correct predictions that read other tables or columns than the gold SQL
 query. We parse each query with sqlglot and collect the tables it reads
