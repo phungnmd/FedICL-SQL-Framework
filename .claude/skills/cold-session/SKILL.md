@@ -66,7 +66,7 @@ its paths kept) and prompt files (sent verbatim). The runner adds nothing.
 
 ```bash
 r=.claude/skills/cold-session/run.sh
-$r -m claude-fable-5-2 -e high -w -N -k -d PACK -f start.md -o OUT   # prints the .log path and handle
+$r -m opus -e high -w -N -k -d PACK -f start.md -o OUT   # prints the .log path and handle
 $r -r tmp.Ab12Cd34 -f answer_to_outline.md                          # turn 2
 $r -r tmp.Ab12Cd34 -f notes_round1.md -c                             # last turn, then clean up
 ```

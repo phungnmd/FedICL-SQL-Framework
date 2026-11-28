@@ -137,6 +137,18 @@ the official difficulty of `dev.json`, execution errors as the
   the model's queries are incorrect"); reviewer question C51 (an
   execution filter at inference).
 
+## 2026-11-28: the writer is one of three agents, named by the owner per session (owner)
+
+- Replaces the Antigravity agent alone: Claude Opus 5.5 (Agent tool,
+  `model: opus`, continued with SendMessage), ChatGPT Sol 6.2
+  (`codex exec -m gpt-6.2-sol -s workspace-write`, resumed by the
+  `thread_id` of its first JSON event; slug and event checked with a
+  one-word call) or the Antigravity agent as before. The owner names it
+  when starting a writing session; without a name the main session
+  asks. A section keeps its agent from outline to last revision.
+- `AGENTS.md` (Defaults, Writing) and `WRITING_PLAN.md` (section 1,
+  section 2.1, tools) follow.
+
 ## 2026-11-28: Fig. 1 drawn from the pairs the round built; example train:5744
 
 - Published `fedpref_bird_sftr2_p2_ddl_alpha01_s0_r1_dpo.json` (code
@@ -238,6 +250,30 @@ the official difficulty of `dev.json`, execution errors as the
 - Charts (`tools/charts.py`): CMC width 165.1 mm and CMC by default;
   FedAvg SFT slate, FedExec-SQL in the method colour.
 
+## 2026-11-28: voice guide, writing plan and Section 1 brief updated after reading Section 3's register (owner)
+
+- Reading of `sections/03_method.tex` after round 2: clean structure and
+  zero external overlap, but register dry and specification-like (`we`
+  sentences 4.2% against 39% in the reference method sections, long
+  words 11.9% against 17.9%, 24% of words in 5+-word runs lifted from
+  `03_method.md` and `notes_03_*.md`), plus `fig:overview` pushed to
+  page 11 by its expanded caption under `[!t]`.
+- `VOICE_GUIDE.md`: propositional compression clarified as
+  terminological rather than syntactic (complete clauses, explicit
+  sentence-initial transitions, no omitted verbs or trailing participial
+  fragments); active first-person `we` specified throughout component
+  and result subsections; two illustrative contrasts updated to model
+  active `we` and explicit transitions.
+- `WRITING_PLAN.md` (sections 2.1, 3.4, 3.5, 4, 7.2, 7.3): start prompt
+  directs the writer to follow `VOICE_GUIDE.md` rather than the
+  plain-words shorthand of `paper/notes/` or the schematic brief; briefs,
+  answers and editor's notes restricted to schematic entries without
+  copyable prose sentences; `lifted` signal extended to editor's notes
+  and answers.
+- `briefs/01_intro.md`: argument points rewritten as dense schematic
+  entries without ready-made prose clauses, and "one resampling step"
+  aligned with Section 3's wording.
+
 ## 2026-11-28: Section 3 (Method) drafted by the writer, two rounds of editor's notes (pilot step V2; the commit of this entry)
 
 - Draft: `paper/manuscript/sections/03_method.tex`, seven subsections,
@@ -293,6 +329,32 @@ the official difficulty of `dev.json`, execution errors as the
   its own queries are incorrect"), C45 to C50.
 - `briefs/01_intro.md`: brief of Section 1 with the abstract, written,
   waits for the owner. Fig. 1 is not drawn.
+
+## 2026-11-28: the writer is the Antigravity agent on Gemini 4 Carbon, started in the workspace (owner; the commit of this entry)
+
+- Owner, in two steps the same night: first "the writer runs on Opus",
+  then the rule that stands: the writer of a section is the Antigravity
+  agent (`antigravity` skill, `agy`), Gemini 4 Carbon, started in this
+  folder and allowed to read the project. No isolated session and no
+  pack for the writer. Cold reads stay isolated and on Opus.
+- Written into `AGENTS.md` (Writing, Defaults) and `WRITING_PLAN.md`
+  (sections 1, 2, 2.1, 3.1 to 3.5, 9): the commands through
+  `agy-run.sh` (`--mode accept-edits --model gemini-4-carbon-high`, one
+  conversation per section through `--resume`), the start prompt, and
+  what the writer may change (its section, outline, questions, notes).
+  The level "high" of the model is my choice; the owner named the
+  model only.
+- What isolation was for (2026-11-27: a writer that had read the notes
+  wrote about them) is now looked for on the draft: the start prompt
+  says the text carries nothing of the lab, and `make lint`, the
+  register and the cold read check it.
+- Known of `agy` here: it has no switch for web search, so the rule on
+  web sources (listed with the URL) holds for every section; its
+  codegraph MCP server is enabled; `~/.gemini/GEMINI.md` holds only the
+  CodeGraph note.
+- The rule holds from the next writer start. The writer session of
+  Section 3 that was open at the time was an isolated one on Fable 5.2.
+- The AI-use statement is set aside for now and not touched (owner).
 
 ## 2026-11-27: the cards are free; the queue is ordered by the rows the tables lack and holds the two alpha 0.5 setups (owner; queue `4a962ced`, pushed with the four test-suite commits)
 

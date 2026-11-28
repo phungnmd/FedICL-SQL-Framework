@@ -19,11 +19,15 @@ term at every occurrence; it is not paraphrased in everyday vocabulary,
 and it is not re-explained after its definition.
 
 **Propositional compression.** Each sentence advances a proposition
-about the problem, the method or the evidence. The chronology of the
-research (what was attempted, observed and subsequently modified) is
-absent from the text. Consecutive sentences are connected by explicit
-logical relations (consequently, in contrast, specifically, whereas)
-instead of temporal sequence.
+about the problem, the method or the evidence. Compression is
+terminological, not syntactic: relations are compressed through the
+terms of the field, while clauses remain grammatically complete and
+transparent (no omitted verbs, no semicolon chains, and no trailing
+participial fragments). The chronology of the research (what was
+attempted, observed and subsequently modified) is absent from the text.
+Consecutive sentences are connected by explicit logical transitions at
+sentence openings (Specifically, In contrast, Consequently, Notably)
+rather than bare juxtaposition or temporal sequence.
 
 **Assertiveness.** Properties of the method and empirical findings are
 stated in the present indicative with precise verbs: a method
@@ -42,10 +46,14 @@ explicitly, in the introduction, in the contribution list and at the
 opening of the method section, and it is located precisely: the text
 states which element is new relative to which prior approach.
 
-**Person and voice.** The first person plural with an active verb
-conveys what the authors propose, formulate, design, evaluate, observe
-and demonstrate. The passive voice describes procedural steps whose
-agent is immaterial.
+**Person and voice.** We use the first person plural with an active verb
+throughout the manuscript (including component subsections of the method
+and subsections of the results) whenever we introduce a design choice,
+state a definition, motivate a mechanism or report an observation (*we
+formulate, we construct, we pair, we evaluate, we observe*). Abstract
+component names do not replace the authors as the recurring subject of
+consecutive paragraphs; the passive voice is reserved for procedural
+steps whose agent is immaterial.
 
 **Limitations.** Constraints on the scope of the study are consolidated
 in the limitations subsection, where each is formulated once as a
@@ -115,8 +123,9 @@ structure.
    environment, followed by its communication and computation
    requirements.
 
-Design decisions are justified by the properties they confer, not by the
-history of their selection.
+Design decisions are introduced in the active first person plural and
+justified by the properties they confer, not by the history of their
+selection.
 
 ### Experimental setup
 
@@ -179,7 +188,7 @@ material for the manuscript.
 | Explanatory register | Research-paper register |
 |---|---|
 | The server never sees the pictures that stay on the phones, so it has no way to tell which of its guesses are wrong. | Because raw images remain on-device, the server receives no error signal for its predictions. |
-| We first trained with a large batch, saw that training became unstable, and then lowered the learning rate. | A reduced learning rate stabilizes optimization at large batch sizes. |
-| With the extra loss, the model is above the baseline on both sets. | The auxiliary objective yields consistent improvements over the baseline on both benchmarks. |
+| We first trained with a large batch, saw that training became unstable, and then lowered the learning rate. | To stabilize optimization at large batch sizes, we scale down the learning rate proportionally. |
+| With the extra loss, the model is above the baseline on both sets. | Consequently, the auxiliary objective yields consistent improvements over the baseline on both benchmarks. |
 | In the first row the score is 71.2, in the second row it is 73.5, and in the third row it is 74.1. | Accuracy increases monotonically with the number of participating devices, from 71.2 to 74.1. |
-| This part is there because some devices have very little data and would otherwise learn nothing useful. | The regularization term mitigates overfitting on data-scarce devices. |
+| This part is there because some devices have very little data and would otherwise learn nothing useful. | Specifically, we introduce a regularization term to mitigate overfitting on data-scarce devices. |

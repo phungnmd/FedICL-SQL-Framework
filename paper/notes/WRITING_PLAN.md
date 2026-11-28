@@ -12,9 +12,9 @@ paper claims is in `manuscript/CLAIMS.md`, what each section contains in
 | Part | Choice |
 |---|---|
 | Journal | CMC alone (owner, 2026-11-27). LaTeX on the Tech Science Press class in `Definitions/`; requirements in section 10 |
-| Who writes | a writer in an isolated session (the `cold-session` skill; Fable 5.2, high effort), one top-level section at a time: its outline first, then the prose. It is never a subagent, which inherits `AGENTS.md` and the memory (owner, 2026-11-27). The main session coordinates and writes no sentence of the paper |
-| What the writer knows | the work in full as science, nothing of the lab, and it decides the structure of its section (owner, 2026-11-27; section 3) |
-| Who knows the project | the main session: it is the person of the project, and the writer is its tool for writing. The writer asks it whatever the pack does not settle, at any point, and it answers (owner, 2026-11-27; section 3.5) |
+| Who writes | one of three agents, named by the owner when a writing session starts (owner, 2026-11-28): Claude Opus 5.5, ChatGPT Sol 6.2 (Codex, `gpt-6.2-sol`) or the Antigravity agent (`agy`, Gemini 4 Carbon, `gemini-4-carbon-high`); section 2.1. Started in the workspace, one top-level section at a time: its outline first, then the prose, in one conversation. The main session coordinates and writes no sentence of the paper |
+| What the writer knows | the project: it reads the brief, the claims, the generated numbers and tables, and the notes and the code as it needs them (owner, 2026-11-28; until then the science and nothing of the lab). It decides the structure of its section. The text it writes carries nothing of the lab (section 3) |
+| Who knows the project | the main session is the person of the project and the writer its tool for writing. The writer looks up what it can in the record and asks the main session the rest, at any point (owner, 2026-11-27; section 3.5) |
 | Voice | academic (owner, 2026-11-27): dense, in the terms of the field, assertive at the strength of the evidence, the novelty said plainly, the method told by component, the results by finding and mechanism. Specified in `manuscript/VOICE_GUIDE.md`, carried by the register of the brief and shown by the example papers of the pack |
 | Constraints | few. Four things bind the writer (section 3.3). Truth is checked on the draft, not fenced in beforehand; checks of words and style are signals for the editor, never rules for the writer; prose is not repaired word by word |
 | Position | the paper is about supervision: where the training signal comes from. Federated learning is the setting, Text-to-SQL the task. Novelty is stated against FedAvg SFT and federated DPO as published. CodeLutra has fixed places (Section 2.2 with Table 1, a citation at the objective, one sentence in Section 4.5) and is the frame of no brief (`RESEARCH_STATE.md`, section 3.6) |
@@ -23,15 +23,15 @@ paper claims is in `manuscript/CLAIMS.md`, what each section contains in
 | Draft first | the draft is complete first and trimmed later (owner, 2026-11-27): when a brief does not fit its length, the length is raised |
 | Commits | one commit per section when its rounds of editor's notes are done, without waiting for the owner's reading |
 | `CLAIMS.md` | not fixed: a line that is false against the numbers is corrected and the change recorded in `REVIEW_NOTES.md` |
-| Helpers | audits, look-ups and cold reads run on Opus. No text passes through a humanizer |
+| Helpers | audits, look-ups and cold reads run on Opus; a cold read is an isolated session of the `cold-session` skill, a fresh one each time. No text passes through a humanizer |
 
 ## 2. Who does what
 
 | Role | Does | Does not |
 |---|---|---|
 | Owner | approves each brief and the example papers; reads the sections and `REVIEW_NOTES.md` when the owner chooses; decides | |
-| Main session | knows the project and stands for it; builds the numbers, the briefs and the pack; starts the writer and answers its questions; runs the checks; turns findings into a few editor's notes; fixes what is mechanical (a macro, a label, a citation key) | draft or rewrite sentences of the paper: it carries the vocabulary and the history of the lab |
-| Writer | writes one section from its pack; asks the main session what the pack does not settle; decides its structure; answers the editor's notes | see anything outside its pack and the answers it is sent |
+| Main session | knows the project and stands for it; builds the numbers and the briefs; starts the writer and answers its questions; runs the checks; turns findings into a few editor's notes; fixes what is mechanical (a macro, a label, a citation key) | draft or rewrite sentences of the paper: it carries the vocabulary and the history of the lab |
+| Writer | writes one section from its brief and the record; asks the main session what the record does not settle; decides its structure; answers the editor's notes | put anything of the lab into the text; change a file other than its section, its outline, its questions and its notes; commit |
 | Helpers | audit claims and statements about cited papers, read the PDF cold | talk to the writer |
 
 One section moves through this loop; the next starts when it is
@@ -40,77 +40,102 @@ accepted, because a later section reads the earlier ones.
 ```text
 brief (main session; the owner approves it)
   -> register of the brief measured; a brief in the words of the lab is rewritten
-  -> pack assembled, and read once as the writer will read it (section 3.2)
-  -> outline, one line per paragraph (a fresh writer session)
+  -> outline, one line per paragraph (a new writer conversation)
   -> the main session answers the outline (section 4.1)
-  -> draft of the whole section (the same session)
+  -> draft of the whole section (the same conversation)
      at any of these turns the writer may stop on questions; the main
      session answers and the turn is taken up again (section 3.5)
   -> make, lint, register, overlap, claim audit, cold read
-  -> at most five editor's notes -> the same session revises (two rounds at most)
-  -> session closed; commit
+  -> at most five editor's notes -> the same conversation revises (two rounds at most)
+  -> commit
 ```
 
-One session outlines, drafts and revises a section. Two writers never
-run at once.
+One conversation outlines, drafts and revises a section. Two writers
+never run at once.
 
 ### 2.1 Starting the writer
 
-The writer is a session of the `cold-session` skill. It loads no
-`CLAUDE.md`, `AGENTS.md`, memory or user settings, has no shell, and
-reads and writes only inside a temporary directory that holds a copy of
-its pack. Web search is on for Sections 1, 2 and 6, which speak about
-other work, and off (`-N`) for Sections 3 to 5 and 7, where everything is in
-the pack (owner, 2026-11-27). A subagent is not used: it inherits the
-project instructions and the memory index, and telling it to disregard
-them does not take them out of what it has read.
+The writer is one conversation of one of three agents, started in the
+workspace root, so it reads the project as any agent here does. The
+owner names the agent when starting a writing session (owner,
+2026-11-28); without a name the main session asks. A section keeps its
+agent from the outline to the last revision, since one conversation
+does all three. The writer edits files and commits nothing; the main
+session builds, checks and commits.
+
+| Agent | Started by | Model | Next turn of the same conversation |
+|---|---|---|---|
+| Claude Opus 5.5 | the Agent tool of the main session (`subagent_type: general-purpose`, `model: opus`), the start prompt as its prompt | Opus 5.5 | `SendMessage` to the agent, with the file of the turn |
+| ChatGPT Sol 6.2 | `codex exec` | `gpt-6.2-sol` | `codex exec resume` with the `thread_id` of the first JSON event |
+| Antigravity | the `antigravity` skill (`agy-run.sh`) | `gemini-4-carbon-high` | `--resume` with the printed `conversation_id` |
+
+Codex and Antigravity, from the workspace root:
 
 ```bash
-r=.claude/skills/cold-session/run.sh
 b=paper/manuscript/build
-$r -m claude-fable-5-2 -e high -w -N -k -d $b/pack_NN -f $b/start_NN.md -o $b/writer_NN   # no -N for Sections 1, 2, 6
-$r -r HANDLE -f $b/answer_NN.md            # the answer to the outline
-$r -r HANDLE -f $b/reply_NN_1.md [FILE...] # answers to the writer's questions, with files if needed
-$r -r HANDLE -f $b/notes_NN_1.md           # editor's notes, round 1; -c on the last turn
+# ChatGPT Sol 6.2
+codex exec --json -m gpt-6.2-sol -s workspace-write -C "$PWD" - < $b/start_NN.md
+codex exec resume --json -m gpt-6.2-sol ID - < $b/answer_NN.md
+# Antigravity
+a=~/.claude/skills/antigravity/scripts/agy-run.sh
+o="--mode accept-edits --model gemini-4-carbon-high --timeout 40m"
+$a $o -C "$PWD" < $b/start_NN.md                  # prints conversation_id
+$a $o -C "$PWD" --resume ID < $b/answer_NN.md     # the answer to the outline
+$a $o -C "$PWD" --resume ID < $b/reply_NN_1.md    # answers to the writer's questions
+$a $o -C "$PWD" --resume ID < $b/notes_NN_1.md    # editor's notes, round 1
 ```
 
-The files the session writes arrive in `build/writer_NN/` at the paths
-it used; its replies are in the `.log` there. The main session copies
-the section into `sections/` and the outline and the writer's notes
-into `briefs/`.
+The turns are the same for every agent: the start prompt, the answer
+to the outline, answers to the writer's questions, editor's notes.
+Claude Opus 5.5 runs as a subagent and inherits `AGENTS.md` and the
+memory of the main session; the start prompt binds it as it binds the
+others.
 
-The start prompt, and nothing else:
+An `agy` call returns a JSON envelope with the reply; a run whose
+status is not `SUCCESS`, or that lists `denied_actions`, is not
+complete. A `codex exec` turn ends with a `turn.completed` event. The
+main session writes the start prompt to `build/start_NN.md`, and after
+every turn reads `git status` and `git diff`: the writer changes only
+`sections/NN_NAME.tex`, `briefs/NN_NAME_outline.md`,
+`briefs/NN_NAME_questions.md` and `briefs/NN_NAME_notes_writer.md`.
 
-```text
-You are the author of Section N (TITLE) of a machine learning research
-manuscript prepared for Computers, Materials & Continua. Your working
-directory holds the material of the paper; README.md lists it. Read
-README.md, paper.md, guide.md and brief.md first, and open the rest as
-you need it.
-
-The editor is one of the researchers of the study. Whenever the material
-does not settle something you need, write your questions to
-notes/questions.md and stop; the editor answers them.
-
-First deliverable: the outline that guide.md describes, written to
-notes/outline.md. Stop there and wait for the editor's response.
-```
-
-For Sections 1, 2 and 6 the start prompt has one more paragraph, before
-the last one:
+The start prompt:
 
 ```text
-You may search the web to check a detail of a cited paper or to find
-related work. List in notes/notes.md every fact and every reference you
-take from the web, each with its URL and the place in the source.
+You are the author of Section N (TITLE) of the manuscript in
+paper/manuscript/, prepared for Computers, Materials & Continua. Read
+AGENTS.md, then paper/manuscript/briefs/NN_NAME.md (the brief of your
+section), WRITING_GUIDE.md, VOICE_GUIDE.md, TERMS.md, CLAIMS.md and
+OUTLINE.md there, and generated/numbers.md, generated/settings.md and
+the generated tables. Read the notes in paper/notes/ and the code in
+fedicl-sql/ wherever you need them to understand the work; change
+nothing there.
+
+The section is a text of the paper, for its readers. It carries nothing
+of the lab: no note, rule, date, decision, claim number or lab word, and
+no account of how a value was chosen. Follow the academic register of
+VOICE_GUIDE.md (complete clauses, explicit logical transitions, active
+first-person "we" for design choices and findings) rather than the
+plain-words shorthand of paper/notes/ or the schematic entries of the
+brief. Every number is a macro of generated/; a finding is stated at the
+strength and scope CLAIMS.md gives it. A fact you take from the web is
+listed in your notes with its URL.
+
+What the record does not settle, write as questions to
+briefs/NN_NAME_questions.md and stop; the editor answers them.
+
+First deliverable: the outline, one line per paragraph, written to
+briefs/NN_NAME_outline.md. Stop there and wait for the editor's
+response. You edit only your section file, your outline, your questions
+and your notes; you commit nothing.
 ```
 
 It is continued with three kinds of message: answers to the writer's
-questions, whenever it stops on them (section 3.5); the answer to the outline,
-ending in "Draft the section into sections/NN_NAME.tex and write your
-notes to notes/notes.md"; and, per round, "Editor's notes, round K of at
-most two", the notes, and "Revise what the notes concern and leave the
-remainder of the section unchanged."
+questions, whenever it stops on them (section 3.5); the answer to the
+outline, ending in "Draft the section into sections/NN_NAME.tex and
+write your notes to briefs/NN_NAME_notes_writer.md"; and, per round,
+"Editor's notes, round K of at most two", the notes, and "Revise what
+the notes concern and leave the remainder of the section unchanged."
 
 ### 2.2 Starting the main session
 
@@ -140,85 +165,47 @@ text is its starting point.
 
 ### 3.1 The principle
 
-What a writing agent produces follows from what it has read. Given the
-notes of the lab it takes their voice and tells their history; given a
-list of limits it writes below every limit; given a list of claims it
-presents the list. A good section comes from an author who knows the
-work in full and builds the argument freely. So (owner, 2026-11-27):
+Since 2026-11-28 (owner) the writer reads the project and is not
+isolated. Until then it saw only a pack with the science and nothing of
+the lab, because a writer that had read the notes took their voice and
+told their history. That risk is now met on the draft and not by what
+the writer is shown:
 
-- The writer knows the science in full: the method, every result with
-  its test, the papers its section cites. Rows that are weak or that
-  wait stand in the tables as they are, and the writer words a finding
-  at what the table carries.
-- The writer knows nothing of the lab: no note, rule, date, decision,
-  dropped direction, claim number or lab word. This holds by how the
-  writer is run (an isolated session, a pack read before use), not by an
-  instruction to ignore something.
+- The writer knows the work in full, from the record: the method, every
+  result with its test, the papers its section cites. Rows that are weak
+  or that wait stand in the tables as they are, and the writer words a
+  finding at what the table carries.
+- The text carries nothing of the lab: no note, rule, date, decision,
+  dropped direction, claim number or lab word. The start prompt says
+  so; `make lint`, the register and the cold read look for it in the
+  draft.
 - The writer is free. The brief gives the aim of the section and the
   points of its argument; structure, emphasis, the choice of numbers
   and examples are the writer's.
 - The writer can ask. The main session is the person of the project;
-  what the pack does not settle, the writer asks it at any point and
-  gets an answer, instead of guessing or leaving it out (section 3.5).
-- What the lab needs enforced is checked on the draft (section 7) and
-  reaches the writer only as an editor's note about the reader.
-- One section, one writer, one brief, so that it reads as one piece.
+  what the record does not settle, the writer asks it at any point
+  (section 3.5).
+- One section, one writer conversation, one brief, so that it reads as
+  one piece.
 - A draft far from a good paper is not repaired sentence by sentence:
-  the cause is in what the writer was given. The pack is corrected and
-  the section written again.
+  the brief is corrected and the section written again in a new
+  conversation.
 
 ### 3.2 The pack
 
-One directory per section, assembled in `build/pack_NN/` (outside Git)
-by `make pack S=NN` (`tools/pack.py`), which also writes the start
-prompt, `build/start_NN.md`. Every file in it is in the register of the
-paper.
-
-| In the pack | Holds | Built from |
-|---|---|---|
-| `README.md` | one line per file of the pack | written with the pack |
-| `paper.md` | the paper on one page: setting, limitation, key observation, framework, findings, contributions, organization. The same for every section | `WRITING_GUIDE.md`, "The paper" |
-| `guide.md` | how to work: the readers, the materials, what binds (section 3.3), the outline, the deliverables | `WRITING_GUIDE.md`, "Working guide" |
-| `voice.md` | the register, and the organization of every kind of section | `VOICE_GUIDE.md` |
-| `terms.md` | the glossary: term, meaning, symbol | `TERMS.md` |
-| `brief.md` | this section (section 4) | `briefs/NN_name.md` |
-| `results/` | every table as it prints, with its tests; the figures; the settings; each macro with what it prints and the names of its arguments. All of them, not only those of the section; result commits and source files are left out | `generated/`, `figures/`, `make floats` |
-| `related/` | for each citation key that stands in the brief: the abstract and the fact rows, without the quotations and the reading record | `briefs/02_related_rows.md`, `02_related_table1_rows.md`; `.sources/abstracts.json`, written by `tools/abstracts.py` (outside Git) |
-| `examples/` | one or two published papers far from ours in content, as examples of how a paper of this kind is built and reads | `.sources/examples/` (outside Git) |
-| `sections/` | the accepted sections, and the file of this section with its heading | `sections/` |
-
-The method reaches the writer of Section 3 through its brief (the
-algorithm, the equations, Fig. 2) and every later writer through the
-accepted Section 3.
-
-Not in the pack: the notes of the lab, `CLAIMS.md`, `OUTLINE.md`, this
-plan, the checks files, `voice/`; anything that carries a date, a
-decision of the owner, a claim number, a lab word or an instruction
-about what not to say; the full text of CodeLutra and of OpenFedLLM
-(where a brief lists them, their fact rows and abstracts are in
-`related/`). With web search on, a writer can reach those two papers;
-`make overlap` and the claim audit read the draft for what that
-leaves.
-
-Example papers: one from CMC and one widely read method paper, never
-CodeLutra, OpenFedLLM, GradeSQL or a DPO paper. In place now: LESFT
-(CMC 87(1)) and LoRA (arXiv 2106.09685), the main session's choice;
-the owner may change it. `README.md` names them as examples of form; no fact is
-taken from them, and `make overlap` reads the draft against them too.
-
-`tools/pack.py` searches the pack for dates, "owner", pointers to
-files of the lab and the lab words of `tools/lint.py`, and stops when
-it finds one. Before the start the main session also reads the pack
-once from the first file to the last, as the writer will. What is
-found is removed at the source file, not in the copy.
+Not used by the writer since 2026-11-28: it reads the sources of the
+pack in place (the brief, `WRITING_GUIDE.md`, `VOICE_GUIDE.md`,
+`TERMS.md`, `generated/`, `bib/`). `make pack S=NN` (`tools/pack.py`)
+still assembles `build/pack_NN/`, and the two example papers of form
+(LESFT, CMC 87(1); LoRA, arXiv 2106.09685) are in `.sources/`.
 
 ### 3.3 What binds the writer
 
-1. Facts: every fact about our work comes from the pack or from an
+1. Facts: every fact about our work comes from the record or from an
    answer of the main session; a gap is asked about and not filled by a
    guess. A fact about a cited paper comes
-   from the pack or, in Sections 1, 2 and 6, from the web, and then
-   stands in the notes with its URL.
+   from `bib/` and the notes on the literature or from the web, and a
+   fact from the web stands in the writer's notes with its URL.
 2. Findings: a finding is stated as its table carries it, and its scope
    ("on BIRD", "to our knowledge") is part of it. A writer that finds
    the evidence thin for a point of the brief says so in its notes.
@@ -231,24 +218,29 @@ Everything else is the writer's: paragraphs and their order, emphasis,
 which numbers appear, an example, the transitions. Its notes are read:
 a point it finds weak goes to the owner.
 
-A caution of the lab is never a rule in the pack. The pack states the
+A caution of the lab is never a rule in the brief. The brief states the
 fact (a sample is labeled correct when its execution result equals that
 of the gold SQL query on the client's database), and the claim audit
 reads the draft for a sentence that goes against it.
 
 ### 3.4 Voice
 
-`voice.md` describes the register, and the example papers show it from
-the first session on. If a pilot is still far from the range of the
-papers (`make register`), the cause is looked for in the pack. `voice/`
-holds the editor's calibration only (`voice/README.md`).
+`VOICE_GUIDE.md` specifies the register, and the example papers in
+`.sources/examples/` illustrate it. Because the writer also reads the
+project notes and the editor's messages, briefs, answers and editor's
+notes must not supply ready-made prose sentences in the lab's compressed
+plain-words style, which the writer would lift into the draft. If a
+draft falls outside the range of the reference papers (`make register`:
+low share of long words, missing active "we", or missing transitions),
+the cause is checked in the brief and editor's notes as well as in the
+draft. `voice/` holds the editor's calibration only (`voice/README.md`).
 
 ### 3.5 Questions and answers
 
 The main session is to the writer what a researcher of the project is
 to a colleague who writes the paper with them: it knows the method, the
 runs, the results and the literature, and it answers. The writer stops
-a turn on `notes/questions.md` whenever the pack does not settle
+a turn on `briefs/NN_NAME_questions.md` whenever the record does not settle
 something its section needs; this can be before the outline, in the
 middle of the draft or during a revision, and the number of exchanges
 is not limited. Rounds of questions do not count as rounds of editor's
@@ -260,7 +252,7 @@ How the main session answers:
   the notes, the cited paper itself. A number that is not a macro yet is
   first generated (`make numbers`) and sent as its macro; a new table or
   figure is sent as a file with the reply.
-- With the science and nothing of the lab, as in the pack: what the
+- With the science: what the
   method does and what was measured, not when something was decided,
   what was tried before or which rule applies. A question on why a
   choice was made is answered with the property the choice confers, or
@@ -270,14 +262,15 @@ How the main session answers:
   does not exist; it does not estimate. A question only the owner can
   settle goes to `REVIEW_NOTES.md`, part A, and the writer is told to
   write on without it.
-- In the register of the paper and the terms of `TERMS.md`. Every reply
-  and every file sent with it passes `tools/pack.py --check` first.
-- Without sentences for the paper: an answer gives facts and relations
-  as short entries; the wording is the writer's.
+- In the terminology of `TERMS.md` and the conceptual vocabulary of the
+  field.
+- Schematic, without sentences for the paper: an answer states facts,
+  counts, symbols and logical relations as compact key-value or noun-phrase
+  entries, never as complete explanatory clauses that could be pasted
+  into LaTeX; the prose sentence is always the writer's.
 
 What a question shows: an answer that a later writer will also need is
-added to the source of the pack (the page on the paper, the brief, the
-fact rows), so that it is asked once. Many questions on one section
+added to its source (the page on the paper, the brief, the fact rows), so that it is asked once. Many questions on one section
 mean its brief was thin. The questions and the replies of a session are
 in its `.log`.
 
@@ -285,10 +278,12 @@ in its `.log`.
 
 The brief is where the language of the lab becomes that of the paper,
 once, and where the owner decides content before any prose exists. It
-is written in the terms of `TERMS.md` and in the register of the paper,
-and holds no sentence that could stand in the paper. `tools/style_profile.py
-compare` is run on it before the writer starts; a brief far below the
-papers in long words, or far above them in everyday verbs, is rewritten.
+uses the terms of `TERMS.md` and the technical vocabulary of the field,
+written as schematic argument notes (noun phrases, relations, macros)
+with no complete prose sentence that could stand in the paper.
+`tools/style_profile.py compare` is run on it before the writer starts;
+a brief far below the papers in technical vocabulary, or far above them
+in everyday verbs, is rewritten.
 
 - Place in the paper: headings and labels, what stands before and
   after, the length (the words of `OUTLINE.md` as the upper end, about
@@ -462,10 +457,10 @@ Advice for the editor; none stops a section.
 
 | Signal | Tool | Looks for |
 |---|---|---|
-| Register | `make register`; `tools/style_profile.py compare FILE --kind KIND`, on a brief and on its draft | measures far outside the same kind of section in the reference papers: few long words and many everyday verbs are the words of the lab |
+| Register | `make register`; `tools/style_profile.py compare FILE --kind KIND`, on a brief and on its draft | measures far outside the same kind of section in the reference papers: few long words, many everyday verbs, near-zero active "we" sentences, or missing `-ly` discourse transitions |
 | Strength and coverage | the cold read; `tools/reverse_outline.py`; the draft beside the points of its brief | a reader who cannot say what is new and against what; a point of the brief that is missing or below its strength; a finding told as a list of values; a weakness outside the limitations or said twice |
 | The lab showing through | `make lint` | file paths, "we first", sentences that certify, a choice defended that nobody questioned, lab words |
-| Text taken from the brief | `tools/style_profile.py lifted FILE BRIEF` | a large share of the draft in runs of five or more words of the brief |
+| Text lifted from inputs | `tools/style_profile.py lifted FILE BRIEF [NOTES...]` | a large share of the draft in runs of five or more words taken from the brief, answers or editor's notes |
 | Cold read | the `cold-session` skill, `section` template: an isolated session reads the PDF of the section as a reviewer would | where it stopped, what it could not reimplement, what it did not believe. The first source of editor's notes |
 | Inflated words | `writing_quality_check` of the academic-paper skill, read by the main session | "comprehensive", "robust", "leverages" where the evidence does not carry them |
 | Tables | `tools/table_lint.py` | fixed in the generator |
@@ -487,13 +482,16 @@ How a signal is used:
 
 ### 7.3 Editor's notes
 
-At most five a round, the ones that matter most, written as an editor
-would write them, about the reader and the content: a fact that is
-wrong, a reason the reader will ask for, a paragraph with two points,
-an unclear referent, a number the reader does not need, a contribution
-or a finding stated more weakly than its evidence allows. A note names
-no rule, check, measure or project file, and asks for no exchange of a
-word unless the word would mislead. The writer may disagree with a
+At most five a round, the ones that matter most, about the reader and
+the content: a fact that is wrong, a reason the reader will ask for, a
+paragraph with two points, an unclear referent, a number the reader does
+not need, a contribution or a finding stated more weakly than its
+evidence allows, or overly dry specification-like prose lacking active
+first-person agency and transitions. State the reader's difficulty and
+the required facts schematically; never supply replacement prose
+sentences for the writer to copy into the section. A note names no rule,
+check, numeric style target or project file, and asks for no exchange of
+a word unless the word would mislead. The writer may disagree with a
 reason; the owner settles it. After two rounds what is left is the
 owner's to edit.
 
@@ -523,7 +521,7 @@ the statements exist.
 |---|---|---|
 | V1 | Done 2026-11-27: `WRITING_GUIDE.md` as two parts (the paper on one page; how to work); `TERMS.md` as a glossary, its lab words in `CLAIMS.md`, section 6; the abstracts; the example papers; `tools/pack.py` | the owner reads the page on the paper (`WRITING_GUIDE.md`, "The paper") and may change the example papers |
 | V2 | Pilot: the briefs of Sections 3 and 1 in the form of section 4; the writer drafts Section 3, then Section 1 with the abstract; all checks of section 7 | the owner approves each brief, then reads the pilot |
-| V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the pack is corrected (section 3.1) and the pilot is written again | the owner; a brief to approve per section |
+| V3 | The pilot holds: the other sections in the order of section 5. It does not hold: the brief is corrected (section 3.1) and the pilot is written again | the owner; a brief to approve per section |
 | W14 | Whole paper: one writer reads it end to end and evens it out, with `make inventory` before and after so that no number and no reference changes; reader test; `/ars-reviewer`; claim audit of the full text; page count | the owner and the advisor read |
 | W15 | Statements, AI-use statement (section 10), public repository with code, splits and predictions, cover letter, `make submit` | authors, funding and competing interests from the owner |
 
@@ -544,11 +542,12 @@ its locators, the supplementary file.
 | `make`, `make numbers`, `make figures`, `make floats` | the PDF (`build/main.pdf`); macros, tables and settings; charts; every float on its own |
 | `make lint`, `make inventory` | `tools/lint.py`: numbers, references, journal form, lab words; macros and keys of every section |
 | `make register`, `make overlap` | `tools/style_profile.py compare` for every section; `lifted` against the closest papers and the example papers |
-| `make pack S=NN [ALSO=..] [ACCEPTED=".."]`, `tools/abstracts.py` | what the writer of a section reads, with its start prompt; the abstracts of the references |
-| `tools/pack.py --check FILE...` | a reply to the writer, editor's notes or a file sent with them, searched for dates, "owner" and lab words before it is sent |
+| `make pack S=NN [ALSO=..] [ACCEPTED=".."]`, `tools/abstracts.py` | the material of a section in one folder (not used by the writer since 2026-11-28, section 3.2); the abstracts of the references |
+| `tools/pack.py --check FILE...` | a text searched for dates, "owner" and lab words (no longer required for messages to the writer) |
 | `make submit` | the flat source the journal asks for, compiled (`tools/flatten.py`); stops on a placeholder or a guess |
 | `tools/reverse_outline.py`, `tools/table_lint.py` | first sentences of a section; table conventions (from PaperOrchestra, MIT) |
-| `cold-session` skill | isolated sessions: the writer (section 2.1) and the cold reads |
+| Agent tool (`model: opus`), `codex exec` (`gpt-6.2-sol`), `antigravity` skill (`agy`) | the writer, the one the owner names: one conversation per section, in the workspace (section 2.1) |
+| `cold-session` skill | isolated sessions on Opus: the cold reads |
 | `/ars-citation-check`, `/ars-reviewer`, `/ars-disclosure` | single checks. The paper is not run through the ARS pipeline |
 | TeX | TeX Live 2026 basic with the packages of `tsp.cls` in the user tree; the `Makefile` puts the `l3` folders of the system tree first on `TEXINPUTS` |
 
