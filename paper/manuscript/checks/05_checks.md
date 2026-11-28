@@ -26,14 +26,7 @@ For the ablation study (5.3):
 
 None beyond the baselines' sources in Section 4.
 
-For the ablation study (5.3):
-
-Four published results on a likelihood term in DPO (locators in `02_related_rows.md`); two support the term and two do not, and the section carries all four:
-
-- CodeLutra, Table 2: Spider 17.2 with the DPO term alone, 76.6 with the full loss.
-- Pang et al., Table 1: GSM8K 61.8 against 73.1, one round.
-- Liu et al., App. A, Table 7: an added SFT term on SQL-only output, 58.8 to 60.0, which they call a limited gain.
-- Lanchantin et al., Sec. 4.2: an added NLL term did not help in their task. (Cited only here.)
+Section 5 quotes no number of another paper: the published results on a likelihood term beside the DPO term are in `02_checks.md` and belong to Section 2 (main session, 2026-11-28; CodeLutra has its fixed places, and three of the four results without it would be a partial list).
 
 ## 3. Claims: strength, scope, what waits
 
