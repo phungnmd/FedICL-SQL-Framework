@@ -169,8 +169,17 @@ and read by the reviewer; Sections 5, 6 and 7 are written and read
 twice by the reviewer; Section 2 with Table 1 is written, read and
 revised; Section 1 and the abstract are brought up to date (W3) and
 were not read as a part by the kept reviewer, which saw them as the
-pages before Section 2; the appendices and the statements exist. The
-PDF has 31 pages. Next is W4.
+pages before Section 2; the appendices and the statements exist. W4
+has started: two fresh reviewers read the full draft (one reject with
+resubmission, one major revision; their points are placed in
+`REVIEW_NOTES.md`, A34 and A48 to A54, and in the open points below);
+the pass on repeated results is done (Section 5 and its tables are the
+one place of each number and test; the tables print the adjusted p);
+the claims of `CLAIMS.md` were checked against the text of `5e5a9dc`
+and none is lost or stated above its ceiling; 18 works cited by name
+only (datasets, tools, tests) have no row in `checks/`. The PDF has 32
+pages. Left of W4: the trim to the owner's page target (A48), terms,
+the open points below.
 
 | Step | What | Waits on |
 |---|---|---|
