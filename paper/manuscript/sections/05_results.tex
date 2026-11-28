@@ -72,8 +72,9 @@ significant, and the second round adds \gain{bird}{feddpo}{3}{feddpo}{4}
 points to FedDPO ($p = {}$\padj{bird}{feddpo}{3}{feddpo}{4}), less than
 it adds to \method{} (Section~\ref{sec:ablation}). FedDPO is
 significantly above FedAvg SFT under EX and does not differ
-significantly from it under TS (\tsgain{bird}{fedavg}{4}{feddpo}{4}
-points, $p = {}$\tspadj{bird}{fedavg}{4}{feddpo}{4}). It differs from
+significantly from it under TS, at \ts{bird}{feddpo}{4}\%
+(\tsgain{bird}{fedavg}{4}{feddpo}{4} points,
+$p = {}$\tspadj{bird}{fedavg}{4}{feddpo}{4}). It differs from
 \method{} in the renewal of the pairs and the reference model and in the
 NLL term, and Section~\ref{sec:ablation} gives the effect of each.
 
@@ -113,7 +114,9 @@ FedAvg SFT, which answers \nbrk{bird}{fedavg}{4}{k2}{4} questions that
 \fact{moved.spider.error.correct}, \fact{moved.spider.error.wrong} and
 \fact{moved.spider.error.error} in the same way, and
 \fact{moved.spider.wrong.correct} of the \nfix{spider}{fedavg}{4}{k2}{4}
-questions that only \method{} answers correctly were incorrect results.
+questions that only \method{} answers correctly were incorrect results,
+while FedAvg SFT answers \nbrk{spider}{fedavg}{4}{k2}{4} that \method{}
+does not.
 The pairs contain both kinds of incorrect query: the incorrect sample
 fails to execute or exceeds the time limit in
 \fact{pairs.bird.pref1.neg_error_pct}\% of the pairs of the first
@@ -138,8 +141,9 @@ Under the generated suite, the two groups go from
 the EX-correct predictions on other tables or columns for both models,
 \fact{form.bird.fedavg.4.other_ts_fail_pct}\% for FedAvg SFT and
 \fact{form.bird.k2.4.other_ts_fail_pct}\% for \method, against about a
-tenth of those on the tables and columns of the gold SQL query. The
-significant TS gain over FedAvg SFT, \tsgap{bird}{fedavg}{4}{k2}{4}
+tenth of those on the tables and columns of the gold SQL query, so a
+part of the EX gain in the first group is not confirmed by the suite.
+The significant TS gain over FedAvg SFT, \tsgap{bird}{fedavg}{4}{k2}{4}
 points (Table~\ref{tab:ablation}), excludes all rejected predictions,
 \fact{ts.bird.fedavg.4.rejected} of FedAvg SFT and
 \fact{ts.bird.k2.4.rejected} of \method. On Spider test, FedAvg SFT has
@@ -172,12 +176,14 @@ clients' data. Of the \setting{rounds.total} rounds, the variant without
 warm-up has four preference rounds and the one with three warm-up rounds
 has one. On Spider test, EX does not differ significantly with the
 number of warm-up rounds, and without warm-up TS is lower on the three
-sets with a suite (Section~\ref{sec:breadth}).
+sets with a suite, significantly on one of them
+(Section~\ref{sec:breadth}).
 
 With \setting{rounds.pref} preference rounds, the pairs and the reference
 model are renewed once, at the second preference round, where \method{}
 trains on pairs built from new samples, which come from fewer questions
-(Table~\ref{tab:cost}), with the global model of that round as reference.
+since more have only correct samples (Section~\ref{sec:cost}), with the
+global model of that round as reference.
 The comparison covers the new pairs and the new reference model together
 and does not separate them. Without the renewal, EX is
 \gap{bird}{k2}{4}{fixed}{4} points lower on BIRD dev, and on Spider test
@@ -192,6 +198,7 @@ preference round from the same samples and labels, pairs of the gold SQL
 query with an incorrect sample for the questions without a correct
 sample do not raise EX. With \setting{pref.pairs} such pairs for each of
 the \fact{warmup.bird.k0.no_correct} questions, EX on BIRD dev is
+\ex{bird}{k0gold}{1}\% against \ex{bird}{k0}{1}\%,
 \gap{bird}{k0}{1}{k0gold}{1} points lower, a difference that is not
 significant ($p = {}$\padj{bird}{k0}{1}{k0gold}{1}), execution errors fall
 from \nerr{bird}{k0}{1} to \nerr{bird}{k0gold}{1}, and incorrect results
@@ -251,6 +258,16 @@ Table~\ref{tab:main}.}\label{tab:federated}
 \input{generated/tab_federated}
 \end{table}
 
+\begin{table}[!ht]
+\caption{EX and TS (\%) on Spider dev and the three sets built from
+Spider after \setting{rounds.total} rounds. TS uses the official suite of
+the Spider dev databases, and Spider-DK has none. The lower part gives
+$\Delta$ and $p$ of \method{} against FedAvg SFT and against \method{}
+without warm-up rounds, as in Table~\ref{tab:main}.}\label{tab:robust}
+\footnotesize
+\input{generated/tab_robust}
+\end{table}
+
 On Spider test, \method{} is also significantly above FedAvg SFT with a
 smaller model, by a smaller margin (Table~\ref{tab:models}):
 \gap[qwen05]{spider}{fedavg}{4}{k2}{4} EX points with
@@ -262,7 +279,7 @@ On Spider dev and the three sets built from Spider, \method{} is above
 FedAvg SFT under EX and, where a suite exists, under TS, by
 \tsgap{spiderdev}{fedavg}{4}{k2}{4} to \gap{dk}{fedavg}{4}{k2}{4} points,
 and the differences are significant on Spider-Syn only
-(Table~\ref{tab:robust} in the Supplementary Materials). Both models
+(Table~\ref{tab:robust}). Both models
 lose EX from Spider dev to Spider-Syn, FedAvg SFT from
 \ex{spiderdev}{fedavg}{4}\% to \ex{syn}{fedavg}{4}\% and \method{} from
 \ex{spiderdev}{k2}{4}\% to \ex{syn}{k2}{4}\%. Without warm-up rounds,

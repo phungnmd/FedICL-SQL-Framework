@@ -149,7 +149,7 @@ Running text sets about 600 words a page in the class.
 | 4 | Experimental setup | Table 2 (federated setups) |
 | 5 | Results and analysis; the ablation study is 5.3 | Table 3 and Fig. 3 (main results; EX by round), Fig. 4 (incorrect predictions by kind and round), Table 4 (ablations), Tables 5 and 6 (other models; other federated setups), Table 7 (Spider dev, Syn, Realistic, DK), Table 8 (cost) |
 | 6, 7 | Discussion and limitations; Conclusion | |
-| S1 to S5 | Supplementary Materials: the prompt; all settings; the federated setups; the perturbed questions; labeling and the generated suite | Fig. S1, Tables S1 to S4 |
+| S1 to S4 | Supplementary Materials: the prompt; all settings; the federated setups; labeling and the generated suite | Fig. S1, Tables S1 to S3 |
 
 Numbers and tables: `tools/paper_numbers.py` writes one macro per cell
 and one `tab_*.tex` per table from the committed evaluations (through
@@ -183,8 +183,16 @@ words, 41 references, and the Supplementary Materials as a second
 document of 6 pages (`OUTLINE.md`, Structure; lengths of the published
 papers in `JOURNAL_BAR.md`, section 3b). 23 numbers of the 32-page
 text are printed nowhere now; no claim of `CLAIMS.md` was dropped
-(writer's report, spot-checked in the PDF). Left of W4: the kept
-reviewer's read of the trimmed sections, terms, the open points below.
+(writer's report, spot-checked in the PDF). The kept reviewer
+read the trimmed Sections 2, 4, 5 and 6 with 7 (turns 13 to 16 of its
+log); what a cut had removed and a reader needs is back in the text
+(the facts on the generated suite in 4.1, the difficulty criterion on
+BIRD and IID over databases in 4.2, the levels and counts the argument
+needs in 5, the result under the official suites and the bound of the
+generated one in 6.2), and the table of perturbed questions is back in
+Section 5.4. Its points that no text settles are in the open points
+below and in `REVIEW_NOTES.md`. Left of W4: terms, the open points
+below.
 For `make submit` (W5): the flat source has to carry the numbers of
 the Supplementary Materials as text, since the manuscript reads them
 through `xr-hyper` while it is drafted.
@@ -300,6 +308,21 @@ Open points on the drafted sections (W3 and W4):
   settings stands four times (6.1 twice, 6.2, 7); the opening
   summaries of 5.1 and 5.3 read as repetition to this reviewer and as
   missing synthesis to the two fresh ones.
+
+- From the kept reviewer's read of the trimmed sections (2026-11-28),
+  not settled by text: contribution item 2 names the renewal of pairs
+  and reference model as the design, and Section 2.2 attributes the
+  same renewal to the closest work (`REVIEW_NOTES.md`, A49, A50); the
+  differences listed in Section 2.2 are not tied to evidence, and the
+  pooled variant is not mentioned there; no reason is given for
+  preference pairs over a policy-gradient objective; the abstract
+  states the gains over FedAvg SFT without the caveat on the training
+  settings (waits for the control, A34); the families of the Holm
+  correction follow the layout of the tables; centralized SFT has 3
+  epochs against 4 rounds; the gain by difficulty level is untested and
+  the group sizes are not printed; Table 2 has one row for Local SFT
+  against the three values announced in Section 4.3; Section 5.4 joins
+  three kinds of result under one heading while most of its rows wait.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),

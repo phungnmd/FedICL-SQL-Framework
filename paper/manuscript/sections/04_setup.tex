@@ -31,13 +31,17 @@ database of a suite of content variants. The official suite of the
 Spider dev databases serves Spider dev, Spider-Syn and Spider-Realistic,
 whose questions are posed on the same databases, and Spider test and
 Spider-DK, which have none, are reported under EX alone.
-For BIRD dev, we generate \fact{suite.variants} variants of each database
-with the fuzzing procedure of the test-suite evaluation. Generated in the
+For BIRD dev, which has no official suite, we generate
+\fact{suite.variants} variants of each database with our implementation
+of the fuzzing procedure of the test-suite evaluation, without its
+distillation step, and the \fact{suite.bird.none} questions for which no
+variant counts keep their EX verdict
+(Section~\ref{sup:labeling} of the Supplementary Materials). Generated in the
 same way for Spider dev, such a suite agrees with the official one on
 \fact{suite.calib.agreement_ex_correct}\% of the
 \fact{suite.calib.ex_correct} EX-correct predictions of our models, the
-predictions on which the number of variants was chosen. No official suite
-exists against which the suite of BIRD dev itself could be compared.
+predictions on which the number of variants was chosen. The suite of
+BIRD dev itself cannot be compared with an official one.
 
 \subsection{Federated setups}\label{sec:fed-setups}
 
@@ -45,13 +49,15 @@ Each database, with all its questions, belongs to one client, so that a
 client is an organization that holds its databases. The two main setups
 assign the databases of BIRD train to \fact{split.bird.a0.1.k5.clients} clients and those
 of Spider train to \fact{split.spider.a0.1.k5.clients}, non-IID in the
-difficulty of the questions: the databases are grouped
+difficulty of the questions, the level of a gold SQL query under the
+criteria of the Spider evaluation script, which we apply to the queries
+of BIRD as parsed by sqlglot: the databases are grouped
 into four tiers by their share of hard and extra-hard questions, and the
 shares of the clients in each tier are drawn from a Dirichlet
 distribution with $\alpha = {}$\fact{split.bird.a0.1.k5.alpha}, the
 label-distribution skew of NIID-Bench~\cite{li2022niidbench}.
-Section~\ref{sec:breadth} adds an independent and identically
-distributed (IID) partition of Spider train and two with
+Section~\ref{sec:breadth} adds a partition of Spider train that is independent and identically
+distributed (IID) over databases, not over questions, and two with
 $\alpha = {}$\fact{split.spider.a0.5.k5.alpha}, with
 \fact{split.spider.a0.5.k5.clients} and
 \fact{split.spider.a0.5.k10.clients} clients (Table~\ref{tab:setups},
@@ -92,14 +98,17 @@ term.
 
 The adapter is LoRA of rank \setting{lora.r} with \texttt{lora\_alpha}
 \setting{lora.alpha} on all attention and feed-forward projections,
-from one initialization shared by all clients. Warm-up and FedAvg SFT
+from one initialization shared by all clients. In \method{} and in every
+federated baseline, the server averages the two LoRA factors separately,
+which does not average their product~\cite{sun2024ffalora}. Warm-up and FedAvg SFT
 rounds train with \setting{sft.optimizer}~\cite{loshchilov2019adamw}, a
 learning rate of \setting{sft.lr}, a learning-rate warm-up over
 \setting{sft.warmup} and LoRA dropout \setting{sft.dropout}, and
 preference rounds with \setting{pref.optimizer}, a learning rate of
 \setting{pref.lr}, a learning-rate warm-up over \setting{pref.warmup}
-and LoRA dropout \setting{pref.dropout}, so that the two kinds of round
-differ in these four settings. An update takes \setting{sft.batch} examples in the
+and LoRA dropout \setting{pref.dropout}. The two kinds of round thus
+differ in learning rate, weight decay, learning-rate warm-up and LoRA
+dropout. An update takes \setting{sft.batch} examples in the
 former and \setting{pref.batch} pairs in the latter, and the schedule,
 like the optimizer, starts anew at every client in every round. The
 number of samples per question, the sampling

@@ -32,9 +32,9 @@ text merges them (3.1 with 3.2, 3.3 with 3.4, 3.5 with 3.6; 4.3 with
 text after the cut. What a reader needs only to reproduce is in the
 Supplementary Materials (`supplement.tex`, built by `make` into
 `build/supplement.pdf`): S1 the prompt, S2 the settings and software,
-S3 the federated setups and the partition procedure (Table S3), S4 the
-perturbed questions (Table S4), S5 execution labeling, the time limits
-and the generated suite of BIRD dev. Where an entry below names
+S3 the federated setups and the partition procedure (Table S3), S4
+execution labeling, the time limits and the generated suite of BIRD
+dev. Where an entry below names
 Appendix A or B, or a float that moved, read the section of the
 Supplementary Materials that holds it.
 
@@ -222,7 +222,7 @@ experiments.
 
 **Transition to next**: the results, from the gain to its cost.
 
-### 5. Results and analysis (~1,600 words, Tables 2 to 6, Figs. 3 and 4; the perturbed sets in Table S4)
+### 5. Results and analysis (~1,650 words, Tables 2 to 7, Figs. 3 and 4)
 
 **Purpose**: show the gain, what it consists of, which component
 accounts for it, how far it carries and what it costs.

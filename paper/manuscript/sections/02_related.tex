@@ -33,9 +33,10 @@ Optimization (GRPO) is applied with rewards computed by
 execution~\cite{papicchio2025think2sql,yao2026arctic,kulkarni2025reinforcing}.
 Liu et al.~\cite{liu2025cotdpo} sample 16 queries per BIRD training
 question from the SFT model, pair a correct with an incorrect sample and
-train with DPO alone against the SFT model as reference. With SQL-only
-outputs, this lowers BIRD dev EX under greedy decoding and majority
-voting for 6 of their 10 models. ExCoT~\cite{zhai2025excot} continues
+train with DPO alone for eight epochs against the SFT model as
+reference. With SQL-only outputs, this lowers BIRD dev EX under greedy
+decoding and majority voting for 6 of their 10 models, and with
+synthesized chains of thought it raises EX for all ten. ExCoT~\cite{zhai2025excot} continues
 DPO in on-policy rounds on new samples of the model, labeled again by
 execution, and rejection sampling fine-tuning~\cite{yuan2023rft} trains
 on the correct outputs of the model without a preference term.
@@ -47,7 +48,8 @@ chains of thought sampled from the current model and trains with the DPO
 term plus a length-normalized NLL term, reaching 73.1 on GSM8K after one
 round against 61.8 with DPO alone. Liu et al.\ report a limited gain from
 an added SFT term on SQL-only outputs, and Lanchantin et
-al.~\cite{lanchantin2025bridging} no benefit from an added NLL term.
+al.~\cite{lanchantin2025bridging} no benefit from an added NLL term
+with Llama-3.1-8B-Instruct.
 
 The closest work is CodeLutra~\cite{tao2024codelutra}. At one site, it
 samples ten queries per question from the current model, labels each by
@@ -62,8 +64,41 @@ federated round is one iteration for all clients with the global model as
 their common reference model, and the server averages the adapters by
 the pair counts. The preference rounds start from a model trained in
 FedAvg SFT warm-up rounds, and each question contributes
-\setting{pref.pairs} pairs with an NLL term averaged over tokens. Table~\ref{tab:related} sets the
+\setting{pref.pairs} pairs with an NLL term averaged over tokens.
+Section~\ref{sec:implementation} names the settings of the preference
+rounds that follow CodeLutra, and Table~\ref{tab:related} sets the
 closest methods beside \method.
+
+\subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
+
+FederatedScope-LLM~\cite{kuang2024fsllm} and
+OpenFedLLM~\cite{ye2024openfedllm} fine-tune LLMs with LoRA under FedAvg
+and other algorithms. In
+federated SFT, a client trains on the responses of its dataset, not on
+outputs of the model. OpenFedLLM also introduces FedDPO, in which every
+client trains with the DPO loss alone on its own preference dataset
+against a reference model fixed throughout the federated process.
+FedPDPO~\cite{zhu2026fedpdpo} and pFedDPO~\cite{jiang2026pfeddpo}
+personalize federated DPO for clients whose preferences differ, and both
+train on fixed preference datasets. In FedBiscuit~\cite{wu2025fedbiscuit},
+clients train binary selectors on their preference data, and the server
+labels with them pairs that its initial model generates once. In
+federated reinforcement learning with verifiable rewards, a client
+samples from the current model and trains with GRPO on a reward for
+correct answers, to math and medical questions in
+PubSwap~\cite{nayak2026pubswap} and to math and code tasks in
+Fed-GRPO~\cite{guo2026fedgrpo}. Neither has been applied to Text-to-SQL,
+and this paper does not evaluate such a policy-gradient method with an
+execution reward.
+
+For federated semantic parsing, Zhang et al.~\cite{zhang2023fl4sp}
+fine-tune T5-base with FedAvg, FedOPT and FedProx on the gold SQL
+queries of eight single-domain clients and score predictions by exact
+match without executing a query, reaching 62.55 macro-averaged exact
+match against 70.32 for centralized training. KGRFL~\cite{xu2024kgrfl}
+fuses client models that translate questions into SPARQL. To our knowledge, no earlier
+method for federated training of Text-to-SQL models uses the databases
+of the clients for execution labels.
 
 \begin{table}[!ht]
 \caption{Methods closest to \method. ``Labels from SQL execution'': a
@@ -101,37 +136,3 @@ medical (PubSwap) or code (Fed-GRPO) task is correct.\par
 trains on pairs of GPT-4o outputs.
 \end{minipage}
 \end{table}
-
-\subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
-
-FederatedScope-LLM~\cite{kuang2024fsllm} and
-OpenFedLLM~\cite{ye2024openfedllm} fine-tune LLMs with LoRA under FedAvg
-and other algorithms. In
-federated SFT, a client trains on the responses of its dataset, not on
-outputs of the model. OpenFedLLM also introduces FedDPO, in which every
-client trains with the DPO loss alone on its own preference dataset
-against a reference model fixed throughout the federated process.
-FedPDPO~\cite{zhu2026fedpdpo} and pFedDPO~\cite{jiang2026pfeddpo}
-personalize federated DPO for clients whose preferences differ, and both
-train on fixed preference datasets. In FedBiscuit~\cite{wu2025fedbiscuit},
-clients train binary selectors on their preference data, and the server
-labels with them pairs that its initial model generates once. In
-federated reinforcement learning with verifiable rewards, a client
-samples from the current model and trains with GRPO on a reward for
-correct answers, to math and medical questions in
-PubSwap~\cite{nayak2026pubswap} and to math and code tasks in
-Fed-GRPO~\cite{guo2026fedgrpo}. Neither has been applied to Text-to-SQL,
-and this paper does not evaluate such a policy-gradient method with an
-execution reward.
-Averaging the two LoRA factors separately does not average their
-product~\cite{sun2024ffalora}, and \method{} and its baselines keep the
-separate average.
-
-For federated semantic parsing, Zhang et al.~\cite{zhang2023fl4sp}
-fine-tune T5-base with FedAvg, FedOPT and FedProx on the gold SQL
-queries of eight single-domain clients and score predictions by exact
-match without executing a query, reaching 62.55 macro-averaged exact
-match against 70.32 for centralized training. KGRFL~\cite{xu2024kgrfl}
-fuses client models that translate questions into SPARQL. To our knowledge, no earlier
-method for federated training of Text-to-SQL models uses the databases
-of the clients for execution labels.
