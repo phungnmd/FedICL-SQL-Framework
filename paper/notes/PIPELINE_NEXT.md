@@ -5,10 +5,26 @@
 The queue is paused (owner, 2026-11-28): the cards are busy with other
 work. The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
-2026-11-28). Next the owner runs the two `bird_vote` evaluations only
-(Run now, step 1); every other task waits until the cards are free. The
-BIRD rounds ran longer than estimated (`bird_rft/round_2` about 8.1 h
-against 6 h), so the hours below are likely low.
+2026-11-28).
+
+First to run (queued 2026-11-28, owner; code `c282b25c`, queue
+`3716b8fd`): the control of the main comparison, `sft_prefset` and
+`bird_sft_prefset`. FedAvg SFT rounds 3 and 4 from FedAvg SFT round 2,
+trained at the settings of the DPO + NLL rounds (learning rate 5e-5,
+weight decay 1e-4, warm-up 0.1, LoRA dropout 0) and otherwise as
+FedAvg SFT. It answers how much of the gain over FedAvg SFT at 4 rounds (6.19 on
+BIRD dev, 3.49 on Spider test) comes from those settings and not from
+the DPO + NLL rounds. Run now, step 1, runs these tasks alone. The
+paper has no row for the control yet: the row, its tests and the
+sentences of Sections 5 and 6 on the settings follow the result. The
+BIRD rounds ran longer than estimated (`bird_rft/round_2` about 8.1 h against 6 h), so the hours
+below are likely low.
+
+How to read the control on BIRD dev at 4 rounds (the method 48.76,
+FedAvg SFT 42.57, the round without the preference term 45.24): near
+43 to 44, the gain over FedAvg SFT stays at about 5; near 45, about
+3.5 is left, the size of the gain over the round without the preference
+term; 47 or more, the main claim of the paper does not hold as written.
 
 Queued 2026-11-28 (owner; `c52e37ff`, pushed): `bird_nonll/round_2`,
 the on-policy round 2 without the NLL term on BIRD, the "no NLL term"
@@ -19,6 +35,7 @@ first ready task the other does not hold):
 
 | Order | Tasks | Cells it fills | About |
 |---|---|---|---|
+| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | a row to add to Tables 3 and 4: FedAvg SFT at the settings of the DPO + NLL rounds | 10.5 h |
 | 1 | `feddpo/round_2`, `rft/round_2` | Table 3, Spider: FedDPO; Table 4, Spider: no preference term at 4 rounds | 6.5 h |
 | 2 | `bird_nonll/round_2` with its evaluation | Table 4, BIRD: no NLL term at 4 rounds | 8 h |
 | 3 | `pooled_k2` rounds 1 and 2, `pooled_dev` | Table 4, Spider: clients pooled | 4 h |
@@ -30,7 +47,7 @@ first ready task the other does not hold):
 | 9 | `a05k10_sft` rounds 1 to 4, `a05k10_k2` rounds 1 and 2 | Table 6: alpha 0.5, 10 clients | 13 h |
 | 10 | `bird_central/sft` | Table 3, BIRD: centralized SFT | 8.5 h |
 
-About 81 GPU hours in all (estimate). After them the tables still lack
+About 91 GPU hours in all (estimate). After them the tables still lack
 the rows of `Not queued yet` below. The manuscript does not wait for
 any of them: it is completed with placeholders and marked guesses
 (`AGENTS.md`, Writing).
@@ -277,12 +294,24 @@ its log say whether the second runs 4 at a time cost them.
 
 ## Run now
 
-1. On one card, the two vote evaluations of BIRD dev and nothing else
-   (`--phase bird_vote`: FedAvg SFT round 4 and the method at 4 rounds,
-   16 samples each at T 0.8, voted by execution result; about 1 h each,
-   estimate; vLLM at 0.80 of the card). GPU 0 as written, GPU 1 with
-   `--gpu 1`. The worker pulls first, publishes each result and stops
-   with `DONE queue` when both are in.
+1. The control of the main comparison, and nothing else (`--phase
+   sft_prefset bird_sft_prefset`). GPU 0 as written; on a second card
+   the same line with `--gpu 1`. With two cards one takes the Spider
+   rounds and the other the BIRD rounds, about 6.5 h (estimate: a
+   FedAvg SFT round trained 124 min on Spider and 173 min on BIRD, plus
+   its evaluation); with one card about 10.5 h, the two round 3 first.
+   Memory is that of the FedAvg SFT rounds (same model, batch, length
+   limit and loss path). The worker pulls first, publishes each round
+   and each evaluation, and stops with `DONE queue` when all are in.
+
+   ```powershell
+   & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase sft_prefset bird_sft_prefset; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
+   ```
+
+   If a card is free for a short time only, the vote evaluations of
+   BIRD dev instead (`--phase bird_vote`: FedAvg SFT round 4 and the
+   method at 4 rounds, 16 samples each at T 0.8, voted by execution
+   result; about 1 h each, estimate; vLLM at 0.80 of the card):
 
    ```powershell
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase bird_vote; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
@@ -295,6 +324,11 @@ its log say whether the second runs 4 at a time cost them.
    when they come (expected 19.83 GiB, not measured on these splits).
 
 3. Send back, when they come:
+   - the `DONE queue` or `STOP queue` line of the control worker, and
+     the EX of the four evaluations if they are at hand
+     (`fedavg_prefset_ddl_rows_a01_r3` and `r4` on Spider test,
+     `fedavg_bird_prefset_ddl_a01_r3` and `r4` on BIRD dev); the worker
+     publishes the rows;
    - the `DONE queue` or `STOP queue` line of the vote worker; nothing
      else for the `bird_vote` rows: the worker publishes their results
      (`experiments/pass_at_k/results/`);
@@ -322,6 +356,7 @@ its log say whether the second runs 4 at a time cost them.
 
 | # | Tasks | What it answers | About | State |
 | --- | --- | --- | --- | --- |
+| 48 | `sft_prefset/round_3`, `round_4`, `bird_sft_prefset/round_3`, `round_4`, each with its evaluation and publications | how much of the gain over FedAvg SFT comes from the training settings: FedAvg SFT rounds 3 and 4 from FedAvg SFT round 2 at the settings of the DPO + NLL rounds (learning rate 5e-5, weight decay 1e-4, warm-up 0.1, LoRA dropout 0), run as private stages in their own roots (`fedavg_prefset_ddlrows_alpha01_s0`, `fedavg_bird_prefset_ddl_alpha01_s0`); against FedAvg SFT (Spider test 74.71, 74.71; BIRD dev 43.68, 42.57), the method (77.46, 78.20; 46.22, 48.76) and RFT (75.87; 44.39, 45.24) | about 10.5 h (estimate) | queued 2026-11-28 (`3716b8fd`), first in file order |
 | 46 | `bird_rft/round_2` with its evaluation | the method without its preference term at 4 rounds on BIRD: RFT round 2, samples drawn again from RFT round 1 (44.39), against `bird_k2/round_2` (48.76) | about 8.1 h (measured) | read 2026-11-28: 45.24, 3.52 below `bird_k2/round_2` (p 5.2e-05), 0.85 above its round 1 (p 0.14) |
 | 38 | `bird_feddpo/*` | federated DPO as published on BIRD from FedAvg SFT round 2: round 1 without NLL on the round 1 samples of `bird_k2` (copied), round 2 on the same pairs and reference; against `bird_k2` at 3 and 4 rounds | about 9.7 h (measured) | read 2026-11-28: round 1 44.98 (1.24 below `bird_k2/round_1`, p 0.17), round 2 45.50 (3.26 below `bird_k2/round_2`, p 0.00014) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`); place in the file order of 2026-11-27 (`4a962ced`): third, with `rft/round_2` |

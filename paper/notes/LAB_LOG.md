@@ -5,6 +5,39 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: control of the main comparison queued first (FedAvg SFT at the settings of the DPO + NLL rounds)
+
+- Why: every comparison of the method with FedAvg SFT is between rounds
+  at different training settings (DPO + NLL rounds: learning rate 5e-5,
+  weight decay 1e-4, warm-up 0.1, LoRA dropout 0; FedAvg SFT: 2e-4,
+  0.01, 0.03, 0.05). Only the round without the preference term shares
+  the settings of the method (BIRD dev at 4 rounds: +3.52, adjusted p
+  9.3e-4; Spider test at 3 rounds: +1.59, adjusted p 0.21). The kept
+  reviewer and both fresh reads of the full draft name this as a major
+  point (`REVIEW_NOTES.md`, A34).
+- Code (`fedicl-sql` `c282b25c`): the SFT rounds take `--weight-decay`,
+  `--warmup-ratio` and `--lora-dropout`. The weight decay of the SFT
+  trainer was the AdamW default (0.01), never written; it is now a
+  field with that value. At the SFT values nothing enters the recipe,
+  the fingerprints or the checkpoint signature, so every finished root
+  and checkpoint still matches.
+- Queue (`3716b8fd`): `sft_prefset/round_3`, `round_4` (Spider clients,
+  from `fedavg_ddl_rows_a01_r2_s0`) and `bird_sft_prefset/round_3`,
+  `round_4` (BIRD clients, from `fedavg_bird_ddl_a01_r2_s0`), as
+  private stages in their own roots, each evaluated on Spider test or
+  BIRD dev with the engine and batch of the rows they are read
+  against. First in file order. About 10.5 GPU hours (estimate).
+- Checked before queuing: the recipe of each control stage against
+  `sft_more/round_5` and `bird_sft/round_3` differs in the four
+  settings and in nothing else (a test of the queue holds it); one
+  Spider training prompt rendered from its token ids and read. Not
+  checked here: a BIRD prompt (the BIRD train databases are on the
+  server only; the stage uses the profile, schema style and code path
+  of `bird_sft`), and the parent adapters, which exist on the server.
+- Not queued, next after the control is read: local SFT per client and
+  per-client DPO + NLL rounds on BIRD (does federating pay), seed 1 of
+  the two main rows.
+
 ## 2026-11-28: manuscript, every section drafted (Sections 2, 5, 6, 7 written; Section 1 and the abstract brought up to date); three tests added to the text family; two points of the reviewer need a decision or a run
 
 - Writer and kept reviewer as before. The reviewer read Sections 5 and
