@@ -1,31 +1,45 @@
 %% Written by tools/paper_numbers.py. Do not edit.
 \setlength{\tabcolsep}{3.5pt}%
-\begin{tabular}{@{}lrrlrrl@{}}
+\begin{tabular}{@{}lrrl@{}}
 \toprule
- & \multicolumn{3}{c}{BIRD dev} & \multicolumn{3}{c}{Spider test} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
- & EX & $\Delta$ & $p$ & EX & $\Delta$ & $p$ \\
+ & EX & $\Delta$ & $p$ \\
 \midrule
-FedAvg SFT, 2 rounds & 42.70 &  &  & 74.10 &  &  \\
+\multicolumn{4}{@{}l}{\panel{a}~BIRD dev} \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{4 rounds}} \\
+FedAvg SFT, 2 rounds & 42.70 &  &  \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{4 rounds}} \\
+\method & 48.76 &  &  \\
+FedAvg SFT & 42.57 & $-$6.19 & $2.3\times10^{-10}$\textsuperscript{*} \\
+FedAvg SFT, preference-round settings & -- & -- & -- \\
+FedDPO & 45.50 & $-$3.26 & 0.0013\textsuperscript{*} \\
+Fixed pairs and reference & 46.15 & $-$2.61 & 0.0046\textsuperscript{*} \\
+No preference term & 45.24 & $-$3.52 & $5.7\times10^{-4}$\textsuperscript{*} \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{3 rounds}} \\
+\method & 46.22 &  &  \\
+FedAvg SFT & 43.68 & $-$2.54 & 0.044\textsuperscript{*} \\
+FedAvg SFT, preference-round settings & 43.16 & $-$3.06 & 0.0098\textsuperscript{*} \\
+No NLL term & 44.98 & $-$1.24 & 0.33 \\
+No preference term & 44.39 & $-$1.83 & 0.17 \\
 \midrule
-\method & 48.76 &  &  & 78.20 &  &  \\
-FedAvg SFT & 42.57 & $-$6.19 & $2.3\times10^{-10}$\textsuperscript{*} & 74.71 & $-$3.49 & $2.6\times10^{-6}$\textsuperscript{*} \\
-FedAvg SFT, preference-round settings & -- & -- & -- & -- & -- & -- \\
-FedDPO & 45.50 & $-$3.26 & 0.0016\textsuperscript{*} & -- & -- & -- \\
-Fixed pairs and reference & 46.15 & $-$2.61 & 0.0057\textsuperscript{*} & 78.02 & $-$0.18 & 1.00 \\
-No preference term & 45.24 & $-$3.52 & $6.7\times10^{-4}$\textsuperscript{*} &  &  &  \\
-No warm-up round &  &  &  & 78.02 & $-$0.18 & 1.00 \\
-Three warm-up rounds &  &  &  & 77.97 & $-$0.23 & 1.00 \\
-Clients pooled &  &  &  & -- & -- & -- \\
+\multicolumn{4}{@{}l}{\panel{b}~Spider test} \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{3 rounds}} \\
-\midrule
-\method & 46.22 &  &  & 77.46 &  &  \\
-FedAvg SFT & 43.68 & $-$2.54 & 0.061 & 74.71 & $-$2.75 & $6.7\times10^{-4}$\textsuperscript{*} \\
-FedAvg SFT, preference-round settings & 43.16 & $-$3.06 & 0.013\textsuperscript{*} & 75.45 & $-$2.01 & 0.029\textsuperscript{*} \\
-No NLL term & 44.98 & $-$1.24 & 0.66 & 73.59 & $-$3.87 & $1.1\times10^{-7}$\textsuperscript{*} \\
-No preference term & 44.39 & $-$1.83 & 0.29 & 75.87 & $-$1.59 & 0.092 \\
+FedAvg SFT, 2 rounds & 74.10 &  &  \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{4 rounds}} \\
+\method & 78.20 &  &  \\
+FedAvg SFT & 74.71 & $-$3.49 & $2.6\times10^{-6}$\textsuperscript{*} \\
+FedAvg SFT, preference-round settings & -- & -- & -- \\
+FedDPO & -- & -- & -- \\
+Fixed pairs and reference & 78.02 & $-$0.18 & 0.78 \\
+Clients pooled & -- & -- & -- \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{3 rounds}} \\
+\method & 77.46 &  &  \\
+FedAvg SFT & 74.71 & $-$2.75 & $5.7\times10^{-4}$\textsuperscript{*} \\
+FedAvg SFT, preference-round settings & 75.45 & $-$2.01 & 0.021\textsuperscript{*} \\
+No NLL term & 73.59 & $-$3.87 & $9.2\times10^{-8}$\textsuperscript{*} \\
+No preference term & 75.87 & $-$1.59 & 0.061 \\
 \bottomrule
 \end{tabular}

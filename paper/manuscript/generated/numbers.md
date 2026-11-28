@@ -384,7 +384,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 ## Comparisons (b against a)
 
-`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 7, Table 4 14, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
+`\pval` is the exact McNemar p, `\padj` its Holm-adjusted value inside the table that prints the test (tests per family: Table 3 7, Table 4 12, Table 5 1, Table 7 14, Table S4 9, Table S5 7). A comparison that only the text quotes has a difference and counts, and no p.
 
 | Macro | Value | Used in |
 |---|---|---|
@@ -429,7 +429,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{fedavg}{3}{k2}{3}` | +2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{fedavg}{3}{k2}{3}` | 2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{fedavg}{3}{k2}{3}` | 0.0087 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{fedavg}{3}{k2}{3}` | 0.061 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{fedavg}{3}{k2}{3}` | 0.044 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{fedavg}{3}{k2}{3}` | 125 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{fedavg}{3}{k2}{3}` | 86 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{fedavg}{3}{k2}{3}` | +1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -491,13 +491,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{3}{fedavgp}{3}` | -3.06 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{3}{fedavgp}{3}` | 3.06 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{3}{fedavgp}{3}` | 0.0014 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{3}{fedavgp}{3}` | 0.013 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{fedavgp}{3}` | 0.0098 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{3}{fedavgp}{3}` | 81 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{3}{fedavgp}{3}` | 128 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gain{bird}{k2}{3}{feddpo}{3}` | -1.24 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{3}{feddpo}{3}` | 1.24 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{3}{feddpo}{3}` | 0.17 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{3}{feddpo}{3}` | 0.66 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{feddpo}{3}` | 0.33 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{3}{feddpo}{3}` | 75 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{3}{feddpo}{3}` | 94 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{k2}{3}{feddpo}{3}` | -0.13 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -515,7 +515,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{3}{rft}{3}` | -1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{3}{rft}{3}` | 1.83 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{3}{rft}{3}` | 0.057 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{3}{rft}{3}` | 0.29 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{3}{rft}{3}` | 0.17 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{3}{rft}{3}` | 87 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{3}{rft}{3}` | 115 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{k2}{3}{rft}{3}` | -1.70 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -525,7 +525,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{4}{feddpo}{4}` | -3.26 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{4}{feddpo}{4}` | 3.26 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{4}{feddpo}{4}` | 1.4e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{4}{feddpo}{4}` | 0.0016 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{feddpo}{4}` | 0.0013 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{4}{feddpo}{4}` | 59 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{4}{feddpo}{4}` | 109 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{k2}{4}{feddpo}{4}` | -3.98 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -535,7 +535,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{4}{fixed}{4}` | -2.61 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{4}{fixed}{4}` | 2.61 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{4}{fixed}{4}` | 5.7e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{4}{fixed}{4}` | 0.0057 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{fixed}{4}` | 0.0046 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{4}{fixed}{4}` | 45 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{4}{fixed}{4}` | 85 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{k2}{4}{fixed}{4}` | -2.54 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -545,7 +545,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{bird}{k2}{4}{rft}{4}` | -3.52 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\gap{bird}{k2}{4}{rft}{4}` | 3.52 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\pval{bird}{k2}{4}{rft}{4}` | 5.2e-5 | Table 4, BIRD dev; Table S5, BIRD dev |
-| `\padj{bird}{k2}{4}{rft}{4}` | 6.7e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
+| `\padj{bird}{k2}{4}{rft}{4}` | 5.7e-4 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nfix{bird}{k2}{4}{rft}{4}` | 60 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\nbrk{bird}{k2}{4}{rft}{4}` | 114 | Table 4, BIRD dev; Table S5, BIRD dev |
 | `\tsgain{bird}{k2}{4}{rft}{4}` | -3.39 | Table 4, BIRD dev; Table S5, BIRD dev |
@@ -623,7 +623,7 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{fedavg}{3}{k2}{3}` | +2.75 | Table 4, Spider test |
 | `\gap{spider}{fedavg}{3}{k2}{3}` | 2.75 | Table 4, Spider test |
 | `\pval{spider}{fedavg}{3}{k2}{3}` | 5.4e-5 | Table 4, Spider test |
-| `\padj{spider}{fedavg}{3}{k2}{3}` | 6.7e-4 | Table 4, Spider test |
+| `\padj{spider}{fedavg}{3}{k2}{3}` | 5.7e-4 | Table 4, Spider test |
 | `\nfix{spider}{fedavg}{3}{k2}{3}` | 134 | Table 4, Spider test |
 | `\nbrk{spider}{fedavg}{3}{k2}{3}` | 75 | Table 4, Spider test |
 | `\gain{spider}{fedavg}{3}{k2}{4}` | +3.49 | Table S4, Spider test |
@@ -644,12 +644,20 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\padj{spider}{fedavg}{4}{central}{3}` | 0.69 | Table 3, Spider test |
 | `\nfix{spider}{fedavg}{4}{central}{3}` | 113 | Table 3, Spider test |
 | `\nbrk{spider}{fedavg}{4}{central}{3}` | 106 | Table 3, Spider test |
+| `\gain{spider}{fedavg}{4}{k0}{4}` | +3.31 | text |
+| `\gap{spider}{fedavg}{4}{k0}{4}` | 3.31 | text |
+| `\nfix{spider}{fedavg}{4}{k0}{4}` | 178 | text |
+| `\nbrk{spider}{fedavg}{4}{k0}{4}` | 107 | text |
 | `\gain{spider}{fedavg}{4}{k2}{4}` | +3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\gap{spider}{fedavg}{4}{k2}{4}` | 3.49 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\pval{spider}{fedavg}{4}{k2}{4}` | 6.4e-7 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\padj{spider}{fedavg}{4}{k2}{4}` | 2.6e-6 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\nfix{spider}{fedavg}{4}{k2}{4}` | 150 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
 | `\nbrk{spider}{fedavg}{4}{k2}{4}` | 75 | Table 3, Spider test; Table 4, Spider test; Table 5; Table 6; Table S4, Spider test |
+| `\gain{spider}{fedavg}{4}{k3}{4}` | +3.26 | text |
+| `\gap{spider}{fedavg}{4}{k3}{4}` | 3.26 | text |
+| `\nfix{spider}{fedavg}{4}{k3}{4}` | 146 | text |
+| `\nbrk{spider}{fedavg}{4}{k3}{4}` | 76 | text |
 | `\gain{spider}{fedavg}{5}{k2}{4}` | +4.28 | Table S4, Spider test |
 | `\gap{spider}{fedavg}{5}{k2}{4}` | 4.28 | Table S4, Spider test |
 | `\pval{spider}{fedavg}{5}{k2}{4}` | 2.3e-9 | Table S4, Spider test |
@@ -659,13 +667,13 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{k2}{3}{fedavgp}{3}` | -2.01 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{fedavgp}{3}` | 2.01 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{fedavgp}{3}` | 0.0036 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{fedavgp}{3}` | 0.029 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{fedavgp}{3}` | 0.021 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{fedavgp}{3}` | 83 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{fedavgp}{3}` | 126 | Table 4, Spider test |
 | `\gain{spider}{k2}{3}{feddpo}{3}` | -3.87 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{feddpo}{3}` | 3.87 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{feddpo}{3}` | 7.6e-9 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{feddpo}{3}` | 1.1e-7 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{feddpo}{3}` | 9.2e-8 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{feddpo}{3}` | 62 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{feddpo}{3}` | 145 | Table 4, Spider test |
 | `\gain{spider}{k2}{3}{k2}{4}` | +0.74 | Table S4, Spider test |
@@ -677,27 +685,15 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\gain{spider}{k2}{3}{rft}{3}` | -1.59 | Table 4, Spider test |
 | `\gap{spider}{k2}{3}{rft}{3}` | 1.59 | Table 4, Spider test |
 | `\pval{spider}{k2}{3}{rft}{3}` | 0.015 | Table 4, Spider test |
-| `\padj{spider}{k2}{3}{rft}{3}` | 0.092 | Table 4, Spider test |
+| `\padj{spider}{k2}{3}{rft}{3}` | 0.061 | Table 4, Spider test |
 | `\nfix{spider}{k2}{3}{rft}{3}` | 76 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{3}{rft}{3}` | 110 | Table 4, Spider test |
 | `\gain{spider}{k2}{4}{fixed}{4}` | -0.18 | Table 4, Spider test |
 | `\gap{spider}{k2}{4}{fixed}{4}` | 0.18 | Table 4, Spider test |
 | `\pval{spider}{k2}{4}{fixed}{4}` | 0.78 | Table 4, Spider test |
-| `\padj{spider}{k2}{4}{fixed}{4}` | 1.00 | Table 4, Spider test |
+| `\padj{spider}{k2}{4}{fixed}{4}` | 0.78 | Table 4, Spider test |
 | `\nfix{spider}{k2}{4}{fixed}{4}` | 54 | Table 4, Spider test |
 | `\nbrk{spider}{k2}{4}{fixed}{4}` | 58 | Table 4, Spider test |
-| `\gain{spider}{k2}{4}{k0}{4}` | -0.18 | Table 4, Spider test |
-| `\gap{spider}{k2}{4}{k0}{4}` | 0.18 | Table 4, Spider test |
-| `\pval{spider}{k2}{4}{k0}{4}` | 0.85 | Table 4, Spider test |
-| `\padj{spider}{k2}{4}{k0}{4}` | 1.00 | Table 4, Spider test |
-| `\nfix{spider}{k2}{4}{k0}{4}` | 116 | Table 4, Spider test |
-| `\nbrk{spider}{k2}{4}{k0}{4}` | 120 | Table 4, Spider test |
-| `\gain{spider}{k2}{4}{k3}{4}` | -0.23 | Table 4, Spider test |
-| `\gap{spider}{k2}{4}{k3}{4}` | 0.23 | Table 4, Spider test |
-| `\pval{spider}{k2}{4}{k3}{4}` | 0.74 | Table 4, Spider test |
-| `\padj{spider}{k2}{4}{k3}{4}` | 1.00 | Table 4, Spider test |
-| `\nfix{spider}{k2}{4}{k3}{4}` | 68 | Table 4, Spider test |
-| `\nbrk{spider}{k2}{4}{k3}{4}` | 73 | Table 4, Spider test |
 | `\gain{spiderdev}{fedavg}{4}{k2}{4}` | +2.51 | Table 7, Spider dev |
 | `\gap{spiderdev}{fedavg}{4}{k2}{4}` | 2.51 | Table 7, Spider dev |
 | `\pval{spiderdev}{fedavg}{4}{k2}{4}` | 0.021 | Table 7, Spider dev |

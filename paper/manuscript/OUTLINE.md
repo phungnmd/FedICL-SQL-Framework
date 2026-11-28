@@ -255,23 +255,26 @@ counts.
   execution errors halve and C2 incorrect results do not fall, as
   counts; C5 in one sentence; C6 the change at every client, three
   sentences with Table S7 (owner, 2026-11-28); C7 what execution can
-  label differs by client, two sentences (owner, 2026-11-28, third revision); C3 in two sentences, with the counts
-  under EX and under the suite, the detail in S6.4 and Table S6.
-- 5.3 Ablation study (`sec:ablation`; Table 4). EX on both datasets,
-  each row tested against the method; TS of the BIRD rows in Table S5.
+  label differs by client, two sentences (owner, 2026-11-28, third revision). C3 is not in Section 5.2: it stands in S6.4 with Table S6 (owner, 2026-11-28, fourth revision).
+- 5.3 Ablation study (`sec:ablation`; Table 4). The parts of a
+  preference round; EX in two panels, BIRD dev and Spider test, each
+  with the rows run on that benchmark and no blank cell (owner, 2026-11-28, fourth revision), each
+  row tested against the method; TS of the BIRD rows in Table S5.
   The control (B9) first: FedAvg SFT at the settings of the preference
   rounds, at 3 and 4 rounds. Then B1 pairs and reference renewed each
   round, B2 the second preference round (Table S4), B4 the preference
-  term, B3 the NLL term, B6 in one sentence. B5 is read in 5.4 from
-  Table 7. B7, clients pooled, is a row of Table 4 on Spider (waits),
+  term, B3 the NLL term, B6 in one sentence. The warm-up rounds are a
+  setting, not a row of Table 4 (owner, 2026-11-28, fourth revision): B5 is read in 5.4. B7, clients pooled, is a row of Table 4 on Spider (waits),
   with one sentence that says what it is (owner, 2026-11-28, third revision); B8 is not in the
   paper.
 - 5.4 Other models, federated setups and perturbed questions
   (`sec:breadth`; Tables 5, 6, 7). D1 the 0.5B model and D2
   DeepSeek-Coder, on Spider test only (Table 5); D3 IID and alpha 0.5
   with 5 and 10 clients; D4 the gain on Spider dev, Spider-Syn,
-  Spider-Realistic and Spider-DK under both metrics, and the row
-  without warm-up rounds (B5).
+  Spider-Realistic and Spider-DK under both metrics; B5, the number of
+  warm-up rounds as a setting: one sentence with Spider test EX at 0, 2
+  and 3 warm-up rounds beside FedAvg SFT, then the gain under TS with two
+  warm-up rounds (Table 7, row without warm-up) (owner, 2026-11-28, fourth revision).
 - 5.5 Computation and communication cost (`sec:cost`; Table 8). E1 no
   added communication; E2 GPU time and label time of a round.
 
@@ -313,7 +316,7 @@ table. These carry no argument and are assembled by the main session.
 | 3 | E1 (in kind); decision 9 of `CLAIMS.md`, section 7 | Fig. 2, Algorithm 1 | the method as built; settings from `generated/settings.tex`; the counts of 3.2 and 3.4 from the round records |
 | 4 | none | Table 2; Appendix A, B | datasets, models, baselines, settings |
 | 5.1 | A1 to A6, C4 | Table 3, Fig. 3; Tables S4, S5 | results and paired tests |
-| 5.2 | C1, C2, C3, C5, C6, C7 | Fig. 4; Tables S6, S7 | error counts, form of the answers, label statistics per client |
+| 5.2 | C1, C2, C5, C6, C7 | Fig. 4; Table S7 | error counts, label statistics per client |
 | 5.3 | B1 to B4, B6, B7, B9 | Table 4; Tables S4, S5 | results and paired tests |
 | 5.4 | D1 to D4, B5 | Tables 5, 6, 7 | results and paired tests |
 | 5.5 | E1, E2 | Table 8 | measured times |
@@ -339,7 +342,7 @@ Numbered in the order of first mention.
 | Table 1 | the closest methods by property | written with Section 2 |
 | Table 2 | federated setups (Table S3 in the PDF) | `tab_setups` |
 | Table 3 | main rows | `tab_main` |
-| Table 4 | ablation, EX, with the control | `tab_ablation` |
+| Table 4 | ablation, EX, with the control; panels BIRD dev and Spider test | `tab_ablation` |
 | Table 5 | other models, Spider test | `tab_models` |
 | Table 6 | federated setups, results | `tab_federated` |
 | Table 7 | Spider dev and the perturbed sets | `tab_robust` |
@@ -356,8 +359,7 @@ the Supplementary Materials.
 ## Open with this outline
 
 1. B5 on BIRD: the rows without warm-up and with three warm-up rounds
-   are not run (owner, 2026-11-28), so B5 is read from Table 7 (Spider
-   dev, Spider-Syn, Spider-Realistic) in 5.4.
+   are not run (owner, 2026-11-28), so B5 is read on Spider in 5.4.
 2. No baseline of federated reinforcement learning with verifiable
    rewards is planned; 2.3 and Table 1 state the difference in kind.
 

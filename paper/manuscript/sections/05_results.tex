@@ -49,8 +49,9 @@ round adds \gap{bird}{fedavg}{2}{k2}{3} EX points on BIRD dev and
 \gap{spider}{fedavg}{2}{k2}{3} on Spider test, and one further round of
 FedAvg SFT \gap{bird}{fedavg}{2}{fedavg}{3} and
 \gap{spider}{fedavg}{2}{fedavg}{3}. After three rounds, \method{} is
-significantly above FedAvg SFT on Spider test, by
-\gap{spider}{fedavg}{3}{k2}{3} points (Table~\ref{tab:ablation}).
+above FedAvg SFT by \gap{bird}{fedavg}{3}{k2}{3} points on BIRD dev and
+\gap{spider}{fedavg}{3}{k2}{3} on Spider test
+(Table~\ref{tab:ablation}).
 
 On BIRD dev, \method{} is significantly above FedDPO, which trains on
 the fixed execution-labeled pairs of the first preference round of
@@ -83,9 +84,10 @@ The gain over FedAvg SFT comes with about half as many execution errors
 (Fig.~\ref{fig:errors}): at \setting{rounds.total} rounds, they go from
 \nerr{bird}{fedavg}{4} with FedAvg SFT to \nerr{bird}{k2}{4} with
 \method{} on BIRD dev and from \nerr{spider}{fedavg}{4} to
-\nerr{spider}{k2}{4} on Spider test. Incorrect results do not fall, at
-\nwr{bird}{k2}{4} against \nwr{bird}{fedavg}{4} on BIRD dev and
-\nwr{spider}{k2}{4} against \nwr{spider}{fedavg}{4} on Spider test. Of
+\nerr{spider}{k2}{4} on Spider test. Incorrect results do not fall:
+\method{} has \nwr{bird}{k2}{4} and FedAvg SFT \nwr{bird}{fedavg}{4} on
+BIRD dev, and \nwr{spider}{k2}{4} and \nwr{spider}{fedavg}{4} on Spider
+test. Of
 the execution errors of FedAvg SFT, \fact{moved.bird.error.correct} are
 answered correctly by \method{} and \fact{moved.bird.error.wrong}
 execute and return an incorrect result on BIRD dev, and
@@ -128,45 +130,25 @@ are on such databases and give no pair, so that
 train has any. A client thus contributes pairs where execution informs,
 and its weight in the server average, its pair count, reflects this.
 
-On BIRD dev, a large part of the gain, under EX and under the generated
-suite, consists of correct predictions that read other tables or columns
-than the gold SQL query: after \setting{rounds.total} rounds, FedAvg SFT
-has \fact{form.bird.fedavg.4.other_right} of them under EX and
-\fact{form.bird.fedavg.4.other_right_ts} under the suite, and \method{}
-\fact{form.bird.k2.4.other_right} and
-\fact{form.bird.k2.4.other_right_ts}, while those on the tables and
-columns of the gold SQL query go from \fact{form.bird.fedavg.4.gold_right}
-to \fact{form.bird.k2.4.gold_right} under EX and from
-\fact{form.bird.fedavg.4.gold_right_ts} to
-\fact{form.bird.k2.4.gold_right_ts} under the suite. On Spider test, the
-correct predictions on other tables or columns go from
-\fact{form.spider.fedavg.4.other_right} to
-\fact{form.spider.k2.4.other_right}, and Section~\ref{sup:form} of the
-Supplementary Materials gives these counts by round with the share of
-them that the suite rejects.
-
 \subsection{Ablation study}\label{sec:ablation}
 
 \begin{table}[!ht]
-\caption{Ablation study. $\Delta$ and $p$ compare each row with
-\method{} after the same number of rounds, as in Table~\ref{tab:main}.
-Every row starts from the FedAvg SFT model after \setting{rounds.warmup}
-rounds, listed first, except those with another number of warm-up
-rounds. ``Preference-round settings'' continues FedAvg SFT with the
-training settings of the preference rounds, and after three rounds the
-row without the NLL term is the first round of FedDPO. A blank cell marks
-a row not run on that benchmark.}\label{tab:ablation}
+\caption{Ablation study: EX (\%) on \panel{a}~BIRD dev and
+\panel{b}~Spider test, each with the rows run on that benchmark. $\Delta$
+and $p$ compare each row with \method{} after the same number of rounds,
+as in Table~\ref{tab:main}. Every row starts from the FedAvg SFT model
+after \setting{rounds.warmup} rounds, listed first. ``Preference-round
+settings'' continues FedAvg SFT with the training settings of the
+preference rounds, and after three rounds the row without the NLL term
+is the first round of FedDPO.}\label{tab:ablation}
 \footnotesize
 \input{generated/tab_ablation}
 \end{table}
 
-Table~\ref{tab:ablation} changes one component of \method{} at a time.
-``Fixed pairs and reference'' trains the second preference round on the
-pairs and with the reference model of the first, and FedDPO keeps both
-and has no NLL term. Of the \setting{rounds.total} rounds, the variant
-without warm-up has four preference rounds and the one with three
-warm-up rounds has one. The effect of the warm-up rounds shows under TS
-(Section~\ref{sec:breadth}). ``Clients pooled'' runs the two preference
+Table~\ref{tab:ablation} changes one part of a preference round at a
+time. ``Fixed pairs and reference'' trains the second preference round
+on the pairs and with the reference model of the first, and FedDPO keeps
+both and has no NLL term. ``Clients pooled'' runs the two preference
 rounds on the union of the clients' data of Spider train at one site,
 without aggregation.
 
@@ -252,11 +234,19 @@ comparison in the three other partitions of Spider train
 On Spider dev and the three sets built from Spider, \method{} is above
 FedAvg SFT under EX and, where a suite exists, under TS, by
 \tsgap{spiderdev}{fedavg}{4}{k2}{4} to \gap{dk}{fedavg}{4}{k2}{4} points,
-significantly on Spider-Syn (Table~\ref{tab:robust}). The warm-up rounds
-make this gain hold under TS. Without them, \method{} is above FedAvg
-SFT under EX on all four sets, but on the three with a suite its TS is
-not above that of FedAvg SFT; with \setting{rounds.warmup} warm-up
-rounds, TS is higher than without warm-up by
+significantly on Spider-Syn (Table~\ref{tab:robust}).
+
+The number of warm-up rounds $T_w$ is a setting of \method. On Spider
+test after \setting{rounds.total} rounds, \method{} reaches
+\ex{spider}{k0}{4}\%, \ex{spider}{k2}{4}\% and \ex{spider}{k3}{4}\% with
+$T_w$ equal to 0, \setting{rounds.warmup} and 3, against
+\ex{spider}{fedavg}{4}\% for FedAvg SFT, so that the gain over FedAvg SFT
+is there for each value. With \setting{rounds.warmup} warm-up rounds, it
+also holds under TS. Without them, \method{} is above FedAvg SFT under EX
+on all four sets of Table~\ref{tab:robust}, but on the three with a
+suite its TS is not above that of FedAvg SFT; with
+\setting{rounds.warmup} warm-up rounds, TS is higher than without
+warm-up by
 \tsgap{spiderdev}{k0}{4}{k2}{4} to \tsgap{realistic}{k0}{4}{k2}{4}
 points, significantly on Spider-Syn.
 
@@ -281,9 +271,10 @@ one adapter and one integer. The two preference rounds take
 times the GPU minutes of a FedAvg SFT round on BIRD and
 \fact{cost.spider.pref1.gpu_ratio} and \fact{cost.spider.pref2.gpu_ratio}
 times on Spider. Training in the second is shorter than in the first,
-as fewer questions yield pairs: more have only correct samples,
-\fact{cost.bird.pref2.all_correct} against
-\fact{cost.bird.pref1.all_correct} on BIRD. Over \setting{rounds.total}
+as fewer questions yield pairs: on BIRD train,
+\fact{cost.bird.pref2.all_correct} questions have only correct samples
+in the second preference round, against
+\fact{cost.bird.pref1.all_correct} in the first. Over \setting{rounds.total}
 rounds, \method{} takes \fact{cost.bird.k2.gpu_total} GPU minutes on
 BIRD against \fact{cost.bird.fedavg4.gpu_total} for FedAvg SFT, and
 \fact{cost.spider.k2.gpu_total} against

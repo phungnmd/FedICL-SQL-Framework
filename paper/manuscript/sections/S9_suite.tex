@@ -67,7 +67,20 @@ among the latter. Table~\ref{tab:form} gives both kinds under EX and, on
 BIRD dev, under the generated suite. On BIRD dev, FedAvg SFT has about as
 many correct predictions on other tables or columns after its second,
 third and fourth rounds, and \method{} more after each of its preference
-rounds. After \setting{rounds.total} rounds, the suite rejects
+rounds. After \setting{rounds.total} rounds, a large part of the gain
+of \method{} over FedAvg SFT on BIRD dev, under EX and under the suite,
+consists of correct predictions on other tables or columns: they go from
+\fact{form.bird.fedavg.4.other_right} to
+\fact{form.bird.k2.4.other_right} under EX and from
+\fact{form.bird.fedavg.4.other_right_ts} to
+\fact{form.bird.k2.4.other_right_ts} under the suite, while those on the
+tables and columns of the gold SQL query go from
+\fact{form.bird.fedavg.4.gold_right} to \fact{form.bird.k2.4.gold_right}
+and from \fact{form.bird.fedavg.4.gold_right_ts} to
+\fact{form.bird.k2.4.gold_right_ts}. On Spider test, the correct
+predictions on other tables or columns go from
+\fact{form.spider.fedavg.4.other_right} to
+\fact{form.spider.k2.4.other_right}. The suite rejects
 \fact{form.bird.fedavg.4.other_ts_fail_pct}\% of the EX-correct
 predictions of FedAvg SFT on other tables or columns and
 \fact{form.bird.k2.4.other_ts_fail_pct}\% of those of \method, against

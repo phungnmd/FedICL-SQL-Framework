@@ -69,6 +69,8 @@ TEXT_DIFFS = [
     ("spider", MAIN, "fedavg", 3, "fedavgp", 3),  # FedAvg SFT at its own (the control, B9)
     ("bird", MAIN, "fedavg", ROUNDS, "fedavgp", ROUNDS),
     ("spider", MAIN, "fedavg", ROUNDS, "fedavgp", ROUNDS),
+    ("spider", MAIN, "fedavg", ROUNDS, "k0", ROUNDS),   # the method with 0 and 3 warm-up rounds against
+    ("spider", MAIN, "fedavg", ROUNDS, "k3", ROUNDS),   # FedAvg SFT: T_w as a setting (B5, Section 5.4)
 ]
 # Curves of Fig. 3 and Fig. 4: (line, rounds) per set; the method continues FedAvg SFT round WARMUP.
 CURVES = {
@@ -413,8 +415,7 @@ ABLATION = [
         ("FedDPO", "feddpo", None),
         ("Fixed pairs and reference", "fixed", None),
         ("No preference term", "rft", ("bird",)),
-        ("No warm-up round", "k0", ("spider",)),
-        ("Three warm-up rounds", "k3", ("spider",)),
+        # the warm-up rounds are a setting, read in Section 5.4, not a row of the ablation (owner, 2026-11-28)
         # the two preference rounds on the union of the clients' data, without aggregation (B7)
         ("Clients pooled", "pooled", ("spider",)),
     ]),
@@ -448,34 +449,26 @@ def run_value(d: Data, k_: tuple, m: str, where: str, label: str) -> str:
 
 
 def table_ablation(d: Data) -> str:
-    """Table 4: the parts of the method, each row against the method at the same rounds, EX on BIRD
-    dev and Spider test. Test-suite accuracy on BIRD dev is in the Supplementary Materials
-    (table_ts; owner, 2026-11-28)."""
-    lines = ["\\toprule",
-             row(["", "\\multicolumn{3}{c}{BIRD dev}", "\\multicolumn{3}{c}{Spider test}"]),
-             "\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}",
-             row(["", "EX", "$\\Delta$", "$p$", "EX", "$\\Delta$", "$p$"])]
-    sets = ("bird", "spider")
-    # the model every row but the two on the warm-up rounds starts its preference rounds from: no test
-    start = [f"FedAvg SFT, {WARMUP} rounds"]
-    for ds in sets:
-        start += [run_value(d, key(ds, "fedavg", WARMUP), "ex", f"Table 4, {SET_NAME[ds]}", f"Table 4, {SET_NAME[ds]}"), "", ""]
-    lines += ["\\midrule", row(start)]
-    for label, r, rows in ABLATION:
-        lines += ["\\midrule", row([f"\\multicolumn{{7}}{{@{{}}l}}{{\\textit{{{label}}}}}"]), "\\midrule"]
-        for name, line, only in rows:
-            cells = [name]
-            for ds in sets:
+    """Table 4: the parts of a preference round, each row against the method at the same rounds, EX,
+    in two panels, BIRD dev and Spider test, each with the rows run on that benchmark only (owner,
+    2026-11-28: no blank cells). Test-suite accuracy on BIRD dev is in the Supplementary Materials
+    (table_ts)."""
+    lines = ["\\toprule", row(["", "EX", "$\\Delta$", "$p$"])]
+    for i, ds in enumerate(("bird", "spider")):
+        where = f"Table 4, {SET_NAME[ds]}"
+        lines += ["\\midrule", row([f"\\multicolumn{{4}}{{@{{}}l}}{{\\panel{{{'ab'[i]}}}~{SET_NAME[ds]}}}"]), "\\midrule"]
+        # the model every row starts its preference rounds from: no test
+        lines.append(row([f"FedAvg SFT, {WARMUP} rounds", run_value(d, key(ds, "fedavg", WARMUP), "ex", where, where), "", ""]))
+        for label, r, rows in ABLATION:
+            lines += ["\\addlinespace", row([f"\\multicolumn{{4}}{{@{{}}l}}{{\\textit{{{label}}}}}"])]
+            for name, line, only in rows:
                 if only and ds not in only:
-                    cells += ["", "", ""]
                     continue
-                where = f"Table 4, {SET_NAME[ds]}"
                 me, k_ = key(ds, "k2", r), key(ds, line, r)
-                cells += [run_value(d, k_, "ex", where, where)] + (
-                    ["", ""] if line == "k2" else against_method(d, where, me, k_, "ex"))
-            lines.append(row(cells))
+                lines.append(row([name, run_value(d, k_, "ex", where, where)]
+                                 + (["", ""] if line == "k2" else against_method(d, where, me, k_, "ex"))))
     lines.append("\\bottomrule")
-    return tabular("@{}lrrlrrl@{}", lines)
+    return tabular("@{}lrrl@{}", lines)
 
 
 def table_ts(d: Data) -> str:

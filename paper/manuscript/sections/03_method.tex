@@ -118,20 +118,17 @@ per warm-up round and \setting{pref.epochs} per preference round.
 \end{algorithmic}
 \end{algorithm}
 
-A pair needs a correct sample. Sampled in the same way from the
-pretrained model, \fact{warmup.bird.k0.no_correct} of the
-\fact{cost.bird.pref1.questions} BIRD training questions have none, and
-after \setting{rounds.warmup} warm-up rounds
-\fact{warmup.bird.k2.no_correct} have none. On Spider train, where the
-pretrained model is more accurate, warm-up also lowers the number of
-questions that yield pairs, from \fact{warmup.spider.k0.paired} to
-\fact{warmup.spider.k2.paired}, since more questions have only correct
-samples. Warm-up is a setting, not a precondition. The adapter
+The warm-up rounds initialize the preference rounds. A pair needs a
+correct sample: sampled in the same way from the pretrained model,
+\fact{warmup.bird.k0.no_correct} of the \fact{cost.bird.pref1.questions}
+BIRD training questions have none, and after \setting{rounds.warmup}
+warm-up rounds \fact{warmup.bird.k2.no_correct} have none. The number of
+warm-up rounds $T_w$ is a setting, not a precondition. The adapter
 $\theta^{0}$ has the standard LoRA initialization, under which
 $\pi_{\theta^{0}}$ is the pretrained model, so with $T_w = 0$ the first
 preference round samples from the pretrained model, which already yields
-pairs, and uses it as reference model. Section~\ref{sec:ablation}
-examines the effect of $T_w$.
+pairs, and uses it as reference model. Section~\ref{sec:breadth} reports
+\method{} with other values of $T_w$.
 
 \subsection{Execution labeling and pair construction}\label{sec:labeling}\label{sec:pairs}
 
