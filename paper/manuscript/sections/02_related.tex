@@ -148,19 +148,19 @@ sampled query is labeled by executing it and comparing its result with
 the gold result. ``Preference pairs'': where the pairs of the preference
 objective come from.}\label{tab:related}
 \footnotesize
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lccccl@{}}
 \toprule
 Method & Federated & Text-to-SQL &
 \begin{tabular}[c]{@{}c@{}}Labels from\\ SQL execution\end{tabular} &
-\begin{tabular}[c]{@{}c@{}}Trains on the\\ model's own outputs\end{tabular} &
+\begin{tabular}[c]{@{}c@{}}Trains on\\ own outputs\end{tabular} &
 Preference pairs \\
 \midrule
 Zhang et al.~\cite{zhang2023fl4sp} & Yes & Yes & No & No & Not applicable \\
-FedDPO, as published~\cite{ye2024openfedllm} & Yes & No & No & No & From a dataset\textsuperscript{a} \\
+FedDPO (published)~\cite{ye2024openfedllm} & Yes & No & No & No & From a dataset\textsuperscript{a} \\
 PubSwap~\cite{nayak2026pubswap} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
 Fed-GRPO~\cite{guo2026fedgrpo} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
-Liu et al.~\cite{liu2025cotdpo} & No & Yes & Yes & Yes & Once, from the model's outputs \\
+Liu et al.~\cite{liu2025cotdpo} & No & Yes & Yes & Yes & Once, from model outputs \\
 ExCoT~\cite{zhai2025excot} & No & Yes & Yes & Yes\textsuperscript{c} & Anew each round\textsuperscript{c} \\
 CodeLutra~\cite{tao2024codelutra} & No & Yes & Yes & Yes & Anew each round \\
 \midrule
