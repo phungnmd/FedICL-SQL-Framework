@@ -22,7 +22,11 @@ code, GPU and server rules live there.
   of our own goes on top. What published papers do is open to us once
   it is checked in the paper or its code (name the paper; say when it
   was not checked), and the choice has to be sound on its own: not one
-  that only lowers the baselines.
+  that only lowers the baselines. The aim is a paper that meets that bar,
+  not one stricter than it (owner, 2026-11-28): a row, control or check
+  beyond it is not run for the paper, or stays in the notes, ready if a
+  reviewer asks. A point of the simulated reviewers is weighed against
+  the bar before it becomes a run or a sentence.
 - The paper shows the method where its effect shows (owner,
   2026-11-17): setup, model, prompt, comparisons and tables are picked
   for the gain over the baselines in the same setup, not for the highest
