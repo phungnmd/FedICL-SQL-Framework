@@ -68,9 +68,10 @@ built or checked for it now.
   not the frame of the method (owner, 2026-11-27): no note or
   section defines the method or its contributions as differences from
   it. Its places are fixed: `RESEARCH_STATE.md`, section 3.6, in the
-  notes; in the paper, Section 2.2 with Table 1 (what it does and where
+  notes; in the paper, the text of Section 2.2 (what it does and where
   ours differs, once), a citation at the objective, and one sentence in
-  Section 4.5 on the settings that follow it.
+  Section 4.5 on the settings that follow it. Table 1 lists the
+  federated methods only (owner, 2026-11-28).
 - Default setup: Qwen2.5-Coder-1.5B-Instruct, 5 clients on BIRD train
   and 5 on Spider train (`alpha_0.1/k5` each). Another model or setting
   may be proposed.
@@ -208,8 +209,15 @@ deviate.
 - Credit (owner, 2026-11-27): the method is presented as ours. The paper
   never says that it takes its parts from another paper or brings
   another paper's loop into this setting; the closest work is credited
-  at its fixed places (The project). A debt or a weakness is stated at
-  the size the evidence gives it, and once.
+  at its fixed places (The project). A debt is stated at the size the
+  evidence gives it, and once.
+- The paper argues its case (owner, 2026-11-28): it prints what
+  supports the method and does not volunteer what weakens it; finding
+  weaknesses is the reviewer's work. What is printed stays true (Hard
+  rules). A caveat, a non-significant side result or an unfavourable
+  number from another paper goes in only where a claim would be false
+  or misleading without it; what is left out stays in the notes, ready
+  for a reviewer.
 - `PIPELINE_NEXT.md` answers on its first screen what to run now and
   what is running: `Status`, `Run now` (numbered steps, one full command
   each, what to send back), `Running and queued`, `Reference`. No
