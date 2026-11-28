@@ -2,8 +2,10 @@
 
 ## Status
 
-The queue is paused (owner, 2026-11-28): the cards are busy with other
-work. The last published results are `bird_rft/round_2` (`7dc8e9c3`)
+A worker on GPU 0 runs the control since 2026-11-28, about 12:37
+(`sft_prefset/round_3`, client 1 at step 250 of 895 at 12:41, peak
+reserved 11.3 GiB; from the owner's log). The other tasks wait for a
+card (Run now, step 2). The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
 2026-11-28).
 
@@ -20,6 +22,11 @@ sentences of Sections 5 and 6 on the settings follow the result. The
 BIRD rounds ran longer than estimated (`bird_rft/round_2` about 8.1 h against 6 h), so the hours
 below are likely low.
 
+Queued 2026-11-28 (owner; `b8e4a44e`), after the two Spider rounds and
+ahead of the rest: local SFT of each BIRD client (`bird_local`, does
+federating pay) and seed 1 of the two main BIRD rows (`bird_sft_s1`,
+`bird_k2_s1`, does the gain hold on a second training seed).
+
 How to read the control on BIRD dev at 4 rounds (the method 48.76,
 FedAvg SFT 42.57, the round without the preference term 45.24): near
 43 to 44, the gain over FedAvg SFT stays at about 5; near 45, about
@@ -28,7 +35,8 @@ term; 47 or more, the main claim of the paper does not hold as written.
 
 Queued 2026-11-28 (owner; `c52e37ff`, pushed): `bird_nonll/round_2`,
 the on-policy round 2 without the NLL term on BIRD, the "no NLL term"
-cell of Table 4 at 4 rounds, after the two Spider rounds.
+cell of Table 4 at 4 rounds, after the second seed since the order of
+`b8e4a44e`.
 
 File order of what is left when the queue runs again (hours are estimates; a second card takes the
 first ready task the other does not hold):
@@ -37,17 +45,19 @@ first ready task the other does not hold):
 |---|---|---|---|
 | 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | a row to add to Tables 3 and 4: FedAvg SFT at the settings of the DPO + NLL rounds | 10.5 h |
 | 1 | `feddpo/round_2`, `rft/round_2` | Table 3, Spider: FedDPO; Table 4, Spider: no preference term at 4 rounds | 6.5 h |
-| 2 | `bird_nonll/round_2` with its evaluation | Table 4, BIRD: no NLL term at 4 rounds | 8 h |
-| 3 | `pooled_k2` rounds 1 and 2, `pooled_dev` | Table 4, Spider: clients pooled | 4 h |
-| 4 | `deepseek13b_sft` rounds 3 and 4, `deepseek13b_k2/round_2`, their rows on the other Spider sets | Table 5, Spider: DeepSeek-Coder-1.3B | 8 h |
-| 5 | `iid_sft` rounds 1 to 4, `iid_k2` rounds 1 and 2 | Table 6: IID | 13 h |
-| 6 | `bird_vote/sft_4`, `bird_vote/k2_2` | no cell of a table | 2 h |
-| 7 | `bird_wrfirst` | no cell of a table | 5 h |
-| 8 | `a05_sft` rounds 1 to 4, `a05_k2` rounds 1 and 2 | Table 6: alpha 0.5, 5 clients | 13 h |
-| 9 | `a05k10_sft` rounds 1 to 4, `a05k10_k2` rounds 1 and 2 | Table 6: alpha 0.5, 10 clients | 13 h |
-| 10 | `bird_central/sft` | Table 3, BIRD: centralized SFT | 8.5 h |
+| 2 | `bird_local/client_1` to `client_5` | Table 3, BIRD: Local SFT (mean, lowest and highest client) | 11.5 h |
+| 3 | `bird_sft_s1` rounds 1 to 4, `bird_k2_s1` rounds 1 and 2 | Table 3, BIRD: the two rows of the second seed | 28 h |
+| 4 | `bird_nonll/round_2` with its evaluation | Table 4, BIRD: no NLL term at 4 rounds | 8 h |
+| 5 | `pooled_k2` rounds 1 and 2, `pooled_dev` | Table 4, Spider: clients pooled | 4 h |
+| 6 | `deepseek13b_sft` rounds 3 and 4, `deepseek13b_k2/round_2`, their rows on the other Spider sets | Table 5, Spider: DeepSeek-Coder-1.3B | 8 h |
+| 7 | `iid_sft` rounds 1 to 4, `iid_k2` rounds 1 and 2 | Table 6: IID | 13 h |
+| 8 | `bird_vote/sft_4`, `bird_vote/k2_2` | no cell of a table | 2 h |
+| 9 | `bird_wrfirst` | no cell of a table | 5 h |
+| 10 | `a05_sft` rounds 1 to 4, `a05_k2` rounds 1 and 2 | Table 6: alpha 0.5, 5 clients | 13 h |
+| 11 | `a05k10_sft` rounds 1 to 4, `a05k10_k2` rounds 1 and 2 | Table 6: alpha 0.5, 10 clients | 13 h |
+| 12 | `bird_central/sft` | Table 3, BIRD: centralized SFT | 8.5 h |
 
-About 91 GPU hours in all (estimate). After them the tables still lack
+About 130 GPU hours in all (estimate). After them the tables still lack
 the rows of `Not queued yet` below. The manuscript does not wait for
 any of them: it is completed with placeholders and marked guesses
 (`AGENTS.md`, Writing).
@@ -317,11 +327,14 @@ its log say whether the second runs 4 at a time cost them.
    & { $ErrorActionPreference='Stop'; $env:PYTHONUTF8='1'; $tmp='D:\phungthan\fediclkd\tmp'; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; $env:TEMP=$tmp; $env:TMP=$tmp; git fetch origin; if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }; git merge --ff-only origin/main; if ($LASTEXITCODE -ne 0) { throw 'Merge failed (a publication may be running: run the line again)' }; uv run --no-sync python -m scripts.gpu_worker run --gpu 0 --phase bird_vote; if ($LASTEXITCODE -ne 0) { throw 'Worker stopped (see status)' } }
    ```
 
-2. When the cards are free again: the same line without `--phase
-   bird_vote` on each free card (GPU 1 with `--gpu 1`). It takes the
-   first ready task in file order that no other worker holds. The peak
-   reserved VRAM of round 1 of `a05_sft` and `a05k10_sft` is to be read
-   when they come (expected 19.83 GiB, not measured on these splits).
+2. On each card that is free, and on GPU 0 once the control worker has
+   stopped with `DONE queue`: the line of step 1 without `--phase
+   sft_prefset bird_sft_prefset` (GPU 1 with `--gpu 1`). It takes the
+   first ready task in file order that no other worker holds: the two
+   Spider rounds, then the five `bird_local` clients, then the second
+   seed. The peak reserved VRAM of round 1 of `a05_sft` and
+   `a05k10_sft` is to be read when they come (expected 19.83 GiB, not
+   measured on these splits).
 
 3. Send back, when they come:
    - the `DONE queue` or `STOP queue` line of the control worker, and
@@ -361,6 +374,8 @@ its log say whether the second runs 4 at a time cost them.
 | 38 | `bird_feddpo/*` | federated DPO as published on BIRD from FedAvg SFT round 2: round 1 without NLL on the round 1 samples of `bird_k2` (copied), round 2 on the same pairs and reference; against `bird_k2` at 3 and 4 rounds | about 9.7 h (measured) | read 2026-11-28: round 1 44.98 (1.24 below `bird_k2/round_1`, p 0.17), round 2 45.50 (3.26 below `bird_k2/round_2`, p 0.00014) |
 | 36 | `feddpo/round_2` with its evaluations (test, dev) | federated DPO as published at 4 rounds (no NLL, round 1's pairs and reference) from FedAvg SFT round 2; round 1 is `decide/nonll` (73.59) | about 3 h (estimate) | queued 2026-11-24 (`9976390e`); place in the file order of 2026-11-27 (`4a962ced`): third, with `rft/round_2` |
 | 37 | `rft/round_2` with its evaluations (test, dev) | RFT at 4 rounds, on-policy (samples drawn again from RFT round 1, 75.87): the method without its preference term | about 3.5 h (estimate) | queued 2026-11-24 (`9976390e`); place in the file order of 2026-11-27 (`4a962ced`): third, after `feddpo/round_2` |
+| 49 | `bird_local/client_1` to `client_5` (curves `local_bird_ddl_alpha01_s0/client_c`) | does federating pay on BIRD: SFT of each client alone on its own rows, 3 epochs, the recipe, prompt and evaluation of `bird_central`, each epoch evaluated on BIRD dev; mean, lowest and highest client against FedAvg SFT (43.68, 42.57) and the method (48.76) | about 11.5 h (estimate) | queued 2026-11-28 (`b8e4a44e`), after `rft/round_2`; one task per client |
+| 50 | `bird_sft_s1/round_1` to `round_4`, `bird_k2_s1/round_1`, `round_2`, each with its evaluation (FedAvg SFT from round 2 on) | does the gain at 4 rounds (6.19 on seed 0) hold on a second training seed: the commands of `bird_sft` and `bird_k2` with `--seed 1` (LoRA initialisation, data order, dropout, samples, pairs), the client split unchanged, roots `fedavg_bird_base_ddl_alpha01_s1` and `fedpref_bird_sftr2_p2_ddl_alpha01_s1` | about 28 h (estimate) | queued 2026-11-28 (`b8e4a44e`), after `bird_local` |
 | 47 | `bird_nonll/round_2` with its evaluation and publications | the method without the NLL term at 4 rounds on BIRD, on-policy: round 2 of `bird_k2` with NLL weight 0, continuing `bird_feddpo/round_1` (44.98, not trained again); against `bird_k2/round_2` (48.76) and `bird_feddpo/round_2` (45.50, also fixed pairs) | about 8 h (estimate: `bird_rft/round_2` 8.1 h) | queued 2026-11-28 (`c52e37ff`); in the file after `rft/round_2`, before `pooled_k2` |
 | 28 | `pooled_k2/round_1`, `pooled_k2/round_2`, each with its evaluation and publications | do the DPO + NLL rounds lose anything to the federation: the two rounds of `dpo_k2` (1.5B, from FedAvg SFT round 2) with the clients pooled into one, no aggregation; read against 77.46 and 78.20 on Spider test. Pooled above federated: a part for the aggregation is worth a test; level: the federated rounds keep the pooled level | about 2 h a round with its evaluation (estimate, not measured) | queued 2026-11-23 16:35 (`c92b0dd3`); neither round is published; place in the file order of 2026-11-27 (`4a962ced`): fourth |
 | 31 | `spider_sets_dev/*`, `spider_sets_var/*`, `qwen05b_var/*`, `pooled_dev/*` | evaluations only, the rounds the tables need on the other Spider sets: the two ablation rounds of the 1.5B on Spider dev; the 1.5B rows by round and the ten 0.5B rows on Syn, Realistic and DK; the pooled rounds on Spider dev (each after its round) | about 2 h (estimate: 3 min a row on dev, 6 min on the three sets) | queued 2026-11-23 19:15 (`e425fa42`); the rows of Table 7 are committed, `pooled_dev/*` waits for the pooled rounds |
@@ -438,15 +453,14 @@ Not queued yet: the rows the paper needs (owner, 2026-11-25;
 Table 4, the second seed, the second model on BIRD). Hours are
 estimates; each needs its queue lines and the check of its resolved
 commands before it runs. The two alpha 0.5 setups are queued (rows 43
-and 44 above).
+and 44 above), and so are local SFT on BIRD and the second seed (rows 49
+and 50).
 
 | # | Rows | Set | What it answers | About |
 | --- | --- | --- | --- | --- |
-| 1 | local SFT of each client, 3 epochs | BIRD | does federating pay: mean, minimum and maximum of the 5 clients against FedAvg SFT | 10 h |
 | 2 | FedProx SFT, rounds 1 to 4 (mu to set) | BIRD | a second federated SFT baseline in the main table | 11.5 h |
 | 3 | `bird_k0` rounds 3 and 4 | BIRD | k = 0 against k = 2 at 4 rounds; the read can change k on BIRD | 14 h |
 | 4 | one DPO + NLL round from `bird_sft/round_3` (k = 3) | BIRD | k = 3 at 4 rounds | 7 h |
-| 5 | seed 1 of the two main rows: FedAvg SFT rounds 1 to 4 and the method (DPO + NLL rounds 1 and 2 from its round 2); the client split unchanged | BIRD | does the gain at 4 rounds (6.19 on seed 0) hold on a second training seed | 25 h |
 | 6 | DeepSeek-Coder-1.3B: FedAvg SFT rounds 1 to 4, DPO + NLL rounds 1 and 2 from round 2 | BIRD | the BIRD table on a second model; memory on BIRD to measure first | 30 h |
 | 7 | `bird_k2/round_3`, with `bird_sft/round_5` if the row is used | BIRD | where the method stops rising | 7 h and 3 h |
 

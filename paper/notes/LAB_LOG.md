@@ -5,6 +5,33 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28: local SFT on BIRD and seed 1 of the two main BIRD rows queued, after the two Spider rounds
+
+- Owner's order: these two ahead of the breadth rows (DeepSeek on
+  Spider, IID, alpha 0.5). Both fresh reads of the full draft name "no
+  evidence that federating pays" and "one seed" as major points.
+- Queue (`fedicl-sql` `b8e4a44e`): `bird_local/client_1` to `client_5`,
+  curves of 3 epochs, each epoch evaluated on BIRD dev (about 11.5 h,
+  estimate); `bird_sft_s1` rounds 1 to 4 and `bird_k2_s1` rounds 1 and 2
+  with `--seed 1`, in roots of their own, evaluated with `--seed 1` so
+  that the rows carry the seed (about 28 h, estimate).
+- Checked: a test of the queue holds that a local step is the step of
+  the centralized BIRD curve with the client's CSV, and that the seed 1
+  commands are the seed 0 commands with the seed, roots, labels and arm
+  names changed (the setup of the DPO + NLL rounds is equal but for the
+  seed). Not checked here: a rendered BIRD prompt (the BIRD train
+  databases are on the server only). The seed 1 rounds build it as
+  `bird_sft` and `bird_k2` did; the local curves call the trainer of the
+  FedAvg client step with the same profile and schema style, a path
+  that has not run on BIRD yet (`bird_central` is queued behind them).
+- `overview_results.py` maps the new arm names (seed 1 rows, local and
+  centralized SFT on BIRD, the control as line `fedavgp`); the paper has
+  no row for the control yet.
+- Still not queued: per-client DPO + NLL rounds on BIRD, FedAvg SFT
+  rounds 5 to 7 on BIRD, FedProx SFT, k = 0 and k = 3 at 4 rounds,
+  DeepSeek-Coder-1.3B on BIRD; local SFT on Spider (its curves are
+  defined with 8 steps, the paper prints 3 epochs).
+
 ## 2026-11-28: control of the main comparison queued first (FedAvg SFT at the settings of the DPO + NLL rounds)
 
 - Why: every comparison of the method with FedAvg SFT is between rounds

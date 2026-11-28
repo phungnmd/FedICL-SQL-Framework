@@ -69,6 +69,16 @@ ARMS = {
     "fedpref_bird_sftr2_p2_dpo_ddl_a01_r1": ("k2", 3),
     "fedpref_bird_sftr2_p2_dpo_ddl_a01_r2": ("k2", 4),
     "fedavg_bird_ddl_a01_r4": ("fedavg", 4),
+    # the two main BIRD rows with training seed 1 (the seed is read from the metrics file)
+    **{f"fedavg_bird_ddl_a01_s1_r{r}": ("fedavg", r) for r in (2, 3, 4)},
+    "fedpref_bird_sftr2_p2_dpo_ddl_a01_s1_r1": ("k2", 3),
+    "fedpref_bird_sftr2_p2_dpo_ddl_a01_s1_r2": ("k2", 4),
+    # centralized SFT on BIRD train and local SFT of each BIRD client, by epoch
+    **{f"central_bird_ddl_e{e}": ("central", e) for e in (1, 2, 3)},
+    **{f"local_bird_c{c}_ddl_a01_e{e}": (f"local{c}", e) for c in range(1, 6) for e in (1, 2, 3)},
+    # FedAvg SFT rounds 3 and 4 at the optimizer settings of the DPO + NLL rounds
+    **{f"fedavg_bird_prefset_ddl_a01_r{r}": ("fedavgp", r) for r in (3, 4)},
+    **{f"fedavg_prefset_ddl_rows_a01_r{r}": ("fedavgp", r) for r in (3, 4)},
     # round 2 of bird_k2 on round 1's pairs and reference (the on-policy ablation at k = 2)
     "fedpref_bird_sftr2_p2_fixed_dpo_ddl_a01_r2": ("fixed", 4),
     # NLL on the correct samples alone, round 1 from FedAvg SFT round 2 (the preference-term ablation)
