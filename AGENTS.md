@@ -61,7 +61,7 @@ built or checked for it now.
   part of the method. Story: `RESEARCH_STATE.md`, section 3. Claims:
   `paper/manuscript/CLAIMS.md`.
 - Closest centralized work: CodeLutra (arXiv 2411.05199), cited. It is
-  not the frame of the method (owner, 2026-11-27): no note, brief or
+  not the frame of the method (owner, 2026-11-27): no note or
   section defines the method or its contributions as differences from
   it. Its places are fixed: `RESEARCH_STATE.md`, section 3.6, in the
   notes; in the paper, Section 2.2 with Table 1 (what it does and where
@@ -155,9 +155,7 @@ deviate.
 - Log runs and decisions briefly in `LAB_LOG.md`. Commit small, with
   conventional messages.
 - Subagents run on Opus; the larger model is for the main session
-  (owner, 2026-11-22: cost). The writer of the manuscript is one of
-  three agents, named by the owner when a writing session starts
-  (Writing, below). Cold reads and other helpers stay on Opus.
+  (owner, 2026-11-22: cost). Cold reads and other helpers stay on Opus.
 - Diagrams follow `paper/figures/STYLE.md`: start from `template.svg`,
   render with `render.py`, open and check the PNG before committing.
 - `paper/notes/overview.html` is the owner's project page. It is updated
@@ -175,28 +173,22 @@ deviate.
   `paper/notes/WRITING_PLAN.md`) has an academic voice (owner,
   2026-11-27): dense, in the terms of the field, assertive at the
   strength of the evidence. The plain-words rule above is not for it.
-  The main session coordinates and writes no sentence of the paper.
-  The writer of a section is one of three agents, started in this
-  workspace: Claude Opus 5.5, ChatGPT Sol 6.2 (Codex) or the
-  Antigravity agent (`agy`, Gemini 4 Carbon). The owner names it when
-  starting a writing session; without a name the main session asks
-  (owner, 2026-11-28). How each is started:
-  `paper/notes/WRITING_PLAN.md`, section 2.1. Whichever it is, it reads
-  the project: the brief of its section, the claims, the generated
-  numbers and tables, and the notes and the code as it needs them. It
-  writes the section file itself; one conversation outlines,
-  drafts and revises a section. The writer decides the structure of its
-  section, and asks the main session whatever the record does not
-  settle. The text of the paper carries nothing of the lab: no note,
-  rule, date, decision, claim number or lab word; what the writer takes
-  from the web it lists with the URL. What binds the text: the hard
-  rules, the claims of `CLAIMS.md` at their strength and scope (not
-  above, not below), numbers as generated macros, the limits of the
-  journal; these are checked on the draft by the main session and reach
-  the writer as editor's notes. Cold reads stay isolated and on Opus
-  (the `cold-session` skill). Checks of words and style are signals for
-  the main session, never rules for the writer; a draft far from a good
-  paper is written again from a corrected brief, not patched.
+  One writing session writes and revises it directly (owner,
+  2026-11-28): a session the owner opens for writing, apart from the
+  session that runs the experiments, on one model for the whole paper.
+  There is no separate writer agent and no brief, outline or notes file
+  per section. The state is in the files, so a new session takes over
+  by reading them; it reads the paper as it stands before it writes a
+  section, and the owner's remarks on the text are applied in the text.
+  The text of the paper carries nothing of the lab: no note, rule,
+  date, decision, claim number or lab word; a fact taken from the web
+  is recorded with its URL. What binds the text: the hard rules, the
+  claims of `CLAIMS.md` at their strength and scope (not above, not
+  below), numbers as generated macros, the limits of the journal;
+  `make` and `make lint` check what a tool can. Cold reads stay
+  isolated and on Opus (the `cold-session` skill) and run at
+  milestones: a full draft, before the paper is sent, or when the owner
+  asks. No measure of words or style steers a sentence.
 - The draft does not wait for the results (owner, 2026-11-27). A number
   without a committed row prints `??` (`--` in a generated table), or
   stands as a marked guess, `\expect{value}`. A guess is never quoted as

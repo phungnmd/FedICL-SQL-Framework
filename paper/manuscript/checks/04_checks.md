@@ -1,9 +1,8 @@
 # Checks: Section 4, Experimental setup, Appendices A and B
 
-For the editor (main session and helpers). The writer does not read this
-file. It holds what stays true whatever the draft says: facts and the
-bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0).
+What stays true whatever the draft says: facts and the bounds of claims.
+It is read before the section is written and when it is checked; remarks
+on the wording of a draft are not kept here.
 
 ## 1. Facts about our work
 
@@ -38,8 +37,8 @@ bounds of claims. Notes on the wording of a draft are not kept here
 
 ## 5. Labels, floats and formulas
 
-Other sections and the generated tables refer to these labels. The macros and
-citation keys by section are in `inventory.txt`.
+Other sections and the generated tables refer to these labels. `make inventory` lists the macros and
+citation keys by section.
 
 ### `sections/04_setup.tex`
 

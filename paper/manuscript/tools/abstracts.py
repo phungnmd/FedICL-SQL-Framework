@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Fetch the abstract of every entry of references.bib into .sources/abstracts.json.
 
-The file is outside Git (abstracts are the text of their authors) and feeds the
-`related/` folder of a writer's pack (tools/pack.py). Sources, in this order: the
+The file is outside Git (abstracts are the text of their authors) and is read when
+Section 2 is written. Sources, in this order: the
 arXiv API for an entry with an `eprint`, then Crossref and Semantic Scholar by DOI.
 An entry with no abstract at any of them is listed at the end and left out.
 

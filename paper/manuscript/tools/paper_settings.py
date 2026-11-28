@@ -12,7 +12,7 @@ Writes, under paper/manuscript/generated/:
   settings.tex       one macro per setting: \\setting{name}
   tab_settings.tex   the first tabular of Appendix B (model, federation, FedAvg SFT round)
   tab_settings_2.tex the second (preference round, evaluation, software and hardware)
-  settings.md        the same values with their sources (for the Setup brief)
+  settings.md        the same values with their sources (for Section 4)
 
     python3 tools/paper_settings.py
 """

@@ -4,8 +4,7 @@ Approved by the owner on 2026-11-26 and restructured on 2026-11-27
 (owner): seven sections, no research questions, the ablation study
 inside the results section, a figure in the introduction and a short
 subsection on the supervision that execution gives before the framework.
-Built from `WRITING_PLAN.md`, section 5, and `CLAIMS.md`; claim numbers
-(A1 to E2) are those of `CLAIMS.md`. The brief of a section is built
+Claim numbers (A1 to E2) are those of `CLAIMS.md`. A section is written
 from its entry here. The bibliography keys come from `bib/report.md`,
 which names the sources of each subsection.
 
@@ -322,7 +321,7 @@ Numbered in the order of first mention.
 
 ## Word Count Summary
 
-| Section | Words, upper end | Words asked in the brief | Pages in the plan |
+| Section | Words, upper end | Words aimed at | Pages in the plan |
 |---|---:|---:|---:|
 | 1 Introduction | 1,050 | 950 | 2.1 |
 | 2 Related work | 900 | 810 | 1.8 |
@@ -336,8 +335,8 @@ Numbered in the order of first mention.
 The words of the first column were set from the pages of the plan, less
 the space of the floats, at 650 words a page. Measured in the class on
 2026-11-26, running text sets about 600 words a page, and the displayed
-equations of the Method section take about 0.4 page. A brief therefore
-gives the first column as the upper end of its section and asks for
+equations of the Method section take about 0.4 page. The first column
+is therefore the upper end of a section, and the length aimed at is
 about 10% less (second column; owner, 2026-11-26), which fits the pages
 of the plan; the subsections share the reduction in proportion. Against
 the outline of 2026-11-26 (8,510 words, 18.6 pages) this one adds
@@ -346,4 +345,4 @@ its results in 5.2; these additions are estimates, not measured. These
 budgets were set for the 25 pages of JIIS. The paper is written for CMC
 (owner, 2026-11-27), which has no page limit and charges for each page
 above 15; the draft is complete first and trimmed later
-(`WRITING_PLAN.md`, sections 1 and 5).
+(`WRITING_PLAN.md`, sections 1 and 6).

@@ -882,7 +882,7 @@ For the paper: in 2.4 the "only earlier work" sentence needs the
 peer-reviewed limit or a FedParsing citation; in 2.3 FedAgent (and
 optionally Fed-SE) belongs beside PubSwap and Fed-GRPO; in 2.2 PLUM
 belongs beside CodeLutra. Each needs a fact-sheet row in
-`paper/manuscript/briefs/02_related_rows.md` before it enters the text.
+`paper/manuscript/checks/02_related_rows.md` before it enters the text.
 
 ## 2. What already exists
 

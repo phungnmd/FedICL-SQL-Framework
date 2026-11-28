@@ -1,9 +1,8 @@
 # Checks: Sections 6 and 7, Discussion and limitations, Conclusion
 
-For the editor (main session and helpers). The writer does not read this
-file. It holds what stays true whatever the draft says: facts and the
-bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0).
+What stays true whatever the draft says: facts and the bounds of claims.
+It is read before the section is written and when it is checked; remarks
+on the wording of a draft are not kept here.
 
 ## 1. Facts about our work
 
@@ -30,9 +29,8 @@ Nothing.
 
 ## 5. Labels, floats and formulas
 
-Other sections and the generated tables refer to these labels. The macros and
-citation keys by section are in `inventory.txt` (the file names there are
-those of the eight sections of 2026-11-26).
+Other sections and the generated tables refer to these labels. `make inventory` lists the macros and
+citation keys by section.
 
 ### `sections/06_discussion.tex`
 

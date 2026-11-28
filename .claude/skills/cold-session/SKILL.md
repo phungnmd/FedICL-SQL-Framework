@@ -20,7 +20,7 @@ in its scratchpad.
 1. **Pick the files.** Only the artifact being judged: usually
    `paper/manuscript/build/main.pdf` (run `make -C paper/manuscript` first if
    any source under `paper/manuscript/` is newer than the PDF). Never pass
-   notes, `LAB_LOG.md`, briefs, `REVIEW_NOTES.md`, claims or term sheets unless
+   notes, `LAB_LOG.md`, checks files, `REVIEW_NOTES.md`, claims or term sheets unless
    the owner names them.
 2. **Pick the prompt.** Default: the referee template `prompts/review.md`
    (`-j` sets the journal). For one section read before the rest of the paper

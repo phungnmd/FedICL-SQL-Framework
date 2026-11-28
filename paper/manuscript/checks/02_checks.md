@@ -1,9 +1,8 @@
 # Checks: Section 2, Related work, Table 1
 
-For the editor (main session and helpers). The writer does not read this
-file. It holds what stays true whatever the draft says: facts and the
-bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0).
+What stays true whatever the draft says: facts and the bounds of claims.
+It is read before the section is written and when it is checked; remarks
+on the wording of a draft are not kept here.
 
 ## 1. Facts about our work
 
@@ -33,6 +32,8 @@ Every cell of Table 1 and every sentence about a cited paper has its row and loc
 
 The reference models of the three DPO papers of Table 1 are of three kinds: renewed each iteration, fixed, not stated.
 
+The NLL term of CodeLutra: its Eq. (3) writes the log-likelihood of the whole response, and the paper does not say whether it is normalized by length; its code was not checked. The NLL term of Pang et al. is length-normalized, as ours is. A sentence on CodeLutra's term keeps to the formula.
+
 SKT-SQL (`yi2025sktsql`) could not be read (the publisher blocks it; only an abstract of a preprint under another title).
 
 SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, three of which this paper also uses (Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct, Qwen2.5-Coder-1.5B-Instruct). Its inference votes over 64 samples and its SFT uses 916K synthetic rows; our rows are greedy and train on the benchmark training sets.
@@ -50,8 +51,8 @@ SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLM
 
 ## 5. Labels, floats and formulas
 
-Other sections and the generated tables refer to these labels. The macros and
-citation keys by section are in `inventory.txt`.
+Other sections and the generated tables refer to these labels. `make inventory` lists the macros and
+citation keys by section.
 
 ### `sections/02_related.tex`
 

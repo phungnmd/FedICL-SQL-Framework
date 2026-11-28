@@ -4,6 +4,34 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+## 2026-11-28: one writing session writes the manuscript; the files of the writer workflow removed (owner)
+
+- Decision (owner): the manuscript is written and revised directly by
+  one writing session; no writer agent, no brief, outline, questions or
+  notes file per section. Kept: numbers as macros, `CLAIMS.md`, the
+  checks files, `make lint`, `make overlap`, cold reads on Opus at
+  milestones. `AGENTS.md` (Writing, Defaults) and `WRITING_PLAN.md`
+  (616 lines to 272) follow.
+- What led to it: a reading of Sections 1 and 3 on the same day. The
+  register revision of Section 3 (not committed) was 15% longer with
+  the same content, and 25 of its 83 sentences opened with a transition
+  word (1 of 69 in the committed text); the voice guide asked for both.
+  The results paragraph of Section 1 carried about 29 numbers and 8
+  p-values after four rounds of notes.
+- Removed from the tree, kept at the tag
+  `archive/writing-workflow-2026-11-28` (a snapshot that also holds the
+  uncommitted revisions of Sections 1 and 3 of that morning): the
+  briefs, outlines, questions and notes of Sections 1 and 3,
+  `VOICE_GUIDE.md`, `WRITING_GUIDE.md`, `voice/`, `tools/pack.py`,
+  `tools/reverse_outline.py`, ten cold-read reports, the tracked copy of
+  the inventory. `briefs/` is now `checks/`; `tools/style_profile.py`
+  is `tools/overlap.py` with the overlap check alone (same output on
+  Sections 1 and 3); `make pack` and `make register` are gone.
+- `REVIEW_NOTES.md`: 155 lines to 64. Decided items removed; open
+  decisions A16 to A48 and reviewer questions C1 to C30, merged and
+  renumbered. The points of the reading are in `WRITING_PLAN.md`,
+  section 6, and A46 to A48.
+
 ## 2026-11-28: `bird_nonll` queued; claims A6, B3, B4 follow the BIRD rows; test-suite accuracy of FedDPO and RFT (owner; code `c52e37ff`, results `8a582a64`)
 
 - Queued (owner): `bird_nonll/round_2`, round 2 of `bird_k2` with NLL

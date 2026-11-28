@@ -1,11 +1,11 @@
 # FedExec-SQL: what the paper claims
 
 Approved by the owner on 2026-11-26, with the decisions of section 7.
-Every brief is built from this file: a section states a claim at the
-strength its row carries, in its own words, not above it and not below
-it (owner, 2026-11-27). The Ceiling column gives the strongest wording
-the evidence carries; the bounds written in it go to the checks file of
-the section (`briefs/NN_checks.md`), not into a brief. Values are those of
+A section states a claim at the strength its row carries, in its own
+words, not above it and not below it (owner, 2026-11-27). The Ceiling
+column gives the strongest wording the evidence carries; the facts
+behind it are in the checks file of the section
+(`checks/NN_checks.md`). Values are those of
 `generated/numbers.md` (one training seed); a claim whose rows are not
 committed is marked "waits" and gets its values when the rows are in.
 
@@ -168,13 +168,12 @@ the exact McNemar p. Section, table and figure numbers are those of
 ## 6. Term sheet and notation
 
 The terms and the notation of the paper are in `TERMS.md`, a glossary
-that goes to the writer as it is and so holds no lab word, date or
-decision (2026-11-27); those are here. The owner
+that holds no lab word, date or decision; those are here. The owner
 revised the terms on 2026-11-26 to the terms of the field: the labels are
 "correct" and "incorrect", the two kinds of incorrect query are
 "execution error" and "incorrect result", the model generates a query,
 a client samples and executes. Sections 1 to 5 above keep the words
-they were approved in; a brief states them in the terms of `TERMS.md`.
+they were approved in; the paper states them in the terms of `TERMS.md`.
 
 Lab words, which the paper never uses, and what stands for each:
 
@@ -208,8 +207,8 @@ Lab words, which the paper never uses, and what stands for each:
 3. Table 7 has a row for the method without warm-up rounds and its test
    against the method, on every set of the table.
 4. C3 is a result of the paper, written by `paper_numbers.py` from the
-   committed predictions; the Results brief carries it in Section 5.2,
-   with its counts under the test suite.
+   committed predictions; it stands in Section 5.2, with its counts
+   under the test suite.
 5. The names of section 6 stand: "warm-up round", "preference round",
    "FedDPO" for the published baseline. The labels and the verbs
    were revised the same day (`TERMS.md`).

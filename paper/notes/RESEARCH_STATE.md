@@ -296,8 +296,8 @@ student has not seen.
 ### 3.6 Closest work
 
 This section is the one place in the notes for the comparison with
-CodeLutra (owner, 2026-11-27). Everywhere else, in the notes, the
-briefs and the paper, the method is described on its own terms and
+CodeLutra (owner, 2026-11-27). Everywhere else, in the notes and
+the paper, the method is described on its own terms and
 against the federated baselines: it is not defined as CodeLutra plus
 differences, and its contributions are not a list of those differences.
 

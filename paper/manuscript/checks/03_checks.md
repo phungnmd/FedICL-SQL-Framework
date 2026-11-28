@@ -1,9 +1,8 @@
 # Checks: Section 3, Method, Fig. 2, Algorithm 1
 
-For the editor (main session and helpers). The writer does not read this
-file. It holds what stays true whatever the draft says: facts and the
-bounds of claims. Notes on the wording of a draft are not kept here
-(`WRITING_PLAN.md`, section 7.0).
+What stays true whatever the draft says: facts and the bounds of claims.
+It is read before the section is written and when it is checked; remarks
+on the wording of a draft are not kept here.
 
 ## 1. Facts about our work
 
@@ -32,7 +31,7 @@ bounds of claims. Notes on the wording of a draft are not kept here
 ## 3. Claims: strength, scope, what waits
 
 - Position of the method (owner, 2026-11-27): the framework and each component are motivated against federated SFT and federated DPO as published (FedAvg SFT learns from the gold SQL query alone and never executes a query on the client's databases, which enter only the prompt (on Spider with up to three rows per table); FedDPO keeps the pairs and the reference model of its first round and has no NLL term). The section makes no comparison with CodeLutra and does not present a component as a difference from it; the comparison is in Section 2.2 and Table 1, the settings that follow it in Section 4.5.
-- Evidence of each component, for the Evidence cell of the brief (the section reports no result and points to Section 5): client-side execution labeling with the preference objective, A1 and A4 (+6.19 and +3.49 over FedAvg SFT; one preference round against one more SFT round); the preference term, B4 (execution errors 248 against 102 on BIRD; at 4 rounds on BIRD -3.52 EX without it, significant); the NLL term, B3 (-3.87 EX without it on Spider; on BIRD -1.24, not significant, 2026-11-28); on-policy pair construction, B1 (+2.61 on BIRD, level on Spider); supervised warm-up, B5 (test-suite accuracy on Spider, no EX gain); aggregation weights, B6 (no difference). A component is given the property its definition confers; a gain is attributed to it only at the strength of its row.
+- Evidence of each component (the section reports no result and points to Section 5): client-side execution labeling with the preference objective, A1 and A4 (+6.19 and +3.49 over FedAvg SFT; one preference round against one more SFT round); the preference term, B4 (execution errors 248 against 102 on BIRD; at 4 rounds on BIRD -3.52 EX without it, significant); the NLL term, B3 (-3.87 EX without it on Spider; on BIRD -1.24, not significant, 2026-11-28); on-policy pair construction, B1 (+2.61 on BIRD, level on Spider); supervised warm-up, B5 (test-suite accuracy on Spider, no EX gain); aggregation weights, B6 (no difference). A component is given the property its definition confers; a gain is attributed to it only at the strength of its row.
 - "First" and "to our knowledge" belong to Section 1.
 
 ## 4. What the section carries for other sections
@@ -43,8 +42,8 @@ bounds of claims. Notes on the wording of a draft are not kept here
 
 ## 5. Labels, floats and formulas
 
-Other sections and the generated tables refer to these labels. The macros and
-citation keys by section are in `inventory.txt`.
+Other sections and the generated tables refer to these labels. `make inventory` lists the macros and
+citation keys by section.
 
 ### `sections/03_method.tex`
 
