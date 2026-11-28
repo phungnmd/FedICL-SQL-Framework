@@ -80,7 +80,8 @@ clients that hold disjoint sets of databases and all take part in every
 round. At \setting{rounds.total} rounds, \method{} is
 \gap{bird}{fedavg}{4}{k2}{4} points of execution accuracy (EX) above
 FedAvg SFT on BIRD dev and \gap{spider}{fedavg}{4}{k2}{4} points on Spider
-test, and further rounds of FedAvg SFT do not close the gap. On Spider
+test; further rounds of FedAvg SFT do not close the gap, and neither
+does FedAvg SFT trained with the settings of the preference rounds. On Spider
 test, it is also \gap{spider}{central}{3}{k2}{4} points above centralized
 SFT on the pooled data of the clients, which does not differ
 significantly from FedAvg SFT: training on execution at the clients

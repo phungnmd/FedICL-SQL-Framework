@@ -5,6 +5,28 @@ on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
 
+## 2026-11-28 (23:10): the control at 4 rounds on BIRD dev; the main claim holds against it
+
+- `bird_sft_prefset/round_4` (`a87eea60`): 43.09 on BIRD dev, 228
+  execution errors and 645 incorrect results. Round 3 was 43.16.
+- Against FedAvg SFT round 4 (42.57): 0.52 above, 57 questions against
+  49. Against the method (48.76): 5.67 below, 62 against 149, p 1.9e-9,
+  Holm-adjusted 2.7e-8 in Table 4 (14 tests). This is the first case of
+  the reading guide (43 to 44): the gap to the control is 0.52 under the
+  headline gap (6.19), so the abstract keeps the gap to FedAvg SFT.
+- Test-suite accuracy on the generated suite of BIRD dev (CPU on the
+  Mac, `audits/protocol_v2/test_suite/qwen15b_bird_dev_prefset`,
+  `83c9c658`; EX reproduced): 36.96 at 3 rounds and 36.83 at 4. The
+  method is 2.09 above at 3 rounds (p 0.023, adjusted 0.091 in Table S5)
+  and 4.76 above at 4 (adjusted 2.0e-6).
+- Paper: Table 4 panel (a) and Table S5 have the row; Section 5.3 says
+  the settings do not account for the gain of the preference rounds, on
+  both benchmarks at 4 rounds; the introduction says FedAvg SFT with
+  these settings does not close the gap. The BIRD test at 3 rounds
+  (FedAvg SFT against the method) stays at adjusted 0.044 with 14
+  tests; two rows still enter this family (FedDPO and clients pooled on
+  Spider). No `??` is left in the main PDF.
+
 ## 2026-11-28 (22:54): the control at 4 rounds on Spider test
 
 - `sft_prefset/round_4` (`3a4a9a32`; FedAvg SFT rounds 3 and 4 at the

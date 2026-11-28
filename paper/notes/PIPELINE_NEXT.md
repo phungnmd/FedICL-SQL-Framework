@@ -9,9 +9,10 @@ FedAvg SFT round 3 (p 0.11) and 2.01 below the method at 3 rounds
 0.52 below FedAvg SFT round 3 (p 0.45) and 3.06 below the method at 3
 rounds (p 0.0014; `LAB_LOG.md`). Round 4, read at 22:54:
 `sft_prefset/round_4` is 75.08 on Spider test (`3a4a9a32`), 0.37 above
-FedAvg SFT round 4 and 3.12 below the method (p 5.7e-6); the BIRD
-round was training at 20:10 (owner; about 173 min of training,
-estimate) and its number is not published yet.
+FedAvg SFT round 4 and 3.12 below the method (p 5.7e-6);
+`bird_sft_prefset/round_4` is 43.09 on BIRD dev (`a87eea60`, 22:58),
+0.52 above FedAvg SFT round 4 and 5.67 below the method (p 1.9e-9).
+The control is complete and its worker has no task left.
 The other tasks wait for a card (Run now, step 2). The last published results are `bird_rft/round_2` (`7dc8e9c3`)
 and `bird_feddpo` round 2 (`15f9df7d`), both read (`LAB_LOG.md`,
 2026-11-28).
@@ -57,7 +58,7 @@ second card takes the first ready task the other does not hold):
 
 | Order | Tasks | Cells it fills | About |
 |---|---|---|---|
-| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | Table 4: FedAvg SFT at the settings of the DPO + NLL rounds (round 3 printed; round 4 printed for Spider, waits for BIRD) | 10.5 h (both rounds 3 and Spider round 4 read; BIRD round 4 training, then its evaluation) |
+| 0 | `sft_prefset` rounds 3 and 4, `bird_sft_prefset` rounds 3 and 4, each with its evaluation | Table 4: FedAvg SFT at the settings of the DPO + NLL rounds (both rounds printed) | done 2026-11-28 22:58 (all four rows read) |
 | 1 | `feddpo/round_2` with its evaluations (test, dev) | Table 3, Spider: FedDPO | 3 h |
 | 2 | `pooled_k2` rounds 1 and 2 with their evaluations, `pooled_dev/*` (Spider dev) | Table 4, Spider: Clients pooled (the DPO + NLL rounds at one site, no aggregation) | 4 h (round 1 trained, see below) |
 | 3 | `deepseek13b_sft` rounds 3 and 4, `deepseek13b_k2/round_2`, their rows on Spider dev and the variant sets (`deepseek13b_dev/*`, `deepseek13b_var/*`) | Table 5, Spider: DeepSeek-Coder-1.3B, the third model | 8 h |

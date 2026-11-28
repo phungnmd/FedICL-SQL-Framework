@@ -153,7 +153,7 @@ rounds on the union of the clients' data of Spider train at one site,
 without aggregation.
 
 The training settings of the preference rounds do not account for the
-gain of the first preference round. FedAvg SFT continued from round~\setting{rounds.warmup} with the
+gain of the preference rounds. FedAvg SFT continued from round~\setting{rounds.warmup} with the
 four training settings of the preference rounds
 (Section~\ref{sec:implementation}) reaches \ex{bird}{fedavgp}{3}\% on
 BIRD dev and \ex{spider}{fedavgp}{3}\% on Spider test after three rounds,
@@ -163,8 +163,9 @@ settings, and \method{} is significantly above it on both benchmarks, by
 \gap{bird}{k2}{3}{fedavgp}{3} and \gap{spider}{k2}{3}{fedavgp}{3}
 points. After four rounds, it reaches
 \ex{bird}{fedavgp}{4}\% on BIRD dev and \ex{spider}{fedavgp}{4}\% on
-Spider test, where \method{} is significantly above it by
-\gap{spider}{k2}{4}{fedavgp}{4} points.
+Spider test, and \method{} is significantly above it by
+\gap{bird}{k2}{4}{fedavgp}{4} and \gap{spider}{k2}{4}{fedavgp}{4}
+points.
 
 Renewing the pairs and the reference model raises EX on BIRD dev. With
 \setting{rounds.pref} preference rounds, they are renewed once, at the
