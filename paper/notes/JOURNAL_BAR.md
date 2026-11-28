@@ -153,6 +153,44 @@ model and acceptance rate; everything beyond the abstract for the 5
 paywalled JIIS papers. "Not stated" for seeds and tests in a paper rests
 on a text search of the full text.
 
+## 3b. How long the published papers are (measured 2026-11-28)
+
+Pages of the published PDF, counted from the files linked on the
+article pages of section 4; words are estimates from the full-text
+pages (body: introduction to conclusion).
+
+| Paper | Pages | Body words | Figures, tables | References |
+|---|---|---|---|---|
+| TinySecGPT | 15 | about 3,500 | 6, 7 | 20 |
+| Activation steering and RL | 16 | about 6,000 | 0, 8 | 26 |
+| FedCCM | 18 | not counted | not counted | not counted |
+| FedCO | 22 | about 7,300 | 7, 7 | 32 |
+| LESFT | 23 | about 7,100 | 7, 3 | 47 |
+| Task-structured curriculum | 27 | not counted | not counted | not counted |
+| Open-source LLM agents for SQL | 32 | not counted | not counted | not counted |
+
+Two of seven are within the 15 pages of the fee or one above; the three
+federated papers have 18 to 23. In the four counted: related work 400
+to 1,200 words (FedCO has none, it is in the introduction); the
+experimental setup 150 to 900 words of prose, a table of
+hyperparameters in one; 150 to 220 words of prose per result table or
+figure; a discussion of 70 to 600 words with the limitations folded in
+(none has a limitations section); a conclusion of 55 to 480 words; one
+appendix of about 120 words in the four, no supplementary file. A page
+of a published paper holds 370 to 490 words on average, floats
+included; our build holds about 475, so its page count is a fair
+measure of the published one.
+
+The fee page (https://www.techscience.com/cmc/info/article_charge)
+says "within 15 pages" and "an additional mandatory page charge of 100
+USD per page"; it does not say on which version the pages are counted,
+nor whether references, appendices or supplementary files count. The
+author instructions (https://www.techscience.com/cmc/info/auth_instru)
+say "There is no specific word count limitation; however, manuscripts
+must be as concise as possible", allow an appendix before the
+references and Supplementary Materials "not included in the main text
+due to space constraints", cited with the prefix S (Fig. S1, Table S1).
+
 ## 4. Papers read
 
 CMC, all in full:
