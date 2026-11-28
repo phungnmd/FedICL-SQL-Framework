@@ -32,10 +32,15 @@ script~\cite{zhong2020testsuite} on Spider. Queries run under the time
 limit of the same evaluation. On BIRD, one budget of
 \setting{timeout.bird} covers a query followed by the gold SQL query,
 and on Spider each query has \setting{timeout.spider}. A prediction that
-reaches the limit is incorrect.
+reaches the limit is incorrect. A query counts as reaching the limit
+only when it used the processor for most of the elapsed time. One that
+reached it while waiting for the processor is run once more alone. At
+\setting{rounds.total} rounds, \fact{timeouts.bird.fedavg.4} predictions
+of FedAvg SFT and \fact{timeouts.bird.k2.4} of \method{} reach the limit
+on BIRD dev, and none on Spider test.
 
-Execution labeling (Section~\ref{sec:labeling}) carries these limits
-into training unchanged. A sample that exhausts its limit while it runs
+Execution labeling (Section~\ref{sec:labeling}) applies the same limits
+and the same rule to the training questions. A sample that exhausts its limit while it runs
 is an execution error and is labeled incorrect. On Spider, each query
 has its own limit, so a completed sample is always compared with the
 gold result, and the completed samples without a label of
@@ -67,16 +72,18 @@ verdict.
 
 On Spider dev, which has an official suite, we generated a suite in the
 same way from its gold SQL queries, with the same number of variants,
-and compared the verdicts of the two suites on \fact{suite.calib.rows}
-predictions of our models (\fact{suite.calib.files} sets of
-predictions). The two verdicts agree on \fact{suite.calib.agreement}\% of
-the predictions. Of the \fact{suite.calib.official_rejected} predictions
-correct under EX that the official suite rejects, the generated suite
-rejects \fact{suite.calib.recall}\%, and of the
-\fact{suite.calib.official_accepted} that the official suite accepts, it
-rejects \fact{suite.calib.ours_only}. The number of variants was chosen
-among \fact{suite.calib.candidates} as the one with the highest agreement
-on these predictions.
+and compared the verdicts of the two suites on the predictions of our
+models on Spider dev (\fact{suite.calib.files} sets of predictions). Of
+these predictions, \fact{suite.calib.ex_correct} are correct under EX,
+and the two suites agree on \fact{suite.calib.agreement_ex_correct}\% of
+them: the generated suite rejects \fact{suite.calib.recall}\% of the
+\fact{suite.calib.official_rejected} that the official suite rejects,
+and \fact{suite.calib.ours_only} of the
+\fact{suite.calib.official_accepted} that it accepts. The number of
+variants was chosen among \fact{suite.calib.candidates} as the one with
+the highest agreement on these predictions, so the agreement is measured
+on the data that set it. No official suite exists against which the
+suite of BIRD dev itself could be compared.
 
 \subsection{Federated setups}\label{sec:fed-setups}
 
@@ -99,15 +106,17 @@ level.}\label{tab:setups}
 
 A partition is either independent and identically distributed (IID) or
 non-IID in the difficulty of the questions. In the IID setup, the
-databases are assigned at random in equal shares. In a non-IID setup,
+databases are assigned at random in equal shares, so the setup is IID
+over databases, not over questions. In a non-IID setup,
 the databases are grouped into four tiers by the quartiles of their
 share of hard and extra-hard questions. For each tier, the shares of the
 clients are drawn from a Dirichlet distribution with concentration
 $\alpha$, and the databases of the tier are assigned in these shares.
 This is the label-distribution skew of NIID-Bench~\cite{li2022niidbench}
-with the tier as label, including its rule that a client that already
-holds its equal share of the databases receives none of the tiers still
-to be assigned. The partition is drawn again until every client holds at
+with the tier as label and the database as unit, including its rule
+that a client that already holds its equal share of the databases when
+a tier is assigned receives none of that tier. A client can thus exceed
+its equal share within one tier. The partition is drawn again until every client holds at
 least \fact{split.spider.a0.1.k5.min_dbs} databases
 (\fact{split.spider.a0.5.k10.min_dbs} with
 \fact{split.spider.a0.5.k10.clients} clients), from split seed
@@ -129,19 +138,22 @@ $\alpha = {}$\fact{split.spider.a0.5.k10.alpha} with
 Some training questions yield no preference pair whatever the model
 samples (Section~\ref{sec:pairs}). Spider train has
 \fact{train.spider.no_rows.databases} databases without rows, which hold
-\fact{train.spider.no_rows} questions, and BIRD train has none. The gold
+\fact{train.spider.no_rows} questions, and BIRD train has none. No
+evaluation set contains such a database. The gold
 SQL query fails to execute for \fact{train.bird.gold_error} questions of
 BIRD train and \fact{train.spider.gold_error} of Spider train. On BIRD,
 it exceeds the time limit for \fact{train.bird.gold_timeout.pref1}
 questions in the first preference round of \method{} and
 \fact{train.bird.gold_timeout.pref2} in the second, and on Spider for
-none. These questions remain training targets in the warm-up rounds.
+none. All of these questions remain training targets in the warm-up
+rounds.
 
 \subsection{Models}\label{sec:models}
 
 All experiments use \setting{model}~\cite{hui2024qwen25coder} except
 those of Section~\ref{sec:breadth}, which adds
-\setting{models.other}~\cite{guo2024deepseekcoder}. Every model thus has
+\fact{model.qwen05}-Instruct and
+\fact{model.dsc13}-Instruct~\cite{guo2024deepseekcoder}. Every model thus has
 \setting{models.size.min} to \setting{model.size} parameters and is
 trained with a LoRA adapter, and no larger model is evaluated. Each
 model receives the prompt in its own chat format
@@ -156,9 +168,8 @@ every model is evaluated with the same prompt and decoding.
 
 \textit{No training} is the pretrained model with the prompt.
 \textit{Local SFT} fine-tunes an adapter at each client on its own
-training set alone, for the number of epochs given in
-Appendix~\ref{app:settings}, and its row gives the mean over the
-clients with the lowest and the highest client.
+training set alone, and its row gives the mean, the lowest and the
+highest EX over the clients.
 \textit{Centralized SFT} trains one adapter on the union of the clients' training sets for
 \setting{central.epochs} epochs. It pools the data that federated
 training keeps apart and serves as a reference, not as a federated
@@ -172,8 +183,7 @@ FedAvg SFT model of round \setting{rounds.warmup}, so the two share that
 model exactly. On Spider, FedAvg SFT also runs a fifth round, which
 gives the baseline more GPU time than \method{} uses
 (Section~\ref{sec:cost}). \textit{FedProx SFT}~\cite{li2020fedprox} adds
-a proximal term to the local objective of FedAvg SFT, with the
-coefficient given in Appendix~\ref{app:settings}.
+a proximal term to the local objective of FedAvg SFT.
 
 \textit{FedDPO}~\cite{ye2024openfedllm}, federated DPO as published,
 trains each client in every round on one fixed preference dataset, with
@@ -193,9 +203,11 @@ model in the same way. If the output contains a fenced code block, its
 body is taken. The text is then cut at the first semicolon, and what
 precedes the first \texttt{SELECT} is dropped, except that a query
 beginning with \texttt{WITH} keeps its \texttt{WITH} clause. An output
-without \texttt{SELECT} is executed as it is and fails, and a sample of
-which nothing remains contains no query in the sense of
-Section~\ref{sec:labeling}.
+without \texttt{SELECT} is executed as it is, and a sample of which
+nothing remains contains no query in the sense of
+Section~\ref{sec:labeling}. Every database is opened read-only, so a
+statement that writes fails and no output of the model can change a
+database.
 
 The adapter is LoRA of rank \setting{lora.r} with \texttt{lora\_alpha}
 \setting{lora.alpha} on all attention and feed-forward projection
@@ -222,7 +234,8 @@ the model decodes greedily, with one output per question, at most
 \setting{eval.tokens} new tokens and no repetition penalty. Each trained
 model comes from one training run, with seed \setting{seed} except in
 the rows of Table~\ref{tab:main} marked as a second seed. The seed sets
-\setting{seed.role}. All runs use one type of GPU, the \setting{hw.gpu}.
+\setting{seed.role}. All runs use one type of GPU, the \setting{hw.gpu}, with weights in
+bfloat16, and train the clients of a round one after another.
 Appendix~\ref{app:settings} lists every setting
 (Tables~\ref{tab:settings} and~\ref{tab:settings-2}) and the software
 versions.

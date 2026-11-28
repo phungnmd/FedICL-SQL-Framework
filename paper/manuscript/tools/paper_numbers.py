@@ -639,6 +639,8 @@ def suite_facts() -> dict:
         "suite.calib.recall": (f2(at_n["recall"]), SUITE_CALIBRATION),
         "suite.calib.ours_only": (at_n["false_rejections"], SUITE_CALIBRATION),
         "suite.calib.official_accepted": (at_n["official_accepted"], SUITE_CALIBRATION),
+        "suite.calib.ex_correct": (at_n["lucky"] + at_n["official_accepted"], SUITE_CALIBRATION),
+        "suite.calib.agreement_ex_correct": (f2(at_n["agreement_ex_correct"]), SUITE_CALIBRATION),
     }
 
 
@@ -998,6 +1000,20 @@ def form_facts(d: Data) -> dict:
 
 
 # ---------------------------------------------------------------- where the predictions move
+def timeout_facts(d: Data) -> dict:
+    """Predictions that reach the time limit of the evaluation (their execution error is the
+    message of a run that met its budget), for FedAvg SFT and the method after the last round."""
+    facts = {}
+    for ds in ("bird", "spider"):
+        for line in ("fedavg", "k2"):
+            k = key(ds, line, ROUNDS)
+            if k not in d.rows_of:
+                continue
+            n = sum(1 for row in d.rows_of[k].values() if str(row.get("exec_error") or "").startswith("timeout after"))
+            facts[f"timeouts.{ds}.{line}.{ROUNDS}"] = (n, "committed predictions after the last round, exec_error")
+    return facts
+
+
 def moved_facts(d: Data) -> dict:
     """The questions of an evaluation set by their outcome with FedAvg SFT and with the method,
     both after the last round: correct, execution error (`error`) or incorrect result (`wrong`).
@@ -1132,7 +1148,7 @@ def main() -> None:
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts(), **suite_facts()})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **timeout_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts(), **suite_facts()})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")

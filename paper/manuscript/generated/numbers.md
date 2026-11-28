@@ -965,7 +965,9 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{suite.bird.databases}` | 11 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{suite.bird.none}` | 82 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{suite.calib.agreement}` | 99.54 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.agreement_ex_correct}` | 99.34 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.candidates}` | 10, 20, 50 and 100 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.ex_correct}` | 20977 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.files}` | 29 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.official_accepted}` | 18710 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.calib.official_rejected}` | 2267 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
@@ -974,6 +976,10 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{suite.calib.rows}` | 29986 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
 | `\fact{suite.variants}` | 100 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{test.alpha}` | 0.05 | tools/paper_numbers.py, ALPHA: the level of the star in the tables |
+| `\fact{timeouts.bird.fedavg.4}` | 2 | committed predictions after the last round, exec_error |
+| `\fact{timeouts.bird.k2.4}` | 6 | committed predictions after the last round, exec_error |
+| `\fact{timeouts.spider.fedavg.4}` | 0 | committed predictions after the last round, exec_error |
+| `\fact{timeouts.spider.k2.4}` | 0 | committed predictions after the last round, exec_error |
 | `\fact{train.bird.gold_error}` | 350 | round record, pair_stats |
 | `\fact{train.bird.gold_timeout.pref1}` | 87 | round record, pair_stats |
 | `\fact{train.bird.gold_timeout.pref2}` | 92 | round record, pair_stats |
