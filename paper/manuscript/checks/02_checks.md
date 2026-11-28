@@ -47,7 +47,7 @@ SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLM
 ## 4. What the section carries for other sections
 
 - Section 2 uses the abbreviations and the terms that Section 1 introduces; it expands none.
-- The four published results on a likelihood term in DPO go to Section 5.3 (`05_checks.md`).
+- The four published results on a likelihood term in DPO (end of this file) are for Section 2.2: all four or none; Section 5 quotes no number of another paper.
 
 ## 5. Labels, floats and formulas
 
