@@ -1,0 +1,27 @@
+\section{Labels at each client}\label{sup:clients}
+
+Table~\ref{tab:clients} gives, for each client of the two main setups,
+its training questions, the questions that yield pairs and the pairs of
+each preference round, and two shares among the samples that the client
+draws for its own training questions in the labeling step: the samples
+labeled correct, and the execution errors, the samples that fail to
+execute or reach the time limit. The samples of the first preference
+round come from the FedAvg SFT model after round~\setting{rounds.warmup},
+those of the second from the global model after one preference round,
+and on BIRD train a further set from the global model after one round
+without the preference term (Section~\ref{sec:ablation} of the main
+paper). At every client, one preference round raises the share of
+correct samples and lowers that of execution errors, and on BIRD train
+it does both by more than a round without the preference term.
+
+\begin{table}[!ht]
+\caption{Each client on its own training questions: the questions that
+yield pairs and the pairs of each preference round, and the shares (\%)
+of correct samples and of execution errors among the samples of the
+labeling step, drawn from the FedAvg SFT model after
+round~\setting{rounds.warmup} (Start), from the global model after one
+preference round (After) and, on BIRD train, from the global model after
+one round without the preference term (No pref.).}\label{tab:clients}
+\footnotesize
+\input{generated/tab_clients}
+\end{table}

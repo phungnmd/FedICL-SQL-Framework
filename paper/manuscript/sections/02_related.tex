@@ -10,13 +10,12 @@ each benchmark, and OmniSQL~\cite{li2025omnisql} fine-tunes
 Qwen2.5-Coder-Instruct models of 7B to 32B parameters on about 2.5
 million synthetic samples together with the training sets of Spider and
 BIRD. SLM-SQL~\cite{sheng2025slmsql} studies the model sizes of this
-paper, 0.5B to 1.5B parameters. It fine-tunes on 916K synthetic samples,
-trains further by reinforcement learning on an execution reward and
-votes over 64 samples, and reports
-67.08\% EX on BIRD dev with its 1.5B model. Our models train on the
-benchmark training sets alone and decode greedily, and their absolute
-levels are well below this figure. All of these models are trained on
-data held in one place.
+paper, 0.5B to 1.5B parameters, and relies on synthetic data at scale
+(916K samples), further training by reinforcement learning on an
+execution reward and voting over 64 samples at inference. All of these
+models are trained on data held in one place, and synthetic data and
+voting at inference are orthogonal to the training signal studied
+here.
 
 \subsection{Preference optimization and execution feedback}\label{sec:rel-pref}
 
@@ -66,8 +65,7 @@ the pair counts. The preference rounds start from a model trained in
 FedAvg SFT warm-up rounds, and each question contributes
 \setting{pref.pairs} pairs with an NLL term averaged over tokens.
 Section~\ref{sec:implementation} names the settings of the preference
-rounds that follow CodeLutra, and Table~\ref{tab:related} sets the
-closest methods beside \method.
+rounds that follow CodeLutra.
 
 \subsection{Federated fine-tuning of language models}\label{sec:rel-fed}
 
@@ -87,42 +85,40 @@ federated reinforcement learning with verifiable rewards, a client
 samples from the current model and trains with GRPO on a reward for
 correct answers, to math and medical questions in
 PubSwap~\cite{nayak2026pubswap} and to math and code tasks in
-Fed-GRPO~\cite{guo2026fedgrpo}. Neither has been applied to Text-to-SQL,
-and this paper does not evaluate such a policy-gradient method with an
-execution reward.
+Fed-GRPO~\cite{guo2026fedgrpo}. Neither has been applied to
+Text-to-SQL.
 
 For federated semantic parsing, Zhang et al.~\cite{zhang2023fl4sp}
 fine-tune T5-base with FedAvg, FedOPT and FedProx on the gold SQL
 queries of eight single-domain clients and score predictions by exact
 match without executing a query, reaching 62.55 macro-averaged exact
 match against 70.32 for centralized training. KGRFL~\cite{xu2024kgrfl}
-fuses client models that translate questions into SPARQL. To our knowledge, no earlier
-method for federated training of Text-to-SQL models uses the databases
-of the clients for execution labels.
+fuses client models that translate questions into SPARQL. To our
+knowledge, no earlier method for federated training of Text-to-SQL models
+uses the databases of the clients for execution labels
+(Table~\ref{tab:related}).
 
 \begin{table}[!ht]
-\caption{Methods closest to \method. ``Labels from SQL execution'': a
-sampled query is labeled by executing it and comparing its result with
-the gold result. ``Preference pairs'': where the pairs of the preference
-objective come from.}\label{tab:related}
+\caption{Federated methods closest to \method. ``Labels from SQL
+execution'': a sampled query is labeled by executing it and comparing its
+result with the gold result. ``Preference pairs'': where the pairs of the
+preference objective come from. ``Reference model'': the reference model
+of the preference objective.}\label{tab:related}
 \footnotesize
-\setlength{\tabcolsep}{2.5pt}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lccccl@{}}
 \toprule
-Method & Federated & Text-to-SQL &
+Method & Text-to-SQL &
 \begin{tabular}[c]{@{}c@{}}Labels from\\ SQL execution\end{tabular} &
 \begin{tabular}[c]{@{}c@{}}Trains on\\ own outputs\end{tabular} &
-Preference pairs \\
+Preference pairs & Reference model \\
 \midrule
-Zhang et al.~\cite{zhang2023fl4sp} & Yes & Yes & No & No & Not applicable \\
-FedDPO (published)~\cite{ye2024openfedllm} & Yes & No & No & No & From a dataset\textsuperscript{a} \\
-PubSwap~\cite{nayak2026pubswap} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
-Fed-GRPO~\cite{guo2026fedgrpo} & Yes & No & No\textsuperscript{b} & Yes & Not applicable \\
-Liu et al.~\cite{liu2025cotdpo} & No & Yes & Yes & Yes & Once, from model outputs \\
-ExCoT~\cite{zhai2025excot} & No & Yes & Yes & Yes\textsuperscript{c} & Anew each round\textsuperscript{c} \\
-CodeLutra~\cite{tao2024codelutra} & No & Yes & Yes & Yes & Anew each round \\
+Zhang et al.~\cite{zhang2023fl4sp} & Yes & No & No & Not applicable & Not applicable \\
+FedDPO (published)~\cite{ye2024openfedllm} & No & No & No & From a dataset\textsuperscript{a} & Fixed for all rounds \\
+PubSwap~\cite{nayak2026pubswap} & No & No\textsuperscript{b} & Yes & Not applicable & Not applicable \\
+Fed-GRPO~\cite{guo2026fedgrpo} & No & No\textsuperscript{b} & Yes & Not applicable & Not applicable \\
 \midrule
-\method{} (ours) & Yes & Yes & Yes & Yes & Anew each round \\
+\method{} (ours) & Yes & Yes & Yes & Anew each round & Global model of the round \\
 \bottomrule
 \end{tabular}
 
@@ -131,8 +127,6 @@ CodeLutra~\cite{tao2024codelutra} & No & Yes & Yes & Yes & Anew each round \\
 \textsuperscript{a}~Every client keeps its own preference dataset, and
 no step that constructs pairs again is described.\par
 \textsuperscript{b}~The reward checks whether the answer to a math,
-medical (PubSwap) or code (Fed-GRPO) task is correct.\par
-\textsuperscript{c}~Only in the on-policy rounds: the first DPO round
-trains on pairs of GPT-4o outputs.
+medical (PubSwap) or code (Fed-GRPO) task is correct.
 \end{minipage}
 \end{table}

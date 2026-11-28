@@ -12,6 +12,7 @@ on the wording of a draft are not kept here.
 - Cost: as in `01_checks.md`.
 - "No training" is the pretrained model; Section 5.1 says so. The tables print the Holm-adjusted p and an asterisk for a significant difference; Section 4.5 says so.
 - No second-seed rows, no FedProx SFT, no local SFT on Spider (owner, 2026-11-28).
+- Second revision (owner, 2026-11-28): each paragraph of Section 5 leads with the finding that supports the method; a non-significant side result, a caveat or a list of non-significant differences that a table shows is printed only where a claim would be false or mislead without it. A finding that holds on one benchmark is stated for that benchmark. Section 5.2 states once, with Fig. 4, that incorrect results do not fall (C2). The per-client result (C6) is three sentences in Section 5.2 with Table S7 (`sections/S10_clients.tex`, label `sup:clients`, `generated/tab_clients`), on the clients' training questions, without a test.
 - No p in the prose of Sections 5 and 6; "significant" only for a test that a table of the paper or of the Supplementary Materials prints. Tables S4 (EX by round) and S5 (TS on BIRD dev) print the tests of A2, B2 and C4 (owner, 2026-11-28).
 
 For the ablation study (5.3):

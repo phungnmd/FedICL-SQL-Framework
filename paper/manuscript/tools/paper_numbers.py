@@ -674,6 +674,97 @@ def pair_facts() -> dict:
     return facts
 
 
+# The samples of the labeling step at each client, on its own training questions (owner,
+# 2026-11-28: the per-client result of Section 5.2 and Table S7). "start": dpo/round_1, drawn from
+# the FedAvg SFT model after the warm-up rounds; "pref": dpo/round_2, drawn from the global model
+# after one preference round; "rft": rft/round_2, drawn from the global model after one round
+# without the preference term (committed on BIRD only; a missing record leaves its cells out).
+CLIENT_STATS = {"start": ("dpo", 1), "pref": ("dpo", 2), "rft": ("rft", 2)}
+
+
+def client_stats() -> dict:
+    """The per-client pair statistics of CLIENT_STATS, keyed (set, when, client)."""
+    out = {}
+    for ds in ("bird", "spider"):
+        for when, (arm, r) in CLIENT_STATS.items():
+            folder = CODE / "audits/protocol_v2" / PREF_AUDIT[ds] / arm / f"round_{r}"
+            files = sorted(folder.glob("client_*_pairs_stats.json"))
+            if not files:
+                continue
+            if [int(f.name.split("_")[1]) for f in files] != list(range(1, len(files) + 1)):
+                raise SystemExit(f"{folder}: the clients are not numbered 1 to {len(files)}")
+            for f in files:
+                out[(ds, when, int(f.name.split("_")[1]))] = json.loads(f.read_text())
+    return out
+
+
+def share(s: dict, key_: str) -> str:
+    """A share of the samples in percent, one decimal: correct (`samples_correct`) or execution
+    errors (`samples_exec_error`, the samples that fail to execute or reach the time limit)."""
+    return f"{100 * s[key_] / s['samples']:.1f}"
+
+
+def client_facts(stats: dict) -> dict:
+    """The ranges over clients of the change that one round brings to the share of correct samples
+    and of execution errors, from the shares as Table S7 prints them. The sentence of Section 5.2
+    says that the change has the same sign at every client, and on BIRD that it is larger with the
+    preference term at every client: the run stops if the records say otherwise."""
+    facts = {}
+    for ds in ("bird", "spider"):
+        clients = sorted(c for d_, w, c in stats if d_ == ds and w == "start")
+        src = f"client pairs_stats of {PREF_AUDIT[ds]}, dpo/round_1, dpo/round_2, rft/round_2"
+        change = {}
+        for when in ("pref", "rft"):
+            if not all((ds, when, c) in stats for c in clients):
+                continue
+            gain = [float(share(stats[(ds, when, c)], "samples_correct")) - float(share(stats[(ds, "start", c)], "samples_correct"))
+                    for c in clients]
+            fall = [float(share(stats[(ds, "start", c)], "samples_exec_error")) - float(share(stats[(ds, when, c)], "samples_exec_error"))
+                    for c in clients]
+            if min(gain) <= 0 or min(fall) <= 0:
+                raise SystemExit(f"{ds} {when}: the share of correct samples does not rise, or that of execution errors does not fall, at every client")
+            change[when] = (gain, fall)
+            name = "" if when == "pref" else ".rft"
+            for k_, v in (("correct_gain", gain), ("error_fall", fall)):
+                facts[f"clients.{ds}{name}.{k_}_min"] = (f"{min(v):.1f}", src)
+                facts[f"clients.{ds}{name}.{k_}_max"] = (f"{max(v):.1f}", src)
+        if "rft" in change and not all(p > q for p, q in zip(change["pref"][0] + change["pref"][1], change["rft"][0] + change["rft"][1])):
+            raise SystemExit(f"{ds}: a client gains less with the preference term than without it")
+        facts[f"clients.{ds}.n"] = (len(clients), src)
+    return facts
+
+
+def table_clients(stats: dict) -> str:
+    """Table S7 of the Supplementary Materials: at each client, its training questions, the
+    questions that yield pairs and the pairs of each preference round, and the shares of correct
+    samples and of execution errors among the samples of the labeling step, drawn from the model
+    at the start of the preference rounds, after one preference round and, on BIRD, after one round
+    without the preference term. A record that is not committed leaves its cell blank. No test."""
+    lines = ["\\toprule",
+             row(["", "", "\\multicolumn{2}{c}{Preference round 1}", "\\multicolumn{2}{c}{Preference round 2}",
+                  "\\multicolumn{3}{c}{Correct (\\%)}", "\\multicolumn{3}{c}{Execution errors (\\%)}"]),
+             "\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}\\cmidrule(lr){7-9}\\cmidrule(lr){10-12}",
+             row(["Client", "Questions", "Yield pairs", "Pairs", "Yield pairs", "Pairs",
+                  "Start", "After", "No pref.", "Start", "After", "No pref."])]
+    for ds in ("bird", "spider"):
+        lines += ["\\midrule", f"\\multicolumn{{12}}{{@{{}}l}}{{{TRAIN_NAME[ds]} train}} \\\\"]
+        clients = sorted(c for d_, w, c in stats if d_ == ds and w == "start")
+        for c in clients:
+            s1, s2 = stats[(ds, "start", c)], stats[(ds, "pref", c)]
+            if s1["questions"] != s2["questions"]:
+                raise SystemExit(f"{ds} client {c}: the training questions differ between the preference rounds")
+            paired = [s["questions_mixed"] - s.get("questions_empty_database_by_kind", {}).get("mixed", 0) for s in (s1, s2)]
+            rft = stats.get((ds, "rft", c))
+            lines.append(row([str(c), count(s1["questions"]), count(paired[0]), count(s1["pairs"]),
+                              count(paired[1]), count(s2["pairs"]),
+                              share(s1, "samples_correct"), share(s2, "samples_correct"),
+                              share(rft, "samples_correct") if rft else "",
+                              share(s1, "samples_exec_error"), share(s2, "samples_exec_error"),
+                              share(rft, "samples_exec_error") if rft else ""]))
+    lines.append("\\bottomrule")
+    return tabular("@{}lrrrrrrrrrrr@{}", lines)
+
+
 # The records of the adapters of the first preference round averaged again (rows reaggq, reagge)
 REAGG_AUDIT = {"bird": "reagg_bird_sftr2_p2_ddl_alpha01_s0", "spider": "reagg_sftr2_ddlrows_alpha01_s0"}
 
@@ -1189,12 +1280,14 @@ def main() -> None:
     curves(d)
     form = form_facts(d)
     tables["tab_form"] = table_form(form)
+    per_client = client_stats()
+    tables["tab_clients"] = table_clients(per_client)
     d.adjust()
     GEN.mkdir(exist_ok=True)
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **timeout_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts(), **suite_facts()})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **timeout_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts(), **suite_facts(), **client_facts(per_client)})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")

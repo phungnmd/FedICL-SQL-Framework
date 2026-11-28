@@ -36,7 +36,8 @@ S3 the federated setups and the partition procedure (Table S3), S4
 execution labeling and the time limits, S5 EX by round (Table S4), S6
 the generated suite of BIRD dev, TS on BIRD dev for the rows of the
 ablation (Table S5) and the correct predictions on other tables or
-columns (S6.4, Table S6) (owner, 2026-11-28). The revision of
+columns (S6.4, Table S6) (owner, 2026-11-28), S7 the labels at each
+client (Table S7) (owner, 2026-11-28). The revision of
 2026-11-28 (owner) brought the paper to what CMC publishes: rows that
 the journal's papers do not carry left the tables (FedProx SFT, the
 second seed, local SFT on Spider, DeepSeek-Coder on BIRD, the variants
@@ -128,7 +129,7 @@ stops short of this setting.
 - 2.2 Preference optimization and execution feedback for SQL and code:
   DPO; training on a model's own outputs labelled by execution;
   CodeLutra as the closest centralized work: what it does and where
-  this method differs, said here and in Table 1, once for the paper.
+  this method differs, said here, in the text, once for the paper.
   No other section compares with it (the Method section cites it at
   the objective; the settings that follow it are named in 4.5).
 - 2.3 Federated fine-tuning of language models and federated semantic
@@ -140,15 +141,15 @@ stops short of this setting.
   and with a policy-gradient objective; federated semantic parsing and
   Text-to-SQL (FL4SP and later work), trained with SFT and scored by
   exact match.
-- Table 1: the closest methods against the properties that separate
-  them (federated, Text-to-SQL, labels from execution, pairs of the
-  model's own outputs, pairs made again each round). It gains a row
-  for federated reinforcement learning with verifiable rewards; the
-  fact rows of Fed-GRPO and PubSwap are built before the pack of this
-  section.
+- Table 1, in 2.3 (owner, 2026-11-28): the federated methods closest to ours
+  (Zhang et al., FedDPO, PubSwap, Fed-GRPO, the method) against the
+  properties that no earlier federated method has together
+  (Text-to-SQL, labels from SQL execution, training on the model's own
+  outputs, how the pairs arise, the reference model of the preference
+  objective). Liu et al., ExCoT and CodeLutra are not rows.
 
-**Transition to next**: no earlier method has all the properties of the
-last row of Table 1; Section 3 defines it.
+**Transition to next**: no earlier federated method has all the
+properties of the last row of Table 1; Section 3 defines it.
 
 ### 3. Method (~1,320 words, Fig. 2, Algorithm 1)
 
@@ -251,7 +252,8 @@ counts.
   in); C4 in one sentence, with FedDPO beside it (Table S5).
 - 5.2 Analysis of the predictions (`sec:analysis`; Fig. 4). C1
   execution errors halve and C2 incorrect results do not fall, as
-  counts; C5 in one sentence; C3 in two sentences, with the counts
+  counts; C5 in one sentence; C6 the change at every client, three
+  sentences with Table S7 (owner, 2026-11-28); C3 in two sentences, with the counts
   under EX and under the suite, the detail in S6.4 and Table S6.
 - 5.3 Ablation study (`sec:ablation`; Table 4). EX on both datasets,
   each row tested against the method; TS of the BIRD rows in Table S5.
@@ -277,12 +279,14 @@ round.
 **Purpose**: interpret the results and state the scope of the study.
 **Content** (three paragraphs, no subsections; owner, 2026-11-28):
 
-- Why a preference round adds more than a further SFT round, also at
-  the settings of the preference rounds (A2, A4, B9), as interpretation.
-- Why the preference rounds remove execution errors and not incorrect
-  results (C1, C2, B4), as interpretation.
-- The limitations, one paragraph, the five of `CLAIMS.md`, section 5,
-  each stated once.
+- The gain over FedAvg SFT in every configuration trained
+  independently; why a preference round adds more than a further SFT
+  round, also at the settings of the preference rounds (A2, A4, B9), as
+  interpretation.
+- Why the preference rounds remove execution errors (C1, B4), as a
+  reading.
+- Scope and future work, the three items of `CLAIMS.md`, section 5
+  (second revision (owner, 2026-11-28)).
 
 ### 7. Conclusion (~130 words)
 
@@ -305,11 +309,11 @@ table. These carry no argument and are assembled by the main session.
 | 3 | E1 (in kind); decision 9 of `CLAIMS.md`, section 7 | Fig. 2, Algorithm 1 | the method as built; settings from `generated/settings.tex`; the counts of 3.2 and 3.4 from the round records |
 | 4 | none | Table 2; Appendix A, B | datasets, models, baselines, settings |
 | 5.1 | A1 to A6, C4 | Table 3, Fig. 3; Tables S4, S5 | results and paired tests |
-| 5.2 | C1, C2, C3, C5 | Fig. 4; Table S6 | error counts, form of the answers |
+| 5.2 | C1, C2, C3, C5, C6 | Fig. 4; Tables S6, S7 | error counts, form of the answers, label statistics per client |
 | 5.3 | B1 to B4, B6, B9 | Table 4; Tables S4, S5 | results and paired tests |
 | 5.4 | D1 to D4, B5 | Tables 5, 6, 7 | results and paired tests |
 | 5.5 | E1, E2 | Table 8 | measured times |
-| 6 | limitations 1 to 5 | none | interpretation |
+| 6 | scope items 1 to 3 | none | interpretation |
 
 Evidence that waits on the GPU, written with its macro and printed as a
 placeholder: A5 on BIRD (centralized SFT), local SFT on BIRD, FedDPO on
@@ -338,6 +342,7 @@ Numbered in the order of first mention.
 | Table S4 | EX by round | `tab_rounds` |
 | Table S5 | TS on BIRD dev for the rows of Table 4 | `tab_ts` |
 | Table S6 | correct predictions on the gold SQL's or other tables or columns | `tab_form` |
+| Table S7 | the labels at each client | `tab_clients` |
 
 The PDF numbers each table of the paper one lower than this list
 (Table 3 here is Table 2 in the PDF), since the table of setups is in

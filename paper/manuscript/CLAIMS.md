@@ -34,7 +34,14 @@ result.
    re-sampling step, and the round's global model is the reference of
    the DPO term. Only the adapter and the count that weights it (the
    number of pairs) leave a client, as the adapter and the number of
-   questions do in FedAvg SFT.
+   questions do in FedAvg SFT. The introduction states it as the
+   federated design (owner, 2026-11-28): the preference rounds start from FedAvg
+   SFT warm-up rounds, a communication round is one step of sampling,
+   labeling and training for all clients, the global model of the round
+   is their common reference model, and only the LoRA adapter and its
+   integer weight leave a client. It does not claim the renewal of pairs
+   and reference as a design of its own, and does not say or imply that
+   parts come from another paper.
 3. The evidence. On BIRD dev and Spider test, at the same number of
    rounds, the model is 6.19 and 3.49 EX points above FedAvg SFT, and
    further FedAvg SFT rounds do not close the gap; on BIRD dev it is
@@ -65,7 +72,8 @@ the cost). Table numbers of the paper are those of `OUTLINE.md`: the
 PDF prints each one lower (Table 3 here is Table 2 in the PDF), since
 the table of setups is Table S3. In the Supplementary Materials: Table
 S4 EX by round, Table S5 TS on BIRD dev, Table S6 the form of the
-correct predictions (owner, 2026-11-28).
+correct predictions (owner, 2026-11-28), Table S7 the labels at each
+client (owner, 2026-11-28).
 
 ### A. Against FedAvg SFT (Section 5.1; Table 3, Fig. 3)
 
@@ -97,10 +105,11 @@ correct predictions (owner, 2026-11-28).
 | # | Claim | Values and macros | Holds on | Ceiling |
 |---|---|---|---|---|
 | C1 | The preference rounds halve the execution errors | At 4 rounds, FedAvg SFT against the method: BIRD `\nerr{bird}{fedavg}{4}` 268 against `\nerr{bird}{k2}{4}` 128; Spider 173 against 84. Owner, 2026-11-28: the exact test on the execution errors is printed in no table and leaves the paper; notes only: BIRD p 5.8e-22 (182 questions fail only with FedAvg SFT, 42 only with the method), Spider 6.2e-14 (118 and 29) | BIRD dev, Spider test | "about half as many execution errors", in counts, without a significance word |
-| C2 | Queries that run and return a wrong result do not become fewer | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384. Notes only (no table prints the test, owner, 2026-11-28): BIRD p 0.007 (156 questions only with the method, 111 only with FedAvg SFT); Spider 0.37 (111 and 97) | BIRD dev, Spider test | "incorrect results do not fall", with the counts. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
+| C2 | Queries that run and return a wrong result do not become fewer (stated in Section 5.2 only, with Fig. 4: not in the abstract, the introduction, the Discussion or the conclusion; owner, 2026-11-28) | BIRD `\nwr{bird}{fedavg}{4}` 613 against `\nwr{bird}{k2}{4}` 658; Spider 370 against 384. Notes only (no table prints the test, owner, 2026-11-28): BIRD p 0.007 (156 questions only with the method, 111 only with FedAvg SFT); Spider 0.37 (111 and 97) | BIRD dev, Spider test | "incorrect results do not fall", with the counts. Never "fewer wrong results than FedAvg SFT". Inside the method the second preference round lowers them on BIRD (723 to 658) |
 | C3 | The method finds right answers that are not written like the gold SQL, and FedAvg SFT does not; on BIRD this holds under test-suite accuracy (owner, 2026-11-27) | Right answers that read other tables or columns than the gold SQL, under EX: BIRD, FedAvg SFT 136, 135, 136 at rounds 2, 3, 4, the method 174 at round 3 and 191 at round 4; Spider test at 4 rounds 83 against 103 (83 without training). Right answers on the gold SQL's tables and columns at 4 rounds: BIRD 517 against 557, Spider 1,521 against 1,576. The same answers that are also correct under the generated test suite of BIRD dev (C4): other tables or columns, FedAvg SFT 84, 81, 86 at rounds 2, 3, 4, the method 117 at round 3 and `\fact{form.bird.k2.4.other_right_ts}` 132 at round 4; the gold SQL's tables and columns at 4 rounds 477 against 506. The suite rejects `\fact{form.bird.k2.4.other_ts_fail_pct}` 30.9% of the method's right answers on other tables or columns and 36.8% of those of FedAvg SFT, against `\fact{form.bird.k2.4.gold_ts_fail_pct}` 9.2% and 7.7% of those on the gold SQL's (without training 33.6% and 11.1%). Place and size (owner, 2026-11-28): two sentences in Section 5.2 (the counts at 4 rounds, under EX and the suite on BIRD, and the Spider count); the counts by round and the shares the suite rejects in Section S6.4 and Table S6 | BIRD dev (EX and the generated suite), Spider test (EX; it has no test suite) | Macros `\fact{form.<set>.<line>.<round>.other_right}` and `.gold_right` (with `.other`, `.gold` for the group sizes), and on BIRD `.other_right_ts`, `.gold_right_ts`, `.other_ts_fail_pct`, `.gold_ts_fail_pct`, from the committed predictions and test-suite scores. On BIRD 55 of the 95 questions of net gain under EX and 46 of the 75 under the suite, on Spider 20 of 75: "a large part of the gain on BIRD, under EX and under test-suite accuracy", never "the gain sits there". Where the paper gives the EX count of these answers on BIRD it gives the test-suite count beside it. May say that a right answer on other tables or columns fails the suite more often than one on the gold SQL's (about a third against about a tenth). No claim that the method's fail less often than those of FedAvg SFT (30.9% against 36.8%, no test). A prediction that does not parse counts with the others |
 | C4 | The gain on BIRD dev holds under test-suite accuracy (owner, 2026-11-27) | BIRD has no official test suite; a suite of 100 variants of each database was generated (`LAB_LOG.md`, 2026-11-27). `\ts{bird}{fedavg}{4}` 36.70 against `\ts{bird}{k2}{4}` 41.59: `\tsgap{bird}{fedavg}{4}{k2}{4}` 4.89 (131 questions against 56, `\tspval` 4.2e-8, `\tspadj` 2.9e-7), against 6.19 under EX. Predictions correct under EX that the suite rejects: 90 for FedAvg SFT, 110 for the method. Place and size (owner, 2026-11-28): one sentence in Section 5.1, with FedDPO beside it; the test in Table S5 of the Supplementary Materials, which gives TS on BIRD dev for the BIRD rows of Table 4 and forms its own Holm family (7 tests with the rows committed on 2026-11-28); the description of the suite and its agreement with the official one on Spider dev in Section S6; Section 4.1 keeps one sentence that points there | BIRD dev | "4.89 points above FedAvg SFT under the generated suite", significant (Table S5). Not "robust", and no claim for Spider test, which has no suite. The suite is ours: the Supplementary Materials say how it was generated and how far it agrees with the official suite on Spider dev (`\fact{suite.calib.agreement_ex_correct}` 99.34% of the `\fact{suite.calib.ex_correct}` 20,977 predictions correct under EX, at 100 variants; 99.54% over all 29,986 is not the figure to print) |
 | C5 | Where the removed execution errors go (main session, 2026-11-28) | Outcome of each question with FedAvg SFT and with the method at 4 rounds, `\fact{moved.<set>.<with FedAvg SFT>.<with the method>}`. BIRD dev: of the 268 execution errors of FedAvg SFT, 75 become correct, 107 run and return an incorrect result, 86 stay; Spider test: of 173, 67 become correct, 51 return an incorrect result, 55 stay. Notes only: of the 153 questions only the method answers correctly on BIRD, 75 were execution errors and 78 incorrect results; on Spider of 150, 67 and 83. Place and size (owner, 2026-11-28): one sentence in Section 5.2 | BIRD dev, Spider test | Counts, no causal word: "of the execution errors of FedAvg SFT, N are answered correctly by the method and M execute and return an incorrect result". It reads C1 and C2 together and is no claim of its own on accuracy |
+| C6 | The change holds at every client (owner, 2026-11-28) | On the samples of the labeling step, which each client draws for its own training questions (`audits/protocol_v2/<root>/<arm>/round_<r>/client_<c>_pairs_stats.json`; `samples_correct` and `samples_exec_error` over `samples`). From the samples drawn from the FedAvg SFT model after the warm-up rounds (`dpo/round_1`) to those drawn after one preference round (`dpo/round_2`), the share of correct samples rises at each client by `\fact{clients.bird.correct_gain_min}` 18.0 to `\fact{clients.bird.correct_gain_max}` 22.9 points on BIRD (clients 1 to 5: 37.9, 29.2, 33.5, 30.0, 31.3 to 59.0, 47.9, 56.4, 48.0, 51.8) and 10.5 to 13.8 on Spider (74.5, 75.2, 67.9, 71.0, 71.5 to 85.0, 85.9, 81.7, 84.4, 84.4); the share of execution errors falls by `\fact{clients.bird.error_fall_min}` 23.5 to 29.4 points on BIRD (31.1, 37.4, 36.8, 38.4, 29.8 to 6.3, 10.0, 8.2, 9.0, 6.3) and 7.5 to 12.3 on Spider (12.7, 11.0, 14.1, 18.9, 13.7 to 4.3, 3.5, 4.3, 6.6, 5.6). On BIRD, after one round without the preference term (`rft/round_2`, whose round 1 has the same samples): correct 47.7, 38.0, 43.4, 38.8, 40.1, a rise of `\fact{clients.bird.rft.correct_gain_min}` 8.8 to 9.9; execution errors 20.0, 27.1, 25.7, 26.2, 20.1, a fall of 9.7 to 12.2. The ranges are taken from the shares as Table S7 prints them; the generator stops if a client does not rise, does not fall, or gains less with the preference term than without it. Spider has no committed `rft/round_2`, and its cells stay blank. Place: three sentences in Section 5.2 and Table S7 (Section S7 of the Supplementary Materials) | BIRD train and Spider train, the clients of the two main setups, at the first preference round | "at every client", on the clients' training questions, stated as a measure of the labeling step, not as EX. No test, so no significance word. Not "the gain is the same at every client", and nothing about evaluation EX per client. The cosine of the client updates and the share of questions without a correct sample are not printed |
 
 ### D. Breadth (Section 5.4; Tables 5, 6, 7)
 
@@ -119,6 +128,19 @@ correct predictions (owner, 2026-11-28).
 | E2 | The cost is client compute, printed as GPU time and label time apart (owner, 2026-11-27) | Minutes for the five clients of a round on one RTX A5000. GPU time is sampling and training. BIRD: a FedAvg SFT round `\fact{cost.bird.sft.train_min}` 173; the preference rounds 28 + 282 = `\fact{cost.bird.pref1.gpu_min}` 310 and 28 + 195 = 223, `\fact{cost.bird.pref1.gpu_ratio}` 1.8 and 1.3 times an SFT round. Spider: 124; 18 + 183 = 201 and 18 + 88 = 106, 1.6 and 0.9 times. The label step is SQL executed on the CPU; its figure is the elapsed time of the step on `\setting{pref.label_threads}` 16 threads, not CPU time: `\fact{cost.bird.pref1.label_min}` 159 and 168 min on BIRD, 3 and 3 on Spider. Over the four rounds the method takes 879 GPU minutes on BIRD against 692 for FedAvg SFT (5 SFT rounds: 865), and 555 against 496 on Spider (5 SFT rounds: 620). Pairs fall from the first preference round to the second (BIRD 11,754 to 7,066; Spider 8,026 to 3,354) | "A preference round takes 1.3 to 1.8 times the GPU time of an SFT round on BIRD and 0.9 to 1.6 times on Spider; executing the sampled queries on 16 CPU threads adds 159 and 168 minutes on BIRD and 3 on Spider." No figure adds the label step to the GPU time, and none is called "client time". The times are the five clients one after another on one card, not the wall-clock time of a federation. The rows are compared at equal rounds, that is, equal communication; A2 is the answer to "FedAvg SFT with more rounds", and on Spider the fifth FedAvg SFT round is a comparison at more GPU time for the baseline |
 
 ## 4. Wording that has to survive revision
+
+Owner, 2026-11-28: the paper presents what supports the method; finding
+weaknesses is the reviewer's work. Everything it prints stays true, no
+number changes, and no claim goes above its ceiling (the "never"
+wordings below and in section 3 still hold). A caveat, a non-significant
+side result, an untested reading or an unfavourable number from outside
+is printed only where a claim would be false or would mislead without
+it. Where a Ceiling of section 3 says that such a result is "said
+beside" a claim, it now stays in the tables and the notes: the 3-round
+EX tests of A4 on BIRD, A6 and B4, the Spider rows of B1 and B2, B3 on
+BIRD and the +0.65 of the NLL term with fixed pairs, the incorrect
+results of B4, "by a smaller margin" of D1, the fall from Spider dev to
+Spider-Syn of D4, the Spider-DK row of B5, and C2 outside Section 5.2.
 
 1. The label needs the gold SQL: a sampled query is correct when its
    result equals the result of the gold SQL on the client's database.
@@ -140,9 +162,13 @@ correct predictions (owner, 2026-11-28).
    for math and code, federated DPO on fixed preference datasets
    (OpenFedLLM),
    and the same sample, label and DPO + NLL loop centrally (CodeLutra):
-   the paper says so once, in Section 2.2 and Table 1, cites CodeLutra
-   at the objective in the Method section, and names in Section 4.5 the
-   settings of the preference rounds that follow it. No other section
+   the paper says so once, in the text of Section 2.2, cites CodeLutra
+   at the objective in the Method section, and names in the
+   implementation subsection (4.4 in the PDF) the settings of the
+   preference rounds that follow it. Table 1 lists federated methods
+   only (Zhang et al., FedDPO, PubSwap, Fed-GRPO and the method) and
+   stands in Section 2.3 (owner, 2026-11-28); Liu et al., ExCoT and CodeLutra
+   are described in the text of Section 2.2 and are not rows of it. No other section
    compares the method with CodeLutra: its novelty is stated against
    FedAvg SFT and federated DPO as published, and the paper does not
    say that the method takes its parts from CodeLutra (owner,
@@ -157,26 +183,26 @@ correct predictions (owner, 2026-11-28).
 
 ## 5. Limitations the paper states (Discussion)
 
-Owner, 2026-11-28: one paragraph of the Discussion, five items, each
-stated once.
+Owner, 2026-11-28 (second revision): the last paragraph of the
+Discussion states the scope and future work, three items, each once.
 
-1. A client needs a gold SQL query for each training question and
-   databases on which it can execute queries.
-2. At most ten clients, all of which take part in every round. Partial
-   participation and many clients are not studied.
-3. Privacy is data isolation, without differential privacy or an
-   analysis of what an adapter or a pair count reveals.
-4. Each model comes from one training run, and each setup from one draw
-   of the partition.
-5. An execution label, like EX, is a match of results on one database:
-   test-suite accuracy measures this at evaluation, and there is no such
-   measure for the labels of the training samples.
+1. The method needs a gold SQL query for each training question and
+   databases on which the client can execute queries.
+2. The federations studied have at most ten clients, all of which take
+   part in every round; partial participation is future work.
+3. Privacy is data isolation; differential privacy is future work.
 
-The earlier items on client compute, on the size of the models and the
-benchmarks, and on the number of warm-up rounds are not limitations of
-the paper (owner, 2026-11-28): the compute of the preference rounds is
-a result of Section 5.5 (E2), the models are named in Section 4, and
-the smaller gain of the 0.5B model is stated in Section 5.4 (D1).
+Notes only, ready for a reviewer (not printed as limitations): each
+model comes from one training run (Section 4.4 gives the seed as a
+setting) and each setup from one draw of the partition; an execution
+label, like EX, is a match of results on one database, and test-suite
+accuracy measures this at evaluation, not for the training labels; the
+McNemar test covers the variation over evaluation questions, not
+between training runs; what an adapter or a pair count reveals; client
+compute (a result of Section 5.5, E2); model sizes of 0.5B to 1.5B with
+LoRA and SQLite benchmarks in English; the number of warm-up rounds as
+a setting, and the smaller gain of the 0.5B model (stated in Section
+5.4 as a result, D1).
 
 ## 6. Term sheet and notation
 

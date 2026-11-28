@@ -51,6 +51,11 @@ def same(values: list, what: str):
     return values[0]
 
 
+# the optimizer line of the SFT trainer (learning rate and weight decay from the training config)
+SFT_OPTIMIZER = (r"torch\.optim\.AdamW\(\(p for p in model\.parameters\(\) if p\.requires_grad\), lr=config\.lr,"
+                 r"\s+weight_decay=config\.weight_decay\)")
+
+
 def in_code(rel: str, pattern: str, what: str) -> str:
     m = re.search(pattern, (CODE / rel).read_text(encoding="utf-8"))
     if not m:
@@ -92,8 +97,7 @@ def collect() -> list[tuple]:
     c = {k_: same([x[k_] for x in cfgs], f"FedAvg {k_}") for k_ in ("n_clients", "local_epochs", "clients_per_round", "arm")}
     if t["truncation_policy"] != "error" or c["clients_per_round"] != 0 or t["prox_mu"] != 0.0:
         raise SystemExit("STOP: the SFT rounds truncate, sample clients or use a proximal term; the table would be wrong")
-    in_code("fedls_sql/training/lora_trainer.py", r"torch\.optim\.AdamW\(\(p for p in model\.parameters\(\) if p\.requires_grad\), lr=config\.lr\)",
-            "the SFT optimizer")
+    in_code("fedls_sql/training/lora_trainer.py", SFT_OPTIMIZER, "the SFT optimizer")
     in_code("fedls_sql/training/lora_trainer.py", r"get_cosine_schedule_with_warmup\(opt, warmup, opt_updates\)", "the SFT schedule")
 
     # ---- preference rounds
@@ -228,9 +232,13 @@ def collect() -> list[tuple]:
     add(g, "Local epochs", "sft.epochs", c["local_epochs"], source=src)
     add(g, "Learning rate", "sft.lr", sci(t["lr"]), f"{t['lr']:g}", src)
     add(g, "Examples per update", "sft.batch", t["batch_size"] * t["grad_accum"], source=src)
-    in_code("fedls_sql/training/lora_trainer.py", r"torch\.optim\.AdamW\(\(p for p in model\.parameters\(\) if p\.requires_grad\), lr=config\.lr\)",
-            "the SFT optimizer (no weight decay given, so the 0.01 of PyTorch)")
-    add(g, "Optimizer", "sft.optimizer", "AdamW, weight decay 0.01, cosine schedule", source="fedls_sql/training/lora_trainer.py")
+    # the SFT rounds give no weight decay, so they train at the default of the code
+    in_code("fedls_sql/training/lora_trainer.py", SFT_OPTIMIZER, "the SFT optimizer")
+    in_code("fedls_sql/training/lora_trainer.py", r"weight_decay: float = DEFAULT_WEIGHT_DECAY", "the default weight decay of SFT")
+    sft_wd = float(in_code("fedls_sql/training/checkpointing.py", r"DEFAULT_WEIGHT_DECAY = ([0-9.e-]+)", "the default weight decay"))
+    if any(x.get("weight_decay", sft_wd) != sft_wd for x in trains):
+        raise SystemExit("STOP: an SFT round of the main rows sets its own weight decay; the table would be wrong")
+    add(g, "Optimizer", "sft.optimizer", f"AdamW, weight decay {sft_wd:g}, cosine schedule", source="fedls_sql/training/lora_trainer.py")
     add(g, "Learning-rate warm-up", "sft.warmup", f"{t['warmup_ratio']:g} of the updates", source=src)
     add(g, "LoRA dropout", "sft.dropout", f"{t['lora_dropout']:g}", source=src)
     add(g, "Averaging weights", "sft.weights", "question count", source="FedAvg SFT round records (aggregation)")

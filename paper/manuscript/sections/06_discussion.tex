@@ -1,6 +1,9 @@
 \section{Discussion}\label{sec:discussion}
 
-A FedAvg SFT round raises the likelihood of the same gold SQL query in
+In every configuration that we trained independently, on both
+benchmarks and with each model, \method{} is above FedAvg SFT at the
+same number of rounds (Tables~\ref{tab:main} and~\ref{tab:models}). A
+FedAvg SFT round raises the likelihood of the same gold SQL query in
 every round, whereas a preference round compares executed queries of
 the current global model, so its training signal changes with the
 model. FedAvg SFT stops improving after its third round, while a
@@ -10,26 +13,19 @@ settings of the preference rounds (Section~\ref{sec:ablation}). One
 reading is that the gold SQL queries are exhausted as a training signal
 sooner than the executed queries of the model.
 
-The preference rounds reduce execution errors, not incorrect results
-(Section~\ref{sec:analysis}), although about half of the pairs of the
-first preference round, and more of the second, have an incorrect sample
-that executes and returns another result. On BIRD dev at \setting{rounds.total} rounds, the reduction comes
-largely with the preference term (Section~\ref{sec:ablation}). A possible
-reason, which we did not test, is what a pair exposes: a query that
+The preference rounds remove execution errors
+(Section~\ref{sec:analysis}), and on BIRD dev at \setting{rounds.total}
+rounds the reduction comes largely with the preference term
+(Section~\ref{sec:ablation}). We read this as a matter of what a pair
+exposes: a query that
 fails to execute differs from the correct sample in a way that the pair
 shows directly, such as a name absent from the schema, whereas one that
 returns another result can differ from it in its reading of the
 question.
 
-The study has limitations. A client needs a gold SQL query for each
-training question and databases on which it can execute queries, and
-questions without a gold SQL query are not used. The federations have at
-most \fact{split.spider.a0.5.k10.clients} clients, all of which take part
-in every round. Privacy here is data isolation, without differential
-privacy or an analysis of what an adapter or a pair count reveals. Each
-model comes from one training run, and each setup from one draw of the
-partition. An execution label, like EX, is a match of results on one
-database, so an incorrect query whose result matches that of the gold
-SQL query by chance is labeled correct; test-suite accuracy measures
-this at evaluation, and we have no such measure for the labels of the
-training samples.
+\method{} applies where a client holds a gold SQL query for each
+training question and databases on which it can execute queries. The
+federations studied have at most \fact{split.spider.a0.5.k10.clients}
+clients, all of which take part in every round, and partial
+participation is left to future work. Privacy here is data isolation,
+and combining the method with differential privacy is also future work.

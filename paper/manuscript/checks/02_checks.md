@@ -30,19 +30,19 @@ Every cell of Table 1 and every sentence about a cited paper has its row and loc
 | SPFT-SQL | "verified synthesis plus self-play" | execution checks the model's output against the synthesized SQL; the paper does not say the synthesized SQL is executed before use; the self-play loss is of the SPIN kind, not DPO |
 | KGRFL | "an RL-based fusion weights client models" | so the abstract; it does not state that the BART parser is the model trained federatedly |
 
-The reference models of the three DPO papers of Table 1 are of three kinds: renewed each iteration, fixed, not stated.
+Table 1 lists federated methods only (owner, 2026-11-28): Zhang et al., FedDPO (published), PubSwap, Fed-GRPO and the method, in Section 2.3. Its "Reference model" column is the reference model of the preference objective: "Fixed for all rounds" for FedDPO (stated outright by OpenFedLLM), "Global model of the round" for the method, "Not applicable" for the rows without a preference objective. Liu et al., ExCoT and CodeLutra are described in the text of Section 2.2 and are not rows; of their reference models, CodeLutra's is renewed each iteration, Liu et al.'s is the SFT model, and ExCoT does not state its own.
 
 The NLL term of CodeLutra: its Eq. (3) writes the log-likelihood of the whole response, and the paper does not say whether it is normalized by length; its code was not checked. The NLL term of Pang et al. is length-normalized, as ours is. A sentence on CodeLutra's term keeps to the formula.
 
 SKT-SQL (`yi2025sktsql`) could not be read (the publisher blocks it; only an abstract of a preprint under another title).
 
-SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, three of which this paper also uses (Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct, Qwen2.5-Coder-1.5B-Instruct). Its inference votes over 64 samples and its SFT uses 916K synthetic rows; our rows are greedy and train on the benchmark training sets.
+SLM-SQL (`sheng2025slmsql`, arXiv 2507.22478v1) uses "small language models (SLMs) ranging from 0.5B to 1.5B parameters" for five models, three of which this paper also uses (Qwen2.5-Coder-0.5B-Instruct, DeepSeek-Coder-1.3B-Instruct, Qwen2.5-Coder-1.5B-Instruct). Its inference votes over 64 samples and its SFT uses 916K synthetic rows. Section 2.1 says what this line of work relies on (synthetic data at scale, reinforcement learning, voting) and that it trains on data held in one place; it sets no level of SLM-SQL (67.08% on BIRD dev) against ours (owner, 2026-11-28).
 
 ## 3. Claims: strength, scope, what waits
 
 - "To our knowledge" in Section 2.3: the approved scope is federated training of Text-to-SQL models (`CLAIMS.md`, rule 7). A wider wording, "no earlier method combines federated training with execution labels and renewed pairs of the model's own outputs", which the fact rows support for the works read (FedDPO: pairs from a dataset; Wu et al.: pairs generated once at the server; PubSwap, Fed-GRPO: a reward, no pairs), but our search covered federated fine-tuning of language models, not all federated work on code. Open with the owner (`REVIEW_NOTES.md`, A33).
 - Liu et al.: their result may be reported with their decoding and model sizes, not explained (owner, A20).
-- The comparison with CodeLutra is made in this section and nowhere else (owner, 2026-11-27): one paragraph in 2.2 and its row of Table 1, at full size: the same loop of sampling, execution labels and DPO with an NLL term, run centrally by one holder of the data; here the labels are computed at each client on databases the server never sees, a federated round is the re-sampling step, and the round's global model is the reference model of every client. What CodeLutra does with questions that yield no pair is not stated in its paper and is not written.
+- The comparison with CodeLutra is made in this section and nowhere else (owner, 2026-11-27): one paragraph in 2.2, at full size (it is no longer a row of Table 1 (owner, 2026-11-28)): the same loop of sampling, execution labels and DPO with an NLL term, run centrally by one holder of the data; here the labels are computed at each client on databases the server never sees, a federated round is the re-sampling step, and the round's global model is the reference model of every client. What CodeLutra does with questions that yield no pair is not stated in its paper and is not written.
 
 ## 4. What the section carries for other sections
 

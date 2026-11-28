@@ -83,8 +83,7 @@ FedAvg SFT on BIRD dev and \gap{spider}{fedavg}{4}{k2}{4} points on Spider
 test, and further rounds of FedAvg SFT do not close the gap. On BIRD dev,
 it is also above FedDPO, run on the first execution-labeled pairs of
 \method, under EX and test-suite accuracy (TS). Against FedAvg SFT,
-execution errors fall by about half on both benchmarks, while incorrect
-results do not fall. With the settings of the preference rounds held
+execution errors fall by about half on both benchmarks. With the settings of the preference rounds held
 equal, \method{} is also above the variant trained without the
 preference term on BIRD dev. Each difference in EX or TS named here is
 significant under the test of Section~\ref{sec:stat-test}.
@@ -95,9 +94,11 @@ Our contributions are as follows:
 execution-derived supervision that federated fine-tuning leaves unused
 and introduce, to our knowledge, the first federated training method for
 Text-to-SQL that uses it.
-\item We design \method, in which each preference round renews the
-pairs and the reference model together, and only the LoRA adapter and
-its integer weight leave a client.
+\item We design \method{} for the federated setting: its preference
+rounds start from FedAvg SFT warm-up rounds, each communication round is
+one step of sampling, labeling and training for all clients, with the
+global model of the round as their common reference model, and only the
+LoRA adapter and its integer weight leave a client.
 \item We show its gain over FedAvg SFT and FedDPO at the same number of
 rounds, analyze where the gain comes from and what each component adds,
 and measure what a client pays in computation. The code, the client

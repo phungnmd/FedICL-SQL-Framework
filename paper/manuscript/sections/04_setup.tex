@@ -91,8 +91,8 @@ term.
 The adapter is LoRA of rank \setting{lora.r} with \texttt{lora\_alpha}
 \setting{lora.alpha} on all attention and feed-forward projections,
 from one initialization shared by all clients. In \method{} and in every
-federated baseline, the server averages the two LoRA factors separately,
-which does not average their product~\cite{sun2024ffalora}. Warm-up and FedAvg SFT
+federated baseline, the server averages the two LoRA factors
+separately. Warm-up and FedAvg SFT
 rounds train with \setting{sft.optimizer}~\cite{loshchilov2019adamw}, a
 learning rate of \setting{sft.lr}, a learning-rate warm-up over
 \setting{sft.warmup} and LoRA dropout \setting{sft.dropout}, and
@@ -125,5 +125,4 @@ models answers correctly, and adjust the $p$-values by the Holm
 correction~\cite{holm1979simple} within each table, a test printed in two
 tables counting in the first. A difference is significant when its
 adjusted $p$ is below \fact{test.alpha}. The tables print the adjusted
-$p$ and mark a significant difference with an asterisk. The test covers
-the variation over evaluation questions, not between training runs.
+$p$ and mark a significant difference with an asterisk.

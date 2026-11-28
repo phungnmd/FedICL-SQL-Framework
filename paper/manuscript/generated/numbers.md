@@ -741,6 +741,20 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 
 | Macro | Value | Source |
 |---|---|---|
+| `\fact{clients.bird.correct_gain_max}` | 22.9 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.correct_gain_min}` | 18.0 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.error_fall_max}` | 29.4 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.error_fall_min}` | 23.5 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.n}` | 5 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.rft.correct_gain_max}` | 9.9 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.rft.correct_gain_min}` | 8.8 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.rft.error_fall_max}` | 12.2 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.bird.rft.error_fall_min}` | 9.7 | client pairs_stats of fedpref_bird_sftr2_p2_ddl_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.correct_gain_max}` | 13.8 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.correct_gain_min}` | 10.5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.error_fall_max}` | 12.3 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.error_fall_min}` | 7.5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
+| `\fact{clients.spider.n}` | 5 | client pairs_stats of fedpref_sftr2_ddlrows_alpha01_s0, dpo/round_1, dpo/round_2, rft/round_2 |
 | `\fact{cost.bird.adapter_mb}` | 73.9 | round record, communication_bytes |
 | `\fact{cost.bird.fedavg4.gpu_total}` | 692 | sum of the GPU minutes of Table 8 |
 | `\fact{cost.bird.k2.gpu_total}` | 879 | sum of the GPU minutes of Table 8 |
