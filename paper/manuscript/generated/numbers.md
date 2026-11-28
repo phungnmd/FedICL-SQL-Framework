@@ -961,23 +961,67 @@ Written by `tools/paper_numbers.py`. Each macro with its value and the result co
 | `\fact{split.spider.iid.k5.q_min}` | 1298 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.iid.k5.questions}` | 8659 | split files (clients.csv, meta.json) |
 | `\fact{split.spider.iid.k5.seed}` | 42 | split files (clients.csv, meta.json) |
+| `\fact{suite.bird.counted}` | 1452 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
+| `\fact{suite.bird.databases}` | 11 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
+| `\fact{suite.bird.none}` | 82 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
+| `\fact{suite.calib.agreement}` | 99.54 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.files}` | 29 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.official_accepted}` | 18710 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.official_rejected}` | 2267 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.ours_only}` | 62 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.recall}` | 96.65 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.calib.rows}` | 29986 | audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json |
+| `\fact{suite.variants}` | 100 | audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json |
 | `\fact{test.alpha}` | 0.05 | tools/paper_numbers.py, ALPHA: the level of the star in the tables |
 | `\fact{train.bird.gold_error}` | 350 | round record, pair_stats |
 | `\fact{train.bird.gold_timeout.pref1}` | 87 | round record, pair_stats |
 | `\fact{train.bird.gold_timeout.pref2}` | 92 | round record, pair_stats |
 | `\fact{train.bird.no_rows}` | 0 | round record, pair_stats |
+| `\fact{train.bird.samples.pref1}` | 94280 | round record, pair_stats |
+| `\fact{train.bird.samples.pref2}` | 94280 | round record, pair_stats |
+| `\fact{train.bird.truncated.pref1}` | 37 | round record, pair_stats |
+| `\fact{train.bird.truncated.pref2}` | 112 | round record, pair_stats |
 | `\fact{train.bird.with_rows}` | 9428 | round record, pair_stats |
 | `\fact{train.spider.gold_error}` | 3 | round record, pair_stats |
 | `\fact{train.spider.gold_timeout.pref1}` | 0 | round record, pair_stats |
 | `\fact{train.spider.gold_timeout.pref2}` | 0 | round record, pair_stats |
 | `\fact{train.spider.no_rows}` | 1759 | round record, pair_stats |
 | `\fact{train.spider.no_rows.databases}` | 7 | audits/protocol_v2/db_fuzz_probe/empty_vs_suite_gold/summary.json |
+| `\fact{train.spider.samples.pref1}` | 86590 | round record, pair_stats |
+| `\fact{train.spider.samples.pref2}` | 86590 | round record, pair_stats |
+| `\fact{train.spider.truncated.pref1}` | 18 | round record, pair_stats |
+| `\fact{train.spider.truncated.pref2}` | 38 | round record, pair_stats |
 | `\fact{train.spider.with_rows}` | 6900 | round record, pair_stats |
+| `\fact{warmup.bird.k0.all_correct}` | 156 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
 | `\fact{warmup.bird.k0.no_correct}` | 4035 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k0.no_label}` | 380 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k0.paired}` | 4857 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k0.samples}` | 94280 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k0.truncated}` | 8947 | round record of fedpref_bird_base_p2_ddl_alpha01_ev3_s0, pair_stats |
+| `\fact{warmup.bird.k2.all_correct}` | 416 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
 | `\fact{warmup.bird.k2.no_correct}` | 2698 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.bird.k2.no_label}` | 437 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.bird.k2.paired}` | 5877 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.bird.k2.samples}` | 94280 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.bird.k2.truncated}` | 37 | round record of fedpref_bird_sftr2_p2_ddl_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.all_correct}` | 1427 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
 | `\fact{warmup.spider.k0.no_correct}` | 1016 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.no_label}` | 3 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.paired}` | 4454 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.samples}` | 86590 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k0.truncated}` | 1663 | round record of fedpref_base_p2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.all_correct}` | 2327 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
 | `\fact{warmup.spider.k2.no_correct}` | 557 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.no_label}` | 3 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.paired}` | 4013 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.samples}` | 86590 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k2.truncated}` | 18 | round record of fedpref_sftr2_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.all_correct}` | 2817 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
 | `\fact{warmup.spider.k3.no_correct}` | 470 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.no_label}` | 3 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.paired}` | 3610 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.samples}` | 86590 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
+| `\fact{warmup.spider.k3.truncated}` | 21 | round record of fedpref_sft_ddlrows_alpha01_s0, pair_stats |
 | `\fact{weights.bird.equal.max_shift}` | 13.3 | records of reagg_bird_sftr2_p2_ddl_alpha01_s0, normalised_weights |
 | `\fact{weights.bird.questions.max_shift}` | 2.1 | records of reagg_bird_sftr2_p2_ddl_alpha01_s0, normalised_weights |
 | `\fact{weights.spider.equal.max_shift}` | 9.4 | records of reagg_sftr2_ddlrows_alpha01_s0, normalised_weights |

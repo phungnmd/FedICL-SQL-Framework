@@ -162,8 +162,10 @@ settings from the committed configs. When an evaluation is committed
 later: one line in `ARMS`, `make numbers`, `make`; the sentences that
 use that row are read again and its `\expect` guesses replaced.
 
-State (2026-11-28): Section 3 and Section 1 with the abstract are
-drafted; Sections 2 and 4 to 7 hold a heading and its label; the
+State (2026-11-28): Section 3 is revised and read by the kept reviewer
+(handle `tmp.QhmK21oy`, listed in `~/.cache/cold-session/`); Section 1
+with the abstract is drafted and waits for W3; Section 4 is being
+written; Sections 2 and 5 to 7 hold a heading and its label; the
 appendices and the statements exist.
 
 | Step | What | Waits on |
@@ -174,31 +176,34 @@ appendices and the statements exist.
 | W4 | The whole paper read end to end: repetition, terms, pages (`make inventory` before and after, so that no number and no reference changes); cold read, claim audit, cited-work audit | the owner and the advisor read |
 | W5 | Statements, AI-use statement (section 8), public repository with code, splits and predictions, supplementary file, cover letter, `make submit` | authors, funding and competing interests from the owner |
 
-Open points on the drafted sections:
+Open points on the drafted sections (W3 and W4):
 
-- Section 3, opening paragraph: it says what the method does that is
-  new; each contrast is made once (FedAvg SFT in 3.1, FedDPO in 3.6 and
-  3.7).
-- Section 3.4: $T_w = 0$ is a valid configuration, said in one
-  sentence.
-- Sections 3.2 and 3.4 use "labeled" and "unlabeled" before 3.5
-  defines them, and 3.2 has two classes of sample where 3.5 has three;
-  the pointer of 3.4 to the sampling protocol belongs to 3.5.
-- Sections 3.5 and 3.6: the mechanics of the time limit, the three
-  cases without a label and the replacement rule belong to Appendix B.
-- Fig. 2: a caption of what the figure does not say; the two terms of
-  the loss are named at Eq. (4).
 - Section 1, results paragraph: four findings, each with at most one
   pair of numbers, the tests left to Section 5. The gain at equal
   rounds on both sets; further FedAvg SFT rounds do not close it (the
-  BIRD peak, not the comparison with round 5 on Spider); above FedDPO
-  on BIRD dev; execution errors halve while incorrect results rise, not
-  significantly, with the direction said.
+  BIRD peak, not the comparison with round 5 on Spider, which reads as
+  a chosen point); above FedDPO on BIRD dev, the baseline named with
+  its pairs; execution errors halve while incorrect results rise, not
+  significantly, with the direction said and the two models in one
+  order.
 - Section 1: the sentence of the key observation as two sentences;
   contribution 3 with at most three findings and no counts in
-  brackets; "the FedAvg SFT gap" is a phrase of the lab.
+  brackets; "the FedAvg SFT gap" is a phrase of the lab; contribution 1
+  points to Section 3.2, which holds no argument of novelty; "four
+  components across two kinds of round" against "four components and
+  an aggregation rule" in Section 3.3.
+- Sections 1 and 3 say the same thing twice: what FedAvg SFT lacks
+  (Introduction and the end of 3.1), the supervision of 3.2, the
+  default values. One place each, decided when Section 1 is revised.
+- "Evolving errors" and "each new global model" describe a process
+  that the default configuration runs once (two preference rounds):
+  the wording is set against Section 5.3 and Section 6.
 - Abstract: client compute named beside "unchanged communication
   cost".
+- Fig. 1: the caption does not say how pairs are built, and panel A
+  says "Database not queried" while the Spider prompt holds rows read
+  from the database.
+- Fig. 2: `REVIEW_NOTES.md`, A41.
 
 Still to build in the tools: the time limits of the labeling step as
 settings for Appendix B (constants of `fedls_sql/eval/sql_exec.py`),

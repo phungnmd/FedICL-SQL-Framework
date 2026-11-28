@@ -595,6 +595,8 @@ def train_facts() -> dict:
             late = sum(s.get("questions_gold_timeout", 0) for s in stats)
             per_round.append((sum(s["questions_empty_database"] for s in stats),
                               sum(s["questions_gold_error"] for s in stats) - late, late))
+            facts[f"train.{ds}.truncated.pref{r}"] = (sum(s["samples_truncated"] for s in stats), src)
+            facts[f"train.{ds}.samples.pref{r}"] = (sum(s["samples"] for s in stats), src)
         if len({x[:2] for x in per_round}) != 1:
             raise SystemExit(f"{ds}: the questions without rows or with a failing gold SQL query differ between rounds: {per_round}")
         facts[f"train.{ds}.no_rows"] = (per_round[0][0], src)
@@ -608,6 +610,35 @@ def train_facts() -> dict:
         raise SystemExit("Spider: the questions on databases without rows differ between the round records and " + NO_ROWS_AUDIT)
     facts["train.spider.no_rows.databases"] = (len(audit), NO_ROWS_AUDIT)
     return facts
+
+
+SUITE_BIRD = "audits/protocol_v2/test_suite/qwen15b_bird_dev/summary.json"
+SUITE_CALIBRATION = "audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0/summary.json"
+
+
+def suite_facts() -> dict:
+    """The generated test suite of BIRD dev (CLAIMS.md, C4): its size, the questions with a
+    variant that counts, and its agreement with the official suite of Spider dev at the same
+    number of variants, over the committed predictions on Spider dev."""
+    bird = json.loads((CODE / SUITE_BIRD).read_text())
+    cal = json.loads((CODE / SUITE_CALIBRATION).read_text())
+    n = bird["suite"]["n_variants"]
+    if cal["chosen_n_by_rule"] != n:
+        raise SystemExit(f"the suite of BIRD dev has {n} variants, the calibration on Spider dev chose {cal['chosen_n_by_rule']}")
+    at_n, cover = cal["curve"][f"n{n}"], bird["coverage"]["overall"]
+    return {
+        "suite.variants": (n, SUITE_BIRD),
+        "suite.bird.databases": (len(bird["suite"]["databases"]), SUITE_BIRD),
+        "suite.bird.counted": (cover["one_or_more"], SUITE_BIRD),
+        "suite.bird.none": (cover["none"], SUITE_BIRD),
+        "suite.calib.files": (len(cal["sources"]), SUITE_CALIBRATION),
+        "suite.calib.rows": (at_n["rows"], SUITE_CALIBRATION),
+        "suite.calib.agreement": (f2(at_n["agreement"]), SUITE_CALIBRATION),
+        "suite.calib.official_rejected": (at_n["lucky"], SUITE_CALIBRATION),
+        "suite.calib.recall": (f2(at_n["recall"]), SUITE_CALIBRATION),
+        "suite.calib.ours_only": (at_n["false_rejections"], SUITE_CALIBRATION),
+        "suite.calib.official_accepted": (at_n["official_accepted"], SUITE_CALIBRATION),
+    }
 
 
 def pair_facts() -> dict:
@@ -669,8 +700,20 @@ def warmup_facts() -> dict:
                 continue
             stats = [c["pair_stats"] for c in json.loads(path.read_text())["clients"].values()]
             no_rows = sum(s.get("questions_empty_database_by_kind", {}).get("all_wrong", 0) for s in stats)
-            facts[f"warmup.{ds}.k{w}.no_correct"] = (sum(s["questions_all_wrong"] for s in stats) - no_rows,
-                                                     f"round record of {run}, pair_stats")
+            src = f"round record of {run}, pair_stats"
+            empty = {k: sum(s.get("questions_empty_database_by_kind", {}).get(k, 0) for s in stats)
+                     for k in ("mixed", "all_correct", "gold_error")}
+            n = {"no_correct": sum(s["questions_all_wrong"] for s in stats) - no_rows,
+                 "paired": sum(s["questions_mixed"] for s in stats) - empty["mixed"],
+                 "all_correct": sum(s["questions_all_correct"] for s in stats) - empty["all_correct"],
+                 "no_label": sum(s["questions_gold_error"] for s in stats) - empty["gold_error"]}
+            with_rows = sum(s["questions"] - s["questions_empty_database"] for s in stats)
+            if sum(n.values()) != with_rows:
+                raise SystemExit(f"{run}: the kinds of question {n} do not add up to the {with_rows} questions on databases with rows")
+            for k, v in n.items():
+                facts[f"warmup.{ds}.k{w}.{k}"] = (v, src)
+            facts[f"warmup.{ds}.k{w}.truncated"] = (sum(s["samples_truncated"] for s in stats), src)
+            facts[f"warmup.{ds}.k{w}.samples"] = (sum(s["samples"] for s in stats), src)
     return facts
 
 
@@ -1088,7 +1131,7 @@ def main() -> None:
     for name, text in tables.items():
         (GEN / f"{name}.tex").write_text("%% Written by tools/paper_numbers.py. Do not edit.\n" + d.resolve(text),
                                          encoding="utf-8")
-    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts()})
+    tex, md = macros(d, {**all_facts(d, splits, cost), **form, **moved_facts(d), **train_facts(), **warmup_facts(), **weight_facts(), **pair_facts(), **suite_facts()})
     (GEN / "numbers.tex").write_text(tex, encoding="utf-8")
     (GEN / "numbers.md").write_text(md, encoding="utf-8")
     (GEN / "missing.txt").write_text(missing_text(d), encoding="utf-8")

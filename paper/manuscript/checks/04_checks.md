@@ -9,6 +9,11 @@ on the wording of a draft are not kept here.
 - Questions that yield no pair. Two classes yield none in any round: questions on databases without rows, and questions whose gold SQL query fails or exceeds the time limit (Section 4.2 prints the two BIRD counts of gold SQL queries over the time limit, 87 and 92). Questions whose samples are all correct or all incorrect yield none in that round only; the two classes are not all the questions without pairs.
 - Spider train, 8,659 questions: 1,759 on databases without rows, 3 with a failing gold SQL query; of the 6,900 on databases with rows, after 2 warm-up rounds 4,013 yield pairs, 2,327 have correct samples only and 557 have no correct sample.
 - The Spider test-suite parser: the share of queries it cannot read was measured on BIRD dev (85%). BIRD train was not measured (its databases are not on the Mac); a count of queries with syntax outside the Spider grammar gives 2,319 of 9,428, a lower bound. "Most queries of BIRD train" is not supported; "many queries of BIRD" is. (open, A39)
+- The generated suite of BIRD dev and its agreement with the official suite on Spider dev are macros (`\fact{suite.*}`, from the two committed summaries): 100 variants of 11 databases; 1,452 of 1,534 questions with a variant that counts; on Spider dev 99.54% agreement over 29,986 predictions (29 files), 96.65% of the 2,267 official rejections rejected, 62 predictions rejected by ours only.
+- SQL extraction, the same for evaluation and for the labels (`fedls_sql/prompts/builder.py`, `extract_sql`): cut at the first semicolon, body of a fenced block when there is one, text before the first SELECT dropped, a WITH clause kept; an output without SELECT is executed as it is.
+- The server averages the two LoRA factors separately (`aggregate_round`, factor-wise FedAvg), not their product.
+- Training details a reader needs to repeat the runs, for Section 4.5 or Appendix B: weights in bfloat16 on the GPU (`fedls_sql/models/student.py`); an update is the mean of 16 examples (SFT) or 16 pairs (preference rounds) through gradient accumulation, and the token mean of the NLL is taken per sequence (`lora_trainer.py`, `dpo.py`); the log-likelihoods of the reference model are computed by the training code on the same model class, not by the sampling engine, and LoRA dropout is 0 in a preference round, so $m_\theta = 0$ holds at the first update.
+- The 350 BIRD training questions whose gold SQL query fails are the same in every run; the gold SQL queries over the time limit differ by run (30 under the pretrained model, 87 and 92 in the two preference rounds of the main row), since the limit is elapsed time.
 - IID setup: 146 databases over 5 clients, 29 to 30 each (Table 2): "an equal share", not "the same number".
 - The seed determines the order of the training examples, the sampling, the initialization of the adapter and the pairing; Appendix B lists the four.
 - Every federated row has T = 4. FedAvg SFT has a fifth round on Spider only, used in the comparison at more GPU time for the baseline; Section 4.4 says so, not Section 5.1.
@@ -31,7 +36,8 @@ on the wording of a draft are not kept here.
 
 ## 4. What the section carries for other sections
 
-- The four research questions stand in the opening paragraph (A7).
+- No research questions (`OUTLINE.md`); the section opens on its subject.
+- Section 3.5 points to Section 4.1 for how the time limit of each benchmark applies to a sample and the gold SQL query, and Section 3.6 to Section 4.2 for the questions on databases without rows.
 - "IID" and "non-IID" in full at first use, in Section 4.2.
 - The statistical protocol (exact McNemar test, Holm correction, what "significant" means) is defined here once; Sections 5 and 6 rely on it.
 

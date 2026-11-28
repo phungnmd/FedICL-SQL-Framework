@@ -1,11 +1,10 @@
 \section{Method}\label{sec:method}
 
 In \method, the model learns from the execution of its own sampled queries
-on the client databases. In each preference round, a client samples SQL
-queries from the current global model, executes them on its databases,
-labels them by comparison with the execution result of the gold SQL query
-and trains on pairs of a correct and an incorrect sample of the same
-question.
+on the client databases. Section~\ref{sec:formulation} states the problem
+and FedAvg SFT, Section~\ref{sec:supervision} the supervision that
+execution provides, and Sections~\ref{sec:overview}
+to~\ref{sec:objective} the framework.
 
 \subsection{Problem Formulation}\label{sec:formulation}
 
@@ -44,10 +43,12 @@ adapters with weights proportional to the numbers of questions:
   w_k = \frac{n_k}{\sum_{j=1}^{K} n_j}.
   \label{eq:aggregation}
 \end{equation}
+The two LoRA factors of each adapted matrix are averaged separately.
+
 In Eq.~\eqref{eq:sft}, the gold SQL query is the only target and the
-database enters only as text of the prompt. During local
-training the model generates no query, so no loss term is computed on a
-query of its own. Neither the gold SQL query nor a query of the model is
+database enters only as text of the prompt. During local training the
+model generates no query, so no loss term is computed on a query of its
+own. Neither the gold SQL query nor a query of the model is
 executed, no execution result enters the loss, and nothing identifies
 which of the model's queries are incorrect.
 
@@ -64,12 +65,13 @@ labels provide as execution-derived supervision. It requires both $d$
 and $y^\star$ and can therefore be computed only at the client.
 
 On BIRD, this signal is available for most training questions. In the
-BIRD setup of Section~\ref{sec:fed-setups}, \setting{pref.samples}
-samples per question from the global model after
-\setting{rounds.warmup} rounds of FedAvg SFT (Section~\ref{sec:labeling})
-include both a correct and an incorrect sample for
-\fact{cost.bird.pref1.paired_pct}\% of all
-\fact{cost.bird.pref1.questions} training questions of the clients.
+BIRD setup of Section~\ref{sec:fed-setups}, after
+\setting{rounds.warmup} rounds of FedAvg SFT, the
+\setting{pref.samples} samples drawn per question from the global model
+as in Section~\ref{sec:labeling} include both a correct and an incorrect
+sample for \fact{warmup.bird.k2.paired} of the
+\fact{cost.bird.pref1.questions} training questions of the clients
+(\fact{cost.bird.pref1.paired_pct}\%).
 
 \subsection{Framework Overview}\label{sec:overview}
 
@@ -108,8 +110,9 @@ current global model as reference model. By default,
 $T = {}$\setting{rounds.total}, $T_w = {}$\setting{rounds.warmup},
 $N = {}$\setting{pref.samples} and $M = {}$\setting{pref.pairs}, with
 \setting{sft.epochs} local epoch per warm-up round and
-\setting{pref.epochs} per preference round. Table~\ref{tab:settings} in
-Appendix~\ref{app:settings} lists the remaining settings, and
+\setting{pref.epochs} per preference round.
+Tables~\ref{tab:settings} and~\ref{tab:settings-2} in
+Appendix~\ref{app:settings} list the remaining settings, and
 Section~\ref{sec:main} reports the resulting gain over FedAvg SFT
 (Table~\ref{tab:main}).
 
@@ -155,26 +158,35 @@ Section~\ref{sec:main} reports the resulting gain over FedAvg SFT
 \subsection{Supervised Warm-Up}\label{sec:warmup}
 
 A preference pair needs a correct sample, and a question whose labeled
-samples are all incorrect yields none. Measured as in
-Section~\ref{sec:supervision}, this is the case for
-\fact{warmup.bird.k0.no_correct} of the
-\fact{cost.bird.pref1.questions} BIRD training questions under the
-pretrained model. We reduce their number by supervised warm-up: in each
-of the first $T_w$ rounds, client $k$ minimizes Eq.~\eqref{eq:sft} over
-$\mathcal{D}_k$ and the server aggregates by
-Eq.~\eqref{eq:aggregation}, as in FedAvg SFT. After
-\setting{rounds.warmup} warm-up rounds, the labeled samples are all
-incorrect for \fact{warmup.bird.k2.no_correct} questions. Neither count
-includes the questions whose gold SQL query fails to execute or exceeds
-the time limit, as their samples receive no label
-(Section~\ref{sec:labeling}).
+samples are all incorrect yields none. With the same sampling under the
+pretrained model, this is the case for \fact{warmup.bird.k0.no_correct} of the
+\fact{cost.bird.pref1.questions} BIRD training questions, and
+\fact{warmup.bird.k0.paired} questions yield pairs. We reduce the number
+of questions without a correct sample by supervised warm-up: the first
+$T_w$ rounds are rounds of FedAvg SFT (Eqs.~\eqref{eq:sft}
+and~\eqref{eq:aggregation}). After \setting{rounds.warmup} warm-up
+rounds, \fact{warmup.bird.k2.no_correct} questions have only incorrect
+samples and \fact{warmup.bird.k2.paired} yield pairs. The remaining
+questions have only correct samples (\fact{warmup.bird.k0.all_correct}
+before and \fact{warmup.bird.k2.all_correct} after warm-up) or no label
+(\fact{warmup.bird.k0.no_label} and \fact{warmup.bird.k2.no_label}).
+Of the latter, \fact{train.bird.gold_error} have a gold SQL query that
+fails to execute. For the others it exceeds the time limit, which is
+measured in elapsed time and therefore differs between runs
+(Section~\ref{sec:labeling}). On Spider train, where the pretrained
+model is more accurate, warm-up lowers the number of questions without
+a correct sample from \fact{warmup.spider.k0.no_correct} to
+\fact{warmup.spider.k2.no_correct} and also the number that yield
+pairs, from \fact{warmup.spider.k0.paired} to
+\fact{warmup.spider.k2.paired}, since more questions have only correct
+samples.
 
 Warm-up is a setting of the framework, not a precondition of the
-preference rounds. The adapter $\theta^{0}$
-has the standard LoRA initialization, under which $\pi_{\theta^{0}}$ is
-the pretrained model. With $T_w = 0$, the first round of
-Algorithm~\ref{alg:method} therefore samples from the pretrained model,
-which already yields preference pairs, and uses it as reference model.
+preference rounds. The adapter $\theta^{0}$ has the standard LoRA
+initialization, under which $\pi_{\theta^{0}}$ is the pretrained model.
+With $T_w = 0$, the first round of Algorithm~\ref{alg:method} therefore
+samples from the pretrained model, which already yields preference
+pairs, and uses it as reference model.
 Section~\ref{sec:ablation} examines the effect of $T_w$ on accuracy.
 
 \subsection{Client-Side Execution Labeling}\label{sec:labeling}
@@ -185,33 +197,35 @@ temperature \setting{pref.t}, without nucleus or top-$k$ truncation and
 with at most \setting{pref.tokens} new tokens per sample. It executes
 each sample $y$ and, once per question, the gold SQL query $y^\star$ on
 $d$, under the time limit of the benchmark's evaluation
-(Section~\ref{sec:setup}). The execution label of $y$ is correct if
+(Section~\ref{sec:datasets}). The execution label of $y$ is correct if
 $\mathrm{exec}(y, d) = \mathrm{exec}(y^\star, d)$ under the comparison of
 the evaluation metric, and incorrect otherwise. A sample that fails to
 execute, reaches the time limit while it runs or contains no query is
 therefore incorrect.
 
 A sample has no label when its result is never compared with the gold
-result. This is the case when the sample is cut at the token limit and
-not executed, when the time limit is reached after
-the sample has completed but before the comparison
-(Section~\ref{sec:setup}), and when the gold SQL query fails to execute
-or exceeds the time limit, which leaves the whole question without
-labels.
+result. A sample cut at the token limit is not executed
+(\fact{train.bird.truncated.pref1} of the
+\fact{train.bird.samples.pref1} samples of the first preference round on
+BIRD). A question whose gold SQL query fails to execute or exceeds the
+time limit has no labeled sample. On BIRD, the limit is one budget for a
+sample followed by the gold SQL query, as in the benchmark's evaluation:
+the time of the gold SQL query, measured once, counts toward the budget
+of every sample of the question, and a completed sample whose budget is
+thereby exceeded has no label (Section~\ref{sec:datasets}).
 
 \subsection{On-Policy Preference Pair Construction}\label{sec:pairs}
 
 We construct the preference pairs $\mathcal{P}_k^{t}$ of client $k$ anew
 in every preference round $t$, from that round's labeled samples.
-FedDPO~\cite{ye2024openfedllm} instead trains each client on a fixed
-preference dataset whose responses are not outputs of the model under
-training. A question yields
-pairs when it has at least one correct and one incorrect sample and some
-table of its database contains a row. On a database without rows,
-queries of different meaning return the same result, and a sample that
-executes can match the gold result whether or not it is correct. We
-exclude the questions on such a database, although their samples are
-labeled (Section~\ref{sec:fed-setups}).
+FedDPO~\cite{ye2024openfedllm} instead keeps one preference dataset per
+client for the whole federated process. A question yields pairs when it
+has at least one correct and one incorrect sample and its database
+contains rows. On a database without rows, queries of different meaning
+return the same result, and a sample that executes can match the gold
+result whether or not it is correct. We exclude the questions on such
+databases, which occur in Spider train
+(Section~\ref{sec:fed-setups}).
 
 For each question that yields pairs, we draw $M$ samples uniformly from
 its correct samples and, independently, $M$ from its incorrect samples.
@@ -222,16 +236,14 @@ gives $M$ pairs $(y^{+}, y^{-})$ per question, so that
 $\lvert\mathcal{P}_k^{t}\rvert$ is $M$ times the number of questions of
 client $k$ that yield pairs. We draw a fixed number of pairs per
 question, rather than all combinations of its correct and incorrect
-samples, so that every question that yields pairs carries the same
-weight in the local objective. One local epoch runs over $M$ pairs of
-each such question, and $M$ thereby sets the length of local training
-per question.
+samples, so that every question that yields pairs contributes the same
+number of pairs to a local epoch.
 
-With pairs constructed in every round, one iteration of preference
-optimization, sampling from the current model and training on its
-labeled samples, coincides with one communication round, and the
-incorrect queries of each new global model are identified anew at no
-additional communication. A question without pairs contributes to
+Because the pairs are constructed in every round, one iteration of
+preference optimization (sampling from the current model, then training
+on its labeled samples) coincides with one communication round, and the
+incorrect queries of the current global model are identified in every
+preference round at no additional communication. A question without pairs contributes to
 neither term of the objective in that round, the NLL term included, and
 like every question it is sampled again in the next preference round.
 Section~\ref{sec:ablation} compares this construction with the pairs and
@@ -271,8 +283,8 @@ We reset the reference model to the global model at the start of each
 preference round, whereas FedDPO keeps one reference model for the whole
 federated process. Local training starts from $\theta^{t-1}$, that is,
 from the reference model, so $m_\theta = 0$ for every pair when local
-training begins. The reference model also generated the samples of the round, so
-the log-ratios of Eq.~\eqref{eq:logratio} are taken relative to the
+training begins. The reference model also generated the samples of the
+round, so the log-ratios of Eq.~\eqref{eq:logratio} are taken relative to the
 model that generated both samples of each pair.
 
 The preference term raises the likelihood of the correct sample relative
@@ -287,16 +299,17 @@ Section~\ref{sec:ablation} removes each term in turn
 (Table~\ref{tab:ablation}).
 
 In a preference round, a client uploads its adapter
-(\setting{adapter.mb}) and one integer, its pair count
-$\lvert\mathcal{P}_k^{t}\rvert$, in place of its question count $n_k$ in
-a warm-up round. Communication per round is thus the same in both kinds
-of round. Samples, execution results, execution labels and preference
-pairs remain at the client. We weight the average by the pair counts:
+(\setting{adapter.mb}) and its pair count
+$\lvert\mathcal{P}_k^{t}\rvert$; in a warm-up round, it uploads the
+adapter and $n_k$. Communication per round is thus the same in both
+kinds of round. Samples, execution results, execution labels and
+preference pairs remain at the client. Apart from the adapter, the pair
+count is the only quantity derived from the labels that leaves it. We weight the average
+by the pair counts:
 the server aggregates by Eq.~\eqref{eq:aggregation} with
 $\lvert\mathcal{P}_k^{t}\rvert$ in place of $n_k$, since federated
 averaging weights a client by its number of local training examples,
-which in a preference round are its pairs. A client without pairs
-performs no local training, sends no update and has weight zero.
+which in a preference round are its pairs.
 Section~\ref{sec:ablation} examines the choice of the weights.
 
 A preference round differs in cost from a warm-up round only in client

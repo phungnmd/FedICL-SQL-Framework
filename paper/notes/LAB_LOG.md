@@ -4,6 +4,28 @@ Every run, result and decision since the clean reset of 2026-11-17, newest
 on top. A result reported only in chat is logged as "not committed". The
 log of the earlier setup is at the tag `archive/pre-reset-2026-11-17`.
 
+
+## 2026-11-28: manuscript, Section 3 revised and read twice by the kept reviewer; counts of the warm-up paragraph and of the generated suite are macros
+
+- Writer (one Opus agent, kept): Section 3 revised on nine points of
+  the main session; then Section 4 from the facts given in the message.
+- Kept reviewer (`cold-session`, handle `tmp.QhmK21oy`): first read of
+  Section 3, two major points (the counts of 3.4 did not add up; the
+  time limit of 3.5), then a second read after the edits. Its reports
+  are placed (text, `checks/`, `REVIEW_NOTES.md` A41 and C21,
+  `WRITING_PLAN.md` section 6) and deleted.
+- Generator: `\fact{warmup.<set>.k<n>.paired|all_correct|no_label|truncated}`
+  and `\fact{train.<set>.truncated.pref<r>}` from the round records (the
+  four kinds of question must add up, or the generator stops);
+  `\fact{suite.*}` from the two committed suite summaries.
+- Section 3.4 prints the BIRD accounting (4,857 questions yield pairs
+  under the pretrained model, 5,877 after 2 warm-up rounds) and one
+  sentence on Spider, where warm-up lowers that number (4,454 to
+  4,013). A43 of `REVIEW_NOTES.md` is closed by this.
+- Correction: the calibration of the generated suite on Spider dev has
+  29,986 predictions (29 files of 1,034), not 30,026 as the entry of
+  2026-11-27 and claim C4 said.
+
 ## 2026-11-28: one writing session writes the manuscript; the files of the writer workflow removed (owner)
 
 - Decision (owner): the manuscript is written and revised directly by
@@ -633,7 +655,7 @@ from the committed summaries.
   originals reproduced every committed `ex`.
 - N was set on Spider dev against the official suite, by a rule fixed
   before the run (highest pooled agreement at seed 0 among 10, 20, 50,
-  100): 29 committed prediction files, 30,026 rows, 2,267 of them
+  100): 29 committed prediction files, 29,986 rows (29 x 1,034; this line said 30,026 until 2026-11-28, the committed summary has 29,986), 2,267 of them
   EX-correct and rejected by the official suite
   (`audits/protocol_v2/db_fuzz_probe/suite_calibration_spider_dev_s0`,
   `_s1`, `_s2`).

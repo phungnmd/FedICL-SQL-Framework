@@ -8,7 +8,7 @@ format also adds the default system message of the model.
 \begin{figure}[!ht]
 \lstset{basicstyle=\ttfamily\fontsize{7}{8}\selectfont, columns=fullflexible, keepspaces=true,
   breaklines=true, breakatwhitespace=true, aboveskip=2pt, belowskip=2pt,
-  literate={`}{{\`{}}}1 {'}{{\char13}}1}
+  literate={`}{{\textasciigrave}}1 {'}{{\textquotesingle}}1}
 %% The four listings are written by tools/paper_numbers.py from the committed predictions.
 \noindent{\footnotesize\panel{a} \textbf{BIRD}}
 \lstinputlisting{generated/prompt_bird_schema.txt}
@@ -22,5 +22,5 @@ format also adds the default system message of the model.
 \caption{The prompt of a question of \panel{a} BIRD dev and \panel{b} Spider test.
 The mark \texttt{[...]} stands for the \texttt{CREATE TABLE} statements
 of the other tables of the database, in \panel{b} each followed by its example
-rows}\label{fig:prompt}
+rows.}\label{fig:prompt}
 \end{figure}
