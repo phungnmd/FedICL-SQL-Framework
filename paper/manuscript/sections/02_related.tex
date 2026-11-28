@@ -56,7 +56,10 @@ raises it for all ten under Pass@1, and with synthesized chains of
 thought it raises EX for all ten. ExCoT trains Llama-3.1 70B and
 Qwen-2.5-Coder 32B in one DPO round on pairs of GPT-4o outputs and then
 in on-policy rounds on new samples of the model, labeled again by
-execution.
+execution. Rejection sampling fine-tuning~\cite{yuan2023rft} trains on
+generated outputs without a preference term: it collects the correct
+reasoning paths that supervised models generate for math problems and
+fine-tunes on them.
 
 For a likelihood term on the preferred response beside the DPO term,
 published results range from a large gain to none. Iterative reasoning preference
@@ -102,7 +105,12 @@ also introduces FedDPO, in which every client keeps its own preference
 dataset and trains with the DPO loss alone against a reference model fixed
 throughout the federated process. Its runs train
 Wizard-Vicuna-7B-Uncensored with LoRA of rank 8 on UltraFeedback and
-HH-RLHF, with five clients of which two take part in each round. In
+HH-RLHF, with five clients of which two take part in each round.
+FedPDPO~\cite{zhu2026fedpdpo} and pFedDPO~\cite{jiang2026pfeddpo}
+personalize federated DPO for clients whose preferences differ, the
+first with a shared LoRA adapter and client-specific heads, the second
+with LoRA adapters that stay at the clients, and both train on fixed
+preference datasets. In
 FedBis and
 FedBiscuit~\cite{wu2025fedbiscuit}, clients train binary selectors on
 their preference data, and the server aggregates the selectors, labels

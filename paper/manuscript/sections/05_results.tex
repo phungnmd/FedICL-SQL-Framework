@@ -284,7 +284,8 @@ and incorrect results rise from \nwr{bird}{k0}{1} to
 Without the preference term, a preference round trains with the NLL term
 alone, on the correct sample of each pair. The variant still uses the
 execution labels, since it trains on samples that return the gold
-result, and after \setting{rounds.total} rounds it is
+result: it is a form of rejection sampling
+fine-tuning~\cite{yuan2023rft} in federated rounds. After \setting{rounds.total} rounds it is
 \gap{bird}{fedavg}{4}{rft}{4} EX points above FedAvg SFT on BIRD dev
 ($p = {}$\padj{bird}{fedavg}{4}{rft}{4}). On BIRD dev after \setting{rounds.total} rounds, this variant is
 \gap{bird}{k2}{4}{rft}{4} EX points below \method{}

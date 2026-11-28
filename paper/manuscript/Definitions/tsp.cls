@@ -993,7 +993,7 @@
     \ifodd\value{page} % 
         \fontsize{8}{8}\selectfont%
         \ifthenelse{\equal{\@status}{submit}}{%
-            Version \today submitted to {\journalname} % 
+            Version \today\ submitted to {\journalname} % 
         }{%
             {\journalname\ }{\@pubyear};\@pubvolume(\@issuenum)%
         }%
@@ -1007,7 +1007,7 @@
     \else
         \fontsize{8}{8}\selectfont%
         \ifthenelse{\equal{\@status}{submit}}{%
-            Version \today submitted to {\journalname} % 
+            Version \today\ submitted to {\journalname} % 
         }{%
             {\journalname\ }{\@pubyear};\@pubvolume(\@issuenum)% 
         }%

@@ -96,9 +96,10 @@ of variants of the generated suite was chosen on the Spider dev
 predictions on which its agreement is reported
 (Section~\ref{sec:datasets}). Spider test and Spider-DK are judged by EX alone.
 
-Each model comes from one training run, with one seed and one draw of
-the partition, so the tests cover the variation over evaluation
-questions and not the variation between runs.
+Except for the two rows of Table~\ref{tab:main} that repeat the training
+with a second seed, each model comes from one training run, and all of
+them from one draw of the partition, so the tests cover the variation
+over evaluation questions and not the variation between runs.
 
 \method{} needs more client computation over the rounds: in
 \setting{rounds.total} rounds, \fact{cost.bird.k2.gpu_total} against
@@ -133,7 +134,10 @@ pairs of the gold SQL query was run without warm-up rounds only.
 Privacy in this study is data isolation: no differential privacy is
 applied, and what an adapter reveals about the data of a client is not
 analyzed. The pair count that a client sends depends on how the model
-performs on its data.
+performs on its data. With weights by the numbers of questions, as in
+FedAvg SFT, no pair count is sent, and EX after one preference round
+does not differ significantly from EX with the pair counts
+(Section~\ref{sec:ablation}).
 
 The models have \setting{models.size.min} to \setting{model.size}
 parameters and are trained with LoRA, and the benchmarks consist of

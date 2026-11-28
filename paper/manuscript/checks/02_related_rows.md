@@ -225,6 +225,16 @@ Each is cited in one clause that stays within its abstract; the papers themselve
 
 "That averaging the two LoRA factors separately does not average their product" is arithmetic and our own sentence, not a statement of either paper. Whether the federated averaging of OpenFedLLM averages the factors separately was not checked; the sentence of Section 2.3 speaks of this paper's method and baselines only.
 
+## W. Three works added after the read of the full draft (2026-11-28)
+
+Each is cited in one clause. The two federated DPO works were read from their arXiv abstract and HTML pages (the HTML reached the reader in full for about the first 40k characters, the rest as a summary); the third from its abstract page only.
+
+| Paper | What the page says | Quotation | Locator |
+|---|---|---|---|
+| Zhu et al. 2026, FedPDPO (`zhu2026fedpdpo`), arXiv 2603.19741v1, comments "under review" | Federated DPO for non-IID preference data: a frozen LLM with a LoRA adapter per client; the shared LoRA adapter is aggregated, a client-specific LLM head and an explicit reward head stay local. Preference pairs come from fixed datasets (IMDB-DPO, Code-Vulnerability-Security, WebGPT, PyDPO, UltraFeedback); no pairs are generated in training | "the globally shared LoRA adapter with the personalized client-specific LLM head"; "a personalized DPO training strategy with a client-specific explicit reward head" | https://arxiv.org/abs/2603.19741 |
+| Jiang and Sarkar 2026, pFedDPO (`jiang2026pfeddpo`), arXiv 2610.12885v1, comments "AAAI Fall Symposium Series 2026" | Personalized federated DPO: the shared base model is synchronized by FedAvg, a private LoRA adapter stays at each client. Fixed datasets (SHP, Anthropic HH-RLHF), DistilGPT-2 | "each client maintains a small private LoRA adapter atop a shared global base model"; "the base model is synchronized via FedAvg each round, while LoRA adapters remain local" | https://arxiv.org/abs/2610.12885 |
+| Yuan et al. 2023, RFT (`yuan2023rft`), arXiv 2308.01825v2, comments "Working in Progress" | Math reasoning (GSM8K): supervised models generate reasoning paths, the correct ones are collected as added fine-tuning data. The abstract does not say that the fine-tuned model is the one that generated them | "we propose to apply Rejection sampling Fine-Tuning (RFT)"; "uses supervised models to generate and collect correct reasoning paths as augmented fine-tuning datasets." | https://arxiv.org/abs/2308.01825 |
+
 ## Points for the editor
 
 Statements that were wrong or imprecise:
