@@ -27,7 +27,11 @@ in its scratchpad.
    is written: `-t section` (`prompts/section.md`, approved by the owner on
    2026-11-27); the pages under review go in a file whose name starts with
    `review_`, the pages before them in a second file. For anything else use
-   `-q` with the owner's words copied verbatim. Do not write your own prompt, add context, name the
+   `-q` with the owner's words copied verbatim. The four templates carry one
+   paragraph on the bar of CMC (owner, 2026-11-28; facts from
+   `paper/notes/JOURNAL_BAR.md`): reviews are judged at that journal's level,
+   and requests beyond it are listed apart. Another journal (`-j`) needs its
+   own paragraph. Do not write your own prompt, add context, name the
    weaknesses you expect, or summarize the paper; that is the framing this
    skill exists to remove. If the owner's question needs a new template, show
    it to the owner before using it.
