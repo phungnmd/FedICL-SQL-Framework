@@ -166,9 +166,11 @@ State (2026-11-28): Section 3 is revised and read by the kept reviewer
 (handle `tmp.QhmK21oy`, listed in `~/.cache/cold-session/`); Section 1
 with the abstract is drafted and waits for W3; Section 4 is written
 and read by the reviewer; Sections 5, 6 and 7 are written and read
-twice by the reviewer; Section 2 with Table 1 is written and with the
-reviewer; Section 1 and the abstract are being revised (W3); the
-appendices and the statements exist. The PDF has 31 pages.
+twice by the reviewer; Section 2 with Table 1 is written, read and
+revised; Section 1 and the abstract are brought up to date (W3) and
+were not read as a part by the kept reviewer, which saw them as the
+pages before Section 2; the appendices and the statements exist. The
+PDF has 31 pages. Next is W4.
 
 | Step | What | Waits on |
 |---|---|---|
